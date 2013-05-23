@@ -100,10 +100,10 @@ managed pools (unless these are registered as <a class="reference internal" href
 <p>When creating an MV pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> may take
 three <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
 <ul class="simple">
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 65536) is the
+<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_EXTEND_BY" title="MPS_KEY_EXTEND_BY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt></a> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 65536) is the
 <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of segment that the pool will request from the
 <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</li>
-<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
+<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MEAN_SIZE" title="MPS_KEY_MEAN_SIZE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></a> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
 predicted mean size of blocks that will be allocated from the
 pool.</li>
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 65536) is the
@@ -144,7 +144,7 @@ mean size, and maximum size like this:</p>
 class.</p>
 <p>When creating a debugging MV pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a>
 requires four keyword arguments: <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_SIZE</span></tt>,
-<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt>, <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> are as
+<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MEAN_SIZE" title="MPS_KEY_MEAN_SIZE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></a>, <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> are as
 described above, and <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_POOL_DEBUG_OPTIONS</span></tt>
 specifies the debugging options. See <tt class="xref c c-type docutils literal"><span class="pre">mps_debug_option_s</span></tt>.</p>
 <div class="admonition-deprecated admonition">

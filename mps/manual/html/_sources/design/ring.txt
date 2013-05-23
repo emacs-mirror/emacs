@@ -3,4 +3,4 @@
 
 .. _design-ring:
 
-.. include:: ../../../design/ring.txt
+.. include:: ../../converted/ring.rst

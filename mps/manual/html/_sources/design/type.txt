@@ -3,4 +3,4 @@
 
 .. _design-type:
 
-.. include:: ../../../design/type.txt
+.. include:: ../../converted/type.rst

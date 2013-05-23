@@ -3,4 +3,4 @@
 
 .. _design-arena:
 
-.. include:: ../../../design/arena.txt
+.. include:: ../../converted/arena.rst

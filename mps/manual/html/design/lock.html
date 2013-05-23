@@ -28,7 +28,7 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="10. Debugging features for client objects" href="object-debug.html" />
+    <link rel="next" title="10. Client message protocol" href="message.html" />
     <link rel="prev" title="8. The generic fix function" href="fix.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="10. Debugging features for client objects"
+          <a href="message.html" title="10. Client message protocol"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="fix.html" title="8. The generic fix function"
@@ -54,29 +54,11 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-lock"><span id="index-0"></span></span><div class="section" id="the-lock-module">
-<h1>9. The lock module<a class="headerlink" href="#the-lock-module" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.lock</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">David Moore</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1995-11-21</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/lock.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="the-lock-module">
+<span id="design-design-lock"></span><span id="design-lock"></span><span id="index-0"></span><h1>9. The lock module<a class="headerlink" href="#the-lock-module" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="purpose">
-<h2>9.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="id1">.purpose</span>: Support the locking needs of the thread-safe design. In
+<span id="design.mps.lock"></span><h2>9.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.lock.purpose"></span><a class="mpstag reference internal" href="#design.mps.lock.purpose">.purpose:</a> Support the locking needs of the thread-safe design. In
 particular:</p>
 <ul class="simple">
 <li>recursive locks;</li>
@@ -86,7 +68,7 @@ the client;</li>
 <li>binary &#8220;global&#8221; lock that need not be allocated or initialized by
 the client.</li>
 </ul>
-<p><span class="target" id="context">.context</span>: The MPS has to be able to operate in a multi-threaded
+<p><span class="target" id="design.mps.lock.context"></span><a class="mpstag reference internal" href="#design.mps.lock.context">.context:</a> The MPS has to be able to operate in a multi-threaded
 environment. The thread-safe design (design.mps.thread-safety)
 requires client-allocatable binary locks, a global binary lock and a
 global recursive lock. An interface to client-allocatable recursive
@@ -96,17 +78,17 @@ be necessary anyway for the global recursive lock.</p>
 </div>
 <div class="section" id="background">
 <h2>9.2. Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="need">.need</span>: In an environment where multiple threads are accessing
+<p><span class="target" id="design.mps.lock.need"></span><a class="mpstag reference internal" href="#design.mps.lock.need">.need:</a> In an environment where multiple threads are accessing
 shared data. The threads which access data which is shared with other
 threads need to cooperate with those threads to maintain consistency.
 Locks provide a simple mechanism for doing this.</p>
-<p><span class="target" id="ownership">.ownership</span>: A lock is an object which may be &#8220;owned&#8221; by a single
+<p><span class="target" id="design.mps.lock.ownership"></span><a class="mpstag reference internal" href="#design.mps.lock.ownership">.ownership:</a> A lock is an object which may be &#8220;owned&#8221; by a single
 thread at a time. By claiming ownership of a lock before executing
 some piece of code a thread can guarantee that no other thread owns
 the lock during execution of that code. If some other thread holds a
 claim on a lock, the thread trying to claim the lock will suspend
 until the lock is released by the owning thread.</p>
-<p><span class="target" id="data">.data</span>: A simple way of using this behaviour is to associate a lock
+<p><span class="target" id="design.mps.lock.data"></span><a class="mpstag reference internal" href="#design.mps.lock.data">.data:</a> A simple way of using this behaviour is to associate a lock
 with a shared data structure. By claiming that lock around accesses to
 the data, a consistent view of the structure can be seen by the
 accessing thread. More generally any set of operations which are
@@ -114,15 +96,15 @@ required to be mutually exclusive may be performed so by using locks.</p>
 </div>
 <div class="section" id="overview">
 <h2>9.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="adt">.adt</span>: There is an abstract datatype <tt class="docutils literal"><span class="pre">Lock</span></tt> which points to a
-locking structure <tt class="docutils literal"><span class="pre">LockStruct</span></tt>. This structure is opaque to any
+<p><span class="target" id="design.mps.lock.adt"></span><a class="mpstag reference internal" href="#design.mps.lock.adt">.adt:</a> There is an abstract datatype <tt class="xref c c-type docutils literal"><span class="pre">Lock</span></tt> which points to a
+locking structure <tt class="xref c c-type docutils literal"><span class="pre">LockStruct</span></tt>. This structure is opaque to any
 client, although an interface is provided to supply the size of the
 structure for any client wishing to make a new lock. The lock is not
 allocated by the module as allocation itself may require locking.
-<tt class="docutils literal"><span class="pre">LockStruct</span></tt> is implementation specific.</p>
-<p><span class="target" id="simple-lock">.simple-lock</span>: There are facilities for claiming and releasing
-locks. <tt class="docutils literal"><span class="pre">Lock</span></tt> is used for both binary and recursive locking.</p>
-<p><span class="target" id="global-locks">.global-locks</span>: &#8220;Global&#8221; locks are so called because they are used
+<tt class="xref c c-type docutils literal"><span class="pre">LockStruct</span></tt> is implementation specific.</p>
+<p><span class="target" id="design.mps.lock.simple-lock"></span><a class="mpstag reference internal" href="#design.mps.lock.simple-lock">.simple-lock:</a> There are facilities for claiming and releasing
+locks. <tt class="xref c c-type docutils literal"><span class="pre">Lock</span></tt> is used for both binary and recursive locking.</p>
+<p><span class="target" id="design.mps.lock.global-locks"></span><a class="mpstag reference internal" href="#design.mps.lock.global-locks">.global-locks:</a> &#8220;Global&#8221; locks are so called because they are used
 to protect data in a global location (such as a global variable). The
 lock module provides two global locks; one recursive and one binary.
 There are facilities for claiming and releasing both of these locks.
@@ -133,22 +115,22 @@ lock is intended to protect mutable data, possibly in conjunction with
 other local locking strategies. The recursive global lock is intended
 to protect static read-only data during one-off initialization. See
 design.mps.thread-safety.</p>
-<p><span class="target" id="deadlock">.deadlock</span>: This module does not provide any deadlock protection.
+<p><span class="target" id="design.mps.lock.deadlock"></span><a class="mpstag reference internal" href="#design.mps.lock.deadlock">.deadlock:</a> This module does not provide any deadlock protection.
 Clients are responsible for avoiding deadlock by using traditional
 strategies such as ordering of locks. (See
 design.mps.thread-safety.deadlock.)</p>
-<p><span class="target" id="single-thread">.single-thread</span>: In the single-threaded configuration, locks are not
+<p><span class="target" id="design.mps.lock.single-thread"></span><a class="mpstag reference internal" href="#design.mps.lock.single-thread">.single-thread:</a> In the single-threaded configuration, locks are not
 needed and the claim/release interfaces defined to be no-ops.</p>
 </div>
 <div class="section" id="detailed-design">
 <h2>9.4. Detailed design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="interface">.interface</span>: The interface comprises the following functions:</p>
+<p><span class="target" id="design.mps.lock.interface"></span><a class="mpstag reference internal" href="#design.mps.lock.interface">.interface:</a> The interface comprises the following functions:</p>
 <dl class="function">
 <dt id="LockSize">
 size_t <tt class="descname">LockSize</tt><big>(</big>void<big>)</big><a class="headerlink" href="#LockSize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Return the size of a <tt class="docutils literal"><span class="pre">LockStruct</span></tt> for allocation purposes.</p>
+<p>Return the size of a <tt class="xref c c-type docutils literal"><span class="pre">LockStruct</span></tt> for allocation purposes.</p>
 <dl class="function">
 <dt id="LockInit">
 void <tt class="descname">LockInit</tt><big>(</big>Lock<em>&nbsp;lock</em><big>)</big><a class="headerlink" href="#LockInit" title="Permalink to this definition">¶</a></dt>
@@ -187,7 +169,7 @@ void <tt class="descname">LockReleaseRecursive</tt><big>(</big>Lock<em>&nbsp;loc
 <dd></dd></dl>
 
 <p>Testores the previous state of the lock stored by corresponding
-<tt class="docutils literal"><span class="pre">LockClaimRecursive</span></tt> call.</p>
+<a class="reference internal" href="#LockClaimRecursive" title="LockClaimRecursive"><tt class="xref c c-func docutils literal"><span class="pre">LockClaimRecursive()</span></tt></a> call.</p>
 <dl class="function">
 <dt id="LockClaimGlobal">
 void <tt class="descname">LockClaimGlobal</tt><big>(</big>void<big>)</big><a class="headerlink" href="#LockClaimGlobal" title="Permalink to this definition">¶</a></dt>
@@ -214,15 +196,15 @@ void <tt class="descname">LockReleaseGlobalRecursive</tt><big>(</big>void<big>)<
 <dd></dd></dl>
 
 <p>Restores the previous state of the recursive global lock stored by
-corresponding <tt class="docutils literal"><span class="pre">LockClaimGlobalRecursive</span></tt> call.</p>
-<p><span class="target" id="impl-recursive">.impl.recursive</span>: For recursive claims, the list of previous states
+corresponding <a class="reference internal" href="#LockClaimGlobalRecursive" title="LockClaimGlobalRecursive"><tt class="xref c c-func docutils literal"><span class="pre">LockClaimGlobalRecursive()</span></tt></a> call.</p>
+<p><span class="target" id="design.mps.lock.impl.recursive"></span><a class="mpstag reference internal" href="#design.mps.lock.impl.recursive">.impl.recursive:</a> For recursive claims, the list of previous states
 can be simply implemented by keeping a count of the number of claims
 made by the current thread so far. In multi-threaded implementation
 below this is handled by the operating system. A count is still kept
 and used to check correctness.</p>
-<p><span class="target" id="impl-global">.impl.global</span>: The binary and recursive global locks may actually be
+<p><span class="target" id="design.mps.lock.impl.global"></span><a class="mpstag reference internal" href="#design.mps.lock.impl.global">.impl.global:</a> The binary and recursive global locks may actually be
 implemented using the same mechanism as normal locks.</p>
-<p><span class="target" id="impl-ansi">.impl.ansi</span>: Single-Threaded Generic Implementation:</p>
+<p><span class="target" id="design.mps.lock.impl.ansi"></span><a class="mpstag reference internal" href="#design.mps.lock.impl.ansi">.impl.ansi:</a> Single-Threaded Generic Implementation:</p>
 <ul class="simple">
 <li>single-thread;</li>
 <li>no need for locking;</li>
@@ -230,7 +212,7 @@ implemented using the same mechanism as normal locks.</p>
 <li>provides checking in debug version;</li>
 <li>otherwise does nothing except keep count of claims.</li>
 </ul>
-<p><span class="target" id="impl-win32">.impl.win32</span>: Win32 Implementation:</p>
+<p><span class="target" id="design.mps.lock.impl.win32"></span><a class="mpstag reference internal" href="#design.mps.lock.impl.win32">.impl.win32:</a> Win32 Implementation:</p>
 <ul class="simple">
 <li>supports Win32&#8217;s threads;</li>
 <li>uses Critical Sections [ref?];</li>
@@ -238,7 +220,7 @@ implemented using the same mechanism as normal locks.</p>
 <li>both recursive and non-recursive calls use same Windows function;</li>
 <li>also performs checking.</li>
 </ul>
-<p><span class="target" id="impl-linux">.impl.linux</span>: LinuxThreads Implementation (possibly suitable for all
+<p><span class="target" id="design.mps.lock.impl.linux"></span><a class="mpstag reference internal" href="#design.mps.lock.impl.linux">.impl.linux:</a> LinuxThreads Implementation (possibly suitable for all
 PThreads implementations):</p>
 <ul class="simple">
 <li>supports LinuxThreads threads, which are an implementation of
@@ -246,57 +228,11 @@ PThreads (see <a class="reference external" href="http://pauillac.inria.fr/~xler
 <li>locking structure contains a mutex, initialized to check for
 recursive locking;</li>
 <li>locking structure contains a count of the number of active claims;</li>
-<li>non-recursive locking calls pthread_mutex_lock and expects success;</li>
-<li>recursive locking calls pthread_mutex_lock and expects either
-success or EDEADLK (indicating a recursive claim);</li>
+<li>non-recursive locking calls <tt class="xref c c-func docutils literal"><span class="pre">pthread_mutex_lock()</span></tt> and expects success;</li>
+<li>recursive locking calls <tt class="xref c c-func docutils literal"><span class="pre">pthread_mutex_lock()</span></tt> and expects either
+success or <tt class="xref c c-macro docutils literal"><span class="pre">EDEADLK</span></tt> (indicating a recursive claim);</li>
 <li>also performs checking.</li>
 </ul>
-</div>
-<div class="section" id="document-history">
-<h2>9.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1995-11-21 David Moore. Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-04-14 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>9.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -316,8 +252,6 @@ possibility of such damage.</strong></p>
 <li><a class="reference internal" href="#background">9.2. Background</a></li>
 <li><a class="reference internal" href="#overview">9.3. Overview</a></li>
 <li><a class="reference internal" href="#detailed-design">9.4. Detailed design</a></li>
-<li><a class="reference internal" href="#document-history">9.5. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">9.6. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
@@ -326,8 +260,8 @@ possibility of such damage.</strong></p>
   <p class="topless"><a href="fix.html"
                         title="previous chapter">8. The generic fix function</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="object-debug.html"
-                        title="next chapter">10. Debugging features for client objects</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="message.html"
+                        title="next chapter">10. Client message protocol</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -353,7 +287,7 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="10. Debugging features for client objects"
+          <a href="message.html" title="10. Client message protocol"
              >next</a> |</li>
         <li class="right" >
           <a href="fix.html" title="8. The generic fix function"

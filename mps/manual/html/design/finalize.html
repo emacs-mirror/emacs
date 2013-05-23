@@ -54,38 +54,20 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-finalize"><span id="index-0"></span></span><div class="section" id="finalization">
-<h1>7. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.finalize</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">David Jones</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1997-02-14</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/finalize.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="finalization">
+<span id="design-design-finalize"></span><span id="design-finalize"></span><span id="index-0"></span><h1>7. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
-<h2>7.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="id1">.overview</span>: Finalization is implemented internally using the
+<span id="design.mps.finalize"></span><h2>7.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.finalize.overview"></span><a class="mpstag reference internal" href="#design.mps.finalize.overview">.overview:</a> Finalization is implemented internally using the
 Guardian Pool Class (design.mps.poolmrg). Objects can be registered
 for finalization using an interface function (called
-<tt class="docutils literal"><span class="pre">mps_finalize</span></tt>). Notification of finalization is given to the client
+<a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>). Notification of finalization is given to the client
 via the messaging interface. <tt class="docutils literal"><span class="pre">PoolClassMRG</span></tt> (design.mps.poolmrg)
 implements a Message Class which implements the finalization messages.</p>
 </div>
 <div class="section" id="requirements">
 <h2>7.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="req">.req</span>: Historically only Dylan had requirements for finalization,
+<p><span class="target" id="design.mps.finalize.req"></span><a class="mpstag reference internal" href="#design.mps.finalize.req">.req:</a> Historically only Dylan had requirements for finalization,
 see req.dylan.fun.final. Now (2003-02-19) Configura have requirements
 for finalization. Happily they are very similar.</p>
 </div>
@@ -93,117 +75,68 @@ for finalization. Happily they are very similar.</p>
 <h2>7.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="external-interface">
 <h3>7.3.1. External interface<a class="headerlink" href="#external-interface" title="Permalink to this headline">¶</a></h3>
-<p><tt class="docutils literal"><span class="pre">mps_res_t</span> <span class="pre">mps_finalize(mps_arena_t</span> <span class="pre">arena,</span> <span class="pre">mps_addr_t</span> <span class="pre">obj)</span></tt></p>
-<p><span class="target" id="if-register">.if.register</span>: Increases the number of times that the object located
-at <tt class="docutils literal"><span class="pre">obj</span></tt> has been registered for finalization by one. The object
-must have been allocated from the arena (space). Any finalization
-messages that are created for this object will appear on the arena&#8217;s
-message queue. The MPS will attempt to finalize the object that number
-of times.</p>
-<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">mps_definalize(mps_arena_t</span> <span class="pre">arena,</span> <span class="pre">mps_addr_t</span> <span class="pre">obj)</span></tt></p>
-<p><span class="target" id="if-deregister">.if.deregister</span>: <tt class="docutils literal"><span class="pre">mps_definalize</span></tt> reduces the number of times that
+<p><span class="target" id="design.mps.finalize.if.register"></span><a class="mpstag reference internal" href="#design.mps.finalize.if.register">.if.register:</a> <a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a> increases the number of times that
+an object has been registered for finalization by one. The object must
+have been allocated from the arena (space). Any finalization messages
+that are created for this object will appear on the arena&#8217;s message
+queue. The MPS will attempt to finalize the object that number of
+times.</p>
+<p><span class="target" id="design.mps.finalize.if.deregister"></span><a class="mpstag reference internal" href="#design.mps.finalize.if.deregister">.if.deregister:</a> <a class="reference internal" href="../topic/finalization.html#mps_definalize" title="mps_definalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_definalize()</span></tt></a> reduces the number of times that
 the object located at <tt class="docutils literal"><span class="pre">obj</span></tt> has been registered for finalization by
 one. It is an error to definalize an object that has not been
 registered for finalization.</p>
-<p><span class="target" id="if-deregister-not">.if.deregister.not</span>: At the moment (1997-08-20) <tt class="docutils literal"><span class="pre">mps_definalize</span></tt>
+<p><span class="target" id="design.mps.finalize.if.deregister.not"></span><a class="mpstag reference internal" href="#design.mps.finalize.if.deregister.not">.if.deregister.not:</a> At the moment (1997-08-20) <a class="reference internal" href="../topic/finalization.html#mps_definalize" title="mps_definalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_definalize()</span></tt></a>
 is not implemented.</p>
-<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">mps_message_finalization_ref(mps_addr_t</span> <span class="pre">*mps_addr_return,</span> <span class="pre">mps_arena_t</span> <span class="pre">mps_arena,</span> <span class="pre">mps_message_t</span> <span class="pre">mps_message)</span></tt></p>
-<p><span class="target" id="if-get-ref">.if.get-ref</span>: <tt class="docutils literal"><span class="pre">mps_message_finalization_ref</span></tt> returns the reference
+<p><span class="target" id="design.mps.finalize.if.get-ref"></span><a class="mpstag reference internal" href="#design.mps.finalize.if.get-ref">.if.get-ref:</a> <a class="reference internal" href="../topic/finalization.html#mps_message_finalization_ref" title="mps_message_finalization_ref"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_finalization_ref()</span></tt></a> returns the reference
 to the finalized object stored in the finalization message.</p>
 </div>
 </div>
 <div class="section" id="implementation">
 <h2>7.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="int-over">.int.over</span>: Registering an object for finalization corresponds to
+<p><span class="target" id="design.mps.finalize.int.over"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.over">.int.over:</a> Registering an object for finalization corresponds to
 allocating a reference of rank FINAL to that object. This reference is
 allocated in a guardian object in a pool of <tt class="docutils literal"><span class="pre">PoolClassMRG</span></tt> (see
 design.mps.poolmrg).</p>
-<p><span class="target" id="int-arena-struct">.int.arena.struct</span>: The MRG pool used for managing final references
+<p><span class="target" id="design.mps.finalize.int.arena.struct"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.arena.struct">.int.arena.struct:</a> The MRG pool used for managing final references
 is kept in the Arena (Space), referred to as the &#8220;final pool&#8221;.</p>
-<p><span class="target" id="int-arena-lazy">.int.arena.lazy</span>: The pool is lazily created. It will not be created
+<p><span class="target" id="design.mps.finalize.int.arena.lazy"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.arena.lazy">.int.arena.lazy:</a> The pool is lazily created. It will not be created
 until the first object is registered for finalization.</p>
-<p><span class="target" id="int-arena-flag">.int.arena.flag</span>: There is a flag in the Arena that indicates
+<p><span class="target" id="design.mps.finalize.int.arena.flag"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.arena.flag">.int.arena.flag:</a> There is a flag in the Arena that indicates
 whether the final pool has been created yet or not.</p>
 <dl class="function">
 <dt id="ArenaFinalize">
-<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ArenaFinalize</tt><big>(</big>Arena<em>&nbsp;arena</em>, <a class="reference internal" href="type.html#Ref" title="Ref">Ref</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#ArenaFinalize" title="Permalink to this definition">¶</a></dt>
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ArenaFinalize</tt><big>(</big><a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em>, <a class="reference internal" href="type.html#Ref" title="Ref">Ref</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#ArenaFinalize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><span class="target" id="int-finalize-create">.int.finalize.create</span>: Creates the final pool if it has not been
+<p><span class="target" id="design.mps.finalize.int.finalize.create"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.create">.int.finalize.create:</a> Creates the final pool if it has not been
 created yet.</p>
-<p><span class="target" id="int-finalize-alloc">.int.finalize.alloc</span>: Allocates a guardian in the final pool.</p>
-<p><span class="target" id="int-finalize-write">.int.finalize.write</span>: Writes a reference to the object into the
+<p><span class="target" id="design.mps.finalize.int.finalize.alloc"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.alloc">.int.finalize.alloc:</a> Allocates a guardian in the final pool.</p>
+<p><span class="target" id="design.mps.finalize.int.finalize.write"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.write">.int.finalize.write:</a> Writes a reference to the object into the
 guardian object.</p>
-<p><span class="target" id="int-finalize-all">.int.finalize.all</span>: That&#8217;s all.</p>
-<p><span class="target" id="int-finalize-error">.int.finalize.error</span>: If either the creation of the pool or the
+<p><span class="target" id="design.mps.finalize.int.finalize.all"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.all">.int.finalize.all:</a> That&#8217;s all.</p>
+<p><span class="target" id="design.mps.finalize.int.finalize.error"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.error">.int.finalize.error:</a> If either the creation of the pool or the
 allocation of the object fails then the error will be reported back to
 the caller.</p>
-<p><span class="target" id="int-finalize-error-no-unwind">.int.finalize.error.no-unwind</span>: This function does not need to do
+<p><span class="target" id="design.mps.finalize.int.finalize.error.no-unwind"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.finalize.error.no-unwind">.int.finalize.error.no-unwind:</a> This function does not need to do
 any unwinding in the error cases because the creation of the pool is
 not something that needs to be undone.</p>
-<p><span class="target" id="int-arena-destroy-empty">.int.arena-destroy.empty</span>: <tt class="docutils literal"><span class="pre">ArenaDestroy</span></tt> empties the message
-queue by calling <tt class="docutils literal"><span class="pre">MessageEmpty</span></tt>.</p>
-<p><span class="target" id="int-arena-destroy-final-pool">.int.arena-destroy.final-pool</span>: If the final pool has been created
-then <tt class="docutils literal"><span class="pre">ArenaDestroy</span></tt> destroys the final pool.</p>
-<p><span class="target" id="access">.access</span>: <tt class="docutils literal"><span class="pre">mps_message_finalization_ref</span></tt> needs to access the
+<p><span class="target" id="design.mps.finalize.int.arena-destroy.empty"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.arena-destroy.empty">.int.arena-destroy.empty:</a> <tt class="xref c c-func docutils literal"><span class="pre">ArenaDestroy()</span></tt> empties the message
+queue by calling <a class="reference internal" href="message.html#MessageEmpty" title="MessageEmpty"><tt class="xref c c-func docutils literal"><span class="pre">MessageEmpty()</span></tt></a>.</p>
+<p><span class="target" id="design.mps.finalize.int.arena-destroy.final-pool"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.arena-destroy.final-pool">.int.arena-destroy.final-pool:</a> If the final pool has been created
+then <tt class="xref c c-func docutils literal"><span class="pre">ArenaDestroy()</span></tt> destroys the final pool.</p>
+<p><span class="target" id="design.mps.finalize.access"></span><a class="mpstag reference internal" href="#design.mps.finalize.access">.access:</a> <a class="reference internal" href="../topic/finalization.html#mps_message_finalization_ref" title="mps_message_finalization_ref"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_finalization_ref()</span></tt></a> needs to access the
 finalization message to retrieve the reference and then write it to
 where the client asks. This must be done carefully, in order to avoid
 breaking the invariants or creating a hidden root.</p>
-<p><span class="target" id="access-invariants">.access.invariants</span>: We protect the invariants by using special
-routines <tt class="docutils literal"><span class="pre">ArenaRead</span></tt> and <tt class="docutils literal"><span class="pre">ArenaPoke</span></tt> to read and write the
+<p><span class="target" id="design.mps.finalize.access.invariants"></span><a class="mpstag reference internal" href="#design.mps.finalize.access.invariants">.access.invariants:</a> We protect the invariants by using special
+routines <tt class="xref c c-func docutils literal"><span class="pre">ArenaRead()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt> to read and write the
 reference. This works as long as there&#8217;s no write-barrier collection.
-[Instead of <tt class="docutils literal"><span class="pre">ArenaPoke</span></tt>, we could put in an <tt class="docutils literal"><span class="pre">ArenaWrite</span></tt> that
-would be identical to <tt class="docutils literal"><span class="pre">ArenaPoke</span></tt>, except for AVERring the invariant
+[Instead of <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, we could put in an <tt class="xref c c-func docutils literal"><span class="pre">ArenaWrite()</span></tt> that
+would be identical to <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, except for AVERring the invariant
 (or it can just AVER there are no busy traces unflipped). When we get
 write-barrier collection, we could change it to do the real thing, but
 in the absence of a write-barrier, it&#8217;s functionally identical to
-<tt class="docutils literal"><span class="pre">ArenaPoke</span></tt>. Pekka 1997-12-09]</p>
-</div>
-<div class="section" id="document-history">
-<h2>7.5. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1997-02-14 David Jones. Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-04-13 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>7.6. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
+<tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>. Pekka 1997-12-09]</p>
 </div>
 </div>
 
@@ -226,8 +159,6 @@ possibility of such damage.</strong></p>
 </ul>
 </li>
 <li><a class="reference internal" href="#implementation">7.4. Implementation</a></li>
-<li><a class="reference internal" href="#document-history">7.5. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">7.6. Copyright and License</a></li>
 </ul>
 </li>
 </ul>

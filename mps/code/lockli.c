@@ -1,7 +1,7 @@
 /* lockli.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .linux: This implementation currently just supports LinuxThreads
  * (platform MPS_OS_LI), Single Unix i/f.
@@ -26,7 +26,7 @@
 #include "lock.h"
 #include "config.h"
 
-#include <pthread.h>
+#include <pthread.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
 
@@ -259,7 +259,7 @@ void LockReleaseGlobal(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

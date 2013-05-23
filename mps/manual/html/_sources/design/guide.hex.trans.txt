@@ -3,4 +3,4 @@
 
 .. _design-guide.hex.trans:
 
-.. include:: ../../../design/guide.hex.trans.txt
+.. include:: ../../converted/guide.hex.trans.rst

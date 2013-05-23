@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>11. Manually-Managed Variable-Size First-Fit Pool &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>14. Manually-Managed Variable-Size First-Fit Pool &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="12. Protocol inheritance" href="protocol.html" />
-    <link rel="prev" title="10. Debugging features for client objects" href="object-debug.html" /> 
+    <link rel="next" title="15. The protection module" href="prot.html" />
+    <link rel="prev" title="13. AMC pool class" href="poolamc.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="12. Protocol inheritance"
+          <a href="prot.html" title="15. The protection module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="object-debug.html" title="10. Debugging features for client objects"
+          <a href="poolamc.html" title="13. AMC pool class"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,27 +54,11 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-poolmvff"><span id="index-0"></span></span><div class="section" id="manually-managed-variable-size-first-fit-pool">
-<h1>11. Manually-Managed Variable-Size First-Fit Pool<a class="headerlink" href="#manually-managed-variable-size-first-fit-pool" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Gavin Matthews</td>
-</tr>
-<tr class="field-even field"><th class="field-name">date:</th><td class="field-body">1998-09-09</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">organization:</th><td class="field-body">Harlequin</td>
-</tr>
-<tr class="field-even field"><th class="field-name">status:</th><td class="field-body">incomplete doc</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">revision:</th><td class="field-body">$Id$</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="manually-managed-variable-size-first-fit-pool">
+<span id="design-design-poolmvff"></span><span id="design-poolmvff"></span><span id="index-0"></span><h1>14. Manually-Managed Variable-Size First-Fit Pool<a class="headerlink" href="#manually-managed-variable-size-first-fit-pool" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>11.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: The pool was created in a response to a belief that the
+<span id="design.mps.poolmvff"></span><h2>14.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.intro"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.intro">.intro:</a> The pool was created in a response to a belief that the
 ScriptWorks EPDL/EPDR&#8217;s first fit policy is beneficial for some classes
 of client behaviour, but the performance of a linear free list was
 unacceptable.  This pool implements a first (or last) fit policy for
@@ -82,139 +66,118 @@ variable-sized manually-managed objects, with control over first/last,
 segment preference high/low, and slot fit low/high.</p>
 </div>
 <div class="section" id="overview">
-<h2>11.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="over">.over</span>: This pool implements certain variants of the address-ordered
+<h2>14.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.over"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.over">.over:</a> This pool implements certain variants of the address-ordered
 first-fit policy. The implementation allows allocation across segment
 boundaries.</p>
-<p><span class="target" id="over-buffer">.over.buffer</span>: Buffered allocation is also supported, but in that
+<p><span class="target" id="design.mps.poolmvff.over.buffer"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.over.buffer">.over.buffer:</a> Buffered allocation is also supported, but in that
 case, the buffer-filling policy is worst-fit. Buffered and unbuffered
 allocation can be used at the same time, but in that case, the first
 ap must be created before any allocations.</p>
-<p><span class="target" id="over-buffer-class">.over.buffer.class</span>: The pool uses the simplest buffer class,
+<p><span class="target" id="design.mps.poolmvff.over.buffer.class"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.over.buffer.class">.over.buffer.class:</a> The pool uses the simplest buffer class,
 BufferClass. This is appropriate since these buffers don&#8217;t attach to
 segments, and hence don&#8217;t constrain buffered regions to lie within
 segment boundaries.</p>
-<p><span class="target" id="over-segments">.over.segments</span>: The pool uses the simplest segment class
+<p><span class="target" id="design.mps.poolmvff.over.segments"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.over.segments">.over.segments:</a> The pool uses the simplest segment class
 (SegClass). There&#8217;s no need for anything more complex.</p>
 </div>
 <div class="section" id="methods">
-<h2>11.3. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="method">.method</span>: The MVFF pool supports the following methods:</p>
-<p><span class="target" id="method-init">.method.init</span>: <tt class="docutils literal"><span class="pre">Res</span> <span class="pre">MVFFInit(Pool</span> <span class="pre">pool,</span> <span class="pre">va_list</span> <span class="pre">arg)</span></tt></p>
+<h2>14.3. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.method"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method">.method:</a> The MVFF pool supports the following methods:</p>
+<p><span class="target" id="design.mps.poolmvff.method.init"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.init">.method.init:</a> <tt class="docutils literal"><span class="pre">Res</span> <span class="pre">MVFFInit(Pool</span> <span class="pre">pool,</span> <span class="pre">va_list</span> <span class="pre">arg)</span></tt></p>
 <p>This takes six <a class="reference external" href="keyword-arguments.rst">keyword arguments</a>:</p>
-<dl class="docutils">
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt></dt>
-<dd>the segment size</dd>
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></dt>
-<dd>the average object size</dd>
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt></dt>
-<dd>the alignment of allocations and frees (must be at least sizeof(void*))</dd>
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></dt>
-<dd>whether to allocate objects at the end of free blocks found, as
-opposed to at the start (for unbuffered allocation)</dd>
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt></dt>
-<dd>whether to express SegPrefHIGH to the arena, as opposed to
-SegPrefLOW</dd>
-<dt><tt class="docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></dt>
-<dd>whether to use the suitable block of lowest address, as opposed
-to the highest (for unbuffered allocation)</dd>
-</dl>
-<p><span class="target" id="method-init-epdl">.method.init.epdl</span>: To simulate the EPDL pool, specify <tt class="docutils literal"><span class="pre">extendBy</span></tt>,
+<dl class="macro">
+<dt id="MPS_KEY_EXTEND_BY">
+<tt class="descname">MPS_KEY_EXTEND_BY</tt><a class="headerlink" href="#MPS_KEY_EXTEND_BY" title="Permalink to this definition">¶</a></dt>
+<dt id="size">
+the segment <tt class="descname">size</tt><a class="headerlink" href="#size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="MPS_KEY_MEAN_SIZE">
+<tt class="descname">MPS_KEY_MEAN_SIZE</tt><a class="headerlink" href="#MPS_KEY_MEAN_SIZE" title="Permalink to this definition">¶</a></dt>
+<dt>
+the average object <tt class="descname">size</tt></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="MPS_KEY_ALIGN">
+<tt class="descname">MPS_KEY_ALIGN</tt><a class="headerlink" href="#MPS_KEY_ALIGN" title="Permalink to this definition">¶</a></dt>
+<dt id="frees">
+the alignment of allocations and <tt class="descname">frees</tt><big>(</big>must be at least<em>&nbsp;sizeof(void*)</em><big>)</big><a class="headerlink" href="#frees" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="MPS_KEY_MVFF_SLOT_HIGH">
+<tt class="descname">MPS_KEY_MVFF_SLOT_HIGH</tt><a class="headerlink" href="#MPS_KEY_MVFF_SLOT_HIGH" title="Permalink to this definition">¶</a></dt>
+<dt id="as">
+whether <a class="reference internal" href="#to" title="to">to</a> allocate objects at the end of free blocks found, <tt class="descname">as</tt><a class="headerlink" href="#as" title="Permalink to this definition">¶</a></dt>
+<dt id="start">
+<a class="reference internal" href="#opposed" title="opposed">opposed</a> <a class="reference internal" href="#to" title="to">to</a> at the <tt class="descname">start</tt><big>(</big>for unbuffered<em>&nbsp;allocation</em><big>)</big><a class="headerlink" href="#start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="MPS_KEY_MVFF_ARENA_HIGH">
+<tt class="descname">MPS_KEY_MVFF_ARENA_HIGH</tt><a class="headerlink" href="#MPS_KEY_MVFF_ARENA_HIGH" title="Permalink to this definition">¶</a></dt>
+<dt id="to">
+whether <a class="reference internal" href="#to" title="to">to</a> express SegPrefHIGH <a class="reference internal" href="#to" title="to">to</a> the arena, <a class="reference internal" href="#as" title="as">as</a> <a class="reference internal" href="#opposed" title="opposed">opposed</a> <tt class="descname">to</tt><a class="headerlink" href="#to" title="Permalink to this definition">¶</a></dt>
+<dt id="SegPrefLOW">
+<tt class="descname">SegPrefLOW</tt><a class="headerlink" href="#SegPrefLOW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="MPS_KEY_MVFF_FIRST_FIT">
+<tt class="descname">MPS_KEY_MVFF_FIRST_FIT</tt><a class="headerlink" href="#MPS_KEY_MVFF_FIRST_FIT" title="Permalink to this definition">¶</a></dt>
+<dt id="opposed">
+whether <a class="reference internal" href="#to" title="to">to</a> use the suitable block of lowest address, <a class="reference internal" href="#as" title="as">as</a> <tt class="descname">opposed</tt><a class="headerlink" href="#opposed" title="Permalink to this definition">¶</a></dt>
+<dt id="highest">
+<a class="reference internal" href="#to" title="to">to</a> the <tt class="descname">highest</tt><big>(</big>for unbuffered<em>&nbsp;allocation</em><big>)</big><a class="headerlink" href="#highest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.poolmvff.method.init.epdl"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.init.epdl">.method.init.epdl:</a> To simulate the EPDL pool, specify <tt class="docutils literal"><span class="pre">extendBy</span></tt>,
 <tt class="docutils literal"><span class="pre">avgSize</span></tt>, and <tt class="docutils literal"><span class="pre">maxSize</span></tt> as normal, and use <tt class="docutils literal"><span class="pre">slotHigh=FALSE</span></tt>,
 <tt class="docutils literal"><span class="pre">arenaHigh=FALSE</span></tt>, <tt class="docutils literal"><span class="pre">firstFit=TRUE</span></tt>.</p>
-<p><span class="target" id="method-init-epdr">.method.init.epdr</span>: To simulate the EPDR pool, specify <tt class="docutils literal"><span class="pre">extendBy</span></tt>,
+<p><span class="target" id="design.mps.poolmvff.method.init.epdr"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.init.epdr">.method.init.epdr:</a> To simulate the EPDR pool, specify <tt class="docutils literal"><span class="pre">extendBy</span></tt>,
 <tt class="docutils literal"><span class="pre">avgSize</span></tt>, and <tt class="docutils literal"><span class="pre">maxSize</span></tt> as normal, and use <tt class="docutils literal"><span class="pre">slotHigh=TRUE</span></tt>,
 <tt class="docutils literal"><span class="pre">arenaHigh=TRUE</span></tt>, <tt class="docutils literal"><span class="pre">firstFit=TRUE</span></tt>.</p>
-<p><span class="target" id="method-init-other">.method.init.other</span>: The performance characteristics of other
+<p><span class="target" id="design.mps.poolmvff.method.init.other"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.init.other">.method.init.other:</a> The performance characteristics of other
 combinations are unknown.</p>
-<p><span class="target" id="method-finish">.method.finish</span>: The <tt class="docutils literal"><span class="pre">PoolFinish</span></tt> method,</p>
-<p><span class="target" id="method-alloc">.method.alloc</span>: <tt class="docutils literal"><span class="pre">PoolAlloc</span></tt> and <tt class="docutils literal"><span class="pre">PoolFree</span></tt> methods are
+<p><span class="target" id="design.mps.poolmvff.method.finish"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.finish">.method.finish:</a> The <tt class="docutils literal"><span class="pre">PoolFinish</span></tt> method,</p>
+<p><span class="target" id="design.mps.poolmvff.method.alloc"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.alloc">.method.alloc:</a> <tt class="docutils literal"><span class="pre">PoolAlloc</span></tt> and <tt class="docutils literal"><span class="pre">PoolFree</span></tt> methods are
 supported, implementing the policy set by the pool params (see
-<a class="reference internal" href="#method-init">.method.init</a>).</p>
-<p><span class="target" id="method-describe">.method.describe</span>: The usual describe method.</p>
-<p><span class="target" id="method-buffer">.method.buffer</span>: The buffer methods implement a worst-fit fill
+<a class="reference internal" href="#design.mps.poolmvff.method.init">.method.init</a>).</p>
+<p><span class="target" id="design.mps.poolmvff.method.describe"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.describe">.method.describe:</a> The usual describe method.</p>
+<p><span class="target" id="design.mps.poolmvff.method.buffer"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method.buffer">.method.buffer:</a> The buffer methods implement a worst-fit fill
 strategy.</p>
 </div>
 <div class="section" id="external-functions">
-<h2>11.4. External Functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="function">.function</span>: MVFF supports the following external functions:</p>
-<p><span class="target" id="function-free-size">.function.free-size</span>: <tt class="docutils literal"><span class="pre">size_t</span> <span class="pre">mps_mvff_free_size(mps_pool_t</span> <span class="pre">pool)</span></tt>
+<h2>14.4. External Functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.function"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function">.function:</a> MVFF supports the following external functions:</p>
+<p><span class="target" id="design.mps.poolmvff.function.free-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function.free-size">.function.free-size:</a> <tt class="docutils literal"><span class="pre">size_t</span> <span class="pre">mps_mvff_free_size(mps_pool_t</span> <span class="pre">pool)</span></tt>
 This function returns the total size of free space in segments
 allocated to the MVFF pool instance.</p>
-<p><span class="target" id="function-size">.function.size</span>: <tt class="docutils literal"><span class="pre">size_t</span> <span class="pre">mps_mvff_size(mps_pool_t</span> <span class="pre">pool)</span></tt> This
+<p><span class="target" id="design.mps.poolmvff.function.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function.size">.function.size:</a> <tt class="docutils literal"><span class="pre">size_t</span> <span class="pre">mps_mvff_size(mps_pool_t</span> <span class="pre">pool)</span></tt> This
 function returns the total memory used by pool segments, whether free
 or allocated.</p>
-<p><span class="target" id="function-class">.function.class</span>: <tt class="docutils literal"><span class="pre">mps_class_t</span> <span class="pre">mps_class_mvff(void)</span></tt> This function
+<p><span class="target" id="design.mps.poolmvff.function.class"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function.class">.function.class:</a> <tt class="docutils literal"><span class="pre">mps_class_t</span> <span class="pre">mps_class_mvff(void)</span></tt> This function
 returns the class object for the pool class, to be used in pool
 creation.</p>
 </div>
 <div class="section" id="implementation">
-<h2>11.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="impl-free-list">.impl.free-list</span>: The pool stores its free list in a CBS (see
+<h2>14.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.impl.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.impl.free-list">.impl.free-list:</a> The pool stores its free list in a CBS (see
 <a class="reference external" href="cbs/">design.mps.cbs</a>). It uses the CBS&#8217;s mayUseInline facility to
 avoid running out of memory to store the free this. This is the reason
 for the alignment restriction above.</p>
 </div>
 <div class="section" id="details">
-<h2>11.6. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="design-seg-size">.design.seg-size</span>: When adding a segment, we use extendBy as the
+<h2>14.6. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvff.design.seg-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.design.seg-size">.design.seg-size:</a> When adding a segment, we use extendBy as the
 segment size unless the object won&#8217;t fit, in which case we use the
 object size (in both cases we align up).</p>
-<p><span class="target" id="design-seg-fail">.design.seg-fail</span>: If allocating a segment fails, we try again with
+<p><span class="target" id="design.mps.poolmvff.design.seg-fail"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.design.seg-fail">.design.seg-fail:</a> If allocating a segment fails, we try again with
 a segment size just large enough for the object we&#8217;re allocating. This
 is in response to request.mps.170186.</p>
-</div>
-<div class="section" id="document-history">
-<h2>11.7. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1998-09-09 Gavin Matthews. Wrote a list of methods and function plus
-some notes.</li>
-<li>1999-01-06 Pekka P. Pirinen. Added overview, removed bogus
-<tt class="docutils literal"><span class="pre">ArenaEnter</span></tt> design, and described buffered allocation.</li>
-<li>Modified for the &#8220;Sunset On Segments&#8221; redesign of segments. Buffered
-allocation is no longer limited to segment boundaries.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-05-10 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted to reStructuredText. Updated to document
-keyword arguments, replacing varargs. ========== ======</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>11.8. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -229,25 +192,23 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">11. Manually-Managed Variable-Size First-Fit Pool</a><ul>
-<li><a class="reference internal" href="#introduction">11.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">11.2. Overview</a></li>
-<li><a class="reference internal" href="#methods">11.3. Methods</a></li>
-<li><a class="reference internal" href="#external-functions">11.4. External Functions</a></li>
-<li><a class="reference internal" href="#implementation">11.5. Implementation</a></li>
-<li><a class="reference internal" href="#details">11.6. Details</a></li>
-<li><a class="reference internal" href="#document-history">11.7. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">11.8. Copyright and License</a></li>
+<li><a class="reference internal" href="#">14. Manually-Managed Variable-Size First-Fit Pool</a><ul>
+<li><a class="reference internal" href="#introduction">14.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">14.2. Overview</a></li>
+<li><a class="reference internal" href="#methods">14.3. Methods</a></li>
+<li><a class="reference internal" href="#external-functions">14.4. External Functions</a></li>
+<li><a class="reference internal" href="#implementation">14.5. Implementation</a></li>
+<li><a class="reference internal" href="#details">14.6. Details</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="object-debug.html"
-                        title="previous chapter">10. Debugging features for client objects</a></p>
+  <p class="topless"><a href="poolamc.html"
+                        title="previous chapter">13. AMC pool class</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="protocol.html"
-                        title="next chapter">12. Protocol inheritance</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="prot.html"
+                        title="next chapter">15. The protection module</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -273,10 +234,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="12. Protocol inheritance"
+          <a href="prot.html" title="15. The protection module"
              >next</a> |</li>
         <li class="right" >
-          <a href="object-debug.html" title="10. Debugging features for client objects"
+          <a href="poolamc.html" title="13. AMC pool class"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

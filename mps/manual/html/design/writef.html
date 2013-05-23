@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>23. The WriteF function &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>29. The WriteF function &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
     <link rel="next" title="Introduction to memory management" href="../mmref/index.html" />
-    <link rel="prev" title="22. Software versions" href="version.html" /> 
+    <link rel="prev" title="28. Virtual mapping" href="vm.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="../mmref/index.html" title="Introduction to memory management"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="22. Software versions"
+          <a href="vm.html" title="28. Virtual mapping"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,57 +54,43 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-writef"><span id="index-0"></span></span><div class="section" id="the-writef-function">
-<h1>23. The WriteF function<a class="headerlink" href="#the-writef-function" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.writef</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1996-10-18</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/writef.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="the-writef-function">
+<span id="design-design-writef"></span><span id="design-writef"></span><span id="index-0"></span><h1>29. The WriteF function<a class="headerlink" href="#the-writef-function" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>23.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="intro">.intro</span>: This document describes the <tt class="docutils literal"><span class="pre">WriteF</span></tt> function, which
+<span id="design.mps.writef"></span><h2>29.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.writef.intro"></span><a class="mpstag reference internal" href="#design.mps.writef.intro">.intro:</a> This document describes the <a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> function, which
 allows formatted output in a manner similar to ANSI C <tt class="docutils literal"><span class="pre">printf</span></tt>, but
 allows the MPM to operate in a freestanding environment (see
 design.mps.exec-env).</p>
-<p><span class="target" id="background">.background</span>: The documents design.mps.exec-env and design.mps.lib
+<p><span class="target" id="design.mps.writef.background"></span><a class="mpstag reference internal" href="#design.mps.writef.background">.background:</a> The documents design.mps.exec-env and design.mps.lib
 describe the design of the library interface and the reason that it
 exists.</p>
 </div>
 <div class="section" id="design">
-<h2>23.2. Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="no-printf">.no-printf</span>: There is no dependency on <tt class="docutils literal"><span class="pre">printf</span></tt>. The MPM only
-depends on <tt class="docutils literal"><span class="pre">fputc</span></tt> and <tt class="docutils literal"><span class="pre">fputs</span></tt>, via the Library Interface
+<h2>29.2. Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.writef.no-printf"></span><a class="mpstag reference internal" href="#design.mps.writef.no-printf">.no-printf:</a> There is no dependency on <tt class="xref c c-func docutils literal"><span class="pre">printf()</span></tt>. The MPM only
+depends on <tt class="xref c c-func docutils literal"><span class="pre">fputc()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">fputs()</span></tt>, via the Library Interface
 (design.mps.lib). This makes it much easier to deploy the MPS in a
 freestanding environment. This is achieved by implementing our own
 internal output routines in mpm.c.</p>
 <p>Our output requirements are few, so the code is short. The only output
-function which should be used in the rest of the MPM is <tt class="docutils literal"><span class="pre">WriteF</span></tt>,
-which is similar to <tt class="docutils literal"><span class="pre">fprintf</span></tt>:</p>
-<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">WriteF(mps_lib_FILE</span> <span class="pre">*stream,</span> <span class="pre">...)</span></tt></p>
-<p><tt class="docutils literal"><span class="pre">WriteF</span></tt> expects a format string followed by zero or more items to
+function which should be used in the rest of the MPM is <a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a>,
+which is similar to <tt class="xref c c-func docutils literal"><span class="pre">fprintf()</span></tt>:</p>
+<dl class="function">
+<dt id="WriteF">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">WriteF</tt><big>(</big><a class="reference internal" href="../topic/plinth.html#mps_lib_FILE" title="mps_lib_FILE">mps_lib_FILE</a><em>&nbsp;*stream</em>, ...<big>)</big><a class="headerlink" href="#WriteF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> expects a format string followed by zero or more items to
 insert into the output, followed by another format string, more items,
-and so on, and finally a <tt class="docutils literal"><span class="pre">NULL</span></tt> format string. For example:</p>
+and so on, and finally a <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> format string. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">WriteF</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span>
        <span class="s">&quot;Hello: $A</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span>
        <span class="s">&quot;Spong: $U ($S)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span>
        <span class="nb">NULL</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>This makes <tt class="docutils literal"><span class="pre">Describe</span></tt> methods much easier to write. For example, <tt class="docutils literal"><span class="pre">BufferDescribe</span></tt> might contain the following code:</p>
+<p>This makes <tt class="xref c c-func docutils literal"><span class="pre">Describe()</span></tt> methods much easier to write. For example, <tt class="xref c c-func docutils literal"><span class="pre">BufferDescribe()</span></tt> might contain the following code:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">WriteF</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span>
        <span class="s">&quot;Buffer $P ($U) {</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">WriteFP</span><span class="p">)</span><span class="n">buffer</span><span class="p">,</span> <span class="p">(</span><span class="n">WriteFU</span><span class="p">)</span><span class="n">buffer</span><span class="o">-&gt;</span><span class="n">serial</span><span class="p">,</span>
        <span class="s">&quot;  base $A  init $A  alloc $A  limit $A</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
@@ -121,21 +107,21 @@ and so on, and finally a <tt class="docutils literal"><span class="pre">NULL</sp
        <span class="nb">NULL</span><span class="p">);</span>
 </pre></div>
 </div>
-<p><span class="target" id="types">.types</span>: For each format <tt class="docutils literal"><span class="pre">$X</span></tt> that <tt class="docutils literal"><span class="pre">WriteF</span></tt> supports, there is a
-type defined in impl.h.mpmtypes <tt class="docutils literal"><span class="pre">WriteFX</span></tt> which is the promoted
+<p><span class="target" id="design.mps.writef.types"></span><a class="mpstag reference internal" href="#design.mps.writef.types">.types:</a> For each format <tt class="docutils literal"><span class="pre">$X</span></tt> that <a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> supports, there is a
+type defined in impl.h.mpmtypes <tt class="xref c c-func docutils literal"><span class="pre">WriteFX()</span></tt> which is the promoted
 version of that type. These are provided both to ensure promotion and
 to avoid any confusion about what type should be used in a cast. It is
 easy to check the casts against the formats to ensure that they
 correspond.</p>
-<p><span class="target" id="types-future">.types.future</span>: It is possibly that this type set or similar may be
+<p><span class="target" id="design.mps.writef.types.future"></span><a class="mpstag reference internal" href="#design.mps.writef.types.future">.types.future:</a> It is possibly that this type set or similar may be
 used in future in some generalisation of varargs in the MPS.</p>
-<p><span class="target" id="formats">.formats</span>: The formats supported are as follows.</p>
+<p><span class="target" id="design.mps.writef.formats"></span><a class="mpstag reference internal" href="#design.mps.writef.formats">.formats:</a> The formats supported are as follows.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="10%" />
+<col width="9%" />
 <col width="15%" />
-<col width="21%" />
-<col width="54%" />
+<col width="24%" />
+<col width="51%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Code</th>
@@ -147,7 +133,7 @@ used in future in some generalisation of varargs in the MPS.</p>
 <tbody valign="top">
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">$A</span></tt></td>
 <td>address</td>
-<td><tt class="docutils literal"><span class="pre">Addr</span></tt></td>
+<td><a class="reference internal" href="type.html#Addr" title="Addr"><tt class="xref c c-type docutils literal"><span class="pre">Addr</span></tt></a></td>
 <td><tt class="docutils literal"><span class="pre">000000019EF60010</span></tt></td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">$P</span></tt></td>
@@ -172,17 +158,17 @@ used in future in some generalisation of varargs in the MPS.</p>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">$W</span></tt></td>
 <td>word</td>
-<td><tt class="docutils literal"><span class="pre">ULongest</span></tt></td>
+<td><a class="reference internal" href="type.html#ULongest" title="ULongest"><tt class="xref c c-type docutils literal"><span class="pre">ULongest</span></tt></a></td>
 <td><tt class="docutils literal"><span class="pre">0000000000109AE0</span></tt></td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">$U</span></tt></td>
 <td>decimal</td>
-<td><tt class="docutils literal"><span class="pre">ULongest</span></tt></td>
+<td><a class="reference internal" href="type.html#ULongest" title="ULongest"><tt class="xref c c-type docutils literal"><span class="pre">ULongest</span></tt></a></td>
 <td><tt class="docutils literal"><span class="pre">42</span></tt></td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">$B</span></tt></td>
 <td>binary</td>
-<td><tt class="docutils literal"><span class="pre">ULongest</span></tt></td>
+<td><a class="reference internal" href="type.html#ULongest" title="ULongest"><tt class="xref c c-type docutils literal"><span class="pre">ULongest</span></tt></a></td>
 <td><tt class="docutils literal"><span class="pre">00000000000000001011011110010001</span></tt></td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">$$</span></tt></td>
@@ -193,61 +179,15 @@ used in future in some generalisation of varargs in the MPS.</p>
 </tbody>
 </table>
 <p>Note that <tt class="docutils literal"><span class="pre">WriteFC</span></tt> is an <tt class="docutils literal"><span class="pre">int</span></tt>, because that is the default
-promotion of a <tt class="docutils literal"><span class="pre">char</span></tt> (see <a class="reference internal" href="#types">.types</a>).</p>
-<p><span class="target" id="snazzy">.snazzy</span>: We should resist the temptation to make <tt class="docutils literal"><span class="pre">WriteF</span></tt> an
-incredible snazzy output engine. We only need it for <tt class="docutils literal"><span class="pre">Describe</span></tt>
+promotion of a <tt class="docutils literal"><span class="pre">char</span></tt> (see <a class="reference internal" href="#design.mps.writef.types">.types</a>).</p>
+<p><span class="target" id="design.mps.writef.snazzy"></span><a class="mpstag reference internal" href="#design.mps.writef.snazzy">.snazzy:</a> We should resist the temptation to make <a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> an
+incredible snazzy output engine. We only need it for <tt class="xref c c-func docutils literal"><span class="pre">Describe()</span></tt>
 methods and assertion messages. At the moment it&#8217;s a very simple bit
 of code &#8211; let&#8217;s keep it that way.</p>
 <p><span class="target" id="f">.f</span>: The <tt class="docutils literal"><span class="pre">F</span></tt> code is used for function pointers. They are
 currently printed as a hexadecimal string of the appropriate length
 for the platform, and may one day be extended to include function name
 lookup.</p>
-</div>
-<div class="section" id="document-history">
-<h2>23.3. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1996-10-18 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-05-22 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>23.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -262,18 +202,16 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">23. The WriteF function</a><ul>
-<li><a class="reference internal" href="#introduction">23.1. Introduction</a></li>
-<li><a class="reference internal" href="#design">23.2. Design</a></li>
-<li><a class="reference internal" href="#document-history">23.3. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">23.4. Copyright and License</a></li>
+<li><a class="reference internal" href="#">29. The WriteF function</a><ul>
+<li><a class="reference internal" href="#introduction">29.1. Introduction</a></li>
+<li><a class="reference internal" href="#design">29.2. Design</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="version.html"
-                        title="previous chapter">22. Software versions</a></p>
+  <p class="topless"><a href="vm.html"
+                        title="previous chapter">28. Virtual mapping</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../mmref/index.html"
                         title="next chapter">Introduction to memory management</a></p><h4>Downloads</h4>
@@ -305,7 +243,7 @@ possibility of such damage.</strong></p>
           <a href="../mmref/index.html" title="Introduction to memory management"
              >next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="22. Software versions"
+          <a href="vm.html" title="28. Virtual mapping"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

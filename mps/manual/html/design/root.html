@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. Root manager &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>18. Root manager &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="14. The generic scanner" href="scan.html" />
-    <link rel="prev" title="12. The low-memory reservoir" href="reservoir.html" /> 
+    <link rel="next" title="19. The generic scanner" href="scan.html" />
+    <link rel="prev" title="17. The low-memory reservoir" href="reservoir.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="scan.html" title="14. The generic scanner"
+          <a href="scan.html" title="19. The generic scanner"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="reservoir.html" title="12. The low-memory reservoir"
+          <a href="reservoir.html" title="17. The low-memory reservoir"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,29 +54,11 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-root"><span id="index-0"></span></span><div class="section" id="root-manager">
-<h1>13. Root manager<a class="headerlink" href="#root-manager" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.root</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1995-08-25</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/root.txt#1 $</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="root-manager">
+<span id="design-design-root"></span><span id="design-root"></span><span id="index-0"></span><h1>18. Root manager<a class="headerlink" href="#root-manager" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="basics">
-<h2>13.1. Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
-<p><span class="target" id="root-def">.root.def</span>: The root node of the object graph is the node which
+<span id="design.mps.root"></span><h2>18.1. Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.root.root.def"></span><a class="mpstag reference internal" href="#design.mps.root.root.def">.root.def:</a> The root node of the object graph is the node which
 defines whether objects are accessible, and the place from which the
 mutator acts to change the graph. In the MPS, a root is an object
 which describes part of the root node. The root node is the total of
@@ -84,18 +66,18 @@ all the roots attached to the space. [Note that this combines two
 definitions of root: the accessibility is what defines a root for
 tracing (see analysis.tracer.root.* and the mutator action for
 barriers (see analysis.async-gc.root). pekka 1998-03-20]</p>
-<p><span class="target" id="root-repr">.root.repr</span>: Functionally, roots are defined by their scanning
+<p><span class="target" id="design.mps.root.root.repr"></span><a class="mpstag reference internal" href="#design.mps.root.root.repr">.root.repr:</a> Functionally, roots are defined by their scanning
 functions. Roots <em>could</em> be represented as function closures: that is,
 a pointer to a C function and some auxiliary fields. The most general
 variant of roots is just that. However, for reasons of efficiency,
 some special variants are separated out.</p>
 </div>
 <div class="section" id="details">
-<h2>13.2. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<h2>18.2. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="creation">
-<h3>13.2.1. Creation<a class="headerlink" href="#creation" title="Permalink to this headline">¶</a></h3>
-<p><span class="target" id="create">.create</span>: A root becomes &#8220;active&#8221; as soon as it is created.</p>
-<p><span class="target" id="create-col">.create.col</span>: The root inherits its colour from the mutator, since
+<h3>18.2.1. Creation<a class="headerlink" href="#creation" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.root.create"></span><a class="mpstag reference internal" href="#design.mps.root.create">.create:</a> A root becomes &#8220;active&#8221; as soon as it is created.</p>
+<p><span class="target" id="design.mps.root.create.col"></span><a class="mpstag reference internal" href="#design.mps.root.create.col">.create.col:</a> The root inherits its colour from the mutator, since
 it can only contain references copied there by the mutator from
 somewhere else. If the mutator is grey for a trace when a root is
 created then that root will be used to determine accessibility for
@@ -103,73 +85,27 @@ that trace. More specifically, the root will be scanned when that
 trace flips.</p>
 </div>
 <div class="section" id="destruction">
-<h3>13.2.2. Destruction<a class="headerlink" href="#destruction" title="Permalink to this headline">¶</a></h3>
-<p><span class="target" id="destroy">.destroy</span>: It&#8217;s OK to destroy a root at any time, except perhaps
+<h3>18.2.2. Destruction<a class="headerlink" href="#destruction" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.root.destroy"></span><a class="mpstag reference internal" href="#design.mps.root.destroy">.destroy:</a> It&#8217;s OK to destroy a root at any time, except perhaps
 concurrently with scanning it, but that&#8217;s prevented by the arena lock.
 If a root is destroyed the references in it become invalid and
 unusable.</p>
 </div>
 <div class="section" id="invariants">
-<h3>13.2.3. Invariants<a class="headerlink" href="#invariants" title="Permalink to this headline">¶</a></h3>
-<p><span class="target" id="inv-white">.inv.white</span>: Roots are never white for any trace, because they
+<h3>18.2.3. Invariants<a class="headerlink" href="#invariants" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.root.inv.white"></span><a class="mpstag reference internal" href="#design.mps.root.inv.white">.inv.white:</a> Roots are never white for any trace, because they
 cannot be condemned.</p>
-<p><span class="target" id="inv-rank">.inv.rank</span>: Roots always have a single rank. A root without ranks
+<p><span class="target" id="design.mps.root.inv.rank"></span><a class="mpstag reference internal" href="#design.mps.root.inv.rank">.inv.rank:</a> Roots always have a single rank. A root without ranks
 would be a root without references, which would be pointless. The
 tracer doesn&#8217;t support multiple ranks in a single colour.</p>
 </div>
 <div class="section" id="scanning">
-<h3>13.2.4. Scanning<a class="headerlink" href="#scanning" title="Permalink to this headline">¶</a></h3>
-<p><span class="target" id="method">.method</span>: Root scanning methods are provided by the client so that
+<h3>18.2.4. Scanning<a class="headerlink" href="#scanning" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.root.method"></span><a class="mpstag reference internal" href="#design.mps.root.method">.method:</a> Root scanning methods are provided by the client so that
 the MPS can locate and scan the root set. See protocol.mps.root for
 details. [There are some more notes about root methods in
 meeting.qa.1996-10-16.]</p>
 </div>
-</div>
-<div class="section" id="document-history">
-<h2>13.3. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>1995-08-25 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete design.</li>
-<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
-<li>2013-05-22 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
-</ul>
-</div>
-<div class="section" id="copyright-and-license">
-<h2>13.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
-<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
-&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
-Ravenbrook for commercial licensing options.</p>
-<p>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:</p>
-<ol class="arabic simple">
-<li>Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.</li>
-<li>Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.</li>
-<li>Redistributions in any form must be accompanied by information on how
-to obtain complete source code for this software and any
-accompanying software that uses this software.  The source code must
-either be included in the distribution or be available for no more than
-the cost of distribution plus a nominal fee, and must be freely
-redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains.
-It does not include source code for modules or files that typically
-accompany the major components of the operating system on which the
-executable file runs.</li>
-</ol>
-<p><strong>This software is provided by the copyright holders and contributors
-&#8220;as is&#8221; and any express or implied warranties, including, but not
-limited to, the implied warranties of merchantability, fitness for a
-particular purpose, or non-infringement, are disclaimed.  In no event
-shall the copyright holders and contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or
-services; loss of use, data, or profits; or business interruption)
-however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise) arising in
-any way out of the use of this software, even if advised of the
-possibility of such damage.</strong></p>
 </div>
 </div>
 
@@ -184,27 +120,25 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">13. Root manager</a><ul>
-<li><a class="reference internal" href="#basics">13.1. Basics</a></li>
-<li><a class="reference internal" href="#details">13.2. Details</a><ul>
-<li><a class="reference internal" href="#creation">13.2.1. Creation</a></li>
-<li><a class="reference internal" href="#destruction">13.2.2. Destruction</a></li>
-<li><a class="reference internal" href="#invariants">13.2.3. Invariants</a></li>
-<li><a class="reference internal" href="#scanning">13.2.4. Scanning</a></li>
+<li><a class="reference internal" href="#">18. Root manager</a><ul>
+<li><a class="reference internal" href="#basics">18.1. Basics</a></li>
+<li><a class="reference internal" href="#details">18.2. Details</a><ul>
+<li><a class="reference internal" href="#creation">18.2.1. Creation</a></li>
+<li><a class="reference internal" href="#destruction">18.2.2. Destruction</a></li>
+<li><a class="reference internal" href="#invariants">18.2.3. Invariants</a></li>
+<li><a class="reference internal" href="#scanning">18.2.4. Scanning</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#document-history">13.3. Document History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">13.4. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="reservoir.html"
-                        title="previous chapter">12. The low-memory reservoir</a></p>
+                        title="previous chapter">17. The low-memory reservoir</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="scan.html"
-                        title="next chapter">14. The generic scanner</a></p><h4>Downloads</h4>
+                        title="next chapter">19. The generic scanner</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -230,10 +164,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="scan.html" title="14. The generic scanner"
+          <a href="scan.html" title="19. The generic scanner"
              >next</a> |</li>
         <li class="right" >
-          <a href="reservoir.html" title="12. The low-memory reservoir"
+          <a href="reservoir.html" title="17. The low-memory reservoir"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

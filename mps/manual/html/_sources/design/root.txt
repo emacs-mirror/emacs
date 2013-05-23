@@ -3,4 +3,4 @@
 
 .. _design-root:
 
-.. include:: ../../../design/root.txt
+.. include:: ../../converted/root.rst
