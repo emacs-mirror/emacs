@@ -8,10 +8,10 @@ from sys import stdout
 TYPES = '''
 
     AccessSet Accumulation Addr Align AP Arg Arena Attr Bool BT Buffer
-    Byte Clock Compare Count Epoch Format Fun Index LD Lock Pointer
-    Pool Rank RankSet Ref Res Reservoir Ring Root RootVar ScanState
-    Seg Serial Shift Sig Size Space SplayNode SplayTree Thread Trace
-    TraceId TraceSet ULongest VM Word
+    Byte Clock Compare Count Epoch Format Fun Index LD Lock Message
+    Pointer Pool Rank RankSet Ref Res Reservoir Ring Root RootVar
+    ScanState Seg Serial Shift Sig Size Space SplayNode SplayTree
+    Thread Trace TraceId TraceSet ULongest VM Word
 
 '''
 
