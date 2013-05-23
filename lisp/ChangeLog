@@ -1,3 +1,7 @@
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-ls.el (eshell-ls-dir): Fix -A handling.
+
 2013-05-22  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-startup): Fix bug#14433.

@@ -552,7 +552,7 @@ relative to that directory."
 			       (expand-file-name dir)))
 			    (cdr dirinfo))) ":\n"))
 	(let ((entries (eshell-directory-files-and-attributes
-			dir nil (and (not show-all)
+			dir nil (and (not (or show-all show-almost-all))
 				     eshell-ls-exclude-hidden
 				     "\\`[^.]") t
 				     ;; Asking for UID and GID as
@@ -565,9 +565,9 @@ relative to that directory."
             (setq entries
                   (cl-remove-if
                    (lambda (entry)
-                     (member (caar entry) '("." "..")))
+                     (member (car entry) '("." "..")))
                    entries)))
-	  (when (and (not show-all)
+	  (when (and (not (or show-all show-almost-all))
                      eshell-ls-exclude-regexp)
 	    (while (and entries (string-match eshell-ls-exclude-regexp
 					      (caar entries)))
