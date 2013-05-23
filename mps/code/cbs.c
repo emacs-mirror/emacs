@@ -283,12 +283,9 @@ void CBSFinish(CBS cbs)
 static void cbsBlockDelete(CBS cbs, CBSBlock block)
 {
   Res res;
-  Size oldSize;
 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
-
-  oldSize = CBSBlockSize(block);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   res = SplayTreeDelete(splayTreeOfCBS(cbs), splayNodeOfCBSBlock(block),
