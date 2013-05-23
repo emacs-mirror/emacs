@@ -6827,6 +6827,8 @@ tty_read_avail_input (struct terminal *terminal,
   /* XXX I think the following code should be moved to separate hook
      functions in system-dependent files.  */
 #ifdef WINDOWSNT
+  /* FIXME: AFAIK, tty_read_avail_input is not used under w32 since the non-GUI
+     code sets read_socket_hook to w32_console_read_socket instead!  */
   return 0;
 #else /* not WINDOWSNT */
   if (! tty->term_initted)      /* In case we get called during bootstrap.  */
@@ -8700,6 +8702,10 @@ read_decoded_char (int commandflag, Lisp_Object map,
     {
       Lisp_Object nextevt
 	= read_char (commandflag, map, prev_event, used_mouse_menu, NULL);
+#ifdef WINDOWSNT
+      /* w32_console already returns decoded events.  */
+      return nextevt;
+#else
       struct frame *frame = XFRAME (selected_frame);
       struct terminal *terminal = frame->terminal;
       if (!((FRAME_TERMCAP_P (frame) || FRAME_MSDOS_P (frame))
@@ -8750,6 +8756,7 @@ read_decoded_char (int commandflag, Lisp_Object map,
 	      = Fcons (events[--n], Vunread_command_events);
 	  return events[0];
 	}
+#endif
     }
 }
 

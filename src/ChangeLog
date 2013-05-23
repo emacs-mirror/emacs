@@ -1,3 +1,7 @@
+2013-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_decoded_char): Don't decode under w32 (bug#14403).
+
 2013-05-22  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
 
 	* casetab.c (init_casetab_once): Fix last change (bug#14424).
