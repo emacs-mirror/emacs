@@ -3,4 +3,4 @@
 
 .. _design-collection:
 
-.. include:: ../../../design/collection.txt
+.. include:: ../../converted/collection.rst

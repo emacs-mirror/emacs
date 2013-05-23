@@ -3,4 +3,4 @@
 
 .. _design-bt:
 
-.. include:: ../../../design/bt.txt
+.. include:: ../../converted/bt.rst

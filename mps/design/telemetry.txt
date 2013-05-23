@@ -103,34 +103,34 @@ _`.anal`: The proposed order of development, with summary of
 requirements impact is as follows (★ for positive impact, ⇓ for
 negative impact):
 
-================= == == == == == == == == == == == == == == == == == =======
-solution          si op mu sh ve ty po co ex pm pe sm av im ro in ba status
-================= == == == == == == == == == == == == == == == == == =======
-`.sol.format`_    ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  merged
-`.sol.struct`_    ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ★  ⇓  ·  ·  ·  ·  ·  merged
-`.sol.string`_    ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  merged
-`.sol.relation`_  ★  ·  ·  ★  ·  ·  ·  ·  ★  ·  ·  ★  ·  ·  ·  ·  ·  merged
-`.sol.dumper`_    ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  merged
-`.sol.kind`_      ·  ⇓  ·  ·  ·  ·  ·  ★  ·  ★  ·  ·  ·  ·  ·  ·  ·  merged
-`.sol.control`_   ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ★  ·  ·  ·  ·  ·  ·  merged
-`.sol.variety`_   ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ★  ·  ★  ·  ·  ·  · 
-================= == == == == == == == == == == == == == == == == == =======
+========================= == == == == == == == == == == == == == == == == == =======
+solution                  si op mu sh ve ty po co ex pm pe sm av im ro in ba status
+========================= == == == == == == == == == == == == == == == == == =======
+`.sol.format`_            ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  merged
+`.sol.struct`_            ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ★  ⇓  ·  ·  ·  ·  ·  merged
+`.sol.string`_            ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  merged
+`.sol.relation`_          ★  ·  ·  ★  ·  ·  ·  ·  ★  ·  ·  ★  ·  ·  ·  ·  ·  merged
+`.sol.dumper`_            ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  merged
+`.sol.kind`_              ·  ⇓  ·  ·  ·  ·  ·  ★  ·  ★  ·  ·  ·  ·  ·  ·  ·  merged
+`.sol.control`_           ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ★  ·  ·  ·  ·  ·  ·  merged
+`.sol.variety`_           ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ★  ·  ★  ·  ·  ·  · 
+========================= == == == == == == == == == == == == == == == == == =======
 
 The following are not yet ordered:
 
-================= == == == == == == == == == == == == == == == == == =======
-solution          si op mu sh ve ty po co ex pm pe sm av im ro in ba status 
-================= == == == == == == == == == == == == == == == == == =======
-`.sol.buffer`_    ·  ·  ·  ·  ·  ·  ·  ★  ·  ★  ★  ·  ·  ·  ·  ·  .
-`.sol.traceback`_ ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  .
-`.sol.client`_    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  .
-`.sol.head`_      ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  .
-`.sol.version`_   ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★
-`.sol.exit`_      ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  .
-`.sol.block`_     ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ⇓  ·  ·  ★  ·  ·  
-`.sol.code`_      ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ★
-`.sol.msg`_       ·  ·  ★  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ★  ★  ·  .
-================= == == == == == == == == == == == == == == == == == =======
+========================= == == == == == == == == == == == == == == == == == =======
+solution                  si op mu sh ve ty po co ex pm pe sm av im ro in ba status 
+========================= == == == == == == == == == == == == == == == == == =======
+`.sol.buffer`_            ·  ·  ·  ·  ·  ·  ·  ★  ·  ★  ★  ·  ·  ·  ·  ·  .
+`.sol.traceback`_         ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  .
+`.sol.client`_            ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  .
+`.sol.head`_              ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  .
+`.sol.version`_           ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★
+`.sol.exit`_              ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  .
+`.sol.block`_             ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ⇓  ·  ·  ★  ·  ·  
+`.sol.code`_              ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ★  ·  ·  ·  ·  ★
+`.sol.msg`_               ·  ·  ★  ·  ·  ·  ★  ·  ·  ·  ·  ·  ·  ★  ★  ·  .
+========================= == == == == == == == == == == == == == == == == == =======
 
 _`.file-format`: One of the objectives of this plan is to minimise the
 impact of the changes to the log file format. This is to be achieved
@@ -222,9 +222,9 @@ Implementation
 Annotation
 ..........
 
-_`.annot`: An event annotation is of the form:
+_`.annot`: An event annotation is of the form::
 
-``EVENT3(FooCreate, pointer, address, word)``
+    EVENT3(FooCreate, pointer, address, word)
 
 _`.annot.string`: If there is a string in the format, it must be the
 last parameter (and hence there can be only one). There is currrently
@@ -248,9 +248,9 @@ impl.h.eventdef, in the form of a higher-order list macros.
 _`.reg.just`: This use of a higher-order macros enables great
 flexibility in the use of this file.
 
-_`.reg.rel`: The event type registration is of the form:
+_`.reg.rel`: The event type registration is of the form::
 
-``EVENT(X, FooCreate, 0x1234, TRUE, Arena)``
+    EVENT(X, FooCreate, 0x1234, TRUE, Arena)
 
 _`.reg.type`: The first parameter of the relation is the event type.
 This needs no prefix, and should correspond to that used in the

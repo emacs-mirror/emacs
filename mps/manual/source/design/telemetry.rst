@@ -3,4 +3,4 @@
 
 .. _design-telemetry:
 
-.. include:: ../../../design/telemetry.txt
+.. include:: ../../converted/telemetry.rst

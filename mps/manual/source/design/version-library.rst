@@ -3,4 +3,4 @@
 
 .. _design-version-library:
 
-.. include:: ../../../design/version-library.txt
+.. include:: ../../converted/version-library.rst

@@ -3,4 +3,4 @@
 
 .. _design-protocol:
 
-.. include:: ../../../design/protocol.txt
+.. include:: ../../converted/protocol.rst
