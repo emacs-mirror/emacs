@@ -1,0 +1,837 @@
+.. mode: -*- rst -*-
+
+AMC pool class
+==============
+
+:Tag: design.mps.poolamc
+:Author: Richard Brooksby
+:Date: 1995-08-25
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Introduction
+~~~~~~~~~~~~
+
+_`.intro`: This document contains a guide (`.guide`_) to the MPS AMC
+pool class, followed by the historical initial design
+(`.initial-design`_).
+
+_`.readership`: Any MPS developer.
+
+
+Guide
+~~~~~
+
+_`.guide`: The AMC pool class is a general-purpose automatic
+(collecting) pool class. It is intended for most client objects. AMC
+is "Automatic, Mostly Copying": it preserves objects by copying,
+except when an ambiguous reference 'nails' the object in place. It is
+generational. Chain: specify capacity and mortality of generations 0
+to *N* − 1. Survivors from generation *N* − 1 get promoted into an
+arena-wide "top" generation (often anachronistically called the
+"dynamic" generation, which was the term on the Lisp Machine).
+
+
+Segment states
+--------------
+
+_`.seg.state`: AMC segments are in one of three states: "mobile",
+"boarded", or "stuck".
+
+_`.seg.state.mobile`: Segments are normally **mobile**: all objects on
+the seg are un-nailed, and thus may be preserved by copying.
+
+_`.seg.state.boarded`: An ambiguous reference to any address within an
+segment makes that segment **boarded**: a nailboard is allocated to
+record ambiguous references ("nails"), but un-nailed objects on the
+segment are still preserved by copying.
+
+_`.seg.state.stuck`: Stuck segments only occur in emergency tracing: a
+discovery fix to an object in a mobile segment is recorded in the only
+non-allocating way available: by making the entire segment **stuck**.
+
+
+Pads
+----
+
+(See job001809_ and job001811_, and mps/branch/2009-03-31/padding.)
+
+.. _job001809: http://www.ravenbrook.com/project/mps/issue/job001809/
+.. _job001811: http://www.ravenbrook.com/project/mps/issue/job001811/
+
+_`.pad`: A pad is logically a trivial client object. Pads are created
+by the MPS asking the client's format code to create them, to fill up
+a space in a segment. Thereafter, the pad appears to the MPS as a
+normal client object (that is: the MPS cannot distinguish a pad from a
+client object).
+
+_`.pad.reason`: AMC creates pads for three reasons: buffer empty
+fragment (BEF), large segment padding (LSP), and non-mobile reclaim
+(NMR). (Large segment pads were new with job001811_.)
+
+_`.pad.reason.bef`: Buffer empty fragment (BEF) pads are made by
+``AMCBufferEmpty()`` whenever it detaches a non-empty buffer from an
+AMC segment. Buffer detachment is most often caused because the buffer
+is too small for the current buffer reserve request (which may be
+either a client requested or a forwarding allocation). Detachment may
+happen for other reasons, such as trace flip.
+
+_`.pad.reason.lsp`: Large segment padding (LSP) pads are made by
+``AMCBufferFill()`` when the requested fill size is "large" (see `The
+LSP payoff calculation`_ below). ``AMCBufferFill()`` fills the buffer
+to exactly the size requested by the current buffer reserve operation;
+that is: it does not round up to the whole segment size. This prevents
+subsequent small objects being placed in the same segment as a single
+very large object. If the buffer fill size is less than the segment
+size, ``AMCBufferFill()`` fills any remainder with an large segment
+pad.
+
+_`.pad.reason.nmr`: Non-mobile reclaim (NMR) pads are made by
+``amcReclaimNailed()``, when performing reclaim on a non-mobile (that
+is, either boarded or stuck) segment:
+
+The more common NMR scenario is reclaim of a boarded segment after a
+non-emergency trace. Ambiguous references into the segment are
+recorded as nails. Subsequent exact references to a nailed object do
+nothing further, but exact refs that do not match a nail cause
+preserve-by-copy and leave a forwarding object. Unreachable objects
+are not touched during the scan+fix part of the trace. On reclaim,
+only nailed objects need to be preserved; others (namely forwarding
+pointers and unreachable objects) are replaced by an NMR pad. (Note
+that a BEF or LSP pad appears to be an unreachable object, and is
+therefore overwritten by an NMR pad).
+
+The less common NMR scenario is after emergency tracing. Boarded
+segments still occur; they may have nailed objects from ambiguous
+references, forwarding objects from pre-emergency exact fixes, nailed
+objects from mid-emergency exact fixes, and unpreserved objects;
+reclaim is as in the non-emergency case. Stuck segments may have
+forwarding objects from pre-emergency exact fixes, objects from
+mid-emergency fixes, and unreachable objects -- but the latter two are
+not distinguishable because there is no nailboard. On reclaim, all
+objects except forwarding pointers are preserved; each forwarding
+object is replaced by an NMR pad.
+
+If ``amcReclaimNailed()`` finds no objects to be preserved then it
+calls ``SegFree()`` (new with job001809_).
+
+
+Placement pads are okay
+-----------------------
+
+Placement pads are the BEF and LSP pads created in "to-space" when
+placing objects into segments. This wasted space is an expected
+space-cost of AMC's naive (but time-efficient) approach to placement
+of objects into segments. This is normally not a severe problem. (The
+worst case is a client that always requests ``ArenaAlign() + 1`` byte
+objects: this has a nearly 100% overhead).
+
+
+Retained pads could be a problem
+--------------------------------
+
+Retained pads are the NMR pads stuck in "from-space": non-mobile
+segments that were condemned but have preserved-in-place objects
+cannot be freed by ``amcReclaimNailed()``. The space around the
+preserved objects is filled with NMR pads.
+
+In the worst case, retained pads could waste an enormous amount of
+space! A small (one-byte) object could retain a multi-page segment for
+as long as the ambiguous reference persists; that is: indefinitely.
+Imagine a 256-page (1 MiB) segment containing a very large object
+followed by a handful of small objects. An ambiguous reference to one
+of the small objects will unfortunately cause the entire 256-page
+segment to be retained, mostly as an NMR pad; this is a massive
+overhead of wasted space.
+
+AMC mitigates this worst-case behaviour, by treating large segments
+specially.
+
+
+Small, medium, and large segments
+---------------------------------
+
+AMC categorises segments as **small** (one page), **medium**
+(several pages), or **large** (``AMCLargeSegPAGES`` or more)::
+
+    pages = SegSize(seg) / ArenaAlign(arena);
+    if(pages == 1) {
+      /* small */
+    } else if(pages < AMCLargeSegPAGES) {
+      /* medium */
+    } else {
+      /* large */
+    }</code></pre></blockquote>
+
+``AMCLargeSegPAGES`` is currently 8 -- see `The LSP payoff
+calculation`_ below.
+
+AMC might treat "Large" segments specially, in two ways:
+
+- _`.large.single-reserve`: A large segment is only used for a single
+  (large) buffer reserve request; the remainder of the segment (if
+  any) is immediately padded with an LSP pad.
+
+- _`.large.lsp-no-retain`: Nails to such an LSP pad do not cause
+  AMCReclaimNailed() to retain the segment.
+
+`.large.single-reserve`_ is implemented. See job001811_.
+
+`.large.lsp-no-retain`_ is **not** currently implemented.
+
+The point of `.large.lsp-no-retain`_ would be to avoid retention of
+the (large) segment when there is a spurious ambiguous reference to
+the LSP pad at the end of the segment. Such an ambiguous reference
+might happen naturally and repeatably if the preceding large object is
+an array, the array is accessed by an ambiguous element pointer (for
+example, on the stack), and the element pointer ends up pointing just
+off the end of the large object (as is normal for sequential element
+access in C) and remains with that value for a while. (Such an
+ambiguous reference could also occur by chance, for example, by
+coincidence with an ``int`` or ``float``, or when the stack grows to
+include old unerased values).
+
+Implementing `.large.lsp-no-retain`_ is a little tricky. A pad is
+indistinguishable from a client object, so AMC has no direct way to
+detect, and safely ignore, the final LSP object in the seg. If AMC
+could *guarantee* that the single buffer reserve
+(`.large.single-reserve`_) is only used for a single *object*, then
+``AMCReclaimNailed()`` could honour a nail at the start of a large seg
+and ignore all others; this would be extremely simple to implement.
+But AMC cannot guarantee this, because in the MPS Allocation Point
+Protocol the client is permitted to make a large buffer reserve and
+then fill it with many small objects. In such a case, AMC must honour
+all nails (if the buffer reserve request was an exact multiple of
+``ArenaAlign()``), or all nails except to the last object (if there
+was a remainder filled with an LSP pad). Because an LSP pad cannot be
+distinguished from a client object, and the requested allocation size
+is not recorded, AMC cannot distinguish these two conditions at
+reclaim time. Therefore AMC must record whether or not the last object
+in the seg is a pad, in order to ignore nails to it. This could be
+done by adding a flag to ``AMCSegStruct``. (This can be done without
+increasing the structure size, by making the ``Bool new`` field
+smaller than its current 32 bits.)
+
+
+The LSP payoff calculation
+--------------------------
+
+The LSP fix for job001811_ treats large segments differently. Without
+it, after allocating a very large object (in a new very large
+multi-page segment), MPS would happily place subsequent small objects
+in any remaining space at the end of the segment. This would risk
+pathological fragmentation: if these small objects were systematically
+preserved by ambiguous refs, enormous NMR pads would be retained along
+with them.
+
+The payoff calculation is a bit like deciding whether or not to
+purchase insurance. For single-page and medium-sized segments, we go
+ahead and use the remaining space for subsequent small objects. This
+is equivalent to choosing **not** to purchase insurance. If the small
+objects were to be preserved by ambiguous refs, the retained NMR pads
+would be big, but not massive. We expect such ambiguous refs to be
+uncommon, so we choose to live with this slight risk of bad
+fragmentation. The benefit is that the remaining space is used.
+
+For large segments, we decide that the risk of using the remainder is
+just too great, and the benefit too small, so we throw it away as an
+LSP pad. This is equivalent to purchasing insurance: we choose to pay
+a known small cost every time, to avoid risking an occasional
+disaster.
+
+To decide what size of segment counts as "large", we must decide how
+much uninsured risk we can tolerate, versus how much insurance cost we
+can tolerate. The likelihood of ambiguous references retaining objects
+is entirely dependent on client behaviour. However, as a sufficient
+"one size fits all" policy, I (RHSK 2009-09-14) have judged that
+segments smaller than eight pages long do not need to be treated as
+large: the insurance cost to "play safe" would be considerable
+(wasting up to one page of remainder per seven pages of allocation),
+and the fragmentation overhead risk is not that great (at most eight
+times worse than the unavoidable minimum). So ``AMCLargeSegPAGES`` is
+defined as 8 in config.h. As long as the assumption that most segments
+are not ambiguously referenced remains correct, I expect this policy
+will be satisfactory.
+
+To verify that this threshold is acceptable for a given client,
+poolamc.c calculates metrics; see `Feedback about retained pages`_
+below. If this one-size-fits-all approach is not satisfactory,
+``AMCLargeSegPAGES`` could be made a client-tunable parameter.
+
+
+Retained pages
+--------------
+
+The reasons why a segment and its pages might be retained are:
+
+1. ambiguous reference to first-obj: unavoidable page retention (only
+   the mutator can reduce this, if they so wish, by nulling out ambig
+   referencess);
+2. ambiguous reference to rest-obj: tuning MPS LSP policy could
+   mitigate this, reducing the likelihood of rest-objs being
+   co-located with large first-objs;
+3. ambiguous reference to final pad: implementing
+   `.large.lsp-no-retain`_ could mitigate this;
+4. ambiguous reference to other (NMR) pad: hard to mitigate, as pads
+   are indistinguishable from client objects;
+5. emergency trace;
+6. non-object-aligned ambiguous ref: fixed by job001809_;
+7. other reason (for example, buffered at flip): not expected to be a
+   problem.
+
+This list puts the reasons that are more "obvious" to the client
+programmer first, and the more obscure reasons last.
+
+
+Feedback about retained pages
+-----------------------------
+
+(New with job001811_). AMC now accumulates counts of pages condemned
+and retained during a trace, in categories according to size and
+reason for retention, and emits diagnostic at trace-end via the
+``pool->class->traceEnd`` method. See comments on the
+``PageRetStruct`` in poolamc.c. These page-based metrics are not as
+precise as actually counting the size of objects, but they require
+much less intrusive code to implement, and should be sufficient to
+assess whether AMC's page retention policies and behaviour are
+acceptable.
+
+
+Initial design
+~~~~~~~~~~~~~~
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the AMC Pool Class. AMC stands for
+Automatic Mostly-Copying. This design is highly fragmentory and some
+may even be sufficiently old to be misleading.
+
+_`.readership`: The intended readership is any MPS developer.
+
+
+Overview
+--------
+
+_`.overview`: This class is intended to be the main pool class used by
+Harlequin Dylan. It provides garbage collection of objects (hence
+"automatic"). It uses generational copying algorithms, but with some
+facility for handling small numbers of ambiguous references. Ambiguous
+references prevent the pool from copying objects (hence "mostly
+copying"). It provides incremental collection.
+
+[ lot of this design is awesomely old -- drj 1998-02-04]
+
+
+Definitions
+-----------
+
+_`.def.grain`: Grain. An quantity of memory which is both aligned to
+the pool's alignment and equal to the pool's alignment in size. That
+is, the smallest amount of memory worth talking about.
+
+
+Segments
+--------
+
+_`.seg.class`: AMC allocates segments of class ``AMCSegClass``, which
+is a subclass of ``GCSegClass``. Instances contain a ``segTypeP``
+field, which is of type ``int*``.
+
+_`.seg.gen`: AMC organizes the segments it manages into generations.  
+
+_`.seg.gen.map`: Every segment is in exactly one generation.
+
+_`.seg.gen.ind`: The segment's ``segTypeP`` field indicates which
+generation (that the segment is in) (an ``AMCGenStruct`` see blah
+below).
+
+_`.seg.typep`: The ``segTypeP`` field actually points to either the
+type field of a generation or to the type field of a nail board.
+
+_`.seg.typep.distinguish`: The ``type`` field (which can be accessed
+in either case) determines whether the ``segTypeP`` field is pointing
+to a generation or to a nail board.
+
+_`.seg.gen.get`: The map from segment to generation is implemented by
+``AMCSegGen()`` which deals with all this.
+
+
+Fixing and nailing
+------------------
+
+_`.fix.nail`: [.fix.nail.* are placeholders for design rather than
+design really -- drj 1998-02-04]
+
+_`.nailboard`: AMC uses a nail board structure for recording ambiguous
+references to segments. A nail board is a bit table with one bit per
+grain in the segment.
+
+_`.nailboard.create`: Nail boards are allocated dynamically whenever a
+segment becomes newly ambiguously referenced.
+
+_`.nailboard.destroy`: They are deallocated during reclaim. Ambiguous
+fixes simply set the appropriate bit in this table. This table is used
+by subsequent scans and reclaims in order to work out what objects
+were marked.
+
+_`.nailboard.emergency`: During emergency tracing two things relating
+to nail boards happen that don't normally:
+
+1. _`.nailboard.emergency.nonew`: Nail boards aren't allocated when we
+   have new ambiguous references to segments.
+
+   _`.nailboard.emergency.nonew.justify`: We could try and allocate a
+   nail board, but we're in emergency mode so short of memory so it's
+   unlikely to succeed, and there would be additional code for yet
+   another error path which complicates things.
+
+2. _`.nailboard.emergency.exact`: nail boards are used to record exact
+   references in order to avoid copying the objects.
+
+   _`.nailboard.hyper-conservative`: Not creating new nail boards
+   (`.nailboard.emergency.nonew`_ above) means that when we have a new
+   reference to a segment during emergency tracing then we nail the
+   entire segment and preserve everything in place.
+
+_`.fix.nail.states`: Partition the segment states into four sets:
+
+1. white segment and not nailed (and has no nail board);
+2. white segment and nailed and has no nail board;
+3. white segment and nailed and has nail board;
+4. the rest.
+
+_`.fix.nail.why`: A segment is recorded as being nailed when either
+there is an ambiguous reference to it, or there is an exact reference
+to it and the object couldn't be copied off the segment (because there
+wasn't enough memory to allocate the copy). In either of these cases
+reclaim cannot simply destroy the segment (usually the segment will
+not be destroyed because it will have live objects on it, though see
+`.nailboard.limitations.middle`_ below). If the segment is nailed then
+we might be using a nail board to mark objects on the segment.
+However, we cannot guarantee that being nailed implies a nail board,
+because we might not be able to allocate the nail board. Hence all
+these states actually occur in practice.
+
+_`.fix.nail.distinguish`: The nailed bits in the segment descriptor
+(``SegStruct``) are used to record whether a segment is nailed or not.
+The ``segTypeP`` field of the segment either points to (the "type"
+field of) an ``AMCGen`` or to an ``AMCNailBoard``, the type field can
+be used to determine which of these is the case. (see `.seg.typep`_
+above).
+
+_`.nailboard.limitations.single`: Just having a single nail board per
+segment prevents traces from improving on the findings of each other:
+a later trace could find that a nailed object is no longer nailed or
+even dead. Until the nail board is discarded, that is.
+
+_`.nailboard.limitations.middle`: An ambiguous reference into the
+middle of an object will cause the segment to survive, even if there
+are no surviving objects on it.
+
+_`.nailboard.limitations.reclaim`: ``AMCReclaimNailed()`` could cover
+each block of reclaimed objects between two nailed objects with a
+single padding object, speeding up further scans.
+
+
+Emergency tracing
+-----------------
+
+_`.emergency.fix`: ``AMCFixEmergency()`` is at the core of AMC's
+emergency tracing policy (unsurprisingly). ``AMCFixEmergency()``
+chooses exactly one of three options:
+
+1. use the existing nail board structure to record the fix;
+2. preserve and nail the segment in its entirety;
+3. snapout an exact (or high rank) pointer to a broken heart to the
+   broken heart's forwarding pointer.
+
+If the rank of the reference is ``RankAMBIG`` then it either does (1)
+or (2) depending on wether there is an existing nail board or not.
+Otherwise (the rank is exact or higher) if there is a broken heart it
+is used to snapout the pointer. Otherwise it is as for an
+``RankAMBIG`` reference: we either do (1) or (2).
+
+_`.emergency.scan`: This is basically as before, the only complication
+is that when scanning a nailed segment we may need to do multiple
+passes, as ``FixEmergency()`` may introduce new marks into the nail
+board.
+
+
+Buffers
+-------
+
+_`.buffer.class`: AMC uses buffer of class ``AMCBufClass`` (a subclass
+of SegBufClass).
+
+_`.buffer.gen`: Each buffer allocates into exactly one generation.
+
+_`.buffer.field.gen`: ``AMCBuf`` buffer contain a gen field which
+points to the generation that the buffer allocates into.
+
+_`.buffer.fill.gen`: ``AMCBufferFill()`` uses the generation (obtained
+from the ``gen`` field) to initialise the segment's ``segTypeP`` field
+which is how segments get allocated in that generation.
+
+_`.buffer.condemn`: We condemn buffered segments, but not the contents
+of the buffers themselves, because we can't reclaim uncommitted
+buffers (see design.mps.buffer for details). If the segment has a
+forwarding buffer on it, we detach it [why? @@@@ forwarding buffers
+are detached because they used to cause objects on the same segment to
+not get condemned, hence caused retention of garbage. Now that we
+condemn the non-buffered portion of buffered segments this is probably
+unnecessary -- drj 1998-06-01 But it's probably more efficient than
+keeping the buffer on the segment, because then the other stuff gets
+nailed -- pekka 1998-07-10]. If the segment has a mutator buffer on
+it, we nail the buffer. If the buffer cannot be nailed, we give up
+condemning, since nailing the whole segment would make it survive
+anyway. The scan methods skip over buffers and fix methods don't do
+anything to things that have already been nailed, so the buffer is
+effectively black.
+
+
+Types
+-----
+
+_`.struct`: ``AMCStruct`` is the pool class AMC instance structure.  
+
+_`.struct.pool`: Like other pool class instances, it contains a
+``PoolStruct`` containing the generic pool fields.
+
+_`.struct.format`: The ``format`` field points to a ``Format``
+structure describing the object format of objects allocated in the
+pool. The field is intialized by ``AMCInit()`` from a parameter, and
+thereafter it is not changed until the pool is destroyed. [actually
+the format field is in the generic ``PoolStruct`` these days. drj
+1998-09-21]
+
+[lots more fields here]
+
+
+Generations
+-----------
+
+_`.gen`: Generations partition the segments that a pool manages (see
+`.seg.gen.map`_ above).
+
+_`.gen.collect`: Generations are more or less the units of
+condemnation in AMC. And also the granularity for forwarding (when
+copying objects during a collection): all the objects which are copied
+out of a generation use the same forwarding buffer for allocating the
+new copies, and a forwarding buffer results in allocation in exactly
+one generation.
+
+_`.gen.rep`: Generations are represented using an ``AMCGenStruct``
+structure.
+
+_`.gen.create`: All the generation are create when the pool is created
+(during ``AMCInitComm()``).
+
+_`.gen.manage.ring`: An AMC's generations are kept on a ring attached
+to the ``AMCStruct`` (the ``genRing`` field).
+
+_`.gen.manage.array`: They are also kept in an array which is
+allocated when the pool is created and attached to the ``AMCStruct``
+(the gens field holds the number of generations, the ``gen`` field
+points to an array of ``AMCGen``). [it seems to me that we could
+probably get rid of the ring -- drj 1998-09-22]
+
+_`.gen.number`: There are ``AMCTopGen + 2`` generations in total.
+"normal" generations numbered from 0 to ``AMCTopGen`` inclusive and an
+extra "ramp" generation (see `.gen.ramp`_ below).
+
+_`.gen.forward`: Each generation has an associated forwarding buffer
+(stored in the ``forward`` field of ``AMCGen``). This is the buffer
+that is used to forward objects out of this generation. When a
+generation is created in ``AMCGenCreate()``, its forwarding buffer has
+a null ``p`` field, indicating that the forwarding buffer has no
+generation to allocate in. The collector will assert out (in
+``AMCBufferFill()`` where it checks that ``buffer->p`` is an
+``AMCGen``) if you try to forward an object out of such a generation.
+
+_`.gen.forward.setup`: All the generation's forwarding buffer's are
+associated with generations when the pool is created (just after the
+generations are created in ``AMCInitComm()``).
+
+
+Ramps
+-----
+
+_`.ramp`: Ramps usefully implement the begin/end
+``mps_alloc_pattern_ramp()`` interface.
+
+_`.gen.ramp`: To implement ramping (request.dylan.170423), AMC uses a
+special "ramping mode", where promotions are redirected. One
+generation is designated the "ramp generation" (``amc->rampGen`` in
+the code).
+
+_`.gen.ramp.ordinary`: Ordinarily, that is whilst not ramping, objects
+are promoted into the ramp generation from younger generations and are
+promoted out to older generations. The generation that the ramp
+generation ordinarily promotes into is designated the "after-ramp
+generation" (``amc->afterRampGen``).
+
+_`.gen.ramp.particular`: the ramp generation is the second oldest
+generation and the after-ramp generation is the oldest generation.
+
+_`.gen.ramp.possible`: In alternative designs it might be possible to
+make the ramp generation a special generation that is only promoted
+into during ramping, however, this is not done.
+
+_`.gen.ramp.ramping`: The ramp generation is promoted into itself
+during ramping mode;
+
+_`.gen.ramp.after`: after this mode ends, the ramp generation is
+promoted into the after-ramp generation as usual.
+
+_`.gen.ramp.after.once`: Care is taken to
+ensure that there is at least one collection where stuff is promoted
+from the ramp generation to the after-ramp generation even if ramping
+mode is immediately re-entered.
+
+_`.ramp.mode`: This behaviour is controlled in a slightly convoluted
+manner by a state machine. The rampMode field of the pool forms an
+important part of the state of the machine.
+
+There are five states: OUTSIDE, BEGIN, RAMPING, FINISH, and
+COLLECTING. These appear in the code as ``RampOUTSIDE`` and so on.
+
+_`.ramp.state.cycle.usual`: The usual progression of states is a
+cycle: OUTSIDE → BEGIN → RAMPING → FINISH → COLLECTING → OUTSIDE.
+
+_`.ramp.count`: The pool just counts the number of APs that have begun
+ramp mode (and not ended). No state changes occur unless this count
+goes from 0 to 1 (starting the first ramp) or from 1 to 0 (leaving the
+last ramp). In other words, all nested ramps are ignored (see code in
+``AMCRampBegin()`` and ``AMCRampEnd()``).
+
+_`.ramp.state.invariant.count`: In the OUTSIDE state the count must be
+zero. In the BEGIN and RAMPING states the count must be greater than
+zero. In the FINISH and COLLECTING states the count is not
+constrained.
+
+_`.ramp.state.invariant.forward`: When in OUTSIDE, BEGIN, or
+COLLECTING, the ramp generation forwards to the after-ramp generation.
+When in RAMPING or FINISH, the ramp generation forwards to itself.
+
+_`.ramp.outside`: The pool is initially in the OUTSIDE state. The only
+transition away from the OUTSIDE state is to the BEGIN state, when a
+ramp is entered.
+
+_`.ramp.begin`: When the count goes up from zero, the state moves from
+COLLECTING or OUTSIDE to BEGIN.
+
+_`.ramp.begin.leave`: We can leave the BEGIN state to either the
+OUTSIDE or the RAMPING state.
+
+_`.ramp.begin.leave.outside`: We go to OUTSIDE if the count drops to 0
+before a collection starts. This shortcuts the usual cycle of states
+for small enough ramps.
+
+_`.ramp.begin.leave.ramping`: We enter the RAMPING state if a
+collection starts that condemns the ramp generation (pedantically when
+a new GC begins, and a segment in the ramp generation is condemned, we
+leave the BEGIN state, see AMCWhiten). At this point we switch the
+ramp generation to forward to itself (`.gen.ramp.ramping`_).
+
+_`.ramp.ramping.leave`: We leave the RAMPING state and go to the
+FINISH state when the ramp count goes back to zero. Thus, the FINISH
+state indicates that we have started collecting the ramp generation
+while inside a ramp which we have subsequently finished.
+
+_`.ramp.finish.remain`: We remain in the FINISH state until we next
+start to collect the ramp generation (condemn it), regardless of
+entering or leaving any ramps. This ensures that the ramp generation
+will be collected to the after-ramp generation at least once.
+
+_`.ramp.finish.leave`: When we next condemn the ramp genearation, we
+move to the COLLECTING state. At this point the forwarding generations
+are switched back so that the ramp generation promotes into the
+after-ramp generation on this collection.
+
+_`.ramp.collecting.leave`: We leave the COLLECTING state when the GC
+enters reclaim (specifically, when a segment in the ramp generation is
+reclaimed), or when we begin another ramp. Ordinarily we enter the
+OUTSIDE state, but if the client has started a ramp then we go
+directly to the BEGIN state.
+
+_`.ramp.collect-all` There used to be two flavours of ramps: the
+normal one and the collect-all flavour that triggered a full GC after
+the ramp end. This was a hack for producing certain Dylan statistics,
+and no longer has any effect (the flag is passed to
+``AMCRampBegin()``, but ignored there).
+
+
+Headers
+-------
+
+_`.header`: AMC supports a fixed-size header on objects, with the
+client pointers pointing after the header, rather than the base of the
+memory block. See format documentation for details of the interface.
+
+_`.header.client`: The code mostly deals in client pointers, only
+computing the base and limit of a block when these are needed (such as
+when an object is copied). In several places, the code gets a block of
+some sort, a segment or a buffer, and creates a client pointer by
+adding the header length (``pool->format->headerLength``).
+
+_`.header.fix`: There are two versions of the fix method, due to its
+criticality, with (``AMCHeaderFix()``) and without (``AMCFix()``)
+headers. The correct one is selected in ``AMCInitComm()``, and placed
+in the pool's fix field. This is the main reason why fix methods
+dispatch through the instance, rather than the class like all other
+methods.
+
+
+Old and aging notes below here
+------------------------------
+
+``void AMCFinish(Pool pool)``
+
+_`.finish.forward`: If the pool is being destroyed it is OK to destroy
+the forwarding buffers, as the condemned set is about to disappear.
+
+
+``void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)``
+
+_`.flush`: Removes the connexion between a buffer and a group, so that
+the group is no longer buffered, and the buffer is reset and will
+cause a refill when next used.
+
+_`.flush.pad`: The group is padded out with a dummy object so that it
+appears full.
+
+_`.flush.expose`: The buffer needs exposing before writing the padding
+object onto it. If the buffer is being used for forwarding it might
+already be exposed, in this case the segment attached to it must be
+covered when it leaves the buffer. See `.fill.expose`_.
+
+_`.flush.cover`: The buffer needs covering whether it was being used
+for forwarding or not. See `.flush.expose`_.
+
+
+``Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size, Bool withReservoirPermit)``
+
+_`.fill`: Reserve was called on an allocation buffer which was reset,
+or there wasn't enough room left in the buffer. Allocate a group for
+the new object and attach it to the buffer.
+
+_`.fill.expose`: If the buffer is being used for forwarding it may be
+exposed, in which case the group attached to it should be exposed. See
+`.flush.cover`_.
+
+
+``Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+
+_`.fix`: Fix a reference to the pool.
+
+Ambiguous references lock down an entire segment by removing it
+from old-space and also marking it grey for future scanning.
+
+Exact, final, and weak references are merged because the action for an
+already forwarded object is the same in each case. After that
+situation is checked for, the code diverges.
+
+Weak references are either snapped out or replaced with
+``ss->weakSplat`` as appropriate.
+
+Exact and final references cause the referenced object to be copied to
+new-space and the old copy to be forwarded (broken-heart installed) so
+that future references are fixed up to point at the new copy.
+
+_`.fix.exact.expose`: In order to allocate the new copy the forwarding
+buffer must be exposed. This might be done more efficiently outside
+the entire scan, since it's likely to happen a lot.
+
+_`.fix.exact.grey`: The new copy must be at least as grey as the old
+as it may have been grey for some other collection.
+
+
+``Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+
+_`.scan`: Searches for a group which is grey for the trace and scans
+it. If there aren't any, it sets the finished flag to true.
+
+
+``void AMCReclaim(Pool pool, Trace trace, Seg seg)``
+
+_`.reclaim`: After a trace, destroy any groups which are still
+condemned for the trace, because they must be dead.
+
+_`.reclaim.grey`: Note that this might delete things which are grey
+for other collections. This is OK, because we have conclusively proved
+that they are dead -- the other collection must have assumed they were
+alive. There might be a problem with the accounting of grey groups,
+however.
+
+_`.reclaim.buf`: If a condemned group still has a buffer attached, we
+can't destroy it, even though we know that there are no live objects
+there. Even the object the mutator is allocating is dead, because the
+buffer is tripped.
+
+
+Document History
+----------------
+- 1995-08-25 RB_ Incomplete design.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2009-08-11 Richard Kistruck. Fix HTML duplicated anchor names
+  (caused by auto-conversion to HTML).
+
+- 2009-08-11 Richard Kistruck. Prepend Guide, using
+  design/template-with-guide.html.
+
+- 2009-09-14 Richard Kistruck. Guide covers: seg states; pads;
+  retained pages.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

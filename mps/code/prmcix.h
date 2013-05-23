@@ -1,7 +1,7 @@
 /* prmcix.h:  PROTECTION MUTATOR CONTEXT (UNIX)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -11,7 +11,8 @@
 
 #include "mpm.h"
 
-#include <ucontext.h>
+#include <signal.h> /* siginfo_t -- see .feature.li in config.h */
+#include <ucontext.h> /* ucontext_t */
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
   siginfo_t *info;
@@ -24,7 +25,7 @@ typedef struct MutatorFaultContextStruct { /* Protection fault context data */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

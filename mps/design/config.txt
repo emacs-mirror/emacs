@@ -287,13 +287,14 @@ configuration parameters (`.fig.impl`_).  The build parameters are
 defined either by the builder (in the case of target detection) or by
 the build function (in the case of selecting the variety).
 
-_`.fig.impl`::
+_`.fig.impl`:
 
-   build parameters                       configuration parameters
-
-   CONFIG_VAR_DF       -->  config.h  --> MPS_VAR_DF, ASSERT_MPM, etc.
-
-   _WIN32              -->  mpstd.h   --> MPS_OS_W3, etc.
+=========================== ============== ===========================================
+Build parameters            Source file    Configuration parameters
+=========================== ============== ===========================================
+``CONFIG_VAR_HOT``          ⟶ ``config.h`` ⟶ ``MPS_ASSERT_STRING``, etc.
+``_WIN32``                  ⟶ ``mpstd.h``  ⟶ ``MPS_OS_W3``, etc.
+=========================== ============== ===========================================
 
 _`.impl.dep`: No source code, other than the directives in `config.h`_
 and `mpstd.h`_, should depend on any build parameters.  That is,

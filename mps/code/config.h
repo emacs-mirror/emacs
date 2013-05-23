@@ -330,6 +330,37 @@
 #define VMParamSize (sizeof(Word))
 
 
+/* .feature.li: Linux feature specification
+ *
+ * The MPS needs the following symbols which are not defined if the
+ * -ansi option is given to GCC:
+ *
+ * Source      Symbols                   Header        Feature
+ * =========== ========================= ============= ====================
+ * lockli.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
+ * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
+ * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
+ * prmcix.h    stack_t, siginfo_t        <signal.h>    _XOPEN_SOURCE
+ * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
+ * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
+ *
+ * Unfortunately it's not possible to localize these feature
+ * specifications around the individual headers: all headers share a
+ * common set of features (via <feature.h>) and so all sources in the
+ * same compilation unit must turn on the same set of features.
+ *
+ * See "Feature Test Macros" in the GCC Manual:
+ * <http://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html>
+ */
+
+#if defined(MPS_OS_LI)
+
+#define _XOPEN_SOURCE 500
+#define _GNU_SOURCE
+
+#endif
+
+
 /* Protection Configuration see <code/prot*.c>
 
    For each architecture/OS that uses protix.c or protsgix.c, we need to
