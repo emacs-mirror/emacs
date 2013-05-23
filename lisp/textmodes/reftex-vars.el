@@ -1000,7 +1000,9 @@ This is used to string together whole reference sets, like
     ("Fancyref" "fancyref"
      (("\\fref" ?f) ("\\Fref" ?F)))
     ("Hyperref" "hyperref"
-     (("\\autoref" ?a) ("\\autopageref" ?u))))
+     (("\\autoref" ?a) ("\\autopageref" ?u)))
+    ("Cleveref" "cleveref"
+     (("\\cref" ?c) ("\\Cref" ?C) ("\\cpageref" ?d) ("\\Cpageref" ?D))))
   "Alist of reference styles.
 Each element is a list of the style name, the name of the LaTeX
 package associated with the style or t for any package, and an
