@@ -59,9 +59,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'esh-util))
-
+(require 'esh-util)
 (require 'eshell)
 (require 'esh-opt)
 

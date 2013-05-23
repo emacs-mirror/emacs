@@ -33,10 +33,12 @@
 
 (provide 'esh-ext)
 
+(require 'esh-util)
+
 (eval-when-compile
   (require 'cl-lib)
+  (require 'esh-io)
   (require 'esh-cmd))
-(require 'esh-util)
 (require 'esh-opt)
 
 (defgroup eshell-ext nil
@@ -102,6 +104,8 @@ This defaults to nil on non-Windows systems, where this variable is
 wholly ignored."
   :type '(choice file (const nil))
   :group 'eshell-ext)
+
+(autoload 'eshell-parse-command "esh-cmd")
 
 (defsubst eshell-invoke-batch-file (&rest args)
   "Invoke a .BAT or .CMD file on DOS/Windows systems."
@@ -178,6 +182,8 @@ This bypasses all Lisp functions and aliases."
 	      (error "%s: external command failed" cmd))
 	(error "%s: external command not found"
 	       (substring command 1))))))
+
+(autoload 'eshell-close-handles "esh-io")
 
 (defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.

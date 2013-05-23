@@ -55,7 +55,6 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'comint)
   (require 'ido))
 
 (defvar inferior-moz-buffer)
@@ -2217,6 +2216,9 @@ marker."
 
 (defvar find-tag-marker-ring)           ; etags
 
+;; etags loads ring.
+(declare-function ring-insert "ring" (ring item))
+
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
@@ -2639,6 +2641,11 @@ with `js--js-encode-value'."
    ;; order to catch a prompt that's only partially arrived
    (save-excursion (forward-line 0) (point))))
 
+;; Presumably "inferior-moz-process" loads comint.
+(declare-function comint-send-string "comint" (process string))
+(declare-function comint-send-input "comint"
+                  (&optional no-newline artificial))
+
 (defun js--js-enter-repl ()
   (inferior-moz-process) ; called for side-effect
   (with-current-buffer inferior-moz-buffer
@@ -2824,6 +2831,8 @@ If nil, the whole Array is treated as a JS symbol.")
     (`error (signal 'js-js-error (list (cl-second result))))
     (x (error "Unmatched case in js--js-decode-retval: %S" x))))
 
+(defvar comint-last-input-end)
+
 (defun js--js-funcall (function &rest arguments)
   "Call the Mozilla function FUNCTION with arguments ARGUMENTS.
 If function is a string, look it up as a property on the global
@@ -2995,6 +3004,8 @@ left-to-right."
                                       gbrowser))))))
 
 (defvar js-read-tab-history nil)
+
+(declare-function ido-chop "ido" (items elem))
 
 (defun js--read-tab (prompt)
   "Read a Mozilla tab with prompt PROMPT.

@@ -1355,6 +1355,11 @@ If `vera-intelligent-tab' is nil, always indent line."
 (defvar vera-expand-upper-case nil)
 
 (eval-when-compile (require 'hippie-exp))
+(declare-function he-init-string "hippie-exp" (beg end))
+(declare-function he-dabbrev-beg "hippie-exp" ())
+(declare-function he-string-member "hippie-exp" (str lst &optional trans-case))
+(declare-function he-reset-string "hippie-exp" ())
+(declare-function he-substitute-string "hippie-exp" (str &optional trans-case))
 
 (defun vera-try-expand-abbrev (old)
   "Try expanding abbreviations from `vera-abbrev-list'."

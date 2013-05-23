@@ -58,9 +58,11 @@
 
 (provide 'esh-io)
 
+(require 'esh-arg)
+(require 'esh-util)
+
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'eshell))
+  (require 'cl-lib))
 
 (defgroup eshell-io nil
   "Eshell's I/O management code provides a scheme for treating many
@@ -464,6 +466,8 @@ after all printing is over with no argument."
   "Output OBJECT followed by a newline to the standard output handle."
   (eshell-print object)
   (eshell-print "\n"))
+
+(autoload 'eshell-output-filter "esh-mode")
 
 (defun eshell-output-object-to-target (object target)
   "Insert OBJECT into TARGET.

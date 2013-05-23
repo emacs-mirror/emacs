@@ -68,6 +68,7 @@
 
 ;;; Code:
 
+(require 'esh-mode)
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload

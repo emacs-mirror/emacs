@@ -1,3 +1,71 @@
+2013-05-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (top):
+	* net/xesam.el (xesam-dbus-unique-names): Suppress D-Bus errors
+	when loading package.  (Bug#14447)
+
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/js.el: No need to load comint when compiling.
+	(ring-insert, comint-send-string, comint-send-input)
+	(comint-last-input-end, ido-chop): Declare.
+
+	* vc/ediff-diff.el, vc/ediff-merg.el: Require ediff-util at run-time.
+	* vc/ediff-mult.el: Adjust requires.
+	(ediff-directories-internal, ediff-directory-revisions-internal)
+	(ediff-patch-file-internal): Declare.
+	* vc/ediff-ptch.el: Adjust requires.
+	(ediff-use-last-dir, ediff-buffers-internal): Declare.
+	(ediff-find-file): Autoload.
+	* vc/ediff-util.el: No need to load ediff when compiling.
+	(ediff-regions-internal): Declare.
+	* vc/ediff-wind.el: Adjust requires.
+	(ediff-compute-toolbar-width): Define when compiling.
+	(ediff-setup-control-buffer, ediff-make-bottom-toolbar): Declare.
+	* vc/ediff.el: No need to load dired, ediff-ptch when compiling.
+	(dired-get-filename, dired-get-marked-files)
+	(ediff-last-dir-patch, ediff-patch-default-directory)
+	(ediff-get-patch-buffer, ediff-dispatch-file-patching-job)
+	(ediff-patch-buffer-internal): Declare.
+
+	* emacs-lisp/checkdoc.el: No need to load ispell when compiling.
+	(ispell-process, ispell-buffer-local-words, lm-summary)
+	(lm-section-start, lm-section-end): Declare.
+	(checkdoc-ispell-init): Simplify.
+
+	* progmodes/vera-mode.el (he-init-string, he-dabbrev-beg)
+	(he-string-member, he-reset-string, he-substitute-string): Declare.
+
+	* eshell/em-ls.el: Adjust requires.
+	(eshell-glob-regexp): Declare.
+	* eshell/em-tramp.el: Adjust requires.
+	(eshell-parse-command): Autoload.
+	* eshell/em-xtra.el: Adjust requires.
+	(eshell-parse-command): Autoload.
+	* eshell/esh-ext.el: Adjust requires.
+	(eshell-parse-command, eshell-close-handles): Autoload.
+	* eshell/esh-io.el: Adjust requires.
+	(eshell-output-filter): Autoload.
+	* eshell/esh-util.el: No need to load tramp when compiling.
+	(tramp-file-name-structure, ange-ftp-ls, ange-ftp-file-modtime):
+	Declare.
+	(eshell-parse-ange-ls): Require ange-ftp and tramp.
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-glob.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-smart.el:
+	* eshell/em-term.el, eshell/esh-arg.el, eshell/esh-mode.el:
+	* eshell/esh-opt.el, eshell/esh-proc.el:
+	* eshell/esh-var.el: Adjust requires.
+	* eshell/eshell.el: Do not require esh-util twice.
+	(eshell-add-input-to-history): Declare.
+	(eshell-command): Check history module is active before using it.
+
+	* eshell/em-ls.el (eshell-ls-dir): Fix -A handling.
+
+2013-05-22  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup): Fix bug#14433.
+
 2013-05-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-notify-add-watch)
@@ -1311,7 +1379,7 @@
 	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
 	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
 	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
-	(tramp-find-inline-compress):Improve traces.
+	(tramp-find-inline-compress): Improve traces.
 	(tramp-maybe-send-script): Check for Perl binary.
 	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.
 

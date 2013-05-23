@@ -1,3 +1,21 @@
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (rmail-swap-buffers-maybe)
+	(rmail-maybe-set-message-counters, rmail-count-new-messages)
+	(rmail-summary-exists, rmail-show-message, rmail-summary-displayed)
+	(rmail-pop-to-buffer, rmail-maybe-display-summary): Declare.
+
+	* mm-decode.el: No need to load term when compiling.
+	(term-mode, term-char-mode): Declare.
+
+	* mm-util.el: No need to load jka-compr when compiling.
+	(jka-compr-acceptable-retval-list, jka-compr-make-temp-name): Declare.
+
+	* nnmaildir.el: Require is automatically eval-and-compile.
+	(nnmail): Require at run-time too.
+
+	* registry.el (registry-size): Move definition before use.
+
 2013-05-22  Daiki Ueno  <ueno@gnu.org>
 
 	* mml2015.el (mml2015-epg-sign): Make sure to insert newline after the

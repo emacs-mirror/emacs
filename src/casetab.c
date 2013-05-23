@@ -286,7 +286,7 @@ init_casetab_once (void)
       int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
 	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
 		  : i));
-      CHAR_TABLE_SET (up, i, make_number (c));
+      CHAR_TABLE_SET (eqv, i, make_number (c));
     }
 
   set_char_table_extras (down, 2, eqv);

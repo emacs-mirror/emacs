@@ -25,12 +25,12 @@
 
 ;;; Code:
 
+(require 'esh-util)
+
 (eval-when-compile
   (require 'esh-mode)
   (require 'eshell)
   (require 'tramp))
-
-(require 'esh-util)
 
 ;;;###autoload
 (progn
@@ -52,6 +52,8 @@
   (setq eshell-complex-commands
 	(append '("su" "sudo")
 		eshell-complex-commands)))
+
+(autoload 'eshell-parse-command "esh-cmd")
 
 (defun eshell/su (&rest args)
   "Alias \"su\" to call TRAMP.

@@ -32,11 +32,8 @@
 (defvar ediff-merge-window-share)
 (defvar ediff-window-config-saved)
 
-(eval-when-compile
-  (require 'ediff-util))
-;; end pacifier
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defcustom ediff-quit-merge-hook 'ediff-maybe-save-and-delete-merge
   "Hooks to run before quitting a merge job.

@@ -70,10 +70,12 @@
 ;;; Code:
 (require 'pcomplete)
 
+(require 'esh-mode)
+(require 'esh-util)
+
 (eval-when-compile
   (require 'cl-lib)
   (require 'eshell))
-(require 'esh-util)
 
 ;;;###autoload
 (progn
