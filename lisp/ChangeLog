@@ -1,5 +1,8 @@
 2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* lisp/textmodes/reftex.el (reftex-ref-style-toggle): Fix
+	deactivate action.
+
 	* lisp/textmodes/reftex-vars.el (reftex-ref-style-alist): Add
 	cleveref macros.
 
