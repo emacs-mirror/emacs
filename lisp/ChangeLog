@@ -1,5 +1,27 @@
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-tramp.el: Adjust requires.
+	(eshell-parse-command): Autoload.
+	* eshell/em-xtra.el: Adjust requires.
+	(eshell-parse-command): Autoload.
+	* eshell/esh-ext.el: Adjust requires.
+	(eshell-parse-command, eshell-close-handles): Autoload.
+	* eshell/esh-io.el: Adjust requires.
+	(eshell-output-filter): Autoload.
+	* eshell/esh-util.el: No need to load tramp when compiling.
+	(tramp-file-name-structure, ange-ftp-ls, ange-ftp-file-modtime):
+	Declare.
+	(eshell-parse-ange-ls): Require ange-ftp and tramp.
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-glob.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-smart.el:
+	* eshell/em-term.el, eshell/esh-arg.el, eshell/esh-mode.el:
+	* eshell/esh-opt.el, eshell/esh-proc.el:
+	* eshell/esh-var.el: Adjust requires.
+	* eshell/eshell.el: Do not require esh-util twice.
+	(eshell-add-input-to-history): Declare.
+	(eshell-command): Check history module is active before using it.
+
 	* eshell/em-ls.el (eshell-ls-dir): Fix -A handling.
 
 2013-05-22  Leo Liu  <sdl.web@gmail.com>

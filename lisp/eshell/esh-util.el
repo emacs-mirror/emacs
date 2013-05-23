@@ -605,10 +605,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (require 'ange-ftp nil t)
-  (require 'tramp nil t))
+  (require 'ange-ftp nil t))		; ange-ftp-parse-filename
+
+(defvar tramp-file-name-structure)
+(declare-function ange-ftp-ls "ange-ftp"
+		  (file lsargs parse &optional no-error wildcard))
+(declare-function ange-ftp-file-modtime "ange-ftp" (file))
 
 (defun eshell-parse-ange-ls (dir)
+  (require 'ange-ftp)
+  (require 'tramp)
   (let ((ange-ftp-name-format
 	 (list (nth 0 tramp-file-name-structure)
 	       (nth 3 tramp-file-name-structure)

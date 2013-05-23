@@ -49,8 +49,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'eshell))
 (require 'esh-util)
+(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn

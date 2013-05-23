@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'esh-util)
 (eval-when-compile
   (require 'eshell)
   (require 'pcomplete))
@@ -39,6 +40,8 @@ naturally accessible within Emacs."
   :group 'eshell-module))
 
 ;;; Functions:
+
+(autoload 'eshell-parse-command "esh-cmd")
 
 (defun eshell/expr (&rest args)
   "Implementation of expr, using the calc package."

@@ -27,7 +27,7 @@
 
 (provide 'esh-arg)
 
-(eval-when-compile (require 'eshell))
+(require 'esh-mode)
 
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the

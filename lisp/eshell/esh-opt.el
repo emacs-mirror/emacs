@@ -25,7 +25,7 @@
 
 (provide 'esh-opt)
 
-(eval-when-compile (require 'esh-ext))
+(require 'esh-ext)
 
 ;; Unused.
 ;;; (defgroup eshell-opt nil
