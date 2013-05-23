@@ -95,19 +95,19 @@ typedef struct TestClosureStruct {
   Res res;
 } TestClosureStruct;
 
-static Res TestDeleteCallback(ABQDisposition *dispositionReturn, void *element,
-                              void *closureP)
+static Bool TestDeleteCallback(ABQDisposition *dispositionReturn,
+                               void *element, void *closureP, Size closureS)
 {
   TestBlock *a = (TestBlock *)element;
   TestClosure cl = (TestClosure)closureP;
+  UNUSED(closureS);
   if (*a == cl->b) {
     *dispositionReturn = ABQDispositionDELETE;
     cl->res = ResOK;
-    return ResFAIL;
   } else {
     *dispositionReturn = ABQDispositionKEEP;
-    return ResOK;
   }
+  return TRUE;
 }
 
 
@@ -151,7 +151,7 @@ static void step(void)
         cdie(b != NULL, "found to delete");
         cl.b = b;
         cl.res = ResFAIL;
-        ABQIterate(&abq, TestDeleteCallback, &cl);
+        ABQIterate(&abq, TestDeleteCallback, &cl, 0);
         cdie(cl.res == ResOK, "ABQIterate");
       }
   }

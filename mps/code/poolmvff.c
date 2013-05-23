@@ -521,7 +521,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->total = 0;
   mvff->free = 0;
 
-  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE);
+  res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE, args);
   if (res != ResOK)
     goto failInit;
 

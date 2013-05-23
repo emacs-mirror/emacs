@@ -47,12 +47,14 @@ static Index (indexOfAddr)(Addr block, Addr a)
 }
 
 
-static Bool checkCBSAction(CBS cbs, Addr base, Addr limit, void *p)
+static Bool checkCBSAction(CBS cbs, Addr base, Addr limit, void *closureP,
+                           Size closureS)
 {
-  CheckCBSClosure closure = (CheckCBSClosure)p;
+  CheckCBSClosure closure = (CheckCBSClosure)closureP;
 
   /* Don't need to check cbs every time */
   UNUSED(cbs);
+  UNUSED(closureS);
   Insist(closure != NULL);
 
   if (base > closure->oldLimit) {
@@ -84,7 +86,7 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
   closure.limit = addrOfIndex(closure.base, ArraySize);
   closure.oldLimit = closure.base;
 
-  CBSIterate(cbs, checkCBSAction, (void *)&closure);
+  CBSIterate(cbs, checkCBSAction, (void *)&closure, 0);
 
   if (closure.oldLimit == closure.base)
     Insist(BTIsSetRange(allocTable, 0,
@@ -409,7 +411,8 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&allocTable, arena, ArraySize),
       "failed to create alloc table");
 
-  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, Alignment, TRUE),
+  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, Alignment, TRUE,
+                         mps_args_none),
       "failed to initialise CBS");
   cbs = &cbsStruct;
 
