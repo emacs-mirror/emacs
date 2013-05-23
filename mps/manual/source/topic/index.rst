@@ -26,3 +26,5 @@ Reference
     debugging
     telemetry
     weak
+    plinth
+    platform

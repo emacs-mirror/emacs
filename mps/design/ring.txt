@@ -1,0 +1,247 @@
+.. mode: -*- rst -*-
+
+Ring data structure
+===================
+
+:Tag: design.mps.ring
+:Author: Richard Brooksby
+:Date: 1996-09-26
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.source`: rings are derived from the earlier use of Deques. See
+design.mps.deque.
+
+
+Description
+-----------
+
+``typedef RingStruct *Ring``
+
+_`.def.ring`: Rings are circular doubly-linked lists of ring "nodes".
+The nodes are fields of structures which are the "elements" of the
+ring.
+
+Ring node structures (``RingStruct``) are inlined in the structures on
+the ring, like this::
+
+    typedef struct FooStruct *Foo;     /* the element type */
+    typedef struct FooStruct {         /* the element structure */
+      int baz, bim;
+      RingStruct ring;                 /* the ring node */
+      float bip, bop;
+    } FooStruct;
+
+This arrangement means that they do not need to be managed separately.
+This is especially useful in avoiding re-entrancy and bootstrapping
+problems in the memory manager. Rings also provide flexible insertion
+and deletion because the entire ring can be found from any node.
+
+In the MPS, rings are used to connect a "parent" structure (such as a
+``Arena``) to a number of "child" structures (such as ``Pool``), as
+shown in `.fig.ring`_. Note the slight abuse of naming convention, in
+that ``barRing`` is not called ``barRingStruct``.
+
+_`.fig.ring`: A ring of ``Bar`` objects owned by a ``Foo`` object.
+
+[missing figure]
+
+_`.fig.empty`: An empty ring of ``Bar`` objects owned by a ``Foo``
+object.
+
+[missing figure]
+
+_`.def.singleton`: A "singleton" ring is a ring containing one node,
+whose previous and next nodes are itself (see `.fig.single`_).
+
+_`.fig.single`: A singleton ``Bar`` object not on any ring.
+
+[missing figure]
+
+_`.fig.elt`: How ``RING_ELT()`` gets a parent pointer from a node pointer.
+
+[missing figure]
+
+
+Init / Finish
+-------------
+
+``void RingInit(Ring ring)``
+
+_`.init`: Rings are initialized with the ``RingInit()`` function. They
+are initialized to be a singleton ring (`.def.singleton`_).
+
+``void RingFinish(Ring ring)``
+
+_`.finish`: Rings are finished with the ``RingFinish()`` function. A
+ring must be a singleton ring before it can be finished (it is an
+error to attempt to finish a non-singleton ring).
+
+
+Iteration
+---------
+
+``RING_FOR(Ring node, Ring ring, Ring next)``
+
+_`.for`: A macro is used for iterating over the elements in a ring.
+This macro is called ``RING_FOR()``. ``RING_FOR()`` takes three arguments.
+The first is an iteration variable: ``node``. The second is the
+"parent" element in the ring: ``ring``. The third is a variable used
+by the iterator for working state (it holds a pointer to the next
+node): ``next``. All arguments must be of type ``Ring``. The ``node``
+and ``next`` variables must be declared and in scope already. All
+elements except for the "parent" element are iterated over. The macro
+expands to a ``for`` statement. During execution of the loop, the
+``node`` variable (the first argument to the macro) will be the value
+of successive elements in the Ring (at the beginning of the statement
+in the body of the loop).
+
+_`.for.error`: It is an error (possibly unchecked) for the ``node``
+and ``next`` variables to be modified except implicitly by using this
+iterator.
+
+_`.for.safe`: It is safe to delete the current node during the
+iteration.
+
+_`.for.ex`: An example::
+
+    Ring node, nextNode;
+    RING_FOR(node, &foo->barRing, nextNode) {
+      Bar bar = RING_ELT(Bar, FooRing, node);
+      frob(bar);
+    }
+
+_`.for.ex.elt`: Notice the idiomatic use of ``RING_ELT()`` which is
+almost universal when using ``RING_FOR()``.
+
+
+Subclass
+--------
+
+``RING_ELT(type, field, Ring node)``
+
+_`.elt`: ``RING_ELT()`` is a macro that converts a pointer to a ring
+structure into a pointer to the enclosing parent structure.
+``RING_ELT()`` has three arguments which are, in order: ``type``, the
+type of a pointer to the enclosing structure, ``field``, the name of
+the ring structure field within it, ``ring``, the ring node. The
+result is a pointer to the enclosing structure.
+
+.. note:: ``RING_ELT()`` does not work for arrays of rings.
+
+
+Append / Remove
+---------------
+
+``void RingAppend(Ring ring, Ring new)``
+
+_`.append`: ``RingAppend()`` appends a singleton ring to a ring (such
+that the newly added element will be last in the iteration sequence).
+
+``void (RingInsert)(Ring ring, Ring new)``
+
+_`.insert`: ``RingInsert()`` adds a singleton rung to a ring (such that
+the newly added element will be first in the iteration sequence).
+
+``void (RingRemove)(Ring old)``
+
+_`.remove`: ``RingRemove()`` removes an element from a ring. The newly
+removed element becomes a singleton ring. It is an error for the
+element to already be a singleton.
+
+_`.improve.join`: It would be possible to add a ``RingJoin()`` operation
+that joined two rings. This is not done as it is not required.
+
+
+Naming
+------
+
+_`.naming`: By convention, when one structure ``Foo`` contains one
+ring of ``Bar`` structures, the field in ``Foo`` is usually known as
+``barRing``, and the field in ``Bar`` is known as ``fooRing``. If the
+``Foo`` structure contains more than one ring of ``Bar`` structures,
+then they will have names such as ``spongRing`` and ``frobRing``.
+
+
+Deques
+------
+
+This section documents where rings differ significantly from deques.
+
+_`.head`: Deques used a distinguished head structure for the head of
+the ring. Rings still have a separate head structure, but it is not
+distinguished by type.
+
+
+Defects
+-------
+
+This section documents known defects with the current design.
+
+_`.app_for.misuse`: It is easy to pass ``RingAppend()`` and
+``RING_FOR()`` the arguments in the wrong order as all the arguments
+have the same type. see `.head`_.
+
+_`.check.improve`: There is no method for performing a full integrity
+check. This could be added.
+
+
+Document History
+----------------
+
+- 1996-09-26 RB_ Created.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-22 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 1995-2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
