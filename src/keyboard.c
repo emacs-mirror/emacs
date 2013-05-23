@@ -2312,7 +2312,10 @@ read_decoded_event_from_main_queue (EMACS_TIME *end_time,
         = read_event_from_main_queue (end_time, local_getcjmp,
                                       used_mouse_menu);
 #ifdef WINDOWSNT
-      /* w32_console already returns decoded events.  */
+      /* w32_console already returns decoded events.  It either reads
+	 Unicode characters from the Windows keyboard input, or
+	 converts characters encoded in the current codepage into
+	 Unicode.  See w32inevt.c:key_event, near its end.  */
       return nextevt;
 #else
       struct frame *frame = XFRAME (selected_frame);
