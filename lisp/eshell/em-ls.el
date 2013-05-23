@@ -26,10 +26,10 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'eshell))
 (require 'cl-lib)
 (require 'esh-util)
 (require 'esh-opt)
+(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn
@@ -333,6 +333,8 @@ instead."
 (defvar sort-method)
 (defvar ange-cache)
 (defvar dired-flag)
+
+(declare-function eshell-glob-regexp "em-glob" (pattern))
 
 (defun eshell-do-ls (&rest args)
   "Implementation of \"ls\" in Lisp, passing ARGS."

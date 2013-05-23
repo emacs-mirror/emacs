@@ -30,6 +30,8 @@
 	* progmodes/vera-mode.el (he-init-string, he-dabbrev-beg)
 	(he-string-member, he-reset-string, he-substitute-string): Declare.
 
+	* eshell/em-ls.el: Adjust requires.
+	(eshell-glob-regexp): Declare.
 	* eshell/em-tramp.el: Adjust requires.
 	(eshell-parse-command): Autoload.
 	* eshell/em-xtra.el: Adjust requires.
