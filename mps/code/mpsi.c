@@ -53,7 +53,6 @@
 #include "mpsavm.h"
 
 #include <stdarg.h>
-#include <string.h>
 
 
 SRCID(mpsi, "$Id$");

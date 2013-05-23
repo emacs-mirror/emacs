@@ -1,7 +1,7 @@
 /* mpstd.h: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -156,12 +156,6 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    4
 
-#ifndef _REENTRANT        /* it's also defined by cc -pthread */
-#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
-#endif
-#define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
-#define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
-
 
 /* GCC 4.6.3, gcc -E -dM */
 
@@ -179,12 +173,6 @@
 #define MPS_WORD_WIDTH  64
 #define MPS_WORD_SHIFT  6
 #define MPS_PF_ALIGN    8
-
-#ifndef _REENTRANT        /* it's also defined by cc -pthread */
-#define _REENTRANT        /* defines, e.g., pthread_mutexattr_settype */
-#endif
-#define _XOPEN_SOURCE 500 /* to get POSIX signal handling */
-#define _GNU_SOURCE       /* to get register numbers for prmci3li.c */
 
 
 /* GCC 2.95.3, gcc -E -dM */
