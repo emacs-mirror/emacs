@@ -1,3 +1,8 @@
+2013-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-forward-token)
+	(smie-indent-backward-token): Handle string tokens (bug#14381).
+
 2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* ielm.el (ielm-menu): New menu.

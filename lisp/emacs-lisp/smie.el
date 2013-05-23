@@ -1363,7 +1363,12 @@ BASE-POS is the position relative to which offsets should be applied."
      ((looking-at "\\s(\\|\\s)\\(\\)")
       (forward-char 1)
       (cons (buffer-substring (1- (point)) (point))
-            (if (match-end 1) '(0 nil) '(nil 0)))))))
+            (if (match-end 1) '(0 nil) '(nil 0))))
+     ((looking-at "\\s\"")
+      (forward-sexp 1)
+      nil)
+     ((eobp) nil)
+     (t (error "Bumped into unknown token")))))
 
 (defun smie-indent-backward-token ()
   "Skip token backward and return it, along with its levels."
@@ -1375,7 +1380,12 @@ BASE-POS is the position relative to which offsets should be applied."
      ((memq (setq class (syntax-class (syntax-after (1- (point))))) '(4 5))
       (forward-char -1)
       (cons (buffer-substring (point) (1+ (point)))
-            (if (eq class 4) '(nil 0) '(0 nil)))))))
+            (if (eq class 4) '(nil 0) '(0 nil))))
+     ((eq class 7)
+      (backward-sexp 1)
+      nil)
+     ((bobp) nil)
+     (t (error "Bumped into unknown token")))))
 
 (defun smie-indent-virtual ()
   ;; We used to take an optional arg (with value :not-hanging) to specify that
