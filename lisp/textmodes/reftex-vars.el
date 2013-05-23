@@ -1112,7 +1112,7 @@ buffer."
   :group 'reftex)
 
 (defcustom reftex-bibliography-commands
-  '("bibliography" "nobibliography" "setupbibtex\\[.*?database=")
+  '("bibliography" "nobibliography" "setupbibtex\\[.*?database=" "addbibresource")
   "LaTeX commands which specify the BibTeX databases to use with the document."
   :group 'reftex-citation-support
   :type '(repeat string))
