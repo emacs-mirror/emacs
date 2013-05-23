@@ -23,7 +23,7 @@ def main():
     mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]+[A-Za-z0-9])`_(?:        )?')
     funcdef = re.compile(r'^``([^`]*\([^`]*\))``$')
     macrodef = re.compile(r'^``([A-Z][A-Z0-9_]+)``$')
-    macro = re.compile(r'``([A-Z][A-Z0-9_]+)``')
+    macro = re.compile(r'``([A-Z][A-Z0-9_]+)``(?:       )?')
     typedef = re.compile(r'^``typedef ([^`]*)``$') 
     func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
     typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]+(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
