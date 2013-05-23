@@ -6,6 +6,8 @@
  * .design: <design/range/>
  */
 
+#include "check.h"
+#include "mpm.h"
 #include "range.h"
 
 SRCID(range, "$Id$");
