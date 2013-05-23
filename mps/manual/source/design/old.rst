@@ -23,8 +23,12 @@ Old design
     finalize
     fix
     lock
+    message
     object-debug
+    pool
+    poolamc
     poolmvff
+    prot
     protocol
     reservoir
     root
@@ -37,4 +41,5 @@ Old design
     type
     version-library
     version
+    vm
     writef

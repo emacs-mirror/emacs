@@ -1,0 +1,141 @@
+.. mode: -*- rst -*-
+
+The protection module
+=====================
+
+:Tag: design.mps.prot
+:Author: David Jones
+:Date: 1997-04-02
+:Status: incomplete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.intro`: This is the generic design of the Protection Module. The
+protection module provides protection services to other parts of the
+MPS. It is expected that different operating systems will have
+different implementations of this module.
+
+_`.readership`: Any MPS developer.
+
+
+Interface
+---------
+
+``void ProtSetup(void)``
+
+_`.if.setup`: ``ProtSetup()`` will be called exactly once (per
+process). It will be called as part of the initialization of the first
+space that is created. It should arrange for the setup and
+initialization of any datastructures or services that are necessary in
+order to implement the protection module. (On UNIX it expected that it
+will install a signal handler, on Windows it will do nothing)
+
+``void ProtSet(Addr base, Addr limit, AccessSet mode)``
+
+_`.if.set`: ``ProtSet()`` should set the protection of the memory
+between base and limit, including base, but not including limit (ie
+the half-open interval [base,limit)) to that specified by mode. The
+mode parameter should have the ``AccessWRITE`` bit set if write
+accesses to the page are to be forbidden, and should have the
+``AccessREAD`` bit set if read accesses to the page are to be
+forbidden. A request to forbid read accesses (that is, ``AccessREAD``
+is set) may also forbid write accesses, but read accesses will not be
+forbidden unless ``AccessREAD`` is set.
+
+``void ProtTramp(void **resultReturn, void *(*f)(void *, size_t), void *p, size_t s)``
+
+_`.if.tramp`: [undocumented]
+
+``void ProtSync(Space space)``
+
+_`.if.sync`: ``ProtSync()`` is called to ensure that the actual
+protection of each segment (as determined by the OS) is in accordance
+with the segments's ``pm`` field.
+
+``typedef struct MutatorFaultContextStruct *MutatorFaultContext``
+
+_`.if.context-type`: This abstract type is implemented by the
+protection module (impl.c.prot*). It represents the continuation of
+the mutator which is restored after a mutator fault has been handled.
+The functions ``ProtCanStepInstruction()`` (`.if.canstep`_ below) and
+``ProtStepInstruction()`` (`.if.step`_ below) inspect and manipulate
+the context.
+
+``Bool ProtCanStepInstruction(MutatorFaultContext context)``
+
+_`.if.canstep`: Examines the context to determine whether the
+protection module can single-step the instruction which is causing the
+fault. Should return ``TRUE`` if and only if the instruction can be
+single-stepped (that is, ``ProtStepInstruction()`` can be called).
+
+``Bool Res ProtStepInstruction(MutatorFaultContext context)``
+
+_`.if.step`: Single-steps the instruction which is causing the fault.
+This function should only be called if ``ProtCanStepInstruction()``
+applied to the context returned ``TRUE``. It should return
+``ResUNIMPL`` if the instruction cannot be single-stepped. It should
+return ``ResOK`` if the instruction is single-stepped.
+
+The mutator context will be updated by the emulation/execution of the
+instruction such that resuming the mutator will not cause the
+instruction which was causing the fault to be executed.
+
+
+Document History
+----------------
+
+- 1997-04-02 David Jones. Incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

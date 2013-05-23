@@ -1,0 +1,115 @@
+.. mode: -*- rst -*-
+
+Pool and pool class mechanisms
+==============================
+
+:Tag: design.mps.pool
+:Author: Richard Brooksby
+:Date: 1996-07-31
+:Status: incomplete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Definitions
+-----------
+
+_`.def.outer-structure`: The "outer structure" (of a pool) is a C
+object of type ``PoolXXXStruct`` or the type ``struct PoolXXXStruct``
+itself.
+
+_`.def.generic-structure`: The "generic structure" is a C object of
+type ``PoolStruct`` (found embedded in the outer-structure) or the
+type ``struct PoolStruct`` itself.
+
+
+Defaults
+--------
+
+_`.align`: When initialised, the pool gets the default alignment
+(``ARCH_ALIGN``).
+
+_`.no`: If a pool class doesn't implement a method, and doesn't expect
+it to be called, it should use a non-method (``PoolNo*``) which will
+cause an assertion failure if they are reached.
+
+_`.triv`: If a pool class supports a protocol but does not require any
+more than a trivial implementation, it should use a trivial method
+(``PoolTriv*``) which will do the trivial thing.
+
+_`.outer-structure.sig`: It is good practice to put the signature for
+the outer structure at the end (of the structure). This is because
+there's already one at the beginning (in the poolStruct) so putting it
+at the end gives some extra fencepost checking.
+
+
+Requirements
+------------
+
+[Placeholder: must derive the requirements from the architecture.]
+
+_`.req.fix`: ``PoolFix()`` must be fast.
+
+
+Other
+-----
+
+Interface in mpm.h
+Types in mpmst.h
+See also design.mps.poolclass
+
+
+Document History
+----------------
+
+- 1996-07-31 richard incomplete doc
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
