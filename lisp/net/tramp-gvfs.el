@@ -150,9 +150,10 @@
 ;; Check that GVFS is available.  D-Bus integration is available since
 ;; Emacs 23 on some system types.  We don't call `dbus-ping', because
 ;; this would load dbus.el.
-(unless (and (tramp-compat-funcall 'dbus-get-unique-name :session)
-	     (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
-		 (tramp-compat-process-running-p "gvfsd-fuse")))
+(unless (ignore-errors
+	  (and (tramp-compat-funcall 'dbus-get-unique-name :session)
+	       (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
+		   (tramp-compat-process-running-p "gvfsd-fuse"))))
   (tramp-compat-user-error "Package `tramp-gvfs' not supported"))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"

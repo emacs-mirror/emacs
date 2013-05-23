@@ -264,8 +264,9 @@ fields are supported.")
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defvar xesam-dbus-unique-names
-  (list (cons :system (dbus-get-unique-name :system))
-	(cons :session (dbus-get-unique-name :session)))
+  (ignore-errors
+    (list (cons :system (dbus-get-unique-name :system))
+	  (cons :session (dbus-get-unique-name :session))))
   "The unique names, under which Emacs is registered at D-Bus.")
 
 (defun xesam-dbus-call-method (&rest args)

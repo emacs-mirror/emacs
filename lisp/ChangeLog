@@ -1,3 +1,9 @@
+2013-05-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (top):
+	* net/xesam.el (xesam-dbus-unique-names): Suppress D-Bus errors
+	when loading package.  (Bug#14447)
+
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/js.el: No need to load comint when compiling.
@@ -1373,7 +1379,7 @@
 	* net/tramp-sh.el (tramp-perl-pack, tramp-perl-unpack): New defconst.
 	(tramp-local-coding-commands, tramp-remote-coding-commands): Use them.
 	(tramp-sh-handle-file-local-copy, tramp-sh-handle-write-region):
-	(tramp-find-inline-compress):Improve traces.
+	(tramp-find-inline-compress): Improve traces.
 	(tramp-maybe-send-script): Check for Perl binary.
 	(tramp-get-inline-coding): Do not redirect STDOUT for local decoding.
 
