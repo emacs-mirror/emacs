@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>6. Signatures in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Design" href="index.html" />
+    <link rel="next" title="Old design" href="old.html" />
+    <link rel="prev" title="5. Ring data structure" href="ring.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="old.html" title="Old design"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ring.html" title="5. Ring data structure"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-sig"><span id="index-0"></span></span><div class="section" id="signatures-in-the-mps">
+<h1>6. Signatures in the MPS<a class="headerlink" href="#signatures-in-the-mps" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.sig</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Organization:</th><td class="field-body">Ravenbrook Limited</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">2013-05-09</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/sig.txt#4 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See section <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="introduction">
+<h2>6.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Integrity of data structures is absolutely critical to the cost of
+deploying the Memory Pool System.  Memory corruption and memory
+management bugs are incredibly hard to detect and debug, often
+manifesting themselves hours or days after they occur.  One of the key
+ways the MPS detects corruption or the passing of illegal data is using
+<em>signatures</em>.  This simple technique has proved invaluable at catching
+defects early.</p>
+</div>
+<div class="section" id="overview">
+<h2>6.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Signatures are magic numbers which are written into structures when
+they are created and invalidated (by overwriting with <tt class="docutils literal"><span class="pre">SigInvalid</span></tt>)
+when they are destroyed. They provide a limited form of run-time type
+checking and dynamic scope checking. They are a simplified form of
+&#8220;Structure Marking&#8221;, a technique used in the Multics filesystem
+<a class="reference internal" href="#thvv-1995">[THVV 1995]</a>.</p>
+</div>
+<div class="section" id="definitions">
+<h2>6.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p>Nearly every structure should start with a field of type <tt class="docutils literal"><span class="pre">Sig</span></tt> with the name
+<tt class="docutils literal"><span class="pre">sig</span></tt>.  For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_message_s</span> <span class="p">{</span>
+  <span class="n">Sig</span> <span class="n">sig</span><span class="p">;</span>                      <span class="cm">/* &lt;design/sig/&gt; */</span>
+  <span class="n">Arena</span> <span class="n">arena</span><span class="p">;</span>                  <span class="cm">/* owning arena */</span>
+  <span class="n">MessageClass</span> <span class="n">class</span><span class="p">;</span>           <span class="cm">/* Message Class Structure */</span>
+  <span class="n">Clock</span> <span class="n">postedClock</span><span class="p">;</span>            <span class="cm">/* mps_clock() at post time, or 0 */</span>
+  <span class="n">RingStruct</span> <span class="n">queueRing</span><span class="p">;</span>         <span class="cm">/* Message queue ring */</span>
+<span class="p">}</span> <span class="n">MessageStruct</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>There must also be a definition for the valid value for that signature:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="cp">#define MessageSig      ((Sig)0x5193e559) </span><span class="cm">/* SIG MESSaGe */</span><span class="cp"></span>
+</pre></div>
+</div>
+<p>This is a 32-bit hex constant, spelled according to <a class="reference external" href="./guide.hex.trans.txt">guide.hex.trans</a>:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span>
+<span class="n">ABCDEF9811C7340BC6520F3812</span>
+</pre></div>
+</div>
+<p>This allows the structure to be recognised when looking at memory in a hex
+dump or memory window, or found using memory searches.</p>
+</div>
+<div class="section" id="init-and-finish">
+<h2>6.4. Init and Finish<a class="headerlink" href="#init-and-finish" title="Permalink to this headline">¶</a></h2>
+<p>When the structure is initialised, the signature is initialised as the
+<em>last</em> action, just before validating it.  (Think of it as putting your
+signature at the bottom of a document to say it&#8217;s done.)  This ensures
+that the structure will appear invalid until it is completely initialized
+and ready to use.  For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">MessageInit</span><span class="p">(...)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">message</span><span class="o">-&gt;</span><span class="n">arena</span> <span class="o">=</span> <span class="n">arena</span><span class="p">;</span>
+  <span class="n">message</span><span class="o">-&gt;</span><span class="n">class</span> <span class="o">=</span> <span class="n">class</span><span class="p">;</span>
+  <span class="n">RingInit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="o">-&gt;</span><span class="n">queueRing</span><span class="p">);</span>
+  <span class="n">message</span><span class="o">-&gt;</span><span class="n">postedClock</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">message</span><span class="o">-&gt;</span><span class="n">sig</span> <span class="o">=</span> <span class="n">MessageSig</span><span class="p">;</span>
+  <span class="n">AVERT</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When the structure is finished, the signature is invalidated as the
+<em>first</em> action, ensuring that the structure appears invalid while it is
+being torn down.  For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">MessageFinish</span><span class="p">(</span><span class="n">Message</span> <span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">AVERT</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+  <span class="n">AVER</span><span class="p">(</span><span class="n">RingIsSingle</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="o">-&gt;</span><span class="n">queueRing</span><span class="p">));</span>
+
+  <span class="n">message</span><span class="o">-&gt;</span><span class="n">sig</span> <span class="o">=</span> <span class="n">SigInvalid</span><span class="p">;</span>
+  <span class="n">RingFinish</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="o">-&gt;</span><span class="n">queueRing</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Do not do anything else with signatures.  See <a class="reference internal" href="#rule-purpose">.rule.purpose</a>.</p>
+</div>
+<div class="section" id="checking">
+<h2>6.5. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h2>
+<p>The signature is checked in various ways.  Every function that takes a
+(pointer to) a signed structure should check its argument using the <tt class="docutils literal"><span class="pre">AVERT</span></tt>
+macro.  This macro has different definitions depending on how the MPS is
+compiled.  It may simply check the signature directly, or call the full
+checking function for the structure.</p>
+<p>The checking function for the structure should also validate the signature
+as its first step using the <tt class="docutils literal"><span class="pre">CHECKS</span></tt> macro (see <a class="reference external" href="../code/check.h">check.h</a>).  For example:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">Bool</span> <span class="nf">MessageCheck</span><span class="p">(</span><span class="n">Message</span> <span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">CHECKS</span><span class="p">(</span><span class="n">Message</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+  <span class="n">CHECKU</span><span class="p">(</span><span class="n">Arena</span><span class="p">,</span> <span class="n">message</span><span class="o">-&gt;</span><span class="n">arena</span><span class="p">);</span>
+  <span class="n">CHECKD</span><span class="p">(</span><span class="n">MessageClass</span><span class="p">,</span> <span class="n">message</span><span class="o">-&gt;</span><span class="n">class</span><span class="p">);</span>
+  <span class="p">...</span>
+</pre></div>
+</div>
+<p>This combination makes it extremely difficult to get an object of the
+wrong type, an uninitialized object, or a dead object, or a random
+pointer into a function.</p>
+</div>
+<div class="section" id="rules">
+<h2>6.6. Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="rule-purpose">.rule.purpose</span>: <strong>Do not</strong> use signatures for any other purpose.  For
+example, don&#8217;t use them to make any actual decisions within the code.
+They must not be used to discriminate between structure variants (or
+union members). They must not be used to try to detect <em>whether</em> a
+structure has been initialised or finished.  They are there to
+double-check whether these facts are true. They lose their value as a
+consistency check if the code uses them as well.</p>
+</div>
+<div class="section" id="tools">
+<h2>6.7. Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="test-uniq">.test.uniq</span>: The Unix command:</p>
+<div class="highlight-c"><pre>sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c</pre>
+</div>
+<p>will display all signatures defined in the MPS along with a count of how
+many times they are defined.  If any counts are greater than 1, then the
+same signature value is being used for different signatures.  This is
+undesirable and the problem should be investigated.</p>
+</div>
+<div class="section" id="references">
+<h2>6.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p id="rb-1995-08-25">Richard Brooksby. Harlequin. 1995-08-25. &#8220;design.mps.sig: The design
+of the Memory Pool System Signature System&#8221;.</p>
+</li>
+<li><p id="thvv-1995">Tom Van Vleck. 1995. &#8220;<a class="reference external" href="http://www.multicians.org/thvv/marking.html">Structure Marking</a>&#8221;.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="document-history">
+<h2>6.9. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>2013-05-09 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Created based on scanty MM document <a class="reference internal" href="#rb-1995-08-25">[RB 1995-08-25]</a>.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>6.10. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<p>1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</p>
+<p>2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</p>
+<p>3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</p>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">6. Signatures in the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">6.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">6.2. Overview</a></li>
+<li><a class="reference internal" href="#definitions">6.3. Definitions</a></li>
+<li><a class="reference internal" href="#init-and-finish">6.4. Init and Finish</a></li>
+<li><a class="reference internal" href="#checking">6.5. Checking</a></li>
+<li><a class="reference internal" href="#rules">6.6. Rules</a></li>
+<li><a class="reference internal" href="#tools">6.7. Tools</a></li>
+<li><a class="reference internal" href="#references">6.8. References</a></li>
+<li><a class="reference internal" href="#document-history">6.9. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">6.10. Copyright and License</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ring.html"
+                        title="previous chapter">5. Ring data structure</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="old.html"
+                        title="next chapter">Old design</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="old.html" title="Old design"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ring.html" title="5. Ring data structure"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

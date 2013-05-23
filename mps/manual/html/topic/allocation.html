@@ -532,7 +532,7 @@ structures.</p>
 as refilling the buffer.</p>
 <p>The <em>reserve</em> operation thus looks like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">ap</span><span class="o">-&gt;</span><span class="n">alloc</span> <span class="o">+</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="n">ap</span><span class="o">-&gt;</span><span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">ap</span><span class="o">-&gt;</span><span class="n">alloc</span> <span class="o">+=</span> <span class="n">ap</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span>
+    <span class="n">ap</span><span class="o">-&gt;</span><span class="n">alloc</span> <span class="o">+=</span> <span class="n">size</span><span class="p">;</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">ap</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">;</span>
 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_fill</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>

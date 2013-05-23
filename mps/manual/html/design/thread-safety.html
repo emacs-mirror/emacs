@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>18. Thread safety in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="19. Tracer" href="trace.html" />
+    <link rel="prev" title="17. Telemetry" href="telemetry.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="trace.html" title="19. Tracer"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="telemetry.html" title="17. Telemetry"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-thread-safety"><span id="index-0"></span></span><div class="section" id="thread-safety-in-the-mps">
+<h1>18. Thread safety in the MPS<a class="headerlink" href="#thread-safety-in-the-mps" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.thread-safety</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">David Moore</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1995-10-03</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/thread-safety.txt#1 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="introduction">
+<h2>18.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="intro">.intro</span>: This describes how thread safety is achieved in the MPS.</p>
+</div>
+<div class="section" id="overview">
+<h2>18.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="over">.over</span>: The MPS is expected to run in an environment with multiple
+threads calling into the MPS. The initial approach is very simple.
+Some of the code is known to operate with exclusive access to the data
+it manipulates, so this code is safe. For the rest of the code, shared
+data structures are locked by the use of a single binary lock
+(design.mps.lock(0)) per arena. This lock is claimed on entry to the
+MPS and released on exit from it. So there is at most a single thread
+(per arena) running &#8220;inside&#8221; the MPS at a time.</p>
+</div>
+<div class="section" id="requirements">
+<h2>18.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="req-mt">.req.mt</span>: Code must work correctly in presence of multiple threads
+all calling into the MPS.</p>
+<p><span class="target" id="req-perf">.req.perf</span>: Performance should not be unreasonably hindered.</p>
+</div>
+<div class="section" id="architecture">
+<h2>18.4. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="arch-arena">.arch.arena</span>: Arena Lock: no shared data between arenas.</p>
+<p><span class="target" id="arch-global-binary">.arch.global.binary</span>: Global binary lock: protects mutable data
+shared between arenas &#8211; that is, the arena ring, see
+design.mps.arena.static.ring.lock.</p>
+<p><span class="target" id="arch-global-recursive">.arch.global.recursive</span>: Global recursive lock: protects static data
+which must be initialized once &#8211; for example, pool classes, see
+design.mps.protocol.impl.init-lock.</p>
+<p><span class="target" id="arch-other">.arch.other</span>: Other: data not shared.</p>
+<p><span class="target" id="arch-static">.arch.static</span>: Static data: sigs: shared-non-mutable always inited
+to same thing.</p>
+<p><span class="target" id="arena-entry">.arena-entry</span>: Each arena has a single lock. Externally visible
+calls fall into two categories. Simple: arena lock not held. Lock is
+claimed on entry, and released on exit. Recall: These are callable
+only after a call-back from the MPS. In this case a arena lock is
+already held.</p>
+<p><span class="target" id="interface">.interface</span>: The definition of the interface should guarantee safe
+use of calls (from a locking point of view). For example, a buffer
+must be exclusive to a thread.</p>
+<p><span class="target" id="buffers">.buffers</span>: The buffer code is designed not to need a lock in the
+fast case. A lock is only claimed on the exceptional reserve, trip and
+commit cases (fill and trip?). A buffer contains references to shared
+data (via pool field). Accessing this shared data must involve a lock.</p>
+<p><span class="target" id="deadlock">.deadlock</span>: A strict ordering is required between the global and
+arena locks to prevent deadlock. The binary global lock may not be
+claimed while either the arena or recursive global lock is held; the
+arena lock may not be claimed while the recursive global lock is held.
+Each arena lock is independent of all other arena locks; that is, a
+thread may not attempt to claim more than one arena lock at a time.</p>
+</div>
+<div class="section" id="analysis">
+<h2>18.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="anal-simple">.anal.simple</span>: To have the code functioning correctly it should be
+easy to change correctly. So a simple approach is desirable. We have
+to also ensure that performance is not unreasonably downgraded.</p>
+<div class="section" id="performance-cost-of-locking">
+<h3>18.5.1. Performance cost of locking<a class="headerlink" href="#performance-cost-of-locking" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="lock-cost">.lock-cost</span>: The cost of locking in performance terms are:</p>
+<ul class="simple">
+<li><span class="target" id="lock-cost-overhead">.lock-cost.overhead</span>: the overhead of claiming and releasing locks;</li>
+<li><span class="target" id="lock-cost-pause">.lock-cost.pause</span>: the pauses caused by one thread being blocked
+on another thread.</li>
+<li><span class="target" id="lock-cost-wait">.lock-cost.wait</span>: the time wasted by one thread being blocked on
+another thread.</li>
+</ul>
+<p><span class="target" id="anal-perf-signif">.anal.perf.signif</span>: <a class="reference internal" href="#lock-cost-pause">.lock-cost.pause</a> is significant if there are
+MPS functions that take a long time. Using more locks, e.g. having a
+lock per pool as well as a lock per arena, is a way of decreasing the
+locking conflict between threads (.lock-cost.pause and
+<a class="reference internal" href="#lock-cost-wait">.lock-cost.wait</a>). However this could increase
+<a class="reference internal" href="#lock-cost-overhead">.lock-cost.overhead</a> significantly.</p>
+<p><span class="target" id="anal-perf-work">.anal.perf.work</span>: But all MPS functions imply a small work-load
+unless a collection is taking place. In the case of a collection, in
+practice and certainly in the near future, all threads will most
+likely be suspended while the collection work is going on. (The pages
+being scanned will need to be unprotected which implies the mutator
+will have to be stopped.) We also have to remember that unless we are
+running on genuine multiprocessor <a class="reference internal" href="#lock-cost-wait">.lock-cost.wait</a> is irrelevant.</p>
+<p><span class="target" id="anal-perf-alloc">.anal.perf.alloc</span>: During typical use we expect that it is
+allocation that is the most frequent activity. Allocation buffers
+(design.mps.buffer) are designed to allow allocation in concurrent
+threads without needing a lock. So the most significant time a thread
+spends in the MPS will be on a buffer-fill or during a collection. The
+next most significant use is likely to be buffer create and deletion,
+as a separate buffer will be required for each thread.</p>
+<p><span class="target" id="anal-perf-lock">.anal.perf.lock</span>: So overall the performance cost of locking is, I
+estimate, most significantly the overhead of calling the locking
+functions. Hence it would be undesirable from a performance point of
+view to have more than one lock.</p>
+</div>
+<div class="section" id="recursive-vs-binary-locks">
+<h3>18.5.2. Recursive vs binary locks<a class="headerlink" href="#recursive-vs-binary-locks" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="anal-reentrance">.anal.reentrance</span>: The simplest way to lock the code safely is to
+define which code runs inside or outside the lock. Calling from the
+outside to the inside implies a lock has to be claimed. Returning
+means the lock has to be released. Control flow from outside to
+outside and from inside to inside needs no locking action. To
+implement this a function defined on the external interface needs to
+claim the lock on entry and release it on exit. Our code currently
+uses some external functions with the lock already held. There are two
+ways to implement this:</p>
+<ol class="arabic simple">
+<li><span class="target" id="recursive">.recursive</span>: Each external function claims a recursive lock.<ul>
+<li>simple;</li>
+<li>have to worry about locking depth;</li>
+<li>extra locking overhead on internal calls of external functions;</li>
+</ul>
+</li>
+<li><span class="target" id="binary">.binary</span>: Each external function claims a binary lock. Replace
+each internal call of an external function with a call to a newly
+defined internal one.<ul>
+<li>more code</li>
+<li>slightly easier to reason about</li>
+</ul>
+</li>
+</ol>
+<p><span class="target" id="anal-strategy">.anal.strategy</span>: It seems that the <a class="reference internal" href="#recursive">.recursive</a> strategy is the
+easiest to implement first, but could be evolved into a <a class="reference internal" href="#binary">.binary</a>
+strategy. (That evolution has now happened. tony 1999-08-31).</p>
+</div>
+</div>
+<div class="section" id="ideas">
+<h2>18.6. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="sol-arena-lock">.sol.arena-lock</span>: Lock per arena which locks all MPS structures
+associated with the arena, except allocation buffers.</p>
+<p><span class="target" id="sol-init">.sol.init</span>: Shared static data may not be changed. It is initialised
+before being read, and if re-initalised the values written must be
+identical to those already there. Essentially only read-only shared
+static data is allowed.</p>
+<p><span class="target" id="sol-fine-grain">.sol.fine-grain</span>: Use finer grained locks, for example, a lock per
+per pool instance. Arena lock locks only operations on arena. Pool
+locks are claimed per pool. An ordering on pool instances would avoid
+deadlock.</p>
+<p><span class="target" id="sol-global">.sol.global</span>: Use global locks for genuinely global data which must
+be updated dynamically. An ordering between global and arena locks
+would avoid deadlock.</p>
+</div>
+<div class="section" id="implementation">
+<h2>18.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>Use MPS locks (design.mps.lock) to do locking.</p>
+<div class="section" id="locking-functions">
+<h3>18.7.1. Locking Functions<a class="headerlink" href="#locking-functions" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">ArenaEnter</span></tt> and <tt class="docutils literal"><span class="pre">ArenaLeave</span></tt> are used to claim and release the
+arena lock. To implement this:</p>
+<ul class="simple">
+<li>There is a lock for every arena. The arena class init function
+allocates the lock as well as the arena itself.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaInit</span></tt> calls <tt class="docutils literal"><span class="pre">LockInit</span></tt> on the lock and initializes the
+pointer to it from the arena.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaDestroy</span></tt> calls <tt class="docutils literal"><span class="pre">LockFinish</span></tt> on it.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaEnter</span></tt> claims the lock.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaLeave</span></tt> releases the lock.</li>
+</ul>
+</div>
+<div class="section" id="shared-and-non-shared-data">
+<h3>18.7.2. Shared and non-shared data<a class="headerlink" href="#shared-and-non-shared-data" title="Permalink to this headline">¶</a></h3>
+<p>Non-shared data is data for which no other thread has a handle on it.
+shared-non-mutable data is data which is never changed after
+initialisation. It may be re-initialised, if re-initialisation does
+not change its value. atomically updatable data is data which is not
+locked, but may be shared because it is in a consistent state before
+and after an update.</p>
+<p>A function is &#8220;safe&#8221; if it may safely execute without exclusive access
+to the data it manipulates.</p>
+<p>A &#8220;safe&#8221; function may:</p>
+<ul class="simple">
+<li>call other safe functions;</li>
+<li>manipulate non-shared data;</li>
+<li>read shared-non-mutable data;</li>
+<li>claim the arena lock around code which may manipulate shared data in
+the arena.</li>
+</ul>
+<p>Each function in the external MPS interface falls into one of the
+following categories:</p>
+<ul class="simple">
+<li>calls <tt class="docutils literal"><span class="pre">ArenaEnter</span></tt> on entry and <tt class="docutils literal"><span class="pre">ArenaLeave</span></tt> on exit;</li>
+<li>uses <tt class="docutils literal"><span class="pre">PoolArena</span></tt> to identify the arena, before claiming the lock;</li>
+<li>uses <tt class="docutils literal"><span class="pre">BufferPool</span></tt> and <tt class="docutils literal"><span class="pre">PoolArena</span></tt> to identify the arena, before
+claiming the lock;</li>
+<li>is not defined as external but is listed for explicitness;</li>
+<li>only claims the lock in otherwise unsafe situations (buffer code?);</li>
+<li>may be called externally but only in a situation where the arena
+lock is already held;</li>
+<li>is the unique accessor of its data.</li>
+</ul>
+<p>So <tt class="docutils literal"><span class="pre">PoolArena</span></tt> and <tt class="docutils literal"><span class="pre">BufferPool</span></tt> must be &#8220;safe&#8221;. <tt class="docutils literal"><span class="pre">pool-&gt;arena</span></tt> is
+shared-non-mutable. <tt class="docutils literal"><span class="pre">buffer-&gt;pool</span></tt> is shared-non-mutable.</p>
+</div>
+<div class="section" id="validation">
+<h3>18.7.3. Validation<a class="headerlink" href="#validation" title="Permalink to this headline">¶</a></h3>
+<p>We have to be careful about validation. Any function that is called
+from a arena-safe function without the arena-lock held, must itself be
+safe, or manipulating non-shared data.</p>
+<p>For example, calling <tt class="docutils literal"><span class="pre">PoolIsValid</span></tt> before claiming the lock would be
+wrong if <tt class="docutils literal"><span class="pre">PoolIsValid</span></tt> is unsafe. Defining it to be safe would
+involve locking it, which if done in all similar situations would be
+very expensive.</p>
+<p>Possibly remove validation from accessor methods; replace with
+signature check and <tt class="docutils literal"><span class="pre">IsValid</span></tt> calls in callers of accessor
+functions.</p>
+<p>Annotations?:
+- safe
+- non-shared
+- shared-non-mutable</p>
+</div>
+<div class="section" id="safe-functions">
+<h3>18.7.4. Safe functions<a class="headerlink" href="#safe-functions" title="Permalink to this headline">¶</a></h3>
+<p>Arena</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">ArenaCreate</span></tt> &#8211; no shared data; no lock; calls <tt class="docutils literal"><span class="pre">LockInit</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaDestroy</span></tt> &#8211; no shared data; no lock (should only finish
+arena after use); calls <tt class="docutils literal"><span class="pre">LockFinish</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">ArenaDescribe</span></tt> &#8211; lock.</li>
+</ul>
+<p>Root (for the purposes of locking this module can be thought of as external)</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">RootCreate</span></tt> &#8211; calls create</li>
+<li><tt class="docutils literal"><span class="pre">RootCreateTable</span></tt> &#8211; calls create</li>
+<li>create &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">RootDestroy</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">RootDescribe</span></tt> &#8211; lock</li>
+</ul>
+<p>will be attached to arena, can lock now.</p>
+<p>Pool</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">PoolCreate</span> <span class="pre">/</span> <span class="pre">PoolCreateV</span></tt> &#8211; lock (Create calls CreateV which locks).</li>
+<li><tt class="docutils literal"><span class="pre">PoolDestroy</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">PoolAlloc</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">PoolFree</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">PoolArena</span></tt> &#8211; accesses shared-non-mutable data only</li>
+<li><tt class="docutils literal"><span class="pre">PoolDescribe</span></tt> &#8211; lock</li>
+</ul>
+<p>Format</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">FormatCreate</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">FormatDestroy</span></tt> &#8211; lock</li>
+</ul>
+<p>Buffer</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">BufferCreate</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">BufferDestroy</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">BufferFill</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">BufferTrip</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">BufferPool</span></tt> &#8211; accesses shared-non-mutable data only</li>
+<li><tt class="docutils literal"><span class="pre">BufferDescribe</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">BufferCommit</span></tt> &#8211; &#8220;unsafe&#8221;: buffer may be used by single thread
+only. (but safe wrt arena)</li>
+<li><tt class="docutils literal"><span class="pre">BufferReserve</span></tt> &#8211; &#8220;unsafe&#8221;: also</li>
+</ul>
+<p>PoolClass (only shared data is static and non-mutable)</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">PoolClass</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">PoolClassAMC</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">PoolClassMV</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">PoolClassMFS</span></tt></li>
+</ul>
+<p>Sig (as with <tt class="docutils literal"><span class="pre">PoolClass</span></tt>, relies on static data reinitialised to
+constant value)</p>
+<p>Collect</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Collect</span></tt> &#8211; lock</li>
+</ul>
+<p>Thread</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">ThreadRegister</span></tt> &#8211; lock</li>
+<li><tt class="docutils literal"><span class="pre">ThreadDeregister</span></tt> &#8211; lock</li>
+</ul>
+</div>
+</div>
+<div class="section" id="document-history">
+<h2>18.8. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1995-10-03 David Moore. Incomplete design.</li>
+<li>2002-06-21 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-05-22 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>18.9. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">18. Thread safety in the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">18.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">18.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">18.3. Requirements</a></li>
+<li><a class="reference internal" href="#architecture">18.4. Architecture</a></li>
+<li><a class="reference internal" href="#analysis">18.5. Analysis</a><ul>
+<li><a class="reference internal" href="#performance-cost-of-locking">18.5.1. Performance cost of locking</a></li>
+<li><a class="reference internal" href="#recursive-vs-binary-locks">18.5.2. Recursive vs binary locks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ideas">18.6. Ideas</a></li>
+<li><a class="reference internal" href="#implementation">18.7. Implementation</a><ul>
+<li><a class="reference internal" href="#locking-functions">18.7.1. Locking Functions</a></li>
+<li><a class="reference internal" href="#shared-and-non-shared-data">18.7.2. Shared and non-shared data</a></li>
+<li><a class="reference internal" href="#validation">18.7.3. Validation</a></li>
+<li><a class="reference internal" href="#safe-functions">18.7.4. Safe functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#document-history">18.8. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">18.9. Copyright and License</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="telemetry.html"
+                        title="previous chapter">17. Telemetry</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="trace.html"
+                        title="next chapter">19. Tracer</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="trace.html" title="19. Tracer"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="telemetry.html" title="17. Telemetry"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

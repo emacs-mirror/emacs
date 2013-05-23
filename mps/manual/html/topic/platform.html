@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. Platforms &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>22. Platforms &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -27,9 +27,9 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="up" title="Internals" href="internals.html" />
-    <link rel="next" title="3. The critical path" href="critical.html" />
-    <link rel="prev" title="1. Plinth" href="plinth.html" /> 
+    <link rel="up" title="Reference" href="index.html" />
+    <link rel="next" title="Pool reference" href="../pool/index.html" />
+    <link rel="prev" title="21. Plinth" href="plinth.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,13 +39,13 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="critical.html" title="3. The critical path"
+          <a href="../pool/index.html" title="Pool reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="plinth.html" title="1. Plinth"
+          <a href="plinth.html" title="21. Plinth"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="internals.html" accesskey="U">Internals</a> &raquo;</li> 
+          <li><a href="index.html" accesskey="U">Reference</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="platforms">
-<span id="topic-platform"></span><h1>2. Platforms<a class="headerlink" href="#platforms" title="Permalink to this headline">¶</a></h1>
+<span id="topic-platform"></span><h1>22. Platforms<a class="headerlink" href="#platforms" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="platform-codes">
-<span id="index-0"></span><h2>2.1. Platform codes<a class="headerlink" href="#platform-codes" title="Permalink to this headline">¶</a></h2>
+<span id="index-0"></span><h2>22.1. Platform codes<a class="headerlink" href="#platform-codes" title="Permalink to this headline">¶</a></h2>
 <p>The MPS uses a six-character platform code to express a combination of
 operating system, CPU architecture, and compiler toolchain. Each
 six-character code breaks down into three pairs of characters:
@@ -155,7 +155,7 @@ defined. For example, &#8220;<tt class="docutils literal"><span class="pre">xci6
 and compiler are supported.</p>
 </div>
 <div class="section" id="platform-interface">
-<span id="index-1"></span><h2>2.2. Platform interface<a class="headerlink" href="#platform-interface" title="Permalink to this headline">¶</a></h2>
+<span id="index-1"></span><h2>22.2. Platform interface<a class="headerlink" href="#platform-interface" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &quot;mpstd.h&quot;</span>
 </pre></div>
 </div>
@@ -361,7 +361,7 @@ typical values are 32 and 64.</p>
 
 </div>
 <div class="section" id="historical-platform-codes">
-<span id="index-2"></span><h2>2.3. Historical platform codes<a class="headerlink" href="#historical-platform-codes" title="Permalink to this headline">¶</a></h2>
+<span id="index-2"></span><h2>22.3. Historical platform codes<a class="headerlink" href="#historical-platform-codes" title="Permalink to this headline">¶</a></h2>
 <p>The platform codes in the tables below were in use in older versions
 of the Memory Pool System, but are not currently supported.</p>
 <p>Formerly supported operating systems:</p>
@@ -519,7 +519,7 @@ Compiler on OSF/1.</td></tr>
 </div>
 </div>
 <div class="section" id="historical-platform-list">
-<span id="index-3"></span><h2>2.4. Historical platform list<a class="headerlink" href="#historical-platform-list" title="Permalink to this headline">¶</a></h2>
+<span id="index-3"></span><h2>22.4. Historical platform list<a class="headerlink" href="#historical-platform-list" title="Permalink to this headline">¶</a></h2>
 <p>This is the full list of platforms that have ever been supported by
 the Memory Pool System, with their current status.</p>
 <table border="1" class="docutils">
@@ -636,21 +636,21 @@ the Memory Pool System, with their current status.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">2. Platforms</a><ul>
-<li><a class="reference internal" href="#platform-codes">2.1. Platform codes</a></li>
-<li><a class="reference internal" href="#platform-interface">2.2. Platform interface</a></li>
-<li><a class="reference internal" href="#historical-platform-codes">2.3. Historical platform codes</a></li>
-<li><a class="reference internal" href="#historical-platform-list">2.4. Historical platform list</a></li>
+<li><a class="reference internal" href="#">22. Platforms</a><ul>
+<li><a class="reference internal" href="#platform-codes">22.1. Platform codes</a></li>
+<li><a class="reference internal" href="#platform-interface">22.2. Platform interface</a></li>
+<li><a class="reference internal" href="#historical-platform-codes">22.3. Historical platform codes</a></li>
+<li><a class="reference internal" href="#historical-platform-list">22.4. Historical platform list</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="plinth.html"
-                        title="previous chapter">1. Plinth</a></p>
+                        title="previous chapter">21. Plinth</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="critical.html"
-                        title="next chapter">3. The critical path</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="../pool/index.html"
+                        title="next chapter">Pool reference</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -676,13 +676,13 @@ the Memory Pool System, with their current status.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="critical.html" title="3. The critical path"
+          <a href="../pool/index.html" title="Pool reference"
              >next</a> |</li>
         <li class="right" >
-          <a href="plinth.html" title="1. Plinth"
+          <a href="plinth.html" title="21. Plinth"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="internals.html" >Internals</a> &raquo;</li> 
+          <li><a href="index.html" >Reference</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

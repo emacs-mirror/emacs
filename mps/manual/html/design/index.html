@@ -27,8 +27,8 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="next" title="1. Arena" href="arena.html" />
-    <link rel="prev" title="3. The critical path" href="../topic/critical.html" /> 
+    <link rel="next" title="1. MPS Configuration" href="config.html" />
+    <link rel="prev" title="13. SNC (Stack No Checking)" href="../pool/snc.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,10 +38,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="arena.html" title="1. Arena"
+          <a href="config.html" title="1. MPS Configuration"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="../topic/critical.html" title="3. The critical path"
+          <a href="../pool/snc.html" title="13. SNC (Stack No Checking)"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
       </ul>
@@ -54,239 +54,97 @@
             
   <div class="section" id="design">
 <span id="id1"></span><h1>Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h1>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Much of the documentation in this section is very old: some of it
-dates back to the origin of the MPS in 1995. It has not been
-brought up to date or checked for correctness, so it is mainly of
-historical interest. As pieces of documentation are brought up to
-date, they will be moved to the <a class="reference internal" href="../topic/internals.html#internals"><em>Internals</em></a> section.</p>
-</div>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="arena.html">1. Arena</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#introduction">1.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#history">1.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#overview">1.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#definitions">1.4. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#requirements">1.5. Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#block-management">1.5.1. Block management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#address-translation">1.5.2. Address translation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#iteration-protocol">1.5.3. Iteration protocol</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#arena-partition">1.5.4. Arena partition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#constraints">1.5.5. Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">1. MPS Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#introduction">1.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#requirements">1.2. Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#retired-requirements">1.2.1. Retired requirements</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#architecture">1.6. Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#statics">1.6.1. Statics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#arena-classes">1.6.2. Arena classes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#tracts">1.6.3. Tracts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#control-pool">1.6.4. Control pool</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#polling">1.6.5. Polling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#commit-limit">1.6.6. Commit limit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#spare-committed-aka-hysteresis">1.6.7. Spare committed (aka &#8220;hysteresis&#8221;)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#locks">1.6.8. Locks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#location-dependencies">1.6.9. Location dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#finalization">1.6.10. Finalization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#definitions">1.3. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#overview">1.4. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#the-build-system">1.5. The Build System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#abstract-build-function">1.5.1. Abstract Build Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#file-structure">1.5.2. File Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#modules-and-naming">1.5.3. Modules and Naming</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#build-system-rationale">1.5.4. Build System Rationale</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="arena.html#implementation">1.7. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#tract-cache">1.7.1. Tract cache</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#id1">1.7.2. Control pool</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#traces">1.7.3. Traces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#id2">1.7.4. Polling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#id3">1.7.5. Location dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="arena.html#roots">1.7.6. Roots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#implementation">1.6. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#target-platform-detection">1.6.1. Target Platform Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#target-varieties">1.6.2. Target Varieties</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#source-code-configuration">1.7. Source Code Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-parameters">1.7.1. Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#abstract-and-concrete-module-interfaces">1.7.2. Abstract and Concrete Module Interfaces</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="bt.html">2. Bit tables</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#introduction">2.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#history">2.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#definitions">2.3. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#requirements">2.4. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#non-requirements">2.5. Non requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#background">2.6. Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#clients">2.7. Clients</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#overview">2.8. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#interface">2.9. Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#detailed-design">2.10. Detailed design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="bt.html#data-structures">2.10.1. Data structures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bt.html#functions">2.10.2. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#to-document">1.8. To document</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#references">1.9. References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#document-history">1.10. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#copyright-and-license">1.11. Copyright and License</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="bt.html#testing">2.11. Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="critical-path.html">2. The critical path through the MPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#introduction">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#what-makes-the-critical-path-critical">2.2. What makes the critical path critical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#how-the-mps-avoids-scanning-and-fixing">2.3. How the MPS avoids scanning and fixing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#where-to-find-the-critical-path">2.4. Where to find the critical path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#the-format-scanner">2.5. The format scanner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#the-second-stage-fix-in-the-mpm">2.6. The second stage fix in the MPM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#the-third-stage-fix-in-the-pool-class">2.7. The third stage fix in the pool class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#other-considerations">2.8. Other considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#references">2.9. References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#document-history">2.10. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="critical-path.html#copyright-and-license">2.11. Copyright and License</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cbs.html">3. Coalescing block structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#introduction">3.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#history">3.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#definitions">3.3. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#requirements">3.4. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#interface">3.5. Interface</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#external-types">3.5.1. External types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#external-functions">3.5.2. External functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.hex.trans.html">3. Transliterating the alphabet into hexadecimal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#introduction">3.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#transliteration">3.2. Transliteration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#justification">3.3. Justification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#notes">3.4. 4. Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#document-history">3.5. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.hex.trans.html#copyright-and-license">3.6. Copyright and License</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#alignment">3.6. Alignment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#implementation">3.7. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#size-change-callback-protocol">3.7.1. Size change callback protocol</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#splay-tree">3.7.2. Splay tree</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#low-memory-behaviour">3.7.3. Low memory behaviour</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cbs.html#the-cbs-block">3.7.4. The CBS block</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyword-arguments.html">4. Keyword arguments in the MPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#introduction">4.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#overview">4.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#internals">4.3. Internals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#the-varargs-legacy">4.4. The varargs legacy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#references">4.5. References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#document-history">4.6. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyword-arguments.html#copyright-and-license">4.7. Copyright and License</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#testing">3.8. Testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#notes-for-future-development">3.9. Notes for future development</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#risks">3.10. Risks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cbs.html#proposed-hybrid-implementation">3.11. Proposed hybrid implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ring.html">5. Ring data structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#introduction">5.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#description">5.2. Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#init-finish">5.3. Init / Finish</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#iteration">5.4. Iteration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#subclass">5.5. Subclass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#append-remove">5.6. Append / Remove</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#naming">5.7. Naming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#deques">5.8. Deques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#defects">5.9. Defects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#document-history">5.10. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ring.html#copyright-and-license">5.11. Copyright and License</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="check.html">4. Checking</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="check.html#introduction">4.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="check.html#history">4.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="check.html#implementation">4.3. Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="class-interface.html">5. Pool class interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#introduction">5.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#document-history">5.2. Document history</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#architecture">5.3. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#methods">5.4. Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#events">5.5. Events</a></li>
-<li class="toctree-l2"><a class="reference internal" href="class-interface.html#text">5.6. Text</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="collection.html">6. Collection framework</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#introduction">6.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#history">6.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#overview">6.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#collection-abstractions">6.4. Collection abstractions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#colours-scanning-and-fixing">6.4.1. Colours, scanning and fixing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#reference-sets">6.4.2. Reference sets</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#the-tracer">6.5. The tracer</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#the-condemn-phase">6.5.1. The condemn phase</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#the-grey-mutator-phase">6.5.2. The grey mutator phase</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#the-flip-phase">6.5.3. The flip phase</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#the-black-mutator-phase">6.5.4. The black mutator phase</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#the-reclaim-phase">6.5.5. The reclaim phase</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html#barriers">6.6. Barriers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#hardware-barriers">6.6.1. Hardware barriers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="collection.html#software-barriers">6.6.2. Software barriers</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">7. Configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="config.html#introduction">7.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#history">7.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#requirements">7.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#definitions">7.4. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#overview">7.5. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#the-build-system">7.6. The build system</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="config.html#abstract-build-function">7.6.1. Abstract Build Function</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#file-structure">7.6.2. File Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#modules-and-naming">7.6.3. Modules and Naming</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#build-system-rationale">7.6.4. Build System Rationale</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#implementation">7.7. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="config.html#target-platform-detection">7.7.1. Target Platform Detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#target-varieties">7.7.2. Target varieties</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#source-code-configuration">7.8. Source code configuration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-parameters">7.8.1. Configuration parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#abstract-and-concrete-module-interfaces">7.8.2. Abstract and concrete module interfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="config.html#configuring-module-implementations">7.8.3. Configuring module implementations</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#procedures">7.9. Procedures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#notes">7.10. Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="finalize.html">8. Finalization</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="finalize.html#overview">8.1. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finalize.html#history">8.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finalize.html#requirements">8.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finalize.html#architecture">8.4. Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="finalize.html#external-interface">8.4.1. External interface</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="finalize.html#implementation">8.5. Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="fix.html">9. The generic fix function</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fix.html#introduction">10. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fix.html#history">11. History</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fix.html#architecture">12. Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fix.html#implementation">13. Implementation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lock.html">14. The lock module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="lock.html#history">14.1. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lock.html#purpose">14.2. Purpose</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lock.html#background">14.3. Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lock.html#overview">14.4. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lock.html#detailed-design">14.5. Detailed design</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="object-debug.html">15. Debugging features for client objects</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#introduction">15.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#history">15.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#overview">15.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#requirements">15.4. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#solution-ideas">15.5. Solution ideas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#architecture">15.6. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#client-interface">15.7. Client interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#examples">15.8. Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object-debug.html#implementation">15.9. Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="protocol.html">16. Protocol inheritance</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#introduction">16.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#history">16.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#purpose">16.3. Purpose</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#requirements">16.4. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#overview">16.5. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#interface">16.6. Interface</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#class-definition">16.6.1. Class definition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#single-inheritance">16.6.2. Single inheritance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#specialization">16.6.3. Specialization</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#extension">16.6.4. Extension</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#introspection">16.6.5. Introspection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#multiple-inheritance">16.6.6. Multiple inheritance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#protocol-guidelines">16.6.7. Protocol guidelines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#example">16.6.8. Example</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#implementation">16.7. Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="type.html">17. General MPS types</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="type.html#introduction">17.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#rationale">17.2. Rationale</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#concrete-types">17.3. Concrete types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#abstract-types">17.4. Abstract types</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="version.html">18. Software versions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="version.html#introduction">18.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version.html#history">18.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version.html#overview">18.3. Overview</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="version-library.html">19. Library version mechanism</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#introduction">19.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#history">19.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#readership">19.3. Readership</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#source">19.4. Source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#overview">19.5. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#architecture">19.6. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#implementation">19.7. Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">6. Signatures in the MPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#introduction">6.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#overview">6.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#definitions">6.3. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#init-and-finish">6.4. Init and Finish</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#checking">6.5. Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#rules">6.6. Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#tools">6.7. Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#references">6.8. References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#document-history">6.9. Document History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sig.html#copyright-and-license">6.10. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
@@ -303,11 +161,11 @@ date, they will be moved to the <a class="reference internal" href="../topic/int
               <img class="logo" src="../_static/logo.png" alt="Logo"/>
             </a></p>
   <h4>Previous topic</h4>
-  <p class="topless"><a href="../topic/critical.html"
-                        title="previous chapter">3. The critical path</a></p>
+  <p class="topless"><a href="../pool/snc.html"
+                        title="previous chapter">13. SNC (Stack No Checking)</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="arena.html"
-                        title="next chapter">1. Arena</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="config.html"
+                        title="next chapter">1. MPS Configuration</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -333,10 +191,10 @@ date, they will be moved to the <a class="reference internal" href="../topic/int
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="arena.html" title="1. Arena"
+          <a href="config.html" title="1. MPS Configuration"
              >next</a> |</li>
         <li class="right" >
-          <a href="../topic/critical.html" title="3. The critical path"
+          <a href="../pool/snc.html" title="13. SNC (Stack No Checking)"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
       </ul>

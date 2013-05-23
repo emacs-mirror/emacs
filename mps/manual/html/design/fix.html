@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>9. The generic fix function &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>8. The generic fix function &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -27,9 +27,9 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="14. The lock module" href="lock.html" />
-    <link rel="prev" title="8. Finalization" href="finalize.html" /> 
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="9. The lock module" href="lock.html" />
+    <link rel="prev" title="7. Finalization" href="finalize.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,13 +39,13 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="lock.html" title="14. The lock module"
+          <a href="lock.html" title="9. The lock module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="finalize.html" title="8. Finalization"
+          <a href="finalize.html" title="7. Finalization"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,50 +54,105 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-generic-fix-function">
-<span id="design.mps.fix"></span><h1>9. The generic fix function<a class="headerlink" href="#the-generic-fix-function" title="Permalink to this headline">¶</a></h1>
-</div>
+  <span class="target" id="design-fix"><span id="index-0"></span></span><div class="section" id="the-generic-fix-function">
+<h1>8. The generic fix function<a class="headerlink" href="#the-generic-fix-function" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.fix</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1995-08-25</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/fix.txt#1 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="introduction">
-<h1>10. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>Fix is the interface through which the existence of references are
-communicated from the MPS client to the MPS. The interface also allows
-the value of such references to be changed (this is necessary in order
-to implement a moving memory manager).</p>
-</div>
-<div class="section" id="history">
-<h1>11. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h1>
-<p><span class="target" id="design.mps.fix.hist.0"></span><a class="mpstag reference internal" href="#design.mps.fix.hist.0">.hist.0:</a> Incomplete design. Richard Brooksby, 1995-08-25.</p>
-<p><span class="target" id="design.mps.fix.hist.1"></span><a class="mpstag reference internal" href="#design.mps.fix.hist.1">.hist.1:</a> Converted from MMInfo database design document.
-Richard Brooksby, 2002-06-07.</p>
-<p><span class="target" id="design.mps.fix.hist.2"></span><a class="mpstag reference internal" href="#design.mps.fix.hist.2">.hist.2:</a> Converted to reStructuredText. Gareth Rees,
-2013-04-14.</p>
+<h2>8.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="intro">.intro</span>: Fix is the interface through which the existence of
+references are communicated from the MPS client to the MPS. The
+interface also allows the value of such references to be changed (this
+is necessary in order to implement a moving memory manager).</p>
 </div>
 <div class="section" id="architecture">
-<h1>12. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
-<p><span class="target" id="design.mps.fix.protocol.was-marked"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked">.protocol.was-marked:</a> The <tt class="xref c c-type docutils literal"><span class="pre">ScanState</span></tt> has a
-<a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a> <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field. This is used for finalization.</p>
-<p><span class="target" id="design.mps.fix.protocol.was-marked.set"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked.set">.protocol.was-marked.set:</a> All pool-specific fix methods must
-set the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field in the <tt class="xref c c-type docutils literal"><span class="pre">ScanState</span></tt> that they are
-passed.</p>
-<p><span class="target" id="design.mps.fix.protocol.was-marked.meaning"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked.meaning">.protocol.was-marked.meaning:</a> If the pool-specific fix method
-sets the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field to <tt class="docutils literal"><span class="pre">FALSE</span></tt> it is indicating the object
+<h2>8.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="protocol-was-marked">.protocol.was-marked</span>: The <tt class="docutils literal"><span class="pre">ScanState</span></tt> has a <tt class="docutils literal"><span class="pre">Bool</span></tt>
+<tt class="docutils literal"><span class="pre">wasMarked</span></tt> field. This is used for finalization.</p>
+<p><span class="target" id="protocol-was-marked-set">.protocol.was-marked.set</span>: All pool-specific fix methods must set
+the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field in the <tt class="docutils literal"><span class="pre">ScanState</span></tt> that they are passed.</p>
+<p><span class="target" id="protocol-was-marked-meaning">.protocol.was-marked.meaning</span>: If the pool-specific fix method sets
+the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field to <tt class="docutils literal"><span class="pre">FALSE</span></tt> it is indicating the object
 referred to by the ref (the one that it is supposed to be fixing) has
 not previously been marked (ie, this is the first reference to this
 object that has been fixed), and that the object was white (in
 condemned space).</p>
-<p><span class="target" id="design.mps.fix.protocol.was-marked.conservative"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked.conservative">.protocol.was-marked.conservative:</a> It is always okay to set
-the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field to <tt class="docutils literal"><span class="pre">TRUE</span></tt>.</p>
-<p><span class="target" id="design.mps.fix.protocol.was-marked.finalizable"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked.finalizable">.protocol.was-marked.finalizable:</a> The MRG pool
-(design.mps.poolmrg) uses the value of the <tt class="docutils literal"><span class="pre">wasMarked</span></tt>
-field to determine whether an object is finalizable.</p>
+<p><span class="target" id="protocol-was-marked-conservative">.protocol.was-marked.conservative</span>: It is always okay to set the
+<tt class="docutils literal"><span class="pre">wasMarked</span></tt> field to <tt class="docutils literal"><span class="pre">TRUE</span></tt>.</p>
+<p><span class="target" id="protocol-was-marked-finalizable">.protocol.was-marked.finalizable</span>: The MRG pool (design.mps.poolmrg)
+uses the value of the <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field to determine whether an
+object is finalizable.</p>
 </div>
 <div class="section" id="implementation">
-<h1>13. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h1>
-<p><span class="target" id="design.mps.fix.fix.nailed"></span><a class="mpstag reference internal" href="#design.mps.fix.fix.nailed">.fix.nailed:</a> In a copying collection, a non-ambiguous fix to
-a broken heart should be snapped out <em>even if</em> there is a
-<tt class="xref c c-macro docutils literal"><span class="pre">RankAMBIG</span></tt> ref to same object (that is, if the broken heart
-is nailed); the <tt class="xref c c-macro docutils literal"><span class="pre">RankAMBIG</span></tt> reference must either be stale
-(no longer in existence) or bogus.</p>
+<h2>8.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="fix-nailed">.fix.nailed</span>: In a copying collection, a non-ambiguous fix to a
+broken heart should be snapped out <em>even if</em> there is a <tt class="docutils literal"><span class="pre">RankAMBIG</span></tt>
+ref to same object (that is, if the broken heart is nailed); the
+<tt class="docutils literal"><span class="pre">RankAMBIG</span></tt> reference must either be stale (no longer in existence)
+or bogus.</p>
+</div>
+<div class="section" id="document-history">
+<h2>8.4. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1995-08-25 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete design.</li>
+<li>2002-06-07 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-04-14 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>8.5. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
 </div>
 
 
@@ -111,19 +166,22 @@ is nailed); the <tt class="xref c c-macro docutils literal"><span class="pre">Ra
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">9. The generic fix function</a></li>
-<li><a class="reference internal" href="#introduction">10. Introduction</a></li>
-<li><a class="reference internal" href="#history">11. History</a></li>
-<li><a class="reference internal" href="#architecture">12. Architecture</a></li>
-<li><a class="reference internal" href="#implementation">13. Implementation</a></li>
+<li><a class="reference internal" href="#">8. The generic fix function</a><ul>
+<li><a class="reference internal" href="#introduction">8.1. Introduction</a></li>
+<li><a class="reference internal" href="#architecture">8.2. Architecture</a></li>
+<li><a class="reference internal" href="#implementation">8.3. Implementation</a></li>
+<li><a class="reference internal" href="#document-history">8.4. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">8.5. Copyright and License</a></li>
+</ul>
+</li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="finalize.html"
-                        title="previous chapter">8. Finalization</a></p>
+                        title="previous chapter">7. Finalization</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="lock.html"
-                        title="next chapter">14. The lock module</a></p><h4>Downloads</h4>
+                        title="next chapter">9. The lock module</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -149,13 +207,13 @@ is nailed); the <tt class="xref c c-macro docutils literal"><span class="pre">Ra
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="lock.html" title="14. The lock module"
+          <a href="lock.html" title="9. The lock module"
              >next</a> |</li>
         <li class="right" >
-          <a href="finalize.html" title="8. Finalization"
+          <a href="finalize.html" title="7. Finalization"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Design</a> &raquo;</li> 
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
