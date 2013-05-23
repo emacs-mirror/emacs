@@ -25,7 +25,7 @@
 typedef struct ABQStruct *ABQ;
 typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
 typedef unsigned ABQDisposition;
-typedef Res (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP);
+typedef Bool (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP, Size closureS);
 
 extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
 extern Bool ABQCheck(ABQ abq);
@@ -37,7 +37,7 @@ extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
 extern Count ABQDepth(ABQ abq);
-extern void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP);
+extern void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS);
 
 
 /* Types */
@@ -58,6 +58,12 @@ typedef struct ABQStruct
  
   Sig sig;
 } ABQStruct;
+
+enum {
+  ABQIterationCONTINUE = 1, /* continue iterating */
+  ABQIterationSTOP,         /* stop iterating */
+  ABQIterationNONE          /* no iteration (error) */
+};
 
 enum {
   ABQDispositionKEEP = 1, /* keep item in queue */

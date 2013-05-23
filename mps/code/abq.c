@@ -253,10 +253,9 @@ static Bool ABQDispositionCheck(ABQDisposition disposition)
 
 
 /* ABQIterate -- call 'iterate' for each element in an ABQ */
-void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP)
+void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)
 {
   Index copy, index, in;
-  Res res;
 
   AVERT(ABQ, abq);
   AVER(FUNCHECK(iterate));
@@ -268,7 +267,8 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP)
   while (index != in) {
     void *element = ABQElement(abq, index);
     ABQDisposition disposition = ABQDispositionNONE;
-    res = (*iterate)(&disposition, element, closureP);
+    Bool cont;
+    cont = (*iterate)(&disposition, element, closureP, closureS);
     AVERT(ABQDisposition, disposition);
     if (disposition == ABQDispositionKEEP) {
       if (copy != index)
@@ -276,7 +276,7 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP)
       copy = ABQNextIndex(abq, copy);
     }
     index = ABQNextIndex(abq, index);
-    if (res != ResOK)
+    if (!cont)
       break;
   }
 

@@ -1,4 +1,4 @@
-.. mode:: -*- rst -*-
+.. mode: -*- rst -*-
 
 Range design
 ============

@@ -9,13 +9,15 @@
 #ifndef cbs_h
 #define cbs_h
 
+#include "arg.h"
 #include "meter.h"
 #include "splay.h"
 #include "mpmtypes.h"
 
 
 typedef struct CBSStruct *CBS;
-typedef Bool (*CBSIterateMethod)(CBS cbs, Addr base, Addr limit, void *closureP);
+typedef Bool (*CBSIterateMethod)(CBS cbs, Addr base, Addr limit,
+                                 void *closureP, Size closureS);
 
 
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
@@ -35,14 +37,15 @@ typedef struct CBSStruct {
 extern Bool CBSCheck(CBS cbs);
 
 extern Res CBSInit(Arena arena, CBS cbs, void *owner,
-                   Align alignment, Bool fastFind);
+                   Align alignment, Bool fastFind, ArgList args);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
                      CBS cbs, Addr base, Addr limit);
 extern Res CBSDelete(Addr *baseReturn, Addr *limitReturn,
                      CBS cbs, Addr base, Addr limit);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP);
+extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+                       void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 
