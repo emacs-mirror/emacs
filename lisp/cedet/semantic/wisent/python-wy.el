@@ -81,8 +81,12 @@
 
 ;;; Prologue
 ;;
-(declare-function wisent-python-reconstitute-function-tag "semantic/wisent/python")
-(declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python")
+(declare-function wisent-python-reconstitute-function-tag
+		  "semantic/wisent/python" (tag suite))
+(declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python"
+		  (tag))
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
 
 ;;; Declarations
 ;;

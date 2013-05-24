@@ -1,3 +1,13 @@
+2013-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/bovine/grammar.el (bovine-make-parsers):
+	Avoid free variable `copyright-end'.
+
+	* semantic/bovine/c-by.el (semantic-parse-region):
+	* semantic/wisent/javat-wy.el (semantic-parse-region):
+	* semantic/wisent/js-wy.el (semantic-parse-region):
+	* semantic/wisent/python-wy.el (semantic-parse-region): Declare.
+
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* ede/speedbar.el (ede-file-find, ede-tag-find):
