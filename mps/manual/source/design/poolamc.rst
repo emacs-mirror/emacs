@@ -1,6 +1,6 @@
 .. index::
-   pair: AMC pool; design
-   single: pool; AMC design
+   pair: AMC pool class; design
+   single: pool class; AMC design
 
 .. _design-poolamc:
 
