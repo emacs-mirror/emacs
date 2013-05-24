@@ -30,14 +30,22 @@ Old design
     object-debug
     pool
     poolamc
+    poolams
+    poolawl
+    poollo
+    poolmfs
     poolmrg
     poolmvff
     prot
+    protan
+    protli
     protocol
+    pthreadext
     reservoir
     root
     scan
     seg
+    shield
     splay
     telemetry
     thread-safety
@@ -46,4 +54,5 @@ Old design
     version-library
     version
     vm
+    vman
     writef

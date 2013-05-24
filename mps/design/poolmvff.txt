@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Manually-Managed Variable-Size First-Fit Pool
-=============================================
+MVFF pool class
+===============
 
 :Tag: design.mps.poolmvff
 :Author: Gavin Matthews
@@ -14,12 +14,14 @@ Manually-Managed Variable-Size First-Fit Pool
 Introduction
 ------------
 
-_`.intro`: The pool was created in a response to a belief that the
-ScriptWorks EPDL/EPDR's first fit policy is beneficial for some classes
-of client behaviour, but the performance of a linear free list was
-unacceptable.  This pool implements a first (or last) fit policy for
+_`.intro`: This is the design of the MVFF (Manual Variable First-Fit)
+pool class. This pool implements a first (or last) fit policy for
 variable-sized manually-managed objects, with control over first/last,
 segment preference high/low, and slot fit low/high.
+
+The pool was created in a response to a belief that the ScriptWorks
+EPDL/EPDR's first fit policy is beneficial for some classes of client
+behaviour, but the performance of a linear free list was unacceptable.
 
 
 Overview
