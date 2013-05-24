@@ -317,6 +317,8 @@ module.
 
 *** terminal.el is obsolete; use term.el instead.
 
+*** xesam.el.
+
 +++
 *** yow.el is obsolete; use fortune.el or cookie1.el instead.
 
