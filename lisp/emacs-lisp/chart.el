@@ -470,7 +470,7 @@ See `chart-sort-matchlist' for more details."
 	  (progn
 	    (chart-sort-matchlist s2 s1 pred)
 	    (setq s (oref s2 data)))
-	(error "Sorting of chart %s not supported" (object-name c))))
+	(error "Sorting of chart %s not supported" (eieio-object-name c))))
     (if (eq (oref c direction) 'horizontal)
 	(oset (oref c y-axis) items s)
       (oset (oref c x-axis) items s)

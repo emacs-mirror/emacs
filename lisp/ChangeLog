@@ -1,5 +1,7 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/chart.el (chart-sort): Replace obsolete `object-name'.
+
 	* progmodes/cperl-mode.el (cperl-mode): Use fboundp.
 	(Info-find-node, Man-getpage-in-background): Declare.
 
