@@ -47,7 +47,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -62,11 +62,11 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
+  mps_ap_create(&apawl, poolawl, mps_rank_weak()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  b = allocone(apamc, 1, 1);

@@ -60,7 +60,7 @@ static void test(void)
       "create pool");
 
  cdie(
-  mps_ap_create(&ap, poolAMC, MPS_RANK_EXACT),
+  mps_ap_create(&ap, poolAMC, mps_rank_exact()),
   "create ap");
 
  comment("Sizes in megabytes:");

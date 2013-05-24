@@ -51,9 +51,9 @@ static void alloc_back(void) {
  long int i, j;
  for (j = 0; j < BACKITER; j++) {
   i = ranint(ranint(ranint(ranint(TABSIZE)+1)+1)+1);
-  objtab1[i] = allocdumb(apamc1, BACKSIZE*2, MPS_RANK_EXACT);
+  objtab1[i] = allocdumb(apamc1, BACKSIZE*2, mps_rank_exact());
   i = ranint(ranint(ranint(ranint(TABSIZE)+1)+1)+1);
-  objtab2[i] = allocdumb(apamc2, BACKSIZE, MPS_RANK_EXACT);
+  objtab2[i] = allocdumb(apamc2, BACKSIZE, mps_rank_exact());
  }
 }
 
@@ -74,19 +74,19 @@ static void test(void) {
  cdie(mps_thread_reg(&thread2, arena2), "register thread");
 
  cdie(
-  mps_root_create_reg(&root1, arena1, MPS_RANK_AMBIG, 0, thread1,
+  mps_root_create_reg(&root1, arena1, mps_rank_ambig(), 0, thread1,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
  cdie(
-  mps_root_create_reg(&root2, arena2, MPS_RANK_AMBIG, 0, thread2,
+  mps_root_create_reg(&root2, arena2, mps_rank_ambig(), 0, thread2,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
  cdie(
-  mps_root_create_table(&root1a, arena1, MPS_RANK_EXACT, 0, &objtab1[0], TABSIZE),
+  mps_root_create_table(&root1a, arena1, mps_rank_exact(), 0, &objtab1[0], TABSIZE),
   "create root table");
  cdie(
-  mps_root_create_table(&root2a, arena2, MPS_RANK_EXACT, 0, &objtab2[0], TABSIZE),
+  mps_root_create_table(&root2a, arena2, mps_rank_exact(), 0, &objtab2[0], TABSIZE),
   "create root table");
 
  cdie(
@@ -104,10 +104,10 @@ static void test(void) {
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc1, poolamc1, MPS_RANK_EXACT),
+  mps_ap_create(&apamc1, poolamc1, mps_rank_exact()),
   "create ap");
  cdie(
-  mps_ap_create(&apamc2, poolamc2, MPS_RANK_EXACT),
+  mps_ap_create(&apamc2, poolamc2, mps_rank_exact()),
   "create ap");
 
  inramp = 0;
@@ -118,24 +118,24 @@ static void test(void) {
   }
   alloc_back();
   if (inramp) {
-   s1 = allocone(apamc1, 3, MPS_RANK_EXACT);
-   s2 = allocone(apamc2, 3, MPS_RANK_EXACT);
+   s1 = allocone(apamc1, 3, mps_rank_exact());
+   s2 = allocone(apamc2, 3, mps_rank_exact());
    setref(r1, 0, s1);
    setref(r2, 0, s2);
    setref(s1, 1, r1);
    setref(s2, 1, r2);
    r1 = s1;
    r2 = s2;
-   s1 = allocdumb(apamc1, RAMPSIZE, MPS_RANK_EXACT);
-   s2 = allocdumb(apamc2, RAMPSIZE, MPS_RANK_EXACT);
+   s1 = allocdumb(apamc1, RAMPSIZE, mps_rank_exact());
+   s2 = allocdumb(apamc2, RAMPSIZE, mps_rank_exact());
    setref(r1, 2, s1);
    setref(r2, 2, s2);
    rsize ++;
    if (ranint(LEAVERAMP) == 0) {
-    r1 = allocone(apamc1, 2, MPS_RANK_EXACT);
-    r2 = allocone(apamc2, 2, MPS_RANK_EXACT);
-    s1 = allocone(apamc1, 2, MPS_RANK_EXACT);
-    s2 = allocone(apamc2, 2, MPS_RANK_EXACT);
+    r1 = allocone(apamc1, 2, mps_rank_exact());
+    r2 = allocone(apamc2, 2, mps_rank_exact());
+    s1 = allocone(apamc1, 2, mps_rank_exact());
+    s2 = allocone(apamc2, 2, mps_rank_exact());
 #ifdef RAMP_INTERFACE
     mps_ap_alloc_pattern_end(apamc1, mps_alloc_pattern_ramp());
     mps_ap_alloc_pattern_end(apamc2, mps_alloc_pattern_ramp());
@@ -156,8 +156,8 @@ static void test(void) {
     mps_ap_alloc_pattern_begin(apamc2, mps_alloc_pattern_ramp());
 #endif
     comment("ramp begin");
-    r1 = allocone(apamc1, 3, MPS_RANK_EXACT);
-    r2 = allocone(apamc2, 3, MPS_RANK_EXACT);
+    r1 = allocone(apamc1, 3, mps_rank_exact());
+    r2 = allocone(apamc2, 3, mps_rank_exact());
     inramp = 1;
     rsize = 0;
    }

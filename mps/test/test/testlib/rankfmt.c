@@ -362,12 +362,12 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       res = MPS_FIX(ss, (mps_addr_t *) &p);
       if (res != MPS_RES_OK) return res;
       if (p == NULL) {
-       asserts(rank == MPS_RANK_WEAK,
+       asserts(rank == mps_rank_weak(),
                "non-weak reference fixed to NULL at %p[assoc]", obj);
        commentif(deathcomments, "fixed %p[assoc] to NULL", obj->data.id);
        INCCOUNT(DYING_REFERENCE_COUNT);
       } else if (p != q) {
-       asserts(rank != MPS_RANK_AMBIG,
+       asserts(rank != mps_rank_ambig(),
                "ambiguous reference changed by fix at %p[assoc]", obj);
       }
       obj->data.assoc = p;
@@ -386,12 +386,12 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        q = p;
        res = MPS_FIX(ss, (mps_addr_t *) &p);
        if (p == NULL) {
-        asserts(rank == MPS_RANK_WEAK,
+        asserts(rank == mps_rank_weak(),
                 "non-weak reference fixed to NULL at %p[i]", obj);
         commentif(deathcomments, "fixed %li[%i] to NULL", obj->data.id, i);
         INCCOUNT(DYING_REFERENCE_COUNT);
        } else if (p != q) {
-        asserts(rank != MPS_RANK_AMBIG,
+        asserts(rank != mps_rank_ambig(),
                 "ambiguous reference changed by fix at %p[i]", obj);
        }
        if (res != MPS_RES_OK) return res;

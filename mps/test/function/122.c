@@ -91,12 +91,12 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
  cdie(
-  mps_root_create_table_masked(&root1, arena, MPS_RANK_EXACT, 0,
+  mps_root_create_table_masked(&root1, arena, mps_rank_exact(), 0,
                                (mps_addr_t*)&a[0], 4, 0x4),
   "create a root table");
 
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_AMBIG, 0, (mps_addr_t*)&b[0], 4),
+  mps_root_create_table(&root2, arena, mps_rank_ambig(), 0, (mps_addr_t*)&b[0], 4),
   "create b root table");
 
  cdie(
@@ -116,40 +116,40 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
+  mps_ap_create(&aplo, poollo, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  newstamp = 0;
  alloccomments = 1;
 
- die(allocrdumb(&a[0], aplo, 64, MPS_RANK_EXACT), "alloc");
- die(allocrdumb(&a[1], apamc, 64, MPS_RANK_EXACT), "alloc");
- die(allocrdumb(&a[3], apawl, 64, MPS_RANK_EXACT), "alloc");
+ die(allocrdumb(&a[0], aplo, 64, mps_rank_exact()), "alloc");
+ die(allocrdumb(&a[1], apamc, 64, mps_rank_exact()), "alloc");
+ die(allocrdumb(&a[3], apawl, 64, mps_rank_exact()), "alloc");
  a[2] = (mycell *)((int)a[3] | 4);
 
- die(allocrdumb(&b[0], aplo, 64, MPS_RANK_EXACT), "alloc");
- die(allocrdumb(&b[1], apamc, 64, MPS_RANK_EXACT), "alloc");
+ die(allocrdumb(&b[0], aplo, 64, mps_rank_exact()), "alloc");
+ die(allocrdumb(&b[1], apamc, 64, mps_rank_exact()), "alloc");
  b[2] = NULL;
- die(allocrdumb(&b[3], apawl, 64, MPS_RANK_EXACT), "alloc");
+ die(allocrdumb(&b[3], apawl, 64, mps_rank_exact()), "alloc");
 
  rootcount = 0;
  walkroots(NULL);
  report("count1", "%ld", rootcount);
  
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create stack root");
 
- x = allocdumb(apamc, 64, MPS_RANK_EXACT);
- y = allocdumb(apamc, 64, MPS_RANK_EXACT);
- w = allocdumb(apamc, 64, MPS_RANK_EXACT);
+ x = allocdumb(apamc, 64, mps_rank_exact());
+ y = allocdumb(apamc, 64, mps_rank_exact());
+ w = allocdumb(apamc, 64, mps_rank_exact());
  rootcount = 0;
  speccount = 0;
  walkroots(x);

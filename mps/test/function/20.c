@@ -28,7 +28,7 @@ static void test(void) {
 
  die(mps_space_create(&space), "create");
  die(mps_thread_reg(&thread, space), "register thread");
- die(mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create root");
 
  die(mps_pool_create(&pool, space, mps_class_mv(),

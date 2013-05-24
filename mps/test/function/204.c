@@ -93,7 +93,7 @@ static void dt(int kind,
                   minSize, avgSize, maxSize, depth, fragLimit),
   "create MV2 pool");
 
- die(mps_ap_create(&ap, pool, MPS_RANK_AMBIG), "create ap");
+ die(mps_ap_create(&ap, pool, mps_rank_ambig()), "create ap");
 
  for(hd=0; hd<number; hd++)
  {
