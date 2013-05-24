@@ -4,6 +4,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: tools, hypermedia
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +22,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file is obsolete.
 
 ;; This package provides an interface to Xesam, a D-Bus based "eXtEnsible
 ;; Search And Metadata specification".  It has been tested with

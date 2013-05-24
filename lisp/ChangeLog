@@ -6,6 +6,8 @@
 	(top): Register signals only when `tramp-gvfs-enabled' is non-nil.
 	Do not raise a user error when loading package.  (Bug#14447)
 
+	* net/xesam.el: Move to obsolete/.
+
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add with-coding-priority.
