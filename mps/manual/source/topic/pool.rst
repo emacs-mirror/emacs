@@ -81,6 +81,27 @@ making it available for allocation.
     :term:`allocation points` and :term:`segregated allocation caches`
     created in the pool.
 
+    .. warning::
+
+        It is not safe to destroy an :term:`automatically managed
+        <automatic memory management>` pool if it contains any objects
+        that are :term:`reachable` from your roots, or any objects
+        that have been registered for :term:`finalization` but not yet
+        finalized, and then to carry on running the :term:`garbage
+        collector`.
+
+        Our recommended approach is to destroy automatically managed
+        pools just before destroying the arena, and then only while
+        the arena is in the :term:`parked state`. Thus a safe
+        tear-down sequence looks like this::
+
+            mps_arena_park(arena);
+            /* destroy threads and roots belonging to the arena */
+            /* destroy allocation points and caches belonging to the pool */
+            mps_pool_destroy(pool);
+            /* destroy chains and formats belonging to the arena */
+            mps_arena_destroy(arena);
+
 
 .. index::
    single: pool class

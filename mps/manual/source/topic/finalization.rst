@@ -178,6 +178,20 @@ Cautions
         deprecated. See Appendix A of :ref:`Boehm (2002) <BOEHM02>`
         for a discussion of this problem.
 
+    .. note::
+
+        You can safely destroy pools containing objects registered for
+        finalization if you follow the "safe tear-down" procedure
+        described under :c:func:`mps_pool_destroy`, but the objects do
+        not get finalized.
+
+        The only reliable way to ensure that all finalizable object
+        gets finalized is to maintain a table of :term:`weak
+        references (1)` to all such objects. The weak references don't
+        prevent the objects from being finalized, but you can iterate
+        over the list at an appropriate point and finalize any
+        remaining objects yourself.
+
 4.  Not all :term:`pool classes` support finalization. In general, only
     pools that manage objects whose liveness is determined by garbage
     collection do so. See the :ref:`pool`.
