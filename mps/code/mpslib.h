@@ -16,30 +16,60 @@
 #include <stddef.h>
 #include "mps.h"  /* mps_clock_t */
 
+/* Return the token that will be returned by I/O functions when the end
+   of file is reached.  Analogous to `EOF` from stdio.h. */
 extern int mps_lib_get_EOF(void);
 #define mps_lib_EOF     (mps_lib_get_EOF())
 
+/* An anonymous structure type used to represent files.  Analagous to
+   `FILE *` from stdio.h. */
 typedef struct mps_lib_stream_s mps_lib_FILE;
 
+/* Return the standard output and standard error streams.  Analagous to
+   `stdout` and `stderr` from stdio.h. */
 extern mps_lib_FILE *mps_lib_get_stderr(void);
 extern mps_lib_FILE *mps_lib_get_stdout(void);
 #define mps_lib_stderr  (mps_lib_get_stderr())
 #define mps_lib_stdout  (mps_lib_get_stdout())
 
+/* Send a character or string to a stream.  Analagous to `fputc` and `fputs`
+   from stdio.h. */
 extern int mps_lib_fputc(int, mps_lib_FILE *);
 extern int mps_lib_fputs(const char *, mps_lib_FILE *);
 
-extern void mps_lib_assert_fail(const char *);
+/* Assertion handler.  When the MPS detects an illegal condition, it calls
+   `mps_lib_assert_fail` with the source code filename, line number, and
+   a string representing the condition.  That function should log or report
+   the condition, and preferably allow for debugging, though in a production
+   environment it can return and the MPS will attempt to continue, though
+   this may cause failure of the process soon after. */
+extern void mps_lib_assert_fail(const char *, unsigned, const char *);
 
+/* The default ANSI plinth in mpsliban.c allows the assertion handler to be
+   replaced by passing a replacement to `mps_lib_assert_fail_install`,
+   which returns the previous handler.  This is for convenience so that
+   a complete replacement plinth need not be supplied just to achieve the
+   same thing.  The MPS itself does not use `mps_lib_assert_fail_install`
+   and so it need not be supplied by the plinth. */
+typedef void (*mps_lib_assert_fail_t)(const char *, unsigned, const char *);
+extern mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t);
+
+
+/* Set, copy, or compare memory.  Analagous to `memset`, `memcpy`, and
+   `memcmp` from string.h. */
 extern void *(mps_lib_memset)(void *, int, size_t);
 extern void *(mps_lib_memcpy)(void *, const void *, size_t);
 extern int (mps_lib_memcmp)(const void *, const void *, size_t);
 
-
+/* Return a measure of time since process start.  Equivalent to `clock`
+   from time.h. */
 extern mps_clock_t mps_clock(void);
 extern mps_clock_t mps_clocks_per_sec(void);
 
 
+/* Return a telemetry control word from somewhere.  This controls which kinds
+   of events get output to the telemetry stream.  Each bit in the word
+   switches on the corresponding EventKind defined in eventcom.h. */
 extern unsigned long mps_lib_telemetry_control(void);
 
 

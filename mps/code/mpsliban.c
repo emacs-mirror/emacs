@@ -66,13 +66,30 @@ int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
 }
 
 
-void mps_lib_assert_fail(const char *message)
+static void mps_lib_assert_fail_default(const char *file,
+                                        unsigned line,
+                                        const char *condition)
 {
   fflush(stdout); /* synchronize */
-  fprintf(stderr, "\nMPS ASSERTION FAILURE: %s\n\nRECENT EVENTS:\n", message);
-  EventDump((mps_lib_FILE *)stderr);
+  fprintf(stderr, "%s:%u: MPS ASSERTION FAILED: %s\n", file, line, condition);
   fflush(stderr); /* make sure the message is output */
-  abort();
+  ASSERT_ABORT(); /* see config.h */
+}
+
+static mps_lib_assert_fail_t mps_lib_assert_handler = mps_lib_assert_fail_default;
+
+void mps_lib_assert_fail(const char *file,
+                         unsigned line,
+                         const char *condition)
+{
+  mps_lib_assert_handler(file, line, condition);
+}
+
+mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t handler)
+{
+  mps_lib_assert_fail_t old_handler = mps_lib_assert_handler;
+  mps_lib_assert_handler = handler;
+  return old_handler;
 }
 
 
@@ -181,6 +198,7 @@ unsigned long mps_lib_telemetry_control(void)
     if (striequal(word, #name)) \
       mask |= (1ul << EventKind##name);
     EventKindENUM(TELEMATCH, X)
+#undef TELEMATCH
   }
   
   return mask;

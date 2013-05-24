@@ -8,6 +8,7 @@
 #include "pooln.h"
 #include "mpsavm.h"
 #include "testlib.h"
+#include "mpslib.h"
 
 
 static void testit(ArenaClass class, ArgList args)

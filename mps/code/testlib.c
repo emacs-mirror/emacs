@@ -322,6 +322,7 @@ void verror(const char *format, va_list args)
   fflush(stdout); /* synchronize */
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
+  fflush(stderr); /* make sure the message is output */
   exit(1);
 }
 
@@ -366,6 +367,15 @@ void cdie(int res, const char *s)
     error("\n%s: %d\n", s, res);
   }
 }
+
+
+/* assert_die -- always die on assertion */
+
+void assert_die(const char *file, unsigned line, const char *condition)
+{
+  error("%s:%u: MPS ASSERTION FAILED: %s\n", file, line, condition);
+}
+
 
 
 /* C. COPYRIGHT AND LICENSE
