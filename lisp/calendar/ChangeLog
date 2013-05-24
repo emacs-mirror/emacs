@@ -1,3 +1,7 @@
+2013-05-24  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Reorganize file structure.
+
 2013-05-22  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-edit-quit): Don't allow dateless item.
