@@ -27,11 +27,19 @@ Architecture
 _`.instance.limit`: There will be a limit on the number of traces that
 can be created at any one time. This effectively limits the number of
 concurrent traces. This limitation is expressed in the symbol
-``TRACE_MAX`` [currently set to 1, see request.mps.160020 "Multiple
-traces would not work" drj 1998-06-15].
+``TRACE_MAX``.
 
-_`.rate`: [see mail.nickb.1997-07-31.14-37]. [Now revised? See
-request.epcore.160062 and change.epcore.minnow.160062. drj 1998-06-15]
+.. note::
+
+    ``TRACE_MAX`` is currently set to 1, see request.mps.160020
+    "Multiple traces would not work". David Jones, 1998-06-15.
+
+_`.rate`: See `mail.nickb.1997-07-31.14-37 </project/mps/mail/1997/07/31/14-37/0.txt>`_.
+
+.. note::
+
+    Now revised? See request.epcore.160062 and
+    change.epcore.minnow.160062. David Jones, 1998-06-15.
 
 _`.exact.legal`: Exact references should either point outside the
 arena (to non-managed address space) or to a tract allocated to a
@@ -123,8 +131,11 @@ the two varieties variety.hi and variety.wi.
 
 _`.reclaim.noaver`: Converting ``AVER()`` statements in the loops of
 ``TraceReclaim()``, ``PoolReclaim()``, ``AMCReclaim()`` (``LOReclaim()``?
-``AWLReclaim()``?) will result in a noticeable speed improvement [insert
-actual speed improvement here].
+``AWLReclaim()``?) will result in a noticeable speed improvement.
+
+.. note::
+
+    Insert actual speed improvement here, if any.
 
 
 Life cycle of a trace object

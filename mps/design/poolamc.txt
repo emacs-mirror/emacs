@@ -323,7 +323,9 @@ facility for handling small numbers of ambiguous references. Ambiguous
 references prevent the pool from copying objects (hence "mostly
 copying"). It provides incremental collection.
 
-[ lot of this design is awesomely old -- drj 1998-02-04]
+.. note::
+
+   A lot of this design is awesomely old. David Jones, 1998-02-04.
 
 
 Definitions
@@ -363,8 +365,10 @@ _`.seg.gen.get`: The map from segment to generation is implemented by
 Fixing and nailing
 ------------------
 
-_`.fix.nail`: [.fix.nail.* are placeholders for design rather than
-design really -- drj 1998-02-04]
+.. note::
+
+    This section contains placeholders for design rather than design
+    really. David Jones, 1998-02-04.
 
 _`.nailboard`: AMC uses a nail board structure for recording ambiguous
 references to segments. A nail board is a bit table with one bit per
@@ -479,18 +483,25 @@ which is how segments get allocated in that generation.
 _`.buffer.condemn`: We condemn buffered segments, but not the contents
 of the buffers themselves, because we can't reclaim uncommitted
 buffers (see design.mps.buffer for details). If the segment has a
-forwarding buffer on it, we detach it [why? @@@@ forwarding buffers
-are detached because they used to cause objects on the same segment to
-not get condemned, hence caused retention of garbage. Now that we
-condemn the non-buffered portion of buffered segments this is probably
-unnecessary -- drj 1998-06-01 But it's probably more efficient than
-keeping the buffer on the segment, because then the other stuff gets
-nailed -- pekka 1998-07-10]. If the segment has a mutator buffer on
-it, we nail the buffer. If the buffer cannot be nailed, we give up
-condemning, since nailing the whole segment would make it survive
-anyway. The scan methods skip over buffers and fix methods don't do
-anything to things that have already been nailed, so the buffer is
-effectively black.
+forwarding buffer on it, we detach it.
+
+.. note::
+
+    Why? Forwarding buffers are detached because they used to cause
+    objects on the same segment to not get condemned, hence caused
+    retention of garbage. Now that we condemn the non-buffered portion
+    of buffered segments this is probably unnecessary. David Jones,
+    1998-06-01.
+
+    But it's probably more efficient than keeping the buffer on the
+    segment, because then the other stuff gets nailed -- Pekka P.
+    Pirinen, 1998-07-10.
+
+If the segment has a mutator buffer on it, we nail the buffer. If the
+buffer cannot be nailed, we give up condemning, since nailing the
+whole segment would make it survive anyway. The scan methods skip over
+buffers and fix methods don't do anything to things that have already
+been nailed, so the buffer is effectively black.
 
 
 Types
@@ -504,11 +515,16 @@ _`.struct.pool`: Like other pool class instances, it contains a
 _`.struct.format`: The ``format`` field points to a ``Format``
 structure describing the object format of objects allocated in the
 pool. The field is intialized by ``AMCInit()`` from a parameter, and
-thereafter it is not changed until the pool is destroyed. [actually
-the format field is in the generic ``PoolStruct`` these days. drj
-1998-09-21]
+thereafter it is not changed until the pool is destroyed.
 
-[lots more fields here]
+.. note::
+
+    Actually the format field is in the generic ``PoolStruct`` these
+    days. David Jones, 1998-09-21.
+
+.. note::
+
+    There are lots more fields here.
 
 
 Generations
@@ -536,8 +552,12 @@ to the ``AMCStruct`` (the ``genRing`` field).
 _`.gen.manage.array`: They are also kept in an array which is
 allocated when the pool is created and attached to the ``AMCStruct``
 (the gens field holds the number of generations, the ``gen`` field
-points to an array of ``AMCGen``). [it seems to me that we could
-probably get rid of the ring -- drj 1998-09-22]
+points to an array of ``AMCGen``).
+
+.. note::
+
+    it seems to me that we could probably get rid of the ring. David
+    Jones, 1998-09-22.
 
 _`.gen.number`: There are ``AMCTopGen + 2`` generations in total.
 "normal" generations numbered from 0 to ``AMCTopGen`` inclusive and an

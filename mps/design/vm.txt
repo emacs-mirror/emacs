@@ -91,7 +91,9 @@ and ``VMUnmap()``.
 _`.if.destroy`: A VM is destroyed by calling ``VMDestroy()``. Any
 address space that was mapped through this VM is unmapped.
 
-[lots of interfaces missing here]
+.. note::
+
+    Lots of interfaces are missing here.
 
 
 Notes

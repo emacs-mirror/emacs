@@ -46,7 +46,9 @@ at the end gives some extra fencepost checking.
 Requirements
 ------------
 
-[Placeholder: must derive the requirements from the architecture.]
+.. note::
+
+    Placeholder: must derive the requirements from the architecture.
 
 _`.req.fix`: ``PoolFix()`` must be fast.
 
