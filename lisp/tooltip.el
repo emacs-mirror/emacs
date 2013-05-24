@@ -151,7 +151,7 @@ This variable is obsolete; instead of setting it to t, disable
   :group 'tooltip)
 
 (make-obsolete-variable 'tooltip-use-echo-area
-			"disable Tooltip mode instead" "24.1")
+			"disable Tooltip mode instead" "24.1" 'set)
 
 
 ;;; Variables that are not customizable.

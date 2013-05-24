@@ -1,5 +1,10 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* tooltip.el (tooltip-use-echo-area): Warn only on 'set.
+	* progmodes/gud.el (gud-gdb-completion-function): Move before use.
+	(gud-tooltip-echo-area): Make obsolete.
+	(gud-tooltip-process-output, gud-tooltip-tips): Also check tooltip-mode.
+
 	* progmodes/js.el (js--optimize-arglist): Declare.
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-expansion): Declare.

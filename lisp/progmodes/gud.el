@@ -716,6 +716,16 @@ The option \"--fullname\" must be included in this value."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
+;; One of the nice features of GDB is its impressive support for
+;; context-sensitive command completion.  We preserve that feature
+;; in the GUD buffer by using a GDB command designed just for Emacs.
+
+(defvar gud-gdb-completion-function nil
+  "Completion function for GDB commands.
+It receives two arguments: COMMAND, the prefix for which we seek
+completion; and CONTEXT, the text before COMMAND on the line.
+It should return a list of completion strings.")
+
 ;; If in gdb mode, gdb-mi is loaded.
 (declare-function gdb-restore-windows "gdb-mi" ())
 
@@ -775,16 +785,6 @@ directory and source-file directory for your debugger."
   (setq gud-running nil)
   (setq gud-filter-pending-text nil)
   (run-hooks 'gud-gdb-mode-hook))
-
-;; One of the nice features of GDB is its impressive support for
-;; context-sensitive command completion.  We preserve that feature
-;; in the GUD buffer by using a GDB command designed just for Emacs.
-
-(defvar gud-gdb-completion-function nil
-  "Completion function for GDB commands.
-It receives two arguments: COMMAND, the prefix for which we seek
-completion; and CONTEXT, the text before COMMAND on the line.
-It should return a list of completion strings.")
 
 ;; The completion process filter indicates when it is finished.
 (defvar gud-gdb-fetch-lines-in-progress)
@@ -3352,6 +3352,9 @@ only tooltips in the buffer containing the overlay arrow."
   :group 'gud
   :group 'tooltip)
 
+(make-obsolete-variable 'gud-tooltip-echo-area
+			"disable Tooltip mode instead" "24.4" 'set)
+
 ;;; Reacting on mouse movements
 
 (defun gud-tooltip-change-major-mode ()
@@ -3438,7 +3441,8 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   "Process debugger output and show it in a tooltip window."
   (remove-function (process-filter process) #'gud-tooltip-process-output)
   (tooltip-show (tooltip-strip-prompt process output)
-		(or gud-tooltip-echo-area tooltip-use-echo-area)))
+		(or gud-tooltip-echo-area tooltip-use-echo-area
+                    (not tooltip-mode))))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
@@ -3481,7 +3485,8 @@ This function must return nil if it doesn't handle EVENT."
 		    (unless (null define-elt)
 		      (tooltip-show
 		       (cdr define-elt)
-		       (or gud-tooltip-echo-area tooltip-use-echo-area))
+		       (or gud-tooltip-echo-area tooltip-use-echo-area
+                           (not tooltip-mode)))
 		      expr))))
 	    (when gud-tooltip-dereference
 	      (setq expr (concat "*" expr)))
