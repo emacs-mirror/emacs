@@ -1,5 +1,8 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/pgg-gpg.el, obsolete/pgg-pgp.el, obsolete/pgg-pgp5.el:
+	Tweak requires to silence compiler.
+
 	* obsolete/sym-comp.el: No need to load hipper-exp when compiling.
 	(he-search-string, he-tried-table, he-expand-list)
 	(he-init-string, he-string-member, he-substitute-string)
