@@ -100,6 +100,7 @@
  */
 
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
@@ -490,6 +491,7 @@ int main(int argc, char *argv[])
 {
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   /* Scripts that should fail (uncomment to show failure is detected) */
   /*testscriptA("C.");*/

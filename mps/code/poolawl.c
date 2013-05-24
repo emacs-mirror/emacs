@@ -351,7 +351,7 @@ static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
   if(AWLHaveTotalSALimit) {
     if(awl->succAccesses >= AWLTotalSALimit) {
       STATISTIC(awl->stats.declined++);
-      EVENT2(AWLDeclineTotal, seg, awl->succAccesses);
+      EVENT2(AWLDeclineTotal, seg, (EventFU)awl->succAccesses);
       return FALSE; /* decline single access because of total limit */
     }
   }
@@ -362,7 +362,7 @@ static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
   if(AWLHaveSegSALimit) {
     if(awlseg->singleAccesses >= AWLSegSALimit) {
       STATISTIC(awl->stats.declined++);
-      EVENT2(AWLDeclineSeg, seg, awlseg->singleAccesses);
+      EVENT2(AWLDeclineSeg, seg, (EventFU)awlseg->singleAccesses);
       return FALSE; /* decline single access because of segment limit */
     }
   }

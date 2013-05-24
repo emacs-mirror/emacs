@@ -236,7 +236,7 @@ Library module
 
 .. c:function:: void mps_lib_assert_fail(const char *message)
 
-    Report an assertion failure and abort.
+    Report an assertion failure.
 
     ``message`` is a NUL-terminated string describing the assertion
     failure.
@@ -244,9 +244,31 @@ Library module
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this reports the
-        failure using ``fprintf(stderr, "...%s...", message)`` and
-        terminates the program by calling ``abort``.
+        failure using ``fprintf(stderr, "...%s...", message)`` and, in
+        the :term:`cool` :term:`variety`, terminates the program by
+        calling ``abort``. You can change this behaviour with
+        :c:func:`mps_lib_assert_fail_install`.  For a discussion of
+        the default behaviour, see :ref:`topic-error-assertion-handling`.
 
+.. c:function:: extern mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t handler)
+
+    This function customises the behaviour of the default assertion handler
+    in the ANSI Library module.  It is not otherwise required by the MPS
+    and you need not implement it if you are providing an alternative plinth.
+    
+    If you're using the ANSI Library module, you can use this function
+    to change the behaviour of the MPS when an assertion fails.  For
+    example, you could terminate the program in the :term:`hot`
+    :term:`variety` too.  (The MPS test programs do exactly that.)
+    
+    ``handler`` is the assertion handler to install.
+    
+    Returns the previously installed handler.
+
+.. c:type:: typedef void (*mps_lib_assert_fail_t)(const char *, unsigned, const char *)
+
+    The type of assertion handlers passed to and returned by
+    :c:func:`mps_lib_assert_fail_install`.
 
 .. c:type:: mps_lib_FILE
 

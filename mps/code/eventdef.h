@@ -38,7 +38,7 @@
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
 #define EVENT_VERSION_MEDIAN ((unsigned)1)
-#define EVENT_VERSION_MINOR  ((unsigned)3)
+#define EVENT_VERSION_MINOR  ((unsigned)4)
 
 
 /* EVENT_LIST -- list of event types and general properties
@@ -99,8 +99,8 @@
   EVENT(X, CBSInit            , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
-  /* EVENT(X, TraceStart         , 0x001c,  TRUE, Trace) */ \
-  /* EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace) */ \
+  EVENT(X, TraceStart         , 0x001c,  TRUE, Trace) \
+  EVENT(X, TraceCreate        , 0x001d,  TRUE, Trace) \
   EVENT(X, TraceDestroy       , 0x001e,  TRUE, Trace) \
   EVENT(X, SegSetGrey         , 0x001f,  TRUE, Seg) \
   EVENT(X, TraceFlipBegin     , 0x0020,  TRUE, Trace) \
@@ -652,6 +652,22 @@
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, B, emergency)
+
+#define EVENT_TraceCreate_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)        /* trace that was created */ \
+  PARAM(X,  1, P, arena)        /* arena in which created */ \
+  PARAM(X,  2, U, why)          /* reason for creation */
+
+#define EVENT_TraceStart_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)        /* trace being started */ \
+  PARAM(X,  1, D, mortality)    /* as passed to TraceStart */ \
+  PARAM(X,  2, D, finishingTime) /* as passed to TraceStart */ \
+  PARAM(X,  3, W, condemned)    /* condemned bytes */ \
+  PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
+  PARAM(X,  5, W, foundation)   /* foundation size */ \
+  PARAM(X,  6, W, white)        /* white reference set */ \
+  PARAM(X,  7, W, rate)         /* segs to scan per increment */
+
 
 #endif /* eventdef_h */
 

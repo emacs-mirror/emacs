@@ -8,6 +8,7 @@
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 
 #include <stdlib.h>
@@ -193,6 +194,7 @@ int main(int argc, char *argv[])
   mps_arena_t arena;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   die(mps_arena_create(&arena, mps_arena_class_vmnz(), testArenaSIZE),
       "mps_arena_create");

@@ -48,6 +48,7 @@
 
 #elif defined(CONFIG_VAR_DIAG) /* Diagnostic variety */
 #define CONFIG_ASSERT
+#define CONFIG_ASSERT_ABORT
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelMINIMAL
 #endif
@@ -72,6 +73,7 @@
 #elif defined(CONFIG_VAR_COOL)
 #define CONFIG_ASSERT
 #define CONFIG_ASSERT_ALL
+#define CONFIG_ASSERT_ABORT
 #define CONFIG_STATS
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelSHALLOW
@@ -91,6 +93,7 @@
 
 /* #elif defined(CONFIG_VAR_HOT) */
 #define CONFIG_ASSERT
+/* Note, not CONFIG_ASSERT_ABORT */
 #ifndef CHECKLEVEL
 #define CHECKLEVEL      CheckLevelMINIMAL
 #endif
@@ -116,6 +119,11 @@
 #else /* CONFIG_ASSERT, not */
 #define AVER_AND_CHECK_NONE
 #define MPS_ASSERT_STRING "nonasserted"
+#endif
+#if defined(CONFIG_ASSERT_ABORT)
+#define ASSERT_ABORT() abort()
+#else
+#define ASSERT_ABORT() NOOP
 #endif
 
 

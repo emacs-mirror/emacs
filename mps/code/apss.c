@@ -12,6 +12,7 @@
 #include "mpsavm.h"
 
 #include "testlib.h"
+#include "mpslib.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -179,6 +180,7 @@ int main(int argc, char *argv[])
   bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "mps_arena_create");

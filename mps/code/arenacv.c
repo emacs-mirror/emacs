@@ -19,6 +19,7 @@
 #include "mpm.h"
 #include "poolmv.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include "mpsavm.h"
 #include "mpsacl.h"
 

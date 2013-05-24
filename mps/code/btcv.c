@@ -16,6 +16,7 @@
 #include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
+#include "mpslib.h"
 
 #include <stdlib.h>
 

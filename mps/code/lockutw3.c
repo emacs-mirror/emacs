@@ -6,6 +6,7 @@
 
 #include "mpm.h"
 #include "testlib.h"
+#include "mpslib.h"
 
 #include "mpswin.h"
 

@@ -1146,6 +1146,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   amcGen gen;
   Serial genNr;
   SegPrefStruct segPrefStruct;
+  PoolGen pgen;
 
   AVERT(Pool, pool);
   amc = Pool2AMC(pool);
@@ -1161,6 +1162,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   gen = amcBufGen(buffer);
   AVERT(amcGen, gen);
 
+  pgen = &gen->pgen;
+
   /* Create and attach segment.  The location of this segment is */
   /* expressed as a generation number.  We rely on the arena to */
   /* organize locations appropriately.  */
@@ -1168,7 +1171,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   alignedSize = SizeAlignUp(size, ArenaAlign(arena));
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  genNr = PoolGenNr(&gen->pgen);
+  genNr = PoolGenNr(pgen);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &genNr);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegType, p, &gen->type); /* .segtype */
@@ -1188,17 +1191,25 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* Put the segment in the generation indicated by the buffer. */
   ++gen->segs;
-  gen->pgen.totalSize += alignedSize;
-  /* If ramping, don't count survivors in newSize. */
-  if(amc->rampMode != RampRAMPING
-     || buffer != amc->rampGen->forward
-     || gen != amc->rampGen)
+  pgen->totalSize += alignedSize;
+
+  /* If ramping, or if the buffer is a large proportion of the
+   * generation size, don't count it towards newSize. */
+
+  /* TODO: Find a better hack for this, which is really a work-around
+   * for a nasty problem in the collection scheduling strategy.
+   * See job003435. NB 2013-03-07. */
+
+  if((size < (pgen->chain->gens[genNr].capacity * 1024.0 / 4.0)) &&
+     (amc->rampMode != RampRAMPING
+      || buffer != amc->rampGen->forward
+      || gen != amc->rampGen))
   {
-    gen->pgen.newSize += alignedSize;
+    pgen->newSize += alignedSize;
   } else {
     Seg2amcSeg(seg)->new = FALSE;
   }
-  PoolGenUpdateZones(&gen->pgen, seg);
+  PoolGenUpdateZones(pgen, seg);
 
   base = SegBase(seg);
   *baseReturn = base;

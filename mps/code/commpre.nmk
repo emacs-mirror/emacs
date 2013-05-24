@@ -130,7 +130,7 @@ CFCOOL = /DCONFIG_VAR_COOL $(CRTFLAGSCOOL) $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # %%VARIETY: When adding a new variety, define a macro containing the flags
 # for the new variety
 LINKER = link
-LINKFLAGSCOMMON = /nologo
+LINKFLAGSCOMMON = /nologo /LARGEADDRESSAWARE
 LINKFLAGSINTERNAL = /DEBUG
 # ( Internal flags used to be set to /DEBUG:full )
 LINKFLAGSEXTERNAL = /RELEASE

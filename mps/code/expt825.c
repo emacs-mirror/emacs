@@ -27,6 +27,7 @@
  */
 
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
