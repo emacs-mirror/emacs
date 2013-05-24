@@ -1,5 +1,7 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-expansion): Declare.
+
 	* progmodes/which-func.el (ediff-window-A, ediff-window-B)
 	(ediff-window-C): Declare.
 
