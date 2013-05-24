@@ -1,5 +1,11 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* net/socks.el (socks-split-string): Use this rather than split-string.
+	(socks-nslookup-host): Update for above change.
+	(dynamic-choice, s5-dynamic-choice-match)
+	(s5-dynamic-choice-match-inline, s5-widget-value-create):
+	Comment out unused code.
+
 	* tooltip.el (tooltip-use-echo-area): Warn only on 'set.
 	* progmodes/gud.el (gud-gdb-completion-function): Move before use.
 	(gud-tooltip-echo-area): Make obsolete.
