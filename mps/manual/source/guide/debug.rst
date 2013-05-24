@@ -91,7 +91,7 @@ General debugging advice
 
         handle SIGSEGV pass nostop noprint
 
-   (On all three operating system, you can add these commands to your
+   (On these operating systems, you can add these commands to your
    ``.gdbinit`` if you always want them to be run.)
 
 

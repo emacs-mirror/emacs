@@ -11,13 +11,16 @@ MFS (Manual Fixed Small)
 :term:`pool class` for small objects of fixed size.
 
 Unlike other manual pool classes, it is not subject to :term:`internal
-fragmentation`.
+fragmentation`: if the population remains bounded, the memory usage
+remains bounded too. On the other hand, unlike :ref:`pool-mvt` and
+:ref:`pool-mvff` it does not return unused memory to the arena for
+reuse by other pools.
 
-The implementation is very simple: unlike other :term:`pool classes`
-which store their control structures separately from the allocated
-blocks, MFS maintains a stack of free blocks using a pointer in the
-free block. :c:func:`mps_alloc` pops this stack and :c:func:`mps_free`
-pushes it.
+The implementation is very simple: unlike most other :term:`pool
+classes` which store their control structures separately from the
+allocated blocks, MFS maintains a stack of free blocks using a pointer
+in the free block. :c:func:`mps_alloc` pops this stack and
+:c:func:`mps_free` pushes it.
 
 
 .. index::
