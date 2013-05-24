@@ -9,6 +9,7 @@
 #include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
+#include "mpslib.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -574,6 +575,7 @@ extern int main(int argc, char *argv[])
   CBSFindDelete findDelete = CBSFindDeleteNONE;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   NAllocateTried = NAllocateSucceeded = NDeallocateTried =
     NDeallocateSucceeded = NNewBlocks = NDeleteBlocks =

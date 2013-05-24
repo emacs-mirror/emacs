@@ -10,6 +10,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include "mpstd.h"
@@ -153,6 +154,7 @@ extern int main(int argc, char *argv[])
   int i;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   abqSize = 0;
 
