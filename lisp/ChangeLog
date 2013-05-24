@@ -1,5 +1,10 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/sym-comp.el: No need to load hipper-exp when compiling.
+	(he-search-string, he-tried-table, he-expand-list)
+	(he-init-string, he-string-member, he-substitute-string)
+	(he-reset-string): Declare.
+
 	* obsolete/options.el (list-options): Use custom-variable-p,
 	rather than obsolete alias.
 
