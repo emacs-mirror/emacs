@@ -410,7 +410,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face nil t))
-     ("^.+?-[0-9]+-.*\n" (0 grep-context-face)))
+     ;; "filename-linenumber-" format is used for context lines in GNU grep,
+     ;; "filename=linenumber=" for lines with function names in "git grep -p".
+     ("^.+?[-=][0-9]+[-=].*\n" (0 grep-context-face)))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 

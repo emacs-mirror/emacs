@@ -1,3 +1,9 @@
+2013-05-24  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords):
+	Support =linenumber= format used by git-grep for lines with
+	function names.  (Bug#13549)
+
 2013-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave.el (octave-smie-rules): Return nil rather than
