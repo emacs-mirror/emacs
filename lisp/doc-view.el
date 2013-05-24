@@ -1649,6 +1649,25 @@ If BACKWARD is non-nil, jump to the previous match."
     (setq-local doc-view--image-type type)
     (setq-local doc-view--image-file-pattern (concat "page-%s." extension))))
 
+;; desktop.el integration
+
+(defun doc-view-desktop-save-buffer (desktop-dirname)
+  `((page . ,(doc-view-current-page))
+    (slice . ,(doc-view-current-slice))))
+
+(defun doc-view-restore-desktop-buffer (file name misc)
+  (let ((page  (cdr (assq 'page misc)))
+	(slice (cdr (assq 'slice misc))))
+    (prog1 (desktop-restore-file-buffer file name misc))
+    (with-selected-window (or (get-buffer-window (current-buffer) 0)
+			      (selected-window))
+      (doc-view-goto-page page)
+      (when slice (apply 'doc-view-set-slice slice)))))
+
+(setq desktop-buffer-mode-handlers
+      (cons '(doc-view-mode . doc-view-restore-desktop-buffer)
+	    desktop-buffer-mode-handlers))
+
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
@@ -1715,6 +1734,9 @@ toggle between displaying the document or editing it as text.
 	      nil t)
     (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
     (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
+    (when (and (boundp 'desktop-save-mode)
+	       desktop-save-mode)
+      (setq-local desktop-save-buffer 'doc-view-desktop-save-buffer))
 
     (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
     ;; Keep track of display info ([vh]scroll, page number, overlay,

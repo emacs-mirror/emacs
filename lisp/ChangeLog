@@ -1,3 +1,14 @@
+2013-05-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el: Integrate with desktop.el.  (Bug#14435)
+	(doc-view-desktop-save-buffer): New function.
+	(doc-view-restore-desktop-buffer): New function.
+	(desktop-buffer-mode-handlers): Add
+	`doc-view-restore-desktop-buffer' as desktop.el buffer mode
+	handler.
+	(doc-view-mode): Set `doc-view-desktop-save-buffer' as custom
+	`desktop-save-buffer' function.
+
 2013-05-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (tramp-gvfs-enabled): New defconst.
