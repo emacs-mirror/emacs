@@ -49,14 +49,16 @@ for the data structure used to manage tracts.
 Requirements
 ------------
 
-[copied from design.mps.arena.vm(1) and edited slightly -- drj
-1999-06-23]
+.. note::
 
-[Where do these come from? Need to identify and document the sources
-of requirements so that they are traceable to client requirements.
-Most of these come from the architectural design
-(design.mps.architecture) or the fix function design (design.mps.fix).
--- richard 1995-08-28]
+    Where do these come from? Need to identify and document the
+    sources of requirements so that they are traceable to client
+    requirements. Most of these come from the architectural design
+    (design.mps.architecture) or the fix function design
+    (design.mps.fix). Richard Brooksby, 1995-08-28.
+
+    They were copied from design.mps.arena.vm(1) and edited slightly.
+    David Jones, 1999-06-23.
 
 
 Block management
@@ -82,7 +84,7 @@ least).
 _`.req.attr.block.align.min`: The alignment of blocks shall not be less
 than ``MPS_PF_ALIGN`` for the architecture. This is so that pool
 classes can conveniently guarantee pool allocated blocks are aligned
-to ``MPS_PF_ALIGN``. (A trivial requirement)
+to ``MPS_PF_ALIGN``. (A trivial requirement.)
 
 _`.req.attr.block.grain.max`: The granularity of allocation shall not
 be more than the grain size provided by the virtual mapping interface.
@@ -137,9 +139,12 @@ part that introduces an overhead (pool classes being the next most
 obvious), so multiple parts must cooperate in order to meet the
 ultimate requirements.
 
-_`.req.attr.time.overhead`: Time overhead constraint? [how can there be
-a time "overhead" on a necessary component? drj 1999-06-23]
+_`.req.attr.time.overhead`: Time overhead constraint?
 
+.. note::
+
+    How can there be a time "overhead" on a necessary component? David
+    Jones, 1999-06-23.
 
 
 Architecture
@@ -313,12 +318,18 @@ _`.poll.size`: The actual clock is ``arena->fillMutatorSize``. This is
 because internal allocation is only significant when copy segments are
 being allocated, and we don't want to have the pause times to shrink
 because of that. There is no current requirement for the trace rate to
-guard against running out of memory. [Clearly it really ought to: we
-have a requirement to not run out of memory (see
-req.dylan.prot.fail-alloc, req.dylan.prot.consult), and emergency
-tracing should not be our only story. drj 1999-06-22] ``BufferEmpty``
-is not taken into account, because the splinter will rarely be useable
-for allocation and we are wary of the clock running backward.
+guard against running out of memory.
+
+.. note::
+
+    Clearly it really ought to: we have a requirement to not run out
+    of memory (see req.dylan.prot.fail-alloc, req.dylan.prot.consult),
+    and emergency tracing should not be our only story. David Jones,
+    1999-06-22.
+
+``BufferEmpty()`` is not taken into account, because the splinter will
+rarely be useable for allocation and we are wary of the clock running
+backward.
 
 _`.poll.clamp`: Polling is disabled when the arena is "clamped", in
 which case ``arena->clamped`` is ``TRUE``. Clamping the arena prevents

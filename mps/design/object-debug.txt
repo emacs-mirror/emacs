@@ -26,9 +26,13 @@ Overview
 
 _`.over.fenceposts`: In its current state, this document mostly talks
 about fenceposts, straying a little into tagging where theses features
-have an effect on each other. [There exist other documents that list
-other required features, and propose interfaces and implementations.
-These will eventually be folded into this one. pekka 1998-09-10]
+have an effect on each other.
+
+.. note::
+
+    There exist other documents that list other required features, and
+    propose interfaces and implementations. These will eventually be
+    folded into this one. Pekka P. Pirinen, 1998-09-10.
 
 
 Requirements
@@ -61,12 +65,14 @@ _`.req.tag.walk`: The walking function (as required by `.req.walk`_)
 should have access to this data (source req.epcore.fun.debug.support).
 
 _`.req.dump.aver`: It must be possible to perform a memory dump after
-an ``AVER()`` has fired (naturally, if the information required for the
-dump has been corrupted, it will fail, as softly as possible). (source
-@@@@)
+an ``AVER()`` has fired. Naturally, if the information required for
+the dump has been corrupted, it will fail, as softly as possible
+(source @@@@).
 
-[There are more, especially about memory dumps and allocation
-locations. pekka 1998-09-10]
+.. note::
+
+    There are more requirements, especially about memory dumps and
+    allocation locations. Pekka P. Pirinen, 1998-09-10.
 
 
 Solution ideas
@@ -186,8 +192,11 @@ mail.pekka.1998-06-11.18-18).
 _`.fence.wrapper.alloc.size`: We could just communicate the size of
 the fenceposts between the format and the allocation routines, but
 then you couldn't use variable fenceposts (.fence.wrapper.variable).
-[All this applies to copying and reclaim in a straight-forward manner,
-I think.]
+
+.. note::
+
+    All this applies to copying and reclaim in a straight-forward
+    manner, I think.
 
 _`.fence.pool.wrapper`: Pools can be wrapped as well. This could be a
 natural way to represent/implement the fenceposting changes to the
@@ -241,7 +250,12 @@ _`.unified-walk`: Combine the walking and tagging requirements
 tagging objects with just one interface and one name: tagging. Also
 combine the existing formatted object walker into this metaphor, but
 allowing the format and tag parameters of the step function be
-optional [this part has not been implemented yet pekka 1998-09-10].
+optional.
+
+.. note::
+
+    This part has not been implemented yet Pekka P. Pirinen,
+    1998-09-10.
 
 _`.init`: It simplifies the implementation of both tagging and
 fenceposting if they are always on, so that we don't have to keep
@@ -256,8 +270,12 @@ as pool parameters.
 _`.modularity`: While a combined generic implementation of tags and
 fenceposts is provided, it is structured so that each part of it could
 be implemented by a pool-specific mechanism with a minimum of new
-protocol. [This will be improved, when we figure out formatted pools
--- they don't need tags for fenceposting.]
+protocol.
+
+.. note::
+
+    This will be improved, when we figure out formatted pools -- they
+    don't need tags for fenceposting.
 
 _`.out-of-space`: If there's no room for tags, we will not dip into
 the reservoir, just fail to allocate the tag. If the alloc call had a
@@ -265,12 +283,18 @@ reservoir permit, we let it succeed even without a tag, and just make
 sure the free method will not complain if it can't find a tag. If the
 call didn't have a reservoir permit, we free the block allocated for
 the object and fail the allocation, so that the client gets a chance
-to do whatever low-memory actions they might want to do. [Should this
-depend on whether there is anything in the reservoir?] This breaks the
-one-to-one relationship between tags and objects, so some checks
-cannot be made, but we do count the "lost" tags.
+to do whatever low-memory actions they might want to do.
 
-[need to hash out how to do fenceposting in formatted pools]
+.. note::
+
+    Should this depend on whether there is anything in the reservoir?
+
+This breaks the one-to-one relationship between tags and objects, so
+some checks cannot be made, but we do count the "lost" tags.
+
+.. note::
+
+    Need to hash out how to do fenceposting in formatted pools.
 
 
 Client interface
@@ -280,9 +304,11 @@ _`.interface.fenceposting.check`:
 ``mps_pool_check_fenceposts()`` is a function to check all
 fenceposts in a pool (``AVER()`` if a problem is found)
 
-[from here on, these are tentative and incomplete]
+.. note::
 
-``mps_res_t mps_fmt_fencepost_wrap(mps_fmt_t *format_return, mps_arena_t arena, mps_fmt_t format, [fp parameters])``
+    From here on, these are tentative and incomplete.
+
+``mps_res_t mps_fmt_fencepost_wrap(mps_fmt_t *format_return, mps_arena_t arena, mps_fmt_t format, ...)``
 
 _`.interface.fenceposting.format`: A function to wrap a format
 (class) to provide fenceposting.
@@ -295,13 +321,13 @@ block about to be allocted to allow for fenceposts.
 ``void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
 
 _`.interface.fenceposting.add`: A format method to add a fencepost
-around a block about to be allocated [the ``NULL`` method adds a tail
-fencepost]
+around a block about to be allocated. The ``NULL`` method adds a tail
+fencepost.
 
 ``mps_bool_t (*mps_fmt_check_fenceposts_t)(mps_addr_t)``
 
 _`.interface.fenceposting.checker`: A format method to check the
-fenceposts around an object [the ``NULL`` method checks tails].
+fenceposts around an object. The ``NULL`` method checks tails.
 
 ``mps_class_t mps_debug_class(mps_class_t class)``
 
@@ -346,8 +372,12 @@ _`.new-pool`: The client interface to control fenceposting
 consists of the new classes ``mps_pool_class_mv_debug()``,
 ``mps_pool_class_epdl_debug()``, and
 ``mps_pool_class_epdr_debug()``, and their new init parameter of
-type ``mps_pool_debug_option_s``. [This is a temporary solution,
-to get it out without writing lots of new interface. pekka 1998-09-10]
+type ``mps_pool_debug_option_s``.
+
+.. note::
+
+    This is a temporary solution, to get it out without writing lots
+    of new interface. Pekka P. Pirinen, 1998-09-10.
 
 _`.new-pool.impl`: The debug pools are implemented using the "class
 wrapper" ``EnsureDebugClass()``, which produces a subclass with
@@ -367,7 +397,10 @@ allocated from a subsidiary MFS pool. The client needs to specify the
 (maximum) size of the client data in a tag, so that the pool can be
 created.
 
-[Lots more should be said, eventually. pekka 1998-09-10]
+.. note::
+
+    Lots more should be said, eventually. Pekka P. Pirinen,
+    1998-09-10.
 
 
 Document History

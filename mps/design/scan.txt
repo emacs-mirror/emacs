@@ -43,9 +43,13 @@ Partial scans
 
 _`.clever-summary`: With enough cleverness, it's possible to have
 partial scans of condemned segments contribute to the segment summary.
-[We had a system which nearly worked -- see MMsrc(MMdevel_poolams at
-1997/08/14 13:02:55 BST), but it did not handle the situation in which
-a segment was not under the write barrier when it was condemned.]
+
+.. note::
+
+    We had a system which nearly worked -- see MMsrc(MMdevel_poolams
+    at 1997/08/14 13:02:55 BST), but it did not handle the situation
+    in which a segment was not under the write barrier when it was
+    condemned.
 
 _`.clever-summary.acc`: Each time we partially scan a segment, we
 accumulate the post-scan summary of the scanned objects into a field
@@ -80,9 +84,13 @@ white summary.
 _`.clever-summary.wb`: If the cumulative summary is smaller than the
 mutator's summary, a write-barrier is needed to prevent the mutator
 from invalidating it. This means that sometimes we'd have to put the
-segment under the write-barrier at condemn [this is not an operation
-currently available to pool class implementations pekka 1998-02-26],
-which might not be very efficient.
+segment under the write-barrier at condemn, which might not be very
+efficient
+
+.. note::
+
+    This is not an operation currently available to pool class
+    implementations Pekka P. Pirinen, 1998-02-26.
 
 _`.clever-summary.method.wb`: We need a new pool class method, called
 when the write barrier is hit (or possibly any barrier hit). The
