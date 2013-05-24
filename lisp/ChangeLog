@@ -1,3 +1,8 @@
+2013-05-24  Sam Steingold  <sds@gnu.org>
+
+	* sort.el (delete-duplicate-lines): Accept an optional `keep-blanks'
+	argument (before the `interactive' argument).
+
 2013-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image-mode.el (image-mode-winprops): Add winprops to

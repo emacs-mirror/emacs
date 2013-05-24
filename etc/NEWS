@@ -264,10 +264,12 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
-** New command `delete-duplicate-lines' has two types of operation:
-when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+** New command `delete-duplicate-lines' has new types of operation:
+When its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
+When it arg KEEP-BLANKS is non-nil (when called interactively with C-u C-u C-u),
+duplicate blank lines are preserved.
 
 ** New `cycle-spacing' command allows cycling between having just one
 space, no spaces, or reverting to the original spacing.  Like
