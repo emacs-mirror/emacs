@@ -73,12 +73,12 @@ static void test(void)
 
  die(mps_thread_reg(&thread, arena), "register thread");
 
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
  
  cdie(
-  mps_root_create_table(&root1,arena,MPS_RANK_AMBIG,0,&exfmt_root,1),
+  mps_root_create_table(&root1,arena,mps_rank_ambig(),0,&exfmt_root,1),
   "create table root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -88,16 +88,16 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  /* allocate 16 M of (live) stuff */
 
- b = allocone(ap, 2, MPS_RANK_EXACT);
+ b = allocone(ap, 2, mps_rank_exact());
  for (j=0; j<160; j++) {
-  a = allocone(ap, 2, MPS_RANK_EXACT);
+  a = allocone(ap, 2, mps_rank_exact());
   setref(a, 0, b);
-  b = allocdumb(ap, 1024*100, MPS_RANK_EXACT);
+  b = allocdumb(ap, 1024*100, mps_rank_exact());
   setref(a, 1, b);
   b = a;
  }
@@ -111,7 +111,7 @@ static void test(void)
  empty();
 
  for (j=0; j<1000*1024; j++) {
-  res=allocrdumb(&a, ap, 1024, MPS_RANK_EXACT);
+  res=allocrdumb(&a, ap, 1024, mps_rank_exact());
   if (res == MPS_RES_OK) {
    comment("%i ok", j);
   } else {

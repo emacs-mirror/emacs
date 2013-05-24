@@ -49,10 +49,10 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root, arena, mps_rank_ambig(), 0,
                             (mps_addr_t*)&a[0], 3),
       "create table root");
-  cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+  cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t *)&exfmt_root, 1),
       "exfmt root");
 
@@ -63,7 +63,7 @@ static void test(void)
  die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()),
       "create ap");
 
  time0 = clock();
@@ -72,11 +72,11 @@ static void test(void)
  for (k=0; k<100; k++) {
 
   for (j=0; j<100; j++) {
-   a[0] = allocone(ap, 50, MPS_RANK_EXACT);
+   a[0] = allocone(ap, 50, mps_rank_exact());
    a[1] = a[0];
 
    for (i=1; i<100; i++) {
-     a[2] = allocone(ap, 50, MPS_RANK_EXACT);
+     a[2] = allocone(ap, 50, mps_rank_exact());
      setref(a[1], 0, a[2]);
      a[1] = a[2];
    }

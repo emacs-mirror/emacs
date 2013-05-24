@@ -33,10 +33,10 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
- cdie(mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, &b, 1),
+ cdie(mps_root_create_table(&root, space, mps_rank_ambig(), 0, &b, 1),
   "creat root");
 
- cdie(mps_root_create_table(&rootb, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+ cdie(mps_root_create_table(&rootb, space, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create root b");
 
  cdie(
@@ -52,16 +52,16 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
+  mps_ap_create(&apawl, poolawl, mps_rank_weak()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  formatcomments = 0;
 
- b = allocone(apamc, 1024, MPS_RANK_EXACT);
+ b = allocone(apamc, 1024, mps_rank_exact());
 
  c = mps_collections(space);
 
@@ -69,14 +69,14 @@ static void test(void)
  {
   comment("%i of 100.", i);
   while (mps_collections(space) == c) {
-   a = allocone(apamc, 1024, MPS_RANK_EXACT);
+   a = allocone(apamc, 1024, mps_rank_exact());
    if (ranint(5)) {
     setref(a, 0, b);
    }
    b = a;
   }
   c = mps_collections(space);
-  a = allocone(apawl, 1, MPS_RANK_WEAK);
+  a = allocone(apawl, 1, mps_rank_weak());
   a->data.id = 0;
   setref(a, 0, b);
  }

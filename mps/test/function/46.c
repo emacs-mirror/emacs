@@ -53,12 +53,12 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
  cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root1, space, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  cdie(
@@ -70,7 +70,7 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  b = allocone(apamc, 1, 1);

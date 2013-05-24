@@ -32,7 +32,7 @@ static void test(void)
    extendBy, avgSize, maxSize),
   "create pool");
 
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  mps_pool_destroy(pool);

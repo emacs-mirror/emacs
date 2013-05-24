@@ -29,7 +29,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
- cdie(mps_root_create_fmt(&root, space, MPS_RANK_AMBIG, MPS_RM_MIN-1, 
+ cdie(mps_root_create_fmt(&root, space, mps_rank_ambig(), MPS_RM_MIN-1, 
                       fmtscan, a, &a[32]),
       "root create");
 

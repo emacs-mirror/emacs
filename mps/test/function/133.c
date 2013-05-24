@@ -46,7 +46,7 @@ static void test(void) {
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create stack root");
 
  cdie(
@@ -58,7 +58,7 @@ static void test(void) {
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  mps_arena_commit_limit_set(arena, mps_arena_committed(arena)+1024*1024);
@@ -76,7 +76,7 @@ static void test(void) {
  p = NULL;
  res = MPS_RES_OK;
  while (res == MPS_RES_OK) {
-  res = reservoir_allocrone(&q, apamc, 10, MPS_RANK_EXACT);
+  res = reservoir_allocrone(&q, apamc, 10, mps_rank_exact());
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
    p = q;

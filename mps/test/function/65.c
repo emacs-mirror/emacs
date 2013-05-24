@@ -76,29 +76,29 @@ static void test(void)
  die(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&a, 1),
+  mps_root_create_table(&root1, arena, mps_rank_exact(), 0, (mps_addr_t*)&a, 1),
   "root");
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&b, 1),
+  mps_root_create_table(&root2, arena, mps_rank_exact(), 0, (mps_addr_t*)&b, 1),
   "root");
  cdie(
-  mps_root_create_table(&root3, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&c, 1),
+  mps_root_create_table(&root3, arena, mps_rank_exact(), 0, (mps_addr_t*)&c, 1),
   "root");
  cdie(
-  mps_root_create_table(&root4, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&d, 1),
+  mps_root_create_table(&root4, arena, mps_rank_exact(), 0, (mps_addr_t*)&d, 1),
   "root");
  cdie(
-  mps_root_create_table(&root5, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&e, 1),
+  mps_root_create_table(&root5, arena, mps_rank_exact(), 0, (mps_addr_t*)&e, 1),
   "root");
  cdie(
-  mps_root_create_table(&root6, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&f, 1),
+  mps_root_create_table(&root6, arena, mps_rank_exact(), 0, (mps_addr_t*)&f, 1),
   "root");
  cdie(
-  mps_root_create_table(&root7, arena, MPS_RANK_EXACT, 0, (mps_addr_t*)&g, 1),
+  mps_root_create_table(&root7, arena, mps_rank_exact(), 0, (mps_addr_t*)&g, 1),
   "root");
 
  cdie(
-  mps_root_create_table(&root, arena, MPS_RANK_EXACT, 0, &exfmt_root, 1),
+  mps_root_create_table(&root, arena, mps_rank_exact(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -108,7 +108,7 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  comment("parking...");

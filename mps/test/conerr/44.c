@@ -22,7 +22,7 @@ static void test(void)
  cdie(mps_space_create(&space), "create space");
 
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0,
+  mps_root_create_table(&root, space, mps_rank_ambig(), 0,
    roottable, sizeof(mps_addr_t[10])), "create root");
 
  mps_root_destroy(root);

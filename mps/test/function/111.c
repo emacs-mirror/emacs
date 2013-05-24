@@ -110,11 +110,11 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root0, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
  
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t*)&exfmt_root, 1),
       "create table root");
 
@@ -132,13 +132,13 @@ static void test(void)
  cdie(mmqa_pool_create_chain(&poollo, arena, mps_class_amcz(), format, chain),
      "create pool(amcz)");
 
- cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
+ cdie(mps_ap_create(&apawl, poolawl, mps_rank_weak()),
       "create ap(awl)");
 
- cdie(mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()),
       "create ap(amc)");
  
- cdie(mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&aplo, poollo, mps_rank_exact()),
       "create ap(amcz)");
 
  mps_message_type_enable(arena, mps_message_type_finalization());
@@ -149,9 +149,9 @@ static void test(void)
  b = a;
 
  for (j=0; j<1000; j++) {
-  a = allocone(apamc, 2, MPS_RANK_EXACT);
-  c = allocone(apawl, 2, MPS_RANK_WEAK);
-  d = allocone(aplo, 2, MPS_RANK_EXACT); /* rank irrelevant here! */
+  a = allocone(apamc, 2, mps_rank_exact());
+  c = allocone(apawl, 2, mps_rank_weak());
+  d = allocone(aplo, 2, mps_rank_exact()); /* rank irrelevant here! */
   mps_finalize(arena, (mps_addr_t*)&a);
   mps_finalize(arena, (mps_addr_t*)&c);
   mps_finalize(arena, (mps_addr_t*)&d);
@@ -178,9 +178,9 @@ static void test(void)
   finalpoll(&z, FINAL_DISCARD);
   if (mps_message_poll(arena) == 0) {
    i++;
-   a = allocdumb(apawl, 1024, MPS_RANK_WEAK);
-   a = allocdumb(apamc, 1024, MPS_RANK_EXACT);
-   a = allocdumb(aplo,  1024, MPS_RANK_EXACT);
+   a = allocdumb(apawl, 1024, mps_rank_weak());
+   a = allocdumb(apamc, 1024, mps_rank_exact());
+   a = allocdumb(aplo,  1024, mps_rank_exact());
    mps_arena_collect(arena);
    comment(" %i", final_count);
   }

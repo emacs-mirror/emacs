@@ -55,10 +55,10 @@ static void test(void)
  die(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0, (mps_addr_t*)&z[0], 10),
+  mps_root_create_table(&root, arena, mps_rank_ambig(), 0, (mps_addr_t*)&z[0], 10),
   "create table root");
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root2, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -68,7 +68,7 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  for (j=1; j<10; j++) {

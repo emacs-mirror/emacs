@@ -49,7 +49,7 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_AMBIG),
+  mps_ap_create(&ap, pool, mps_rank_ambig()),
   "create ap");
 
  mps_ap_destroy(ap);

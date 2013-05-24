@@ -35,11 +35,11 @@ static void test(void) {
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root0, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
  
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t *)&exfmt_root, 1),
       "create table root");
 
@@ -49,13 +49,13 @@ static void test(void) {
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
       "create pool");
 
- cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apawl, poolawl, mps_rank_exact()),
       "create ap");
 
  /* alloc lots in an AWL pool; it should be collected away */
 
  for(j=0; j<1000; j++) {
-  a = allocdumb(apawl, 1024ul*1024, MPS_RANK_EXACT);
+  a = allocdumb(apawl, 1024ul*1024, mps_rank_exact());
  }
 
  /* (total allocated is 1000 M) */

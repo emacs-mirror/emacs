@@ -40,11 +40,11 @@ static void test(void)
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
 
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t*)&exfmt_root, 1),
       "create table root");
 
@@ -55,7 +55,7 @@ static void test(void)
  die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()),
       "create ap");
 
  comment("ready");
@@ -63,13 +63,13 @@ static void test(void)
  comment("reserved %ld, committed %ld",
          mps_arena_reserved(arena), mps_arena_committed(arena));
 
- b = allocdumb(ap, 1024ul*1024ul*40, MPS_RANK_EXACT);
+ b = allocdumb(ap, 1024ul*1024ul*40, mps_rank_exact());
  comment("alloc 40 MB");
 
  comment("reserved %ld, committed %ld",
          mps_arena_reserved(arena), mps_arena_committed(arena));
 
- b = allocdumb(ap, 1024ul*1024ul*40, MPS_RANK_EXACT);
+ b = allocdumb(ap, 1024ul*1024ul*40, mps_rank_exact());
  comment("alloc 80 MB");
 
  comment("reserved %ld, committed %ld",

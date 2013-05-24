@@ -26,7 +26,7 @@ static void test(void)
 */
 
  cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 

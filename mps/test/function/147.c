@@ -45,7 +45,7 @@ static void test(void)
   "create SNC pool");
 
  cdie(
-  mps_ap_create(&sap, spool, MPS_RANK_EXACT),
+  mps_ap_create(&sap, spool, mps_rank_exact()),
   "create ap");
 
 /* repeatedly push and pop stack frames, and allocate objects in them
@@ -64,7 +64,7 @@ static void test(void)
    break;
   case 6: case 7: case 8: case 9: case 10:
    if (nobj[f] < MAXLEVOBJS) {
-    p = allocone(sap, 16, MPS_RANK_EXACT);
+    p = allocone(sap, 16, mps_rank_exact());
     setref(p, 0, NULL);
     nobj[f]++;
    }

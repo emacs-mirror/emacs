@@ -52,7 +52,7 @@ static void test(void)
  comment("Destroyed pool.");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  mps_ap_destroy(ap);

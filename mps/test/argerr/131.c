@@ -21,7 +21,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
- cdie(mps_root_create_reg(UNALIGNED, space, MPS_RANK_AMBIG, 0, 
+ cdie(mps_root_create_reg(UNALIGNED, space, mps_rank_ambig(), 0, 
                       thread, mps_stack_scan_ambig, stackpointer, 0),
       "root create");
 

@@ -24,7 +24,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(mps_root_create_table(&root, space,
-        MPS_RANK_AMBIG, MPS_RM_MAX+1, a, sizeof a),
+        mps_rank_ambig(), MPS_RM_MAX+1, a, sizeof a),
       "root create");
 
 }

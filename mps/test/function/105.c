@@ -42,7 +42,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
 
@@ -55,17 +55,17 @@ static void test(void)
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
       "create pool(awl)");
 
- cdie(mps_ap_create(&apweak, poolawl, MPS_RANK_WEAK),
+ cdie(mps_ap_create(&apweak, poolawl, mps_rank_weak()),
       "create ap(weak)");
 
- cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apawl, poolawl, mps_rank_exact()),
       "create ap(awl)");
  
- cdie(mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()),
       "create ap(amc)");
 
- b = allocone(apamc, 1, MPS_RANK_EXACT);
- a = allocone(apweak, 1, MPS_RANK_WEAK);
+ b = allocone(apamc, 1, mps_rank_exact());
+ a = allocone(apweak, 1, mps_rank_weak());
 
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);

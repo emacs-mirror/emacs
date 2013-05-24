@@ -44,7 +44,7 @@ static void test(void)
   "create SNC pool");
 
  cdie(
-  mps_ap_create(&sap, spool, MPS_RANK_EXACT),
+  mps_ap_create(&sap, spool, mps_rank_exact()),
   "create ap");
 
 /* repeatedly push, alloc 1MB object, and pop to first stack frame.
@@ -53,7 +53,7 @@ static void test(void)
 
  for (i=0; i < ITERATIONS; i++) {
   die(mps_ap_frame_push(&frame, sap), "push");
-  p = allocdumb(sap, OBJSIZE, MPS_RANK_EXACT);
+  p = allocdumb(sap, OBJSIZE, mps_rank_exact());
   die(mps_ap_frame_pop(sap, frame), "pop");
   comment("%i of %i", i, ITERATIONS);
  }

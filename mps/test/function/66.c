@@ -58,16 +58,16 @@ static void test(void) {
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_table(&root0, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root0, space, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  cdie(
-  mps_root_create_table(&root2, space, MPS_RANK_EXACT, 0,
+  mps_root_create_table(&root2, space, mps_rank_exact(), 0,
                         (mps_addr_t *)obj_table, MAXLDS),
   "create table root");
 
  cdie(
-  mps_root_create_reg(&root1, space, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root1, space, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create register and stack root");
 
@@ -84,7 +84,7 @@ static void test(void) {
   "create mv pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  cdie(
@@ -92,23 +92,23 @@ static void test(void) {
   "create amc pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  /* first we'll use only pool classes MV and AWL. So LDs shouldn't
     go stale at all.
  */
 
- b = allocone(apawl, 5, MPS_RANK_EXACT);
+ b = allocone(apawl, 5, mps_rank_exact());
 
  for (i=0; i < MAXLDS; i++) {
   comment("%d", i);
   mps_alloc(&p, poolmv, sizeof(mps_ld_s));
-  a = allocone(apawl, 5, MPS_RANK_EXACT);
+  a = allocone(apawl, 5, mps_rank_exact());
   setref(a, 0, b);
   b = a;
-  a = allocdumb(apamc, 256*1024, MPS_RANK_EXACT);
-  a = allocdumb(apawl, 256*1024, MPS_RANK_EXACT);
+  a = allocdumb(apamc, 256*1024, mps_rank_exact());
+  a = allocdumb(apawl, 256*1024, mps_rank_exact());
   comment("alloc");
   lds[i] = p;
   mps_ld_reset(lds[i], space);
@@ -131,7 +131,7 @@ static void test(void) {
 
  for (i=0; i < MAXLDS; i++) {
   comment("%d", i);
-  obj_table[i] = allocone(apamc, ranint(100), MPS_RANK_EXACT);
+  obj_table[i] = allocone(apamc, ranint(100), mps_rank_exact());
   mps_ld_add(lds[i], space, (mps_addr_t) obj_table[i]);
  }
 
@@ -139,7 +139,7 @@ static void test(void) {
   comment("%d of 1000", i);
   checklds();
   for (j=0; j < 4; j++) {
-   a = allocdumb(apamc, 32*1024, MPS_RANK_EXACT);
+   a = allocdumb(apamc, 32*1024, mps_rank_exact());
   }
  }
 

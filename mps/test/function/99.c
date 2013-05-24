@@ -43,12 +43,12 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
  cdie(
-  mps_root_create_table(&root1,arena,MPS_RANK_AMBIG,0,&exfmt_root,1),
+  mps_root_create_table(&root1,arena,mps_rank_ambig(),0,&exfmt_root,1),
   "create table root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -60,18 +60,18 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_ap_create(&apamcz, poolamcz, MPS_RANK_EXACT),
+  mps_ap_create(&apamcz, poolamcz, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
- b = allocone(apamc, 1, MPS_RANK_EXACT);
+ b = allocone(apamc, 1, mps_rank_exact());
 
  for (j =1 ; j < 100; j++) {
   comment("%i of 100.", j);
-  a = allocone(apamc, 5, MPS_RANK_EXACT);
+  a = allocone(apamc, 5, mps_rank_exact());
   b = a;
   c = a;
   d = a;
@@ -80,8 +80,8 @@ static void test(void)
   g = a;
 
   for (i = 1; i < 5000; i++) {
-   c = allocone(apamc, 20, MPS_RANK_EXACT);
-   d = allocone(apamcz, 20, MPS_RANK_EXACT);
+   c = allocone(apamc, 20, mps_rank_exact());
+   d = allocone(apamcz, 20, mps_rank_exact());
    if (ranint(8) == 0) e = c;
    if (ranint(8) == 0) f = c;
    if (ranint(8) == 0) g = c;
