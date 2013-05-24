@@ -69,13 +69,17 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
   			    image-mode-winprops-alist))))
   (let ((winprops (assq window image-mode-winprops-alist)))
     ;; For new windows, set defaults from the latest.
-    (unless winprops
+    (if winprops
+        ;; Move window to front.
+        (setq image-mode-winprops-alist
+              (cons winprops (delq winprops image-mode-winprops-alist)))
       (setq winprops (cons window
                            (copy-alist (cdar image-mode-winprops-alist))))
+      ;; Add winprops before running the hook, to avoid inf-loops if the hook
+      ;; triggers window-configuration-change-hook.
+      (setq image-mode-winprops-alist
+            (cons winprops image-mode-winprops-alist))
       (run-hook-with-args 'image-mode-new-window-functions winprops))
-    ;; Move window to front.
-    (setq image-mode-winprops-alist
-          (cons winprops (delq winprops image-mode-winprops-alist)))
     winprops))
 
 (defun image-mode-window-get (prop &optional winprops)

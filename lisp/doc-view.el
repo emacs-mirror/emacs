@@ -328,24 +328,15 @@ of the page moves to the previous page."
       (cl-assert (eq t (car winprops)))
       (delete-overlay ol))
     (image-mode-window-put 'overlay ol winprops)
-    (when (windowp (car winprops))
-      (if (stringp (overlay-get ol 'display))
-    	  ;; We're not already displaying an image, so this is the
-    	  ;; initial window showing the document.
-    	  (run-with-timer nil nil
-    			  (lambda ()
-			    ;; In case a conversion is running, the
-			    ;; refresh will happen as defined by
-			    ;; `doc-view-conversion-refresh-interval'.
-    			    (unless doc-view-current-converter-processes
-			      (with-selected-window (car winprops)
-				(doc-view-goto-page 1)))))
-    	;; We've split the window showing the document.  All we need
-    	;; to do is selecting the new window to cause a redisplay to
-    	;; make the image appear there, too.
-    	(run-with-timer nil nil
-    			(lambda ()
-			  (with-selected-window (car winprops))))))))
+    (when (and (windowp (car winprops))
+               (stringp (overlay-get ol 'display))
+               (null doc-view-current-converter-processes))
+      ;; We're not displaying an image yet, so let's do so.  This happens when
+      ;; the buffer is displayed for the first time.
+      ;; Don't do it if there's a conversion is running, since in that case, it
+      ;; will be done later.
+      (with-selected-window (car winprops)
+        (doc-view-goto-page 1)))))
 
 (defvar doc-view-current-files nil
   "Only used internally.")
@@ -1651,14 +1642,17 @@ If BACKWARD is non-nil, jump to the previous match."
 
 ;; desktop.el integration
 
-(defun doc-view-desktop-save-buffer (desktop-dirname)
+(defun doc-view-desktop-save-buffer (_desktop-dirname)
   `((page . ,(doc-view-current-page))
     (slice . ,(doc-view-current-slice))))
+
+(declare-function desktop-restore-file-buffer "desktop"
+                  (buffer-filename buffer-name buffer-misc))
 
 (defun doc-view-restore-desktop-buffer (file name misc)
   (let ((page  (cdr (assq 'page misc)))
 	(slice (cdr (assq 'slice misc))))
-    (prog1 (desktop-restore-file-buffer file name misc))
+    (desktop-restore-file-buffer file name misc)
     (with-selected-window (or (get-buffer-window (current-buffer) 0)
 			      (selected-window))
       (doc-view-goto-page page)

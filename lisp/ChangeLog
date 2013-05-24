@@ -1,10 +1,18 @@
+2013-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-winprops): Add winprops to
+	image-mode-winprops-alist before running
+	image-mode-new-window-functions.
+	* doc-view.el (doc-view-new-window-function): Don't delay
+	doc-view-goto-page via timers (bug#14435).
+
 2013-05-24  Tassilo Horn  <tsdh@gnu.org>
 
 	* doc-view.el: Integrate with desktop.el.  (Bug#14435)
 	(doc-view-desktop-save-buffer): New function.
 	(doc-view-restore-desktop-buffer): New function.
-	(desktop-buffer-mode-handlers): Add
-	`doc-view-restore-desktop-buffer' as desktop.el buffer mode
+	(desktop-buffer-mode-handlers):
+	Add `doc-view-restore-desktop-buffer' as desktop.el buffer mode
 	handler.
 	(doc-view-mode): Set `doc-view-desktop-save-buffer' as custom
 	`desktop-save-buffer' function.
