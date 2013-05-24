@@ -1,3 +1,11 @@
+2013-05-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-enabled): New defconst.
+	(tramp-gvfs-file-name-handler): Raise a user error when
+	`tramp-gvfs-enabled' is nil.
+	(top): Register signals only when `tramp-gvfs-enabled' is non-nil.
+	Do not raise a user error when loading package.  (Bug#14447)
+
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add with-coding-priority.
