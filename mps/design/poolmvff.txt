@@ -48,32 +48,30 @@ Methods
 
 _`.method`: The MVFF pool supports the following methods:
 
-_`.method.init`: ``Res MVFFInit(Pool pool, va_list arg)``
+``Res MVFFInit(Pool pool, va_list arg)``
 
-This takes six `keyword arguments`_:
-
-``MPS_KEY_EXTEND_BY``
-        the segment size
-
-``MPS_KEY_MEAN_SIZE``
-        the average object size
-
-``MPS_KEY_ALIGN``
-        the alignment of allocations and frees (must be at least sizeof(void*))
-
-``MPS_KEY_MVFF_SLOT_HIGH``
-        whether to allocate objects at the end of free blocks found, as
-        opposed to at the start (for unbuffered allocation)
-
-``MPS_KEY_MVFF_ARENA_HIGH``
-        whether to express SegPrefHIGH to the arena, as opposed to
-        SegPrefLOW
-
-``MPS_KEY_MVFF_FIRST_FIT``
-        whether to use the suitable block of lowest address, as opposed
-        to the highest (for unbuffered allocation)
+_`.method.init`: This takes six `keyword arguments`_:
 
 .. _`keyword arguments`: keyword-arguments.rst
+
+================================== ============================================
+Keyword argument                   Description
+================================== ============================================
+``MPS_KEY_EXTEND_BY``              The segment size.
+``MPS_KEY_MEAN_SIZE``              The average object size.
+``MPS_KEY_ALIGN``                  The alignment of allocations and frees.
+                                   Must be at least ``sizeof(void *)``.
+``MPS_KEY_MVFF_SLOT_HIGH``         Whether to allocate objects at the end of 
+                                   free blocks found, as opposed to at
+                                   the start (for unbuffered
+                                   allocation).
+``MPS_KEY_MVFF_ARENA_HIGH``        Whether to express ``SegPrefHIGH``
+                                   to the arena, as opposed to
+                                   ``SegPrefLOW``.
+``MPS_KEY_MVFF_FIRST_FIT``         whether to use the suitable block of lowest
+                                   address, as opposed to the highest
+                                   (for unbuffered allocation)
+================================== ============================================
 
 _`.method.init.epdl`: To simulate the EPDL pool, specify ``extendBy``,
 ``avgSize``, and ``maxSize`` as normal, and use ``slotHigh=FALSE``,
@@ -86,9 +84,9 @@ _`.method.init.epdr`: To simulate the EPDR pool, specify ``extendBy``,
 _`.method.init.other`: The performance characteristics of other
 combinations are unknown.
 
-_`.method.finish`: The ``PoolFinish`` method,
+_`.method.finish`: The ``PoolFinish()`` method,
 
-_`.method.alloc`: ``PoolAlloc`` and ``PoolFree`` methods are
+_`.method.alloc`: ``PoolAlloc()`` and ``PoolFree()`` methods are
 supported, implementing the policy set by the pool params (see
 `.method.init`_).
 
@@ -103,17 +101,14 @@ External Functions
 
 _`.function`: MVFF supports the following external functions:
 
-_`.function.free-size`: ``size_t mps_mvff_free_size(mps_pool_t pool)``
-This function returns the total size of free space in segments
-allocated to the MVFF pool instance.
+_`.function.free-size`: ``mps_mvff_free_size()`` returns the total
+size of free space in segments allocated to the MVFF pool instance.
 
-_`.function.size`: ``size_t mps_mvff_size(mps_pool_t pool)`` This
-function returns the total memory used by pool segments, whether free
-or allocated.
+_`.function.size`: ``mps_mvff_size()`` returns the total memory used
+by pool segments, whether free or allocated.
 
-_`.function.class`: ``mps_class_t mps_class_mvff(void)`` This function
-returns the class object for the pool class, to be used in pool
-creation.
+_`.function.class`: ``mps_class_mvff()`` returns the class object for
+the pool class, to be used in pool creation.
 
 
 Implementation
