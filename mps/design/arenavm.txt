@@ -1,0 +1,258 @@
+.. mode: -*- rst -*-
+
+Virtual Memory Arena
+====================
+
+:Tag: design.mps.arena.vm
+:Author: David Joes
+:Date: 1996-07-16
+:Status: incomplete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the detailed design of the Virtual
+Memory Arena Class of the Memory Pool System. The VM Arena Class is
+just one class available in the MPS. The generic arena part is
+described in design.mps.arena.
+
+
+Overview
+--------
+
+_`.overview`: VM arenas provide blocks of memory to all other parts of
+the MPS in the form of "tracts" using the virtual mapping interface
+(design.mps.vm) to the operating system. The VM Arena Class is not
+expected to be provided on platforms that do not have virtual memory
+(like MacOS, os.s7(1)).
+
+_`.overview.gc`: The VM Arena Class provides some special services on
+these blocks in order to facilitate garbage collection:
+
+_`.overview.gc.zone`: Allocation of blocks with specific zones. This
+means that the generic fix function (design.mps.fix) can use a fast
+refset test to eliminate references to addresses that are not in the
+condemned set. This assumes that a pool class that uses this placement
+appropriately is being used (such as the generation placement policy
+used by AMC: see design.mps.poolamc(1)) and that the pool selects the
+condemned sets to coincide with zone stripes.
+
+_`.overview.gc.tract`: A fast translation from addresses to tract.
+(See design.mps.arena.req.fun.trans)
+
+
+Notes
+-----
+
+_`.note.refset`: Some of this document simply assumes that RefSets
+(see the horribly incomplete design.mps.refset) have been chosen as
+the solution for design.mps.arena.req.fun.set. It's a lot simpler that
+way. Both to write and understand.
+
+
+Requirements
+------------
+
+Most of the requirements are in fact on the generic arena (see
+design.mps.arena.req). However, many of those requirements can only be
+met by a suitable arena class design.
+
+Requirements particular to this arena class:
+
+Placement
+.........
+
+_`.req.fun.place`: It must be possible for pools to obtain tracts at
+particular addresses. Such addresses shall be declared by the pool
+specifying what refset zones the tracts should lie in and what refset
+zones the tracts should not lie in. It is acceptable for the arena to
+not always honour the request in terms of placement if it has run out
+of suitable addresses.
+
+Arena partition
+...............
+
+_`.req.fun.set`: See design.mps.arena.req.fun.set. The approximation
+to sets of address must cooperate with the placement mechanism in the
+way required by `.req.fun.place`_ (above).
+
+
+Architecture
+------------
+
+_`.arch.memory`: The underlying memory is obtained from whatever
+Virtual Memory interface (see design.mps.vm). @@@@ Explain why this is
+used.
+
+
+Solution ideas
+--------------
+
+_`.idea.grain`: Set the arena granularity to the grain provided by the
+virtual mapping module.
+
+_`.idea.mem`: Get a single large contiguous address area from the
+virtual mapping interface and divide that up.
+
+_`.idea.table`: Maintain a table with one entry per grain in order to
+provide fast mapping (shift and add) between addresses and table
+entries.
+
+_`.idea.table.figure`: [missing figure]
+
+_`.idea.map`: Store the pointers (`.req.fun.trans`_) in the table
+directly for every grain.
+
+_`.idea.zones`: Partition the managed address space into zones (see
+idea.zones) and provide the set approximation as a reference
+signature.
+
+_`.idea.first-fit`: Use a simple first-fit allocation policy for
+tracts within each zone (`.idea.zones`_). Store the freelist in the
+table (`.idea.table`_).
+
+_`.idea.base`: Store information about each contiguous area (allocated
+of free) in the table entry (`.idea.table`_) corresponding to the base
+address of the area.
+
+_`.idea.shadow`: Use the table (`.idea.table`_) as a "shadow" of the
+operating system's page table. Keep information such as last access,
+protection, etc. in this table, since we can't get at this information
+otherwise.
+
+_`.idea.barrier`: Use the table (`.idea.table`_) to implement the
+software barrier. Each segment can have a read and/or write barrier
+placed on it by each process. (_`.idea.barrier.bits`: Store a
+bit-pattern which remembers which process protected what.) This will
+give a fast translation from a barrier-protected address to the
+barrier handler via the process table.
+
+_`.idea.demand-table`: For a 1 GiB managed address space with a 4 KiB
+page size, the table will have 256K-entries. At, say, four words per
+entry, this is 4 MiB of table. Although this is only an 0.4%, the
+table shouldn't be preallocated or initially it is an infinite
+overhead, and with 1 MiB active, it is a 300% overhead! The address
+space for the table should be reserved, but the pages for it mapped
+and unmapped on demand. By storing the table in a tract, the status of
+the table's pages can be determined by looking at it's own entries in
+itself, and thus the translation lookup (`.req.fun.trans`_) is slowed
+to two lookups rather than one.
+
+_`.idea.pool`: Make the Arena Manager a pool class. Arena
+initialization becomes pool creation. Tract allocation becomes
+``PoolAlloc()``. Other operations become class-specific operations on
+the "arena pool".
+
+
+Data structures
+---------------
+
+_`.tables`: There are two table data structures: a page table, and an
+alloc table.
+
+_`.table.page.map`: Each page in the VM has a corresponding page table
+entry.
+
+_`.table.page.linear`: The table is a linear array of PageStruct
+entries; there is a simple mapping between the index in the table and
+the base address in the VM. Namely:
+
+- index to base address: ``base-address = arena-base + (index * page-size)``
+- base address to index: ``index = (base-address - arena-base) / page-size``
+
+_`.table.page.partial`: The table is partially mapped on an
+"as-needed" basis. The function ``unusedTablePages()`` identifies
+entirely unused pages occupied by the page table itself (that is,
+those pages of the page table which are occupied by ``PageStruct``
+objects which all describe free pages). Tract allocation and freeing
+use this function to map and unmap the page table with no hysteresis.
+(There is restriction on the parameters you may pass to
+``unusedTablePages()``.)
+
+_`.table.page.tract`: Each page table entry contains a tract, which is
+only valid if it is allocated to a pool. If it is not allocated to a
+pool, the fields of the tract are used for other purposes. (See
+design.mps.arena.tract.field.pool)
+
+_`.table.alloc`: The alloc table is a simple bit table (implemented
+using the BT module, design.mps.bt).
+
+_`.table.alloc.map`: Each page in the VM has a corresponding alloc
+table entry.
+
+_`.table.alloc.semantics`: The bit in the alloc table is set iff the
+corresponding page is allocated (to a pool).
+
+
+Notes
+-----
+
+_`.fig.page`: How the pages in the arena area are represented in the
+tables.
+
+[missing figure]
+
+_`.fig.count`: How a count table can be used to partially map the page
+table, as proposed in request.dylan.170049.sol.map.
+
+[missing figure]
+
+
+Document History
+----------------
+
+- 1996-07-16 David Jones. Incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-24 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

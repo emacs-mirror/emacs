@@ -18,10 +18,14 @@ _`.root.def`: The root node of the object graph is the node which
 defines whether objects are accessible, and the place from which the
 mutator acts to change the graph. In the MPS, a root is an object
 which describes part of the root node. The root node is the total of
-all the roots attached to the space. [Note that this combines two
-definitions of root: the accessibility is what defines a root for
-tracing (see analysis.tracer.root.* and the mutator action for
-barriers (see analysis.async-gc.root). pekka 1998-03-20]
+all the roots attached to the space.
+
+.. note::
+
+    Note that this combines two definitions of root: the accessibility
+    is what defines a root for tracing (see analysis.tracer.root.* and
+    the mutator action for barriers (see analysis.async-gc.root).
+    Pekka P. Pirinen, 1998-03-20.
 
 _`.root.repr`: Functionally, roots are defined by their scanning
 functions. Roots *could* be represented as function closures: that is,
@@ -68,8 +72,12 @@ Scanning
 
 _`.method`: Root scanning methods are provided by the client so that
 the MPS can locate and scan the root set. See protocol.mps.root for
-details. [There are some more notes about root methods in
-meeting.qa.1996-10-16.]
+details.
+
+.. note::
+
+    There are some more notes about root methods in
+    meeting.qa.1996-10-16.
 
 
 Document History

@@ -126,10 +126,10 @@ general rules for implementation [ref?] that are enforced by MPS
 development procedures including code review and inspection.
 
 
-The Build System
+The build system
 ----------------
 
-Abstract Build Function
+Abstract build function
 .......................
 
 _`.build.fun`: The MPS implementation assumes only a simple "build
@@ -189,9 +189,12 @@ _`.default.hot`: If no ``CONFIG_VAR`` is present, ``HOT`` is assumed in
 _`.build.srcs`: The "srcs" are the set of sources that must be
 compiled in order to build the target. The set of sources may vary
 depending on the configuration. For example, different sets of sources
-may be required to build different architectures. [This is a
-dependency between the makefile (or whatever) and the module
-configuration in `config.h`_.]
+may be required to build different architectures.
+
+.. note::
+
+    This is a dependency between the makefile (or whatever) and the
+    module configuration in `config.h`_.
 
 _`.build.libs`: The "libs" are the set of libraries to which the
 compiled sources must be linked in order to build the target. For
@@ -218,23 +221,27 @@ _`.file.platform`: Platform-specific files include the platform code
 in their name.  See `.mod.impls`_.
 
 
-Modules and Naming
+Modules and naming
 ..................
 
 _`.mod.unique`: Each module has an identifier which is unique within the MPS.  
 
 _`.mod.impls`: Each module has one or more implementations which may be
 in any language supported by the relevant build environment. 
+
 _`.mod.primary`: The primary implementation of a module is written in
 target-independent ANSI C in a source file with the same name as the
-module.  _`.mod.an`: Where there are platform-specific implementations
-and an inferior portable ANSI C fallback implementation, "an" is used in
-place of the platform code.  _`.mod.secondary`: The names of other
-implementations should begin with the same prefix (the module id or a
-shortened version of it) and be suffixed with on or more target
-parameter codes (defined below).  In particular, the names of assembly
-language sources must include the target parameter code for the relevant
-architecture.
+module.
+
+_`.mod.an`: Where there are platform-specific implementations and an
+inferior portable ANSI C fallback implementation, "an" is used in
+place of the platform code.
+
+_`.mod.secondary`: The names of other implementations should begin
+with the same prefix (the module id or a shortened version of it) and
+be suffixed with on or more target parameter codes (defined below). In
+particular, the names of assembly language sources must include the
+target parameter code for the relevant architecture.
 
 _`.mod.example`: For example, the stack scanner is defined in `ss.h
 <../code/ss.h>`_ (which is platform-independent).  It has some
@@ -243,7 +250,7 @@ platform-independent C in `ss.c <../code/ss.c>`_ and, for example,
 architecture built with Microsoft Visual C.
 
 
-Build System Rationale
+Build system rationale
 ......................
 
 _`.build.rat`: This simple design makes it possible to build the MPS
@@ -306,7 +313,7 @@ defined below (`.conf`_).
 .. _`mpstd.h`: <../code/mpstd.h>
 
 
-Target Platform Detection
+Target platform detection
 .........................
 
 _`.pf`: The target platform is "detected" by the preprocessor directives in 
@@ -346,16 +353,17 @@ the the target detected (`.pf.detect`_).  For example::
     #define MPS_BUILD_MV
 
 _`.pf.word`: The declaration of ``MPS_T_WORD`` defines the unsigned
-integral type which corresponds, on the detected target, to the machine
-word.  It is used to defined the MPS Word type (design.mps.type.word). 
-[Insert backwards ref there.]  (We avoid using ``typedef`` here because
-`mpstd.h`_ could potentially be included in assembly language source
-code.)  For example::
+integral type which corresponds, on the detected target, to the
+machine word. It is used to defined the MPS Word type
+(design.mps.type.word). For example::
 
     #define MPS_T_WORD      unsigned long
 
+We avoid using ``typedef`` here because `mpstd.h`_ could potentially
+be included in assembly language source code.
+
 _`.pf.word-width`: The declaration of ``MPS_WORD_WIDTH`` defines the
-number of bits in the type defined by `MPS_T_WORD` (`.pf.word`_) on the
+number of bits in the type defined by ``MPS_T_WORD`` (`.pf.word`_) on the
 target. For example::
 
     #define MPS_WORD_WIDTH  32
@@ -386,41 +394,34 @@ that is used to identify the target platform in `version.c
     #define MPS_PF_STRING   "w3i6mv"
 
 
-Target Varieties
+Target varieties
 ................
 
 _`.var`: The target variety is handled by preprocessor directives in
-impl.h.config.  _`.var.form`: The file contains sets of directives of
-the form::
+impl.h.config.
 
-    #elif defined(CONFIG_VAR_DF)
-    #define MPS_VAR_DF
-    #define ASSERT_MPSI
-    #define ASSERT_MPM
-    etc.
+_`.var.form`: The file contains sets of directives of the form::
+
+    #if defined(CONFIG_VAR_COOL)
+    #define CONFIG_ASSERT
+    #define CONFIG_ASSERT_ALL
+    #define CONFIG_STATS
 
 _`.var.detect`: The configured variety is one of the variety
-preprocessor definitions passed to the build function (`.build.defs`_),
-e.g. ``CONFIG_VAR_HOT``. These are decoupled so that it's possible to
-tell the difference between overridden settings etc.  [Explain.]
+preprocessor definitions passed to the build function
+(`.build.defs`_), for example, ``CONFIG_VAR_COOL``. These are
+decoupled in order to keep the number of supported varieties small,
+controlling each feature (for example, assertions) by a single
+preprocessor definition, and maintaining flexibility about which
+features are enabled in each variety.
 
 _`.var.symbols`: The directives should define whatever symbols are
-necessary to control annotations.  These symbols parameterize other
-parts of the code, such as the declaration of assertions, etc.  The
-symbols should all begin with the prefix ``MPS_VAR\_``.
+necessary to control featrues. These symbols parameterize other parts
+of the code, such as the declaration of assertions, etc. The symbols
+should all begin with the prefix ``CONFIG_``.
 
 
-[Tidy this up:]
-Note, anything which can be configured, is configured, even if it's just
-configured to "NONE" meaning nothing.  This makes sure that you can't
-choose something by omission.  Where these symbols are used there will
-be a #error to catch the unused case.  Exception: To allow simple
-building of the MPS with "cc -c mps.c" we choose CONFIG_VAR_HOT by
-default.
-[This is a general principle which applies to other configuration stuff too.]
-
-
-Source Code Configuration
+Source code configuration
 -------------------------
 
 _`.conf`: This section describes how the configuration may affect the
@@ -572,6 +573,11 @@ Document History
 
 - 2013-05-11 RB_ Converted to reStructuredText.  Clarified various
   sections, brought some up-to-date, and removed obsolete junk.
+
+- 2013-05-24 GDR_ Updated variety section to match the current style.
+  It's not true any more that some choice must be made for each
+  feature (for example, we now default to the hot variety if none is
+  selected).
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/

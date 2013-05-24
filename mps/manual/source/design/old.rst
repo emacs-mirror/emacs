@@ -15,17 +15,21 @@ Old design
     :numbered:
 
     arena
+    arenavm
     bt
+    buffer
     check
     class-interface
     collection
     finalize
     fix
+    lib
     lock
     message
     object-debug
     pool
     poolamc
+    poolmrg
     poolmvff
     prot
     protocol

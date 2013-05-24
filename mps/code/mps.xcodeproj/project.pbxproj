@@ -2444,7 +2444,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#   bttest & teletest cannot be run unattended\n#   amcssth doesn't work on OS X (job001621)\nTESTCASES=\"abqtest amcss amcsshe amsss amssshe apss arenacv awlut \\\n           awluthe btcv cbstest finalcv finaltest lockcov locv \\\n           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \\\n           steptest walkt0\"\nOUTPUT=$(mktemp -d /tmp/mps.log.XXXXXX)\necho \"Logging test output to $OUTPUT\"\nfor TEST in $TESTCASES; do\n    TESTCASE=$TARGET_BUILD_DIR/$TEST\n    echo \"Running $TEST ($CONFIGURATION)\"\n    $TESTCASE > $OUTPUT/$TEST || (cat $OUTPUT/$TEST; exit 1)\ndone\necho \"All tests pass.\"\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> $OUTPUT/gcov) |\n    python ../tool/gcovfmt.py $OUTPUT/coverage\nfi";
+			shellScript = "# bttest and teletest are not listed here because they cannot be run\n# unattended.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awluthe btcv cbstest finalcv finaltest lockcov locv \\\n           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \\\n           steptest walkt0\"\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

@@ -231,21 +231,19 @@ all: mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awluthe \
      mps.a mpsplan.a
 
 
-# Runs the automatic tests that are built with CONFIG_PROD_MPS.
-# These tests are run overnight (see design.buildsys.overnight).
-#   bttest & teletest cannot be run unattended
-# %%TARGET: When adding a new target, if target is suitable for the
-# overnight tests, then add it here.
-TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv awlut \
-          awluthe btcv cbstest finalcv finaltest lockcov locv \
+# Runs the automated tests.
+# 
+# %%TARGET: When adding a new target, if target is suitable for
+# running as an automated test, then add it here.
+# 
+# bttest and teletest are not listed here because they are interactive
+# and so cannot be run unattended.
+TESTCASES=abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \
+          awlut awluthe btcv cbstest finalcv finaltest lockcov locv \
           messtest mpmss mpsicv mv2test poolncv qs sacss segsmss \
           steptest walkt0
 testrun: $(TESTCASES)
-	OUTPUT=$$(mktemp -d /tmp/mps.log.XXXXXX); \
-	echo "Logging test output to $$OUTPUT"; \
-	$(^:%=(TEST=%; TESTCASE=$(PFM)/$(VARIETY)/$$TEST; \
-         echo "Running $$TESTCASE" && \
-         $$TESTCASE > $$OUTPUT/$$TEST || (cat $$OUTPUT/$$TEST; exit 1)) &&) true
+	../tool/testrun.sh $(addprefix $(PFM)/$(VARIETY)/,$(TESTCASES))
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).

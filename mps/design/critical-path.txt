@@ -103,8 +103,12 @@ Very briefly, the critical path consists of five stages:
 1. The scanner, which iterates over pointers in objects.  The MPS has
    several internal scanners, but the most important ones will be format
    scanners in client code registered through ``mps_format_create()``
-   functions.  [Insert ref to manual explaining how to write a good
-   scanner.]
+   functions.
+
+   .. note::
+
+       There needs to be a chapter in the manual explaining how to
+       write a good scanner. Then that could be linked from here.
 
 2. The first-stage fix, which filters out pointers inline in the
    scanner.  This is implemented in ``MPS_FIX()`` macros in
@@ -277,7 +281,7 @@ so this is pool class specific code.
 
 Furthermore, the pool class must make decisions based on the "reference
 rank" of the pointer.  If a pointer is ambiguous (``RankAMBIG``) then it
-can't be changed, so even a [copying] pool class can't move an object. 
+can't be changed, so even a copying pool class can't move an object. 
 On the other hand, if the pointer is weak (``RankWEAK``) then the pool fix
 method shouldn't preserve the object at all, even if it's condemned.
 
@@ -298,7 +302,7 @@ reference to it, the reference being fixed must be updated (this is
 the origin of the term "fix").
 
 As a simple example, ``LOFix()`` is the pool fix method for the Leaf
-Only pool class. It implements a [marking] garbage collector, and does
+Only pool class. It implements a marking garbage collector, and does
 not have to worry about scanning preserved objects because it is used
 to store objects that don't contain pointers. (It is used in compiler
 run-time systems to store binary data such as character strings, thus
