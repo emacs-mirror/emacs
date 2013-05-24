@@ -1,5 +1,8 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-mode): Use fboundp.
+	(Info-find-node, Man-getpage-in-background): Declare.
+
 	* mail/unrmail.el (unrmail):
 	Replace obsolete detect-coding-with-priority.
 
