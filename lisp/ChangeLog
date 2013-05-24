@@ -1,5 +1,7 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* font-lock.el (lisp-font-lock-keywords-2): Add with-coding-priority.
+
 	* emacs-lisp/chart.el (chart-sort): Replace obsolete `object-name'.
 
 	* progmodes/cperl-mode.el (cperl-mode): Use fboundp.
