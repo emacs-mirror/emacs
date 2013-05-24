@@ -15,8 +15,12 @@ Introduction
 -------------
 
 _`.intro`: This document describes the interface and protocols between
-the MPM and the pool class implementations. [This document should be
-merged into design.mps.pool. pekka 1999-07-20]
+the MPM and the pool class implementations.
+
+.. note::
+
+    This document should be merged into design.mps.pool. Pekka P.
+    Pirinen, 1999-07-20.
 
 
 Methods
@@ -31,8 +35,11 @@ The following description is based on the definition of the
 
 If a class is not required to provide a certain method then it should
 set the appropriate ``PoolNo*`` method for that method. It is not
-acceptable to use ``NULL``. [there are also some ``PoolTriv*`` methods
--- drj 1997-08-19]
+acceptable to use ``NULL``.
+
+.. note::
+
+    There are also some ``PoolTriv*`` methods. David Jones, 1997-08-19.
 
 _`.method.name`: The name field should be a short, pithy, cryptic name
 for the pool class. Examples are "AMC", "MV".
@@ -73,7 +80,11 @@ live object) object of the required size. Failure to allocate should
 be indicated by returning an appropriate Error code, and in such a
 case, ``*pReturn`` should not be updated. Classes are not required to
 provide this method, but they should provide at least one of ``alloc``
-and ``bufferCreate``. [There is no ``bufferCreate`` -- gdr 2013-04-14]
+and ``bufferCreate``.
+
+.. note::
+
+    There is no ``bufferCreate``. Gareth Rees, 2013-04-14.
 
 The ``free_`` field is the class's free method. This is intended
 primarily for manual style pools. this method is called via the
@@ -114,10 +125,15 @@ register the refsig of the condemned set with the trace using
 ``TraceCondemn()``. The class should expect fix requests (via the fix
 method below) during a global trace. Classes are not required to
 provide this method, but it is expected that automatic style classes
-will. This interface is expected to change in the future. [``condemn``
-now takes an action and a segment and should condemn the segment (turn
-it white) if it corresponds to the interpretation of the action -- drj
-1997-08-19 and is called ``Whiten`` drj 1998-02-02]
+will. This interface is expected to change in the future.
+
+.. note::
+
+    ``condemn`` now takes an action and a segment and should condemn
+    the segment (turn it white) if it corresponds to the
+    interpretation of the action. David Jones, 1997-08-19.
+
+    It is now called ``whiten``. David Jones, 1998-02-02.
 
 The ``mark`` field is used to mark an entire pool. This method is
 called via the generic function ``PoolMark()``. The class should
@@ -126,8 +142,12 @@ this trace, to be marked, that is ready for scanning. The class should
 arrange that any appropriate invariants are preserved possibly by the
 Protection interface. Classes are not required to provide this method,
 and not doing so indicates that all instances of this class will have
-no fixable or traceable references in them. [no longer present,
-``grey`` turns an entire segment grey -- drj 1997-08-19]
+no fixable or traceable references in them.
+
+.. note::
+
+    ``mark`` is no longer present: ``grey`` turns an entire segment
+    grey. David Jones, 1997-08-19.
 
 The ``scan`` field is used to perform scanning. This method is called
 via the generic function ``PoolScan()``. The class should scan the
@@ -138,12 +158,16 @@ that mark and sweep pools may have to jump through hoops a little bit
 (see design.mps.poolasm.summary for a pedagogical example). Classes
 are not required to provide this method, and not doing so indicates
 that all instances of this class will have no fixable or traceable
-reference in them. [``scan`` method now takes an extra return
-parameter which classes should use to indicate whether they scanned
-all objects in segment or not. Classes should return summary only of
-object they scanned. Caller of this method (``TraceScan()``) is
-responsible for updating summaries correctly when not a total scan.
-Hence no jumping through hoops required. drj 1998-01-30]
+reference in them.
+
+.. note::
+
+    The ``scan`` method now takes an extra return parameter which
+    classes should use to indicate whether they scanned all objects in
+    segment or not. Classes should return summary only of object they
+    scanned. Caller of this method (``TraceScan()``) is responsible
+    for updating summaries correctly when not a total scan. Hence no
+    jumping through hoops required. David Jones, 1998-01-30.
 
 The ``fix`` field is used to perform fixing. This method is called via
 the generic function ``TraceFix()``. It indicates that the specified
@@ -156,24 +180,35 @@ liveness).
 
 The ``reclaim`` field is used to reclaim memory. This method is called
 via the generic function ``PoolReclaim()``. It indicates that the trace
-has fixed all references to reachable objects [actually it indicates
-that any remaining white objects have now been proved unreachable,
-hence are dead]. The class should consider objects that have been
-condemned and not fixed in this trace to be dead and may reclaim the
-resources associated with them. Classes are not required to provide
-this method. [``reclaim`` is now called on each segment -- drj
-1997-08-19]
+has fixed all references to reachable objects.
+
+.. note::
+
+    Actually it indicates that any remaining white objects have now
+    been proved unreachable, hence are dead. David Jones, 1997-08-19.
+
+The class should consider objects that have been condemned and not
+fixed in this trace to be dead and may reclaim the resources
+associated with them. Classes are not required to provide this method.
+
+.. note::
+
+    ``reclaim`` is now called on each segment. David Jones,
+    1997-08-19.
 
 The ``access`` field is used to indicate client access. This method is
-called via the generic functions ``SpaceAccess()`` and ``PoolAccess()``.
-It indicates that the client has attempted to access the specified
-region, but has been denied and the request trapped due to a
-protection state. The class should perform any work necessary to
+called via the generic functions ``SpaceAccess()`` and
+``PoolAccess()``. It indicates that the client has attempted to access
+the specified region, but has been denied and the request trapped due
+to a protection state. The class should perform any work necessary to
 remove the protection whilst still preserving appropriate invariants
 (typically this will be scanning work). Classes are not required to
 provide this method, and not doing so indicates they never protect any
-memory managed by the pool. [``access`` is no longer present -- drj
-1997-08-19]
+memory managed by the pool.
+
+.. note::
+
+    ``access`` is no longer present. David Jones, 1997-08-19.
 
 _`.method.act`: ``act`` is called when the MPM has decided to execute
 an action that the class declared. The Class should arrange execution
@@ -186,8 +221,11 @@ passed in function (along with its closure variables (which are also
 passed in) and the object format) to all *black* objects in the
 segment. Padding objects may or may not be included in the walk at the
 classes discretion, in any case in will be the responsibility of the
-client to do something sensible with padding objects. [what about
-broken hearts? drj 1998-01-30]
+client to do something sensible with padding objects.
+
+.. note::
+
+    What about broken hearts? David Jones, 1998-01-30.
 
 The ``describe`` field is used to print out a description of a pool.
 This method is called via the generic function ``PoolDescribe()``. The

@@ -52,7 +52,7 @@ _`.bool.check`: ``BoolCheck()`` simply checks whether the argument is
 ``TRUE`` (``1``) or ``FALSE`` (``0``).
 
 _`.bool.check.inline`: The inline macro version of ``BoolCheck`` casts
-the ``in``t to ``unsigned`` and checks that it is ``<= 1``. This is
+the ``int`` to ``unsigned`` and checks that it is ``<= 1``. This is
 safe, well-defined, uses the argument exactly once, and generates
 reasonable code.
 
@@ -156,6 +156,9 @@ which is declared in impl.h.mpstd according to the target platform
 
 _`.word.conv.c`: ``Word`` is converted to ``mps_word_t`` in the MPS C
 Interface.
+
+_`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
+``WordAlignDown()`` and ``WordRoundUp()``.
 
 
 ``typedef unsigned char Byte``
@@ -287,7 +290,8 @@ used for the sizes of the memory manager's own data structures, so
 that the memory manager is amenable to working in a separate address
 space. Be careful not to confuse it with ``size_t``.
 
-_`.size.ops`: [Size operations?]
+_`.size.ops`: ``SizeIsAligned()``, ``SizeAlignUp()``,
+``SizeAlignDown()`` and ``SizeRoundUp()``.
 
 _`.size.conv.c`: ``Size`` is converted to ``size_t`` in the MPS C
 Interface. This constrains the memory manager to the same address
@@ -379,9 +383,8 @@ their integer values.
 
 ``typedef Size Epoch``
 
-_`.epoch`: An ``Epoch`` is a count of the number of flips that the
-mutator have occurred. [Is it more general than that?] It is used in
-the implementation of location dependencies.
+_`.epoch`: An ``Epoch`` is a count of the number of flips that have
+occurred. It is used in the implementation of location dependencies.
 
 ``Epoch`` is converted to ``mps_word_t`` in the MPS C Interface, as a
 field of ``mps_ld_s``.
