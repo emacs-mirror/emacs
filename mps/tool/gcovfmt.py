@@ -42,8 +42,8 @@ def main():
         out = open(argv[1], 'a')
     else:
         out = stdout
-    fmt1 = "{:<16s} {:<7s} {:<7s} {:<7s}\n"
-    fmt2 = "{:<16s} {:7d} {:7d} {:6.2f}%\n"
+    fmt1 = "{0:<16s} {1:<7s} {2:<7s} {3:<7s}\n"
+    fmt2 = "{0:<16s} {1:7d} {2:7d} {3:6.2f}%\n"
     underlines = "---------------- ------- ------- -------".split()
     out.write(fmt1.format(*"File Lines Covered Percent".split()))
     out.write(fmt1.format(*underlines))
