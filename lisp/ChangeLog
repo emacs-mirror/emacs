@@ -1,5 +1,8 @@
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* mail/unrmail.el (unrmail):
+	Replace obsolete detect-coding-with-priority.
+
 	* net/socks.el (socks-split-string): Use this rather than split-string.
 	(socks-nslookup-host): Update for above change.
 	(dynamic-choice, s5-dynamic-choice-match)
