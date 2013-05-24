@@ -22,8 +22,12 @@ general assumption that it should not be disastrous for the MPS client
 to ignore messages, but that it is probably in the clients best
 interest to not ignore messages. The justification for this is that
 the MPS cannot force the MPS client to read and act on messages, so no
-message should be critical [bogus, since we cannot force clients to
-check error codes either - Pekka 1997-09-17].
+message should be critical.
+
+.. note::
+
+    Bogus, since we cannot force clients to check error codes either.
+    Pekka P. Pirinen, 1997-09-17.
 
 _`.contents`: This document describes the design of the external and
 internal interfaces and concludes with a sketch of an example design
@@ -338,8 +342,10 @@ Examples
 Finalization
 ............
 
-[possibly out of date, see design.mps.finalize and design.mps.poolmrg
-instead -- drj 1997-08-28]
+.. note::
+
+    Possibly out of date, see design.mps.finalize and
+    design.mps.poolmrg instead. David Jones, 1997-08-28.
 
 This subsection is a sketch of how PoolMRG will use Messages for
 finalization (see design.mps.poolmrg).

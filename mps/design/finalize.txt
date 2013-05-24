@@ -106,12 +106,16 @@ breaking the invariants or creating a hidden root.
 _`.access.invariants`: We protect the invariants by using special
 routines ``ArenaRead()`` and ``ArenaPoke()`` to read and write the
 reference. This works as long as there's no write-barrier collection.
-[Instead of ``ArenaPoke()``, we could put in an ``ArenaWrite()`` that
-would be identical to ``ArenaPoke()``, except for AVERring the invariant
-(or it can just AVER there are no busy traces unflipped). When we get
-write-barrier collection, we could change it to do the real thing, but
-in the absence of a write-barrier, it's functionally identical to
-``ArenaPoke()``. Pekka 1997-12-09]
+
+.. note::
+
+    Instead of ``ArenaPoke()``, we could put in an ``ArenaWrite()``
+    that would be identical to ``ArenaPoke()``, except that it would
+    ``AVER()`` the invariant (or it can just ``AVER()`` that there are
+    no busy traces unflipped). When we get write-barrier collection,
+    we could change it to do the real thing, but in the absence of a
+    write-barrier, it's functionally identical to ``ArenaPoke()``.
+    Pekka P. Pirinen, 1997-12-09.
 
 
 Document History

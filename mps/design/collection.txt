@@ -31,8 +31,11 @@ _`.framework.cover`: The framework subsumes most major GC strategies
 and allows many efficient techniques, like in-line allocation or
 software barriers.
 
-_`.framework.overhead`: The overhead due to cooperation is low. [But
-not non-existent. Can we say something useful about it?]
+_`.framework.overhead`: The overhead due to cooperation is low.
+
+.. note::
+
+    But not non-existent. Can we say something useful about it?
 
 _`.framework.benefits`: The ability to combine collectors contributes
 significantly to the flexibility of the system. The reduction in code
@@ -42,11 +45,21 @@ collectors.
 
 _`.framework.mpm`: The Collection Framework is merely a part of the
 structure of the MPM. See design.mps.architecture and design.mps.arch
-[Those two documents should be combined into one. Pekka 1998-01-15]
-for the big picture. Other notable components that the MPM manages to
-integrate into a single framework are manually-managed memory [another
-missing document here?] and finalization services (see
-design.mps.finalize).
+for the big picture.
+
+.. note::
+
+    Those two documents should be combined into one. Pekka P. Pirinen,
+    1998-01-15.
+
+Other notable components that the MPM manages to integrate into a
+single framework are manually-managed memory and finalization services
+(see design.mps.finalize).
+
+.. note::
+
+    A document describing the design of manually-managed memory is
+    missing. Pekka P. Pirinen, 1998-01-15.
 
 _`.see-also`: This document assumes basic familiarity with the ideas
 of pool (see design.mps.arch.pools) and segment (see
@@ -65,11 +78,16 @@ object is the responsibility of the pool, but the framework gets told
 about changes in the states and keeps track of colours in each
 segment. Specifically, it records whether a segment might contain
 white, grey and black objects with respect to each active trace (see
-`.tracer`_) [black not currently implemented -- Pekka 1998-01-04]. (A
-segment might contain objects of all colours at once, or none.) This
-information is approximate, because when an object changes colour, or
-dies, it usually is too expensive to determine if it was the last
-object of its former colour.
+`.tracer`_)
+
+.. note::
+
+    Black not currently implemented. Pekka P. Pirinen, 1998-01-04.
+
+(A segment might contain objects of all colours at once, or none.)
+This information is approximate, because when an object changes
+colour, or dies, it usually is too expensive to determine if it was
+the last object of its former colour.
 
 _`.state.transitions`: The possible state transitions are as follows::
 
@@ -115,10 +133,15 @@ Reference sets
 _`.refsets`: The cost of scanning can be significantly reduced by
 storing remembered sets. We have chosen a very compact and efficient
 implementation, called reference sets, or refsets for short (see
-idea.remember [design.mps.refset is empty! Perhaps some of this should
-go there. -- Pekka 1998-02-19]). This makes the cost of maintaining
-them low, so we maintain them for all references out of all scannable
-segments.
+idea.remember).
+
+.. note::
+
+    design.mps.refset is empty! Perhaps some of this should go there.
+    Pekka P. Pirinen, 1998-02-19.
+
+This makes the cost of maintaining them low, so we maintain them for
+all references out of all scannable segments.
 
 _`.refsets.approx`: You might describe refsets as summaries of all
 references out of an area of memory, so they are only approximations
@@ -130,8 +153,12 @@ _`.refsets.scan`: The refset information is collected during scanning.
 The scan state protocol provides a way for the pool and the format
 scan methods to cooperate in this, and to pass this information to the
 tracer module which checks it and updates the segment (see
-design.mps.scan [Actually, there's very little doc there. Pekka
-1998-02-17]).
+design.mps.scan).
+
+.. note::
+
+    Actually, there's very little doc there. Pekka P. Pirinen,
+    1998-02-17.
 
 _`.refsets.maintain`: The MPS tries to maintain the refset information
 when it moves or changes object.
@@ -170,28 +197,40 @@ collection processes. Each process (called a "trace") proceeds
 independently of the others through five phases as described in
 analysis.tracer. The following sections describe how the action of
 each phase fits into the framework. See design.mps.trace for details
-[No, there's not much there, either. Possibly some of this section
-should go there. Pekka 1998-02-18]).
+
+.. note::
+
+    No, there's not much there, either. Possibly some of this section
+    should go there. Pekka P. Pirinen, 1998-02-18.
 
 _`.combine`: The tracer can also combine several traces for some
 actions, like scanning a segment or a root. The methods the tracer
 calls to do the work get an argument that tells them which traces they
-are expected to act for. [extend this@@@@]
+are expected to act for.
+
+.. note::
+
+    Extend this.
 
 _`.trace.begin`: Traces are started by external request, usually from
 a client function or an action (see design.mps.action).
 
 _`.trace.progress`: The tracer gets time slices from the arena to work
-on a given trace [This is just a provisional arrangement, in lieu of
-real progress control. Pekka 1998-02-18]. In each slice, it selects a
-small amount of work to do, based on the state of the trace, and does
-it, using facilities provided by the pools. .trace.scan: A typical
-unit of work is to scan a single segment. The tracer can choose to do
-this for multiple traces at once, provided the segment is grey for
-more than one trace.
+on a given trace.
+
+.. note::
+
+    This is just a provisional arrangement, in lieu of real progress
+    control. Pekka P. Pirinen, 1998-02-18.
+
+In each slice, it selects a small amount of work to do, based on the
+state of the trace, and does it, using facilities provided by the
+pools. .trace.scan: A typical unit of work is to scan a single
+segment. The tracer can choose to do this for multiple traces at once,
+provided the segment is grey for more than one trace.
 
 _`.trace.barrier`: Barrier hits might also cause a need to scan :mps:a
-segment (see ref:`.hw-barriers.hit`). Again, the tracer can
+segment (see `.hw-barriers.hit`_). Again, the tracer can
 :mps:choose to combine traces, when it does this.
 
 _`.mutator-colour`: The framework keeps track of the colour of the
@@ -214,12 +253,19 @@ we try to arrange that the zones are a minimal superset (for example,
 generations uniquely occupy zones) and a maximal subset (there's
 nothing else in the zone) of the condemned set. This needs to be
 arranged at allocation time (or when copying during collection, which
-is much like allocation) [soon, this will be handled by segment loci,
-see design.mps.locus].
+is much like allocation)
+
+.. note::
+
+    Soon, this will be handled by segment loci, see design.mps.locus.
 
 _`.phase.condemn.mutator`: At this point, the mutator might reference
 any objects, that is, it is grey. Allocation can be in any colour,
-most commonly white [more could be said about this].
+most commonly white.
+
+.. note::
+
+    More could be said about this.
 
 
 The grey mutator phase
@@ -228,9 +274,12 @@ The grey mutator phase
 _`.phase.grey-mutator`: Grey segments are chosen according to some
 sort of progress control and scanned by the pool to make them black.
 Eventually, the tracer will decide to flip or it runs out of grey
-segments, and proceeds to the next phase. [Currently, this phase has
-not been implemented; all traces flip immediately after condemn. Pekka
-1998-02-18]
+segments, and proceeds to the next phase.
+
+.. note::
+
+    Currently, this phase has not been implemented; all traces flip
+    immediately after condemn. Pekka P. Pirinen, 1998-02-18.
 
 _`.phase.grey-mutator.copy`: At this stage, we don't want to copy
 condemned objects, because we would need an additional barrier to keep
@@ -239,8 +288,11 @@ analysis.async-gc.copied.pointers-and-new-copy).
 
 _`.phase.grey-mutator.ambig`: This is a good time to get all ambiguous
 scanning out of the way, because we usually can't do any after the
-flip [write a detailed explanation of this some day] and because it
-doesn't cause any copying.
+flip and because it doesn't cause any copying.
+
+.. note::
+
+     Write a detailed explanation of this some day.
 
 
 The flip phase
@@ -278,17 +330,24 @@ asks the pool to reclaim any white objects in them.
 
 _`.phase.reclaim.barrier`: Once a trace has started reclaiming
 objects, the others shouldn't try to scan any objects that are white
-for it, because they might have dangling pointers in them [xref doc
-yet to be written]. [Currently, we reclaim atomically, but it could be
-incremental, or even overlapped with a new trace on the same condemned
-set. Pekka 1997-12-31]
+for it, because they might have dangling pointers in them.
+
+.. note::
+
+    Needs cross-reference to document that is yet to be written.
+
+    Currently, we reclaim atomically, but it could be incremental, or
+    even overlapped with a new trace on the same condemned set.
+    Pekka P. Pirinen, 1997-12-31.
 
 
 Barriers
 --------
 
-[An introduction and a discussion of general principles should go
-here. This is a completely undesigned area.]
+.. note::
+
+    An introduction and a discussion of general principles should go
+    here. This is a completely undesigned area.
 
 
 Hardware barriers
@@ -310,17 +369,23 @@ which segment it was on. The segment colour info is used to determine
 whether it had trace barriers on it, and if so, the appropriate
 barrier action is performed, using the methods of the owning pool. If
 the segment was write-protected, its refset is unioned with the refset
-of the mutator [in practice, ``RefSetUNIV``].
+of the mutator.
+
+.. note:: In practice this is ``RefSetUNIV``.
 
 _`.hw-barriers.hit.multiple`: Fortunately, if we get a barrier hit on
 a segment with multiple trace barriers on it, we can scan it for all
-the traces that it had a barrier for, see .combine.@@@@
+the traces that it had a barrier for.
+
+.. note:: Needs link to unwritten section under `.combine`_.
 
 
 Software barriers
 .................
 
-[@@@@Have to say something about software barriers]
+.. note::
+
+    Write something about software barriers.
 
 
 Document History
@@ -329,6 +394,13 @@ Document History
 - 1998-01 Pekka P. Pirinen. Initial draft based on the current
   implementation of the MPS, analysis.async-gc, [that note on the
   independence of collections] and analysis.tracer.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-03-22 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
