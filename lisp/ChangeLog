@@ -1,3 +1,15 @@
+2013-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave.el (octave-smie-rules): Return nil rather than
+	0 after a semi-colon; it works better for smie-auto-fill.
+	(octave--indent-new-comment-line): New function.
+	(octave-indent-new-comment-line): Use it (indirectly).
+	(octave-mode): Don't disable smie-auto-fill.  Use add-function to
+	modify comment-line-break-function.
+
+	* emacs-lisp/smie.el (smie-auto-fill): Rework to be more robust.
+	(smie-setup): Use add-function to set it.
+
 2013-05-24  Sam Steingold  <sds@gnu.org>
 
 	* sort.el (delete-duplicate-lines): Accept an optional `keep-blanks'

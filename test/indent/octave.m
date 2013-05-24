@@ -1089,13 +1089,13 @@ function [pkg_idx_struct] = parse_pkg_idx (packdir)
 
   while (! feof (fid) || line != -1)
     if (! any (! isspace (line)) || line(1) == "#" || any (line == "="))
-    ## Comments,  blank lines or comments about unimplemented
-    ## functions: do nothing
-    ## FIXME: probably comments and pointers to external functions
-    ## could be treated better when printing to screen?
+      ## Comments,  blank lines or comments about unimplemented
+      ## functions: do nothing
+      ## FIXME: probably comments and pointers to external functions
+      ## could be treated better when printing to screen?
     elseif (! isempty (strfind (line, ">>")))
-    ## Skip package name and description as they are in DESCRIPTION
-    ## already.
+      ## Skip package name and description as they are in DESCRIPTION
+      ## already.
     elseif (! isspace (line(1)))
       ## Category.
       if (! isempty (pkg_idx_struct{cat_num}.functions))
@@ -1658,7 +1658,7 @@ function desc = get_description (filename)
   line = fgetl (fid);
   while (line != -1)
     if (line(1) == "#")
-    ## Comments, do nothing.
+      ## Comments, do nothing.
     elseif (isspace(line(1)))
       ## Continuation lines
       if (exist ("keyword", "var") && isfield (desc, keyword))
@@ -1752,9 +1752,9 @@ function deps_cell = fix_depends (depends)
       endif
       version  = fix_version (parts{2});
 
-    ## If no version is specified for the dependency
-    ## we say that the version should be greater than
-    ## or equal to "0.0.0".
+      ## If no version is specified for the dependency
+      ## we say that the version should be greater than
+      ## or equal to "0.0.0".
     else
       package = tolower (strip (dep));
       operator = ">=";
@@ -1859,7 +1859,7 @@ function bad_deps = get_unsatisfied_deps (desc, installed_pkgs_lst)
       if (! compare_versions (OCTAVE_VERSION, dep.version, dep.operator))
         bad_deps{end+1} = dep;
       endif
-    ## Is the current dependency not Octave?
+      ## Is the current dependency not Octave?
     else
       ok = false;
       for i = 1:length (installed_pkgs_lst)
@@ -2025,7 +2025,7 @@ function load_packages (files, handle_deps, local_list, global_list)
   ## Load all.
   if (length (files) == 1 && strcmp (files{1}, "all"))
     idx = [1:length(installed_pkgs_lst)];
-  ## Load auto.
+    ## Load auto.
   elseif (length (files) == 1 && strcmp (files{1}, "auto"))
     idx = [];
     for i = 1:length (installed_pkgs_lst)
@@ -2033,7 +2033,7 @@ function load_packages (files, handle_deps, local_list, global_list)
 	idx (end + 1) = i;
       endif
     endfor
-  ## Load package_name1 ...
+    ## Load package_name1 ...
   else
     idx = [];
     for i = 1:length (files)
@@ -2100,8 +2100,8 @@ function unload_packages (files, handle_deps, local_list, global_list)
     idx = strcmp (p, d);
     if (any (idx))
       rmpath (d);
-    ## FIXME: We should also check if we need to remove items from
-    ## EXEC_PATH.
+      ## FIXME: We should also check if we need to remove items from
+      ## EXEC_PATH.
     endif
   endfor
 endfunction

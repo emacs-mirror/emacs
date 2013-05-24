@@ -1735,37 +1735,45 @@ to which that point should be aligned, if we were to reindent it.")
           (save-excursion (indent-line-to indent))
         (indent-line-to indent)))))
 
-(defun smie-auto-fill ()
+(defun smie-auto-fill (do-auto-fill)
   (let ((fc (current-fill-column)))
-    (while (and fc (> (current-column) fc))
-      (or (unless (or (nth 8 (save-excursion
-                               (syntax-ppss (line-beginning-position))))
-                      (nth 8 (syntax-ppss)))
-            (save-excursion
-              (let ((end (point))
-                    (bsf (progn (beginning-of-line)
+    (when (and fc (> (current-column) fc))
+      ;; The loop below presumes BOL is outside of strings or comments.  Also,
+      ;; sometimes we prefer to fill the comment than the code around it.
+      (unless (or (nth 8 (save-excursion
+                           (syntax-ppss (line-beginning-position))))
+                  (nth 4 (save-excursion
+                           (move-to-column fc)
+                           (syntax-ppss))))
+        (while
+            (and (with-demoted-errors
+                   (save-excursion
+                     (let ((end (point))
+                           (bsf nil)    ;Best-so-far.
+                           (gain 0))
+                       (beginning-of-line)
+                       (while (progn
                                 (smie-indent-forward-token)
-                                (point)))
-                    (gain 0)
-                    curcol)
-                (while (and (<= (point) end)
-                            (<= (setq curcol (current-column)) fc))
-                  ;; FIXME?  `smie-indent-calculate' can (and often will)
-                  ;; return a result that actually depends on the
-                  ;; presence/absence of a newline, so the gain computed here
-                  ;; may not be accurate, but in practice it seems to works
-                  ;; well enough.
-                  (let* ((newcol (smie-indent-calculate))
-                         (newgain (- curcol newcol)))
-                    (when (> newgain gain)
-                      (setq gain newgain)
-                      (setq bsf (point))))
-                  (smie-indent-forward-token))
-                (when (> gain 0)
-                  (goto-char bsf)
-                  (newline-and-indent)
-                  'done))))
-          (do-auto-fill)))))
+                                (and (<= (point) end)
+                                     (<= (current-column) fc)))
+                         ;; FIXME?  `smie-indent-calculate' can (and often
+                         ;; does) return a result that actually depends on the
+                         ;; presence/absence of a newline, so the gain computed
+                         ;; here may not be accurate, but in practice it seems
+                         ;; to work well enough.
+                         (skip-chars-forward " \t")
+                         (let* ((newcol (smie-indent-calculate))
+                                (newgain (- (current-column) newcol)))
+                           (when (> newgain gain)
+                             (setq gain newgain)
+                             (setq bsf (point)))))
+                       (when (> gain 0)
+                         (goto-char bsf)
+                         (newline-and-indent)
+                         'done))))
+                 (> (current-column) fc))))
+      (when (> (current-column) fc)
+        (funcall do-auto-fill)))))
 
 
 (defun smie-setup (grammar rules-function &rest keywords)
@@ -1775,12 +1783,11 @@ RULES-FUNCTION is a set of indentation rules for use on `smie-rules-function'.
 KEYWORDS are additional arguments, which can use the following keywords:
 - :forward-token FUN
 - :backward-token FUN"
-  (set (make-local-variable 'smie-rules-function) rules-function)
-  (set (make-local-variable 'smie-grammar) grammar)
-  (set (make-local-variable 'indent-line-function) 'smie-indent-line)
-  (set (make-local-variable 'normal-auto-fill-function) 'smie-auto-fill)
-  (set (make-local-variable 'forward-sexp-function)
-       'smie-forward-sexp-command)
+  (setq-local smie-rules-function rules-function)
+  (setq-local smie-grammar grammar)
+  (setq-local indent-line-function #'smie-indent-line)
+  (add-function :around (local 'normal-auto-fill-function) #'smie-auto-fill)
+  (setq-local forward-sexp-function #'smie-forward-sexp-command)
   (while keywords
     (let ((k (pop keywords))
           (v (pop keywords)))
@@ -1792,30 +1799,26 @@ KEYWORDS are additional arguments, which can use the following keywords:
         (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))
     (when ca
-      (set (make-local-variable 'smie-closer-alist) ca)
+      (setq-local smie-closer-alist ca)
       ;; Only needed for interactive calls to blink-matching-open.
-      (set (make-local-variable 'blink-matching-check-function)
-           #'smie-blink-matching-check)
+      (setq-local blink-matching-check-function #'smie-blink-matching-check)
       (unless smie-highlight-matching-block-mode
         (add-hook 'post-self-insert-hook
                   #'smie-blink-matching-open 'append 'local))
-      (set (make-local-variable 'smie-blink-matching-triggers)
-           (append smie-blink-matching-triggers
-                   ;; Rather than wait for SPC to blink, try to blink as
-                   ;; soon as we type the last char of a block ender.
-                   (let ((closers (sort (mapcar #'cdr smie-closer-alist)
-                                        #'string-lessp))
-                         (triggers ())
-                         closer)
-                     (while (setq closer (pop closers))
-                       (unless (and closers
-                                    ;; FIXME: this eliminates prefixes of other
-                                    ;; closers, but we should probably
-                                    ;; eliminate prefixes of other keywords
-                                    ;; as well.
-                                    (string-prefix-p closer (car closers)))
-                         (push (aref closer (1- (length closer))) triggers)))
-                     (delete-dups triggers)))))))
+      ;; Setup smie-blink-matching-triggers.  Rather than wait for SPC to
+      ;; blink, try to blink as soon as we type the last char of a block ender.
+      (let ((closers (sort (mapcar #'cdr smie-closer-alist) #'string-lessp))
+            (triggers ())
+            closer)
+        (while (setq closer (pop closers))
+          (unless
+              ;; FIXME: this eliminates prefixes of other closers, but we
+              ;; should probably eliminate prefixes of other keywords as well.
+              (and closers (string-prefix-p closer (car closers)))
+            (push (aref closer (1- (length closer))) triggers)))
+        (setq-local smie-blink-matching-triggers
+                    (append smie-blink-matching-triggers
+                            (delete-dups triggers)))))))
 
 
 (provide 'smie)

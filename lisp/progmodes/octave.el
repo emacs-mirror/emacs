@@ -438,7 +438,7 @@ Non-nil means always go to the next Octave code line after sending."
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
        ;; (if (smie-parent-p "switch") 4)
-       0))))
+       nil))))
 
 (defun octave-indent-comment ()
   "A function for `smie-indent-functions' (which see)."
@@ -552,11 +552,10 @@ definitions can also be stored in files and used in batch mode."
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'octave-fill-paragraph)
 
-  ;; Use `smie-auto-fill' after fixing bug#14381.
-  (setq-local normal-auto-fill-function 'do-auto-fill)
   (setq-local fill-nobreak-predicate
               (lambda () (eq (octave-in-string-p) ?')))
-  (setq-local comment-line-break-function #'octave-indent-new-comment-line)
+  (add-function :around (local 'comment-line-break-function)
+                #'octave--indent-new-comment-line)
 
   (setq font-lock-defaults '(octave-font-lock-keywords))
 
@@ -1112,11 +1111,16 @@ q: Don't fix\n" func file))
 ;;; Indentation
 
 (defun octave-indent-new-comment-line (&optional soft)
+  ;; FIXME: C-M-j should probably be bound globally to a function like
+  ;; this one.
   "Break Octave line at point, continuing comment if within one.
 Insert `octave-continuation-string' before breaking the line
 unless inside a list.  Signal an error if within a single-quoted
 string."
   (interactive)
+  (funcall comment-line-break-function soft))
+
+(defun octave--indent-new-comment-line (orig &rest args)
   (cond
    ((octave-in-comment-p) nil)
    ((eq (octave-in-string-p) ?')
@@ -1128,7 +1132,7 @@ string."
     (unless (and (cadr (syntax-ppss))
                  (eq (char-after (cadr (syntax-ppss))) ?\())
       (insert " " octave-continuation-string))))
-  (indent-new-comment-line soft)
+  (apply orig args)
   (indent-according-to-mode))
 
 (define-obsolete-function-alias
