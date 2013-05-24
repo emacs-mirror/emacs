@@ -23,7 +23,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(mps_root_create_table(NULL, space,
-        MPS_RANK_AMBIG, 0, a, sizeof a),
+        mps_rank_ambig(), 0, a, sizeof a),
       "root create");
 
 }

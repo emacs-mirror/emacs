@@ -68,7 +68,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, space), "register thread");
 
  cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
@@ -82,7 +82,7 @@ static void test(void)
 
  for (i=0; i<NAPS; i++)
  {
- die(mps_ap_create(&ap[i], pool, MPS_RANK_EXACT), "create ap");
+ die(mps_ap_create(&ap[i], pool, mps_rank_exact()), "create ap");
  ap_state[i] = 0;
  }
 

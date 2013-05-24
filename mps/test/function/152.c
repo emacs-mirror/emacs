@@ -67,20 +67,20 @@ static void test(void)
 
  die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
      "create AMC pool");
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()), "create ap");
  cdie(mps_pool_create(&spool, arena, mps_class_snc(), format),
       "create SNC pool");
- cdie(mps_ap_create(&sap, spool, MPS_RANK_EXACT), "create ap");
+ cdie(mps_ap_create(&sap, spool, mps_rank_exact()), "create ap");
 
  /* push, alloc, check object is scanned */
 
  com = mps_arena_committed(arena);
  report("com", "%ld", com);
  cdie(mps_ap_frame_push(&frame1, sap), "push");
- p = allocone(sap, 2, MPS_RANK_EXACT);
- q = allocdumb(ap, BIGSIZE, MPS_RANK_EXACT);
+ p = allocone(sap, 2, mps_rank_exact());
+ q = allocdumb(ap, BIGSIZE, mps_rank_exact());
  setref(p, 0, q);
- q = allocdumb(ap, SMALLSIZE, MPS_RANK_EXACT);
+ q = allocdumb(ap, SMALLSIZE, mps_rank_exact());
  report("com", "%ld", mps_arena_committed(arena));
  comment("collect...");
  mps_arena_collect(arena);
@@ -92,7 +92,7 @@ static void test(void)
  /* pop, check object isn't scanned */
 
  cdie(mps_ap_frame_pop(sap, frame1), "pop");
- p = allocone(sap, 2, MPS_RANK_EXACT);
+ p = allocone(sap, 2, mps_rank_exact());
  comment("collect...");
  mps_arena_collect(arena);
  com1 = mps_arena_committed(arena);

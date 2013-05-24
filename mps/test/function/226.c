@@ -74,14 +74,14 @@ static void test(void) {
   "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
  cdie(
-  mps_root_create_table(&root0, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root0, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_EXACT, 0,
+  mps_root_create_table(&root2, arena, mps_rank_exact(), 0,
                         (mps_addr_t *)obj_table, MAXLDS),
   "create table root");
  cdie(
-  mps_root_create_reg(&root1, arena, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root1, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create register and stack root");
  cdie(
@@ -96,7 +96,7 @@ static void test(void) {
   "create mv pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  cdie(
@@ -104,7 +104,7 @@ static void test(void) {
   "create amc pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
 /* allocate MAXLDS objects, and make each LD depend on the corresponding
@@ -119,7 +119,7 @@ static void test(void) {
  }
 
  for (i=0; i < MAXLDS; i++) {
-  obj_table[i] = allocone(apamc, ranint(1000), MPS_RANK_EXACT);
+  obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
   mps_ld_reset(lds[i], arena);
   mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
   addr_table[i] = obj_table[i];
@@ -130,7 +130,7 @@ static void test(void) {
 
   for (i=0; i < MAXLDS; i++) {
    if (ranint(100) < BLATPERCENT) {
-    obj_table[i] = allocone(apamc, ranint(1000), MPS_RANK_EXACT);
+    obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
     mps_ld_reset(lds[i], arena);
     mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
     addr_table[i] = obj_table[i];
@@ -154,7 +154,7 @@ static void test(void) {
     comment("inc to %d at %d", stale, i);
    }
    for (j = 0; j < JUNK; j++) {
-    a = allocdumb(apamc, ranint(1000), MPS_RANK_EXACT);
+    a = allocdumb(apamc, ranint(1000), mps_rank_exact());
    }
   }
  }

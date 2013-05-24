@@ -121,11 +121,11 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, arena, MPS_RANK_EXACT, 0,
+ cdie(mps_root_create_table(&root, arena, mps_rank_exact(), 0,
                             (mps_addr_t *)&a[0], 4),
       "create a root table");
 
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t *)&b[0], 4),
       "create b root table");
 
@@ -142,26 +142,26 @@ static void test(void)
      "create pool(awl)");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap(amc)");
 
  cdie(
-  mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
+  mps_ap_create(&aplo, poollo, mps_rank_exact()),
   "create ap(amcz)");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap(awl)");
 
  newstamp = 0;
 
  for (i=0; i<4; i++) {
-  die(allocrdumb(&a[i], aplo, 64, MPS_RANK_EXACT), "alloc failed");
+  die(allocrdumb(&a[i], aplo, 64, mps_rank_exact()), "alloc failed");
   a[i]->data.checkedflag = newstamp;
-  die(allocrone(&b[i], apawl, 5, MPS_RANK_EXACT), "alloc failed");
+  die(allocrone(&b[i], apawl, 5, mps_rank_exact()), "alloc failed");
   b[i]->data.checkedflag = newstamp;
   b[i]->data.ref[0].addr = a[i];
-  die(allocrone(&a[i], apamc, 5, MPS_RANK_EXACT), "alloc failed");
+  die(allocrone(&a[i], apamc, 5, mps_rank_exact()), "alloc failed");
   a[i]->data.checkedflag = newstamp;
   a[i]->data.ref[0].addr = b[i];
  }
@@ -173,14 +173,14 @@ static void test(void)
 
   for (i=0; i<10000; i++) {
    k = ranint(4);
-   die(allocrdumb(&a[k], aplo, 64, MPS_RANK_EXACT), "alloc failed");
+   die(allocrdumb(&a[k], aplo, 64, mps_rank_exact()), "alloc failed");
    a[k]->data.checkedflag = newstamp;
    k = ranint(4);
-   die(allocrone(&b[k], apawl, 5, MPS_RANK_EXACT), "alloc failed");
+   die(allocrone(&b[k], apawl, 5, mps_rank_exact()), "alloc failed");
    b[k]->data.checkedflag = newstamp;
    b[k]->data.ref[0].addr = a[ranint(4)];
    b[k]->data.ref[1].addr = b[ranint(4)];
-   die(allocrone(&a[k], apamc, 5, MPS_RANK_EXACT), "alloc failed");
+   die(allocrone(&a[k], apamc, 5, mps_rank_exact()), "alloc failed");
    a[k]->data.checkedflag = newstamp;
    a[k]->data.ref[2].addr = b[ranint(4)];
   }

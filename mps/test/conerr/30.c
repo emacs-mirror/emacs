@@ -50,7 +50,7 @@ static void test(void)
 
 /*
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 */
 
