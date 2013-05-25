@@ -4697,7 +4697,7 @@ as alpha versions."
 
 ;; This is used in lisp/Makefile.in and in leim/Makefile.in to
 ;; generate file names for autoloads, custom-deps, and finder-data.
-(defun unmsys--filename (file)
+(defun unmsys--file-name (file)
   "Produce the canonical file name for FILE from its MSYS form.
 
 On systems other than MS-Windows, just returns FILE.

@@ -1,6 +1,6 @@
 2013-05-25  Eli Zaretskii  <eliz@gnu.org>
 
-	* subr.el (unmsys--filename): Renamed from reveal-filename.
+	* subr.el (unmsys--file-name): Renamed from reveal-filename.
 
 	* Makefile.in (custom-deps, finder-data, autoloads)
 	($(MH_E_DIR)/mh-loaddefs.el, $(TRAMP_DIR)/tramp-loaddefs.el)
