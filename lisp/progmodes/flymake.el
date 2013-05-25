@@ -1,4 +1,4 @@
-;;; flymake.el -- a universal on-the-fly syntax checker
+;;; flymake.el --- a universal on-the-fly syntax checker
 
 ;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
@@ -68,6 +68,9 @@
 
 ;;;; [[ cross-emacs compatibility routines
 (defsubst flymake-makehash (&optional test)
+  "Create and return a new hash table using TEST to compare keys.
+It uses the function `make-hash-table' to make a hash-table if
+you use GNU Emacs, otherwise it uses `makehash'."
   (if (fboundp 'make-hash-table)
       (if test (make-hash-table :test test) (make-hash-table))
     (with-no-warnings
@@ -106,10 +109,12 @@ Zero-length substrings at the beginning and end of the list are omitted."
     (lambda () temporary-file-directory)))
 
 (defun flymake-posn-at-point-as-event (&optional position window dx dy)
-  "Return pixel position of top left corner of glyph at POSITION,
-relative to top left corner of WINDOW, as a mouse-1 click
-event (identical to the event that would be triggered by clicking
-mouse button 1 at the top left corner of the glyph).
+  "Return pixel position of top left corner of glyph at POSITION.
+
+The position is relative to top left corner of WINDOW, as a
+mouse-1 click event (identical to the event that would be
+triggered by clicking mouse button 1 at the top left corner of
+the glyph).
 
 POSITION and WINDOW default to the position of point in the
 selected window.
@@ -164,7 +169,8 @@ See `x-popup-menu' for the menu specifier format."
 
 (if (featurep 'xemacs) (progn
 
-(defun flymake-nop ())
+(defun flymake-nop ()
+  "Do nothing.")
 
 (defun flymake-make-xemacs-menu (menu-data)
   "Return a menu specifier using MENU-DATA."
@@ -187,6 +193,7 @@ See `x-popup-menu' for the menu specifier format."
     (count-lines (window-start) (point))))
 
 (defun flymake-selected-frame ()
+  "Return the frame that is now selected."
   (if (fboundp 'window-edges)
       (selected-frame)
     (selected-window)))
@@ -217,31 +224,42 @@ See `x-popup-menu' for the menu specifier format."
   :group 'flymake
   :type 'integer)
 
+
+;; (defcustom flymake-log-file-name "~/flymake.log"
+;;   "Where to put the flymake log if logging is enabled.
+;; 
+;;    See `flymake-log-level' if you want to control what is logged."
+;;   :group 'flymake
+;;   :type 'string)
+
 (defun flymake-log (level text &rest args)
   "Log a message at level LEVEL.
 If LEVEL is higher than `flymake-log-level', the message is
 ignored.  Otherwise, it is printed using `message'.
 TEXT is a format control string, and the remaining arguments ARGS
-are the string substitutions (see `format')."
+are the string substitutions (see the function `format')."
   (if (<= level flymake-log-level)
       (let* ((msg (apply 'format text args)))
 	(message "%s" msg)
 	;;(with-temp-buffer
 	;;    (insert msg)
 	;;   (insert "\n")
-	;;   (flymake-save-buffer-in-file "d:/flymake.log" t)  ; make log file name customizable
+	;;   (flymake-save-buffer-in-file "~/flymake.log")  ; make log file name customizable
 	;;)
 	)))
 
 (defun flymake-ins-after (list pos val)
-  "Insert VAL into LIST after position POS."
-  (let ((tmp (copy-sequence list)))	; (???)
+  "Insert VAL into LIST after position POS.
+POS counts from zero."
+  (let ((tmp (copy-sequence list)))	; Bind `tmp' to a copy of LIST
     (setcdr (nthcdr pos tmp) (cons val (nthcdr (1+ pos) tmp)))
     tmp))
 
 (defun flymake-set-at (list pos val)
-  "Set VAL at position POS in LIST."
-  (let ((tmp (copy-sequence list)))	; (???)
+)
+"Set VAL at position POS in LIST.
+POS counts from zero."
+(let ((tmp (copy-sequence list)))	; Bind `tmp' to a copy of LIST
     (setcar (nthcdr pos tmp) val)
     tmp))
 
@@ -249,7 +267,6 @@ are the string substitutions (see `format')."
   "List of currently active flymake processes.")
 
 (defvar flymake-output-residual nil)
-
 (make-variable-buffer-local 'flymake-output-residual)
 
 (defgroup flymake nil
@@ -310,7 +327,7 @@ NAME is the file name function to use, default `flymake-get-real-file-name'."
   (unless (stringp file-name)
     (error "Invalid file-name"))
   (let ((fnm flymake-allowed-file-name-masks)
-	(mode-and-masks  nil))
+	(mode-and-masks nil))
     (while (and (not mode-and-masks) fnm)
       (if (string-match (car (car fnm)) file-name)
 	  (setq mode-and-masks (cdr (car fnm))))
@@ -336,18 +353,22 @@ Return nil if we cannot, non-nil if we can."
       'flymake-simple-cleanup))
 
 (defun flymake-get-real-file-name-function (file-name)
-  (or (nth 2 (flymake-get-file-name-mode-and-masks file-name))
+  (or (nth 4 (flymake-get-file-name-mode-and-masks file-name))
       'flymake-get-real-file-name))
 
 (defvar flymake-find-buildfile-cache (flymake-makehash 'equal))
 
 (defun flymake-get-buildfile-from-cache (dir-name)
+  "Look up DIR-NAME in cache and return its associated value.
+If DIR-NAME is not found, return nil."
   (gethash dir-name flymake-find-buildfile-cache))
 
 (defun flymake-add-buildfile-to-cache (dir-name buildfile)
+  "Associate DIR-NAME with BUILDFILE in the buildfile cache."
   (puthash dir-name buildfile flymake-find-buildfile-cache))
 
 (defun flymake-clear-buildfile-cache ()
+  "Clear the buildfile cache."
   (clrhash flymake-find-buildfile-cache))
 
 (defun flymake-find-buildfile (buildfile-name source-dir-name)
@@ -394,9 +415,11 @@ Return t if so, nil if not."
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all possible master files.
-Master files include .cpp and .c for .h.  Files are searched for
-starting from the .h directory and max max-level parent dirs.
-File contents are not checked."
+
+Name is specified by FILE-NAME and location is specified by
+MASTER-FILE-DIRS.  Master files include .cpp and .c for .h.
+Files are searched for starting from the .h directory and max
+max-level parent dirs.  File contents are not checked."
   (let* ((dirs master-file-dirs)
 	 (files  nil)
 	 (done   nil))
@@ -593,6 +616,8 @@ Find master file, patch and save it."
 	nil))))
 
 (defun flymake-save-buffer-in-file (file-name)
+  "Save the entire buffer contents into file FILE-NAME.
+Create parent directories as needed."
   (make-directory (file-name-directory file-name) 1)
   (write-region nil nil file-name nil 566)
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))

@@ -1,3 +1,15 @@
+2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* progmodes/flymake.el (flymake-save-buffer-in-file)
+	(flymake-makehash, flymake-posn-at-point-as-event, flymake-nop)
+	(flymake-selected-frame, flymake-log, flymake-ins-after)
+	(flymake-set-at, flymake-get-buildfile-from-cache)
+	(flymake-add-buildfile-to-cache, flymake-clear-buildfile-cache)
+	(flymake-find-possible-master-files, flymake-save-buffer-in-file):
+	Refine the doc string.
+	(flymake-get-file-name-mode-and-masks): Reformat.
+	(flymake-get-real-file-name-function): Fix a minor bug.
+
 2013-05-24  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-mode-font-lock-keywords):
