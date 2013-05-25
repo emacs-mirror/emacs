@@ -29,6 +29,8 @@ static void test(void)
  mps_thr_t thread;
  mps_root_t root, rootb;
 
+ mps_addr_t base;
+ mps_addr_t *addr;
  mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t apamc, apawl;
@@ -39,10 +41,14 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, arena, mps_rank_ambig(), 0, &b, 1),
+ base = &b;
+ addr = base;
+ cdie(mps_root_create_table(&root, arena, mps_rank_ambig(), 0, addr, 1),
   "creat root");
 
- cdie(mps_root_create_table(&rootb, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
+ base = &exfmt_root;
+ addr = base;
+ cdie(mps_root_create_table(&rootb, arena, mps_rank_ambig(), 0, addr, 1),
   "create root b");
 
  cdie(
