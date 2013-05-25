@@ -114,15 +114,15 @@ static void test(void)
 
  addr = a;
  for (j=0; j<100; j++) {
-  comment(err_text(mps_finalize(arena, addr)));
+  comment(err_text(mps_finalize(arena, &addr)));
  }
 
  comment("try to make collectm by allocating another 1G...");
  
  empty();
 
- for (j=0; j<1000*1024; j++) {
-  res=allocrdumb(&a, ap, 1024, mps_rank_exact());
+ for (j=0; j<1024; j++) {
+  res=allocrdumb(&a, ap, 1024 * 1024, mps_rank_exact());
   if (res == MPS_RES_OK) {
    comment("%i ok", j);
   } else {
