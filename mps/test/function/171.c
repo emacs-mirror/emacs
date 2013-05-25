@@ -34,7 +34,7 @@ END_HEADER
 
 void *stackpointer;
 
-mps_space_t arena;
+mps_arena_t arena;
 mps_pool_t poolamc;
 mps_thr_t thread;
 mps_root_t root, root1;
@@ -64,7 +64,7 @@ static void test(void) {
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
    (size_t) ARENALIMIT),
-  "create space");
+  "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
@@ -147,7 +147,7 @@ static void test(void) {
  comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 int main(void)

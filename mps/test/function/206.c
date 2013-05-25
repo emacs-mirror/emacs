@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = new MVFF allocation test
  language = c
  link = testlib.o
@@ -15,7 +15,7 @@ END_HEADER
 #define MAXNUMBER 1000000
 
 void *stackpointer;
-mps_space_t space;
+mps_arena_t arena;
 
 mps_bool_t slotHigh, arenaHigh, firstFit;
 
@@ -72,7 +72,7 @@ static void dt(int kind,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, space, mps_class_mvff(),
+  mps_pool_create(&pool, arena, mps_class_mvff(),
                   extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
   "create EPDR pool");
 
@@ -140,8 +140,8 @@ static void test(void)
  size_t mins;
  int symm;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mins = sizeof(int);
 
@@ -175,7 +175,7 @@ static void test(void)
  }
 
  mps_thread_dereg(thread);
- mps_arena_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

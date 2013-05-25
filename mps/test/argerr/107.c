@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MIN-1 root mode for mps_root_create_table
  language = c
  link = testlib.o
@@ -14,16 +14,16 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_root_t root;
  mps_addr_t a[30];
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, space,
+ cdie(mps_root_create_table(&root, arena,
         mps_rank_ambig(), MPS_RM_MIN-1, a, sizeof a),
       "root create");
 

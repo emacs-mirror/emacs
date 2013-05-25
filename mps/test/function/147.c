@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = SNC simple test
  language = c
  link = testlib.o rankfmt.o

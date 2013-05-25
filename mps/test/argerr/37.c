@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = wrong size_t to free (MV)
  language = c
  link = testlib.o
@@ -15,19 +15,19 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
 
  mps_addr_t a;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
   mps_pool_create(
-     &pool, space, mps_class_mv(),
+     &pool, arena, mps_class_mv(),
      (size_t) 4096, (size_t) 32, (size_t) 64*1024),
   "create pool");
 

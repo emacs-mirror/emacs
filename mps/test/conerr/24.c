@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = alloc in pool not supporting alloc
  language = c
  link = testlib.o
@@ -21,14 +21,14 @@ static mps_addr_t myskip(mps_addr_t object)
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_fmt_t format;
  mps_fmt_A_s fmtA;
 
  mps_addr_t obj;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
  fmtA.align = (mps_align_t) 1;
  fmtA.scan  = &zilch;
@@ -39,11 +39,11 @@ static void test(void)
  fmtA.pad   = &zilch;
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_lo(), format),
+  mps_pool_create(&pool, arena, mps_class_lo(), format),
   "create pool");
 
  cdie(mps_alloc(&obj, pool, 152), "allocate");
@@ -57,8 +57,8 @@ static void test(void)
  mps_pool_destroy(pool);
  comment("Destroyed pool");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

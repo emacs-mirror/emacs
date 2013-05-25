@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = register thread twice
  language = c
  link = myfmt.o testlib.o
@@ -15,15 +15,15 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_thr_t thread2;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_thread_reg(&thread2, space), "register thread 2");
+ cdie(mps_thread_reg(&thread2, arena), "register thread 2");
 
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
@@ -31,8 +31,8 @@ static void test(void)
  mps_thread_dereg(thread2);
  comment("Deregistered thread 2.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.23) $
+#!/usr/bin/perl -w
+# $Id$
 #
 
 # global options for qa commands

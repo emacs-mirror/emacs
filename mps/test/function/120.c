@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = mps_arena_commit_limit tests
  language = c
  link = testlib.o
@@ -83,7 +83,7 @@ static void test(void) {
 
  report_res("alloc_16", mps_alloc(&a, pool, (size_t) (1024*16)));
 
-/* a really big allocation should fail on the arena's address space size,
+/* a really big allocation should fail on the arena's address arena size,
    not the commit limit */
 
  report_res("alloc_big", mps_alloc(&a, pool, (size_t) (1024*1024*30)));

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = reserve twice without committing
  language = c
  link = myfmt.o testlib.o
@@ -18,7 +18,7 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_root_t root;
@@ -27,21 +27,21 @@ static void test(void)
  mps_ap_t ap;
  mps_addr_t p;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
+  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format),
   "create pool");
 
  cdie(
@@ -71,8 +71,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:fastfmt.h(trunk.2) $
+/* $Id$
 fastfmt.h
    Format like rankfmt (see rankfmt.h) and with same object
    structure, but with no checking or comments.

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = new MV allocation test
  language = c
  link = testlib.o
@@ -15,7 +15,7 @@ END_HEADER
 #define MAXNUMBER 1000000
 
 void *stackpointer;
-mps_space_t space;
+mps_arena_t arena;
 
 static struct {mps_addr_t addr; size_t size;} queue[MAXNUMBER];
 
@@ -70,7 +70,7 @@ static void dt(int kind,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, space, mps_class_mv(),
+  mps_pool_create(&pool, arena, mps_class_mv(),
                   extendBy, avgSize, maxSize),
   "create MV pool");
 
@@ -135,8 +135,8 @@ static void test(void)
  mps_thr_t thread;
  size_t mins;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mins = sizeof(int);
 
@@ -162,7 +162,7 @@ static void test(void)
  dt(RANGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
 
  mps_thread_dereg(thread);
- mps_arena_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

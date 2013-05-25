@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:awlfmt.c(trunk.4) $
+/* $Id$
 awlfmt.c
    A format simlar to newfmt, but for the awl pool
 */

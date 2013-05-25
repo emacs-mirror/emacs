@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.15) $
+/* $Id$
 test_lib.h
    various handy things for running tests, reporting errors &c.
 */

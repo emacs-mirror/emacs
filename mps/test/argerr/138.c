@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MAX+1 root mode for mps_root_create_reg (with stack scan ambig)
  language = c
  link = testlib.o
@@ -14,15 +14,15 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_root_t root;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, space, mps_rank_ambig(),
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(),
                       MPS_RM_MAX+1, 
                       thread, mps_stack_scan_ambig, stackpointer, 0),
       "root create");

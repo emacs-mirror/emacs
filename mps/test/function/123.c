@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = regression test for AWl bug (request.dylan.160094
  language = c
  link = testlib.o rankfmt.o
@@ -19,7 +19,7 @@ mycell *a, *b;
 
 static void test(void)
 {
- mps_arena_t space;
+ mps_arena_t arena;
  mps_pool_t poolamc, poolawl;
  mps_thr_t thread;
  mps_root_t root, rootb;
@@ -29,26 +29,26 @@ static void test(void)
 
  unsigned int i, c;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (60ul*1024*1024)), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (60ul*1024*1024)), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root, space, mps_rank_ambig(), 0, &b, 1),
+ cdie(mps_root_create_table(&root, arena, mps_rank_ambig(), 0, &b, 1),
   "creat root");
 
- cdie(mps_root_create_table(&rootb, space, mps_rank_ambig(), 0, &exfmt_root, 1),
+ cdie(mps_root_create_table(&rootb, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create root b");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
   "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, space, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
   "create pool");
 
  cdie(
@@ -63,19 +63,19 @@ static void test(void)
 
  b = allocone(apamc, 1024, mps_rank_exact());
 
- c = mps_collections(space);
+ c = mps_collections(arena);
 
  for (i=1; i<100; i++)
  {
   comment("%i of 100.", i);
-  while (mps_collections(space) == c) {
+  while (mps_collections(arena) == c) {
    a = allocone(apamc, 1024, mps_rank_exact());
    if (ranint(5)) {
     setref(a, 0, b);
    }
    b = a;
   }
-  c = mps_collections(space);
+  c = mps_collections(arena);
   a = allocone(apawl, 1, mps_rank_weak());
   a->data.id = 0;
   setref(a, 0, b);
@@ -99,8 +99,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 
 }
 

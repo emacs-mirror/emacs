@@ -1,4 +1,4 @@
-% $HopeName: MMQA_harness!testlib:assumed(trunk.2) $
+% $Id$
 %
 % Symbols listed here will be assumed by the harness to be available for
 % tests to use, even if they're not present in mps header files.

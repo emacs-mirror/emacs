@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.6) $
+/* $Id$
 rankfmt.c
    See comments in header file for usage.
 */

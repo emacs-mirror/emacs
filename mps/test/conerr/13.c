@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create a pool in an uncreated space
+ id = $Id$
+ summary = create a pool in an uncreated arena
  language = c
  link = testlib.o
 END_HEADER
@@ -12,7 +12,7 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  size_t extendBy;
  size_t avgSize;
@@ -22,20 +22,20 @@ static void test(void)
  avgSize  = (size_t) 32;
  maxSize  = (size_t) 65536;
 
-/* cdie(mps_space_create(&space), "create space");
+/* cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 */
- space=malloc(64);
+ arena=malloc(64);
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_mv(),
+  mps_pool_create(&pool, arena, mps_class_mv(),
    extendBy, avgSize, maxSize),
   "create pool");
 
  mps_pool_destroy(pool);
  comment("Destroyed pool.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

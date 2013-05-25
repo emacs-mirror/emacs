@@ -41,7 +41,7 @@ long int apppadcount;
 
 int oldstamp, newstamp;
 
-mps_space_t space;
+mps_arena_t arena;
 mps_pool_t poolamc, poollo, poolawl;
 mps_thr_t thread;
 mps_root_t root, root1;
@@ -111,34 +111,34 @@ static void test(void)
  mps_addr_t addr;
  int i, j, k;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  addr = &a[0];
  cdie(
-  mps_root_create_table(&root, space, mps_rank_exact(), 0, addr, 4),
+  mps_root_create_table(&root, arena, mps_rank_exact(), 0, addr, 4),
   "create a root table");
 
  addr = &b[0];
  cdie(
-  mps_root_create_table(&root1, space, mps_rank_ambig(), 0, addr, 4),
+  mps_root_create_table(&root1, arena, mps_rank_ambig(), 0, addr, 4),
   "create b root table");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
   "create pool");
 
  cdie(
-  mps_pool_create(&poollo, space, mps_class_lo(), format),
+  mps_pool_create(&poollo, arena, mps_class_lo(), format),
   "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, space, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
   "create pool");
 
  cdie(
@@ -188,14 +188,14 @@ static void test(void)
 
   comment("walking...");
 
-  mps_arena_park(space);
-  mps_arena_collect(space);
+  mps_arena_park(arena);
+  mps_arena_collect(arena);
 
   oldstamp = newstamp;
   newstamp += 1;
-  mps_arena_formatted_objects_walk(space, stepper,
+  mps_arena_formatted_objects_walk(arena, stepper,
                                    (void *) MAGICPOINT, MAGICSIZE);
-  mps_arena_release(space);
+  mps_arena_release(arena);
 
   comment("tracing...");
 
@@ -234,8 +234,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

@@ -1,5 +1,5 @@
 Numbering of test programs
-% $HopeName$
+% $Id$
 
 Test program are indentified by their hope names, i.e. by a hope
 compound, an exclamation mark, and the test file name. The test

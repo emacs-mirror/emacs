@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MVFF fenceposting check: free
  language = c
  link = testlib.o

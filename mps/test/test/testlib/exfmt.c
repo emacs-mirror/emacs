@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:exfmt.c(trunk.4) $
+/* $Id$
 exfmt.c
    A format for the awl and amc pools which can cope with exact references
    See comments in header file for usage.

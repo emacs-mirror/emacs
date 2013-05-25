@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = new MV2 allocation test, extra shallow
  language = c
  link = testlib.o
@@ -19,7 +19,7 @@ END_HEADER
 typedef MPS_T_WORD mps_count_t;
 
 void *stackpointer;
-mps_space_t space;
+mps_arena_t arena;
 
 static struct {mps_addr_t addr; size_t size;} queue[MAXNUMBER];
 
@@ -89,7 +89,7 @@ static void dt(int kind,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, space, mps_class_mv2(),
+  mps_pool_create(&pool, arena, mps_class_mv2(),
                   minSize, avgSize, maxSize, depth, fragLimit),
   "create MV2 pool");
 
@@ -159,8 +159,8 @@ static void test(void)
  size_t mins;
  mps_count_t dep, frag;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*100)), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*100)), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mins = sizeof(int);
 
@@ -202,7 +202,7 @@ static void test(void)
  }
 
  mps_thread_dereg(thread);
- mps_arena_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

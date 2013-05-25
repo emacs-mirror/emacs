@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $HopeName: MMQA_test_function!76.c(trunk.5) $
- summary = destroy space when messages are on the queue
+ summary = destroy arena when messages are on the queue
  language = c
  link = testlib.o rankfmt.o
 END_HEADER

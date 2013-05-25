@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = NULL 1st arg to mps_alloc
  language = c
  link = testlib.o
@@ -15,22 +15,22 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
 
  size_t mysize;
  mps_addr_t a;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mysize = 8;
 
  cdie(
   mps_pool_create(
-     &pool, space, mps_class_mfs(), (size_t) 8, mysize),
+     &pool, arena, mps_class_mfs(), (size_t) 8, mysize),
   "create pool");
 
  mps_alloc(NULL, pool, mysize);

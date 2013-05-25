@@ -1,4 +1,4 @@
-/* $HopeName: $
+/* $Id$
 In humanist interface
  - no change
 */

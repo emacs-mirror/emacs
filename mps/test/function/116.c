@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = allocation shouldn't fail if there's garbage to collect
  language = c
  link = testlib.o rankfmt.o
@@ -15,7 +15,7 @@ END_HEADER
 void *stackpointer;
 
 mps_pool_t poolmv;
-mps_space_t space;
+mps_arena_t arena;
 
 static void test(void)
 {
@@ -34,20 +34,20 @@ static void test(void)
 
 /* create an arena that can't grow beyond 30 M */
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*30)),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*30)),
   "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create root");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format),
   "create pool");
 
  cdie(
@@ -100,8 +100,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 
 }
 
