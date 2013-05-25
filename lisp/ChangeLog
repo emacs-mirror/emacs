@@ -1,3 +1,12 @@
+2013-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-nop): Don't return a string.
+	(flymake-set-at): Fix typo.
+
+	* simple.el (read--expression): New function, extracted from
+	eval-expression.  Set completion-at-point-functions (bug#14465).
+	(eval-expression, eval-minibuffer): Use it.
+
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* progmodes/flymake.el (flymake-save-buffer-in-file)

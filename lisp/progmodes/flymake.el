@@ -170,7 +170,8 @@ See `x-popup-menu' for the menu specifier format."
 (if (featurep 'xemacs) (progn
 
 (defun flymake-nop ()
-  "Do nothing.")
+  "Do nothing."
+  nil)
 
 (defun flymake-make-xemacs-menu (menu-data)
   "Return a menu specifier using MENU-DATA."
@@ -251,15 +252,14 @@ are the string substitutions (see the function `format')."
 (defun flymake-ins-after (list pos val)
   "Insert VAL into LIST after position POS.
 POS counts from zero."
-  (let ((tmp (copy-sequence list)))	; Bind `tmp' to a copy of LIST
+  (let ((tmp (copy-sequence list)))
     (setcdr (nthcdr pos tmp) (cons val (nthcdr (1+ pos) tmp)))
     tmp))
 
 (defun flymake-set-at (list pos val)
-)
-"Set VAL at position POS in LIST.
+  "Set VAL at position POS in LIST.
 POS counts from zero."
-(let ((tmp (copy-sequence list)))	; Bind `tmp' to a copy of LIST
+  (let ((tmp (copy-sequence list)))
     (setcar (nthcdr pos tmp) val)
     tmp))
 

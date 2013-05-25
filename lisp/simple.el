@@ -1268,9 +1268,7 @@ is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.
 Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `X'.
-  ;; FIXME: Share code with `eval-expression'.
-  (eval (read-from-minibuffer prompt initial-contents read-expression-map
-                              t read-expression-history)))
+  (eval (read--expression prompt initial-contents)))
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
@@ -1322,6 +1320,17 @@ display the result of expression evaluation."
 (defvar eval-expression-minibuffer-setup-hook nil
   "Hook run by `eval-expression' when entering the minibuffer.")
 
+(defun read--expression (prompt &optional initial-contents)
+  (let ((minibuffer-completing-symbol t))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (add-hook 'completion-at-point-functions
+                    #'lisp-completion-at-point nil t)
+          (run-hooks 'eval-expression-minibuffer-setup-hook))
+      (read-from-minibuffer prompt initial-contents
+                            read-expression-map t
+                            'read-expression-history))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value)
@@ -1338,12 +1347,7 @@ and `eval-expression-print-level'.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (minibuffer-with-setup-hook
-	       (lambda () (run-hooks 'eval-expression-minibuffer-setup-hook))
-	     (read-from-minibuffer "Eval: "
-				   nil read-expression-map t
-				   'read-expression-history)))
+   (list (read--expression "Eval: ")
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
