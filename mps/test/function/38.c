@@ -88,7 +88,7 @@ static void test(void)
 
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+ cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create awl pool");
 
  cdie(mps_pool_create(&poolmv, arena, mps_class_mv(), 0x4000, 128, 0x4000),

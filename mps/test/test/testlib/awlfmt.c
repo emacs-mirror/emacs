@@ -54,8 +54,11 @@ static int freeze=0;
 
    Each objects begins with a pointer to a wrapper. To tag objects,
    use non-zero values for the low bits.
-   The second word in each object is a pointer to the associated object,
-   usual rules for references apply.
+
+   The second word in each object is a pointer to the associated
+   object, usual rules for references apply. The getassociated()
+   function looks up this reference and can be used as the
+   find_dependent function when creating an AWL pool.
 
    The wrapper begins with a wrapper-wrapper pointer, and the third word
    of the wrapper object has bit 0 set and bit 1 clear and at least one higher
@@ -113,6 +116,7 @@ struct mps_fmt_A_s fmtA =
  &myisfwd,
  &mypad
 };
+
 
 /* in the following, size is the number of refs you want
    the allocated object to have
@@ -403,6 +407,12 @@ mps_addr_t getdata(mycell *obj)
  return (mps_addr_t) &(obj->data.ref[0]);
 }
 
+mps_addr_t getassociated(mps_addr_t addr)
+{
+  mycell *obj = addr;
+  return (mps_addr_t) &(obj->data.ref[1]);
+}
+
 long int getid(mycell *obj)
 {
  asserts(obj->tag == MCdata + (mps_word_t) wrapper,
@@ -563,4 +573,3 @@ void displaymaxcounters(void)
  comment("max copies of a single object: %li.", maxcopy);
  comment("--------");
 }
-
