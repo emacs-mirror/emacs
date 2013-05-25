@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.6) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -167,7 +167,6 @@ sub linkobjtimes {
  foreach (split) {
   $mps_linkobjs{$_} = &mod_time($_);
  }
- closedir(DIR);
 }
 
 sub mod_time {

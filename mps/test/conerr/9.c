@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create a format in a destroyed space
+ id = $Id$
+ summary = create a format in a destroyed arena
  language = c
  link = testlib.o
 END_HEADER
@@ -22,12 +22,12 @@ static mps_addr_t myskip(mps_addr_t object)
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_fmt_t format;
  mps_fmt_A_s fmtA;
 
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
  fmtA.align = (mps_align_t) 1;
  fmtA.scan  = &zilch;
@@ -37,11 +37,11 @@ static void test(void)
  fmtA.isfwd = &zilch;
  fmtA.pad   = &zilch;
 
- mps_space_destroy(space);
- comment("Destroy space.");
+ mps_arena_destroy(arena);
+ comment("Destroy arena.");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA), 
+  mps_fmt_create_A(&format, arena, &fmtA), 
   "create format");
 
 }

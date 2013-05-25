@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create a VM arena with non-aligned size
  language = c
  link = testlib.o

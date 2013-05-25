@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create a space with an unaligned space_t
+ id = $Id$
+ summary = create an arena with an unaligned arena_t
  language = c
  link = testlib.o
 END_HEADER
@@ -12,8 +12,8 @@ END_HEADER
 
 static void test(void)
 {
- adie(mps_space_create(UNALIGNED),
-      "Create space");
+ adie(mps_arena_create(UNALIGNED, mps_arena_class_vm(), mmqaArenaSIZE),
+      "Create arena");
 }
 
 int main(void)

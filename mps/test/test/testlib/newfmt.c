@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:newfmt.c(trunk.3) $
+/* $Id$
 newfmt.c
    My attempt to write a format using unions &c to avoid
    nasty casting all over the place

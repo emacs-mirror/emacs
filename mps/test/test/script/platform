@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName$
+#!/usr/bin/perl -w
+# $Id$
 #
 # Settings that depend on the platform, including C compiler and command syntax
 #

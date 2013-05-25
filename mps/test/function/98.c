@@ -1,11 +1,11 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create arenas at once until an error results!
  language = c
  link = testlib.o
 OUTPUT_SPEC
- space > 10
+ arena > 10
 END_HEADER
 */
 
@@ -14,7 +14,7 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
 
  int p;
 
@@ -22,9 +22,9 @@ static void test(void)
 
  while (1)
  {
-  die(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*10)), "create");
+  die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*10)), "create");
   p = p+1;
-  report("space", "%i", p);
+  report("arena", "%i", p);
  }
 }
 

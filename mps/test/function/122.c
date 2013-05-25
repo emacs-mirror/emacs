@@ -32,7 +32,7 @@ long int speccount;
 
 int oldstamp, newstamp;
 
-mps_space_t arena;
+mps_arena_t arena;
 mps_pool_t poolamc, poollo, poolawl;
 mps_thr_t thread;
 mps_root_t root, root1;
@@ -87,7 +87,7 @@ static void test(void)
  mycell *w, *x, *y;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) 1024*1024*30),
-      "create space");
+      "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
  cdie(

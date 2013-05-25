@@ -84,7 +84,7 @@ static void test(void)
  mps_root_destroy(root);
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 

@@ -1,4 +1,4 @@
-/* $HopeName: $
+/* $Id$
 In grotesq interface
  - "space" becomes "arena"
 */

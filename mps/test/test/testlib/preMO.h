@@ -1,4 +1,4 @@
-/* $HopeName: $
+/* $Id$
 Before modern interface;
  - no closure arguments for mps_root_create_reg
  - no rank argument for mps_ap_create (ever)

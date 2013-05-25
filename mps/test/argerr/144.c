@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = null root_t for mps_root_destroy
  language = c
  link = testlib.o
@@ -14,12 +14,12 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  mps_root_destroy(NULL);
 

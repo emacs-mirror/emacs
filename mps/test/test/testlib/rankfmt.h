@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.6) $
+/* $Id$
 
    Format like exfmt but with rank-checking built in.
 

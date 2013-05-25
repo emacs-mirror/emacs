@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = SNC pop-to-NULL test (request.dylan.170602)
  language = c
  link = testlib.o rankfmt.o
