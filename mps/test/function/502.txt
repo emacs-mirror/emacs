@@ -1,6 +1,6 @@
 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MM works with Dylan debugger
  language = english
 END_HEADER

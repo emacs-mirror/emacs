@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = null space for mps_root_create
+ id = $Id$
+ summary = null arena for mps_root_create
  language = c
  link = testlib.o
 END_HEADER
@@ -19,13 +19,13 @@ static mps_res_t rootscan(mps_ss_t ss, void *p, size_t s)
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_root_t root;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(mps_root_create(&root, NULL, mps_rank_ambig(), 0,
                       rootscan, NULL, 0),

@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:exfmt.h(trunk.3) $
+/* $Id$
 exfmt.h
    A format for the awl and amc pools, which will work without
    register roots. To use it, you must take precautions. You must

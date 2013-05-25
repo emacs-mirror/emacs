@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create an AP with a rank not supported by its pool
  language = c
  link = testlib.o
@@ -23,7 +23,7 @@ static mps_addr_t myskip(mps_addr_t object)
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
 
  mps_fmt_t format;
@@ -31,7 +31,7 @@ static void test(void)
  mps_ap_t ap;
  mps_addr_t p;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
  fmtA.align = (mps_align_t) 4;
  fmtA.scan  = &zilch;
@@ -42,11 +42,11 @@ static void test(void)
  fmtA.pad   = &zilch;
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format),
   "create pool");
 
  cdie(
@@ -69,8 +69,8 @@ do
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

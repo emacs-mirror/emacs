@@ -37,7 +37,7 @@ END_HEADER
 
 void *stackpointer;
 
-mps_space_t arena1, arena2;
+mps_arena_t arena1, arena2;
 mps_pool_t poolamc1, poolamc2;
 mps_thr_t thread1, thread2;
 mps_root_t root1, root1a, root2, root2a;
@@ -66,9 +66,9 @@ static void test(void) {
  mycell *r1, *r2, *s1, *s2;
 
  cdie(mps_arena_create(&arena1, mps_arena_class_vm(),
-   (size_t) 1024*1024*ARENALIMIT), "create space");
+   (size_t) 1024*1024*ARENALIMIT), "create arena");
  cdie(mps_arena_create(&arena2, mps_arena_class_vm(),
-   (size_t) 1024*1024*ARENALIMIT), "create space");
+   (size_t) 1024*1024*ARENALIMIT), "create arena");
 
  cdie(mps_thread_reg(&thread1, arena1), "register thread");
  cdie(mps_thread_reg(&thread2, arena2), "register thread");
@@ -188,7 +188,7 @@ static void test(void) {
 
  mps_arena_destroy(arena1);
  mps_arena_destroy(arena2);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 int main(void)

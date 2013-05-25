@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = test of mps_ld_merge
  language = c
  link = testlib.o rankfmt.o
@@ -179,7 +179,7 @@ static void test(void) {
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(arena);
+ mps_arena_destroy(arena);
  comment("Destroyed arena.");
 
 }

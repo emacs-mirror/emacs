@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create a space and then destroy it
+ id = $Id$
+ summary = create an arena and then destroy it
  language = c
  link = testlib.o
 END_HEADER
@@ -11,10 +11,11 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
 
- cdie(mps_space_create(&space), "create space");
- mps_space_destroy(space);
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
+ mps_arena_destroy(arena);
 }
 
 int main(void)

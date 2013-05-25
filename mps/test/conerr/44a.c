@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create register root without registering thread
  language = c
  link = myfmt.o testlib.o
@@ -15,18 +15,18 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_root_t root;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
 /*
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 */
 
  cdie(
-  mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
+  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
@@ -38,8 +38,8 @@ static void test(void)
  comment("Deregistered thread.");
 */
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

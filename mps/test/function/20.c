@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create lots of formats at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o
@@ -17,7 +17,7 @@ END_HEADER
 void *stackpointer;
 
 static void test(void) {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_fmt_t format;
@@ -26,12 +26,12 @@ static void test(void) {
 
  int p;
 
- die(mps_space_create(&space), "create");
- die(mps_thread_reg(&thread, space), "register thread");
- die(mps_root_create_reg(&root, space, mps_rank_ambig(), 0, thread,
+ die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
+ die(mps_thread_reg(&thread, arena), "register thread");
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create root");
 
- die(mps_pool_create(&pool, space, mps_class_mv(),
+ die(mps_pool_create(&pool, arena, mps_class_mv(),
   1024*32, 1024*16, 1024*256), "pool");
 
  while (mps_alloc(&q, pool, 64*1024)==MPS_RES_OK);
@@ -39,7 +39,7 @@ static void test(void) {
 
  while (1) {
   p++;
-  die(mps_fmt_create_A(&format, space, &fmtA), "create format");
+  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
   report("format", "%i", p);
  }
 

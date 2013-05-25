@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.22) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # provides subroutines to run tests and testsets
 #
