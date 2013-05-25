@@ -82,7 +82,7 @@ static void test(void) {
   "create format");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create awl pool");
 
  cdie(
