@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = mps_park and mps_amc_apply
+ summary = mps_arena_park and mps_amc_apply
  language = c
  link = testlib.o exfmt.o
 END_HEADER
