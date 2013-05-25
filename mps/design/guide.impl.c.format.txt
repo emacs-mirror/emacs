@@ -50,8 +50,8 @@ sub-expressions more tightly. For example::
 
     foo = x + y*z;
 
-_`.space.control`: One space between the keywords `if`, `switch`, `while`,
-`for` and the following paren.  _`.space.control.why`: This distinguishes
+_`.space.control`: One space between the keyword, ``switch``, ``while``,
+``for`` and the following paren.  _`.space.control.why`: This distinguishes
 control statements lexically from function calls, making it easier to
 distinguish them visually and when searching with tools like grep.
 
@@ -162,7 +162,7 @@ non-label part of the statement normally.
     }
 
 _`.indent.case-label`: Outdent case- and default-labels in a switch
-statement in the same way as .indent.goto-label.  See .switch.
+statement in the same way as `.indent.goto-label`_.  See `.switch`_.
 
 _`.indent.cont`: If an expression or statement won't fit on a single line,
 indent the continuation lines by two spaces, apart from the following
@@ -170,7 +170,7 @@ exception:
 
 _`.indent.cont.parens`: if you break a statement inside a parameter list or
 other parenthesized expression, indent so that the continuation lines up
-just after the open parenthesis. For example:
+just after the open parenthesis. For example::
 
     PoolClassInit(&PoolClassMVStruct,
                   "MV", init, finish, allocP, freeP,
@@ -221,17 +221,17 @@ The same applies to struct, enum, union.
 
 _`.brace.otb.function.not`: OTB is never used for function definitions.
 
-_`.brace.always`: Braces are always required after `if`, `else`, `switch`,
-`while`, `do`, and `for`.
+_`.brace.always`: Braces are always required after ``if``, ``else``, ``switch``,
+``while``, ``do``, and ``for``.
 
-_`.brace.always.except`: Except that a lone `if` with no `else` is allowed
+_`.brace.always.except`: Except that a lone ``if`` with no ``else`` is allowed
 to drop its braces when its body is a single simple statement. Typically
-this will be a `goto` or an assignment. For example::
+this will be a ``goto`` or an assignment. For example::
 
     if (res != ResOK)
       goto failStart;
 
-Note in particular that an `if` with an `else` must have braces on both
+Note in particular that an ``if`` with an ``else`` must have braces on both
 paths.
 
 Switch Statements
@@ -264,17 +264,17 @@ _`.switch`: format switch statements like this::
 The component rules that result in this style are:
 
 _`.switch.break`: The last line of every case-clause body must be an
-unconditional jump statement (usually `break`, but may be `goto`,
-`continue`, or `return`), or if a fall-through is intended, the comment
-`/* fall-through */`. (Note: if the unconditional jump should never be
-taken, because of previous conditional jumps, use `NOTREACHED` on the
+unconditional jump statement (usually ``break``, but may be ``goto``,
+``continue``, or ``return``), or if a fall-through is intended, the comment
+``/* fall-through */``. (Note: if the unconditional jump should never be
+taken, because of previous conditional jumps, use ``NOTREACHED`` on the
 line before it). This rule is to prevent accidental fall-throughs, even
 if someone makes a editing mistake that causes a conditional jump to be
 missed.
 
 _`.switch.default`: It is usually a good idea to have a default-clause,
-even if all it contains is `NOTREACHED` and `break`.  Remember that
-`NOTREACHED` doesn't stop the process in all build varieties.
+even if all it contains is ``NOTREACHED`` and ``break``.  Remember that
+``NOTREACHED`` doesn't stop the process in all build varieties.
 
 
 Formatting Comments
@@ -287,7 +287,7 @@ _`.comment.banner`: Banner comments come at the start of sections. A banner
 comment consists of a heading usually composed of a symbol, an em-dash
 (--) and an short explanation, followed by English text which is
 formatted using conventional text documentation guidelines (see
-guide.text). The open and close comment tokens ("/\*" and "\*/") are
+guide.text). The open and close comment tokens (``/*`` and ``*/``) are
 placed at the top and bottom of a column of asterisks. The text is
 separated from the asterisks by one space. Place a blank line between
 the banner comment and the section it comments. For example::
@@ -304,7 +304,7 @@ the banner comment and the section it comments. For example::
 
 _`.comment.para`: Paragraph comments come at the start of paragraphs in the
 code. A paragraph comment consists of formatted English text, with each
-line wrapped by the open and close comment tokens ("/\*" and "\*/").
+line wrapped by the open and close comment tokens (``/*`` and ``*/``).
 (This avoids problems when cutting and pasting comments.) For example::
 
       /* If the freed area is in the base sentinel then insert */
@@ -361,7 +361,7 @@ History
 - 2007-06-04  DRJ_  Adopted from Harlequin MMinfo version and edited.
 
 - 2007-06-04  DRJ_  Changed .width from 80 to 72. Banned space between
-  `if` and `(`. Required braces on almost everything. Clarified that
+  ``if`` and ``(``. Required braces on almost everything. Clarified that
   paragraph comments precede the code.
 
 - 2007-06-13  RHSK_  Removed .brace.block, because MPS source always
@@ -369,7 +369,7 @@ History
   showing an example is sufficient. New rules for .switch.*: current MPS
   practice is a mess, so lay down a neat new law.
 
-- 2007-06-27  RHSK_  Added .space.function.not.
+- 2007-06-27  RHSK_  Added `.space.function.not`_.
 
 - 2007-07-17  DRJ_  Added .macro.\*
 
