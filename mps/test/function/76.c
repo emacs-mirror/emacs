@@ -62,7 +62,7 @@ static void test(void)
  die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
      "create pool(amc)");
 
- cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+ cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create pool(awl)");
 
  cdie(mps_pool_create(&poollo, arena, mps_class_lo(), format),

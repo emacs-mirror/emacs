@@ -94,7 +94,7 @@ static void test(void) {
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create awl pool");
 
  cdie(

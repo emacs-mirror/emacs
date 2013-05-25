@@ -46,7 +46,7 @@ static void test(void) {
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
- cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+ cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create pool");
 
  cdie(mps_ap_create(&apawl, poolawl, mps_rank_exact()),
