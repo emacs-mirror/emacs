@@ -10,6 +10,11 @@ END_HEADER
 #include "testlib.h"
 #include "mpscamc.h"
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
 static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
@@ -61,6 +66,7 @@ static void test(void)
  mps_thr_t thread;
  mps_root_t root;
 
+ mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t ap;
 
@@ -81,8 +87,10 @@ static void test(void)
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
@@ -102,6 +110,7 @@ static void test(void)
  mps_ap_destroy(ap);
  mps_pool_destroy(pool);
  mps_fmt_destroy(format);
+ mps_chain_destroy(chain);
  mps_root_destroy(root);
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);

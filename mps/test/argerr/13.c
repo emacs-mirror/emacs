@@ -12,6 +12,11 @@ END_HEADER
 #include "newfmt.h"
 #include "arg.h"
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
 static void test(void)
@@ -21,6 +26,7 @@ static void test(void)
  mps_thr_t thread;
  mps_root_t root;
 
+ mps_chain_t chain;
  mps_fmt_t format;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
@@ -38,8 +44,10 @@ static void test(void)
 
  formatcomments = 0;
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  adie(
-  mps_pool_create(&pool, UNALIGNED, mps_class_amc(), format),
+  mps_pool_create(&pool, UNALIGNED, mps_class_amc(), format, chain),
   "create pool");
 
 }
