@@ -31,6 +31,11 @@ END_HEADER
 #define COLLECT_WORLD
 */
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
 mps_arena_t arena;
@@ -38,6 +43,7 @@ mps_pool_t poolamc;
 mps_thr_t thread;
 mps_root_t root, root1;
 
+mps_chain_t chain;
 mps_fmt_t format;
 mps_ap_t apamc;
 
@@ -81,8 +87,10 @@ static void test(void) {
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
@@ -150,6 +158,9 @@ static void test(void) {
 
  mps_fmt_destroy(format);
  comment("Destroyed format.");
+
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
 
  mps_root_destroy(root1);
  mps_root_destroy(root);

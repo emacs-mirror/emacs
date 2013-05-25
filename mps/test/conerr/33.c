@@ -10,6 +10,11 @@ END_HEADER
 #include "testlib.h"
 #include "mpscamc.h"
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 static void zilch(void)
 {
 }
@@ -26,6 +31,7 @@ static void test(void)
  mps_arena_t arena;
  mps_pool_t pool;
 
+ mps_chain_t chain;
  mps_fmt_t format;
  mps_fmt_A_s fmtA;
  mps_ap_t ap;
@@ -44,8 +50,10 @@ static void test(void)
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
@@ -60,6 +68,9 @@ static void test(void)
 
  mps_fmt_destroy(format);
  comment("Destroyed format.");
+
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
 
  mps_arena_destroy(arena);
  comment("Destroyed arena.");

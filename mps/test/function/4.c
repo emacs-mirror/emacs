@@ -19,6 +19,11 @@ END_HEADER
 #include "mpscamc.h"
 #include "myfmt.h"
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
 static void test(void)
@@ -28,6 +33,7 @@ static void test(void)
  mps_thr_t thread;
  mps_root_t root;
 
+ mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t ap;
 
@@ -52,8 +58,10 @@ static void test(void)
 
  formatcomments = 0;
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
@@ -94,6 +102,9 @@ static void test(void)
 
  mps_fmt_destroy(format);
  comment("Destroyed format.");
+
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
 
  mps_root_destroy(root);
  comment("Destroyed root.");
