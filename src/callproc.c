@@ -190,11 +190,11 @@ DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').
-Insert output in BUFFER before point; t means current buffer; nil for BUFFER
+Insert output in DESTINATION before point; t means current buffer; nil for DESTINATION
  means discard it; 0 means discard and don't wait; and `(:file FILE)', where
  FILE is a file name string, means that it should be written to that file
  \(if the file already exists it is overwritten).
-BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
+DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
 STDERR-FILE may be nil (discard standard error output),
@@ -207,12 +207,12 @@ If executable PROGRAM can't be found as an executable, `call-process'
 signals a Lisp error.  `call-process' reports errors in execution of
 the program only through its return and output.
 
-If BUFFER is 0, `call-process' returns immediately with value nil.
+If DESTINATION is 0, `call-process' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
-usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
+usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
