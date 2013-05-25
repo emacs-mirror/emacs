@@ -367,6 +367,12 @@ mps_addr_t getdata(mycell *obj)
  return (mps_addr_t) &(obj->data.ref[0]);
 }
 
+mps_addr_t getassociated(mps_addr_t addr)
+{
+  mycell *obj = addr;
+  return (mps_addr_t) &(obj->data.ref[1]);
+}
+
 long int getid(mycell *obj)
 {
  asserts(obj->tag == MCdata, "getid: non-data object.");
