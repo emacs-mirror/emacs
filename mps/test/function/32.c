@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!32.c(trunk.5) $
+ id = $Id$
  summary = random test of exact references in AWL 
  language = c
  link = testlib.o awlfmt.o

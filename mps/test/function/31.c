@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!31.c(trunk.5) $
+ id = $Id$
  summary = regression test for request.dylan.170459 (scanning and buffers in AWL)
  language = c
  link = testlib.o awlfmt.o

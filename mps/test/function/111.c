@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!111.c(trunk.5) $
+ id = $Id$
  summary = wait until all registered objects are finalized
  language = c
  link = testlib.o rankfmt.o

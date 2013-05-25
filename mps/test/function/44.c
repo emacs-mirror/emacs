@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!44.c(trunk.5) $
+ id = $Id$
  summary = clamp and arena_collect tests
  language = c
  harness = 2.1

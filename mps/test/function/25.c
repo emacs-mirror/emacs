@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!25.c(trunk.6) $
+ id = $Id$
  summary = string twiddling with an LO pool
  language = c
  link = lofmt.o testlib.o

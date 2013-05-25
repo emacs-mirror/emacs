@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!39.c(trunk.5) $
+ id = $Id$
  summary = try to provoke request.dylan.170463 using LO pool
  language = c
  link = testlib.o awlfmt.o

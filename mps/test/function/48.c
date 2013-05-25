@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!48.c(trunk.4) $
+ id = $Id$
  summary = test awl and amc pools, checking ranks work properly
  language = c
  link = testlib.o rankfmt.o

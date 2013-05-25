@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!132.c(trunk.6) $
+ id = $Id$
  summary = low-memory reservoir tests with commit limit, part I
  language = c
  harness = 2.1

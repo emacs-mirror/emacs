@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!40.c(trunk.5) $
+ id = $Id$
  summary =  check tagged roots are scanned correctly
  language = c
  link = testlib.o exfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!105.c(trunk.2) $
+ id = $Id$
  summary = weak refs to nailed amc objects are not splatted
  language = c
  link = testlib.o rankfmt.o

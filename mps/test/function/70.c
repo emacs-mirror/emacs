@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!70.c(trunk.3) $
+ id = $Id$
  summary = create an arena and see how much mem is taken
  language = c
  link = testlib.o

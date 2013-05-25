@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!43.c(trunk.4) $
+ id = $Id$
  summary = regresion test for request.dylan.170461
  language = c
  link = testlib.o awlfmt.o

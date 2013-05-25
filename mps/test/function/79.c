@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!79.c(trunk.3) $
+ id = $Id$
  summary = AMC and AMC performance
  language = c
  link = testlib.o fastfmt.o

@@ -1,6 +1,6 @@
 /*
 TEST_HEADER
- id = $HopeName: MMQA_test_function!207.c(trunk.3) $
+ id = $Id$
  summary = MVFF low-memory test, 4-byte alignment and small objects
  language = c
  link = testlib.o

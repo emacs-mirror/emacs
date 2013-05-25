@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!112.c(trunk.3) $
+ id = $Id$
  summary = AMCZ pool should get collected
  language = c
  link = testlib.o rankfmt.o

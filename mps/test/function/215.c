@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!215.c(trunk.2) $
+ id = $Id$
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o

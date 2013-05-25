@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!165.c(trunk.1) $
+ id = $Id$
  summary = simple spare_commit_limit test
  language = c
  link = testlib.o rankfmt.o
