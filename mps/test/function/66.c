@@ -53,6 +53,8 @@ static void test(void) {
  mps_fmt_t format;
  mps_ap_t apawl, apamc;
 
+ mps_addr_t base;
+ mps_addr_t *addr;
  mycell *a, *b;
 
  int i,j;
@@ -63,8 +65,10 @@ static void test(void) {
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
+ base = &exfmt_root;
+ addr = base;
  cdie(
-  mps_root_create_table(&root0, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
+  mps_root_create_table(&root0, arena, mps_rank_ambig(), 0, addr, 1),
   "create exfmt root");
 
  cdie(
