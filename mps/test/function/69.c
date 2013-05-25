@@ -75,7 +75,7 @@ static void test(void) {
  a = allocone(ap, 4000, 1);
  mps_arena_collect(arena);
 
- if (!mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
+ if (!mps_message_get(&message, arena, mps_message_type_finalization())) {
   error("No message on queue!");
  }
 

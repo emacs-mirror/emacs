@@ -117,7 +117,7 @@ static void finalpoll(mycell **ref, int faction)
 {
  mps_message_t message;
 
- if (mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
+ if (mps_message_get(&message, arena, mps_message_type_finalization())) {
   final_count -=1;
   process_mess(message, faction, (mps_addr_t*)ref);
  }
