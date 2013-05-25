@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!52.c(trunk.6) $
+ id = $Id$
  summary = provoke mad behaviour by constant allocation
  language = c
  link = rankfmt.o testlib.o

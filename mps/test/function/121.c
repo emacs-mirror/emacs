@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!121.c(trunk.2) $
+ id = $Id$
  summary = very small arenas
  language = c
  link = testlib.o

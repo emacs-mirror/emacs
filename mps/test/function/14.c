@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!14.c(trunk.5) $
+ id = $Id$
  summary = regression test for bug when commit fails
  language = c
  link = testlib.o newfmt.o

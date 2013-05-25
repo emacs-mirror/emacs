@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!63.c(trunk.4) $
+ id = $Id$
  summary = loops wthin an AMC pool
  language = c
  link = testlib.o awlfmt.o

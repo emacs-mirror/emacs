@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!74.c(trunk.4) $
+ id = $Id$
  summary = LO pool should get collected (cf request.dylan.170322)
  language = c
  link = testlib.o rankfmt.o

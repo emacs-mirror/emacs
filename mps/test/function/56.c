@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!56.c(trunk.5) $
+ id = $Id$
  summary = use AMC and AMC without inactive LO pool
  language = c
  link = testlib.o awlfmt.o

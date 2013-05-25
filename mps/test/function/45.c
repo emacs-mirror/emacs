@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!45.c(trunk.4) $
+ id = $Id$
  summary = arena_collect when lots of APs are in mid-cycle
  language = c
  link = testlib.o newfmt.o

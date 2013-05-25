@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!150.c(trunk.6) $
+ id = $Id$
  summary = finalization and collection stats
  language = c
  link = testlib.o rankfmt.o

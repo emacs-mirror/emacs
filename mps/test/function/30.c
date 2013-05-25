@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!30.c(trunk.6) $
+ id = $Id$
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o

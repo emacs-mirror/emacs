@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!124.c(trunk.2) $
+ id = $Id$
  summary = allocate in 2 arenas
  language = c
  link = testlib.o rankfmt.o

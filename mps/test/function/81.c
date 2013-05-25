@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!81.c(trunk.4) $
+ id = $Id$
  summary = run out of memory while collecting
  language = c
  link = testlib.o fastfmt.o

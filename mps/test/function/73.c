@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!73.c(trunk.4) $
+ id = $Id$
  summary = AWL pool should get collected (request.dylan.170322)
  language = c
  link = testlib.o rankfmt.o

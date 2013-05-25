@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!15.c(trunk.5) $
+ id = $Id$
  summary = destroy AMC pool in mid-collection
  language = c
  link = testlib.o newfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!67.c(trunk.5) $
+ id = $Id$
  summary = test for non-bug with mark-sweep scanning in AWL
  language = c
  link = testlib.o exfmt.o

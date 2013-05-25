@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!12.c(trunk.8) $
+ id = $Id$
  summary = lots of APs with interleaved reserve and 2-stage commit
  language = c
  link = testlib.o newfmt.o

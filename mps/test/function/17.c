@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!17.c(trunk.6) $
+ id = $Id$
  summary = create and destroy lots of pools (interleaved)
  language = c
  link = testlib.o newfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!117.c(trunk.2) $
+ id = $Id$
  summary = should collect objects on buffered segs (request.dylan.160064)
  language = c
  link = testlib.o rankfmt.o

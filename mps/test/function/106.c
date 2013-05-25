@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!106.c(trunk.3) $
+ id = $Id$
  summary = string twiddling with an AMCZ pool
  language = c
  link = lofmt.o testlib.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!29.c(trunk.4) $
+ id = $Id$
  summary = big allocation with an LO pool
  language = c
  link = lofmt.o testlib.o

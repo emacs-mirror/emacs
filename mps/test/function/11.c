@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!11.c(trunk.7) $
+ id = $Id$
  summary = lots of allocation to provoke mmap error in sunos
  language = c
  link = myfmt.o testlib.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!19.c(trunk.5) $
+ id = $Id$
  summary = create lots of aps at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o

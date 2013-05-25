@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName:$
+ id = $Id$
  summary = test of ramp allocation with tiny arena
  language = c
  link = testlib.o rankfmt.o

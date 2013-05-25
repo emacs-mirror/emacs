@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!110.c(trunk.5) $
+ id = $Id$
  summary = finalization tests with AMC, AWL and AMCZ
  language = c
  link = testlib.o rankfmt.o

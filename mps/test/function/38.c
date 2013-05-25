@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!38.c(trunk.7) $
+ id = $Id$
  summary = test of location dependencies
  language = c
  link = testlib.o rankfmt.o
