@@ -1,3 +1,29 @@
+2013-05-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Remove.
+	(struct MonitorInfo, free_monitors): Remove.
+	(x_make_monitor_attribute_list): Call make_monitor_attribute_list.
+	(Fx_display_monitor_attributes_list): Call make_monitor_attribute_list.
+	(syms_of_xfns): Remove DEFSYM for Qgeometry, Qworkarea, Qmm_size,
+	Qframes, Qsource.
+
+	* nsfns.m (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Remove.
+	(struct MonitorInfo, free_monitors): Remove.
+	(ns_screen_name): Make static.
+	(ns_make_monitor_attribute_list): Call make_monitor_attribute_list.
+	(syms_of_nsfns): Remove DEFSYM for Qgeometry, Qworkarea, Qmm_size,
+	Qframes, Qsource.
+
+	* frame.h (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Declare.
+	(struct MonitorInfo): New struct.
+	(free_monitors, make_monitor_attribute_list): Declare.
+
+	* frame.c (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): New
+	Lisp_Object:s.
+	(free_monitors, make_monitor_attribute_list): New functions.
+	(syms_of_frame): DEFSYM Qgeometry, Qworkarea, Qmm_size, Qframes,
+	Qsource.
+
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* callproc.c (call_process): Refine the doc string.  (Bug#14045)

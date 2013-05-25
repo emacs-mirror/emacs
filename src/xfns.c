@@ -133,7 +133,6 @@ extern LWLIB_ID widget_id_tick;
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
-static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 Lisp_Object Qfont_param;
 
 #ifdef GLYPH_DEBUG
@@ -3882,24 +3881,6 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
 #ifndef USE_GTK
 
-struct MonitorInfo {
-  XRectangle geom, work;
-  int mm_width, mm_height;
-  char *name;
-};
-
-#if defined HAVE_XINERAMA || defined HAVE_XRANDR
-static void
-free_monitors (struct MonitorInfo *monitors, int n_monitors)
-{
-  int i;
-  for (i = 0; i < n_monitors; ++i)
-    xfree (monitors[i].name);
-  xfree (monitors);
-}
-#endif /* HAVE_XINERAMA || HAVE_XRANDR */
-
-
 /* Return monitor number where F is "most" or closest to.  */
 static int
 x_get_monitor_for_frame (struct frame *f,
@@ -3971,9 +3952,7 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                const char *source)
 {
   Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
-  Lisp_Object frame, rest, attributes_list = Qnil;
-  Lisp_Object primary_monitor_attributes = Qnil;
-  int i;
+  Lisp_Object frame, rest;
 
   FOR_EACH_FRAME (rest, frame)
     {
@@ -3982,46 +3961,13 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
       if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo
 	  && !EQ (frame, tip_frame))
 	{
-	  i = x_get_monitor_for_frame (f, monitors, n_monitors);
+	  int i = x_get_monitor_for_frame (f, monitors, n_monitors);
 	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
 
-  for (i = 0; i < n_monitors; ++i)
-    {
-      Lisp_Object geometry, workarea, attributes = Qnil;
-      struct MonitorInfo *mi = &monitors[i];
-
-      if (mi->geom.width == 0) continue;
-
-      workarea = list4i (mi->work.x, mi->work.y,
-			 mi->work.width, mi->work.height);
-      geometry = list4i (mi->geom.x, mi->geom.y,
-			 mi->geom.width, mi->geom.height);
-      attributes = Fcons (Fcons (Qsource,
-                                 make_string (source, strlen (source))),
-                          attributes);
-      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
-			  attributes);
-      attributes = Fcons (Fcons (Qmm_size,
-                                 list2i (mi->mm_width, mi->mm_height)),
-                          attributes);
-      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
-      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
-      if (mi->name)
-        attributes = Fcons (Fcons (Qname, make_string (mi->name,
-                                                       strlen (mi->name))),
-                            attributes);
-
-      if (i == primary_monitor)
-        primary_monitor_attributes = attributes;
-      else
-        attributes_list = Fcons (attributes, attributes_list);
-    }
-
-  if (!NILP (primary_monitor_attributes))
-    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
-  return attributes_list;
+  return make_monitor_attribute_list (monitors, n_monitors, primary_monitor,
+                                      monitor_frames, source);
 }
 
 static Lisp_Object
@@ -4270,9 +4216,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   GdkDisplay *gdpy;
   GdkScreen *gscreen;
   gint primary_monitor = 0, n_monitors, i;
-  Lisp_Object primary_monitor_attributes = Qnil;
   Lisp_Object monitor_frames, rest, frame;
   static const char *source = "Gdk";
+  struct MonitorInfo *monitors;
 
   block_input ();
   mm_width_per_pixel = ((double) WidthMMOfScreen (dpyinfo->screen)
@@ -4286,6 +4232,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
   monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+
   FOR_EACH_FRAME (rest, frame)
     {
       struct frame *f = XFRAME (frame);
@@ -4300,21 +4248,13 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 	}
     }
 
-  i = n_monitors;
-  while (i-- > 0)
+  for (i = 0; i < n_monitors; ++i)
     {
-      Lisp_Object geometry, workarea, attributes = Qnil;
       gint width_mm = -1, height_mm = -1;
-      GdkRectangle rec;
-
-      attributes = Fcons (Fcons (Qsource,
-                                 make_string (source, strlen (source))),
-                          attributes);
-      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
-			  attributes);
+      GdkRectangle rec, work;
+      struct MonitorInfo *mi = &monitors[i];
 
       gdk_screen_get_monitor_geometry (gscreen, i, &rec);
-      geometry = list4i (rec.x, rec.y, rec.width, rec.height);
 
 #if GTK_CHECK_VERSION (2, 14, 0)
       width_mm = gdk_screen_get_monitor_width_mm (gscreen, i);
@@ -4324,54 +4264,50 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 	width_mm = rec.width * mm_width_per_pixel + 0.5;
       if (height_mm < 0)
 	height_mm = rec.height * mm_height_per_pixel + 0.5;
-      attributes = Fcons (Fcons (Qmm_size,
-				 list2i (width_mm, height_mm)),
-			  attributes);
 
 #if GTK_CHECK_VERSION (3, 4, 0)
-      gdk_screen_get_monitor_workarea (gscreen, i, &rec);
-      workarea = list4i (rec.x, rec.y, rec.width, rec.height);
+      gdk_screen_get_monitor_workarea (gscreen, i, &work);
 #else
       /* Emulate the behavior of GTK+ 3.4.  */
       {
 	XRectangle workarea_r;
 
-	workarea = Qnil;
 	if (i == primary_monitor && x_get_net_workarea (dpyinfo, &workarea_r))
 	  {
-	    GdkRectangle work;
-
 	    work.x = workarea_r.x;
 	    work.y = workarea_r.y;
 	    work.width = workarea_r.width;
 	    work.height = workarea_r.height;
-	    if (gdk_rectangle_intersect (&rec, &work, &work))
-	      workarea = list4i (work.x, work.y, work.width, work.height);
-	  }
-	if (NILP (workarea))
-	  workarea = geometry;
+	    if (! gdk_rectangle_intersect (&rec, &work, &work))
+              work = rec;
+          }
+        else
+          work = rec;
       }
 #endif
-      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
 
-      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+
+      mi->geom.x = rec.x;
+      mi->geom.y = rec.y;
+      mi->geom.width = rec.width;
+      mi->geom.height = rec.height;
+      mi->work.x = work.x;
+      mi->work.y = work.y;
+      mi->work.width = work.width;
+      mi->work.height = work.height;
+      mi->mm_width = width_mm;
+      mi->mm_height = height_mm;
+
 #if GTK_CHECK_VERSION (2, 14, 0)
-      {
-        char *name = gdk_screen_get_monitor_plug_name (gscreen, i);
-        if (name)
-          attributes = Fcons (Fcons (Qname, make_string (name, strlen (name))),
-                              attributes);
-      }
+      mi->name = gdk_screen_get_monitor_plug_name (gscreen, i);
 #endif
-
-      if (i == primary_monitor)
-	primary_monitor_attributes = attributes;
-      else
-	attributes_list = Fcons (attributes, attributes_list);
     }
 
-  if (!NILP (primary_monitor_attributes))
-    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+  attributes_list = make_monitor_attribute_list (monitors,
+                                                 n_monitors,
+                                                 primary_monitor,
+                                                 monitor_frames,
+                                                 source);
   unblock_input ();
 #else  /* not USE_GTK */
 
@@ -6294,11 +6230,6 @@ syms_of_xfns (void)
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
   DEFSYM (Qcancel_timer, "cancel-timer");
-  DEFSYM (Qgeometry, "geometry");
-  DEFSYM (Qworkarea, "workarea");
-  DEFSYM (Qmm_size, "mm-size");
-  DEFSYM (Qframes, "frames");
-  DEFSYM (Qsource, "source");
   DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 

@@ -105,7 +105,6 @@ static int as_status;
 static ptrdiff_t image_cache_refcount;
 #endif
 
-static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
 /* ==========================================================================
 
@@ -2328,27 +2327,12 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   return make_number (x_display_pixel_height (dpyinfo));
 }
 
-struct MonitorInfo {
-  XRectangle geom, work;
-  int mm_width, mm_height;
-  char *name;
-};
-
-static void
-free_monitors (struct MonitorInfo *monitors, int n_monitors)
-{
-  int i;
-  for (i = 0; i < n_monitors; ++i)
-    xfree (monitors[i].name);
-  xfree (monitors);
-}
-
 #ifdef NS_IMPL_COCOA
 /* Returns the name for the screen that DICT came from, or NULL.
    Caller must free return value.
 */
 
-char *
+static char *
 ns_screen_name (CGDirectDisplayID did)
 {
   char *name = NULL;
@@ -2377,8 +2361,7 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                 const char *source)
 {
   Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
-  Lisp_Object frame, rest, attributes_list = Qnil;
-  Lisp_Object primary_monitor_attributes = Qnil;
+  Lisp_Object frame, rest;
   NSArray *screens = [NSScreen screens];
   int i;
 
@@ -2404,41 +2387,8 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
 	}
     }
 
-  for (i = 0; i < n_monitors; ++i)
-    {
-      Lisp_Object geometry, workarea, attributes = Qnil;
-      struct MonitorInfo *mi = &monitors[i];
-
-      if (mi->geom.width == 0) continue;
-
-      workarea = list4i (mi->work.x, mi->work.y,
-			 mi->work.width, mi->work.height);
-      geometry = list4i (mi->geom.x, mi->geom.y,
-			 mi->geom.width, mi->geom.height);
-      attributes = Fcons (Fcons (Qsource,
-                                 make_string (source, strlen (source))),
-                          attributes);
-      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
-			  attributes);
-      attributes = Fcons (Fcons (Qmm_size,
-                                 list2i (mi->mm_width, mi->mm_height)),
-                          attributes);
-      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
-      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
-      if (mi->name)
-        attributes = Fcons (Fcons (Qname, make_string (mi->name,
-                                                       strlen (mi->name))),
-                            attributes);
-
-      if (i == primary_monitor)
-        primary_monitor_attributes = attributes;
-      else
-        attributes_list = Fcons (attributes, attributes_list);
-    }
-
-  if (!NILP (primary_monitor_attributes))
-    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
-  return attributes_list;
+  return make_monitor_attribute_list (monitors, n_monitors, primary_monitor,
+                                      monitor_frames, source);
 }
 
 DEFUN ("ns-display-monitor-attributes-list",
@@ -2922,11 +2872,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 void
 syms_of_nsfns (void)
 {
-  DEFSYM (Qgeometry, "geometry");
-  DEFSYM (Qworkarea, "workarea");
-  DEFSYM (Qmm_size, "mm-size");
-  DEFSYM (Qframes, "frames");
-  DEFSYM (Qsource, "source");
   Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 

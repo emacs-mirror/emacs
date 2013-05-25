@@ -1198,6 +1198,8 @@ extern Lisp_Object Qdisplay;
 
 extern Lisp_Object Qrun_hook_with_args;
 
+extern Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The class of this X application.  */
@@ -1288,6 +1290,28 @@ extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+/***********************************************************************
+			Multimonitor data
+ ***********************************************************************/
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+struct MonitorInfo {
+  XRectangle geom, work;
+  int mm_width, mm_height;
+  char *name;
+};
+
+extern void free_monitors (struct MonitorInfo *monitors, int n_monitors);
+extern Lisp_Object make_monitor_attribute_list (struct MonitorInfo *monitors,
+                                                int n_monitors,
+                                                int primary_monitor,
+                                                Lisp_Object monitor_frames,
+                                                const char *source);
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 
 INLINE_HEADER_END
 
