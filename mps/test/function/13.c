@@ -28,6 +28,11 @@ END_HEADER
 #include "mpscamc.h"
 #include "newfmt.h"
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
 #define NCELLS 100
@@ -49,6 +54,7 @@ static void test(void)
  mps_thr_t thread;
  mps_root_t root;
 
+ mps_chain_t chain;
  mps_fmt_t format;
  mycell *cells;
 
@@ -76,8 +82,10 @@ static void test(void)
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&pool, arena, mps_class_amc(), format),
+  mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
   "create pool");
 
  for (i=0; i<NAPS; i++)
@@ -189,6 +197,9 @@ cells = allocone(ap[0], NCELLS);
 
  mps_fmt_destroy(format);
  comment("Destroyed format.");
+
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
 
  mps_root_destroy(root);
  comment("Destroyed root.");
