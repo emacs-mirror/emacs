@@ -1,3 +1,8 @@
+2013-05-25  Leo Liu  <sdl.web@gmail.com>
+
+	* comint.el (comint-previous-matching-input): Do not flood the
+	*Messages* buffer with trivial messages.
+
 2013-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-nop): Don't return a string.
