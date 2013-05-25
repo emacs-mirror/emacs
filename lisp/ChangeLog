@@ -1,3 +1,12 @@
+2013-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (unmsys--filename): Renamed from reveal-filename.
+
+	* Makefile.in (custom-deps, finder-data, autoloads)
+	($(MH_E_DIR)/mh-loaddefs.el, $(TRAMP_DIR)/tramp-loaddefs.el)
+	($(CAL_DIR)/cal-loaddefs.el, $(CAL_DIR)/diary-loaddefs.el)
+	($(CAL_DIR)/hol-loaddefs.el): All users changed.
+
 2013-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Don't use

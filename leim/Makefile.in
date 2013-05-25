@@ -140,7 +140,7 @@ leim-list.el: ${TIT_MISC} ${srcdir}/leim-ext.el
 	    --eval "(update-leim-list-file \".\")" ; \
 	else \
 	  ${RUN_EMACS} -l ${buildlisppath}/international/quail \
-	    --eval "(update-leim-list-file \".\" (reveal-filename \"${srcdir}\"))" ; \
+	    --eval "(update-leim-list-file \".\" (unmsys--filename \"${srcdir}\"))" ; \
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
@@ -199,4 +199,4 @@ extraclean: maintainer-clean
 
 check-declare:
 	$(RUN_EMACS) -l $(buildlisppath)/emacs-lisp/check-declare \
-	  --eval '(check-declare-directory (reveal-filename "$(srcdir)"))'
+	  --eval '(check-declare-directory (unmsys--filename "$(srcdir)"))'
