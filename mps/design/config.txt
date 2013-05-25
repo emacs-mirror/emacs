@@ -581,6 +581,7 @@ Document History
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
