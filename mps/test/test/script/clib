@@ -7,6 +7,8 @@
 
 1;
 
+use File::Path qw(rmtree);
+
 sub clib {
  my $success = 1;
  my $tlfile;
@@ -50,7 +52,7 @@ sub objpurge {
  }
  &logcomment("Cleaning out old object files.");
  foreach (readdir(DIR)) {
-  unless ($_ eq "." || $_ eq ".." || unlink $obj_dir."/".$_) {
+  unless ($_ eq "." || $_ eq ".." || rmtree $obj_dir."/".$_) {
    &logcomment("  ... but failed to delete $_.");
   }
  }
