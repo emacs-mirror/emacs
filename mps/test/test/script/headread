@@ -154,7 +154,7 @@ sub read_results {
    } else {
     die "Badly formatted result line in output:\n$_\n";
    }
-  } elsif (/^Abort|^abnormal program termination/ ) {
+  } elsif (/Abort trap|abnormal program termination|MPS ASSERTION FAILED/ ) {
 # abort for other reason
    $real_output{"abort"} = "true";
   } elsif (/^%/ || /^\s$/) {
