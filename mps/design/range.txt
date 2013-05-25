@@ -1,14 +1,14 @@
 .. mode: -*- rst -*-
 
-Range design
-============
+Ranges
+======
 
 :Tag: design.mps.range
 :Author: Gareth Rees
 :Date: 2013-05-21
 :Status: complete design
 :Revision: $Id$
-:Copyright: See section `C. Copyright and License`_.
+:Copyright: See section `Copyright and License`_.
 
 
 Introduction
@@ -24,7 +24,7 @@ Requirements
 ------------
 
 _`.req.range` A range object must be able to represent an arbitrary
-range of addresses that does not include the top byte of the address
+range of addresses that does not include the top grain of the address
 space.
 
 _`.req.empty` A range object must be able to represent the empty
@@ -37,66 +37,65 @@ the stack: that is, they do not require any heap resource.
 Interface
 ---------
 
-.. c:type:: Range
+``typedef RangeStruct *Range``
 
-``Range`` is the type of a range. It is an alias for ``RangeStruct
-*``. ``RangeStruct`` is defined in the header so that it can be
+``Range`` is the type of a range. It is an alias for ``RangeStruct *``. ``RangeStruct`` is defined in the header so that it can be
 inlined in client structures or allocated on the stack. Clients must
 not depend on its implementation details.
 
-.. c:function:: Res RangeInit(Range range, Addr base, Addr limit)
+``Res RangeInit(Range range, Addr base, Addr limit)``
 
 Initialize a range object to represent the half-open address range
 between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
 case that ``base <= limit``. If ``base == limit`` then the range is
 empty.
 
-.. c:function:: void RangeFinish(Range range)
+``void RangeFinish(Range range)``
 
 Finish a range object. Because a range object uses no heap resources
 (`.req.stack-alloc`_) it is not necessary to call this. However,
 clients may wish to do so in order to ensure that the range object is
 invalid.
 
-.. c:function:: Addr RangeBase(Range range)
+``Addr RangeBase(Range range)``
 
 Return the base of the range. (This is implemented as a macro, but
 there is a function too.)
 
-.. c:function:: Addr RangeLimit(Range range);
+``Addr RangeLimit(Range range)``
 
 Return the limit of the range. (This is implemented as a macro, but
 there is a function too.)
 
-.. c:function:: Size RangeSize(Range range)
+``Size RangeSize(Range range)``
 
 Return the size of the range. (This is implemented as a macro, but
 there is a function too. The macro evaluates its argument twice.)
 
-.. c:function:: Bool RangeOverlap(Range range1, Range range2)
+``Bool RangeOverlap(Range range1, Range range2)``
 
 Return ``TRUE`` if the two ranges overlap (have at least one address
-in common), or ``FALSE`` if they do not. Note that ranges [A, B) and
-[B, C) do not overlap.
+in common), or ``FALSE`` if they do not. Note that ranges [*A*, *B*) and
+[*B*, *C*) do not overlap.
 
-.. c:function:: Bool RangeIsAligned(Range range, Align alignment)
+``Bool RangeIsAligned(Range range, Align alignment)``
 
 Return ``TRUE`` if the base and limit of the range are both aligned to
 the given alignment, or ``FALSE`` if either is not.
 
 
-B. Document history
--------------------
+Document history
+----------------
 
 - 2013-05-21 GDR_ Created.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
-C. Copyright and License
-------------------------
+Copyright and License
+---------------------
 
-Copyright (C) 2013 Ravenbrook Limited. All rights reserved. 
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
