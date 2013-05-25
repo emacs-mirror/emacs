@@ -333,7 +333,7 @@ Windows 9X as well).
   Such a single-tree installation makes sure all the other programs
   and packages ported from GNU or Unix systems will work seemlessly
   together.  Where exactly is the root of that tree on your system is
-  soimething only you, the user who builds Emacs, can know, and the
+  something only you, the user who builds Emacs, can know, and the
   Emacs build process cannot guess, because usually there's no
   '/usr/local' directory on any drive on Windows systems.
 
