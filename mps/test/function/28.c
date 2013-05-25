@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!28.c(trunk.4) $
+ id = $Id$
  summary =  provoke segsummary assertion (request.dylan.170450)
  language = c
  link = testlib.o awlfmt.o

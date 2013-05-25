@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!27.c(trunk.4) $
+ id = $Id$
  summary = mutually referring objects should die
  language = c
  link = testlib.o newfmt.o

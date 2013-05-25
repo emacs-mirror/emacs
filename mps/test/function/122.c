@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!122.c(trunk.5) $
+ id = $Id$
  summary = test of mps_arena_roots_walk
  language = c
  link = testlib.o rankfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!5.c(trunk.6) $
+ id = $Id$
  summary = (regression test) have an ambiguous reference to a reserved but not committed object, and then allocate lots more with another AP, to make it collect
  language = c
  link = testlib.o newfmt.o

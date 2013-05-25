@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!65.c(trunk.6) $
+ id = $Id$
  summary = sort-of-leak in arena_collect
  language = c
  link = testlib.o exfmt.o

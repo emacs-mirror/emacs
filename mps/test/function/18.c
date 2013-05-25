@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!18.c(trunk.6) $
+ id = $Id$
  summary = create lots of pools at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!9.c(trunk.4) $
+ id = $Id$
  summary = (regression test) Allocate a big object (>64M, perhaps up to 1G) in an AMC pool
  language = c
  link = testlib.o newfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!72.c(trunk.4) $
+ id = $Id$
  summary = request.dylan.170439 (detect bad pointers)
  language = c
  link = testlib.o exfmt.o

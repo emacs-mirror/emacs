@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!118.c(trunk.5) $
+ id = $Id$
  summary = Collect with a fully initialised (but not committed) buffer
  language = c
  link = testlib.o

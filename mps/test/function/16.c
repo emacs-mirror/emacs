@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!16.c(trunk.5) $
+ id = $Id$
  summary = regression test for scan of invalid obj after I=A
  language = c
  link = testlib.o newfmt.o

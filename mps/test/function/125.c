@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!125.c(trunk.2) $
+ id = $Id$
  summary = extensible arena test (small objects)
  language = c
  link = testlib.o rankfmt.o

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!103.c(trunk.3) $
+ id = $Id$
  summary = more low memory tests with AMC (using MV)
  language = c
  link = testlib.o rankfmt.o

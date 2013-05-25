@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!23.c(trunk.5) $
+ id = $Id$
  summary = ensure allocation in MV pool causes collection
  language = c
  link = newfmt.o testlib.o

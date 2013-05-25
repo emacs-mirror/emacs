@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!83.c(trunk.3) $
+ id = $Id$
  summary = test for bug with segment summaries
  language = c
  link = testlib.o awlfmt.o
