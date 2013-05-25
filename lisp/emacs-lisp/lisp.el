@@ -714,7 +714,11 @@ considered."
                                     (append
                                      macro-declarations-alist
                                      defun-declarations-alist)))))
-                    ((or `condition-case `condition-case-unless-debug)
+                    ((and (or `condition-case `condition-case-unless-debug)
+                          (guard (save-excursion
+                                   (ignore-errors
+                                     (forward-sexp 2)
+                                     (< (point) beg)))))
                      (list t obarray
                            :predicate (lambda (sym) (get sym 'error-conditions))))
                     (_ (list nil obarray #'fboundp))))))))
