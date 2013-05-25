@@ -1,5 +1,5 @@
 ## -*- mode: octave; coding: utf-8 -*-
-
+0;				# Don't make this a function file
 function res = tcomp (fn)
   %% res = tcomp (fn)
   %%     imports components and rearranges them.
@@ -2310,7 +2310,9 @@ function dep = is_architecture_dependent (nm)
       isglob = true;
       ext(end) = [];
     else
-      isglob = false;
+      isglob = false;		# I am a test
+				# me too
+### I shall align to column 0
     endif
     pos = findstr (nm, ext);
     if (pos)
@@ -2322,3 +2324,17 @@ function dep = is_architecture_dependent (nm)
     endif
   endfor
 endfunction
+
+%!assert(norm(logm([1 -1;0 1]) - [0 -1; 0 0]) < 1e-5);
+%!assert(norm(expm(logm([-1 2 ; 4 -1])) - [-1 2 ; 4 -1]) < 1e-5);
+%!assert(logm([1 -1 -1;0 1 -1; 0 0 1]), [0 -1 -1.5; 0 0 -1; 0 0 0], 1e-5);
+%!assert (logm (expm ([0 1i; -1i 0])), [0 1i; -1i 0], 10 * eps)
+
+%% Test input validation
+%!error logm ();
+%!error logm (1, 2, 3);
+%!error <logm: A must be a square matrix> logm([1 0;0 1; 2 2]);
+
+%!assert (logm (10), log (10))
+%!assert (full (logm (eye (3))), logm (full (eye (3))))
+%!assert (full (logm (10*eye (3))), logm (full (10*eye (3))), 8*eps)
