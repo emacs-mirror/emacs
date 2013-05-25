@@ -74,6 +74,7 @@ sub settings_nt {
  $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
  $preprocommand = "$cc_command /nologo $cc_preonly";
  $exesuff = ".exe";
+ %ignored_headers = ();
 }
 
 sub settings_nt_cap {
@@ -119,6 +120,7 @@ sub settings_unix {
  $stringscommand = "strings";
  $preprocommand = "$cc_command $cc_preonly";
  $exesuff = "";
+ %ignored_headers = ("mpswin.h" => 1, "mpsw3.h" => 1);
 }
 
 
@@ -139,7 +141,7 @@ sub settings_macosx {
     # See comments in impl.gmk.xcppgc and impl.h.osxc
     $cc_opts =~ s/-Wstrict-prototypes//;
     $cc_opts =~ s/-ggdb3//;
-    #$cc_opts .= " -fprofile-arcs -ftest-coverage";
+    $cc_opts .= " -fprofile-arcs -ftest-coverage";
     $cc_opts .= " -Wno-unused -Wno-long-long -D__inline__=";
     $stdboth_red = ">&%s";
     $preprocommand = "$cc_command $cc_preonly";

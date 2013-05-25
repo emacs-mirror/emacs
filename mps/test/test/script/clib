@@ -155,7 +155,7 @@ sub headertimes {
   die "Failed to open directory $MPS_INCLUDE_DIR.\n";
  }
  foreach (readdir(DIR)) {
-  if (/^mps.*\.h$/) {
+  if (/^mps.*\.h$/ && ! $ignored_headers{$_}) {
    $mps_headers{$_} = &mod_time("$MPS_INCLUDE_DIR/$_");
   }
  }
