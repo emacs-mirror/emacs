@@ -12,7 +12,7 @@ OUTPUT_SPEC
  alloc_mv = COMMIT_LIMIT
  commit_ext = OK
  alloc_16 = OK
- alloc_big = RESOURCE
+ alloc_big = COMMIT_LIMIT
  poolcr = COMMIT_LIMIT
  result = pass
 END_HEADER
@@ -83,8 +83,9 @@ static void test(void) {
 
  report_res("alloc_16", mps_alloc(&a, pool, (size_t) (1024*16)));
 
-/* a really big allocation should fail on the arena's address arena size,
-   not the commit limit */
+/* We'd like to get MPS_RES_RESOURCE by running out of the arena's
+   address arena size, not the commit limit, but that's hard to
+   arrange on 64-bit machines. See job001152. */
 
  report_res("alloc_big", mps_alloc(&a, pool, (size_t) (1024*1024*30)));
 
