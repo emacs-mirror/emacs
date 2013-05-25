@@ -63,6 +63,7 @@ static void test(void)
 
  mycell *a, *b;
 
+ mps_addr_t base, *addr;
  mps_res_t res;
  int j;
 
@@ -77,8 +78,10 @@ static void test(void)
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
  
+ base = &exfmt_root;
+ addr = base;
  cdie(
-  mps_root_create_table(&root1,arena,mps_rank_ambig(),0,&exfmt_root,1),
+  mps_root_create_table(&root1,arena,mps_rank_ambig(),0,addr,1),
   "create table root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
