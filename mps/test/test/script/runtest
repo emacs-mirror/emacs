@@ -214,7 +214,7 @@ sub run_from_testset {
   open(LOG_VERBOSE, ">$LOG_DIR/last.log");
   &describe_test("verbose", LOG_VERBOSE);
   close(LOG_VERBOSE);
-  #&mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
+  &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
  }
 }
 
@@ -250,7 +250,7 @@ sub run_testset {
  close(LOG_SUMMARY);
  close(LOG_RESULTS);
  close(LOG_FULL);
- #&mailfile($logsummfile, "$MAIL_SUBJECT summary of test set $testsetfile");
+ &mailfile($logsummfile, "$MAIL_SUBJECT summary of test set $testsetfile");
 }
  
 
