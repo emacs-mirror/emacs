@@ -80,7 +80,7 @@ sub auto_settings {
  "LOG_DIR", "$test_dir/log",
  "PARAMETERS", "",
 # "MPS_INTERFACE_VERSION", "HU",
- "MAIL_RESULTS", "on",
+ "MAIL_RESULTS", "off",
  "MAIL_TO", "mm-qa-test-log",
  "MAIL_SUBJECT", "MMQA-log"
 );
