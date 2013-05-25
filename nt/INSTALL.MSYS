@@ -46,7 +46,8 @@ Windows 9X as well).
 
      It is always preferable to use --prefix to configure Emacs for
      some specific location of its installed tree; the default
-     /usr/local is not suitable for Windows.
+     /usr/local is not suitable for Windows (see the detailed
+     instructions for the reasons).
 
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
@@ -324,7 +325,17 @@ Windows 9X as well).
      ./nt/msysconfig.sh --prefix=PREFIX ...
 
   Here PREFIX is the place where you eventually want to install Emacs
-  once built, e.g. d:/usr.
+  once built, e.g. d:/usr.  We recommend to always use --prefix when
+  building Emacs on Windows, because the default '/usr/local' is not
+  appropriate for Windows: it will be mapped by MSYS to something like
+  C:\MSYS\local, and it will defeat the purpose of PREFIX, which is to
+  install programs in a single coherent tree resembling Posix systems.
+  Such a single-tree installation makes sure all the other programs
+  and packages ported from GNU or Unix systems will work seemlessly
+  together.  Where exactly is the root of that tree on your system is
+  soimething only you, the user who builds Emacs, can know, and the
+  Emacs build process cannot guess, because usually there's no
+  '/usr/local' directory on any drive on Windows systems.
 
   You can pass additional options to the configure script, for the
   full list type
