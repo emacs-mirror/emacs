@@ -726,7 +726,7 @@ considered."
         (let ((tail (if (null (car table-etc))
                         (cdr table-etc)
                       (cons
-                       (if (memq (char-syntax (char-after end))
+                       (if (memq (char-syntax (or (char-after end) ?\s))
                                  '(?\s ?>))
                            (cadr table-etc)
                          (apply-partially 'completion-table-with-terminator

@@ -2,6 +2,7 @@
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Don't use
 	error-completion on the first 2 args of condition-case (bug#14446).
+	Don't burp at EOB.
 
 2013-05-25  Leo Liu  <sdl.web@gmail.com>
 
