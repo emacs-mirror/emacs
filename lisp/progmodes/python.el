@@ -628,7 +628,8 @@ It makes underscores and dots word constituent chars.")
 These make `python-indent-calculate-indentation' subtract the value of
 `python-indent-offset'.")
 
-(defvar python-indent-block-enders '("return" "pass")
+(defvar python-indent-block-enders
+  '("break" "continue" "pass" "raise" "return")
   "List of words that mark the end of a block.
 These make `python-indent-calculate-indentation' subtract the
 value of `python-indent-offset' when `python-indent-context' is

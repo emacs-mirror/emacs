@@ -1,3 +1,8 @@
+2013-05-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-block-enders): Add break,
+	continue and raise keywords.
+
 2013-05-08  Ulrich Mueller  <ulm@gentoo.org>
 
 	* descr-text.el (describe-char): Fix %d/%x typo.  (Bug#14360)
