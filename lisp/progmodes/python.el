@@ -157,7 +157,7 @@
 
 ;; Skeletons: 6 skeletons are provided for simple inserting of class,
 ;; def, for, if, try and while.  These skeletons are integrated with
-;; dabbrev.  If you have `dabbrev-mode' activated and
+;; abbrev.  If you have `abbrev-mode' activated and
 ;; `python-skeleton-autoinsert' is set to t, then whenever you type
 ;; the name of any of those defined and hit SPC, they will be
 ;; automatically expanded.  As an alternative you can use the defined
