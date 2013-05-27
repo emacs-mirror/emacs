@@ -8,6 +8,7 @@
 
 #include "mpscmv.h"
 #include "mpscmvff.h"
+#include "mpscmvt.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 
@@ -153,21 +154,30 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
 
   /* IWBN to test MVFFDebug, but the MPS doesn't support debugging APs, */
   /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
-  printf("MVFF\n\n");
+  printf("MVFF\n");
   res = stress(mps_class_mvff(), randomSizeAligned, arena,
                (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MVFF");
-  printf("MV debug\n\n");
+
+  printf("MV debug\n");
   res = stress(mps_class_mv_debug(), randomSizeAligned, arena,
                options, (size_t)65536, (size_t)32, (size_t)65536);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MV debug");
-  printf("MV\n\n");
+
+  printf("MV\n");
   res = stress(mps_class_mv(), randomSizeAligned, arena,
                (size_t)65536, (size_t)32, (size_t)65536);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MV");
+
+  printf("MVT\n");
+  res = stress(mps_class_mvt(), randomSizeAligned, arena,
+               (size_t)8, (size_t)32, (size_t)65536, (mps_word_t)4,
+               (mps_word_t)50);
+  if (res == MPS_RES_COMMIT_LIMIT) return;
+  die(res, "stress MVT");
 }
 
 
