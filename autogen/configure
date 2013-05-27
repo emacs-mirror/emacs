@@ -13956,9 +13956,9 @@ $as_echo "no" >&6; }
     # Test old way in case pkg-config doesn't have it (older machines).
     ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xrandr.h" "ac_cv_header_X11_extensions_Xrandr_h" "$ac_includes_default"
 if test "x$ac_cv_header_X11_extensions_Xrandr_h" = x""yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRQueryExtension in -lXrandr" >&5
-$as_echo_n "checking for XRRQueryExtension in -lXrandr... " >&6; }
-if test "${ac_cv_lib_Xrandr_XRRQueryExtension+set}" = set; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRGetScreenResources in -lXrandr" >&5
+$as_echo_n "checking for XRRGetScreenResources in -lXrandr... " >&6; }
+if test "${ac_cv_lib_Xrandr_XRRGetScreenResources+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -13972,27 +13972,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char XRRQueryExtension ();
+char XRRGetScreenResources ();
 int
 main ()
 {
-return XRRQueryExtension ();
+return XRRGetScreenResources ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_Xrandr_XRRQueryExtension=yes
+  ac_cv_lib_Xrandr_XRRGetScreenResources=yes
 else
-  ac_cv_lib_Xrandr_XRRQueryExtension=no
+  ac_cv_lib_Xrandr_XRRGetScreenResources=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRQueryExtension" >&5
-$as_echo "$ac_cv_lib_Xrandr_XRRQueryExtension" >&6; }
-if test "x$ac_cv_lib_Xrandr_XRRQueryExtension" = x""yes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRGetScreenResources" >&5
+$as_echo "$ac_cv_lib_Xrandr_XRRGetScreenResources" >&6; }
+if test "x$ac_cv_lib_Xrandr_XRRGetScreenResources" = x""yes; then :
   HAVE_XRANDR=yes
 fi
 
