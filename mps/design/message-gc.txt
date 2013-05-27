@@ -87,13 +87,13 @@ Here's a helpful list of the names used in the GC message system:
 Implementation is mostly in the source file ``traceanc.c`` (trace
 ancillary).
 
-====================== ============================== ======================
-Internal name          "trace start"                  "trace end"
-Internal type          ``TraceStartMessage``          ``TraceMessage``
-``ArenaStruct`` member ``tsMessage[]``                ``tMessage``
-Message type           ``MessageTypeGCSTART``         ``MessageTypeGC``
-External name          ``mps_message_type_gc_start``  ``mps_message_type_gc``
-====================== ============================== ======================
+============================= ============================== ======================
+Internal name                 "trace start"                  "trace end"
+Internal type                 ``TraceStartMessage``          ``TraceMessage``
+``ArenaStruct`` member        ``tsMessage[]``                ``tMessage``
+Message type                  ``MessageTypeGCSTART``         ``MessageTypeGC``
+External name                 ``mps_message_type_gc_start``  ``mps_message_type_gc``
+============================= ============================== ======================
 
 .. note::
 
