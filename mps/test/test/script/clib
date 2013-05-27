@@ -242,9 +242,14 @@ sub scrutinize {
 
  open(LINKTEST, $comout);
  while (<LINKTEST>) {
-  while (s/((mps|MPS)_\w+)/ /) {
-   delete $mps_linkable{$1};
-   &debug("Filtering out $1.");
+  # Clang helpfully annotates its "Undefined symbols" error messages
+  # with lines of the form "(maybe you meant: _mps_ap_trip)". To avoid
+  # false positives, we must ignore these lines.
+  if (!/maybe you meant:/) {
+   while (s/((mps|MPS)_\w+)/ /) {
+    delete $mps_linkable{$1};
+    &debug("Filtering out $1.");
+   }
   }
  }
  close(LINKTEST);
