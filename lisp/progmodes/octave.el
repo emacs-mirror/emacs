@@ -885,15 +885,25 @@ output is passed to the filter `inferior-octave-output-digest'."
 	  (setq list (cdr list)))
       (set-process-filter proc filter))))
 
+(defvar inferior-octave-directory-tracker-resync nil)
+(make-variable-buffer-local 'inferior-octave-directory-tracker-resync)
+
 (defun inferior-octave-directory-tracker (string)
   "Tracks `cd' commands issued to the inferior Octave process.
 Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
+  (when inferior-octave-directory-tracker-resync
+    (setq inferior-octave-directory-tracker-resync nil)
+    (inferior-octave-resync-dirs))
   (cond
    ((string-match "^[ \t]*cd[ \t;]*$" string)
     (cd "~"))
    ((string-match "^[ \t]*cd[ \t]+\\([^ \t\n;]*\\)[ \t\n;]*" string)
-    (with-demoted-errors             ; in case directory doesn't exist
-      (cd (substring string (match-beginning 1) (match-end 1)))))))
+    (condition-case err
+        (cd (match-string 1 string))
+      (error (setq inferior-octave-directory-tracker-resync t)
+             (message "%s: `%s'"
+                      (error-message-string err)
+                      (match-string 1 string)))))))
 
 (defun inferior-octave-resync-dirs ()
   "Resync the buffer's idea of the current directory.
@@ -1627,10 +1637,15 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
         ;; Make 'See also' clickable
         (with-syntax-table octave-mode-syntax-table
           (when (re-search-forward "^\\s-*See also:" nil t)
-            (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" nil t)
-              (make-text-button (match-beginning 0)
-                                (match-end 0)
-                                :type 'octave-help-function))))
+            (let ((end (or (save-excursion (re-search-forward "^\\s-*$" nil t))
+                           (point-max))))
+              (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" end t)
+                (make-text-button (match-beginning 0)
+                                  ;; If the match ends with . exclude it.
+                                  (if (eq (char-before (match-end 0)) ?.)
+                                      (1- (match-end 0))
+                                    (match-end 0))
+                                  :type 'octave-help-function)))))
         (octave-help-mode)))))
 
 (defcustom octave-source-directories nil

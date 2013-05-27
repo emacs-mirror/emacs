@@ -1,3 +1,11 @@
+2013-05-27  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-directory-tracker-resync):
+	New variable.
+	(inferior-octave-directory-tracker): Automatically re-sync
+	default-directory.
+	(octave-help): Improve handling of 'See also'.
+
 2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el: Minor naming convention tweaks.
