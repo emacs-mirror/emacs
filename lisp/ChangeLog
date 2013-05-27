@@ -1,6 +1,11 @@
+2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-reapply-winprops): Call image-mode-winprops
+	even if there's no `display' property yet (bug#14435).
+
 2013-05-25  Eli Zaretskii  <eliz@gnu.org>
 
-	* subr.el (unmsys--file-name): Renamed from reveal-filename.
+	* subr.el (unmsys--file-name): Rename from reveal-filename.
 
 	* Makefile.in (custom-deps, finder-data, autoloads)
 	($(MH_E_DIR)/mh-loaddefs.el, $(TRAMP_DIR)/tramp-loaddefs.el)
