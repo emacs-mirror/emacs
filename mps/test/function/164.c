@@ -166,7 +166,7 @@ static void test(void)
 
   mins = ranrange(1, 8);
 
-  dt(RANGAP, 64*1024, 32, 4, mins, ranrange(mins, 1+mins*64), 1000, 100000);
+  dt(RANGAP, 64*1024, 32, MPS_PF_ALIGN, mins, ranrange(mins, 1+mins*64), 1000, 100000);
  }
 
  mps_thread_dereg(thread);

@@ -169,6 +169,7 @@ static void test(void)
  mps_root_destroy(root);
  mps_ap_destroy(apamc);
  mps_pool_destroy(poolamc);
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);
