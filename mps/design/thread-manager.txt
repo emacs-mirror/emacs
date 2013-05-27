@@ -1,0 +1,206 @@
+.. mode: -*- rst -*-
+
+Thread Manager
+==============
+
+:Tag: design.mps.thread-manager
+:Author: Richard Brooksby
+:Date: 1995-11-20
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Purpose
+-------
+
+The Thread Manager handles various thread-related functions required
+by the MPS. These are:
+
+- stack scanning;
+- suspension and resumption of the mutator threads.
+
+
+Context
+-------
+
+The barrier requires suspension and resumption of threads in order to
+ensure that the collector has exclusive access to part of memory.
+[design.mps.barrier.@@@@]
+
+Stack scanning is provided as a service to the client. [Link?@@@@]
+
+
+Overview
+--------
+
+``typedef struct mps_thr_s *Thread``
+
+Each thread is represented by an object of type ``Thread``. The
+``Thread`` type is implemented as an ADT. A list of ``Thread`` objects
+is maintained in the arena (as the ``Ring`` structure
+``arena->threadRing``). The ``Thread`` object contains
+operating-system-dependent information about the thread -- information
+necessary for manipulating the thread and for scanning the thread
+context. Thread "registration" adds or removes the current thread to
+the ``Thread`` list in the arena.
+
+
+Detailed Design
+---------------
+
+Stack scan
+..........
+
+This is a module providing a stack scanning function. The scanning is
+architecture and operating system dependent. Typically the function
+will push the subste of the save registers (those preserved across
+function calls) which may contain pointers (that is, neither
+floating-point or debugging registers) and call ``TraceScanStack()``
+on the appropriate range.
+
+
+Thread interface
+................
+
+``Res ThreadRegister(Thread *threadReturn, Arena arena)``
+
+Register the current thread with the arena, allocating a new
+``*threadReturn`` to point to it.
+
+``void ThreadDeregister(Thread thread, Arena arena)``
+
+Remove ``thread`` from the list of threads managed by the arena and
+free it.
+
+``void ThreadRingSuspend(Ring threadRing)``
+
+Suspend all the threads on the list ``threadRing``, except for the
+current thread.
+
+``void ThreadRingResume(Ring threadRing)``
+
+Resume all the threads on the list ``threadRing``.
+
+``Res ThreadScan(ScanState ss, Thread thread, void *stackBot)``
+
+Scan the stacks and root registers of ``thread``, treating each value
+found as an ambiguous reference. The exact definition is operating
+system and architecture dependent
+
+
+Single-threaded generic implementation
+......................................
+
+In ``than.c``.
+
+- Single threaded (calling ``ThreadRegister()`` on a second thread
+  causes an assertion failure).
+- ``ThreadRingSuspend()`` and ``ThreadRingResume()`` do nothing
+  because there are no other threads.
+- ``ThreadScan()`` calls ``StackScan()``.
+
+
+POSIX threads implementation
+............................
+
+In ``thix.c``. See design.mps.pthreadext.
+
+
+Win32 implementation
+....................
+
+In ``thw3.c``.
+
+- Supports multiple threads.
+- Structured exception style faults are expected.
+- ``ThreadRingSuspend()`` and ``ThreadRingResume()`` loop over threads
+  and call Win32 API functions ``SuspendThread()`` and
+  ``ResumeThread()``.
+- ``ThreadRegister()`` records information for current thread:
+  - A Win32 "handle" with access flags ``THREAD_SUSPEND_RESUME`` and
+    ``THREAD_GET_CONTEXT``. This handle is needed as parameter to
+    ``SuspendThread()`` and ``ResumeThread()``.
+  - The Win32 ``GetCurrentThreadId()`` so that the current thread may
+    be identified.
+- Stack scanning is Win32 specific:
+  - ``ThreadScan()`` calls ``StackScan()`` if the thread is current.
+    ``GetThreadContext()`` doesn't work on the current thread (the
+    context would not necessarily have the values which were in the
+    saved registers on entry to the MM).
+  - Otherwise it calls ``GetThreadContext()`` to get the root
+    registers and the stack pointer.
+  - The thread's registers are dumped into a ``CONTEXT`` structure and
+    fixed in memory.
+  - Scan the stack (getting the stack pointer from ``CONTEXT.Rsp``).
+
+
+Issues
+------
+
+1. Scanning after exceptions. ``StackScan()`` relies on the
+   non-preserved registers having been pushed on the stack. If we want
+   to scan after a fault we must make sure that these registers are
+   either already stored on the stack, or, have an extra function to
+   do this explicitly.
+
+2. Multiple registration. It is not clear whether a thread should be
+   allowed to be registered multiple times. We do not provide a
+   mechanism for knowing whether a thread is already registered with
+   an arena.
+
+
+Document History
+----------------
+
+- 1995-11-20 RB_ Incomplete design.
+
+- 2002-06-21 RB_ Converted from MMInfo database design document.
+
+- 2013-05-26 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

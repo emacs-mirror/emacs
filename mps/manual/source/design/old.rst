@@ -27,6 +27,7 @@ Old design
     lib
     lock
     message
+    message-gc
     object-debug
     pool
     poolamc
@@ -39,6 +40,7 @@ Old design
     prot
     protan
     protli
+    protsu
     protocol
     pthreadext
     reservoir
@@ -47,7 +49,9 @@ Old design
     seg
     shield
     splay
+    sso1al
     telemetry
+    thread-manager
     thread-safety
     trace
     type
@@ -55,4 +59,6 @@ Old design
     version
     vm
     vman
+    vmo1
+    vmso
     writef
