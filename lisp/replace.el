@@ -1838,6 +1838,68 @@ It is used by `query-replace-regexp', `replace-regexp',
 It is called with three arguments, as if it were
 `re-search-forward'.")
 
+(defun replace-search (search-string limit regexp-flag delimited-flag
+				     case-fold-search)
+  "Search for the next occurence of SEARCH-STRING to replace."
+  ;; Let-bind global isearch-* variables to values used
+  ;; to search the next replacement.  These let-bindings
+  ;; should be effective both at the time of calling
+  ;; `isearch-search-fun-default' and also at the
+  ;; time of funcalling `search-function'.
+  ;; These isearch-* bindings can't be placed higher
+  ;; outside of this function because then another I-search
+  ;; used after `recursive-edit' might override them.
+  (let* ((isearch-regexp regexp-flag)
+	 (isearch-word delimited-flag)
+	 (isearch-lax-whitespace
+	  replace-lax-whitespace)
+	 (isearch-regexp-lax-whitespace
+	  replace-regexp-lax-whitespace)
+	 (isearch-case-fold-search case-fold-search)
+	 (isearch-adjusted nil)
+	 (isearch-nonincremental t)	; don't use lax word mode
+	 (isearch-forward t)
+	 (search-function
+	  (or (if regexp-flag
+		  replace-re-search-function
+		replace-search-function)
+	      (isearch-search-fun-default))))
+    (funcall search-function search-string limit t)))
+
+(defvar replace-overlay nil)
+
+(defun replace-highlight (match-beg match-end range-beg range-end
+			  search-string regexp-flag delimited-flag
+			  case-fold-search)
+  (if query-replace-highlight
+      (if replace-overlay
+	  (move-overlay replace-overlay match-beg match-end (current-buffer))
+	(setq replace-overlay (make-overlay match-beg match-end))
+	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
+	(overlay-put replace-overlay 'face 'query-replace)))
+  (if query-replace-lazy-highlight
+      (let ((isearch-string search-string)
+	    (isearch-regexp regexp-flag)
+	    (isearch-word delimited-flag)
+	    (isearch-lax-whitespace
+	     replace-lax-whitespace)
+	    (isearch-regexp-lax-whitespace
+	     replace-regexp-lax-whitespace)
+	    (isearch-case-fold-search case-fold-search)
+	    (isearch-forward t)
+	    (isearch-other-end match-beg)
+	    (isearch-error nil))
+	(isearch-lazy-highlight-new-loop range-beg range-end))))
+
+(defun replace-dehighlight ()
+  (when replace-overlay
+    (delete-overlay replace-overlay))
+  (when query-replace-lazy-highlight
+    (lazy-highlight-cleanup lazy-highlight-cleanup)
+    (setq isearch-lazy-highlight-last-string nil))
+  ;; Close overlays opened by `isearch-range-invisible' in `perform-replace'.
+  (isearch-clean-overlays))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
@@ -1925,62 +1987,40 @@ make, or the user didn't cancel the call."
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
 		    (not (or (eobp) (and limit (>= (point) limit))))
-		    ;; Let-bind global isearch-* variables to values used
-		    ;; to search the next replacement.  These let-bindings
-		    ;; should be effective both at the time of calling
-		    ;; `isearch-search-fun-default' and also at the
-		    ;; time of funcalling `search-function'.
-		    ;; These isearch-* bindings can't be placed higher
-		    ;; outside of this loop because then another I-search
-		    ;; used after `recursive-edit' might override them.
-		    (let* ((isearch-regexp regexp-flag)
-			   (isearch-word delimited-flag)
-			   (isearch-lax-whitespace
-			    replace-lax-whitespace)
-			   (isearch-regexp-lax-whitespace
-			    replace-regexp-lax-whitespace)
-			   (isearch-case-fold-search case-fold-search)
-			   (isearch-adjusted nil)
-			   (isearch-nonincremental t) ; don't use lax word mode
-			   (isearch-forward t)
-			   (search-function
-			    (or (if regexp-flag
-				    replace-re-search-function
-				  replace-search-function)
-				(isearch-search-fun-default))))
-		      ;; Use the next match if it is already known;
-		      ;; otherwise, search for a match after moving forward
-		      ;; one char if progress is required.
-		      (setq real-match-data
-			    (cond ((consp match-again)
-				   (goto-char (nth 1 match-again))
-				   (replace-match-data
-				    t real-match-data match-again))
-				  ;; MATCH-AGAIN non-nil means accept an
-				  ;; adjacent match.
-				  (match-again
-				   (and
-				    (funcall search-function search-string
-					     limit t)
-				    ;; For speed, use only integers and
-				    ;; reuse the list used last time.
-				    (replace-match-data t real-match-data)))
-				  ((and (< (1+ (point)) (point-max))
-					(or (null limit)
-					    (< (1+ (point)) limit)))
-				   ;; If not accepting adjacent matches,
-				   ;; move one char to the right before
-				   ;; searching again.  Undo the motion
-				   ;; if the search fails.
-				   (let ((opoint (point)))
-				     (forward-char 1)
-				     (if (funcall
-					  search-function search-string
-					  limit t)
-					 (replace-match-data
-					  t real-match-data)
-				       (goto-char opoint)
-				       nil)))))))
+		    ;; Use the next match if it is already known;
+		    ;; otherwise, search for a match after moving forward
+		    ;; one char if progress is required.
+		    (setq real-match-data
+			  (cond ((consp match-again)
+				 (goto-char (nth 1 match-again))
+				 (replace-match-data
+				  t real-match-data match-again))
+				;; MATCH-AGAIN non-nil means accept an
+				;; adjacent match.
+				(match-again
+				 (and
+				  (replace-search search-string limit
+						  regexp-flag delimited-flag
+						  case-fold-search)
+				  ;; For speed, use only integers and
+				  ;; reuse the list used last time.
+				  (replace-match-data t real-match-data)))
+				((and (< (1+ (point)) (point-max))
+				      (or (null limit)
+					  (< (1+ (point)) limit)))
+				 ;; If not accepting adjacent matches,
+				 ;; move one char to the right before
+				 ;; searching again.  Undo the motion
+				 ;; if the search fails.
+				 (let ((opoint (point)))
+				   (forward-char 1)
+				   (if (replace-search search-string limit
+						       regexp-flag delimited-flag
+						       case-fold-search)
+				       (replace-match-data
+					t real-match-data)
+				     (goto-char opoint)
+				     nil))))))
 
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.
@@ -2228,39 +2268,5 @@ make, or the user didn't cancel the call."
 		 replace-count
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
-
-(defvar replace-overlay nil)
-
-(defun replace-highlight (match-beg match-end range-beg range-end
-			  search-string regexp-flag delimited-flag
-			  case-fold-search)
-  (if query-replace-highlight
-      (if replace-overlay
-	  (move-overlay replace-overlay match-beg match-end (current-buffer))
-	(setq replace-overlay (make-overlay match-beg match-end))
-	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
-	(overlay-put replace-overlay 'face 'query-replace)))
-  (if query-replace-lazy-highlight
-      (let ((isearch-string search-string)
-	    (isearch-regexp regexp-flag)
-	    (isearch-word delimited-flag)
-	    (isearch-lax-whitespace
-	     replace-lax-whitespace)
-	    (isearch-regexp-lax-whitespace
-	     replace-regexp-lax-whitespace)
-	    (isearch-case-fold-search case-fold-search)
-	    (isearch-forward t)
-	    (isearch-other-end match-beg)
-	    (isearch-error nil))
-	(isearch-lazy-highlight-new-loop range-beg range-end))))
-
-(defun replace-dehighlight ()
-  (when replace-overlay
-    (delete-overlay replace-overlay))
-  (when query-replace-lazy-highlight
-    (lazy-highlight-cleanup lazy-highlight-cleanup)
-    (setq isearch-lazy-highlight-last-string nil))
-  ;; Close overlays opened by `isearch-range-invisible' in `perform-replace'.
-  (isearch-clean-overlays))
 
 ;;; replace.el ends here

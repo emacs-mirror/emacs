@@ -1,5 +1,12 @@
 2013-05-27  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (replace-search): New function with code moved out
+	from `perform-replace'.
+	(replace-highlight, replace-dehighlight): Move function definitions
+	up closer to `replace-search'.  (Bug#11746)
+
+2013-05-27  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (perform-replace): Ignore invisible matches.
 	In addition to checking `query-replace-skip-read-only', also
 	filter out matches by calling `run-hook-with-args-until-failure'
