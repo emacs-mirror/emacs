@@ -236,10 +236,13 @@ callers to fit the image to a frame other than the selected frame.
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
 
-** Isearch
+** Search and Replace
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
+
+*** `query-replace' skips invisible text when `search-invisible' is nil,
+and opens overlays with hidden text when `search-invisible' is `open'.
 
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.

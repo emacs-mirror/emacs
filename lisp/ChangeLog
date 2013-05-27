@@ -1,5 +1,14 @@
 2013-05-27  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (perform-replace): Ignore invisible matches.
+	In addition to checking `query-replace-skip-read-only', also
+	filter out matches by calling `run-hook-with-args-until-failure'
+	on `isearch-filter-predicates', and also check `search-invisible'
+	for t or call `isearch-range-invisible'.
+	(replace-dehighlight): Call `isearch-clean-overlays'.  (Bug#11746)
+
+2013-05-27  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-filter-predicates): Rename from
 	`isearch-filter-predicate'.  Doc fix.  (Bug#11378)
 	(isearch-message-prefix): Display text from the property

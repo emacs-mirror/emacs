@@ -2003,10 +2003,18 @@ make, or the user didn't cancel the call."
 				     match))))))
 
 	  ;; Optionally ignore matches that have a read-only property.
-	  (unless (and query-replace-skip-read-only
-		       (text-property-not-all
-			(nth 0 real-match-data) (nth 1 real-match-data)
-			'read-only nil))
+	  (when (and (or (not query-replace-skip-read-only)
+			 (not (text-property-not-all
+			       (nth 0 real-match-data) (nth 1 real-match-data)
+			       'read-only nil)))
+		     ;; Optionally filter out matches.
+		     (run-hook-with-args-until-failure
+		      'isearch-filter-predicates
+		      (nth 0 real-match-data) (nth 1 real-match-data))
+		     ;; Optionally ignore invisible matches.
+		     (or (eq search-invisible t)
+			 (not (isearch-range-invisible
+			       (nth 0 real-match-data) (nth 1 real-match-data)))))
 
 	    ;; Calculate the replacement string, if necessary.
 	    (when replacements
@@ -2251,6 +2259,8 @@ make, or the user didn't cancel the call."
     (delete-overlay replace-overlay))
   (when query-replace-lazy-highlight
     (lazy-highlight-cleanup lazy-highlight-cleanup)
-    (setq isearch-lazy-highlight-last-string nil)))
+    (setq isearch-lazy-highlight-last-string nil))
+  ;; Close overlays opened by `isearch-range-invisible' in `perform-replace'.
+  (isearch-clean-overlays))
 
 ;;; replace.el ends here
