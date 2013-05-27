@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o rankfmt.o
  harness = 2.0
- parameters = EXTEND=65536 AVGSIZE=32 ALIGN=4 BIGSIZE=5000000;
+ parameters = EXTEND=65536 AVGSIZE=32 BIGSIZE=5000000;
 OUTPUT_SPEC
  reduce1 > 4000000
  reduce2 <= 0
@@ -18,8 +18,8 @@ END_HEADER
 #include "mpscmvff.h"
 #include "mpsavm.h"
 
-#define MVFF_HI_PARMS EXTEND,AVGSIZE,ALIGN,1,1,0
-#define MVFF_LO_PARMS EXTEND,AVGSIZE,ALIGN,0,0,1
+#define MVFF_HI_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,1,1,0
+#define MVFF_LO_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,0,0,1
 
 mps_arena_t arena;
 
