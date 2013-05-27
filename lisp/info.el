@@ -1931,7 +1931,8 @@ If DIRECTION is `backward', search in the reverse direction."
 			      (point-max)))
 	  (while (and (not give-up)
 		      (or (null found)
-			  (not (funcall isearch-filter-predicate beg-found found))))
+			  (not (run-hook-with-args-until-failure
+				'isearch-filter-predicates beg-found found))))
 	    (let ((search-spaces-regexp Info-search-whitespace-regexp))
 	      (if (if backward
 		      (re-search-backward regexp bound t)
@@ -2009,7 +2010,8 @@ If DIRECTION is `backward', search in the reverse direction."
 		(setq give-up nil found nil)
 		(while (and (not give-up)
 			    (or (null found)
-				(not (funcall isearch-filter-predicate beg-found found))))
+				(not (run-hook-with-args-until-failure
+				      'isearch-filter-predicates beg-found found))))
 		  (let ((search-spaces-regexp Info-search-whitespace-regexp))
 		    (if (if backward
 			    (re-search-backward regexp nil t)
@@ -4275,8 +4277,8 @@ Advanced commands:
        'Info-isearch-wrap)
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
-  (set (make-local-variable 'isearch-filter-predicate)
-       'Info-isearch-filter)
+  (set (make-local-variable 'isearch-filter-predicates)
+       '(Info-isearch-filter))
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)

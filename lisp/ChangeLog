@@ -1,3 +1,40 @@
+2013-05-27  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-filter-predicates): Rename from
+	`isearch-filter-predicate'.  Doc fix.  (Bug#11378)
+	(isearch-message-prefix): Display text from the property
+	`isearch-message-prefix' of the currently active filters.
+	(isearch-search): Don't compare `isearch-filter-predicate' with
+	`isearch-filter-visible'.  Call `run-hook-with-args-until-failure'
+	on `isearch-filter-predicates'.  Also check `search-invisible' for t
+	or call `isearch-range-invisible'.
+	(isearch-filter-visible): Make obsolete.
+	(isearch-lazy-highlight-search):
+	Call `run-hook-with-args-until-failure' on
+	`isearch-filter-predicates' and use `isearch-range-invisible'.
+
+	* info.el (Info-search): Call `run-hook-with-args-until-failure' on
+	`isearch-filter-predicates' instead of `funcall'ing
+	`isearch-filter-predicate'.
+	(Info-mode): Set `Info-isearch-filter' to
+	`isearch-filter-predicates' instead of `isearch-filter-predicate'.
+
+	* dired-aux.el (dired-isearch-filter-predicate-orig):
+	Remove variable.
+	(dired-isearch-filenames-toggle, dired-isearch-filenames-setup)
+	(dired-isearch-filenames-end): Add and remove
+	`dired-isearch-filter-filenames' in `isearch-filter-predicates'
+	instead of changing the value of `isearch-filter-predicate'.
+	Rebind `dired-isearch-filenames-toggle' from "\M-sf" to "\M-sff".
+	(dired-isearch-filter-filenames): Don't use `isearch-filter-visible'.
+	Put property `isearch-message-prefix' to "filename " on
+	`dired-isearch-filter-filenames'.
+
+	* wdired.el (wdired-change-to-wdired-mode):
+	Add `isearch-filter-predicates' to `wdired-isearch-filter-read-only'
+	locally instead of changing `isearch-filter-predicate'.
+	(wdired-isearch-filter-read-only): Don't use `isearch-filter-visible'.
+
 2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode):

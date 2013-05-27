@@ -187,12 +187,21 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific Isearch state
 to the search status stack.")
 
-(defvar isearch-filter-predicate 'isearch-filter-visible
-  "Predicate that filters the search hits that would normally be available.
-Search hits that dissatisfy the predicate are skipped.  The function
-has two arguments: the positions of start and end of text matched by
-the search.  If this function returns nil, continue searching without
-stopping at this match.")
+(defvar isearch-filter-predicates nil
+  "Predicates that filter the search hits that would normally be available.
+Search hits that dissatisfy the list of predicates are skipped.
+Each function in this list has two arguments: the positions of
+start and end of text matched by the search.
+The search loop uses `run-hook-with-args-until-failure' to call
+each predicate in order, and when one of the predicates returns nil,
+skips this match and continues searching for the next match.
+When the list of predicates is empty, `run-hook-with-args-until-failure'
+returns non-nil that means that the found match is accepted.
+The property `isearch-message-prefix' put on the predicate's symbol
+specifies the prefix string displyed in the search message.")
+(define-obsolete-variable-alias 'isearch-filter-predicate
+                                'isearch-filter-predicates
+                                "24.4")
 
 ;; Search ring.
 
@@ -2491,6 +2500,13 @@ If there is no completion possible, say so and continue searching."
 			      (< (point) isearch-opoint)))
 		       "over")
 		   (if isearch-wrapped "wrapped ")
+		   (mapconcat (lambda (s)
+				(and (symbolp s)
+				     (get s 'isearch-message-prefix)))
+			      (if (consp isearch-filter-predicates)
+				  isearch-filter-predicates
+				(list isearch-filter-predicates))
+			      "")
 		   (if isearch-word
 		       (or (and (symbolp isearch-word)
 				(get isearch-word 'isearch-message-prefix))
@@ -2622,10 +2638,7 @@ update the match data, and return point."
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-point-motion-hooks
-             ;; FIXME: equality comparisons on functions is asking for trouble.
-	     (and (eq isearch-filter-predicate 'isearch-filter-visible)
-		  search-invisible))
+      (let ((inhibit-point-motion-hooks search-invisible)
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
 	    (retry t))
@@ -2638,8 +2651,15 @@ update the match data, and return point."
 	  (if (or (not isearch-success)
 		  (bobp) (eobp)
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  ;; When one of filter predicates returns nil,
+		  ;; retry the search.  Otherwise, act according
+		  ;; to search-invisible (open overlays, etc.)
+		  (and (run-hook-with-args-until-failure
+			'isearch-filter-predicates
+			(match-beginning 0) (match-end 0))
+		       (or (eq search-invisible t)
+			   (not (isearch-range-invisible
+				 (match-beginning 0) (match-end 0))))))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
 	(if isearch-success
@@ -2816,6 +2836,7 @@ determined by `isearch-range-invisible' unless invisible text can be
 searched too when `search-invisible' is t."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
+(make-obsolete 'isearch-filter-visible 'search-invisible "24.4")
 
 
 ;; General utilities
@@ -3041,8 +3062,11 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  (if (or (not success)
 		  (= (point) bound) ; like (bobp) (eobp) in `isearch-search'.
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  (and (run-hook-with-args-until-failure
+			'isearch-filter-predicates
+			(match-beginning 0) (match-end 0))
+		       (not (isearch-range-invisible
+			     (match-beginning 0) (match-end 0)))))
 	      (setq retry nil)))
 	success)
     (error nil)))

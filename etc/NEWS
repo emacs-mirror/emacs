@@ -384,6 +384,8 @@ file using `set-file-extended-attributes'.
 *** `lisp-complete-symbol'
 *** `field-complete'
 *** `minibuffer-completion-contents'
+*** `isearch-nonincremental-exit-minibuffer'
+*** `isearch-filter-visible'
 
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
