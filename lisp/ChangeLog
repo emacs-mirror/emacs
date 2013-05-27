@@ -1,3 +1,9 @@
+2013-05-27  Alan Mackenzie  <acm@muc.de>
+
+	Remove spurious syntax-table text properties inserted by C-y.
+	* progmodes/cc-mode.el (c-after-change): Also clear hard
+	syntax-table property with value nil.
+
 2013-05-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-call-method): Let-bind `inhibit-redisplay'

@@ -1077,12 +1077,13 @@ Note that the style variables are always made local to the buffer."
 	    (setq beg end)))
 
 	;; C-y is capable of spuriously converting category properties
-	;; c-</>-as-paren-syntax into hard syntax-table properties.  Remove
-	;; these when it happens.
+	;; c-</>-as-paren-syntax and c-cpp-delimiter into hard syntax-table
+	;; properties.  Remove these when it happens.
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c-<-as-paren-syntax)
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c->-as-paren-syntax)
+	(c-clear-char-property-with-value beg end 'syntax-table nil)
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
