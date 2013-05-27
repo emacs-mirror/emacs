@@ -14366,7 +14366,7 @@
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): When iterator stops on the last glyph
-	of a display vector, backtrack.
+	of a display vector, backtrack.  (Bug#1810)
 	(try_window_reusing_current_matrix): Check glyph type before
 	referencing charpos member.
 
