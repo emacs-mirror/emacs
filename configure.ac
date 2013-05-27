@@ -2999,7 +2999,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test $HAVE_XRANDR = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
     AC_CHECK_HEADER(X11/extensions/Xrandr.h,
-      [AC_CHECK_LIB(Xrandr, XRRQueryExtension, HAVE_XRANDR=yes)])
+      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)])
     if test $HAVE_XRANDR = yes; then
       XRANDR_LIBS=-lXrandr
       AC_SUBST(XRANDR_LIBS)

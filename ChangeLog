@@ -1,3 +1,8 @@
+2013-05-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.ac (HAVE_XRANDR): Check availability of
+	XRRGetScreenResources rather than that of XRRQueryExtension.
+
 2013-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* make-dist (files): Add nt/msysconfig.sh, nt/mingw-cfg.site,
