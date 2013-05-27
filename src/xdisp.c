@@ -1371,18 +1371,41 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		top_x = it.glyph_row->x;
 	      else
 		{
-		  struct it it2;
+		  struct it it2, it2_prev;
+		  /* The idea is to get to the previous buffer
+		     position, consume the character there, and use
+		     the pixel coordinates we get after that.  But if
+		     the previous buffer position is also displayed
+		     from a display vector, we need to consume all of
+		     the glyphs from that display vector.  */
 		  start_display (&it2, w, top);
 		  move_it_to (&it2, charpos - 1, -1, -1, -1, MOVE_TO_POS);
-		  get_next_display_element (&it2);
-		  PRODUCE_GLYPHS (&it2);
-		  if (ITERATOR_AT_END_OF_LINE_P (&it2)
-		      || it2.current_x > it2.last_visible_x)
+		  /* If we didn't get to CHARPOS - 1, there's some
+		     replacing display property at that position, and
+		     we stopped after it.  That is exactly the place
+		     whose coordinates we want.  */
+		  if (IT_CHARPOS (it2) != charpos - 1)
+		    it2_prev = it2;
+		  else
+		    {
+		      /* Iterate until we get out of the display
+			 vector that displays the character at
+			 CHARPOS - 1.  */
+		      do {
+			get_next_display_element (&it2);
+			PRODUCE_GLYPHS (&it2);
+			it2_prev = it2;
+			set_iterator_to_next (&it2, 1);
+		      } while (it2.method == GET_FROM_DISPLAY_VECTOR
+			       && IT_CHARPOS (it2) < charpos);
+		    }
+		  if (ITERATOR_AT_END_OF_LINE_P (&it2_prev)
+		      || it2_prev.current_x > it2_prev.last_visible_x)
 		    top_x = it.glyph_row->x;
 		  else
 		    {
-		      top_x = it2.current_x;
-		      top_y = it2.current_y;
+		      top_x = it2_prev.current_x;
+		      top_y = it2_prev.current_y;
 		    }
 		}
 	    }

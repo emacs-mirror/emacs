@@ -1,3 +1,10 @@
+2013-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (pos_visible_p): When CHARPOS is displayed frrom a
+	display vector, and we backtrack, handle the case that the
+	previous character position is also displayed from a display
+	vector or covered by a display string or image.  (Bug#14476)
+
 2013-05-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): Remove.
