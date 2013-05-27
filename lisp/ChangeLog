@@ -1,5 +1,8 @@
 2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el: Minor naming convention tweaks.
+	(desktop-buffer-mode-handlers): Don't add to it repeatedly.
+
 	* image-mode.el (image-mode-reapply-winprops): Call image-mode-winprops
 	even if there's no `display' property yet (bug#14435).
 
