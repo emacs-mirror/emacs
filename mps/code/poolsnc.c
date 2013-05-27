@@ -359,6 +359,17 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 }
 
 
+/* SNCVarargs -- decode obsolete varargs */
+
+static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_FORMAT;
+  args[0].val.format = va_arg(varargs, Format);
+  args[1].key = MPS_KEY_ARGS_END;
+  AVER(ArgListCheck(args));
+}
+
+
 /* SNCInit -- initialize an SNC pool */
 
 static Res SNCInit(Pool pool, ArgList args)
@@ -664,6 +675,7 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->name = "SNC";
   this->size = sizeof(SNCStruct);
   this->offset = offsetof(SNCStruct, poolStruct);
+  this->varargs = SNCVarargs;
   this->init = SNCInit;
   this->finish = SNCFinish;
   this->bufferFill = SNCBufferFill;
