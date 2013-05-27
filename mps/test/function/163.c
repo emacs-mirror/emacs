@@ -55,7 +55,7 @@ static void test(void) {
 
  die(
   mps_pool_create(&pool, arena, mps_class_mvff(),
-                  EXTENDBY, 8, 4, 0, 0, 1),
+                  EXTENDBY, 8, MPS_PF_ALIGN, 0, 0, 1),
   "create MVFF pool");
 
  for (i = 0; i < NSMALL; i++) {
