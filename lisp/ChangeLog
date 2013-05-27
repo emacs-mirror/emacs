@@ -44,6 +44,16 @@
 	locally instead of changing `isearch-filter-predicate'.
 	(wdired-isearch-filter-read-only): Don't use `isearch-filter-visible'.
 
+2013-05-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-working-revision): When in detached mode,
+	return the commit hash (Bug#14459).  Also set the
+	`vc-git-detached' property.
+	(vc-git--rev-parse): Extract from `vc-git-previous-revision'.
+	(vc-git-mode-line-string): Use the same help-echo format whether
+	in detached mode or not, because we know the actual revision now.
+	When in detached mode, shorten the revision to 7 chars.
+
 2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode):
