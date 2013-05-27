@@ -1,3 +1,9 @@
+2013-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	* emacs-lisp/derived.el (define-derived-mode): Always defvar the
+	mode hook and provide a docstring.
+
 2013-05-27  Alan Mackenzie  <acm@muc.de>
 
 	Remove spurious syntax-table text properties inserted by C-y.

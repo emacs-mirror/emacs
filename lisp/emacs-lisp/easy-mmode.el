@@ -296,6 +296,12 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
        ;; up-to-here.
        :autoload-end
 
+       (defvar ,hook nil
+         ,(format "Hook run after entering or leaving `%s'.
+No problems result if this variable is not bound.
+`add-hook' automatically binds it.  (This is true for all hook variables.)"
+                  mode))
+
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.
 	  `(defvar ,keymap-sym
