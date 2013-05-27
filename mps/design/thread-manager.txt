@@ -117,13 +117,16 @@ In ``thw3.c``.
 - ``ThreadRingSuspend()`` and ``ThreadRingResume()`` loop over threads
   and call Win32 API functions ``SuspendThread()`` and
   ``ResumeThread()``.
-- ``ThreadRegister()`` records information for current thread:
+- ``ThreadRegister()`` records information for the current thread:
+
   - A Win32 "handle" with access flags ``THREAD_SUSPEND_RESUME`` and
     ``THREAD_GET_CONTEXT``. This handle is needed as parameter to
     ``SuspendThread()`` and ``ResumeThread()``.
   - The Win32 ``GetCurrentThreadId()`` so that the current thread may
     be identified.
+
 - Stack scanning is Win32 specific:
+
   - ``ThreadScan()`` calls ``StackScan()`` if the thread is current.
     ``GetThreadContext()`` doesn't work on the current thread (the
     context would not necessarily have the values which were in the
