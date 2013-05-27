@@ -1,3 +1,8 @@
+2013-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method): Let-bind `inhibit-redisplay'
+	when reading the events; the buffer layout shall not be changed.
+
 2013-05-27  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-directory-tracker-resync):
