@@ -278,7 +278,7 @@ static void mmqa_assert_handler(const char *cond, const char *id,
 
 static void mmqa_lib_fail(const char *file, unsigned line, const char *message)
 {
-  mmqa_assert_handler(message, NULL, file, line);
+  mmqa_assert_handler(message, "<none>", file, line);
 }
 
 /* easy_tramp
@@ -291,7 +291,7 @@ static void *call_f(void *p, size_t s)
 {
  void (**f)(void) = p;
 
-#ifdef MMQA_DEFINED_mps_assert_install
+#ifdef MMQA_DEFINED_mps_lib_assert_fail_install
  mps_lib_assert_fail_install(mmqa_lib_fail);
 #endif
 
