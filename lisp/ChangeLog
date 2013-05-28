@@ -1,5 +1,8 @@
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/fast-lock.el (byte-compile-warnings):
+	Don't warn about obsolete features in this obsolete file.
+
 	* progmodes/cc-vars.el (c-macro-names-with-semicolon):
 	Move definition before use.
 
