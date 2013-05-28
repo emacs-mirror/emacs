@@ -188,13 +188,43 @@ than the client program, but it is not unknown, so if you have made
 every effort to track down the cause (see :ref:`guide-debug`) without
 luck, :ref:`get in touch <contact>`.
 
+
+.. index::
+   single: assertion
+   single: error handling; assertion; assertion handling
+
+.. _topic-error-assertion-handling:
+
+Assertion handling
+..................
+
+When the MPS detects an assertion failure, it calls the :term:`plinth`
+function :c:func:`mps_lib_assert_fail`. Unless you have replaced the plinth, this behaves as follows:
+
+- In the :term:`cool` :term:`variety`, print the assertion message to
+  standard error and terminate the program by calling :c:func:`abort`.
+
+- In the :term:`hot` and :term:`rash` varieties, print the assertion
+  message to standard error and do *not* terminate the program.
+
+You can change this behaviour by providing your own plinth, or using
+:c:func:`mps_lib_assert_fail_install`.
+
+In many applications, users don't want their program terminated when
+the MPS detects an error, no matter how severe. A lot of MPS
+assertions indicate that the program is going to crash very soon, but
+there still may be a chance for a user to get some useful results or
+save their work. This is why the default assertion handler only
+terminates in the :term:`cool` :term:`variety`.
+
+
 .. index::
    single: assertion; common causes
 
 .. _topic-error-cause:
 
 Common assertions and their causes
-----------------------------------
+..................................
 
 This section lists some commonly encountered assertions and suggests
 likely causes. If you encounter an assertion not listed here (or an
@@ -262,30 +292,6 @@ this documentation.
     have kept the block alive failed to be scanned. Perhaps a
     :term:`formatted object` was updated in some way that has a race
     condition?
-
-
-.. index::
-   single: assertion
-   single: error handling; assertion; assertion handling
-
-.. _topic-error-assertion-handling:
-
-Assertion Handling
-------------------
-
-When the MPS detects an assertion failure, it calls the :term:`plinth`
-function :c:func:`mps_lib_assert_fail`.  If you have not replaced the
-plinth, this will print the assertion message and terminate the program
-in the :term:`cool` :term:`variety`, but *not* in the :term:`hot` or
-:term:`rash` varieties.  You can change this behaviour by providing your
-own plinth, or using :c:func:`mps_lib_assert_fail_install`.
-
-In many applications, users don't want their program terminated when the
-MPS detects an error, no matter how severe.  A lot of MPS assertions
-indicate that the program is going to crash very soon, but there still
-may be a chance for a user to get some useful results or save their
-work.  This is why the default assertion handler only terminates in the
-:term:`cool` :term:`variety`.
 
 
 .. index::

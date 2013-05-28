@@ -876,7 +876,11 @@ Segregation of objects
 
 When objects of different types have different properties (different
 sizes, lifetimes, references, layouts) it makes sense to segregate
-them into pools of appropriate classes.
+them into pools of appropriate classes. The garbage collector in the
+MPS is designed to work efficiently with many pools: it traces
+references between objects in different pools, and it coordinates the
+scanning of the :term:`registers` and :term:`control stacks` (see
+:ref:`topic-root-thread`).
 
 For example, the toy Scheme interpreter has a mixture of object types,
 some of which contain references to other objects (for example, pairs)

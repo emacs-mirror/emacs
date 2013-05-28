@@ -37,15 +37,17 @@ You can register a root at any time by calling one of the
 no two roots may overlap (that is, each reference is :term:`fixed` by
 at most one root). Roots may be:
 
-1. on the program's :term:`control stack`;
+1. in :term:`registers`;
 
-2. in the program's static data;
+2. on the program's :term:`control stack`;
 
-3. in :term:`heap` not managed by the MPS (provided that you destroy
+3. in the program's static data;
+
+4. in :term:`heap` not managed by the MPS (provided that you destroy
    the root before freeing it; see :ref:`the Scheme interpreter's
    global symbol table <guide-lang-roots-rehash>` for an example);
 
-4. in :term:`manually managed <manual memory management>` pools
+5. in :term:`manually managed <manual memory management>` pools
    (provided that you remove the root before freeing it).
 
 Roots must not be in memory that is subject to :term:`garbage
@@ -99,7 +101,7 @@ scan it for references:
    table of :term:`tagged references`;
 
 5. :c:func:`mps_root_create_reg` if the root consists of the
-   registers and control stack of a thread. See
+   :term:`registers` and :term:`control stack` of a thread. See
    :ref:`topic-root-thread` below.
 
 
