@@ -1,4 +1,6 @@
-C Style -- Formatting
+.. mode: -*- rst -*-
+
+C Style -- formatting
 =====================
 
 :Tag: guide.impl.c.format
