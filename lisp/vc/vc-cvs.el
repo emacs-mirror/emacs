@@ -280,6 +280,8 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
+(autoload 'vc-switches "vc")
+
 (defun vc-cvs-register (files &optional _rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.
@@ -415,6 +417,8 @@ REV is the revision to check out."
 (defun vc-cvs-delete-file (file)
   (vc-cvs-command nil 0 file "remove" "-f"))
 
+(autoload 'vc-default-revert "vc")
+
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."
   (vc-default-revert 'CVS file contents-done)
@@ -501,6 +505,8 @@ Will fail unless you have administrative privileges on the repo."
 ;;;
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
+;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -518,6 +524,9 @@ Remaining arguments are ignored."
 (defun vc-cvs-comment-history (file)
   "Get comment history of a file."
   (vc-call-backend 'RCS 'comment-history file))
+
+(autoload 'vc-version-backup-file "vc")
+(declare-function vc-coding-system-for-diff "vc" (file))
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
@@ -664,6 +673,10 @@ If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (vc-cvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
   (when branchp (vc-cvs-command nil 0 dir "update" "-r" name)))
+
+;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-resynch-buffer "vc-dispatcher"
+                  (file &optional keep noquery reset-vc-info))
 
 (defun vc-cvs-retrieve-tag (dir name update)
   "Retrieve a tag at and below DIR.

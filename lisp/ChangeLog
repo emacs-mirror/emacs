@@ -6,12 +6,24 @@
 	(vc-exec-after, vc-set-async-update, vc-default-dir-printer)
 	(vc-resynch-buffer, vc-dir-refresh): Declare.
 	(vc-setup-buffer, vc-switches): Autoload.
+	* vc/vc-cvs.el (vc-exec-after, vc-coding-system-for-diff)
+	(vc-resynch-buffer): Declare.
+	(vc-switches, vc-default-revert, vc-version-backup-file): Autoload.
 	* vc/vc-dir.el (desktop-missing-file-warning): Declare.
+	* vc/vc-git.el (vc-exec-after, vc-set-async-update)
+	(grep-read-regexp, grep-read-files, grep-expand-template)
+	(vc-dir-refresh): Declare.
+	(vc-setup-buffer, vc-switches, vc-resynch-buffer): Autoload.
+	* vc/vc-hg.el (vc-exec-after, vc-set-async-update): Declare.
+	(vc-setup-buffer, vc-switches, vc-do-async-command): Autoload.
 	* vc/vc-mtn.el (vc-exec-after): Declare.
 	(vc-switches): Autoload.
 	* vc/vc-rcs.el (vc-expand-dirs, vc-switches)
 	(vc-tag-precondition, vc-buffer-sync, vc-rename-master): Autoload.
 	(vc-file-tree-walk): Declare.
+	* vc/vc-sccs.el (vc-file-tree-walk): Declare.
+	(vc-expand-dirs, vc-switches, vc-setup-buffer, vc-delistify)
+	(vc-tag-precondition, vc-rename-master): Autoload.
 	* vc/vc-svn.el (vc-exec-after): Declare.
 	(vc-switches, vc-setup-buffer): Autoload.
 	* obsolete/vc-mcvs.el (vc-checkout, vc-switches, vc-default-revert):

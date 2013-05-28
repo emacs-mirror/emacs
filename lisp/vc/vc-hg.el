@@ -245,6 +245,8 @@ highlighting the Log View buffer."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
@@ -305,6 +307,8 @@ If LIMIT is non-nil, show no more than this many entries."
 	    ("^date: \\(.+\\)" (1 'change-log-date))
 	    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -591,6 +595,12 @@ REV is the revision to check out into WORKFILE."
         (forward-line))
       (funcall update-function result)))
 
+;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+
 (defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
   (vc-exec-after
@@ -650,6 +660,8 @@ REV is the revision to check out into WORKFILE."
   ;; TODO: call 'hg incoming' before pull/merge to get the list of
   ;;       modified files
   "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
+
+(autoload 'vc-do-async-command "vc-dispatcher")
 
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.

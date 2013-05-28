@@ -443,6 +443,12 @@ or an empty string if none."
     (when next-stage
       (vc-git-dir-status-goto-stage next-stage files update-function))))
 
+;; Follows vc-git-command (or vc-do-async-command), which uses vc-do-command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+
 (defun vc-git-dir-status-goto-stage (stage files update-function)
   (erase-buffer)
   (pcase stage
@@ -731,6 +737,8 @@ This prompts for a branch to merge from."
 
 ;;; HISTORY FUNCTIONS
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
@@ -856,6 +864,8 @@ or BRANCH^ (where \"^\" can be repeated)."
       ;; Indent the expanded log entry.
       (indent-region (point-min) (point-max) 2)
       (buffer-string))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."
@@ -1010,6 +1020,12 @@ or BRANCH^ (where \"^\" can be repeated)."
   (or (vc-file-getprop file 'git-root)
       (vc-file-setprop file 'git-root (vc-find-root file ".git"))))
 
+;; grep-compute-defaults autoloads grep.
+(declare-function grep-read-regexp "grep" ())
+(declare-function grep-read-files "grep" (regexp))
+(declare-function grep-expand-template "grep"
+                 (template &optional regexp files dir excl))
+
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)
   "Run git grep, searching for REGEXP in FILES in directory DIR.
@@ -1064,6 +1080,10 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	  (compilation-start command 'grep-mode))
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
+
+;; Everywhere but here, follows vc-git-command, which uses vc-do-command
+;; from vc-dispatcher.
+(autoload 'vc-resynch-buffer "vc-dispatcher")
 
 (defun vc-git-stash (name)
   "Create a stash."
@@ -1121,6 +1141,9 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
     (if (looking-at "^ +\\({[0-9]+}\\):")
 	(match-string 1)
       (error "Cannot find stash at point"))))
+
+;; vc-git-stash-delete-at-point must be called from a vc-dir buffer.
+(declare-function vc-dir-refresh "vc-dir" ())
 
 (defun vc-git-stash-delete-at-point ()
   (interactive)
