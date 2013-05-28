@@ -1,5 +1,8 @@
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cc-vars.el (c-macro-names-with-semicolon):
+	Move definition before use.
+
 	* play/dunnet.el (byte-compile-warnings): Don't disable them all.
 	(dun-unix-verbs): Remove dun-zippy.
 	(dun-zippy): Remove function.
