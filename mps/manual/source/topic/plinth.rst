@@ -116,8 +116,8 @@ I/O module
 
     .. note::
 
-        In the ANSI I/O module, ``mpsioan.c``, this calls ``fopen`` on
-        the file named by the environment variable
+        In the ANSI I/O module, ``mpsioan.c``, this calls
+        :c:func:`fopen` on the file named by the environment variable
         :envvar:`MPS_TELEMETRY_FILENAME`.
 
 
@@ -134,7 +134,8 @@ I/O module
 
     .. note::
 
-        In the ANSI I/O module, ``mpsioan.c``, this calls ``fclose``.
+        In the ANSI I/O module, ``mpsioan.c``, this calls
+        :c:func:`fclose`.
 
 
 .. c:function:: mps_res_t mps_io_write(mps_io_t io, void *buf, size_t size)
@@ -153,7 +154,8 @@ I/O module
 
     .. note::
 
-        In the ANSI I/O module, ``mpsioan.c``, this calls ``fwrite``.
+        In the ANSI I/O module, ``mpsioan.c``, this calls
+        :c:func:`fwrite`.
 
 
 .. c:function:: mps_res_t mps_io_flush(mps_io_t io)
@@ -177,7 +179,8 @@ I/O module
 
     .. note::
 
-        In the ANSI I/O module, ``mpsioan.c``, this calls ``fflush``.
+        In the ANSI I/O module, ``mpsioan.c``, this calls
+        :c:func:`fflush`.
 
 
 .. index::
@@ -246,9 +249,9 @@ Library module
         In the ANSI Library module, ``mpsliban.c``, this reports the
         failure using ``fprintf(stderr, "...%s...", message)`` and, in
         the :term:`cool` :term:`variety`, terminates the program by
-        calling ``abort``. You can change this behaviour with
-        :c:func:`mps_lib_assert_fail_install`.  For a discussion of
-        the default behaviour, see :ref:`topic-error-assertion-handling`.
+        calling :c:func:`abort`. You can change this behaviour with
+        :c:func:`mps_lib_assert_fail_install`. For a discussion of the
+        default behaviour, see :ref:`topic-error-assertion-handling`.
 
 .. c:function:: extern mps_lib_assert_fail_t mps_lib_assert_fail_install(mps_lib_assert_fail_t handler)
 
@@ -292,13 +295,13 @@ Library module
     :c:func:`mps_lib_get_EOF` if not.
 
     This function is intended to have the same semantics as the
-    ``fputc`` function of the ANSI C Standard (:ref:`ISO/IEC 9899:1990
-    <ISO90>` §7.11.7.3).
+    :c:func:`fputc` function of the ANSI C Standard (:ref:`ISO/IEC
+    9899:1990 <ISO90>` §7.11.7.3).
 
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
-        wrapper around ``fputc``.
+        wrapper around :c:func:`fputc`.
 
 
 .. c:function:: int mps_lib_fputs(const char *s, mps_lib_FILE *stream)
@@ -310,8 +313,8 @@ Library module
     ``stream`` is the stream.
 
     This function is intended to have the same semantics as the
-    ``fputs`` function of the ANSI C Standard (:ref:`ISO/IEC 9899:1990
-    <ISO90>` §7.11.7.4).
+    :c:func:`fputs` function of the ANSI C Standard (:ref:`ISO/IEC
+    9899:1990 <ISO90>` §7.11.7.4).
 
     Return a non-negative integer if successful, or
     :c:func:`mps_lib_get_EOF` if not.
@@ -319,7 +322,7 @@ Library module
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
-        wrapper around ``fputs``.
+        wrapper around :c:func:`fputs`.
 
 
 .. c:function:: int mps_lib_get_EOF(void)
@@ -367,7 +370,7 @@ Library module
 .. c:function:: int mps_lib_memcmp(const void *s1, const void *s2, size_t n)
 
     A :term:`plinth` function similar to the standard :term:`C`
-    function ``memcmp``.
+    function :c:func:`memcmp`.
 
     ``s1`` and ``s2`` point to :term:`blocks` of memory to be
     compared.
@@ -379,19 +382,19 @@ Library module
     equal to, or less than the block pointed to by ``s2``.
 
     This function is intended to have the same semantics as the
-    ``memcmp`` function of the ANSI C Standard (:ref:`ISO/IEC
+    :c:func:`memcmp` function of the ANSI C Standard (:ref:`ISO/IEC
     9899:1990 <ISO90>` §7.11.4.1).
 
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
-        wrapper around ``memcmp``.
+        wrapper around :c:func:`memcmp`.
 
 
 .. c:function:: void *mps_lib_memcpy(void *dest, const void *source, size_t n)
 
     A :term:`plinth` function similar to the standard :term:`C`
-    function ``memcpy``.
+    function :c:func:`memcpy`.
 
     ``dest`` points to the destination.
 
@@ -402,7 +405,7 @@ Library module
     Returns ``dest``.
 
     This function is intended to have the same semantics as the
-    ``memcpy`` function of the ANSI C Standard (:ref:`ISO/IEC
+    :c:func:`memcpy` function of the ANSI C Standard (:ref:`ISO/IEC
     9899:1990 <ISO90>` §7.11.2.1).
 
     The MPS never passes overlapping blocks to
@@ -411,13 +414,13 @@ Library module
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
-        wrapper around ``memcpy``.
+        wrapper around :c:func:`memcpy`.
 
 
 .. c:function:: void *mps_lib_memset(void *s, int c, size_t n)
 
     A :term:`plinth` function similar to the standard :term:`C`
-    function ``memset``.
+    function :c:func:`memset`.
 
     ``s`` points to the :term:`block` to fill with the byte ``c``.
 
@@ -428,13 +431,13 @@ Library module
     Returns ``s``.
 
     This function is intended to have the same semantics as the
-    ``memset`` function of the ANSI C Standard (:ref:`ISO/IEC
+    :c:func:`memset` function of the ANSI C Standard (:ref:`ISO/IEC
     9899:1990 <ISO90>` §7.11.6.1).
 
     .. note::
 
         In the ANSI Library module, ``mpsliban.c``, this is a simple
-        wrapper around ``memset``.
+        wrapper around :c:func:`memset`.
 
     .. note::
 
