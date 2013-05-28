@@ -5,3 +5,4 @@ language: c
 notifications:
   email:
     - mps-travis@ravenbrook.com
+  irc: "irc.freenode.net#memorypoolsystem"
