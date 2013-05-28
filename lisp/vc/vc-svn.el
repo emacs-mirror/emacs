@@ -215,6 +215,9 @@ If you want to force an empty list of arguments, use t."
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
@@ -292,6 +295,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
   (vc-svn-command "*vc*" 0 "." "checkout"
                   (concat "file://" default-directory "SVN")))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
@@ -492,6 +497,8 @@ or svn+ssh://."
 (define-derived-mode vc-svn-log-view-mode log-view-mode "SVN-Log-View"
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
+
+(autoload 'vc-setup-buffer "vc-dispatcher")
 
 (defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.

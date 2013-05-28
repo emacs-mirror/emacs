@@ -311,6 +311,9 @@ Only the value `maybe' can be trusted :-(."
 		    'up-to-date
 		  'edited)))))))))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-arch-dir-status (dir callback)
   "Run 'tla inventory' for DIR and pass results to CALLBACK.
 CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
@@ -431,6 +434,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))

@@ -1,5 +1,23 @@
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-arch.el (vc-exec-after): Declare.
+	(vc-switches): Autoload.
+	* vc/vc-bzr.el: No need to require vc when compiling.
+	(vc-exec-after, vc-set-async-update, vc-default-dir-printer)
+	(vc-resynch-buffer, vc-dir-refresh): Declare.
+	(vc-setup-buffer, vc-switches): Autoload.
+	* vc/vc-dir.el (desktop-missing-file-warning): Declare.
+	* vc/vc-mtn.el (vc-exec-after): Declare.
+	(vc-switches): Autoload.
+	* vc/vc-rcs.el (vc-expand-dirs, vc-switches)
+	(vc-tag-precondition, vc-buffer-sync, vc-rename-master): Autoload.
+	(vc-file-tree-walk): Declare.
+	* vc/vc-svn.el (vc-exec-after): Declare.
+	(vc-switches, vc-setup-buffer): Autoload.
+	* obsolete/vc-mcvs.el (vc-checkout, vc-switches, vc-default-revert):
+	Autoload.
+	(vc-resynch-buffer): Declare.
+
 	* obsolete/fast-lock.el (byte-compile-warnings):
 	Don't warn about obsolete features in this obsolete file.
 

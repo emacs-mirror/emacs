@@ -1299,6 +1299,8 @@ These are the commands available for use in the file status buffer:
   "Auxiliary information to be saved in desktop file."
   (cons (desktop-file-name default-directory dirname) vc-dir-backend))
 
+(defvar desktop-missing-file-warning)
+
 (defun vc-dir-restore-desktop-buffer (_filename _buffername misc-data)
   "Restore a `vc-dir' buffer specified in a desktop file."
   (let ((dir (car misc-data))

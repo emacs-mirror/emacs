@@ -47,8 +47,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'vc)  ;; for vc-exec-after
-  (require 'vc-dir))
+  (require 'vc-dir))                    ; vc-dir-at-event
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -319,6 +318,12 @@ in the repository root directory of FILE."
     ("^Text conflict in \\(.+\\)" 1 nil nil 2)
     ("^Using saved parent location: \\(.+\\)" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
+
+;; Follows vc-bzr-(async-)command, which uses vc-do-(async-)command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
 (defun vc-bzr-pull (prompt)
   "Pull changes into the current Bzr branch.
@@ -693,6 +698,8 @@ REV non-nil gets an error."
 		    (2 'change-log-email))
 		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-bzr-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use --line format.
@@ -777,6 +784,8 @@ If LIMIT is non-nil, show no more than this many entries."
 	    (setq found t))
 	(goto-char (point-min)))
       found)))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
@@ -897,6 +906,8 @@ stream.  Standard error output is discarded."
             (:constructor vc-bzr-create-extra-fileinfo (extra-name))
             (:conc-name vc-bzr-extra-fileinfo->))
   extra-name)         ;; original name for rename targets, new name for
+
+(declare-function vc-default-dir-printer "vc-dir" (backend fileentry))
 
 (defun vc-bzr-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
@@ -1110,6 +1121,10 @@ stream.  Standard error output is discarded."
 		     'help-echo shelve-help-echo
 		     'face 'font-lock-variable-name-face))))))
 
+;; Follows vc-bzr-command, which uses vc-do-command from vc-dispatcher.
+(declare-function vc-resynch-buffer "vc-dispatcher"
+                  (file &optional keep noquery reset-vc-info))
+
 (defun vc-bzr-shelve (name)
   "Create a shelve."
   (interactive "sShelf name: ")
@@ -1168,6 +1183,9 @@ stream.  Standard error output is discarded."
     (if (looking-at "^ +\\([0-9]+\\):")
 	(match-string 1)
       (error "Cannot find shelf at point"))))
+
+;; vc-bzr-shelve-delete-at-point must be called from a vc-dir buffer.
+(declare-function vc-dir-refresh "vc-dir" ())
 
 (defun vc-bzr-shelve-delete-at-point ()
   (interactive)
