@@ -289,10 +289,11 @@ Elements of the list may be:
   obsolete    obsolete variables and functions.
   noruntime   functions that may not be defined at runtime (typically
               defined only under `eval-when-compile').
-  cl-functions    calls to runtime functions from the CL package (as
-		  distinguished from macros and aliases).
+  cl-functions    calls to runtime functions (as distinguished from macros and
+                  aliases) from the old CL package (not the newer cl-lib).
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
+  lexical     global/dynamic variables lacking a prefix.
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
   constants   let-binding of, or assignment to, constants/nonvariables.

@@ -1,3 +1,7 @@
+2013-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Doc fix.
+
 2013-05-27  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (replace-search): New function with code moved out
