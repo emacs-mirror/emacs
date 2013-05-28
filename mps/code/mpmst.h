@@ -404,7 +404,6 @@ typedef struct SegBufStruct {
 typedef struct mps_fmt_s {
   Sig sig;
   Serial serial;                /* from arena->formatSerial */
-  FormatVariety variety;        /* format variety (e.g. A) */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
   Align alignment;              /* alignment of formatted objects */
@@ -412,7 +411,6 @@ typedef struct mps_fmt_s {
   mps_fmt_skip_t skip;
   mps_fmt_fwd_t move;
   mps_fmt_isfwd_t isMoved;
-  mps_fmt_copy_t copy;
   mps_fmt_pad_t pad;
   mps_fmt_class_t class;        /* pointer indicating class */
   Size headerSize;              /* size of header */

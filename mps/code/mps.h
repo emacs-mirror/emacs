@@ -92,6 +92,23 @@ enum {
   MPS_RES_PARAM                 /* illegal user parameter value */
 };
 
+
+/* Format and Root Method Types */
+/* see design.mps.root-interface */
+/* see design.mps.format-interface */
+
+typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
+typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
+typedef mps_res_t (*mps_reg_scan_t)(mps_ss_t, mps_thr_t,
+                                    void *, size_t);
+typedef mps_addr_t (*mps_fmt_skip_t)(mps_addr_t);
+typedef void (*mps_fmt_copy_t)(mps_addr_t, mps_addr_t);
+typedef void (*mps_fmt_fwd_t)(mps_addr_t, mps_addr_t);
+typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t);
+typedef void (*mps_fmt_pad_t)(mps_addr_t, size_t);
+typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
+
+
 /* Keyword argument lists */
 
 typedef struct mps_arg_s {
@@ -116,6 +133,12 @@ typedef struct mps_arg_s {
     mps_word_t count;
     void *p;
     mps_rank_t rank;
+    mps_fmt_scan_t fmt_scan;
+    mps_fmt_skip_t fmt_skip;
+    mps_fmt_fwd_t fmt_fwd;
+    mps_fmt_isfwd_t fmt_isfwd;
+    mps_fmt_pad_t fmt_pad;
+    mps_fmt_class_t fmt_class;
   } val;
 } mps_arg_s;
 
@@ -155,6 +178,31 @@ extern const struct mps_key_s _mps_key_align;
 extern const struct mps_key_s _mps_key_vmw3_top_down;
 #define MPS_KEY_VMW3_TOP_DOWN   (&_mps_key_vmw3_top_down)
 #define MPS_KEY_VMW3_TOP_DOWN_FIELD b
+
+extern const struct mps_key_s _mps_key_fmt_align;
+#define MPS_KEY_FMT_ALIGN   (&_mps_key_fmt_align)
+#define MPS_KEY_FMT_ALIGN_FIELD align
+extern const struct mps_key_s _mps_key_fmt_header_size;
+#define MPS_KEY_FMT_HEADER_SIZE   (&_mps_key_fmt_header_size)
+#define MPS_KEY_FMT_HEADER_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_fmt_scan;
+#define MPS_KEY_FMT_SCAN   (&_mps_key_fmt_scan)
+#define MPS_KEY_FMT_SCAN_FIELD fmt_scan
+extern const struct mps_key_s _mps_key_fmt_skip;
+#define MPS_KEY_FMT_SKIP   (&_mps_key_fmt_skip)
+#define MPS_KEY_FMT_SKIP_FIELD fmt_skip
+extern const struct mps_key_s _mps_key_fmt_fwd;
+#define MPS_KEY_FMT_FWD   (&_mps_key_fmt_fwd)
+#define MPS_KEY_FMT_FWD_FIELD fmt_fwd
+extern const struct mps_key_s _mps_key_fmt_isfwd;
+#define MPS_KEY_FMT_ISFWD   (&_mps_key_fmt_isfwd)
+#define MPS_KEY_FMT_ISFWD_FIELD fmt_isfwd
+extern const struct mps_key_s _mps_key_fmt_pad;
+#define MPS_KEY_FMT_PAD   (&_mps_key_fmt_pad)
+#define MPS_KEY_FMT_PAD_FIELD fmt_pad
+extern const struct mps_key_s _mps_key_fmt_class;
+#define MPS_KEY_FMT_CLASS   (&_mps_key_fmt_class)
+#define MPS_KEY_FMT_CLASS_FIELD fmt_class
 
 /* Maximum length of a keyword argument list. */
 #define MPS_ARGS_MAX          32
@@ -271,22 +319,6 @@ typedef struct mps_ld_s {       /* location dependency descriptor */
 } mps_ld_s;
 
 
-/* Format and Root Method Types */
-/* see design.mps.root-interface */
-/* see design.mps.format-interface */
-
-typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
-typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
-typedef mps_res_t (*mps_reg_scan_t)(mps_ss_t, mps_thr_t,
-                                    void *, size_t);
-typedef mps_addr_t (*mps_fmt_skip_t)(mps_addr_t);
-typedef void (*mps_fmt_copy_t)(mps_addr_t, mps_addr_t);
-typedef void (*mps_fmt_fwd_t)(mps_addr_t, mps_addr_t);
-typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t);
-typedef void (*mps_fmt_pad_t)(mps_addr_t, size_t);
-typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
-
-
 /* Scan State */
 /* .ss: See also <code/mpmst.h#ss>. */
 
@@ -396,6 +428,7 @@ extern mps_res_t mps_arena_retract(mps_arena_t, mps_addr_t, size_t);
 
 /* Object Formats */
 
+extern mps_res_t mps_fmt_create_k(mps_fmt_t *, mps_arena_t, mps_arg_s []);
 extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_A_s *);
 extern mps_res_t mps_fmt_create_B(mps_fmt_t *, mps_arena_t,

@@ -70,13 +70,13 @@ SNC properties
 
 * Blocks do not :term:`move <moving garbage collector>`.
 
-* Blocks may not be registered for :term:`finalization`. A consequence
-  of this is that the pool's :term:`object format` need not provide a
-  :term:`forward method` or an :term:`is-forwarded method`.
+* Blocks may not be registered for :term:`finalization`.
 
-* Blocks must belong to an :term:`object format`, but this may not be
-  a format of variant auto-header.
+* Blocks must belong to an :term:`object format` which provides
+  :term:`scan <scan method>`, :term:`skip <skip method>`, and
+  :term:`padding <padding method>` methods.
 
+* Blocks must not have :term:`in-band headers`.
 
 
 .. index::

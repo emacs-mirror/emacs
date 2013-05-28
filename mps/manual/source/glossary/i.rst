@@ -80,6 +80,13 @@ Memory Management Glossary: I
 
         .. seealso:: :term:`stack frame`, :term:`activation frame`.
 
+        .. mps:specific::
+
+            In-band headers are supported by some :term:`pool classes`
+            and the size of the header is specified by passing the
+            :c:macro:`MPS_KEY_FMT_HEADER_SIZE` :term:`keyword
+            argument` to :c:func:`mps_fmt_create_k`.
+
     in parameter
 
         A function parameter that supplies data from the caller to the

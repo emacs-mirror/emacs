@@ -802,17 +802,7 @@ extern AllocPattern AllocPatternRampCollectAll(void);
 /* Format Interface -- see <code/format.c> */
 
 extern Bool FormatCheck(Format format);
-extern Res FormatCreate(Format *formatReturn, Arena arena,
-                        Align alignment,
-                        FormatVariety variety,
-                        mps_fmt_scan_t scan,
-                        mps_fmt_skip_t skip,
-                        mps_fmt_fwd_t move,
-                        mps_fmt_isfwd_t isMoved,
-                        mps_fmt_copy_t copy,
-                        mps_fmt_pad_t pad,
-                        mps_fmt_class_t class,
-                        Size headerSize);
+extern Res FormatCreate(Format *formatReturn, Arena arena, ArgList args);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream);

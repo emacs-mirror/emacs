@@ -73,18 +73,18 @@ AMS properties
 * Blocks are :term:`scanned <scan>`.
 
 * Blocks may only be referenced by :term:`base pointers` (unless they
-  belong to an object format of variant auto-header).
+  have :term:`in-band headers`).
 
 * Blocks are not protected by :term:`barriers (1)`.
 
-* Blocks do not :term:`move <moving garbage collector>`. A consequence
-  of this is that the pool's :term:`object format` need not provide a
-  :term:`forward method`, an :term:`is-forwarded method` or a
-  :term:`padding method`.
+* Blocks do not :term:`move <moving garbage collector>`.
 
 * Blocks may be registered for :term:`finalization`.
 
-* Blocks must belong to an :term:`object format`.
+* Blocks must belong to an :term:`object format` which provides
+  :term:`scan <scan method>` and :term:`skip <skip method>` methods.
+
+* Blocks may have :term:`in-band headers`.
 
 
 .. index::
