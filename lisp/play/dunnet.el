@@ -1,4 +1,4 @@
-;;; dunnet.el --- text adventure for Emacs -*-  byte-compile-warnings: nil -*-
+;;; dunnet.el --- text adventure for Emacs
 
 ;; Copyright (C) 1992-1993, 2001-2013 Free Software Foundation, Inc.
 
@@ -1386,7 +1386,7 @@ for a moment, then straighten yourself up.
 (setq dun-unix-verbs '((ls . dun-ls) (ftp . dun-ftp) (echo . dun-echo)
 		       (exit . dun-uexit) (cd . dun-cd) (pwd . dun-pwd)
 		       (rlogin . dun-rlogin) (uncompress . dun-uncompress)
-		       (cat . dun-cat) (zippy . dun-zippy)))
+		       (cat . dun-cat)))
 
 (setq dun-dos-verbs '((dir . dun-dos-dir) (type . dun-dos-type)
 		      (exit . dun-dos-exit) (command . dun-dos-spawn)
@@ -2996,9 +2996,6 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 		(dun-mprincl "Ascii files only.")
 	      (dun-mprincl "File not found."))))))))
 
-(defun dun-zippy (args)
-  (dun-mprincl (yow)))
-
 (defun dun-rlogin-endgame ()
   (if (not (= (dun-score nil) 90))
       (dun-mprincl
@@ -3356,3 +3353,7 @@ File not found")))
 (provide 'dunnet)
 
 ;;; dunnet.el ends here
+
+;; Local Variables:
+;; byte-compile-warnings: (not free-vars lexical)
+;; End:

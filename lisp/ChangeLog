@@ -1,5 +1,9 @@
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
+	* play/dunnet.el (byte-compile-warnings): Don't disable them all.
+	(dun-unix-verbs): Remove dun-zippy.
+	(dun-zippy): Remove function.
+
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Doc fix.
 
 2013-05-27  Juri Linkov  <juri@jurta.org>
