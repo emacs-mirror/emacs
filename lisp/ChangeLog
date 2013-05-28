@@ -1,3 +1,7 @@
+2013-05-28  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell/em-unix.el: Added -r option to cp
+
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-arch.el (vc-exec-after): Declare.

@@ -532,8 +532,10 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 	 "don't change anything on disk")
      (?p "preserve" nil preserve
 	 "preserve file attributes if possible")
-     (?R "recursive" nil em-recursive
+     (?r "recursive" nil em-recursive
 	 "copy directories recursively")
+     (?R nil nil em-recursive
+	 "as for -r")
      (?v "verbose" nil em-verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
