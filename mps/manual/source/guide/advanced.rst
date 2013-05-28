@@ -691,23 +691,16 @@ The :term:`skip method` is straightforward::
                   length * sizeof(buckets->bucket[0]));
     }
 
-as is the object format, since AWL only calls the scan and skip
-methods::
-
-    struct mps_fmt_A_s buckets_fmt_s = {
-        ALIGNMENT,
-        buckets_scan,
-        buckets_skip,
-        NULL,                       /* Obsolete copy method */
-        NULL,                       /* fwd method not used by AWL */
-        NULL,                       /* isfwd method not used by AWL */
-        NULL                        /* pad method not used by AWL */
-    };
-
-Finally, we can create the buckets pool and its allocation points::
+Now we can create the object format, the pool and the allocation
+points::
 
     /* Create the buckets format. */
-    res = mps_fmt_create_A(&buckets_fmt, arena, &buckets_fmt_s);
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, buckets_scan);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, buckets_skip);
+        res = mps_fmt_create_k(&buckets_fmt, arena, args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create buckets format");
 
     /* Create an Automatic Weak Linked (AWL) pool to manage the hash table
