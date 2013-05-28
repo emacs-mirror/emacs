@@ -458,6 +458,31 @@ mps_bool_t mps_addr_fmt(mps_fmt_t *mps_fmt_o,
 }
 
 
+/* mps_fmt_create_k -- create an object format using keyword arguments */
+
+mps_res_t mps_fmt_create_k(mps_fmt_t *mps_fmt_o,
+                           mps_arena_t arena,
+                           mps_arg_s args[])
+{
+  Format format;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_fmt_o != NULL);
+  AVERT(Arena, arena);
+  AVER(ArgListCheck(args));
+
+  res = FormatCreate(&format, arena, args);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK) return res;
+  *mps_fmt_o = (mps_fmt_t)format;
+  return MPS_RES_OK;
+}
+
+
 /* mps_fmt_create_A -- create an object format of variant A
  *
  * .fmt.create.A.purpose: This function converts an object format spec
@@ -474,20 +499,20 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
 
   ArenaEnter(arena);
 
+  AVER(mps_fmt_o != NULL);
+  AVERT(Arena, arena);
   AVER(mps_fmt_A != NULL);
 
-  res = FormatCreate(&format,
-                     arena,
-                     (Align)mps_fmt_A->align,
-                     FormatVarietyA,
-                     mps_fmt_A->scan,
-                     mps_fmt_A->skip,
-                     mps_fmt_A->fwd,
-                     mps_fmt_A->isfwd,
-                     mps_fmt_A->copy,
-                     mps_fmt_A->pad,
-                     NULL,
-                     (Size)0);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, mps_fmt_A->align);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, mps_fmt_A->scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, mps_fmt_A->skip);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, mps_fmt_A->fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, mps_fmt_A->isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, mps_fmt_A->pad);
+    MPS_ARGS_DONE(args);
+    res = FormatCreate(&format, arena, args);
+  } MPS_ARGS_END(args);
 
   ArenaLeave(arena);
 
@@ -508,20 +533,21 @@ mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
 
   ArenaEnter(arena);
 
+  AVER(mps_fmt_o != NULL);
+  AVERT(Arena, arena);
   AVER(mps_fmt_B != NULL);
 
-  res = FormatCreate(&format,
-                     arena,
-                     (Align)mps_fmt_B->align,
-                     FormatVarietyB,
-                     mps_fmt_B->scan,
-                     mps_fmt_B->skip,
-                     mps_fmt_B->fwd,
-                     mps_fmt_B->isfwd,
-                     mps_fmt_B->copy,
-                     mps_fmt_B->pad,
-                     mps_fmt_B->mps_class,
-                     (Size)0);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, mps_fmt_B->align);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, mps_fmt_B->scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, mps_fmt_B->skip);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, mps_fmt_B->fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, mps_fmt_B->isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, mps_fmt_B->pad);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_CLASS, mps_fmt_B->mps_class);
+    MPS_ARGS_DONE(args);
+    res = FormatCreate(&format, arena, args);
+  } MPS_ARGS_END(args);
 
   ArenaLeave(arena);
 
@@ -542,20 +568,21 @@ mps_res_t mps_fmt_create_auto_header(mps_fmt_t *mps_fmt_o,
 
   ArenaEnter(arena);
 
+  AVER(mps_fmt_o != NULL);
+  AVERT(Arena, arena);
   AVER(mps_fmt != NULL);
 
-  res = FormatCreate(&format,
-                     arena,
-                     (Align)mps_fmt->align,
-                     FormatVarietyAutoHeader,
-                     mps_fmt->scan,
-                     mps_fmt->skip,
-                     mps_fmt->fwd,
-                     mps_fmt->isfwd,
-                     NULL,
-                     mps_fmt->pad,
-                     NULL,
-                     (Size)mps_fmt->mps_headerSize);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, mps_fmt->align);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_HEADER_SIZE, mps_fmt->mps_headerSize);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, mps_fmt->scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, mps_fmt->skip);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, mps_fmt->fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, mps_fmt->isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, mps_fmt->pad);
+    MPS_ARGS_DONE(args);
+    res = FormatCreate(&format, arena, args);
+  } MPS_ARGS_END(args);
 
   ArenaLeave(arena);
 
@@ -576,20 +603,19 @@ mps_res_t mps_fmt_create_fixed(mps_fmt_t *mps_fmt_o,
 
   ArenaEnter(arena);
 
+  AVER(mps_fmt_o != NULL);
+  AVERT(Arena, arena);
   AVER(mps_fmt_fixed != NULL);
 
-  res = FormatCreate(&format,
-                     arena,
-                     (Align)mps_fmt_fixed->align,
-                     FormatVarietyFixed,
-                     mps_fmt_fixed->scan,
-                     NULL,
-                     mps_fmt_fixed->fwd,
-                     mps_fmt_fixed->isfwd,
-                     NULL,
-                     mps_fmt_fixed->pad,
-                     NULL,
-                     (Size)0);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, mps_fmt_fixed->align);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, mps_fmt_fixed->scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, mps_fmt_fixed->fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, mps_fmt_fixed->isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, mps_fmt_fixed->pad);
+    MPS_ARGS_DONE(args);
+    res = FormatCreate(&format, arena, args);
+  } MPS_ARGS_END(args);
 
   ArenaLeave(arena);
 

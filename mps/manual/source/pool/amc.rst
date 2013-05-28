@@ -74,7 +74,7 @@ AMC properties
 * Blocks are :term:`scanned <scan>`.
 
 * Blocks may only be referenced by :term:`base pointers` (unless they
-  belong to an object format of variant auto-header).
+  have :term:`in-band headers`).
 
 * Blocks may be protected by :term:`barriers (1)`.
 
@@ -82,7 +82,12 @@ AMC properties
 
 * Blocks may be registered for :term:`finalization`.
 
-* Blocks must belong to an :term:`object format`.
+* Blocks must belong to an :term:`object format` which provides
+  :term:`scan <scan method>`, :term:`skip <skip method>`,
+  :term:`forward <forward method>`, :term:`is-forwarded <is-forwarded
+  method>`, and :term:`padding <padding method>` methods.
+
+* Blocks may have :term:`in-band headers`.
 
 
 .. index::
