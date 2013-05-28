@@ -14,6 +14,7 @@ Old design
 .. toctree::
     :numbered:
 
+    alloc-frame
     arena
     arenavm
     bt
@@ -22,10 +23,14 @@ Old design
     check
     class-interface
     collection
+    diag
     finalize
     fix
+    interface-c
+    io
     lib
     lock
+    locus
     message
     message-gc
     object-debug
