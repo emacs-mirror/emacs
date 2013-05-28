@@ -1,3 +1,9 @@
+2013-05-28  Alan Mackenzie  <acm@muc.de>
+
+	Handle "capitalised keywords" correctly.
+	* progmodes/cc-mode.el (c-after-change): bind case-fold-search to
+	nil.
+
 2013-05-28  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell/em-unix.el: Added -r option to cp
