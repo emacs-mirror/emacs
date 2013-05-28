@@ -1,3 +1,8 @@
+2013-05-28  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* erc.texi (Special Features): ERC is being maintained within
+	Emacs now.
+
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* flymake.texi: Changing from one space between sentences to two.
