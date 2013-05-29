@@ -446,11 +446,11 @@ Non-nil means always go to the next Octave code line after sending."
     (back-to-indentation)
     (cond
      ((octave-in-string-or-comment-p) nil)
-     ((looking-at-p "\\s<\\{3,\\}")
+     ((looking-at-p "\\(\\s<\\)\\1\\{2,\\}")
       0)
      ;; Exclude %{, %} and %!.
      ((and (looking-at-p "\\s<\\(?:[^{}!]\\|$\\)")
-           (not (looking-at-p "\\s<\\s<")))
+           (not (looking-at-p "\\(\\s<\\)\\1")))
       (comment-choose-indent)))))
 
 
@@ -1637,8 +1637,7 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
         ;; Make 'See also' clickable
         (with-syntax-table octave-mode-syntax-table
           (when (re-search-forward "^\\s-*See also:" nil t)
-            (let ((end (or (save-excursion (re-search-forward "^\\s-*$" nil t))
-                           (point-max))))
+            (let ((end (save-excursion (re-search-forward "^\\s-*$" nil t))))
               (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" end t)
                 (make-text-button (match-beginning 0)
                                   ;; If the match ends with . exclude it.

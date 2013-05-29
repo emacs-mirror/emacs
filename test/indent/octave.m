@@ -2311,7 +2311,7 @@ function dep = is_architecture_dependent (nm)
       ext(end) = [];
     else
       isglob = false;		# I am a test
-				# me too
+				#%% me too
 ### I shall align to column 0
     endif
     pos = findstr (nm, ext);

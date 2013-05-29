@@ -1,3 +1,7 @@
+2013-05-29  Leo Liu  <sdl.web@gmail.com>
+
+	* indent/octave.m: Tweak.
+
 2013-05-26  Aidan Gauland  <aidalgol@amuri.net>
 
 	* tests/eshell.el: Rewrite tests using ERT.

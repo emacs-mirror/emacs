@@ -1060,10 +1060,10 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                            beg end (current-buffer))
              (overlay-put smie--highlight-matching-block-overlay
                           'face 'smie-matching-block-highlight))))
-      (save-excursion
-        (condition-case nil
-            (if (nth 8 (syntax-ppss))
-                (overlay-put smie--highlight-matching-block-overlay 'face nil)
+      (overlay-put smie--highlight-matching-block-overlay 'face nil)
+      (unless (nth 8 (syntax-ppss))
+        (save-excursion
+          (condition-case nil
               (let ((token
                      (or (funcall beg-of-tok)
                          (funcall beg-of-tok
@@ -1082,11 +1082,8 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                   (let ((beg (point))
                         (opener (funcall smie-forward-token-function)))
                     (when (assoc opener smie-closer-alist)
-                      (funcall highlight beg (point)))))
-                 (t (overlay-put smie--highlight-matching-block-overlay
-                                 'face nil)))))
-          (scan-error
-           (overlay-put smie--highlight-matching-block-overlay 'face nil)))))))
+                      (funcall highlight beg (point)))))))
+            (scan-error)))))))
 
 (defvar smie--highlight-matching-block-timer nil)
 
