@@ -472,8 +472,10 @@ and space.
 
 _`.anal.strategy.risk`: The current MPS segment substrate can cause
 internal fragmentation which an individual pool can do nothing about.
-We expect that request.epcore.170193.sugg.loci will be implemented to
+We expect that `request.epcore.170193.sugg.loci`_ will be implemented to
 remove this risk.
+
+.. _`request.epcore.170193.sugg.loci`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193/
 
 _`.anal.policy`: Deferred coalescing, when taken to the extreme will
 not minimize the memory consumption of a program, as no memory would
@@ -808,23 +810,33 @@ size of the pool times the fragmentation limit divide vy 100 (see
 `.arch.contingency.fallback`_).
 
 _`.impl.c.ap.fill`: An AP fill request will be handled as follows:
+
 - If the request is larger than fill size, attempt to request a
   segment from the arena sufficient to satisfy the request.
+
 - Use any previously returned splinter (from `.impl.c.ap.empty`_), if
   large enough.
+
 - Attempt to retrieve a free block from the head of the ABQ (removing
   it from ABQ and CBS if found).
+
 - If above fragmentation limit, attempt to find a block on the CBS,
   using oldest-fit search.
+
 - Attempt to request a segment of fill size from the arena.
+
 - Attempt to find a block on the CBS, using oldest-fit search.
+
 - Otherwise, fail.
 
 _`.impl.c.ap.empty`: An AP empty request will be handled as follows:
+
 - If remaining free is less than min size, return it to the CBS.
+
 - If the remaining free is larger than any previous splinter, return
   that splinter to the CBS and save this one for use by a subsequent
   fill.
+
 - Otherwise return the remaining block to the CBS
 
 _`.impl.c.free`: When blocks are returned to the CBS a search is made
@@ -837,8 +849,10 @@ the arena.
 
 _`.impl.c.free.merge`: If a merge occurs and the merged block is
 larger than reuse size:
+
 - If the ABQ is full, remove the block at the head of the ABQ from the
   ABQ and CBS and return it to the arena(*).
+
 - Insert the newly merged block at the tail of the ABQ, leaving it on
   the CBS for further merging.
 
@@ -913,6 +927,7 @@ Possible tweaks (from mail.pekka.1998-04-15.13-10(0)):
 
 - Try to coalesce splinters returned from AP's with the front (or any)
   block on the ABQ.
+
 - Sort ABQ in some other way to minimize splitting/splinters. For
   example, proximity to recently allocated blocks.
 
