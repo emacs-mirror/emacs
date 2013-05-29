@@ -43,7 +43,7 @@ Interface
 inlined in client structures or allocated on the stack. Clients must
 not depend on its implementation details.
 
-``Res RangeInit(Range range, Addr base, Addr limit)``
+``void RangeInit(Range range, Addr base, Addr limit)``
 
 Initialize a range object to represent the half-open address range
 between ``base`` (inclusive) and ``limit`` (exclusive). It must be the
@@ -72,7 +72,7 @@ there is a function too.)
 Return the size of the range. (This is implemented as a macro, but
 there is a function too. The macro evaluates its argument twice.)
 
-``Bool RangeOverlap(Range range1, Range range2)``
+``Bool RangesOverlap(Range range1, Range range2)``
 
 Return ``TRUE`` if the two ranges overlap (have at least one address
 in common), or ``FALSE`` if they do not. Note that ranges [*A*, *B*) and
