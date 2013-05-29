@@ -1389,16 +1389,18 @@ See also `multi-occur'."
 (defun occur-engine (regexp buffers out-buf nlines case-fold
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
-    (let ((globalcount 0)
+    (let ((global-lines 0)    ;; total count of matching lines
+	  (global-matches 0)  ;; total count of matches
 	  (coding nil)
 	  (case-fold-search case-fold))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
-	  (let ((matches 0)	;; count of matched lines
-		(lines 1)	;; line count
-		(prev-after-lines nil)	;; context lines of prev match
-		(prev-lines nil)        ;; line number of prev match endpt
+	  (let ((lines 0)               ;; count of matching lines
+		(matches 0)             ;; count of matches
+		(curr-line 1)           ;; line count
+		(prev-line nil)         ;; line number of prev match endpt
+		(prev-after-lines nil)  ;; context lines of prev match
 		(matchbeg 0)
 		(origpt nil)
 		(begpt nil)
@@ -1419,7 +1421,7 @@ See also `multi-occur'."
 		(while (not (eobp))
 		  (setq origpt (point))
 		  (when (setq endpt (re-search-forward regexp nil t))
-		    (setq matches (1+ matches)) ;; increment match count
+		    (setq lines (1+ lines)) ;; increment matching lines count
 		    (setq matchbeg (match-beginning 0))
 		    ;; Get beginning of first match line and end of the last.
 		    (save-excursion
@@ -1428,7 +1430,7 @@ See also `multi-occur'."
 		      (goto-char endpt)
 		      (setq endpt (line-end-position)))
 		    ;; Sum line numbers up to the first match line.
-		    (setq lines (+ lines (count-lines origpt begpt)))
+		    (setq curr-line (+ curr-line (count-lines origpt begpt)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
 		    (setq curstring (occur-engine-line begpt endpt keep-props))
@@ -1437,6 +1439,7 @@ See also `multi-occur'."
 			  (start 0))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
+			(setq matches (1+ matches))
 			(add-text-properties
 			 (match-beginning 0) (match-end 0)
 			 (append
@@ -1450,7 +1453,7 @@ See also `multi-occur'."
 		    ;; Generate the string to insert for this match
 		    (let* ((match-prefix
 			    ;; Using 7 digits aligns tabs properly.
-			    (apply #'propertize (format "%7d:" lines)
+			    (apply #'propertize (format "%7d:" curr-line)
 				   (append
 				    (when prefix-face
 				      `(font-lock-face ,prefix-face))
@@ -1490,7 +1493,7 @@ See also `multi-occur'."
 			      ;; The complex multi-line display style.
 			      (setq ret (occur-context-lines
 					 out-line nlines keep-props begpt endpt
-					 lines prev-lines prev-after-lines
+					 curr-line prev-line prev-after-lines
 					 prefix-face))
 			      ;; Set first elem of the returned list to `data',
 			      ;; and the second elem to `prev-after-lines'.
@@ -1503,28 +1506,34 @@ See also `multi-occur'."
 		  (if endpt
 		      (progn
 			;; Sum line numbers between first and last match lines.
-			(setq lines (+ lines (count-lines begpt endpt)
-				       ;; Add 1 for empty last match line since
-				       ;; count-lines returns 1 line less.
-				       (if (and (bolp) (eolp)) 1 0)))
+			(setq curr-line (+ curr-line (count-lines begpt endpt)
+					   ;; Add 1 for empty last match line since
+					   ;; count-lines returns 1 line less.
+					   (if (and (bolp) (eolp)) 1 0)))
 			;; On to the next match...
 			(forward-line 1))
 		    (goto-char (point-max)))
-		  (setq prev-lines (1- lines)))
+		  (setq prev-line (1- curr-line)))
 		;; Flush remaining context after-lines.
 		(when prev-after-lines
 		  (with-current-buffer out-buf
 		    (insert (apply #'concat (occur-engine-add-prefix
 					     prev-after-lines prefix-face)))))))
-	    (when (not (zerop matches)) ;; is the count zero?
-	      (setq globalcount (+ globalcount matches))
+	    (when (not (zerop lines)) ;; is the count zero?
+	      (setq global-lines (+ global-lines lines)
+		    global-matches (+ global-matches matches))
 	      (with-current-buffer out-buf
 		(goto-char headerpt)
 		(let ((beg (point))
 		      end)
 		  (insert (propertize
-			   (format "%d match%s%s in buffer: %s\n"
+			   (format "%d match%s%s%s in buffer: %s\n"
 				   matches (if (= matches 1) "" "es")
+				   ;; Don't display the same number of lines
+				   ;; and matches in case of 1 match per line.
+				   (if (= lines matches)
+				       "" (format " in %d line%s"
+						  lines (if (= lines 1) "" "s")))
 				   ;; Don't display regexp for multi-buffer.
 				   (if (> (length buffers) 1)
 				       "" (format " for \"%s\""
@@ -1539,12 +1548,17 @@ See also `multi-occur'."
 					`(occur-title ,buf))))
 		(goto-char (point-min)))))))
       ;; Display total match count and regexp for multi-buffer.
-      (when (and (not (zerop globalcount)) (> (length buffers) 1))
+      (when (and (not (zerop global-lines)) (> (length buffers) 1))
 	(goto-char (point-min))
 	(let ((beg (point))
 	      end)
-	  (insert (format "%d match%s total for \"%s\":\n"
-			  globalcount (if (= globalcount 1) "" "es")
+	  (insert (format "%d match%s%s total for \"%s\":\n"
+			  global-matches (if (= global-matches 1) "" "es")
+			  ;; Don't display the same number of lines
+			  ;; and matches in case of 1 match per line.
+			  (if (= global-lines global-matches)
+			      "" (format " in %d line%s"
+					 global-lines (if (= global-lines 1) "" "s")))
 			  (query-replace-descr regexp)))
 	  (setq end (point))
 	  (add-text-properties beg end (when title-face
@@ -1556,7 +1570,7 @@ See also `multi-occur'."
 	  ;; buffer.
 	  (set-buffer-file-coding-system coding))
       ;; Return the number of matches
-      globalcount)))
+      global-matches)))
 
 (defun occur-engine-line (beg end &optional keep-props)
   (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
@@ -1599,13 +1613,13 @@ See also `multi-occur'."
 ;; Generate context display for occur.
 ;; OUT-LINE is the line where the match is.
 ;; NLINES and KEEP-PROPS are args to occur-engine.
-;; LINES is line count of the current match,
-;; PREV-LINES is line count of the previous match,
+;; CURR-LINE is line count of the current match,
+;; PREV-LINE is line count of the previous match,
 ;; PREV-AFTER-LINES is a list of after-context lines of the previous match.
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
-				     lines prev-lines prev-after-lines
+				     curr-line prev-line prev-after-lines
 				     &optional prefix-face)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
@@ -1621,22 +1635,22 @@ See also `multi-occur'."
 
     (when prev-after-lines
       ;; Don't overlap prev after-lines with current before-lines.
-      (if (>= (+ prev-lines (length prev-after-lines))
-	      (- lines      (length before-lines)))
+      (if (>= (+ prev-line (length prev-after-lines))
+	      (- curr-line      (length before-lines)))
 	  (setq prev-after-lines
 		(butlast prev-after-lines
 			 (- (length prev-after-lines)
-			    (- lines prev-lines (length before-lines) 1))))
+			    (- curr-line prev-line (length before-lines) 1))))
 	;; Separate non-overlapping context lines with a dashed line.
 	(setq separator "-------\n")))
 
-    (when prev-lines
+    (when prev-line
       ;; Don't overlap current before-lines with previous match line.
-      (if (<= (- lines (length before-lines))
-	      prev-lines)
+      (if (<= (- curr-line (length before-lines))
+	      prev-line)
 	  (setq before-lines
 		(nthcdr (- (length before-lines)
-			   (- lines prev-lines 1))
+			   (- curr-line prev-line 1))
 			before-lines))
 	;; Separate non-overlapping before-context lines.
 	(unless (> nlines 0)

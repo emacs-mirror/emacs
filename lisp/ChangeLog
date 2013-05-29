@@ -1,5 +1,18 @@
 2013-05-29  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (occur-engine): Rename `globalcount' to `global-lines'
+	for total count of matching lines.  Add `global-matches' for total
+	count of matches.  Rename `matches' to `lines' for count of
+	matching lines.  Add `matches' for count of matches.
+	Rename `lines' to `curr-line' for line count.  Rename `prev-lines'
+	to `prev-line' for line number of prev match endpt.
+	Increment `matches' for every match.  Print the number of
+	matching lines in the header.
+	(occur-context-lines): Rename `lines' to `curr-line'.
+	Rename `prev-lines' to `prev-line'.  (Bug#14017)
+
+2013-05-29  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (perform-replace): Add `skip-read-only-count',
 	`skip-filtered-count', `skip-invisible-count' let-bound to 0.
 	Increment them for corresponding conditions and report the number
