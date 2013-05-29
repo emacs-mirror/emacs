@@ -5078,11 +5078,14 @@ Cache to disk for quick recovery."
   ;; The sequence here is important because earlier definitions shadow
   ;; later ones.  We assume that if things in the buffers are newer
   ;; then in the shell of the system, they are meant to be different.
-  (setcdr idlwave-last-system-routine-info-cons-cell
-	  (append idlwave-buffer-routines
-		  idlwave-compiled-routines
-		  idlwave-library-catalog-routines
-		  idlwave-user-catalog-routines))
+  (let ((temp (append idlwave-buffer-routines
+		      idlwave-compiled-routines
+		      idlwave-library-catalog-routines
+		      idlwave-user-catalog-routines)))
+    ;; Not actually used for anything?
+    (if idlwave-last-system-routine-info-cons-cell
+	(setcdr idlwave-last-system-routine-info-cons-cell temp)
+      (setq idlwave-last-system-routine-info-cons-cell (cons temp nil))))
   (setq idlwave-class-alist nil)
 
   ;; Give a message with information about the number of routines we have.

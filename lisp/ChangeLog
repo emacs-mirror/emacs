@@ -8,6 +8,9 @@
 
 2013-05-29  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlwave.el (idlwave-concatenate-rinfo-lists):
+	Handle idlwave-last-system-routine-info-cons-cell being nil.
+
 	* progmodes/idlwave.el (idlwave-scan-user-lib-files)
 	(idlwave-write-paths): Simplify via with-temp-buffer.
 
