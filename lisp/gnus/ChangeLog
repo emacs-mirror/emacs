@@ -1,3 +1,31 @@
+2013-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-ems.el (set-process-plist): Every supported Emacs has this.
+
+	* gnus-group.el (gnus-sequence-of-unread-articles)
+	(gnus-summary-add-mark, gnus-mark-article-as-read)
+	(gnus-group-make-articles-read): Declare.
+
+	* gnus-sum.el (gnus-parameter-list-identifier)
+	(gnus-article-stop-animations, gnus-stop-downloads)
+	(gnus-article-only-boring-p, article-goto-body)
+	(gnus-flush-original-article-buffer, article-narrow-to-head)
+	(gnus-article-hidden-text-p, gnus-delete-wash-type)
+	(gnus-summary-save-in-pipe, gnus-article-show-summary): Declare.
+
+	* gnus.el: No need to eval-and-compile autoloads.
+
+	* gravatar.el (help-function-arglist): Autoload.
+
+	* nnimap.el (gnus-refer-thread-use-nnir): Declare.
+
+	* nnmail.el (nnmail-fancy-expiry-target): Maybe use mail-dont-reply-to.
+
+	* spam.el: No need to load spam-report when compiling.
+	No need to eval-and-compile autoloads.
+	(spam-report-resend-to): Declare.
+	(spam-report-resend-register-routine): Require 'spam-report.
+
 2013-05-24  Julien Danjou  <julien@danjou.info>
 
 	* sieve.el (sieve-setup-buffer): Fix default port value in sieve buffer

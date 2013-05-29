@@ -3591,6 +3591,8 @@ Cross references (Xref: header) of articles are ignored."
   (interactive "P")
   (gnus-group-catchup-current n 'all))
 
+(declare-function gnus-sequence-of-unread-articles "gnus-sum" (group))
+
 (defun gnus-group-catchup (group &optional all)
   "Mark all articles in GROUP as read.
 If ALL is non-nil, all articles are marked as read.
@@ -4493,6 +4495,8 @@ and the second element is the address."
 		     (sort (nconc (gnus-uncompress-range (cdr m))
 				  (copy-sequence articles)) '<) t))))))
 
+(declare-function gnus-summary-add-mark "gnus-sum" (article type))
+
 (defun gnus-add-mark (group mark article)
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
   (let ((buffer (gnus-summary-buffer-name group)))
@@ -4656,6 +4660,9 @@ you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))
+
+(declare-function gnus-mark-article-as-read "gnu-sum" (article &optional mark))
+(declare-function gnus-group-make-articles-read "gnus-sum" (group articles))
 
 (defun gnus-group-mark-article-read (group article)
   "Mark ARTICLE read."

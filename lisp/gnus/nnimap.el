@@ -1642,6 +1642,7 @@ textual parts.")
   (setq nnimap-status-string "Read-only server")
   nil)
 
+(defvar gnus-refer-thread-use-nnir)	; gnus-sum
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 

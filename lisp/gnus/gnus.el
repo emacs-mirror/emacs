@@ -4243,8 +4243,7 @@ parameters."
       (setq valids (cdr valids)))
     outs))
 
-(eval-and-compile
-  (autoload 'message-y-or-n-p "message" nil nil 'macro))
+(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.

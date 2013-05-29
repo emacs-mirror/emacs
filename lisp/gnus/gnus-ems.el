@@ -221,8 +221,8 @@
         'window-inside-pixel-edges
       'window-pixel-edges))
 
-  (if (fboundp 'set-process-plist)
-      (progn
+  (if (or (featurep 'emacs) (fboundp 'set-process-plist))
+      (progn				; these exist since Emacs 22.1
 	(defalias 'gnus-set-process-plist 'set-process-plist)
 	(defalias 'gnus-process-plist 'process-plist)
 	(defalias 'gnus-process-get 'process-get)
