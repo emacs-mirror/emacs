@@ -6671,10 +6671,13 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
   (buffer-substring
    (match-beginning 1) (match-end 1)))
 
+(declare-function imenu-choose-buffer-index "imenu" (&optional prompt alist))
+
 (defun cperl-imenu-on-info ()
   "Shows imenu for Perl Info Buffer.
 Opens Perl Info buffer if needed."
   (interactive)
+  (require 'imenu)
   (let* ((buffer (current-buffer))
 	 imenu-create-index-function
 	 imenu-prev-index-position-function
@@ -7134,6 +7137,10 @@ Use as
 (defvar cperl-hierarchy '(() ())
   "Global hierarchy of classes.")
 
+;; Follows call to (autoloaded) visit-tags-table.
+(declare-function file-of-tag "etags" (&optional relative))
+(declare-function etags-snarf-tag "etags" (&optional use-explicit))
+
 (defun cperl-tags-hier-fill ()
   ;; Suppose we are in a tag table cooked by cperl.
   (goto-char 1)
@@ -7177,6 +7184,7 @@ Use as
       (end-of-line))))
 
 (declare-function x-popup-menu "menu.c" (position menu))
+(declare-function etags-goto-tag-location "etags" (tag-info))
 
 (defun cperl-tags-hier-init (&optional update)
   "Show hierarchical menu of classes and methods.

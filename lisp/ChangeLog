@@ -1,3 +1,9 @@
+2013-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cperl-mode.el (imenu-choose-buffer-index)
+	(file-of-tag, etags-snarf-tag, etags-goto-tag-location): Declare.
+	(cperl-imenu-on-info): Require imenu.
+
 2013-05-28  Alan Mackenzie  <acm@muc.de>
 
 	Handle "capitalised keywords" correctly.
