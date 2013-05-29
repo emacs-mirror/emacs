@@ -1,3 +1,8 @@
+2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Lambda Expressions): Lambda expressions don't
+	evaluate to themselves in general (bug#11782).
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loading.texi (Autoload):
