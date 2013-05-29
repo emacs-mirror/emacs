@@ -1,3 +1,8 @@
+2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Preserve undo info when reverting
+	a buffer (bug#8447).
+
 2013-05-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): When CHARPOS is displayed frrom a
@@ -25,8 +30,8 @@
 	(struct MonitorInfo): New struct.
 	(free_monitors, make_monitor_attribute_list): Declare.
 
-	* frame.c (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource): New
-	Lisp_Object:s.
+	* frame.c (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource):
+	New Lisp_Object:s.
 	(free_monitors, make_monitor_attribute_list): New functions.
 	(syms_of_frame): DEFSYM Qgeometry, Qworkarea, Qmm_size, Qframes,
 	Qsource.
