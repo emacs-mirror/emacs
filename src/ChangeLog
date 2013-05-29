@@ -1,3 +1,7 @@
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove *.res files.
+
 2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Preserve undo info when reverting

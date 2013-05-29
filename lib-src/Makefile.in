@@ -278,7 +278,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o *.res
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}

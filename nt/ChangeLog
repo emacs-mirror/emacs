@@ -1,3 +1,9 @@
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (emacs.res): Include srcdir when preprocessing
+	resources, for out-of-tree builds.
+	(mostlyclean): Remove *.res files.
+
 2013-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* runemacs.c (WinMain): Support invocation of un-installed

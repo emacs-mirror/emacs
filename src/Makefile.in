@@ -547,6 +547,7 @@ mostlyclean:
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
+	rm -f *.res
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
