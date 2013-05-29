@@ -80,7 +80,7 @@ typedef MVFFDebugStruct *MVFFDebug;
  *
  * Updates MVFF counters for additional free space.  Returns maximally
  * coalesced range containing given range.  Does not attempt to free
- * segments (see MVFFFreeSegs).  Cannot(!) fail.
+ * segments (see MVFFFreeSegs).
  */
 static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   Res res;
@@ -94,6 +94,10 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   AVER(limit > base);
 
   res = CBSInsert(baseIO, limitIO, CBSOfMVFF(mvff), base, limit);
+  if (ResIsAllocFailure(res))
+    /* CBS ran out of memory for splay nodes: lose freed range. */
+    return;
+
   AVER(res == ResOK);
   mvff->free += AddrOffset(base, limit);
 
@@ -138,6 +142,10 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     if (segBase >= base) { /* segment starts in range */
       Addr oldBase, oldLimit;
       res = CBSDelete(&oldBase, &oldLimit, CBSOfMVFF(mvff), segBase, segLimit);
+      if (ResIsAllocFailure(res))
+        /* CBS ran out of memory for splay nodes: can't delete. */
+        return;
+
       AVER(res == ResOK);
       AVER(oldBase <= segBase);
       AVER(segLimit <= oldLimit);
@@ -367,6 +375,10 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
     Addr newBase, newLimit;
     foundBlock = FALSE;
     res = CBSInsert(&newBase, &newLimit, CBSOfMVFF(mvff), base, limit);
+    if (ResIsAllocFailure(res))
+      /* CBS ran out of memory for splay nodes: lose block. */
+      return res;
+
     AVER(newBase == base);
     AVER(newLimit == limit);
     AVER(res == ResOK);
@@ -719,31 +731,6 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
-}
-
-
-/* mps_mvff_stat -- a hack to get statistics emitted
- *
- * .stat: The SW temp pool cannot be destroyed, so we're providing this
- * to get the statistics.  It breaks modularity to access CBS internals.
- */
-
-#include "meter.h"
-extern void mps_mvff_stat(mps_pool_t pool);
-
-void mps_mvff_stat(mps_pool_t mps_pool)
-{
-  Pool pool;
-  MVFF mvff;
-
-  pool = (Pool)mps_pool;
-  AVERT(Pool, pool);
-  mvff = Pool2MVFF(pool);
-  AVERT(MVFF, mvff);
-
-  METER_EMIT(&CBSOfMVFF(mvff)->splaySearch);
-  /* FIXME: METER_EMIT(&CBSOfMVFF(mvff)->eblSearch); */
-  /* FIXME: METER_EMIT(&CBSOfMVFF(mvff)->eglSearch); */
 }
 
 

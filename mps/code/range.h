@@ -27,12 +27,12 @@ typedef struct RangeStruct *Range;
 #define RangeLimit(range) ((range)->limit)
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
 
-extern Res RangeInit(Range range, Addr base, Addr limit);
+extern void RangeInit(Range range, Addr base, Addr limit);
 extern void RangeFinish(Range range);
 extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
 extern Bool RangeCheck(Range range);
 extern Bool RangeIsAligned(Range range, Align align);
-extern Bool RangeOverlap(Range range1, Range range2);
+extern Bool RangesOverlap(Range range1, Range range2);
 extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
 extern Size (RangeSize)(Range range);

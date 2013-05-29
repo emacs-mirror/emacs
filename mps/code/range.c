@@ -16,14 +16,13 @@ SRCID(range, "$Id$");
 Bool RangeCheck(Range range)
 {
   CHECKS(Range, range);
-  CHECKL(range != NULL);
-  CHECKL(RangeBase(range) != NULL);
-  CHECKL(RangeBase(range) <= RangeLimit(range));
+  CHECKL(range->base != NULL);
+  CHECKL(range->base <= range->limit);
 
   return TRUE;
 }
 
-Res RangeInit(Range range, Addr base, Addr limit)
+void RangeInit(Range range, Addr base, Addr limit)
 {
   AVER(range != NULL);
   AVER(base != NULL);
@@ -34,7 +33,6 @@ Res RangeInit(Range range, Addr base, Addr limit)
 
   range->sig = RangeSig;
   AVERT(Range, range);
-  return ResOK;
 }
 
 void RangeFinish(Range range)
@@ -64,7 +62,7 @@ Res RangeDescribe(Range range, mps_lib_FILE *stream)
   return ResOK;
 }
 
-Bool RangeOverlap(Range range1, Range range2)
+Bool RangesOverlap(Range range1, Range range2)
 {
   AVERT(Range, range1);
   AVERT(Range, range2);

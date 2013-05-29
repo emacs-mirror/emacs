@@ -605,7 +605,7 @@ static Bool MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
   oldRange = element;
   newRange = closureP;
 
-  if (RangeOverlap(oldRange, newRange)) {
+  if (RangesOverlap(oldRange, newRange)) {
     *dispositionReturn = ABQDispositionDELETE;
   } else {
     *dispositionReturn = ABQDispositionKEEP;
