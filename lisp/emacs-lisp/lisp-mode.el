@@ -266,6 +266,7 @@ font-lock keywords will not be case sensitive."
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     ;; This gets in the way when viewing a Lisp file in view-mode.  As
