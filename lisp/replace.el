@@ -250,6 +250,10 @@ letters.  \(Transferring the case pattern means that if the old text
 matched is all caps, or capitalized, then its replacement is upcased
 or capitalized.)
 
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
+
 If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
@@ -299,6 +303,10 @@ pattern of the old text to the new text, if `case-replace' and
 \(Transferring the case pattern means that if the old text matched is
 all caps, or capitalized, then its replacement is upcased or
 capitalized.)
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -379,6 +387,10 @@ that reads REGEXP.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -470,6 +482,10 @@ are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
 
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
+
 If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
@@ -511,6 +527,10 @@ and TO-STRING is also null.)"
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -1934,6 +1954,9 @@ make, or the user didn't cancel the call."
          (keep-going t)
          (stack nil)
          (replace-count 0)
+         (skip-read-only-count 0)
+         (skip-filtered-count 0)
+         (skip-invisible-count 0)
          (nonempty-match nil)
 	 (multi-buffer nil)
 	 (recenter-last-op nil)	; Start cycling order with initial position.
@@ -2042,20 +2065,24 @@ make, or the user didn't cancel the call."
 				(and (/= (nth 0 match) (nth 1 match))
 				     match))))))
 
-	  ;; Optionally ignore matches that have a read-only property.
-	  (when (and (or (not query-replace-skip-read-only)
-			 (not (text-property-not-all
-			       (nth 0 real-match-data) (nth 1 real-match-data)
-			       'read-only nil)))
-		     ;; Optionally filter out matches.
-		     (run-hook-with-args-until-failure
-		      'isearch-filter-predicates
-		      (nth 0 real-match-data) (nth 1 real-match-data))
-		     ;; Optionally ignore invisible matches.
-		     (or (eq search-invisible t)
-			 (not (isearch-range-invisible
-			       (nth 0 real-match-data) (nth 1 real-match-data)))))
-
+	  (cond
+	   ;; Optionally ignore matches that have a read-only property.
+	   ((not (or (not query-replace-skip-read-only)
+		     (not (text-property-not-all
+			   (nth 0 real-match-data) (nth 1 real-match-data)
+			   'read-only nil))))
+	    (setq skip-read-only-count (1+ skip-read-only-count)))
+	   ;; Optionally filter out matches.
+	   ((not (run-hook-with-args-until-failure
+		  'isearch-filter-predicates
+		  (nth 0 real-match-data) (nth 1 real-match-data)))
+	    (setq skip-filtered-count (1+ skip-filtered-count)))
+	   ;; Optionally ignore invisible matches.
+	   ((not (or (eq search-invisible t)
+		     (not (isearch-range-invisible
+			   (nth 0 real-match-data) (nth 1 real-match-data)))))
+	    (setq skip-invisible-count (1+ skip-invisible-count)))
+	   (t
 	    ;; Calculate the replacement string, if necessary.
 	    (when replacements
 	      (set-match-data real-match-data)
@@ -2260,13 +2287,31 @@ make, or the user didn't cancel the call."
 				 (match-end 0)
 				 (current-buffer))
 			      (match-data t)))
-		      stack)))))
+		      stack))))))
 
       (replace-dehighlight))
     (or unread-command-events
-	(message "Replaced %d occurrence%s"
+	(message "Replaced %d occurrence%s%s"
 		 replace-count
-		 (if (= replace-count 1) "" "s")))
+		 (if (= replace-count 1) "" "s")
+		 (if (> (+ skip-read-only-count
+			   skip-filtered-count
+			   skip-invisible-count) 0)
+		     (format " (skipped %s)"
+			     (mapconcat
+			      'identity
+			      (delq nil (list
+					 (if (> skip-read-only-count 0)
+					     (format "%s read-only"
+						     skip-read-only-count))
+					 (if (> skip-invisible-count 0)
+					     (format "%s invisible"
+						     skip-invisible-count))
+					 (if (> skip-filtered-count 0)
+					     (format "%s filtered out"
+						     skip-filtered-count))))
+			      ", "))
+		   "")))
     (or (and keep-going stack) multi-buffer)))
 
 ;;; replace.el ends here
