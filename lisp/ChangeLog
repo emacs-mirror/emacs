@@ -1,5 +1,8 @@
 2013-05-29  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/cua-gmrk.el: Also load cua-base, cua-rect at run time.
+	* emulation/cua-rect.el: Also load cua-base at run time.
+
 	* progmodes/cperl-mode.el (imenu-choose-buffer-index)
 	(file-of-tag, etags-snarf-tag, etags-goto-tag-location): Declare.
 	(cperl-imenu-on-info): Require imenu.
