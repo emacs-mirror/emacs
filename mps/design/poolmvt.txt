@@ -1,4 +1,4 @@
-.. mode:: -*- rst -*-
+.. mode: -*- rst -*-
 
 
 Manual Variable Temporal (MVT) pool design
