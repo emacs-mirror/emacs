@@ -1,5 +1,7 @@
 2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/trace.el (trace--read-args): Provide a default.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Inherit from
 	prog-mode-map.
 
