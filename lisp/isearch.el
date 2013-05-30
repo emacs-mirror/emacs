@@ -514,6 +514,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-e" 'isearch-edit-string)
 
     (define-key map "\M-sc" 'isearch-toggle-case-fold)
+    (define-key map "\M-si" 'isearch-toggle-invisible)
     (define-key map "\M-sr" 'isearch-toggle-regexp)
     (define-key map "\M-sw" 'isearch-toggle-word)
     (define-key map "\M-s_" 'isearch-toggle-symbol)
@@ -601,6 +602,11 @@ Each set is a vector of the form:
 ;;   either nil, t, or 'yes.  'yes means the same as t except that mixed
 ;;   case in the search string is ignored.
 (defvar isearch-case-fold-search nil)
+
+;; search-invisible while searching.
+;;   either nil, t, or 'open.  'open means the same as t except that
+;;   opens hidden overlays.
+(defvar isearch-invisible search-invisible)
 
 (defvar isearch-last-case-fold-search nil)
 
@@ -700,6 +706,7 @@ If you try to exit with the search string still empty, it invokes
  nonincremental search.
 
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
+Type \\[isearch-toggle-invisible] to toggle search in invisible text.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
 Type \\[isearch-toggle-word] to toggle word mode.
 Type \\[isearch-toggle-symbol] to toggle symbol mode.
@@ -836,6 +843,7 @@ convert the search string to a regexp used by regexp search functions."
 	isearch-op-fun op-fun
 	isearch-last-case-fold-search isearch-case-fold-search
 	isearch-case-fold-search case-fold-search
+	isearch-invisible search-invisible
 	isearch-string ""
 	isearch-message ""
 	isearch-cmds nil
@@ -1474,7 +1482,8 @@ value of the variable `isearch-regexp-lax-whitespace'."
   (isearch-update))
 
 (defun isearch-toggle-case-fold ()
-  "Toggle case folding in searching on or off."
+  "Toggle case folding in searching on or off.
+Toggles the value of the variable `isearch-case-fold-search'."
   (interactive)
   (setq isearch-case-fold-search
 	(if isearch-case-fold-search nil 'yes))
@@ -1483,6 +1492,23 @@ value of the variable `isearch-regexp-lax-whitespace'."
 	     (isearch-message-prefix nil isearch-nonincremental)
 	     isearch-message
 	     (if isearch-case-fold-search "in" "")))
+  (setq isearch-success t isearch-adjusted t)
+  (sit-for 1)
+  (isearch-update))
+
+(defun isearch-toggle-invisible ()
+  "Toggle searching in invisible text on or off.
+Toggles the variable `isearch-invisible' between values
+nil and a non-nil value of the option `search-invisible'
+\(or `open' if `search-invisible' is nil)."
+  (interactive)
+  (setq isearch-invisible
+	(if isearch-invisible nil (or search-invisible 'open)))
+  (let ((message-log-max nil))
+    (message "%s%s [match %svisible text]"
+	     (isearch-message-prefix nil isearch-nonincremental)
+	     isearch-message
+	     (if isearch-invisible "in" "")))
   (setq isearch-success t isearch-adjusted t)
   (sit-for 1)
   (isearch-update))
@@ -1622,6 +1648,7 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
 	;; set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `perform-replace'
 	(search-upper-case nil)
+	(search-invisible isearch-invisible)
 	(replace-lax-whitespace
 	 isearch-lax-whitespace)
 	(replace-regexp-lax-whitespace
@@ -2638,9 +2665,10 @@ update the match data, and return point."
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-point-motion-hooks search-invisible)
+      (let ((inhibit-point-motion-hooks isearch-invisible)
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
+	    (search-invisible isearch-invisible)
 	    (retry t))
 	(setq isearch-error nil)
 	(while retry
@@ -2836,7 +2864,7 @@ determined by `isearch-range-invisible' unless invisible text can be
 searched too when `search-invisible' is t."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
-(make-obsolete 'isearch-filter-visible 'search-invisible "24.4")
+(make-obsolete 'isearch-filter-visible 'isearch-invisible "24.4")
 
 
 ;; General utilities

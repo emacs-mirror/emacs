@@ -1,5 +1,21 @@
 2013-05-30  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-mode-map): Bind `isearch-toggle-invisible'
+	to "\M-si".
+	(isearch-invisible): New variable.
+	(isearch-forward): Doc fix.
+	(isearch-mode): Set `isearch-invisible'
+	to the value of `search-invisible'.
+	(isearch-toggle-case-fold): Doc fix.
+	(isearch-toggle-invisible): New command.
+	(isearch-query-replace): Let-bind `search-invisible'
+	to the value of `isearch-invisible'.
+	(isearch-search): Use `isearch-invisible' instead of
+	`search-invisible'.  Let-bind `search-invisible'
+	to the value of `isearch-invisible'.  (Bug#11378)
+
+2013-05-30  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (perform-replace): Avoid `isearch-range-invisible'
 	call when `query-flag' is nil and `search-invisible' is non-nil.
 	(Bug#11746)
