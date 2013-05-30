@@ -336,13 +336,16 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
   }
 }
 
-static Res cbsBlockNew(CBS cbs, Addr base, Addr limit)
-{
-  CBSBlock block;
-  Res res;
-  Addr p;
-  Size newSize;
+/* cbsBlockAlloc -- allocate a new block and set its base and limit,
+   but do not insert it into the splay tree yet */
 
+static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Addr base, Addr limit)
+{
+  Res res;
+  CBSBlock block;
+  Addr p;
+
+  AVER(blockReturn != NULL);
   AVERT(CBS, cbs);
 
   res = PoolAlloc(&p, cbs->blockPool, sizeof(CBSBlockStruct),
@@ -354,9 +357,24 @@ static Res cbsBlockNew(CBS cbs, Addr base, Addr limit)
   SplayNodeInit(splayNodeOfCBSBlock(block));
   block->base = base;
   block->limit = limit;
-  newSize = CBSBlockSize(block);
-  block->maxSize = newSize;
+  block->maxSize = CBSBlockSize(block);
 
+  AVERT(CBSBlock, block);
+  *blockReturn = block;
+  return ResOK;
+
+failPoolAlloc:
+  AVER(res != ResOK);
+  return res;
+}
+
+/* cbsBlockInsert -- insert a block into the splay tree */
+
+static void cbsBlockInsert(CBS cbs, CBSBlock block)
+{
+  Res res;
+
+  AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
@@ -364,12 +382,6 @@ static Res cbsBlockNew(CBS cbs, Addr base, Addr limit)
                         keyOfCBSBlock(block));
   AVER(res == ResOK);
   STATISTIC(++cbs->splayTreeSize);
-
-  return ResOK;
-
-failPoolAlloc:
-  AVER(res != ResOK);
-  return res;
 }
 
 
@@ -458,9 +470,11 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
       rightCBS->base = base;
       cbsBlockGrew(cbs, rightCBS, oldSize);
     } else { /* !leftMerge, !rightMerge */
-      res = cbsBlockNew(cbs, base, limit);
+      CBSBlock block;
+      res = cbsBlockAlloc(&block, cbs, base, limit);
       if (res != ResOK)
         goto fail;
+      cbsBlockInsert(cbs, block);
     }
   }
 
@@ -519,6 +533,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
   Res res;
   CBSBlock cbsBlock;
   SplayNode splayNode;
+  Addr oldBase, oldLimit;
   Size oldSize;
 
   AVER(baseReturn != NULL);
@@ -540,57 +555,46 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
     goto failLimitCheck;
   }
 
+  oldBase = cbsBlock->base;
   *baseReturn = cbsBlock->base;
+  oldLimit = cbsBlock->limit;
   *limitReturn = cbsBlock->limit;
+  oldSize = CBSBlockSize(cbsBlock);
 
-  if (base == cbsBlock->base) {
-    if (limit == cbsBlock->limit) { /* entire block */
-      cbsBlockDelete(cbs, cbsBlock);
-    } else { /* remaining fragment at right */
-      AVER(limit < cbsBlock->limit);
-      oldSize = CBSBlockSize(cbsBlock);
-      cbsBlock->base = limit;
-      cbsBlockShrunk(cbs, cbsBlock, oldSize);
-    }
+  if (base == oldBase && limit == oldLimit) {
+    /* entire block */
+    cbsBlockDelete(cbs, cbsBlock);
+
+  } else if (base == oldBase) {
+    /* remaining fragment at right */
+    AVER(limit < oldLimit);
+    cbsBlock->base = limit;
+    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+
+  } else if (limit == oldLimit) {
+    /* remaining fragment at left */
+    AVER(base > oldBase);
+    cbsBlock->limit = base;
+    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+
   } else {
-    AVER(base > cbsBlock->base);
-    if (limit == cbsBlock->limit) { /* remaining fragment at left */
-      oldSize = CBSBlockSize(cbsBlock);
-      cbsBlock->limit = base;
-      cbsBlockShrunk(cbs, cbsBlock, oldSize);
-    } else { /* two remaining fragments */
-      Size leftNewSize = AddrOffset(cbsBlock->base, base);
-      Size rightNewSize = AddrOffset(limit, cbsBlock->limit);
-      /* must shrink larger fragment and create smaller */
-      if (leftNewSize >= rightNewSize) {
-        Addr oldLimit = cbsBlock->limit;
-        AVER(limit < cbsBlock->limit);
-        oldSize = CBSBlockSize(cbsBlock);
-        cbsBlock->limit = base;
-        cbsBlockShrunk(cbs, cbsBlock, oldSize);
-        res = cbsBlockNew(cbs, limit, oldLimit);
-        if (res != ResOK) {
-          AVER(ResIsAllocFailure(res));
-          goto failNew;
-        }
-      } else { /* right fragment is larger */
-        Addr oldBase = cbsBlock->base;
-        AVER(base > cbsBlock->base);
-        oldSize = CBSBlockSize(cbsBlock);
-        cbsBlock->base = limit;
-        cbsBlockShrunk(cbs, cbsBlock, oldSize);
-        res = cbsBlockNew(cbs, oldBase, base);
-        if (res != ResOK) {
-          AVER(ResIsAllocFailure(res));
-          goto failNew;
-        }
-      }
+    /* two remaining fragments. shrink block to represent fragment at
+       left, and create new block for fragment at right. */
+    CBSBlock newBlock;
+    AVER(base > oldBase);
+    AVER(limit < oldLimit);
+    res = cbsBlockAlloc(&newBlock, cbs, limit, oldLimit);
+    if (res != ResOK) {
+      goto failAlloc;
     }
+    cbsBlock->limit = base;
+    cbsBlockShrunk(cbs, cbsBlock, oldSize);
+    cbsBlockInsert(cbs, newBlock);
   }
 
   return ResOK;
 
-failNew:
+failAlloc:
 failLimitCheck:
 failSplayTreeSearch:
   AVER(res != ResOK);
@@ -753,6 +757,10 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
   if (callDelete) {
     Res res;
     res = cbsDeleteFromTree(oldBaseReturn, oldLimitReturn, cbs, base, limit);
+    /* Can't have run out of memory, because all our callers pass in
+       blocks that were just found in the splay tree, and we only
+       deleted from one end of the block, so cbsDeleteFromTree did not
+       need to allocate a new block. */
     AVER(res == ResOK);
   }
 
