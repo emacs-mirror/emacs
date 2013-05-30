@@ -1,3 +1,8 @@
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-mode.el: Move load of cc-vars before that of
+	cc-langs (which in turn loads cc-vars), to quieten compiler.
+
 2013-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* paren.el: Simplify the code.

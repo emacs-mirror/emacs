@@ -86,8 +86,8 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
-(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
+(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-engine)
 (cc-require 'cc-styles)
 (cc-require 'cc-cmds)
