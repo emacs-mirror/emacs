@@ -1,3 +1,9 @@
+2013-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* paren.el (show-paren-data-function): New hook.
+	(show-paren--default): New function, extracted from show-paren-function.
+	(show-paren-function): Use show-paren-data-function.
+
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* ielm.el (ielm-map, ielm-complete-symbol):
