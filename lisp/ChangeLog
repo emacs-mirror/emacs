@@ -1,5 +1,15 @@
 2013-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* paren.el: Simplify the code.
+	(show-paren-mode): Always start the timer.
+	(show-paren--idle-timer): Rename from show-paren-idle-timer.
+	(show-paren--overlay, show-paren--overlay-1): Rename from
+	show-paren-overlay and show-paren-overlay-1, and initialize to an
+	overlay rather than to nil.
+	(show-paren-function): Misc cleanup and simplifications.
+
+2013-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* paren.el (show-paren-data-function): New hook.
 	(show-paren--default): New function, extracted from show-paren-function.
 	(show-paren-function): Use show-paren-data-function.

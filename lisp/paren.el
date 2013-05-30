@@ -37,11 +37,6 @@
   :prefix "show-paren-"
   :group 'paren-matching)
 
-;; This is the overlay used to highlight the matching paren.
-(defvar show-paren-overlay nil)
-;; This is the overlay used to highlight the closeparen right before point.
-(defvar show-paren-overlay-1 nil)
-
 (defcustom show-paren-style 'parenthesis
   "Style used when showing a matching paren.
 Valid styles are `parenthesis' (meaning show the matching paren),
@@ -107,7 +102,14 @@ active, you must toggle the mode off and on again for this to take effect."
 (defvar show-paren-highlight-openparen t
   "Non-nil turns on openparen highlighting when matching forward.")
 
-(defvar show-paren-idle-timer nil)
+(defvar show-paren--idle-timer nil)
+(defvar show-paren--overlay
+  (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
+  "Overlay used to highlight the matching paren.")
+(defvar show-paren--overlay-1
+  (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
+  "Overlay used to highlight the paren at point.")
+
 
 ;;;###autoload
 (define-minor-mode show-paren-mode
@@ -120,27 +122,17 @@ Show Paren mode is a global minor mode.  When enabled, any
 matching parenthesis is highlighted in `show-paren-style' after
 `show-paren-delay' seconds of Emacs idle time."
   :global t :group 'paren-showing
-    ;; Enable or disable the mechanism.
-    ;; First get rid of the old idle timer.
-    (if show-paren-idle-timer
-	(cancel-timer show-paren-idle-timer))
-    (setq show-paren-idle-timer nil)
-    ;; If show-paren-mode is enabled in some buffer now,
-    ;; set up a new timer.
-    (when (memq t (mapcar (lambda (buffer)
-			    (with-current-buffer buffer
-			      show-paren-mode))
-			  (buffer-list)))
-      (setq show-paren-idle-timer (run-with-idle-timer
-				   show-paren-delay t
-				   'show-paren-function)))
-    (unless show-paren-mode
-      (and show-paren-overlay
-	   (eq (overlay-buffer show-paren-overlay) (current-buffer))
-	   (delete-overlay show-paren-overlay))
-      (and show-paren-overlay-1
-	   (eq (overlay-buffer show-paren-overlay-1) (current-buffer))
-	   (delete-overlay show-paren-overlay-1))))
+  ;; Enable or disable the mechanism.
+  ;; First get rid of the old idle timer.
+  (when show-paren--idle-timer
+    (cancel-timer show-paren--idle-timer)
+    (setq show-paren--idle-timer nil))
+  (setq show-paren--idle-timer (run-with-idle-timer
+                                show-paren-delay t
+                                #'show-paren-function))
+  (unless show-paren-mode
+    (delete-overlay show-paren--overlay)
+    (delete-overlay show-paren--overlay-1)))
 
 (defvar show-paren-data-function #'show-paren--default
   "Function to find the opener/closer at point and its match.
@@ -183,7 +175,8 @@ Where HERE-BEG..HERE-END is expected to be around point.")
             (error (setq pos t mismatch t)))
           ;; Move back the other way and verify we get back to the
           ;; starting point.  If not, these two parens don't really match.
-          ;; Maybe the one at point is escaped and doesn't really count.
+          ;; Maybe the one at point is escaped and doesn't really count,
+          ;; or one is inside a comment.
           (when (integerp pos)
             (unless (condition-case ()
                         (eq (point) (scan-sexps pos (- dir)))
@@ -215,74 +208,62 @@ Where HERE-BEG..HERE-END is expected to be around point.")
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
 (defun show-paren-function ()
-  (if show-paren-mode
-      (let* ((data (funcall show-paren-data-function))
-             (dir (if (ignore-errors (> (nth 2 data) (nth 0 data))) 1 -1))
-	     (pos (nth (if (= dir 1) 3 2) data))
+  (let ((data (and show-paren-mode (funcall show-paren-data-function))))
+    (if (not data)
+        (progn
+          ;; If show-paren-mode is nil in this buffer or if not at a paren that
+          ;; has a match, turn off any previous paren highlighting.
+          (delete-overlay show-paren--overlay)
+          (delete-overlay show-paren--overlay-1))
+
+      ;; Found something to highlight.
+      (let* ((here-beg (nth 0 data))
+             (here-end (nth 1 data))
+             (there-beg (nth 2 data))
+             (there-end (nth 3 data))
              (mismatch (nth 4 data))
-             face)
-	;;
-	;; Highlight the other end of the sexp, or unhighlight if none.
-	(if (not (or pos mismatch))
-	    (progn
-	      ;; If not at a paren that has a match,
-	      ;; turn off any previous paren highlighting.
-	      (and show-paren-overlay (overlay-buffer show-paren-overlay)
-		   (delete-overlay show-paren-overlay))
-	      (and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
-		   (delete-overlay show-paren-overlay-1)))
-	  ;;
-	  ;; Use the correct face.
-	  (if mismatch
-	      (progn
-		(if show-paren-ring-bell-on-mismatch
-		    (beep))
-		(setq face 'show-paren-mismatch))
-	    (setq face 'show-paren-match))
-	  ;;
-	  ;; If matching backwards, highlight the closeparen
-	  ;; before point as well as its matching open.
-	  ;; If matching forward, and the openparen is unbalanced,
-	  ;; highlight the paren at point to indicate misbalance.
-	  ;; Otherwise, turn off any such highlighting.
-	  (if (and (not show-paren-highlight-openparen) (= dir 1) (integerp pos))
-	      (when (and show-paren-overlay-1
-			 (overlay-buffer show-paren-overlay-1))
-		(delete-overlay show-paren-overlay-1))
-	    (let ((from (nth 0 data))
-		  (to (nth 1 data)))
-	      (if show-paren-overlay-1
-		  (move-overlay show-paren-overlay-1 from to (current-buffer))
-		(setq show-paren-overlay-1 (make-overlay from to nil t)))
-	      ;; Always set the overlay face, since it varies.
-	      (overlay-put show-paren-overlay-1 'priority show-paren-priority)
-	      (overlay-put show-paren-overlay-1 'face face)))
-	  ;;
-	  ;; Turn on highlighting for the matching paren, if found.
-	  ;; If it's an unmatched paren, turn off any such highlighting.
-	  (if (not (integerp pos))
-	      (when show-paren-overlay (delete-overlay show-paren-overlay))
-	    (let ((to (if (or (eq show-paren-style 'expression)
-			      (and (eq show-paren-style 'mixed)
-				   (not (pos-visible-in-window-p pos))))
-			  (point)
-			(nth 3 data)))
-		  (from (if (or (eq show-paren-style 'expression)
-				(and (eq show-paren-style 'mixed)
-				     (not (pos-visible-in-window-p pos))))
-			    pos
-			  (nth 2 data))))
-	      (if show-paren-overlay
-		  (move-overlay show-paren-overlay from to (current-buffer))
-		(setq show-paren-overlay (make-overlay from to nil t))))
-            ;; Always set the overlay face, since it varies.
-            (overlay-put show-paren-overlay 'priority show-paren-priority)
-            (overlay-put show-paren-overlay 'face face))))
-    ;; show-paren-mode is nil in this buffer.
-    (and show-paren-overlay
-	 (delete-overlay show-paren-overlay))
-    (and show-paren-overlay-1
-	 (delete-overlay show-paren-overlay-1))))
+             (face
+              (if mismatch
+                  (progn
+                    (if show-paren-ring-bell-on-mismatch
+                        (beep))
+                    'show-paren-mismatch)
+                'show-paren-match)))
+        ;;
+        ;; If matching backwards, highlight the closeparen
+        ;; before point as well as its matching open.
+        ;; If matching forward, and the openparen is unbalanced,
+        ;; highlight the paren at point to indicate misbalance.
+        ;; Otherwise, turn off any such highlighting.
+        (if (or (not here-beg)
+                (and (not show-paren-highlight-openparen)
+                     (> here-end (point))
+                     (integerp there-beg)))
+            (delete-overlay show-paren--overlay-1)
+          (move-overlay show-paren--overlay-1
+                        here-beg here-end (current-buffer))
+          ;; Always set the overlay face, since it varies.
+          (overlay-put show-paren--overlay-1 'priority show-paren-priority)
+          (overlay-put show-paren--overlay-1 'face face))
+        ;;
+        ;; Turn on highlighting for the matching paren, if found.
+        ;; If it's an unmatched paren, turn off any such highlighting.
+        (if (not there-beg)
+            (delete-overlay show-paren--overlay)
+          (if (or (eq show-paren-style 'expression)
+                  (and (eq show-paren-style 'mixed)
+                       (let ((closest (if (< there-beg here-beg)
+                                          (1- there-end) (1+ there-beg))))
+                         (not (pos-visible-in-window-p closest)))))
+              (move-overlay show-paren--overlay
+                            (point)
+                            (if (< there-beg here-beg) there-beg there-end)
+                            (current-buffer))
+            (move-overlay show-paren--overlay
+                          there-beg there-end (current-buffer)))
+          ;; Always set the overlay face, since it varies.
+          (overlay-put show-paren--overlay 'priority show-paren-priority)
+          (overlay-put show-paren--overlay 'face face))))))
 
 (provide 'paren)
 
