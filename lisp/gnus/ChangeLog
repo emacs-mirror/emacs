@@ -1,5 +1,8 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* spam-stat.el (spam-stat-save):
+	No need to tweak font-lock in temp buffers.
+
 	* shr.el (shr-put-image): Silence compiler.
 
 2013-05-29  Glenn Morris  <rgm@gnu.org>
