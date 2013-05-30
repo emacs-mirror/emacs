@@ -1,3 +1,8 @@
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (read-file-name-completion-ignore-case):
+	Move before completion--in-region, for eager macro expansion.
+
 2013-05-29  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (occur-engine): Rename `globalcount' to `global-lines'
@@ -1756,7 +1761,7 @@
 
 2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* comint.el: (comint-dynamic-complete-functions, comint-mode-map):
+	* comint.el (comint-dynamic-complete-functions, comint-mode-map):
 	`comint-dynamic-complete' is obsolete since 24.1, replaced by
 	`completion-at-point'. (Bug#13774)
 
