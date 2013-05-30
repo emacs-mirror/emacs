@@ -1,5 +1,9 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* net/net-utils.el (nslookup-mode-map, ftp-mode-map):
+	* progmodes/tcl.el (inferior-tcl-mode-map):
+	Use completion-at-point rather than obsolete alias.
+
 	* emacs-lisp/eieio.el (eieio-eval-default-p): Move before use.
 
 	* minibuffer.el (read-file-name-completion-ignore-case):
