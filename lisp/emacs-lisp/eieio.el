@@ -851,6 +851,10 @@ See `defclass' for more information."
     cname
     ))
 
+(defsubst eieio-eval-default-p (val)
+  "Whether the default value VAL should be evaluated for use."
+  (and (consp val) (symbolp (car val)) (fboundp (car val))))
+
 (defun eieio-perform-slot-validation-for-default (slot spec value skipnil)
   "For SLOT, signal if SPEC does not match VALUE.
 If SKIPNIL is non-nil, then if VALUE is nil return t instead."
@@ -1553,10 +1557,6 @@ Fills in OBJ's SLOT with its default value."
        (let ((val (nth (- c 3) (eieio--class-public-d (class-v cl)))))
 	 (eieio-default-eval-maybe val))
        obj cl 'oref-default))))
-
-(defsubst eieio-eval-default-p (val)
-  "Whether the default value VAL should be evaluated for use."
-  (and (consp val) (symbolp (car val)) (fboundp (car val))))
 
 (defun eieio-default-eval-maybe (val)
   "Check VAL, and return what `oref-default' would provide."

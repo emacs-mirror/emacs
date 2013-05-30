@@ -1,5 +1,7 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/eieio.el (eieio-eval-default-p): Move before use.
+
 	* minibuffer.el (read-file-name-completion-ignore-case):
 	Move before completion--in-region, for eager macro expansion.
 
