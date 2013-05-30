@@ -17,8 +17,7 @@ Introduction
 _`.intro`: This document describes how to use the diagnostic feedback
 mechanism in the Memory Pool System.
 
-_`.sources`: Initially abased on `[RHSK 2007-04-13]`_ and `[RHSK
-2007-04-18]`_.
+_`.sources`: Initially abased on [RHSK_2007-04-13]_ and [RHSK_2007-04-18]_.
 
 
 Overview
@@ -284,13 +283,9 @@ systems:
 References
 ----------
 
-.. _[RHSK 2007-04-13]:
+.. [RHSK_2007-04-13] Richard Kistruck. 2007-04-13. "`diagnostic feedback from the MPS <https://info.ravenbrook.com/mail/2007/04/13/13-07-45/0.txt>`_".
 
-   Richard Kistruck. 2007-04-13. "`diagnostic feedback from the MPS <https://info.ravenbrook.com/mail/2007/04/13/13-07-45/0.txt>`_".
-
-.. _[RHSK 2007-04-18]:
-
-   Richard Kistruck. 2007-04-18. "`Diverse types of diagnostic feedback <http://info.ravenbrook.com/mail/2007/04/18/10-58-49/0.txt>`_".
+.. [RHSK_2007-04-18] Richard Kistruck. 2007-04-18. "`Diverse types of diagnostic feedback <http://info.ravenbrook.com/mail/2007/04/18/10-58-49/0.txt>`_".
 
 
 Document History

@@ -153,23 +153,16 @@ call in collector code, or an entry in the shield cache.
 Initial ideas
 -------------
 
-_`.ideas`: There never was an initial design document, but `[RB
-1995-11-29]`_ and `[RB 1995-11-30]`_ contain some initial ideas.
+_`.ideas`: There never was an initial design document, but
+[RB_1995-11-29]_ and [RB_1995-11-30]_ contain some initial ideas.
 
 
 References
 ----------
 
-* .. _[RB 1995-11-29]:
+.. [RB_1995-11-29] Richard Brooksby. 1995-11-29. "`Shield protocol for barriers </project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/idea/shield/index.txt>`_". Harlequin.
 
-  Richard Brooksby. 1995-11-29. "`Shield protocol for barriers
-  </project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/idea/shield/index.txt>`_".
-  Harlequin.
-
-* .. _[RB 1995-11-30]:
-
-  Richard Brooksby. 1995-11-30. "`Exegesis of Incremental Tracing
-  </project/mps/mail/1995/11/30/15-07/0.txt>`_". Harlequin.
+.. [RB_1995-11-30] Richard Brooksby. 1995-11-30. "`Exegesis of Incremental Tracing </project/mps/mail/1995/11/30/15-07/0.txt>`_". Harlequin.
 
 
 Document History
