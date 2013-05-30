@@ -1,5 +1,7 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (image-animated-p): Tweak definition.
+
 	* net/rlogin.el (rlogin-program, rlogin-explicit-args): Default to ssh.
 	(rlogin-process-connection-type): Tweak default.  Add set-after.
 	(rlogin-host): Doc fix.
