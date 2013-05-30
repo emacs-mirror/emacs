@@ -346,9 +346,8 @@ And we write long documents about it.
 
 References
 ----------
-* .. _[MMRef]:
 
-  "`The Memory Management Reference <http://www.memorymanagement.org/>`_".
+.. [MMRef] "`The Memory Management Reference <http://www.memorymanagement.org/>`_".
 
 .. _scanning: http://www.memorymanagement.org/glossary/s.html#scan
 .. _marking: http://www.memorymanagement.org/glossary/m.html#marking

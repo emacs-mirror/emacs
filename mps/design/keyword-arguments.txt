@@ -143,16 +143,12 @@ methods can be deleted at some point in the future.
 References
 ----------
 
-* .. _[RB 2012-05-24]:
-
-  Richard Brooksby. 2012-05-24. "`Keyword and optional arguments
-  <https://info.ravenbrook.com/mail/2012/05/24/21-19-15/0/>`_"
-  (e-mail). Ravenbrook Limited.
+.. [RB_2012-05-24] Richard Brooksby. 2012-05-24. "`Keyword and optional arguments <https://info.ravenbrook.com/mail/2012/05/24/21-19-15/0/>`_" (e-mail). Ravenbrook Limited.
 
 
 Document History
 ----------------
-- 2013-05-09  RB_  Created based on [RB 2012-05-24].
+- 2013-05-09  RB_  Created based on [RB_2012-05-24]_.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 
