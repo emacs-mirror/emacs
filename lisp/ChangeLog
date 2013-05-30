@@ -6,6 +6,8 @@
 
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/gdb-mi.el (gdb-wait-for-pending): Fix typo.
+
 	* progmodes/cc-bytecomp.el (cc-bytecomp-noruntime-functions): New.
 	(cc-require): Suppress spurious "noruntime" warnings.
 	(cc-require-when-compile): Use fboundp, for sake of compiler.

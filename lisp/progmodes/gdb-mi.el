@@ -345,7 +345,7 @@ triggers in `gdb-handler-list'."
   `(run-with-timer
     0.5 nil
     '(lambda ()
-       (if (not (gdb-find-if (lambda (handler)
+       (if (not (cl-find-if (lambda (handler)
                                (gdb-handler-pending-trigger handler))
                              gdb-handler-list))
 	   (progn ,@body)
