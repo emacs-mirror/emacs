@@ -1,5 +1,11 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* net/rlogin.el (rlogin-program, rlogin-explicit-args): Default to ssh.
+	(rlogin-process-connection-type): Tweak default.  Add set-after.
+	(rlogin-host): Doc fix.
+	(rlogin): Tweak prompt.
+	(rlogin-tab-or-complete): Use completion-at-point rather than alias.
+
 	* net/net-utils.el (nslookup-mode-map, ftp-mode-map):
 	* progmodes/tcl.el (inferior-tcl-mode-map):
 	Use completion-at-point rather than obsolete alias.
