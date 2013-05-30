@@ -588,16 +588,16 @@ done:
 
 
 /* MVTDeleteOverlapping -- ABQIterate callback used by MVTInsert and
- * MVTDelete. It receives a Range in its closureP argument, and
- * returns the DELETE disposition for ranges in the ABQ that overlap
- * with it, and the KEEP disposition for ranges that do not.
+ * MVTDelete. It receives a Range in its closureP argument, and sets
+ * *deleteReturn to TRUE for ranges in the ABQ that overlap with it,
+ * and FALSE for ranges that do not.
  */
-static Bool MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
-                                 void *element, void *closureP, Size closureS)
+static Bool MVTDeleteOverlapping(Bool *deleteReturn, void *element,
+                                 void *closureP, Size closureS)
 {
   Range oldRange, newRange;
 
-  AVER(dispositionReturn != NULL);
+  AVER(deleteReturn != NULL);
   AVER(element != NULL);
   AVER(closureP != NULL);
   UNUSED(closureS);
@@ -605,12 +605,7 @@ static Bool MVTDeleteOverlapping(ABQDisposition *dispositionReturn,
   oldRange = element;
   newRange = closureP;
 
-  if (RangesOverlap(oldRange, newRange)) {
-    *dispositionReturn = ABQDispositionDELETE;
-  } else {
-    *dispositionReturn = ABQDispositionKEEP;
-  }
-
+  *deleteReturn = RangesOverlap(oldRange, newRange);
   return TRUE;
 }
 

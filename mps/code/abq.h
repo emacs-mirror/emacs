@@ -24,8 +24,7 @@
 
 typedef struct ABQStruct *ABQ;
 typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
-typedef unsigned ABQDisposition;
-typedef Bool (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP, Size closureS);
+typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS);
 
 extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
 extern Bool ABQCheck(ABQ abq);
@@ -58,18 +57,6 @@ typedef struct ABQStruct
  
   Sig sig;
 } ABQStruct;
-
-enum {
-  ABQIterationCONTINUE = 1, /* continue iterating */
-  ABQIterationSTOP,         /* stop iterating */
-  ABQIterationNONE          /* no iteration (error) */
-};
-
-enum {
-  ABQDispositionKEEP = 1, /* keep item in queue */
-  ABQDispositionDELETE,   /* delete element from queue */
-  ABQDispositionNONE      /* no disposition (error) */
-};
 
 #endif /* abq_h */
 
