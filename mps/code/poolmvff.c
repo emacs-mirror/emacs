@@ -247,7 +247,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
                               MVFF mvff, Size size)
 {
   Bool foundBlock;
-  CBSFindDelete findDelete;
+  FindDelete findDelete;
   Addr oldBase, oldLimit;
 
   AVER(baseReturn != NULL);
@@ -256,7 +256,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
 
-  findDelete = mvff->slotHigh ? CBSFindDeleteHIGH : CBSFindDeleteLOW;
+  findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
   foundBlock =
     (mvff->firstFit ? CBSFindFirst : CBSFindLast)
@@ -370,7 +370,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   /* Hoping the largest is big enough, delete it and return if small. */
   foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
-                              CBSOfMVFF(mvff), CBSFindDeleteENTIRE);
+                              CBSOfMVFF(mvff), FindDeleteENTIRE);
   if (foundBlock && AddrOffset(base, limit) < size) {
     Addr newBase, newLimit;
     foundBlock = FALSE;
@@ -388,7 +388,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
     if (res != ResOK)
       return res;
     foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
-                                CBSOfMVFF(mvff), CBSFindDeleteENTIRE);
+                                CBSOfMVFF(mvff), FindDeleteENTIRE);
     AVER(foundBlock); /* We will find the new segment. */
   }
 

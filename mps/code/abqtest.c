@@ -95,17 +95,17 @@ typedef struct TestClosureStruct {
   Res res;
 } TestClosureStruct;
 
-static Bool TestDeleteCallback(ABQDisposition *dispositionReturn,
-                               void *element, void *closureP, Size closureS)
+static Bool TestDeleteCallback(Bool *deleteReturn, void *element,
+                               void *closureP, Size closureS)
 {
   TestBlock *a = (TestBlock *)element;
   TestClosure cl = (TestClosure)closureP;
   UNUSED(closureS);
   if (*a == cl->b) {
-    *dispositionReturn = ABQDispositionDELETE;
+    *deleteReturn = TRUE;
     cl->res = ResOK;
   } else {
-    *dispositionReturn = ABQDispositionKEEP;
+    *deleteReturn = FALSE;
   }
   return TRUE;
 }

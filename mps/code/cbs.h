@@ -49,23 +49,15 @@ extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 
-typedef unsigned CBSFindDelete;
-enum {
-  CBSFindDeleteNONE = 1,/* don't delete after finding */
-  CBSFindDeleteLOW,     /* delete precise size from low end */
-  CBSFindDeleteHIGH,    /* delete precise size from high end */
-  CBSFindDeleteENTIRE   /* delete entire range */
-};
-
 extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                          Addr *oldBaseReturn, Addr *oldLimitReturn,
-                         CBS cbs, Size size, CBSFindDelete findDelete);
+                         CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                         Addr *oldBaseReturn, Addr *oldLimitReturn,
-                        CBS cbs, Size size, CBSFindDelete findDelete);
+                        CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
                            Addr *oldBaseReturn, Addr *oldLimitReturn,
-                           CBS cbs, CBSFindDelete findDelete);
+                           CBS cbs, FindDelete findDelete);
 
 
 #endif /* cbs_h */

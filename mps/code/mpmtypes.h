@@ -109,6 +109,7 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
+typedef unsigned FindDelete;    /* <design/cbs/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -421,6 +422,17 @@ enum {
   MessageTypeGC,  /* MPS_MESSAGE_TYPE_GC = trace end */
   MessageTypeGCSTART,  /* MPS_MESSAGE_TYPE_GC_START */
   MessageTypeLIMIT /* not a message type, the limit of the enum. */
+};
+
+
+/* FindDelete operations -- see <design/cbs/> */
+
+enum {
+  FindDeleteNONE = 1, /* don't delete after finding */
+  FindDeleteLOW,      /* delete precise size from low end */
+  FindDeleteHIGH,     /* delete precise size from high end */
+  FindDeleteENTIRE,   /* delete entire range */
+  FindDeleteLIMIT     /* not a FindDelete operation; the limit of the enum. */
 };
 
 

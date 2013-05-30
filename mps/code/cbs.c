@@ -690,13 +690,14 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
 }
 
 
-/* CBSFindDeleteCheck -- check method for a CBSFindDelete value */
+/* FindDeleteCheck -- check method for a FindDelete value */
 
-static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
+Bool FindDeleteCheck(FindDelete findDelete)
 {
-  CHECKL(findDelete == CBSFindDeleteNONE || findDelete == CBSFindDeleteLOW
-         || findDelete == CBSFindDeleteHIGH
-         || findDelete == CBSFindDeleteENTIRE);
+  CHECKL(findDelete == FindDeleteNONE
+         || findDelete == FindDeleteLOW
+         || findDelete == FindDeleteHIGH
+         || findDelete == FindDeleteENTIRE);
   UNUSED(findDelete); /* <code/mpm.c#check.unused> */
 
   return TRUE;
@@ -708,7 +709,7 @@ static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
 static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
                                Addr *oldBaseReturn, Addr *oldLimitReturn,
                                CBS cbs, Addr base, Addr limit, Size size,
-                               CBSFindDelete findDelete)
+                               FindDelete findDelete)
 {
   Bool callDelete = TRUE;
 
@@ -718,23 +719,23 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
   AVER(base < limit);
   AVER(size > 0);
   AVER(AddrOffset(base, limit) >= size);
-  AVERT(CBSFindDelete, findDelete);
+  AVERT(FindDelete, findDelete);
 
   switch(findDelete) {
 
-  case CBSFindDeleteNONE:
+  case FindDeleteNONE:
     callDelete = FALSE;
     break;
 
-  case CBSFindDeleteLOW:
+  case FindDeleteLOW:
     limit = AddrAdd(base, size);
     break;
 
-  case CBSFindDeleteHIGH:
+  case FindDeleteHIGH:
     base = AddrSub(limit, size);
     break;
 
-  case CBSFindDeleteENTIRE:
+  case FindDeleteENTIRE:
     /* do nothing */
     break;
 
@@ -762,7 +763,7 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
 
 Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                   Addr *oldBaseReturn, Addr *oldLimitReturn,
-                  CBS cbs, Size size, CBSFindDelete findDelete)
+                  CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found;
   SplayNode node;
@@ -775,7 +776,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
-  AVERT(CBSFindDelete, findDelete);
+  AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
@@ -801,7 +802,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
 
 Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                  Addr *oldBaseReturn, Addr *oldLimitReturn,
-                 CBS cbs, Size size, CBSFindDelete findDelete)
+                 CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found;
   SplayNode node;
@@ -814,7 +815,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
-  AVERT(CBSFindDelete, findDelete);
+  AVERT(FindDelete, findDelete);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   found = SplayFindLast(&node, splayTreeOfCBS(cbs), &cbsTestNode,
@@ -840,7 +841,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
 Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
                     Addr *oldBaseReturn, Addr *oldLimitReturn,
-                    CBS cbs, CBSFindDelete findDelete)
+                    CBS cbs, FindDelete findDelete)
 {
   Bool found = FALSE;
   SplayNode root;
@@ -852,7 +853,7 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVER(cbs->fastFind);
-  AVERT(CBSFindDelete, findDelete);
+  AVERT(FindDelete, findDelete);
 
   notEmpty = SplayRoot(&root, splayTreeOfCBS(cbs));
   if (notEmpty) {

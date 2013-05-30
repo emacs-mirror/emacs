@@ -317,7 +317,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 
 
 static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
-                 CBSFindDelete findDelete)
+                 FindDelete findDelete)
 {
   Bool expected, found;
   Index expectedBase, expectedLimit;
@@ -336,23 +336,23 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
     remainderLimit = origLimit = addrOfIndex(block, expectedLimit);
 
     switch(findDelete) {
-    case CBSFindDeleteNONE: {
+    case FindDeleteNONE: {
       /* do nothing */
     } break;
-    case CBSFindDeleteENTIRE: {
+    case FindDeleteENTIRE: {
       remainderBase = remainderLimit;
     } break;
-    case CBSFindDeleteLOW: {
+    case FindDeleteLOW: {
       expectedLimit = expectedBase + size;
       remainderBase = addrOfIndex(block, expectedLimit);
     } break;
-    case CBSFindDeleteHIGH: {
+    case FindDeleteHIGH: {
       expectedBase = expectedLimit - size;
       remainderLimit = addrOfIndex(block, expectedBase);
     } break;
     }
 
-    if (findDelete != CBSFindDeleteNONE) {
+    if (findDelete != FindDeleteNONE) {
       newSize = AddrOffset(remainderBase, remainderLimit);
     }
 
@@ -371,7 +371,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
     Insist(expectedBase == indexOfAddr(block, foundBase));
     Insist(expectedLimit == indexOfAddr(block, foundLimit));
 
-    if (findDelete != CBSFindDeleteNONE) {
+    if (findDelete != FindDeleteNONE) {
       Insist(oldBase == origBase);
       Insist(oldLimit == origLimit);
       BTSetRange(alloc, expectedBase, expectedLimit);
@@ -397,7 +397,7 @@ extern int main(int argc, char *argv[])
   BT allocTable;
   Size size;
   Bool high;
-  CBSFindDelete findDelete = CBSFindDeleteNONE;
+  FindDelete findDelete = FindDeleteNONE;
 
   randomize(argc, argv);
 
@@ -445,10 +445,10 @@ extern int main(int argc, char *argv[])
       switch(cbsRnd(6)) {
       case 0:
       case 1:
-      case 2: findDelete = CBSFindDeleteNONE; break;
-      case 3: findDelete = CBSFindDeleteLOW; break;
-      case 4: findDelete = CBSFindDeleteHIGH; break;
-      case 5: findDelete = CBSFindDeleteENTIRE; break;
+      case 2: findDelete = FindDeleteNONE; break;
+      case 3: findDelete = FindDeleteLOW; break;
+      case 4: findDelete = FindDeleteHIGH; break;
+      case 5: findDelete = FindDeleteENTIRE; break;
       }
       find(cbs, dummyBlock, allocTable, size, high, findDelete);
     } break;

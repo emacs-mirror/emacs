@@ -159,7 +159,7 @@ the contiguous ranges in order, as well as the structure of the
 underlying splay tree implementation. It is provided for debugging
 purposes only.
 
-``Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, Size size, CBSFindDelete findDelete)``
+``Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, Size size, FindDelete findDelete)``
 
 _`.function.cbs.find.first`: The ``CBSFindFirst()`` function locates
 the first block (in address order) within the CBS of at least the
@@ -174,22 +174,22 @@ the range. The value of ``findDelete`` must come from this
 enumeration::
 
     enum {
-        CBSFindDeleteNONE,    /* don't delete after finding */
-        CBSFindDeleteLOW,     /* delete precise size from low end */
-        CBSFindDeleteHIGH,    /* delete precise size from high end */
-        CBSFindDeleteENTIRE   /* delete entire range */
+        FindDeleteNONE,    /* don't delete after finding */
+        FindDeleteLOW,     /* delete precise size from low end */
+        FindDeleteHIGH,    /* delete precise size from high end */
+        FindDeleteENTIRE   /* delete entire range */
     };
 
 The old range of the block from which the found range was deleted is
 returned via the ``oldBaseReturn`` and ``oldLimitReturn`` arguments.
-(If ``findDelete`` is ``CBSFindDeleteNONE``, then these will be
-identical to the range returned via the ``baseReturn`` and
-``limitReturn`` arguments.)
+(If ``findDelete`` is ``FindDeleteNONE`` or ``FindDeleteENTIRE``, then
+these will be identical to the range returned via the ``baseReturn``
+and ``limitReturn`` arguments.)
 
 ``CBSFindFirst()`` requires that ``fastFind`` was true when
 ``CBSInit()`` was called.
 
-``Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, Size size, CBSFindDelete findDelete)``
+``Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, Size size, FindDelete findDelete)``
 
 _`.function.cbs.find.last`: The ``CBSFindLast()`` function locates the
 last block (in address order) within the CBS of at least the specified
@@ -200,7 +200,7 @@ arguments, and returns ``TRUE``. If there is no such block, it returns
 Like ``CBSFindFirst()``, it optionally deletes the range, and requires
 that ``fastFind`` was true when ``CBSInit()`` was called.
 
-``Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, CBSFindDelete findDelete)``
+``Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn, Addr *oldBaseReturn, Addr *oldLimitReturn, CBS cbs, FindDelete findDelete)``
 
 _`.function.cbs.find.largest`: The ``CBSFindLargest()`` function
 locates the largest block within the CBS, returns its range via the
@@ -208,8 +208,8 @@ locates the largest block within the CBS, returns its range via the
 there are no blocks in the CBS, it returns ``FALSE``.
 
 Like ``CBSFindFirst()``, it optionally deletes the range (specifying
-``CBSFindDeleteLOW`` or ``CBSFindDeleteHIGH`` has the same effect as
-``CBSFindDeleteENTIRE``), and requires that ``fastFind`` was true when
+``FindDeleteLOW`` or ``FindDeleteHIGH`` has the same effect as
+``FindDeleteENTIRE``), and requires that ``fastFind`` was true when
 ``CBSInit()`` was called.
 
 

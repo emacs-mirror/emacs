@@ -10,6 +10,7 @@ Design
     cbs
     config
     critical-path
+    freelist
     guide.hex.trans
     keyword-arguments
     range
