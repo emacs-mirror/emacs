@@ -1,3 +1,9 @@
+2013-05-30  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Avoid `isearch-range-invisible'
+	call when `query-flag' is nil and `search-invisible' is non-nil.
+	(Bug#11746)
+
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-bytecomp.el (cc-bytecomp-noruntime-functions): New.

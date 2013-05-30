@@ -2093,6 +2093,9 @@ make, or the user didn't cancel the call."
 	    (setq skip-filtered-count (1+ skip-filtered-count)))
 	   ;; Optionally ignore invisible matches.
 	   ((not (or (eq search-invisible t)
+		     ;; Don't open overlays for automatic replacements.
+		     (and (not query-flag) search-invisible)
+		     ;; Open hidden overlays for interactive replacements.
 		     (not (isearch-range-invisible
 			   (nth 0 real-match-data) (nth 1 real-match-data)))))
 	    (setq skip-invisible-count (1+ skip-invisible-count)))
