@@ -1,7 +1,7 @@
 /* event.c: EVENT LOGGING
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.event
  *
@@ -142,11 +142,12 @@ void EventSync(void)
     }
   }
 
-  /* If we wrote out events, send an EventClockSync event */
-  if (wrote)
+  /* If we wrote out events, send an EventClockSync event and flush
+     the telemetry stream. */
+  if (wrote) {
     (void)eventClockSync();
-
-  (void)mps_io_flush(eventIO);
+    (void)mps_io_flush(eventIO);
+  }
 }
 
 
@@ -515,7 +516,7 @@ extern void EventDump(mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
