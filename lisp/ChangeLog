@@ -1,5 +1,9 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-cmpl.el (eshell-complete-lisp-symbol): New function.
+	(eshell-cmpl-initialize, eshell-complete-parse-arguments):
+	Replace obsolete lisp-complete-symbol with eshell-complete-lisp-symbol.
+
 	* image.el (image-animated-p): Tweak definition.
 
 	* net/rlogin.el (rlogin-program, rlogin-explicit-args): Default to ssh.
