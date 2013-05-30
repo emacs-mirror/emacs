@@ -103,8 +103,8 @@ One of the few such functions related to synchronization is
 
 _`.anal.signal.example`: An example of how to suspend threads in POSIX
 was posted to newsgroup comp.programming.threads in August 1999
-`[Lau 1999-08-16]`_. The code in the post was written by David Butenhof, who
-contributed some comments on his implementation `[Butenhof 1999-08-16]`_
+[Lau_1999-08-16]_. The code in the post was written by David Butenhof, who
+contributed some comments on his implementation [Butenhof_1999-08-16]_
 
 _`.anal.signal.linux-hack`: In the current implementation of Linux
 Pthreads, it would be possible to implement suspend/resume using
@@ -337,19 +337,9 @@ Attachments
 References
 ----------
 
-* .. _[Butenhof 1999-08-16]:
+.. [Butenhof_1999-08-16] Dave Butenhof. 1999-08-16. "`Re: Problem with Suspend & Resume Thread Example <https://groups.google.com/group/comp.programming.threads/msg/2a604c5f03f388d0?dmode=source&output=gplain&noredirect>`_". comp.programming.threads.
 
-  Dave Butenhof. 1999-08-16. "`Re: Problem with Suspend & Resume
-  Thread Example
-  <https://groups.google.com/group/comp.programming.threads/msg/2a604c5f03f388d0?dmode=source&output=gplain&noredirect>`_".
-  comp.programming.threads.
-
-* .. _[Lau 1999-08-16]:
-
-  Raymond Lau. 1999-08-16. "`Problem with Suspend & Resume Thread
-  Example
-  <https://groups.google.com/group/comp.programming.threads/msg/dc4d9a45866331eb?dmode=source&output=gplain&noredirect>`_".
-  comp.programming.threads.
+.. [Lau_1999-08-16] Raymond Lau. 1999-08-16. "`Problem with Suspend & Resume Thread Example <https://groups.google.com/group/comp.programming.threads/msg/dc4d9a45866331eb?dmode=source&output=gplain&noredirect>`_". comp.programming.threads.
 
 
 Document History
