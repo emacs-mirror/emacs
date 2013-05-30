@@ -1,15 +1,26 @@
 /* mpsioan.c: RAVENBROOK MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: For MPS client application developers and MPS developers.
  * .sources: <design/io/>
  */
 
 #include "mpsio.h"
-
 #include "mpstd.h"
+
+/* We don't want to use the ANSI assert() to check that the interface
+ * is being used correctly, because it's not controlled by the MPS
+ * variety mechanism: we might end up with assertions being turned on
+ * in the HOT variety or turned off in the COOL variety (depending on
+ * whether or not the client program compiles the MPS with NDEBUG
+ * defined). So we include "check.h" and use AVER() instead. See
+ * job003504. If you are developing your own plinth, you should
+ * consider whether to use your own preferred assertion mechanism
+ * instead.
+ */
+#include "check.h"
 
 #ifdef MPS_OS_XC
 #include "osxc.h"
@@ -53,15 +64,20 @@ mps_res_t mps_io_create(mps_io_t *mps_io_r)
 void mps_io_destroy(mps_io_t mps_io)
 {
   FILE *f = (FILE *)mps_io;
-  ioFile = NULL; /* Should check f == ioFile */
+  AVER(f == ioFile);
+  AVER(f != NULL);
+
+  ioFile = NULL;
   (void)fclose(f);
 }
 
 
 mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
 {
-  FILE *f = (FILE *)mps_io; /* Should check f == ioFile */
+  FILE *f = (FILE *)mps_io;
   size_t n;
+  AVER(f == ioFile);
+  AVER(f != NULL);
 
   n = fwrite(buf, size, 1, f);
   if(n != 1)
@@ -73,8 +89,10 @@ mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
 
 mps_res_t mps_io_flush(mps_io_t mps_io)
 {
-  FILE *f = (FILE *)mps_io; /* Should check f == ioFile */
+  FILE *f = (FILE *)mps_io;
   int e;
+  AVER(f == ioFile);
+  AVER(f != NULL);
  
   e = fflush(f);
   if(e == EOF)
@@ -86,7 +104,7 @@ mps_res_t mps_io_flush(mps_io_t mps_io)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
