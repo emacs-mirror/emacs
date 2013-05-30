@@ -1952,8 +1952,10 @@ If TIME is nil, then return the cutoff time for oldness instead."
        ((and (equal header 'to-from)
 	     (or (string-match (cadr regexp-target-pair) from)
 		 (and (string-match (cadr regexp-target-pair) to)
-		      (let ((rmail-dont-reply-to-names
-			     (message-dont-reply-to-names)))
+		      (let* ((mail-dont-reply-to-names
+			      (message-dont-reply-to-names))
+			     (rmail-dont-reply-to-names ; obsolete since 24.1
+			      mail-dont-reply-to-names))
 			(equal (if (fboundp 'rmail-dont-reply-to)
 				   (rmail-dont-reply-to from)
 				 (mail-dont-reply-to from)) "")))))

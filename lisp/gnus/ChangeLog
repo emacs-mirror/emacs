@@ -1,5 +1,8 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* nnmail.el (nnmail-fancy-expiry-target):
+	Also bind mail-dont-reply-to-names.
+
 	* spam-stat.el (spam-stat-save):
 	No need to tweak font-lock in temp buffers.
 
