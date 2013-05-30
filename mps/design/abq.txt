@@ -92,24 +92,15 @@ If the queue is full, return ``TRUE``, otherwise return ``FALSE``.
 
 Return the number of elements in the queue.
 
-``typedef unsigned ABQDisposition``
-
-An enumerated value returned by a function of type
-``ABQIterateMethod`` describing what must happen to an element of a
-queue during the iteration. The value ``ABQDispositionKEEP`` means
-that the element must be kept in the queue; ``ABQDispositionDELETE``
-means that the element must be deleted from the queue.
-
-``typedef Bool (*ABQIterateMethod)(ABQDisposition *dispositionReturn, void *element, void *closureP, Size closureS)``
+``typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS)``
 
 A callback function for ``ABQIterate()``. The parameter ``element`` is
 an element in the queue, and ``closureP`` and ``closureS`` are the
 values that were originally passed to ``ABQIterate()``. This function
-must set ``*dispositionReturn`` to ``ABQDispositionKEEP`` if
-``element`` must be kept in the queue, or ``ABQDispositionDELETE`` if
-``element`` must be deleted from the queue. It must return ``TRUE`` if
-the iteration must continue, or ``FALSE`` if the iteration must stop
-after processing ``element``.
+must set ``*deleteReturn`` to ``FALSE`` if ``element`` must be kept in
+the queue, or ``TRUE`` if ``element`` must be deleted from the queue.
+It must return ``TRUE`` if the iteration must continue, or ``FALSE``
+if the iteration must stop after processing ``element``.
 
 ``void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)``
 

@@ -241,17 +241,6 @@ Count ABQDepth(ABQ abq)
 }
 
 
-/* ABQDispositionCheck -- check method for an ABQDisposition value */
-static Bool ABQDispositionCheck(ABQDisposition disposition)
-{
-  CHECKL(disposition == ABQDispositionKEEP
-         || disposition == ABQDispositionDELETE);
-  UNUSED(disposition); /* <code/mpm.c#check.unused> */
-
-  return TRUE;
-}
-
-
 /* ABQIterate -- call 'iterate' for each element in an ABQ */
 void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)
 {
@@ -266,11 +255,12 @@ void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS
  
   while (index != in) {
     void *element = ABQElement(abq, index);
-    ABQDisposition disposition = ABQDispositionNONE;
+    Bool delete = FALSE;
     Bool cont;
-    cont = (*iterate)(&disposition, element, closureP, closureS);
-    AVERT(ABQDisposition, disposition);
-    if (disposition == ABQDispositionKEEP) {
+    cont = (*iterate)(&delete, element, closureP, closureS);
+    AVERT(Bool, cont);
+    AVERT(Bool, delete);
+    if (!delete) {
       if (copy != index)
         mps_lib_memcpy(ABQElement(abq, copy), element, abq->elementSize);
       copy = ABQNextIndex(abq, copy);

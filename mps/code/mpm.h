@@ -799,6 +799,11 @@ extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
 
 
+/* FindDelete -- see <code/cbs.c> and <code/freelist.c> */
+
+extern Bool FindDeleteCheck(FindDelete findDelete);
+
+
 /* Format Interface -- see <code/format.c> */
 
 extern Bool FormatCheck(Format format);
