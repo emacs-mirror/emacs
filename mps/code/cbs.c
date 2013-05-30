@@ -432,7 +432,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
     rightMerge = FALSE;
   } else {
     rightCBS = cbsBlockOfSplayNode(rightSplay);
-    if (rightCBS != NULL && limit > rightCBS->base) {
+    if (rightCBS != NULL && limit > CBSBlockLimit(rightCBS)) {
       res = ResFAIL;
       goto fail;
     }
@@ -442,40 +442,29 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
   newBase = leftMerge ? CBSBlockBase(leftCBS) : base;
   newLimit = rightMerge ? CBSBlockLimit(rightCBS) : limit;
 
-  if (leftMerge) {
-    if (rightMerge) {
-      Size oldLeftSize = CBSBlockSize(leftCBS);
-      Size oldRightSize = CBSBlockSize(rightCBS);
+  if (leftMerge && rightMerge) {
+    Size oldLeftSize = CBSBlockSize(leftCBS);
+    Addr rightLimit = CBSBlockLimit(rightCBS);
+    cbsBlockDelete(cbs, rightCBS);
+    leftCBS->limit = rightLimit;
+    cbsBlockGrew(cbs, leftCBS, oldLeftSize);
 
-      /* must block larger neighbour and destroy smaller neighbour */
-      if (oldLeftSize >= oldRightSize) {
-        Addr rightLimit = rightCBS->limit;
-        cbsBlockDelete(cbs, rightCBS);
-        leftCBS->limit = rightLimit;
-        cbsBlockGrew(cbs, leftCBS, oldLeftSize);
-      } else { /* left block is smaller */
-        Addr leftBase = leftCBS->base;
-        cbsBlockDelete(cbs, leftCBS);
-        rightCBS->base = leftBase;
-        cbsBlockGrew(cbs, rightCBS, oldRightSize);
-      }
-    } else { /* leftMerge, !rightMerge */
-      oldSize = CBSBlockSize(leftCBS);
-      leftCBS->limit = limit;
-      cbsBlockGrew(cbs, leftCBS, oldSize);
-    }
-  } else { /* !leftMerge */
-    if (rightMerge) {
-      oldSize = CBSBlockSize(rightCBS);
-      rightCBS->base = base;
-      cbsBlockGrew(cbs, rightCBS, oldSize);
-    } else { /* !leftMerge, !rightMerge */
-      CBSBlock block;
-      res = cbsBlockAlloc(&block, cbs, base, limit);
-      if (res != ResOK)
-        goto fail;
-      cbsBlockInsert(cbs, block);
-    }
+  } else if (leftMerge) {
+    oldSize = CBSBlockSize(leftCBS);
+    leftCBS->limit = limit;
+    cbsBlockGrew(cbs, leftCBS, oldSize);
+
+  } else if (rightMerge) {
+    oldSize = CBSBlockSize(rightCBS);
+    rightCBS->base = base;
+    cbsBlockGrew(cbs, rightCBS, oldSize);
+
+  } else {
+    CBSBlock block;
+    res = cbsBlockAlloc(&block, cbs, base, limit);
+    if (res != ResOK)
+      goto fail;
+    cbsBlockInsert(cbs, block);
   }
 
   AVER(newBase <= base);
@@ -556,9 +545,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
   }
 
   oldBase = cbsBlock->base;
-  *baseReturn = cbsBlock->base;
   oldLimit = cbsBlock->limit;
-  *limitReturn = cbsBlock->limit;
   oldSize = CBSBlockSize(cbsBlock);
 
   if (base == oldBase && limit == oldLimit) {
@@ -592,6 +579,8 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
     cbsBlockInsert(cbs, newBlock);
   }
 
+  *baseReturn = oldBase;
+  *limitReturn = oldLimit;
   return ResOK;
 
 failAlloc:
