@@ -342,7 +342,9 @@ before version control systems.
 modification log for the entire system, which makes change log files
 somewhat redundant.  One advantage that they retain is that it is
 sometimes useful to be able to view the transaction history of a
-single directory separately from those of other directories.
+single directory separately from those of other directories.  Another
+advantage is that commit logs can't be fixed in many version control
+systems.
 
   A project maintained with version control can use just the version
 control log, or it can use both kinds of logs.  It can handle some

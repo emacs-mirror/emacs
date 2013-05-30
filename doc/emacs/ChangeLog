@@ -1,3 +1,8 @@
+2013-05-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (Types of Log File): Supplement some
+	information of change log files.
+
 2013-05-15  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Repeat Isearch): Mention key `RET' to finish
