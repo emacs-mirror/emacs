@@ -1,5 +1,11 @@
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
+	* ielm.el (ielm-map, ielm-complete-symbol):
+	Use completion-at-point rather than obsolete functions.
+	(inferior-emacs-lisp-mode): Doc fix.
+	Set completion-at-point-functions, rather than
+	comint-dynamic-complete-functions.
+
 	* eshell/em-cmpl.el (eshell-complete-lisp-symbol): New function.
 	(eshell-cmpl-initialize, eshell-complete-parse-arguments):
 	Replace obsolete lisp-complete-symbol with eshell-complete-lisp-symbol.
