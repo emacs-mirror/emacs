@@ -3489,7 +3489,6 @@ by calling `format-decode', which see.  */)
   EMACS_TIME mtime;
   int fd;
   ptrdiff_t inserted = 0;
-  bool nochange = 0;
   ptrdiff_t how_much;
   off_t beg_offset, end_offset;
   int unprocessed;
@@ -4060,9 +4059,7 @@ by calling `format-decode', which see.  */)
       if (bufpos == inserted)
 	{
 	  /* Truncate the buffer to the size of the file.  */
-	  if (same_at_start == same_at_end)
-	    nochange = 1;
-	  else
+	  if (same_at_start != same_at_end)
 	    del_range_byte (same_at_start, same_at_end, 0);
 	  inserted = 0;
 

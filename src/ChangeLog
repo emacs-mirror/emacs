@@ -1,3 +1,7 @@
+2013-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Finsert_file_contents): Remove unused local (Bug#8447).
+
 2013-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove *.res files.
