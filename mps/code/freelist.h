@@ -15,8 +15,6 @@
 #define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
 
 typedef struct FreelistStruct *Freelist;
-typedef struct FreelistBlockStruct *FreelistBlock;
-typedef struct FreelistGrainStruct *FreelistGrain;
 
 typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Range range,
                                       void *closureP, Size closureS);
@@ -24,10 +22,8 @@ typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Range range,
 typedef struct FreelistStruct {
   Sig sig;
   Align alignment;
-  FreelistBlock blockList;
-  Count blockListSize;
-  FreelistGrain grainList;
-  Count grainListSize;
+  Addr list;
+  Count listSize;
 } FreelistStruct;
 
 extern Bool FreelistCheck(Freelist fl);
