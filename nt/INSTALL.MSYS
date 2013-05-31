@@ -331,7 +331,7 @@ Windows 9X as well).
   C:\MSYS\local, and it will defeat the purpose of PREFIX, which is to
   install programs in a single coherent tree resembling Posix systems.
   Such a single-tree installation makes sure all the other programs
-  and packages ported from GNU or Unix systems will work seemlessly
+  and packages ported from GNU or Unix systems will work seamlessly
   together.  Where exactly is the root of that tree on your system is
   something only you, the user who builds Emacs, can know, and the
   Emacs build process cannot guess, because usually there's no

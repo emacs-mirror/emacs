@@ -198,7 +198,7 @@ skips this match and continues searching for the next match.
 When the list of predicates is empty, `run-hook-with-args-until-failure'
 returns non-nil that means that the found match is accepted.
 The property `isearch-message-prefix' put on the predicate's symbol
-specifies the prefix string displyed in the search message.")
+specifies the prefix string displayed in the search message.")
 (define-obsolete-variable-alias 'isearch-filter-predicate
                                 'isearch-filter-predicates
                                 "24.4")
