@@ -1,3 +1,7 @@
+2013-05-31  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Refine mode-line faces.
+
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* refcards/refcard.tex: Refine some entries.  (Bug#14087)
