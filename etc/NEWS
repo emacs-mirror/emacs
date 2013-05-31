@@ -39,6 +39,18 @@ MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
 files are deprecated.  See the file nt/INSTALL.MSYS for detailed
 instructions.
 
+Using the Posix configure script and Makefile's also means a change in
+the directory structure of the Emacs installation on Windows.  It is
+now the same as on GNU and Unix systems.  In particular, the auxiliary
+programs, such as cmdproxy.exe and hexl.exe, are in
+libexec/emacs/VERSION/i686-pc-mingw32 (where VERSION is the Emacs
+version), version-independent site-lisp is in share/emacs/site-lisp,
+version-specific Lisp files are in share/emacs/VERSION/lisp and in
+share/emacs/VERSION/site-lisp, Info docs are in share/info, and data
+files are in share/emacs/VERSION/etc.  (Emacs knows about all these
+directories and will find the files in there automatically; there's no
+need to set any variables due to this change.)
+
 
 * Startup Changes in Emacs 24.4
 
