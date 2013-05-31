@@ -46,10 +46,10 @@ static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena);
 static Res MVTInsert(MVT mvt, Addr base, Addr limit);
 static Res MVTDelete(MVT mvt, Addr base, Addr limit);
 static void ABQRefillIfNecessary(MVT mvt, Size size);
-static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit,
+static Bool ABQRefillCallback(CBS cbs, Range range,
                               void *closureP, Size closureS);
 static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Size min);
-static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit,
+static Bool MVTContingencyCallback(CBS cbs, Range range,
                                    void *closureP, Size closureS);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
@@ -652,24 +652,23 @@ failOverflow:
 static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 {
   Res res;
-  Addr newBase, newLimit;
-  RangeStruct range;
+  RangeStruct range, newRange;
 
   AVERT(MVT, mvt);
   AVER(base < limit);
   
-  res = CBSInsert(&newBase, &newLimit, MVTCBS(mvt), base, limit);
+  RangeInit(&range, base, limit);
+  res = CBSInsert(&newRange, MVTCBS(mvt), &range);
   if (res != ResOK)
     return res;
 
-  RangeInit(&range, newBase, newLimit);
-  if (RangeSize(&range) >= mvt->reuseSize) {
+  if (RangeSize(&newRange) >= mvt->reuseSize) {
     /* The new range is big enough that it might have been coalesced
      * with ranges on the ABQ, so ensure that they are removed before
      * reserving the new range.
      */
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range, 0);
-    MVTReserve(mvt, &range);
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &newRange, 0);
+    MVTReserve(mvt, &newRange);
   }
 
   return ResOK;
@@ -681,32 +680,31 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
  */
 static Res MVTDelete(MVT mvt, Addr base, Addr limit)
 {
-  Addr oldBase, oldLimit;
-  RangeStruct range, rangeLeft, rangeRight;
+  RangeStruct range, rangeOld, rangeLeft, rangeRight;
   Res res;
 
   AVERT(MVT, mvt);
   AVER(base < limit);
 
-  res = CBSDelete(&oldBase, &oldLimit, MVTCBS(mvt), base, limit);
+  RangeInit(&range, base, limit);
+  res = CBSDelete(&rangeOld, MVTCBS(mvt), &range);
   if (res != ResOK)
     return res;
 
   /* If the old address range was larger than the reuse size, then it
    * might be on the ABQ, so ensure it is removed.
    */
-  RangeInit(&range, oldBase, oldLimit);
-  if (RangeSize(&range) >= mvt->reuseSize)
-    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &range, 0);
+  if (RangeSize(&rangeOld) >= mvt->reuseSize)
+    ABQIterate(MVTABQ(mvt), MVTDeleteOverlapping, &rangeOld, 0);
 
   /* There might be fragments at the left or the right of the deleted
    * range, and either might be big enough to go back on the ABQ.
    */
-  RangeInit(&rangeLeft, oldBase, base);
+  RangeInit(&rangeLeft, RangeBase(&rangeOld), base);
   if (RangeSize(&rangeLeft) >= mvt->reuseSize)
     MVTReserve(mvt, &rangeLeft);
 
-  RangeInit(&rangeRight, limit, oldLimit);
+  RangeInit(&rangeRight, limit, RangeLimit(&rangeOld));
   if (RangeSize(&rangeRight) >= mvt->reuseSize)
     MVTReserve(mvt, &rangeRight);
 
@@ -1109,29 +1107,25 @@ static void ABQRefillIfNecessary(MVT mvt, Size size)
 /* ABQRefillCallback -- called from CBSIterate at the behest of
  * ABQRefillIfNecessary
  */
-static Bool ABQRefillCallback(CBS cbs, Addr base, Addr limit,
+static Bool ABQRefillCallback(CBS cbs, Range range,
                               void *closureP, Size closureS)
 {
   Res res;
   MVT mvt;
-  Size size;
-  RangeStruct range;
 
   AVERT(CBS, cbs);
   mvt = CBSMVT(cbs);
   AVERT(MVT, mvt);
   AVERT(ABQ, MVTABQ(mvt));
-  AVER(base < limit);
+  AVERT(Range, range);
   UNUSED(closureP);
   UNUSED(closureS);
 
-  size = AddrOffset(base, limit);
-  if (size < mvt->reuseSize)
+  if (RangeSize(range) < mvt->reuseSize)
     return TRUE;
 
   METER_ACC(mvt->refillPushes, ABQDepth(MVTABQ(mvt)));
-  RangeInit(&range, base, limit);
-  res = MVTReserve(mvt, &range);
+  res = MVTReserve(mvt, range);
   if (res != ResOK)
     return FALSE;
 
@@ -1145,8 +1139,7 @@ typedef struct MVTContigencyStruct *MVTContigency;
 typedef struct MVTContigencyStruct
 {
   Bool found;
-  Addr base;
-  Addr limit;
+  RangeStruct range;
   Arena arena;
   Size min;
   /* meters */
@@ -1169,13 +1162,13 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Si
  
   CBSIterate(cbs, MVTContingencyCallback, (void *)&cls, 0);
   if (cls.found) {
-    AVER(AddrOffset(cls.base, cls.limit) >= min);
+    AVER(RangeSize(&cls.range) >= min);
     METER_ACC(CBSMVT(cbs)->contingencySearches, cls.steps);
     if (cls.hardSteps) {
       METER_ACC(CBSMVT(cbs)->contingencyHardSearches, cls.hardSteps);
     }
-    *baseReturn = cls.base;
-    *limitReturn = cls.limit;
+    *baseReturn = RangeBase(&cls.range);
+    *limitReturn = RangeLimit(&cls.range);
     return ResOK;
   }
    
@@ -1186,28 +1179,30 @@ static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Si
 /* MVTContingencyCallback -- called from CBSIterate at the behest of
  * MVTContingencySearch
  */
-static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit,
+static Bool MVTContingencyCallback(CBS cbs, Range range,
                                    void *closureP, Size closureS)
 {
   MVTContigency cl;
   Size size;
+  Addr base, limit;
  
   AVERT(CBS, cbs);
-  AVER(base < limit);
+  AVERT(Range, range);
   AVER(closureP != NULL);
   UNUSED(closureS);
 
   cl = (MVTContigency)closureP;
-  size = AddrOffset(base, limit);
- 
+  base = RangeBase(range);
+  limit = RangeLimit(range);
+  size = RangeSize(range);
+
   cl->steps++;
   if (size < cl->min)
     return TRUE;
 
   /* verify that min will fit when seg-aligned */
   if (size >= 2 * cl->min) {
-    cl->base = base;
-    cl->limit = limit;
+    RangeInit(&cl->range, base, limit);
     cl->found = TRUE;
     return FALSE;
   }
@@ -1215,8 +1210,7 @@ static Bool MVTContingencyCallback(CBS cbs, Addr base, Addr limit,
   /* do it the hard way */
   cl->hardSteps++;
   if (MVTCheckFit(base, limit, cl->min, cl->arena)) {
-    cl->base = base;
-    cl->limit = limit;
+    RangeInit(&cl->range, base, limit);
     cl->found = TRUE;
     return FALSE;
   }

@@ -72,16 +72,21 @@ there is a function too.)
 Return the size of the range. (This is implemented as a macro, but
 there is a function too. The macro evaluates its argument twice.)
 
+``Bool RangeIsAligned(Range range, Align alignment)``
+
+Return ``TRUE`` if the base and limit of the range are both aligned to
+the given alignment, or ``FALSE`` if either is not.
+
 ``Bool RangesOverlap(Range range1, Range range2)``
 
 Return ``TRUE`` if the two ranges overlap (have at least one address
 in common), or ``FALSE`` if they do not. Note that ranges [*A*, *B*) and
 [*B*, *C*) do not overlap.
 
-``Bool RangeIsAligned(Range range, Align alignment)``
+``Bool RangesNest(Range outer, Range inner)``
 
-Return ``TRUE`` if the base and limit of the range are both aligned to
-the given alignment, or ``FALSE`` if either is not.
+Return ``TRUE`` if all addresses in ``inner`` are also in ``outer``,
+or ``FALSE`` otherwise.
 
 
 Document history
