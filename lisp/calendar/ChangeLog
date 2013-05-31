@@ -1,5 +1,15 @@
 2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Move auto-mode-alist entries above provide sexp.
+	Update adapted diary-goto-entry, so it also works with todo items
+	when the buffer in which the included todo file is processed for
+	the Fancy Diary is not killed.
+	(todos-insert-item-from-calendar): Move to item editing commands
+	section of file.  Add doc string, use todos-basic-insert-item and
+	remove mistaken invocation of todos-show.
+
+2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-edit-quit): After editing an item, make sure to
 	return to its category.
 

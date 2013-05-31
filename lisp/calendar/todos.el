@@ -28,7 +28,7 @@
 ;;; Code:
 
 (require 'diary-lib)
-;; For cl-remove-duplicates in todos-insertion-commands-args and cl-oddp.
+;; For cl-remove-duplicates (in todos-insertion-commands-args) and cl-oddp.
 (require 'cl-lib)
 
 ;; =============================================================================
@@ -37,8 +37,6 @@
 ;; -----------------------------------------------------------------------------
 ;;; Options for file and category selection
 ;; -----------------------------------------------------------------------------
-
-;; These definitions have to precede `todos-filter-files'.
 
 (defcustom todos-directory (locate-user-emacs-file "todos/")
   "Directory where user's Todos files are saved."
@@ -1222,17 +1220,6 @@ the new item:
 	  (if (or diary todos-include-in-diary) (todos-update-count 'diary 1))
 	  (todos-update-categories-sexp))))))
 
-(defun todos-copy-item ()
-  "Copy item at point and insert the copy as a new item."
-  (interactive)
-  (unless (or (todos-done-item-p) (looking-at "^$"))
-    (let ((copy (todos-item-string))
-	  (diary-item (todos-diary-item-p)))
-      (todos-set-item-priority copy (todos-current-category) t)
-      (todos-update-count 'todo 1)
-      (when diary-item (todos-update-count 'diary 1))
-      (todos-update-categories-sexp))))
-
 (defvar todos-date-from-calendar nil
   "Helper variable for setting item date from the Emacs Calendar.")
 
@@ -1265,6 +1252,32 @@ the new item:
 	   (unless (zerop (recursion-depth)) (exit-recursive-edit))
 	   (when (stringp todos-date-from-calendar)
 	     todos-date-from-calendar)))))
+
+(defun todos-insert-item-from-calendar (&optional arg)
+  "Prompt for and insert a new item with date selected from calendar.
+Invoked without a prefix argument, insert the item into the
+current category, without one prefix argument, prompt for the
+category from the current todo file or from one listed in
+`todos-category-completions-files'; with two prefix arguments,
+prompt for a todo file and then for a category in it."
+  (interactive "P")
+  (setq todos-date-from-calendar
+	(calendar-date-string (calendar-cursor-to-date t) t t))
+  (calendar-exit)
+  (todos-basic-insert-item arg nil nil todos-date-from-calendar))
+
+(define-key calendar-mode-map "it" 'todos-insert-item-from-calendar)
+
+(defun todos-copy-item ()
+  "Copy item at point and insert the copy as a new item."
+  (interactive)
+  (unless (or (todos-done-item-p) (looking-at "^$"))
+    (let ((copy (todos-item-string))
+	  (diary-item (todos-diary-item-p)))
+      (todos-set-item-priority copy (todos-current-category) t)
+      (todos-update-count 'todo 1)
+      (when diary-item (todos-update-count 'diary 1))
+      (todos-update-categories-sexp))))
 
 (defun todos-delete-item ()
   "Delete at least one item in this category.
@@ -6234,63 +6247,54 @@ Added to `window-configuration-change-hook' in `todos-mode'."
   (todos-modes-set-1)
   (todos-modes-set-2))
 
+(add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
+(add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
+(add-to-list 'auto-mode-alist '("\\.tod[tyr]\\'" . todos-filtered-items-mode))
+
 ;; -----------------------------------------------------------------------------
 (provide 'todos)
 
 ;;; todos.el ends here
 
-;; FIXME: remove when part of Emacs
-;; -----------------------------------------------------------------------------
-(add-to-list 'auto-mode-alist '("\\.todo\\'" . todos-mode))
-(add-to-list 'auto-mode-alist '("\\.toda\\'" . todos-archive-mode))
-(add-to-list 'auto-mode-alist '("\\.tod[tyr]\\'" . todos-filtered-items-mode))
-
-;;; Addition to calendar.el
-;; FIXME: autoload when key-binding is defined in calendar.el
-(defun todos-insert-item-from-calendar (&optional arg)
-  ""
-  (interactive "P")
-  (setq todos-date-from-calendar
-	(calendar-date-string (calendar-cursor-to-date t) t t))
-  (calendar-exit)
-  (todos-show)
-  (todos-insert-item arg nil nil todos-date-from-calendar))
-
-(define-key calendar-mode-map "it" 'todos-insert-item-from-calendar)
-
 ;;; necessitated adaptations to diary-lib.el
 
-;; (defun diary-goto-entry (button)
-;;   "Jump to the diary entry for the BUTTON at point."
-;;   (let* ((locator (button-get button 'locator))
-;;          (marker (car locator))
-;;          markbuf file opoint)
-;;     ;; If marker pointing to diary location is valid, use that.
-;;     (if (and marker (setq markbuf (marker-buffer marker)))
-;;         (progn
-;;           (pop-to-buffer markbuf)
-;;           (goto-char (marker-position marker)))
-;;       ;; Marker is invalid (eg buffer has been killed, as is the case with
-;;       ;; included diary files).
-;;       (or (and (setq file (cadr locator))
-;;                (file-exists-p file)
-;;                (find-file-other-window file)
-;;                (progn
-;;                  (when (eq major-mode (default-value 'major-mode)) (diary-mode))
-;; 		 (when (eq major-mode 'todos-mode) (widen))
-;;                  (goto-char (point-min))
-;;                  (when (re-search-forward (format "%s.*\\(%s\\)"
-;; 						  (regexp-quote (nth 2 locator))
-;; 						  (regexp-quote (nth 3 locator)))
-;; 					  nil t)
-;; 		   (goto-char (match-beginning 1))
-;; 		   (when (eq major-mode 'todos-mode)
-;; 		     (setq opoint (point))
-;; 		     (re-search-backward (concat "^"
-;; 						 (regexp-quote todos-category-beg)
-;; 						 "\\(.*\\)\n")
-;; 					 nil t)
-;; 		     (todos-category-number (match-string 1))
-;; 		     (todos-category-select)
-;; 		     (goto-char opoint)))))
-;;           (message "Unable to locate this diary entry")))))
+(defun diary-goto-entry (button)
+  "Jump to the diary entry for the BUTTON at point."
+  (let* ((locator (button-get button 'locator))
+         (marker (car locator))
+         markbuf file opoint)
+    ;; If marker pointing to diary location is valid, use that.
+    (if (and marker (setq markbuf (marker-buffer marker)))
+        (progn
+          (pop-to-buffer markbuf)
+	  (when (eq major-mode 'todos-mode) (widen))
+          (goto-char (marker-position marker))
+	  (when (eq major-mode 'todos-mode)
+	    (re-search-backward (concat "^" (regexp-quote todos-category-beg)
+					"\\(.*\\)\n") nil t)
+	    (todos-category-number (match-string 1))
+	    (todos-category-select)
+	    (goto-char (marker-position marker))))
+      ;; Marker is invalid (eg buffer has been killed).
+      (or (and (setq file (cadr locator))
+               (file-exists-p file)
+               (find-file-other-window file)
+               (progn
+                 (when (eq major-mode (default-value 'major-mode)) (diary-mode))
+		 (when (eq major-mode 'todos-mode) (widen))
+                 (goto-char (point-min))
+                 (when (re-search-forward (format "%s.*\\(%s\\)"
+						  (regexp-quote (nth 2 locator))
+						  (regexp-quote (nth 3 locator)))
+					  nil t)
+		   (goto-char (match-beginning 1))
+		   (when (eq major-mode 'todos-mode)
+		     (setq opoint (point))
+		     (re-search-backward (concat "^"
+						 (regexp-quote todos-category-beg)
+						 "\\(.*\\)\n")
+					 nil t)
+		     (todos-category-number (match-string 1))
+		     (todos-category-select)
+		     (goto-char opoint)))))
+          (message "Unable to locate this diary entry")))))
