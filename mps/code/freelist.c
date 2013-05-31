@@ -15,83 +15,78 @@ SRCID(freelist, "$Id$");
 /* See <design/freelist/#impl.grain.align> */
 #define freelistMinimumAlignment ((Align)sizeof(void *))
 
+#define FreelistBlock(addr) ((Addr *)(addr))
 
-/* See <design/freelist/#impl.grain> */
-typedef struct FreelistGrainStruct {
-  Addr next;
-} FreelistGrainStruct;
+#define FreelistTag(addr) ((Word)(addr) & 1)
+#define FreelistTagSet(addr) ((Addr)((Word)(addr) | 1))
+#define FreelistTagReset(addr) ((Addr)((Word)(addr) & ~1))
+#define FreelistTagCopy(to, from) ((Addr)((Word)(to) | FreelistTag(from)))
 
-
-/* FreelistGrain* -- Getters and setters for grains
- *
- * See <design/freelist/#impl.grain>.
- */
-#define FreelistGrainBase(grain) ((Addr)(grain))
-#define FreelistGrainLimit(fl, grain) \
-  AddrAdd(FreelistGrainBase(grain), FreelistGrainSize(fl))
 #define FreelistGrainSize(fl) ((fl)->alignment)
-#define FreelistGrainNext(grain) \
-  ((FreelistGrain)(((FreelistGrain)(grain))->next))
-#define FreelistGrainSetNext(grain, _next) \
-  BEGIN ((FreelistGrain)(grain))->next = (void *)(_next); END
 
 
-/* FreelistGrainInit -- return grain for the range [base, limit). */
+/* FreelistBlockLimit -- return the limit of a block. */
 
-static FreelistGrain FreelistGrainInit(Freelist fl, Addr base, Addr limit)
+static Addr FreelistBlockLimit(Freelist fl, Addr addr)
 {
-  FreelistGrain grain = (FreelistGrain)base;
-  AVER(AddrOffset(base, limit) == FreelistGrainSize(fl));
-  FreelistGrainSetNext(grain, NULL);
-  return grain;
+  Addr *block = FreelistBlock(addr);
+  if (FreelistTag(block[0])) {
+    return AddrAdd(addr, FreelistGrainSize(fl));
+  } else {
+    return block[1];
+  }
 }
 
 
-/* See <design/freelist/#impl.block> */
-typedef struct FreelistBlockStruct {
-  Addr next;
-  Addr limit;
-} FreelistBlockStruct;
-
-
-/* FreelistBlock* -- Getters and setters for blocks
- *
- * See <design/freelist/#impl.block>.
+/* FreelistBlockNext -- return the next block in the list, or NULL if
+ * there are no more blocks.
  */
-#define FreelistBlockBase(block) ((Addr)(block))
-#define FreelistBlockLimit(block) (((FreelistBlock)(block))->limit)
-#define FreelistBlockSize(block) \
-  AddrOffset(FreelistBlockBase(block), FreelistBlockLimit(block))
-#define FreelistBlockNext(block) \
-  ((FreelistBlock)(((FreelistBlock)(block))->next))
-#define FreelistBlockSetNext(block, _next) \
-  BEGIN ((FreelistBlock)(block))->next = (void *)(_next); END
-#define FreelistBlockSetLimit(block, _limit)                            \
-  BEGIN {                                                               \
-    AVER(AddrOffset(block, _limit) >= sizeof(FreelistBlockStruct));     \
-    ((FreelistBlock)(block))->limit = (void *)(_limit);                 \
-  } END
-
-
-/* FreelistBlockCheck -- check block. */
-
-static Bool FreelistBlockCheck(FreelistBlock block)
+static Addr FreelistBlockNext(Freelist fl, Addr addr)
 {
-  CHECKL(FreelistBlockBase(block) < FreelistBlockLimit(block));
-  return TRUE;
+  Addr *block = FreelistBlock(addr);
+  return FreelistTagReset(block[0]);
+}
+
+
+/* FreelistBlockSize -- return the size of a block. */
+
+#define FreelistBlockSize(fl, block) \
+  AddrOffset(block, FreelistBlockLimit(fl, block))
+
+
+/* FreelistBlockSetNext -- update the next block in the list */
+
+static void FreelistBlockSetNext(Freelist fl, Addr addr, Addr next)
+{
+  Addr *block = FreelistBlock(addr);
+  block[0] = FreelistTagCopy(next, block[0]);
+}
+
+
+/* FreelistBlockSetLimit -- update the limit of a block */
+
+static void FreelistBlockSetLimit(Freelist fl, Addr addr, Addr limit)
+{
+  Addr *block = FreelistBlock(addr);
+  Size size = size;
+  if (size > FreelistGrainSize(fl)) {
+    block[0] = FreelistTagReset(block[0]);
+    block[1] = limit;
+  } else {
+    AVER(size == FreelistGrainSize(fl));
+    block[0] = FreelistTagSet(block[0]);
+  }
 }
 
 
 /* FreelistBlockInit -- return block for the range [base, limit). */
 
-static FreelistBlock FreelistBlockInit(Addr base, Addr limit)
+static Addr FreelistBlockInit(Freelist fl, Addr base, Addr limit)
 {
-  FreelistBlock block;
-  AVER(AddrOffset(base, limit) >= sizeof(FreelistBlockStruct));
-  block = (FreelistBlock)base;
-  FreelistBlockSetNext(block, NULL);
-  FreelistBlockSetLimit(block, limit);
-  return block;
+  Addr *block = FreelistBlock(base);
+  block[0] = NULL;
+  FreelistBlockSetLimit(fl, base, limit);
+  return base;
 }
 
 
@@ -100,24 +95,20 @@ Bool FreelistCheck(Freelist fl)
   CHECKS(Freelist, fl);
   /* See <design/freelist/#impl.grain.align> */
   CHECKL(AlignIsAligned(fl->alignment, freelistMinimumAlignment));
-  /* can't check blockList or grainList more */
-  /* Checking blockListSize and grainListSize is too laborious without
-     a List ADT */
+  /* can't check list or listSize */
   return TRUE;
 }
 
 
 Res FreelistInit(Freelist fl, Align alignment)
 {
-  /* See <design/freelist/#impl.grain.align> */
+  /* See <design/freelist/#impl.grain> */
   if (!AlignIsAligned(alignment, freelistMinimumAlignment))
     return ResPARAM;
 
   fl->alignment = alignment;
-  fl->blockList = NULL;
-  fl->blockListSize = 0;
-  fl->grainList = NULL;
-  fl->grainListSize = 0;
+  fl->list = NULL;
+  fl->listSize = 0;
 
   fl->sig = FreelistSig;
   AVERT(Freelist, fl);
@@ -129,27 +120,7 @@ void FreelistFinish(Freelist fl)
 {
   AVERT(Freelist, fl);
   fl->sig = SigInvalid;
-
-  fl->blockList = NULL;
-  fl->grainList = NULL;
-}
-
-
-/* freelistGrainSetPrevNext -- make 'next' be the next grain in the
- * list after 'prev', or make it the first grain in the list if 'prev'
- * is NULL. Update the count of grains by 'delta'.
- */
-static void freelistGrainSetPrevNext(Freelist fl, FreelistGrain prev,
-                                     FreelistGrain next, int delta)
-{
-  if (prev) {
-    FreelistGrainSetNext(prev, next);
-  } else {
-    fl->grainList = next;
-  }
-  if (delta < 0)
-    AVER(fl->grainListSize >= -delta);
-  fl->grainListSize += delta;
+  fl->list = NULL;
 }
 
 
@@ -157,26 +128,24 @@ static void freelistGrainSetPrevNext(Freelist fl, FreelistGrain prev,
  * list after 'prev', or make it the first block in the list if 'prev'
  * is NULL. Update the count of blocks by 'delta'.
  */
-static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
-                                     FreelistBlock next, int delta)
+static void freelistBlockSetPrevNext(Freelist fl, Addr prev,
+                                     Addr next, int delta)
 {
   if (prev) {
-    FreelistBlockSetNext(prev, next);
+    FreelistBlockSetNext(fl, prev, next);
   } else {
-    fl->blockList = next;
+    fl->list = next;
   }
   if (delta < 0)
-    AVER(fl->blockListSize >= -delta);
-  fl->blockListSize += delta;
+    AVER(fl->listSize >= -delta);
+  fl->listSize += delta;
 }
 
 
 Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
 {
-  FreelistGrain grainPrev, grainCur, grainNext, grainNew;
-  FreelistBlock blockPrev, blockCur, blockNext, blockNew;
+  Addr prev, cur, next, new;
   Addr base, limit;
-  Size size;
   Bool coalesceLeft, coalesceRight;
   Res res = ResOK;
 
@@ -184,147 +153,57 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
   AVERT(Freelist, fl);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, fl->alignment));
+  AVER(RangeSize(range) >= FreelistGrainSize(fl));
 
-  size = RangeSize(range);
-  AVER(size >= FreelistGrainSize(fl));
   base = RangeBase(range);
   limit = RangeLimit(range);
 
-  /* In order to correctly detect erroneous input (that is, range
-   * overlapping with some existing block or grain), we must check for
-   * overlap with both the block list and the grain list *before*
-   * trying to coalesce with either, lest we find ourselves in the
-   * embarrassing position of having coalesced the range with a block
-   * only to find that it overlaps with a grain (or vice versa).
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
+    if (base < FreelistBlockLimit(fl, cur) && cur < limit)
+      return ResFAIL; /* range overlaps with cur */
+    if (limit <= cur)
+      break;
+    next = FreelistBlockNext(fl, cur);
+    if (next)
+      /* Isolated range invariant (design.mps.freelist.impl.invariant). */
+      AVER(FreelistBlockLimit(fl, cur) < next);
+    prev = cur;
+    cur = next;
+  }
+
+  /* Now we know that range does not overlap with any block, and if it
+   * coalesces then it does so with prev on the left, and cur on the
+   * right.
    */
-  grainPrev = NULL;
-  grainCur = fl->grainList;
-  grainNext = NULL;
-  while (grainCur) {
-    if (base < FreelistGrainLimit(fl, grainCur)
-        && FreelistGrainBase(grainCur) < limit)
-      return ResFAIL; /* range overlaps with grainCur */
-    if (limit <= FreelistGrainBase(grainCur))
-      break;
-    /* The following test is a special case for grains. In the block
-     * case we can safely wait until the next time around the loop
-     * because if range coalesces on the left with blockPrev then
-     * blockPrev->limit can be adjusted. But in the grain case if we
-     * coalesce we remove the grain from the grain list, so we have to
-     * ensure that we retain a pointer to the previous grain so that
-     * we can update grainPrev->next.
-     */
-    if (base == FreelistGrainLimit(fl, grainCur))
-      break;
-    grainNext = FreelistGrainNext(grainCur);
-    if (grainNext)
-      AVER(FreelistGrainLimit(fl, grainCur) < FreelistGrainBase(grainNext));
-    grainPrev = grainCur;
-    grainCur = grainNext;
-  }
-
-  blockPrev = NULL;
-  blockCur = fl->blockList;
-  while (blockCur) {
-    AVERT(FreelistBlock, blockCur);
-    if (base < FreelistBlockLimit(blockCur)
-        && FreelistBlockBase(blockCur) < limit)
-      return ResFAIL; /* range overlaps with blockCur */
-    if (limit <= FreelistBlockBase(blockCur))
-      break;
-    blockNext = FreelistBlockNext(blockCur);
-    if (blockNext)
-      AVER(FreelistBlockLimit(blockCur) < FreelistBlockBase(blockNext));
-    blockPrev = blockCur;
-    blockCur = blockNext;
-  }
-
-  /* Now we know that range does not overlap with any block or grain,
-   * and if it coalesces then it does so with blockPrev on the left,
-   * with blockCur on the right, with grainCur on either side, and/or
-   * with grainNext on the right. Try the grains first.
-   */
-  if (grainCur && limit == FreelistGrainBase(grainCur)) {
-    /* Coalesce with grainCur on the right and delete grainCur */
-    limit = FreelistGrainLimit(fl, grainCur);
-    freelistGrainSetPrevNext(fl, grainPrev, grainNext, -1);
-
-  } else if (grainCur && base == FreelistGrainLimit(fl, grainCur)
-             && grainNext && limit == FreelistGrainBase(grainNext)) {
-    /* Coalesce with grainCur on the left and grainNext on the right
-     * and delete both grains. */
-    base = FreelistGrainBase(grainCur);
-    limit = FreelistGrainLimit(fl, grainNext);
-    freelistGrainSetPrevNext(fl, grainPrev, FreelistGrainNext(grainNext), -2);
-
-  } else if (grainCur && base == FreelistGrainLimit(fl, grainCur)) {
-    /* Coalesce with grainCur on the left and delete grainCur */
-    base = FreelistGrainBase(grainCur);
-    freelistGrainSetPrevNext(fl, grainPrev, grainNext, -1);
-  }
-
-  /* now try to coalesce with blocks */
-  coalesceLeft = (blockPrev && base == FreelistBlockLimit(blockPrev));
-  coalesceRight = (blockCur && limit == FreelistBlockBase(blockCur));
+  coalesceLeft = (prev && base == FreelistBlockLimit(fl, prev));
+  coalesceRight = (cur && limit == cur);
 
   if (coalesceLeft && coalesceRight) {
-    base = FreelistBlockBase(blockPrev);
-    limit = FreelistBlockLimit(blockCur);
-    FreelistBlockSetLimit(blockPrev, limit);
-    freelistBlockSetPrevNext(fl, blockPrev, blockNext, -1);
+    base = prev;
+    limit = FreelistBlockLimit(fl, cur);
+    FreelistBlockSetLimit(fl, prev, limit);
+    freelistBlockSetPrevNext(fl, prev, next, -1);
 
   } else if (coalesceLeft) {
-    base = FreelistBlockBase(blockPrev);
-    FreelistBlockSetLimit(blockPrev, limit);
+    base = prev;
+    FreelistBlockSetLimit(fl, prev, limit);
 
   } else if (coalesceRight) {
-    limit = FreelistBlockLimit(blockCur);
-    blockCur = FreelistBlockInit(base, limit);
-    FreelistBlockSetNext(blockCur, blockNext);
-
-  } else if (size > FreelistGrainSize(fl)) {
-    /* failed to coalesce: add new block */
-    blockNew = FreelistBlockInit(base, limit);
-    FreelistBlockSetNext(blockNew, blockCur);
-    freelistBlockSetPrevNext(fl, blockPrev, blockNew, +1);
+    limit = FreelistBlockLimit(fl, cur);
+    cur = FreelistBlockInit(fl, base, limit);
+    FreelistBlockSetNext(fl, cur, next);
 
   } else {
-    /* failed to coalesce: add new grain */
-    grainNew = FreelistGrainInit(fl, base, limit);
-    FreelistGrainSetNext(grainNew, grainNext);
-    freelistGrainSetPrevNext(fl, grainPrev, grainNew, +1);
+    /* failed to coalesce: add new block */
+    new = FreelistBlockInit(fl, base, limit);
+    FreelistBlockSetNext(fl, new, cur);
+    freelistBlockSetPrevNext(fl, prev, new, +1);
   }
 
   RangeInit(rangeReturn, base, limit);
   return ResOK;
-}
-
-
-/* freelistInsertGrain -- Insert a grain (that is known to be isolated
- * from all blocks and grains) into the free list.
- */
-static void freelistInsertGrain(Freelist fl, FreelistGrain grain)
-{
-  FreelistGrain prev, cur, next;
-
-  prev = NULL;
-  cur = fl->grainList;
-  while (cur) {
-    if (prev)
-      AVER(FreelistGrainLimit(fl, prev) < FreelistGrainBase(cur));
-    if ((prev == NULL
-         || FreelistGrainLimit(fl, prev) < FreelistGrainBase(grain))
-        && FreelistGrainLimit(fl, grain) < FreelistGrainBase(cur))
-      break;
-    AVER(FreelistGrainLimit(fl, grain) != FreelistGrainBase(cur));
-    AVER(FreelistGrainBase(grain) != FreelistGrainLimit(fl, cur));
-    next = FreelistGrainNext(cur);
-    prev = cur;
-    cur = next;
-  }
-  
-  FreelistGrainSetNext(grain, cur);
-  freelistGrainSetPrevNext(fl, prev, grain, +1);
 }
 
 
@@ -335,103 +214,57 @@ static void freelistInsertGrain(Freelist fl, FreelistGrain grain)
  * the first block on the list.
  */
 static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
-                                    Range range, FreelistBlock prev,
-                                    FreelistBlock block)
+                                    Range range, Addr prev, Addr block)
 {
-  FreelistBlock next, blockNew;
+  Addr next, new;
   Addr base, limit, blockBase, blockLimit;
 
   AVER(rangeReturn != NULL);
   AVERT(Freelist, fl);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, fl->alignment));
-  AVER(prev == NULL || FreelistBlockNext(prev) == block);
+  AVER(prev == NULL || FreelistBlockNext(fl, prev) == block);
   AVER(block != NULL);
 
-  AVER(FreelistBlockBase(block) <= RangeBase(range));
-  AVER(RangeLimit(range) <= FreelistBlockLimit(block));
+  AVER(block <= RangeBase(range));
+  AVER(RangeLimit(range) <= FreelistBlockLimit(fl, block));
 
   base = RangeBase(range);
   limit = RangeLimit(range);
-  blockBase = FreelistBlockBase(block);
-  blockLimit = FreelistBlockLimit(block);
-  next = FreelistBlockNext(block);
-
-  /* There are NINE (count 'em!) cases here, because on both sides
-   * the deletion might leave no fragment, a grain, or a block. */
+  blockBase = block;
+  blockLimit = FreelistBlockLimit(fl, block);
+  next = FreelistBlockNext(fl, block);
 
   if (base == blockBase && limit == blockLimit) {
     /* No fragment at left; no fragment at right. */
     freelistBlockSetPrevNext(fl, prev, next, -1);
 
-  } else if (base == blockBase
-             && FreelistGrainLimit(fl, limit) == blockLimit)
-  {
-    /* No fragment at left; grain at right. */
-    freelistBlockSetPrevNext(fl, prev, next, -1);
-    freelistInsertGrain(fl, FreelistGrainInit(fl, limit, blockLimit));
-
   } else if (base == blockBase) {
     /* No fragment at left; block at right. */
-    block = FreelistBlockInit(limit, blockLimit);
-    FreelistBlockSetNext(block, next);
+    block = FreelistBlockInit(fl, limit, blockLimit);
+    FreelistBlockSetNext(fl, block, next);
     freelistBlockSetPrevNext(fl, prev, block, 0);
-
-  } else if (FreelistGrainLimit(fl, blockBase) == base
-             && limit == blockLimit)
-  {
-    /* Grain at left; no fragment at right. */
-    freelistBlockSetPrevNext(fl, prev, next, -1);
-    freelistInsertGrain(fl, FreelistGrainInit(fl, blockBase, base));
 
   } else if (limit == blockLimit) {        
-    /* Block at left; no frament at right. */
-    FreelistBlockSetLimit(block, base);
-
-  } else if (FreelistGrainLimit(fl, blockBase) == base
-             && FreelistGrainLimit(fl, limit) == blockLimit)
-  {
-    /* Grain at left; grain at right. */
-    freelistBlockSetPrevNext(fl, prev, next, -1);
-    freelistInsertGrain(fl, FreelistGrainInit(fl, blockBase, base));
-    freelistInsertGrain(fl, FreelistGrainInit(fl, limit, blockLimit));
-
-  } else if (FreelistGrainLimit(fl, blockBase) == base) {
-    /* Grain at left; block at right. */
-    block = FreelistBlockInit(limit, blockLimit);
-    FreelistBlockSetNext(block, next);
-    freelistBlockSetPrevNext(fl, prev, block, 0);
-    freelistInsertGrain(fl, FreelistGrainInit(fl, blockBase, base));
-
-  } else if (FreelistGrainLimit(fl, limit) == blockLimit) {
-    /* Block at left; grain at right. */
-    AVER(FreelistGrainLimit(fl, blockBase) < base);
-    FreelistBlockSetLimit(block, base);
-    freelistInsertGrain(fl, FreelistGrainInit(fl, limit, blockLimit));
+    /* Block at left; no fragment at right. */
+    FreelistBlockSetLimit(fl, block, base);
 
   } else {
     /* Block at left; block at right. */
-    FreelistBlockSetLimit(block, base);
-    blockNew = FreelistBlockInit(limit, blockLimit);
-    FreelistBlockSetNext(blockNew, next);
-    freelistBlockSetPrevNext(fl, block, blockNew, +1);
+    FreelistBlockSetLimit(fl, block, base);
+    new = FreelistBlockInit(fl, limit, blockLimit);
+    FreelistBlockSetNext(fl, new, next);
+    freelistBlockSetPrevNext(fl, block, new, +1);
   }
 
   RangeInit(rangeReturn, blockBase, blockLimit);
 }
 
 
-/* freelistDeleteFromBlockList -- if 'range' is found in the block
- * list, delete it, update 'rangeReturn' to the range of the block
- * that contained 'range' and return ResOK. Otherwise, return ResFAIL.
- * (This might mean that the range was not found at all in the block
- * list, or that it was only partially found.)
- */
-static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
-                                       Range range)
+Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)
 {
   Res res;
-  FreelistBlock prev, cur, next, blockNew;
+  Addr prev, cur, next, new;
   Addr base, limit;
 
   AVER(rangeReturn != NULL);
@@ -442,12 +275,11 @@ static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
   limit = RangeLimit(range);
 
   prev = NULL;
-  cur = fl->blockList;
+  cur = fl->list;
   while (cur) {
     Addr blockBase, blockLimit;
-    AVERT(FreelistBlock, cur);
-    blockBase = FreelistBlockBase(cur);
-    blockLimit = FreelistBlockLimit(cur);
+    blockBase = cur;
+    blockLimit = FreelistBlockLimit(fl, cur);
 
     if (limit <= blockBase)
       return ResFAIL; /* not found */
@@ -458,7 +290,7 @@ static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
       return ResOK;
     }
     
-    next = FreelistBlockNext(cur);
+    next = FreelistBlockNext(fl, cur);
     prev = cur;
     cur = next;
   }
@@ -468,118 +300,29 @@ static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
 }
 
 
-/* freelistDeleteFromGrainList -- if 'range' is found in the grain
- * list, delete it, update 'rangeReturn' to the range of the grain
- * that contained 'range' and return ResOK. Otherwise, return ResFAIL.
- */
-static Res freelistDeleteFromGrainList(Range rangeReturn, Freelist fl,
-                                       Range range)
-{
-  Addr base, limit;
-  FreelistGrain prev, cur, next;
-
-  AVER(rangeReturn != NULL);
-  AVERT(Freelist, fl);
-  AVERT(Range, range);
-  
-  if (RangeSize(range) != FreelistGrainSize(fl))
-    return ResFAIL;
-
-  base = RangeBase(range);
-  limit = RangeLimit(range);
-
-  prev = NULL;
-  cur = fl->grainList;
-  while (cur) {
-    Addr grainBase, grainLimit;
-    grainBase = FreelistGrainBase(cur);
-    grainLimit = FreelistGrainLimit(fl, cur);
-    next = FreelistGrainNext(cur);
-
-    if (prev != NULL)
-      AVER(FreelistGrainLimit(fl, prev) < grainBase);
-    if (limit <= grainBase)
-      return ResFAIL; /* not found */
-    if (base == grainBase && limit == grainLimit) {
-      freelistGrainSetPrevNext(fl, prev, next, -1);
-      RangeInit(rangeReturn, grainBase, grainLimit);
-      return ResOK;
-    }
-    /* Partial overlap can't happen if everything's aligned. */
-    AVER(base >= grainLimit);
-
-    prev = cur;
-    cur = next;
-  }
-
-  return ResFAIL; /* not found */
-}
-
-
-Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)
-{
-  Res res;
-
-  AVER(rangeReturn != NULL);
-  AVERT(Freelist, fl);
-  AVERT(Range, range);
-  AVER(RangeIsAligned(range, fl->alignment));
-
-  if (RangeSize(range) == FreelistGrainSize(fl)) {
-    res = freelistDeleteFromGrainList(rangeReturn, fl, range);
-  } else {
-    res = freelistDeleteFromBlockList(rangeReturn, fl, range);
-  }
-  return res;
-}
-
-
 void FreelistIterate(Freelist fl, FreelistIterateMethod iterate,
                      void *closureP, Size closureS)
 {
-  FreelistBlock blockPrev, blockCur, blockNext;
-  FreelistGrain grainPrev, grainCur, grainNext;
+  Addr prev, cur, next;
 
   AVERT(Freelist, fl);
   AVER(FUNCHECK(iterate));
 
-  blockPrev = NULL;
-  blockCur = fl->blockList;
-  grainPrev = NULL;
-  grainCur = fl->grainList;
-  while (blockCur || grainCur) {
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
     Bool delete = FALSE;
     RangeStruct range;
     Bool cont;
-    if (blockCur == NULL || (void *)grainCur < (void *)blockCur) {
-      AVER(grainCur);
-      RangeInit(&range, FreelistGrainBase(grainCur),
-                FreelistGrainLimit(fl, grainCur));
-      cont = (*iterate)(&delete, &range, closureP, closureS);
-      AVERT(Bool, cont);
-      AVERT(Bool, delete);
-      grainNext = FreelistGrainNext(grainCur);
-      if (delete) {
-        freelistGrainSetPrevNext(fl, grainPrev, grainNext, -1);
-      } else {
-        grainPrev = grainCur;
-      }
-      grainCur = grainNext;
+    RangeInit(&range, cur, FreelistBlockLimit(fl, cur));
+    cont = (*iterate)(&delete, &range, closureP, closureS);
+    next = FreelistBlockNext(fl, cur);
+    if (delete) {
+      freelistBlockSetPrevNext(fl, prev, next, -1);
     } else {
-      AVER(blockCur);
-      RangeInit(&range, FreelistBlockBase(blockCur),
-                FreelistBlockLimit(blockCur));
-      cont = (*iterate)(&delete, &range, closureP, closureS);
-      AVERT(Bool, cont);
-      AVERT(Bool, delete);
-      blockNext = FreelistBlockNext(blockCur);
-      if (delete) {
-        freelistBlockSetPrevNext(fl, blockPrev, blockNext, -1);
-      } else {
-        blockPrev = blockCur;
-      }
-      blockCur = blockNext;
+      prev = cur;
     }
+    cur = next;
     if (!cont)
       break;
   }
@@ -597,22 +340,22 @@ void FreelistIterate(Freelist fl, FreelistIterateMethod iterate,
 static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
                                         Freelist fl, Size size,
                                         FindDelete findDelete,
-                                        FreelistBlock prev, FreelistBlock block)
+                                        Addr prev, Addr block)
 {
   Bool callDelete = TRUE;
   Addr base, limit;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
-  AVER(SizeIsAligned(size, fl->alignment));
   AVERT(Freelist, fl);
+  AVER(SizeIsAligned(size, fl->alignment));
   AVERT(FindDelete, findDelete);
-  AVER(prev == NULL || FreelistBlockNext(prev) == block);
+  AVER(prev == NULL || FreelistBlockNext(fl, prev) == block);
   AVER(block != NULL);
-  AVER(FreelistBlockSize(block) >= size);
+  AVER(FreelistBlockSize(fl, block) >= size);
   
-  base = FreelistBlockBase(block);
-  limit = FreelistBlockLimit(block);
+  base = block;
+  limit = FreelistBlockLimit(fl, block);
 
   switch (findDelete) {
   case FindDeleteNONE:
@@ -645,42 +388,11 @@ static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-/* freelistTakeGrain -- If there are any grains in the free list, find
- * the first grain; return its range in 'rangeReturn' and
- * 'oldRangeReturn'; possibly delete it from the list according to the
- * instruction in 'findDelete'; and return TRUE. If the grain list is
- * empty, return FALSE.
- */
-static Bool freelistTakeGrain(Range rangeReturn, Range oldRangeReturn,
-                              Freelist fl, FindDelete findDelete)
-{
-  FreelistGrain grain;
-
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(Freelist, fl);
-  AVERT(FindDelete, findDelete);
-
-  grain = fl->grainList;
-  if (grain) {
-    RangeInit(rangeReturn, FreelistGrainBase(grain),
-              FreelistGrainLimit(fl, grain));
-    RangeInit(oldRangeReturn, FreelistGrainBase(grain),
-              FreelistGrainLimit(fl, grain));
-    if (findDelete != FindDeleteNONE)
-      freelistGrainSetPrevNext(fl, NULL, FreelistGrainNext(grain), -1);
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-
 Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
                   Freelist fl, Size size, FindDelete findDelete)
 {
   Res res;
-  FreelistBlock blockPrev, blockCur, blockNext;
+  Addr prev, cur, next;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -688,20 +400,17 @@ Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
   AVER(SizeIsAligned(size, fl->alignment));
   AVERT(FindDelete, findDelete);
 
-  if (size == FreelistGrainSize(fl))
-    return freelistTakeGrain(rangeReturn, oldRangeReturn, fl, findDelete);
-
-  blockPrev = NULL;
-  blockCur = fl->blockList;
-  while (blockCur) {
-    if (FreelistBlockSize(blockCur) >= size) {
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
+    if (FreelistBlockSize(fl, cur) >= size) {
       freelistFindDeleteFromBlock(rangeReturn, oldRangeReturn, fl, size,
-                                  findDelete, blockPrev, blockCur);
+                                  findDelete, prev, cur);
       return TRUE;
     }
-    blockNext = FreelistBlockNext(blockCur);
-    blockPrev = blockCur;
-    blockCur = blockNext;
+    next = FreelistBlockNext(fl, cur);
+    prev = cur;
+    cur = next;
   }
 
   return FALSE;
@@ -713,36 +422,35 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
 {
   Bool found = FALSE;
   Size size = 0;
-  FreelistBlock blockPrev, blockCur, blockNext;
-  FreelistBlock bestBlockPrev, bestBlockCur;
+  Addr prev, cur, next;
+  Addr bestPrev, bestCur;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
   AVERT(Freelist, fl);
   AVERT(FindDelete, findDelete);
 
-  blockPrev = NULL;
-  blockCur = fl->blockList;
-  while (blockCur) {
-    if (FreelistBlockSize(blockCur) > size) {
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
+    if (FreelistBlockSize(fl, cur) > size) {
       found = TRUE;
-      size = FreelistBlockSize(blockCur);
-      bestBlockPrev = blockPrev;
-      bestBlockCur = blockCur;
+      size = FreelistBlockSize(fl, cur);
+      bestPrev = prev;
+      bestCur = cur;
     }
-    blockNext = FreelistBlockNext(blockCur);
-    blockPrev = blockCur;
-    blockCur = blockNext;
+    next = FreelistBlockNext(fl, cur);
+    prev = cur;
+    cur = next;
   }
 
   if (found) {
-    /* No need to search the grain list. */
     freelistFindDeleteFromBlock(rangeReturn, oldRangeReturn, fl, size,
-                                findDelete, bestBlockPrev, bestBlockCur);
+                                findDelete, bestPrev, bestCur);
     return TRUE;
   }
 
-  return freelistTakeGrain(rangeReturn, oldRangeReturn, fl, findDelete);
+  return FALSE;
 }
 
 
@@ -780,8 +488,7 @@ Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Freelist $P {\n", (WriteFP)fl,
                "  alignment = $U\n", (WriteFU)fl->alignment,
-               "  blockListSize = $U\n", (WriteFU)fl->blockListSize,
-               "  grainListSize = $U\n", (WriteFU)fl->grainListSize,
+               "  listSize = $U\n", (WriteFU)fl->listSize,
                NULL);
 
   FreelistIterate(fl, freelistDescribeIterateMethod, stream, 0);

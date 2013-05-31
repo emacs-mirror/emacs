@@ -191,41 +191,40 @@ order. It is provided for debugging purposes only.
 Implementation
 --------------
 
-_`.impl.block`: If the free address range is large enough to contain an
-inline block descriptor consisting of two pointers, then it is kept on
-an address-ordered free block list.
+_`.impl.list`: The isolated contiguous free address ranges are kept on
+an address-ordered singly linked free list.
 
-_`.impl.block.structure`: The two pointers stored are to the next such
-block (or ``NULL`` if there are no more blocks), and to the limit of
-the block, in that order.
+_`.impl.block`: If the free address range is large enough to contain
+an inline block descriptor consisting of two pointers, then the two
+pointers stored are to the next free range in address order (or
+``NULL`` if there are no more ranges), and to the limit of current
+free address range, in that order.
 
 _`.impl.grain`: Otherwise, the free address range must be large enough
-to contain a single pointer, and it is kept on an address-ordered free
-grain list.
+to contain a single pointer. The pointer stored is to the next free
+range in address order, or ``NULL`` if there are no more ranges.
 
-_`.impl.grain.structure`: The pointer stored is to the next such
-grain, or ``NULL`` if there are no more grains.
+_`.impl.tag`: Grains and blocks are distinguished by a one-bit tag in
+the low bit of the first word (the one containing the pointer to the
+next range). Grains have this bit set; blocks have this bit reset.
 
-_`.impl.grain.align`: This implementation of the grain list requires
-the alignment of the free list to be at least ``sizeof(void *)``.
-
-_`.impl.invariant`: The ranges stored in the block list and the grain
-list are isolated: no two range are adjacent or overlapping.
+_`.impl.invariant`: The ranges stored in the free list are *isolated*:
+no two ranges are adjacent or overlapping.
 
 _`.impl.merge`: When a free address range is added to the free list,
-it is merged with adjacent ranges in the block list and the grain list
-so as to maintain `.impl.invariant`_.
+it is merged with adjacent ranges so as to maintain
+`.impl.invariant`_.
 
 
 Opportunities for improvement
 -----------------------------
 
-_`.improve.length`: When iterating over lists, we could check that the
-number of elements visited in the course of the iteration does not
+_`.improve.length`: When iterating over the list, we could check that
+the number of elements visited in the course of the iteration does not
 exceed the recorded size of the list.
 
-_`.improve.maxsize`: We could maintain the maximum size of any block
-on the block list, and use that to make an early exit from
+_`.improve.maxsize`: We could maintain the maximum size of any range
+on the list, and use that to make an early exit from
 ``FreelistFindLargest()``. It's not clear that this would actually be
 an improvement.
 
