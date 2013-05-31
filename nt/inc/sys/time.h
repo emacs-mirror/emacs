@@ -35,10 +35,15 @@ struct timezone
 };
 #endif
 
+
 /* This needs to be compatible with Posix signature, in order to pass
-   the configure test for the type of the second argument.  See
-   m4/gettimeofday.m4.  */
-int gettimeofday (struct timeval *restrict, struct timezone *restrict);
+   the configure test for the type of the second argument; see
+   m4/gettimeofday.m4.  We use '__restrict' here, rather than
+   'restrict', for the benefit of the old nt/configure.bat build,
+   which does not force the use of -std= switch to GCC, and that
+   causes compilation errors with 'restrict', which is a C99
+   extension.  */
+int gettimeofday (struct timeval *__restrict, struct timezone *__restrict);
 
 #define ITIMER_REAL      0
 #define ITIMER_PROF      1

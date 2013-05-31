@@ -1,3 +1,11 @@
+2013-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
+	'restrict', which is a C99 extension.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00588.html
+	and the following discussion for the problem this caused in the
+	old nt/configure.bat build.
+
 2013-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (emacs.res): Include srcdir when preprocessing
