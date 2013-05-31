@@ -1,3 +1,58 @@
+2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Clean up code.  Uncapitalize file name in first line.
+	Require cl-lib instead of cl.  Add section title separators.
+	Reindent some code and comments.  Comment out Todos mode menu
+	definition.
+	(todos-basic-insert-item): Rename from todos-insert-item-1 and
+	adjust uses.
+	(todos-basic-edit-item-header): Rename from
+	todos-edit-item-header-1 and adjust uses.
+	(todos-display-categories): Rename from todos-display-categories-1
+	and adjust uses.
+	(todos-show, todos-basic-insert-item)
+	(todos-basic-edit-item-header, todos-set-item-priority)
+	(todos-item-undone, todos-convert-legacy-files)
+	(todos-check-format, todos-filter-items-1):
+	Use user-error instead of error.
+	(todos-add-file, todos-basic-insert-item, todos-mark)
+	(todos-button, todos-sorted-column, todos-archived-only)
+	(todos-search, todos-category-string)
+	(todos-top-priorities-overrides)
+	(todos-insertion-commands-args-genlist, todos-filter-items)
+	(todos-filter-items-1, todos-filtered-items-mode-map):
+	Correct or improve document string.
+	(todos-edit-file)
+	(todos-sort-categories-alphabetically-or-by-priority)
+	(todos-sort-categories-by-todo, todos-sort-categories-by-diary)
+	(todos-sort-categories-by-done)
+	(todos-sort-categories-by-archived, todos-next-button)
+	(todos-previous-button, todos-gen-arglists)
+	(todos-define-insertion-command)
+	(todos-insertion-commands-arg-key-list)
+	(todos-insertion-key-bindings, todos-update-categories-display):
+	Add document string.
+	(todos-powerset-recursive): Rename from powerset-recursive and
+	reformulate slightly.
+	(todos-powerset-iterative): Rename from powerset-bitwise and
+	reformulate.
+	(todos-insertion-commands-args): Use cl-remove-duplicates instead
+	of remove-duplicates.
+	(todos-define-insertion-command): Improve doc string of generated defun.
+	(todos-adjusted-category-label-length)
+	(todos-insert-category-line, todos-update-categories-display):
+	Call cl-oddp instead of inlining its definition.
+	(todos-key-bindings): Remove, replacing by the following.
+	(todos-key-bindings-t, todos-key-bindings-t+a+f)
+	(todos-key-bindings-t+a, todos-key-bindings-t+f): New variables.
+	(todos-mode-map): Use new key-binding variables.
+	(todos-archive-mode-map, todos-filtered-items-mode-map): Use new
+	key-binding variables.  Don't suppress digit keys.
+	(todos-categories-mode-map): Don't suppress digit keys.
+	(todos-modes-set-1, todos-modes-set-2, todos-modes-set-3)
+	(todos-mode, todos-archive-mode, todos-mode-external-set):
+	Use setq-local instead of make-local-variable.
+
 2013-05-24  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Reorganize file structure.
