@@ -70,6 +70,22 @@ Bool RangesOverlap(Range range1, Range range2)
       && RangeBase(range2) < RangeLimit(range1);
 }
 
+Bool RangesNest(Range outer, Range inner)
+{
+  AVERT(Range, outer);
+  AVERT(Range, inner);
+  return RangeBase(outer) <= RangeBase(inner)
+      && RangeLimit(inner) <= RangeLimit(outer);
+}
+
+Bool RangesEqual(Range range1, Range range2)
+{
+  AVERT(Range, range1);
+  AVERT(Range, range2);
+  return RangeBase(range1) == RangeBase(range2)
+      && RangeLimit(range1) == RangeLimit(range2);
+}
+
 Bool RangeIsAligned(Range range, Align alignment)
 {
   AVERT(Range, range);

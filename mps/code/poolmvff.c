@@ -84,22 +84,22 @@ typedef MVFFDebugStruct *MVFFDebug;
  */
 static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   Res res;
-  Addr base, limit;
+  RangeStruct range, newRange;
 
   AVER(baseIO != NULL);
   AVER(limitIO != NULL);
   AVERT(MVFF, mvff);
-  base = *baseIO;
-  limit = *limitIO;
-  AVER(limit > base);
+  RangeInit(&range, *baseIO, *limitIO);
 
-  res = CBSInsert(baseIO, limitIO, CBSOfMVFF(mvff), base, limit);
+  res = CBSInsert(&newRange, CBSOfMVFF(mvff), &range);
   if (ResIsAllocFailure(res))
     /* CBS ran out of memory for splay nodes: lose freed range. */
     return;
 
   AVER(res == ResOK);
-  mvff->free += AddrOffset(base, limit);
+  mvff->free += RangeSize(&range);
+  *baseIO = RangeBase(&newRange);
+  *limitIO = RangeLimit(&newRange);
 
   return;
 }
@@ -140,15 +140,15 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
 
   while(segLimit <= limit) { /* segment ends in range */
     if (segBase >= base) { /* segment starts in range */
-      Addr oldBase, oldLimit;
-      res = CBSDelete(&oldBase, &oldLimit, CBSOfMVFF(mvff), segBase, segLimit);
+      RangeStruct range, oldRange;
+      RangeInit(&range, segBase, segLimit);
+      res = CBSDelete(&oldRange, CBSOfMVFF(mvff), &range);
       if (ResIsAllocFailure(res))
         /* CBS ran out of memory for splay nodes: can't delete. */
         return;
 
       AVER(res == ResOK);
-      AVER(oldBase <= segBase);
-      AVER(segLimit <= oldLimit);
+      AVER(RangesNest(&oldRange, &range));
       mvff->free -= AddrOffset(segBase, segLimit);
       mvff->total -= AddrOffset(segBase, segLimit);
       SegFree(seg);
@@ -248,7 +248,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
 {
   Bool foundBlock;
   FindDelete findDelete;
-  Addr oldBase, oldLimit;
+  RangeStruct range, oldRange;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -260,11 +260,13 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
 
   foundBlock =
     (mvff->firstFit ? CBSFindFirst : CBSFindLast)
-    (baseReturn, limitReturn, &oldBase, &oldLimit, 
-     CBSOfMVFF(mvff), size, findDelete);
+    (&range, &oldRange, CBSOfMVFF(mvff), size, findDelete);
 
-  if (foundBlock)
+  if (foundBlock) {
+    *baseReturn = RangeBase(&range);
+    *limitReturn = RangeLimit(&range);
     mvff->free -= size;
+  }
 
   return foundBlock;
 }
@@ -354,7 +356,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 {
   Res res;
   MVFF mvff;
-  Addr base, limit, oldBase, oldLimit;
+  RangeStruct range, oldRange;
   Bool foundBlock;
   Seg seg = NULL;
 
@@ -369,34 +371,33 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Bool, withReservoirPermit);
 
   /* Hoping the largest is big enough, delete it and return if small. */
-  foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
+  foundBlock = CBSFindLargest(&range, &oldRange,
                               CBSOfMVFF(mvff), FindDeleteENTIRE);
-  if (foundBlock && AddrOffset(base, limit) < size) {
-    Addr newBase, newLimit;
+  if (foundBlock && RangeSize(&range) < size) {
+    RangeStruct newRange;
     foundBlock = FALSE;
-    res = CBSInsert(&newBase, &newLimit, CBSOfMVFF(mvff), base, limit);
+    res = CBSInsert(&newRange, CBSOfMVFF(mvff), &range);
     if (ResIsAllocFailure(res))
       /* CBS ran out of memory for splay nodes: lose block. */
       return res;
 
-    AVER(newBase == base);
-    AVER(newLimit == limit);
     AVER(res == ResOK);
+    AVER(RangesEqual(&newRange, &range));
   }
   if (!foundBlock) {
     res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
     if (res != ResOK)
       return res;
-    foundBlock = CBSFindLargest(&base, &limit, &oldBase, &oldLimit,
+    foundBlock = CBSFindLargest(&range, &oldRange,
                                 CBSOfMVFF(mvff), FindDeleteENTIRE);
     AVER(foundBlock); /* We will find the new segment. */
   }
 
-  AVER(AddrOffset(base, limit) >= size);
-  mvff->free -= AddrOffset(base, limit);
+  AVER(RangeSize(&range) >= size);
+  mvff->free -= RangeSize(&range);
 
-  *baseReturn = base;
-  *limitReturn = limit;
+  *baseReturn = RangeBase(&range);
+  *limitReturn = RangeLimit(&range);
   return ResOK;
 }
 

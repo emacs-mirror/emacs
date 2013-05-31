@@ -11,12 +11,13 @@
 
 #include "arg.h"
 #include "meter.h"
-#include "splay.h"
 #include "mpmtypes.h"
+#include "range.h"
+#include "splay.h"
 
 
 typedef struct CBSStruct *CBS;
-typedef Bool (*CBSIterateMethod)(CBS cbs, Addr base, Addr limit,
+typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
                                  void *closureP, Size closureS);
 
 
@@ -40,23 +41,18 @@ extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    Align alignment, Bool fastFind, ArgList args);
 extern void CBSFinish(CBS cbs);
 
-extern Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
-                     CBS cbs, Addr base, Addr limit);
-extern Res CBSDelete(Addr *baseReturn, Addr *limitReturn,
-                     CBS cbs, Addr base, Addr limit);
+extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
+extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
 extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
                        void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 
-extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
-                         Addr *oldBaseReturn, Addr *oldLimitReturn,
+extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                          CBS cbs, Size size, FindDelete findDelete);
-extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
-                        Addr *oldBaseReturn, Addr *oldLimitReturn,
+extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
                         CBS cbs, Size size, FindDelete findDelete);
-extern Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
-                           Addr *oldBaseReturn, Addr *oldLimitReturn,
+extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                            CBS cbs, FindDelete findDelete);
 
 

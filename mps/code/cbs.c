@@ -339,7 +339,7 @@ static void cbsBlockGrew(CBS cbs, CBSBlock block, Size oldSize)
 /* cbsBlockAlloc -- allocate a new block and set its base and limit,
    but do not insert it into the splay tree yet */
 
-static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Addr base, Addr limit)
+static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Range range)
 {
   Res res;
   CBSBlock block;
@@ -347,6 +347,7 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Addr base, Addr limit)
 
   AVER(blockReturn != NULL);
   AVERT(CBS, cbs);
+  AVERT(Range, range);
 
   res = PoolAlloc(&p, cbs->blockPool, sizeof(CBSBlockStruct),
                   /* withReservoirPermit */ FALSE);
@@ -355,8 +356,8 @@ static Res cbsBlockAlloc(CBSBlock *blockReturn, CBS cbs, Addr base, Addr limit)
   block = (CBSBlock)p;
 
   SplayNodeInit(splayNodeOfCBSBlock(block));
-  block->base = base;
-  block->limit = limit;
+  block->base = RangeBase(range);
+  block->limit = RangeLimit(range);
   block->maxSize = CBSBlockSize(block);
 
   AVERT(CBSBlock, block);
@@ -387,21 +388,22 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
 
 /* cbsInsertIntoTree -- Insert a range into the splay tree */
 
-static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
-                             CBS cbs, Addr base, Addr limit)
+static Res cbsInsertIntoTree(Range rangeReturn, CBS cbs, Range range)
 {
   Res res;
-  Addr newBase, newLimit;
+  Addr base, limit, newBase, newLimit;
   SplayNode leftSplay, rightSplay;
   CBSBlock leftCBS, rightCBS;
   Bool leftMerge, rightMerge;
   Size oldSize;
 
+  AVER(rangeReturn != NULL);
   AVERT(CBS, cbs);
-  AVER(base != (Addr)0);
-  AVER(base < limit);
-  AVER(AddrIsAligned(base, cbs->alignment));
-  AVER(AddrIsAligned(limit, cbs->alignment));
+  AVERT(Range, range);
+  AVER(RangeIsAligned(range, cbs->alignment));
+
+  base = RangeBase(range);
+  limit = RangeLimit(range);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   res = SplayTreeNeighbours(&leftSplay, &rightSplay,
@@ -461,7 +463,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
 
   } else {
     CBSBlock block;
-    res = cbsBlockAlloc(&block, cbs, base, limit);
+    res = cbsBlockAlloc(&block, cbs, range);
     if (res != ResOK)
       goto fail;
     cbsBlockInsert(cbs, block);
@@ -469,8 +471,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
 
   AVER(newBase <= base);
   AVER(newLimit >= limit);
-  *baseReturn = newBase;
-  *limitReturn = newLimit;
+  RangeInit(rangeReturn, newBase, newLimit);
 
   return ResOK;
 
@@ -485,29 +486,18 @@ fail:
  * See <design/cbs/#functions.cbs.insert>.
  */
 
-Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
-              CBS cbs, Addr base, Addr limit)
+Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
 {
-  Addr newBase, newLimit;
   Res res;
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
-  AVER(base != (Addr)0);
-  AVER(base < limit);
-  AVER(AddrIsAligned(base, cbs->alignment));
-  AVER(AddrIsAligned(limit, cbs->alignment));
+  AVER(rangeReturn != NULL);
+  AVERT(Range, range);
+  AVER(RangeIsAligned(range, cbs->alignment));
 
-  res = cbsInsertIntoTree(&newBase, &newLimit, cbs, base, limit);
-  if (res == ResOK) {
-    AVER(newBase <= base);
-    AVER(limit <= newLimit);
-    *baseReturn = newBase;
-    *limitReturn = newLimit;
-  }
+  res = cbsInsertIntoTree(rangeReturn, cbs, range);
 
   CBSLeave(cbs);
   return res;
@@ -516,22 +506,21 @@ Res CBSInsert(Addr *baseReturn, Addr *limitReturn,
 
 /* cbsDeleteFromTree -- delete blocks from the splay tree */
 
-static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
-                             CBS cbs, Addr base, Addr limit)
+static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
 {
   Res res;
   CBSBlock cbsBlock;
   SplayNode splayNode;
-  Addr oldBase, oldLimit;
+  Addr base, limit, oldBase, oldLimit;
   Size oldSize;
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
+  AVER(rangeReturn != NULL);
   AVERT(CBS, cbs);
-  AVER(base != NULL);
-  AVER(limit > base);
-  AVER(AddrIsAligned(base, cbs->alignment));
-  AVER(AddrIsAligned(limit, cbs->alignment));
+  AVERT(Range, range);
+  AVER(RangeIsAligned(range, cbs->alignment));
+
+  base = RangeBase(range);
+  limit = RangeLimit(range);
 
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   res = SplayTreeSearch(&splayNode, splayTreeOfCBS(cbs), (void *)&base);
@@ -567,10 +556,12 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
   } else {
     /* two remaining fragments. shrink block to represent fragment at
        left, and create new block for fragment at right. */
+    RangeStruct newRange;
     CBSBlock newBlock;
     AVER(base > oldBase);
     AVER(limit < oldLimit);
-    res = cbsBlockAlloc(&newBlock, cbs, limit, oldLimit);
+    RangeInit(&newRange, limit, oldLimit);
+    res = cbsBlockAlloc(&newBlock, cbs, &newRange);
     if (res != ResOK) {
       goto failAlloc;
     }
@@ -579,8 +570,7 @@ static Res cbsDeleteFromTree(Addr *baseReturn, Addr *limitReturn,
     cbsBlockInsert(cbs, newBlock);
   }
 
-  *baseReturn = oldBase;
-  *limitReturn = oldLimit;
+  RangeInit(rangeReturn, oldBase, oldLimit);
   return ResOK;
 
 failAlloc:
@@ -596,20 +586,18 @@ failSplayTreeSearch:
  * See <design/cbs/#function.cbs.delete>.
  */
 
-Res CBSDelete(Addr *baseReturn, Addr *limitReturn,
-              CBS cbs, Addr base, Addr limit)
+Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
 {
   Res res;
 
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
-  AVER(base != NULL);
-  AVER(limit > base);
-  AVER(AddrIsAligned(base, cbs->alignment));
-  AVER(AddrIsAligned(limit, cbs->alignment));
+  AVER(rangeReturn != NULL);
+  AVERT(Range, range);
+  AVER(RangeIsAligned(range, cbs->alignment));
 
-  res = cbsDeleteFromTree(baseReturn, limitReturn, cbs, base, limit);
+  res = cbsDeleteFromTree(rangeReturn, cbs, range);
 
   CBSLeave(cbs);
   return res;
@@ -666,10 +654,11 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
   METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
   splayNode = SplayTreeFirst(splayTree, NULL);
   while(splayNode != NULL) {
+    RangeStruct range;
     cbsBlock = cbsBlockOfSplayNode(splayNode);
-    if (!(*iterate)(cbs, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock), closureP, closureS)) {
+    RangeInit(&range, CBSBlockBase(cbsBlock), CBSBlockLimit(cbsBlock));
+    if (!(*iterate)(cbs, &range, closureP, closureS))
       break;
-    }
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
     splayNode = SplayTreeNext(splayTree, splayNode, keyOfCBSBlock(cbsBlock));
   }
@@ -680,8 +669,9 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
                 void *closureP, Size closureS)
 {
   AVERT(CBS, cbs);
-  AVER(FUNCHECK(iterate));
   CBSEnter(cbs);
+
+  AVER(FUNCHECK(iterate));
 
   cbsIterateInternal(cbs, iterate, closureP, closureS);
 
@@ -706,20 +696,25 @@ Bool FindDeleteCheck(FindDelete findDelete)
 
 /* cbsFindDeleteRange -- delete appropriate range of block found */
 
-static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
-                               Addr *oldBaseReturn, Addr *oldLimitReturn,
-                               CBS cbs, Addr base, Addr limit, Size size,
+static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
+                               CBS cbs, Range range, Size size,
                                FindDelete findDelete)
 {
   Bool callDelete = TRUE;
+  Addr base, limit;
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
   AVERT(CBS, cbs);
-  AVER(base < limit);
+  AVERT(Range, range);
+  AVER(RangeIsAligned(range, cbs->alignment));
   AVER(size > 0);
-  AVER(AddrOffset(base, limit) >= size);
+  AVER(SizeIsAligned(size, cbs->alignment));
+  AVER(RangeSize(range) >= size);
   AVERT(FindDelete, findDelete);
+
+  base = RangeBase(range);
+  limit = RangeLimit(range);
 
   switch(findDelete) {
 
@@ -744,25 +739,23 @@ static void cbsFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
     break;
   }
 
+  RangeInit(rangeReturn, base, limit);
+
   if (callDelete) {
     Res res;
-    res = cbsDeleteFromTree(oldBaseReturn, oldLimitReturn, cbs, base, limit);
+    res = cbsDeleteFromTree(oldRangeReturn, cbs, rangeReturn);
     /* Can't have run out of memory, because all our callers pass in
        blocks that were just found in the splay tree, and we only
        deleted from one end of the block, so cbsDeleteFromTree did not
        need to allocate a new block. */
     AVER(res == ResOK);
   }
-
-  *baseReturn = base;
-  *limitReturn = limit;
 }
 
 
 /* CBSFindFirst -- find the first block of at least the given size */
 
-Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
-                  Addr *oldBaseReturn, Addr *oldLimitReturn,
+Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                   CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found;
@@ -771,8 +764,8 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
   AVER(size > 0);
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
@@ -783,14 +776,13 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                          &cbsTestTree, NULL, size);
   if (found) {
     CBSBlock block;
-    Addr base, limit;
+    RangeStruct range;
     block = cbsBlockOfSplayNode(node);
     AVER(CBSBlockSize(block) >= size);
-    base = CBSBlockBase(block);
-    limit = CBSBlockLimit(block);
-    AVER(AddrOffset(base, limit) >= size);
-    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
-                       cbs, base, limit, size, findDelete);
+    RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
+    AVER(RangeSize(&range) >= size);
+    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+                       size, findDelete);
   }
 
   CBSLeave(cbs);
@@ -800,8 +792,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
 
 /* CBSFindLast -- find the last block of at least the given size */
 
-Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
-                 Addr *oldBaseReturn, Addr *oldLimitReturn,
+Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
                  CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found;
@@ -810,8 +801,8 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
   AVER(size > 0);
   AVER(SizeIsAligned(size, cbs->alignment));
   AVER(cbs->fastFind);
@@ -822,14 +813,13 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                         &cbsTestTree, NULL, size);
   if (found) {
     CBSBlock block;
-    Addr base, limit;
+    RangeStruct range;
     block = cbsBlockOfSplayNode(node);
     AVER(CBSBlockSize(block) >= size);
-    base = CBSBlockBase(block);
-    limit = CBSBlockLimit(block);
-    AVER(AddrOffset(base, limit) >= size);
-    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
-                       cbs, base, limit, size, findDelete);
+    RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
+    AVER(RangeSize(&range) >= size);
+    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+                       size, findDelete);
   }
 
   CBSLeave(cbs);
@@ -839,8 +829,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
 /* CBSFindLargest -- find the largest block in the CBS */
 
-Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
-                    Addr *oldBaseReturn, Addr *oldLimitReturn,
+Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
                     CBS cbs, FindDelete findDelete)
 {
   Bool found = FALSE;
@@ -850,16 +839,16 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
   AVERT(CBS, cbs);
   CBSEnter(cbs);
 
-  AVER(baseReturn != NULL);
-  AVER(limitReturn != NULL);
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
   AVER(cbs->fastFind);
   AVERT(FindDelete, findDelete);
 
   notEmpty = SplayRoot(&root, splayTreeOfCBS(cbs));
   if (notEmpty) {
+    RangeStruct range;
     CBSBlock block;
     SplayNode node = NULL;    /* suppress "may be used uninitialized" */
-    Addr base, limit;
     Size size;
 
     size = cbsBlockOfSplayNode(root)->maxSize;
@@ -869,10 +858,10 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
     AVER(found); /* maxSize is exact, so we will find it. */
     block = cbsBlockOfSplayNode(node);
     AVER(CBSBlockSize(block) >= size);
-    base = CBSBlockBase(block);
-    limit = CBSBlockLimit(block);
-    cbsFindDeleteRange(baseReturn, limitReturn, oldBaseReturn, oldLimitReturn,
-                       cbs, base, limit, size, findDelete);
+    RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
+    AVER(RangeSize(&range) >= size);
+    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+                       size, findDelete);
   }
 
   CBSLeave(cbs);

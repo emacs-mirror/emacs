@@ -47,15 +47,18 @@ static Index (indexOfAddr)(Addr block, Addr a)
 }
 
 
-static Bool checkCBSAction(CBS cbs, Addr base, Addr limit, void *closureP,
-                           Size closureS)
+static Bool checkCBSAction(CBS cbs, Range range, void *closureP, Size closureS)
 {
+  Addr base, limit;
   CheckCBSClosure closure = (CheckCBSClosure)closureP;
 
   /* Don't need to check cbs every time */
   UNUSED(cbs);
   UNUSED(closureS);
   Insist(closure != NULL);
+
+  base = RangeBase(range);
+  limit = RangeLimit(range);
 
   if (base > closure->oldLimit) {
     Insist(BTIsSetRange(closure->allocTable,
@@ -69,7 +72,6 @@ static Bool checkCBSAction(CBS cbs, Addr base, Addr limit, void *closureP,
   Insist(BTIsResRange(closure->allocTable,
                       indexOfAddr(closure->base, base),
                       indexOfAddr(closure->base, limit)));
-
 
   closure->oldLimit = limit;
 
@@ -201,7 +203,7 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   Res res;
   Index ib, il;                  /* Indexed for base and limit */
   Bool isFree;
-  Addr oldBase, oldLimit;
+  RangeStruct range, oldRange;
   Addr outerBase, outerLimit;    /* interval containing [ib, il) */
 
   ib = indexOfAddr(block, base);
@@ -234,7 +236,8 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
     UNUSED(total);
   }
 
-  res = CBSDelete(&oldBase, &oldLimit, cbs, base, limit);
+  RangeInit(&range, base, limit);
+  res = CBSDelete(&oldRange, cbs, &range);
 
   if (!isFree) {
     die_expect((mps_res_t)res, MPS_RES_FAIL,
@@ -242,8 +245,8 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   } else { /* isFree */
     die_expect((mps_res_t)res, MPS_RES_OK,
                "failed to delete free block");
-    Insist(oldBase == outerBase);
-    Insist(oldLimit == outerLimit);
+    Insist(RangeBase(&oldRange) == outerBase);
+    Insist(RangeLimit(&oldRange) == outerLimit);
     NAllocateSucceeded++;
     BTSetRange(allocTable, ib, il);
   }
@@ -257,7 +260,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   Index ib, il;
   Bool isAllocated;
   Addr outerBase = base, outerLimit = limit; /* interval containing [ib, il) */
-  Addr freeBase, freeLimit;                  /* interval returned by CBS */
+  RangeStruct range, freeRange; /* interval returned by CBS */
 
   ib = indexOfAddr(block, base);
   il = indexOfAddr(block, limit);
@@ -299,7 +302,8 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
     UNUSED(total);
   }
 
-  res = CBSInsert(&freeBase, &freeLimit, cbs, base, limit);
+  RangeInit(&range, base, limit);
+  res = CBSInsert(&freeRange, cbs, &range);
 
   if (!isAllocated) {
     die_expect((mps_res_t)res, MPS_RES_FAIL,
@@ -310,8 +314,8 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 
     NDeallocateSucceeded++;
     BTResRange(allocTable, ib, il);
-    Insist(freeBase == outerBase);
-    Insist(freeLimit == outerLimit);
+    Insist(RangeBase(&freeRange) == outerBase);
+    Insist(RangeLimit(&freeRange) == outerLimit);
   }
 }
 
@@ -321,8 +325,9 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
 {
   Bool expected, found;
   Index expectedBase, expectedLimit;
-  Addr foundBase, foundLimit, remainderBase, remainderLimit;
-  Addr oldBase, oldLimit, origBase, origLimit;
+  RangeStruct foundRange, oldRange;
+  Addr remainderBase, remainderLimit;
+  Addr origBase, origLimit;
   Size oldSize, newSize;
 
   origBase = origLimit = NULL;
@@ -362,18 +367,17 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   }
 
   found = (high ? CBSFindLast : CBSFindFirst)
-    (&foundBase, &foundLimit, &oldBase, &oldLimit, 
-     cbs, size * Alignment, findDelete);
+    (&foundRange, &oldRange, cbs, size * Alignment, findDelete);
 
   Insist(found == expected);
 
   if (found) {
-    Insist(expectedBase == indexOfAddr(block, foundBase));
-    Insist(expectedLimit == indexOfAddr(block, foundLimit));
+    Insist(expectedBase == indexOfAddr(block, RangeBase(&foundRange)));
+    Insist(expectedLimit == indexOfAddr(block, RangeLimit(&foundRange)));
 
     if (findDelete != FindDeleteNONE) {
-      Insist(oldBase == origBase);
-      Insist(oldLimit == origLimit);
+      Insist(RangeBase(&oldRange) == origBase);
+      Insist(RangeLimit(&oldRange) == origLimit);
       BTSetRange(alloc, expectedBase, expectedLimit);
     }
   }
