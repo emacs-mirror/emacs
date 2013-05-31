@@ -1,5 +1,8 @@
 2013-05-31  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/sym-comp.el (symbol-complete):
+	Replace obsolete completion-annotate-function.
+
 	* progmodes/cc-vars.el (c-make-macro-with-semi-re): Silence compiler.
 
 2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
