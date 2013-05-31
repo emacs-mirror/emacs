@@ -186,7 +186,7 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
   AVER(RangeIsAligned(range, fl->alignment));
 
   size = RangeSize(range);
-  AVER(size >= freelistMinimumAlignment);
+  AVER(size >= FreelistGrainSize(fl));
   base = RangeBase(range);
   limit = RangeLimit(range);
 
@@ -282,7 +282,7 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
     blockCur = FreelistBlockInit(base, limit);
     FreelistBlockSetNext(blockCur, blockNext);
 
-  } else if (size > freelistMinimumAlignment) {
+  } else if (size > FreelistGrainSize(fl)) {
     /* failed to coalesce: add new block */
     blockNew = FreelistBlockInit(base, limit);
     FreelistBlockSetNext(blockNew, blockCur);
@@ -410,7 +410,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
     freelistInsertGrain(fl, FreelistGrainInit(fl, limit, blockLimit));
 
   } else {
-    /* Block at left; block at right */
+    /* Block at left; block at right. */
     FreelistBlockSetLimit(block, base);
     blockNew = FreelistBlockInit(limit, blockLimit);
     FreelistBlockSetNext(blockNew, next);
@@ -448,7 +448,6 @@ static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
     AVERT(FreelistBlock, cur);
     blockBase = FreelistBlockBase(cur);
     blockLimit = FreelistBlockLimit(cur);
-    next = FreelistBlockNext(cur);
 
     if (limit <= blockBase)
       return ResFAIL; /* not found */
@@ -459,6 +458,7 @@ static Res freelistDeleteFromBlockList(Range rangeReturn, Freelist fl,
       return ResOK;
     }
     
+    next = FreelistBlockNext(cur);
     prev = cur;
     cur = next;
   }
@@ -647,9 +647,9 @@ static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
 
 /* freelistTakeGrain -- If there are any grains in the free list, find
  * the first grain; return its range in 'rangeReturn' and
- * 'oldRangeReturn'; and possibly delete it from the list according to
- * the instruction in 'findDelete', and return TRUE. If the grain list
- * is empty, return FALSE.
+ * 'oldRangeReturn'; possibly delete it from the list according to the
+ * instruction in 'findDelete'; and return TRUE. If the grain list is
+ * empty, return FALSE.
  */
 static Bool freelistTakeGrain(Range rangeReturn, Range oldRangeReturn,
                               Freelist fl, FindDelete findDelete)
@@ -688,9 +688,8 @@ Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
   AVER(SizeIsAligned(size, fl->alignment));
   AVERT(FindDelete, findDelete);
 
-  if (fl->grainList != NULL && size == FreelistGrainSize(fl)) {
+  if (size == FreelistGrainSize(fl))
     return freelistTakeGrain(rangeReturn, oldRangeReturn, fl, findDelete);
-  }
 
   blockPrev = NULL;
   blockCur = fl->blockList;
@@ -731,6 +730,9 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
       bestBlockPrev = blockPrev;
       bestBlockCur = blockCur;
     }
+    blockNext = FreelistBlockNext(blockCur);
+    blockPrev = blockCur;
+    blockCur = blockNext;
   }
 
   if (found) {
@@ -759,8 +761,8 @@ static Bool freelistDescribeIterateMethod(Bool *deleteReturn, Range range,
   AVER(stream != NULL);
 
   res = WriteF(stream,
-               "  $P", (WriteFP)RangeBase(range),
-               "--$P\n", (WriteFP)RangeLimit(range),
+               "  [$P,", (WriteFP)RangeBase(range),
+               "$P)\n", (WriteFP)RangeLimit(range),
                NULL);
 
   *deleteReturn = FALSE;
@@ -777,6 +779,9 @@ Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Freelist $P {\n", (WriteFP)fl,
+               "  alignment = $U\n", (WriteFU)fl->alignment,
+               "  blockListSize = $U\n", (WriteFU)fl->blockListSize,
+               "  grainListSize = $U\n", (WriteFU)fl->grainListSize,
                NULL);
 
   FreelistIterate(fl, freelistDescribeIterateMethod, stream, 0);
