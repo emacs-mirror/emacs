@@ -161,9 +161,8 @@ Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *strea
   Res res;
   Index index;
 
-  AVERT(ABQ, abq);
-
-  AVER(stream != NULL);
+  if (!TESTT(ABQ, abq)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "ABQ $P\n{\n", (WriteFP)abq,
