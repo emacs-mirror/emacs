@@ -1,5 +1,9 @@
 2013-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't let D-bus autolaunch mess up SIGCHLD handling (Bug#14474).
+	* xterm.c (x_term_init): Inhibit D-Bus autolaunch if D-Bus is
+	not already configured.
+
 	* fileio.c (Finsert_file_contents): Remove unused local (Bug#8447).
 
 2013-05-29  Eli Zaretskii  <eliz@gnu.org>
