@@ -1385,7 +1385,8 @@ in the number or names of categories."
   (if (> (buffer-size) (- (point-max) (point-min)))
       ;; We got here via `e m'.
       (let ((item (buffer-string))
-	    (regex "\\(\n\\)[^[:blank:]]"))
+	    (regex "\\(\n\\)[^[:blank:]]")
+	    (buf (buffer-base-buffer)))
 	(while (not (string-match (concat todos-date-string-start
 					  todos-date-pattern) item))
 	  (setq item (read-from-minibuffer
@@ -1395,7 +1396,9 @@ in the number or names of categories."
 	  (setq item (replace-regexp-in-string regex "\n\t" item nil nil 1))
 	  (delete-region (point-min) (point-max))
 	  (insert item))
-	(kill-buffer))
+	(kill-buffer)
+	(unless (eq (current-buffer) buf)
+	  (set-window-buffer (selected-window) (set-buffer buf))))
     ;; We got here via `F e'.
     (when (todos-check-format)
       ;; FIXME: separate out sexp check?

@@ -1,5 +1,10 @@
 2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-edit-quit): After editing an item, make sure to
+	return to its category.
+
+2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Clean up code.  Uncapitalize file name in first line.
 	Require cl-lib instead of cl.  Add section title separators.
 	Reindent some code and comments.  Comment out Todos mode menu
