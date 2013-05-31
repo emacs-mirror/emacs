@@ -1513,7 +1513,7 @@ It will be properly highlighted even when the call omits parens.")
         "Return non-nil if expression expansion is allowed."
         (let ((term (nth 3 parse-state)))
           (cond
-           ((memq term '(?\" ?` ?\n)))
+           ((memq term '(?\" ?` ?\n ?/)))
            ((eq term t)
             (save-match-data
               (save-excursion

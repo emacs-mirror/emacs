@@ -112,6 +112,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-regexp-starts-after-string ()
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
 
+(ert-deftest ruby-regexp-interpolation-is-highlighted ()
+  (ruby-assert-face "/#{foobs}/" 4 font-lock-variable-name-face))
+
 (ert-deftest ruby-regexp-skips-over-interpolation ()
   (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
 
