@@ -33,8 +33,8 @@ free lists can be "flushed" back into the more efficient data
 structures.
 
 _`.bg`: The free list allocator was formerly part of the Coalescing
-Block Structure (see design.mps.cbs) but it was split into its own
-module because this makes it:
+Block Structure module (see design.mps.cbs) but it was split into its
+own module because this makes it:
 
 1. simpler (no need to interact with CBS) and thus more maintainable;
 2. possible to test directly (no need to create a CBS and then force
@@ -46,11 +46,11 @@ module because this makes it:
 Definitions
 -----------
 
-_`.def.range`: A (contiguous) range of addresses is a semi-open
+_`.def.range`: A (contiguous) *range* of addresses is a semi-open
 interval on address space.
 
-_`.def.isolated`: A contiguous range is isolated with respect to some
-property it has, if adjacent elements do not have that property.
+_`.def.isolated`: A contiguous range is *isolated* with respect to
+some property it has, if adjacent elements do not have that property.
 
 
 Requirements
@@ -95,12 +95,16 @@ _`.type.freelist`: The type of free lists. The structure
 ``FreelistStruct`` is declared in the header so that it can be inlined
 in other structures, but you should not depend on its details.
 
-``typedef Bool (*FreelistIterateMethod)(Freelist fl, Range range, void *closureP, Size closureS)``
+``typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Freelist fl, Range range, void *closureP, Size closureS)``
 
 _`.type.iterate.method`: A callback function that may be passed to
 ``FreelistIterate()``. It is called for every isolated contiguous
-range in address order. The function must returns a ``Bool``
-indicating whether to continue with the iteration.
+range in address order, and with the closure arguments that were
+originally passed to ``FreelistIterate()``. It must update
+``*deleteReturn`` to ``TRUE`` if the range must be deleted from the
+free lists, or ``FALSE`` if the range must be kept. The function must
+return ``TRUE`` if the iteration must continue, and ``FALSE`` if the
+iteration must stop (after possibly deleting the current range).
 
 
 Functions
@@ -109,45 +113,45 @@ Functions
 ``Res FreelistInit(Freelist fl, Align alignment)``
 
 _`.function.init`: Initialize the ``Freelist`` structure pointed to by
-``fl``. The argument ``alignment`` indicates the alignment of address
-ranges to be maintained. An initialised free list contains no address
-ranges.
+``fl``. The argument ``alignment`` is the alignment of address ranges
+to be maintained. An initialised free list contains no address ranges.
 
 ``void FreelistFinish(Freelist fl)``
 
-_`.function.finish`: Finish the free list pointed to by ``fl``..
+_`.function.finish`: Finish the free list pointed to by ``fl``.
 
 ``Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)``
 
-_`.function.insert`: Insert ``range`` into the free list ``fl``. If
-any part of the range is already in the free list, then ``ResFAIL`` is
-returned, and the free list is unchanged. If it succeeds, then
-``rangeReturn`` is updated to describe the range containing the
-inserted range (this may differ from ``range`` if there was
-coalescence on either side) and ``ResOK`` is returned.
+_`.function.insert`: If any part of ``range`` is already in the free
+list ``fl``, then leave the free list unchanged and return
+``ResFAIL``. Otherwise, insert ``range`` into the free list ``fl``;
+update ``rangeReturn`` to describe the contiguous isolated range
+containing the inserted range (this may differ from ``range`` if there
+was coalescence on either side) and return ``ResOK``.
 
 ``Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)``
 
-_`.function.delete`: Remove ``range`` from the free list ``fl``. If
-any part of the range is not in the free list, then ``ResFAIL`` is
-returned, and the free list is unchanged.
+_`.function.delete`: If any part of the range is not in the free list,
+then leave the free list unchanged and return ``ResFAIL``. Otherwise,
+remove ``range`` from the free list and update ``rangeReturn`` to
+describe the contiguous isolated range that formerly contained the
+deleted range (this may differ from ``range`` if there were fragments
+left on either side), and return ``ResOK``.
 
 ``void FreelistIterate(Freelist fl, FreelistIterateMethod iterate, void *closureP, Size closureS)``
 
-_`.function.iterate`: Iterate all isolated contiguous ranges in a free
-list. It receives a pointer, ``Size`` closure pair to pass on to the
-iterator method, and an iterator method to invoke on every range in
-address order. If the iterator method returns ``FALSE``, then the
-iteration is terminated.
+_`.function.iterate`: Iterate all isolated contiguous ranges in the
+free list ``fl`` in address order, calling ``iterate`` for each one.
+See ``FreelistIterateMethod`` for details.
 
 ``Bool FreelistFind(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
 
-_`.function.find`: Locate the first block (in address order) within
-the free list ``fl`` of at least the specified size, return its range
-via the ``rangeReturn`` argument, and return ``TRUE``. If there is no
-such block, return ``FALSE``.
+_`.function.find`: Locate a contiguous range within the free list
+``fl`` of at least ``size`` bytes; update ``rangeReturn`` to that
+range; and return ``TRUE``. If there is no such continuous range,
+return ``FALSE``.
 
-Optionally delete the top, bottom, or all of the found range,
+In addition, optionally delete the found range from the free list,
 depending on the ``findDelete`` argument. This saves a separate call
 to ``FreelistDelete()``, and uses the knowledge of exactly where we
 found the range. The value of ``findDelete`` must come from this
@@ -160,9 +164,9 @@ enumeration::
         FindDeleteENTIRE   /* delete entire range */
     };
 
-The old range of the block from which the found range was deleted is
+The original contiguous isolated range in which the range was found is
 returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
-``FindDeleteNONE`` or ``FindDeleteENTIRE``, then these will be
+``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
 identical to the range returned via the ``rangeReturn`` argument.)
 
 ``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, FindDelete findDelete)``
@@ -172,9 +176,9 @@ list ``fl``, return its range via the ``rangeReturn`` argument, and
 returns ``TRUE``. If there are no blocks in the free list, it returns
 ``FALSE``.
 
-Like ``FreelistFind()``, it optionally deletes the range (specifying
-``FindDeleteLOW`` or ``FindDeleteHIGH`` has the same effect as
-``FindDeleteENTIRE``).
+Like ``FreelistFind()``, it optionally deletes the range from the free
+list. (Always the whole range: specifying ``FindDeleteLOW`` or
+``FindDeleteHIGH`` has the same effect as ``FindDeleteENTIRE``).
 
 ``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)``
 
@@ -205,19 +209,25 @@ grain, or ``NULL`` if there are no more grains.
 _`.impl.grain.align`: This implementation of the grain list requires
 the alignment of the free list to be at least ``sizeof(void *)``.
 
-_`.impl.merge`: The free block list and the free grain list are
-eagerly merged when a free address range is added to the set.
+_`.impl.invariant`: The ranges stored in the block list and the grain
+list are isolated: no two range are adjacent or overlapping.
+
+_`.impl.merge`: When a free address range is added to the free list,
+it is merged with adjacent ranges in the block list and the grain list
+so as to maintain `.impl.invariant`_.
 
 
 Opportunities for improvement
 -----------------------------
 
-_`.improve.length`: When iterating over lists, check that the
-number of elements visited does not exceed the stored size.
+_`.improve.length`: When iterating over lists, we could check that the
+number of elements visited in the course of the iteration does not
+exceed the recorded size of the list.
 
-_`.improve.maxsize`: Could maintain the maximum size of any block on
-the block list, and use that for early exit in
-``FreelistFindLargest()``.
+_`.improve.maxsize`: We could maintain the maximum size of any block
+on the block list, and use that to make an early exit from
+``FreelistFindLargest()``. It's not clear that this would actually be
+an improvement.
 
 
 
