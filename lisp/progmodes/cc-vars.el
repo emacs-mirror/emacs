@@ -1645,6 +1645,7 @@ and is likely to disappear or change its form soon.")
   ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
   (setq c-macro-with-semi-re
 	(and
+	 (boundp 'c-opt-cpp-macro-define)
 	 c-opt-cpp-macro-define
 	 (cond
 	  ((stringp c-macro-names-with-semicolon)
