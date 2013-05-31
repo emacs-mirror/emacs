@@ -94,10 +94,10 @@ particular the following are deprecated::
     case 0: f = inRampMode ? AMCGen0RampmodeFrequency : AMCGen0Frequency;
 
 _`.statement.one.why`: Debuggers can often only place breakpoints on lines,
-not expressions or statements within a line. The `if (thing) return;` is
+not expressions or statements within a line. The ``if (thing) return;`` is
 a particularly important case, if thing is a reasonably rare return
 condition then you might want to breakpoint it in a debugger session.
-Annoying because `if (thing) return;` is quite compact and pleasing
+Annoying because ``if (thing) return;`` is quite compact and pleasing
 otherwise.
 
 Indentation
@@ -107,7 +107,7 @@ _`.indent`: Indent the body of a block by two spaces. For formatting
 purposes, the "body of a block" means:
 
 - statements between braces,
-- a single statement following a lone if;
+- a single statement following a lone ``if``;
 - statements in a switch body; see .switch.
 
 (_`.indent.logical`: The aim is to group what we think of as logical
