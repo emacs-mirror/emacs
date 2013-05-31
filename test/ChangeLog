@@ -1,3 +1,8 @@
+2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests, for percent literals
+	and expression expansion.
+
 2013-05-29  Leo Liu  <sdl.web@gmail.com>
 
 	* indent/octave.m: Tweak.

@@ -1,3 +1,12 @@
+2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-expansion-allowed-p): New
+	function, checks if point is inside a literal that allows
+	expression expansion.
+	(ruby-syntax-propertize-expansion): Use it.
+	(ruby-syntax-propertize-function): Bind `case-fold-search' to nil
+	around the body.
+
 2013-05-30  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind `isearch-toggle-invisible'
