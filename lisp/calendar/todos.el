@@ -863,7 +863,7 @@ only when no items are marked."
 		     widget)))
   :set (lambda (symbol value)
 	 (custom-set-default symbol (propertize value 'face 'todos-mark)))
-  :group 'todos-mode-display)
+  :group 'todos-edit)
 
 (defun todos-toggle-mark-item (&optional n)
   "Mark item with `todos-item-mark' if unmarked, otherwise unmark it.
@@ -933,14 +933,14 @@ marking of the next N items."
 (defcustom todos-include-in-diary nil
   "Non-nil to allow new Todo items to be included in the diary."
   :type 'boolean
-  :group 'todos-item-insertion)
+  :group 'todos-edit)
 
 (defcustom todos-diary-nonmarking nil
   "Non-nil to insert new Todo diary items as nonmarking by default.
 This appends `diary-nonmarking-symbol' to the front of an item on
 insertion provided it doesn't begin with `todos-nondiary-marker'."
   :type 'boolean
-  :group 'todos-item-insertion)
+  :group 'todos-edit)
 
 (defcustom todos-nondiary-marker '("[" "]")
   "List of strings surrounding item date to block diary inclusion.
@@ -949,7 +949,7 @@ non-empty string that does not match a diary date in order to
 have its intended effect.  The second string is inserted after
 the diary date."
   :type '(list string string)
-  :group 'todos-item-insertion
+  :group 'todos-edit
   :initialize 'custom-initialize-default
   :set 'todos-reset-nondiary-marker)
 
@@ -960,12 +960,12 @@ argument, this reverses the effect of
 `todos-always-add-time-string': if t, these commands omit the
 current time, if nil, they include it."
   :type 'boolean
-  :group 'todos-item-insertion)
+  :group 'todos-edit)
 
 (defcustom todos-use-only-highlighted-region t
   "Non-nil to enable inserting only highlighted region as new item."
   :type 'boolean
-  :group 'todos-item-insertion)
+  :group 'todos-edit)
 
 (defcustom todos-undo-item-omit-comment 'ask
   "Whether to omit done item comment on undoing the item.
@@ -974,7 +974,7 @@ means prompt user and omit comment only on confirmation."
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Always" t)
 		 (const :tag "Ask" ask))
-  :group 'todos)
+  :group 'todos-edit)
 
 ;; -----------------------------------------------------------------------------
 ;;; Item editing commands
@@ -2315,7 +2315,7 @@ categories shown in `todos-archived-only' face and pressing the
 category button visits the category in the archive instead of the
 todo file."
   :type 'boolean
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defun todos-find-archive (&optional ask)
   "Visit the archive of the current Todos category, if it exists.
@@ -2617,7 +2617,7 @@ and jump to any category in the current archive."
 		     widget)))
   :initialize 'custom-initialize-default
   :set 'todos-reset-prefix
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-number-prefix t
   "Non-nil to prefix items with consecutively increasing integers.
@@ -2625,7 +2625,7 @@ These reflect the priorities of the items in each category."
   :type 'boolean
   :initialize 'custom-initialize-default
   :set 'todos-reset-prefix
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-done-separator-string "="
   "String for generating `todos-done-separator'.
@@ -2639,26 +2639,26 @@ the value of `todos-done-separator'."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-done-separator-string
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-done-string "DONE "
   "Identifying string appended to the front of done todos items."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-done-string
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-comment-string "COMMENT"
   "String inserted before optional comment appended to done item."
   :type 'string
   :initialize 'custom-initialize-default
   :set 'todos-reset-comment-string
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-show-with-done nil
   "Non-nil to display done items in all categories."
   :type 'boolean
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defun todos-mode-line-control (cat)
   "Return a mode line control for todo or archive file buffers.
@@ -2674,19 +2674,19 @@ The function expects one argument holding the name of the current
 Todos category.  The resulting control becomes the local value of
 `mode-line-buffer-identification' in each Todos buffer."
   :type 'function
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-highlight-item nil
   "Non-nil means highlight items at point."
   :type 'boolean
   :initialize 'custom-initialize-default
   :set 'todos-reset-highlight-item
-  :group 'todos-mode-display)
+  :group 'todos-display)
 
 (defcustom todos-wrap-lines t
   "Non-nil to activate Visual Line mode and use wrap prefix."
-  :group 'todos-mode-display
-  :type 'boolean)
+  :type 'boolean
+  :group 'todos-display)
 
 (defcustom todos-indent-to-here 3
   "Number of spaces to indent continuation lines of items.
@@ -2698,7 +2698,7 @@ shown in the Fancy Diary display."
 		      (widget-put widget :error
 				  "Invalid value: must be a positive integer")
 		      widget)))
-  :group 'todos)
+  :group 'todos-display)
 
 (defun todos-indent ()
   "Indent from point to `todos-indent-to-here'."
@@ -5575,32 +5575,32 @@ If the file already exists, overwrite it only on confirmation."
 (defgroup todos nil
   "Create and maintain categorized lists of todo items."
   :link '(emacs-commentary-link "todos")
-  :version "24.2"
+  :version "24.4"
   :group 'calendar)
 
-(defgroup todos-item-insertion nil
-  "User options for adding new todo items."
-  :version "24.2"
+(defgroup todos-edit nil
+  "User options for adding and editing todo items."
+  :version "24.4"
   :group 'todos)
 
 (defgroup todos-categories nil
   "User options for Todos Categories mode."
-  :version "24.2"
+  :version "24.4"
   :group 'todos)
 
 (defgroup todos-filtered nil
   "User options for Todos Filter Items mode."
-  :version "24.2"
+  :version "24.4"
   :group 'todos)
 
-(defgroup todos-mode-display nil
+(defgroup todos-display nil
   "User display options for Todos mode."
-  :version "24.2"
+  :version "24.4"
   :group 'todos)
 
 (defgroup todos-faces nil
   "Faces for the Todos modes."
-  :version "24.2"
+  :version "24.4"
   :group 'todos)
 
 (defun todos-set-show-current-file (symbol value)

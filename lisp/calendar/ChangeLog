@@ -1,5 +1,16 @@
 2013-06-01  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Some custom cleanup.
+	(todos-edit): Rename from todos-item-insertion and adjust doc string.
+	(todos-display): Rename from todos-mode-display.
+	(todos-item-mark, todos-undo-item-omit-comment): Change :group to
+	todos-edit.
+	(todos-indent-to-here): Change :group to todos-display.
+	(todos, todos-edit, todos-categories, todos-filtered)
+	(todos-display, todos-faces): Change :version to "24.4".
+
+2013-06-01  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-filtered-items-mode-map): Fix omission in
 	previous change.
 	(todos-mode): Comment out invocation of easy-menu-add, since menu
