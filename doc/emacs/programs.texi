@@ -1356,7 +1356,7 @@ the menu item named @samp{Source Code Parsers (Semantic)} in the
 @samp{Tools} menu.  This enables Semantic mode, a global minor mode.
 
    When Semantic mode is enabled, Emacs automatically attempts to
-parses each file you visit.  Currently, Semantic understands C, C++,
+parse each file you visit.  Currently, Semantic understands C, C++,
 Scheme, Javascript, Java, HTML, and Make.  Within each parsed buffer,
 the following commands are available:
 

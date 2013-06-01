@@ -1,3 +1,8 @@
+2013-06-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-indent-block-enders): Add break,
+	continue and raise keywords.
+
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-gnu.el (pcomplete/tar): Check obsolete variable is bound.

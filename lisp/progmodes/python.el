@@ -157,7 +157,7 @@
 
 ;; Skeletons: 6 skeletons are provided for simple inserting of class,
 ;; def, for, if, try and while.  These skeletons are integrated with
-;; dabbrev.  If you have `dabbrev-mode' activated and
+;; abbrev.  If you have `abbrev-mode' activated and
 ;; `python-skeleton-autoinsert' is set to t, then whenever you type
 ;; the name of any of those defined and hit SPC, they will be
 ;; automatically expanded.  As an alternative you can use the defined
@@ -642,7 +642,8 @@ It makes underscores and dots word constituent chars.")
 These make `python-indent-calculate-indentation' subtract the value of
 `python-indent-offset'.")
 
-(defvar python-indent-block-enders '("return" "pass")
+(defvar python-indent-block-enders
+  '("break" "continue" "pass" "raise" "return")
   "List of words that mark the end of a block.
 These make `python-indent-calculate-indentation' subtract the
 value of `python-indent-offset' when `python-indent-context' is
