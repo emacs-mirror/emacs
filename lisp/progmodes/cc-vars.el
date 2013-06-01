@@ -51,14 +51,19 @@
 
 ;;; Helpers
 
-;; This widget exists in newer versions of the Custom library
-(or (get 'other 'widget-type)
-    (define-widget 'other 'sexp
-      "Matches everything, but doesn't let the user edit the value.
+
+;; Emacs has 'other since at least version 21.1.
+;; FIXME this is probably broken, since the widget is defined
+;; in wid-edit, which this file does not load.  So we will always
+;; define the widget, even when we don't need to.
+(when (featurep 'xemacs)
+  (or (get 'other 'widget-type)
+      (define-widget 'other 'sexp
+	"Matches everything, but doesn't let the user edit the value.
 Useful as last item in a `choice' widget."
-      :tag "Other"
-      :format "%t%n"
-      :value 'other))
+	:tag "Other"
+	:format "%t%n"
+	:value 'other)))
 
 ;; The next defun will supersede c-const-symbol.
 (eval-and-compile

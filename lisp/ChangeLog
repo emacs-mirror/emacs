@@ -1,5 +1,8 @@
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cc-vars.el (other): Emacs has this widget since
+	at least 21.1, so don't (re)define it.
+
 	* eshell/em-cmpl.el (eshell-cmpl-initialize):
 	Replace the obsolete alias pcomplete-arg-quote-list.
 
