@@ -1,8 +1,18 @@
+# designs.py -- Convert MPS design documents into sources for the MPS manual
+# $Id$
+#
+# This was originally done in the Makefile, but moved to Python in the hope
+# that readthedocs.org would be able to generate the manual.  However, they
+# (sensibly) don't run extensions, so we can't use them.  Processing the
+# designs here still seems like a good idea, though.
+#
+
 import os
 import os.path
 import glob
 import re
 import sys
+from sphinx.util.console import bold
 
 TYPES = '''
 
@@ -27,6 +37,7 @@ func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
 
+# Convert Ravenbrook style citations into MPS Manual style citations.
 # Example citations transformation, from:
 #     .. [THVV_1995] "Structure Marking"; Tom Van Vleck; 1995;
 #        <http://www.multicians.org/thvv/marking.html>.
@@ -84,11 +95,13 @@ def convert_file(name, source, dest):
         # out.write('.. _design-{0}:\n\n'.format(name))
         out.write(s)
 
-def convert_updated():
+# Mini-make
+def convert_updated(app):
+    app.info(bold('converting MPS design documents'))
     for design in glob.iglob('../design/*.txt'):
         name = os.path.splitext(os.path.basename(design))[0]
         converted = 'converted/%s.rst' % name
         if (not os.path.isfile(converted) or
             os.path.getmtime(converted) < os.path.getmtime(converted)):
-            print 'Converting %s to %s' % (design, converted)
+            app.info('converting design %s' % name)
             convert_file(name, design, converted)
