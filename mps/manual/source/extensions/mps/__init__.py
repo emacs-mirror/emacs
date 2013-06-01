@@ -6,6 +6,7 @@ See <http://sphinx-doc.org/extensions.html>
 from collections import defaultdict
 from inspect import isabstract, isclass
 import re
+import designs
 
 from docutils import nodes, transforms
 from sphinx import addnodes
@@ -328,7 +329,10 @@ class GlossaryTransform(transforms.Transform):
                     print('{}:{}: WARNING: cross-reference to {}.'
                           .format(doc, line, i))
 
+        
+
 def setup(app):
+    designs.convert_updated()
     app.add_domain(MpsDomain)
     app.add_role_to_domain('mps', 'tag', mps_tag_role)
     app.add_role_to_domain('mps', 'ref', mps_ref_role)
@@ -337,4 +341,3 @@ def setup(app):
     for g in globals().itervalues():
         if isclass(g) and issubclass(g, MpsDirective):
             g.add_to_app(app)
-
