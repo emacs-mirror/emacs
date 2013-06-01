@@ -42,9 +42,6 @@
 
 (cc-require 'cc-defs)
 
-;; Silence the compiler.
-(cc-bytecomp-defun get-char-table)	; XEmacs
-
 (cc-eval-when-compile
   (require 'custom)
   (require 'widget))

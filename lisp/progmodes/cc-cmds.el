@@ -45,7 +45,6 @@
 (cc-require 'cc-engine)
 
 ;; Silence the compiler.
-(cc-bytecomp-defun delete-forward-p)	; XEmacs
 (cc-bytecomp-defvar filladapt-mode)	; c-fill-paragraph contains a kludge
 					; which looks at this.
 

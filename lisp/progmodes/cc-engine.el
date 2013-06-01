@@ -147,9 +147,6 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 
-;; Silence the compiler.
-(cc-bytecomp-defun buffer-syntactic-context) ; XEmacs
-
 
 ;; Make declarations for all the `c-lang-defvar' variables in cc-langs.
 

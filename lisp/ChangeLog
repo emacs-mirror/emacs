@@ -1,5 +1,15 @@
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
+	Plain fboundp silences compilation warnings since Emacs 22.1.
+	* progmodes/cc-cmds.el (delete-forward-p):
+	* progmodes/cc-defs.el (buffer-syntactic-context-depth):
+	* progmodes/cc-engine.el (buffer-syntactic-context):
+	* progmodes/cc-fonts.el (face-property-instance):
+	* progmodes/cc-mode.el (set-keymap-parents):
+	* progmodes/cc-vars.el (get-char-table): No need for cc-bytecomp-defun.
+	* progmodes/cc-defs.el (c-set-region-active, c-beginning-of-defun-1)
+	* progmodes/cc-mode.el (c-make-inherited-keymap): Use plain fboundp.
+
 	* progmodes/cc-vars.el (other): Emacs has this widget since
 	at least 21.1, so don't (re)define it.
 

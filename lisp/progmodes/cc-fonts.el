@@ -176,7 +176,6 @@
       'font-lock-negation-char-face))
 
 (cc-bytecomp-defun face-inverse-video-p) ; Only in Emacs.
-(cc-bytecomp-defun face-property-instance) ; Only in XEmacs.
 
 (defun c-make-inverse-face (oldface newface)
   ;; Emacs and XEmacs have completely different face manipulation
