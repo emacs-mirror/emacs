@@ -144,15 +144,17 @@ undesirable and the problem should be investigated.
 
 References
 ----------
+.. [RB_1995-08-25] "design.mps.sig: The design of the Memory Pool System
+   Signature System"; Richard Brooksby; Harlequin; 1995-08-25;
+   <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/design/mps/sig/>.
 
-.. [RB_1995-08-25] Richard Brooksby. Harlequin. 1995-08-25. "design.mps.sig: The design of the Memory Pool System Signature System".
-
-.. [THVV_1995] Tom Van Vleck. 1995. "`Structure Marking <http://www.multicians.org/thvv/marking.html>`_".
+.. [THVV_1995] "Structure Marking"; Tom Van Vleck; 1995;
+   <http://www.multicians.org/thvv/marking.html>.
 
 
 Document History
 ----------------
-- 2013-05-09 RB_ Created based on scanty MM document [RB_1995-08-25]_.
+- 2013-05-09  RB  Created based on scanty MM document [RB_1995-08-25]_.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 

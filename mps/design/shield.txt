@@ -160,9 +160,13 @@ _`.ideas`: There never was an initial design document, but
 References
 ----------
 
-.. [RB_1995-11-29] Richard Brooksby. 1995-11-29. "`Shield protocol for barriers </project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/idea/shield/index.txt>`_". Harlequin.
+.. [RB_1995-11-29] "Shield protocol for barriers"; Richard Brooksby;
+   Harlequin; 1995-11-29; 
+   <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/idea/shield/index.txt>.
 
-.. [RB_1995-11-30] Richard Brooksby. 1995-11-30. "`Exegesis of Incremental Tracing </project/mps/mail/1995/11/30/15-07/0.txt>`_". Harlequin.
+.. [RB_1995-11-30] "Exegesis of Incremental Tracing"; Richard Brooksby;
+   Harlequin; 1995-11-30;
+   <https://info.ravenbrook.com/project/mps/mail/1995/11/30/15-07/0.txt>.
 
 
 Document History
