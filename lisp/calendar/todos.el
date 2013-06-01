@@ -6000,8 +6000,8 @@ Filtered Items mode following todo (not done) items."
       (define-key map (nth 0 kb) (nth 1 kb)))
     (dolist (kb todos-key-bindings-t+f)
       (define-key map (nth 0 kb) (nth 1 kb)))
-    ("g" 'todos-go-to-source-item)
-    ([remap newline] 'todos-go-to-source-item)
+    (define-key map "g" 'todos-go-to-source-item)
+    (define-key map [remap newline] 'todos-go-to-source-item)
     map)
   "Todos Filtered Items mode keymap.")
 
@@ -6170,7 +6170,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
   "Major mode for displaying, navigating and editing Todo lists.
 
 \\{todos-mode-map}"
-  (easy-menu-add todos-menu)
+  ;; (easy-menu-add todos-menu)
   (todos-modes-set-1)
   (todos-modes-set-2)
   (todos-modes-set-3)

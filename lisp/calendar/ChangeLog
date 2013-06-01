@@ -1,3 +1,10 @@
+2013-06-01  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-filtered-items-mode-map): Fix omission in
+	previous change.
+	(todos-mode): Comment out invocation of easy-menu-add, since menu
+	definition was commented out in last change.
+
 2013-05-31  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Move auto-mode-alist entries above provide sexp.
