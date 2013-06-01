@@ -285,13 +285,13 @@ to writing a completion function."
        eshell-cmpl-restore-window-delay)
   (set (make-local-variable 'pcomplete-use-paring)
        eshell-cmpl-use-paring)
-  ;; `pcomplete-arg-quote-list' should only be set after all the
+  ;; `comint-file-name-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
   (add-hook 'eshell-mode-hook
 	    (function
 	     (lambda ()
-	       (set (make-local-variable 'pcomplete-arg-quote-list)
+	       (set (make-local-variable 'comint-file-name-quote-list)
 		    eshell-special-chars-outside-quoting))) nil t)
   (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
   (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
