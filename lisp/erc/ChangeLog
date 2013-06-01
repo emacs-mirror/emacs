@@ -1,3 +1,29 @@
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc-log.el (erc-network-name): Declare.
+
+	* erc-notify.el (pcomplete--here): Declare.
+	(pcomplete/erc-mode/NOTIFY): Require pcomplete.
+
+	* erc.el (erc-quit-reason-various-alist)
+	(erc-part-reason-various-alist): Don't mention zippy.
+	(erc-quit-reason, erc-part-reason): Remove zippy options.
+	(erc-quit-reason-zippy, erc-part-reason-zippy): Make obsolete.
+	If yow is not defined, fall back to -normal versions.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* erc-list.el (erc-list):
+	* erc-menu.el (erc-menu):
+	* erc-ring.el (erc-ring): Define custom groups, for define-erc-module.
+
+	* erc-list.el: Provide a feature.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (erc-notifications-icon):
+	Fix custom type.
+
 2013-02-13  Aidan Gauland  <aidalgol@no8wireless.co.nz>
 
 	* erc-match.el (erc-match-message): Fix last commit.

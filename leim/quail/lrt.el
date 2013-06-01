@@ -1,4 +1,4 @@
-;;; lrt.el --- Quail package for inputting Lao characters by LRT method  -*-coding: iso-2022-7bit;-*-
+;;; lrt.el --- Quail package for inputting Lao characters by LRT method  -*-coding: utf-8;-*-
 
 ;; Copyright (C) 1998, 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -52,11 +52,11 @@
 
 
 (quail-define-package
- "lao-lrt" "Lao" "(1E(BR" t
+ "lao-lrt" "Lao" "ລR" t
  "Lao input method using LRT (Lao Roman Transcription).
-`\\' (backslash) + number-key	=> (1p(B,(1q(B,(1r(B,...	LAO DIGIT ZERO, ONE, TWO, ...
-`\\' (backslash) + `\\'		=> (1f(B		LAO KO LA (REPETITION)
-`\\' (backslash) + `$'		=> (1O(B		LAO ELLIPSIS
+`\\' (backslash) + number-key	=> ໐,໑,໒,...	LAO DIGIT ZERO, ONE, TWO, ...
+`\\' (backslash) + `\\'		=> ໆ		LAO KO LA (REPETITION)
+`\\' (backslash) + `$'		=> ຯ		LAO ELLIPSIS
 "
  nil 'forget-last-selection 'deterministic 'kbd-translate 'show-layout
   nil nil nil 'quail-lao-update-translation nil t)

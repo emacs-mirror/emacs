@@ -99,7 +99,7 @@ Put first the functions more likely to cause a change and cheaper to compute.")
     (setq beg (or (previous-single-property-change beg 'syntax-multiline)
 		  (point-min))))
   ;;
-  (when (get-text-property end 'font-lock-multiline)
+  (when (get-text-property end 'syntax-multiline)
     (setq end (or (text-property-any end (point-max)
 				     'syntax-multiline nil)
 		  (point-max))))

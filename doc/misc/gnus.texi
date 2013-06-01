@@ -15400,7 +15400,7 @@ substitutions in the group names), you can say things like:
 In this example, messages sent to @samp{debian-foo@@lists.debian.org}
 will be filed in @samp{mail.debian.foo}.
 
-If the string contains the element @samp{\&}, then the previously
+If the string contains the element @samp{\\&}, then the previously
 matched string will be substituted.  Similarly, the elements @samp{\\1}
 up to @samp{\\9} will be substituted with the text matched by the
 groupings 1 through 9.

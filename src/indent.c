@@ -56,11 +56,6 @@ static EMACS_INT last_known_column_modified;
 static ptrdiff_t current_column_1 (void);
 static ptrdiff_t position_indentation (ptrdiff_t);
 
-/* Cache of beginning of line found by the last call of
-   current_column. */
-
-static ptrdiff_t current_column_bol_cache;
-
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Char_Table *
@@ -254,7 +249,7 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
      the next property change */
   prop = Fget_char_property (position, Qinvisible,
 			     (!NILP (window)
-			      && EQ (XWINDOW (window)->buffer, buffer))
+			      && EQ (XWINDOW (window)->contents, buffer))
 			     ? window : buffer);
   inv_p = TEXT_PROP_MEANS_INVISIBLE (prop);
   /* When counting columns (window == nil), don't skip over ellipsis text.  */
@@ -439,11 +434,6 @@ current_column (void)
       col += post_tab;
     }
 
-  if (ptr == BEGV_ADDR)
-    current_column_bol_cache = BEGV;
-  else
-    current_column_bol_cache = BYTE_TO_CHAR (PTR_BYTE_POS (ptr));
-
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
@@ -525,7 +515,6 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol, ptrdiff_t *prevcol)
   {
   ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
-  current_column_bol_cache = PT;
   scan = PT, scan_byte = PT_BYTE;
   SET_PT_BOTH (opoint, opoint_byte);
   next_boundary = scan;
@@ -1088,8 +1077,8 @@ static struct position val_compute_motion;
 	    : (window_width + window_left != frame_cols))
 
 	where
-	  window_width is XFASTINT (w->total_cols),
-	  window_left is XFASTINT (w->left_col),
+	  window_width is w->total_cols,
+	  window_left is w->left_col,
 	  has_vertical_scroll_bars is
 	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
 	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
@@ -1826,7 +1815,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->buffer, Fcurrent_buffer ()))
+  if (EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -1979,14 +1968,14 @@ whether or not it is currently displayed in some window.  */)
 
   old_buffer = Qnil;
   GCPRO1 (old_buffer);
-  if (XBUFFER (w->buffer) != current_buffer)
+  if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
-      old_buffer = w->buffer;
+      old_buffer = w->contents;
       old_charpos = marker_position (w->pointm);
       old_bytepos = marker_byte_position (w->pointm);
       wset_buffer (w, Fcurrent_buffer ());
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
@@ -2017,11 +2006,15 @@ whether or not it is currently displayed in some window.  */)
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
 
+	  disp_string_at_start_p =
 	  /* If it.area is anything but TEXT_AREA, we need not bother
 	     about the display string, as it doesn't affect cursor
 	     positioning.  */
-	  disp_string_at_start_p =
-	    it.string_from_display_prop_p && it.area == TEXT_AREA;
+	    it.area == TEXT_AREA
+	    && it.string_from_display_prop_p
+	    /* A display string on anything but buffer text (e.g., on
+	       an overlay string) doesn't affect cursor positioning.  */
+	    && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER);
 	  while (s < e)
 	    {
 	      if (*s++ == '\n')
@@ -2139,7 +2132,7 @@ whether or not it is currently displayed in some window.  */)
   if (BUFFERP (old_buffer))
     {
       wset_buffer (w, old_buffer);
-      set_marker_both (w->pointm, w->buffer,
+      set_marker_both (w->pointm, w->contents,
 		       old_charpos, old_bytepos);
     }
 

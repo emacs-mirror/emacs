@@ -3,6 +3,9 @@
 #ifndef _UNISTD_H
 #define _UNISTD_H
 
+#include <sys/types.h>
+#include <pwd.h>
+
 /* On Microsoft platforms, <stdlib.h> declares 'environ'; on POSIX
    platforms, <unistd.h> does.  Every file in Emacs that includes
    <unistd.h> also includes <stdlib.h>, so there's no need to declare

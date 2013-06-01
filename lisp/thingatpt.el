@@ -128,20 +128,27 @@ positions of the thing found."
 	(error nil)))))
 
 ;;;###autoload
-(defun thing-at-point (thing)
+(defun thing-at-point (thing &optional no-properties)
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
 `filename', `url', `email', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
+When the optional argument NO-PROPERTIES is non-nil,
+strip text properties from the return value.
+
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (if (get thing 'thing-at-point)
-      (funcall (get thing 'thing-at-point))
-    (let ((bounds (bounds-of-thing-at-point thing)))
-      (if bounds
-	  (buffer-substring (car bounds) (cdr bounds))))))
+  (let ((text
+         (if (get thing 'thing-at-point)
+             (funcall (get thing 'thing-at-point))
+           (let ((bounds (bounds-of-thing-at-point thing)))
+             (when bounds
+               (buffer-substring (car bounds) (cdr bounds)))))))
+    (when (and text no-properties)
+      (set-text-properties 0 (length text) nil text))
+    text))
 
 ;; Go to beginning/end
 
@@ -182,7 +189,7 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (defun end-of-sexp ()
   "Move point to the end of the current sexp.
 \[This is an internal function.]"
-  (let ((char-syntax (char-syntax (char-after))))
+  (let ((char-syntax (syntax-after (point))))
     (if (or (eq char-syntax ?\))
 	    (and (eq char-syntax ?\") (in-string-p)))
 	(forward-char 1)
@@ -529,59 +536,10 @@ with angle brackets.")
              (buffer-substring-no-properties
               (car boundary-pair) (cdr boundary-pair))))))
 
-;;  Whitespace
-
-(defun forward-whitespace (arg)
-  "Move point to the end of the next sequence of whitespace chars.
-Each such sequence may be a single newline, or a sequence of
-consecutive space and/or tab characters.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "[ \t]+\\|\n" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "[ \t]+\\|\n" nil 'move)
-	  (or (eq (char-after (match-beginning 0)) ?\n)
-	      (skip-chars-backward " \t")))
-      (setq arg (1+ arg)))))
-
 ;;  Buffer
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
-
-;;  Symbols
-
-(defun forward-symbol (arg)
-  "Move point to the next position that is the end of a symbol.
-A symbol is any sequence of characters that are in either the
-word constituent or symbol constituent syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (if (natnump arg)
-      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
-    (while (< arg 0)
-      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
-	  (skip-syntax-backward "w_"))
-      (setq arg (1+ arg)))))
-
-;;  Syntax blocks
-
-(defun forward-same-syntax (&optional arg)
-  "Move point past all characters with the same syntax class.
-With prefix argument ARG, do it ARG times if positive, or move
-backwards ARG times if negative."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (while (< arg 0)
-    (skip-syntax-backward
-     (char-to-string (char-syntax (char-before))))
-    (setq arg (1+ arg)))
-  (while (> arg 0)
-    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
-    (setq arg (1- arg))))
 
 ;;  Aliases
 

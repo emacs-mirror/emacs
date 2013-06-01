@@ -1622,6 +1622,24 @@ names)."))
 )
 (make-variable-buffer-local 'c-macro-with-semi-re)
 
+(defvar c-macro-names-with-semicolon
+  '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
+  "List of #defined symbols whose expansion ends with a semicolon.
+Alternatively it can be a string, a regular expression which
+matches all such symbols.
+
+The \"symbols\" must be syntactically valid identifiers in the
+target language \(C, C++, Objective C), or \(as the case may be)
+the regular expression must match only valid identifiers.
+
+If you change this variable's value, call the function
+`c-make-macros-with-semi-re' to set the necessary internal
+variables.
+
+Note that currently \(2008-11-04) this variable is a prototype,
+and is likely to disappear or change its form soon.")
+(make-variable-buffer-local 'c-macro-names-with-semicolon)
+
 (defun c-make-macro-with-semi-re ()
   ;; Convert `c-macro-names-with-semicolon' into the regexp
   ;; `c-macro-with-semi-re' (or just copy it if it's already a re).
@@ -1642,24 +1660,6 @@ names)."))
 	  (t (error "c-make-macro-with-semi-re: invalid \
 c-macro-names-with-semicolon: %s"
 		    c-macro-names-with-semicolon))))))
-
-(defvar c-macro-names-with-semicolon
-  '("Q_OBJECT" "Q_PROPERTY" "Q_DECLARE" "Q_ENUMS")
-  "List of #defined symbols whose expansion ends with a semicolon.
-Alternatively it can be a string, a regular expression which
-matches all such symbols.
-
-The \"symbols\" must be syntactically valid identifiers in the
-target language \(C, C++, Objective C), or \(as the case may be)
-the regular expression must match only valid identifiers.
-
-If you change this variable's value, call the function
-`c-make-macros-with-semi-re' to set the necessary internal
-variables.
-
-Note that currently \(2008-11-04) this variable is a prototype,
-and is likely to disappear or change its form soon.")
-(make-variable-buffer-local 'c-macro-names-with-semicolon)
 
 (defvar c-file-style nil
   "Variable interface for setting style via File Local Variables.

@@ -109,9 +109,10 @@ struct w32_display_info *x_display_list;
 Lisp_Object w32_display_name_list;
 
 
-#if _WIN32_WINNT < 0x0500
+#if _WIN32_WINNT < 0x0500 && !defined(_W64)
 /* Pre Windows 2000, this was not available, but define it here so
-   that Emacs compiled on such a platform will run on newer versions.  */
+   that Emacs compiled on such a platform will run on newer versions.
+   MinGW64 (_W64) defines these unconditionally, so avoid redefining.  */
 
 typedef struct tagWCRANGE
 {
@@ -4705,26 +4706,20 @@ w32_read_socket (struct terminal *terminal,
 	  }
 
 	case WM_WINDOWPOSCHANGED:
-	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
-	  if (f)
-	    {
-	      if (f->want_fullscreen & FULLSCREEN_WAIT)
-		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
-	    }
-	  check_visibility = 1;
-	  break;
-
 	case WM_ACTIVATE:
 	case WM_ACTIVATEAPP:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    {
-	      /* If we are being activated, run the full-screen hook
-		 function, to actually install the required size in
-		 effect.  This is because when the hook is run from
-		 x_set_fullscreen, the frame might not yet be visible,
-		 if that call is a result of make-frame.  */
-	      if (msg.msg.wParam)
+	      /* Run the full-screen hook function also when we are
+		 being activated, to actually install the required
+		 size in effect, if the WAIT flag is set.  This is
+		 because when the hook is run from x_set_fullscreen,
+		 the frame might not yet be visible, if that call is a
+		 result of make-frame, and in that case the hook just
+		 sets the WAIT flag.  */
+	      if ((msg.msg.message == WM_WINDOWPOSCHANGED || msg.msg.wParam)
+		  && (f->want_fullscreen & FULLSCREEN_WAIT))
 		w32fullscreen_hook (f);
 	      x_check_fullscreen (f);
 	    }
@@ -5666,81 +5661,47 @@ x_check_fullscreen (struct frame *f)
 static void
 w32fullscreen_hook (FRAME_PTR f)
 {
-  static int normal_width, normal_height;
-
   if (FRAME_VISIBLE_P (f))
     {
-      int width, height, top_pos, left_pos, pixel_height, pixel_width;
-      int cur_w = FRAME_COLS (f), cur_h = FRAME_LINES (f);
-      RECT workarea_rect;
+      HWND hwnd = FRAME_W32_WINDOW(f);
+      DWORD dwStyle = GetWindowLong (hwnd, GWL_STYLE);
+      RECT rect;
 
-      block_input ();
-      if (normal_height <= 0)
-	normal_height = cur_h;
-      if (normal_width <= 0)
-	normal_width = cur_w;
-      x_real_positions (f, &f->left_pos, &f->top_pos);
-      x_fullscreen_adjust (f, &width, &height, &top_pos, &left_pos);
+      block_input();
+      f->want_fullscreen &= ~FULLSCREEN_WAIT;
 
-      SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
-      pixel_height = workarea_rect.bottom - workarea_rect.top;
-      pixel_width  = workarea_rect.right  - workarea_rect.left;
+      if (FRAME_PREV_FSMODE (f) == FULLSCREEN_NONE)
+        GetWindowPlacement (hwnd, &FRAME_NORMAL_PLACEMENT (f));
 
-      switch (f->want_fullscreen)
-	{
-	case FULLSCREEN_MAXIMIZED:
-	  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MAXIMIZE, 0);
-	  break;
-	case FULLSCREEN_BOTH:
-	  height =
-	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
-	    - XINT (Ftool_bar_lines_needed (selected_frame))
-	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
-	  width  =
-	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
-	    - FRAME_SCROLL_BAR_COLS (f);
-	  left_pos = workarea_rect.left;
-	  top_pos = workarea_rect.top;
-	  break;
-	case FULLSCREEN_WIDTH:
-	  width  =
-	    FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixel_width)
-	    - FRAME_SCROLL_BAR_COLS (f);
-	  if (normal_height > 0)
-	    height = normal_height;
-	  left_pos = workarea_rect.left;
-	  break;
-	case FULLSCREEN_HEIGHT:
-	  height =
-	    FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixel_height)
-	    - XINT (Ftool_bar_lines_needed (selected_frame))
-	    + (NILP (Vmenu_bar_mode) ? 1 : 0);
-	  if (normal_width > 0)
-	    width = normal_width;
-	  top_pos = workarea_rect.top;
-	  break;
-	case FULLSCREEN_NONE:
-	  if (normal_height > 0)
-	    height = normal_height;
-	  else
-	    normal_height = height;
-	  if (normal_width > 0)
-	    width = normal_width;
-	  else
-	    normal_width = width;
-	  /* FIXME: Should restore the original position of the frame.  */
-	  top_pos = left_pos = 0;
-	  break;
-	}
+      if (FRAME_PREV_FSMODE (f) == FULLSCREEN_BOTH)
+        {
+          SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+          SetWindowPos (hwnd, NULL, 0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
 
-      if (cur_w != width || cur_h != height)
-	{
-	  x_set_offset (f, left_pos, top_pos, 1);
-	  x_set_window_size (f, 1, width, height);
-	  do_pending_window_change (0);
-	}
+      w32_fullscreen_rect (hwnd, f->want_fullscreen,
+                           FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
+      FRAME_PREV_FSMODE (f) = f->want_fullscreen;
+      if (f->want_fullscreen == FULLSCREEN_BOTH)
+        {
+          SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+          SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
+                        rect.right - rect.left, rect.bottom - rect.top,
+                        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+      else
+        {
+          SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
+                        rect.right - rect.left, rect.bottom - rect.top, 0);
+        }
+
+      f->want_fullscreen = FULLSCREEN_NONE;
       unblock_input ();
     }
+  else
+    f->want_fullscreen |= FULLSCREEN_WAIT;
 }
 
 /* Call this to change the size of frame F's x-window.
@@ -6654,7 +6615,7 @@ w32_initialize (void)
   Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
 
   {
-    DWORD input_locale_id = (DWORD) GetKeyboardLayout (0);
+    DWORD input_locale_id = ((DWORD_PTR) GetKeyboardLayout (0) & 0xffffffff);
     w32_keyboard_codepage =
       codepage_for_locale ((LCID) (input_locale_id & 0xffff));
   }

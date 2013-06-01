@@ -157,6 +157,17 @@
 (defvar inhibit-trace nil
   "If non-nil, all tracing is temporarily inhibited.")
 
+;;;###autoload
+(defun trace-values (&rest values)
+  "Helper function to get internal values.
+You can call this function to add internal values in the trace buffer."
+  (unless inhibit-trace
+    (with-current-buffer trace-buffer
+      (goto-char (point-max))
+      (insert
+       (trace-entry-message
+        'trace-values trace-level values "")))))
+
 (defun trace-entry-message (function level args context)
   "Generate a string that describes that FUNCTION has been entered.
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION,
@@ -189,6 +200,18 @@ some global variables)."
 
 (defvar trace--timer nil)
 
+(defun trace--display-buffer (buf)
+  (unless (or trace--timer
+	      (get-buffer-window buf 'visible))
+    (setq trace--timer
+	  ;; Postpone the display to some later time, in case we
+	  ;; can't actually do it now.
+	  (run-with-timer 0 nil
+			  (lambda ()
+			    (setq trace--timer nil)
+			    (display-buffer buf nil 0))))))
+
+
 (defun trace-make-advice (function buffer background context)
   "Build the piece of advice to be added to trace FUNCTION.
 FUNCTION is the name of the traced function.
@@ -203,15 +226,7 @@ be printed along with the arguments in the trace."
       (unless inhibit-trace
         (with-current-buffer trace-buffer
           (set (make-local-variable 'window-point-insertion-type) t)
-          (unless (or background trace--timer
-                      (get-buffer-window trace-buffer 'visible))
-            (setq trace--timer
-                  ;; Postpone the display to some later time, in case we
-                  ;; can't actually do it now.
-                  (run-with-timer 0 nil
-                                  (lambda ()
-                                    (setq trace--timer nil)
-                                    (display-buffer trace-buffer)))))
+          (unless background (trace--display-buffer trace-buffer))
           (goto-char (point-max))
           ;; Insert a separator from previous trace output:
           (if (= trace-level 1) (insert trace-separator))
@@ -224,7 +239,7 @@ be printed along with the arguments in the trace."
           (unless inhibit-trace
             (let ((ctx (funcall context)))
               (with-current-buffer trace-buffer
-                (unless background (display-buffer trace-buffer))
+                (unless background (trace--display-buffer trace-buffer))
                 (goto-char (point-max))
                 (insert
                  (trace-exit-message

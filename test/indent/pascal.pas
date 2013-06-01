@@ -6,7 +6,7 @@ Author: Frank Heckenbach <frank@pascal.gnu.de>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation, version 2.
+published by the Free Software Foundation, version 3.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +25,10 @@ by the GNU General Public License. }
 
 {$gnu-pascal,I+}
 
+(* second style of comment *)
 // Free-pascal style comment.
+var x:Char = 12 /* 45;   // This /* does not start a comment.
+var x:Char = (/ 4);      // This (/ does not start a comment.
 
 program CRTDemo;
 

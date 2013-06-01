@@ -568,7 +568,8 @@ From a program takes two point or marker arguments, BEG and END."
       (insert (car ll)))))
 
 ;;;###autoload
-(defun delete-duplicate-lines (beg end &optional reverse adjacent interactive)
+(defun delete-duplicate-lines (beg end &optional reverse adjacent keep-blanks
+                               interactive)
   "Delete duplicate lines in the region between BEG and END.
 
 If REVERSE is nil, search and delete duplicates forward keeping the first
@@ -582,6 +583,9 @@ delete repeated lines only if they are adjacent.  It works like the utility
 this is more efficient in performance and memory usage than when ADJACENT
 is nil that uses additional memory to remember previous lines.
 
+If KEEP-BLANKS is non-nil (when called interactively with three C-u prefixes),
+duplicate blank lines are preserved.
+
 When called from Lisp and INTERACTIVE is omitted or nil, return the number
 of deleted duplicate lines, do not print it; if INTERACTIVE is t, the
 function behaves in all respects as if it had been called interactively."
@@ -591,6 +595,7 @@ function behaves in all respects as if it had been called interactively."
      (list (region-beginning) (region-end)
 	   (equal current-prefix-arg '(4))
 	   (equal current-prefix-arg '(16))
+	   (equal current-prefix-arg '(64))
 	   t)))
   (let ((lines (unless adjacent (make-hash-table :weakness 'key :test 'equal)))
 	line prev-line
@@ -605,14 +610,16 @@ function behaves in all respects as if it had been called interactively."
 	       (and (< (point) end) (not (eobp))))
 	(setq line (buffer-substring-no-properties
 		    (line-beginning-position) (line-end-position)))
-	(if (if adjacent (equal line prev-line) (gethash line lines))
-	    (progn
-	      (delete-region (progn (forward-line 0) (point))
-			     (progn (forward-line 1) (point)))
-	      (if reverse (forward-line -1))
-	      (setq count (1+ count)))
-	  (if adjacent (setq prev-line line) (puthash line t lines))
-	  (forward-line (if reverse -1 1)))))
+        (if (and keep-blanks (string= "" line))
+            (forward-line 1)
+          (if (if adjacent (equal line prev-line) (gethash line lines))
+              (progn
+                (delete-region (progn (forward-line 0) (point))
+                               (progn (forward-line 1) (point)))
+                (if reverse (forward-line -1))
+                (setq count (1+ count)))
+            (if adjacent (setq prev-line line) (puthash line t lines))
+            (forward-line (if reverse -1 1))))))
     (set-marker beg nil)
     (set-marker end nil)
     (when interactive

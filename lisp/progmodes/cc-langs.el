@@ -812,8 +812,8 @@ Assumed to not contain any submatches or \\| operators."
 (c-lang-defconst c-anchored-cpp-prefix
   "Regexp matching the prefix of a cpp directive anchored to BOL,
 in the languages that have a macro preprocessor."
-  t (if (c-lang-const c-opt-cpp-prefix)
-	(concat "^" (c-lang-const c-opt-cpp-prefix))))
+  t "^\\s *\\(#\\)\\s *"
+  (java awk) nil)
 (c-lang-defvar c-anchored-cpp-prefix (c-lang-const c-anchored-cpp-prefix))
 
 (c-lang-defconst c-opt-cpp-start

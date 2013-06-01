@@ -2066,7 +2066,8 @@ If the offending word is in a piece of quoted text, then it is skipped."
 
 ;;; Ispell engine
 ;;
-(eval-when-compile (require 'ispell))
+(defvar ispell-process)
+(declare-function ispell-buffer-local-words "ispell" ())
 
 (defun checkdoc-ispell-init ()
   "Initialize Ispell process (default version) with Lisp words.
@@ -2074,19 +2075,14 @@ The words used are from `checkdoc-ispell-lisp-words'.  If `ispell'
 cannot be loaded, then set `checkdoc-spellcheck-documentation-flag' to
 nil."
   (require 'ispell)
-  (if (not (symbol-value 'ispell-process)) ;Silence byteCompiler
-      (condition-case nil
-	  (progn
-	    (ispell-buffer-local-words)
-	    ;; This code copied in part from ispell.el Emacs 19.34
-	    (let ((w checkdoc-ispell-lisp-words))
-	      (while w
-		(process-send-string
-		 ;;  Silence byte compiler
-		 (symbol-value 'ispell-process)
-		 (concat "@" (car w) "\n"))
-		(setq w (cdr w)))))
-	(error (setq checkdoc-spellcheck-documentation-flag nil)))))
+  (unless ispell-process
+    (condition-case nil
+	(progn
+	  (ispell-buffer-local-words)
+	  ;; This code copied in part from ispell.el Emacs 19.34
+	  (dolist (w checkdoc-ispell-lisp-words)
+	    (process-send-string ispell-process (concat "@" w "\n"))))
+      (error (setq checkdoc-spellcheck-documentation-flag nil)))))
 
 (defun checkdoc-ispell-docstring-engine (end)
   "Run the Ispell tools on the doc string between point and END.
@@ -2187,13 +2183,12 @@ News agents may remove it"
 
 ;;; Comment checking engine
 ;;
-(eval-when-compile
-  ;; We must load this to:
-  ;; a) get symbols for compile and
-  ;; b) determine if we have lm-history symbol which doesn't always exist
-  (require 'lisp-mnt))
-
 (defvar generate-autoload-cookie)
+
+(eval-when-compile (require 'lisp-mnt))	; expand silly defsubsts
+(declare-function lm-summary "lisp-mnt" (&optional file))
+(declare-function lm-section-start "lisp-mnt" (header &optional after))
+(declare-function lm-section-end "lisp-mnt" (header))
 
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.

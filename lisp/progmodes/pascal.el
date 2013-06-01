@@ -158,31 +158,44 @@
 
 
 
-(defconst pascal-font-lock-keywords (purecopy
-  (list
-   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\([a-z]\\)"
+(defconst pascal-font-lock-keywords
+  `(("\\_<\\(function\\|pro\\(cedure\\|gram\\)\\)[ \t]+\\([[:alpha:]][[:alnum:]_]*\\)"
+     (1 font-lock-keyword-face)
+     (3 font-lock-function-name-face))
+    ;; ("type" "const" "real" "integer" "char" "boolean" "var"
+    ;;  "record" "array" "file")
+    (,(concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
+              "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
+     font-lock-type-face)
+    ("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-constant-face)
+    ("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
+    ;; ("of" "to" "for" "if" "then" "else" "case" "while"
+    ;;  "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")
+    ,(concat "\\<\\("
+             "and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\)\\|for\\|i[fn]\\|"
+             "not\\|o[fr]\\|repeat\\|t\\(hen\\|o\\)\\|until\\|w\\(hile\\|ith\\)"
+             "\\)\\>")
+    ("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
      1 font-lock-keyword-face)
-   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\([a-z][a-z0-9_]*\\)"
-     3 font-lock-function-name-face t)
-;   ("type" "const" "real" "integer" "char" "boolean" "var"
-;    "record" "array" "file")
-   (cons (concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
-		 "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
-	 'font-lock-type-face)
-   '("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-constant-face)
-   '("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
-;   ("of" "to" "for" "if" "then" "else" "case" "while"
-;    "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")
-   (concat "\\<\\("
-	   "and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\)\\|for\\|i[fn]\\|"
-	   "not\\|o[fr]\\|repeat\\|t\\(hen\\|o\\)\\|until\\|w\\(hile\\|ith\\)"
-	   "\\)\\>")
-   '("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
-     1 font-lock-keyword-face)
-   '("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
-     2 font-lock-keyword-face t)))
+    ("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
+     2 font-lock-keyword-face t))
   "Additional expressions to highlight in Pascal mode.")
-(put 'pascal-mode 'font-lock-defaults '(pascal-font-lock-keywords nil t))
+
+(defconst pascal--syntax-propertize
+  (syntax-propertize-rules
+   ;; The syntax-table settings are too coarse and end up treating /* and (/
+   ;; as comment starters.  Fix it here by removing the "2" from the syntax
+   ;; of the second char of such sequences.
+   ("/\\(\\*\\)" (1 ". 3b"))
+   ("(\\(\\/\\)" (1 (prog1 ". 1c" (forward-char -1) nil)))
+   ;; Pascal uses '' and "" rather than \' and \" to escape quotes.
+   ("''\\|\"\"" (0 (if (save-excursion
+                         (nth 3 (syntax-ppss (match-beginning 0))))
+                       (string-to-syntax ".")
+                     ;; In case of 3 or more quotes in a row, only advance
+                     ;; one quote at a time.
+                     (forward-char -1)
+                     nil)))))
 
 (defcustom pascal-indent-level 3
   "Indentation of Pascal statements with respect to containing block."
@@ -346,23 +359,22 @@ See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
 
 Turning on Pascal mode calls the value of the variable pascal-mode-hook with
 no args, if that value is non-nil."
-  (set (make-local-variable 'local-abbrev-table) pascal-mode-abbrev-table)
-  (set (make-local-variable 'indent-line-function) 'pascal-indent-line)
-  (set (make-local-variable 'comment-indent-function) 'pascal-indent-comment)
-  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
-  (set (make-local-variable 'blink-matching-paren-dont-ignore-comments) t)
-  (set (make-local-variable 'case-fold-search) t)
-  (set (make-local-variable 'comment-start) "{")
-  (set (make-local-variable 'comment-start-skip) "(\\*+ *\\|{ *")
-  (set (make-local-variable 'comment-end) "}")
+  (setq-local local-abbrev-table pascal-mode-abbrev-table)
+  (setq-local indent-line-function 'pascal-indent-line)
+  (setq-local comment-indent-function 'pascal-indent-comment)
+  (setq-local parse-sexp-ignore-comments nil)
+  (setq-local blink-matching-paren-dont-ignore-comments t)
+  (setq-local case-fold-search t)
+  (setq-local comment-start "{")
+  (setq-local comment-start-skip "(\\*+ *\\|{ *")
+  (setq-local comment-end "}")
   (add-hook 'completion-at-point-functions 'pascal-completions-at-point nil t)
   ;; Font lock support
-  (set (make-local-variable 'font-lock-defaults)
-       '(pascal-font-lock-keywords nil t))
+  (setq-local font-lock-defaults '(pascal-font-lock-keywords nil t))
+  (setq-local syntax-propertize-function pascal--syntax-propertize)
   ;; Imenu support
-  (set (make-local-variable 'imenu-generic-expression)
-       pascal-imenu-generic-expression)
-  (set (make-local-variable 'imenu-case-fold-search) t)
+  (setq-local imenu-generic-expression pascal-imenu-generic-expression)
+  (setq-local imenu-case-fold-search t)
   ;; Pascal-mode's own hide/show support.
   (add-to-invisibility-spec '(pascal . t)))
 

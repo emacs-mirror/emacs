@@ -88,14 +88,6 @@ static int trackingMenu;
    ========================================================================== */
 
 
-/* FIXME: not currently used, but should normalize with other terms. */
-void
-x_activate_menubar (struct frame *f)
-{
-    fprintf (stderr, "XXX: Received x_activate_menubar event.\n");
-}
-
-
 /* Supposed to discard menubar and free storage.  Since we share the
    menubar among frames and update its context for the focused window,
    there is nothing to do here. */
@@ -127,7 +119,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   id menu = [NSApp mainMenu];
   static EmacsMenu *last_submenu = nil;
   BOOL needsSet = NO;
-  const char *submenuTitle = [[submenu title] UTF8String];
   bool owfi;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
@@ -138,7 +129,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   long t;
 #endif
 
-  NSTRACE (set_frame_menubar);
+  NSTRACE (ns_update_menubar);
 
   if (f != SELECTED_FRAME ())
       return;
@@ -191,7 +182,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	= alloca (previous_menu_items_used * sizeof *previous_items);
 
       /* lisp preliminaries */
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       specbind (Qdebug_on_next_call, Qnil);
       record_unwind_save_match_data ();
@@ -247,7 +238,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
           /* FIXME: we'd like to only parse the needed submenu, but this
                was causing crashes in the _common parsing code.. need to make
                sure proper initialization done.. */
-/*        if (submenu && strcmp (submenuTitle, SSDATA (string)))
+/*        if (submenu && strcmp ([[submenu title] UTF8String], SSDATA (string)))
              continue; */
 
 	  submenu_start[i] = menu_items_used;
@@ -267,7 +258,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
         {
           /* should have found a menu for this one but didn't */
           fprintf (stderr, "ERROR: did not find lisp menu for submenu '%s'.\n",
-                  submenuTitle);
+                  [[submenu title] UTF8String]);
 	  discard_menu_items ();
 	  unbind_to (specpdl_count, Qnil);
           [pool release];
@@ -354,8 +345,6 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
-/*           if (submenu && strcmp (submenuTitle, SSDATA (string)))
-               continue; */
 
 	  wv->name = SSDATA (string);
           update_submenu_strings (wv->contents);
@@ -366,6 +355,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
          create a new menu for each sub and fill it. */
       if (submenu)
         {
+          const char *submenuTitle = [[submenu title] UTF8String];
           for (wv = first_wv->contents; wv; wv = wv->next)
             {
               if (!strcmp (submenuTitle, wv->name))
@@ -512,6 +502,29 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   ns_update_menubar (f, deep_p, nil);
 }
 
+void
+x_activate_menubar (struct frame *f)
+{
+  NSArray *a = [[NSApp mainMenu] itemArray];
+  /* Update each submenu separately so ns_update_menubar doesn't reset
+     the delegate.  */
+  int i = 0;
+  while (i < [a count])
+    {
+      EmacsMenu *menu = (EmacsMenu *)[[a objectAtIndex:i] submenu];
+      const char *title = [[menu title] UTF8String];
+      if (strcmp (title, ns_get_pending_menu_title ()) == 0)
+        {
+          ns_update_menubar (f, true, menu);
+          break;
+        }
+      ++i;
+    }
+  ns_check_pending_open_menu ();
+}
+
+
+
 
 /* ==========================================================================
 
@@ -564,6 +577,14 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
                   ? 1 : 0);
 }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+- (void)menuWillOpen:(NSMenu *)menu
+{
+  ns_check_menu_open (menu);
+}
+#endif
+
 #endif
 
 /* delegate method called when a submenu is being opened: run a 'deep' call
@@ -591,7 +612,12 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-  ns_update_menubar (frame, 1, self);
+#if ! defined(NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+  /* Don't know how to do this for anything other than OSX >= 10.5
+     This is wrong, as it might run Lisp code in the event loop.  */
+  ns_update_menubar (frame, true, self);
+#endif
 }
 
 
@@ -1300,6 +1326,7 @@ update_frame_tool_bar (FRAME_PTR f)
   wr.size = [textField frame].size;
 
   [win setFrame: wr display: YES];
+  [win setLevel: NSPopUpMenuWindowLevel];
   [win orderFront: self];
   [win display];
   timer = [NSTimer scheduledTimerWithTimeInterval: (float)seconds target: self
@@ -1380,8 +1407,6 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   NSTRACE (x-popup-dialog);
 
-  check_ns ();
-
   isQ = NILP (header);
 
   if (EQ (position, Qt)
@@ -1418,6 +1443,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     }
   else
     CHECK_WINDOW (window);
+
+  check_window_system (f);
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;

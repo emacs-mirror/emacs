@@ -378,7 +378,7 @@ one face is listed, that specifies an aggregate face, like in a
 
 This function makes the variable `buffer-face-mode-face' buffer
 local, and sets it to FACE."
-  (interactive (list (read-face-name "Set buffer face")))
+  (interactive (list (read-face-name "Set buffer face" (face-at-point t))))
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
   (if (null specs)

@@ -252,7 +252,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
 	     ;; fontset.c
-	     (vertical-centering-font-regexp display regexp)
+	     ;; FIXME nil is the initial value, fontset.el setqs it.
+	     (vertical-centering-font-regexp display
+					     (choice (const nil) regexp))
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -447,7 +449,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (other :tag "Always (t)" :value t))
 	      "24.3")
 	     ;; xdisp.c
-	     (show-trailing-whitespace whitespace-faces boolean nil
+	     ;; The whitespace group is for whitespace.el.
+	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)

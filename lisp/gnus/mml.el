@@ -1212,8 +1212,8 @@ If not set, `default-directory' will be used."
 	string
       default)))
 
-(defun mml-minibuffer-read-description ()
-  (let ((description (read-string "One line description: ")))
+(defun mml-minibuffer-read-description (&optional default)
+  (let ((description (read-string "One line description: " default)))
     (when (string-match "\\`[ \t]*\\'" description)
       (setq description nil))
     description))

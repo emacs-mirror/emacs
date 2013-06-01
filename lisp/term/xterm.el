@@ -27,7 +27,7 @@
 (defgroup xterm nil
   "XTerm support."
   :version "24.1"
-  :group 'environment)
+  :group 'terminals)
 
 (defcustom xterm-extra-capabilities 'check
   "Whether Xterm supports some additional, more modern, features.
@@ -751,5 +751,7 @@ versions of xterm."
   (when (< (+ redc greenc bluec) (* .6 (+ 65535 65535 65535)))
     (set-terminal-parameter nil 'background-mode 'dark)
     t))
+
+(provide 'xterm)
 
 ;;; xterm.el ends here

@@ -94,14 +94,14 @@ Note that setting the `spam-use-move' or `spam-use-copy' backends on
 a group through group/topic parameters overrides this mechanism."
   :type '(choice
           (const
-           'default
-           :tag "Move spam out of all groups and ham out of spam groups.")
+           :tag "Move spam out of all groups and ham out of spam groups"
+           default)
           (const
-           'move-all
-           :tag "Move spam out of all groups and ham out of all groups.")
+           :tag "Move spam out of all groups and ham out of all groups"
+           move-all)
           (const
-           'move-none
-           :tag "Never move spam or ham out of any groups."))
+           :tag "Never move spam or ham out of any groups"
+           move-none))
   :group 'spam)
 
 (defcustom spam-directory (nnheader-concat gnus-directory "spam/")

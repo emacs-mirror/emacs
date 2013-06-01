@@ -41,10 +41,13 @@
   '((:around "\300\301\302\003#\207" 5)
     (:before "\300\301\002\"\210\300\302\002\"\207" 4)
     (:after "\300\302\002\"\300\301\003\"\210\207" 5)
+    (:override "\300\301\"\207" 4)
     (:after-until "\300\302\002\"\206\013\000\300\301\002\"\207" 4)
     (:after-while "\300\302\002\"\205\013\000\300\301\002\"\207" 4)
     (:before-until "\300\301\002\"\206\013\000\300\302\002\"\207" 4)
-    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4))
+    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4)
+    (:filter-args "\300\302\301!\"\207" 5)
+    (:filter-return "\301\300\302\"!\207" 5))
   "List of descriptions of how to add a function.
 Each element has the form (WHERE BYTECODE STACK) where:
   WHERE is a keyword indicating where the function is added.
@@ -158,12 +161,13 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (advice--make-1 (nth 1 desc) (nth 2 desc)
                     function main props)))
 
-(defun advice--member-p (function definition)
+(defun advice--member-p (function name definition)
   (let ((found nil))
     (while (and (not found) (advice--p definition))
       (if (or (equal function (advice--car definition))
-              (equal function (cdr (assq 'name (advice--props definition)))))
-          (setq found t)
+              (when name
+                (equal name (cdr (assq 'name (advice--props definition))))))
+          (setq found definition)
         (setq definition (advice--cdr definition))))
     found))
 
@@ -207,7 +211,6 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
 ;;;###autoload
 (defmacro add-function (where place function &optional props)
   ;; TODO:
-  ;; - obsolete with-wrapper-hook (mostly requires buffer-local support).
   ;; - provide some kind of control over ordering.  E.g. debug-on-entry, ELP
   ;;   and tracing want to stay first.
   ;; - maybe let `where' specify some kind of predicate and use it
@@ -226,18 +229,20 @@ call OLDFUN here:
 `:before'	(lambda (&rest r) (apply FUNCTION r) (apply OLDFUN r))
 `:after'	(lambda (&rest r) (prog1 (apply OLDFUN r) (apply FUNCTION r)))
 `:around'	(lambda (&rest r) (apply FUNCTION OLDFUN r))
+`:override'	(lambda (&rest r) (apply FUNCTION r))
 `:before-while'	(lambda (&rest r) (and (apply FUNCTION r) (apply OLDFUN r)))
 `:before-until'	(lambda (&rest r) (or  (apply FUNCTION r) (apply OLDFUN r)))
 `:after-while'	(lambda (&rest r) (and (apply OLDFUN r) (apply FUNCTION r)))
 `:after-until'	(lambda (&rest r) (or  (apply OLDFUN r) (apply FUNCTION r)))
+`:filter-args'	(lambda (&rest r) (apply OLDFUN (funcall FUNCTION r)))
+`:filter-return'(lambda (&rest r) (funcall FUNCTION (apply OLDFUN r)))
 If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
 - `name': a string or symbol.  It can be used to refer to this piece of advice.
 
-PLACE cannot be a simple variable.  Instead it should either be
-\(default-value 'VAR) or (local 'VAR) depending on whether FUNCTION
-should be applied to VAR buffer-locally or globally.
+If PLACE is a simple variable, only its global value will be affected.
+Use (local 'VAR) if you want to apply FUNCTION to VAR buffer-locally.
 
 If one of FUNCTION or OLDFUN is interactive, then the resulting function
 is also interactive.  There are 3 cases:
@@ -250,15 +255,21 @@ is also interactive.  There are 3 cases:
   (cond ((eq 'local (car-safe place))
          (setq place `(advice--buffer-local ,@(cdr place))))
         ((symbolp place)
-         (error "Use (default-value '%S) or (local '%S)" place place)))
+         (setq place `(default-value ',place))))
   `(advice--add-function ,where (gv-ref ,place) ,function ,props))
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (unless (advice--member-p function (gv-deref ref))
+  (let ((a (advice--member-p function (cdr (assq 'name props))
+                             (gv-deref ref))))
+    (when a
+      ;; The advice is already present.  Remove the old one, first.
+      (setf (gv-deref ref)
+            (advice--remove-function (gv-deref ref) (advice--car a))))
     (setf (gv-deref ref)
           (advice--make where function (gv-deref ref) props))))
 
+;;;###autoload
 (defmacro remove-function (place function)
   "Remove the FUNCTION piece of advice from PLACE.
 If FUNCTION was not added to PLACE, do nothing.
@@ -396,7 +407,7 @@ of the piece of advice."
   "Return non-nil if ADVICE has been added to FUNCTION-NAME.
 Instead of ADVICE being the actual function, it can also be the `name'
 of the piece of advice."
-  (advice--member-p advice
+  (advice--member-p advice advice
                     (or (get function-name 'advice--pending)
 			(advice--strip-macro
 			 (if (fboundp function-name)

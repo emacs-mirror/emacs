@@ -1769,7 +1769,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
-  if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
+  if (EQ (buffer, XWINDOW (minibuf_window)->contents))
     return Qnil;
 
   /* When we kill an ordinary buffer which shares it's buffer text
@@ -1820,7 +1820,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* If the buffer now current is shown in the minibuffer and our buffer
      is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);
-  if (EQ (tem, XWINDOW (minibuf_window)->buffer)
+  if (EQ (tem, XWINDOW (minibuf_window)->contents)
       && EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
     return Qnil;
 
@@ -2394,8 +2394,9 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 	   BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	eassert (!m->buffer);
   }
-  { /* Some of the C code expects that w->buffer == w->pointm->buffer.
-       So since we just swapped the markers between the two buffers, we need
+  { /* Some of the C code expects that both window markers of a
+       live window points to that window's buffer.  So since we
+       just swapped the markers between the two buffers, we need
        to undo the effect of this swap for window markers.  */
     Lisp_Object w = Fselected_window (), ws = Qnil;
     Lisp_Object buf1, buf2;
@@ -2405,12 +2406,19 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
       {
 	ws = Fcons (w, ws);
 	if (MARKERP (XWINDOW (w)->pointm)
-	    && (EQ (XWINDOW (w)->buffer, buf1)
-		|| EQ (XWINDOW (w)->buffer, buf2)))
+	    && (EQ (XWINDOW (w)->contents, buf1)
+		|| EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->pointm,
 		       make_number
-		       (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
-		       XWINDOW (w)->buffer);
+		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
+		       XWINDOW (w)->contents);
+	if (MARKERP (XWINDOW (w)->start)
+	    && (EQ (XWINDOW (w)->contents, buf1)
+		|| EQ (XWINDOW (w)->contents, buf2)))
+	  Fset_marker (XWINDOW (w)->start,
+		       make_number
+		       (XBUFFER (XWINDOW (w)->contents)->last_window_start),
+		       XWINDOW (w)->contents);
 	w = Fnext_window (w, Qt, Qt);
       }
   }
@@ -3893,7 +3901,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   if (buffer_window_count (buf) > 0)
     {
       /* ... it's visible in other window than selected,  */
-      if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+      if (buf != XBUFFER (XWINDOW (selected_window)->contents))
 	windows_or_buffers_changed = 1;
       /* ... or if we modify an overlay at the end of the buffer
 	 and so we cannot be sure that window end is still valid.  */
@@ -5493,6 +5501,8 @@ This is the same as (default-value 'left-margin).  */);
   DEFVAR_BUFFER_DEFAULTS ("default-tab-width",
 			  tab_width,
 			  doc: /* Default value of `tab-width' for buffers that do not override it.
+NOTE: This controls the display width of a TAB character, and not
+the size of an indentation step.
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-case-fold-search",
@@ -5684,6 +5694,8 @@ Linefeed indents to this column in Fundamental mode.  */);
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
+NOTE: This controls the display width of a TAB character, and not
+the size of an indentation step.
 This should be an integer greater than zero.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
@@ -5875,29 +5887,44 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
   DEFVAR_PER_BUFFER ("left-margin-width", &BVAR (current_buffer, left_margin_cols),
 		     Qintegerp,
 		     doc: /* Width of left marginal area for display of a buffer.
-A value of nil means no marginal area.  */);
+A value of nil means no marginal area.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("right-margin-width", &BVAR (current_buffer, right_margin_cols),
 		     Qintegerp,
 		     doc: /* Width of right marginal area for display of a buffer.
-A value of nil means no marginal area.  */);
+A value of nil means no marginal area.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("left-fringe-width", &BVAR (current_buffer, left_fringe_width),
 		     Qintegerp,
 		     doc: /* Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
-A value of nil means to use the left fringe width from the window's frame.  */);
+A value of nil means to use the left fringe width from the window's frame.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("right-fringe-width", &BVAR (current_buffer, right_fringe_width),
 		     Qintegerp,
 		     doc: /* Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
-A value of nil means to use the right fringe width from the window's frame.  */);
+A value of nil means to use the right fringe width from the window's frame.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("fringes-outside-margins", &BVAR (current_buffer, fringes_outside_margins),
 		     Qnil,
 		     doc: /* Non-nil means to display fringes outside display margins.
-A value of nil means to display fringes between margins and buffer text.  */);
+A value of nil means to display fringes between margins and buffer text.
+
+Setting this variable does not take effect until a new buffer is displayed
+in a window.  To make the change take effect, call `set-window-buffer'.  */);
 
   DEFVAR_PER_BUFFER ("scroll-bar-width", &BVAR (current_buffer, scroll_bar_width),
 		     Qintegerp,

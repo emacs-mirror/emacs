@@ -267,10 +267,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 @interface EmacsSavePanel : NSSavePanel
 {
 }
+- (NSString *) getFilename;
+- (NSString *) getDirectory;
 @end
 @interface EmacsOpenPanel : NSOpenPanel
 {
 }
+- (NSString *) getFilename;
+- (NSString *) getDirectory;
 @end
 
 @interface EmacsFileDelegate : NSObject
@@ -573,8 +577,6 @@ extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name (Lisp_Object name);
 
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
-FRAME_PTR check_x_frame (Lisp_Object frame);
-
 
 struct ns_output
 {
@@ -760,7 +762,6 @@ extern void ns_clear_frame (struct frame *f);
 
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
-extern void check_ns (void);
 extern Lisp_Object ns_map_event_to_object (void);
 #ifdef __OBJC__
 extern Lisp_Object ns_string_from_pasteboard (id pb);
@@ -788,6 +789,9 @@ extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
 extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
 extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern void ns_free_indexed_color (unsigned long idx, struct frame *f);
+extern const char *ns_get_pending_menu_title ();
+extern void ns_check_menu_open (NSMenu *menu);
+extern void ns_check_pending_open_menu ();
 #endif
 
 /* C access to ObjC functionality */

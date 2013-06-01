@@ -11,7 +11,7 @@
 ;;;;;;  cl--map-overlays cl--map-intervals cl--map-keymap-recursively
 ;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
 ;;;;;;  cl-mapl cl-mapc cl-maplist cl-map cl--mapcar-many cl-equalp
-;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "c5730f2a706cb1efc5fec0a790d3ca72")
+;;;;;;  cl-coerce) "cl-extra" "cl-extra.el" "011111887a1f353218e59e14d0b09c68")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -267,7 +267,7 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "8a90c81a400a2846e7b4c3da07626d94")
+;;;;;;  "cl-macs" "cl-macs.el" "b839ad3781c4f2f849df0639b4eba166")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -417,17 +417,35 @@ This is compatible with Common Lisp, but note that `defun' and
 
 (autoload 'cl-loop "cl-macs" "\
 The Common Lisp `loop' macro.
-Valid clauses are:
-  for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
-  for VAR in LIST by FUNC, for VAR on LIST by FUNC, for VAR = INIT then EXPR,
-  for VAR across ARRAY, repeat NUM, with VAR = INIT, while COND, until COND,
-  always COND, never COND, thereis COND, collect EXPR into VAR,
-  append EXPR into VAR, nconc EXPR into VAR, sum EXPR into VAR,
-  count EXPR into VAR, maximize EXPR into VAR, minimize EXPR into VAR,
-  if COND CLAUSE [and CLAUSE]... else CLAUSE [and CLAUSE...],
-  unless COND CLAUSE [and CLAUSE]... else CLAUSE [and CLAUSE...],
-  do EXPRS..., initially EXPRS..., finally EXPRS..., return EXPR,
-  finally return EXPR, named NAME.
+Valid clauses include:
+  For clauses:
+    for VAR from/upfrom/downfrom EXPR1 to/upto/downto/above/below EXPR2 by EXPR3
+    for VAR = EXPR1 then EXPR2
+    for VAR in/on/in-ref LIST by FUNC
+    for VAR across/across-ref ARRAY
+    for VAR being:
+      the elements of/of-ref SEQUENCE [using (index VAR2)]
+      the symbols [of OBARRAY]
+      the hash-keys/hash-values of HASH-TABLE [using (hash-values/hash-keys V2)]
+      the key-codes/key-bindings/key-seqs of KEYMAP [using (key-bindings VAR2)]
+      the overlays/intervals [of BUFFER] [from POS1] [to POS2]
+      the frames/buffers
+      the windows [of FRAME]
+  Iteration clauses:
+    repeat INTEGER
+    while/until/always/never/thereis CONDITION
+  Accumulation clauses:
+    collect/append/nconc/concat/vconcat/count/sum/maximize/minimize FORM
+      [into VAR]
+  Miscellaneous clauses:
+    with VAR = INIT
+    if/when/unless COND CLAUSE [and CLAUSE]... else CLAUSE [and CLAUSE...]
+    named NAME
+    initially/finally [do] EXPRS...
+    do EXPRS...
+    [finally] return EXPR
+
+For more details, see Info node `(cl)Loop Facility'.
 
 \(fn CLAUSE...)" nil t)
 

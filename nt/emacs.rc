@@ -1,6 +1,6 @@
 Emacs ICON   icons/emacs.ico
 32649 CURSOR icons/hand.cur
-#ifdef WIN64
+#if defined (WIN64) || defined (__x86_64__)
 1 24 "emacs-x64.manifest"
 #else
 1 24 "emacs-x86.manifest"

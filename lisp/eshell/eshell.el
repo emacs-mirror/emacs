@@ -222,8 +222,7 @@
 ;; things up.
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-util))
+  (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-mode)
 
@@ -318,6 +317,8 @@ buffer selected (or created)."
 Modules should use this variable so that they don't clutter
 non-interactive sessions, such as when using `eshell-command'.")
 
+(declare-function eshell-add-input-to-history "em-hist" (input))
+
 ;;;###autoload
 (defun eshell-command (&optional command arg)
   "Execute the Eshell command string COMMAND.
@@ -333,7 +334,8 @@ With prefix ARG, insert output into the current buffer at point."
                                     (eshell-return-exits-minibuffer))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
-        (eshell-add-input-to-history command))))
+	(if (eshell-using-module 'eshell-hist)
+	    (eshell-add-input-to-history command)))))
   (unless command
     (error "No command specified!"))
   ;; redirection into the current buffer is achieved by adding an

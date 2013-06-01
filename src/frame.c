@@ -76,7 +76,6 @@ Lisp_Object Qterminal_live_p;
 Lisp_Object Qauto_raise, Qauto_lower;
 Lisp_Object Qborder_color, Qborder_width;
 Lisp_Object Qcursor_color, Qcursor_type;
-static Lisp_Object Qgeometry;  /* Not used */
 Lisp_Object Qheight, Qwidth;
 Lisp_Object Qleft, Qright;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
@@ -115,6 +114,8 @@ Lisp_Object Qface_set_after_frame_default;
 
 static Lisp_Object Qdelete_frame_functions;
 
+Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
+
 #ifdef HAVE_WINDOW_SYSTEM
 static void x_report_frame_params (struct frame *, Lisp_Object *);
 #endif
@@ -149,25 +150,56 @@ decode_any_frame (register Lisp_Object frame)
   return XFRAME (frame);
 }
 
+bool
+window_system_available (struct frame *f)
+{
+  if (f)
+    return FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f);
+  else
+#ifdef HAVE_WINDOW_SYSTEM
+    return x_display_list != NULL;
+#else
+    return 0;
+#endif
+}
+
+struct frame *
+decode_window_system_frame (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  
+  if (!window_system_available (f))
+    error ("Window system frame should be used");
+  return f;
+}
+
+void
+check_window_system (struct frame *f)
+{
+  if (!window_system_available (f))
+    error (f ? "Window system frame should be used"
+	   : "Window system is not in use or not initialized");
+}
+
 static void
 set_menu_bar_lines_1 (Lisp_Object window, int n)
 {
   struct window *w = XWINDOW (window);
 
   w->last_modified = 0;
-  wset_top_line (w, make_number (XFASTINT (w->top_line) + n));
-  wset_total_lines (w, make_number (XFASTINT (w->total_lines) - n));
+  w->top_line += n;
+  w->total_lines -= n;
 
   /* Handle just the top child in a vertical split.  */
-  if (!NILP (w->vchild))
-    set_menu_bar_lines_1 (w->vchild, n);
-
-  /* Adjust all children in a horizontal split.  */
-  for (window = w->hchild; !NILP (window); window = w->next)
-    {
-      w = XWINDOW (window);
-      set_menu_bar_lines_1 (window, n);
-    }
+  if (WINDOW_VERTICAL_COMBINATION_P (w))
+    set_menu_bar_lines_1 (w->contents, n);
+  else if (WINDOW_HORIZONTAL_COMBINATION_P (w))
+    /* Adjust all children in a horizontal split.  */
+    for (window = w->contents; !NILP (window); window = w->next)
+      {
+	w = XWINDOW (window);
+	set_menu_bar_lines_1 (window, n);
+      }
 }
 
 void
@@ -332,14 +364,14 @@ make_frame (int mini_p)
   SET_FRAME_COLS (f, 10);
   FRAME_LINES (f) = 10;
 
-  wset_total_cols (XWINDOW (root_window), make_number (10));
-  wset_total_lines (XWINDOW (root_window), make_number (mini_p ? 9 : 10));
+  XWINDOW (root_window)->total_cols = 10;
+  XWINDOW (root_window)->total_lines = mini_p ? 9 : 10;
 
   if (mini_p)
     {
-      wset_total_cols (XWINDOW (mini_window), make_number (10));
-      wset_top_line (XWINDOW (mini_window), make_number (9));
-      wset_total_lines (XWINDOW (mini_window), make_number (1));
+      XWINDOW (mini_window)->total_cols = 10;
+      XWINDOW (mini_window)->top_line = 9;
+      XWINDOW (mini_window)->total_lines = 1;
     }
 
   /* Choose a buffer for the frame's root window.  */
@@ -421,7 +453,7 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
 
   /* Make the chosen minibuffer window display the proper minibuffer,
      unless it is already showing a minibuffer.  */
-  if (NILP (Fmemq (XWINDOW (mini_window)->buffer, Vminibuffer_list)))
+  if (NILP (Fmemq (XWINDOW (mini_window)->contents, Vminibuffer_list)))
     /* Use set_window_buffer instead of Fset_window_buffer (see
        discussion of bug#11984, bug#12025, bug#12026).  */
     set_window_buffer (mini_window,
@@ -803,10 +835,18 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
   if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
     {
-      if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
-	/* Mark previously displayed frame as now obscured.  */
-	SET_FRAME_VISIBLE (XFRAME (FRAME_TTY (XFRAME (frame))->top_frame), 2);
-      SET_FRAME_VISIBLE (XFRAME (frame), 1);
+      Lisp_Object top_frame = FRAME_TTY (XFRAME (frame))->top_frame;
+
+      /* Don't mark the frame garbaged and/or obscured if we are
+	 switching to the frame that is already the top frame of that
+	 TTY.  */
+      if (!EQ (frame, top_frame))
+	{
+	  if (FRAMEP (top_frame))
+	    /* Mark previously displayed frame as now obscured.  */
+	    SET_FRAME_VISIBLE (XFRAME (top_frame), 2);
+	  SET_FRAME_VISIBLE (XFRAME (frame), 1);
+	}
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }
 
@@ -889,7 +929,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 /* Return CANDIDATE if it can be used as 'other-than-FRAME' frame on the
    same tty (for tty frames) or among frames which uses FRAME's keyboard.
    If MINIBUF is nil, do not consider minibuffer-only candidate.
-   If MINIBUF is `visible', do not consider an invisible candidate. 
+   If MINIBUF is `visible', do not consider an invisible candidate.
    If MINIBUF is a window, consider only its own frame and candidate now
    using that window as the minibuffer.
    If MINIBUF is 0, consider candidate if it is visible or iconified.
@@ -1189,7 +1229,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
@@ -1593,17 +1633,13 @@ make_frame_visible_1 (Lisp_Object window)
 {
   struct window *w;
 
-  for (;!NILP (window); window = w->next)
+  for (; !NILP (window); window = w->next)
     {
       w = XWINDOW (window);
-
-      if (!NILP (w->buffer))
-	bset_display_time (XBUFFER (w->buffer), Fcurrent_time ());
-
-      if (!NILP (w->vchild))
-	make_frame_visible_1 (w->vchild);
-      if (!NILP (w->hchild))
-	make_frame_visible_1 (w->hchild);
+      if (WINDOWP (w->contents))
+	make_frame_visible_1 (w->contents);
+      else
+	bset_display_time (XBUFFER (w->contents), Fcurrent_time ());
     }
 }
 
@@ -1634,7 +1670,7 @@ displayed in the terminal.  */)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1665,7 +1701,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
       /* Use set_window_buffer instead of Fset_window_buffer (see
 	 discussion of bug#11984, bug#12025, bug#12026).  */
       set_window_buffer (sf->minibuffer_window,
-			 XWINDOW (minibuf_window)->buffer, 0, 0);
+			 XWINDOW (minibuf_window)->contents, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1819,7 +1855,7 @@ See `redirect-frame-focus'.  */)
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
-#if !HAVE_NS
+#if !HAVE_NS && !defined(WINDOWSNT)
 static
 #endif
 Lisp_Object
@@ -3315,16 +3351,15 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       else if (FLOATP (item))
 	{
 	  alpha = XFLOAT_DATA (item);
-	  if (alpha < 0.0 || 1.0 < alpha)
+	  if (! (0 <= alpha && alpha <= 1.0))
 	    args_out_of_range (make_float (0.0), make_float (1.0));
 	}
       else if (INTEGERP (item))
 	{
 	  EMACS_INT ialpha = XINT (item);
-	  if (ialpha < 0 || 100 < ialpha)
+	  if (! (0 <= ialpha && alpha <= 100))
 	    args_out_of_range (make_number (0), make_number (100));
-	  else
-	    alpha = ialpha / 100.0;
+	  alpha = ialpha / 100.0;
 	}
       else
 	wrong_type_argument (Qnumberp, item);
@@ -3495,11 +3530,10 @@ The optional arguments COMPONENT and SUBCLASS add to the key and the
 class, respectively.  You must specify both of them or neither.
 If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'
 and the class is `Emacs.CLASS.SUBCLASS'.  */)
-  (Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
+  (Lisp_Object attribute, Lisp_Object class, Lisp_Object component,
+   Lisp_Object subclass)
 {
-#ifdef HAVE_X_WINDOWS
-  check_x ();
-#endif
+  check_window_system (NULL);
 
   return xrdb_get_resource (check_x_display_info (Qnil)->xrdb,
 			    attribute, class, component, subclass);
@@ -3508,7 +3542,9 @@ and the class is `Emacs.CLASS.SUBCLASS'.  */)
 /* Get an X resource, like Fx_get_resource, but for display DPYINFO.  */
 
 Lisp_Object
-display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
+display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute,
+			Lisp_Object class, Lisp_Object component,
+			Lisp_Object subclass)
 {
   return xrdb_get_resource (dpyinfo->xrdb,
 			    attribute, class, component, subclass);
@@ -4094,6 +4130,73 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
   return decode_any_frame (frame)->pointer_invisible ? Qnil : Qt;
 }
 
+
+
+/***********************************************************************
+			Multimonitor data
+ ***********************************************************************/
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+void
+free_monitors (struct MonitorInfo *monitors, int n_monitors)
+{
+  int i;
+  for (i = 0; i < n_monitors; ++i)
+    xfree (monitors[i].name);
+  xfree (monitors);
+}
+
+Lisp_Object
+make_monitor_attribute_list (struct MonitorInfo *monitors,
+                             int n_monitors,
+                             int primary_monitor,
+                             Lisp_Object monitor_frames,
+                             const char *source)
+{
+  Lisp_Object attributes_list = Qnil;
+  Lisp_Object primary_monitor_attributes = Qnil;
+  int i;
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      Lisp_Object geometry, workarea, attributes = Qnil;
+      struct MonitorInfo *mi = &monitors[i];
+
+      if (mi->geom.width == 0) continue;
+
+      workarea = list4i (mi->work.x, mi->work.y,
+			 mi->work.width, mi->work.height);
+      geometry = list4i (mi->geom.x, mi->geom.y,
+			 mi->geom.width, mi->geom.height);
+      attributes = Fcons (Fcons (Qsource,
+                                 make_string (source, strlen (source))),
+                          attributes);
+      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
+			  attributes);
+      attributes = Fcons (Fcons (Qmm_size,
+                                 list2i (mi->mm_width, mi->mm_height)),
+                          attributes);
+      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+      if (mi->name)
+        attributes = Fcons (Fcons (Qname, make_string (mi->name,
+                                                       strlen (mi->name))),
+                            attributes);
+
+      if (i == primary_monitor)
+        primary_monitor_attributes = attributes;
+      else
+        attributes_list = Fcons (attributes, attributes_list);
+    }
+
+  if (!NILP (primary_monitor_attributes))
+    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+  return attributes_list;
+}
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 
 /***********************************************************************
 				Initialization
@@ -4151,6 +4254,12 @@ syms_of_frame (void)
 
   DEFSYM (Qterminal, "terminal");
   DEFSYM (Qterminal_live_p, "terminal-live-p");
+
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qworkarea, "workarea");
+  DEFSYM (Qmm_size, "mm-size");
+  DEFSYM (Qframes, "frames");
+  DEFSYM (Qsource, "source");
 
 #ifdef HAVE_NS
   DEFSYM (Qns_parse_geometry, "ns-parse-geometry");

@@ -179,10 +179,6 @@ static int next_fontset_id;
    font for each character.  */
 static Lisp_Object Vdefault_fontset;
 
-/* Check if any window system is used now.  */
-void (*check_window_system_func) (void);
-
-
 /* Prototype declarations for static functions.  */
 static Lisp_Object make_fontset (Lisp_Object, Lisp_Object, Lisp_Object);
 
@@ -1213,7 +1209,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
   Lisp_Object fontset;
   int id;
 
-  (*check_window_system_func) ();
+  check_window_system (NULL);
 
   CHECK_STRING (pattern);
 
@@ -1919,8 +1915,7 @@ format is the same as above.  */)
   Lisp_Object val, elt;
   int c, i, j, k;
 
-  (*check_window_system_func) ();
-
+  check_window_system (NULL);
   fontset = check_fontset_name (fontset, &frame);
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET

@@ -28,15 +28,19 @@
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
 ;; (require 'mailcap)
-;; The following functions in the byte compiler's warnings are known not
-;; to cause any real problem for the following reasons:
-;; - mm-save-part-to-file, mm-destroy-parts: always used
-;;   after mm-dissect-buffer and defined in the same file.
 ;; The following are autoloaded instead of `require'd to avoid eagerly
 ;; loading all of URL when turning on url-handler-mode in the .emacs.
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
+
+;; Always used after mm-dissect-buffer and defined in the same file.
+(declare-function mm-save-part-to-file "mm-decode" (handle file))
+(declare-function mm-destroy-parts "mm-decode" (handles))
+;; mm-decode loads mm-bodies.
+(declare-function mm-decode-string "mm-bodies" (string charset))
+;; mm-decode loads mail-parse.
+(declare-function mail-content-type-get "mail-parse" (ct attribute))
 
 ;; Implementation status
 ;; ---------------------

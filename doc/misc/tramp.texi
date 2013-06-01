@@ -2406,12 +2406,17 @@ using the @option{ssh} method to transfer files, and edit
 @file{.emacs} in my home directory I would specify the filename
 @file{@trampfn{ssh, daniel, melancholia, .emacs}}.
 
+@ifset emacs
+A remote filename containing a host name only, which is equal to a
+method name, is not allowed.  If such a host name is used, it must
+always be preceded by an explicit method name, like
+@file{@value{prefix}ssh@value{postfixhop}ssh@value{postfix}}.
+@end ifset
+
 Finally, for some methods it is possible to specify a different port
 number than the default one, given by the method.  This is specified
 by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
 daniel, melancholia#42, .emacs}}.
-
-Note that @value{tramp} supports only filenames encoded in unibyte.
 
 
 @node Alternative Syntax
@@ -3116,6 +3121,45 @@ the job:
 Host *
      ServerAliveInterval 5
 @end example
+
+
+@item
+@value{tramp} does not use my @command{ssh} @code{ControlPath}
+
+Your @code{ControlPath} setting will be overwritten by @command{ssh}
+sessions initiated by @value{tramp}.  This is because a master
+session, initiated outside @value{emacsname}, could be closed, which
+would stall all other @command{ssh} sessions for that host inside
+@value{emacsname}.
+
+Consequently, if you connect to a remote host via @value{tramp}, you
+might be prompted for a password again, even if you have established
+already an @command{ssh} connection to that host.  Further
+@value{tramp} connections to that host, for example in order to run a
+process on that host, will reuse that initial @command{ssh}
+connection.
+
+If your @command{ssh} version supports the @code{ControlPersist}
+option, you could customize the variable
+@code{tramp-ssh-controlmaster-options} to use your @code{ControlPath},
+for example:
+
+@lisp
+(setq tramp-ssh-controlmaster-options
+      (concat
+        "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
+        "-o ControlMaster=auto -o ControlPersist=yes"))
+@end lisp
+
+Note, that "%r", "%h" and "%p" must be encoded as "%%r", "%%h" and
+"%%p", respectively.  The entries of @code{ControlPath},
+@code{ControlMaster} and @code{ControlPersist} can be removed from
+this setting, if they are configured properly in your
+@file{~/.ssh/config}:
+
+@lisp
+(setq tramp-ssh-controlmaster-options "")
+@end lisp
 
 
 @item

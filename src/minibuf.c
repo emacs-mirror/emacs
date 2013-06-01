@@ -114,7 +114,7 @@ choose_minibuf_frame (void)
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
 	 init_window_once.  That window doesn't have a buffer.  */
-      buffer = XWINDOW (minibuf_window)->buffer;
+      buffer = XWINDOW (minibuf_window)->contents;
       if (BUFFERP (buffer))
 	/* Use set_window_buffer instead of Fset_window_buffer (see
 	   discussion of bug#11984, bug#12025, bug#12026).  */
@@ -844,7 +844,7 @@ read_minibuf_unwind (Lisp_Object data)
   window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->buffer);
+  Fset_buffer (XWINDOW (window)->contents);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);
@@ -984,34 +984,6 @@ and some related functions, which use zero-indexing for POSITION.  */)
 		      !NILP (inherit_input_method));
   UNGCPRO;
   return val;
-}
-
-DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
-       doc: /* Return a Lisp object read using the minibuffer, unevaluated.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  CHECK_STRING (prompt);
-  return read_minibuf (Vminibuffer_local_map, initial_contents,
-		       prompt, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0, 0);
-}
-
-DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
-       doc: /* Return value of Lisp expression read using the minibuffer.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  return Feval (read_minibuf (Vread_expression_map, initial_contents,
-			      prompt, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0),
-		Qnil);
 }
 
 /* Functions that use the minibuffer to read various things.  */
@@ -1799,18 +1771,22 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
+      Lisp_Object key = Qnil;
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
 	tem = HASH_KEY (h, i);
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
 	  if (!NILP (HASH_HASH (h, i))
+	      && (key = HASH_KEY (h, i),
+		  SYMBOLP (key) ? key = Fsymbol_name (key) : key,
+		  STRINGP (key))
 	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
-				       HASH_KEY (h, i), make_number (0) , Qnil,
+				       key, make_number (0) , Qnil,
 				       completion_ignore_case ? Qt : Qnil),
 		     Qt))
 	    {
-	      tem = HASH_KEY (h, i);
+	      tem = key;
 	      break;
 	    }
       if (!STRINGP (tem))
@@ -2133,15 +2109,9 @@ properties.  */);
   Vminibuffer_prompt_properties
     = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
 
-  DEFVAR_LISP ("read-expression-map", Vread_expression_map,
-	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
-  Vread_expression_map = Qnil;
-
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
-  defsubr (&Seval_minibuffer);
-  defsubr (&Sread_minibuffer);
   defsubr (&Sread_string);
   defsubr (&Sread_command);
   defsubr (&Sread_variable);

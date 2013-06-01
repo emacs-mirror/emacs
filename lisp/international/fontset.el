@@ -805,6 +805,8 @@ Internal use only.  Should be called at startup time."
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
       (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5"))
+(put 'vertical-centering-font-regexp 'standard-value
+     (list vertical-centering-font-regexp))
 
 ;; CDAC fonts are actually smaller than their design sizes.
 (setq face-font-rescale-alist

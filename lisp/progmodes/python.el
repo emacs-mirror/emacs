@@ -177,12 +177,14 @@
 ;; might guessed you should run `python-shell-send-buffer' from time
 ;; to time to get better results too.
 
-;; Imenu: This mode supports Imenu in its most basic form, letting it
-;; build the necessary alist via `imenu-default-create-index-function'
-;; by having set `imenu-extract-index-name-function' to
-;; `python-info-current-defun' and
-;; `imenu-prev-index-position-function' to
-;; `python-imenu-prev-index-position'.
+;; Imenu: There are two index building functions to be used as
+;; `imenu-create-index-function': `python-imenu-create-index' (the
+;; default one, builds the alist in form of a tree) and
+;; `python-imenu-create-flat-index'. See also
+;; `python-imenu-format-item-label-function',
+;; `python-imenu-format-parent-item-label-function',
+;; `python-imenu-format-parent-item-jump-label-function' variables for
+;; changing the way labels are formatted in the tree version.
 
 ;; If you used python-mode.el you probably will miss auto-indentation
 ;; when inserting newlines.  To achieve the same behavior you have
@@ -368,22 +370,24 @@ This variant of `rx' supports common python named REGEXPS."
 
 ;;; Font-lock and syntax
 
+(eval-when-compile
+  (defun python-syntax--context-compiler-macro (form type &optional syntax-ppss)
+    (pcase type
+      (`'comment
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (nth 4 ppss) (nth 8 ppss))))
+      (`'string
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (nth 3 ppss) (nth 8 ppss))))
+      (`'paren
+       `(nth 1 (or ,syntax-ppss (syntax-ppss))))
+      (_ form))))
+
 (defun python-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
 TYPE can be `comment', `string' or `paren'.  It returns the start
 character address of the specified TYPE."
-  (declare (compiler-macro
-            (lambda (form)
-              (pcase type
-                (`'comment
-                 `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-                    (and (nth 4 ppss) (nth 8 ppss))))
-                (`'string
-                 `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
-                    (and (nth 3 ppss) (nth 8 ppss))))
-                (`'paren
-                 `(nth 1 (or ,syntax-ppss (syntax-ppss))))
-                (_ form)))))
+  (declare (compiler-macro python-syntax--context-compiler-macro))
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (pcase type
       (`comment (and (nth 4 ppss) (nth 8 ppss)))
@@ -638,6 +642,12 @@ It makes underscores and dots word constituent chars.")
 These make `python-indent-calculate-indentation' subtract the value of
 `python-indent-offset'.")
 
+(defvar python-indent-block-enders '("return" "pass")
+  "List of words that mark the end of a block.
+These make `python-indent-calculate-indentation' subtract the
+value of `python-indent-offset' when `python-indent-context' is
+AFTER-LINE.")
+
 (defun python-indent-guess-indent-offset ()
   "Guess and set `python-indent-offset' for the current buffer."
   (interactive)
@@ -763,9 +773,13 @@ START is the buffer position where the sexp starts."
             (save-excursion
               (goto-char context-start)
               (current-indentation))
-            (if (progn
-                  (back-to-indentation)
-                  (looking-at (regexp-opt python-indent-dedenters)))
+            (if (or (save-excursion
+                      (back-to-indentation)
+                      (looking-at (regexp-opt python-indent-dedenters)))
+                    (save-excursion
+                      (python-util-forward-comment -1)
+                      (python-nav-beginning-of-statement)
+                      (member (current-word) python-indent-block-enders)))
                 python-indent-offset
               0)))
           ;; When inside of a string, do nothing. just use the current
@@ -1179,6 +1193,70 @@ Returns nil if point is not in a def or class."
       (forward-line 1)
       ;; Ensure point moves forward.
       (and (> beg-pos (point)) (goto-char beg-pos)))))
+
+(defun python-nav--syntactically (fn poscompfn &optional contextfn)
+  "Move point using FN avoiding places with specific context.
+FN must take no arguments.  POSCOMPFN is a two arguments function
+used to compare current and previous point after it is moved
+using FN, this is normally a less-than or greater-than
+comparison.  Optional argument CONTEXTFN defaults to
+`python-syntax-context-type' and is used for checking current
+point context, it must return a non-nil value if this point must
+be skipped."
+  (let ((contextfn (or contextfn 'python-syntax-context-type))
+        (start-pos (point-marker))
+        (prev-pos))
+    (catch 'found
+      (while t
+        (let* ((newpos
+                (and (funcall fn) (point-marker)))
+               (context (funcall contextfn)))
+          (cond ((and (not context) newpos
+                      (or (and (not prev-pos) newpos)
+                          (and prev-pos newpos
+                               (funcall poscompfn newpos prev-pos))))
+                 (throw 'found (point-marker)))
+                ((and newpos context)
+                 (setq prev-pos (point)))
+                (t (when (not newpos) (goto-char start-pos))
+                   (throw 'found nil))))))))
+
+(defun python-nav--forward-defun (arg)
+  "Internal implementation of python-nav-{backward,forward}-defun.
+Uses ARG to define which function to call, and how many times
+repeat it."
+  (let ((found))
+    (while (and (> arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-forward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '>)))
+      (setq arg (1- arg)))
+    (while (and (< arg 0)
+                (setq found
+                      (python-nav--syntactically
+                       (lambda ()
+                         (re-search-backward
+                          python-nav-beginning-of-defun-regexp nil t))
+                       '<)))
+      (setq arg (1+ arg)))
+    found))
+
+(defun python-nav-backward-defun (&optional arg)
+  "Navigate to closer defun backward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (- (or arg 1))))
+
+(defun python-nav-forward-defun (&optional arg)
+  "Navigate to closer defun forward ARG times.
+Unlikely `python-nav-beginning-of-defun' this doesn't care about
+nested definitions."
+  (interactive "^p")
+  (python-nav--forward-defun (or arg 1)))
 
 (defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
@@ -1603,7 +1681,7 @@ This variable, when set to a string, makes the values stored in
 `python-shell-process-environment' and `python-shell-exec-path'
 to be modified properly so shells are started with the specified
 virtualenv."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'python
   :safe 'stringp)
 
@@ -2644,8 +2722,8 @@ the if condition."
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
 
-(define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode."
+(define-abbrev-table 'python-mode-skeleton-abbrev-table ()
+  "Abbrev table for Python mode skeletons."
   :case-fixed t
   ;; Allow / inside abbrevs.
   :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
@@ -2658,19 +2736,23 @@ the if condition."
 (defmacro python-skeleton-define (name doc &rest skel)
   "Define a `python-mode' skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME and will
-be added to `python-mode-abbrev-table'."
+be added to `python-mode-skeleton-abbrev-table'."
   (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
-       (define-abbrev python-mode-abbrev-table ,name "" ',function-name
-         :system t)
+       (define-abbrev python-mode-skeleton-abbrev-table
+         ,name "" ',function-name :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
          ,(or doc
               (format "Insert %s statement." name))
          ,@skel))))
+
+(define-abbrev-table 'python-mode-abbrev-table ()
+  "Abbrev table for Python mode."
+  :parents (list python-mode-skeleton-abbrev-table))
 
 (defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
   "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.
@@ -2928,15 +3010,193 @@ Interactively, prompt for symbol."
 
 ;;; Imenu
 
-(defun python-imenu-prev-index-position ()
-  "Python mode's `imenu-prev-index-position-function'."
-  (let ((found))
-    (while (and (setq found
-                      (re-search-backward python-nav-beginning-of-defun-regexp nil t))
-                (not (python-info-looking-at-beginning-of-defun))))
-    (and found
-         (python-info-looking-at-beginning-of-defun)
-         (python-info-current-defun))))
+(defvar python-imenu-format-item-label-function
+  'python-imenu-format-item-label
+  "Imenu function used to format an item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar python-imenu-format-parent-item-label-function
+  'python-imenu-format-parent-item-label
+  "Imenu function used to format a parent item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defvar python-imenu-format-parent-item-jump-label-function
+  'python-imenu-format-parent-item-jump-label
+  "Imenu function used to format a parent jump item label.
+It must be a function with two arguments: TYPE and NAME.")
+
+(defun python-imenu-format-item-label (type name)
+  "Return imenu label for single node using TYPE and NAME."
+  (format "%s (%s)" name type))
+
+(defun python-imenu-format-parent-item-label (type name)
+  "Return imenu label for parent node using TYPE and NAME."
+  (format "%s..." (python-imenu-format-item-label type name)))
+
+(defun python-imenu-format-parent-item-jump-label (type name)
+  "Return imenu label for parent node jump using TYPE and NAME."
+  (if (string= type "class")
+      "*class definition*"
+    "*function definition*"))
+
+(defun python-imenu--put-parent (type name pos num-children tree &optional root)
+  "Add the parent with TYPE, NAME, POS and NUM-CHILDREN to TREE.
+Optional Argument ROOT must be non-nil when the node being
+processed is the root of the TREE."
+  (let ((label
+         (funcall python-imenu-format-item-label-function type name))
+        (jump-label
+         (funcall python-imenu-format-parent-item-jump-label-function type name)))
+    (if root
+        ;; This is the root, everything is a children.
+        (cons label (cons (cons jump-label pos) tree))
+      ;; This is node a which may contain some children.
+      (cons
+       (cons label (cons (cons jump-label pos)
+                         ;; Append all the children
+                         (python-util-popn tree num-children)))
+       ;; All previous non-children nodes.
+       (nthcdr num-children tree)))))
+
+(defun python-imenu--build-tree (&optional min-indent prev-indent num-children tree)
+  "Recursively build the tree of nested definitions of a node.
+Arguments MIN-INDENT PREV-INDENT NUM-CHILDREN and TREE are
+internal and should not be passed explicitly unless you know what
+you are doing."
+  (setq num-children (or num-children 0)
+        min-indent (or min-indent 0))
+  (let* ((pos (python-nav-backward-defun))
+         (type)
+         (name (when (and pos (looking-at python-nav-beginning-of-defun-regexp))
+                 (let ((split (split-string (match-string-no-properties 0))))
+                   (setq type (car split))
+                   (cadr split))))
+         (label (when name
+                  (funcall python-imenu-format-item-label-function type name)))
+         (indent (current-indentation)))
+    (cond ((not pos)
+           ;; No defun found, nothing to add.
+           tree)
+          ((equal indent 0)
+           (if (> num-children 0)
+               ;; Append it as the parent of everything collected to
+               ;; this point.
+               (python-imenu--put-parent type name pos num-children tree t)
+             ;; There are no children, this is a lonely defun.
+             (cons label pos)))
+          ((equal min-indent indent)
+           ;; Stop collecting nodes after moving to a position with
+           ;; indentation equaling min-indent. This is specially
+           ;; useful for navigating nested definitions recursively.
+           tree)
+          (t
+           (python-imenu--build-tree
+            min-indent
+            indent
+            ;; Add another children, either when this is the
+            ;; first call or when indentation is
+            ;; less-or-equal than previous. And do not
+            ;; discard the number of children, because the
+            ;; way code is scanned, all children are
+            ;; collected until a root node yet to be found
+            ;; appears.
+            (if (or (not prev-indent)
+                    (and
+                     (> indent min-indent)
+                     (<= indent prev-indent)))
+                (1+ num-children)
+              num-children)
+            (cond ((not prev-indent)
+                   ;; First call to the function: append this
+                   ;; defun to the index.
+                   (list (cons label pos)))
+                  ((= indent prev-indent)
+                   ;; Add another defun with the same depth
+                   ;; as the previous.
+                   (cons (cons label pos) tree))
+                  ((and (< indent prev-indent)
+                        (< 0 num-children))
+                   ;; There are children to be appended and
+                   ;; the previous defun had more
+                   ;; indentation, the current one must be a
+                   ;; parent.
+                   (python-imenu--put-parent type name pos num-children tree))
+                  ((> indent prev-indent)
+                   ;; There are children defuns deeper than
+                   ;; current depth. Fear not, we already
+                   ;; know how to treat them.
+                   (cons
+                    (prog1
+                        (python-imenu--build-tree
+                         prev-indent indent 1 (list (cons label pos)))
+                      ;; Adjustment: after scanning backwards
+                      ;; for all deeper children, we need to
+                      ;; continue our scan for a parent from
+                      ;; the current defun we are looking at.
+                      (python-nav-forward-defun))
+                    tree))))))))
+
+(defun python-imenu-create-index ()
+  "Return tree Imenu alist for the current python buffer.
+Change `python-imenu-format-item-label-function',
+`python-imenu-format-parent-item-label-function',
+`python-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted."
+  (goto-char (point-max))
+  (let ((index)
+        (tree))
+    (while (setq tree (python-imenu--build-tree))
+      (setq index (cons tree index)))
+    index))
+
+(defun python-imenu-create-flat-index (&optional alist prefix)
+  "Return flat outline of the current python buffer for Imenu.
+Optional Argument ALIST is the tree to be flattened, when nil
+`python-imenu-build-index' is used with
+`python-imenu-format-parent-item-jump-label-function'
+`python-imenu-format-parent-item-label-function'
+`python-imenu-format-item-label-function' set to (lambda (type
+name) name).  Optional Argument PREFIX is used in recursive calls
+and should not be passed explicitly.
+
+Converts this:
+
+    \((\"Foo\" . 103)
+     (\"Bar\" . 138)
+     (\"decorator\"
+      (\"decorator\" . 173)
+      (\"wrap\"
+       (\"wrap\" . 353)
+       (\"wrapped_f\" . 393))))
+
+To this:
+
+    \((\"Foo\" . 103)
+     (\"Bar\" . 138)
+     (\"decorator\" . 173)
+     (\"decorator.wrap\" . 353)
+     (\"decorator.wrapped_f\" . 393))"
+  ;; Inspired by imenu--flatten-index-alist removed in revno 21853.
+  (apply
+   'nconc
+   (mapcar
+    (lambda (item)
+      (let ((name (if prefix
+                      (concat prefix "." (car item))
+                    (car item)))
+            (pos (cdr item)))
+        (cond ((or (numberp pos) (markerp pos))
+               (list (cons name pos)))
+              ((listp pos)
+               (cons
+                (cons name (cdar pos))
+                (python-imenu-create-flat-index (cddr item) name))))))
+    (or alist
+        (let* ((fn (lambda (type name) name))
+               (python-imenu-format-item-label-function fn)
+              (python-imenu-format-parent-item-label-function fn)
+              (python-imenu-format-parent-item-jump-label-function fn))
+          (python-imenu-create-index))))))
 
 
 ;;; Misc helpers
@@ -3257,6 +3517,22 @@ Optional argument DIRECTION defines the direction to move to."
       (goto-char comment-start))
     (forward-comment factor)))
 
+(defun python-util-popn (lst n)
+  "Return LST first N elements.
+N should be an integer, when it's a natural negative number its
+opposite is used.  When N is bigger than the length of LST, the
+list is returned as is."
+  (let* ((n (min (abs n)))
+         (len (length lst))
+         (acc))
+    (if (> n len)
+        lst
+      (while (< 0 n)
+        (setq acc (cons (car lst) acc)
+              lst (cdr lst)
+              n (1- n)))
+      (reverse acc))))
+
 
 ;;;###autoload
 (define-derived-mode python-mode prog-mode "Python"
@@ -3302,11 +3578,8 @@ if that value is non-nil."
   (add-hook 'post-self-insert-hook
             'python-indent-post-self-insert-function nil 'local)
 
-  (set (make-local-variable 'imenu-extract-index-name-function)
-       #'python-info-current-defun)
-
-  (set (make-local-variable 'imenu-prev-index-position-function)
-       #'python-imenu-prev-index-position)
+  (set (make-local-variable 'imenu-create-index-function)
+       #'python-imenu-create-index)
 
   (set (make-local-variable 'add-log-current-defun-function)
        #'python-info-current-defun)

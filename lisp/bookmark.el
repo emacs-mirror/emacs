@@ -170,7 +170,7 @@ A non-nil value may result in truncated bookmark names."
 (defcustom bookmark-search-delay 0.2
   "Time before `bookmark-bmenu-search' updates the display."
   :group 'bookmark
-  :type  'integer)
+  :type  'number)
 
 (defface bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
@@ -427,8 +427,8 @@ just return it."
   "Prompting with PROMPT, read a bookmark name in completion.
 PROMPT will get a \": \" stuck on the end no matter what, so you
 probably don't want to include one yourself.
-Optional second arg DEFAULT is a string to return if the user enters
-the empty string."
+Optional arg DEFAULT is a string to return if the user input is empty.
+If DEFAULT is nil then return empty string for empty input."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
       (bookmark-menu-popup-paned-menu t prompt
@@ -437,22 +437,17 @@ the empty string."
 						'string-lessp)
 					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
-	   (default default)
+           (default (unless (equal "" default) default))
 	   (prompt (concat prompt (if default
                                       (format " (%s): " default)
-                                    ": ")))
-	   (str
-	    (completing-read prompt
-			     (lambda (string pred action)
-                               (if (eq action 'metadata)
-                                   '(metadata (category . bookmark))
-                                 (complete-with-action
-                                  action bookmark-alist string pred)))
-			     nil
-			     0
-			     nil
-			     'bookmark-history)))
-      (if (string-equal "" str) default str))))
+                                    ": "))))
+      (completing-read prompt
+                       (lambda (string pred action)
+                         (if (eq action 'metadata)
+                             '(metadata (category . bookmark))
+                             (complete-with-action
+                              action bookmark-alist string pred)))
+                       nil 0 nil 'bookmark-history default))))
 
 
 (defmacro bookmark-maybe-historicize-string (string)
@@ -1582,8 +1577,8 @@ deletion, or > if it is flagged for displaying."
     (if bookmark-bmenu-use-header-line
 	(bookmark-bmenu-set-header)
       (forward-line bookmark-bmenu-inline-header-height))
-    (if bookmark-bmenu-toggle-filenames
-        (bookmark-bmenu-toggle-filenames t))))
+    (when (and bookmark-alist bookmark-bmenu-toggle-filenames)
+      (bookmark-bmenu-toggle-filenames t))))
 
 ;;;###autoload
 (defalias 'list-bookmarks 'bookmark-bmenu-list)
@@ -1998,7 +1993,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                        (progn (end-of-line) (point))))))
         (o-col     (current-column)))
     (goto-char (point-min))
-    (forward-line 1)
+    (unless bookmark-bmenu-use-header-line
+      (forward-line 1))
     (while (re-search-forward "^D" (point-max) t)
       (bookmark-delete (bookmark-bmenu-bookmark) t)) ; pass BATCH arg
     (bookmark-bmenu-list)
@@ -2186,8 +2182,7 @@ strings returned are not."
   "Save bookmark state, if necessary, at Emacs exit time.
 This also runs `bookmark-exit-hook'."
   (run-hooks 'bookmark-exit-hook)
-  (and bookmark-alist
-       (bookmark-time-to-save-p t)
+  (and (bookmark-time-to-save-p t)
        (bookmark-save)))
 
 (unless noninteractive

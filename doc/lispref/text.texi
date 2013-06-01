@@ -3008,27 +3008,31 @@ character.
 @item face
 @cindex face codes of text
 @kindex face @r{(text property)}
-The @code{face} property controls the appearance of the character,
-such as its font and color.  @xref{Faces}.  The value of the property
-can be the following:
+The @code{face} property controls the appearance of the character
+(@pxref{Faces}).  The value of the property can be the following:
 
 @itemize @bullet
 @item
 A face name (a symbol or string).
 
 @item
-A property list of face attributes.  This has the form (@var{keyword}
-@var{value} @dots{}), where each @var{keyword} is a face attribute
-name and @var{value} is a meaningful value for that attribute.  With
-this feature, you do not need to create a face each time you want to
-specify a particular attribute for certain text.
+An anonymous face: a property list of the form @code{(@var{keyword}
+@var{value} @dots{})}, where each @var{keyword} is a face attribute
+name and @var{value} is a value for that attribute.
 
 @item
-A list of faces.  This specifies a face which is an aggregate of the
+A list of faces.  Each list element should be either a face name or an
+anonymous face.  This specifies a face which is an aggregate of the
 attributes of each of the listed faces.  Faces occurring earlier in
-the list have higher priority.  Each list element must have one of the
-two above forms (i.e., either a face name or a property list of face
-attributes).
+the list have higher priority.
+
+@item
+A cons cell of the form @code{(foreground-color . @var{color-name})}
+or @code{(background-color . @var{color-name})}.  This specifies the
+foreground or background color, similar to @code{(:foreground
+@var{color-name})} or @code{(:background @var{color-name})}.  This
+form is supported for backward compatibility only, and should be
+avoided.
 @end itemize
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by

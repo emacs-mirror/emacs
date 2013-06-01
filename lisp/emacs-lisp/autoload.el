@@ -52,7 +52,10 @@ FormFeed character.")
 
 (defvar generated-autoload-load-name nil
   "Load name for `autoload' statements generated from autoload cookies.
-If nil, this defaults to the file name, sans extension.")
+If nil, this defaults to the file name, sans extension.
+Typically, you need to set this when the directory containing the file
+is not in `load-path'.
+This also affects the generated cus-load.el file.")
 ;;;###autoload
 (put 'generated-autoload-load-name 'safe-local-variable 'stringp)
 

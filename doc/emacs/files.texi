@@ -705,13 +705,27 @@ setting the latter variable, you can control how these modes handle
 final newlines.
 
 @vindex write-region-inhibit-fsync
-  When Emacs saves a file, it invokes the @code{fsync} system call to
-force the data immediately out to disk.  This is important for safety
-if the system crashes or in case of power outage.  However, it can be
-disruptive on laptops using power saving, as it may force a disk
-spin-up each time you save a file.  If you accept an increased risk of
-data loss, you can set @code{write-region-inhibit-fsync} to a
-non-@code{nil} value to disable the synchronization.
+  Normally, when a program writes a file, the operating system briefly
+caches the file's data in main memory before committing the data to
+disk.  This can greatly improve performance; for example, when running
+on laptops, it can avoid a disk spin-up each time a file is written.
+However, it risks data loss if the operating system crashes before
+committing the cache to disk.
+
+  To lessen this risk, Emacs can invoke the @code{fsync} system call
+after saving a file.  Using @code{fsync} does not eliminate the risk
+of data loss, partly because many systems do not implement
+@code{fsync} properly, and partly because Emacs's file-saving
+procedure typically relies also on directory updates that might not
+survive a crash even if @code{fsync} works properly.
+
+  The @code{write-region-inhibit-fsync} variable controls whether
+Emacs invokes @code{fsync} after saving a file.  The variable's
+default value is @code{nil} when Emacs is interactive, and @code{t}
+when Emacs runs in batch mode.
+
+  Emacs never uses @code{fsync} when writing auto-save files, as these
+files might lose data anyway.
 
 @node Interlocking
 @subsection Protection against Simultaneous Editing

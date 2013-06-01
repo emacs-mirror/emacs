@@ -4,6 +4,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: tools, hypermedia
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +22,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file is obsolete.
 
 ;; This package provides an interface to Xesam, a D-Bus based "eXtEnsible
 ;; Search And Metadata specification".  It has been tested with
@@ -264,8 +267,9 @@ fields are supported.")
 (declare-function dbus-get-unique-name "dbusbind.c" (bus))
 
 (defvar xesam-dbus-unique-names
-  (list (cons :system (dbus-get-unique-name :system))
-	(cons :session (dbus-get-unique-name :session)))
+  (ignore-errors
+    (list (cons :system (dbus-get-unique-name :system))
+	  (cons :session (dbus-get-unique-name :session))))
   "The unique names, under which Emacs is registered at D-Bus.")
 
 (defun xesam-dbus-call-method (&rest args)

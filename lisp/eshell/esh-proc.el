@@ -25,9 +25,7 @@
 
 (provide 'esh-proc)
 
-(eval-when-compile
-  (require 'eshell)
-  (require 'esh-util))
+(require 'esh-cmd)
 
 (defgroup eshell-proc nil
   "When Eshell invokes external commands, it always does so

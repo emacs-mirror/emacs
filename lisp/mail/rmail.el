@@ -4105,6 +4105,9 @@ The message should be narrowed to just the headers."
 
 (autoload 'mail-position-on-field "sendmail")
 
+(declare-function rmail-mime-message-p "rmailmm" ())
+(declare-function rmail-mime-toggle-raw "rmailmm" (&optional state))
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -4117,7 +4120,13 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (if rmail-enable-mime
+  ;; FIXME This does not handle rmail-mime-feature != 'rmailmm.
+  ;; There is no API defined for rmail-mime-feature to provide
+  ;; rmail-mime-message-p, rmail-mime-toggle-raw equivalents.
+  ;; But does anyone actually use rmail-mime-feature != 'rmailmm?
+  (if (and rmail-enable-mime
+	   (eq rmail-mime-feature 'rmailmm)
+	   (featurep rmail-mime-feature))
       (with-current-buffer rmail-buffer
 	(if (rmail-mime-message-p)
 	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
@@ -4301,8 +4310,6 @@ This has an effect only if a summary buffer exists."
                  (restore-buffer-modified-p nil)))))))
 
 ;;; Speedbar support for RMAIL files.
-(eval-when-compile (require 'speedbar))
-
 (defcustom rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
   "Regexp matching Rmail folder names to be displayed in Speedbar.
 Enabling this permits Speedbar to display your folders for easy
@@ -4317,12 +4324,12 @@ browsing, and moving of messages."
 (defvar rmail-speedbar-key-map nil
   "Keymap used when in rmail display mode.")
 
+(declare-function speedbar-make-specialized-keymap "speedbar" ())
+
 (defun rmail-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance rmail."
-  (if rmail-speedbar-key-map
-      nil
+  (unless rmail-speedbar-key-map
     (setq rmail-speedbar-key-map (speedbar-make-specialized-keymap))
-
     (define-key rmail-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "r" 'speedbar-edit-line)
     (define-key rmail-speedbar-key-map "\C-m" 'speedbar-edit-line)
@@ -4336,6 +4343,9 @@ browsing, and moving of messages."
      (save-excursion (beginning-of-line)
 		     (looking-at "<M> "))])
   "Additional menu-items to add to speedbar frame.")
+
+(declare-function speedbar-insert-button "speedbar"
+		  (text face mouse function &optional token prevline))
 
 ;; Make sure our special speedbar major mode is loaded
 (if (featurep 'speedbar)
@@ -4378,18 +4388,26 @@ current message into that RMAIL folder."
 	    (speedbar-insert-button file 'speedbar-file-face 'highlight
 				    'rmail-speedbar-find-file nil t)))))))
 
+(eval-when-compile (require 'dframe))
+;; Part of the macro expansion of dframe-with-attached-buffer.
+;; At runtime, will be pulled in as a require of speedbar.
+(declare-function dframe-select-attached-frame "dframe" (&optional frame))
+(declare-function dframe-maybee-jump-to-attached-frame "dframe" ())
+
 (defun rmail-speedbar-button (text token indent)
   "Execute an rmail command specified by TEXT.
 The command used is TOKEN.  INDENT is not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (funcall token t)))
 
 (defun rmail-speedbar-find-file (text token indent)
   "Load in the rmail file TEXT.
 TOKEN and INDENT are not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (message "Loading in RMAIL file %s..." text)
    (rmail text)))
+
+(declare-function speedbar-do-function-pointer "speedbar" ())
 
 (defun rmail-speedbar-move-message-to-folder-on-line ()
   "If the current line is a folder, move current message to it."
@@ -4404,7 +4422,7 @@ TOKEN and INDENT are not used."
 (defun rmail-speedbar-move-message (text token indent)
   "From button TEXT, copy current message to the rmail file specified by TOKEN.
 TEXT and INDENT are not used."
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (message "Moving message to %s" token)
    ;; expand-file-name is needed due to the unhelpful way in which
    ;; rmail-output expands non-absolute filenames against rmail-default-file.
@@ -4752,7 +4770,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "119ce8b431f01e7f54bb6fa99603b3d9")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "61e7ad0931be1e07034dd57825ff326a")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

@@ -317,7 +317,9 @@ Otherwise, don't move point."
 	result)
     (save-excursion
       (when pos (goto-char pos))
-      (forward-line 1)
+      (forward-line 0)
+      ;; Treat "---" separator lines as part of the following revision.
+      (forward-line (if (looking-at "-\\{20,\\}$") 2 1))
       (while looping
 	(setq pos (re-search-backward log-view-message-re nil 'move)
 	      looping (and pos (log-view-inside-comment-p (point)))))

@@ -67,7 +67,7 @@ extern void unblock_input_to (int);
 BLOCKINPUT_INLINE bool
 input_blocked_p (void)
 {
-  return 0 < interrupt_input_blocked;
+  return interrupt_input_blocked > 0;
 }
 
 INLINE_HEADER_END

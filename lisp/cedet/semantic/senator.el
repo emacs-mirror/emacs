@@ -727,7 +727,13 @@ kill ring."
   (semantic-fetch-tags)
   (let ((ft (semantic-obtain-foreign-tag)))
     (when ft
-      (set-register register ft)
+      (set-register
+       register (registerv-make
+                 ft
+                 :insert-func #'semantic-insert-foreign-tag
+                 :jump-func (lambda (v)
+                              (switch-to-buffer (semantic-tag-buffer v))
+                              (goto-char (semantic-tag-start v)))))
       (if kill-flag
           (kill-region (semantic-tag-start ft)
                        (semantic-tag-end ft))))))

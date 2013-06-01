@@ -151,7 +151,7 @@ See `semantic-tag-similar-p' for details."
    ;; Added for performance when testing a relatively common case in some uses
    ;; of this code.
    (eq tag1 tag2)
-   ;; More complex similarness test.
+   ;; More complex similarity test.
    (let* ((ignore (append ignorable-attributes semantic-tag-similar-ignorable-attributes))
 	  (A1 (and (semantic--tag-similar-names-p tag1 tag2 (memq :name ignore))
 		   (semantic--tag-similar-types-p tag1 tag2)

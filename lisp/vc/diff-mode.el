@@ -124,7 +124,6 @@ when editing big diffs)."
     ("A" . diff-ediff-patch)
     ("r" . diff-restrict-view)
     ("R" . diff-reverse-direction)
-    ("/" . diff-undo)
     ([remap undo] . diff-undo))
   "Basic keymap for `diff-mode', bound to various prefix keys."
   :inherit special-mode-map)

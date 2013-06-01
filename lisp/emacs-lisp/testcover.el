@@ -100,14 +100,14 @@ current global map.  The macro `lambda' is self-evaluating, hence always
 returns the same value (the function it defines may return varying values
 when called)."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-noreturn-functions
   '(error noreturn throw signal)
   "Subset of `testcover-1value-functions' -- these never return.  We mark
 them as having returned nil just before calling them."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-compose-functions
   '(+ - * / = append length list make-keymap make-sparse-keymap
@@ -118,7 +118,7 @@ calls to one of the `testcover-1value-functions', so if that's true then no
 brown splotch is shown for these.  This list is quite incomplete!  Most
 side-effect-free functions should be here."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-progn-functions
   '(define-key fset function goto-char mapc overlay-put progn
@@ -132,7 +132,7 @@ brown splotch is shown for these if the last argument is a constant or a
 call to one of the `testcover-1value-functions'.  This list is probably
 incomplete!"
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-prog1-functions
   '(prog1 unwind-protect)
@@ -140,7 +140,7 @@ incomplete!"
 brown splotch is shown for these if the first argument is a constant or a
 call to one of the `testcover-1value-functions'."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-potentially-1value-functions
   '(add-hook and beep or remove-hook unless when)

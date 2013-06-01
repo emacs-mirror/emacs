@@ -1125,6 +1125,14 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom list-matching-lines-prefix-face 'shadow
+  "Face used by \\[list-matching-lines] to show the prefix column.
+If the face doesn't differ from the default face,
+don't highlight the prefix with line numbers specially."
+  :type 'face
+  :group 'matching
+  :version "24.4")
+
 (defcustom occur-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link)
@@ -1334,7 +1342,9 @@ See also `multi-occur'."
 		      (isearch-no-upper-case-p regexp t)
 		    case-fold-search)
 		  list-matching-lines-buffer-name-face
-		  nil list-matching-lines-face
+		  (if (face-differs-from-default-p list-matching-lines-prefix-face)
+		      list-matching-lines-prefix-face)
+		  list-matching-lines-face
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
@@ -1423,7 +1433,7 @@ See also `multi-occur'."
 			    (apply #'propertize (format "%7d:" lines)
 				   (append
 				    (when prefix-face
-				      `(font-lock-face prefix-face))
+				      `(font-lock-face ,prefix-face))
 				    `(occur-prefix t mouse-face (highlight)
 				      ;; Allow insertion of text at
 				      ;; the end of the prefix (for
@@ -1447,7 +1457,9 @@ See also `multi-occur'."
 			     ;; of multi-line matches.
 			     (replace-regexp-in-string
 			      "\n"
-			      "\n       :"
+			      (if prefix-face
+				  (propertize "\n       :" 'font-lock-face prefix-face)
+				"\n       :")
 			      match-str)
 			     ;; Add marker at eol, but no mouse props.
 			     (propertize "\n" 'occur-target marker)))
@@ -1458,7 +1470,8 @@ See also `multi-occur'."
 			      ;; The complex multi-line display style.
 			      (setq ret (occur-context-lines
 					 out-line nlines keep-props begpt endpt
-					 lines prev-lines prev-after-lines))
+					 lines prev-lines prev-after-lines
+					 prefix-face))
 			      ;; Set first elem of the returned list to `data',
 			      ;; and the second elem to `prev-after-lines'.
 			      (setq prev-after-lines (nth 1 ret))
@@ -1482,7 +1495,7 @@ See also `multi-occur'."
 		(when prev-after-lines
 		  (with-current-buffer out-buf
 		    (insert (apply #'concat (occur-engine-add-prefix
-					     prev-after-lines)))))))
+					     prev-after-lines prefix-face)))))))
 	    (when (not (zerop matches)) ;; is the count zero?
 	      (setq globalcount (+ globalcount matches))
 	      (with-current-buffer out-buf
@@ -1537,10 +1550,13 @@ See also `multi-occur'."
 	str)
     (buffer-substring-no-properties beg end)))
 
-(defun occur-engine-add-prefix (lines)
+(defun occur-engine-add-prefix (lines &optional prefix-face)
   (mapcar
    #'(lambda (line)
-       (concat "       :" line "\n"))
+       (concat (if prefix-face
+		   (propertize "       :" 'font-lock-face prefix-face)
+		 "       :")
+	       line "\n"))
    lines))
 
 (defun occur-accumulate-lines (count &optional keep-props pt)
@@ -1569,7 +1585,8 @@ See also `multi-occur'."
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
-				     lines prev-lines prev-after-lines)
+				     lines prev-lines prev-after-lines
+				     &optional prefix-face)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
 	 (nreverse (cdr (occur-accumulate-lines
@@ -1609,10 +1626,13 @@ See also `multi-occur'."
      ;; Return a list where the first element is the output line.
      (apply #'concat
 	    (append
-	     (and prev-after-lines
-		  (occur-engine-add-prefix prev-after-lines))
-	     (and separator (list separator))
-	     (occur-engine-add-prefix before-lines)
+	     (if prev-after-lines
+		 (occur-engine-add-prefix prev-after-lines prefix-face))
+	     (if separator
+		 (list (if prefix-face
+			   (propertize separator 'font-lock-face prefix-face)
+			 separator)))
+	     (occur-engine-add-prefix before-lines prefix-face)
 	     (list out-line)))
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))
@@ -1818,6 +1838,68 @@ It is used by `query-replace-regexp', `replace-regexp',
 It is called with three arguments, as if it were
 `re-search-forward'.")
 
+(defun replace-search (search-string limit regexp-flag delimited-flag
+				     case-fold-search)
+  "Search for the next occurence of SEARCH-STRING to replace."
+  ;; Let-bind global isearch-* variables to values used
+  ;; to search the next replacement.  These let-bindings
+  ;; should be effective both at the time of calling
+  ;; `isearch-search-fun-default' and also at the
+  ;; time of funcalling `search-function'.
+  ;; These isearch-* bindings can't be placed higher
+  ;; outside of this function because then another I-search
+  ;; used after `recursive-edit' might override them.
+  (let* ((isearch-regexp regexp-flag)
+	 (isearch-word delimited-flag)
+	 (isearch-lax-whitespace
+	  replace-lax-whitespace)
+	 (isearch-regexp-lax-whitespace
+	  replace-regexp-lax-whitespace)
+	 (isearch-case-fold-search case-fold-search)
+	 (isearch-adjusted nil)
+	 (isearch-nonincremental t)	; don't use lax word mode
+	 (isearch-forward t)
+	 (search-function
+	  (or (if regexp-flag
+		  replace-re-search-function
+		replace-search-function)
+	      (isearch-search-fun-default))))
+    (funcall search-function search-string limit t)))
+
+(defvar replace-overlay nil)
+
+(defun replace-highlight (match-beg match-end range-beg range-end
+			  search-string regexp-flag delimited-flag
+			  case-fold-search)
+  (if query-replace-highlight
+      (if replace-overlay
+	  (move-overlay replace-overlay match-beg match-end (current-buffer))
+	(setq replace-overlay (make-overlay match-beg match-end))
+	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
+	(overlay-put replace-overlay 'face 'query-replace)))
+  (if query-replace-lazy-highlight
+      (let ((isearch-string search-string)
+	    (isearch-regexp regexp-flag)
+	    (isearch-word delimited-flag)
+	    (isearch-lax-whitespace
+	     replace-lax-whitespace)
+	    (isearch-regexp-lax-whitespace
+	     replace-regexp-lax-whitespace)
+	    (isearch-case-fold-search case-fold-search)
+	    (isearch-forward t)
+	    (isearch-other-end match-beg)
+	    (isearch-error nil))
+	(isearch-lazy-highlight-new-loop range-beg range-end))))
+
+(defun replace-dehighlight ()
+  (when replace-overlay
+    (delete-overlay replace-overlay))
+  (when query-replace-lazy-highlight
+    (lazy-highlight-cleanup lazy-highlight-cleanup)
+    (setq isearch-lazy-highlight-last-string nil))
+  ;; Close overlays opened by `isearch-range-invisible' in `perform-replace'.
+  (isearch-clean-overlays))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
@@ -1905,62 +1987,40 @@ make, or the user didn't cancel the call."
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
 		    (not (or (eobp) (and limit (>= (point) limit))))
-		    ;; Let-bind global isearch-* variables to values used
-		    ;; to search the next replacement.  These let-bindings
-		    ;; should be effective both at the time of calling
-		    ;; `isearch-search-fun-default' and also at the
-		    ;; time of funcalling `search-function'.
-		    ;; These isearch-* bindings can't be placed higher
-		    ;; outside of this loop because then another I-search
-		    ;; used after `recursive-edit' might override them.
-		    (let* ((isearch-regexp regexp-flag)
-			   (isearch-word delimited-flag)
-			   (isearch-lax-whitespace
-			    replace-lax-whitespace)
-			   (isearch-regexp-lax-whitespace
-			    replace-regexp-lax-whitespace)
-			   (isearch-case-fold-search case-fold-search)
-			   (isearch-adjusted nil)
-			   (isearch-nonincremental t) ; don't use lax word mode
-			   (isearch-forward t)
-			   (search-function
-			    (or (if regexp-flag
-				    replace-re-search-function
-				  replace-search-function)
-				(isearch-search-fun-default))))
-		      ;; Use the next match if it is already known;
-		      ;; otherwise, search for a match after moving forward
-		      ;; one char if progress is required.
-		      (setq real-match-data
-			    (cond ((consp match-again)
-				   (goto-char (nth 1 match-again))
-				   (replace-match-data
-				    t real-match-data match-again))
-				  ;; MATCH-AGAIN non-nil means accept an
-				  ;; adjacent match.
-				  (match-again
-				   (and
-				    (funcall search-function search-string
-					     limit t)
-				    ;; For speed, use only integers and
-				    ;; reuse the list used last time.
-				    (replace-match-data t real-match-data)))
-				  ((and (< (1+ (point)) (point-max))
-					(or (null limit)
-					    (< (1+ (point)) limit)))
-				   ;; If not accepting adjacent matches,
-				   ;; move one char to the right before
-				   ;; searching again.  Undo the motion
-				   ;; if the search fails.
-				   (let ((opoint (point)))
-				     (forward-char 1)
-				     (if (funcall
-					  search-function search-string
-					  limit t)
-					 (replace-match-data
-					  t real-match-data)
-				       (goto-char opoint)
-				       nil)))))))
+		    ;; Use the next match if it is already known;
+		    ;; otherwise, search for a match after moving forward
+		    ;; one char if progress is required.
+		    (setq real-match-data
+			  (cond ((consp match-again)
+				 (goto-char (nth 1 match-again))
+				 (replace-match-data
+				  t real-match-data match-again))
+				;; MATCH-AGAIN non-nil means accept an
+				;; adjacent match.
+				(match-again
+				 (and
+				  (replace-search search-string limit
+						  regexp-flag delimited-flag
+						  case-fold-search)
+				  ;; For speed, use only integers and
+				  ;; reuse the list used last time.
+				  (replace-match-data t real-match-data)))
+				((and (< (1+ (point)) (point-max))
+				      (or (null limit)
+					  (< (1+ (point)) limit)))
+				 ;; If not accepting adjacent matches,
+				 ;; move one char to the right before
+				 ;; searching again.  Undo the motion
+				 ;; if the search fails.
+				 (let ((opoint (point)))
+				   (forward-char 1)
+				   (if (replace-search search-string limit
+						       regexp-flag delimited-flag
+						       case-fold-search)
+				       (replace-match-data
+					t real-match-data)
+				     (goto-char opoint)
+				     nil))))))
 
 	  ;; Record whether the match is nonempty, to avoid an infinite loop
 	  ;; repeatedly matching the same empty string.
@@ -1983,10 +2043,18 @@ make, or the user didn't cancel the call."
 				     match))))))
 
 	  ;; Optionally ignore matches that have a read-only property.
-	  (unless (and query-replace-skip-read-only
-		       (text-property-not-all
-			(nth 0 real-match-data) (nth 1 real-match-data)
-			'read-only nil))
+	  (when (and (or (not query-replace-skip-read-only)
+			 (not (text-property-not-all
+			       (nth 0 real-match-data) (nth 1 real-match-data)
+			       'read-only nil)))
+		     ;; Optionally filter out matches.
+		     (run-hook-with-args-until-failure
+		      'isearch-filter-predicates
+		      (nth 0 real-match-data) (nth 1 real-match-data))
+		     ;; Optionally ignore invisible matches.
+		     (or (eq search-invisible t)
+			 (not (isearch-range-invisible
+			       (nth 0 real-match-data) (nth 1 real-match-data)))))
 
 	    ;; Calculate the replacement string, if necessary.
 	    (when replacements
@@ -2200,37 +2268,5 @@ make, or the user didn't cancel the call."
 		 replace-count
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
-
-(defvar replace-overlay nil)
-
-(defun replace-highlight (match-beg match-end range-beg range-end
-			  search-string regexp-flag delimited-flag
-			  case-fold-search)
-  (if query-replace-highlight
-      (if replace-overlay
-	  (move-overlay replace-overlay match-beg match-end (current-buffer))
-	(setq replace-overlay (make-overlay match-beg match-end))
-	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
-	(overlay-put replace-overlay 'face 'query-replace)))
-  (if query-replace-lazy-highlight
-      (let ((isearch-string search-string)
-	    (isearch-regexp regexp-flag)
-	    (isearch-word delimited-flag)
-	    (isearch-lax-whitespace
-	     replace-lax-whitespace)
-	    (isearch-regexp-lax-whitespace
-	     replace-regexp-lax-whitespace)
-	    (isearch-case-fold-search case-fold-search)
-	    (isearch-forward t)
-	    (isearch-other-end match-beg)
-	    (isearch-error nil))
-	(isearch-lazy-highlight-new-loop range-beg range-end))))
-
-(defun replace-dehighlight ()
-  (when replace-overlay
-    (delete-overlay replace-overlay))
-  (when query-replace-lazy-highlight
-    (lazy-highlight-cleanup lazy-highlight-cleanup)
-    (setq isearch-lazy-highlight-last-string nil)))
 
 ;;; replace.el ends here

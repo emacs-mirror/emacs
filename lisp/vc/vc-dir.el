@@ -930,8 +930,6 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defvar use-vc-backend)  ;; dynamically bound
 
-;; Autoload cookie needed by desktop.el.
-;;;###autoload
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
 Marking/Unmarking key bindings and actions:
@@ -1300,6 +1298,8 @@ These are the commands available for use in the file status buffer:
 (defun vc-dir-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
   (cons (desktop-file-name default-directory dirname) vc-dir-backend))
+
+(defvar desktop-missing-file-warning)
 
 (defun vc-dir-restore-desktop-buffer (_filename _buffername misc-data)
   "Restore a `vc-dir' buffer specified in a desktop file."

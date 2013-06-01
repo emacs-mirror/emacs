@@ -42,9 +42,6 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
-(eval-when-compile
-  (require 'ediff))
-
 ;; end pacifier
 
 
@@ -3477,6 +3474,9 @@ Without an argument, it saves customized diff argument, if available
   (if (window-live-p ediff-control-window)
       (select-window ediff-control-window)))
 
+(declare-function ediff-regions-internal "ediff"
+		  (buffer-a beg-a end-a buffer-b beg-b end-b
+			    startup-hooks job-name word-mode setup-parameters))
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.

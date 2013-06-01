@@ -36,7 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <selinux/context.h>
 #endif
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
 #include <sys/acl.h>
 #endif
 
@@ -82,6 +82,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "systime.h"
+#include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
 #include <stat-time.h>
@@ -1969,7 +1970,7 @@ entries (depending on how Emacs was built).  */)
   security_context_t con;
   int conlength = 0;
 #endif
-#ifdef HAVE_POSIX_ACL
+#ifdef WINDOWSNT
   acl_t acl = NULL;
 #endif
 
@@ -2009,11 +2010,9 @@ entries (depending on how Emacs was built).  */)
 #ifdef WINDOWSNT
   if (!NILP (preserve_extended_attributes))
     {
-#ifdef HAVE_POSIX_ACL
       acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
-      if (acl == NULL && errno != ENOTSUP)
+      if (acl == NULL && acl_errno_valid (errno))
 	report_file_error ("Getting ACL", Fcons (file, Qnil));
-#endif
     }
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
@@ -2050,17 +2049,15 @@ entries (depending on how Emacs was built).  */)
       /* Restore original attributes.  */
       SetFileAttributes (filename, attributes);
     }
-#ifdef HAVE_POSIX_ACL
   if (acl != NULL)
     {
       bool fail =
 	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
-      if (fail && errno != ENOTSUP)
+      if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", Fcons (newname, Qnil));
 
       acl_free (acl);
     }
-#endif
 #else /* not WINDOWSNT */
   immediate_quit = 1;
   ifd = emacs_open (SSDATA (encoded_file), O_RDONLY, 0);
@@ -2083,12 +2080,6 @@ entries (depending on how Emacs was built).  */)
 	  if (conlength == -1)
 	    report_file_error ("Doing fgetfilecon", Fcons (file, Qnil));
 	}
-#endif
-
-#ifdef HAVE_POSIX_ACL
-      acl = acl_get_fd (ifd);
-      if (acl == NULL && errno != ENOTSUP)
-	report_file_error ("Getting ACL", Fcons (file, Qnil));
 #endif
     }
 
@@ -2137,7 +2128,7 @@ entries (depending on how Emacs was built).  */)
   immediate_quit = 0;
 
 #ifndef MSDOS
-  /* Preserve the original file modes, and if requested, also its
+  /* Preserve the original file permissions, and if requested, also its
      owner and group.  */
   {
     mode_t mode_mask = 07777;
@@ -2154,8 +2145,16 @@ entries (depending on how Emacs was built).  */)
 	      mode_mask |= 02000;
 	  }
       }
-    if (fchmod (ofd, st.st_mode & mode_mask) != 0)
-      report_file_error ("Doing chmod", Fcons (newname, Qnil));
+
+    switch (!NILP (preserve_extended_attributes)
+	    ? qcopy_acl (SSDATA (encoded_file), ifd,
+			 SSDATA (encoded_newname), ofd,
+			 st.st_mode & mode_mask)
+	    : fchmod (ofd, st.st_mode & mode_mask))
+      {
+      case -2: report_file_error ("Copying permissions from", list1 (file));
+      case -1: report_file_error ("Copying permissions to", list1 (newname));
+      }
   }
 #endif	/* not MSDOS */
 
@@ -2169,17 +2168,6 @@ entries (depending on how Emacs was built).  */)
 	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
 
       freecon (con);
-    }
-#endif
-
-#ifdef HAVE_POSIX_ACL
-  if (acl != NULL)
-    {
-      bool fail = acl_set_fd (ofd, acl) != 0;
-      if (fail && errno != ENOTSUP)
-	report_file_error ("Setting ACL", Fcons (newname, Qnil));
-
-      acl_free (acl);
     }
 #endif
 
@@ -2885,7 +2873,7 @@ file_accessible_directory_p (char const *file)
 	 and it's a safe optimization here.  */
       char *buf = SAFE_ALLOCA (len + 3);
       memcpy (buf, file, len);
-      strcpy (buf + len, "/." + (file[len - 1] == '/'));
+      strcpy (buf + len, &"/."[file[len - 1] == '/']);
       dir = buf;
     }
 
@@ -3092,7 +3080,7 @@ was unable to determine the ACL entries.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   acl_t acl;
   Lisp_Object acl_string;
   char *str;
@@ -3107,7 +3095,7 @@ was unable to determine the ACL entries.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_acl, absname);
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   absname = ENCODE_FILE (absname);
 
   acl = acl_get_file (SSDATA (absname), ACL_TYPE_ACCESS);
@@ -3145,7 +3133,7 @@ support.  */)
 {
   Lisp_Object absname;
   Lisp_Object handler;
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   Lisp_Object encoded_absname;
   acl_t acl;
   bool fail;
@@ -3159,7 +3147,7 @@ support.  */)
   if (!NILP (handler))
     return call3 (handler, Qset_file_acl, absname, acl_string);
 
-#ifdef HAVE_POSIX_ACL
+#ifdef HAVE_ACL_SET_FILE
   if (STRINGP (acl_string))
     {
       acl = acl_from_text (SSDATA (acl_string));
@@ -3174,7 +3162,7 @@ support.  */)
       fail = (acl_set_file (SSDATA (encoded_absname), ACL_TYPE_ACCESS,
 			    acl)
 	      != 0);
-      if (fail && errno != ENOTSUP)
+      if (fail && acl_errno_valid (errno))
 	report_file_error ("Setting ACL", Fcons (absname, Qnil));
 
       acl_free (acl);
@@ -3958,7 +3946,7 @@ by calling `format-decode', which see.  */)
 
 	  /* If display currently starts at beginning of line,
 	     keep it that way.  */
-	  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	  if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
 	    XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
 
 	  replace_handled = 1;
@@ -4108,7 +4096,7 @@ by calling `format-decode', which see.  */)
 
       /* If display currently starts at beginning of line,
 	 keep it that way.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+      if (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer)
 	XWINDOW (selected_window)->start_at_line_beg = !NILP (Fbolp ());
 
       /* Replace the chars that we need to replace,
@@ -4218,7 +4206,8 @@ by calling `format-decode', which see.  */)
 	       to be signaled after decoding the text we read.  */
 	    nbytes = internal_condition_case_1
 	      (read_non_regular,
-	       make_save_value ("iii", (ptrdiff_t) fd, inserted, trytry),
+	       make_save_value (SAVE_TYPE_INT_INT_INT, (ptrdiff_t) fd,
+				inserted, trytry),
 	       Qerror, read_non_regular_quit);
 
 	    if (NILP (nbytes))
@@ -4959,15 +4948,14 @@ This calls `write-region-annotate-functions' at the start, and
 
   immediate_quit = 0;
 
-  /* fsync appears to change the modtime on BSD4.2.
-     Disk full in NFS may be reported here.  */
-  /* mib says that closing the file will try to write as fast as NFS can do
-     it, and that means the fsync here is not crucial for autosave files.  */
+  /* fsync is not crucial for auto-save files, since they might lose
+     some work anyway.  */
   if (!auto_saving && !write_region_inhibit_fsync)
     {
-      /* Transfer data and metadata to disk, retrying if interrupted.  Also,
-	 ignore EINVAL which happens when fsync is not supported on this
-	 file.  */
+      /* Transfer data and metadata to disk, retrying if interrupted.
+	 fsync can report a write failure here, e.g., due to disk full
+	 under NFS.  But ignore EINVAL, which means fsync is not
+	 supported on this file.  */
       while (fsync (desc) != 0)
 	if (errno != EINTR)
 	  {
@@ -5012,7 +5000,7 @@ This calls `write-region-annotate-functions' at the start, and
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
       int desc1 = emacs_open (fn, O_WRONLY | O_BINARY, 0);
-      if (0 <= desc1)
+      if (desc1 >= 0)
 	{
 	  struct stat st1;
 	  if (fstat (desc1, &st1) == 0
@@ -5815,7 +5803,7 @@ before any other event (mouse or keypress) is handled.  */)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog
-      && have_menus_p ())
+      && window_system_available (SELECTED_FRAME ()))
     return Qt;
 #endif
   return Qnil;
@@ -6049,11 +6037,28 @@ in the buffer; this is the default behavior, because the auto-save
 file is usually more useful if it contains the deleted text.  */);
   Vauto_save_include_big_deletions = Qnil;
 
+  /* fsync can be a significant performance hit.  Often it doesn't
+     suffice to make the file-save operation survive a crash.  For
+     batch scripts, which are typically part of larger shell commands
+     that don't fsync other files, its effect on performance can be
+     significant so its utility is particularly questionable.
+     Hence, for now by default fsync is used only when interactive.
+
+     For more on why fsync often fails to work on today's hardware, see:
+     Zheng M et al. Understanding the robustness of SSDs under power fault.
+     11th USENIX Conf. on File and Storage Technologies, 2013 (FAST '13), 271-84
+     http://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf
+
+     For more on why fsync does not suffice even if it works properly, see:
+     Roche X. Necessary step(s) to synchronize filename operations on disk.
+     Austin Group Defect 672, 2013-03-19
+     http://austingroupbugs.net/view.php?id=672  */
   DEFVAR_BOOL ("write-region-inhibit-fsync", write_region_inhibit_fsync,
 	       doc: /* Non-nil means don't call fsync in `write-region'.
 This variable affects calls to `write-region' as well as save commands.
-A non-nil value may result in data loss!  */);
-  write_region_inhibit_fsync = 0;
+Setting this to nil may avoid data loss if the system loses power or
+the operating system crashes.  */);
+  write_region_inhibit_fsync = noninteractive;
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.

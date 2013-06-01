@@ -72,6 +72,14 @@ Grep finished (matches found) at Thu Jul 21 15:02:15
 agrep -n "INFO tree" ../info/*
 ../info/dir: 6: File: dir	Node: Top	This is the top of the INFO tree
 
+* git-grep
+  with `[diff "el"] xfuncname = "^(\\(.*)$"' in .gitconfig
+  and `*.el diff=el' in .gitattributes
+
+git grep -inH -p -e "org-element-map"
+lisp/org/org.el=20969=(defun org-fill-paragraph (&optional justify)
+lisp/org/org.el:21047:		      (org-element-map
+
 * unknown greps
 
 grep -nH -e "xyzxyz" ../info/*

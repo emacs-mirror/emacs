@@ -71,6 +71,8 @@ struct w32_palette_entry {
 };
 
 extern void w32_regenerate_palette (struct frame *f);
+extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
+                                 RECT *rect);
 
 
 /* For each display (currently only one on w32), we have a structure that
@@ -203,7 +205,6 @@ extern void x_focus_on_frame (struct frame *f);
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-extern void check_w32 (void);
 extern int w32_defined_color (FRAME_PTR f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
@@ -359,6 +360,12 @@ struct w32_output
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* Frame geometry and full-screen mode before it was resized by
+     specifying the 'fullscreen' frame parameter.  Used to restore the
+     geometry when 'fullscreen' is reset to nil.  */
+  WINDOWPLACEMENT normal_placement;
+  int prev_fsmode;
 };
 
 extern struct w32_output w32term_display;
@@ -390,6 +397,10 @@ extern struct w32_output w32term_display;
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
+
+#define FRAME_NORMAL_PLACEMENT(F) ((F)->output_data.w32->normal_placement)
+#define FRAME_PREV_FSMODE(F)      ((F)->output_data.w32->prev_fsmode)
+
 
 /* W32-specific scroll bar stuff.  */
 
@@ -727,7 +738,6 @@ struct image;
 struct face;
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
-struct frame * check_x_frame (Lisp_Object);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (

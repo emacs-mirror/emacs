@@ -55,7 +55,7 @@ make_log (int heap_size, int max_stack_depth)
   /* What is special about our hash-tables is that the keys are pre-filled
      with the vectors we'll put in them.  */
   int i = ASIZE (h->key_and_value) / 2;
-  while (0 < i)
+  while (i > 0)
     set_hash_key_slot (h, --i,
 		       Fmake_vector (make_number (max_stack_depth), Qnil));
   return log;
@@ -247,7 +247,7 @@ handle_profiler_signal (int signal)
       if (profiler_timer_ok)
 	{
 	  int overruns = timer_getoverrun (profiler_timer);
-	  eassert (0 <= overruns);
+	  eassert (overruns >= 0);
 	  count += overruns;
 	}
 #endif

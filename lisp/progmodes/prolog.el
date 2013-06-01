@@ -278,16 +278,16 @@
 
 ;;; Code:
 
+(require 'comint)
+
 (eval-when-compile
   (require 'font-lock)
   ;; We need imenu everywhere because of the predicate index!
   (require 'imenu)
   ;)
-  (require 'info)
   (require 'shell)
   )
 
-(require 'comint)
 (require 'easymenu)
 (require 'align)
 
@@ -772,6 +772,8 @@ Relevant only when `prolog-imenu-flag' is non-nil."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-underscore-wordchar-flag
+                        'superword-mode "24.4")
 
 (defcustom prolog-use-sicstus-sd nil
   "If non-nil, use the source level debugger of SICStus 3#7 and later."
@@ -785,6 +787,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   :version "24.1"
   :group 'prolog-other
   :type 'boolean)
+(make-obsolete-variable 'prolog-char-quote-workaround nil "24.1")
 
 
 ;;-------------------------------------------------------------------
@@ -802,10 +805,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   ;; - In atoms \x<hex> sometimes needs a terminating \ (ISO-style)
   ;;   and sometimes not.
   (let ((table (make-syntax-table)))
-    (if prolog-underscore-wordchar-flag
-        (modify-syntax-entry ?_ "w" table)
-      (modify-syntax-entry ?_ "_" table))
-
+    (modify-syntax-entry ?_ (if prolog-underscore-wordchar-flag "w" "_") table)
     (modify-syntax-entry ?+ "." table)
     (modify-syntax-entry ?- "." table)
     (modify-syntax-entry ?= "." table)
@@ -815,7 +815,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
     (modify-syntax-entry ?\' "\"" table)
 
     ;; Any better way to handle the 0'<char> construct?!?
-    (when prolog-char-quote-workaround
+    (when (and prolog-char-quote-workaround
+               (not (fboundp 'syntax-propertize-rules)))
       (modify-syntax-entry ?0 "\\" table))
 
     (modify-syntax-entry ?% "<" table)
@@ -1770,7 +1771,8 @@ This function must be called from the source code buffer."
                                              real-file))
     (with-current-buffer buffer
       (goto-char (point-max))
-      (set-process-filter process 'prolog-consult-compile-filter)
+      (add-function :override (process-filter process)
+                    #'prolog-consult-compile-filter)
       (process-send-string "prolog" command-string)
       ;; (prolog-build-prolog-command compilep file real-file first-line))
       (while (and prolog-process-flag
@@ -1781,7 +1783,8 @@ This function must be called from the source code buffer."
       (insert (if compilep
                   "\nCompilation finished.\n"
                 "\nConsulted.\n"))
-      (set-process-filter process old-filter))))
+      (remove-function (process-filter process)
+                       #'prolog-consult-compile-filter))))
 
 (defvar compilation-error-list)
 
@@ -3027,11 +3030,14 @@ The rest of the elements are undefined."
         (error "Sorry, no help method defined for this Prolog system."))))
    ))
 
+
+(autoload 'Info-goto-node "info" nil t)
+(declare-function Info-follow-nearest-node "info" (&optional FORK))
+
 (defun prolog-help-info (predicate)
   (let ((buffer (current-buffer))
         oldp
         (str (concat "^\\* " (regexp-quote predicate) " */")))
-    (require 'info)
     (pop-to-buffer nil)
     (Info-goto-node prolog-info-predicate-index)
     (if (not (re-search-forward str nil t))
@@ -3120,7 +3126,6 @@ Only for internal use by `prolog-find-documentation'")
 (defun prolog-goto-predicate-info (predicate)
   "Go to the info page for PREDICATE, which is a PredSpec."
   (interactive)
-  (require 'info)
   (string-match "\\(.*\\)/\\([0-9]+\\).*$" predicate)
   (let ((buffer (current-buffer))
         (name (match-string 1 predicate))

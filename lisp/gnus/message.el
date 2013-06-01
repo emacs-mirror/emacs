@@ -527,7 +527,7 @@ If t, use `message-user-organization-file'."
 	(setq orgfile f)))
     orgfile)
   "*Local news organization file."
-  :type 'file
+  :type '(choice (const nil) file)
   :link '(custom-manual "(message)News Headers")
   :group 'message-headers)
 
@@ -1098,9 +1098,9 @@ e.g. using `gnus-posting-styles':
 
   (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
   :version "24.1"
-  :type '(choice (const :tag "Reply inline" 'traditional)
-		 (const :tag "Reply above" 'above)
-		 (const :tag "Reply below" 'below))
+  :type '(choice (const :tag "Reply inline" traditional)
+		 (const :tag "Reply above" above)
+		 (const :tag "Reply below" below))
   :group 'message-insertion)
 
 (defcustom message-cite-style nil
@@ -2939,7 +2939,6 @@ C-c M-n  `message-insert-disposition-notification-to'  (request receipt).
 C-c M-m  `message-mark-inserted-region' (mark region with enclosing tags).
 C-c M-f  `message-mark-insert-file' (insert file marked with enclosing tags).
 M-RET    `message-newline-and-reformat' (break the line and reformat)."
-  (setq local-abbrev-table text-mode-abbrev-table)
   (set (make-local-variable 'message-reply-buffer) nil)
   (set (make-local-variable 'message-inserted-headers) nil)
   (set (make-local-variable 'message-send-actions) nil)
@@ -3945,18 +3944,19 @@ See `message-citation-line-format'."
 	    (let ((i ?A) lst)
 	      (when (stringp name)
 		;; Guess first name and last name:
-		(cond ((string-match
-			"\\`\\(\\w\\|[-.]\\)+ \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 0 (split-string name "[ \t]+"))
-			     lname (nth 1 (split-string name "[ \t]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+, \\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname (nth 1 (split-string name "[ \t,]+"))
-			     lname (nth 0 (split-string name "[ \t,]+"))))
-		      ((string-match
-			"\\`\\(\\w\\|[-.]\\)+\\'" name)
-		       (setq fname name
-			     lname ""))))
+                (let* ((names (delq nil (mapcar (lambda (x)
+                                                 (if (string-match "\\`\\(\\w\\|[-.]\\)+\\'" x) x nil))
+                                               (split-string name "[ \t]+"))))
+                      (count (length names)))
+                  (cond ((= count 1) (setq fname (car names)
+                                           lname ""))
+                        ((or (= count 2) (= count 3)) (setq fname (car names)
+                                                            lname (mapconcat 'identity (cdr names) " ")))
+                        ((> count 3) (setq fname (mapconcat 'identity (butlast names (- count 2)) " ")
+                                           lname (mapconcat 'identity (nthcdr 2 names) " "))) )
+                  (when (string-match "\\(.*\\),\\'" fname)
+                    (let ((newlname (match-string 1 fname)))
+                      (setq fname lname lname newlname)))))
 	      ;; The following letters are not used in `format-time-string':
 	      (push ?E lst) (push "<E>" lst)
 	      (push ?F lst) (push fname lst)
@@ -7960,19 +7960,29 @@ those headers."
 
 (defun message-expand-group ()
   "Expand the group name under point."
-  (let* ((b (save-excursion
-	      (save-restriction
-		(narrow-to-region
-		 (save-excursion
-		   (beginning-of-line)
-		   (skip-chars-forward "^:")
-		   (1+ (point)))
-		 (point))
-		(skip-chars-backward "^, \t\n") (point))))
-	 (completion-ignore-case t)
-         (e (progn (skip-chars-forward "^,\t\n ") (point)))
-	 (hashtb (and (boundp 'gnus-active-hashtb) gnus-active-hashtb)))
-    (message-completion-in-region e b hashtb)))
+  (let ((b (save-excursion
+	     (save-restriction
+	       (narrow-to-region
+		(save-excursion
+		  (beginning-of-line)
+		  (skip-chars-forward "^:")
+		  (1+ (point)))
+		(point))
+	       (skip-chars-backward "^, \t\n") (point))))
+	(completion-ignore-case t)
+	(e (progn (skip-chars-forward "^,\t\n ") (point)))
+	group collection)
+    (when (and (boundp 'gnus-active-hashtb)
+	       gnus-active-hashtb)
+      (mapatoms
+       (lambda (symbol)
+	 (setq group (symbol-name symbol))
+	 (push (if (string-match "[^\000-\177]" group)
+		   (gnus-group-decoded-name group)
+		 group)
+	       collection))
+       gnus-active-hashtb))
+    (message-completion-in-region e b collection)))
 
 (defalias 'message-completion-in-region
   (if (fboundp 'completion-in-region)

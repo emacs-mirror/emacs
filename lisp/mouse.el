@@ -128,7 +128,11 @@ Expects to be bound to `down-mouse-1' in `key-translation-map'."
                 (put newup 'event-kind (get (car event) 'event-kind))
                 (put newdown 'event-kind (get (car this-event) 'event-kind))
                 (push (cons newup (cdr event)) unread-command-events)
-                (vector (cons newdown (cdr this-event))))
+                ;; Modify the event in place, so read-key-sequence doesn't
+                ;; generate a second fake prefix key (see fake_prefixed_keys in
+                ;; src/keyboard.c).
+                (setcar this-event newdown)
+                (vector this-event))
             (push event unread-command-events)
             nil))))))
 
@@ -759,6 +763,9 @@ at the same position."
 		  mouse-1-click-in-non-selected-windows
 		  (eq (selected-window) (posn-window pos)))
 	      (or (mouse-posn-property pos 'follow-link)
+                  (let ((area (posn-area pos)))
+                    (when area
+                      (key-binding (vector area 'follow-link) nil t pos)))
 		  (key-binding [follow-link] nil t pos)))))
     (cond
      ((eq action 'mouse-face)

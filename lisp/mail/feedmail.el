@@ -370,9 +370,6 @@
 
 (require 'mail-utils)		     ; pick up mail-strip-quoted-names
 
-(eval-when-compile
-  (require 'smtpmail))
-
 (autoload 'mail-do-fcc "sendmail")
 
 (defgroup feedmail nil
@@ -1618,6 +1615,10 @@ local gurus."
 		     (list "-f" user-mail-address))
 		 ;; These mean "report errors by mail" and "deliver in background".
 		 (if (null mail-interactive) '("-oem" "-odb")))))
+
+(declare-function smtpmail-via-smtp "smtpmail"
+		  (recipient smtpmail-text-buffer &optional ask-for-password))
+(defvar smtpmail-smtp-server)
 
 ;; provided by jam@austin.asc.slb.com (James A. McLaughlin);
 ;; simplified by WJC after more feedmail development;

@@ -6,6 +6,7 @@
 ;; Maintainer: FSF
 ;; Created: 21 Nov 1986
 ;; Keywords: hardware
+;; Obsolete-since: 24.4
 
 ;;     (from code originally written by John Robinson@bbn for the bitgraph)
 
@@ -196,5 +197,7 @@ X and Y are 0-based character positions in the window."
 X and Y are 0-based character positions on the frame."
   (get-window-with-predicate (lambda (w)
 			       (coordinates-in-window-p (cons x y) w))))
+
+(provide 'sup-mouse)
 
 ;;; sup-mouse.el ends here

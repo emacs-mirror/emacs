@@ -1,3 +1,47 @@
+2013-05-15  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Repeat Isearch): Mention key `RET' to finish
+	editing the string.  (Bug#13348)
+
+2013-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Don't mention obsolete sup-mouse.el.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Sending): Fix typo.
+
+	* windows.texi (Change Window): Fix typo.
+
+	* custom.texi (Changing a Variable): Fix typo.
+
+	* trouble.texi (Contributing): Remove obsolete info re pretesters.
+
+2013-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	`write-region-inhibit-fsync' defaults to noninteractive (Bug#14273).
+	* cmdargs.texi (Initial Options):
+	* files.texi (Customize Save): Document this.
+
+2013-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Importing Diary): Mention diary-from-outlook-function.
+
+2013-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	doc: convert some TeX accents to UTF-8
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments):
+	Convert some TeX accents (e.g., '@l{}') to UTF-8 (e.g., 'ł').
+	Apparently the TeX accents cause problems when generating gnu.org
+	web pages, e.g., @l{} is rendered as '/l' on
+	<http://www.gnu.org/software/emacs/manual/html_node/
+	emacs/Acknowledgments.html>.
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top): Add some stuff specific to www.gnu.org.
+
 2013-03-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer UTF-8 for documentation.

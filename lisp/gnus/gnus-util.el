@@ -68,7 +68,7 @@
   "Value of `completion-styles' to use when completing."
   :version "24.1"
   :group 'gnus-meta
-  :type 'list)
+  :type '(repeat symbol))
 
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
@@ -1025,6 +1025,15 @@ with potentially long computations."
 
 (declare-function mm-append-to-file "mm-util"
                   (start end filename &optional codesys inhibit))
+(declare-function rmail-swap-buffers-maybe "rmail" ())
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-count-new-messages "rmail" (&optional nomsg))
+(declare-function rmail-summary-exists "rmail" ())
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+;; Macroexpansion of rmail-select-summary:
+(declare-function rmail-summary-displayed "rmail" ())
+(declare-function rmail-pop-to-buffer "rmail" (&rest args))
+(declare-function rmail-maybe-display-summary "rmail" ())
 
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME.
@@ -1549,9 +1558,12 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
     (completing-read prompt
-                     ;; Old XEmacs (at least 21.4) expect an alist for
-                     ;; collection.
-                     (mapcar 'list collection)
+                     ;; Old XEmacs (at least 21.4) expect an alist,
+		     ;; in which the car of each element is a string,
+		     ;; for collection.
+                     (mapcar (lambda (elem)
+			       (list (format "%s" (or (car-safe elem) elem))))
+			     collection)
                      nil require-match initial-input history def)))
 
 (autoload 'ido-completing-read "ido")

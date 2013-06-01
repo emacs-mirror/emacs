@@ -3017,7 +3017,6 @@ Any other value is ignored and black color will be used.
 This variable is used only when `ps-print-color-p' (which see) is neither nil
 nor black-white."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
-		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
 		 (const :tag "Frame Foreground" frame-parameter)
 		 (number :tag "Gray Scale" :value 0.0)
@@ -3025,7 +3024,8 @@ nor black-white."
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Foreground Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -3063,7 +3063,6 @@ nor black-white.
 
 See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
-		 :tag "Default Background Gray/Color"
 		 (const :tag "Session Background" t)
 		 (const :tag "Frame Background" frame-parameter)
 		 (number :tag "Gray Scale" :value 1.0)
@@ -3071,7 +3070,8 @@ See also `ps-use-face-background'."
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Background Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -6658,7 +6658,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "1f436e4d78c7dc983a503dac18298515")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "b39f881d3a029049994ef6aa3de93c89")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

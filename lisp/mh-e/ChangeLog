@@ -1,3 +1,21 @@
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* mh-speed.el (mh-speed-view):
+	Use dframe-with-attached-buffer rather than speedbar- alias.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* mh-comp.el (mh-regexp-in-field-p): Fix previous change.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.el (mh-sortm-args, mh-default-folder-for-message-function):
+	Fix custom types.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-comp.el (mh-regexp-in-field-p): Minor simplification.
+
 2013-03-02  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.5.

@@ -1090,8 +1090,7 @@ search_lisp_doc_at_eol (FILE *infile)
   if (c2 != '"' || c1 != '\\')
     {
 #ifdef DEBUG
-      fprintf (stderr, "## non-docstring in %s (%s)\n",
-	       buffer, filename);
+      fprintf (stderr, "## non-docstring found\n");
 #endif
       if (c != EOF)
 	ungetc (c, infile);

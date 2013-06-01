@@ -234,9 +234,9 @@ forwards.
 
 Different channels and servers may have different language encodings.
 
-In addition, it is possible to translate the messages that ERC uses into
-multiple languages.  Please contact the developers of ERC at
-@email{erc-discuss@@gnu.org} if you are interested in helping with the
+In addition, it is possible to translate the messages that ERC uses
+into multiple languages.  Please contact the developers of Emacs at
+@email{emacs-devel@@gnu.org} if you are interested in helping with the
 translation effort.
 
 @item user scripting

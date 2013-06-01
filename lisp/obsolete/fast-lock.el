@@ -855,3 +855,7 @@ See `fast-lock-get-face-properties'."
 (provide 'fast-lock)
 
 ;;; fast-lock.el ends here
+
+;; Local Variables:
+;; byte-compile-warnings: (not obsolete)
+;; End:

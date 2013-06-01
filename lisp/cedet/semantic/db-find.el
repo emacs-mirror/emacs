@@ -130,12 +130,12 @@
 (declare-function ede-current-project "ede")
 
 (defvar semanticdb-find-throttle-custom-list
-  '(repeat (radio (const 'local)
-		  (const 'project)
-		  (const 'unloaded)
-		  (const 'system)
-		  (const 'recursive)
-		  (const 'omniscience)))
+  '(set (const local)
+	(const project)
+	(const unloaded)
+	(const system)
+	(const recursive)
+	(const omniscience))
   "Customization values for semanticdb find throttle.
 See `semanticdb-find-throttle' for details.")
 

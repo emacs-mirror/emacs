@@ -151,10 +151,13 @@ ns_spec_to_descriptor (Lisp_Object font_spec)
     if ([tdict count] > 0)
 	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
 
-    fdesc = [NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs];
+    fdesc = [[[NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs]
+               retain] autorelease];
+
     if (family != nil)
       {
-	fdesc = [fdesc fontDescriptorWithFamily: family];
+        NSFontDescriptor *fdesc2 = [fdesc fontDescriptorWithFamily: family];
+        fdesc = [[fdesc2 retain] autorelease];
       }
 
     [fdAttrs release];

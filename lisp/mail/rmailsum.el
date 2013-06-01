@@ -394,12 +394,16 @@ SENDERS is a string of regexps separated by commas."
 
 (defvar rmail-new-summary-line-count)
 
-(defun rmail-new-summary (desc redo func &rest args)
+(defun rmail-new-summary (desc redo function &rest args)
   "Create a summary of selected messages.
-DESC makes part of the mode line of the summary buffer. REDO is form ...
-For each message, FUNC is applied to the message number and ARGS...
-and if the result is non-nil, that message is included.
-nil for FUNCTION means all messages."
+DESC makes part of the mode line of the summary buffer.
+REDO is what to put in `rmail-summary-redo'; usually
+its car is the function that called `rmail-new-summary'
+and its cdr is the arguments passed to that function.
+
+For each message, applies FUNCTION to the message number and ARGS...,
+and if the result is non-nil, it includes that message in the summary.
+If FUNCTION is nil, includes all messages."
   (message "Computing summary lines...")
   (unless rmail-buffer
     (error "No RMAIL buffer found"))
@@ -407,7 +411,7 @@ nil for FUNCTION means all messages."
     (if (eq major-mode 'rmail-summary-mode)
 	(setq was-in-summary t))
     (with-current-buffer rmail-buffer
-      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)
+      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo function args)
 	    ;; r-s-b is buffer-local.
 	    sumbuf rmail-summary-buffer
 	    mesg rmail-current-message))
@@ -435,14 +439,14 @@ nil for FUNCTION means all messages."
     (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
 
-(defun rmail-new-summary-1 (description form function args)
+(defun rmail-new-summary-1 (description redo function args)
   "Filter messages to obtain summary lines.
 DESCRIPTION is added to the mode line.
 
 Return the summary buffer by invoking FUNCTION on each message
-passing the message number and ARGS...
+passing the message number and ARGS.
 
-REDO is a form ...
+REDO is what to put in `rmail-summary-redo'.
 
 The current buffer must be a Rmail buffer either containing a
 collection of mbox formatted messages or displaying a single
@@ -490,8 +494,7 @@ message."
     ;; we "don't have" a summary.
     (setq rmail-summary-buffer nil)
     ;; I have not a clue what this clause is doing.  If you read this
-    ;; chunk of code and have a clue, then please email that clue to
-    ;; pmr@pajato.com
+    ;; chunk of code and have a clue, then please  write it here.
     (if rmail-enable-mime
 	(with-current-buffer rmail-buffer
 	  (setq rmail-summary-buffer nil)))
@@ -512,7 +515,7 @@ message."
 	(make-local-variable 'minor-mode-alist)
 	(setq minor-mode-alist (list (list t (concat ": " description))))
 	(setq rmail-buffer rbuf
-	      rmail-summary-redo form
+	      rmail-summary-redo redo
 	      rmail-total-messages total)))
     sumbuf))
 
@@ -1122,57 +1125,59 @@ Search, the `unseen' attribute is restored.")
 	  (forward-line -1))
       (beginning-of-line)
       (skip-chars-forward " ")
-      (let ((msg-num (string-to-number (buffer-substring
-                                        (point)
-                                        (progn (skip-chars-forward "0-9")
-                                               (point))))))
-	;; Always leave `unseen' removed
-	;; if we get out of isearch mode.
-	;; Don't let a subsequent isearch restore that `unseen'.
-	(if (not isearch-mode)
-	    (setq rmail-summary-put-back-unseen nil))
+      ;; If the summary is empty, don't do anything.
+      (unless (eobp)
+	(let ((msg-num (string-to-number (buffer-substring
+					  (point)
+					  (progn (skip-chars-forward "0-9")
+						 (point))))))
+	  ;; Always leave `unseen' removed
+	  ;; if we get out of isearch mode.
+	  ;; Don't let a subsequent isearch restore that `unseen'.
+	  (if (not isearch-mode)
+	      (setq rmail-summary-put-back-unseen nil))
 
-	(or (eq rmail-current-message msg-num)
-	    (let ((window (get-buffer-window rmail-buffer t))
-		  (owin (selected-window)))
-	      (if isearch-mode
-		  (progn
-		    ;; If we first saw the previous message in this search,
-		    ;; and we have gone to a different message while searching,
-		    ;; put back `unseen' on the former one.
-		    (when rmail-summary-put-back-unseen
-		      (rmail-set-attribute rmail-unseen-attr-index t
-					   rmail-current-message)
-		      (save-excursion
-			(goto-char rmail-summary-put-back-unseen)
-			(rmail-summary-mark-seen rmail-current-message t t)))
-		    ;; Arrange to do that later, for the new current message,
-		    ;; if it still has `unseen'.
-		    (setq rmail-summary-put-back-unseen
-			  (if (rmail-message-unseen-p msg-num)
-			      (point))))
-		(setq rmail-summary-put-back-unseen nil))
-	      ;; Go to the desired message.
-	      (setq rmail-current-message msg-num)
-	      ;; Update the summary to show the message has been seen.
-	      (rmail-summary-mark-seen msg-num t)
-	      (if window
-		  ;; Using save-window-excursion would cause the new value
-		  ;; of point to get lost.
-		  (unwind-protect
-		      (progn
-			(select-window window)
-			(rmail-show-message msg-num t))
-		    (select-window owin))
-		(if (buffer-name rmail-buffer)
-		    (with-current-buffer rmail-buffer
-		      (rmail-show-message msg-num t))))
-	      ;; In linum mode, the message buffer must be specially
-	      ;; updated (Bug#4878).
-	      (and (fboundp 'linum-update)
-		   (buffer-name rmail-buffer)
-		   (linum-update rmail-buffer))))
-	(rmail-summary-update-highlight nil)))))
+	  (or (eq rmail-current-message msg-num)
+	      (let ((window (get-buffer-window rmail-buffer t))
+		    (owin (selected-window)))
+		(if isearch-mode
+		    (progn
+		      ;; If we first saw the previous message in this search,
+		      ;; and we have gone to a different message while searching,
+		      ;; put back `unseen' on the former one.
+		      (when rmail-summary-put-back-unseen
+			(rmail-set-attribute rmail-unseen-attr-index t
+					     rmail-current-message)
+			(save-excursion
+			  (goto-char rmail-summary-put-back-unseen)
+			  (rmail-summary-mark-seen rmail-current-message t t)))
+		      ;; Arrange to do that later, for the new current message,
+		      ;; if it still has `unseen'.
+		      (setq rmail-summary-put-back-unseen
+			    (if (rmail-message-unseen-p msg-num)
+				(point))))
+		  (setq rmail-summary-put-back-unseen nil))
+		;; Go to the desired message.
+		(setq rmail-current-message msg-num)
+		;; Update the summary to show the message has been seen.
+		(rmail-summary-mark-seen msg-num t)
+		(if window
+		    ;; Using save-window-excursion would cause the new value
+		    ;; of point to get lost.
+		    (unwind-protect
+			(progn
+			  (select-window window)
+			  (rmail-show-message msg-num t))
+		      (select-window owin))
+		  (if (buffer-name rmail-buffer)
+		      (with-current-buffer rmail-buffer
+			(rmail-show-message msg-num t))))
+		;; In linum mode, the message buffer must be specially
+		;; updated (Bug#4878).
+		(and (fboundp 'linum-update)
+		     (buffer-name rmail-buffer)
+		     (linum-update rmail-buffer))))
+	  (rmail-summary-update-highlight nil))))))
 
 (defun rmail-summary-save-buffer ()
   "Save the buffer associated with this RMAIL summary."
@@ -1208,6 +1213,10 @@ Returns non-nil if message N was found."
 		  (buffer-substring (point)
 				    (min (point-max) (+ 6 (point))))))
 	 (total (with-current-buffer buf rmail-total-messages)))
+    ;; CURMSG should be nil when there's no current summary message
+    ;; (for instance, if the summary is empty).
+    (if (= curmsg 0)
+	(setq curmsg nil))
     ;; If message number N was specified, find that message's line
     ;; or set message-not-found.
     ;; If N wasn't specified or that message can't be found.
@@ -1228,17 +1237,20 @@ Returns non-nil if message N was found."
 		 (setq n curmsg)
 		 (setq message-not-found t)
 		 (goto-char cur))))
-    (rmail-summary-mark-seen n)
-    (rmail-summary-update-highlight message-not-found)
-    (beginning-of-line)
-    (unless skip-rmail
-      (let ((selwin (selected-window)))
-	(unwind-protect
-	    (progn (rmail-pop-to-buffer buf)
-		   (rmail-show-message n))
-	  (select-window selwin)
-	  ;; The actions above can alter the current buffer.  Preserve it.
-	  (set-buffer obuf))))
+    ;; N can be nil now, along with CURMSG,
+    ;; if the summary is empty.
+    (when n
+      (rmail-summary-mark-seen n)
+      (rmail-summary-update-highlight message-not-found)
+      (beginning-of-line)
+      (unless skip-rmail
+	(let ((selwin (selected-window)))
+	  (unwind-protect
+	      (progn (rmail-pop-to-buffer buf)
+		     (rmail-show-message n))
+	    (select-window selwin)
+	    ;; The actions above can alter the current buffer.  Preserve it.
+	    (set-buffer obuf)))))
     (not message-not-found)))
 
 ;; Update the highlighted line in an rmail summary buffer.

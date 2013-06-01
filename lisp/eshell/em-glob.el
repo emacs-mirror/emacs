@@ -49,8 +49,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'eshell))
 (require 'esh-util)
+(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn
@@ -119,7 +119,8 @@ This option slows down recursive glob processing by quite a bit."
 			     "*" "+")) (+ pos 2))
 	       (cons "*" (1+ pos))))))
   "An alist for translation of extended globbing characters."
-  :type '(repeat (cons character (choice regexp function)))
+  :type '(alist :key-type character
+		:value-type (choice string function))
   :group 'eshell-glob)
 
 ;;; Functions:

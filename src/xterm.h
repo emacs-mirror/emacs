@@ -53,13 +53,25 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
+#endif /* USE_GTK */
 
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
-#define USE_GTK_TOOLTIP
+/* True iff GTK's version is at least I.J.K.  */
+#ifndef GTK_CHECK_VERSION
+# ifdef USE_GTK
+#  define GTK_CHECK_VERSION(i, j, k) \
+     ((i) \
+      < GTK_MAJOR_VERSION + ((j) \
+			     < GTK_MINOR_VERSION + ((k) \
+						    <= GTK_MICRO_VERSION)))
+# else
+#  define GTK_CHECK_VERSION(i, j, k) 0
+# endif
 #endif
 
-#endif /* USE_GTK */
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_CHECK_VERSION (2, 14, 0)
+#define USE_GTK_TOOLTIP
+#endif
 
 
 /* Bookkeeping to distinguish X versions.  */
@@ -346,7 +358,8 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents;
+    Xatom_net_frame_extents,
+    Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -365,10 +378,6 @@ struct x_display_info
 /* Whether or not to use XIM if we have it.  */
 extern int use_xim;
 #endif
-
-/* This checks to make sure we have a display.  */
-
-extern void check_x (void);
 
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
@@ -927,7 +936,6 @@ void x_handle_property_notify (XPropertyEvent *);
 
 /* From xfns.c.  */
 
-struct frame *check_x_frame (Lisp_Object);
 extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */
@@ -1012,7 +1020,6 @@ extern void x_clipboard_manager_save_all (void);
 
 extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
-extern int x_in_use;
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);

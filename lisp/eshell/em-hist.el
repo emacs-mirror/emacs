@@ -189,21 +189,18 @@ element, regardless of any text on the command line.  In that case,
 (defvar eshell-matching-input-from-input-string "")
 (defvar eshell-save-history-index nil)
 
-(defvar eshell-isearch-map nil)
-
-(unless eshell-isearch-map
-  (setq eshell-isearch-map (copy-keymap isearch-mode-map))
-  (define-key eshell-isearch-map [(control ?m)] 'eshell-isearch-return)
-  (define-key eshell-isearch-map [return] 'eshell-isearch-return)
-  (define-key eshell-isearch-map [(control ?r)] 'eshell-isearch-repeat-backward)
-  (define-key eshell-isearch-map [(control ?s)] 'eshell-isearch-repeat-forward)
-  (define-key eshell-isearch-map [(control ?g)] 'eshell-isearch-abort)
-  (define-key eshell-isearch-map [backspace] 'eshell-isearch-delete-char)
-  (define-key eshell-isearch-map [delete] 'eshell-isearch-delete-char)
-  (defvar eshell-isearch-cancel-map)
-  (define-prefix-command 'eshell-isearch-cancel-map)
-  (define-key eshell-isearch-map [(control ?c)] 'eshell-isearch-cancel-map)
-  (define-key eshell-isearch-cancel-map [(control ?c)] 'eshell-isearch-cancel))
+(defvar eshell-isearch-map
+  (let ((map (copy-keymap isearch-mode-map)))
+    (define-key map [(control ?m)] 'eshell-isearch-return)
+    (define-key map [return] 'eshell-isearch-return)
+    (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+    (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+    (define-key map [(control ?g)] 'eshell-isearch-abort)
+    (define-key map [backspace] 'eshell-isearch-delete-char)
+    (define-key map [delete] 'eshell-isearch-delete-char)
+    (define-key map "\C-c\C-c" 'eshell-isearch-cancel)
+    map)
+  "Keymap used in isearch in Eshell.")
 
 (defvar eshell-rebind-keys-alist)
 

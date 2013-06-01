@@ -42,7 +42,7 @@
 (declare-function math-simplify "calc-alg" (top-expr))
 (declare-function math-known-matrixp "calc-arith" (a))
 (declare-function math-parse-fortran-subscr "calc-lang" (sym args))
-(declare-function math-to-radians-2 "calc-math" (a))
+(declare-function math-to-radians-2 "calc-math" (a &optional force-symbolic))
 (declare-function math-read-string "calc-ext" ())
 (declare-function math-read-brackets "calc-vec" (space-sep math-rb-close))
 (declare-function math-read-angle-brackets "calc-forms" ())

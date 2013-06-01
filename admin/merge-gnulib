@@ -33,7 +33,7 @@ GNULIB_MODULES='
   getloadavg getopt-gnu gettime gettimeofday
   ignore-value intprops largefile lstat
   manywarnings memrchr mktime
-  pselect pthread_sigmask putenv readlink readlinkat
+  pselect pthread_sigmask putenv qacl readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat
   sys_time time timer-time timespec-add timespec-sub unsetenv utimens
@@ -42,7 +42,7 @@ GNULIB_MODULES='
 
 GNULIB_TOOL_FLAGS='
   --avoid=dup
-  --avoid=errno --avoid=fchdir --avoid=fcntl --avoid=fstat
+  --avoid=fchdir --avoid=fcntl --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise

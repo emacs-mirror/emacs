@@ -415,6 +415,11 @@ Thank you for your help in stamping out bugs.
      (gnus-inews-make-draft-meta-information
       ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
 
+(autoload 'nnir-article-number "nnir" nil nil 'macro)
+(autoload 'nnir-article-group "nnir" nil nil 'macro)
+(autoload 'gnus-nnir-group-p "nnir")
+
+
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
@@ -426,15 +431,22 @@ Thank you for your help in stamping out bugs.
     `(let ((,winconf (current-window-configuration))
 	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
-	   (,article gnus-article-reply)
+	   (,article (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+			      gnus-article-reply)
+			 (nnir-article-number gnus-article-reply)
+		       gnus-article-reply))
 	   (,yanked gnus-article-yanked-articles)
-	   (,group gnus-newsgroup-name)
+	   (,group (if (and (gnus-nnir-group-p gnus-newsgroup-name)
+			    gnus-article-reply)
+		       (nnir-article-group gnus-article-reply)
+		     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
+       (add-hook 'message-header-setup-hook (lambda ()
+       					      (gnus-inews-insert-gcc ,group)))
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -526,7 +538,8 @@ instead."
 	(message-mail to subject other-headers continue
 		      nil yank-action send-actions return-action))
     (let ((buf (current-buffer))
-	  (gnus-newsgroup-name (or gnus-newsgroup-name ""))
+	  ;; Don't use posting styles corresponding to any existing group.
+	  (gnus-newsgroup-name "")
 	  mail-buf)
       (gnus-setup-message 'message
 	(message-mail to subject other-headers continue
@@ -1706,7 +1719,8 @@ this is a reply."
          (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and group (gnus-group-find-parameter group 'gcc-self)))
+	  (and group (not (gnus-virtual-group-p group))
+	       (gnus-group-find-parameter group 'gcc-self)))
 	 result
 	 (groups
 	  (cond

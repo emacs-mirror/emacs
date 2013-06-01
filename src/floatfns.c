@@ -193,7 +193,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
       && INTEGERP (arg2)   /* don't promote, if both are ints, and */
-      && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
+      && XINT (arg2) >= 0) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT y;		/* some binary powers of x then accumulating */
       EMACS_UINT acc, x;  /* Unsigned so that overflow is well defined.  */
@@ -475,7 +475,7 @@ fmod_float (Lisp_Object x, Lisp_Object y)
   f1 = fmod (f1, f2);
 
   /* If the "remainder" comes out with the wrong sign, fix it.  */
-  if (f2 < 0 ? 0 < f1 : f1 < 0)
+  if (f2 < 0 ? f1 > 0 : f1 < 0)
     f1 += f2;
 
   return make_float (f1);

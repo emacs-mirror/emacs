@@ -15,6 +15,9 @@ oo-spd
 *.dSYM
 *.elc
 *.exe
+*.res
+*.tmp
+*.map
 ./aclocal.m4
 autom4te.cache
 confdefs.h
@@ -23,7 +26,6 @@ configure.lineno
 conftest*
 core
 DOC
-DOC-*
 emacs-*/
 makefile
 Makefile
@@ -80,10 +82,12 @@ build-aux/config.sub
 build-aux/depcomp
 build-aux/install-sh
 build-aux/missing
+leim/ja-dic/
 leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
+leim/stamp-subdir
 lib/.deps/
 lib/Makefile.in
 lib/deps/
@@ -91,6 +95,7 @@ lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/dirent.h
+lib/errno.h
 lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
@@ -159,7 +164,6 @@ src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
 src/stamp-h.in
-src/emacs.res
 src/temacs
 test/indent/*.new
 +*

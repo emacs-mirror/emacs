@@ -79,11 +79,21 @@ Go to the specified
 and
 .IR column .
 .TP
+.BI \-\-chdir " directory"
+Change to
+.IR directory .
+.TP
 .BR \-q ", " \-\-no\-init\-file
 Do not load an init file.
 .TP
+.BR \-nl ", " \-\-no\-shared\-memory
+Do not use shared memory.
+.TP
 .B \-\-no\-site\-file
 Do not load the site-wide startup file.
+.TP
+.BR \-nsl ", " \-\-no\-site\-lisp
+Do not add site-lisp directories to load-path.
 .TP
 .B \-\-no\-desktop
 Do not load a saved desktop.
@@ -324,6 +334,9 @@ in iconified state.
 .TP
 .BR \-nbc ", " \-\-no\-blinking\-cursor
 Disable blinking cursor.
+.TP
+.BI \-\-parent-id " xid"
+Set parent window.
 .TP
 .BR \-nw ", " \-\-no\-window\-system
 Tell

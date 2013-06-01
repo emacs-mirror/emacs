@@ -223,8 +223,6 @@ for instance using the window manager, then this produces a quit and
   FRAME_PTR f = NULL;
   Lisp_Object window;
 
-  check_x ();
-
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
       || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
@@ -277,8 +275,7 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
-    error ("Can not put X dialog on this terminal");
+  check_window_system (f);
 
   /* Force a redisplay before showing the dialog.  If a frame is created
      just before showing the dialog, its contents may not have been fully
@@ -485,7 +482,7 @@ If FRAME is nil or not given, use the selected frame.  */)
   (Lisp_Object frame)
 {
   XEvent ev;
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
   Widget menubar;
   block_input ();
 
@@ -569,7 +566,7 @@ If FRAME is nil or not given, use the selected frame.  */)
      block_input ().  */
 
   block_input ();
-  f = check_x_frame (frame);
+  f = decode_window_system_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     set_frame_menubar (f, 0, 1);
@@ -976,7 +973,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       if (! menubar_widget)
 	previous_menu_items_used = 0;
 
-      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+      buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
 	 because it is not reentrant.  */
@@ -1055,7 +1052,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
       wv->help = Qnil;
       first_wv = wv;
 
-      for (i = 0; 0 <= submenu_start[i]; i++)
+      for (i = 0; submenu_start[i] >= 0; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
@@ -2479,7 +2476,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 #endif
 
   record_unwind_protect (pop_down_menu,
-			 make_save_value ("pp", f, menu));
+			 make_save_value (SAVE_TYPE_PTR_PTR, f, menu));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */

@@ -259,7 +259,7 @@
 (defun rng-validate-buffer ()
   (save-restriction
     (widen)
-    (nxml-with-unmodifying-text-property-changes
+    (with-silent-modifications
       (rng-clear-cached-state (point-min) (point-max)))
     ;; 1+ to clear empty overlays at (point-max)
     (rng-clear-overlays (point-min) (1+ (point-max))))

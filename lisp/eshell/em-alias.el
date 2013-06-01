@@ -90,8 +90,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'esh-util))
 (require 'eshell)
 
 ;;;###autoload

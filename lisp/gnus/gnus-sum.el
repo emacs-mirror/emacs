@@ -12415,7 +12415,9 @@ If REVERSE, save parts that do not match TYPE."
                        (not (gnus-ephemeral-group-p (car where))))
               (gnus-registry-handle-action
                (mail-header-id header) nil
-               (gnus-group-prefixed-name (car where) gnus-override-method)
+               (gnus-group-prefixed-name
+		(car where)
+		(or gnus-override-method (gnus-find-method-for-group group)))
                (mail-header-subject header)
                (mail-header-from header)))
 	    (when (and (stringp id)
@@ -12775,7 +12777,7 @@ returned."
     (setq gnus-newsgroup-headers
 	  (gnus-merge 'list
 		      gnus-newsgroup-headers
-		      (gnus-fetch-headers articles)
+		      (gnus-fetch-headers articles nil t)
 		      'gnus-article-sort-by-number))
     (setq gnus-newsgroup-articles
 	  (gnus-sorted-nunion gnus-newsgroup-articles articles))

@@ -455,7 +455,7 @@ Menu items are appended to the common grammar menu.")
                (with-current-buffer (find-file-noselect f)
                  (semantic-grammar-create-package))
              (error (message "%s" (error-message-string err)) nil)))
-	  lang filename)
+	  lang filename copyright-end)
       (when (and packagename
 		 (string-match "^.*/\\(.*\\)-by\\.el\\'" packagename))
 	(setq lang (match-string 1 packagename))
@@ -502,5 +502,9 @@ Menu items are appended to the common grammar menu.")
 	  (save-buffer))))))
 
 (provide 'semantic/bovine/grammar)
+
+;; Local variables:
+;; generated-autoload-load-name: "semantic/bovine/grammar"
+;; End:
 
 ;;; semantic/bovine/grammar.el ends here

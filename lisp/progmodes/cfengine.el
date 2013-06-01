@@ -30,11 +30,13 @@
 ;; The CFEngine 3.x support doesn't have Imenu support but patches are
 ;; welcome.
 
+;; By default, CFEngine 3.x syntax is used.
+
 ;; You can set it up so either `cfengine2-mode' (2.x and earlier) or
 ;; `cfengine3-mode' (3.x) will be picked, depending on the buffer
 ;; contents:
 
-;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine-mode))
+;; (add-to-list 'auto-mode-alist '("\\.cf\\'" . cfengine-auto-mode))
 
 ;; OR you can choose to always use a specific version, if you prefer
 ;; it:
@@ -181,7 +183,7 @@ This includes those for cfservd as well as cfagent.")
     ("$(\\([[:alnum:]_]+\\))" 1 font-lock-variable-name-face)
     ("${\\([[:alnum:]_]+\\)}" 1 font-lock-variable-name-face)
     ;; Variable definitions.
-    ("\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
+    ("\\_<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
     ;; File, acl &c in group:   { token ... }
     ("{[ \t]*\\([^ \t\n]+\\)" 1 font-lock-constant-face)))
 
@@ -189,9 +191,9 @@ This includes those for cfservd as well as cfagent.")
   `(
     ;; Defuns.  This happens early so they don't get caught by looser
     ;; patterns.
-    (,(concat "\\<" cfengine3-defuns-regex "\\>"
-              "[ \t]+\\<\\([[:alnum:]_.:]+\\)\\>"
-              "[ \t]+\\<\\([[:alnum:]_.:]+\\)"
+    (,(concat "\\_<" cfengine3-defuns-regex "\\_>"
+              "[ \t]+\\_<\\([[:alnum:]_.:]+\\)\\_>"
+              "[ \t]+\\_<\\([[:alnum:]_.:]+\\)"
               ;; Optional parentheses with variable names inside.
               "\\(?:(\\([^)]*\\))\\)?")
      (1 font-lock-builtin-face)
@@ -212,10 +214,10 @@ This includes those for cfservd as well as cfagent.")
     ("[@$]{\\([[:alnum:]_.:]+\\)}" 1 font-lock-variable-name-face)
 
     ;; Variable definitions.
-    ("\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
+    ("\\_<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1 font-lock-variable-name-face)
 
     ;; Variable types.
-    (,(concat "\\<" (eval-when-compile (regexp-opt cfengine3-vartypes t)) "\\>")
+    (,(concat "\\_<" (eval-when-compile (regexp-opt cfengine3-vartypes t)) "\\_>")
      1 font-lock-type-face)))
 
 (defvar cfengine2-imenu-expression
@@ -223,9 +225,9 @@ This includes those for cfservd as well as cfagent.")
 			      (regexp-opt cfengine2-actions t))
 		  ":[^:]")
 	 1)
-    ("Variables/classes" "\\<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1)
-    ("Variables/classes" "\\<define=\\([[:alnum:]_]+\\)" 1)
-    ("Variables/classes" "\\<DefineClass\\>[ \t]+\\([[:alnum:]_]+\\)" 1))
+    ("Variables/classes" "\\_<\\([[:alnum:]_]+\\)[ \t]*=[ \t]*(" 1)
+    ("Variables/classes" "\\_<define=\\([[:alnum:]_]+\\)" 1)
+    ("Variables/classes" "\\_<DefineClass\\>[ \t]+\\([[:alnum:]_]+\\)" 1))
   "`imenu-generic-expression' for CFEngine mode.")
 
 (defun cfengine2-outline-level ()
@@ -338,7 +340,7 @@ Intended as the value of `indent-line-function'."
 Treats body/bundle blocks as defuns."
   (unless (<= (current-column) (current-indentation))
     (end-of-line))
-  (if (re-search-backward (concat "^[ \t]*" cfengine3-defuns-regex "\\>") nil t)
+  (if (re-search-backward (concat "^[ \t]*" cfengine3-defuns-regex "\\_>") nil t)
       (beginning-of-line)
     (goto-char (point-min)))
   t)
@@ -347,7 +349,7 @@ Treats body/bundle blocks as defuns."
   "`end-of-defun' function for Cfengine 3 mode.
 Treats body/bundle blocks as defuns."
   (end-of-line)
-  (if (re-search-forward (concat "^[ \t]*" cfengine3-defuns-regex "\\>") nil t)
+  (if (re-search-forward (concat "^[ \t]*" cfengine3-defuns-regex "\\_>") nil t)
       (beginning-of-line)
     (goto-char (point-max)))
   t)
@@ -366,7 +368,7 @@ Intended as the value of `indent-line-function'."
 
       (cond
        ;; Body/bundle blocks start at 0.
-       ((looking-at (concat cfengine3-defuns-regex "\\>"))
+       ((looking-at (concat cfengine3-defuns-regex "\\_>"))
         (indent-line-to 0))
        ;; Categories are indented one step.
        ((looking-at (concat cfengine3-category-regex "[ \t]*\\(#.*\\)*$"))
@@ -583,7 +585,7 @@ on the buffer contents"
     (save-restriction
       (goto-char (point-min))
       (while (not (or (eobp) v3))
-        (setq v3 (looking-at (concat cfengine3-defuns-regex "\\>")))
+        (setq v3 (looking-at (concat cfengine3-defuns-regex "\\_>")))
         (forward-line)))
     (if v3 (cfengine3-mode) (cfengine2-mode))))
 

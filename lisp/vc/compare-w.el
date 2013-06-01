@@ -35,7 +35,7 @@
   :prefix "compare-"
   :group 'tools)
 
-(defcustom compare-windows-whitespace "\\(\\s-\\|\n\\)+"
+(defcustom compare-windows-whitespace "\\(\\s-\\|\n\\|\240\\)+"
   "Regexp or function that defines whitespace sequences for `compare-windows'.
 That command optionally ignores changes in whitespace.
 
@@ -49,6 +49,7 @@ any text before that point.
 
 If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
+  :version "24.4"			; added \240
   :type '(choice regexp function)
   :group 'compare-windows)
 

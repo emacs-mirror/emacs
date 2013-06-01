@@ -215,6 +215,9 @@ If you want to force an empty list of arguments, use t."
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
@@ -292,6 +295,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
   (vc-svn-command "*vc*" 0 "." "checkout"
                   (concat "file://" default-directory "SVN")))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
@@ -493,8 +498,13 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log(s) associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (save-current-buffer
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
@@ -512,7 +522,7 @@ or svn+ssh://."
 		   (append
 		    (list
 		     (if start-revision
-			 (format "-r%s" start-revision)
+			 (format "-r%s:1" start-revision)
 		       ;; By default Subversion only shows the log up to the
 		       ;; working revision, whereas we also want the log of the
 		       ;; subsequent commits.  At least that's what the

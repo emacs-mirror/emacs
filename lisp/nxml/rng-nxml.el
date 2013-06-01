@@ -380,9 +380,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 		(< rng-validate-up-to-date-end pos))
       ;; Display percentage validated.
       (force-mode-line-update)
-      ;; Force redisplay but don't allow idle timers to run.
-      (let ((timer-idle-list nil))
-	(sit-for 0)))
+      (sit-for 0))
     (message "Parsing...done"))
   (save-excursion
     (save-restriction

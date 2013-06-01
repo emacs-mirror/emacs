@@ -47,7 +47,7 @@
 ;; modify the search string before executing the search.  There are
 ;; three commands to terminate the editing: C-s and C-r exit the
 ;; minibuffer and search forward and reverse respectively, while C-m
-;; exits and does a nonincremental search.
+;; exits and searches in the last search direction.
 
 ;; Exiting immediately from isearch uses isearch-edit-string instead
 ;; of nonincremental-search, if search-nonincremental-instead is non-nil.
@@ -187,12 +187,21 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific Isearch state
 to the search status stack.")
 
-(defvar isearch-filter-predicate 'isearch-filter-visible
-  "Predicate that filters the search hits that would normally be available.
-Search hits that dissatisfy the predicate are skipped.  The function
-has two arguments: the positions of start and end of text matched by
-the search.  If this function returns nil, continue searching without
-stopping at this match.")
+(defvar isearch-filter-predicates nil
+  "Predicates that filter the search hits that would normally be available.
+Search hits that dissatisfy the list of predicates are skipped.
+Each function in this list has two arguments: the positions of
+start and end of text matched by the search.
+The search loop uses `run-hook-with-args-until-failure' to call
+each predicate in order, and when one of the predicates returns nil,
+skips this match and continues searching for the next match.
+When the list of predicates is empty, `run-hook-with-args-until-failure'
+returns non-nil that means that the found match is accepted.
+The property `isearch-message-prefix' put on the predicate's symbol
+specifies the prefix string displyed in the search message.")
+(define-obsolete-variable-alias 'isearch-filter-predicate
+                                'isearch-filter-predicates
+                                "24.4")
 
 ;; Search ring.
 
@@ -515,12 +524,12 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-so" 'isearch-occur)
     (define-key map "\M-shr" 'isearch-highlight-regexp)
 
-    ;; The key translations defined in the C-x 8 prefix should insert
-    ;; characters into the search string.  See iso-transl.el.
+    ;; The key translations defined in the C-x 8 prefix should add
+    ;; characters to the search string.  See iso-transl.el.
     (define-key map "\C-x" nil)
     (define-key map [?\C-x t] 'isearch-other-control-char)
     (define-key map "\C-x8" nil)
-    (define-key map "\C-x8\r" 'isearch-insert-char-by-name)
+    (define-key map "\C-x8\r" 'isearch-char-by-name)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -528,7 +537,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defvar minibuffer-local-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\r"    'isearch-nonincremental-exit-minibuffer)
+    (define-key map "\r"    'exit-minibuffer)
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
@@ -679,6 +688,8 @@ Type \\[isearch-yank-kill] to yank the last string of killed text.
 Type \\[isearch-yank-pop] to replace string just yanked into search prompt
  with string killed before it.
 Type \\[isearch-quote-char] to quote control character to search for it.
+Type \\[isearch-char-by-name] to add a character to search by Unicode name,\
+ with completion.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
  been found successfully.
@@ -735,8 +746,9 @@ Other control and meta characters terminate the search
  and are then executed normally (depending on `search-exit-option').
 Likewise for function keys and mouse button events.
 
-If this function is called non-interactively, it does not return to
-the calling function until the search is done."
+If this function is called non-interactively with a nil NO-RECURSIVE-EDIT,
+it does not return to the calling function until the search is done.
+See the function `isearch-mode' for more information."
 
   (interactive "P\np")
   (isearch-mode t (not (null regexp-p)) nil (not no-recursive-edit)))
@@ -799,7 +811,23 @@ as a regexp.  See the command `isearch-forward' for more information."
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word)
   "Start Isearch minor mode.
-It is called by the function `isearch-forward' and other related functions."
+It is called by the function `isearch-forward' and other related functions.
+
+The non-nil arg FORWARD means searching in the forward direction.
+
+The non-nil arg REGEXP does an incremental regular expression search.
+
+The arg OP-FUN is a function to be called after each input character
+is processed.  (It is not called after characters that exit the search.)
+
+When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
+does not return to the calling function until the search is completed.
+To behave this way it enters a recursive-edit and exits it when done
+isearching.
+
+The arg WORD, if t, does incremental search for a sequence of words,
+ignoring punctuation.  If the value is a function, it is called to
+convert the search string to a regexp used by regexp search functions."
 
   ;; Initialize global vars.
   (setq isearch-forward forward
@@ -1106,8 +1134,9 @@ If MSG is non-nil, use variable `isearch-message', otherwise `isearch-string'."
 	(curr-msg (if msg isearch-message isearch-string))
 	succ-msg)
     (when (or (not isearch-success) isearch-error)
-      (while (or (not (isearch--state-success (car cmds)))
-                 (isearch--state-error (car cmds)))
+      (while (and cmds
+		  (or (not (isearch--state-success (car cmds)))
+		      (isearch--state-error (car cmds))))
         (pop cmds))
       (setq succ-msg (and cmds (if msg (isearch--state-message (car cmds))
 				 (isearch--state-string (car cmds)))))
@@ -1255,7 +1284,6 @@ You can update the global isearch variables by setting new values to
 The following additional command keys are active while editing.
 \\<minibuffer-local-isearch-map>
 \\[exit-minibuffer] to resume incremental searching with the edited string.
-\\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
 \\[isearch-reverse-exit-minibuffer] to resume isearching backward.
 \\[isearch-complete-edit] to complete the search string using the search ring."
@@ -1289,13 +1317,18 @@ The following additional command keys are active while editing.
   (interactive)
   (setq isearch-nonincremental t)
   (exit-minibuffer))
+;; Changing the value of `isearch-nonincremental' has no effect here,
+;; because `isearch-edit-string' ignores this change.  Thus marked as obsolete.
+(make-obsolete 'isearch-nonincremental-exit-minibuffer 'exit-minibuffer "24.4")
 
 (defun isearch-forward-exit-minibuffer ()
+  "Resume isearching forward from the minibuffer that edits the search string."
   (interactive)
   (setq isearch-new-forward t)
   (exit-minibuffer))
 
 (defun isearch-reverse-exit-minibuffer ()
+  "Resume isearching backward from the minibuffer that edits the search string."
   (interactive)
   (setq isearch-new-forward nil)
   (exit-minibuffer))
@@ -1848,11 +1881,12 @@ Subword is used when `subword-mode' is activated. "
    (lambda () (let ((inhibit-field-text-motion t))
 		(line-end-position (if (eolp) 2 1))))))
 
-(defun isearch-insert-char-by-name ()
-  "Read a character by its Unicode name and insert it into search string."
+(defun isearch-char-by-name ()
+  "Read a character by its Unicode name and add it to the search string.
+Completion is available like in `read-char-by-name' used by `insert-char'."
   (interactive)
   (with-isearch-suspended
-   (let ((char (read-char-by-name "Insert character (Unicode name or hex): ")))
+   (let ((char (read-char-by-name "Add character to search (Unicode name or hex): ")))
      (when char
        (setq isearch-new-string (concat isearch-string (string char))
 	     isearch-new-message (concat isearch-message
@@ -2466,6 +2500,13 @@ If there is no completion possible, say so and continue searching."
 			      (< (point) isearch-opoint)))
 		       "over")
 		   (if isearch-wrapped "wrapped ")
+		   (mapconcat (lambda (s)
+				(and (symbolp s)
+				     (get s 'isearch-message-prefix)))
+			      (if (consp isearch-filter-predicates)
+				  isearch-filter-predicates
+				(list isearch-filter-predicates))
+			      "")
 		   (if isearch-word
 		       (or (and (symbolp isearch-word)
 				(get isearch-word 'isearch-message-prefix))
@@ -2597,10 +2638,7 @@ update the match data, and return point."
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-point-motion-hooks
-             ;; FIXME: equality comparisons on functions is asking for trouble.
-	     (and (eq isearch-filter-predicate 'isearch-filter-visible)
-		  search-invisible))
+      (let ((inhibit-point-motion-hooks search-invisible)
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
 	    (retry t))
@@ -2613,8 +2651,15 @@ update the match data, and return point."
 	  (if (or (not isearch-success)
 		  (bobp) (eobp)
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  ;; When one of filter predicates returns nil,
+		  ;; retry the search.  Otherwise, act according
+		  ;; to search-invisible (open overlays, etc.)
+		  (and (run-hook-with-args-until-failure
+			'isearch-filter-predicates
+			(match-beginning 0) (match-end 0))
+		       (or (eq search-invisible t)
+			   (not (isearch-range-invisible
+				 (match-beginning 0) (match-end 0))))))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
 	(if isearch-success
@@ -2791,6 +2836,7 @@ determined by `isearch-range-invisible' unless invisible text can be
 searched too when `search-invisible' is t."
   (or (eq search-invisible t)
       (not (isearch-range-invisible beg end))))
+(make-obsolete 'isearch-filter-visible 'search-invisible "24.4")
 
 
 ;; General utilities
@@ -3016,8 +3062,11 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  (if (or (not success)
 		  (= (point) bound) ; like (bobp) (eobp) in `isearch-search'.
 		  (= (match-beginning 0) (match-end 0))
-		  (funcall isearch-filter-predicate
-			   (match-beginning 0) (match-end 0)))
+		  (and (run-hook-with-args-until-failure
+			'isearch-filter-predicates
+			(match-beginning 0) (match-end 0))
+		       (not (isearch-range-invisible
+			     (match-beginning 0) (match-end 0)))))
 	      (setq retry nil)))
 	success)
     (error nil)))

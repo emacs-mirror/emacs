@@ -565,6 +565,7 @@ If nil, the value of `cperl-indent-level' will be used."
   "*Non-nil means that the _ (underline) should be treated as word char."
   :type 'boolean
   :group 'cperl)
+(make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
 
 (defcustom cperl-extra-perl-args ""
   "*Extra arguments to use when starting Perl.
@@ -1905,7 +1906,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (and (boundp 'msb-menu-cond)
        (not cperl-msb-fixed)
        (cperl-msb-fix))
-  (if (featurep 'easymenu)
+  (if (fboundp 'easy-menu-add)
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (run-mode-hooks 'cperl-mode-hook)
   (if cperl-hook-after-change
@@ -6529,6 +6530,9 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
   (let ((perl-dbg-flags (concat cperl-extra-perl-args " -wc")))
     (eval '(mode-compile))))		; Avoid a warning
 
+(declare-function Info-find-node "info"
+		  (filename nodename &optional no-going-back))
+
 (defun cperl-info-buffer (type)
   ;; Returns buffer with documentation.  Creates if missing.
   ;; If TYPE, this vars buffer.
@@ -8515,6 +8519,8 @@ the appropriate statement modifier."
 	  (cperl-invert-if-unless-modifiers)))
     ;;(error "Not at `if', `unless', `while', `until', `for' or `foreach'")
     (cperl-invert-if-unless-modifiers)))
+
+(declare-function Man-getpage-in-background "man" (topic))
 
 ;;; By Anthony Foiani <afoiani@uswest.com>
 ;;; Getting help on modules in C-h f ?

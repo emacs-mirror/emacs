@@ -23,19 +23,29 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.4
 
-** Emacs can be compiled with POSIX ACL support.
+** Emacs can be compiled with ACL support.
 This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
-configure option `--without-acl'.
+configure option `--disable-acl'.
 
 ** The configure option --with-crt-dir has been removed.
-It is no longer needed, as the crt*.o files are no longer linked specially.
+It is no longer needed, as the crt*.o files are no longer linked
+specially.
+
+** Emacs for MS-Windows can now be built by running the configure script
+using the MSYS environment and MinGW development tools.
+This is from now on the preferred method of building Emacs on
+MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
+files are deprecated.  See the file nt/INSTALL.MSYS for detailed
+instructions.
 
 
 * Startup Changes in Emacs 24.4
 
 
 * Changes in Emacs 24.4
+
+** Key ? also describes prefix bindings like C-h.
 
 +++
 ** `apropos-variable' is now `apropos-user-option'
@@ -59,6 +69,8 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
+** `write-region-inhibit-fsync' now defaults to t in batch mode.
+
 ** ACL support has been added.
 +++
 *** Emacs preserves the ACL entries of files when backing up.
@@ -73,8 +85,21 @@ Available only on X, this option allows to control over-scrolling
 using the scroll bar (i.e. dragging the thumb down even when the end
 of the buffer is visible).
 
+** In compiled Lisp files, the header no longer includes a timestamp.
+
+** Multi-monitor support has been added.
+
+*** New functions `display-monitor-attributes-list' and
+`frame-monitor-attributes' can be used to obtain information about
+each physical monitor on multi-monitor setups.
+
 
 * Editing Changes in Emacs 24.4
+
+** `split-window' is no longer a command, just a non-interactive function.
+As a command it was a special case of `split-window-below', and as such
+superfluous.  After being reimplemented in Lisp, its interactive form
+was mistakenly retained.
 
 ** New commands `toggle-frame-fullscreen' and `toggle-frame-maximized',
 bound to <f11> and M-<f10>, respectively.
@@ -82,8 +107,23 @@ bound to <f11> and M-<f10>, respectively.
 ** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
 Eg View mode, etc.
 
+** New command `kmacro-to-register' to store keyboard macros in registers.
+
+** Shell Script mode
+
+*** `sh-mode' now has the mode own `add-log-current-defun-function'.
+You can pick the name of the function and the variables with `C-x 4 a'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** `remember' can now store notes in separates files
+You can use the new function `remember-store-in-files' within the
+`remember-handler-functions' option.
+
+See `remember-data-directory' and `remember-directory-file-name-format'
+for new options related to this function.
+** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
@@ -111,6 +151,8 @@ Affected files:
 use `electric-indent-mode' instead.
 *** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
 
+** Eldoc Mode works properly in the minibuffer.
+
 ** jit-lock-debug-mode lets you use the debuggers on code run via jit-lock.
 
 ** completing-read-multiple's separator can now be a regexp.
@@ -119,6 +161,12 @@ The default separator is changed to allow surrounding spaces around the comma.
 ** Battery
 
 *** Battery information via the BSD `apm' utility is now supported.
+
+** Calendar and Diary
+
++++
+*** New variable `diary-from-outlook-function', used by the command
+`diary-from-outlook'.
 
 ** cl-lib
 
@@ -143,6 +191,11 @@ on the given date.
 
 *** Support for ISO 8601 dates.
 
+** Desktop
+
+*** `desktop-auto-save-timeout' defines the number of seconds between
+auto-saves of the desktop.
+
 ** Dired
 
 *** New minor mode `dired-hide-details-mode' hides details.
@@ -152,6 +205,9 @@ on the given date.
 *** New option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally paste large
 amounts of data into the ERC input.
+
+---
+** New F90 mode option `f90-smart-end-names'.
 
 ** Icomplete is a bit more like IDO.
 *** key bindings to navigate through and select the completions.
@@ -174,10 +230,19 @@ When toggling, it restores the frame's previous window configuration.
 It also has an optional frame argument, which can be used by Lisp
 callers to fit the image to a frame other than the selected frame.
 
-** Isearch
+** Info
+
+*** New face `info-index-match' is used to highlight matches in index
+entries displayed by `Info-index-next', `Info-virtual-index' and
+`info-apropos'.
+
+** Search and Replace
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
+
+*** `query-replace' skips invisible text when `search-invisible' is nil,
+and opens overlays with hidden text when `search-invisible' is `open'.
 
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
@@ -202,10 +267,12 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
-** New command `delete-duplicate-lines' has two types of operation:
-when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+** New command `delete-duplicate-lines' has new types of operation:
+When its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
+When it arg KEEP-BLANKS is non-nil (when called interactively with C-u C-u C-u),
+duplicate blank lines are preserved.
 
 ** New `cycle-spacing' command allows cycling between having just one
 space, no spaces, or reverting to the original spacing.  Like
@@ -228,16 +295,34 @@ when possible.
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
 which support POSIX ACLs.
 
+** VHDL mode
+
+*** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
+
+*** New commands: `vhdl-fix-statement-region', `vhdl-fix-statement-buffer'.
+
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
 are obsolete.  Customize the `woman-* faces instead.
 
+** Eshell
+
+*** Added Eshell-TRAMP module
+External su and sudo commands are now the default; the internal,
+TRAMP-using variants can still be used by enabling the eshell-tramp
+module.
+
 ** Obsolete packages:
 
 *** longlines.el is obsolete; use visual-line-mode instead.
 
++++
+*** sup-mouse.el.
+
 *** terminal.el is obsolete; use term.el instead.
+
+*** xesam.el.
 
 +++
 *** yow.el is obsolete; use fortune.el or cookie1.el instead.
@@ -248,6 +333,11 @@ has not been relevant for some time.
 
 
 * New Modes and Packages in Emacs 24.4
+** New `superword-mode' in subword.el
+`superword-mode' overrides the default word motion commands to treat
+symbol_words as a single word, similar to what `subword-mode' does and
+using the same internal functions.
+
 ** New nadvice.el package offering lighter-weight advice facilities.
 It is layered as:
 - add-function/remove-function which can be used to add/remove code on any
@@ -257,6 +347,9 @@ It is layered as:
 
 
 * Incompatible Lisp Changes in Emacs 24.4
+
+** Default process filers and sentinels are not nil any more.
+Instead they default to a function which does what the nil value used to do.
 
 ** `read-event' does not return decoded chars in ttys any more.
 Just as was the case in Emacs-22 and before, decoding of tty input according to
@@ -289,7 +382,22 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
-** `dont-compile' is declared obsolete.
+** Obsoleted functions:
+*** `dont-compile'
+*** `lisp-complete-symbol'
+*** `field-complete'
+*** `minibuffer-completion-contents'
+*** `isearch-nonincremental-exit-minibuffer'
+*** `isearch-filter-visible'
+
+** `with-wrapper-hook' is obsoleted by `add-function'.
+The few hooks that used with-wrapper-hook are replaced as follows:
+*** `abbrev-expand-function' obsoletes `abbrev-expand-functions'.
+*** `completion-in-region-function' obsoletes `completion-in-region-functions'.
+*** `filter-buffer-substring-function' obsoletes `filter-buffer-substring-functions'.
+
+
+** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
@@ -372,6 +480,12 @@ used in place of the 9th element of `file-attributes'.
 ** The 6th argument to `copy-file' has been renamed to
 `preserve-extended-attributes' as it now handles both SELinux context
 and ACL entries.
+
+** Changes to the Emacs Lisp Coding Conventions in Emacs 24.4
+
+*** The package descriptor and name of global variables, constants,
+and functions should be separated by two hyphens if the symbol is not
+meant to be used by other packages.
 
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems

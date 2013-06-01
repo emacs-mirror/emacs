@@ -1,3 +1,64 @@
+2013-05-26  Aidan Gauland  <aidalgol@amuri.net>
+
+	* tests/eshell.el: Rewrite tests using ERT.
+
+2013-05-25  Leo Liu  <sdl.web@gmail.com>
+
+	* indent/octave.m: Add tests for %!, # and ### comments.
+
+2013-05-23  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el: New file.
+
+2013-05-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add multiline regexp example.
+
+	* automated/ruby-mode-tests.el (ruby-heredoc-highlights-interpolations)
+	(ruby-regexp-skips-over-interpolation)
+	(ruby-regexp-continues-till-end-when-unclosed)
+	(ruby-regexp-can-be-multiline)
+	(ruby-interpolation-inside-percent-literal): New tests.
+
+2013-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/ruby.rb: Fix indentation after =; add more cases.
+
+2013-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/pascal.pas: Add test for mis-identified comments.
+
+2013-04-01  Masatake YAMATO  <yamato@redhat.com>
+
+	* automated/imenu-tests.el: New file.  (Bug#14112)
+
+2013-04-19  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-prev-index-position-1):
+	Remove test.
+	(python-imenu-create-index-1, python-imenu-create-flat-index-1):
+	New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-nav-backward-defun-2)
+	(python-nav-backward-defun-3, python-nav-forward-defun-2)
+	(python-nav-forward-defun-3): New tests.
+
+2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-nav-backward-defun-1)
+	(python-nav-forward-defun-1): New tests.
+
+2013-04-09  Masatake YAMATO  <yamato@redhat.com>
+
+	* automated/add-log-tests.el: New file. (Bug#14112)
+
+2013-03-30  Fabián Ezequiel Gallina  <fabian@anue.biz>
+
+	* automated/python-tests.el (python-indent-block-enders): New test.
+	(python-info-current-defun-2): Fix test.
+
 2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* indent/octave.m: Fix encoding error in comment.  Add coding tag.
@@ -31,8 +92,8 @@
 	(ruby-move-to-block-skips-percent-literal): Add depth-affecting
 	bits inside the examples.
 	(ruby-move-to-block-skips-heredoc): New test.
-	(ruby-add-log-current-method-after-inner-class): Lower
-	expectations: move point inside a method, initially.
+	(ruby-add-log-current-method-after-inner-class):
+	Lower expectations: move point inside a method, initially.
 
 2013-02-13  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -45,8 +106,8 @@
 
 2013-02-03  Chong Yidong  <cyd@gnu.org>
 
-	* automated/files.el (file-test--do-local-variables-test): Avoid
-	compilation warning message.
+	* automated/files.el (file-test--do-local-variables-test):
+	Avoid compilation warning message.
 
 2013-01-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -350,7 +411,7 @@
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el (icalendar-tests--compare-strings):
-	Removed, simply use string=.
+	Remove, simply use string=.
 	(icalendar--diarytime-to-isotime)
 	(icalendar--datetime-to-diary-date)
 	(icalendar--datestring-to-isodate)

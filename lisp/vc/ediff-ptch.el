@@ -33,12 +33,8 @@
   :prefix "ediff-"
   :group 'ediff)
 
-;; compiler pacifier
-(eval-when-compile
-  (require 'ediff))
-;; end pacifier
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defcustom ediff-patch-program  "patch"
   "Name of the program that applies patches.
@@ -472,6 +468,8 @@ are two possible targets for this patch.  However, these files do not exist."
 	 (set-window-buffer ediff-window-B ediff-patch-diagnostics))
 	(t (display-buffer ediff-patch-diagnostics 'not-this-window))))
 
+(defvar ediff-use-last-dir)
+
 ;; prompt for file, get the buffer
 (defun ediff-prompt-for-patch-file ()
   (let ((dir (cond (ediff-use-last-dir ediff-last-dir-patch)
@@ -641,6 +639,11 @@ optional argument, then use it."
 ;;;  (if (eq (ediff-test-patch-utility) 'traditional)
 ;;;      (eq code 0)
 ;;;    (not (eq code 2))))
+
+(autoload 'ediff-find-file "ediff")
+(declare-function ediff-buffers-internal "ediff"
+		  (buf-a buf-b buf-c startup-hooks job-name
+			 &optional merge-buffer-file))
 
 (defun ediff-patch-file-internal (patch-buf source-filename
 					    &optional startup-hooks)

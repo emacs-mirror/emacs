@@ -118,4 +118,8 @@ Each directory needs a project file to control it.")
 
 (provide 'ede/simple)
 
+;; Local variables:
+;; generated-autoload-load-name: "ede/simple"
+;; End:
+
 ;;; ede/simple.el ends here

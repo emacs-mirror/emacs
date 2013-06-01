@@ -170,9 +170,11 @@ struct frame
      most recently buried buffer is first.  For last-buffer.  */
   Lisp_Object buried_buffer_list;
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
+#endif
 
   /* A window used to display the tool-bar of a frame.  */
   Lisp_Object tool_bar_window;
@@ -275,9 +277,6 @@ struct frame
 
   /* Size of the frame window in pixels.  */
   int pixel_height, pixel_width;
-
-  /* Dots per inch of the screen the frame is on.  */
-  double resx, resy;
 
   /* These many pixels are the difference between the outer window (i.e. the
      left and top of the window manager decoration) and FRAME_X_WINDOW. */
@@ -428,10 +427,6 @@ struct frame
   /* Width of bar cursor (if we are using that) for blink-off state.  */
   int blink_off_cursor_width;
 
-  /* Nonnegative if current redisplay should not do scroll computation
-     for lines beyond a certain vpos.  This is the vpos.  */
-  int scroll_bottom_vpos;
-
   /* Configured width of the scroll bar, in pixels and in characters.
      config_scroll_bar_cols tracks config_scroll_bar_width if the
      latter is positive; a zero value in config_scroll_bar_width means
@@ -518,11 +513,13 @@ fset_menu_bar_vector (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_vector = val;
 }
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 FRAME_INLINE void
 fset_menu_bar_window (struct frame *f, Lisp_Object val)
 {
   f->menu_bar_window = val;
 }
+#endif
 FRAME_INLINE void
 fset_name (struct frame *f, Lisp_Object val)
 {
@@ -569,6 +566,26 @@ fset_tool_bar_window (struct frame *f, Lisp_Object val)
   f->tool_bar_window = val;
 }
 
+#define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
+
+FRAME_INLINE double
+default_pixels_per_inch_x (void)
+{
+  Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
+		   ? XCAR (Vdisplay_pixels_per_inch)
+		   : Vdisplay_pixels_per_inch);
+  return NUMVAL (v) > 0 ? NUMVAL (v) : 72.0;
+}
+
+FRAME_INLINE double
+default_pixels_per_inch_y (void)
+{
+  Lisp_Object v = (CONSP (Vdisplay_pixels_per_inch)
+		   ? XCDR (Vdisplay_pixels_per_inch)
+		   : Vdisplay_pixels_per_inch);
+  return NUMVAL (v) > 0 ? NUMVAL (v) : 72.0;
+}
+
 #define FRAME_KBOARD(f) ((f)->terminal->kboard)
 
 /* Return a pointer to the image cache of frame F.  */
@@ -581,7 +598,7 @@ typedef struct frame *FRAME_PTR;
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
-#define WINDOW_FRAME(w) w->frame
+#define WINDOW_FRAME(w) ((w)->frame)
 
 /* Test a frame for particular kinds of display methods.  */
 #define FRAME_INITIAL_P(f) ((f)->output_method == output_initial)
@@ -602,6 +619,37 @@ typedef struct frame *FRAME_PTR;
 #else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
+
+/* Dots per inch of the screen the frame F is on.  */
+
+#ifdef HAVE_X_WINDOWS
+#define FRAME_RES_X(f)						\
+  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resx)
+#define FRAME_RES_Y(f)						\
+  (eassert (FRAME_X_P (f)), FRAME_X_DISPLAY_INFO (f)->resy)
+#endif
+
+#ifdef HAVE_NTGUI
+#define FRAME_RES_X(f)						\
+  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resx)
+#define FRAME_RES_Y(f)						\
+  (eassert (FRAME_W32_P (f)), FRAME_W32_DISPLAY_INFO (f)->resy)
+#endif
+
+#ifdef HAVE_NS
+#define FRAME_RES_X(f)						\
+  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resx)
+#define FRAME_RES_Y(f)						\
+  (eassert (FRAME_NS_P (f)), FRAME_NS_DISPLAY_INFO (f)->resy)
+#endif
+
+/* Defaults when no window system available.  */
+
+#ifndef FRAME_RES_X
+#define FRAME_RES_X(f) default_pixels_per_inch_x ()
+#define FRAME_RES_Y(f) default_pixels_per_inch_y ()
+#endif
+
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
 
@@ -733,7 +781,6 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
-#define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 /* This frame slot says whether scroll bars are currently enabled for frame F,
@@ -911,6 +958,7 @@ extern Lisp_Object Qnoelisp;
 extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
@@ -921,6 +969,8 @@ extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
 #endif /* HAVE_WINDOW_SYSTEM */
+extern bool window_system_available (struct frame *);
+extern void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (void);
 extern void frame_make_pointer_visible (void);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
@@ -1148,6 +1198,8 @@ extern Lisp_Object Qdisplay;
 
 extern Lisp_Object Qrun_hook_with_args;
 
+extern Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The class of this X application.  */
@@ -1238,6 +1290,28 @@ extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+/***********************************************************************
+			Multimonitor data
+ ***********************************************************************/
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+struct MonitorInfo {
+  XRectangle geom, work;
+  int mm_width, mm_height;
+  char *name;
+};
+
+extern void free_monitors (struct MonitorInfo *monitors, int n_monitors);
+extern Lisp_Object make_monitor_attribute_list (struct MonitorInfo *monitors,
+                                                int n_monitors,
+                                                int primary_monitor,
+                                                Lisp_Object monitor_frames,
+                                                const char *source);
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 
 INLINE_HEADER_END
 

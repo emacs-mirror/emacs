@@ -152,7 +152,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      (2 'change-log-list)
      (3 'change-log-name)
      (4 'change-log-date)))
-  "Mercurial log template for `vc-print-root-log'.
+  "Mercurial log template for `vc-hg-print-log' short format.
 This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
 is the \"--template\" argument string to pass to Mercurial,
 REGEXP is a regular expression matching the resulting Mercurial
@@ -245,8 +245,13 @@ highlighting the Log View buffer."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
@@ -257,7 +262,7 @@ highlighting the Log View buffer."
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
 	     (nconc
-	      (when start-revision (list (format "-r%s:" start-revision)))
+	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
 	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
@@ -302,6 +307,8 @@ highlighting the Log View buffer."
 	    ("^date: \\(.+\\)" (1 'change-log-date))
 	    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -357,7 +364,7 @@ Optional arg REVISION is a revision to annotate from."
 ;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
 ;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
 (defconst vc-hg-annotate-re
-  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\(.+\\): \\)\\)")
+  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\([^:\n]+\\(?::\\(?:[^: \n][^:\n]*\\)?\\)*\\): \\)\\)")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -588,6 +595,12 @@ REV is the revision to check out into WORKFILE."
         (forward-line))
       (funcall update-function result)))
 
+;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
+
 (defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
   (vc-exec-after
@@ -647,6 +660,8 @@ REV is the revision to check out into WORKFILE."
   ;; TODO: call 'hg incoming' before pull/merge to get the list of
   ;;       modified files
   "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
+
+(autoload 'vc-do-async-command "vc-dispatcher")
 
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.

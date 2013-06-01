@@ -310,7 +310,7 @@ See `run-hooks'."
 	"(" (regexp-opt
 	     '("begin" "call-with-current-continuation" "call/cc"
 	       "call-with-input-file" "call-with-output-file" "case" "cond"
-	       "do" "else" "for-each" "if" "lambda"
+	       "do" "else" "for-each" "if" "lambda" "λ"
 	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
 	       ;; SRFI 11 usage comes up often enough.
 	       "let-values" "let*-values"
@@ -410,6 +410,7 @@ that variable's value is a string."
 (put 'make 'scheme-indent-function 1)
 (put 'style 'scheme-indent-function 1)
 (put 'root 'scheme-indent-function 1)
+(put 'λ 'scheme-indent-function 1)
 
 (defvar dsssl-font-lock-keywords
   (eval-when-compile

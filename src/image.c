@@ -68,8 +68,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP None
 
-#define RGB_PIXEL_COLOR unsigned long
-
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 #endif /* HAVE_X_WINDOWS */
@@ -87,8 +85,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 typedef struct w32_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) GetPixel (ximg, x, y)
 #define NO_PIXMAP 0
-
-#define RGB_PIXEL_COLOR COLORREF
 
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
@@ -110,7 +106,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
-#define RGB_PIXEL_COLOR unsigned long
 #define ZPixmap 0
 
 #define PIX_MASK_RETAIN	0
@@ -159,15 +154,15 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
   return pixmap;
 }
 
-/* use with imgs created by ns_image_for_XPM */
+/* Use with images created by ns_image_for_XPM.  */
 unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
 {
   return ns_get_pixel (ximage, x, y);
 }
 
-/* use with imgs created by ns_image_for_XPM; alpha set to 1;
-   pixel is assumed to be in form RGB */
+/* Use with images created by ns_image_for_XPM; alpha set to 1;
+   pixel is assumed to be in RGB form.  */
 void
 XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 {
@@ -894,7 +889,7 @@ or omitted means use the selected frame.  */)
   size = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       int width = img->width + 2 * img->hmargin;
@@ -924,7 +919,7 @@ or omitted means use the selected frame.  */)
   mask = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       if (img->mask)
@@ -947,7 +942,7 @@ or omitted means use the selected frame.  */)
   ext = Qnil;
   if (valid_image_p (spec))
     {
-      struct frame *f = check_x_frame (frame);
+      struct frame *f = decode_window_system_frame (frame);
       ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       ext = img->lisp_data;
@@ -1555,7 +1550,7 @@ which is then usually a filename.  */)
   if (!(EQ (filter, Qnil) || FRAMEP (filter)))
     clear_image_caches (filter);
   else
-    clear_image_cache (check_x_frame (filter), Qt);
+    clear_image_cache (decode_window_system_frame (filter), Qt);
 
   return Qnil;
 }
@@ -1586,7 +1581,7 @@ FRAME t means refresh the image on all frames.  */)
 	}
     }
   else
-    uncache_image (check_x_frame (frame), spec);
+    uncache_image (decode_window_system_frame (frame), spec);
 
   return Qnil;
 }
@@ -7268,6 +7263,25 @@ gif_load (struct frame *f, struct image *img)
       return 0;
     }
 
+  /* Check that the selected subimages fit.  It's not clear whether
+     the GIF spec requires this, but Emacs can crash if they don't fit.  */
+  for (j = 0; j <= idx; ++j)
+    {
+      struct SavedImage *subimage = gif->SavedImages + j;
+      int subimg_width = subimage->ImageDesc.Width;
+      int subimg_height = subimage->ImageDesc.Height;
+      int subimg_top = subimage->ImageDesc.Top;
+      int subimg_left = subimage->ImageDesc.Left;
+      if (! (0 <= subimg_width && 0 <= subimg_height
+	     && 0 <= subimg_top && subimg_top <= height - subimg_height
+	     && 0 <= subimg_left && subimg_left <= width - subimg_width))
+	{
+	  image_error ("Subimage does not fit in image", Qnil, Qnil);
+	  fn_DGifCloseFile (gif);
+	  return 0;
+	}
+    }
+
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
@@ -7378,11 +7392,10 @@ gif_load (struct frame *f, struct image *img)
 	       y < subimg_height;
 	       y++, row += interlace_increment[pass])
 	    {
-	      if (row >= subimg_height)
+	      while (subimg_height <= row)
 		{
+		  lint_assume (pass < 3);
 		  row = interlace_start[++pass];
-		  while (row >= subimg_height)
-		    row = interlace_start[++pass];
 		}
 
 	      for (x = 0; x < subimg_width; x++)
@@ -8126,24 +8139,25 @@ svg_image_p (Lisp_Object object)
 #ifdef WINDOWSNT
 
 /* SVG library functions.  */
-DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new);
-DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_write);
-DEF_IMGLIB_FN (gboolean, rsvg_handle_close);
-DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (RsvgHandle *, rsvg_handle_new, (void));
+DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions, (RsvgHandle *, RsvgDimensionData *));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_write, (RsvgHandle *, const guchar *, gsize, GError **));
+DEF_IMGLIB_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
+DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
+DEF_IMGLIB_FN (void *, rsvg_handle_set_size_callback, (RsvgHandle *, RsvgSizeFunc, gpointer, GDestroyNotify));
 
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_width);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_height);
-DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride);
-DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels);
-DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha);
-DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample);
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
+DEF_IMGLIB_FN (guchar *, gdk_pixbuf_get_pixels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_rowstride, (const GdkPixbuf *));
+DEF_IMGLIB_FN (GdkColorspace, gdk_pixbuf_get_colorspace, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_n_channels, (const GdkPixbuf *));
+DEF_IMGLIB_FN (gboolean, gdk_pixbuf_get_has_alpha, (const GdkPixbuf *));
+DEF_IMGLIB_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 
-DEF_IMGLIB_FN (void, g_type_init);
-DEF_IMGLIB_FN (void, g_object_unref);
-DEF_IMGLIB_FN (void, g_error_free);
+DEF_IMGLIB_FN (void, g_type_init, (void));
+DEF_IMGLIB_FN (void, g_object_unref, (gpointer));
+DEF_IMGLIB_FN (void, g_error_free, (GError *));
 
 Lisp_Object Qgdk_pixbuf, Qglib, Qgobject;
 
@@ -8559,10 +8573,10 @@ gs_load (struct frame *f, struct image *img)
      info.  */
   pt_width = image_spec_value (img->spec, QCpt_width, NULL);
   in_width = INTEGERP (pt_width) ? XFASTINT (pt_width) / 72.0 : 0;
-  in_width *= FRAME_X_DISPLAY_INFO (f)->resx;
+  in_width *= FRAME_RES_X (f);
   pt_height = image_spec_value (img->spec, QCpt_height, NULL);
   in_height = INTEGERP (pt_height) ? XFASTINT (pt_height) / 72.0 : 0;
-  in_height *= FRAME_X_DISPLAY_INFO (f)->resy;
+  in_height *= FRAME_RES_Y (f);
 
   if (! (in_width <= INT_MAX && in_height <= INT_MAX
 	 && check_image_size (f, in_width, in_height)))

@@ -376,6 +376,23 @@ one is kept."
       (setq tail (cdr tail))))
   list)
 
+;; See http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00204.html
+(defun delete-consecutive-dups (list &optional circular)
+  "Destructively remove `equal' consecutive duplicates from LIST.
+First and last elements are considered consecutive if CIRCULAR is
+non-nil."
+  (let ((tail list) last)
+    (while (consp tail)
+      (if (equal (car tail) (cadr tail))
+	  (setcdr tail (cddr tail))
+	(setq last (car tail)
+	      tail (cdr tail))))
+    (if (and circular
+	     (cdr list)
+	     (equal last (car list)))
+	(nbutlast list)
+      list)))
+
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
 INC is the increment used between numbers in the sequence and defaults to 1.
@@ -1044,14 +1061,17 @@ and `event-end' functions."
 		(nth 1 position))))
     (and (symbolp area) area)))
 
-(defsubst posn-point (position)
+(defun posn-point (position)
   "Return the buffer location in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+and `event-end' functions.
+Returns nil if POSITION does not correspond to any buffer location (e.g.
+a click on a scroll bar)."
   (or (nth 5 position)
-      (if (consp (nth 1 position))
-	  (car (nth 1 position))
-	(nth 1 position))))
+      (let ((pt (nth 1 position)))
+        (or (car-safe pt)
+            ;; Apparently this can also be `vertical-scroll-bar' (bug#13979).
+            (if (integerp pt) pt)))))
 
 (defun posn-set-point (position)
   "Move point to POSITION.
@@ -1124,12 +1144,14 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 3 position))
 
-(defsubst posn-string (position)
+(defun posn-string (position)
   "Return the string object of POSITION.
 Value is a cons (STRING . STRING-POS), or nil if not a string.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
-  (nth 4 position))
+  (let ((x (nth 4 position)))
+    ;; Apparently this can also be `handle' or `below-handle' (bug#13979).
+    (when (consp x) x)))
 
 (defsubst posn-image (position)
   "Return the image object of POSITION.
@@ -1409,7 +1431,9 @@ Of course, a subsequent hook function may do the same thing.
 Each hook function definition is used to construct the FUN passed
 to the next hook function, if any.  The last (or \"outermost\")
 FUN is then called once."
-  (declare (indent 2) (debug (form sexp body)))
+  (declare (indent 2) (debug (form sexp body))
+           (obsolete "use a <foo>-function variable modified by add-function."
+                     "24.4"))
   ;; We need those two gensyms because CL's lexical scoping is not available
   ;; for function arguments :-(
   (let ((funs (make-symbol "funs"))
@@ -2193,11 +2217,11 @@ by doing (clear-string STRING)."
               ;; And of course, don't keep the sensitive data around.
               (erase-buffer))))))))
 
-;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
-The value of DEFAULT is inserted into PROMPT."
+The value of DEFAULT is inserted into PROMPT.
+This function is used by the `interactive' code letter `n'."
   (let ((n nil)
 	(default1 (if (consp default) (car default) default)))
     (when default1
@@ -2218,7 +2242,7 @@ The value of DEFAULT is inserted into PROMPT."
 	    (condition-case nil
 		(setq n (cond
 			 ((zerop (length str)) default1)
-			 ((stringp str) (string-to-number str))))
+			 ((stringp str) (read str))))
 	      (error nil)))
 	  (unless (numberp n)
 	    (message "Please enter a number.")
@@ -2636,6 +2660,13 @@ Various programs in Emacs store information in this directory.
 Note that this should end with a directory separator.
 See also `locate-user-emacs-file'.")
 
+(custom-declare-variable-early 'user-emacs-directory-warning t
+  "Non-nil means warn if cannot access `user-emacs-directory'.
+Set this to nil at your own risk..."
+  :type 'boolean
+  :group 'initialization
+  :version "24.4")
+
 (defun locate-user-emacs-file (new-name &optional old-name)
   "Return an absolute per-user Emacs-specific file name.
 If NEW-NAME exists in `user-emacs-directory', return it.
@@ -2651,17 +2682,33 @@ directory if it does not exist."
               (file-readable-p at-home))
 	 at-home
        ;; Make sure `user-emacs-directory' exists,
-       ;; unless we're in batch mode or dumping Emacs
+       ;; unless we're in batch mode or dumping Emacs.
        (or noninteractive
 	   purify-flag
-	   (file-accessible-directory-p
-	    (directory-file-name user-emacs-directory))
-	   (let ((umask (default-file-modes)))
-	     (unwind-protect
-		 (progn
-		   (set-default-file-modes ?\700)
-		   (make-directory user-emacs-directory))
-	       (set-default-file-modes umask))))
+	   (let (errtype)
+	     (if (file-directory-p user-emacs-directory)
+		 (or (file-accessible-directory-p user-emacs-directory)
+		     (setq errtype "access"))
+	       (let ((umask (default-file-modes)))
+		 (unwind-protect
+		     (progn
+		       (set-default-file-modes ?\700)
+		       (condition-case nil
+			   (make-directory user-emacs-directory)
+			 (error (setq errtype "create"))))
+		   (set-default-file-modes umask))))
+	     (when (and errtype
+			user-emacs-directory-warning
+			(not (get 'user-emacs-directory-warning 'this-session)))
+	       ;; Only warn once per Emacs session.
+	       (put 'user-emacs-directory-warning 'this-session t)
+	       (display-warning 'initialization
+				(format "\
+Unable to %s `user-emacs-directory' (%s).
+Any data that would normally be written there may be lost!
+If you never want to see this message again,
+customize the variable `user-emacs-directory-warning'."
+					errtype user-emacs-directory)))))
        bestname))))
 
 ;;;; Misc. useful functions.
@@ -2708,7 +2755,7 @@ symbol at point exactly."
 		   (get major-mode 'find-tag-default-function)
 		   'find-tag-default))
 	 (tag (funcall tagf)))
-    (cond ((not tag))
+    (cond ((null tag) nil)
 	  ((eq tagf 'find-tag-default)
 	   (format "\\_<%s\\_>" (regexp-quote tag)))
 	  (t (regexp-quote tag)))))
@@ -3834,6 +3881,58 @@ node `(elisp)Syntax Table Internals' for a list of codes.
 If SYNTAX is nil, return nil."
   (and syntax (logand (car syntax) 65535)))
 
+;; Utility motion commands
+
+;;  Whitespace
+
+(defun forward-whitespace (arg)
+  "Move point to the end of the next sequence of whitespace chars.
+Each such sequence may be a single newline, or a sequence of
+consecutive space and/or tab characters.
+With prefix argument ARG, do it ARG times if positive, or move
+backwards ARG times if negative."
+  (interactive "^p")
+  (if (natnump arg)
+      (re-search-forward "[ \t]+\\|\n" nil 'move arg)
+    (while (< arg 0)
+      (if (re-search-backward "[ \t]+\\|\n" nil 'move)
+	  (or (eq (char-after (match-beginning 0)) ?\n)
+	      (skip-chars-backward " \t")))
+      (setq arg (1+ arg)))))
+
+;;  Symbols
+
+(defun forward-symbol (arg)
+  "Move point to the next position that is the end of a symbol.
+A symbol is any sequence of characters that are in either the
+word constituent or symbol constituent syntax class.
+With prefix argument ARG, do it ARG times if positive, or move
+backwards ARG times if negative."
+  (interactive "^p")
+  (if (natnump arg)
+      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
+    (while (< arg 0)
+      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
+	  (skip-syntax-backward "w_"))
+      (setq arg (1+ arg)))))
+
+;;  Syntax blocks
+
+(defun forward-same-syntax (&optional arg)
+  "Move point past all characters with the same syntax class.
+With prefix argument ARG, do it ARG times if positive, or move
+backwards ARG times if negative."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (while (< arg 0)
+    (skip-syntax-backward
+     (char-to-string (char-syntax (char-before))))
+    (setq arg (1+ arg)))
+  (while (> arg 0)
+    (skip-syntax-forward (char-to-string (char-syntax (char-after))))
+    (setq arg (1- arg))))
+
+
 ;;;; Text clones
 
 (defun text-clone-maintain (ol1 after beg end &optional _len)
@@ -4595,5 +4694,21 @@ as alpha versions."
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
+
+;; This is used in lisp/Makefile.in and in leim/Makefile.in to
+;; generate file names for autoloads, custom-deps, and finder-data.
+(defun unmsys--file-name (file)
+  "Produce the canonical file name for FILE from its MSYS form.
+
+On systems other than MS-Windows, just returns FILE.
+On MS-Windows, converts /d/foo/bar form of file names
+passed by MSYS Make into d:/foo/bar that Emacs can grok.
+
+This function is called from lisp/Makefile and leim/Makefile."
+  (when (and (eq system-type 'windows-nt)
+	     (string-match "\\`/[a-zA-Z]/" file))
+    (setq file (concat (substring file 1 2) ":" (substring file 2))))
+  file)
+
 
 ;;; subr.el ends here

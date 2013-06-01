@@ -251,7 +251,8 @@ terminal's standard input stream (@code{stdin}) instead.
 but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
 to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which auto-saving is
-explicitly requested.
+explicitly requested, and when saving files it omits the @code{fsync}
+system call unless otherwise requested.
 
 @item --script @var{file}
 @opindex --script

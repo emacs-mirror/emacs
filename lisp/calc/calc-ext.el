@@ -2945,50 +2945,6 @@ If X is not an error form, return 1."
       (and x sigma (math-scalarp x) (math-anglep sigma)
 	   (list 'sdev x sigma))))
 
-   ;; Hours (or degrees)
-   ((or (string-match "^\\([^#^]+\\)[@oOhH]\\(.*\\)$" s)
-	(string-match "^\\([^#^]+\\)[dD][eE]?[gG]?\\(.*\\)$" s))
-    (let* ((hours (math-match-substring s 1))
-	   (minsec (math-match-substring s 2))
-	   (hours (math-read-number hours))
-	   (minsec (if (> (length minsec) 0) (math-read-number minsec) 0)))
-      (and hours minsec
-	   (math-num-integerp hours)
-	   (not (math-negp hours)) (not (math-negp minsec))
-	   (cond ((math-num-integerp minsec)
-		  (and (Math-lessp minsec 60)
-		       (list 'hms hours minsec 0)))
-		 ((and (eq (car-safe minsec) 'hms)
-		       (math-zerop (nth 1 minsec)))
-		  (math-add (list 'hms hours 0 0) minsec))
-		 (t nil)))))
-
-   ;; Minutes
-   ((string-match "^\\([^'#^]+\\)[mM']\\(.*\\)$" s)
-    (let* ((minutes (math-match-substring s 1))
-	   (seconds (math-match-substring s 2))
-	   (minutes (math-read-number minutes))
-	   (seconds (if (> (length seconds) 0) (math-read-number seconds) 0)))
-      (and minutes seconds
-	   (math-num-integerp minutes)
-	   (not (math-negp minutes)) (not (math-negp seconds))
-	   (cond ((math-realp seconds)
-		  (and (Math-lessp minutes 60)
-		       (list 'hms 0 minutes seconds)))
-		 ((and (eq (car-safe seconds) 'hms)
-		       (math-zerop (nth 1 seconds))
-		       (math-zerop (nth 2 seconds)))
-		  (math-add (list 'hms 0 minutes 0) seconds))
-		 (t nil)))))
-
-   ;; Seconds
-   ((string-match "^\\([^\"#^]+\\)[sS\"]$" s)
-    (let ((seconds (math-read-number (math-match-substring s 1))))
-      (and seconds (math-realp seconds)
-	   (not (math-negp seconds))
-	   (Math-lessp seconds 60)
-	   (list 'hms 0 0 seconds))))
-
    ;; Integer+fraction with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]\\)$" s)
     (let ((radix (string-to-number (math-match-substring s 1)))
@@ -3060,6 +3016,50 @@ If X is not an error form, return 1."
 	 (string-match "^\\$\\([0-9a-fA-F]+\\)$" s))
     (let ((digs (math-match-substring s 1)))
       (math-read-radix digs 16)))
+
+   ;; Hours (or degrees)
+   ((or (string-match "^\\([^#^]+\\)[@oOhH]\\(.*\\)$" s)
+	(string-match "^\\([^#^]+\\)[dD][eE]?[gG]?\\(.*\\)$" s))
+    (let* ((hours (math-match-substring s 1))
+	   (minsec (math-match-substring s 2))
+	   (hours (math-read-number hours))
+	   (minsec (if (> (length minsec) 0) (math-read-number minsec) 0)))
+      (and hours minsec
+	   (math-num-integerp hours)
+	   (not (math-negp hours)) (not (math-negp minsec))
+	   (cond ((math-num-integerp minsec)
+		  (and (Math-lessp minsec 60)
+		       (list 'hms hours minsec 0)))
+		 ((and (eq (car-safe minsec) 'hms)
+		       (math-zerop (nth 1 minsec)))
+		  (math-add (list 'hms hours 0 0) minsec))
+		 (t nil)))))
+
+   ;; Minutes
+   ((string-match "^\\([^'#^]+\\)[mM']\\(.*\\)$" s)
+    (let* ((minutes (math-match-substring s 1))
+	   (seconds (math-match-substring s 2))
+	   (minutes (math-read-number minutes))
+	   (seconds (if (> (length seconds) 0) (math-read-number seconds) 0)))
+      (and minutes seconds
+	   (math-num-integerp minutes)
+	   (not (math-negp minutes)) (not (math-negp seconds))
+	   (cond ((math-realp seconds)
+		  (and (Math-lessp minutes 60)
+		       (list 'hms 0 minutes seconds)))
+		 ((and (eq (car-safe seconds) 'hms)
+		       (math-zerop (nth 1 seconds))
+		       (math-zerop (nth 2 seconds)))
+		  (math-add (list 'hms 0 minutes 0) seconds))
+		 (t nil)))))
+
+   ;; Seconds
+   ((string-match "^\\([^\"#^]+\\)[sS\"]$" s)
+    (let ((seconds (math-read-number (math-match-substring s 1))))
+      (and seconds (math-realp seconds)
+	   (not (math-negp seconds))
+	   (Math-lessp seconds 60)
+	   (list 'hms 0 0 seconds))))
 
    ;; Fraction using "/" instead of ":"
    ((string-match "^\\([0-9]+\\)/\\([0-9/]+\\)$" s)

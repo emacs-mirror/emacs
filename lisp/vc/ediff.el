@@ -116,11 +116,7 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
-
-(eval-when-compile
-  (require 'dired)
-  (require 'ediff-util)
-  (require 'ediff-ptch))
+(require 'ediff-util)
 ;; end pacifier
 
 (require 'ediff-init)
@@ -153,6 +149,11 @@
 (defun ediff-set-read-only-in-buf-A ()
   (ediff-with-current-buffer ediff-buffer-A
     (setq buffer-read-only t)))
+
+(declare-function dired-get-filename "dired"
+                  (&optional localp no-error-if-not-filep))
+(declare-function dired-get-marked-files "dired"
+                  (&optional localp arg filter distinguish-one-marked))
 
 ;; Return a plausible default for ediff's first file:
 ;; In dired, return the file number FILENO (or 0) in the list
@@ -1345,6 +1346,12 @@ buffer."
      rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
 ;;; Apply patch
+(defvar ediff-last-dir-patch)
+(defvar ediff-patch-default-directory)
+(declare-function ediff-get-patch-buffer "ediff-ptch"
+                  (&optional arg patch-buf))
+(declare-function ediff-dispatch-file-patching-job "ediff-ptch"
+                  (patch-buf filename &optional startup-hooks))
 
 ;;;###autoload
 (defun ediff-patch-file (&optional arg patch-buf)
@@ -1372,6 +1379,9 @@ buffer. If odd -- assume it is in a file."
 	   ;; use an explicit initial file
 	   source-dir nil nil (ediff-get-default-file-name)))
     (ediff-dispatch-file-patching-job patch-buf source-file)))
+
+(declare-function ediff-patch-buffer-internal "ediff-ptch"
+                  (patch-buf buf-to-patch-name &optional startup-hooks))
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
@@ -1464,9 +1474,9 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   "Return string describing the version of Ediff.
 When called interactively, displays the version."
   (interactive)
-  ;; called-interactively-p - not in XEmacs
-  ;; (if (called-interactively-p 'interactive)
-  (if (interactive-p)
+  (if (if (featurep 'xemacs)
+          (interactive-p)
+        (called-interactively-p 'interactive))
       (message "%s" (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 

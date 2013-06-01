@@ -195,7 +195,7 @@
 		cipher-algorithm digest-algorithm compress-algorithm
 		(list #'epg-passphrase-callback-function)
 		nil
-		nil nil nil nil nil nil)))
+		nil nil nil nil nil nil nil)))
 
 (defun epg-context-protocol (context)
   "Return the protocol used within CONTEXT."
@@ -288,6 +288,12 @@ This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 14))
+
+(defun epg-context-pinentry-mode (context)
+  "Return the mode of pinentry invocation."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (aref (cdr context) 15))
 
 (defun epg-context-set-protocol (context protocol)
   "Set the protocol used within CONTEXT."
@@ -406,6 +412,14 @@ This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 14 operation))
+
+(defun epg-context-set-pinentry-mode (context mode)
+  "Set the mode of pinentry invocation."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (unless (memq mode '(nil ask cancel error loopback))
+    (signal 'epg-error (list "Unknown pinentry mode" mode)))
+  (aset (cdr context) 15 mode))
 
 (defun epg-make-signature (status &optional key-id)
   "Return a signature object."
@@ -1152,6 +1166,10 @@ This function is for internal use only."
 		       (if (epg-context-textmode context) '("--textmode"))
 		       (if (epg-context-output-file context)
 			   (list "--output" (epg-context-output-file context)))
+		       (if (epg-context-pinentry-mode context)
+			   (list "--pinentry-mode"
+				 (symbol-name (epg-context-pinentry-mode
+					       context))))
 		       args))
 	 (coding-system-for-write 'binary)
 	 (coding-system-for-read 'binary)

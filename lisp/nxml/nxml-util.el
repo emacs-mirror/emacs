@@ -78,27 +78,6 @@ This is the inverse of `nxml-make-namespace'."
             (nxml-degrade ,context ,error-symbol))))
     `(progn ,@body)))
 
-(defmacro nxml-with-unmodifying-text-property-changes (&rest body)
-  "Evaluate BODY without any text property changes modifying the buffer.
-Any text properties changes happen as usual but the changes are not treated as
-modifications to the buffer."
-  (let ((modified (make-symbol "modified")))
-    `(let ((,modified (buffer-modified-p))
-	   (inhibit-read-only t)
-	   (inhibit-modification-hooks t)
-	   (buffer-undo-list t)
-	   (deactivate-mark nil)
-	   ;; Apparently these avoid file locking problems.
-	   (buffer-file-name nil)
-	   (buffer-file-truename nil))
-       (unwind-protect
-	   (progn ,@body)
-	 (unless ,modified
-	   (restore-buffer-modified-p nil))))))
-
-(put 'nxml-with-unmodifying-text-property-changes 'lisp-indent-function 0)
-(def-edebug-spec nxml-with-unmodifying-text-property-changes t)
-
 (defmacro nxml-with-invisible-motion (&rest body)
   "Evaluate body without calling any point motion hooks."
   `(let ((inhibit-point-motion-hooks t))

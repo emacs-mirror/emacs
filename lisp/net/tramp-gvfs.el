@@ -147,13 +147,15 @@
 (defconst tramp-gvfs-service-daemon "org.gtk.vfs.Daemon"
   "The well known name of the GVFS daemon.")
 
-;; Check that GVFS is available.  D-Bus integration is available since
-;; Emacs 23 on some system types.  We don't call `dbus-ping', because
-;; this would load dbus.el.
-(unless (and (tramp-compat-funcall 'dbus-get-unique-name :session)
-	     (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
-		 (tramp-compat-process-running-p "gvfsd-fuse")))
-  (error "Package `tramp-gvfs' not supported"))
+;; D-Bus integration is available since Emacs 23 on some system types.
+;; We don't call `dbus-ping', because this would load dbus.el.
+(defconst tramp-gvfs-enabled
+  (ignore-errors
+    (and (featurep 'dbusbind)
+	 (tramp-compat-funcall 'dbus-get-unique-name :session)
+	 (or (tramp-compat-process-running-p "gvfs-fuse-daemon")
+	     (tramp-compat-process-running-p "gvfsd-fuse"))))
+  "Non-nil when GVFS is available.")
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
   "The object path of the GVFS daemon.")
@@ -482,6 +484,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
   "Invoke the GVFS related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
+  (unless tramp-gvfs-enabled
+    (tramp-compat-user-error "Package `tramp-gvfs' not supported"))
   (let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
     (if fn
 	(save-match-data (apply (cdr fn) args))
@@ -1307,23 +1311,24 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	    (tramp-set-file-property
 	     v "/" "default-location" default-location)))))))
 
-(dbus-register-signal
- :session nil tramp-gvfs-path-mounttracker
- tramp-gvfs-interface-mounttracker "mounted"
- 'tramp-gvfs-handler-mounted-unmounted)
-(dbus-register-signal
- :session nil tramp-gvfs-path-mounttracker
- tramp-gvfs-interface-mounttracker "Mounted"
- 'tramp-gvfs-handler-mounted-unmounted)
+(when tramp-gvfs-enabled
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-mounttracker
+   tramp-gvfs-interface-mounttracker "mounted"
+   'tramp-gvfs-handler-mounted-unmounted)
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-mounttracker
+   tramp-gvfs-interface-mounttracker "Mounted"
+   'tramp-gvfs-handler-mounted-unmounted)
 
-(dbus-register-signal
- :session nil tramp-gvfs-path-mounttracker
- tramp-gvfs-interface-mounttracker "unmounted"
- 'tramp-gvfs-handler-mounted-unmounted)
-(dbus-register-signal
- :session nil tramp-gvfs-path-mounttracker
- tramp-gvfs-interface-mounttracker "Unmounted"
- 'tramp-gvfs-handler-mounted-unmounted)
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-mounttracker
+   tramp-gvfs-interface-mounttracker "unmounted"
+   'tramp-gvfs-handler-mounted-unmounted)
+  (dbus-register-signal
+   :session nil tramp-gvfs-path-mounttracker
+   tramp-gvfs-interface-mounttracker "Unmounted"
+   'tramp-gvfs-handler-mounted-unmounted))
 
 (defun tramp-gvfs-connection-mounted-p (vec)
   "Check, whether the location is already mounted."
@@ -1451,7 +1456,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
 
 
-;; Connection functions
+;; Connection functions.
 
 (defun tramp-gvfs-maybe-open-connection (vec)
   "Maybe open a connection VEC.
@@ -1572,7 +1577,7 @@ COMMAND is usually a command from the gvfs-* utilities.
       (tramp-gvfs-maybe-open-connection vec)
       (erase-buffer)
       (tramp-message vec 6 "%s %s" command (mapconcat 'identity args " "))
-      (setq result (apply 'tramp-compat-call-process command nil t nil args))
+      (setq result (apply 'tramp-call-process command nil t nil args))
       (tramp-message vec 6 "\n%s" (buffer-string))
       (zerop result))))
 

@@ -60,7 +60,7 @@
 
 (provide 'esh-mode)
 
-(eval-when-compile (require 'esh-util))
+(require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)

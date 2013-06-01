@@ -45,7 +45,10 @@
   "Time used to determine if we should use images from the cache."
   :version "24.1"
   :group 'gnus-art
-  :type 'integer)
+  ;; FIXME hardly the friendliest type.  The allowed value is actually
+  ;; any time value, but we are assuming no-one cares about USEC and
+  ;; PSEC here.  It would be better to eg make it a number of minutes.
+  :type '(list integer integer))
 
 (defcustom gnus-html-image-automatic-caching t
   "Whether automatically cache retrieve images."

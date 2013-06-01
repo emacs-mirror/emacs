@@ -112,7 +112,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    merging faces of that character, that face is `realized'.  The
    realization process maps face attributes to what is physically
    available on the system where Emacs runs.  The result is a
-   `realized face' in form of a struct face which is stored in the
+   `realized face' in the form of a struct face which is stored in the
    face cache of the frame on which it was realized.
 
    Face realization is done in the context of the character to display
@@ -231,7 +231,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
-#define check_x check_w32
 #define GCGraphicsExposures 0
 #endif /* HAVE_NTGUI */
 
@@ -239,7 +238,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
-#define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1592,7 +1590,7 @@ the face font sort order.  */)
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      XFRAME (frame)->resy);
+			      FRAME_RES_Y (XFRAME (frame)));
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
@@ -1636,7 +1634,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
   struct frame *f;
   int size, avgwidth IF_LINT (= 0);
 
-  check_x ();
+  check_window_system (NULL);
   CHECK_STRING (pattern);
 
   if (! NILP (maximum))
@@ -1645,8 +1643,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
   if (!NILP (width))
     CHECK_NUMBER (width);
 
-  /* We can't simply call check_x_frame because this function may be
-     called before any frame is created.  */
+  /* We can't simply call decode_window_system_frame because
+     this function may be called before any frame is created.  */
   f = decode_live_frame (frame);
   if (! FRAME_WINDOW_P (f))
     {
@@ -2118,7 +2116,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
     {
-      int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
+      int pt = PIXEL_TO_POINT (font->pixel_size * 10, FRAME_RES_Y (f));
 
       eassert (pt > 0);
       ASET (lface, LFACE_HEIGHT_INDEX, make_number (pt));
@@ -3395,21 +3393,22 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
     }
 }
 
-
-/* Get the value of X resource RESOURCE, class CLASS for the display
-   of frame FRAME.  This is here because ordinary `x-get-resource'
-   doesn't take a frame argument.  */
-
 DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
-       Sinternal_face_x_get_resource, 3, 3, 0, doc: /* */)
+       Sinternal_face_x_get_resource, 2, 3, 0,
+       doc: /* Get the value of X resource RESOURCE, class CLASS.
+Returned value is for the display of frame FRAME.  If FRAME is not
+specified or nil, use selected frame.  This function exists because
+ordinary `x-get-resource' doesn't take a frame argument.  */)
   (Lisp_Object resource, Lisp_Object class, Lisp_Object frame)
 {
   Lisp_Object value = Qnil;
+  struct frame *f;
+
   CHECK_STRING (resource);
   CHECK_STRING (class);
-  CHECK_LIVE_FRAME (frame);
+  f = decode_live_frame (frame);
   block_input ();
-  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
+  value = display_x_get_resource (FRAME_X_DISPLAY_INFO (f),
 				  resource, class, Qnil, Qnil);
   unblock_input ();
   return value;
@@ -3924,8 +3923,8 @@ If FRAME is omitted or nil, use the selected frame.  */)
   struct frame *f;
   Lisp_Object lface1, lface2;
 
-  /* Don't use check_x_frame here because this function is called
-     before X frames exist.  At that time, if FRAME is nil,
+  /* Don't use decode_window_system_frame here because this function
+     is called before X frames exist.  At that time, if FRAME is nil,
      selected_frame will be used which is the frame dumped with
      Emacs.  That frame is not an X frame.  */
   f = EQ (frame, Qt) ? NULL : decode_live_frame (frame);
@@ -5963,7 +5962,7 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* eassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->contents) == current_buffer); */
 
   XSETFASTINT (position, pos);
 
@@ -5973,9 +5972,9 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, w->contents);
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 
@@ -6071,7 +6070,7 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  /* eassert (XBUFFER (w->buffer) == current_buffer); */
+  /* eassert (XBUFFER (w->contents) == current_buffer); */
 
   XSETFASTINT (position, pos);
 
@@ -6081,9 +6080,9 @@ face_for_overlay_string (struct window *w, ptrdiff_t pos,
 
   /* Get the `face' or `mouse_face' text property at POS, and
      determine the next position at which the property changes.  */
-  prop = Fget_text_property (position, propname, w->buffer);
+  prop = Fget_text_property (position, propname, w->contents);
   XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
-  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  end = Fnext_single_property_change (position, propname, w->contents, limit1);
   if (INTEGERP (end))
     endpos = XINT (end);
 

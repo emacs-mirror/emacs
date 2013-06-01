@@ -548,7 +548,6 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (compile
      (concat (w32-shell-name) " -c " (buffer-file-name)))))
 
-(eval-when-compile (require 'comint))
 (declare-function comint-mode "comint" ())
 (declare-function comint-exec "comint" (buffer name command startfile switches))
 

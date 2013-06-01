@@ -123,9 +123,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version (substring "$$Revision: 820 $$" 12 -3)
+(defconst verilog-mode-version (substring "$$Revision: 840 $$" 12 -3)
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date (substring "$$Date: 2012-09-17 20:43:10 -0400 (Mon, 17 Sep 2012) $$" 8 -3)
+(defconst verilog-mode-release-date (substring "$$Date: 2013-01-03 05:29:05 -0800 (Thu, 03 Jan 2013) $$" 8 -3)
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -501,7 +501,7 @@ entry \"Fontify Buffer\").  XEmacs: turn off and on font locking."
   "Type of statements to lineup across multiple lines.
 If 'all' is selected, then all line ups described below are done.
 
-If 'declaration', then just declarations are lined up with any
+If 'declarations', then just declarations are lined up with any
 preceding declarations, taking into account widths and the like,
 so or example the code:
  	reg [31:0] a;
@@ -964,7 +964,7 @@ See also `verilog-library-flags', `verilog-library-directories'."
 This is used for AUTORESET and AUTOTIEOFF.  For proper behavior,
 you will probably also need `verilog-auto-reset-widths' set."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-active-low-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-auto-sense-include-inputs nil
@@ -1129,37 +1129,37 @@ won't merge conflict."
 
 (defcustom verilog-auto-inst-interfaced-ports nil
   "Non-nil means include interfaced ports in AUTOINST expansions."
+  :version "24.3"  ;; rev773, default change rev815
   :group 'verilog-mode-auto
-  :type 'boolean
-  :version "24.3")
+  :type 'boolean)
 (put 'verilog-auto-inst-interfaced-ports 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-input-ignore-regexp nil
   "If set, when creating AUTOINPUT list, ignore signals matching this regexp.
 See the \\[verilog-faq] for examples on using this."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-auto-input-ignore-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-auto-inout-ignore-regexp nil
   "If set, when creating AUTOINOUT list, ignore signals matching this regexp.
 See the \\[verilog-faq] for examples on using this."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-auto-inout-ignore-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-auto-output-ignore-regexp nil
   "If set, when creating AUTOOUTPUT list, ignore signals matching this regexp.
 See the \\[verilog-faq] for examples on using this."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-auto-output-ignore-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-auto-template-warn-unused nil
   "Non-nil means report warning if an AUTO_TEMPLATE line is not used.
 This feature is not supported before Emacs 21.1 or XEmacs 21.4."
+  :version "24.3"  ;;rev787
   :group 'verilog-mode-auto
-  :version "24.3"
   :type 'boolean)
 (put 'verilog-auto-template-warn-unused 'safe-local-variable 'verilog-booleanp)
 
@@ -1176,21 +1176,21 @@ assignment, else the data type for variable creation."
   "If set, when creating AUTOTIEOFF list, ignore signals matching this regexp.
 See the \\[verilog-faq] for examples on using this."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-auto-tieoff-ignore-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-auto-unused-ignore-regexp nil
   "If set, when creating AUTOUNUSED list, ignore signals matching this regexp.
 See the \\[verilog-faq] for examples on using this."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-auto-unused-ignore-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-typedef-regexp nil
   "If non-nil, regular expression that matches Verilog-2001 typedef names.
 For example, \"_t$\" matches typedefs named with _t, as in the C language."
   :group 'verilog-mode-auto
-  :type 'string)
+  :type '(choice (const nil) regexp))
 (put 'verilog-typedef-regexp 'safe-local-variable 'stringp)
 
 (defcustom verilog-mode-hook   'verilog-set-compile-command
@@ -1230,14 +1230,14 @@ For example, \"_t$\" matches typedefs named with _t, as in the C language."
 
 (defcustom verilog-before-save-font-hook nil
   "Hook run before `verilog-save-font-mods' removes highlighting."
+  :version "24.3"  ;;rev735
   :group 'verilog-mode-auto
-  :version "24.3"
   :type 'hook)
 
 (defcustom verilog-after-save-font-hook nil
   "Hook run after `verilog-save-font-mods' restores highlighting."
+  :version "24.3"  ;;rev735
   :group 'verilog-mode-auto
-  :version "24.3"
   :type 'hook)
 
 (defvar verilog-imenu-generic-expression
@@ -2784,6 +2784,8 @@ find the errors."
     (modify-syntax-entry ?> "." table)
     (modify-syntax-entry ?& "." table)
     (modify-syntax-entry ?| "." table)
+    ;; FIXME: This goes against Emacs conventions.  Use "_" syntax instead and
+    ;; then use regexps with things like "\\_<...\\_>".
     (modify-syntax-entry ?` "w" table)
     (modify-syntax-entry ?_ "w" table)
     (modify-syntax-entry ?\' "." table)
@@ -7771,9 +7773,12 @@ Tieoff value uses `verilog-active-low-regexp' and
 	 ;; Else presume verilog-auto-reset-widths is true
 	 (t
 	  (let* ((width (verilog-sig-width sig)))
-	    (if (string-match "^[0-9]+$" width)
-		(concat width (if (verilog-sig-signed sig) "'sh0" "'h0"))
-	      (concat "{" width "{1'b0}}")))))))
+	    (cond ((not width)
+		   "`0/*NOWIDTH*/")
+		  ((string-match "^[0-9]+$" width)
+		   (concat width (if (verilog-sig-signed sig) "'sh0" "'h0")))
+		  (t
+		   (concat "{" width "{1'b0}}"))))))))
 
 ;;
 ;; Dumping
@@ -7954,6 +7959,7 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 	vec expect-signal keywd newsig rvalue enum io signed typedefed multidim
 	modport
 	varstack tmp)
+    ;;(if dbg (setq dbg (concat dbg (format "\n\nverilog-read-decls START PT %s END %s\n" (point) end-mod-point))))
     (save-excursion
       (verilog-beg-of-defun-quick)
       (setq sigs-const (verilog-read-auto-constants (point) end-mod-point))
@@ -8008,7 +8014,7 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 	  (setq paren (1- paren))
 	  (forward-char 1)
 	  (when (< paren sig-paren)
-	    (setq expect-signal nil)))   ; ) that ends variables inside v2k arg list
+	    (setq expect-signal nil rvalue nil)))   ; ) that ends variables inside v2k arg list
 	 ((looking-at "\\s-*\\(\\[[^]]+\\]\\)")
 	  (goto-char (match-end 0))
 	  (cond (newsig	; Memory, not just width.  Patch last signal added's memory (nth 3)
@@ -12456,11 +12462,19 @@ used on the right hand side of assignments.
 
 By default, AUTORESET will include the width of the signal in the
 autos, SystemVerilog designs may want to change this.  To control
-this behavior, see `verilog-auto-reset-widths'.
+this behavior, see `verilog-auto-reset-widths'.  In some cases
+AUTORESET must use a '0 assignment and it will print NOWIDTH; use
+`verilog-auto-reset-widths' unbased to prevent this.
 
 AUTORESET ties signals to deasserted, which is presumed to be zero.
 Signals that match `verilog-active-low-regexp' will be deasserted by tying
 them to a one.
+
+AUTORESET may try to reset arrays or structures that cannot be
+reset by a simple assignment, resulting in compile errors.  This
+is a feature to be taken as a hint that you need to reset these
+signals manually (or put them into a \"`ifdef NEVER signal<=`0;
+`endif\" so Verilog-Mode ignores them.)
 
 An example:
 

@@ -794,6 +794,7 @@ The environment marked is the one that contains point or follows point."
 
 (defvar meta-common-mode-syntax-table
   (let ((st (make-syntax-table)))
+    ;; FIXME: This goes against the convention!
     ;; underscores are word constituents
     (modify-syntax-entry ?_  "w"  st)
     ;; miscellaneous non-word symbols

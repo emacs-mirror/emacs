@@ -632,8 +632,9 @@ possible.  The value @code{fullboth} specifies that both the width and
 the height shall be set to the size of the screen.  The value
 @code{maximized} specifies that the frame shall be maximized.  The
 difference between @code{maximized} and @code{fullboth} is that the
-former still has window manager decorations while the latter really
-covers the whole screen.
+former can still be resized by dragging window manager decorations
+with the mouse, while the latter really covers the whole screen and
+does not allow resizing by mouse dragging.
 @end table
 
 @node Layout Parameters

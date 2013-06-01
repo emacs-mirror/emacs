@@ -34,21 +34,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "ntlib.h"
 
+/* MinGW64 defines _TIMEZONE_DEFINED and defines 'struct timespec' in
+   its system headers.  */
+#ifndef _TIMEZONE_DEFINED
 struct timezone
 {
   int		tz_minuteswest;	/* minutes west of Greenwich */
   int		tz_dsttime;	/* type of dst correction */
 };
+#endif
 
 #define MAXPATHLEN _MAX_PATH
 
 /* Emulate sleep...we could have done this with a define, but that
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
-void
-sleep (unsigned long seconds)
+unsigned
+sleep (unsigned seconds)
 {
   Sleep (seconds * 1000);
+  return 0;
 }
 
 /* Get the current working directory.  */
@@ -131,6 +136,12 @@ unsigned
 getuid (void)
 {
   return 0;
+}
+
+unsigned
+geteuid (void)
+{
+  return getuid ();
 }
 
 unsigned
@@ -411,4 +422,3 @@ lstat (const char * path, struct stat * buf)
 {
   return stat (path, buf);
 }
-

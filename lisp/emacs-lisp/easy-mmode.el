@@ -296,6 +296,12 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
        ;; up-to-here.
        :autoload-end
 
+       (defvar ,hook nil
+         ,(format "Hook run after entering or leaving `%s'.
+No problems result if this variable is not bound.
+`add-hook' automatically binds it.  (This is true for all hook variables.)"
+                  mode))
+
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.
 	  `(defvar ,keymap-sym
@@ -419,6 +425,13 @@ See `%s' for more information on %s."
        ;; up-to-here.
        :autoload-end
 
+       ;; MODE-set-explicitly is set in MODE-set-explicitly and cleared by
+       ;; kill-all-local-variables.
+       (defvar-local ,MODE-set-explicitly nil)
+       (defun ,MODE-set-explicitly ()
+         (setq ,MODE-set-explicitly t))
+       (put ',MODE-set-explicitly 'definition-name ',global-mode)
+
        ;; A function which checks whether MODE has been disabled in the major
        ;; mode hook which has just been run.
        (add-hook ',minor-MODE-hook ',MODE-set-explicitly)
@@ -451,13 +464,7 @@ See `%s' for more information on %s."
        (defun ,MODE-cmhh ()
 	 (add-to-list ',MODE-buffers (current-buffer))
 	 (add-hook 'post-command-hook ',MODE-check-buffers))
-       (put ',MODE-cmhh 'definition-name ',global-mode)
-       ;; MODE-set-explicitly is set in MODE-set-explicitly and cleared by
-       ;; kill-all-local-variables.
-       (defvar-local ,MODE-set-explicitly nil)
-       (defun ,MODE-set-explicitly ()
-         (setq ,MODE-set-explicitly t))
-       (put ',MODE-set-explicitly 'definition-name ',global-mode))))
+       (put ',MODE-cmhh 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap

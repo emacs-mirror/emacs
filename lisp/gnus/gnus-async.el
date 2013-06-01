@@ -76,7 +76,7 @@ The function will be called narrowed to the region of the article
 that was fetched."
   :version "24.1"
   :group 'gnus-asynchronous
-  :type 'function)
+  :type '(choice (const nil) function))
 
 ;;; Internal variables.
 

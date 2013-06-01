@@ -605,6 +605,9 @@ LTLIBOBJS
 LIBOBJS
 SUBDIR_MAKEFILES_IN
 WINDOW_SYSTEM_OBJ
+EMACS_HEAPSIZE
+TEMACS_POST_LINK
+ADDSECTION
 LD_SWITCH_SYSTEM_TEMACS
 LIBGNU_LTLIBDEPS
 LIBGNU_LIBDEPS
@@ -781,6 +784,8 @@ GL_GENERATE_STDALIGN_H_TRUE
 STDALIGN_H
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
 NEXT_SIGNAL_H
+USE_ACL
+LIB_ACL
 LIB_PTHREAD_SIGMASK
 REPLACE_RAISE
 REPLACE_PTHREAD_SIGMASK
@@ -1060,6 +1065,7 @@ GNULIB_FUTIMENS
 GNULIB_FSTATAT
 GNULIB_FSTAT
 GNULIB_FCHMODAT
+LIB_FDATASYNC
 NEXT_AS_FIRST_DIRECTIVE_FCNTL_H
 NEXT_FCNTL_H
 REPLACE_OPENAT
@@ -1075,6 +1081,17 @@ GL_GENERATE_EXECINFO_H_FALSE
 GL_GENERATE_EXECINFO_H_TRUE
 LIB_EXECINFO
 EXECINFO_H
+EOVERFLOW_VALUE
+EOVERFLOW_HIDDEN
+ENOLINK_VALUE
+ENOLINK_HIDDEN
+EMULTIHOP_VALUE
+EMULTIHOP_HIDDEN
+GL_GENERATE_ERRNO_H_FALSE
+GL_GENERATE_ERRNO_H_TRUE
+ERRNO_H
+NEXT_AS_FIRST_DIRECTIVE_ERRNO_H
+NEXT_ERRNO_H
 HAVE_DIRENT_H
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H
 NEXT_DIRENT_H
@@ -1285,6 +1302,10 @@ LIBS_MAIL
 liblockfile
 LIBXML2_LIBS
 LIBXML2_CFLAGS
+XINERAMA_LIBS
+XINERAMA_CFLAGS
+XRANDR_LIBS
+XRANDR_CFLAGS
 LIBXSM
 LIBGPM
 LIBGIF
@@ -1304,7 +1325,6 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
-LIBACL_LIBS
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
@@ -1330,8 +1350,18 @@ LIB_PTHREAD
 VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
+XARGS_LIMIT
+NTLIB
+LIB_WSOCK32
+LIBS_ECLIENT
+CM_OBJ
+NTDIR
+FIRSTFILE_OBJ
 W32_RES_LINK
-W32_RES
+CLIENTW
+CLIENTRES
+EMACS_MANIFEST
+EMACSRES
 W32_LIBS
 W32_OBJ
 WINDRES
@@ -1362,7 +1392,7 @@ HAVE_MAKEINFO
 PAXCTL
 GZIP_PROG
 INSTALL_INFO
-LN_S
+LN_S_FILEONLY
 GNULIB_WARN_CFLAGS
 WARN_CFLAGS
 WERROR_CFLAGS
@@ -1372,6 +1402,8 @@ AR
 EGREP
 GREP
 CPP
+BUILDING_FOR_WINDOWSNT_FALSE
+BUILDING_FOR_WINDOWSNT_TRUE
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -1496,7 +1528,6 @@ with_dbus
 with_gconf
 with_gsettings
 with_selinux
-with_acl
 with_gnutls
 with_inotify
 with_makeinfo
@@ -1516,6 +1547,7 @@ enable_largefile
 enable_gcc_warnings
 enable_link_time_optimization
 with_x
+enable_acl
 '
       ac_precious_vars='build_alias
 host_alias
@@ -2182,6 +2214,7 @@ Optional Features:
   --enable-link-time-optimization
                           build emacs with link-time optimization. This is
                           supported only for GCC since 4.5.0.
+  --disable-acl           do not support ACLs
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2216,14 +2249,13 @@ Optional Packages:
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --with-ns               use NeXTstep (Cocoa or GNUstep) windowing system
-  --with-w32              use native MS Windows GUI
+  --with-w32              use native MS Windows GUI in a Cygwin build
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support
   --without-gconf         don't compile with GConf support
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
-  --without-acl           don't compile with ACL support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-inotify       don't compile with inotify (file-watch) support
   --without-makeinfo      don't require makeinfo for building manuals
@@ -3340,6 +3372,7 @@ as_fn_append ac_func_list " fdopendir"
 as_fn_append ac_header_list " stdio_ext.h"
 as_fn_append ac_func_list " __fpending"
 as_fn_append ac_func_list " fstatat"
+as_fn_append ac_func_list " fsync"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " gettimeofday"
@@ -4291,14 +4324,6 @@ else
 fi
 
 
-# Check whether --with-acl was given.
-if test "${with_acl+set}" = set; then :
-  withval=$with_acl;
-else
-     with_acl=$with_features
-fi
-
-
 # Check whether --with-gnutls was given.
 if test "${with_gnutls+set}" = set; then :
   withval=$with_gnutls;
@@ -4514,7 +4539,7 @@ fi
 ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
 unset CDPATH
 case "${srcdir}" in
-  /* ) ;;
+  [\\/]* | ?:[\\/]*) ;;
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
@@ -4638,6 +4663,11 @@ case "${canonical}" in
     opsys=freebsd
   ;;
 
+  ## DragonFly ports
+  *-*-dragonfly* )
+    opsys=dragonfly
+  ;;
+
   ## FreeBSD kernel + glibc based userland
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
@@ -4668,6 +4698,11 @@ case "${canonical}" in
 ##      GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
 ##      NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
 ##    fi
+  ;;
+
+  ## Cygwin ports
+  *-*-cygwin )
+    opsys=cygwin
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
@@ -4743,8 +4778,12 @@ case "${canonical}" in
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     case "${canonical}" in
-      *-cygwin )                opsys=cygwin ;;
       *-darwin* )               opsys=darwin ;;
+      *-mingw32 )
+		opsys=mingw32
+		# MinGW overrides and adds some system headers in nt/inc.
+		GCC_TEST_OPTIONS="-I $srcdir/nt/inc"
+		;;
       *-sysv4.2uw* )	  	opsys=unixware ;;
       *-sysv5uw* )	  	opsys=unixware ;;
       *-sysv5OpenUNIX* )  	opsys=unixware ;;
@@ -5894,6 +5933,15 @@ if test x$GCC = xyes; then
 else
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
+
+ if test "x$opsys" = "xmingw32"; then
+  BUILDING_FOR_WINDOWSNT_TRUE=
+  BUILDING_FOR_WINDOWSNT_FALSE='#'
+else
+  BUILDING_FOR_WINDOWSNT_TRUE='#'
+  BUILDING_FOR_WINDOWSNT_FALSE=
+fi
+
 
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
@@ -7174,6 +7222,7 @@ esac
   # Code from module dtotimespec:
   # Code from module dup2:
   # Code from module environ:
+  # Code from module errno:
   # Code from module euidaccess:
   # Code from module execinfo:
   # Code from module extensions:
@@ -7181,10 +7230,12 @@ esac
   # Code from module extern-inline:
   # Code from module faccessat:
   # Code from module fcntl-h:
+  # Code from module fdatasync:
   # Code from module fdopendir:
   # Code from module filemode:
   # Code from module fpending:
   # Code from module fstatat:
+  # Code from module fsync:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -7210,6 +7261,7 @@ esac
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
+  # Code from module qacl:
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
@@ -7258,10 +7310,10 @@ esac
   # Code from module xalloc-oversized:
 
 
-# It's helpful to have C macros available to GDB, so prefer -g3 to -g
-# if -g3 works and the user does not specify CFLAGS.
-# This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
 if test "$ac_test_CFLAGS" != set; then
+  # It's helpful to have C macros available to GDB, so prefer -g3 to -g
+  # if -g3 works and the user does not specify CFLAGS.
+  # This test must follow gl_EARLY; otherwise AC_LINK_IFELSE complains.
   case $CFLAGS in
     '-g')
       emacs_g3_CFLAGS='-g3';;
@@ -7299,12 +7351,52 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_prog_cc_g3" >&5
 $as_echo "$emacs_cv_prog_cc_g3" >&6; }
-    if test $emacs_cv_prog_cc_g3 = yes; then
-      CFLAGS=$emacs_g3_CFLAGS
-    else
+    if test $emacs_cv_prog_cc_g3 != yes; then
       CFLAGS=$emacs_save_CFLAGS
     fi
+    if test $opsys = mingw32; then
+      CFLAGS="$CFLAGS -gdwarf-2"
+    fi
   fi
+
+  case $CFLAGS in
+    *-O*) ;;
+    *)
+      # No optimization flag was inferred for this non-GCC compiler.
+      # Try -O.  This is needed for xlc on AIX; see Bug#14258.
+      emacs_save_CFLAGS=$CFLAGS
+      test -z "$CFLAGS" || CFLAGS="$CFLAGS "
+      CFLAGS=${CFLAGS}-O
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts -O" >&5
+$as_echo_n "checking whether $CC accepts -O... " >&6; }
+if test "${emacs_cv_prog_cc_o+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_prog_cc_o=yes
+else
+  emacs_cv_prog_cc_o=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_prog_cc_o" >&5
+$as_echo "$emacs_cv_prog_cc_o" >&6; }
+      if test $emacs_cv_prog_cc_o != yes; then
+	CFLAGS=$emacs_save_CFLAGS
+      fi ;;
+  esac
 fi
 
 # Check whether --enable-gcc-warnings was given.
@@ -7385,14 +7477,51 @@ else
        nw="$nw -Wwrite-strings"
        ;;
     *)
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror -Wunknown-warning-option" >&5
+$as_echo_n "checking whether C compiler handles -Werror -Wunknown-warning-option... " >&6; }
+if test "${gl_cv_warn_c__Werror__Wunknown_warning_option+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Werror -Wunknown-warning-option"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Werror__Wunknown_warning_option=yes
+else
+  gl_cv_warn_c__Werror__Wunknown_warning_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Werror__Wunknown_warning_option" >&5
+$as_echo "$gl_cv_warn_c__Werror__Wunknown_warning_option" >&6; }
+if test "x$gl_cv_warn_c__Werror__Wunknown_warning_option" = x""yes; then :
+  gl_unknown_warnings_are_errors='-Wunknown-warning-option -Werror'
+else
+  gl_unknown_warnings_are_errors=
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Werror" >&5
 $as_echo_n "checking whether C compiler handles -Werror... " >&6; }
 if test "${gl_cv_warn_c__Werror+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Werror"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Werror"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7424,27 +7553,13 @@ fi
   esac
 
 
-  nw="$nw -Waggregate-return"       # anachronistic
-  nw="$nw -Wlong-long"              # C90 is anachronistic
-  nw="$nw -Wc++-compat"             # We don't care about C++ compilers
-  nw="$nw -Wundef"                  # Warns on '#if GNULIB_FOO' etc in gnulib
-  nw="$nw -Wtraditional"            # Warns on #elif which we use often
-  nw="$nw -Wcast-qual"              # Too many warnings for now
-  nw="$nw -Wconversion"             # Too many warnings for now
   nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
-  nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wtraditional-conversion" # Too many warnings for now
-  nw="$nw -Wunreachable-code"       # so buggy that it's now silently ignored
-  nw="$nw -Wpadded"                 # Our structs are not padded
-  nw="$nw -Wredundant-decls"        # we regularly (re)declare functions
   nw="$nw -Wlogical-op"             # any use of fwrite provokes this
   nw="$nw -Wformat-nonliteral"      # we do this a lot
   nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
-  nw="$nw -Wswitch-enum"            # Too many warnings for now
   nw="$nw -Wswitch-default"         # Too many warnings for now
-  nw="$nw -Wfloat-equal"            # warns about high-quality code
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wjump-misses-init"       # We sometimes safely jump over init.
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
@@ -7461,6 +7576,40 @@ fi
 
   # The following line should be removable at some point.
   nw="$nw -Wsuggest-attribute=pure"
+
+  # clang is unduly picky about some things.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
+$as_echo_n "checking whether the compiler is clang... " >&6; }
+if test "${emacs_cv_clang+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	    #ifndef __clang__
+	      #error "not clang"
+	    #endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_clang=yes
+else
+  emacs_cv_clang=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_clang" >&5
+$as_echo "$emacs_cv_clang" >&6; }
+  if test $emacs_cv_clang = yes; then
+    nw="$nw -Wcast-align"
+  fi
 
 
 
@@ -7575,6 +7724,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -W \
     -Wabi \
     -Waddress \
+    -Waggressive-loop-optimizations \
     -Wall \
     -Warray-bounds \
     -Wattributes \
@@ -7602,7 +7752,6 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wformat-security \
     -Wformat-y2k \
     -Wformat-zero-length \
-    -Wformat=2 \
     -Wfree-nonheap-object \
     -Wignored-qualifiers \
     -Wimplicit \
@@ -7620,9 +7769,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wmissing-braces \
     -Wmissing-declarations \
     -Wmissing-field-initializers \
-    -Wmissing-format-attribute \
     -Wmissing-include-dirs \
-    -Wmissing-noreturn \
     -Wmissing-parameter-type \
     -Wmissing-prototypes \
     -Wmudflap \
@@ -7643,6 +7790,7 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wreturn-local-addr \
     -Wreturn-type \
     -Wsequence-point \
     -Wshadow \
@@ -7664,7 +7812,6 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
     -Wtype-limits \
     -Wuninitialized \
     -Wunknown-pragmas \
-    -Wunreachable-code \
     -Wunsafe-loop-optimizations \
     -Wunused \
     -Wunused-but-set-parameter \
@@ -7715,7 +7862,8 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
   ws=$gl_warn_set
 
   for w in $ws; do
-    as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
+
+as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles $w" >&5
 $as_echo_n "checking whether C compiler handles $w... " >&6; }
 if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
@@ -7723,7 +7871,7 @@ if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $w"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $w"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7754,14 +7902,15 @@ fi
 
 
   done
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-missing-field-initializers" >&5
 $as_echo_n "checking whether C compiler handles -Wno-missing-field-initializers... " >&6; }
 if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-missing-field-initializers"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-missing-field-initializers"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7789,14 +7938,15 @@ if test "x$gl_cv_warn_c__Wno_missing_field_initializers" = x""yes; then :
 fi
 
  # We need this one
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-sign-compare" >&5
 $as_echo_n "checking whether C compiler handles -Wno-sign-compare... " >&6; }
 if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-sign-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-sign-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7824,14 +7974,15 @@ if test "x$gl_cv_warn_c__Wno_sign_compare" = x""yes; then :
 fi
 
      # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-type-limits" >&5
 $as_echo_n "checking whether C compiler handles -Wno-type-limits... " >&6; }
 if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-type-limits"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-type-limits"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7859,14 +8010,15 @@ if test "x$gl_cv_warn_c__Wno_type_limits" = x""yes; then :
 fi
 
       # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-switch" >&5
 $as_echo_n "checking whether C compiler handles -Wno-switch... " >&6; }
 if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-switch"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-switch"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7894,14 +8046,15 @@ if test "x$gl_cv_warn_c__Wno_switch" = x""yes; then :
 fi
 
            # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-parameter" >&5
 $as_echo_n "checking whether C compiler handles -Wno-unused-parameter... " >&6; }
 if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-unused-parameter"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-parameter"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7929,14 +8082,15 @@ if test "x$gl_cv_warn_c__Wno_unused_parameter" = x""yes; then :
 fi
 
  # Too many warnings for now
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-nonliteral" >&5
 $as_echo_n "checking whether C compiler handles -Wno-format-nonliteral... " >&6; }
 if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-format-nonliteral"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-nonliteral"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7967,14 +8121,15 @@ fi
 
   # In spite of excluding -Wlogical-op above, it is enabled, as of
   # gcc 4.5.0 20090517.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-logical-op" >&5
 $as_echo_n "checking whether C compiler handles -Wno-logical-op... " >&6; }
 if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -Wno-logical-op"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-logical-op"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8003,14 +8158,163 @@ fi
 
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
+  # More things that clang is unduly picky about.
+  if test $emacs_cv_clang = yes; then
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-format-extra-args" >&5
+$as_echo_n "checking whether C compiler handles -Wno-format-extra-args... " >&6; }
+if test "${gl_cv_warn_c__Wno_format_extra_args+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-extra-args"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_format_extra_args=yes
+else
+  gl_cv_warn_c__Wno_format_extra_args=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_format_extra_args" >&5
+$as_echo "$gl_cv_warn_c__Wno_format_extra_args" >&6; }
+if test "x$gl_cv_warn_c__Wno_format_extra_args" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-format-extra-args"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare" >&5
+$as_echo_n "checking whether C compiler handles -Wno-tautological-constant-out-of-range-compare... " >&6; }
+if test "${gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-tautological-constant-out-of-range-compare"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=yes
+else
+  gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&5
+$as_echo "$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" >&6; }
+if test "x$gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-tautological-constant-out-of-range-compare"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-command-line-argument" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-command-line-argument... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_command_line_argument+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-command-line-argument"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_command_line_argument=yes
+else
+  gl_cv_warn_c__Wno_unused_command_line_argument=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_command_line_argument" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_command_line_argument" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_command_line_argument" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-command-line-argument"
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -Wno-unused-value" >&5
+$as_echo_n "checking whether C compiler handles -Wno-unused-value... " >&6; }
+if test "${gl_cv_warn_c__Wno_unused_value+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  gl_save_compiler_FLAGS="$CFLAGS"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-value"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_warn_c__Wno_unused_value=yes
+else
+  gl_cv_warn_c__Wno_unused_value=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS="$gl_save_compiler_FLAGS"
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_warn_c__Wno_unused_value" >&5
+$as_echo "$gl_cv_warn_c__Wno_unused_value" >&6; }
+if test "x$gl_cv_warn_c__Wno_unused_value" = x""yes; then :
+  as_fn_append WARN_CFLAGS " -Wno-unused-value"
+fi
+
+
+  fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -fdiagnostics-show-option" >&5
 $as_echo_n "checking whether C compiler handles -fdiagnostics-show-option... " >&6; }
 if test "${gl_cv_warn_c__fdiagnostics_show_option+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -fdiagnostics-show-option"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -fdiagnostics-show-option"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8038,14 +8342,15 @@ if test "x$gl_cv_warn_c__fdiagnostics_show_option" = x""yes; then :
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles -funit-at-a-time" >&5
 $as_echo_n "checking whether C compiler handles -funit-at-a-time... " >&6; }
 if test "${gl_cv_warn_c__funit_at_a_time+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " -funit-at-a-time"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -funit-at-a-time"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8107,17 +8412,39 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ln -s works" >&5
-$as_echo_n "checking whether ln -s works... " >&6; }
-LN_S=$as_ln_s
-if test "$LN_S" = "ln -s"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S" >&5
-$as_echo "no, using $LN_S" >&6; }
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ln -s works for files in the same directory" >&5
+$as_echo_n "checking whether ln -s works for files in the same directory... " >&6; }
+rm -f conf$$ conf$$.file
+
+LN_S_FILEONLY='cp -p'
+
+if (echo >conf$$.file) 2>/dev/null; then
+  if ln -s conf$$.file conf$$ 2>/dev/null; then
+    LN_S_FILEONLY='ln -s'
+  elif ln conf$$.file conf$$ 2>/dev/null; then
+    LN_S_FILEONLY=ln
+  fi
 fi
 
+rm -f conf$$ conf$$.file
+
+if test "$LN_S_FILEONLY" = "ln -s"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S_FILEONLY" >&5
+$as_echo "no, using $LN_S_FILEONLY" >&6; }
+fi
+
+
+
+
+if test "$opsys" = "mingw32"; then
+  LN_S="ln"
+fi
 
 # Extract the first word of "install-info", so it can be a program name with args.
 set dummy install-info; ac_word=$2
@@ -8405,7 +8732,6 @@ $as_echo "#define CANNOT_DUMP 1" >>confdefs.h
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
   # MSDOS uses unexcoff.o
-  # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
    ;;
@@ -8417,6 +8743,9 @@ case "$opsys" in
    ;;
   hpux10-20 | hpux11)
    UNEXEC_OBJ=unexhp9k800.o
+   ;;
+  mingw32)
+   UNEXEC_OBJ=unexw32.o
    ;;
   sol2-10)
    # Use the Solaris dldump() function, called from unexsol.c, to dump
@@ -8436,7 +8765,7 @@ esac
 
 LD_SWITCH_SYSTEM=
 case "$opsys" in
-  freebsd)
+  freebsd|dragonfly)
    ## Let `ld' find image libs and similar things in /usr/local/lib.
    ## The system compiler, GCC, has apparently been modified to not
    ## look there, contrary to what a stock GCC would do.
@@ -8457,7 +8786,7 @@ case "$opsys" in
    ;;
 
   openbsd)
-   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## Han Boetes <han@boetes.org> says this is necessary,
    ## otherwise Emacs dumps core on elf systems.
    LD_SWITCH_SYSTEM="-Z"
    ;;
@@ -8516,6 +8845,7 @@ C_SWITCH_SYSTEM=
 ## additional optimization.  --nils@exp-math.uni-essen.de
 test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+test "$opsys" = "mingw32" && C_SWITCH_SYSTEM="-mtune=pentium4"
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 
@@ -8526,7 +8856,7 @@ case "$opsys" in
   ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
   aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
 
-  freebsd) LIBS_SYSTEM="-lutil" ;;
+  freebsd|dragonfly) LIBS_SYSTEM="-lutil" ;;
 
   hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
 
@@ -8563,12 +8893,16 @@ case $opsys in
     ## Adding -lm confuses the dynamic linker, so omit it.
     LIB_MATH=
     ;;
-  freebsd )
+  freebsd | dragonfly )
     SYSTEM_TYPE=berkeley-unix
     ;;
   gnu-linux | gnu-kfreebsd )
     ;;
   hpux10-20 | hpux11 )
+    ;;
+  mingw32 )
+    LIB_MATH=
+    SYSTEM_TYPE=windows-nt
     ;;
     netbsd | openbsd )
     SYSTEM_TYPE=berkeley-unix
@@ -8635,13 +8969,18 @@ fi
 
 
 
-
 if test "${with_sound}" != "no"; then
-  # Sound support for GNU/Linux and the free BSDs.
-  for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h
+  # Sound support for GNU/Linux, the free BSDs, and MinGW.
+  for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "
+    #ifdef __MINGW32__
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #endif
+
+"
 eval as_val=\$$as_ac_Header
    if test "x$as_val" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
@@ -8807,7 +9146,7 @@ $as_echo "#define HAVE_ALSA 1" >>confdefs.h
 
         if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
-              gnu-linux|freebsd|netbsd)
+              gnu-linux|freebsd|netbsd|mingw32)
 
 $as_echo "#define HAVE_SOUND 1" >>confdefs.h
 
@@ -9721,21 +10060,72 @@ CPPFLAGS="$tmp_CPPFLAGS"
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
-W32_RES=
+EMACSRES=
+CLIENTRES=
+CLIENTW=
 W32_RES_LINK=
+EMACS_MANIFEST=
 if test "${with_w32}" != no; then
-  if test "${opsys}" != "cygwin"; then
-    as_fn_error "Using w32 with an autotools build is only supported for Cygwin." "$LINENO" 5
-  fi
-  ac_fn_c_check_header_mongrel "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
+  case "${opsys}" in
+    cygwin)
+      ac_fn_c_check_header_mongrel "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
 if test "x$ac_cv_header_windows_h" = x""yes; then :
   HAVE_W32=yes
 else
   as_fn_error "\`--with-w32' was specified, but windows.h
-                  cannot be found." "$LINENO" 5
+                   cannot be found." "$LINENO" 5
 fi
 
 
+    ;;
+    mingw32)
+    ## Using --with-w32 with MinGW is a no-op, but we allow it.
+    ;;
+    *)
+      as_fn_error "Using w32 with an autotools build is only supported for Cygwin and MinGW32." "$LINENO" 5
+    ;;
+  esac
+fi
+
+if test "${opsys}" = "mingw32"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether Windows API headers are recent enough" >&5
+$as_echo_n "checking whether Windows API headers are recent enough... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+     #include <windows.h>
+     #include <usp10.h>
+int
+main ()
+{
+void test(PIMAGE_NT_HEADERS pHeader)
+     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_w32api=yes
+    HAVE_W32=yes
+else
+  emacs_cv_w32api=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_w32api" >&5
+$as_echo "$emacs_cv_w32api" >&6; }
+  if test "${emacs_cv_w32api}" = "no"; then
+    as_fn_error "the Windows API headers are too old to support this build." "$LINENO" 5
+  fi
+fi
+
+FIRSTFILE_OBJ=
+NTDIR=
+LIBS_ECLIENT=
+LIB_WSOCK32=
+NTLIB=
+CM_OBJ="cm.o"
+XARGS_LIMIT=
+if test "${HAVE_W32}" = "yes"; then
 
 $as_echo "#define HAVE_NTGUI 1" >>confdefs.h
 
@@ -9833,13 +10223,44 @@ fi
 
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
   W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o"
-  W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
-  W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
-  W32_RES="emacs.res"
-  # Tell the linker that emacs.res is an object (which we compile from
-  # the rc file), not a linker script.
-  W32_RES_LINK="-Wl,-bpe-i386 -Wl,emacs.res"
+  EMACSRES="emacs.res"
+  case "$canonical" in
+    x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
+    *) EMACS_MANIFEST="emacs-x86.manifest" ;;
+  esac
+  if test "${opsys}" = "cygwin"; then
+    W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
+    # Tell the linker that emacs.res is an object (which we compile from
+    # the rc file), not a linker script.
+    W32_RES_LINK="-Wl,emacs.res"
+  else
+    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
+    W32_OBJ="$W32_OBJ w32notify.o"
+    W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
+    W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
+    W32_RES_LINK="\$(EMACSRES)"
+    CLIENTRES="emacsclient.res"
+    CLIENTW="emacsclientw\$(EXEEXT)"
+    FIRSTFILE_OBJ=firstfile.o
+    NTDIR=nt
+    CM_OBJ=
+    LIBS_ECLIENT="-lcomctl32"
+    LIB_WSOCK32="-lwsock32"
+    NTLIB="ntlib.$ac_objext"
+    XARGS_LIMIT="-s 10000"
+  fi
 fi
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10630,7 +11051,7 @@ rm -f core conftest.err conftest.$ac_objext \
 $as_echo "$emacs_xkb" >&6; }
   if test $emacs_xkb = yes; then
 
-$as_echo "#define HAVE_XKBGETKEYBOARD 1" >>confdefs.h
+$as_echo "#define HAVE_XKB 1" >>confdefs.h
 
   fi
 
@@ -10706,7 +11127,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = "mingw32"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -10781,7 +11202,8 @@ if test "${HAVE_X11}" = "yes"; then
     ## 6.2.8 is the earliest version known to work, but earlier versions
     ## might work - let us know if you find one.
     ## 6.0.7 does not work.  See bug#7955.
-    IMAGEMAGICK_MODULE="Wand >= 6.2.8"
+    ## 6.8.2 makes Emacs crash; see Bug#13867.
+    IMAGEMAGICK_MODULE="Wand >= 6.2.8 Wand != 6.8.2"
 
   succeeded=no
 
@@ -10864,10 +11286,11 @@ HAVE_GTK=no
 GTK_OBJ=
 check_gtk2=no
 gtk3_pkg_errors=
-if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
-  GLIB_REQUIRED=2.28
-  GTK_REQUIRED=3.0
-  GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+if test "${opsys}" != "mingw32"; then
+  if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+    GLIB_REQUIRED=2.28
+    GTK_REQUIRED=3.0
+    GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
 
   succeeded=no
@@ -10920,29 +11343,30 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
-     as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
-  fi
-  if test "$pkg_check_gtk" = "yes"; then
+    if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
+       as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
+    fi
+    if test "$pkg_check_gtk" = "yes"; then
 
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
-     GTK_OBJ=emacsgtkfixed.o
-     term_header=gtkutil.h
-     USE_GTK_TOOLKIT="GTK3"
-     if test "x$ac_enable_gtk_deprecation_warnings" = x; then
-         GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
-     fi
-  else
-     check_gtk2=yes
-     gtk3_pkg_errors="$GTK_PKG_ERRORS "
+       GTK_OBJ=emacsgtkfixed.o
+       term_header=gtkutil.h
+       USE_GTK_TOOLKIT="GTK3"
+       if test "x$ac_enable_gtk_deprecation_warnings" = x; then
+       	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
+       	  GTK_CFLAGS="$GTK_CFLAGS -DGLIB_DISABLE_DEPRECATION_WARNINGS"
+       fi
+    else
+       check_gtk2=yes
+       gtk3_pkg_errors="$GTK_PKG_ERRORS "
+    fi
   fi
-fi
 
-if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
-  GLIB_REQUIRED=2.10
-  GTK_REQUIRED=2.10
-  GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+  if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
+    GLIB_REQUIRED=2.10
+    GTK_REQUIRED=2.10
+    GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
 
   succeeded=no
@@ -10995,12 +11419,13 @@ $as_echo "no" >&6; }
      pkg_check_gtk=no
   fi
 
-  if test "$pkg_check_gtk" = "no" &&
-     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
-  then
-    as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
+    if test "$pkg_check_gtk" = "no" &&
+       { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+    then
+      as_fn_error "$gtk3_pkg_errors$GTK_PKG_ERRORS" "$LINENO" 5
+    fi
+    test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
   fi
-  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -11549,6 +11974,8 @@ $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
   fi
 
+  OLD_CFLAGS=$CFLAGS
+  OLD_LIBS=$LIBS
   CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
   LIBS="$LIBGNUTLS_LIBS $LIBS"
   for ac_func in gnutls_certificate_set_verify_function
@@ -11567,6 +11994,13 @@ done
 
 $as_echo "#define HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY 1" >>confdefs.h
 
+  fi
+
+  # Windows loads GnuTLS dynamically
+  if test "${opsys}" = "mingw32"; then
+    CFLAGS=$OLD_CFLAGS
+    LIBS=$OLD_LIBS
+    LIBGNUTLS_LIBS=
   fi
 fi
 
@@ -11599,73 +12033,6 @@ if test "$ac_cv_func_inotify_init1" = yes; then
 $as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
 
 fi
-
-HAVE_POSIX_ACL=no
-LIBACL_LIBS=
-if test "${with_acl}" = "yes"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for acl_set_file in -lacl" >&5
-$as_echo_n "checking for acl_set_file in -lacl... " >&6; }
-if test "${ac_cv_lib_acl_acl_set_file+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lacl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char acl_set_file ();
-int
-main ()
-{
-return acl_set_file ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_acl_acl_set_file=yes
-else
-  ac_cv_lib_acl_acl_set_file=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_acl_acl_set_file" >&5
-$as_echo "$ac_cv_lib_acl_acl_set_file" >&6; }
-if test "x$ac_cv_lib_acl_acl_set_file" = x""yes; then :
-  HAVE_POSIX_ACL=yes
-else
-  HAVE_POSIX_ACL=no
-fi
-
-  if test "$HAVE_POSIX_ACL" = yes; then
-
-$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
-
-    LIBACL_LIBS=-lacl
-  else
-    ac_fn_c_check_func "$LINENO" "acl_set_file" "ac_cv_func_acl_set_file"
-if test "x$ac_cv_func_acl_set_file" = x""yes; then :
-  HAVE_POSIX_ACL=yes
-else
-  HAVE_POSIX_ACL=no
-fi
-
-    if test "$HAVE_POSIX_ACL" = yes; then
-
-$as_echo "#define HAVE_POSIX_ACL 1" >>confdefs.h
-
-    fi
- fi
-fi
-
 
 HAVE_XAW3D=no
 LUCID_LIBW=
@@ -11909,6 +12276,9 @@ case $opsys in
   ## These systems don't supply Xmu.
   hpux* | aix4-2 )
     test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
+    ;;
+  mingw32 )
+    LIBXMU=
     ;;
 esac
 
@@ -12694,10 +13064,10 @@ fi
 
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
+### mingw32 doesn't use -lXpm, since it loads the library dynamically.
 HAVE_XPM=no
 LIBXPM=
-
-if test "${HAVE_W32}" = "yes"; then
+if test "${HAVE_W32}" = "yes" && test "${opsys}" = "cygwin"; then
   if test "${with_xpm}" != "no"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LDFLAGS="$LDFLAGS"
@@ -12874,12 +13244,70 @@ $as_echo "#define HAVE_XPM 1" >>confdefs.h
   fi
 fi
 
+### FIXME: Perhaps regroup to minimize code duplication due to MinGW's
+### slightly different requirements wrt image libraries (it doesn't
+### use -lXpm because it loads the xpm shared library dynamically at
+### run time).
+if test "${opsys}" = "mingw32"; then
+  if test "${with_xpm}" != "no"; then
+    ac_fn_c_check_header_compile "$LINENO" "X11/xpm.h" "ac_cv_header_X11_xpm_h" "
+#define FOR_MSW 1
+"
+if test "x$ac_cv_header_X11_xpm_h" = x""yes; then :
+  HAVE_XPM=yes
+else
+  HAVE_XPM=no
+fi
+
+
+  fi
+
+  if test "${HAVE_XPM}" = "yes"; then
+
+$as_echo "#define HAVE_XPM 1" >>confdefs.h
+
+  fi
+fi
+
 
 
 ### Use -ljpeg if available, unless `--with-jpeg=no'.
+### mingw32 doesn't use -ljpeg, since it loads the library dynamically.
 HAVE_JPEG=no
 LIBJPEG=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
+  if test "${with_jpeg}" != "no"; then
+            ac_fn_c_check_header_mongrel "$LINENO" "jerror.h" "ac_cv_header_jerror_h" "$ac_includes_default"
+if test "x$ac_cv_header_jerror_h" = x""yes; then :
+  HAVE_JPEG=yes
+else
+  HAVE_JPEG=no
+fi
+
+
+  fi
+    if test "${HAVE_JPEG}" = "yes"; then
+    $as_echo "#define HAVE_JPEG 1" >>confdefs.h
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <jpeglib.h>
+	 version=JPEG_LIB_VERSION
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "version= *(6[2-9]|[7-9][0-9])" >/dev/null 2>&1; then :
+  $as_echo "#define HAVE_JPEG 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libjpeg found, but not version 6b or later" >&5
+$as_echo "$as_me: WARNING: libjpeg found, but not version 6b or later" >&2;}
+        HAVE_JPEG=no
+fi
+rm -f conftest*
+
+  fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
             ac_fn_c_check_header_mongrel "$LINENO" "jerror.h" "ac_cv_header_jerror_h" "$ac_includes_default"
 if test "x$ac_cv_header_jerror_h" = x""yes; then :
@@ -12944,7 +13372,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libjpeg found, but not version 6b or later" >&5
 $as_echo "$as_me: WARNING: libjpeg found, but not version 6b or later" >&2;}
-        HAVE_JPEG=no
+	HAVE_JPEG=no
 fi
 rm -f conftest*
 
@@ -12956,9 +13384,42 @@ fi
 
 
 ### Use -lpng if available, unless `--with-png=no'.
+### mingw32 doesn't use -lpng, since it loads the library dynamically.
 HAVE_PNG=no
 LIBPNG=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
+  if test "${with_png}" != "no"; then
+    ac_fn_c_check_header_mongrel "$LINENO" "png.h" "ac_cv_header_png_h" "$ac_includes_default"
+if test "x$ac_cv_header_png_h" = x""yes; then :
+  HAVE_PNG=yes
+else
+  HAVE_PNG=no
+fi
+
+
+  fi
+  if test "${HAVE_PNG}" = "yes"; then
+
+$as_echo "#define HAVE_PNG 1" >>confdefs.h
+
+
+    ac_fn_c_check_decl "$LINENO" "png_longjmp" "ac_cv_have_decl_png_longjmp" "#ifdef HAVE_LIBPNG_PNG_H
+	# include <libpng/png.h>
+	#else
+	# include <png.h>
+	#endif
+
+"
+if test "x$ac_cv_have_decl_png_longjmp" = x""yes; then :
+
+else
+
+$as_echo "#define PNG_DEPSTRUCT /**/" >>confdefs.h
+
+fi
+
+  fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_png}" != "no"; then
     # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
     # in /usr/include/libpng.
@@ -13046,9 +13507,26 @@ fi
 
 
 ### Use -ltiff if available, unless `--with-tiff=no'.
+### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no
 LIBTIFF=
-if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${opsys}" = "mingw32"; then
+  if test "${with_tiff}" != "no"; then
+    ac_fn_c_check_header_mongrel "$LINENO" "tiffio.h" "ac_cv_header_tiffio_h" "$ac_includes_default"
+if test "x$ac_cv_header_tiffio_h" = x""yes; then :
+  HAVE_TIFF=yes
+else
+  HAVE_TIFF=no
+fi
+
+
+  fi
+  if test "${HAVE_TIFF}" = "yes"; then
+
+$as_echo "#define HAVE_TIFF 1" >>confdefs.h
+
+  fi
+elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     ac_fn_c_check_header_mongrel "$LINENO" "tiffio.h" "ac_cv_header_tiffio_h" "$ac_includes_default"
 if test "x$ac_cv_header_tiffio_h" = x""yes; then :
@@ -13110,9 +13588,26 @@ fi
 
 
 ### Use -lgif or -lungif if available, unless `--with-gif=no'.
+### mingw32 doesn't use -lgif/-lungif, since it loads the library dynamically.
 HAVE_GIF=no
 LIBGIF=
-if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
+if test "${opsys}" = "mingw32"; then
+  if test "${with_gif}" != "no"; then
+    ac_fn_c_check_header_mongrel "$LINENO" "gif_lib.h" "ac_cv_header_gif_lib_h" "$ac_includes_default"
+if test "x$ac_cv_header_gif_lib_h" = x""yes; then :
+  HAVE_GIF=yes
+else
+  HAVE_GIF=no
+fi
+
+
+  fi
+  if test "${HAVE_GIF}" = "yes"; then
+
+$as_echo "#define HAVE_GIF 1" >>confdefs.h
+
+  fi
+elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
         || test "${HAVE_W32}" = "yes"; then
   ac_fn_c_check_header_mongrel "$LINENO" "gif_lib.h" "ac_cv_header_gif_lib_h" "$ac_includes_default"
 if test "x$ac_cv_header_gif_lib_h" = x""yes; then :
@@ -13401,7 +13896,259 @@ $as_echo "#define HAVE_X_SM 1" >>confdefs.h
 fi
 
 
+### Use XRandr (-lXrandr) if available
+HAVE_XRANDR=no
+if test "${HAVE_X11}" = "yes"; then
+  XRANDR_REQUIRED=1.2.2
+  XRANDR_MODULES="xrandr >= $XRANDR_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XRANDR=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XRANDR_MODULES" >&5
+$as_echo_n "checking for $XRANDR_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XRANDR_MODULES" 2>&5 &&
+	   XRANDR_CFLAGS=`"$PKG_CONFIG" --cflags "$XRANDR_MODULES" 2>&5` &&
+	   XRANDR_LIBS=`"$PKG_CONFIG" --libs "$XRANDR_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XRANDR_CFLAGS=`$as_echo "$XRANDR_CFLAGS" | sed -e "$edit_cflags"`
+	    XRANDR_LIBS=`$as_echo "$XRANDR_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&5
+$as_echo "yes CFLAGS='$XRANDR_CFLAGS' LIBS='$XRANDR_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XRANDR_CFLAGS=""
+            XRANDR_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XRANDR_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XRANDR_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XRANDR=yes
+  else
+     HAVE_XRANDR=no
+  fi
+
+  if test $HAVE_XRANDR = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xrandr.h" "ac_cv_header_X11_extensions_Xrandr_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xrandr_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRGetScreenResources in -lXrandr" >&5
+$as_echo_n "checking for XRRGetScreenResources in -lXrandr... " >&6; }
+if test "${ac_cv_lib_Xrandr_XRRGetScreenResources+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXrandr  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XRRGetScreenResources ();
+int
+main ()
+{
+return XRRGetScreenResources ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xrandr_XRRGetScreenResources=yes
+else
+  ac_cv_lib_Xrandr_XRRGetScreenResources=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRGetScreenResources" >&5
+$as_echo "$ac_cv_lib_Xrandr_XRRGetScreenResources" >&6; }
+if test "x$ac_cv_lib_Xrandr_XRRGetScreenResources" = x""yes; then :
+  HAVE_XRANDR=yes
+fi
+
+fi
+
+
+    if test $HAVE_XRANDR = yes; then
+      XRANDR_LIBS=-lXrandr
+
+    fi
+  fi
+  if test $HAVE_XRANDR = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LIBS="$LIBS"
+    CFLAGS="$XRANDR_CFLAGS $CFLAGS"
+    LIBS="$XRANDR_LIBS $LIBS"
+    for ac_func in XRRGetOutputPrimary XRRGetScreenResourcesCurrent
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+    CFLAGS="$SAVE_CFLAGS"
+    LIBS="$SAVE_LIBS"
+
+
+$as_echo "#define HAVE_XRANDR 1" >>confdefs.h
+
+  fi
+fi
+
+### Use Xinerama (-lXinerama) if available
+HAVE_XINERAMA=no
+if test "${HAVE_X11}" = "yes"; then
+  XINERAMA_REQUIRED=1.0.2
+  XINERAMA_MODULES="xinerama >= $XINERAMA_REQUIRED"
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_XINERAMA=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $XINERAMA_MODULES" >&5
+$as_echo_n "checking for $XINERAMA_MODULES... " >&6; }
+
+        if "$PKG_CONFIG" --exists "$XINERAMA_MODULES" 2>&5 &&
+	   XINERAMA_CFLAGS=`"$PKG_CONFIG" --cflags "$XINERAMA_MODULES" 2>&5` &&
+	   XINERAMA_LIBS=`"$PKG_CONFIG" --libs "$XINERAMA_MODULES" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    XINERAMA_CFLAGS=`$as_echo "$XINERAMA_CFLAGS" | sed -e "$edit_cflags"`
+	    XINERAMA_LIBS=`$as_echo "$XINERAMA_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&5
+$as_echo "yes CFLAGS='$XINERAMA_CFLAGS' LIBS='$XINERAMA_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            XINERAMA_CFLAGS=""
+            XINERAMA_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    XINERAMA_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "$XINERAMA_MODULES") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_XINERAMA=yes
+  else
+     HAVE_XINERAMA=no
+  fi
+
+  if test $HAVE_XINERAMA = no; then
+    # Test old way in case pkg-config doesn't have it (older machines).
+    ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xinerama.h" "ac_cv_header_X11_extensions_Xinerama_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_extensions_Xinerama_h" = x""yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XineramaQueryExtension in -lXinerama" >&5
+$as_echo_n "checking for XineramaQueryExtension in -lXinerama... " >&6; }
+if test "${ac_cv_lib_Xinerama_XineramaQueryExtension+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXinerama  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XineramaQueryExtension ();
+int
+main ()
+{
+return XineramaQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xinerama_XineramaQueryExtension=yes
+else
+  ac_cv_lib_Xinerama_XineramaQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xinerama_XineramaQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xinerama_XineramaQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xinerama_XineramaQueryExtension" = x""yes; then :
+  HAVE_XINERAMA=yes
+fi
+
+fi
+
+
+    if test $HAVE_XINERAMA = yes; then
+      XINERAMA_LIBS=-lXinerama
+
+    fi
+  fi
+  if test $HAVE_XINERAMA = yes; then
+
+$as_echo "#define HAVE_XINERAMA 1" >>confdefs.h
+
+  fi
+fi
+
+
 ### Use libxml (-lxml2) if available
+### mingw32 doesn't use -lxml2, since it loads the library dynamically.
 HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
@@ -13457,8 +14204,9 @@ $as_echo "no" >&6; }
   fi
 
   if test "${HAVE_LIBXML2}" = "yes"; then
-    LIBS="$LIBXML2_LIBS $LIBS"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for htmlReadMemory in -lxml2" >&5
+    if test "${opsys}" != "mingw32"; then
+      LIBS="$LIBXML2_LIBS $LIBS"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for htmlReadMemory in -lxml2" >&5
 $as_echo_n "checking for htmlReadMemory in -lxml2... " >&6; }
 if test "${ac_cv_lib_xml2_htmlReadMemory+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -13500,6 +14248,9 @@ else
   HAVE_LIBXML2=no
 fi
 
+    else
+      LIBXML2_LIBS=""
+    fi
     if test "${HAVE_LIBXML2}" = "yes"; then
 
 $as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
@@ -13514,6 +14265,10 @@ fi
 
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
+# On MinGW, that is provided by nt/inc/sys/socket.h and w32.c.
+if test "${opsys}" = "mingw32"; then
+  emacs_cv_netdb_declares_h_errno=yes
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether netdb declares h_errno" >&5
 $as_echo_n "checking whether netdb declares h_errno... " >&6; }
 if test "${emacs_cv_netdb_declares_h_errno+set}" = set; then :
@@ -13547,8 +14302,9 @@ $as_echo "#define HAVE_H_ERRNO 1" >>confdefs.h
 fi
 
 # sqrt and other floating-point functions such as fmod and frexp
-# are found in -lm on most systems.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
+# are found in -lm on most systems, but mingw32 doesn't use -lm.
+if test "${opsys}" != "mingw32"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
 $as_echo_n "checking for sqrt in -lm... " >&6; }
 if test "${ac_cv_lib_m_sqrt+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -13593,6 +14349,7 @@ _ACEOF
 
 fi
 
+fi
 
 # Check for mail-locking functions in a "mail" library.  Probably this should
 # have the same check as for liblockfile below.
@@ -13756,7 +14513,7 @@ mail_lock=no
 case "$opsys" in
   aix4-2) mail_lock="lockf" ;;
 
-  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+  gnu|freebsd|dragonfly|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
 
   ## On GNU/Linux systems, both methods are used by various mail programs.
   ## I assume most people are using newer mailers that have heard of flock.
@@ -13778,6 +14535,9 @@ case "$opsys" in
       test $ac_cv_header_maillock_h = yes && mail_lock=no
     fi
     ;;
+
+  mingw32)
+    mail_lock="none-needed" ;;
 esac
 
 BLESSMAIL_TARGET=
@@ -13789,6 +14549,8 @@ $as_echo "#define MAIL_USE_FLOCK 1" >>confdefs.h
   lockf)
 $as_echo "#define MAIL_USE_LOCKF 1" >>confdefs.h
  ;;
+
+  none-needed) ;;
 
   *) BLESSMAIL_TARGET="need-blessmail" ;;
 esac
@@ -13802,7 +14564,7 @@ select getpagesize setlocale \
 utimes getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkstemp getline getdelim fsync sync \
+gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -13989,19 +14751,22 @@ $as_echo_n "checking for library containing tputs... " >&6; }
 # tputs in the test program, due to portability hassles.  When
 # cross-compiling, assume the test program will run if it links.
 
-# Maybe curses should be tried earlier?
-# See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
-for tputs_library in '' tinfo ncurses terminfo termcap curses; do
-  OLIBS=$LIBS
-  if test -z "$tputs_library"; then
-    LIBS_TERMCAP=
-    msg='none required'
-  else
-    LIBS_TERMCAP=-l$tputs_library
-    msg=$LIBS_TERMCAP
-    LIBS="$LIBS_TERMCAP $LIBS"
-  fi
-  if test "$cross_compiling" = yes; then :
+if test "${opsys}" = "mingw32"; then
+  msg='none required'
+else
+  # Maybe curses should be tried earlier?
+  # See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9736#35
+  for tputs_library in '' tinfo ncurses terminfo termcap curses; do
+    OLIBS=$LIBS
+    if test -z "$tputs_library"; then
+      LIBS_TERMCAP=
+      msg='none required'
+    else
+      LIBS_TERMCAP=-l$tputs_library
+      msg=$LIBS_TERMCAP
+      LIBS="$LIBS_TERMCAP $LIBS"
+    fi
+    if test "$cross_compiling" = yes; then :
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -14043,11 +14808,12 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
-  LIBS=$OLIBS
-  if test "X$msg" != Xno; then
-    break
-  fi
-done
+    LIBS=$OLIBS
+    if test "X$msg" != Xno; then
+      break
+    fi
+  done
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $msg" >&5
 $as_echo "$msg" >&6; }
 if test "X$msg" = Xno; then
@@ -14116,6 +14882,11 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     fi
     ;;
 
+  mingw32)
+    TERMINFO=no
+    LIBS_TERMCAP=
+    ;;
+
   netbsd)
     if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
@@ -14123,7 +14894,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     fi
     ;;
 
-  openbsd) LIBS_TERMCAP="-lncurses" ;;
+  openbsd | dragonfly) LIBS_TERMCAP="-lncurses" ;;
 
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
@@ -15391,18 +16162,22 @@ $as_echo "#define __restrict_arr __restrict" >>confdefs.h
 fi
 
 
+if test "${opsys}" != "mingw32"; then
 
 $as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
 
+fi
 
 
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
+if test "${opsys}" != "mingw32"; then
 
 $as_echo "#define HAVE_PTYS 1" >>confdefs.h
 
+fi
 
 
 $as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
@@ -15411,12 +16186,22 @@ $as_echo "#define HAVE_SOCKETS 1" >>confdefs.h
 
 
 
-$as_echo "#define NULL_DEVICE \"/dev/null\"" >>confdefs.h
+if test "${opsys}" = "mingw32"; then
+  $as_echo "#define NULL_DEVICE \"NUL:\"" >>confdefs.h
+
+else
+  $as_echo "#define NULL_DEVICE \"/dev/null\"" >>confdefs.h
+
+fi
 
 
+if test "${opsys}" = "mingw32"; then
+  $as_echo "#define SEPCHAR ';'" >>confdefs.h
 
-$as_echo "#define SEPCHAR ':'" >>confdefs.h
+else
+  $as_echo "#define SEPCHAR ':'" >>confdefs.h
 
+fi
 
 
 $as_echo "#define subprocesses 1" >>confdefs.h
@@ -15432,7 +16217,21 @@ $as_echo "#define DIRECTORY_SEP '/'" >>confdefs.h
 
 
 
+if test "${opsys}" = "mingw32"; then
+    $as_echo "#define DEVICE_SEP ':'" >>confdefs.h
 
+
+$as_echo "#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)" >>confdefs.h
+
+
+
+$as_echo "#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\')" >>confdefs.h
+
+
+
+$as_echo "#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP(_c_))" >>confdefs.h
+
+else
 
 $as_echo "#define IS_DEVICE_SEP(_c_) 0" >>confdefs.h
 
@@ -15444,7 +16243,7 @@ $as_echo "#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)" >>confdefs.h
 
 $as_echo "#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))" >>confdefs.h
 
-
+fi
 
 
 
@@ -15500,7 +16299,7 @@ $as_echo "#define HAVE_PROCFS 1" >>confdefs.h
 esac
 
 case $opsys in
-  darwin | freebsd | netbsd | openbsd )
+  darwin | dragonfly | freebsd | netbsd | openbsd )
 
 $as_echo "#define DONT_REOPEN_PTY 1" >>confdefs.h
 
@@ -15582,7 +16381,7 @@ case $opsys in
 
     ;;
 
-  gnu-linux | gnu-kfreebsd | freebsd | netbsd )
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd )
         if test "x$ac_cv_func_grantpt" = xyes; then
 
 $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
@@ -15661,7 +16460,7 @@ esac
 
 
 case $opsys in
-      aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd | darwin )
+      aix4-2 | cygwin | gnu | irix6-5 | dragonfly | freebsd | netbsd | openbsd | darwin )
     $as_echo "#define SIGNALS_VIA_CHARACTERS 1" >>confdefs.h
 
     ;;
@@ -15725,7 +16524,7 @@ case $opsys in
   darwin) $as_echo "#define TAB3 OXTABS" >>confdefs.h
  ;;
 
-  gnu | freebsd | netbsd | openbsd )
+  gnu | dragonfly | freebsd | netbsd | openbsd )
 
 $as_echo "#define TABDLY OXTABS" >>confdefs.h
 
@@ -15804,7 +16603,7 @@ if test x$GCC = xyes; then
 
 else
   case $opsys in
-        freebsd | netbsd | openbsd | irix6-5 | sol2* )
+        dragonfly | freebsd | netbsd | openbsd | irix6-5 | sol2* )
       $as_echo "#define GC_SETJMP_WORKS 1" >>confdefs.h
 
       ;;
@@ -15818,6 +16617,9 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <setjmp.h>
+         #ifdef __MINGW32__
+         # define _longjmp longjmp
+         #endif
 
 int
 main ()
@@ -15904,7 +16706,6 @@ esac
 
 
 
-
 case $opsys in
   aix4-2)
     $as_echo "#define USG /**/" >>confdefs.h
@@ -15943,42 +16744,9 @@ $as_echo "#define CYGWIN 1" >>confdefs.h
     ;;
 
   darwin)
-        $as_echo "#define BSD_SYSTEM /**/" >>confdefs.h
-
 
 $as_echo "#define DARWIN_OS /**/" >>confdefs.h
 
-    ;;
-
-  freebsd)
-
-$as_echo "#define BSD_SYSTEM_AHB 1" >>confdefs.h
-
-    ;;
-
-  gnu | netbsd | openbsd )
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef BSD_SYSTEM
-# error "BSD_SYSTEM not defined"
-#endif
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-
-else
-  $as_echo "#define BSD_SYSTEM 43" >>confdefs.h
-
-fi
-rm -f conftest.err conftest.$ac_ext
     ;;
 
   gnu-linux | gnu-kfreebsd )
@@ -16011,6 +16779,19 @@ $as_echo "#define IRIX6_5 /**/" >>confdefs.h
 
     ;;
 
+  mingw32)
+    $as_echo "#define DOS_NT /**/" >>confdefs.h
+
+
+$as_echo "#define WINDOWSNT 1" >>confdefs.h
+
+    if test "x$ac_enable_checking" != "x" ; then
+
+$as_echo "#define EMACSDEBUG 1" >>confdefs.h
+
+    fi
+    ;;
+
   sol2*)
     $as_echo "#define USG /**/" >>confdefs.h
 
@@ -16041,6 +16822,10 @@ else
   case $opsys in
      aix4-2)
               emacs_cv_usable_FIONREAD=no
+       ;;
+
+     mingw32)
+       emacs_cv_usable_FIONREAD=yes
        ;;
 
      *)
@@ -16225,6 +17010,13 @@ _ACEOF
 
 
 
+case $opsys in
+  mingw32)
+    $as_echo "#define config_opsysfile <ms-w32.h>" >>confdefs.h
+
+    ;;
+esac
+
 XMENU_OBJ=
 XOBJ=
 FONT_OBJ=
@@ -16292,12 +17084,14 @@ case "$USE_X_TOOLKIT" in
 esac
 
 
-if test "$USE_X_TOOLKIT" = "none"; then
-  LIBXT_OTHER="\$(LIBXSM)"
-  OLDXMENU_TARGET="really-oldXMenu"
-else
-  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
-  OLDXMENU_TARGET="really-lwlib"
+if test "${opsys}" != "mingw32"; then
+  if test "$USE_X_TOOLKIT" = "none"; then
+    LIBXT_OTHER="\$(LIBXSM)"
+    OLDXMENU_TARGET="really-oldXMenu"
+  else
+    LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+    OLDXMENU_TARGET="really-lwlib"
+  fi
 fi
 
 
@@ -16369,6 +17163,10 @@ fi
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o cygw32.o"
   ## Cygwin differs because of its unexec().
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ=lastfile.o
+elif test "$opsys" = "mingw32"; then
+  CYGWIN_OBJ=
   PRE_ALLOC_OBJ=
   POST_ALLOC_OBJ=lastfile.o
 else
@@ -17184,6 +17982,378 @@ $as_echo "#define HAVE_ENVIRON_DECL 1" >>confdefs.h
 
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for complete errno.h" >&5
+$as_echo_n "checking for complete errno.h... " >&6; }
+if test "${gl_cv_header_errno_h_complete+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#if !defined ETXTBSY
+booboo
+#endif
+#if !defined ENOMSG
+booboo
+#endif
+#if !defined EIDRM
+booboo
+#endif
+#if !defined ENOLINK
+booboo
+#endif
+#if !defined EPROTO
+booboo
+#endif
+#if !defined EMULTIHOP
+booboo
+#endif
+#if !defined EBADMSG
+booboo
+#endif
+#if !defined EOVERFLOW
+booboo
+#endif
+#if !defined ENOTSUP
+booboo
+#endif
+#if !defined ENETRESET
+booboo
+#endif
+#if !defined ECONNABORTED
+booboo
+#endif
+#if !defined ESTALE
+booboo
+#endif
+#if !defined EDQUOT
+booboo
+#endif
+#if !defined ECANCELED
+booboo
+#endif
+#if !defined EOWNERDEAD
+booboo
+#endif
+#if !defined ENOTRECOVERABLE
+booboo
+#endif
+#if !defined EILSEQ
+booboo
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "booboo" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_complete=no
+else
+  gl_cv_header_errno_h_complete=yes
+fi
+rm -f conftest*
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_complete" >&5
+$as_echo "$gl_cv_header_errno_h_complete" >&6; }
+  if test $gl_cv_header_errno_h_complete = yes; then
+    ERRNO_H=''
+  else
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_errno_h='<'errno.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <errno.h>" >&5
+$as_echo_n "checking absolute name of <errno.h>... " >&6; }
+if test "${gl_cv_next_errno_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <errno.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='\/'
+                   ;;
+               esac
+                                             gl_make_literal_regex_sed='s,[]$^\\.*/[],\\&,g'
+
+               gl_header_literal_regex=`echo 'errno.h' \
+                                        | sed -e "$gl_make_literal_regex_sed"`
+               gl_absolute_header_sed="/${gl_dirsep_regex}${gl_header_literal_regex}/"'{
+                   s/.*"\(.*'"${gl_dirsep_regex}${gl_header_literal_regex}"'\)".*/\1/
+                   s|^/[^/]|//&|
+                   p
+                   q
+                 }'
+                                                            gl_cv_next_errno_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                      sed -n "$gl_absolute_header_sed"`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_errno_h" >&5
+$as_echo "$gl_cv_next_errno_h" >&6; }
+     fi
+     NEXT_ERRNO_H=$gl_cv_next_errno_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'errno.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_errno_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_ERRNO_H=$gl_next_as_first_directive
+
+
+
+
+    ERRNO_H='errno.h'
+  fi
+
+   if test -n "$ERRNO_H"; then
+  GL_GENERATE_ERRNO_H_TRUE=
+  GL_GENERATE_ERRNO_H_FALSE='#'
+else
+  GL_GENERATE_ERRNO_H_TRUE='#'
+  GL_GENERATE_ERRNO_H_FALSE=
+fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EMULTIHOP value" >&5
+$as_echo_n "checking for EMULTIHOP value... " >&6; }
+if test "${gl_cv_header_errno_h_EMULTIHOP+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef EMULTIHOP
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EMULTIHOP=yes
+else
+  gl_cv_header_errno_h_EMULTIHOP=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_EMULTIHOP = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef EMULTIHOP
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EMULTIHOP=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_EMULTIHOP = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "EMULTIHOP" "gl_cv_header_errno_h_EMULTIHOP"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_EMULTIHOP" >&5
+$as_echo "$gl_cv_header_errno_h_EMULTIHOP" >&6; }
+    case $gl_cv_header_errno_h_EMULTIHOP in
+      yes | no)
+        EMULTIHOP_HIDDEN=0; EMULTIHOP_VALUE=
+        ;;
+      *)
+        EMULTIHOP_HIDDEN=1; EMULTIHOP_VALUE="$gl_cv_header_errno_h_EMULTIHOP"
+        ;;
+    esac
+
+
+  fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ENOLINK value" >&5
+$as_echo_n "checking for ENOLINK value... " >&6; }
+if test "${gl_cv_header_errno_h_ENOLINK+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef ENOLINK
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_ENOLINK=yes
+else
+  gl_cv_header_errno_h_ENOLINK=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_ENOLINK = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef ENOLINK
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_ENOLINK=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_ENOLINK = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "ENOLINK" "gl_cv_header_errno_h_ENOLINK"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_ENOLINK" >&5
+$as_echo "$gl_cv_header_errno_h_ENOLINK" >&6; }
+    case $gl_cv_header_errno_h_ENOLINK in
+      yes | no)
+        ENOLINK_HIDDEN=0; ENOLINK_VALUE=
+        ;;
+      *)
+        ENOLINK_HIDDEN=1; ENOLINK_VALUE="$gl_cv_header_errno_h_ENOLINK"
+        ;;
+    esac
+
+
+  fi
+
+
+  if test -n "$ERRNO_H"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for EOVERFLOW value" >&5
+$as_echo_n "checking for EOVERFLOW value... " >&6; }
+if test "${gl_cv_header_errno_h_EOVERFLOW+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <errno.h>
+#ifdef EOVERFLOW
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EOVERFLOW=yes
+else
+  gl_cv_header_errno_h_EOVERFLOW=no
+fi
+rm -f conftest*
+
+      if test $gl_cv_header_errno_h_EOVERFLOW = no; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+#ifdef EOVERFLOW
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  gl_cv_header_errno_h_EOVERFLOW=hidden
+fi
+rm -f conftest*
+
+        if test $gl_cv_header_errno_h_EOVERFLOW = hidden; then
+                              if ac_fn_c_compute_int "$LINENO" "EOVERFLOW" "gl_cv_header_errno_h_EOVERFLOW"        "
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <errno.h>
+/* The following two lines are a workaround against an autoconf-2.52 bug.  */
+#include <stdio.h>
+#include <stdlib.h>
+"; then :
+
+fi
+
+        fi
+      fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_errno_h_EOVERFLOW" >&5
+$as_echo "$gl_cv_header_errno_h_EOVERFLOW" >&6; }
+    case $gl_cv_header_errno_h_EOVERFLOW in
+      yes | no)
+        EOVERFLOW_HIDDEN=0; EOVERFLOW_VALUE=
+        ;;
+      *)
+        EOVERFLOW_HIDDEN=1; EOVERFLOW_VALUE="$gl_cv_header_errno_h_EOVERFLOW"
+        ;;
+    esac
+
+
+  fi
+
+
+
+
 
 
 
@@ -17211,6 +18381,17 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 fi
+
+ac_fn_c_check_decl "$LINENO" "fdatasync" "ac_cv_have_decl_fdatasync" "$ac_includes_default"
+if test "x$ac_cv_have_decl_fdatasync" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_FDATASYNC $ac_have_decl
+_ACEOF
 
 
 
@@ -17361,6 +18542,8 @@ _ACEOF
 
       ;;
   esac
+
+
 
 
 
@@ -21077,6 +22260,7 @@ $as_echo "$gl_cv_func_dup2_works" >&6; }
 
 
 
+
   LIB_EXECINFO=''
   EXECINFO_H='execinfo.h'
 
@@ -21293,6 +22477,114 @@ $as_echo "$gl_cv_next_fcntl_h" >&6; }
 
 
 
+
+
+
+
+
+
+
+
+
+  LIB_FDATASYNC=
+
+
+  if test $ac_cv_have_decl_fdatasync = no; then
+    HAVE_DECL_FDATASYNC=0
+        for ac_func in fdatasync
+do :
+  ac_fn_c_check_func "$LINENO" "fdatasync" "ac_cv_func_fdatasync"
+if test "x$ac_cv_func_fdatasync" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FDATASYNC 1
+_ACEOF
+
+fi
+done
+
+    if test $ac_cv_func_fdatasync = no; then
+      HAVE_FDATASYNC=0
+    fi
+  else
+            gl_saved_libs=$LIBS
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fdatasync" >&5
+$as_echo_n "checking for library containing fdatasync... " >&6; }
+if test "${ac_cv_search_fdatasync+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fdatasync ();
+int
+main ()
+{
+return fdatasync ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' rt posix4; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fdatasync=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_fdatasync+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_fdatasync+set}" = set; then :
+
+else
+  ac_cv_search_fdatasync=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fdatasync" >&5
+$as_echo "$ac_cv_search_fdatasync" >&6; }
+ac_res=$ac_cv_search_fdatasync
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  test "$ac_cv_search_fdatasync" = "none required" ||
+                    LIB_FDATASYNC=$ac_cv_search_fdatasync
+fi
+
+    LIBS=$gl_saved_libs
+  fi
+
+  if test $HAVE_FDATASYNC = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fdatasync.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_FDATASYNC=1
 
 
 
@@ -21615,6 +22907,37 @@ $as_echo "#define HAVE_WORKING_FSTATAT_ZERO_FLAG 1" >>confdefs.h
 
 
           GNULIB_FSTATAT=1
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_fsync = no; then
+    HAVE_FSYNC=0
+  fi
+
+  if test $HAVE_FSYNC = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fsync.$ac_objext"
+
+    :
+  fi
+
+
+
+
+
+          GNULIB_FSYNC=1
 
 
 
@@ -23303,6 +24626,449 @@ _ACEOF
 
 
 
+  # Check whether --enable-acl was given.
+if test "${enable_acl+set}" = set; then :
+  enableval=$enable_acl;
+else
+  enable_acl=auto
+fi
+
+
+  LIB_ACL=
+  use_acl=0
+  if test "x$enable_acl" != "xno"; then
+        for ac_header in sys/acl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/acl.h" "ac_cv_header_sys_acl_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_acl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_ACL_H 1
+_ACEOF
+
+fi
+
+done
+
+    if test $ac_cv_header_sys_acl_h = yes; then
+      ac_save_LIBS=$LIBS
+
+                  if test $use_acl = 0; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing acl_get_file" >&5
+$as_echo_n "checking for library containing acl_get_file... " >&6; }
+if test "${ac_cv_search_acl_get_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_get_file ();
+int
+main ()
+{
+return acl_get_file ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' acl pacl; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_acl_get_file=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_acl_get_file+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_acl_get_file+set}" = set; then :
+
+else
+  ac_cv_search_acl_get_file=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_acl_get_file" >&5
+$as_echo "$ac_cv_search_acl_get_file" >&6; }
+ac_res=$ac_cv_search_acl_get_file
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test "$ac_cv_search_acl_get_file" != "none required"; then
+             LIB_ACL=$ac_cv_search_acl_get_file
+           fi
+           for ac_func in acl_get_file acl_get_fd acl_set_file acl_set_fd \
+              acl_free acl_from_mode acl_from_text \
+              acl_delete_def_file acl_extended_file \
+              acl_delete_fd_np acl_delete_file_np \
+              acl_copy_ext_native acl_create_entry_np \
+              acl_to_short_text acl_free_text
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+           # If the acl_get_file bug is detected, don't enable the ACL support.
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working acl_get_file" >&5
+$as_echo_n "checking for working acl_get_file... " >&6; }
+if test "${gl_cv_func_working_acl_get_file+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  gl_cv_func_working_acl_get_file=cross-compiling
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+           #include <sys/acl.h>
+           #include <errno.h>
+
+int
+main ()
+{
+if (!acl_get_file (".", ACL_TYPE_ACCESS) && errno == ENOENT)
+              return 1;
+            return 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_working_acl_get_file=yes
+else
+  gl_cv_func_working_acl_get_file=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_working_acl_get_file" >&5
+$as_echo "$gl_cv_func_working_acl_get_file" >&6; }
+
+  if test $gl_cv_func_working_acl_get_file = yes; then :
+  use_acl=1
+fi
+
+           if test $use_acl = 1; then
+                          for ac_header in acl/libacl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "acl/libacl.h" "ac_cv_header_acl_libacl_h" "$ac_includes_default"
+if test "x$ac_cv_header_acl_libacl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_LIBACL_H 1
+_ACEOF
+
+fi
+
+done
+
+
+
+
+
+
+
+
+
+  for ac_func in acl_entries
+do :
+  ac_fn_c_check_func "$LINENO" "acl_entries" "ac_cv_func_acl_entries"
+if test "x$ac_cv_func_acl_entries" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_ENTRIES 1
+_ACEOF
+
+else
+
+    gl_LIBOBJS="$gl_LIBOBJS $ac_func.$ac_objext"
+
+fi
+done
+
+
+             { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ACL_FIRST_ENTRY" >&5
+$as_echo_n "checking for ACL_FIRST_ENTRY... " >&6; }
+if test "${gl_cv_acl_ACL_FIRST_ENTRY+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <sys/acl.h>
+int type = ACL_FIRST_ENTRY;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_acl_ACL_FIRST_ENTRY=yes
+else
+  gl_cv_acl_ACL_FIRST_ENTRY=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_acl_ACL_FIRST_ENTRY" >&5
+$as_echo "$gl_cv_acl_ACL_FIRST_ENTRY" >&6; }
+             if test $gl_cv_acl_ACL_FIRST_ENTRY = yes; then
+
+$as_echo "#define HAVE_ACL_FIRST_ENTRY 1" >>confdefs.h
+
+             fi
+                          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ACL_TYPE_EXTENDED" >&5
+$as_echo_n "checking for ACL_TYPE_EXTENDED... " >&6; }
+if test "${gl_cv_acl_ACL_TYPE_EXTENDED+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <sys/acl.h>
+int type = ACL_TYPE_EXTENDED;
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_acl_ACL_TYPE_EXTENDED=yes
+else
+  gl_cv_acl_ACL_TYPE_EXTENDED=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_acl_ACL_TYPE_EXTENDED" >&5
+$as_echo "$gl_cv_acl_ACL_TYPE_EXTENDED" >&6; }
+             if test $gl_cv_acl_ACL_TYPE_EXTENDED = yes; then
+
+$as_echo "#define HAVE_ACL_TYPE_EXTENDED 1" >>confdefs.h
+
+             fi
+           else
+             LIB_ACL=
+           fi
+
+fi
+
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in facl
+do :
+  ac_fn_c_check_func "$LINENO" "facl" "ac_cv_func_facl"
+if test "x$ac_cv_func_facl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_facl = yes; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing acl_trivial" >&5
+$as_echo_n "checking for library containing acl_trivial... " >&6; }
+if test "${ac_cv_search_acl_trivial+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char acl_trivial ();
+int
+main ()
+{
+return acl_trivial ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' sec; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_acl_trivial=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_acl_trivial+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_acl_trivial+set}" = set; then :
+
+else
+  ac_cv_search_acl_trivial=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_acl_trivial" >&5
+$as_echo "$ac_cv_search_acl_trivial" >&6; }
+ac_res=$ac_cv_search_acl_trivial
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test "$ac_cv_search_acl_trivial" != "none required"; then
+               LIB_ACL=$ac_cv_search_acl_trivial
+             fi
+
+fi
+
+          for ac_func in acl_trivial
+do :
+  ac_fn_c_check_func "$LINENO" "acl_trivial" "ac_cv_func_acl_trivial"
+if test "x$ac_cv_func_acl_trivial" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACL_TRIVIAL 1
+_ACEOF
+
+fi
+done
+
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in getacl
+do :
+  ac_fn_c_check_func "$LINENO" "getacl" "ac_cv_func_getacl"
+if test "x$ac_cv_func_getacl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_getacl = yes; then
+          use_acl=1
+        fi
+                for ac_header in aclv.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "aclv.h" "ac_cv_header_aclv_h" "#include <sys/types.h>
+"
+if test "x$ac_cv_header_aclv_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLV_H 1
+_ACEOF
+
+fi
+
+done
+
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in aclx_get
+do :
+  ac_fn_c_check_func "$LINENO" "aclx_get" "ac_cv_func_aclx_get"
+if test "x$ac_cv_func_aclx_get" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLX_GET 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_aclx_get = yes; then
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0 || test "$ac_cv_func_aclx_get" = yes; then
+        for ac_func in statacl
+do :
+  ac_fn_c_check_func "$LINENO" "statacl" "ac_cv_func_statacl"
+if test "x$ac_cv_func_statacl" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STATACL 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_statacl = yes; then
+          use_acl=1
+        fi
+      fi
+
+            if test $use_acl = 0; then
+        for ac_func in aclsort
+do :
+  ac_fn_c_check_func "$LINENO" "aclsort" "ac_cv_func_aclsort"
+if test "x$ac_cv_func_aclsort" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ACLSORT 1
+_ACEOF
+
+fi
+done
+
+        if test $ac_cv_func_aclsort = yes; then
+          use_acl=1
+        fi
+      fi
+
+      LIBS=$ac_save_LIBS
+    fi
+    if test "x$enable_acl$use_acl" = "xyes0"; then
+      as_fn_error "ACLs enabled but support not detected" "$LINENO" 5
+    elif test "x$enable_acl$use_acl" = "xauto0"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libacl development library was not found or not usable." >&5
+$as_echo "$as_me: WARNING: libacl development library was not found or not usable." >&2;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: emacs will be built without ACL support." >&5
+$as_echo "$as_me: WARNING: emacs will be built without ACL support." >&2;}
+    fi
+  fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define USE_ACL $use_acl
+_ACEOF
+
+  USE_ACL=$use_acl
+
+
+
 
 
   if test $ac_cv_func_readlink = no; then
@@ -23842,8 +25608,9 @@ else
             #if \
                 (__GNUC__ || __IBMC__ || __IBMCPP__ \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
-              int alignas (8) alignas_int = 1;
-              char test_alignas[_Alignof (alignas_int) == 8 ? 1 : -1];
+              struct alignas_test { char c; char alignas (8) alignas_8; };
+              char test_alignas[offsetof (struct alignas_test, alignas_8) == 8
+                                ? 1 : -1];
             #endif
 
 int
@@ -26507,6 +28274,12 @@ fi
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
+if test "${opsys}" = "mingw32"; then
+  CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I $srcdir/nt/inc"
+  # Remove unneeded switches from the value of CC that goes to Makefiles
+  CC=`echo $CC | sed -e "s,$GCC_TEST_OPTIONS,,"`
+fi
+
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
@@ -26517,6 +28290,9 @@ case "$opsys" in
    ## each); under Cocoa 31 commands are required.
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
+     if test "$NS_IMPL_COCOA" = "yes"; then
+        libs_nsgui="$libs_nsgui -framework IOKit"
+     fi
      headerpad_extra=6C8
    else
      libs_nsgui=
@@ -26525,15 +28301,8 @@ case "$opsys" in
    LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 
    ## This is here because src/Makefile.in did some extra fiddling around
-   ## with LD_SWITCH_SYSTEM.  The cpp logic was:
-   ##   #ifndef LD_SWITCH_SYSTEM
-   ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-   ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-   ## not using gcc, darwin.
-   ## Because this was done in src/Makefile.in, the resulting part of
-   ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
-   ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
-   ## rather than LD_SWITCH_SYSTEM.
+   ## with LD_SWITCH_SYSTEM.  It seems cleaner to put this in
+   ## LD_SWITCH_SYSTEM_TEMACS instead,
    test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
      LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
    ;;
@@ -26547,8 +28316,45 @@ case "$opsys" in
   ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
   gnu*) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_RPATH)" ;;
 
+  mingw32)
+   ## MinGW64 does not prepend an underscore to symbols, so we must
+   ## pass a different -entry switch to linker.  FIXME: It is better
+   ## to make the entry points the same by changing unexw32.c.
+   case "$canonical" in
+     x86_64-*-*) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,_start -Wl,-Map,./temacs.map" ;;
+     *) LD_SWITCH_SYSTEM_TEMACS="-Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -Wl,-entry,__start -Wl,-Map,./temacs.map" ;;
+   esac
+   ;;
+
+  openbsd) LD_SWITCH_SYSTEM_TEMACS='-nopie' ;;
+
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+if test x$ac_enable_profiling != x ; then
+  case $opsys in
+    *freebsd | gnu-linux) ;;
+    *) LD_SWITCH_SYSTEM_TEMACS="$LD_SWITCH_SYSTEM_TEMACS -pg" ;;
+  esac
+fi
+
+
+
+## MinGW-specific post-link processing of temacs.
+TEMACS_POST_LINK=":"
+ADDSECTION=
+EMACS_HEAPSIZE=
+if test "${opsys}" = "mingw32"; then
+  TEMACS_POST_LINK="\$(MINGW_TEMACS_POST_LINK)"
+  ADDSECTION="../nt/addsection\$(EXEEXT)"
+  ## Preload heap size of temacs.exe in MB.
+  case "$canonical" in
+    x86_64-*-*) EMACS_HEAPSIZE=42 ;;
+    *) EMACS_HEAPSIZE=27 ;;
+  esac
+fi
+
+
 
 
 
@@ -26668,9 +28474,9 @@ if test "$HAVE_NS" = "yes"; then
   fi
 fi
 
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
 
-ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
+ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile"
 
 
 opt_makefile=test/automated/Makefile
@@ -26817,6 +28623,10 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error "conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${BUILDING_FOR_WINDOWSNT_TRUE}" && test -z "${BUILDING_FOR_WINDOWSNT_FALSE}"; then
+  as_fn_error "conditional \"BUILDING_FOR_WINDOWSNT\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${GL_COND_LIBTOOL_TRUE}" && test -z "${GL_COND_LIBTOOL_FALSE}"; then
   as_fn_error "conditional \"GL_COND_LIBTOOL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -26826,6 +28636,10 @@ if test -z "${GL_GENERATE_ALLOCA_H_TRUE}" && test -z "${GL_GENERATE_ALLOCA_H_FAL
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${GL_GENERATE_ERRNO_H_TRUE}" && test -z "${GL_GENERATE_ERRNO_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_ERRNO_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${GL_GENERATE_EXECINFO_H_TRUE}" && test -z "${GL_GENERATE_EXECINFO_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_EXECINFO_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -27526,7 +29340,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # INIT-COMMANDS
 #
 AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
-GCC="$GCC" CPPFLAGS="$CPPFLAGS"
+GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"
 
 _ACEOF
 
@@ -27555,6 +29369,7 @@ do
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "nextstep/Makefile") CONFIG_FILES="$CONFIG_FILES nextstep/Makefile" ;;
+    "nt/Makefile") CONFIG_FILES="$CONFIG_FILES nt/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
     "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
@@ -28285,7 +30100,11 @@ done
  ;;
     "epaths":C)
 echo creating src/epaths.h
-${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
+if test "${opsys}" = "mingw32"; then
+  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
+else
+  ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
+fi
  ;;
     "gdbinit":C)
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then

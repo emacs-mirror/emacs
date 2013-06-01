@@ -1032,15 +1032,15 @@ Some of these headers are updated automatically.  See
 `gnus-article-update-date-headers' for details."
   :version "24.1"
   :group 'gnus-article-headers
-  :type '(repeat
-	  (item :tag "Universal time (UT)" :value 'ut)
-	  (item :tag "Local time zone" :value 'local)
-	  (item :tag "Readable English" :value 'english)
-	  (item :tag "Elapsed time" :value 'lapsed)
-	  (item :tag "Original and elapsed time" :value 'combined-lapsed)
-	  (item :tag "Original date header" :value 'original)
-	  (item :tag "ISO8601 format" :value 'iso8601)
-	  (item :tag "User-defined" :value 'user-defined)))
+  :type '(set
+	  (const :tag "Universal time (UT)" ut)
+	  (const :tag "Local time zone" local)
+	  (const :tag "Readable English" english)
+	  (const :tag "Elapsed time" lapsed)
+	  (const :tag "Original and elapsed time" combined-lapsed)
+	  (const :tag "Original date header" original)
+	  (const :tag "ISO8601 format" iso8601)
+	  (const :tag "User-defined" user-defined)))
 
 (defcustom gnus-article-update-date-headers nil
   "A number that says how often to update the date header (in seconds).
@@ -1651,7 +1651,7 @@ called with the group name as the parameter, and should return a
 regexp."
   :version "24.1"
   :group 'gnus-art
-  :type 'regexp)
+  :type '(choice regexp function))
 
 ;;; Internal variables
 
@@ -6629,11 +6629,7 @@ KEY is a string or a vector."
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
 (defvar gnus-agent-summary-mode)
 (defvar gnus-draft-mode)
-;; Calling help-buffer will autoload help-mode.
 (defvar help-xref-stack-item)
-;; Emacs 22 doesn't load it in the batch mode.
-(eval-when-compile
-  (autoload 'help-buffer "help-mode"))
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
@@ -6684,6 +6680,9 @@ then we display only bindings that start with that prefix."
 		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
+      ;; Loading `help-mode' here is necessary if `describe-bindings'
+      ;; is replaced with something, e.g. `helm-descbinds'.
+      (require 'help-mode)
       (with-current-buffer (let (help-xref-following) (help-buffer))
 	(setq help-xref-stack-item item)))))
 

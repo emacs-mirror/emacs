@@ -1261,7 +1261,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (w->buffer))
+	  if (NILP (w->contents))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1271,7 +1271,7 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
+	  if (NILP (w->contents) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
@@ -1321,7 +1321,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (sw->buffer);
+      struct buffer *b = XBUFFER (sw->contents);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
@@ -1920,7 +1920,7 @@ dos_get_saved_screen (char **screen, int *rows, int *cols)
 
 /* We are not X, but we can emulate it well enough for our needs... */
 void
-check_x (void)
+check_window_system (void)
 {
   if (! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Not running under a window system");
@@ -2982,11 +2982,6 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 }
 
 /* --------------------------- X Menu emulation ---------------------- */
-
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
 
 /* Create a brand new menu structure.  */
 

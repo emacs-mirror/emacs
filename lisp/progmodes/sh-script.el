@@ -335,11 +335,11 @@ shell it really is."
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
-         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*\\(?:()\\)?"
+         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
          1)
 	;; FOO()
 	(nil
-	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\\s-*()"
+	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
 	 1)
 	)))
   "Alist of regular expressions for recognizing shell function definitions.
@@ -352,6 +352,28 @@ See `sh-feature' and `imenu-generic-expression'."
 				   (repeat :tag "Regexp, index..." sexp)))
   :group 'sh-script
   :version "20.4")
+
+(defun sh-current-defun-name ()
+  "Find the name of function or variable at point.
+For use in `add-log-current-defun-function'."
+  (save-excursion
+    (end-of-line)
+    (when (re-search-backward
+	   (concat "\\(?:"
+		   ;; function FOO
+		   ;; function FOO()
+		   "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
+		   "\\)\\|\\(?:"
+		   ;; FOO()
+		   "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
+		   "\\)\\|\\(?:"
+		   ;; FOO=
+		   "^\\([[:alpha:]_][[:alnum:]_]*\\)="
+		   "\\)")
+	   nil t)
+      (or (match-string-no-properties 1)
+	  (match-string-no-properties 2)
+	  (match-string-no-properties 3)))))
 
 (defvar sh-shell-variables nil
   "Alist of shell variable names that should be included in completion.
@@ -1533,6 +1555,7 @@ with your script for an edit-interpret-debug cycle."
   (setq-local skeleton-newline-indent-rigidly t)
   (setq-local defun-prompt-regexp
 	      (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
+  (setq-local add-log-current-defun-function #'sh-current-defun-name)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell

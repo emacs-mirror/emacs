@@ -50,6 +50,8 @@
 (autoload 'message-options-get "message")
 (autoload 'message-options-set "message")
 
+(require 'mml2015)
+
 (defvar mml1991-use mml2015-use
   "The package used for PGP.")
 

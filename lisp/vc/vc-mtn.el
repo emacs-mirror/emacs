@@ -123,6 +123,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	     ((match-end 2) (push (list (match-string 3) 'added) result))))
     (funcall update-function result)))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-mtn-dir-status (dir update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")
   (vc-exec-after
@@ -202,6 +205,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;   )
 
 (defun vc-mtn-print-log (files buffer &optional _shortlog start-revision limit)
+  "Print commit logs associated with FILES into specified BUFFER.
+_SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (apply 'vc-mtn-command buffer 0 files "log"
 	 (append
 	  (when start-revision (list "--from" (format "%s" start-revision)))
@@ -228,6 +235,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
+
+(autoload 'vc-switches "vc")
 
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using monotone between two revisions of FILES."

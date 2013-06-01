@@ -1,3 +1,59 @@
+2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port --enable-gcc-warnings to clang.
+	* etags.c: Omit unnecessary forward decls.
+	(print_version, print_help): Declare _Noreturn.
+	* pop.c (socket_connection) [HAVE_GETADDRINFO]: Simplify.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c [WINDOWSNT]: Include "ntlib.h".
+
+	* ntlib.h (sleep): Update prototype.
+	(geteuid): Add prototype.
+
+	* ntlib.c (sleep): Now returns an unsigned value.
+	(getgid): New function.
+
+	* Makefile.in (CLIENTW, LIB_WSOCK32, LIBS_ECLIENT, NTLIB)
+	(CLIENTRES, WINDRES, NTINC, NTDEPS): New variables.
+	(INSTALLABLES): Add $(CLIENTW).
+	(LIBS_MOVE): Use $(LIB_WSOCK32).
+	($(DESTDIR)${archlibdir}): Use $(EXEEXT) on update-game-score.
+	(test-distrib${EXEEXT}): Use $(EXEEXT) on test-distrib.
+	(etags${EXEEXT}, ebrowse${EXEEXT}, ctags${EXEEXT})
+	(profile${EXEEXT}, make-docfile${EXEEXT}, movemail${EXEEXT})
+	(emacsclient${EXEEXT}, hexl${EXEEXT}, update-game-score${EXEEXT}):
+	Add $(NTLIB) to prerequisites.  Use $(EXEEXT).
+	(pop.o): Add pop.h to prerequisites.
+	(emacsclientw${EXEEXT}, ntlib.o): New targets.
+	(emacsclient.res): New target.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in ($(DOC)): Use DOC rather than DOC-X.
+
+2013-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (search_lisp_doc_at_eol) [DEBUG]: Fix typo,
+	by removing references to no-longer-existing locals.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers.
+	* ntlib.c (struct timespec) [!_TIMEZONE_DEFINED]: Define the
+	struct only if _TIMEZONE_DEFINED is not defined.
+
+2013-03-23  cg  <chengang31@gmail.com>  (tiny change)
+
+	* makefile.w32-in (LIB_SRC): Move before first use.
+
+2013-03-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* pop.c: Fix ERRMAX typo (Bug#13925).
+	(socket_connection) [!HAVE_KRB5_ERROR_TEXT && HAVE_KRB5_ERROR_E_TEXT]:
+	Use ERROR_MAX, not ERRMAX.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).
@@ -6,8 +62,8 @@
 	* emacsclient.c (main): Use fdatasync, not fsync, since we don't
 	care about metadata.  Keep trying if interrupted.
 	* movemail.c (main, popmail): Don't worry about BSD_SYSTEM, since
-	fsync is available everywhere (or there is a substitute).  Don't
-	report an error if fsync returns EINVAL.
+	fsync is available everywhere (or there is a substitute).
+	Don't report an error if fsync returns EINVAL.
 
 	Static checking by Sun C 5.12.
 	* etags.c (analyse_regex): Omit unreachable code.
@@ -3708,7 +3764,7 @@
 
 2002-03-05  Francesco Potortì  <pot@gnu.org>
 
-	* etags.c: Honour #line directives.
+	* etags.c: Honor #line directives.
 	(no_line_directive): New global var; set it for old behavior.
 	(main): Remove some #ifdef in the getopt switch.
 	(add_node, put_entries): Code added to merge different chunks of
@@ -5182,7 +5238,7 @@
 	(longopts): New long options without short counterpart are
 	globals, members, no-globals, no-members.  Regexp options are now
 	defined  conditionally to ETAGS_REGEXPS.
-	(print_help): Updated.
+	(print_help): Update.
 
 1997-05-22  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 

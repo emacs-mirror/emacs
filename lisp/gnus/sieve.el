@@ -257,7 +257,7 @@ Used to bracket operations which move point in the sieve-buffer."
   (erase-buffer)
   (buffer-disable-undo)
   (insert "\
-Server  : " server ":" (or port "2000") "
+Server  : " server ":" (or port sieve-manage-default-port) "
 
 ")
   (set (make-local-variable 'sieve-buffer-header-end)

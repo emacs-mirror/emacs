@@ -155,12 +155,18 @@ pass to the OPERATION."
   "Return a list of (nil host) tuples allowed to access."
   (with-timeout (10)
     (with-temp-buffer
-      (when (zerop (call-process tramp-adb-program nil t nil "devices"))
-	(let (result)
-	  (goto-char (point-min))
-	  (while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
-	    (add-to-list 'result (list nil (match-string 1))))
-	  result)))))
+      ;; `call-process' does not react on timer under MS Windows.
+      ;; That's why we use `start-process'.
+      (let ((p (start-process
+		tramp-adb-program (current-buffer) tramp-adb-program "devices"))
+	    result)
+	(tramp-compat-set-process-query-on-exit-flag p nil)
+	(while (eq 'run (process-status p))
+	  (sleep-for 0.1))
+	(goto-char (point-min))
+	(while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
+	  (add-to-list 'result (list nil (match-string 1))))
+	result))))
 
 (defun tramp-adb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
@@ -850,7 +856,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(error "Shell command in progress")))
+	(tramp-compat-user-error "Shell command in progress")))
 
     (if current-buffer-p
 	(progn
@@ -976,11 +982,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
   (with-temp-buffer
     (prog1
-	(unless (zerop (apply 'call-process tramp-adb-program nil t nil args))
+	(unless
+	    (zerop (apply 'tramp-call-process tramp-adb-program nil t nil args))
 	  (buffer-string))
-      (tramp-message
-       vec 6 "%s %s\n%s"
-       tramp-adb-program (mapconcat 'identity args " ") (buffer-string)))))
+      (tramp-message vec 6 "%s" (buffer-string)))))
 
 (defun tramp-adb-find-test-command (vec)
   "Checks, whether the ash has a builtin \"test\" command.

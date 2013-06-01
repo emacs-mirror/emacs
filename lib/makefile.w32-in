@@ -23,7 +23,8 @@ ALL = gnulib
 LOCAL_FLAGS	= -I. -I../nt/inc -I../src
 LIBS 		=
 
-GNULIBOBJS = $(BLD)/c-ctype.$(O) \
+GNULIBOBJS = $(BLD)/acl-errno-valid.$(O) \
+	     $(BLD)/c-ctype.$(O) \
 	     $(BLD)/c-strcasecmp.$(O) \
 	     $(BLD)/c-strncasecmp.$(O) \
 	     $(BLD)/close-stream.$(O) \
@@ -77,6 +78,9 @@ GNU_LIB		= .
 SRC		= $(EMACS_ROOT)/src
 NT_INC		= $(EMACS_ROOT)/nt/inc
 
+ACL_H	       = $(GNU_LIB)/acl.h \
+		 $(NT_INC)/sys/stat.h \
+		 $(NT_INC)/stdbool.h
 C_CTYPE_H      = $(GNU_LIB)/c-ctype.h \
 		 $(NT_INC)/stdbool.h
 MS_W32_H       = $(NT_INC)/ms-w32.h \
@@ -108,6 +112,11 @@ SIG2STR_H      = $(GNU_LIB)/sig2str.h \
 		 $(GNU_LIB)/intprops.h
 STAT_TIME_H    = $(GNU_LIB)/stat-time.h \
 		 $(NT_INC)/sys/stat.h
+
+$(BLD)/acl-errno-valid.$(O) : \
+	$(GNU_LIB)/acl-errno-valid.c \
+	$(ACL_H) \
+	$(CONFIG_H)
 
 $(BLD)/c-ctype.$(O) : \
 	$(GNU_LIB)/c-ctype.c \

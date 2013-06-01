@@ -39,11 +39,11 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-mode)
-  (require 'eshell))
+  (require 'cl-lib))
 
 (require 'esh-util)
+(require 'esh-mode)
+(require 'eshell)
 
 ;;;###autoload
 (progn

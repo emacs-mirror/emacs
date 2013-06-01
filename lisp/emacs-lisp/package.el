@@ -4,8 +4,9 @@
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
-;; Version: 1.0
+;; Version: 1.0.1
 ;; Keywords: tools
+;; Package-Requires: ((tabulated-list "1.0"))
 
 ;; This file is part of GNU Emacs.
 
@@ -234,11 +235,28 @@ a package can run arbitrary code."
   :group 'package
   :version "24.1")
 
+(defcustom package-pinned-packages nil
+  "An alist of packages that are pinned to a specific archive
+
+Each element has the form (SYM . ID).
+ SYM is a package, as a symbol.
+ ID is an archive name, as a string. This should correspond to an
+ entry in `package-archives'.
+
+If the archive of name ID does not contain the package SYM, no
+other location will be considered, which will make the
+package unavailable."
+  :type '(alist :key-type (symbol :tag "Package")
+                :value-type (string :tag "Archive name"))
+  :risky t
+  :group 'package
+  :version "24.4")
+
 (defconst package-archive-version 1
   "Version number of the package archive understood by this file.
 Lower version numbers than this will probably be understood as well.")
 
-(defconst package-el-version "1.0"
+(defconst package-el-version "1.0.1"
   "Version of package.el.")
 
 ;; We don't prime the cache since it tends to get out of date.
@@ -571,7 +589,8 @@ EXTRA-PROPERTIES is currently unused."
      (concat ";;; " (file-name-nondirectory file)
 	     " --- automatically extracted autoloads\n"
 	     ";;\n"
-	     ";;; Code:\n\n"
+	     ";;; Code:\n"
+             "(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))\n"
 	     "\n;; Local Variables:\n"
 	     ";; version-control: never\n"
 	     ";; no-byte-compile: t\n"
@@ -588,16 +607,15 @@ EXTRA-PROPERTIES is currently unused."
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
 	 (version-control 'never))
-    (unless (fboundp 'autoload-ensure-default-file)
-      (package-autoload-ensure-default-file generated-autoload-file))
+    (package-autoload-ensure-default-file generated-autoload-file)
     (update-directory-autoloads pkg-dir)
     (let ((buf (find-buffer-visiting generated-autoload-file)))
       (when buf (kill-buffer buf)))))
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
-(declare-function tar-header-name "tar-mode" (tar-header))
-(declare-function tar-header-link-type "tar-mode" (tar-header))
+(declare-function tar-header-name "tar-mode" (tar-header) t)
+(declare-function tar-header-link-type "tar-mode" (tar-header) t)
 
 (defun package-untar-buffer (dir)
   "Untar the current buffer.
@@ -792,9 +810,8 @@ but version %s required"
 	     "Need package `%s-%s', but only %s is available"
 	     (symbol-name next-pkg) (package-version-join next-version)
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
-	  ;; Only add to the transaction if we don't already have it.
-	  (unless (memq next-pkg package-list)
-	    (push next-pkg package-list))
+          ;; Move to front, so it gets installed early enough (bug#14082).
+          (setq package-list (cons next-pkg (delq next-pkg package-list)))
 	  (setq package-list
 		(package-compute-transaction package-list
 					     (package-desc-reqs
@@ -857,8 +874,13 @@ Also, add the originating archive to the end of the package vector."
          (version (package-desc-vers (cdr package)))
          (entry   (cons name
 			(vconcat (cdr package) (vector archive))))
-         (existing-package (assq name package-archive-contents)))
-    (cond ((not existing-package)
+         (existing-package (assq name package-archive-contents))
+         (pinned-to-archive (assoc name package-pinned-packages)))
+    (cond ((and pinned-to-archive
+                ;; If pinned to another archive, skip entirely.
+                (not (equal (cdr pinned-to-archive) archive)))
+           nil)
+          ((not existing-package)
 	   (add-to-list 'package-archive-contents entry))
 	  ((version-list-< (package-desc-vers (cdr existing-package))
 			   version)

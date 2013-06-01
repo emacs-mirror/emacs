@@ -189,6 +189,13 @@ $(MISC_DIC):
 	    $(ARGQUOTE)$(buildlisppath)/international/quail$(ARGQUOTE) \
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
+# Rule to generate ja-dic/ja-dic.el from SKK-DIC/SKK-JISYO.L.
+$(srcdir)/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
+	- mkdir ja-dic
+	$(RUN_EMACS) -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/ja-dic-cnv$(ARGQUOTE) \
+	    -f batch-skkdic-convert -dir ja-dic $(srcdir)/SKK-DIC/SKK-JISYO.L
+
 #
 # WARNING: Do NOT split the parts inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.

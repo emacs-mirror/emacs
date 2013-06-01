@@ -72,7 +72,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Variables for blockinput.h: */
+/* Variables for blockinput.h:  */
 
 /* Positive if interrupt input is blocked right now.  */
 volatile int interrupt_input_blocked;
@@ -209,12 +209,6 @@ static EMACS_INT last_auto_save;
 
 /* The value of point when the last command was started.  */
 static ptrdiff_t last_point_position;
-
-/* The buffer that was current when the last command was started.  */
-static Lisp_Object last_point_position_buffer;
-
-/* The window that was selected when the last command was started.  */
-static Lisp_Object last_point_position_window;
 
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
@@ -833,7 +827,7 @@ This function is called by the editor initialization to begin editing.  */)
   update_mode_lines = 1;
 
   if (command_loop_level
-      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+      && current_buffer != XBUFFER (XWINDOW (selected_window)->contents))
     buffer = Fcurrent_buffer ();
   else
     buffer = Qnil;
@@ -1395,7 +1389,7 @@ command_loop_1 (void)
 	Fkill_emacs (Qnil);
 
       /* Make sure the current window's buffer is selected.  */
-      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
       /* Display any malloc warning that just came out.  Use while because
 	 displaying one warning can cause another.  */
@@ -1461,7 +1455,7 @@ command_loop_1 (void)
       /* A filter may have run while we were reading the input.  */
       if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
-      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
+      set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
       ++num_input_keys;
 
@@ -1492,7 +1486,7 @@ command_loop_1 (void)
 	{
 	  struct buffer *b;
 	  XWINDOW (selected_window)->force_start = 0;
-	  b = XBUFFER (XWINDOW (selected_window)->buffer);
+	  b = XBUFFER (XWINDOW (selected_window)->contents);
 	  BUF_BEG_UNCHANGED (b) = BUF_END_UNCHANGED (b) = 0;
 	}
 
@@ -1512,8 +1506,6 @@ command_loop_1 (void)
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
       last_point_position = PT;
-      last_point_position_window = selected_window;
-      XSETBUFFER (last_point_position_buffer, prev_buffer);
 
       /* By default, we adjust point to a boundary of a region that
          has such a property that should be treated intangible
@@ -2230,6 +2222,160 @@ do { if (! polling_stopped_here) stop_polling ();	\
 do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = 0; } while (0)
 
+static Lisp_Object
+read_event_from_main_queue (EMACS_TIME *end_time,
+                            sys_jmp_buf local_getcjmp,
+                            bool *used_mouse_menu)
+{
+  Lisp_Object c = Qnil;
+  sys_jmp_buf save_jump;
+  KBOARD *kb IF_LINT (= NULL);
+
+ start:
+
+  /* Read from the main queue, and if that gives us something we can't use yet,
+     we put it on the appropriate side queue and try again.  */
+
+  if (end_time && EMACS_TIME_LE (*end_time, current_emacs_time ()))
+    return c;
+
+  /* Actually read a character, waiting if necessary.  */
+  save_getcjmp (save_jump);
+  restore_getcjmp (local_getcjmp);
+  if (!end_time)
+	timer_start_idle ();
+  c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
+  restore_getcjmp (save_jump);
+
+  if (! NILP (c) && (kb != current_kboard))
+    {
+      Lisp_Object last = KVAR (kb, kbd_queue);
+      if (CONSP (last))
+        {
+          while (CONSP (XCDR (last)))
+      	last = XCDR (last);
+          if (!NILP (XCDR (last)))
+      	emacs_abort ();
+        }
+      if (!CONSP (last))
+        kset_kbd_queue (kb, Fcons (c, Qnil));
+      else
+        XSETCDR (last, Fcons (c, Qnil));
+      kb->kbd_queue_has_data = 1;
+      c = Qnil;
+      if (single_kboard)
+        goto start;
+      current_kboard = kb;
+      /* This is going to exit from read_char
+         so we had better get rid of this frame's stuff.  */
+      return make_number (-2);
+    }
+
+  /* Terminate Emacs in batch mode if at eof.  */
+  if (noninteractive && INTEGERP (c) && XINT (c) < 0)
+    Fkill_emacs (make_number (1));
+
+  if (INTEGERP (c))
+    {
+      /* Add in any extra modifiers, where appropriate.  */
+      if ((extra_keyboard_modifiers & CHAR_CTL)
+	  || ((extra_keyboard_modifiers & 0177) < ' '
+	      && (extra_keyboard_modifiers & 0177) != 0))
+	XSETINT (c, make_ctrl_char (XINT (c)));
+
+      /* Transfer any other modifier bits directly from
+	 extra_keyboard_modifiers to c.  Ignore the actual character code
+	 in the low 16 bits of extra_keyboard_modifiers.  */
+      XSETINT (c, XINT (c) | (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL));
+    }
+
+  /* FIXME: Decode tty keyboard input here.  */
+  return c;
+}
+
+
+
+/* Like `read_event_from_main_queue' but applies keyboard-coding-system
+   to tty input.  */
+static Lisp_Object
+read_decoded_event_from_main_queue (EMACS_TIME *end_time,
+                                    sys_jmp_buf local_getcjmp,
+                                    Lisp_Object prev_event,
+                                    bool *used_mouse_menu)
+{
+#define MAX_ENCODED_BYTES 16
+  Lisp_Object events[MAX_ENCODED_BYTES];
+  int n = 0;
+  while (true)
+    {
+      Lisp_Object nextevt
+        = read_event_from_main_queue (end_time, local_getcjmp,
+                                      used_mouse_menu);
+#ifdef WINDOWSNT
+      /* w32_console already returns decoded events.  It either reads
+	 Unicode characters from the Windows keyboard input, or
+	 converts characters encoded in the current codepage into
+	 Unicode.  See w32inevt.c:key_event, near its end.  */
+      return nextevt;
+#else
+      struct frame *frame = XFRAME (selected_frame);
+      struct terminal *terminal = frame->terminal;
+      if (!((FRAME_TERMCAP_P (frame) || FRAME_MSDOS_P (frame))
+            /* Don't apply decoding if we're just reading a raw event
+               (e.g. reading bytes sent by the xterm to specify the position
+               of a mouse click).  */
+            && (!EQ (prev_event, Qt))
+	    && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+		& CODING_REQUIRE_DECODING_MASK)))
+	return nextevt;		/* No decoding needed.  */
+      else
+	{
+	  int meta_key = terminal->display_info.tty->meta_key;
+	  eassert (n < MAX_ENCODED_BYTES);
+	  events[n++] = nextevt;
+	  if (NATNUMP (nextevt)
+	      && XINT (nextevt) < (meta_key == 1 ? 0x80 : 0x100))
+	    { /* An encoded byte sequence, let's try to decode it.  */
+	      struct coding_system *coding
+		= TERMINAL_KEYBOARD_CODING (terminal);
+	      unsigned char *src = alloca (n);
+	      int i;
+	      for (i = 0; i < n; i++)
+		src[i] = XINT (events[i]);
+	      if (meta_key != 2)
+		for (i = 0; i < n; i++)
+		  src[i] &= ~0x80;
+	      coding->destination = alloca (n * 4);
+	      coding->dst_bytes = n * 4;
+	      decode_coding_c_string (coding, src, n, Qnil);
+	      eassert (coding->produced_char <= n);
+	      if (coding->produced_char == 0)
+		{ /* The encoded sequence is incomplete.  */
+		  if (n < MAX_ENCODED_BYTES) /* Avoid buffer overflow.  */
+		    continue;		     /* Read on!  */
+		}
+	      else
+		{
+		  const unsigned char *p = coding->destination;
+		  eassert (coding->carryover_bytes == 0);
+		  n = 0;
+		  while (n < coding->produced_char)
+		    events[n++] = make_number (STRING_CHAR_ADVANCE (p));
+		}
+	    }
+	  /* Now `events' should hold decoded events.
+	     Normally, n should be equal to 1, but better not rely on it.
+	     We can only return one event here, so return the first we
+	     had and keep the others (if any) for later.  */
+	  while (n > 1)
+	    Vunread_command_events
+	      = Fcons (events[--n], Vunread_command_events);
+	  return events[0];
+	}
+#endif
+    }
+}
+
 /* Read a character from the keyboard; call the redisplay if needed.  */
 /* commandflag 0 means do not autosave, but do redisplay.
    -1 means do not redisplay, but do autosave.
@@ -2747,68 +2893,20 @@ read_char (int commandflag, Lisp_Object map,
 
   STOP_POLLING;
 
-  /* Finally, we read from the main queue,
-     and if that gives us something we can't use yet, we put it on the
-     appropriate side queue and try again.  */
-
   if (NILP (c))
     {
-      KBOARD *kb IF_LINT (= NULL);
-
+      c = read_decoded_event_from_main_queue (end_time, local_getcjmp,
+                                              prev_event, used_mouse_menu);
       if (end_time && EMACS_TIME_LE (*end_time, current_emacs_time ()))
-	goto exit;
-
-      /* Actually read a character, waiting if necessary.  */
-      save_getcjmp (save_jump);
-      restore_getcjmp (local_getcjmp);
-      if (!end_time)
-	timer_start_idle ();
-      c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
-      restore_getcjmp (save_jump);
-
-      if (! NILP (c) && (kb != current_kboard))
-	{
-	  Lisp_Object last = KVAR (kb, kbd_queue);
-	  if (CONSP (last))
-	    {
-	      while (CONSP (XCDR (last)))
-		last = XCDR (last);
-	      if (!NILP (XCDR (last)))
-		emacs_abort ();
-	    }
-	  if (!CONSP (last))
-	    kset_kbd_queue (kb, Fcons (c, Qnil));
-	  else
-	    XSETCDR (last, Fcons (c, Qnil));
-	  kb->kbd_queue_has_data = 1;
-	  c = Qnil;
-	  if (single_kboard)
-	    goto wrong_kboard;
-	  current_kboard = kb;
+        goto exit;
+      if (EQ (c, make_number (-2)))
+        {
 	  /* This is going to exit from read_char
 	     so we had better get rid of this frame's stuff.  */
 	  UNGCPRO;
-          return make_number (-2);
-	}
-    }
-
-  /* Terminate Emacs in batch mode if at eof.  */
-  if (noninteractive && INTEGERP (c) && XINT (c) < 0)
-    Fkill_emacs (make_number (1));
-
-  if (INTEGERP (c))
-    {
-      /* Add in any extra modifiers, where appropriate.  */
-      if ((extra_keyboard_modifiers & CHAR_CTL)
-	  || ((extra_keyboard_modifiers & 0177) < ' '
-	      && (extra_keyboard_modifiers & 0177) != 0))
-	XSETINT (c, make_ctrl_char (XINT (c)));
-
-      /* Transfer any other modifier bits directly from
-	 extra_keyboard_modifiers to c.  Ignore the actual character code
-	 in the low 16 bits of extra_keyboard_modifiers.  */
-      XSETINT (c, XINT (c) | (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL));
-    }
+          return c;
+        }
+  }
 
  non_reread:
 
@@ -4196,8 +4294,6 @@ swallow_events (bool do_display)
 static void
 timer_start_idle (void)
 {
-  Lisp_Object timers;
-
   /* If we are already in the idle state, do nothing.  */
   if (EMACS_TIME_VALID_P (timer_idleness_start_time))
     return;
@@ -4206,16 +4302,7 @@ timer_start_idle (void)
   timer_last_idleness_start_time = timer_idleness_start_time;
 
   /* Mark all idle-time timers as once again candidates for running.  */
-  for (timers = Vtimer_idle_list; CONSP (timers); timers = XCDR (timers))
-    {
-      Lisp_Object timer;
-
-      timer = XCAR (timers);
-
-      if (!VECTORP (timer) || ASIZE (timer) != 9)
-	continue;
-      ASET (timer, 0, Qnil);
-    }
+  call0 (intern ("internal-timer-start-idle"));
 }
 
 /* Record that Emacs is no longer idle, so stop running idle-time timers.  */
@@ -4345,10 +4432,10 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	    }
 
 	  idle_timer_ripe = EMACS_TIME_LE (idle_timer_time, idleness_now);
-	  idle_timer_difference =
-	    (idle_timer_ripe
-	     ? sub_emacs_time (idleness_now, idle_timer_time)
-	     : sub_emacs_time (idle_timer_time, idleness_now));
+	  idle_timer_difference
+	    = (idle_timer_ripe
+	       ? sub_emacs_time (idleness_now, idle_timer_time)
+	       : sub_emacs_time (idle_timer_time, idleness_now));
 	}
 
       /* Decide which timer is the next timer,
@@ -5142,7 +5229,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
 	  textpos = (w == XWINDOW (selected_window)
-		     && current_buffer == XBUFFER (w->buffer))
+		     && current_buffer == XBUFFER (w->contents))
 	    ? PT : marker_position (w->pointm);
 
 	  xret = wx;
@@ -6766,7 +6853,7 @@ gobble_input (void)
           hold_quit.kind = NO_EVENT;
 
           /* No need for FIONREAD or fcntl; just say don't wait.  */
-	  while (0 < (nr = (*t->read_socket_hook) (t, &hold_quit)))
+	  while ((nr = (*t->read_socket_hook) (t, &hold_quit)) > 0)
 	    nread += nr;
 
           if (nr == -1)          /* Not OK to read input now.  */
@@ -6846,6 +6933,8 @@ tty_read_avail_input (struct terminal *terminal,
   /* XXX I think the following code should be moved to separate hook
      functions in system-dependent files.  */
 #ifdef WINDOWSNT
+  /* FIXME: AFAIK, tty_read_avail_input is not used under w32 since the non-GUI
+     code sets read_socket_hook to w32_console_read_socket instead!  */
   return 0;
 #else /* not WINDOWSNT */
   if (! tty->term_initted)      /* In case we get called during bootstrap.  */
@@ -8240,9 +8329,8 @@ append_tool_bar_item (void)
        - (ASIZE (tool_bar_items_vector) - TOOL_BAR_ITEM_NSLOTS));
 
   /* Enlarge tool_bar_items_vector if necessary.  */
-  if (0 < incr)
-    tool_bar_items_vector
-      = larger_vector (tool_bar_items_vector, incr, -1);
+  if (incr > 0)
+    tool_bar_items_vector = larger_vector (tool_bar_items_vector, incr, -1);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
@@ -8708,71 +8796,6 @@ test_undefined (Lisp_Object binding)
 	      && EQ (Fcommand_remapping (binding, Qnil, Qnil), Qundefined)));
 }
 
-/* Like `read_char' but applies keyboard-coding-system to tty input.  */
-static Lisp_Object
-read_decoded_char (int commandflag, Lisp_Object map,
-		   Lisp_Object prev_event, bool *used_mouse_menu)
-{
-#define MAX_ENCODED_BYTES 16
-  Lisp_Object events[MAX_ENCODED_BYTES];
-  int n = 0;
-  while (true)
-    {
-      Lisp_Object nextevt
-	= read_char (commandflag, map, prev_event, used_mouse_menu, NULL);
-      struct frame *frame = XFRAME (selected_frame);
-      struct terminal *terminal = frame->terminal;
-      if (!((FRAME_TERMCAP_P (frame) || FRAME_MSDOS_P (frame))
-	    && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
-		& CODING_REQUIRE_DECODING_MASK)))
-	return nextevt;		/* No decoding needed.  */
-      else
-	{
-	  int meta_key = terminal->display_info.tty->meta_key;
-	  eassert (n < MAX_ENCODED_BYTES);
-	  events[n++] = nextevt;
-	  if (NATNUMP (nextevt)
-	      && XINT (nextevt) < (meta_key == 1 ? 0x80 : 0x100))
-	    { /* An encoded byte sequence, let's try to decode it.  */
-	      struct coding_system *coding
-		= TERMINAL_KEYBOARD_CODING (terminal);
-	      unsigned char *src = alloca (n);
-	      int i;
-	      for (i = 0; i < n; i++)
-		src[i] = XINT (events[i]);
-	      if (meta_key != 2)
-		for (i = 0; i < n; i++)
-		  src[i] &= ~0x80;
-	      coding->destination = alloca (n * 4);
-	      coding->dst_bytes = n * 4;
-	      decode_coding_c_string (coding, src, n, Qnil);
-	      eassert (coding->produced_char <= n);
-	      if (coding->produced_char == 0)
-		{ /* The encoded sequence is incomplete.  */
-		  if (n < MAX_ENCODED_BYTES) /* Avoid buffer overflow.  */
-		    continue;		     /* Read on!  */
-		}
-	      else
-		{
-		  const unsigned char *p = coding->destination;
-		  eassert (coding->carryover_bytes == 0);
-		  n = 0;
-		  while (n < coding->produced_char)
-		    events[n++] = make_number (STRING_CHAR_ADVANCE (p));
-		}
-	    }
-	  /* Now `events' should hold decoded events.
-	     Normally, n should be equal to 1, but better not rely on it.
-	     We can only return one event here, so return the first we
-	     had and keep the others (if any) for later.  */
-	  while (n > 1)
-	    Vunread_command_events
-	      = Fcons (events[--n], Vunread_command_events);
-	  return events[0];
-	}
-    }
-}
-
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
@@ -9050,9 +9073,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  {
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    key = read_decoded_char (NILP (prompt),
-				     current_binding, last_nonmenu_event,
-				     &used_mouse_menu);
+	    key = read_char (NILP (prompt),
+		             current_binding, last_nonmenu_event,
+                             &used_mouse_menu, NULL);
 	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 		/* When switching to a new tty (with a new keyboard),
 		   read_char returns the new buffer, rather than -2
@@ -9146,9 +9169,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		{
 		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
-		  if (XBUFFER (XWINDOW (selected_window)->buffer)
+		  if (XBUFFER (XWINDOW (selected_window)->contents)
 		      != current_buffer)
-		    Fset_buffer (XWINDOW (selected_window)->buffer);
+		    Fset_buffer (XWINDOW (selected_window)->contents);
 		}
 
 	      goto replay_sequence;
@@ -9196,9 +9219,9 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		 special-event-map, ...) might have switched the current buffer
 		 or the selected window from under us in the mean time.  */
 	      if (fix_current_buffer
-		  && (XBUFFER (XWINDOW (selected_window)->buffer)
+		  && (XBUFFER (XWINDOW (selected_window)->contents)
 		      != current_buffer))
-		Fset_buffer (XWINDOW (selected_window)->buffer);
+		Fset_buffer (XWINDOW (selected_window)->contents);
 	      current_binding = active_maps (first_event);
 	    }
 
@@ -9247,8 +9270,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		     not the current buffer.  If we're at the
 		     beginning of a key sequence, switch buffers.  */
 		  if (WINDOWP (window)
-		      && BUFFERP (XWINDOW (window)->buffer)
-		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+		      && BUFFERP (XWINDOW (window)->contents)
+		      && XBUFFER (XWINDOW (window)->contents) != current_buffer)
 		    {
 		      ASET (raw_keybuf, raw_keybuf_count, key);
 		      raw_keybuf_count++;
@@ -9269,7 +9292,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
 		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 			Fkill_emacs (Qnil);
-		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->contents));
 		      goto replay_sequence;
 		    }
 		}
@@ -11047,9 +11070,6 @@ syms_of_keyboard (void)
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
-
-  last_point_position_buffer = Qnil;
-  last_point_position_window = Qnil;
 
   {
     int i;

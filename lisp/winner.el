@@ -45,10 +45,8 @@
                         (if (featurep 'xemacs)
                             `(if ,store (zmacs-activate-region)
                                (zmacs-deactivate-region))
-                          `(setq mark-active ,store)))))
-  (if (boundp 'mark-active)
-      mark-active
-    (region-active-p)))
+                          `(if ,store (activate-mark) (deactivate-mark))))))
+  (region-active-p))
 
 (defalias 'winner-edges
   (if (featurep 'xemacs) 'window-pixel-edges 'window-edges))

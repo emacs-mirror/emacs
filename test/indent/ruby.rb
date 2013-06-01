@@ -10,7 +10,7 @@ d = %(hello (nested) world)
 
 # Or inside comments.
 x = # "tot %q/to"; =
-y = 2 / 3
+  y = 2 / 3
 
 # Regexp after whitelisted method.
 "abc".sub /b/, 'd'
@@ -20,6 +20,47 @@ a = asub / aslb + bsub / bslb;
 
 # Highlight the regexp after "if".
 x = toto / foo if /do bar/ =~ "dobar"
+
+# Multiline regexp.
+/bars
+ tees # toots
+ nfoos/
+
+def test1(arg)
+  puts "hello"
+end
+
+def test2 (arg)
+  a = "apple"
+
+  if a == 2
+    puts "hello"
+  else
+    puts "there"
+  end
+
+  if a == 2 then
+    puts "hello"
+  elsif a == 3
+    puts "hello3"
+  elsif a == 3 then
+    puts "hello3"
+  else
+    puts "there"
+  end
+
+  case a
+  when "a"
+    6
+  # Support for this syntax was removed in Ruby 1.9, so we
+  # probably don't need to handle it either.
+  # when "b" :
+  #   7
+  # when "c" : 2
+  when "d"  then 4
+  else 5
+  end
+end
 
 # Some Cucumber code:
 Given /toto/ do

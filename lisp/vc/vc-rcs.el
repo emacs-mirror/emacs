@@ -200,6 +200,8 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
+(autoload 'vc-expand-dirs "vc")
+
 (defun vc-rcs-dir-status (dir update-function)
   ;; FIXME: this function should be rewritten or `vc-expand-dirs'
   ;; should be changed to take a backend parameter.  Using
@@ -269,6 +271,8 @@ When VERSION is given, perform check for that version."
   "Create a new RCS repository."
   ;; RCS is totally file-oriented, so all we have to do is make the directory.
   (make-directory "RCS"))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-rcs-register (files &optional rev comment)
   "Register FILES into the RCS version-control system.
@@ -567,10 +571,14 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILE.  If FILE is a
-directory the operation is applied to all registered files beneath it."
-  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
+(defun vc-rcs-print-log (files buffer &optional shortlog
+                               start-revision-ignored limit)
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
+  (vc-do-command (or buffer "*vc*") 0 "rlog"
+                 (mapcar 'vc-name (vc-expand-dirs files)))
   (with-current-buffer (or buffer "*vc*")
     (vc-rcs-print-log-cleanup))
   (when limit 'limit-unsupported))
@@ -817,6 +825,9 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Tag system
 ;;;
 
+(autoload 'vc-tag-precondition "vc")
+(declare-function vc-file-tree-walk "vc" (dirname func &rest args))
+
 (defun vc-rcs-create-tag (dir name branchp)
   (when branchp
     (error "RCS backend does not support module branches"))
@@ -888,6 +899,8 @@ and CVS."
           (t "rcs2log")))
   "Path to the `rcs2log' program (normally in `exec-directory').")
 
+(autoload 'vc-buffer-sync "vc-dispatcher")
+
 (defun vc-rcs-update-changelog (files)
   "Default implementation of update-changelog.
 Uses `rcs2log' which only works for RCS and CVS."
@@ -953,6 +966,8 @@ Uses `rcs2log' which only works for RCS and CVS."
                     "RCSfile\\|Revision\\|Source\\|State\\): [^$\n]+\\$")
             nil t)
       (replace-match "$\\1$"))))
+
+(autoload 'vc-rename-master "vc")
 
 (defun vc-rcs-rename-file (old new)
   ;; Just move the master file (using vc-rcs-master-templates).

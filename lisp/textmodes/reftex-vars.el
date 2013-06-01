@@ -863,6 +863,48 @@ DOWNCASE    t:   Downcase words before using them."
                          (string :tag ""))
                 (option (boolean :tag "Downcase words          "))))
 
+(defcustom reftex-label-regexps
+  '(;; Normal \\label{foo} labels
+    "\\\\label{\\(?1:[^}]*\\)}"
+    ;; keyvals [..., label = {foo}, ...] forms used by ctable,
+    ;; listings, minted, ...
+    "\\[[^]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+  "List of regexps matching \\label definitions.
+The default value matches usual \\label{...} definitions and
+keyval style [..., label = {...}, ...] label definitions.  It is
+assumed that the regexp group 1 matches the label text, so you
+have to define it using \\(?1:...\\) when adding new regexps.
+
+When changed from Lisp, make sure to call
+`reftex-compile-variables' afterwards to make the change
+effective."
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (when (fboundp 'reftex-compile-variables)
+	   (reftex-compile-variables)))
+  :group 'reftex-defining-label-environments
+  :type '(repeat (regexp :tag "Regular Expression")))
+
+(defcustom reftex-label-ignored-macros-and-environments nil
+  "List of macros and environments to be ignored when searching for labels.
+The purpose is to ignore environments and macros that use keyval
+style label=foo arguments, but the label has a different meaning
+than a \\label{foo}.  Standard \\label{...} definitions are never
+ignored.
+
+E.g., TikZ defines several macros/environments where [label=foo]
+defines the label to be printed at some node or edge, but it's
+not a label used for referencing.
+
+Note that this feature is only supported if you are using AUCTeX
+and the functions `TeX-current-macro' and
+`LaTeX-current-environment' are bound.  Also note that this
+feature might slow down the reftex parsing process for large TeX
+files."
+  :version "24.4"
+  :group 'reftex-defining-label-environments
+  :type '(repeat string))
+
 (defcustom reftex-label-illegal-re "[^-a-zA-Z0-9_+=:;,.]"
   "Regexp matching characters not valid in labels."
   :group 'reftex-making-and-inserting-labels
@@ -890,7 +932,7 @@ The function will be called with two arguments, the LABEL and the DEFAULT
 FORMAT, which usually is `\\label{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-making-and-inserting-labels
-  :type 'function)
+  :type '(choice (const nil) function))
 
 ;; Label referencing
 
@@ -958,7 +1000,9 @@ This is used to string together whole reference sets, like
     ("Fancyref" "fancyref"
      (("\\fref" ?f) ("\\Fref" ?F)))
     ("Hyperref" "hyperref"
-     (("\\autoref" ?a) ("\\autopageref" ?u))))
+     (("\\autoref" ?a) ("\\autopageref" ?u)))
+    ("Cleveref" "cleveref"
+     (("\\cref" ?c) ("\\Cref" ?C) ("\\cpageref" ?d) ("\\Cpageref" ?D))))
   "Alist of reference styles.
 Each element is a list of the style name, the name of the LaTeX
 package associated with the style or t for any package, and an
@@ -1070,7 +1114,7 @@ buffer."
   :group 'reftex)
 
 (defcustom reftex-bibliography-commands
-  '("bibliography" "nobibliography" "setupbibtex\\[.*?database=")
+  '("bibliography" "nobibliography" "setupbibtex\\[.*?database=" "addbibresource")
   "LaTeX commands which specify the BibTeX databases to use with the document."
   :group 'reftex-citation-support
   :type '(repeat string))

@@ -539,8 +539,9 @@ deleted from the local value of a hook variable when changing major
 modes.  @xref{Setting Hooks}.
 
 @item pure
-This property is used internally to mark certain named functions for
-byte compiler optimization.  Do not set it.
+If the value is non-@code{nil}, the named function is considered to be
+side-effect free.  Calls with constant arguments can be evaluated at
+compile time.  This may shift run time errors to compile time.
 
 @item risky-local-variable
 If the value is non-@code{nil}, the named variable is considered risky

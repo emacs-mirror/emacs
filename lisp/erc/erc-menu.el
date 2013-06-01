@@ -30,6 +30,10 @@
 (require 'erc)
 (require 'easymenu)
 
+(defgroup erc-menu nil
+  "ERC menu support."
+  :group 'erc)
+
 (defvar erc-menu-definition
   (list "ERC"
 	["Connect to server..." erc t]

@@ -268,9 +268,12 @@ object is returned instead of a list containing this single Lisp object.
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
     ;; default 25".  Events which are not from D-Bus must be restored.
+    ;; `read-event' performs a redisplay.  This must be suppressed; it
+    ;; hurts when reading D-Bus events asynchronously.
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let (unread-command-events) (read-event nil nil 0.1))))
+	(let ((event (let ((inhibit-redisplay t) unread-command-events)
+		       (read-event nil nil 0.1))))
 	  (when (and event (not (ignore-errors (dbus-check-event event))))
 	    (setq unread-command-events
 		  (append unread-command-events (list event)))))))

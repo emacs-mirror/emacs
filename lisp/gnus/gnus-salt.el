@@ -385,7 +385,7 @@ lines."
 		 integer)
   :group 'gnus-summary-tree)
 
-(defcustom gnus-selected-tree-face 'modeline
+(defcustom gnus-selected-tree-face 'mode-line
   "*Face used for highlighting selected articles in the thread tree."
   :type 'face
   :group 'gnus-summary-tree)

@@ -1203,7 +1203,7 @@ their replacement."
 		  result (substring result 0 -1))
 	  (unless (y-or-n-p (format "Method %s is obsolete, use %s? "
 				    result (substring result 0 -1)))
-	    (error 'file-error "Method \"%s\" not supported" result)))
+	    (tramp-compat-user-error "Method \"%s\" not supported" result)))
 	(add-to-list 'tramp-warned-obsolete-methods result))
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
@@ -1249,7 +1249,7 @@ non-nil, the file name parts are not expanded to their default
 values."
   (save-match-data
     (let ((match (string-match (nth 0 tramp-file-name-structure) name)))
-      (unless match (error "Not a Tramp file name: %s" name))
+      (unless match (tramp-compat-user-error "Not a Tramp file name: %s" name))
       (let ((method    (match-string (nth 1 tramp-file-name-structure) name))
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
@@ -1259,7 +1259,12 @@ values."
 	  (when (string-match tramp-prefix-ipv6-regexp host)
 	    (setq host (replace-match "" nil t host)))
 	  (when (string-match tramp-postfix-ipv6-regexp host)
-	    (setq host (replace-match "" nil t host))))
+	    (setq host (replace-match "" nil t host)))
+	  (when (and (equal tramp-syntax 'ftp) (null method) (null user)
+		     (member host (mapcar 'car tramp-methods))
+		     (not (tramp-completion-mode-p)))
+	    (tramp-compat-user-error
+	     "Host name must not match method `%s'" host)))
 	(if nodefault
 	    (vector method user host localname hop)
 	  (vector
@@ -1655,23 +1660,16 @@ FILE must be a local file name on a connection identified via VEC."
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-connection-property\\>"))
 
-(defalias 'tramp-drop-volume-letter
-  (if (memq system-type '(cygwin windows-nt))
-      (lambda (name)
-	"Cut off unnecessary drive letter from file NAME.
+(defun tramp-drop-volume-letter (name)
+  "Cut off unnecessary drive letter from file NAME.
 The functions `tramp-*-handle-expand-file-name' call `expand-file-name'
 locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
-	(save-match-data
-	  (if (string-match "\\`[a-zA-Z]:/" name)
-	      (replace-match "/" nil t name)
-	    name)))
-
-    'identity))
-
-(if (featurep 'xemacs)
-    (defalias 'tramp-drop-volume-letter 'identity))
+  (save-match-data
+    (if (string-match "\\`[a-zA-Z]:/" name)
+	(replace-match "/" nil t name)
+      name)))
 
 (defun tramp-cleanup (vec)
   "Cleanup connection VEC, but keep the debug buffer."
@@ -1719,7 +1717,7 @@ Example:
 		       ;; Windows registry.
 		       (and (memq system-type '(cygwin windows-nt))
 			    (zerop
-			     (tramp-compat-call-process
+			     (tramp-call-process
 			      "reg" nil nil nil "query" (nth 1 (car v)))))
 		     ;; Configuration file.
 		     (file-exists-p (nth 1 (car v)))))
@@ -2771,7 +2769,7 @@ User may be nil."
 User is always nil."
   (if (memq system-type '(windows-nt))
       (with-temp-buffer
-	(when (zerop (tramp-compat-call-process
+	(when (zerop (tramp-call-process
 		      "reg" nil t nil "query" registry-or-dirname))
 	  (goto-char (point-min))
 	  (loop while (not (eobp)) collect
@@ -3179,7 +3177,7 @@ User is always nil."
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
 	  (ignore-errors (kill-process p))
-	(error "Shell command in progress")))
+	(tramp-compat-user-error "Shell command in progress")))
 
     (if current-buffer-p
 	(progn
@@ -3898,6 +3896,24 @@ ALIST is of the form ((FROM . TO) ...)."
     string))
 
 ;;; Compatibility functions section:
+
+(defun tramp-call-process
+  (program &optional infile destination display &rest args)
+  "Calls `call-process' on the local host.
+This is needed because for some Emacs flavors Tramp has
+defadvised `call-process' to behave like `process-file'.  The
+Lisp error raised when PROGRAM is nil is trapped also, returning 1.
+Furthermore, traces are written with verbosity of 6."
+  (let ((default-directory
+	  (if (file-remote-p default-directory)
+	      (tramp-compat-temporary-file-directory)
+	    default-directory)))
+    (tramp-message
+     (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
+     6 "%s %s %s" program infile args)
+    (if (executable-find program)
+	(apply 'call-process program infile destination display args)
+      1)))
 
 ;;;###tramp-autoload
 (defun tramp-read-passwd (proc &optional prompt)

@@ -30,6 +30,10 @@
 
 (require 'erc)
 
+(defgroup erc-list nil
+  "Support for the /list command."
+  :group 'erc)
+
 ;; This is implicitly the width of the channel name column.  Pick
 ;; something small enough that the topic has a chance of being
 ;; readable, but long enough that most channel names won't make for
@@ -213,6 +217,8 @@ to RFC and send the LIST header (#321) at start of list transmission."
   (erc-server-send (concat "LIST :" (or (and line (substring line 1))
 					""))))
 (put 'erc-cmd-LIST 'do-not-parse-args t)
+
+(provide 'erc-list)
 
 ;;; erc-list.el ends here
 ;;

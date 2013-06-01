@@ -983,7 +983,7 @@ and the total number of lines in the buffer."
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
-  :global t
+  :global t :group 'tpu
   (if tpu-edt-mode (tpu-edt-on) (tpu-edt-off)))
 
 (defalias 'TPU-EDT-MODE 'tpu-edt-mode)
@@ -2440,7 +2440,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "fcc961b0b1e88f7fc9018b02742c27a8")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "ae3bca6f21640b5713a7c58c40f30847")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\

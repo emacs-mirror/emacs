@@ -68,11 +68,14 @@
 ;; with sufficient pointers to locate the relevant help text.
 
 ;;; Code:
+(require 'pcomplete)
+
+(require 'esh-mode)
+(require 'esh-util)
 
 (eval-when-compile
   (require 'cl-lib)
   (require 'eshell))
-(require 'esh-util)
 
 ;;;###autoload
 (progn
@@ -242,8 +245,6 @@ to writing a completion function."
 
 (defun eshell-cmpl-initialize ()
   "Initialize the completions module."
-  (unless (fboundp 'pcomplete)
-    (load "pcmpl-auto" t t))
   (set (make-local-variable 'pcomplete-command-completion-function)
        eshell-command-completion-function)
   (set (make-local-variable 'pcomplete-command-name-function)

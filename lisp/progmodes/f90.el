@@ -247,14 +247,35 @@
 
 (defcustom f90-smart-end 'blink
   "Qualification of END statements according to the matching block start.
-For example, the END that closes an IF block is changed to END
-IF.  If the block has a label, this is added as well.  Allowed
-values are 'blink, 'no-blink, and nil.  If nil, nothing is done.
-The other two settings have the same effect, but 'blink
+For example, change the END that closes an IF block to END IF.
+If the block has a label, add it as well (unless `f90-smart-end-names'
+says not to).  Allowed values are `blink', `no-blink', and nil.  If nil,
+nothing is done.  The other two settings have the same effect, but `blink'
 additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
   :safe  (lambda (value) (memq value '(blink no-blink nil)))
   :group 'f90)
+
+;; Optional: program, module, type, function, subroutine
+;; Not optional: block data?, forall, if, select case/type, associate, do,
+;;   where, interface, critical
+;; No labels: enum
+(defcustom f90-smart-end-names t
+  "Whether completion of END statements should insert optional block names.
+For example, when closing a \"PROGRAM PROGNAME\" block, \"PROGNAME\" is
+optional in the \"END PROGRAM\" statement.  The same is true for modules,
+functions, subroutines, and types.  Some people prefer to omit the name
+from the END statement, since it makes it easier to change the name.
+
+This does not apply to named DO, IF, etc. blocks.  If such blocks
+start with a label, they must end with one.
+
+If an end statement has a name that does not match the start, it is always
+corrected, regardless of the value of this variable."
+  :type 'boolean
+  :safe 'booleanp
+  :group 'f90
+  :version "24.4")
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
   "Regexp matching delimiter characters at which lines may be broken.
@@ -298,55 +319,61 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 ;; User options end here.
 
 (defconst f90-keywords-re
-  (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
-                "block" "call" "case" "character" "close" "common" "complex"
-                "contains" "continue" "cycle" "data" "deallocate"
-                "dimension" "do" "double" "else" "elseif" "elsewhere" "end"
-                "enddo" "endfile" "endif" "entry" "equivalence" "exit"
-                "external" "forall" "format" "function" "goto" "if"
-                "implicit" "include" "inquire" "integer" "intent"
-                "interface" "intrinsic" "logical" "module" "namelist" "none"
-                "nullify" "only" "open" "operator" "optional" "parameter"
-                "pause" "pointer" "precision" "print" "private" "procedure"
-                "program" "public" "read" "real" "recursive" "result" "return"
-                "rewind" "save" "select" "sequence" "stop" "subroutine"
-                "target" "then" "type" "use" "where" "while" "write"
-                ;; F95 keywords.
-                "elemental" "pure"
-                ;; F2003
-                "abstract" "associate" "asynchronous" "bind" "class"
-                "deferred" "enum" "enumerator" "extends" "extends_type_of"
-                "final" "generic" "import" "non_intrinsic" "non_overridable"
-                "nopass" "pass" "protected" "same_type_as" "value" "volatile"
-                ;; F2008.
-                "contiguous" "submodule" "concurrent" "codimension"
-                "sync all" "sync memory" "critical" "image_index"
-                ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
+                 "block" "call" "case" "character" "close" "common" "complex"
+                 "contains" "continue" "cycle" "data" "deallocate"
+                 "dimension" "do" "double" "else" "elseif" "elsewhere" "end"
+                 "enddo" "endfile" "endif" "entry" "equivalence" "exit"
+                 "external" "forall" "format" "function" "goto" "if"
+                 "implicit" "include" "inquire" "integer" "intent"
+                 "interface" "intrinsic" "logical" "module" "namelist" "none"
+                 "nullify" "only" "open" "operator" "optional" "parameter"
+                 "pause" "pointer" "precision" "print" "private" "procedure"
+                 "program" "public" "read" "real" "recursive" "result" "return"
+                 "rewind" "save" "select" "sequence" "stop" "subroutine"
+                 "target" "then" "type" "use" "where" "while" "write"
+                 ;; F95 keywords.
+                 "elemental" "pure"
+                 ;; F2003
+                 "abstract" "associate" "asynchronous" "bind" "class"
+                 "deferred" "enum" "enumerator" "extends" "extends_type_of"
+                 "final" "generic" "import" "non_intrinsic" "non_overridable"
+                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
+                 ;; F2008.
+                 "contiguous" "submodule" "concurrent" "codimension"
+                 "sync all" "sync memory" "critical" "image_index"
+                 ))
+   "\\_>")
   "Regexp used by the function `f90-change-keywords'.")
 
 (defconst f90-keywords-level-3-re
-  (regexp-opt
-   '("allocatable" "allocate" "assign" "assignment" "backspace"
-     "close" "deallocate" "dimension" "endfile" "entry" "equivalence"
-     "external" "inquire" "intent" "intrinsic" "nullify" "only" "open"
-     ;; FIXME operator and assignment should be F2003 procedures?
-     "operator" "optional" "parameter" "pause" "pointer" "print" "private"
-     "public" "read" "recursive" "result" "rewind" "save" "select"
-     "sequence" "target" "write"
-     ;; F95 keywords.
-     "elemental" "pure"
-     ;; F2003. asynchronous separate.
-     "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
-     "nopass" "pass" "protected" "value" "volatile"
-     ;; F2008.
-     ;; "concurrent" is only in the sense of "do [,] concurrent", but given
-     ;; the [,] it's simpler to just do every instance (cf "do while").
-     "contiguous" "concurrent" "codimension" "sync all" "sync memory"
-     ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt
+    '("allocatable" "allocate" "assign" "assignment" "backspace"
+      "close" "deallocate" "dimension" "endfile" "entry" "equivalence"
+      "external" "inquire" "intent" "intrinsic" "nullify" "only" "open"
+      ;; FIXME operator and assignment should be F2003 procedures?
+      "operator" "optional" "parameter" "pause" "pointer" "print" "private"
+      "public" "read" "recursive" "result" "rewind" "save" "select"
+      "sequence" "target" "write"
+      ;; F95 keywords.
+      "elemental" "pure"
+      ;; F2003. asynchronous separate.
+      "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
+      "nopass" "pass" "protected" "value" "volatile"
+      ;; F2008.
+      ;; "concurrent" is only in the sense of "do [,] concurrent", but given
+      ;; the [,] it's simpler to just do every instance (cf "do while").
+      "contiguous" "concurrent" "codimension" "sync all" "sync memory"
+      ))
+   "\\_>")
   "Keyword-regexp for font-lock level >= 3.")
 
 (defconst f90-procedures-re
-  (concat "\\<"
+  (concat "\\_<"
           (regexp-opt
            '("abs" "achar" "acos" "adjustl" "adjustr" "aimag" "aint"
              "all" "allocated" "anint" "any" "asin" "associated"
@@ -407,61 +434,67 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   "Regexp matching intrinsic operators.")
 
 (defconst f90-hpf-keywords-re
-  (regexp-opt
-   ;; Intrinsic procedures.
-   '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
-     "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
-     "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
-     "grade_down" "grade_up"
-     "hpf_alignment" "hpf_distribution" "hpf_template" "iall" "iall_prefix"
-     "iall_scatter" "iall_suffix" "iany" "iany_prefix" "iany_scatter"
-     "iany_suffix" "ilen" "iparity" "iparity_prefix"
-     "iparity_scatter" "iparity_suffix" "leadz" "maxval_prefix"
-     "maxval_scatter" "maxval_suffix" "minval_prefix" "minval_scatter"
-     "minval_suffix" "number_of_processors" "parity"
-     "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
-     "processors_shape" "product_prefix" "product_scatter"
-     "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
-     ;; Directives.
-     "align" "distribute" "dynamic" "independent" "inherit" "processors"
-     "realign" "redistribute" "template"
-     ;; Keywords.
-     "block" "cyclic" "extrinsic" "new" "onto" "pure" "with") 'words)
+  (concat
+   "\\_<"
+   (regexp-opt
+    ;; Intrinsic procedures.
+    '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
+      "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
+      "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
+      "grade_down" "grade_up"
+      "hpf_alignment" "hpf_distribution" "hpf_template" "iall" "iall_prefix"
+      "iall_scatter" "iall_suffix" "iany" "iany_prefix" "iany_scatter"
+      "iany_suffix" "ilen" "iparity" "iparity_prefix"
+      "iparity_scatter" "iparity_suffix" "leadz" "maxval_prefix"
+      "maxval_scatter" "maxval_suffix" "minval_prefix" "minval_scatter"
+      "minval_suffix" "number_of_processors" "parity"
+      "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
+      "processors_shape" "product_prefix" "product_scatter"
+      "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
+      ;; Directives.
+      "align" "distribute" "dynamic" "independent" "inherit" "processors"
+      "realign" "redistribute" "template"
+      ;; Keywords.
+      "block" "cyclic" "extrinsic" "new" "onto" "pure" "with"))
+   "\\_>")
   "Regexp for all HPF keywords, procedures and directives.")
 
 (defconst f90-constants-re
-  (regexp-opt '( ;; F2003 iso_fortran_env constants.
-                "iso_fortran_env"
-                "input_unit" "output_unit" "error_unit"
-                "iostat_end" "iostat_eor"
-                "numeric_storage_size" "character_storage_size"
-                "file_storage_size"
-                ;; F2003 iso_c_binding constants.
-                "iso_c_binding"
-                "c_int" "c_short" "c_long" "c_long_long" "c_signed_char"
-                "c_size_t"
-                "c_int8_t" "c_int16_t" "c_int32_t" "c_int64_t"
-                "c_int_least8_t" "c_int_least16_t" "c_int_least32_t"
-                "c_int_least64_t"
-                "c_int_fast8_t" "c_int_fast16_t" "c_int_fast32_t"
-                "c_int_fast64_t"
-                "c_intmax_t" "c_intptr_t"
-                "c_float" "c_double" "c_long_double"
-                "c_float_complex" "c_double_complex" "c_long_double_complex"
-                "c_bool" "c_char"
-                "c_null_char" "c_alert" "c_backspace" "c_form_feed"
-                "c_new_line" "c_carriage_return" "c_horizontal_tab"
-                "c_vertical_tab"
-                "c_ptr" "c_funptr" "c_null_ptr" "c_null_funptr"
-                "ieee_exceptions"
-                "ieee_arithmetic"
-                "ieee_features"
-                ;; F2008 iso_fortran_env constants.
-                "character_kinds" "int8" "int16" "int32" "int64"
-                "integer_kinds" "iostat_inquire_internal_unit"
-                "logical_kinds" "real_kinds" "real32" "real64" "real128"
-                "lock_type" "atomic_int_kind" "atomic_logical_kind"
-                ) 'words)
+  (concat
+   "\\_<"
+   (regexp-opt '( ;; F2003 iso_fortran_env constants.
+                 "iso_fortran_env"
+                 "input_unit" "output_unit" "error_unit"
+                 "iostat_end" "iostat_eor"
+                 "numeric_storage_size" "character_storage_size"
+                 "file_storage_size"
+                 ;; F2003 iso_c_binding constants.
+                 "iso_c_binding"
+                 "c_int" "c_short" "c_long" "c_long_long" "c_signed_char"
+                 "c_size_t"
+                 "c_int8_t" "c_int16_t" "c_int32_t" "c_int64_t"
+                 "c_int_least8_t" "c_int_least16_t" "c_int_least32_t"
+                 "c_int_least64_t"
+                 "c_int_fast8_t" "c_int_fast16_t" "c_int_fast32_t"
+                 "c_int_fast64_t"
+                 "c_intmax_t" "c_intptr_t"
+                 "c_float" "c_double" "c_long_double"
+                 "c_float_complex" "c_double_complex" "c_long_double_complex"
+                 "c_bool" "c_char"
+                 "c_null_char" "c_alert" "c_backspace" "c_form_feed"
+                 "c_new_line" "c_carriage_return" "c_horizontal_tab"
+                 "c_vertical_tab"
+                 "c_ptr" "c_funptr" "c_null_ptr" "c_null_funptr"
+                 "ieee_exceptions"
+                 "ieee_arithmetic"
+                 "ieee_features"
+                 ;; F2008 iso_fortran_env constants.
+                 "character_kinds" "int8" "int16" "int32" "int64"
+                 "integer_kinds" "iostat_inquire_internal_unit"
+                 "logical_kinds" "real_kinds" "real32" "real64" "real128"
+                 "lock_type" "atomic_int_kind" "atomic_logical_kind"
+                 ))
+   "\\_>")
   "Regexp for Fortran intrinsic constants.")
 
 ;; cf f90-looking-at-type-like.
@@ -470,16 +503,16 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 Set the match data so that subexpression 1,2 are the TYPE, and
 type-name parts, respectively."
   (let (found l)
-    (while (and (re-search-forward "\\<\\(\\(?:end[ \t]*\\)?type\\)\\>[ \t]*"
+    (while (and (re-search-forward "\\_<\\(\\(?:end[ \t]*\\)?type\\)\\_>[ \t]*"
                                    limit t)
                 (not (setq found
                            (progn
                              (setq l (match-data))
-                             (unless (looking-at "\\(is\\>\\|(\\)")
-                               (when (if (looking-at "\\(\\sw+\\)")
+                             (unless (looking-at "\\(is\\_>\\|(\\)")
+                               (when (if (looking-at "\\(\\(?:\\sw\\|\\s_\\)+\\)")
                                          (goto-char (match-end 0))
                                        (re-search-forward
-                                        "[ \t]*::[ \t]*\\(\\sw+\\)"
+                                        "[ \t]*::[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
                                         (line-end-position) t))
                                  ;; 0 is wrong, but we don't use it.
                                  (set-match-data
@@ -491,33 +524,33 @@ type-name parts, respectively."
 (defvar f90-font-lock-keywords-1
   (list
    ;; Special highlighting of "module procedure".
-   '("\\<\\(module[ \t]*procedure\\)\\>\\([^()\n]*::\\)?[ \t]*\\([^&!\n]*\\)"
+   '("\\_<\\(module[ \t]*procedure\\)\\_>\\([^()\n]*::\\)?[ \t]*\\([^&!\n]*\\)"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; Highlight definition of derived type.
-;;;    '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
+;;;    '("\\_<\\(\\(?:end[ \t]*\\)?type\\)\\_>\\([^()\n]*::\\)?[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
 ;;;      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    '(f90-typedef-matcher
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
    ;; F2003.  Prevent operators being highlighted as functions.
-   '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
+   '("\\_<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
 read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
    ;; Other functions and declarations.  Named interfaces = F2003.
    ;; F2008: end submodule submodule_name.
-   '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|\\(?:sub\\)?module\\|\
+   '("\\_<\\(\\(?:end[ \t]*\\)?\\(program\\|\\(?:sub\\)?module\\|\
 function\\|associate\\|subroutine\\|interface\\)\\|use\\|call\\)\
-\\>[ \t]*\\(\\sw+\\)?"
+\\_>[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; F2008: submodule (parent_name) submodule_name.
-   '("\\<\\(submodule\\)\\>[ \t]*([^)\n]+)[ \t]*\\(\\sw+\\)?"
+   '("\\_<\\(submodule\\)\\_>[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
    ;; F2003.
-   '("\\<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
-\\(\\sw+\\)"
+   '("\\_<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
+\\(\\(?:\\sw\\|\\s_\\)+\\)"
      (1 font-lock-keyword-face) (2 font-lock-keyword-face)
      (3 font-lock-function-name-face))
-   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\)\\>"
+   "\\_<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\)\\_>"
    ;; "abstract interface" is F2003.
-   '("\\<abstract[ \t]*interface\\>" (0 font-lock-keyword-face t)))
+   '("\\_<abstract[ \t]*interface\\_>" (0 font-lock-keyword-face t)))
   "This does fairly subdued highlighting of comments and function calls.")
 
 ;; NB not explicitly handling this, yet it seems to work.
@@ -529,7 +562,7 @@ and variable-name parts, respectively."
   ;; Matcher functions must return nil only when there are no more
   ;; matches within the search range.
   (let (found l)
-    (while (and (re-search-forward "\\<\\(type\\|class\\)[ \t]*(" limit t)
+    (while (and (re-search-forward "\\_<\\(type\\|class\\)[ \t]*(" limit t)
                 (not
                  (setq found
                        (condition-case nil
@@ -544,7 +577,7 @@ and variable-name parts, respectively."
                              (when
                                  (re-search-forward
                                   ;; type (foo) bar, qux
-                                  (if (looking-at "\\sw+")
+                                  (if (looking-at "\\(?:\\sw\\|\\s_\\)+")
                                       "\\([^&!\n]+\\)"
                                     ;; type (foo), stuff :: bar, qux
                                     "::[ \t]*\\([^&!\n]+\\)")
@@ -587,53 +620,53 @@ enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\)\
     ;; integer( kind=1 ) function foo()
     ;; thanks to the happy accident described above.
     ;; Not anchored, so don't need to worry about "pure" etc.
-    '("\\<\\(\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
+    '("\\_<\\(\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
 logical\\|double[ \t]*precision\\|\
-\\(?:type\\|class\\)[ \t]*([ \t]*\\sw+[ \t]*)\\)[ \t]*\\)\
-\\(function\\)\\>[ \t]*\\(\\sw+\\)[ \t]*\\(([^&!\n]*)\\)"
+\\(?:type\\|class\\)[ \t]*([ \t]*\\(?:\\sw\\|\\s_\\)+[ \t]*)\\)[ \t]*\\)\
+\\(function\\)\\_>[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(([^&!\n]*)\\)"
       (1 font-lock-type-face t) (4 font-lock-keyword-face t)
       (5 font-lock-function-name-face t) (6 'default t))
     ;; enum (F2003; must be followed by ", bind(C)").
-    '("\\<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
+    '("\\_<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
     ;; end do, enum (F2003), if, select, where, and forall constructs.
     ;; block, critical (F2008).
     ;; Note that "block data" may get somewhat mixed up with F2008 blocks,
     ;; but since the former is obsolete I'm not going to worry about it.
-    '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\|\
-block\\|critical\\)\\)\\>\
-\\([ \t]+\\(\\sw+\\)\\)?"
+    '("\\_<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\|\
+block\\|critical\\)\\)\\_>\
+\\([ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\)?"
       (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
-    '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|\
+    '("^[ \t0-9]*\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|\
 do\\([ \t]*while\\)?\\|select[ \t]*\\(?:case\\|type\\)\\|where\\|\
-forall\\|block\\|critical\\)\\)\\>"
+forall\\|block\\|critical\\)\\)\\_>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
     ;; Implicit declaration.
-    '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
+    '("\\_<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
 \\|enumerator\\|procedure\\|\
-logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
+logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
-    '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/"
+    '("\\_<\\(namelist\\|common\\)[ \t]*\/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-    "\\<else\\([ \t]*if\\|where\\)?\\>"
+    "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
-    "\\<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\>"
-    '("\\<\\(exit\\|cycle\\)[ \t]*\\(\\sw+\\)?\\>"
+    "\\_<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\_>"
+    '("\\_<\\(exit\\|cycle\\)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?\\_>"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-    '("\\<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
+    '("\\_<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
     ;; F2003 "class default".
-    '("\\<\\(class\\)[ \t]*default" . 1)
+    '("\\_<\\(class\\)[ \t]*default" . 1)
     ;; F2003 "type is" in a "select type" block.
-    '("\\<\\(\\(type\\|class\\)[ \t]*is\\)[ \t]*(" (1 font-lock-keyword-face t))
-    '("\\<\\(do\\|go[ \t]*to\\)\\>[ \t]*\\([0-9]+\\)"
+    '("\\_<\\(\\(type\\|class\\)[ \t]*is\\)[ \t]*(" (1 font-lock-keyword-face t))
+    '("\\_<\\(do\\|go[ \t]*to\\)\\_>[ \t]*\\([0-9]+\\)"
       (1 font-lock-keyword-face) (2 font-lock-constant-face))
     ;; Line numbers (lines whose first character after number is letter).
     '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))
     ;; Override eg for "#include".
-    '("^#[ \t]*\\w+" (0 font-lock-preprocessor-face t)
-      ("\\<defined\\>" nil nil (0 font-lock-preprocessor-face)))
+    '("^#[ \t]*\\(?:\\sw\\|\\s_\\)+" (0 font-lock-preprocessor-face t)
+      ("\\_<defined\\_>" nil nil (0 font-lock-preprocessor-face)))
     '("^#" ("\\(&&\\|||\\)" nil nil (0 font-lock-constant-face t)))
-    '("^#[ \t]*define[ \t]+\\(\\w+\\)(" (1 font-lock-function-name-face))
-    '("^#[ \t]*define[ \t]+\\(\\w+\\)" (1 font-lock-variable-name-face))
+    '("^#[ \t]*define[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)(" (1 font-lock-function-name-face))
+    '("^#[ \t]*define[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)" (1 font-lock-variable-name-face))
     '("^#[ \t]*include[ \t]+\\(<.+>\\)" (1 font-lock-string-face))))
   "Highlights declarations, do-loops and other constructs.")
 
@@ -645,9 +678,9 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
            ;; FIXME why isn't this font-lock-builtin-face, which
            ;; otherwise we hardly use, as in fortran.el?
            (list f90-procedures-re '(1 font-lock-keyword-face keep))
-           "\\<real\\>"                 ; avoid overwriting real defs
+           "\\_<real\\_>"                 ; avoid overwriting real defs
            ;; As an attribute, but not as an optional argument.
-           '("\\<\\(asynchronous\\)[ \t]*[^=]" . 1)))
+           '("\\_<\\(asynchronous\\)[ \t]*[^=]" . 1)))
   "Highlights all F90 keywords and intrinsic procedures.")
 
 (defvar f90-font-lock-keywords-4
@@ -666,8 +699,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\! "<"  table) ; begin comment
     (modify-syntax-entry ?\n ">"  table) ; end comment
-    ;; FIXME: This goes against the convention: it should be "_".
-    (modify-syntax-entry ?_  "w"  table) ; underscore in names
+    (modify-syntax-entry ?_  "_"  table) ; underscore in names
     (modify-syntax-entry ?\' "\"" table) ; string quote
     (modify-syntax-entry ?\" "\"" table) ; string quote
     ;; FIXME: We used to set ` to word syntax for the benefit of abbrevs, but
@@ -822,14 +854,14 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
-  (concat "\\(block[ \t]*data\\|"
+  (concat "\\(\\(?:block[ \t]*data\\|"
           (regexp-opt '("do" "if" "interface" "function" "module" "program"
                         "select" "subroutine" "type" "where" "forall"
                         ;; F2003.
                         "enum" "associate"
                         ;; F2008.
                         "submodule" "block" "critical"))
-          "\\)\\>")
+          "\\)\\_>\\)")
   "Regexp potentially indicating a \"block\" of F90 code.")
 
 (defconst f90-program-block-re
@@ -845,15 +877,15 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 (defconst f90-end-if-re
   (concat "end[ \t]*"
           (regexp-opt '("if" "select" "where" "forall") 'paren)
-          "\\>")
+          "\\_>")
   "Regexp matching the end of an IF, SELECT, WHERE, FORALL block.")
 
 (defconst f90-end-type-re
-  "end[ \t]*\\(type\\|enum\\|interface\\|block[ \t]*data\\)\\>"
+  "end[ \t]*\\(type\\|enum\\|interface\\|block[ \t]*data\\)\\_>"
   "Regexp matching the end of a TYPE, ENUM, INTERFACE, BLOCK DATA section.")
 
 (defconst f90-end-associate-re
-  "end[ \t]*associate\\>"
+  "end[ \t]*associate\\_>"
   "Regexp matching the end of an ASSOCIATE block.")
 
 ;; This is for a TYPE block, not a variable of derived TYPE.
@@ -864,12 +896,12 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   ;; type, stuff :: word
   ;; type, bind(c) :: word
   ;; NOT "type ("
-  "\\<\\(type\\)\\>\\(?:\\(?:[^()\n]*\\|\
-.*,[ \t]*bind[ \t]*([ \t]*c[ \t]*)[ \t]*\\)::\\)?[ \t]*\\(\\sw+\\)"
+  "\\_<\\(type\\)\\_>\\(?:\\(?:[^()\n]*\\|\
+.*,[ \t]*bind[ \t]*([ \t]*c[ \t]*)[ \t]*\\)::\\)?[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-typeis-re
-  "\\<\\(class\\|type\\)[ \t]*is[ \t]*("
+  "\\_<\\(class\\|type\\)[ \t]*is[ \t]*("
   "Regexp matching a CLASS/TYPE IS statement.")
 
 (defconst f90-no-break-re
@@ -888,12 +920,12 @@ allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
 
 ;; Hideshow support.
 (defconst f90-end-block-re
-  (concat "^[ \t0-9]*\\<end[ \t]*"
+  (concat "^[ \t0-9]*\\_<end[ \t]*"
           (regexp-opt '("do" "if" "forall" "function" "interface"
                         "module" "program" "select" "subroutine"
                         "type" "where" "enum" "associate" "submodule"
                         "block" "critical") t)
-          "\\>")
+          "\\_>")
   "Regexp matching the end of an F90 \"block\", from the line start.
 Used in the F90 entry in `hs-special-modes-alist'.")
 
@@ -903,11 +935,11 @@ Used in the F90 entry in `hs-special-modes-alist'.")
   (concat
    "^[ \t0-9]*"                         ; statement number
    "\\(\\("
-   "\\(\\sw+[ \t]*:[ \t]*\\)?"          ; structure label
+   "\\(\\(?:\\sw\\|\\s_\\)+[ \t]*:[ \t]*\\)?"          ; structure label
    "\\(do\\|select[ \t]*\\(case\\|type\\)\\|"
    ;; See comments in fortran-start-block-re for the problems of IF.
    "if[ \t]*(\\(.*\\|"
-   ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\>\\)\\)\\)\\<then\\|"
+   ".*\n\\([^if]*\\([^i].\\|.[^f]\\|.\\_>\\)\\)\\)\\_<then\\|"
    ;; Distinguish WHERE block from isolated WHERE.
    "\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)\\)\\)"
    "\\|"
@@ -917,7 +949,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    "type[ \t,]\\("
    "[^i(!\n\"\& \t]\\|"                 ; not-i(
    "i[^s!\n\"\& \t]\\|"                 ; i not-s
-   "is\\sw\\)\\|"
+   "is\\(?:\\sw\\|\\s_\\)\\)\\|"
    ;; "abstract interface" is F2003; "submodule" is F2008.
    "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
    ;; "enum", but not "enumerator".
@@ -945,10 +977,10 @@ Set subexpression 1 in the match-data to the name of the type."
                 (not (setq found
                            (save-excursion
                              (goto-char (match-end 0))
-                             (unless (looking-at "\\(is\\>\\|(\\)")
-                               (or (looking-at "\\(\\sw+\\)")
+                             (unless (looking-at "\\(is\\_>\\|(\\)")
+                               (or (looking-at "\\(\\(?:\\sw\\|\\s_\\)+\\)")
                                    (re-search-forward
-                                    "[ \t]*::[ \t]*\\(\\sw+\\)"
+                                    "[ \t]*::[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
                                     (line-end-position) t))))))))
     found))
 
@@ -957,36 +989,35 @@ Set subexpression 1 in the match-data to the name of the type."
         (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]")
         ;; (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]")
         )
-    (list
-     '(nil "^[ \t0-9]*program[ \t]+\\(\\sw+\\)" 1)
-     '("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
-\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
-     '("Modules" "^[ \t0-9]*module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
-     (list "Types" 'f90-imenu-type-matcher 1)
-     ;; Does not handle: "type[, stuff] :: foo".
-;;;      (format "^[ \t0-9]*type[ \t]+\\(\\(%s\\|i%s\\|is\\sw\\)\\sw*\\)"
-;;;              not-ib not-s)
-;;;      1)
-     ;; Can't get the subexpression numbers to match in the two branches.
-;;;      (format "^[ \t0-9]*type\\([ \t]*,.*\\(::\\)[ \t]*\\(\\sw+\\)\\|[ \t]+\\(\\(%s\\|i%s\\|is\\sw\\)\\sw*\\)\\)" not-ib not-s)
-;;;      3)
-     (list
-      "Procedures"
-      (concat
-       "^[ \t0-9]*"
-       "\\("
-       ;; At least three non-space characters before function/subroutine.
-       ;; Check that the last three non-space characters do not spell E N D.
-       "[^!\"\&\n]*\\("
-       not-e good-char good-char "\\|"
-       good-char not-n good-char "\\|"
-       good-char good-char not-d "\\)"
-       "\\|"
-       ;; Less than three non-space characters before function/subroutine.
-       good-char "?" good-char "?"
-       "\\)"
-       "[ \t]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)")
-      4)))
+    `((nil "^[ \t0-9]*program[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)" 1)
+      ("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
+\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
+      ("Modules" "^[ \t0-9]*module[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*\\(!\\|$\\)" 1)
+      ("Types" f90-imenu-type-matcher 1)
+      ;; Does not handle: "type[, stuff] :: foo".
+      ;;(format "^[ \t0-9]*type[ \t]+\\(\\(%s\\|i%s\\|is\\(?:\\sw\\|\\s_\\)\\)\\(?:\\sw\\|\\s_\\)*\\)"
+      ;;        not-ib not-s)
+      ;;1)
+      ;; Can't get the subexpression numbers to match in the two branches.
+      ;; FIXME: Now with \(?N:..\) we can get the numbers to match!
+      ;;(format "^[ \t0-9]*type\\([ \t]*,.*\\(::\\)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\|[ \t]+\\(\\(%s\\|i%s\\|is\\(?:\\sw\\|\\s_\\)\\)\\(?:\\sw\\|\\s_\\)*\\)\\)" not-ib not-s)
+      ;;3)
+      ("Procedures"
+       ,(concat
+         "^[ \t0-9]*"
+         "\\("
+         ;; At least three non-space characters before function/subroutine.
+         ;; Check that the last three non-space characters do not spell E N D.
+         "[^!\"\&\n]*\\("
+         not-e good-char good-char "\\|"
+         good-char not-n good-char "\\|"
+         good-char good-char not-d "\\)"
+         "\\|"
+         ;; Less than three non-space characters before function/subroutine.
+         good-char "?" good-char "?"
+         "\\)"
+         "[ \t]*\\(function\\|subroutine\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)")
+       4)))
   "Value for `imenu-generic-expression' in F90 mode.")
 
 (defun f90-add-imenu-menu ()
@@ -1119,11 +1150,11 @@ Variables controlling indentation style and extra features:
   Automatic insertion of \& at beginning of continuation lines (default t).
 `f90-smart-end'
   From an END statement, check and fill the end using matching block start.
-  Allowed values are 'blink, 'no-blink, and nil, which determine
-  whether to blink the matching beginning (default 'blink).
+  Allowed values are `blink', `no-blink', and nil, which determine
+  whether to blink the matching beginning (default `blink').
 `f90-auto-keyword-case'
   Automatic change of case of keywords (default nil).
-  The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
+  The possibilities are `downcase-word', `upcase-word', `capitalize-word'.
 `f90-leave-line-no'
   Do not left-justify line numbers (default nil).
 
@@ -1235,13 +1266,13 @@ whitespace, if any."
 (defsubst f90-looking-at-do ()
   "Return (\"do\" NAME) if a do statement starts after point.
 NAME is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(do\\)\\>")
+  (if (looking-at "\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:\\)?[ \t]*\\(do\\)\\_>")
       (list (match-string 3) (match-string 2))))
 
 (defsubst f90-looking-at-select-case ()
   "Return (\"select\" NAME) if a select statement starts after point.
 NAME is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
+  (if (looking-at "\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:\\)?[ \t]*\
 \\(select\\)[ \t]*\\(case\\|type\\)[ \t]*(")
       (list (match-string 3) (match-string 2))))
 
@@ -1249,50 +1280,50 @@ NAME is nil if the statement has no label."
   "Return (\"if\" NAME) if an if () then statement starts after point.
 NAME is nil if the statement has no label."
   (save-excursion
-    (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(if\\)\\>")
+    (when (looking-at "\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:\\)?[ \t]*\\(if\\)\\_>")
       (let ((struct (match-string 3))
             (label (match-string 2))
             (pos (scan-lists (point) 1 0)))
         (and pos (goto-char pos))
         (skip-chars-forward " \t")
-        (if (or (looking-at "then\\>")
+        (if (or (looking-at "then\\_>")
                 (when (f90-line-continued)
                   (f90-next-statement)
                   (skip-chars-forward " \t0-9&")
-                  (looking-at "then\\>")))
+                  (looking-at "then\\_>")))
             (list struct label))))))
 
 ;; FIXME label?
 (defsubst f90-looking-at-associate ()
   "Return (\"associate\") if an associate block starts after point."
-  (if (looking-at "\\<\\(associate\\)[ \t]*(")
+  (if (looking-at "\\_<\\(associate\\)[ \t]*(")
       (list (match-string 1))))
 
 (defsubst f90-looking-at-critical ()
   "Return (KIND NAME) if a critical or block block starts after point."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(critical\\|block\\)\\>")
+  (if (looking-at "\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:\\)?[ \t]*\\(critical\\|block\\)\\_>")
       (let ((struct (match-string 3))
             (label (match-string 2)))
         (if (or (not (string-equal "block" struct))
                 (save-excursion
                   (skip-chars-forward " \t")
-                  (not (looking-at "data\\>"))))
+                  (not (looking-at "data\\_>"))))
             (list struct label)))))
 
 (defsubst f90-looking-at-end-critical ()
   "Return non-nil if a critical or block block ends after point."
-  (if (looking-at "end[ \t]*\\(critical\\|block\\)\\>")
+  (if (looking-at "end[ \t]*\\(critical\\|block\\)\\_>")
       (or (not (string-equal "block" (match-string 1)))
           (save-excursion
             (skip-chars-forward " \t")
-            (not (looking-at "data\\>"))))))
+            (not (looking-at "data\\_>"))))))
 
 (defsubst f90-looking-at-where-or-forall ()
   "Return (KIND NAME) if a where or forall block starts after point.
 NAME is nil if the statement has no label."
   (save-excursion
-    (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
-\\(where\\|forall\\)\\>")
+    (when (looking-at "\\(\\(\\(?:\\sw\\|\\s_\\)+\\)[ \t]*:\\)?[ \t]*\
+\\(where\\|forall\\)\\_>")
       (let ((struct (match-string 3))
             (label (match-string 2))
             (pos (scan-lists (point) 1 0)))
@@ -1305,43 +1336,43 @@ NAME is nil if the statement has no label."
 NAME is non-nil only for type and certain interfaces."
   (cond
    ((save-excursion
-      (and (looking-at "\\<type\\>[ \t]*")
+      (and (looking-at "\\_<type\\_>[ \t]*")
            (goto-char (match-end 0))
-           (not (looking-at "\\(is\\>\\|(\\)"))
-           (or (looking-at "\\(\\sw+\\)")
-               (re-search-forward "[ \t]*::[ \t]*\\(\\sw+\\)"
+           (not (looking-at "\\(is\\_>\\|(\\)"))
+           (or (looking-at "\\(\\(?:\\sw\\|\\s_\\)+\\)")
+               (re-search-forward "[ \t]*::[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
                                   (line-end-position) t))))
     (list "type" (match-string 1)))
 ;;;    ((and (not (looking-at f90-typeis-re))
 ;;;          (looking-at f90-type-def-re))
 ;;;     (list (match-string 1) (match-string 2)))
-   ((looking-at "\\<\\(interface\\)\\>[ \t]*")
+   ((looking-at "\\_<\\(interface\\)\\_>[ \t]*")
     (list (match-string 1)
           (save-excursion
             (goto-char (match-end 0))
             (if (or (looking-at "\\(operator\\|assignment\\|read\\|\
 write\\)[ \t]*([^)\n]*)")
-                    (looking-at "\\sw+"))
+                    (looking-at "\\(?:\\sw\\|\\s_\\)+"))
                 (match-string 0)))))
-   ((looking-at "\\(enum\\|block[ \t]*data\\)\\>")
+   ((looking-at "\\(enum\\|block[ \t]*data\\)\\_>")
     (list (match-string 1) nil))
-   ((looking-at "abstract[ \t]*\\(interface\\)\\>")
+   ((looking-at "abstract[ \t]*\\(interface\\)\\_>")
     (list (match-string 1) nil))))
 
 (defsubst f90-looking-at-program-block-start ()
   "Return (KIND NAME) if a program block with name NAME starts after point."
 ;;;NAME is nil for an un-named main PROGRAM block."
   (cond
-   ((looking-at "\\(program\\)[ \t]+\\(\\sw+\\)\\>")
+   ((looking-at "\\(program\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
-   ((and (not (looking-at "module[ \t]*procedure\\>"))
-         (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
+   ((and (not (looking-at "module[ \t]*procedure\\_>"))
+         (looking-at "\\(module\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>"))
     (list (match-string 1) (match-string 2)))
-   ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\sw+\\)\\>")
+   ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
          (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
-\\(\\sw+\\)"))
+\\(\\(?:\\sw\\|\\s_\\)+\\)"))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
 ;; one needs to check if there is an actual PROGRAM statement after
@@ -1357,7 +1388,7 @@ write\\)[ \t]*([^)\n]*)")
 \\(?:assignment\\|operator\\|read\\|write\\)[ \t]*([^)\n]*)\\)")
          (list (match-string 1) (match-string 2)))
         ((looking-at (concat "end[ \t]*" f90-blocks-re
-                             "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
+                             "?\\([ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)\\)?\\_>"))
         (list (match-string 1) (match-string 3)))))
 
 (defsubst f90-comment-indent ()
@@ -1414,10 +1445,10 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
-block\\|critical\\)\\>")
+block\\|critical\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
-\\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\>")
-             (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
+\\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
+             (looking-at "\\(contains\\|\\(?:\\sw\\|\\s_\\)+[ \t]*:\\)")
              (looking-at f90-type-def-re)
              (re-search-forward "\\(function\\|subroutine\\)"
                                 (line-end-position) t)))))
@@ -1483,7 +1514,7 @@ Does not check type and subprogram indentation."
                (setq icol (- icol f90-associate-indent)))
               ((f90-looking-at-end-critical)
                (setq icol (- icol f90-critical-indent)))
-              ((looking-at "end[ \t]*do\\>")
+              ((looking-at "end[ \t]*do\\_>")
                (setq icol (- icol f90-do-indent))))
         (end-of-line))
       icol)))
@@ -1550,7 +1581,7 @@ Does not check type and subprogram indentation."
                         (cond ((or (looking-at f90-else-like-re)
                                    (looking-at f90-end-if-re))
                                (setq icol (- icol f90-if-indent)))
-                              ((looking-at "end[ \t]*do\\>")
+                              ((looking-at "end[ \t]*do\\_>")
                                (setq icol (- icol f90-do-indent)))
                               ((looking-at f90-end-type-re)
                                (setq icol (- icol f90-type-indent)))
@@ -1671,7 +1702,7 @@ Interactively, pushes mark before moving point."
              (setq start-list (cons start-this start-list) ; not add-to-list!
                    count (1+ count)))
             ((looking-at (concat "end[ \t]*" f90-blocks-re
-                                 "[ \t]*\\(\\sw+\\)?"))
+                                 "[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"))
              (setq end-type (match-string 1)
                    end-label (match-string 2)
                    count (1- count))
@@ -1716,7 +1747,7 @@ Interactively, pushes mark before moving point."
       (skip-chars-forward " \t0-9")
       (cond ((or (f90-in-string) (f90-in-comment)))
             ((looking-at (concat "end[ \t]*" f90-blocks-re
-                                 "[ \t]*\\(\\sw+\\)?"))
+                                 "[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)?"))
              (setq end-list (cons (list (match-string 1) (match-string 2))
                                   end-list)
                    count (1+ count)))
@@ -1962,7 +1993,7 @@ If run in the middle of a line, the line is not broken."
                                     (car end-struct) (cadr end-struct))))
              (setq ind-b
                    (cond ((looking-at f90-end-if-re) f90-if-indent)
-                         ((looking-at "end[ \t]*do\\>")  f90-do-indent)
+                         ((looking-at "end[ \t]*do\\_>")  f90-do-indent)
                          ((looking-at f90-end-type-re) f90-type-indent)
                          ((looking-at f90-end-associate-re)
                           f90-associate-indent)
@@ -2108,12 +2139,19 @@ Like `join-line', but handles F90 syntax."
         (zmacs-deactivate-region)
       (deactivate-mark))))
 
+(defconst f90-end-block-optional-name
+  '("program" "module" "subroutine" "function" "type")
+  "Block types where including the name in the end statement is optional.")
+
 (defun f90-block-match (beg-block beg-name end-block end-name)
   "Match end-struct with beg-struct and complete end-block if possible.
 BEG-BLOCK is the type of block as indicated at the start (e.g., do).
 BEG-NAME is the block start name (may be nil).
 END-BLOCK is the type of block as indicated at the end (may be nil).
 END-NAME is the block end name (may be nil).
+If the block type matches `f90-end-block-optional-name', do not add
+an end name if `f90-smart-end-names' is nil, but always update an
+incorrect end name if there already was one.
 Leave point at the end of line."
   ;; Hack to deal with the case when this is called from
   ;; f90-indent-region on a program block without an explicit PROGRAM
@@ -2133,8 +2171,11 @@ Leave point at the end of line."
     (if (f90-equal-symbols beg-name end-name)
         (and end-name (search-forward end-name))
       (cond ((and beg-name (not end-name))
-             (message "Inserting %s." beg-name)
-             (insert (concat " " beg-name)))
+             (unless (and (not f90-smart-end-names)
+                          (member-ignore-case beg-block
+                                              f90-end-block-optional-name))
+               (message "Inserting %s." beg-name)
+               (insert (concat " " beg-name))))
             ((and beg-name end-name)
              (message "Replacing %s with %s." end-name beg-name)
              (search-forward end-name)

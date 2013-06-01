@@ -149,9 +149,10 @@ the server support the authenticator and AUTHENTICATE is a function
 for doing the actual authentication."
   :group 'sieve-manage)
 
-(defcustom sieve-manage-default-port 2000
+(defcustom sieve-manage-default-port "sieve"
   "Default port number or service name for managesieve protocol."
-  :type 'integer
+  :type '(choice integer string)
+  :version "24.4"
   :group 'sieve-manage)
 
 (defcustom sieve-manage-default-stream 'network

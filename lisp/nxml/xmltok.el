@@ -132,33 +132,6 @@ from referencing the entity in element content and AR is either nil,
 meaning the replacement text included a <, or a string which is the
 normalized attribute value.")
 
-(defvar xmltok-dependent-regions nil
-  "List of descriptors of regions that a parsed token depends on.
-
-A token depends on a region if the region occurs after the token and a
-change in the region may require the token to be reparsed.  This only
-happens with markup that is not well-formed.  For example, if a <?
-occurs without a matching ?>, then the <? is returned as a
-not-well-formed token.  However, this token is dependent on region
-from the end of the token to the end of the buffer: if this ever
-contains ?> then the buffer must be reparsed from the <?.
-
-A region descriptor is a list (FUN START END ARG ...), where FUN is a
-function to be called when the region changes, START and END are
-integers giving the start and end of the region, and ARG... are
-additional arguments to be passed to FUN.  FUN will be called with 5
-arguments followed by the additional arguments if any: the position of
-the start of the changed area in the region, the position of the end
-of the changed area in the region, the length of the changed area
-before the change, the position of the start of the region, the
-position of the end of the region.  FUN must return non-nil if the
-region needs reparsing.  FUN will be called in a `save-excursion'
-with match-data saved.
-
-`xmltok-forward', `xmltok-forward-special' and `xmltok-forward-prolog'
-may add entries to the beginning of this list, but will not clear it.
-`xmltok-forward' and `xmltok-forward-special' will only add entries
-when returning tokens of type not-well-formed.")
 
 (defvar xmltok-errors nil
   "List of errors detected by `xmltok-forward' and `xmltok-forward-prolog'.
@@ -176,7 +149,6 @@ indicating the position of the error.")
 	 xmltok-replacement
 	 xmltok-attributes
 	 xmltok-namespace-attributes
-	 xmltok-dependent-regions
 	 xmltok-errors)
      ,@body))
 
@@ -297,14 +269,6 @@ and VALUE-END, otherwise a STRING giving the value."
 				 (or start xmltok-start)
 				 (or end (point)))
 	      xmltok-errors)))
-
-(defun xmltok-add-dependent (fun &optional start end &rest args)
-  (setq xmltok-dependent-regions
-	(cons (cons fun
-		    (cons (or start xmltok-start)
-			  (cons (or end (point-max))
-				args)))
-	      xmltok-dependent-regions)))
 
 (defun xmltok-forward ()
   (setq xmltok-start (point))
@@ -684,14 +648,8 @@ Return the type of the token."
 		(setq xmltok-type 'empty-element))
 	       ((xmltok-after-lt start cdata-section-open)
 		(setq xmltok-type
-		      (if (search-forward "]]>" nil t)
-			  'cdata-section
-			(xmltok-add-error "No closing ]]>")
-			(xmltok-add-dependent 'xmltok-unclosed-reparse-p
-					      nil
-					      nil
-					      "]]>")
-			'not-well-formed)))
+		      (progn (search-forward "]]>" nil 'move)
+                             'cdata-section)))
 	       ((xmltok-after-lt start processing-instruction-question)
 		(xmltok-scan-after-processing-instruction-open))
 	       ((xmltok-after-lt start comment-open)
@@ -758,68 +716,44 @@ Return the type of the token."
 ;; xmltok-scan-prolog-after-processing-instruction-open
 ;; XXX maybe should include rest of line (up to any <,>) in unclosed PI
 (defun xmltok-scan-after-processing-instruction-open ()
-  (cond ((not (search-forward "?>" nil t))
-	 (xmltok-add-error "No closing ?>"
-			   xmltok-start
-			   (+ xmltok-start 2))
-	 (xmltok-add-dependent 'xmltok-unclosed-reparse-p
-			       nil
-			       nil
-			       "?>")
-	 (setq xmltok-type 'not-well-formed))
-	(t
-	 (cond ((not (save-excursion
-		       (goto-char (+ 2 xmltok-start))
-		       (and (looking-at (xmltok-ncname regexp))
-			    (setq xmltok-name-end (match-end 0)))))
-		(setq xmltok-name-end (+ xmltok-start 2))
-		(xmltok-add-error "<? not followed by name"
-				  (+ xmltok-start 2)
-				  (+ xmltok-start 3)))
-	       ((not (or (memq (char-after xmltok-name-end)
-			       '(?\n ?\t ?\r ? ))
-			 (= xmltok-name-end (- (point) 2))))
-		(xmltok-add-error "Target not followed by whitespace"
-				  xmltok-name-end
-				  (1+ xmltok-name-end)))
-	       ((and (= xmltok-name-end (+ xmltok-start 5))
-		     (save-excursion
-		       (goto-char (+ xmltok-start 2))
-		       (let ((case-fold-search t))
-			 (looking-at "xml"))))
-		(xmltok-add-error "Processing instruction target is xml"
-				  (+ xmltok-start 2)
-				  (+ xmltok-start 5))))
-	 (setq xmltok-type 'processing-instruction))))
+  (search-forward "?>" nil 'move)
+  (cond ((not (save-excursion
+                (goto-char (+ 2 xmltok-start))
+                (and (looking-at (xmltok-ncname regexp))
+                     (setq xmltok-name-end (match-end 0)))))
+         (setq xmltok-name-end (+ xmltok-start 2))
+         (xmltok-add-error "<? not followed by name"
+                           (+ xmltok-start 2)
+                           (+ xmltok-start 3)))
+        ((not (or (memq (char-after xmltok-name-end)
+                        '(?\n ?\t ?\r ? ))
+                  (= xmltok-name-end (- (point) 2))))
+         (xmltok-add-error "Target not followed by whitespace"
+                           xmltok-name-end
+                           (1+ xmltok-name-end)))
+        ((and (= xmltok-name-end (+ xmltok-start 5))
+              (save-excursion
+                (goto-char (+ xmltok-start 2))
+                (let ((case-fold-search t))
+                  (looking-at "xml"))))
+         (xmltok-add-error "Processing instruction target is xml"
+                           (+ xmltok-start 2)
+                           (+ xmltok-start 5))))
+  (setq xmltok-type 'processing-instruction))
 
 (defun xmltok-scan-after-comment-open ()
-  (setq xmltok-type
-	(cond ((not (search-forward "--" nil t))
-	       (xmltok-add-error "No closing -->")
-	       (xmltok-add-dependent 'xmltok-unclosed-reparse-p
-				     nil
-				     nil
-				     ;; not --> because
-				     ;; -- is not allowed
-				     ;; in comments in XML
-				     "--")
-	       'not-well-formed)
-	      ((eq (char-after) ?>)
-	       (goto-char (1+ (point)))
-	       'comment)
-	      (t
-	       (xmltok-add-dependent
-		'xmltok-semi-closed-reparse-p
-		nil
-		(point)
-		"--"
-		2)
-	       ;; just include the <!-- in the token
-	       (goto-char (+ xmltok-start 4))
-	       ;; Need do this after the goto-char because
-	       ;; marked error should just apply to <!--
-	       (xmltok-add-error "First following `--' not followed by `>'")
-	       'not-well-formed))))
+  (let ((found-- (search-forward "--" nil 'move)))
+    (setq xmltok-type
+          (cond ((or (eq (char-after) ?>) (not found--))
+                 (goto-char (1+ (point)))
+                 'comment)
+                (t
+                 ;; just include the <!-- in the token
+                 (goto-char (+ xmltok-start 4))
+                 ;; Need do this after the goto-char because
+                 ;; marked error should just apply to <!--
+                 (xmltok-add-error "First following `--' not followed by `>'")
+                 'not-well-formed)))))
 
 (defun xmltok-scan-attributes ()
   (let ((recovering nil)
@@ -1124,7 +1058,7 @@ comment, processing-instruction-left, processing-instruction-right,
 markup-declaration-open, markup-declaration-close,
 internal-subset-open, internal-subset-close, hash-name, keyword,
 literal, encoding-name.
-Adds to `xmltok-errors' and `xmltok-dependent-regions' as appropriate."
+Adds to `xmltok-errors' as appropriate."
   (let ((case-fold-search nil)
 	xmltok-start
 	xmltok-type
@@ -1148,7 +1082,6 @@ Adds to `xmltok-errors' and `xmltok-dependent-regions' as appropriate."
 			(1- xmltok-internal-subset-start)
 			xmltok-internal-subset-start))
     (xmltok-parse-entities)
-    ;; XXX prune dependent-regions for those entirely in prolog
     (nreverse xmltok-prolog-regions)))
 
 (defconst xmltok-bad-xml-decl-regexp
@@ -1648,95 +1581,68 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 	 (end (save-excursion
 		(goto-char safe-end)
 		(search-forward delim nil t))))
-    (or (cond ((not end)
-	       (xmltok-add-dependent 'xmltok-unclosed-reparse-p
-				     nil
-				     nil
-				     delim)
-	       nil)
-	      ((save-excursion
-		 (goto-char end)
-		 (looking-at "[ \t\r\n>%[]"))
-	       (goto-char end)
-	       (setq xmltok-type 'literal))
-	      ((eq (1+ safe-end) end)
-	       (goto-char end)
-	       (xmltok-add-error (format "Missing space after %s" delim)
-				 safe-end)
-	       (setq xmltok-type 'literal))
-	      (t
-	       (xmltok-add-dependent 'xmltok-semi-closed-reparse-p
-				     xmltok-start
-				     (1+ end)
-				     delim
-				     1)
-	       nil))
-	(progn
-	  (xmltok-add-error (format "Missing closing %s" delim))
-	  (goto-char safe-end)
-	  (skip-chars-backward " \t\r\n")
-	  (setq xmltok-type 'not-well-formed)))))
+    (cond ((or (not end)
+               (save-excursion
+                 (goto-char end)
+                 (looking-at "[ \t\r\n>%[]")))
+           (goto-char end))
+          ((eq (1+ safe-end) end)
+           (goto-char end)
+           (xmltok-add-error (format "Missing space after %s" delim)
+                             safe-end)))
+    (setq xmltok-type 'literal)))
 
 (defun xmltok-scan-prolog-after-processing-instruction-open ()
-  (cond ((not (search-forward "?>" nil t))
-	 (xmltok-add-error "No closing ?>"
-			   xmltok-start
-			   (+ xmltok-start 2))
-	 (xmltok-add-dependent 'xmltok-unclosed-reparse-p
-			       nil
-			       nil
-			       "?>")
-	 (setq xmltok-type 'not-well-formed))
-	(t
-	 (let* ((end (point))
-		(target
-		 (save-excursion
-		   (goto-char (+ xmltok-start 2))
-		   (and (looking-at (xmltok-ncname regexp))
-			(or (memq (char-after (match-end 0))
-				  '(?\n ?\t ?\r ? ))
-			    (= (match-end 0) (- end 2)))
-			(match-string-no-properties 0)))))
-	   (cond ((not target)
-		  (xmltok-add-error "\
+  (search-forward "?>" nil 'move)
+  (let* ((end (point))
+         (target
+          (save-excursion
+            (goto-char (+ xmltok-start 2))
+            (and (looking-at (xmltok-ncname regexp))
+                 (or (memq (char-after (match-end 0))
+                           '(?\n ?\t ?\r ? ))
+                     (= (match-end 0) (- end 2)))
+                 (match-string-no-properties 0)))))
+    (cond ((not target)
+           (xmltok-add-error "\
 Processing instruction does not start with a name"
-				    (+ xmltok-start 2)
-				    (+ xmltok-start 3)))
-		 ((not (and (= (length target) 3)
-			    (let ((case-fold-search t))
-			      (string-match "xml" target)))))
-		 ((= xmltok-start 1)
-		  (xmltok-add-error "Invalid XML declaration"
-				    xmltok-start
-				    (point)))
-		 ((save-excursion
-		    (goto-char xmltok-start)
-		    (looking-at (xmltok-xml-declaration regexp)))
-		  (xmltok-add-error "XML declaration not at beginning of file"
-				    xmltok-start
-				    (point)))
-		 (t
-		  (xmltok-add-error "Processing instruction has target of xml"
-				    (+ xmltok-start 2)
-				    (+ xmltok-start 5))))
-	   (xmltok-add-prolog-region 'processing-instruction-left
-				     xmltok-start
-				     (+ xmltok-start
-					2
-					(if target
-					    (length target)
-					  0)))
-	   (xmltok-add-prolog-region 'processing-instruction-right
-				     (if target
-					 (save-excursion
-					   (goto-char (+ xmltok-start
-							 (length target)
-							 2))
-					   (skip-chars-forward " \t\r\n")
-					   (point))
-				       (+ xmltok-start 2))
-				     (point)))
-	 (setq xmltok-type 'processing-instruction))))
+                             (+ xmltok-start 2)
+                             (+ xmltok-start 3)))
+          ((not (and (= (length target) 3)
+                     (let ((case-fold-search t))
+                       (string-match "xml" target)))))
+          ((= xmltok-start 1)
+           (xmltok-add-error "Invalid XML declaration"
+                             xmltok-start
+                             (point)))
+          ((save-excursion
+             (goto-char xmltok-start)
+             (looking-at (xmltok-xml-declaration regexp)))
+           (xmltok-add-error "XML declaration not at beginning of file"
+                             xmltok-start
+                             (point)))
+          (t
+           (xmltok-add-error "Processing instruction has target of xml"
+                             (+ xmltok-start 2)
+                             (+ xmltok-start 5))))
+    (xmltok-add-prolog-region 'processing-instruction-left
+                              xmltok-start
+                              (+ xmltok-start
+                                 2
+                                 (if target
+                                     (length target)
+                                   0)))
+    (xmltok-add-prolog-region 'processing-instruction-right
+                              (if target
+                                  (save-excursion
+                                    (goto-char (+ xmltok-start
+                                                  (length target)
+                                                  2))
+                                    (skip-chars-forward " \t\r\n")
+                                    (point))
+                                (+ xmltok-start 2))
+                              (point)))
+  (setq xmltok-type 'processing-instruction))
 
 (defun xmltok-parse-entities ()
   (let ((todo xmltok-dtd))

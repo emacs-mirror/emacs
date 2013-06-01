@@ -69,13 +69,17 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
   			    image-mode-winprops-alist))))
   (let ((winprops (assq window image-mode-winprops-alist)))
     ;; For new windows, set defaults from the latest.
-    (unless winprops
+    (if winprops
+        ;; Move window to front.
+        (setq image-mode-winprops-alist
+              (cons winprops (delq winprops image-mode-winprops-alist)))
       (setq winprops (cons window
                            (copy-alist (cdar image-mode-winprops-alist))))
+      ;; Add winprops before running the hook, to avoid inf-loops if the hook
+      ;; triggers window-configuration-change-hook.
+      (setq image-mode-winprops-alist
+            (cons winprops image-mode-winprops-alist))
       (run-hook-with-args 'image-mode-new-window-functions winprops))
-    ;; Move window to front.
-    (setq image-mode-winprops-alist
-          (cons winprops (delq winprops image-mode-winprops-alist)))
     winprops))
 
 (defun image-mode-window-get (prop &optional winprops)
@@ -100,13 +104,16 @@ otherwise it defaults to t, used for times when the buffer is not displayed."
 (defun image-mode-reapply-winprops ()
   ;; When set-window-buffer, set hscroll and vscroll to what they were
   ;; last time the image was displayed in this window.
-  (when (and (image-get-display-property)
-	     (listp image-mode-winprops-alist))
+  (when (listp image-mode-winprops-alist)
+    ;; Beware: this call to image-mode-winprops can't be optimized away,
+    ;; because it not only gets the winprops data but sets it up if needed
+    ;; (e.g. it's used by doc-view to display the image in a new window).
     (let* ((winprops (image-mode-winprops nil t))
            (hscroll (image-mode-window-get 'hscroll winprops))
            (vscroll (image-mode-window-get 'vscroll winprops)))
-      (if hscroll (set-window-hscroll (selected-window) hscroll))
-      (if vscroll (set-window-vscroll (selected-window) vscroll)))))
+      (when (image-get-display-property) ;Only do it if we display an image!
+	(if hscroll (set-window-hscroll (selected-window) hscroll))
+	(if vscroll (set-window-vscroll (selected-window) vscroll))))))
 
 (defun image-mode-setup-winprops ()
   ;; Record current scroll settings.
@@ -325,9 +332,8 @@ call."
 
 ;;; Image Mode setup
 
-(defvar image-type nil
+(defvar-local image-type nil
   "The image type for the current Image mode buffer.")
-(make-variable-buffer-local 'image-type)
 
 (defvar-local image-multi-frame nil
   "Non-nil if image for the current Image mode buffer has multiple frames.")
@@ -397,7 +403,6 @@ call."
          :help "Toggle image animation"]
 	["Loop Animation"
 	 (lambda () (interactive)
-;;;	   (make-variable-buffer-local 'image-animate-loop)
 	   (setq image-animate-loop (not image-animate-loop))
 	   ;; FIXME this is a hacky way to make it affect a currently
 	   ;; animating image.
@@ -457,8 +462,8 @@ to toggle between display as an image and display as text."
 	(use-local-map image-mode-map)
 
 	;; Use our own bookmarking function for images.
-	(set (make-local-variable 'bookmark-make-record-function)
-	     'image-bookmark-make-record)
+	(setq-local bookmark-make-record-function
+                    #'image-bookmark-make-record)
 
 	;; Keep track of [vh]scroll when switching buffers
 	(image-mode-setup-winprops)
@@ -557,7 +562,7 @@ on these modes."
 			    elt))
 			magic-fallback-mode-alist))))
 	(normal-mode)
-	(set (make-local-variable 'image-mode-previous-major-mode) major-mode)))
+	(setq-local image-mode-previous-major-mode major-mode)))
     ;; Restore `image-type' after `kill-all-local-variables' in `normal-mode'.
     (setq image-type previous-image-type)
     ;; Enable image minor mode with `C-c C-c'.
@@ -637,9 +642,9 @@ was inserted."
     ;; is written with, e.g., C-x C-w.
     (if (coding-system-equal (coding-system-base buffer-file-coding-system)
 			     'no-conversion)
-	(set (make-local-variable 'find-file-literally) t))
-    ;; Allow navigation of large images
-    (set (make-local-variable 'auto-hscroll-mode) nil)
+	(setq-local find-file-literally t))
+    ;; Allow navigation of large images.
+    (setq-local auto-hscroll-mode nil)
     (setq image-type type)
     (if (eq major-mode 'image-mode)
 	(setq mode-name (format "Image[%s]" type)))

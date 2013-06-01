@@ -717,7 +717,7 @@ window.
 This section describes functions for creating a new window by
 @dfn{splitting} an existing one.
 
-@deffn Command split-window &optional window size side
+@defun split-window &optional window size side
 This function creates a new live window next to the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  That window is ``split'', and reduced in
@@ -767,7 +767,7 @@ called with the arguments @var{window}, @var{size}, and @var{side}, in
 lieu of the usual action of @code{split-window}.  Otherwise, this
 function obeys the @code{window-atom} or @code{window-side} window
 parameter, if any.  @xref{Window Parameters}.
-@end deffn
+@end defun
 
   As an example, here is a sequence of @code{split-window} calls that
 yields the window configuration discussed in @ref{Windows and Frames}.

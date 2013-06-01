@@ -753,7 +753,7 @@ relevant to POS."
                     (insert " by these characters:\n")
                     (while (and (<= from to)
                                 (setq glyph (lgstring-glyph gstring from)))
-                      (insert (format " %c (#x%d)\n"
+                      (insert (format " %c (#x%x)\n"
                                       (lglyph-char glyph) (lglyph-char glyph)))
                       (setq from (1+ from)))))
               (insert " by the rule:\n\t(")

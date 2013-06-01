@@ -323,20 +323,7 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static struct Lisp_Vector *allocate_vectorlike (ptrdiff_t);
-static void lisp_free (void *);
-static void mark_stack (void);
-static bool live_vector_p (struct mem_node *, void *);
-static bool live_buffer_p (struct mem_node *, void *);
-static bool live_string_p (struct mem_node *, void *);
-static bool live_cons_p (struct mem_node *, void *);
-static bool live_symbol_p (struct mem_node *, void *);
-static bool live_float_p (struct mem_node *, void *);
-static bool live_misc_p (struct mem_node *, void *);
-static void mark_maybe_object (Lisp_Object);
-static void mark_memory (void *, void *);
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
-static void mem_init (void);
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 static void mem_rotate_left (struct mem_node *);
@@ -344,11 +331,6 @@ static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
-#endif
-
-
-#if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
-static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
@@ -1162,7 +1144,7 @@ lisp_align_free (void *block)
 #define INTERVAL_BLOCK_SIZE \
   ((1020 - sizeof (struct interval_block *)) / sizeof (struct interval))
 
-/* Intervals are allocated in chunks in form of an interval_block
+/* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
 
 struct interval_block
@@ -3344,56 +3326,50 @@ free_misc (Lisp_Object misc)
   total_free_markers++;
 }
 
+/* Verify properties of Lisp_Save_Value's representation
+   that are assumed here and elsewhere.  */
+
+verify (SAVE_UNUSED == 0);
+verify ((SAVE_INTEGER | SAVE_POINTER | SAVE_OBJECT) >> SAVE_SLOT_BITS == 0);
+
 /* Return a Lisp_Save_Value object with the data saved according to
-   FMT.  Format specifiers are `i' for an integer, `p' for a pointer
-   and `o' for Lisp_Object.  Up to 4 objects can be specified.  */
+   DATA_TYPE.  DATA_TYPE should be one of SAVE_TYPE_INT_INT, etc.  */
 
 Lisp_Object
-make_save_value (const char *fmt, ...)
+make_save_value (enum Lisp_Save_Type save_type, ...)
 {
   va_list ap;
-  int len = strlen (fmt);
+  int i;
   Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
   struct Lisp_Save_Value *p = XSAVE_VALUE (val);
 
-  eassert (0 < len && len < 5);
-  va_start (ap, fmt);
+  eassert (0 < save_type
+	   && (save_type < 1 << (SAVE_TYPE_BITS - 1)
+	       || save_type == SAVE_TYPE_MEMORY));
+  p->save_type = save_type;
+  va_start (ap, save_type);
+  save_type &= ~ (1 << (SAVE_TYPE_BITS - 1));
 
-#define INITX(index)                                           \
-  do {                                                         \
-    if (len <= index)                                          \
-      p->type ## index = SAVE_UNUSED;                          \
-    else                                                       \
-      {							       \
-        if (fmt[index] == 'i')                                 \
-         {                                                     \
-           p->type ## index = SAVE_INTEGER;                    \
-           p->data[index].integer = va_arg (ap, ptrdiff_t);    \
-         }                                                     \
-       else if (fmt[index] == 'p')                             \
-         {                                                     \
-           p->type ## index = SAVE_POINTER;                    \
-           p->data[index].pointer = va_arg (ap, void *);       \
-         }                                                     \
-       else if (fmt[index] == 'o')                             \
-         {                                                     \
-           p->type ## index = SAVE_OBJECT;                     \
-           p->data[index].object = va_arg (ap, Lisp_Object);   \
-         }                                                     \
-       else                                                    \
-         emacs_abort ();                                       \
-      }							       \
-  } while (0)
+  for (i = 0; save_type; i++, save_type >>= SAVE_SLOT_BITS)
+    switch (save_type & ((1 << SAVE_SLOT_BITS) - 1))
+      {
+      case SAVE_POINTER:
+	p->data[i].pointer = va_arg (ap, void *);
+	break;
 
-  INITX (0);
-  INITX (1);
-  INITX (2);
-  INITX (3);
+      case SAVE_INTEGER:
+	p->data[i].integer = va_arg (ap, ptrdiff_t);
+	break;
 
-#undef INITX
+      case SAVE_OBJECT:
+	p->data[i].object = va_arg (ap, Lisp_Object);
+	break;
+
+      default:
+	emacs_abort ();
+      }
 
   va_end (ap);
-  p->area = 0;
   return val;
 }
 
@@ -3404,11 +3380,8 @@ make_save_pointer (void *pointer)
 {
   Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
   struct Lisp_Save_Value *p = XSAVE_VALUE (val);
-
-  p->area = 0;
-  p->type0 = SAVE_POINTER;
+  p->save_type = SAVE_POINTER;
   p->data[0].pointer = pointer;
-  p->type1 = p->type2 = p->type3 = SAVE_UNUSED;
   return val;
 }
 
@@ -5837,14 +5810,13 @@ mark_object (Lisp_Object arg)
 	  case PVEC_WINDOW:
 	    {
 	      struct window *w = (struct window *) ptr;
-	      bool leaf = NILP (w->hchild) && NILP (w->vchild);
 
 	      mark_vectorlike (ptr);
 
-	      /* Mark glyphs for leaf windows.  Marking window
+	      /* Mark glyph matrices, if any.  Marking window
 		 matrices is sufficient because frame matrices
 		 use the same glyph memory.  */
-	      if (leaf && w->current_matrix)
+	      if (w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
 		  mark_glyph_matrix (w->desired_matrix);
@@ -5976,12 +5948,11 @@ mark_object (Lisp_Object arg)
 	case Lisp_Misc_Save_Value:
 	  XMISCANY (obj)->gcmarkbit = 1;
 	  {
-	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
-	    /* If `area' is nonzero, `data[0].pointer' is the address
+	    struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	    /* If `save_type' is zero, `data[0].pointer' is the address
 	       of a memory area containing `data[1].integer' potential
 	       Lisp_Objects.  */
-#if GC_MARK_STACK
-	    if (ptr->area)
+	    if (GC_MARK_STACK && ptr->save_type == SAVE_TYPE_MEMORY)
 	      {
 		Lisp_Object *p = ptr->data[0].pointer;
 		ptrdiff_t nelt;
@@ -5989,17 +5960,12 @@ mark_object (Lisp_Object arg)
 		  mark_maybe_object (*p);
 	      }
 	    else
-#endif /* GC_MARK_STACK */
 	      {
 		/* Find Lisp_Objects in `data[N]' slots and mark them.  */
-		if (ptr->type0 == SAVE_OBJECT)
-		  mark_object (ptr->data[0].object);
-		if (ptr->type1 == SAVE_OBJECT)
-		  mark_object (ptr->data[1].object);
-		if (ptr->type2 == SAVE_OBJECT)
-		  mark_object (ptr->data[2].object);
-		if (ptr->type3 == SAVE_OBJECT)
-		  mark_object (ptr->data[3].object);
+		int i;
+		for (i = 0; i < SAVE_VALUE_SLOTS; i++)
+		  if (save_type (ptr, i) == SAVE_OBJECT)
+		    mark_object (ptr->data[i].object);
 	      }
 	  }
 	  break;

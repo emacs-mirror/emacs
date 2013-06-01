@@ -84,6 +84,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
   (ruby-assert-face "class<<a" 8 nil))
 
+(ert-deftest ruby-heredoc-highlights-interpolations ()
+  (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
@@ -108,6 +111,15 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-regexp-starts-after-string ()
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
+
+(ert-deftest ruby-regexp-skips-over-interpolation ()
+  (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
+
+(ert-deftest ruby-regexp-continues-till-end-when-unclosed ()
+  (ruby-assert-state "/bars" 3 ?/))
+
+(ert-deftest ruby-regexp-can-be-multiline ()
+  (ruby-assert-state "/bars\ntees # toots \nfoos/" 3 nil))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
@@ -325,6 +337,13 @@ VALUES-PLIST is a list with alternating index and value elements."
       (search-forward "tee")
       (should (string= (thing-at-point 'symbol) "tee")))))
 
+(ert-deftest ruby-interpolation-inside-percent-literal ()
+  (let ((s "%( #{boo} )"))
+    (ruby-assert-face s 1 font-lock-string-face)
+    (ruby-assert-face s 4 font-lock-variable-name-face)
+    (ruby-assert-face s 10 font-lock-string-face)
+    (ruby-assert-state s 8 nil)))
+
 (ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
   :expected-result :failed
   (let ((s "%(^#{\")\"}^)"))
@@ -486,6 +505,42 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (= 6 (line-number-at-pos)))
     (ruby-beginning-of-block)
     (should (= 1 (line-number-at-pos)))))
+
+(ert-deftest ruby-move-to-block-does-not-fold-case ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "foo do
+       |  Module.to_s
+       |end")
+    (end-of-buffer)
+    (let ((case-fold-search t))
+      (ruby-beginning-of-block))
+    (should (= 1 (line-number-at-pos)))))
+
+(ert-deftest ruby-beginning-of-defun-does-not-fold-case ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class C
+       |  def bar
+       |    Class.to_s
+       |  end
+       |end")
+    (goto-line 4)
+    (let ((case-fold-search t))
+      (beginning-of-defun))
+    (should (= 2 (line-number-at-pos)))))
+
+(ert-deftest ruby-end-of-defun-skips-to-next-line-after-the-method ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class D
+       |  def tee
+       |    'ho hum'
+       |  end
+       |end")
+    (goto-line 2)
+    (end-of-defun)
+    (should (= 5 (line-number-at-pos)))))
 
 (provide 'ruby-mode-tests)
 

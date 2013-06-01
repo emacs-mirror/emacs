@@ -243,9 +243,6 @@ Local to those buffers, as a function called that created it.")
   "Return non-nil if FRAME is currently available."
   (and frame (frame-live-p frame) (frame-visible-p frame)))
 
-(defvar x-sensitive-text-pointer-shape)
-(defvar x-pointer-shape)
-
 (defun dframe-frame-mode (arg frame-var cache-var buffer-var frame-name
 			      local-mode-fn
 			      &optional
@@ -681,7 +678,7 @@ Optionally select that frame if necessary."
   "Non-nil means that `dframe-message' should just return a string.")
 
 (defun dframe-message (fmt &rest args)
-  "Like message, but for use in a dedicated frame.
+  "Like `message', but for use in a dedicated frame.
 Argument FMT is the format string, and ARGS are the arguments for message."
   (save-selected-window
     (if dframe-suppress-message-flag

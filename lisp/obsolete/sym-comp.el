@@ -148,7 +148,13 @@ to be set buffer-locally.  Variables `symbol-completion-symbol-function',
     (completion-in-region (- (point) (length pattern)) (point)
                           completions predicate)))
 
-(eval-when-compile (require 'hippie-exp))
+(defvar he-search-string)
+(defvar he-tried-table)
+(defvar he-expand-list)
+(declare-function he-init-string "hippie-exp" (beg end))
+(declare-function he-string-member "hippie-exp" (str lst &optional trans-case))
+(declare-function he-substitute-string "hippie-exp" (str &optional trans-case))
+(declare-function he-reset-string "hippie-exp" ())
 
 ;;;###autoload
 (defun symbol-completion-try-complete (old)

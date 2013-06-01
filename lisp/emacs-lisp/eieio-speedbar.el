@@ -230,9 +230,9 @@ object edit buffer doing an in-place edit.
 If your object represents some other item, override this method
 and take the appropriate action."
   (require 'eieio-custom)
-  (speedbar-with-attached-buffer
+  (dframe-with-attached-buffer
    (eieio-customize-object object))
-  (speedbar-maybee-jump-to-attached-frame))
+  (dframe-maybee-jump-to-attached-frame))
 
 
 ;;; Class definitions

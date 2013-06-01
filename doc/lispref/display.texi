@@ -1510,31 +1510,31 @@ of the symbol serve as defaults for the properties of the overlay.
 
 @item face
 @kindex face @r{(overlay property)}
-This property controls the way text is displayed---for example, which
-font and which colors.  @xref{Faces}, for more information.
-
-In the simplest case, the value is a face name.  It can also be a list;
-then each element can be any of these possibilities:
+This property controls the appearance of the text (@pxref{Faces}).
+The value of the property can be the following:
 
 @itemize @bullet
 @item
 A face name (a symbol or string).
 
 @item
-A property list of face attributes.  This has the form (@var{keyword}
-@var{value} @dots{}), where each @var{keyword} is a face attribute
-name and @var{value} is a meaningful value for that attribute.  With
-this feature, you do not need to create a face each time you want to
-specify a particular attribute for certain text.  @xref{Face
-Attributes}.
+An anonymous face: a property list of the form @code{(@var{keyword}
+@var{value} @dots{})}, where each @var{keyword} is a face attribute
+name and @var{value} is a value for that attribute.
 
 @item
-A cons cell, of the form @code{(foreground-color . @var{color-name})}
-or @code{(background-color . @var{color-name})}.  These elements
-specify just the foreground color or just the background color.
+A list of faces.  Each list element should be either a face name or an
+anonymous face.  This specifies a face which is an aggregate of the
+attributes of each of the listed faces.  Faces occurring earlier in
+the list have higher priority.
 
-@code{(foreground-color . @var{color-name})} has the same effect as
-@code{(:foreground @var{color-name})}; likewise for the background.
+@item
+A cons cell of the form @code{(foreground-color . @var{color-name})}
+or @code{(background-color . @var{color-name})}.  This specifies the
+foreground or background color, similar to @code{(:foreground
+@var{color-name})} or @code{(:background @var{color-name})}.  This
+form is supported for backward compatibility only, and should be
+avoided.
 @end itemize
 
 @item mouse-face
@@ -1901,43 +1901,38 @@ height.
 @section Faces
 @cindex faces
 
-  A @dfn{face} is a collection of graphical @dfn{attributes} for
-displaying text: font, foreground color, background color, optional
-underlining, etc.  Faces control how Emacs displays text in buffers,
-as well as other parts of the frame such as the mode line.
+  A @dfn{face} is a collection of graphical attributes for displaying
+text: font, foreground color, background color, optional underlining,
+etc.  Faces control how Emacs displays text in buffers, as well as
+other parts of the frame such as the mode line.
 
 @cindex anonymous face
   One way to represent a face is as a property list of attributes,
-like @code{(:foreground "red" :weight bold)}.  For example, you can
-assign such an @dfn{anonymous face} as the value of the @code{face}
-text property; this causes Emacs to display the underlying text with
-the specified attributes.  @xref{Special Properties}.
+like @code{(:foreground "red" :weight bold)}.  Such a list is called
+an @dfn{anonymous face}.  For example, you can assign an anonymous
+face as the value of the @code{face} text property, and Emacs will
+display the underlying text with the specified attributes.
+@xref{Special Properties}.
 
 @cindex face name
   More commonly, a face is referred to via a @dfn{face name}: a Lisp
-symbol which is associated with a set of face attributes.  Named faces
-are defined using the @code{defface} macro (@pxref{Defining Faces}).
-Emacs defines several standard named faces; @xref{Standard Faces,,,
-emacs, The GNU Emacs Manual}.
+symbol associated with a set of face attributes@footnote{For backward
+compatibility, you can also use a string to specify a face name; that
+is equivalent to a Lisp symbol with the same name.}.  Named faces are
+defined using the @code{defface} macro (@pxref{Defining Faces}).
+Emacs comes with several standard named faces (@pxref{Basic Faces}).
 
-  Many parts of Emacs require named faces, and do not accept anonymous
-faces.  These include the functions documented in @ref{Attribute
-Functions}, and the variable @code{font-lock-keywords}
+  Many parts of Emacs required named faces, and do not accept
+anonymous faces.  These include the functions documented in
+@ref{Attribute Functions}, and the variable @code{font-lock-keywords}
 (@pxref{Search-based Fontification}).  Unless otherwise stated, we
 will use the term @dfn{face} to refer only to named faces.
-
-  For backward compatibility, you can also use a string to specify a
-face name; that is equivalent to a Lisp symbol with the same name.
 
 @defun facep object
 This function returns a non-@code{nil} value if @var{object} is a
 named face: a Lisp symbol or string which serves as a face name.
 Otherwise, it returns @code{nil}.
 @end defun
-
-  By default, each face name corresponds to the same set of attributes
-in all frames.  But you can also assign a face name a special set of
-attributes in one frame (@pxref{Attribute Functions}).
 
 @menu
 * Face Attributes::     What is in a face?
@@ -2178,32 +2173,47 @@ suitable for use with @code{:stipple} (see above).  It returns
 @node Defining Faces
 @subsection Defining Faces
 
+@cindex face spec
   The usual way to define a face is through the @code{defface} macro.
-This macro defines a face name, and associates that name with a set of
-face attributes.  It also sets up the face so that the user can
-customize it via the Customize interface (@pxref{Customization}).
+This macro associates a face name (a symbol) with a default @dfn{face
+spec}.  A face spec is a construct which specifies what attributes a
+face should have on any given terminal; for example, a face spec might
+specify one foreground color on high-color terminals, and a different
+foreground color on low-color terminals.
+
+  People are sometimes tempted to create a variable whose value is a
+face name.  In the vast majority of cases, this is not necessary; the
+usual procedure is to define a face with @code{defface}, and then use
+its name directly.
 
 @defmac defface face spec doc [keyword value]@dots{}
-This macro declares @var{face} as a customizable face whose default
-attributes are given by @var{spec}.  You should not quote the symbol
-@var{face}, and it should not end in @samp{-face} (that would be
-redundant).  The argument @var{doc} is a documentation string for the
-face.  The additional @var{keyword} arguments have the same meanings
-as in @code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
+This macro declares @var{face} as a named face whose default face spec
+is given by @var{spec}.  You should not quote the symbol @var{face},
+and it should not end in @samp{-face} (that would be redundant).  The
+argument @var{doc} is a documentation string for the face.  The
+additional @var{keyword} arguments have the same meanings as in
+@code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
 
-When @code{defface} executes, it defines the face according to
-@var{spec}, then uses any customizations that were read from the
-init file (@pxref{Init File}) to override that specification.
+If @var{face} already has a default face spec, this macro does
+nothing.
 
-When you evaluate a @code{defface} form with @kbd{C-M-x} in Emacs
-Lisp mode (@code{eval-defun}), a special feature of @code{eval-defun}
-overrides any customizations of the face.  This way, the face reflects
-exactly what the @code{defface} says.
+The default face spec determines @var{face}'s appearance when no
+customizations are in effect (@pxref{Customization}).  If @var{face}
+has already been customized (via Custom themes or via customizations
+read from the init file), its appearance is determined by the custom
+face spec(s), which override the default face spec @var{spec}.
+However, if the customizations are subsequently removed, the
+appearance of @var{face} will again be determined by its default face
+spec.
 
-@cindex face specification
-The @var{spec} argument is a @dfn{face specification}, which states
-how the face should appear on different kinds of terminals.  It should
-be an alist whose elements each have the form
+As an exception, if you evaluate a @code{defface} form with
+@kbd{C-M-x} in Emacs Lisp mode (@code{eval-defun}), a special feature
+of @code{eval-defun} overrides any custom face specs on the face,
+causing the face to reflect exactly what the @code{defface} says.
+
+The @var{spec} argument is a @dfn{face spec}, which states how the
+face should appear on different kinds of terminals.  It should be an
+alist whose elements each have the form
 
 @example
 (@var{display} . @var{plist})
@@ -2275,7 +2285,8 @@ terminal must match one of the @var{value}s specified for it in
 @end table
 @end defmac
 
-  Here's how the standard face @code{highlight} is defined:
+  For example, here's the definition of the standard face
+@code{highlight}:
 
 @example
 (defface highlight
@@ -2294,65 +2305,56 @@ terminal must match one of the @var{value}s specified for it in
   :group 'basic-faces)
 @end example
 
-  Internally, Emacs stores the face's default specification in its
+  Internally, Emacs stores each face's default spec in its
 @code{face-defface-spec} symbol property (@pxref{Symbol Properties}).
-The @code{saved-face} property stores the face specification saved by
-the user, using the customization buffer; the @code{customized-face}
-property stores the face specification customized for the current
-session, but not saved; and the @code{theme-face} property stores an
-alist associating the active customization settings and Custom themes
-with their specifications for that face.  The face's documentation
-string is stored in the @code{face-documentation} property.  But
-normally you should not try to set any of these properties directly.
-@xref{Applying Customizations}, for the @code{custom-set-faces}
-function, which is used to apply customized face settings.
+The @code{saved-face} property stores any face spec saved by the user
+using the customization buffer; the @code{customized-face} property
+stores the face spec customized for the current session, but not
+saved; and the @code{theme-face} property stores an alist associating
+the active customization settings and Custom themes with the face
+specs for that face.  The face's documentation string is stored in the
+@code{face-documentation} property.
 
-  People are sometimes tempted to create variables whose values
-specify a face to use.  In the vast majority of cases, this is not
-necessary; it is preferable to simply use faces directly.
+  Normally, a face is declared just once, using @code{defface}, and
+any further changes to its appearance are applied using the Customize
+framework (e.g., via the Customize user interface or via the
+@code{custom-set-faces} function; @pxref{Applying Customizations}), or
+by face remapping (@pxref{Face Remapping}).  In the rare event that
+you need to change a face spec directly from Lisp, you can use the
+@code{face-spec-set} function.
+
+@defun face-spec-set face spec &optional spec-type
+This function applies @var{spec} as a face spec for @code{face}.
+@var{spec} should be a face spec, as described in the above
+documentation for @code{defface}.
+
+@cindex override spec @r{(for a face)}
+The argument @var{spec-type} determines which spec to set.  If it is
+@code{nil} or @code{face-override-spec}, this function sets the
+@dfn{override spec}, which overrides over all other face specs on
+@var{face}.  If it is @code{face-defface-spec}, this function sets the
+default face spec (the same one set by @code{defface}).  If it is
+@code{reset}, this function clears out all customization specs and
+override specs from @var{face} (in this case, the value of @var{spec}
+is ignored).  Any other value of @var{spec-type} is reserved for
+internal use.
+@end defun
 
 @node Attribute Functions
 @subsection Face Attribute Functions
 
-  This section describes the functions for accessing and modifying the
-attributes of an existing named face.
-
-@defun set-face-attribute face frame &rest arguments
-This function sets one or more attributes of @var{face} for
-@var{frame}.  The attributes you specify this way override whatever
-the @code{defface} says.
-
-The extra arguments @var{arguments} specify the attributes to set, and
-the values for them.  They should consist of alternating attribute
-names (such as @code{:family} or @code{:underline}) and values.  Thus,
-
-@example
-(set-face-attribute 'foo nil
-                    :width 'extended
-                    :weight 'bold)
-@end example
-
-@noindent
-sets the attribute @code{:width} to @code{extended} and the attribute
-@code{:weight} to @code{bold}.
-
-If @var{frame} is @code{t}, this function sets the default attributes
-for new frames.  Default attribute values specified this way override
-the @code{defface} for newly created frames.
-
-If @var{frame} is @code{nil}, this function sets the attributes for
-all existing frames, and the default for new frames.
-@end defun
+  This section describes functions for directly accessing and
+modifying the attributes of a named face.
 
 @defun face-attribute face attribute &optional frame inherit
-This returns the value of the @var{attribute} attribute of @var{face}
-on @var{frame}.  If @var{frame} is @code{nil}, that means the selected
-frame (@pxref{Input Focus}).
+This function returns the value of the @var{attribute} attribute for
+@var{face} on @var{frame}.
 
-If @var{frame} is @code{t}, this returns whatever new-frames default
-value you previously specified with @code{set-face-attribute} for the
-@var{attribute} attribute of @var{face}.  If you have not specified
-one, it returns @code{nil}.
+If @var{frame} is @code{nil}, that means the selected frame
+(@pxref{Input Focus}).  If @var{frame} is @code{t}, this function
+returns the value of the specified attribute for newly-created frames
+(this is normally @code{unspecified}, unless you have specified some
+value using @code{set-face-attribute}; see below).
 
 If @var{inherit} is @code{nil}, only attributes directly defined by
 @var{face} are considered, so the return value may be
@@ -2411,6 +2413,36 @@ If @var{value1} is a relative value for the face attribute
 face attribute @var{attribute}, returns @var{value1} unchanged.
 @end defun
 
+  Normally, Emacs uses the face specs of each face to automatically
+calculate its attributes on each frame (@pxref{Defining Faces}).  The
+function @code{set-face-attribute} can override this calculation by
+directly assigning attributes to a face, either on a specific frame or
+for all frames.  This function is mostly intended for internal usage.
+
+@defun set-face-attribute face frame &rest arguments
+This function sets one or more attributes of @var{face} for
+@var{frame}.  The attributes specifies in this way override the face
+spec(s) belonging to @var{face}.
+
+The extra arguments @var{arguments} specify the attributes to set, and
+the values for them.  They should consist of alternating attribute
+names (such as @code{:family} or @code{:underline}) and values.  Thus,
+
+@example
+(set-face-attribute 'foo nil :weight 'bold :slant 'italic)
+@end example
+
+@noindent
+sets the attribute @code{:weight} to @code{bold} and the attribute
+@code{:slant} to @code{italic}.
+
+
+If @var{frame} is @code{t}, this function sets the default attributes
+for newly created frames.  If @var{frame} is @code{nil}, this function
+sets the attributes for all existing frames, as well as for newly
+created frames.
+@end defun
+
   The following commands and functions mostly provide compatibility
 with old versions of Emacs.  They work by calling
 @code{set-face-attribute}.  Values of @code{t} and @code{nil} for
@@ -2457,16 +2489,17 @@ This sets the @code{:inverse-video} attribute of @var{face} to
 This swaps the foreground and background colors of face @var{face}.
 @end deffn
 
-  The following functions examine the attributes of a face.  If you
-don't specify @var{frame}, they refer to the selected frame; @code{t}
-refers to the default data for new frames.  They return the symbol
-@code{unspecified} if the face doesn't define any value for that
-attribute.  If @var{inherit} is @code{nil}, only an attribute directly
-defined by the face is returned.  If @var{inherit} is non-@code{nil},
-any faces specified by its @code{:inherit} attribute are considered as
-well, and if @var{inherit} is a face or a list of faces, then they are
-also considered, until a specified attribute is found.  To ensure that
-the return value is always specified, use a value of @code{default} for
+  The following functions examine the attributes of a face.  They
+mostly provide compatibility with old versions of Emacs.  If you don't
+specify @var{frame}, they refer to the selected frame; @code{t} refers
+to the default data for new frames.  They return @code{unspecified} if
+the face doesn't define any value for that attribute.  If
+@var{inherit} is @code{nil}, only an attribute directly defined by the
+face is returned.  If @var{inherit} is non-@code{nil}, any faces
+specified by its @code{:inherit} attribute are considered as well, and
+if @var{inherit} is a face or a list of faces, then they are also
+considered, until a specified attribute is found.  To ensure that the
+return value is always specified, use a value of @code{default} for
 @var{inherit}.
 
 @defun face-font face &optional frame
@@ -2576,13 +2609,13 @@ The value of this variable is an alist whose elements have the form
 any text having the face @var{face} with @var{remapping}, rather than
 the ordinary definition of @var{face}.
 
-@var{remapping} may be any face specification suitable for a
-@code{face} text property: either a face (i.e., a face name or a
-property list of attribute/value pairs), or a list of faces.  For
-details, see the description of the @code{face} text property in
-@ref{Special Properties}.  @var{remapping} serves as the complete
-specification for the remapped face---it replaces the normal
-definition of @var{face}, instead of modifying it.
+@var{remapping} may be any face spec suitable for a @code{face} text
+property: either a face (i.e., a face name or a property list of
+attribute/value pairs), or a list of faces.  For details, see the
+description of the @code{face} text property in @ref{Special
+Properties}.  @var{remapping} serves as the complete specification for
+the remapped face---it replaces the normal definition of @var{face},
+instead of modifying it.
 
 If @code{face-remapping-alist} is buffer-local, its local value takes
 effect only within that buffer.
@@ -2629,7 +2662,7 @@ and @code{face-remap-reset-base} functions; it is intended for major
 modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This functions adds the face specifications in @var{specs} as relative
+This functions adds the face spec in @var{specs} as relative
 remappings for face @var{face} in the current buffer.  The remaining
 arguments, @var{specs}, should form either a list of face names, or a
 property list of attribute/value pairs.

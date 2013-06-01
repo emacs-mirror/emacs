@@ -3781,9 +3781,9 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	       "///" 'vi-state
 	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	       scope)
-	      ;; XEmacs has no called-interactively-p
-	      ;; (if (called-interactively-p 'interactive)
-	      (if (interactive-p)
+	      (if (if (featurep 'xemacs)
+		      (interactive-p)
+		    (called-interactively-p 'interactive))
 		  (message
 		   "// and /// now toggle case-sensitivity and regexp search")))
 	  (viper-unrecord-kbd-macro "//" 'vi-state)
@@ -3806,10 +3806,9 @@ With a prefix argument, unsets the macro."
 	     "%%%" 'vi-state
 	     [(meta x) v i p e r - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
 	     't)
-	    ;; XEmacs has no called-interactively-p. And interactive-p
-	    ;; works fine here.
-	    ;; (if (called-interactively-p 'interactive)
-	    (if (interactive-p)
+	    (if (if (featurep 'xemacs)
+		    (interactive-p)
+		  (called-interactively-p 'interactive))
 		(message
 		 "%%%%%% now toggles whether comments should be parsed for matching parentheses")))
 	(viper-unrecord-kbd-macro "%%%" 'vi-state))))
@@ -3838,10 +3837,9 @@ the macros are set in the current major mode.
 	     "///" 'emacs-state
 	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	     (or arg-majormode major-mode))
-	    ;; called-interactively-p does not work for
-	    ;; XEmacs. interactive-p is ok here.
-	    ;; (if (called-interactively-p 'interactive)
-	    (if (interactive-p)
+	    (if (if (featurep 'xemacs)
+		    (interactive-p)
+		  (called-interactively-p 'interactive))
 		(message
 		 "// and /// now toggle case-sensitivity and regexp search.")))
 	(viper-unrecord-kbd-macro "//" 'emacs-state)
@@ -4608,10 +4606,7 @@ One can use `` and '' to temporarily jump 1 step back."
 
 ;; Input Mode Indentation
 
-;; Returns t, if the string before point matches the regexp STR.
-(defsubst viper-looking-back (str)
-  (and (save-excursion (re-search-backward str nil t))
-       (= (point) (match-end 0))))
+(define-obsolete-function-alias 'viper-looking-back 'looking-back "24.4")
 
 
 (defun viper-forward-indent ()
@@ -4625,7 +4620,7 @@ One can use `` and '' to temporarily jump 1 step back."
   (interactive)
   (if viper-cted
       (let ((p (point)) (c (current-column)) bol (indent t))
-	(if (viper-looking-back "[0^]")
+	(if (looking-back "[0^]")
 	    (progn
 	      (if (eq ?^ (preceding-char))
 		  (setq viper-preserve-indent t))
@@ -4637,7 +4632,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	(delete-region (point) p)
 	(if indent
 	    (indent-to (- c viper-shift-width)))
-	(if (or (bolp) (viper-looking-back "[^ \t]"))
+	(if (or (bolp) (looking-back "[^ \t]"))
 	    (setq viper-cted nil)))))
 
 ;; do smart indent

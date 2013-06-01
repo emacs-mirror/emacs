@@ -52,7 +52,7 @@ fit these criteria."
   "Images that have URLs matching this regexp will be blocked."
   :version "24.1"
   :group 'shr
-  :type 'regexp)
+  :type '(choice (const nil) regexp))
 
 (defcustom shr-table-horizontal-line ?\s
   "Character used to draw horizontal table lines."
@@ -593,6 +593,17 @@ size, and full-buffer size."
 		      (put-text-property start (point) type value))))))))))
     (kill-buffer image-buffer)))
 
+(defun shr-image-from-data (data)
+  "Return an image from the data: URI content DATA."
+  (when (string-match
+	 "\\(\\([^/;,]+\\(/[^;,]+\\)?\\)\\(;[^;,]+\\)*\\)?,\\(.*\\)"
+	 data)
+    (let ((param (match-string 4 data))
+	  (payload (url-unhex-string (match-string 5 data))))
+      (when (string-match "^.*\\(;[ \t]*base64\\)$" param)
+	(setq payload (base64-decode-string payload)))
+      payload)))
+
 (defun shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Return image."
   (if (display-graphic-p)
@@ -983,6 +994,12 @@ ones, in case fg and bg are nil."
 	  ;; Ignore zero-sized or single-pixel images.
 	  )
 	 ((and (not shr-inhibit-images)
+	       (string-match "\\`data:" url))
+	  (let ((image (shr-image-from-data (substring url (match-end 0)))))
+	    (if image
+		(funcall shr-put-image-function image alt)
+	      (insert alt))))
+	 ((and (not shr-inhibit-images)
 	       (string-match "\\`cid:" url))
 	  (let ((url (substring url (match-end 0)))
 		image)
@@ -1070,6 +1087,14 @@ ones, in case fg and bg are nil."
     (insert "\n")
     (shr-indent))
   (shr-generic cont))
+
+(defun shr-tag-span (cont)
+  (let ((title (cdr (assq :title cont))))
+    (shr-generic cont)
+    (when title
+      (when shr-start
+        (let ((overlay (shr-make-overlay shr-start (point))))
+          (overlay-put overlay 'help-echo title))))))
 
 (defun shr-tag-h1 (cont)
   (shr-heading cont 'bold 'underline))

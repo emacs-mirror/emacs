@@ -1,3 +1,23 @@
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* url.el (mm-dissect-buffer, mm-display-part): Declare.
+
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* url-handlers.el (mm-save-part-to-file, mm-destroy-parts)
+	(mm-decode-string, mail-content-type-get): Declare.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* url-dav.el (url-http): Require it.
+	(url-http-head-file-attributes): Don't autoload it.
+
+	* url-proxy.el (url-http): Autoload it.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* url-news.el (url-news): Remove empty custom group.
+
 2013-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* url-http.el (url-http-wait-for-headers-change-function):

@@ -136,13 +136,18 @@ Each entry is a list with the following elements:
     ("true" . t)
     ("both" . both)))
 
+;; FIXME Gets clobbered by cpp-choose-face, so why is even it a defcustom?
 (defcustom cpp-face-default-list nil
   "Alist of faces you can choose from for cpp conditionals.
 Each element has the form (STRING . FACE), where STRING
 serves as a name (for `cpp-highlight-buffer' only)
 and FACE is either a face (a symbol)
 or a cons cell (background-color . COLOR)."
-  :type '(repeat (cons string (choice face (cons (const background-color) string))))
+  :type '(alist :key-type (string :tag "Name")
+		:value-type (choice face
+				    (const invisible)
+				    (cons (const background-color)
+					  (string :tag "Color"))))
   :group 'cpp)
 
 (defcustom cpp-face-light-name-list

@@ -184,6 +184,13 @@ This variable is buffer-local.")
   "Keymap for IELM mode.")
 (defvaralias 'inferior-emacs-lisp-mode-map 'ielm-map)
 
+(easy-menu-define ielm-menu ielm-map
+  "IELM mode menu."
+  '("IELM"
+    ["Change Working Buffer" ielm-change-working-buffer t]
+    ["Display Working Buffer" ielm-display-working-buffer t]
+    ["Print Working Buffer" ielm-print-working-buffer t]))
+
 (defvar ielm-font-lock-keywords
   '(("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)"
      (1 font-lock-comment-face)
@@ -499,6 +506,9 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq comint-get-old-input 'ielm-get-old-input)
   (set (make-local-variable 'comint-completion-addsuffix) '("/" . ""))
   (setq mode-line-process '(":%s on " (:eval (buffer-name ielm-working-buffer))))
+  ;; Useful for `hs-minor-mode'.
+  (setq-local comment-start ";")
+  (setq-local comment-use-global-state t)
 
   (set (make-local-variable 'indent-line-function) 'ielm-indent-line)
   (set (make-local-variable 'ielm-working-buffer) (current-buffer))

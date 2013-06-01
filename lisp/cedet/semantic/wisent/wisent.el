@@ -475,4 +475,8 @@ automaton has only one entry point."
 
 (provide 'semantic/wisent/wisent)
 
+;; Local variables:
+;; generated-autoload-load-name: "semantic/wisent/wisent"
+;; End:
+
 ;;; semantic/wisent/wisent.el ends here

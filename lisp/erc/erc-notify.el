@@ -235,8 +235,13 @@ with args, toggle notify status of people."
 
 (autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
 
+;; "--" is not a typo.
+(declare-function pcomplete--here "pcomplete"
+		  (&optional form stub paring form-only))
+
 ;;;###autoload
 (defun pcomplete/erc-mode/NOTIFY ()
+  (require 'pcomplete)
   (pcomplete-here (pcomplete-erc-all-nicks)))
 
 (erc-notify-install-message-catalogs)

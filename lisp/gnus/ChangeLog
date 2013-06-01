@@ -1,3 +1,251 @@
+2013-05-24  Julien Danjou  <julien@danjou.info>
+
+	* sieve.el (sieve-setup-buffer): Fix default port value in sieve buffer
+	setup.
+
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (rmail-swap-buffers-maybe)
+	(rmail-maybe-set-message-counters, rmail-count-new-messages)
+	(rmail-summary-exists, rmail-show-message, rmail-summary-displayed)
+	(rmail-pop-to-buffer, rmail-maybe-display-summary): Declare.
+
+	* mm-decode.el: No need to load term when compiling.
+	(term-mode, term-char-mode): Declare.
+
+	* mm-util.el: No need to load jka-compr when compiling.
+	(jka-compr-acceptable-retval-list, jka-compr-make-temp-name): Declare.
+
+	* nnmaildir.el: Require is automatically eval-and-compile.
+	(nnmail): Require at run-time too.
+
+	* registry.el (registry-size): Move definition before use.
+
+2013-05-22  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Make sure to insert newline after the
+	signed data to conform the standard.  (Bug#14232)
+
+2013-05-20  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-spec.el (gnus-parse-complex-format): Use unicode escape for left
+	double angle quotation mark.
+
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* message.el (message-insert-formatted-citation-line): Handle finding
+	first/lastname when more than 2 names appear.
+
+2013-05-19  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* shr.el (shr-tag-span): New function.
+
+2013-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mode): Use message-mode-abbrev-table,
+	with text-mode-abbrev-table as parent.  (Bug#14413)
+
+2013-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-expand-group): Decode group names.
+
+2013-05-16  Julien Danjou  <julien@danjou.info>
+
+	* gnus-notifications.el (gnus-notifications-notify): Use photo-file as
+	app-icon.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* shr-color.el (shr-color-visible-luminance-min)
+	(shr-color-visible-distance-min): Use shr-color group.
+
+2013-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-vm.el: Make it loadable without VM.
+	(gnus-vm-make-folder, gnus-summary-save-in-vm): Require 'vm.
+	(vm-forward-message, vm-reply, vm-mail): Remove unused autoloads.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* mml1991.el: Make it loadable.  (Bug#13456)
+
+	* gnus-art.el (gnus-article-date-headers, gnus-blocked-images):
+	* gnus-async.el (gnus-async-post-fetch-function):
+	* gnus-gravatar.el (gnus-gravatar-size, gnus-gravatar-properties):
+	* gnus-html.el (gnus-html-image-cache-ttl):
+	* gnus-notifications.el (gnus-notifications-timeout):
+	* gnus-picon.el (gnus-picon-properties):
+	* gnus-util.el (gnus-completion-styles):
+	* gnus.el (gnus-other-frame-resume-function):
+	* message.el (message-user-organization-file)
+	(message-cite-reply-position):
+	* nnir.el (nnir-summary-line-format)
+	(nnir-retrieve-headers-override-function):
+	* shr-color.el (shr-color-visible-luminance-min):
+	* shr.el (shr-blocked-images):
+	* spam-report.el (spam-report-resend-to):
+	* spam.el (spam-summary-exit-behavior): Fix custom types.
+
+	* gnus-salt.el (gnus-selected-tree-face): Fix default.
+
+2013-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Require help-mode
+	because of let-binding help-xref-following.  (Bug#14356)
+
+2013-05-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* message.el (message-bury, message-send-and-exit):
+	Revert 2013-05-04 change.
+
+2013-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* mml2015.el (mml2015-epg-sign): Add name="signature.asc".  (Bug#13465)
+
+2013-05-04  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* message.el (message-bury): Make `buffer' optional.
+	(message-send-and-exit): Don't pass `buf' so as to hide the buffer
+	(bug#14085).
+
+2013-05-04  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-sum.el (gnus-read-header): Ensure groups are prefixed when
+	entering into the registry.
+
+2013-05-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-emacs-completing-read): Fix a filter for XEmacs.
+	(Bug#14304)
+
+2013-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-list-debbugs):
+	Use require rather than autoload.  (Bug#14262)
+
+2013-04-27  Julien Danjou  <julien@danjou.info>
+
+	* sieve-manage.el (sieve-manage-authenticator-alist): Update the sieve
+	port to "sieve" now that it has an official IANA port assigned.
+
+2013-04-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail-source.el (mail-source-fetch-pop, mail-source-check-pop):
+	Don't set the MAILHOST environment variable permanently (Bug#14271).
+
+2013-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-bury): Revert 2013-03-18 change.  (Bug#14117)
+
+2013-04-25  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Re-order conditional to work for
+	string values of 'gcc-self.  Thanks to Saroj Thirumalai.
+
+2013-04-24  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-close-group): Make sure we are in the right group.
+
+	* gnus-sum.el (gnus-summary-insert-articles): Force updates to the
+	dependency table from all newly retrieved headers.
+
+2013-04-16  David Edmondson  <dme@dme.org>
+
+	Support <img src="data:...">.
+
+	* shr.el (shr-image-from-data): New function.
+	(shr-tag-img): Use it.
+
+2013-04-14  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-request-set-mark): Make sure we are in the right
+	group.
+
+2013-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-msg-mail): Make it avoid using posting styles
+	corresponding to any existing group (Bug#14166).
+
+2013-04-10  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (number-sequence): No longer used.
+	(nnir-request-set-mark): New function.
+	(nnir-request-update-info): Improve marks updating.
+	(nnir-request-scan): Don't duplicate marks updating.
+	(gnus-group-make-nnir-group, nnir-run-imap, nnir-request-create-group):
+	Use 'assq rather than 'assoc. Quote anonymous function.
+	(nnir-request-group, nnir-close-group, gnus-summary-create-nnir-group):
+	Use 'gnus-group-prefixed-p.
+	(gnus-summary-create-nnir-group): Make sure server for method is open.
+
+2013-04-04  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (gnus-nnir-group-p): New function.
+	(nnir-possibly-change-group): Use it.
+
+	* gnus-msg.el (gnus-setup-message): Use it.
+
+2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-minibuffer-read-description): Use `default' insted of
+	`initial-input' for the argument name.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+2013-04-03  Kevin Layer  <layer@known.net>  (tiny change)
+
+	* mml.el (mml-minibuffer-read-description): Allow passing in a prefix
+	(used by MH-E).
+
+2013-04-01  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-request-update-mark): Improve mark updating in original
+	group.
+
+	* gnus-msg.el (nnir-article-number, nnir-article-group): Autoload to
+	fix compilation.
+
+2013-03-31  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-method-default-engines): And another typo.
+
+2013-03-30  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el (nnir-method-default-engines): Fix typo.
+
+2013-03-29  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el: Define 'number-sequence for xemacs.
+	(gnus-summary-create-nnir-group): New function to create an nnir group
+	from an nnir summary buffer based on the current query.
+	(nnir-request-create-group): Update to allow nnir group creation based
+	on the current query.
+
+2013-03-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-request-expire-articles):
+	Make expiry target always `delete'.
+
+2013-03-27  Andrew Cohen  <cohen@bu.edu>
+
+	* gnus-msg.el (gnus-setup-message): When replying from an nnir summary
+	buffer use the posting-style and gcc of the original article group.
+	(gnus-inews-insert-gcc): Don't set gcc-self for virtual groups.
+
+	* nnir.el: Fix byte-compile warning. nnoo-define-skeleton should come
+	after other deffoos.
+
+2013-03-26  Andrew Cohen  <cohen@bu.edu>
+
+	* nnir.el: Major rewrite. Cleaner separation between searches and group
+	management. Marks are now shown in nnir summary buffers. Rudimentary
+	support for real (i.e. not ephemeral) nnir groups.
+	(gnus-summary-make-nnir-group): New function for initiating searches
+	from a summary buffer.
+
+2013-03-18  Sam Steingold  <sds@gnu.org>
+
+	* message.el (message-bury): Minor cleanup.
+
 2013-03-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nndir.el (nndir-request-list): Remove 2nd argument passed to
@@ -67,7 +315,7 @@
 2013-01-30  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* gnus-int.el (gnus-backend-trace-elapsed): New variable.
-	(gnus-backend-trace): Honour gnus-backend-trace.
+	(gnus-backend-trace): Honor gnus-backend-trace.
 
 	* mml.el (mml-insert-part): Insert closing tag.
 

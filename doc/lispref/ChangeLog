@@ -1,3 +1,61 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Autoload):
+	* help.texi (Documentation Basics, Accessing Documentation)
+	(Accessing Documentation, Accessing Documentation): DOC-* is now DOC.
+
+2013-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Remove obvious example.
+	Tweak other to avoid overly long line.
+
+2013-04-21  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* internals.texi (Writing Emacs Primitives): Remove unnecessary
+	references to the sources. (Bug#13800)
+
+	* searching.texi (Regexp Backslash): Doc fix for backslash
+	constructs in regular expressions.
+
+2013-04-15  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* tips.texi (Coding Conventions): Mention separation of package
+	descriptor and name of internal symbols by two hyphens.
+
+2013-04-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* windows.texi (Splitting Windows): Change category of
+	split-window from a command to a function.
+
+2013-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Faces): Minor clarifications.
+	(Defining Faces): Clarify default vs custom face specs.
+	Document face-spec-set.
+
+	* display.texi (Overlay Properties):
+	* text.texi (Special Properties): Use the "anonymous face"
+	terminology.  Describe foreground-color and background-color forms
+	as compatibility-only.
+
+2013-03-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* compile.texi (Byte-Code Objects): Add index entry.
+	(Disassembly): Add cross-references.
+
+2013-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Size Parameters): More accurate description of the
+	difference between 'fullboth' and 'maximized'.  (Bug#13935)
+
+2013-03-17  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* symbols.texi (Standard Properties): Document pure.  (Bug#13823)
+
+2013-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi: Add some stuff specific to www.gnu.org.
+
 2013-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* control.texi (Pattern matching case statement): Fix typo.
@@ -1998,8 +2056,8 @@
 
 2012-02-04  Chong Yidong  <cyd@gnu.org>
 
-	* functions.texi (What Is a Function): Add closures.  Mention
-	"return value" terminology.  Add xref for command-execute.
+	* functions.texi (What Is a Function): Add closures.
+	Mention "return value" terminology.  Add xref for command-execute.
 	Remove unused "keystroke command" terminology.
 	(Lambda Expressions): Give a different example than in the
 	following subsection.  Add xref to Anonymous Functions.
@@ -11546,7 +11604,7 @@
 
 2002-05-13  Kim F. Storm  <storm@cua.dk>
 
-	* variables.texi (Intro to Buffer-Local): Updated warning and
+	* variables.texi (Intro to Buffer-Local): Update warning and
 	example relating to changing buffer inside let.
 
 2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>

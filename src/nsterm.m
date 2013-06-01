@@ -228,6 +228,25 @@ static struct {
   NULL, 0, 0
 };
 
+/*
+ * State for pending menu activation:
+ * MENU_NONE     Normal state
+ * MENU_PENDING  A menu has been clicked on, but has been canceled so we can
+ *               run lisp to update the menu.
+ * MENU_OPENING  Menu is up to date, and the click event is redone so the menu
+ *               will open.
+ */
+#define MENU_NONE 0
+#define MENU_PENDING 1
+#define MENU_OPENING 2
+static int menu_will_open_state = MENU_NONE;
+
+/* Saved position for menu click.  */
+static CGPoint menu_mouse_point;
+
+/* Title for the menu to open.  */
+static char *menu_pending_title = 0;
+
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
@@ -993,8 +1012,9 @@ ns_raise_frame (struct frame *f)
      Bring window to foreground and make it active
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  check_ns ();
+  NSView *view;
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   block_input ();
   if (FRAME_VISIBLE_P (f))
     [[view window] makeKeyAndOrderFront: NSApp];
@@ -1008,8 +1028,9 @@ ns_lower_frame (struct frame *f)
      Send window to back
    -------------------------------------------------------------------------- */
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  check_ns ();
+  NSView *view;
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   block_input ();
   [[view window] orderBack: NSApp];
   unblock_input ();
@@ -1112,9 +1133,10 @@ x_make_frame_invisible (struct frame *f)
      External: Hide the window (X11 semantics)
    -------------------------------------------------------------------------- */
 {
-  NSView * view = FRAME_NS_VIEW (f);
+  NSView *view;
   NSTRACE (x_make_frame_invisible);
-  check_ns ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
   [[view window] orderOut: NSApp];
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, 0);
@@ -1127,10 +1149,13 @@ x_iconify_frame (struct frame *f)
      External: Iconify window
    -------------------------------------------------------------------------- */
 {
-  NSView * view = FRAME_NS_VIEW (f);
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  NSView *view;
+  struct ns_display_info *dpyinfo;
+
   NSTRACE (x_iconify_frame);
-  check_ns ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
+  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
 
   if (dpyinfo->x_highlight_frame == f)
     dpyinfo->x_highlight_frame = 0;
@@ -1155,11 +1180,15 @@ x_iconify_frame (struct frame *f)
 void
 x_free_frame_resources (struct frame *f)
 {
-  NSView *view = FRAME_NS_VIEW (f);
-  struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+  NSView *view;
+  struct ns_display_info *dpyinfo;
+  Mouse_HLInfo *hlinfo;
+
   NSTRACE (x_free_frame_resources);
-  check_ns ();
+  check_window_system (f);
+  view = FRAME_NS_VIEW (f);
+  dpyinfo = FRAME_NS_DISPLAY_INFO (f);
+  hlinfo = MOUSE_HL_INFO (f);
 
   [(EmacsView *)view setWindowClosing: YES]; /* may not have been informed */
 
@@ -1200,7 +1229,7 @@ x_destroy_window (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (x_destroy_window);
-  check_ns ();
+  check_window_system (f);
   x_free_frame_resources (f);
   ns_window_num--;
 }
@@ -1854,7 +1883,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
         f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
 
-      if (f && f->output_data.ns)  /* TODO: 2nd check no longer needed? */
+      if (f && FRAME_NS_P (f))
         {
           view = FRAME_NS_VIEW (*fp);
 
@@ -3388,6 +3417,77 @@ check_native_fs ()
 }
 #endif
 
+const char *
+ns_get_pending_menu_title ()
+{
+  return menu_pending_title;
+}
+
+/* Check if menu open should be cancelled or continued as normal.  */
+void
+ns_check_menu_open (NSMenu *menu)
+{
+  /* GNUStep and OSX <= 10.4 does not have cancelTracking.  */
+#if defined(NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+
+  /* Click in menu bar? */
+  NSArray *a = [[NSApp mainMenu] itemArray];
+  int i;
+  BOOL found = NO;
+  for (i = 0; ! found && i < [a count]; i++)
+    found = menu == [[a objectAtIndex:i] submenu];
+  if (found)
+    {
+      if (menu_will_open_state == MENU_NONE && emacs_event)
+        {
+          NSEvent *theEvent = [NSApp currentEvent];
+          struct frame *emacsframe = SELECTED_FRAME ();
+
+          [menu cancelTracking];
+          menu_will_open_state = MENU_PENDING;
+          emacs_event->kind = MENU_BAR_ACTIVATE_EVENT;
+          EV_TRAILER (theEvent);
+
+          CGEventRef ourEvent = CGEventCreate (NULL);
+          menu_mouse_point = CGEventGetLocation (ourEvent);
+          CFRelease (ourEvent);
+          xfree (menu_pending_title);
+          menu_pending_title = xstrdup ([[menu title] UTF8String]);
+        }
+      else if (menu_will_open_state == MENU_OPENING)
+        {
+          menu_will_open_state = MENU_NONE;
+        }
+    }
+#endif
+}
+
+/* Redo saved menu click if state is MENU_PENDING.  */
+void
+ns_check_pending_open_menu ()
+{
+#ifdef NS_IMPL_COCOA
+  if (menu_will_open_state == MENU_PENDING)
+    {
+      CGEventSourceRef source
+        = CGEventSourceCreate (kCGEventSourceStateHIDSystemState);
+
+      CGEventRef event = CGEventCreateMouseEvent (source,
+                                                  kCGEventLeftMouseDown,
+                                                  menu_mouse_point,
+                                                  kCGMouseButtonLeft);
+      CGEventSetType (event, kCGEventLeftMouseDown);
+      CGEventPost (kCGHIDEventTap, event);
+      CFRelease (event);
+      CFRelease (source);
+
+      menu_will_open_state = MENU_OPENING;
+    }
+#endif
+}
+
+
 static int
 ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 /* --------------------------------------------------------------------------
@@ -3601,6 +3701,11 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
           result = t;
         }
     }
+  else
+    {
+      errno = EINTR;
+      result = -1;
+    }
 
   return result;
 }
@@ -3808,15 +3913,31 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 int
 x_display_pixel_height (struct ns_display_info *dpyinfo)
 {
-  NSScreen *screen = [NSScreen mainScreen];
-  return [screen frame].size.height;
+  NSArray *screens = [NSScreen screens];
+  NSEnumerator *enumerator = [screens objectEnumerator];
+  NSScreen *screen;
+  NSRect frame;
+
+  frame = NSZeroRect;
+  while ((screen = [enumerator nextObject]) != nil)
+    frame = NSUnionRect (frame, [screen frame]);
+
+  return NSHeight (frame);
 }
 
 int
 x_display_pixel_width (struct ns_display_info *dpyinfo)
 {
-  NSScreen *screen = [NSScreen mainScreen];
-  return [screen frame].size.width;
+  NSArray *screens = [NSScreen screens];
+  NSEnumerator *enumerator = [screens objectEnumerator];
+  NSScreen *screen;
+  NSRect frame;
+
+  frame = NSZeroRect;
+  while ((screen = [enumerator nextObject]) != nil)
+    frame = NSUnionRect (frame, [screen frame]);
+
+  return NSWidth (frame);
 }
 
 
@@ -5448,12 +5569,26 @@ not_in_argv (NSString *arg)
 
   if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
     {
+      struct frame *f = emacsframe;
       NSView *view = FRAME_NS_VIEW (emacsframe);
+      NSWindow *win = [view window];
+      NSSize sz = [win resizeIncrements];
+
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
       change_frame_size (emacsframe, rows, cols, 0, delay, 0);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
+
+      // Did resize increments change because of a font change?
+      if (sz.width != FRAME_COLUMN_WIDTH (emacsframe) ||
+          sz.height != FRAME_LINE_HEIGHT (emacsframe))
+        {
+          sz.width = FRAME_COLUMN_WIDTH (emacsframe);
+          sz.height = FRAME_LINE_HEIGHT (emacsframe);
+          [win setResizeIncrements: sz];
+        }
+
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
       [self windowDidMove:nil];   // Update top/left.
     }
@@ -6513,7 +6648,7 @@ not_in_argv (NSString *arg)
 {
   Lisp_Object str = Qnil;
   struct frame *f = SELECTED_FRAME ();
-  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->buffer);
+  struct buffer *curbuf = XBUFFER (XWINDOW (f->selected_window)->contents);
 
   if ([attribute isEqualToString:NSAccessibilityRoleAttribute])
     return NSAccessibilityTextFieldRole;

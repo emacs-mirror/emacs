@@ -41,14 +41,13 @@ They are deleted only by calling delete-window on them (but
 this can be done implicitly).  Combination windows can be created
 and deleted at any time.
 
-A leaf window has a non-nil buffer field, and also
- has markers in its start and pointm fields.  Non-leaf windows
- have nil in these fields.
+A leaf window has a buffer stored in contents field and markers in its start
+and pointm fields.  Non-leaf windows have nil in the latter two fields.
 
 Non-leaf windows are either vertical or horizontal combinations.
 
 A vertical combination window has children that are arranged on the frame
-one above the next.  Its vchild field points to the uppermost child.
+one above the next.  Its contents field points to the uppermost child.
 The parent field of each of the children points to the vertical
 combination window.  The next field of each child points to the
 child below it, or is nil for the lowest child.  The prev field
@@ -56,7 +55,7 @@ of each child points to the child above it, or is nil for the
 highest child.
 
 A horizontal combination window has children that are side by side.
-Its hchild field points to the leftmost child.  In each child
+Its contents field points to the leftmost child.  In each child
 the next field points to the child to the right and the prev field
 points to the child to the left.
 
@@ -78,7 +77,7 @@ the root window is the minibuf window.  On minibufferless screens or
 minibuffer-only screens, the root window and the minibuffer window are
 one and the same, so its prev and next members are nil.
 
-A dead window has its buffer, hchild, and vchild windows all nil.  */
+A dead window has its contents field set to nil.  */
 
 struct cursor_pos
 {
@@ -102,37 +101,22 @@ struct window
     Lisp_Object next;
     Lisp_Object prev;
 
-    /* First child of this window: vchild is used if this is a vertical
-       combination, hchild if this is a horizontal combination.  Of the
-       fields vchild, hchild and buffer, one and only one is non-nil
-       unless the window is dead.  */
-    Lisp_Object hchild;
-    Lisp_Object vchild;
-
     /* The window this one is a child of.  */
     Lisp_Object parent;
 
-    /* The upper left corner coordinates of this window, as integers
-       relative to upper left corner of frame = 0, 0.  */
-    Lisp_Object left_col;
-    Lisp_Object top_line;
-
-    /* The size of the window.  */
-    Lisp_Object total_lines;
-    Lisp_Object total_cols;
-
-    /* The normal size of the window.  */
+    /* The normal size of the window.  These are fractions, but we do
+       not use C doubles to avoid creating new Lisp_Float objects while
+       interfacing Lisp in Fwindow_normal_size.  */
     Lisp_Object normal_lines;
     Lisp_Object normal_cols;
 
-    /* New sizes of the window.  */
+    /* New sizes of the window.  Note that Lisp code may set new_normal
+       to something beyond an integer, so C int can't be used here.  */
     Lisp_Object new_total;
     Lisp_Object new_normal;
 
-    /* The buffer displayed in this window.  Of the fields vchild,
-       hchild and buffer, one and only one is non-nil unless the window
-       is dead.  */
-    Lisp_Object buffer;
+    /* May be buffer, window, or nil.  */
+    Lisp_Object contents;
 
     /* A marker pointing to where in the text to start displaying.
        BIDI Note: This is the _logical-order_ start, i.e. the smallest
@@ -221,6 +205,15 @@ struct window
     /* Number saying how recently window was selected.  */
     int use_time;
 
+    /* The upper left corner coordinates of this window,
+       relative to upper left corner of frame = 0, 0.  */
+    int left_col;
+    int top_line;
+
+    /* The size of the window.  */
+    int total_lines;
+    int total_cols;
+
     /* Number of columns display within the window is scrolled to the left.  */
     ptrdiff_t hscroll;
 
@@ -278,6 +271,10 @@ struct window
 
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
+
+    /* Meaningful only if contents is a window, non-zero if this
+       internal window is used in horizontal combination.  */
+    unsigned horizontal : 1;
 
     /* Non-zero means must regenerate mode line of this window.  */
     unsigned update_mode_line : 1;
@@ -354,11 +351,6 @@ wset_frame (struct window *w, Lisp_Object val)
   w->frame = val;
 }
 WINDOW_INLINE void
-wset_left_col (struct window *w, Lisp_Object val)
-{
-  w->left_col = val;
-}
-WINDOW_INLINE void
 wset_next (struct window *w, Lisp_Object val)
 {
   w->next = val;
@@ -372,21 +364,6 @@ WINDOW_INLINE void
 wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
 {
   w->redisplay_end_trigger = val;
-}
-WINDOW_INLINE void
-wset_top_line (struct window *w, Lisp_Object val)
-{
-  w->top_line = val;
-}
-WINDOW_INLINE void
-wset_total_cols (struct window *w, Lisp_Object val)
-{
-  w->total_cols = val;
-}
-WINDOW_INLINE void
-wset_total_lines (struct window *w, Lisp_Object val)
-{
-  w->total_lines = val;
 }
 WINDOW_INLINE void
 wset_vertical_scroll_bar (struct window *w, Lisp_Object val)
@@ -445,6 +422,21 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* A handy macro.  */
 
+/* Non-zero if W is leaf (carry the buffer).  */
+
+#define WINDOW_LEAF_P(W) \
+  (BUFFERP ((W)->contents))
+
+/* Non-zero if W is a member of horizontal combination.  */
+
+#define WINDOW_HORIZONTAL_COMBINATION_P(W) \
+  (WINDOWP ((W)->contents) && (W)->horizontal)
+
+/* Non-zero if W is a member of vertical combination.  */
+
+#define WINDOW_VERTICAL_COMBINATION_P(W) \
+  (WINDOWP ((W)->contents) && !(W)->horizontal)
+
 #define WINDOW_XFRAME(W) \
   (XFRAME (WINDOW_FRAME ((W))))
 
@@ -461,14 +453,12 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Return the width of window W in canonical column units.
    This includes scroll bars and fringes.  */
 
-#define WINDOW_TOTAL_COLS(W) \
-  (XFASTINT (W->total_cols))
+#define WINDOW_TOTAL_COLS(W) (W)->total_cols
 
 /* Return the height of window W in canonical line units.
    This includes header and mode lines, if any.  */
 
-#define WINDOW_TOTAL_LINES(W) \
-  (XFASTINT (W->total_lines))
+#define WINDOW_TOTAL_LINES(W) (W)->total_lines
 
 /* Return the total pixel width of window W.  */
 
@@ -495,8 +485,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Return the canonical frame column at which window W starts.
    This includes a left-hand scroll bar, if any.  */
 
-#define WINDOW_LEFT_EDGE_COL(W) \
-  (XFASTINT (W->left_col))
+#define WINDOW_LEFT_EDGE_COL(W) (W)->left_col
 
 /* Return the canonical frame column before which window W ends.
    This includes a right-hand scroll bar, if any.  */
@@ -507,8 +496,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Return the canonical frame line at which window W starts.
    This includes a header line, if any.  */
 
-#define WINDOW_TOP_EDGE_LINE(W) \
-  (XFASTINT (W->top_line))
+#define WINDOW_TOP_EDGE_LINE(W) (W)->top_line
 
 /* Return the canonical frame line before which window W ends.
    This includes a mode line, if any.  */
@@ -533,9 +521,14 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* 1 if W is a menu bar window.  */
 
+#if defined (HAVE_X_WINDOWS) && ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define WINDOW_MENU_BAR_P(W) \
   (WINDOWP (WINDOW_XFRAME (W)->menu_bar_window) \
    && (W) == XWINDOW (WINDOW_XFRAME (W)->menu_bar_window))
+#else
+/* No menu bar windows if X toolkit is in use.  */
+#define WINDOW_MENU_BAR_P(W) (0)
+#endif
 
 /* 1 if W is a tool bar window.  */
 
@@ -891,10 +884,10 @@ extern Lisp_Object Vmouse_event;
 
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
-                                            enum window_part *, int);
-extern void resize_frame_windows (struct frame *, int, int);
+                                            enum window_part *, bool);
+extern void resize_frame_windows (struct frame *, int, bool);
 extern void delete_all_child_windows (Lisp_Object);
-extern void freeze_window_starts (struct frame *, int);
+extern void freeze_window_starts (struct frame *, bool);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
@@ -906,7 +899,7 @@ void run_window_configuration_change_hook (struct frame *f);
    it's not allowed.  */
 
 void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
-                        int run_hooks_p, int keep_margins_p);
+                        bool run_hooks_p, bool keep_margins_p);
 
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
@@ -947,20 +940,17 @@ extern void check_frame_size (struct frame *frame, int *rows, int *cols);
 struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* Value is non-zero if WINDOW is a valid window.  */
-#define WINDOW_VALID_P(WINDOW)				\
-  (WINDOWP (WINDOW)					\
-   && (!NILP (XWINDOW (WINDOW)->buffer)			\
-       || !NILP (XWINDOW (WINDOW)->vchild)		\
-       || !NILP (XWINDOW (WINDOW)->hchild)))
+#define WINDOW_VALID_P(WINDOW)					\
+  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->contents))	\
 
-/* A window of any sort, leaf or interior, is "valid" if one
-   of its buffer, vchild, or hchild members is non-nil.  */
+/* A window of any sort, leaf or interior, is "valid" if its
+   contents slot is non-nil.  */
 #define CHECK_VALID_WINDOW(WINDOW)				\
   CHECK_TYPE (WINDOW_VALID_P (WINDOW), Qwindow_valid_p, WINDOW)
 
 /* Value is non-zero if WINDOW is a live window.  */
 #define WINDOW_LIVE_P(WINDOW)					\
-  (WINDOWP (WINDOW) && !NILP (XWINDOW (WINDOW)->buffer))
+  (WINDOWP (WINDOW) && BUFFERP (XWINDOW (WINDOW)->contents))
 
 /* A window is "live" if and only if it shows a buffer.  */
 #define CHECK_LIVE_WINDOW(WINDOW)				\

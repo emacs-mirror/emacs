@@ -101,6 +101,8 @@ select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
   :type 'boolean
   :group 'vera)
+(make-obsolete-variable 'vera-underscore-is-part-of-word
+                        'superword-mode "24.4")
 
 (defcustom vera-intelligent-tab t
   "Non-nil means `TAB' does indentation, word completion and tab insertion.
@@ -1353,6 +1355,11 @@ If `vera-intelligent-tab' is nil, always indent line."
 (defvar vera-expand-upper-case nil)
 
 (eval-when-compile (require 'hippie-exp))
+(declare-function he-init-string "hippie-exp" (beg end))
+(declare-function he-dabbrev-beg "hippie-exp" ())
+(declare-function he-string-member "hippie-exp" (str lst &optional trans-case))
+(declare-function he-reset-string "hippie-exp" ())
+(declare-function he-substitute-string "hippie-exp" (str &optional trans-case))
 
 (defun vera-try-expand-abbrev (old)
   "Try expanding abbreviations from `vera-abbrev-list'."

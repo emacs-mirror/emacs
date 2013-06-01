@@ -1,3 +1,193 @@
+2013-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (WinMain): Support invocation of un-installed
+	nt/runemacs.exe, by looking for src/emacs.exe.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (SIZE_MAX) [!__GNUC__]: Define.  (Bug#14409)
+
+	* msysconfig.sh: New file.
+
+	* mingw-cfg.site: New file.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -DOLD_PATHS=1.
+
+	* inc/unistd.h: Include pwd.h and sys/types.h.
+
+	* inc/sys/time.h (_TIMEVAL_DEFINED, timerisset, timercmp)
+	(timerclear): Define.
+	(gettimeofday): Adjust signature to be Posix compatible, by using
+	the 'restrict' keyword.
+
+	* inc/sys/stat.h (UTIME_NOW, UTIME_OMIT): Define.
+	(struct _stat, struct _stati64): Define.
+
+	* inc/sys/socket.h (timeval): Define only for MSVC.
+	(FD_SET, FD_CLR, FD_ISSET, fd_set): Redefine only if
+	EMACS_CONFIG_H is defined.
+	(timeval): Undefine only for MSVC.
+
+	* inc/ms-w32.h (HAVE___BUILTIN_UNWIND_INIT, restrict)
+	(HAVE_WINDOW_SYSTEM, HAVE_MENUS, EMACS_CONFIGURATION)
+	(EMACS_CONFIG_OPTIONS, HAVE_LONG_LONG_INT)
+	(HAVE_UNSIGNED_LONG_LONG_INT): Define only if not already defined.
+	(fileno): Move definition after including stdio.h.
+	(sigset_t): Guard typedef by _W64.
+
+	* gnulib.mk: New file.
+
+	* epaths.nt: New file.
+
+	* addpm.c [!OLD_PATHS]: Include src/epaths.h, instead of having a
+	copy of the file names there.
+	<env_vars> [!OLD_PATHS]: Use macros from epaths.h instead of
+	literal strings.
+
+	* Makefile.in: New file.
+
+	* INSTALL.MSYS: New file.
+
+	* INSTALL: Mention INSTALL.MSYS.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (clean, top-distclean): DOC-X doesn't exist any more.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ACLSORT, HAVE_ACLV_H, HAVE_ACLX_GET, HAVE_ACL_COPY_EXT_NATIVE)
+	(HAVE_ACL_CREATE_ENTRY_NP, HAVE_ACL_DELETE_DEF_FILE)
+	(HAVE_ACL_DELETE_FD_NP, HAVE_ACL_DELETE_FILE_NP, HAVE_ACL_ENTRIES)
+	(HAVE_ACL_EXTENDED_FILE, HAVE_ACL_FIRST_ENTRY, HAVE_ACL_FREE)
+	(HAVE_ACL_FREE_TEXT, HAVE_ACL_FROM_MODE, HAVE_ACL_FROM_TEXT)
+	(HAVE_ACL_GET_FD, HAVE_ACL_GET_FILE, HAVE_ACL_LIBACL_H, HAVE_ACL_SET_FD)
+	(HAVE_ACL_TO_SHORT_TEXT, HAVE_ACL_TRIVIAL, HAVE_ACL_TYPE_EXTENDED)
+	(HAVE_FACL, HAVE_GETACL, HAVE_STATACL, HAVE_SYS_ACL_H, HAVE_XINERAMA)
+	(HAVE_XRANDR, HAVE_XRRGETOUTPUTPRIMARY)
+	(HAVE_XRRGETSCREENRESOURCESCURRENT, USE_ACL): New macros.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
+	* inc/ms-w32.h (EOPNOTSUPP): New macro.
+
+2013-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Use 64-bit manifest for 64-bit Cygwin build.
+	(Bug#12993)
+
+2013-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: A better documentation of ddeclient.exe.
+
+	* README.W32: A better documentation of ddeclient.exe.
+
+	* paths.h (PATH_EXEC): Add nt/oo-spd/i386 and nt/oo/i386
+	subdirectories.
+
+2013-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Remove definition.
+
+	* config.nt (TERM_HEADER): Move the definition to "w32term.h" from
+	ms-w32.h.
+
+2013-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
+
+	* config.nt (HAVE_COPYSIGN): Define.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_XKBGETKEYBOARD): Remove.
+	(HAVE_XKB): New macro.
+
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap, bootstrap-nmake, bootstrap-gmake, install-addpm):
+	Depend on .exe files.
+
+	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
+	avoid MinGW64 compiler warnings in editfns.c.
+
+	Fix rules for parallel builds.
+	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
+	without the .exe suffix.
+	(addpm, ddeclient, cmdproxy, addsection, preprep): Remove phony
+	targets.
+	(.PHONY): Remove.
+
+	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
+	headers, since that's where _W64 is declared by MinGW64.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
+	(HAVE__SETJMP) [_W64]: Undefine for MinGW64.
+
+	* addsection.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not
+	define for MinGW64.
+
+	* preprep.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not define
+	for MinGW64.
+
+	Fix more incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
+	and in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
+	For MinGW64, include sys/types.h and time.h.
+	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
+
+	* inc/sys/stat.h (chmod): Remove _CRTIMP from prototype.
+
+	* inc/sys/time.h (struct timeval) [!_W64]: Guard definition with
+	_W64.
+	(struct timezone) [!_TIMEZONE_DEFINED]: Guard definition with
+	_TIMEZONE_DEFINED.
+
+	* addpm.c (_WIN32_IE) [_W64]: For MinGW64, don't define to 0x400.
+
+	* inc/sys/stat.h: Remove _CRTIMP from prototypes of fstat, stat,
+	lstat, and fstatat.
+
+2013-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00611.html.
+	* inc/ms-w32.h (struct timespec): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+	(sigset_t) [!_POSIX]: Typedef for MinGW64.
+	(_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Move definitions before
+	including the first system header, to avoid redefinition if some
+	system header defines a default value.
+
+	* inc/sys/time.h (struct itimerval): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSVC build.  (Bug#13939)
+	* inc/stdint.h (UINTPTR_MAX): Define.
+
+	* nmake.defs (libc): Fix syntax of !if conditional.
+
+2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD_SYSTEM, BSD_SYSTEM_AHB, HAVE_ALARM, HAVE__PUTENV): Remove.
+	(HAVE_DECL_ALARM, HAVE_DECL_FDATASYNC, HAVE_DECL__PUTENV)
+	(HAVE_FDATASYNC): New macros.
+
 2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	File synchronization fixes (Bug#13944).

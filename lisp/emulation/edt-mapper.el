@@ -96,6 +96,10 @@
 
 ;;; Code:
 
+;; Otherwise it just hangs.  This seems preferable.
+(if noninteractive
+    (error "edt-mapper cannot be loaded in batch mode"))
+
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).

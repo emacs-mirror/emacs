@@ -289,10 +289,11 @@ Elements of the list may be:
   obsolete    obsolete variables and functions.
   noruntime   functions that may not be defined at runtime (typically
               defined only under `eval-when-compile').
-  cl-functions    calls to runtime functions from the CL package (as
-		  distinguished from macros and aliases).
+  cl-functions    calls to runtime functions (as distinguished from macros and
+                  aliases) from the old CL package (not the newer cl-lib).
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
+  lexical     global/dynamic variables lacking a prefix.
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
   constants   let-binding of, or assignment to, constants/nonvariables.
@@ -1978,7 +1979,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       (widen)
       (delete-char delta))))
 
-(defun byte-compile-insert-header (filename outbuffer)
+(defun byte-compile-insert-header (_filename outbuffer)
   "Insert a header at the start of OUTBUFFER.
 Call from the source buffer."
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
@@ -1997,11 +1998,7 @@ Call from the source buffer."
       ;; >4	byte		x		version %d
       (insert
        ";ELC" 23 "\000\000\000\n"
-       ";;; Compiled by "
-       (or (and (boundp 'user-mail-address) user-mail-address)
-	   (concat (user-login-name) "@" (system-name)))
-       " on " (current-time-string) "\n"
-       ";;; from file " filename "\n"
+       ";;; Compiled\n"
        ";;; in Emacs version " emacs-version "\n"
        ";;; with"
        (cond
@@ -2217,13 +2214,15 @@ list that represents a doc string reference.
   (when (and (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
-             (symbolp (nth 1 (nth 1 form)))
-             ;; Don't add it if it's already defined.  Otherwise, it might
-             ;; hide the actual definition.
-             (not (fboundp (nth 1 (nth 1 form)))))
-    (push (cons (nth 1 (nth 1 form))
-		(cons 'autoload (cdr (cdr form))))
-	  byte-compile-function-environment)
+	   (symbolp (nth 1 (nth 1 form))))
+    ;; Don't add it if it's already defined.  Otherwise, it might
+    ;; hide the actual definition.  However, do remove any entry from
+    ;; byte-compile-noruntime-functions, in case we have an autoload
+    ;; of foo-func following an (eval-when-compile (require 'foo)).
+    (unless (fboundp (nth 1 (nth 1 form)))
+      (push (cons (nth 1 (nth 1 form))
+		  (cons 'autoload (cdr (cdr form))))
+	    byte-compile-function-environment))
     ;; If an autoload occurs _before_ the first call to a function,
     ;; byte-compile-callargs-warn does not add an entry to
     ;; byte-compile-unresolved-functions.  Here we mimic the logic
@@ -2231,11 +2230,14 @@ list that represents a doc string reference.
     ;; autoload comes _after_ the function call.
     ;; Alternatively, similar logic could go in
     ;; byte-compile-warn-about-unresolved-functions.
-    (or (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	(setq byte-compile-unresolved-functions
-	      (delq (assq (nth 1 (nth 1 form))
-			  byte-compile-unresolved-functions)
-		    byte-compile-unresolved-functions))))
+    (if (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
+	(setq byte-compile-noruntime-functions
+	      (delq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
+	      byte-compile-noruntime-functions)
+      (setq byte-compile-unresolved-functions
+	    (delq (assq (nth 1 (nth 1 form))
+			byte-compile-unresolved-functions)
+		  byte-compile-unresolved-functions))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.

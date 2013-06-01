@@ -437,14 +437,8 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
 	      || (need_fchmod && fchmod (fd, world_readable) != 0))
 	    err = errno;
-	  else
-	    while (fsync (fd) != 0)
-	      if (errno != EINTR)
-		{
-		  if (errno != EINVAL)
-		    err = errno;
-		  break;
-		}
+	  /* There is no need to call fsync here, as the contents of
+	     the lock file need not survive system crashes.  */
 	  if (emacs_close (fd) != 0)
 	    err = errno;
 	  if (!err && rename_lock_file (nonce, lfname, force) != 0)

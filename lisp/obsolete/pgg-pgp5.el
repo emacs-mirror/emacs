@@ -26,8 +26,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)				; for pgg macros
-  (require 'pgg))
+  (require 'cl))
+
+(require 'pgg)
 
 (defgroup pgg-pgp5 ()
   "PGP 5.* interface."

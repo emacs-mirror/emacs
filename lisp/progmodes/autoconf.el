@@ -41,10 +41,10 @@
   "Hook run by `autoconf-mode'.")
 
 (defconst autoconf-definition-regexp
-  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\sw+\\)\\]*")
+  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\(?:\\sw\\|\\s_\\)+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
-  `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
+  `(("\\_<A[CHMS]_\\(?:\\sw\\|\\s_\\)+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
      1 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.ac,
@@ -67,13 +67,11 @@
 This version looks back for an AC_DEFINE or AC_SUBST.  It will stop
 searching backwards at another AC_... command."
   (save-excursion
-    (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
-      (modify-syntax-entry ?_ "w")
-      (skip-syntax-forward "w" (line-end-position))
-      (if (re-search-backward autoconf-definition-regexp
-			      (save-excursion (beginning-of-defun) (point))
-			      t)
-	  (match-string-no-properties 1)))))
+    (skip-syntax-forward "w_" (line-end-position))
+    (if (re-search-backward autoconf-definition-regexp
+                            (save-excursion (beginning-of-defun) (point))
+                            t)
+        (match-string-no-properties 1))))
 
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"
@@ -85,9 +83,8 @@ searching backwards at another AC_... command."
   (setq-local syntax-propertize-function
 	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
   (setq-local font-lock-defaults
-	      `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
+	      `(autoconf-font-lock-keywords nil nil))
   (setq-local imenu-generic-expression autoconf-imenu-generic-expression)
-  (setq-local imenu-syntax-alist '(("_" . "w")))
   (setq-local indent-line-function #'indent-relative)
   (setq-local add-log-current-defun-function
 	      #'autoconf-current-defun-function))

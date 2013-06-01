@@ -345,7 +345,7 @@ hidden, nor on subgroups that are hidden or not visible in the buffer.
 @kindex C-x C-c @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
-  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent using to
+  The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent to using
 the @samp{[Set for Current Session]} button.  The command @kbd{C-x
 C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
 Sessions]} button.

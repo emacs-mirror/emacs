@@ -355,6 +355,7 @@ If Emacs is still searching, \kbd{C-g} cancels only the part not matched.
 \key{scroll current line to center, top, bottom}{C-l}
 
 \key{goto line}{M-g g}
+\key{goto char}{M-g c}
 \key{back to indentation}{M-m}
 
 \section{Killing and Deleting}
@@ -504,6 +505,7 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \key{check spelling of current word}{M-\$}
 \metax{check spelling of all words in region}{M-x ispell-region}
 \metax{check spelling of entire buffer}{M-x ispell-buffer}
+\metax{toggle on-the-fly spell checking}{M-x flyspell-mode}
 
 \section{Tags}
 
@@ -518,6 +520,7 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \section{Shells}
 
 \key{execute a shell command}{M-!}
+\key{execute a shell command asynchronously}{M-\&}
 \key{run a shell command on the region}{M-|}
 \key{filter region through a shell command}{C-u M-|}
 \key{start a shell in window \kbd{*shell*}}{M-x shell}
@@ -554,9 +557,12 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \key{zero or more repeats}{*}
 \key{one or more repeats}{+}
 \key{zero or one repeat}{?}
+\key{quote special characters}{\\}
 \key{quote regular expression special character {\it c\/}}{\\{\it c}}
 \key{alternative (``or'')}{\\|}
 \key{grouping}{\\( {\rm$\ldots$} \\)}
+\key{shy grouping}{\\(:? {\rm$\ldots$} \\)}
+\key{explicit numbered grouping}{\\(:NUM {\rm$\ldots$} \\)}
 \key{same text as {\it n\/}th group}{\\{\it n}}
 \key{at word break}{\\b}
 \key{not at word break}{\\B}
@@ -565,12 +571,15 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 \threecol{{\bf entity}}{{\bf match start}}{{\bf match end}}
 \threecol{line}{^}{\$}
 \threecol{word}{\\<}{\\>}
+\threecol{symbol}{\\_<}{\\_>}
 \threecol{buffer}{\\`}{\\'}
+%% FIXME: "`" and "'" isn't displayed correctly in the output PDF file
 
 \threecol{{\bf class of characters}}{{\bf match these}}{{\bf match others}}
 \threecol{explicit set}{[ {\rm$\ldots$} ]}{[^ {\rm$\ldots$} ]}
 \threecol{word-syntax character}{\\w}{\\W}
 \threecol{character with syntax {\it c}}{\\s{\it c}}{\\S{\it c}}
+\threecol{character with category {\it c}}{\\c{\it c}}{\\C{\it c}}
 }
 
 \section{International Character Sets}
@@ -592,7 +601,7 @@ Moving within a node:
 
 \key{scroll forward}{SPC}
 \key{scroll reverse}{DEL}
-\key{beginning of node}{. {\rm (dot)}}
+\key{beginning of node}{b}
 
 Moving between nodes:
 
@@ -640,7 +649,7 @@ Other:
 \key{eval current {\bf defun}}{C-M-x}
 \metax{eval {\bf region}}{M-x eval-region}
 \key{read and eval minibuffer}{M-:}
-\metax{load from standard system directory}{M-x load-library}
+\metax{load a Lisp library from {\bf load-path}}{M-x load-library}
 
 \section{Simple Customization}
 
@@ -669,7 +678,7 @@ An example:
 \beginexample%
 (defun this-line-to-top-of-window (line)
   "Reposition current line to top of window.
-With ARG, put point on line ARG."
+With prefix argument LINE, put point on LINE."
   (interactive "P")
   (recenter (if (null line)
                 0
@@ -677,7 +686,7 @@ With ARG, put point on line ARG."
 \endexample
 
 The \kbd{interactive} spec says how to read arguments interactively.
-Type \kbd{C-h f interactive} for more details.
+Type \kbd{C-h f interactive RET} for more details.
 
 \copyrightnotice
 

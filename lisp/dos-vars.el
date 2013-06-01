@@ -43,4 +43,6 @@ in `standard-display-table' as appropriate for your codepage, if
   :type '(hook)
   :version "20.3.3")
 
+(provide 'dos-vars)
+
 ;;; dos-vars.el ends here

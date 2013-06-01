@@ -380,12 +380,18 @@ Other major modes are defined by comparison with this one."
     map)
   "Keymap used for programming modes.")
 
-(defun prog-indent-sexp ()
-  "Indent the expression after point."
-  (interactive)
-  (let ((start (point))
-        (end (save-excursion (forward-sexp 1) (point))))
-    (indent-region start end nil)))
+(defun prog-indent-sexp (&optional defun)
+  "Indent the expression after point.
+When interactively called with prefix, indent the enclosing defun
+instead."
+  (interactive "P")
+  (save-excursion
+    (when defun
+      (end-of-line)
+      (beginning-of-defun))
+    (let ((start (point))
+	  (end (progn (forward-sexp 1) (point))))
+      (indent-region start end nil))))
 
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
@@ -1236,13 +1242,33 @@ in *Help* buffer.  See also the command `describe-char'."
 		   bidi-fixer encoding-msg pos total percent col hscroll))))))
 
 ;; Initialize read-expression-map.  It is defined at C level.
-(let ((m (make-sparse-keymap)))
-  (define-key m "\M-\t" 'lisp-complete-symbol)
-  ;; Might as well bind TAB to completion, since inserting a TAB char is much
-  ;; too rarely useful.
-  (define-key m "\t" 'lisp-complete-symbol)
-  (set-keymap-parent m minibuffer-local-map)
-  (setq read-expression-map m))
+(defvar read-expression-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "\M-\t" 'completion-at-point)
+    ;; Might as well bind TAB to completion, since inserting a TAB char is
+    ;; much too rarely useful.
+    (define-key m "\t" 'completion-at-point)
+    (set-keymap-parent m minibuffer-local-map)
+    m))
+
+(defun read-minibuffer (prompt &optional initial-contents)
+  "Return a Lisp object read using the minibuffer, unevaluated.
+Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
+is a string to insert in the minibuffer before reading.
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)"
+  ;; Used for interactive spec `x'.
+  (read-from-minibuffer prompt initial-contents minibuffer-local-map
+                        t minibuffer-history))
+
+(defun eval-minibuffer (prompt &optional initial-contents)
+  "Return value of Lisp expression read using the minibuffer.
+Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
+is a string to insert in the minibuffer before reading.
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)"
+  ;; Used for interactive spec `X'.
+  (eval (read--expression prompt initial-contents)))
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
@@ -1291,6 +1317,20 @@ display the result of expression evaluation."
             (format " (#o%o, #x%x, %s)" value value char-string)
           (format " (#o%o, #x%x)" value value)))))
 
+(defvar eval-expression-minibuffer-setup-hook nil
+  "Hook run by `eval-expression' when entering the minibuffer.")
+
+(defun read--expression (prompt &optional initial-contents)
+  (let ((minibuffer-completing-symbol t))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (add-hook 'completion-at-point-functions
+                    #'lisp-completion-at-point nil t)
+          (run-hooks 'eval-expression-minibuffer-setup-hook))
+      (read-from-minibuffer prompt initial-contents
+                            read-expression-map t
+                            'read-expression-history))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value)
@@ -1307,10 +1347,7 @@ and `eval-expression-print-level'.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))
+   (list (read--expression "Eval: ")
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
@@ -2841,7 +2878,7 @@ Command Output*' is deleted.
 
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
 command's output.  If the value is a buffer or buffer name, put
-the output there.  Any other value, including nil, means to
+the output there.  Any other value, excluding nil, means to
 insert the output in the current buffer.  In either case, the
 output is inserted after point (leaving mark after it).
 
@@ -2890,7 +2927,7 @@ interactively, this is t."
 	  (goto-char start)
 	  (and replace (push-mark (point) 'nomsg))
 	  (setq exit-status
-		(call-process-region start end shell-file-name t
+		(call-process-region start end shell-file-name replace
 				     (if error-file
 					 (list t error-file)
 				       t)
@@ -3286,46 +3323,33 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 
 
 (defvar filter-buffer-substring-functions nil
-  "This variable is a wrapper hook around `filter-buffer-substring'.
-Each member of the hook should be a function accepting four arguments:
-\(FUN BEG END DELETE), where FUN is itself a function of three arguments
+  "This variable is a wrapper hook around `filter-buffer-substring'.")
+(make-obsolete-variable 'filter-buffer-substring-functions
+                        'filter-buffer-substring-function "24.4")
+
+(defvar filter-buffer-substring-function #'buffer-substring--filter
+  "Function to perform the filtering in `filter-buffer-substring'.
+The function is called with 3 arguments:
 \(BEG END DELETE).  The arguments BEG, END, and DELETE are the same
 as those of `filter-buffer-substring' in each case.
-
-The first hook function to be called receives a FUN equivalent
-to the default operation of `filter-buffer-substring',
-i.e. one that returns the buffer-substring between BEG and
-END (processed by any `buffer-substring-filters').  Normally,
-the hook function will call FUN and then do its own processing
-of the result.  The next hook function receives a FUN equivalent
-to the previous hook function, calls it, and does its own
-processing, and so on.  The overall result is that of all hook
-functions acting in sequence.
-
-Any hook may choose not to call FUN though, in which case it
-effectively replaces the default behavior with whatever it chooses.
-Of course, a later hook function may do the same thing.")
+It should return the buffer substring between BEG and END, after filtering.")
 
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
 Each function must accept a single argument, a string, and return
 a string.  The buffer substring is passed to the first function
 in the list, and the return value of each function is passed to
-the next.  The final result (if `buffer-substring-filters' is
-nil, this is the unfiltered buffer-substring) is passed to the
-first function on `filter-buffer-substring-functions'.
-
+the next.
 As a special convention, point is set to the start of the buffer text
 being operated on (i.e., the first argument of `filter-buffer-substring')
 before these functions are called.")
 (make-obsolete-variable 'buffer-substring-filters
-                        'filter-buffer-substring-functions "24.1")
+                        'filter-buffer-substring-function "24.1")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
-The wrapper hook `filter-buffer-substring-functions' performs
-the actual filtering.  The obsolete variable `buffer-substring-filters'
-is also consulted.  If both of these are nil, no filtering is done.
+The hook `filter-buffer-substring-function' performs the actual filtering.
+By default, no filtering is done.
 
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
@@ -3333,9 +3357,12 @@ from the buffer.
 This function should be used instead of `buffer-substring',
 `buffer-substring-no-properties', or `delete-and-extract-region'
 when you want to allow filtering to take place.  For example,
-major or minor modes can use `filter-buffer-substring-functions' to
+major or minor modes can use `filter-buffer-substring-function' to
 extract characters that are special to a buffer, and should not
 be copied into other buffers."
+  (funcall filter-buffer-substring-function beg end delete))
+
+(defun buffer-substring--filter (beg end &optional delete)
   (with-wrapper-hook filter-buffer-substring-functions (beg end delete)
     (cond
      ((or delete buffer-substring-filters)
@@ -4182,7 +4209,7 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(defsubst deactivate-mark (&optional force)
+(defun deactivate-mark (&optional force)
   "Deactivate the mark.
 If Transient Mark mode is disabled, this function normally does
 nothing; but if FORCE is non-nil, it deactivates the mark anyway.
@@ -4840,13 +4867,25 @@ lines."
 			 (frame-char-width)) hscroll))))))
     (if target-hscroll
 	(set-window-hscroll (selected-window) target-hscroll))
-    (or (and (= (vertical-motion
-		 (cons (or goal-column
-			   (if (consp temporary-goal-column)
-			       (car temporary-goal-column)
-			     temporary-goal-column))
-		       arg))
-		arg)
+    ;; vertical-motion can move more than it was asked to if it moves
+    ;; across display strings with newlines.  We don't want to ring
+    ;; the bell and announce beginning/end of buffer in that case.
+    (or (and (or (and (>= arg 0)
+		      (>= (vertical-motion
+			   (cons (or goal-column
+				     (if (consp temporary-goal-column)
+					 (car temporary-goal-column)
+				       temporary-goal-column))
+				 arg))
+			  arg))
+		 (and (< arg 0)
+		      (<= (vertical-motion
+			   (cons (or goal-column
+				     (if (consp temporary-goal-column)
+					 (car temporary-goal-column)
+				       temporary-goal-column))
+				 arg))
+			  arg)))
 	     (or (>= arg 0)
 		 (/= (point) opoint)
 		 ;; If the goal column lies on a display string,
@@ -6623,7 +6662,9 @@ the default method of inserting the completion in BUFFER.")
 (defun choose-completion-string (choice &optional
                                         buffer base-position insert-function)
   "Switch to BUFFER and insert the completion choice CHOICE.
-BASE-POSITION, says where to insert the completion."
+BASE-POSITION says where to insert the completion.
+INSERT-FUNCTION says how to insert the completion and falls
+back on `completion-list-insert-choice-function' when nil."
 
   ;; If BUFFER is the minibuffer, exit the minibuffer
   ;; unless it is reading a file name and CHOICE is a directory,
@@ -6717,15 +6758,21 @@ Called from `temp-buffer-show-hook'."
 (defun completion-setup-function ()
   (let* ((mainbuf (current-buffer))
          (base-dir
-          ;; When reading a file name in the minibuffer,
-          ;; try and find the right default-directory to set in the
-          ;; completion list buffer.
-          ;; FIXME: Why do we do that, actually?  --Stef
+          ;; FIXME: This is a bad hack.  We try to set the default-directory
+          ;; in the *Completions* buffer so that the relative file names
+          ;; displayed there can be treated as valid file names, independently
+          ;; from the completion context.  But this suffers from many problems:
+          ;; - It's not clear when the completions are file names.  With some
+          ;;   completion tables (e.g. bzr revision specs), the listed
+          ;;   completions can mix file names and other things.
+          ;; - It doesn't pay attention to possible quoting.
+          ;; - With fancy completion styles, the code below will not always
+          ;;   find the right base directory.
           (if minibuffer-completing-file-name
               (file-name-as-directory
                (expand-file-name
-                (substring (minibuffer-completion-contents)
-                           0 (or completion-base-size 0)))))))
+                (buffer-substring (minibuffer-prompt-end)
+                                  (- (point) (or completion-base-size 0))))))))
     (with-current-buffer standard-output
       (let ((base-size completion-base-size) ;Read before killing localvars.
             (base-position completion-base-position)

@@ -42,7 +42,7 @@ It is now better to use Customize instead."
       (princ "This facility is obsolete; we recommend using M-x customize instead.")
 
       (mapatoms (function (lambda (sym)
-			    (if (user-variable-p sym)
+			    (if (custom-variable-p sym)
 				(setq vars (cons sym vars))))))
       (setq vars (sort vars 'string-lessp))
       (while vars
