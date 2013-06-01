@@ -1,3 +1,7 @@
+2013-06-01  Alex Ott  <alexott@gmail.com>
+
+	* tutorials/TUTORIAL.ru: Fix incorrectly translated wording.
+
 2013-05-31  Tassilo Horn  <tsdh@gnu.org>
 
 	* themes/tsdh-dark-theme.el (tsdh-dark): Refine mode-line faces.
