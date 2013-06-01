@@ -532,15 +532,16 @@ To document
 References
 ----------
 
-.. [MPS_Manual] Ravenbrook Limited. "`Memory Pool System documentation <http://www.ravenbrook.com/project/mps/master/manual/html/>`_".
+.. [RB_2012-09-07] "The critical path through the MPS"; Richard Brooksby;
+   Ravenbrook Limited; 2012-09-07;
+   <http://www.ravenbrook.com/project/mps/master/design/critical-path>.
 
-.. [RB_2012-09-13] Richard Brooksby. Ravenbrook Limited. 2012-09-13. "`The Configura CET custom mainline <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>`_".
+.. [RB_2012-09-13] "The Configura CET custom mainline"; Richard
+   Brooksby; Ravenbrook Limited; 2013-09-13;
+   <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>.
 
-.. [PP_2005-03-01] Pekka P. Pirinen. Global Graphics. "`MPS platforms <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>`_".
-
-.. [RB_2012-09-07] Richard Brooksby. Ravenbrook Limited. 2012-09-07. "`The critical path through the MPS <http://www.ravenbrook.com/project/mps/master/design/critical-path>`_".
-
-.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
+.. [PP_2005-03-01] "MPS platforms"; Pekka Pirinen; Global Graphics;
+   2005-03-01; <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>.
 
 
 Document History
