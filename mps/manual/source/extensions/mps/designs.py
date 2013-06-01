@@ -102,6 +102,6 @@ def convert_updated(app):
         name = os.path.splitext(os.path.basename(design))[0]
         converted = 'converted/%s.rst' % name
         if (not os.path.isfile(converted) or
-            os.path.getmtime(converted) < os.path.getmtime(converted)):
+            os.path.getmtime(converted) < os.path.getmtime(design)):
             app.info('converting design %s' % name)
             convert_file(name, design, converted)
