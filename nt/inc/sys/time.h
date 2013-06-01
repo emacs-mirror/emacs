@@ -28,6 +28,7 @@ struct timeval
 #endif /* _W64 */
 
 #ifndef _TIMEZONE_DEFINED
+#define _TIMEZONE_DEFINED
 struct timezone
 {
   int		tz_minuteswest;	/* minutes west of Greenwich */

@@ -1,3 +1,8 @@
+2013-06-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h [!_TIMEZONE_DEFINED]: Define _TIMEZONE_DEFINED to
+	avoid multiple definition errors on MinGW64.
+
 2013-05-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
