@@ -332,7 +332,7 @@ class GlossaryTransform(transforms.Transform):
         
 
 def setup(app):
-    designs.convert_updated()
+    designs.convert_updated(app)
     app.add_domain(MpsDomain)
     app.add_role_to_domain('mps', 'tag', mps_tag_role)
     app.add_role_to_domain('mps', 'ref', mps_ref_role)
