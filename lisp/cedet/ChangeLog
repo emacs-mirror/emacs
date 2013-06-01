@@ -1,5 +1,8 @@
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
+	* semantic/grammar.el (semantic-grammar-complete):
+	Replace the obsolete function lisp-complete-symbol.
+
 	* semantic/analyze/fcn.el (semantic-tag-similar-p): Autoload.
 
 	* srecode/args.el, srecode/java.el: Require ede.
