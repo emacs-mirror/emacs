@@ -1,3 +1,7 @@
+2013-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/lex.el (semantic-lex-make-type-table): Fix transposed args.
+
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/bovine/grammar.el (bovine-make-parsers):
