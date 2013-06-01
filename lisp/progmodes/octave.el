@@ -191,10 +191,9 @@ parenthetical grouping.")
     (modify-syntax-entry ?! "."   table)
     (modify-syntax-entry ?\\ "."  table)
     (modify-syntax-entry ?\' "."  table)
-    ;; Was "w" for abbrevs, but now that it's not necessary any more,
     (modify-syntax-entry ?\` "."  table)
+    (modify-syntax-entry ?. "."   table)
     (modify-syntax-entry ?\" "\"" table)
-    (modify-syntax-entry ?. "_"   table)
     (modify-syntax-entry ?_ "_"   table)
     ;; The "b" flag only applies to the second letter of the comstart
     ;; and the first letter of the comend, i.e. the "4b" below is ineffective.
@@ -676,13 +675,16 @@ in the Inferior Octave buffer.")
   (setq-local eldoc-documentation-function 'octave-eldoc-function)
 
   (setq comint-input-ring-file-name
-	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
-	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
+        (or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
+        comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
   (setq-local comint-dynamic-complete-functions
               inferior-octave-dynamic-complete-functions)
   (setq-local comint-prompt-read-only inferior-octave-prompt-read-only)
   (add-hook 'comint-input-filter-functions
             'inferior-octave-directory-tracker nil t)
+  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
+  (add-hook 'window-configuration-change-hook
+            'inferior-octave-track-window-width-change nil t)
   (comint-read-input-ring t))
 
 ;;;###autoload
@@ -912,6 +914,24 @@ directory and makes this the current buffer's default directory."
   (interactive)
   (inferior-octave-send-list-and-digest '("disp (pwd ())\n"))
   (cd (car inferior-octave-output-list)))
+
+(defcustom inferior-octave-minimal-columns 80
+  "The minimal column width for the inferior Octave process."
+  :type 'integer
+  :group 'octave
+  :version "24.4")
+
+(defvar inferior-octave-last-column-width nil)
+
+(defun inferior-octave-track-window-width-change ()
+  ;; http://thread.gmane.org/gmane.comp.gnu.octave.general/48572
+  (let ((width (max inferior-octave-minimal-columns (window-width))))
+    (unless (eq inferior-octave-last-column-width width)
+      (setq-local inferior-octave-last-column-width width)
+      (when (and inferior-octave-process
+                 (process-live-p inferior-octave-process))
+        (inferior-octave-send-list-and-digest
+         (list (format "putenv(\"COLUMNS\", \"%s\");\n" width)))))))
 
 
 ;;; Miscellaneous useful functions
@@ -1639,11 +1659,7 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
           (when (re-search-forward "^\\s-*See also:" nil t)
             (let ((end (save-excursion (re-search-forward "^\\s-*$" nil t))))
               (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" end t)
-                (make-text-button (match-beginning 0)
-                                  ;; If the match ends with . exclude it.
-                                  (if (eq (char-before (match-end 0)) ?.)
-                                      (1- (match-end 0))
-                                    (match-end 0))
+                (make-text-button (match-beginning 0) (match-end 0)
                                   :type 'octave-help-function)))))
         (octave-help-mode)))))
 
