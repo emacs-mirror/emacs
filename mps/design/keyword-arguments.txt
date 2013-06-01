@@ -143,7 +143,10 @@ methods can be deleted at some point in the future.
 References
 ----------
 
-.. [RB_2012-05-24] Richard Brooksby. 2012-05-24. "`Keyword and optional arguments <https://info.ravenbrook.com/mail/2012/05/24/21-19-15/0/>`_" (e-mail). Ravenbrook Limited.
+.. [RB_2012-05-24]
+   "Keyword and optional arguments"; Richard Brooksby;
+   Ravenbrook Limited; 2012-05-24;
+   <https://info.ravenbrook.com/mail/2012/05/24/21-19-15/0/>.
 
 
 Document History

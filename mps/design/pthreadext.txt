@@ -337,9 +337,15 @@ Attachments
 References
 ----------
 
-.. [Butenhof_1999-08-16] Dave Butenhof. 1999-08-16. "`Re: Problem with Suspend & Resume Thread Example <https://groups.google.com/group/comp.programming.threads/msg/2a604c5f03f388d0?dmode=source&output=gplain&noredirect>`_". comp.programming.threads.
+.. [Butenhof_1999-08-16]
+   "Re: Problem with Suspend & Resume Thread Example";
+   Dave Butenhof; comp.programming.threads; 1999-08-16;
+   <https://groups.google.com/group/comp.programming.threads/msg/2a604c5f03f388d0>.
 
-.. [Lau_1999-08-16] Raymond Lau. 1999-08-16. "`Problem with Suspend & Resume Thread Example <https://groups.google.com/group/comp.programming.threads/msg/dc4d9a45866331eb?dmode=source&output=gplain&noredirect>`_". comp.programming.threads.
+.. [Lau_1999-08-16]
+   "Problem with Suspend & Resume Thread Example";
+   Raymond Lau; comp.programming.threads; 1999-08-16;
+   <https://groups.google.com/group/comp.programming.threads/msg/dc4d9a45866331eb>.
 
 
 Document History

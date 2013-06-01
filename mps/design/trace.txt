@@ -232,7 +232,10 @@ all the ranks in this fashion there is no more tracing to be done.
 References
 ----------
 
-.. [RHSK_2007-06-25] Richard Kistruck. 2007-06-25. "`The semantics of rank-based tracing <https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0/>`_".
+.. [RHSK_2007-06-25]
+   "The semantics of rank-based tracing";
+   Richard Kistruck; Ravenbrook Limited; 2007-06-25;
+   <https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0/>.
 
 
 Document History
