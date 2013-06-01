@@ -1,5 +1,7 @@
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-gnu.el (pcomplete/tar): Check obsolete variable is bound.
+
 	Plain (f)boundp silences compilation warnings since Emacs 22.1.
 	* progmodes/cc-cmds.el (delete-forward-p):
 	* progmodes/cc-defs.el (buffer-syntactic-context-depth):
