@@ -1,5 +1,9 @@
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
+	* semantic/analyze/fcn.el (semantic-tag-similar-p): Autoload.
+
+	* srecode/args.el, srecode/java.el: Require ede.
+
 	* semantic/lex.el (semantic-lex-make-type-table): Fix transposed args.
 
 2013-05-24  Glenn Morris  <rgm@gnu.org>
