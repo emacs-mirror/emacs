@@ -49,14 +49,11 @@
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
 (cc-bytecomp-defun region-active-p)	; XEmacs
-(cc-bytecomp-defvar zmacs-region-stays)	; XEmacs
-(cc-bytecomp-defvar zmacs-regions)	; XEmacs
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
 (cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
-(cc-bytecomp-defvar lookup-syntax-properties) ; XEmacs
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
 
 
@@ -1607,7 +1604,7 @@ non-nil, a caret is prepended to invert the set."
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)
+	  lookup-syntax-properties)	; XEmacs
       (with-current-buffer buf
 	(set-syntax-table (make-syntax-table))
 
