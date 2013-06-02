@@ -36,6 +36,14 @@ typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE)
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
+history = re.compile(r'^Document History\n.*',
+                     re.MULTILINE | re.IGNORECASE | re.DOTALL)
+
+# Strip section numbering
+secnum = re.compile(r'^(?:[0-9]+|[A-Z])\.\s+(.*)$\n(([=`:.\'"~^_*+#-])\3+)$',
+                    re.MULTILINE)
+def secnum_sub(m):
+    return m.group(1) + '\n' + m.group(3) * len(m.group(1))
 
 # Convert Ravenbrook style citations into MPS Manual style citations.
 # Example citations transformation, from:
@@ -69,8 +77,6 @@ def citation_sub(m):
     else:
         result += ' "{title}".'.format(**groups)
     return result
-history = re.compile(r'^Document History\n.*',
-                     re.MULTILINE | re.IGNORECASE | re.DOTALL)
 
 def convert_file(name, source, dest):
     s = open(source).read()
@@ -85,6 +91,7 @@ def convert_file(name, source, dest):
     s = typename.sub(r':c:type:`\1`', s)
     s = func.sub(r':c:func:`\1`', s)
     s = macro.sub(r':c:macro:`\1`', s)
+    s = secnum.sub(secnum_sub, s)
     s = citation.sub(citation_sub, s)
     s = history.sub('', s)
     try:
