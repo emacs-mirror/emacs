@@ -1,3 +1,15 @@
+2013-06-02  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-show-categories-table): Correct doc string.
+	(todos-sort-categories-alphabetically-or-numerically): Rename from
+	todos-sort-categories-alphabetically-or-by-priority and adjust uses.
+	(todos-set-category-number): Rename from
+	todos-set-category-priority and adjust uses.
+	(todos-raise-category): Rename from todos-raise-category-priority
+	and adjust uses.
+	(todos-lower-category): Rename from todos-lower-category-priority
+	and adjust uses.
+
 2013-06-01  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Some custom cleanup.

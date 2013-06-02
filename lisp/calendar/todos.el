@@ -3069,17 +3069,16 @@ In the initial display the categories are numbered, indicating
 their current order for navigating by \\[todos-forward-category]
 and \\[todos-backward-category].  You can persistantly change the
 order of the category at point by typing
-\\[todos-raise-category-priority] or
-\\[todos-lower-category-priority].
+\\[todos-set-category-number], \\[todos-raise-category] or
+\\[todos-lower-category].
 
 The labels above the category names and item counts are buttons,
 and clicking these changes the display: sorted by category name
 or by the respective item counts (alternately descending or
 ascending).  In these displays the categories are not numbered
-and \\[todos-raise-category-priority] and
-\\[todos-lower-category-priority] are
-disabled.  (Programmatically, the sorting is triggered by passing
-a non-nil SORTKEY argument.)
+and \\[todos-set-category-number], \\[todos-raise-category] and
+\\[todos-lower-category] are disabled.  (Programmatically, the
+sorting is triggered by passing a non-nil SORTKEY argument.)
 
 In addition, the lines with the category names and item counts
 are buttonized, and pressing one of these button jumps to the
@@ -3092,7 +3091,7 @@ are shown in `todos-archived-only' face."
   (let (sortkey)
     (todos-update-categories-display sortkey)))
 
-(defun todos-sort-categories-alphabetically-or-by-priority ()
+(defun todos-sort-categories-alphabetically-or-numerically ()
   "Sort table of categories alphabetically or numerically."
   (interactive)
   (save-excursion
@@ -3153,13 +3152,14 @@ are shown in `todos-archived-only' face."
        ;; Align with beginning of category label.
        (forward-char (+ 4 (length todos-categories-number-separator)))))
 
-(defun todos-set-category-priority (&optional arg)
-  "Change priority of category at point in Todos Categories buffer.
+(defun todos-set-category-number (&optional arg)
+  "Change number of category at point in the table of categories.
 
-With ARG nil, prompt for the new priority number.  Alternatively,
-the new priority can be provided by a numerical prefix ARG.
-Otherwise, if ARG is either of the symbols `raise' or `lower',
-raise or lower the category's priority by one."
+With ARG nil, prompt for the new number.  Alternatively, the
+enter the new number with numerical prefix ARG.  Otherwise, if
+ARG is either of the symbols `raise' or `lower', raise or lower
+the category line in the table by one, respectively, thereby
+decreasing or increasing its number."
   (interactive "P")  
   (let ((curnum (save-excursion
 		  ;; Get the number representing the priority of the category
@@ -3207,15 +3207,15 @@ raise or lower the category's priority by one."
 	  (forward-line (1+ priority))
 	  (forward-char col))))))
 
-(defun todos-raise-category-priority ()
+(defun todos-raise-category ()
   "Raise priority of category at point in Todos Categories buffer."
   (interactive)
-  (todos-set-category-priority 'raise))
+  (todos-set-category-number 'raise))
 
-(defun todos-lower-category-priority ()
+(defun todos-lower-category ()
   "Lower priority of category at point in Todos Categories buffer."
   (interactive)
-  (todos-set-category-priority 'lower))
+  (todos-set-category-number 'lower))
 
 ;; -----------------------------------------------------------------------------
 ;;; Searching
@@ -5977,14 +5977,14 @@ Filtered Items mode following todo (not done) items."
 (defvar todos-categories-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "c" 'todos-sort-categories-alphabetically-or-by-priority)
+    (define-key map "c" 'todos-sort-categories-alphabetically-or-numerically)
     (define-key map "t" 'todos-sort-categories-by-todo)
     (define-key map "y" 'todos-sort-categories-by-diary)
     (define-key map "d" 'todos-sort-categories-by-done)
     (define-key map "a" 'todos-sort-categories-by-archived)
-    (define-key map "#" 'todos-set-category-priority)
-    (define-key map "l" 'todos-lower-category-priority)
-    (define-key map "r" 'todos-raise-category-priority)
+    (define-key map "#" 'todos-set-category-number)
+    (define-key map "l" 'todos-lower-category)
+    (define-key map "r" 'todos-raise-category)
     (define-key map "n" 'todos-next-button)
     (define-key map "p" 'todos-previous-button)
     (define-key map [tab] 'todos-next-button)
