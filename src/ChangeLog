@@ -3553,7 +3553,7 @@
 	Use xputenv instead of setenv or putenv, to detect memory exhaustion.
 	* editfns.c (initial_tz): Move static var decl up.
 	(tzvalbuf_in_environ): New static var.
-	(init_editfns):	Initialize these two static vars.
+	(init_editfns): Initialize these two static vars.
 	(Fencode_time): Don't assume arbitrary limit on EMACS_INT width.
 	Save old TZ value on stack, if it's small.
 	(Fencode_time, set_time_zone_rule): Don't modify 'environ' directly;
@@ -3832,7 +3832,7 @@
 	Use execve to avoid need to munge environ (Bug#13054).
 	* callproc.c (Fcall_process):
 	* process.c (create_process):
-	Don't save and restore environ;	no longer needed.
+	Don't save and restore environ; no longer needed.
 	* callproc.c (child_setup):
 	Use execve, not execvp, to preserve environ.
 

@@ -1704,7 +1704,7 @@
 
 	* emacs-lisp/syntax.el (syntax-propertize-multiline):
 	Use `syntax-multiline' text property consistently instead of
-	`font-lock-multiline'. (bug#14237).
+	`font-lock-multiline'.  (Bug#14237)
 
 2013-04-26  Glenn Morris  <rgm@gnu.org>
 
@@ -1945,9 +1945,9 @@
 2013-04-19 Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
-	Handle function names with a single character.   (Bug#14111)
+	Handle function names with a single character.  (Bug#14111)
 
-2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
+2013-04-19  Dima Kogan  <dima@secretsauce.net>  (tiny change)
 
 	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
 	for subroutines defined in an eval (bug#14182).
@@ -2364,9 +2364,8 @@
 
 2013-04-03  Alan Mackenzie  <acm@muc.de>
 
-	Handle `parse-partial-sexp' landing inside a comment opener
-	(Bug#13244). Also adapt to the new values of element 7 of a parse
-	state.
+	Handle `parse-partial-sexp' landing inside a comment opener (Bug#13244).
+	Also adapt to the new values of element 7 of a parse state.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): New optional
 	parameter `not-in-delimiter'.  Handle being inside comment opener.
@@ -3002,7 +3001,7 @@
 2013-03-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* hi-lock.el (hi-lock-read-regexp-defaults-function): New var.
-	(hi-lock-read-regexp-defaults):	 New defun.
+	(hi-lock-read-regexp-defaults): New defun.
 	(hi-lock-line-face-buffer, hi-lock-face-buffer)
 	(hi-lock-face-phrase-buffer): Propagate above change.
 	Update docstring (bug#13892).
