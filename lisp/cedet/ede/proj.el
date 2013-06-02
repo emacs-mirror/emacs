@@ -104,6 +104,7 @@ distributed, and each should have a corresponding rule to build it.")
 	     :initform nil
 	     :type (or null symbol)
 	     :custom (choice (const :tag "None" nil)
+			     (symbol :tag "Custom Compiler Symbol")
 			     :slotofchoices availablecompilers)
 	     :label "Compiler for building sources"
 	     :group make
@@ -116,6 +117,7 @@ of these compiler resources, and global customization thereof.")
 	     :initform nil
 	     :type (or null symbol)
 	     :custom (choice (const :tag "None" nil)
+			     (symbol :tag "Custom Linker Symbol")
 			     :slotofchoices availablelinkers)
 	     :label "Linker for combining intermediate object files."
 	     :group make

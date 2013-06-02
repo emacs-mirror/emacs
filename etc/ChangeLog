@@ -1,3 +1,8 @@
+2013-06-02  Eric Ludlam <zappo@gnu.org>
+
+	* srecode/c.srt (header_guard): Add :c parameter so it works
+	standalone
+
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* refcards/refcard.tex: Refine some entries.  (Bug#14087)
