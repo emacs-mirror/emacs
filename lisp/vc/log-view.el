@@ -1,9 +1,9 @@
-;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output -*- lexical-binding: t -*-
+;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: rcs, sccs, cvs, log, vc, tools
+;; Keywords: tools, vc
 
 ;; This file is part of GNU Emacs.
 
@@ -24,9 +24,11 @@
 
 ;; Major mode to browse revision log histories.
 ;; Currently supports the format output by:
-;;  RCS, SCCS, CVS, Subversion, and DaRCS.
+;; SCCS, RCS, CVS, Subversion, DaRCS, and Mercurial.
 
 ;; Examples of log output:
+
+;;;; SCCS:
 
 ;;;; RCS/CVS:
 
@@ -42,8 +44,6 @@
 ;; branches:  1.34.2;
 ;; Change release version from 21.4 to 22.1 throughout.
 ;; Change development version from 21.3.50 to 22.0.50.
-
-;;;; SCCS:
 
 ;;;; Subversion:
 
