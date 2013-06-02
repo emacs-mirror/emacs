@@ -1,3 +1,7 @@
+2013-06-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Ignore dirs libexec/, share/ and var/.
+
 2013-05-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* INSTALL: Fix description.
