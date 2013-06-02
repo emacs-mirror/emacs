@@ -117,7 +117,7 @@
 (defvar cvs-force-command)
 
 (defgroup log-view nil
-  "Major mode for browsing log output of RCS/CVS/SCCS."
+  "Major mode for browsing log output of revision log histories."
   :group 'pcl-cvs
   :prefix "log-view-")
 
@@ -275,6 +275,7 @@ The match group number 1 should match the revision number itself.")
 (easy-mmode-define-navigation log-view-file log-view-file-re "file")
 
 (defun log-view-goto-rev (rev)
+  "Go to revision REV."
   (goto-char (point-min))
   (ignore-errors
     (while (not (equal rev (log-view-current-tag)))
@@ -288,6 +289,7 @@ The match group number 1 should match the revision number itself.")
 (defconst log-view-dir-re "^cvs[.ex]* [a-z]+: Logging \\(.+\\)$")
 
 (defun log-view-current-file ()
+  "Return the current file."
   (save-excursion
     (forward-line 1)
     (or (re-search-backward log-view-file-re nil t)
@@ -340,7 +342,7 @@ if POS is omitted or nil, it defaults to point."
 
 (defun log-view-toggle-mark-entry ()
   "Toggle the marked state for the log entry at point.
-Individual log entries can be marked and unmarked. The marked
+Individual log entries can be marked and unmarked.  The marked
 entries are denoted by changing their background color.
 `log-view-get-marked' returns the list of tags for the marked
 log entries."
@@ -479,7 +481,8 @@ It assumes that a log entry starts with a line matching
       (funcall f))))
 
 (defun log-view-find-revision (pos)
-  "Visit the version at point."
+  "Visit the version at POS.
+If called interactively, visit the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
     (when (> (length log-view-vc-fileset) 1)
@@ -521,7 +524,8 @@ It assumes that a log entry starts with a line matching
 			    (log-view-extract-comment)))
 
 (defun log-view-annotate-version (pos)
-  "Annotate the version at point."
+  "Annotate the version at POS.
+If called interactively, annotate the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
     (when (> (length log-view-vc-fileset) 1)
