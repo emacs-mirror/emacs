@@ -52,8 +52,9 @@ Res RangeDescribe(Range range, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Range $P\n{\n", (WriteFP)range,
-               "  base: $P \n", (WriteFP)RangeBase(range),
-               "  limit: $P \n", (WriteFP)RangeLimit(range),
+               "  base: $P\n", (WriteFP)RangeBase(range),
+               "  limit: $P\n", (WriteFP)RangeLimit(range),
+               "  size: $U\n", (WriteFU)RangeSize(range),
                "}\n", NULL);
   if (res != ResOK) {
     return res;
