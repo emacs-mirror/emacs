@@ -7029,6 +7029,16 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+void
+catch_child_signal (void)
+{
+#ifdef SIGCHLD
+  struct sigaction action;
+  emacs_sigaction_init (&action, deliver_child_signal);
+  sigaction (SIGCHLD, &action, 0);
+#endif
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -7044,9 +7054,7 @@ init_process_emacs (void)
   if (! noninteractive || initialized)
 #endif
     {
-      struct sigaction action;
-      emacs_sigaction_init (&action, deliver_child_signal);
-      sigaction (SIGCHLD, &action, 0);
+      catch_child_signal ();
     }
 
   FD_ZERO (&input_wait_mask);

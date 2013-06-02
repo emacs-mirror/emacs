@@ -1,3 +1,111 @@
+2013-06-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.h (catch_child_signal): Declare.
+
+	* process.c (catch_child_signal): New function.
+	(init_process_emacs): Call it.
+
+	* nsterm.m: Include process.h if NS_IMPL_GNUSTEP.
+	(ns_menu_bar_is_hidden, menu_will_open_state): Define only if
+	NS_IMPL_COCOA.
+	(x_set_cursor_type): Remove declaration.
+	(ns_update_begin): Only use r and bp if NS_IMPL_COCOA.
+	(ns_update_end, ns_focus, ns_unfocus): Remove GNUStep specific code.
+	(x_set_window_size): Remove 3 pixels from toolbar if NS_IMPL_GNUSTEP.
+	(ns_get_color): Use F suffix on float.
+	(ns_color_to_lisp, ns_query_color): Use EmacsCGFloat.
+	(ns_get_rgb_color): Remove.
+	(x_set_frame_alpha): Move view inside NS_IMPL_COCOA.
+	(note_mouse_movement): x and y are CGFloat.
+	(ns_draw_fringe_bitmap): Remove unused rowY.
+	Change #if to COCOA && >= 10_6.
+	(ns_draw_window_cursor): Remove unused overspill.
+	(ns_draw_underwave): width and x are EamcsCGFloat.
+	(ns_draw_box): thickness is CGFloat.
+	(ns_dumpglyphs_image): Change #if to COCOA && >= 10_6.
+	(ns_send_appdefined): When NS_IMPL_GNUSTEP, redirect to main thread
+	if not in main thread.
+	(ns_get_pending_menu_title, ns_check_menu_open)
+	(ns_check_pending_open_menu): Put inside #if COCOA && >= 10_5.
+	(ns_term_init): Call catch_child_signal if NS_IMPL_GNUSTEP && SIGCHLD.
+	(sendFromMainThread:): New method.
+	(changeFont:): size is CGFloat.
+	(keyDown:): Check for Delete when NS_IMPL_GNUSTEP.
+	Disable warning about permanent text.
+	(characterIndexForPoint:): Adjust return type depending on GNUStep
+	version.
+	(mouseDown:): delta is CGFloat.
+	(updateFrameSize): Remove unised variable f.
+	(initFrameFromEmacs): Move toggleButton inside NS_IMPL_COCOA.
+	Cast float to EmacsCGFloat.
+	(windowWillUseStandardFrame:defaultFrame:): Set maximized_height
+	also to -1 when restoring.
+	(windowDidExitFullScreen:): Put call to updateCollectionBehaviour
+	inside NS_IMPL_COCOA.
+	(toggleFullScreen:): Put call to toggleFullScreen inside
+	NS_IMPL_COCOA.  Cast float to EmacsCGFloat.
+	(setPosition:portion:whole:): por is CGFloat.
+	(getMouseMotionPart:window:x:y:): Add F suffix to float.
+	(mouseDown:): Use CGFloat.
+	(mouseDragged:): Remove unised variable edge.
+	(EmacsDocument): Implement for NS_IMPL_GNUSTEP.
+
+	* nsterm.h (EmacsCGFloat): Typedef for OSX and GNUStep when the size
+	of CGFloat differs.
+	(EmacsApp): New variable nextappdefined.  Declare sendFromMainThread
+	when NS_IMPL_GNUSTEP.
+	(EmacsDocument): Declare when NS_IMPL_GNUSTEP.
+	(EmacsView): Remove unlockFocusNeedsFlush, add windowDidMove.
+	(EmacsToolbar): Add clearAll.  Add tag argument to
+	addDisplayItemWithImage.
+	(EmacsSavePanel, EmacsOpenPanel): Remove getFilename and getDirectory.
+
+	* nsselect.m (ns_get_local_selection): Remove unused variable type.
+
+	* nsmenu.m (ns_update_menubar): Make static.
+	(x_activate_menubar): Surround with ifdef NS_IMPL_COCOA
+	(fillWithWidgetValue:): Add cast to SEL for setAction.
+	(addSubmenuWithTitle:forFrame:): Add cast to SEL for action.
+	(update_frame_tool_bar): Update code for GNUStep.
+	(clearAll): New method.
+	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
+	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP. Move
+	identifierToItem setObject and activeIdentifiers addObject before
+	call to insertItemWithItemIdentifier.
+	(validateVisibleItems): Fix indentation.
+	(toolbarAllowedItemIdentifiers:): Return activeIdentifiers.
+	(initWithContentRect:styleMask:backing:defer:): Add ClosableWindow and
+	UtilityWindow to aStyle, remove call to setStyleMask.
+
+	* nsimage.m (setXBMColor:, getPixelAtX:Y:): Use EmacsCGFloat.
+
+	* nsfont.m (ns_attribute_fvalue, ns_spec_to_descriptor)
+	(ns_charset_covers, ns_get_covering_families, nsfont_open):
+	Use F suffix on floats.
+	(ns_char_width): Returns CGFloat.
+	(ns_ascii_average_width): w is CGFloat instead of float.
+	(nsfont_draw): cbuf and c are unsigned. Cast to char* in call to
+	DPSxshow.
+	(ns_glyph_metrics): CGFloat instead of float.
+
+	* nsfns.m (x_set_foreground_color, x_set_background_color): Use
+	EmacsCGFloat.
+	(ns_implicitly_set_icon_type, Fx_create_frame): Make static, remove
+	unused variables.
+	(Fns_read_file_name): Keep track if panel is for save.  Use
+	ns_filename_from_panel/ns_directory_from_panel.
+	(Fns_list_services): delegate only used for COCOA.
+	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.  Just
+	return the input if GNUStep.
+	(x_screen_planes): Remove.
+	(Fxw_color_values): Use EmacsCGFloat
+	(Fns_display_monitor_attributes_list): Only get screen number for
+	Cocoa.
+	(getDirectory, getFilename): Removed from EmacsOpenPanel and
+	EmacsSavePanel.
+	(EmacsOpenPanel:ok:): Use ns_filename_from_panel and
+	ns_directory_from_panel.
+
 2013-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (handle_child_signal): Also use WCONTINUED.
