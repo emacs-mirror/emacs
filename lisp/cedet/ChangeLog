@@ -72,6 +72,8 @@
 	actually enabled, otherwise the popup 'global menu' might display
 	a disabled Development menu.
 
+	* srecode/srt-wy.el: Regenerate.
+
 2013-06-02  Pete Beardmore  <elbeardmorez@msn.com>
 
 	* semantic/complete.el
