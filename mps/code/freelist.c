@@ -19,7 +19,7 @@ SRCID(freelist, "$Id$");
 
 #define FreelistTag(addr) ((Word)(addr) & 1)
 #define FreelistTagSet(addr) ((Addr)((Word)(addr) | 1))
-#define FreelistTagReset(addr) ((Addr)((Word)(addr) & ~1))
+#define FreelistTagReset(addr) ((Addr)((Word)(addr) & ~(Word)1))
 #define FreelistTagCopy(to, from) ((Addr)((Word)(to) | FreelistTag(from)))
 
 #define FreelistGrainSize(fl) ((fl)->alignment)
@@ -41,7 +41,7 @@ static Addr FreelistBlockLimit(Freelist fl, Addr addr)
 /* FreelistBlockNext -- return the next block in the list, or NULL if
  * there are no more blocks.
  */
-static Addr FreelistBlockNext(Freelist fl, Addr addr)
+static Addr FreelistBlockNext(Addr addr)
 {
   Addr *block = FreelistBlock(addr);
   return FreelistTagReset(block[0]);
@@ -56,7 +56,7 @@ static Addr FreelistBlockNext(Freelist fl, Addr addr)
 
 /* FreelistBlockSetNext -- update the next block in the list */
 
-static void FreelistBlockSetNext(Freelist fl, Addr addr, Addr next)
+static void FreelistBlockSetNext(Addr addr, Addr next)
 {
   Addr *block = FreelistBlock(addr);
   block[0] = FreelistTagCopy(next, block[0]);
@@ -68,7 +68,7 @@ static void FreelistBlockSetNext(Freelist fl, Addr addr, Addr next)
 static void FreelistBlockSetLimit(Freelist fl, Addr addr, Addr limit)
 {
   Addr *block = FreelistBlock(addr);
-  Size size = size;
+  Size size = AddrOffset(addr, limit);
   if (size > FreelistGrainSize(fl)) {
     block[0] = FreelistTagReset(block[0]);
     block[1] = limit;
@@ -132,13 +132,16 @@ static void freelistBlockSetPrevNext(Freelist fl, Addr prev,
                                      Addr next, int delta)
 {
   if (prev) {
-    FreelistBlockSetNext(fl, prev, next);
+    FreelistBlockSetNext(prev, next);
   } else {
     fl->list = next;
   }
-  if (delta < 0)
-    AVER(fl->listSize >= -delta);
-  fl->listSize += delta;
+  if (delta < 0) {
+    AVER(fl->listSize >= (Count)-delta);
+    fl->listSize -= (Count)-delta;
+  } else {
+    fl->listSize += (Count)delta;
+  }
 }
 
 
@@ -147,7 +150,6 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
   Addr prev, cur, next, new;
   Addr base, limit;
   Bool coalesceLeft, coalesceRight;
-  Res res = ResOK;
 
   AVER(rangeReturn != NULL);
   AVERT(Freelist, fl);
@@ -165,7 +167,7 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
       return ResFAIL; /* range overlaps with cur */
     if (limit <= cur)
       break;
-    next = FreelistBlockNext(fl, cur);
+    next = FreelistBlockNext(cur);
     if (next)
       /* Isolated range invariant (design.mps.freelist.impl.invariant). */
       AVER(FreelistBlockLimit(fl, cur) < next);
@@ -184,21 +186,23 @@ Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)
     base = prev;
     limit = FreelistBlockLimit(fl, cur);
     FreelistBlockSetLimit(fl, prev, limit);
-    freelistBlockSetPrevNext(fl, prev, next, -1);
+    freelistBlockSetPrevNext(fl, prev, FreelistBlockNext(cur), -1);
 
   } else if (coalesceLeft) {
     base = prev;
     FreelistBlockSetLimit(fl, prev, limit);
 
   } else if (coalesceRight) {
+    next = FreelistBlockNext(cur);
     limit = FreelistBlockLimit(fl, cur);
     cur = FreelistBlockInit(fl, base, limit);
-    FreelistBlockSetNext(fl, cur, next);
+    FreelistBlockSetNext(cur, next);
+    freelistBlockSetPrevNext(fl, prev, cur, 0);
 
   } else {
     /* failed to coalesce: add new block */
     new = FreelistBlockInit(fl, base, limit);
-    FreelistBlockSetNext(fl, new, cur);
+    FreelistBlockSetNext(new, cur);
     freelistBlockSetPrevNext(fl, prev, new, +1);
   }
 
@@ -223,7 +227,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
   AVERT(Freelist, fl);
   AVERT(Range, range);
   AVER(RangeIsAligned(range, fl->alignment));
-  AVER(prev == NULL || FreelistBlockNext(fl, prev) == block);
+  AVER(prev == NULL || FreelistBlockNext(prev) == block);
   AVER(block != NULL);
 
   AVER(block <= RangeBase(range));
@@ -233,7 +237,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
   limit = RangeLimit(range);
   blockBase = block;
   blockLimit = FreelistBlockLimit(fl, block);
-  next = FreelistBlockNext(fl, block);
+  next = FreelistBlockNext(block);
 
   if (base == blockBase && limit == blockLimit) {
     /* No fragment at left; no fragment at right. */
@@ -242,7 +246,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
   } else if (base == blockBase) {
     /* No fragment at left; block at right. */
     block = FreelistBlockInit(fl, limit, blockLimit);
-    FreelistBlockSetNext(fl, block, next);
+    FreelistBlockSetNext(block, next);
     freelistBlockSetPrevNext(fl, prev, block, 0);
 
   } else if (limit == blockLimit) {        
@@ -253,7 +257,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
     /* Block at left; block at right. */
     FreelistBlockSetLimit(fl, block, base);
     new = FreelistBlockInit(fl, limit, blockLimit);
-    FreelistBlockSetNext(fl, new, next);
+    FreelistBlockSetNext(new, next);
     freelistBlockSetPrevNext(fl, block, new, +1);
   }
 
@@ -263,8 +267,7 @@ static void freelistDeleteFromBlock(Range rangeReturn, Freelist fl,
 
 Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)
 {
-  Res res;
-  Addr prev, cur, next, new;
+  Addr prev, cur, next;
   Addr base, limit;
 
   AVER(rangeReturn != NULL);
@@ -290,7 +293,7 @@ Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)
       return ResOK;
     }
     
-    next = FreelistBlockNext(fl, cur);
+    next = FreelistBlockNext(cur);
     prev = cur;
     cur = next;
   }
@@ -316,7 +319,7 @@ void FreelistIterate(Freelist fl, FreelistIterateMethod iterate,
     Bool cont;
     RangeInit(&range, cur, FreelistBlockLimit(fl, cur));
     cont = (*iterate)(&delete, &range, closureP, closureS);
-    next = FreelistBlockNext(fl, cur);
+    next = FreelistBlockNext(cur);
     if (delete) {
       freelistBlockSetPrevNext(fl, prev, next, -1);
     } else {
@@ -350,7 +353,7 @@ static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
   AVERT(Freelist, fl);
   AVER(SizeIsAligned(size, fl->alignment));
   AVERT(FindDelete, findDelete);
-  AVER(prev == NULL || FreelistBlockNext(fl, prev) == block);
+  AVER(prev == NULL || FreelistBlockNext(prev) == block);
   AVER(block != NULL);
   AVER(FreelistBlockSize(fl, block) >= size);
   
@@ -388,10 +391,9 @@ static void freelistFindDeleteFromBlock(Range rangeReturn, Range oldRangeReturn,
 }
 
 
-Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
-                  Freelist fl, Size size, FindDelete findDelete)
+Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn,
+                       Freelist fl, Size size, FindDelete findDelete)
 {
-  Res res;
   Addr prev, cur, next;
 
   AVER(rangeReturn != NULL);
@@ -408,12 +410,46 @@ Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
                                   findDelete, prev, cur);
       return TRUE;
     }
-    next = FreelistBlockNext(fl, cur);
+    next = FreelistBlockNext(cur);
     prev = cur;
     cur = next;
   }
 
   return FALSE;
+}
+
+
+Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
+                      Freelist fl, Size size, FindDelete findDelete)
+{
+  Bool found = FALSE;
+  Addr prev, cur, next;
+  Addr foundPrev, foundCur;
+
+  AVER(rangeReturn != NULL);
+  AVER(oldRangeReturn != NULL);
+  AVERT(Freelist, fl);
+  AVER(SizeIsAligned(size, fl->alignment));
+  AVERT(FindDelete, findDelete);
+
+  prev = NULL;
+  cur = fl->list;
+  while (cur) {
+    if (FreelistBlockSize(fl, cur) >= size) {
+      found = TRUE;
+      foundPrev = prev;
+      foundCur = cur;
+    }
+    next = FreelistBlockNext(cur);
+    prev = cur;
+    cur = next;
+  }
+
+  if (found)
+    freelistFindDeleteFromBlock(rangeReturn, oldRangeReturn, fl, size,
+                                findDelete, foundPrev, foundCur);
+
+  return found;
 }
 
 
@@ -439,7 +475,7 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
       bestPrev = prev;
       bestCur = cur;
     }
-    next = FreelistBlockNext(fl, cur);
+    next = FreelistBlockNext(cur);
     prev = cur;
     cur = next;
   }
@@ -467,10 +503,12 @@ static Bool freelistDescribeIterateMethod(Bool *deleteReturn, Range range,
   AVER(deleteReturn != NULL);
   AVERT(Range, range);
   AVER(stream != NULL);
+  UNUSED(closureS);
 
   res = WriteF(stream,
                "  [$P,", (WriteFP)RangeBase(range),
-               "$P)\n", (WriteFP)RangeLimit(range),
+               "$P)", (WriteFP)RangeLimit(range),
+               " {$U}\n", (WriteFU)RangeSize(range),
                NULL);
 
   *deleteReturn = FALSE;
