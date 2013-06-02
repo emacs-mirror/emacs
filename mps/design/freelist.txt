@@ -144,12 +144,12 @@ _`.function.iterate`: Iterate all isolated contiguous ranges in the
 free list ``fl`` in address order, calling ``iterate`` for each one.
 See ``FreelistIterateMethod`` for details.
 
-``Bool FreelistFind(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
+``Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
 
-_`.function.find`: Locate a contiguous range within the free list
-``fl`` of at least ``size`` bytes; update ``rangeReturn`` to that
-range; and return ``TRUE``. If there is no such continuous range,
-return ``FALSE``.
+_`.function.find.first`: Locate the first isolated contiguous range in
+address order, within the free list ``fl``, of at least ``size``
+bytes; update ``rangeReturn`` to that range; and return ``TRUE``. If
+there is no such continuous range, return ``FALSE``.
 
 In addition, optionally delete the found range from the free list,
 depending on the ``findDelete`` argument. This saves a separate call
@@ -169,14 +169,19 @@ returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
 ``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
 identical to the range returned via the ``rangeReturn`` argument.)
 
+``Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
+
+_`.function.find.last`: Like ``FreelistFindFirst()``, except that it
+finds the last block in address order.
+
 ``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, FindDelete findDelete)``
 
 _`.function.find.largest`: Locate the largest block within the free
 list ``fl``, return its range via the ``rangeReturn`` argument, and
-returns ``TRUE``. If there are no blocks in the free list, it returns
+return ``TRUE``. If there are no blocks in the free list, return
 ``FALSE``.
 
-Like ``FreelistFind()``, it optionally deletes the range from the free
+Like ``FreelistFind()``, optionally delete the range from the free
 list. (Always the whole range: specifying ``FindDeleteLOW`` or
 ``FindDeleteHIGH`` has the same effect as ``FindDeleteENTIRE``).
 

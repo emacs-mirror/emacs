@@ -1,38 +1,70 @@
-/* cbstest.c: COALESCING BLOCK STRUCTURE TEST
+/* fbmtest.c: FREE BLOCK MANAGEMENT TEST
  *
  *  $Id$
  * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ *
+ * The MPS contains two free block management modules:
+ *
+ * 1. the CBS (Coalescing Block Structure) module maintains free
+ * blocks in a splay tree for fast access with a cost in storage;
+ *
+ * 2. the Freelist module maintains free blocks in an address-ordered
+ * singly linked list for zero storage overhead with a cost in
+ * performance.
+ *
+ * The two modules present identical interfaces, so we apply the same
+ * test cases to both.
  */
 
 #include "cbs.h"
+#include "freelist.h"
 #include "mpm.h"
-#include "mpsavm.h"
 #include "mps.h"
+#include "mpsavm.h"
+#include "mpstd.h"
 #include "testlib.h"
 
-#include <stdlib.h>
 #include <stdarg.h>
-#include "mpstd.h"
+#include <stdlib.h>
 #include <time.h>
 
-SRCID(cbstest, "$Id$");
+SRCID(fbmtest, "$Id$");
 
 
 #define ArraySize ((Size)123456)
-#define NOperations ((Size)125000)
 #define Alignment ((Align)sizeof(void *))
 
+/* CBS is much faster than Freelist, so we apply more operations to
+ * the former. */
+#define nCBSOperations ((Size)125000)
+#define nFLOperations ((Size)12500)
 
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded;
 
+static int verbose = 0;
 
-typedef struct CheckCBSClosureStruct {
+typedef unsigned FBMType;
+enum {
+  FBMTypeCBS = 1,
+  FBMTypeFreelist,
+  FBMTypeLimit
+};
+
+typedef struct FBMStateStruct {
+  FBMType type;
+  union {
+    CBS cbs;
+    Freelist fl;
+  } the;
+} FBMStateStruct, *FBMState;
+
+typedef struct CheckFBMClosureStruct {
   BT allocTable;
   Addr base;
   Addr limit;
   Addr oldLimit;
-} CheckCBSClosureStruct, *CheckCBSClosure;
+} CheckFBMClosureStruct, *CheckFBMClosure;
 
 
 static Addr (addrOfIndex)(Addr block, Index i)
@@ -47,13 +79,26 @@ static Index (indexOfAddr)(Addr block, Addr a)
 }
 
 
-static Bool checkCBSAction(CBS cbs, Range range, void *closureP, Size closureS)
+static void describe(FBMState state) {
+  switch (state->type) {
+  case FBMTypeCBS:
+    CBSDescribe(state->the.cbs, mps_lib_get_stdout());
+    break;
+  case FBMTypeFreelist:
+    FreelistDescribe(state->the.fl, mps_lib_get_stdout());
+    break;
+  default:
+    fail();
+    break;
+  }
+}
+
+
+static Bool checkCallback(Range range, void *closureP, Size closureS)
 {
   Addr base, limit;
-  CheckCBSClosure closure = (CheckCBSClosure)closureP;
+  CheckFBMClosure closure = (CheckFBMClosure)closureP;
 
-  /* Don't need to check cbs every time */
-  UNUSED(cbs);
   UNUSED(closureS);
   Insist(closure != NULL);
 
@@ -79,16 +124,42 @@ static Bool checkCBSAction(CBS cbs, Range range, void *closureP, Size closureS)
 }
 
 
-static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
+static Bool checkCBSCallback(CBS cbs, Range range,
+                             void *closureP, Size closureS)
 {
-  CheckCBSClosureStruct closure;
+  UNUSED(cbs);
+  return checkCallback(range, closureP, closureS);
+}
+
+
+static Bool checkFLCallback(Bool *deleteReturn, Range range,
+                            void *closureP, Size closureS)
+{
+  *deleteReturn = FALSE;
+  return checkCallback(range, closureP, closureS);
+}
+
+
+static void check(FBMState state, BT allocTable, Addr dummyBlock)
+{
+  CheckFBMClosureStruct closure;
 
   closure.allocTable = allocTable;
   closure.base = dummyBlock;
   closure.limit = addrOfIndex(closure.base, ArraySize);
   closure.oldLimit = closure.base;
 
-  CBSIterate(cbs, checkCBSAction, (void *)&closure, 0);
+  switch (state->type) {
+  case FBMTypeCBS:
+    CBSIterate(state->the.cbs, checkCBSCallback, (void *)&closure, 0);
+    break;
+  case FBMTypeFreelist:
+    FreelistIterate(state->the.fl, checkFLCallback, (void *)&closure, 0);
+    break;
+  default:
+    fail();
+    return;
+  }
 
   if (closure.oldLimit == closure.base)
     Insist(BTIsSetRange(allocTable, 0,
@@ -102,7 +173,7 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
 }
 
 
-static Word cbsRnd(Word limit)
+static Word fbmRnd(Word limit)
 {
   /* Not very uniform, but never mind. */
   return (Word)rnd() % limit;
@@ -182,22 +253,22 @@ static void randomRange(Addr *baseReturn, Addr *limitReturn,
                 /* after base */
   Index limit;  /* a randomly chosen value in (base, limit]. */
 
-  base = cbsRnd(ArraySize);
+  base = fbmRnd(ArraySize);
 
   do {
     end = nextEdge(allocTable, ArraySize, base);
-  } while(end < ArraySize && cbsRnd(2) == 0); /* p=0.5 exponential */
+  } while(end < ArraySize && fbmRnd(2) == 0); /* p=0.5 exponential */
 
   Insist(end > base);
 
-  limit = base + 1 + cbsRnd(end - base);
+  limit = base + 1 + fbmRnd(end - base);
 
   *baseReturn = addrOfIndex(block, base);
   *limitReturn = addrOfIndex(block, limit);
 }
 
 
-static void allocate(CBS cbs, Addr block, BT allocTable,
+static void allocate(FBMState state, Addr block, BT allocTable,
                      Addr base, Addr limit)
 {
   Res res;
@@ -210,11 +281,6 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   il = indexOfAddr(block, limit);
 
   isFree = BTIsResRange(allocTable, ib, il);
- 
-  /*
-  printf("allocate: [%p, %p) -- %s\n",
-         base, limit, isFree ? "succeed" : "fail");
-  */
 
   NAllocateTried++;
 
@@ -237,7 +303,23 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   }
 
   RangeInit(&range, base, limit);
-  res = CBSDelete(&oldRange, cbs, &range);
+  switch (state->type) {
+  case FBMTypeCBS:
+    res = CBSDelete(&oldRange, state->the.cbs, &range);
+    break;
+  case FBMTypeFreelist:
+    res = FreelistDelete(&oldRange, state->the.fl, &range);
+    break;
+  default:
+    fail();
+    return;
+  }
+
+  if (verbose) {
+    printf("allocate: [%p,%p) -- %s\n",
+           base, limit, isFree ? "succeed" : "fail");
+    describe(state);
+  }
 
   if (!isFree) {
     die_expect((mps_res_t)res, MPS_RES_FAIL,
@@ -253,24 +335,19 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
 }
 
 
-static void deallocate(CBS cbs, Addr block, BT allocTable,
+static void deallocate(FBMState state, Addr block, BT allocTable,
                        Addr base, Addr limit)
 {
   Res res;
   Index ib, il;
   Bool isAllocated;
   Addr outerBase = base, outerLimit = limit; /* interval containing [ib, il) */
-  RangeStruct range, freeRange; /* interval returned by CBS */
+  RangeStruct range, freeRange; /* interval returned by the manager */
 
   ib = indexOfAddr(block, base);
   il = indexOfAddr(block, limit);
 
   isAllocated = BTIsSetRange(allocTable, ib, il);
-
-  /*
-  printf("deallocate: [%p, %p) -- %s\n",
-         base, limit, isAllocated ? "succeed" : "fail");
-  */
 
   NDeallocateTried++;
 
@@ -303,7 +380,23 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   }
 
   RangeInit(&range, base, limit);
-  res = CBSInsert(&freeRange, cbs, &range);
+  switch (state->type) {
+  case FBMTypeCBS:
+    res = CBSInsert(&freeRange, state->the.cbs, &range);
+    break;
+  case FBMTypeFreelist:
+    res = FreelistInsert(&freeRange, state->the.fl, &range);
+    break;
+  default:
+    fail();
+    return;
+  }
+
+  if (verbose) {
+    printf("deallocate: [%p,%p) -- %s\n",
+           base, limit, isAllocated ? "succeed" : "fail");
+    describe(state);
+  }
 
   if (!isAllocated) {
     die_expect((mps_res_t)res, MPS_RES_FAIL,
@@ -320,7 +413,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 }
 
 
-static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
+static void find(FBMState state, void *block, BT alloc, Size size, Bool high,
                  FindDelete findDelete)
 {
   Bool expected, found;
@@ -366,8 +459,35 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
     UNUSED(newSize);
   }
 
-  found = (high ? CBSFindLast : CBSFindFirst)
-    (&foundRange, &oldRange, cbs, size * Alignment, findDelete);
+  switch (state->type) {
+  case FBMTypeCBS:
+    found = (high ? CBSFindLast : CBSFindFirst)
+      (&foundRange, &oldRange, state->the.cbs, size * Alignment, findDelete);
+    break;
+  case FBMTypeFreelist:
+    found = (high ? FreelistFindLast : FreelistFindFirst)
+      (&foundRange, &oldRange, state->the.fl, size * Alignment, findDelete);
+    break;
+  default:
+    fail();
+    return;
+  }
+
+  if (verbose) {
+    printf("find %s %lu: ", high ? "last" : "first",
+           (unsigned long)(size * Alignment));
+    if (expected) {
+      printf("expecting [%p,%p)\n", addrOfIndex(block, expectedBase),
+             addrOfIndex(block, expectedLimit));
+    } else {
+      printf("expecting this not to be found\n");
+    }
+    if (found) {
+      printf("  found [%p,%p)\n", RangeBase(&foundRange), RangeLimit(&foundRange));
+    } else {
+      printf("  not found\n");
+    }
+  }
 
   Insist(found == expected);
 
@@ -385,23 +505,59 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   return;
 }
 
+static void test(FBMState state, Addr dummyBlock, BT allocTable, unsigned n) {
+  Addr base, limit;
+  unsigned i;
+  Size size;
+  Bool high;
+  FindDelete findDelete = FindDeleteNONE;
+
+  BTSetRange(allocTable, 0, ArraySize); /* Initially all allocated */
+  check(state, allocTable, dummyBlock);
+  for(i = 0; i < n; i++) {
+    switch(fbmRnd(3)) {
+    case 0:
+      randomRange(&base, &limit, allocTable, dummyBlock);
+      allocate(state, dummyBlock, allocTable, base, limit);
+      break;
+    case 1:
+      randomRange(&base, &limit, allocTable, dummyBlock);
+      deallocate(state, dummyBlock, allocTable, base, limit);
+      break;
+    case 2:
+      size = fbmRnd(ArraySize / 10) + 1;
+      high = fbmRnd(2) ? TRUE : FALSE;
+      switch(fbmRnd(6)) {
+      case 0:
+      case 1:
+      case 2: findDelete = FindDeleteNONE; break;
+      case 3: findDelete = FindDeleteLOW; break;
+      case 4: findDelete = FindDeleteHIGH; break;
+      case 5: findDelete = FindDeleteENTIRE; break;
+      }
+      find(state, dummyBlock, allocTable, size, high, findDelete);
+      break;
+    default:
+      fail();
+      return;
+    }
+    if ((i + 1) % 1000 == 0)
+      check(state, allocTable, dummyBlock);
+  }
+}
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
 extern int main(int argc, char *argv[])
 {
-  unsigned i;
-  Addr base, limit;
   mps_arena_t mpsArena;
   Arena arena; /* the ANSI arena which we use to allocate the BT */
-  CBSStruct cbsStruct;
-  CBS cbs;
+  FBMStateStruct state;
   void *p;
   Addr dummyBlock;
   BT allocTable;
-  Size size;
-  Bool high;
-  FindDelete findDelete = FindDeleteNONE;
+  FreelistStruct flStruct;
+  CBSStruct cbsStruct;
 
   randomize(argc, argv);
 
@@ -415,54 +571,34 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&allocTable, arena, ArraySize),
       "failed to create alloc table");
 
-  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, Alignment, TRUE,
-                         mps_args_none),
-      "failed to initialise CBS");
-  cbs = &cbsStruct;
-
-  BTSetRange(allocTable, 0, ArraySize); /* Initially all allocated */
-
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
   die((mps_res_t)ControlAlloc(&p, arena, ArraySize * Alignment,
                               /* withReservoirPermit */ FALSE),
       "failed to allocate block");
-  dummyBlock = (Addr)p; /* avoid pun */
+  dummyBlock = p; /* avoid pun */
 
-  printf("Allocated block [%p, %p)\n", (void*)dummyBlock,
-         (char *)dummyBlock + ArraySize);
-
-  checkCBS(cbs, allocTable, dummyBlock);
-  for(i = 0; i < NOperations; i++) {
-    switch(cbsRnd(3)) {
-    case 0: {
-      randomRange(&base, &limit, allocTable, dummyBlock);
-      allocate(cbs, dummyBlock, allocTable, base, limit);
-    } break;
-    case 1: {
-      randomRange(&base, &limit, allocTable, dummyBlock);
-      deallocate(cbs, dummyBlock, allocTable, base, limit);
-    } break;
-    case 2: {
-      size = cbsRnd(ArraySize / 10) + 1;
-      high = cbsRnd(2) ? TRUE : FALSE;
-      switch(cbsRnd(6)) {
-      case 0:
-      case 1:
-      case 2: findDelete = FindDeleteNONE; break;
-      case 3: findDelete = FindDeleteLOW; break;
-      case 4: findDelete = FindDeleteHIGH; break;
-      case 5: findDelete = FindDeleteENTIRE; break;
-      }
-      find(cbs, dummyBlock, allocTable, size, high, findDelete);
-    } break;
-    }
-    if (i % 5000 == 0)
-      checkCBS(cbs, allocTable, dummyBlock);
+  if (verbose) {
+    printf("Allocated block [%p,%p)\n", (void*)dummyBlock,
+           (char *)dummyBlock + ArraySize);
   }
 
-  /* CBSDescribe prints a very long line. */
-  /* CBSDescribe(cbs, mps_lib_get_stdout()); */
+  die((mps_res_t)CBSInit(arena, &cbsStruct, arena, Alignment,
+                         TRUE, mps_args_none),
+      "failed to initialise CBS");
+  state.type = FBMTypeCBS;
+  state.the.cbs = &cbsStruct;
+  test(&state, dummyBlock, allocTable, nCBSOperations);
+  CBSFinish(&cbsStruct);
+
+  die((mps_res_t)FreelistInit(&flStruct, Alignment),
+      "failed to initialise Freelist");
+  state.type = FBMTypeFreelist;
+  state.the.fl = &flStruct;
+  test(&state, dummyBlock, allocTable, nFLOperations);
+  FreelistFinish(&flStruct);
+
+  mps_arena_destroy(arena);
 
   printf("\nNumber of allocations attempted: %ld\n", NAllocateTried);
   printf("Number of allocations succeeded: %ld\n", NAllocateSucceeded);
