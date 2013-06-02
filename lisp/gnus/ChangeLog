@@ -1,3 +1,12 @@
+2013-06-02  David Engster  <deng@randomsample.de>
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune): Do
+	not wrap methods in `eval-and-compile'.  This breaks due to latest
+	changes in EIEIO (introduction of eieio-core.el).
+
 2013-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* nnmail.el (nnmail-fancy-expiry-target):

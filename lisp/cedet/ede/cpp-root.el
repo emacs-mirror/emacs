@@ -507,7 +507,10 @@ This is for project include paths and spp source files."
      (lambda (F)
        (let* ((expfile (ede-expand-filename root F))
 	      (table (when expfile
-		       (semanticdb-file-table-object expfile)))
+		       ;; Disable EDE init on preprocessor file load
+		       ;; otherwise we recurse, cause errs, etc.
+		       (let ((ede-constructing t))
+			 (semanticdb-file-table-object expfile))))
 	      )
 	 (cond
 	  ((not (file-exists-p expfile))

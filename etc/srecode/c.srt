@@ -44,7 +44,7 @@ template empty :time :user :file :c
 {{/HEADER}}
 ----
 
-template header_guard :file :blank
+template header_guard :file :blank :c
 ----
 #ifndef {{FILENAME_SYMBOL:upcase}}
 #define {{FILENAME_SYMBOL:upcase}} 1

@@ -1667,7 +1667,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	  (setq msg "...")))
        ((eq mode 'verbose)
 	;; Always show extended match set.
-	(oset obj max-tags semantic-displayor-tooltip-max-tags)
+	(oset obj max-tags-initial semantic-displayor-tooltip-max-tags)
 	(setq max-tags semantic-displayor-tooltip-max-tags)))
       (unless msg
 	(oset obj shown t)

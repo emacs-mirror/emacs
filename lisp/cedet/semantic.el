@@ -899,7 +899,8 @@ Throw away all the old tags, and recreate the tag database."
     ;; and Semantic are both enabled.  Is there a better way?
     (define-key map [menu-bar cedet-menu]
       (list 'menu-item "Development" cedet-menu-map
-	    :enable (quote (not (bound-and-true-p global-ede-mode)))))
+	    :enable (quote (not (and menu-bar-mode
+				     (bound-and-true-p global-ede-mode))))))
     ;; (define-key km "-"    'senator-fold-tag)
     ;; (define-key km "+"    'senator-unfold-tag)
     map))

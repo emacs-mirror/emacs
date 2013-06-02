@@ -146,7 +146,7 @@ Lays claim to all -by.el, and -wy.el files."
 	      (let* ((package (semantic-grammar-create-package))
 		     (fname (progn (string-match ".*/\\(.+\\.el\\)" package)
 				   (match-string 1 package)))
-		     (src (with-current-buffer fname (buffer-file-name)))
+		     (src (ede-expand-filename obj fname))
 		     (csrc (concat (file-name-sans-extension src) ".elc")))
 		(if (< emacs-major-version 24)
 		    ;; Does not have `byte-recompile-file'

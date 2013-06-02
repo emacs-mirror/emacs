@@ -529,7 +529,7 @@ code to parse."
 (define-lex-regex-analyzer semantic-lex-c-ifdef
   "Code blocks wrapped up in #ifdef.
 Uses known macro tables in SPP to determine what block to skip."
-  "^\\s-*#\\s-*\\(ifndef\\|ifdef\\)\\s-+\\(\\(\\sw\\|\\s_\\)+\\)$"
+  "^\\s-*#\\s-*\\(ifndef\\|ifdef\\)\\s-+\\(\\(\\sw\\|\\s_\\)+\\)\\([ \t\C-m].*\\)?$"
   (semantic-c-do-lex-ifdef))
 
 (defun semantic-c-do-lex-ifdef ()

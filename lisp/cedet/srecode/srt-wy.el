@@ -131,6 +131,10 @@
 	((SET symbol insertable-string-list newline)
 	 (wisent-raw-tag
 	  (semantic-tag-new-variable $2 nil $3)))
+	((SET symbol number newline)
+	 (wisent-raw-tag
+	  (semantic-tag-new-variable $2 nil
+				     (list $3))))
 	((SHOW symbol newline)
 	 (wisent-raw-tag
 	  (semantic-tag-new-variable $2 nil t))))
@@ -290,8 +294,8 @@ It ignores whitespace, newlines and comments."
   srecode-template-separator-block
   srecode-template-wy--<keyword>-keyword-analyzer
   srecode-template-property-analyzer
-  srecode-template-wy--<symbol>-regexp-analyzer
   srecode-template-wy--<number>-regexp-analyzer
+  srecode-template-wy--<symbol>-regexp-analyzer
   srecode-template-wy--<string>-sexp-analyzer
   srecode-template-wy--<punctuation>-string-analyzer
   semantic-lex-default-action
