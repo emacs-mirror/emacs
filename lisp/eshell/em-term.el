@@ -65,6 +65,39 @@ which commands are considered visual in nature."
   :type '(repeat string)
   :group 'eshell-term)
 
+(defcustom eshell-visual-subcommands
+  nil
+  "An alist of the form
+
+  ((COMMAND1 SUBCOMMAND1 SUBCOMMAND2...)
+   (COMMAND2 SUBCOMMAND1 ...))
+
+of commands with subcommands that present their output in a
+visual fashion.  A likely entry is
+
+  (\"git\" \"log\" \"diff\" \"show\")
+
+because git shows logs and diffs using a pager by default."
+  :type '(repeat (cons (string :tag "Command")
+		       (repeat (string :tag "Subcommand")))))
+
+(defcustom eshell-visual-options
+  nil
+  "An alist of the form
+
+  ((COMMAND1 OPTION1 OPTION2...)
+   (COMMAND2 OPTION1 ...))
+
+of commands with options that present their output in a visual
+fashion.  For example, a sensible entry would be
+
+  (\"git\" \"--help\")
+
+because \"git <command> --help\" shows the command's
+documentation with a pager."
+  :type '(repeat (cons (string :tag "Command")
+		       (repeat (string :tag "Option")))))
+
 ;; If you change this from term-term-name, you need to ensure that the
 ;; value you choose exists in the system's terminfo database.  (Bug#12485)
 (defcustom eshell-term-name term-term-name
@@ -77,8 +110,10 @@ used."
 
 (defcustom eshell-escape-control-x t
   "If non-nil, allow <C-x> to be handled by Emacs key in visual buffers.
-See the variable `eshell-visual-commands'.  If this variable is set to
-nil, <C-x> will send that control character to the invoked process."
+See the variables `eshell-visual-commands',
+`eshell-visual-subcommands', and `eshell-visual-options'.  If
+this variable is set to nil, <C-x> will send that control
+character to the invoked process."
   :type 'boolean
   :group 'eshell-term)
 
@@ -93,9 +128,14 @@ nil, <C-x> will send that control character to the invoked process."
   (make-local-variable 'eshell-interpreter-alist)
   (setq eshell-interpreter-alist
 	(cons (cons (function
-		     (lambda (command)
-		       (member (file-name-nondirectory command)
-			       eshell-visual-commands)))
+		     (lambda (command args)
+		       (let ((command (file-name-nondirectory command)))
+			 (or (member command eshell-visual-commands)
+			     (member (car args)
+				     (cdr (assoc command eshell-visual-subcommands)))
+			     (intersection args
+					   (cdr (assoc command eshell-visual-options))
+					   :test 'string=)))))
 		    'eshell-exec-visual)
 	      eshell-interpreter-alist)))
 
@@ -104,7 +144,7 @@ nil, <C-x> will send that control character to the invoked process."
 ARGS are passed to the program.  At the moment, no piping of input is
 allowed."
   (let* (eshell-interpreter-alist
-	 (interp (eshell-find-interpreter (car args)))
+	 (interp (eshell-find-interpreter (car args) (cdr args)))
 	 (program (car interp))
 	 (args (eshell-flatten-list
 		(eshell-stringify-list (append (cdr interp)

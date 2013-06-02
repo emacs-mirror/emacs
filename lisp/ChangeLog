@@ -1,3 +1,22 @@
+2013-06-02  Tassilo Horn  <tsdh@gnu.org>
+
+	* eshell/esh-ext.el (eshell-external-command): Pass args to
+	`eshell-find-interpreter'.
+	(eshell-find-interpreter): Add new second parameter ARGS.
+
+	* eshell/em-script.el (eshell-script-initialize): Add second arg
+	to the function added as MATCH to `eshell-interpreter-alist'
+
+	* eshell/em-dirs.el (eshell-dirs-initialize): Add second arg to
+	the function added as MATCH to `eshell-interpreter-alist'
+
+	* eshell/em-term.el (eshell-visual-subcommands): New defcustom.
+	(eshell-visual-options): New defcustom.
+	(eshell-escape-control-x): Adapt docstring.
+	(eshell-term-initialize): Test `eshell-visual-subcommands' and
+	`eshell-visual-options' in addition to `eshell-visual-commands'.
+	(eshell-exec-visual): Pass args to `eshell-find-interpreter'.
+
 2013-06-01  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-block-enders): Add break,
