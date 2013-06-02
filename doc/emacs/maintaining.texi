@@ -379,7 +379,7 @@ merge-based version control system, a @samp{-} character indicates
 that the work file is unmodified, and @samp{:} indicates that it has
 been modified.  @samp{!} indicates that the file contains conflicts as
 result of a recent merge operation (@pxref{Merging}), or that the file
-was removed from the version control.  Finally, @samp{?}  means that
+was removed from the version control.  Finally, @samp{?} means that
 the file is under version control, but is missing from the working
 tree.
 
@@ -1203,7 +1203,8 @@ files and directories.
 
 @item x
 Hide files with @samp{up-to-date} status
-(@code{vc-dir-hide-up-to-date}).
+(@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
+that are in state of item at point from display.
 @end table
 
 @findex vc-dir-mark
