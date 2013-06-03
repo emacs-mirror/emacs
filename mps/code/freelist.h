@@ -9,6 +9,7 @@
 #ifndef freelist_h
 #define freelist_h
 
+#include "cbs.h"
 #include "mpmtypes.h"
 #include "range.h"
 
@@ -42,7 +43,9 @@ extern Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn,
 extern Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
                              Freelist fl, Size size, FindDelete findDelete);
 extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
-                                Freelist fl, FindDelete findDelete);
+                                Freelist fl, Size size, FindDelete findDelete);
+
+void FreelistFlushToCBS(Freelist fl, CBS cbs);
 
 #endif /* freelist.h */
 

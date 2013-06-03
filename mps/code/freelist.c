@@ -6,6 +6,7 @@
  * .sources: <design/freelist/>.
  */
 
+#include "cbs.h"
 #include "freelist.h"
 #include "mpm.h"
 
@@ -454,10 +455,9 @@ Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
 
 
 Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
-                         Freelist fl, FindDelete findDelete)
+                         Freelist fl, Size size, FindDelete findDelete)
 {
   Bool found = FALSE;
-  Size size = 0;
   Addr prev, cur, next;
   Addr bestPrev, bestCur;
 
@@ -469,7 +469,7 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
   prev = NULL;
   cur = fl->list;
   while (cur) {
-    if (FreelistBlockSize(fl, cur) > size) {
+    if (FreelistBlockSize(fl, cur) >= size) {
       found = TRUE;
       size = FreelistBlockSize(fl, cur);
       bestPrev = prev;
@@ -480,13 +480,11 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
     cur = next;
   }
 
-  if (found) {
+  if (found)
     freelistFindDeleteFromBlock(rangeReturn, oldRangeReturn, fl, size,
                                 findDelete, bestPrev, bestCur);
-    return TRUE;
-  }
 
-  return FALSE;
+  return found;
 }
 
 
@@ -533,6 +531,42 @@ Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)
 
   res = WriteF(stream, "}\n", NULL);
   return res;
+}
+
+
+/* freelistFlushIterateMethod -- Iterate method for
+ * FreelistFlushToCBS. Attempst to insert the range into the CBS.
+ */
+static Bool freelistFlushIterateMethod(Bool *deleteReturn, Range range,
+                                       void *closureP, Size closureS)
+{
+  Res res;
+  RangeStruct newRange;
+  CBS cbs;
+
+  AVER(deleteReturn != NULL);
+  AVERT(Range, range);
+  AVER(closureP != NULL);
+  UNUSED(closureS);
+
+  cbs = closureP;
+  res = CBSInsert(&newRange, cbs, range);
+  if (res == ResOK) {
+    *deleteReturn = TRUE;
+    return TRUE;
+  } else {
+    *deleteReturn = FALSE;
+    return FALSE;
+  }
+}
+
+
+void FreelistFlushToCBS(Freelist fl, CBS cbs)
+{
+  AVERT(Freelist, fl);
+  AVERT(CBS, cbs);
+
+  FreelistIterate(fl, freelistFlushIterateMethod, cbs, 0);
 }
 
 
