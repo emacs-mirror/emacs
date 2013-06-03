@@ -50,6 +50,11 @@
 	* eshell/em-term.el (eshell-term-initialize): Use
 	`cl-intersection' rather than `intersection'.
 
+2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/log-view.el: Doc fix.
+	(log-view-mode-map): Copy keymap from `special-mode-map'.
+
 2013-06-02  Eric Ludlam <zappo@gnu.org>
 
 	* emacs-lisp/eieio.el (eieio--defalias, eieio-hook)

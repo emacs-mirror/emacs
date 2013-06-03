@@ -379,7 +379,7 @@ merge-based version control system, a @samp{-} character indicates
 that the work file is unmodified, and @samp{:} indicates that it has
 been modified.  @samp{!} indicates that the file contains conflicts as
 result of a recent merge operation (@pxref{Merging}), or that the file
-was removed from the version control.  Finally, @samp{?}  means that
+was removed from the version control.  Finally, @samp{?} means that
 the file is under version control, but is missing from the working
 tree.
 
@@ -1203,7 +1203,8 @@ files and directories.
 
 @item x
 Hide files with @samp{up-to-date} status
-(@code{vc-dir-hide-up-to-date}).
+(@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
+that are in state of item at point from display.
 @end table
 
 @findex vc-dir-mark
@@ -1266,10 +1267,16 @@ bring them back at a later time).
 @cindex branch (version control)
 
   One use of version control is to support multiple independent lines
-of development, which are called @dfn{branches}.  Branches are used
-for maintaining separate ``stable'' and ``development'' versions of a
-program, and for developing unrelated features in isolation from one
-another.
+of development, which are called @dfn{branches}.  Branches allow for
+parts of software to be developed in parallel.  Large projects require
+many roles to be filled, including developers, build managers, and
+quality assurance personnel. Further, multiple releases on different
+operating system platforms may have to be maintained.  Branches allow
+contributors to isolate changes without destabilizing the codebase,
+for example, fixes for bugs, new features, and versions
+integration. These changes may be later merged (resynchronized) after
+testing.
+
 
   VC's support for branch operations is currently fairly limited.  For
 decentralized version control systems, it provides commands for
