@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!138.c(trunk.3) $
+ id = $Id$
  summary = test running out of memory while scanning roots
  language = c
  link = testlib.o rankfmt.o
@@ -42,7 +42,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_exact(), 0,
                             (mps_addr_t*)&exfmt_root, 1),
       "create table root");
 
@@ -53,12 +53,12 @@ static void test(void)
  die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()),
       "create ap");
 
  /* allocate a 16 MB live object */
 
- allocdumb(ap, 16*MEG, MPS_RANK_EXACT);
+ allocdumb(ap, 16*MEG, mps_rank_exact());
 
  comment("collect world...");
 

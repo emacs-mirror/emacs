@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:commands:help(trunk.4) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # provide help on QA functions
 #

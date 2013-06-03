@@ -1,5 +1,5 @@
-#!/usr/local/bin/perl -w
-# $HopeName: MMQA_harness!script:commands:runset(trunk.3) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # run a set of tests specified in a test-set file
 #

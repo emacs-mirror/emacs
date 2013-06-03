@@ -14,6 +14,7 @@ Old design
 .. toctree::
     :numbered:
 
+    alloc-frame
     arena
     arenavm
     bt
@@ -21,28 +22,47 @@ Old design
     check
     class-interface
     collection
+    diag
     finalize
     fix
+    interface-c
+    io
     lib
     lock
+    locus
     message
+    message-gc
     object-debug
     pool
     poolamc
+    poolams
+    poolawl
+    poollo
+    poolmfs
     poolmrg
     poolmvff
     prot
+    protan
+    protli
+    protsu
     protocol
+    pthreadext
     reservoir
     root
     scan
     seg
+    shield
     splay
+    sso1al
     telemetry
+    thread-manager
     thread-safety
     trace
     type
     version-library
     version
     vm
+    vman
+    vmo1
+    vmso
     writef

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = free in the wrong pool
  language = c
  link = testlib.o
@@ -12,7 +12,7 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_pool_t pool1;
  size_t extendBy;
@@ -25,15 +25,15 @@ static void test(void)
  avgSize  = (size_t) 32;
  maxSize  = (size_t) 65536;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
  cdie(
-  mps_pool_create(&pool, space, mps_class_mv(),
+  mps_pool_create(&pool, arena, mps_class_mv(),
    extendBy, avgSize, maxSize),
   "create pool 0");
 
  cdie(
-  mps_pool_create(&pool1, space, mps_class_mv(),
+  mps_pool_create(&pool1, arena, mps_class_mv(),
    extendBy, avgSize, maxSize),
   "create pool 1");
 

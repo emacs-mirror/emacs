@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!69.c(trunk.6) $
+ id = $Id$
  summary = request.dylan.170563 (colour invariant and finalization)
  language = c
  link = testlib.o rankfmt.o
@@ -44,7 +44,7 @@ static void test(void) {
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -55,7 +55,7 @@ static void test(void) {
      "create pool");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  mps_message_type_enable(arena, mps_message_type_finalization());
@@ -75,7 +75,7 @@ static void test(void) {
  a = allocone(ap, 4000, 1);
  mps_arena_collect(arena);
 
- if (!mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
+ if (!mps_message_get(&message, arena, mps_message_type_finalization())) {
   error("No message on queue!");
  }
 

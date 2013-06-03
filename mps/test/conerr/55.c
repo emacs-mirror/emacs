@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = add to ld in destroyed space
+ id = $Id$
+ summary = add to ld in destroyed arena
  language = c
  link = myfmt.o testlib.o
 END_HEADER
@@ -13,23 +13,23 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_ld_s ld;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- mps_ld_reset(&ld, space);
+ mps_ld_reset(&ld, arena);
  comment("Reset ld."); 
 
- mps_ld_add(&ld, space, &space);
+ mps_ld_add(&ld, arena, &arena);
  comment("Added to ld.");
 
- report("isstale", "%d", mps_ld_isstale(&ld, space, &space));
+ report("isstale", "%d", mps_ld_isstale(&ld, arena, &arena));
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 
- mps_ld_add(&ld, space, &space);
+ mps_ld_add(&ld, arena, &arena);
  comment("Added to ld.");
 
 }

@@ -1,5 +1,5 @@
 run tests from a test-set
-% $HopeName: MMQA_harness!script:help:runset(trunk.2) $
+% $Id$
 
 Usage: qa runset [<options>] <testsetfile>
 

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!67.c(trunk.5) $
+ id = $Id$
  summary = test for non-bug with mark-sweep scanning in AWL
  language = c
  link = testlib.o exfmt.o
@@ -48,16 +48,16 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_table(&root, arena, MPS_RANK_EXACT, 0,
+ die(mps_root_create_table(&root, arena, mps_rank_exact(), 0,
                            (mps_addr_t*)&a[0], 2),
      "create table root");
 
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_AMBIG, 0, (mps_addr_t*)&a[2], 1),
+  mps_root_create_table(&root2, arena, mps_rank_ambig(), 0, (mps_addr_t*)&a[2], 1),
   "ambig table root");
 
  cdie(
-  mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root1, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -67,15 +67,15 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  a[1] = allocone(apawl, 2, 1);

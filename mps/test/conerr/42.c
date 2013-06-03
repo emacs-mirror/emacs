@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create root in destroyed space
+ id = $Id$
+ summary = create root in destroyed arena
  language = c
  link = myfmt.o testlib.o
 END_HEADER
@@ -15,17 +15,17 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_root_t root;
  mps_addr_t roottable[10];
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0,
+  mps_root_create_table(&root, arena, mps_rank_ambig(), 0,
    roottable, sizeof(mps_addr_t[10])), "create root");
 
  mps_root_destroy(root);

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = low-memory reservoir tests with commit limit, part II
  language = c
  link = testlib.o rankfmt.o
@@ -20,14 +20,20 @@ END_HEADER
 
 #define ARENA_SIZE ((size_t) 1024*1024*30)
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
-mps_space_t arena;
+mps_arena_t arena;
 mps_pool_t poolamc;
 mps_pool_t poolmv;
 mps_thr_t thread;
 mps_root_t root;
 
+ mps_chain_t chain;
 mps_fmt_t format;
 mps_ap_t apamc;
 
@@ -42,23 +48,25 @@ static void test(void) {
  size_t lim9, avail9, commit9;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), ARENA_SIZE),
-  "create space");
+  "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create stack root");
 
  cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  mps_arena_commit_limit_set(arena, mps_arena_committed(arena)+1024*1024);
@@ -76,7 +84,7 @@ static void test(void) {
  p = NULL;
  res = MPS_RES_OK;
  while (res == MPS_RES_OK) {
-  res = reservoir_allocrone(&q, apamc, 10, MPS_RANK_EXACT);
+  res = reservoir_allocrone(&q, apamc, 10, mps_rank_exact());
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
    p = q;
@@ -121,11 +129,14 @@ static void test(void) {
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
+
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 int main(void)

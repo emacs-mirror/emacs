@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = destroy a space which contains a thread
+ id = $Id$
+ summary = destroy an arena which contains a thread
  language = c
  link = testlib.o
 END_HEADER
@@ -14,15 +14,15 @@ void *stackpointer;
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
  
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- mps_space_destroy(space);
- comment("Destroy space.");
+ mps_arena_destroy(arena);
+ comment("Destroy arena.");
 }
 
 int main(void)

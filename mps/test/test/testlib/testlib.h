@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.15) $
+/* $Id$
 test_lib.h
    various handy things for running tests, reporting errors &c.
 */
@@ -11,11 +11,10 @@ test_lib.h
 #error Header file mps.h not found
 #endif
 #include "mps.h"
+#include "mpslib.h"
+#include "mpstd.h"
 #include "versind.h"
 #include "platform.h"
-
-/* This will not stay here for long. You hope. 2005-02-23 */
-#define MPS_PF_ALIGN (8)
 
 /* Give textual description of mps error code */
 

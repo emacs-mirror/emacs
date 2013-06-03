@@ -381,8 +381,27 @@ void GlobalsFinish(Globals arenaGlobals)
   Arena arena;
   Rank rank;
 
-  AVERT(Globals, arenaGlobals);
+  /* The client may have failed to destroy all data structures
+   * associated with the arena. If this happens we must assert (and
+   * not crash). But at this point in the code the control pool has
+   * been destroyed and so the address space containing these rings
+   * has potentially been unmapped. GlobalsCheck calls RingCheck,
+   * which (if the ring is not single) will dereference a pointer into
+   * the space formerly occupied by the control pool and so crash.
+   * Hence we must check that these rings are single *before* calling
+   * GlobalsCheck via the AVERT. See job000652.
+   */
   arena = GlobalsArena(arenaGlobals);
+  AVER(RingIsSingle(&arena->formatRing));
+  AVER(RingIsSingle(&arena->chainRing));
+  AVER(RingIsSingle(&arena->messageRing));
+  AVER(RingIsSingle(&arena->threadRing));
+  for(rank = 0; rank < RankLIMIT; ++rank)
+    AVER(RingIsSingle(&arena->greyRing[rank]));
+  AVER(RingIsSingle(&arenaGlobals->poolRing));
+  AVER(RingIsSingle(&arenaGlobals->rootRing));
+
+  AVERT(Globals, arenaGlobals);
 
   STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
                           arena->writeBarrierHitCount));
@@ -390,6 +409,7 @@ void GlobalsFinish(Globals arenaGlobals)
   arenaGlobals->sig = SigInvalid;
 
   RingFinish(&arena->formatRing);
+  RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
   RingFinish(&arena->threadRing);
   for(rank = 0; rank < RankLIMIT; ++rank)

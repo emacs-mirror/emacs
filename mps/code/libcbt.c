@@ -12,6 +12,7 @@
 #include "mpslibcb.h"
 
 #include "testlib.h"
+#include "mpslib.h"
 
 #include <stdio.h>
 #include <stdlib.h>

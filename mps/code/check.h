@@ -52,7 +52,7 @@
 #define ASSERT(cond, condstring) \
   BEGIN \
     if (cond) NOOP; else \
-      mps_lib_assert_fail(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
+      mps_lib_assert_fail(__FILE__ , __LINE__, (condstring)); \
   END
 
 #define ASSERT_TYPECHECK(type, val) \
@@ -158,7 +158,7 @@ extern unsigned CheckLevel;
 
 #define NOTREACHED \
   BEGIN \
-    mps_lib_assert_fail("unreachable code" "\n" __FILE__ "\n" STR(__LINE__)); \
+    mps_lib_assert_fail(__FILE__, __LINE__, "unreachable code"); \
   END
 
 #endif

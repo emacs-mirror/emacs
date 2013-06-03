@@ -1,6 +1,6 @@
 .. index::
-   pair: MRG; design
-   single: pool; MRG design
+   pair: MRG pool class; design
+   single: pool class; MRG design
 
 .. _design-poolmrg:
 

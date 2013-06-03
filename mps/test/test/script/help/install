@@ -1,5 +1,5 @@
 installing and invoking the MMQA test harness
-% $HopeName: MMQA_harness!script:help:problems(trunk.2) $
+% $Id$
 
 The MMQA test system consists of the test harness (in hope as MMQA_harness!),
 suites of individual tests (MMQA_test_function!, MMQA_test_argerr!,

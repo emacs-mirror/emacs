@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!106.c(trunk.3) $
+ id = $Id$
  summary = string twiddling with an AMCZ pool
  language = c
  link = lofmt.o testlib.o
@@ -79,7 +79,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -90,7 +90,7 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
  a = string_ch("Hello there");

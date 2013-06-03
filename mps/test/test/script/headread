@@ -1,5 +1,5 @@
-#!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.18) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -154,7 +154,7 @@ sub read_results {
    } else {
     die "Badly formatted result line in output:\n$_\n";
    }
-  } elsif (/^Abort|^abnormal program termination/ ) {
+  } elsif (/Abort trap|abnormal program termination|Segmentation fault|MPS ASSERTION FAILED/ ) {
 # abort for other reason
    $real_output{"abort"} = "true";
   } elsif (/^%/ || /^\s$/) {

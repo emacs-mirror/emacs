@@ -9,6 +9,7 @@
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpstd.h"
@@ -201,6 +202,7 @@ int main(int argc, char *argv[])
     void *r;
 
     randomize(argc, argv);
+    mps_lib_assert_fail_install(assert_die);
 
     die(mps_arena_create(&arena, mps_arena_class_vm(),
                          testArenaSIZE),
