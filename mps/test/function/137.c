@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MVFF emergency list test
  language = c
  link = testlib.o

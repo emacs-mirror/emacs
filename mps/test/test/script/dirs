@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:dirs(trunk.3) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # set directories up for testing
 # n.b. this must happen _after_ options have been

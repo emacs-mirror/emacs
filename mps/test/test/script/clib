@@ -1,11 +1,13 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.6) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
 #
 
 1;
+
+use File::Path qw(rmtree);
 
 sub clib {
  my $success = 1;
@@ -50,7 +52,7 @@ sub objpurge {
  }
  &logcomment("Cleaning out old object files.");
  foreach (readdir(DIR)) {
-  unless ($_ eq "." || $_ eq ".." || unlink $obj_dir."/".$_) {
+  unless ($_ eq "." || $_ eq ".." || rmtree $obj_dir."/".$_) {
    &logcomment("  ... but failed to delete $_.");
   }
  }
@@ -153,7 +155,7 @@ sub headertimes {
   die "Failed to open directory $MPS_INCLUDE_DIR.\n";
  }
  foreach (readdir(DIR)) {
-  if (/^mps.*\.h$/) {
+  if (/^mps.*\.h$/ && ! $ignored_headers{$_}) {
    $mps_headers{$_} = &mod_time("$MPS_INCLUDE_DIR/$_");
   }
  }
@@ -167,7 +169,6 @@ sub linkobjtimes {
  foreach (split) {
   $mps_linkobjs{$_} = &mod_time($_);
  }
- closedir(DIR);
 }
 
 sub mod_time {
@@ -241,9 +242,14 @@ sub scrutinize {
 
  open(LINKTEST, $comout);
  while (<LINKTEST>) {
-  while (s/((mps|MPS)_\w+)/ /) {
-   delete $mps_linkable{$1};
-   &debug("Filtering out $1.");
+  # Clang helpfully annotates its "Undefined symbols" error messages
+  # with lines of the form "(maybe you meant: _mps_ap_trip)". To avoid
+  # false positives, we must ignore these lines.
+  if (!/maybe you meant:/) {
+   while (s/((mps|MPS)_\w+)/ /) {
+    delete $mps_linkable{$1};
+    &debug("Filtering out $1.");
+   }
   }
  }
  close(LINKTEST);

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MV2 greed test
  language = c
  link = testlib.o
@@ -47,7 +47,7 @@ static void test (void) {
                   OBJSIZE, OBJSIZE, OBJSIZE, DEPTH, FRAGLIMIT),
   "create MV2 pool");
 
- die(mps_ap_create(&ap, pool, MPS_RANK_AMBIG), "create ap");
+ die(mps_ap_create(&ap, pool, mps_rank_ambig()), "create ap");
 
  for (i = 0; i < OBJECTS; i++) {
   die(mv2_alloc(&objs[i], ap, OBJSIZE), "alloc");

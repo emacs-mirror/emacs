@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!83.c(trunk.3) $
+ id = $Id$
  summary = test for bug with segment summaries
  language = c
  link = testlib.o awlfmt.o
@@ -59,7 +59,7 @@ static void test(void)
 
  die(mps_thread_reg(&thread, arena), "register thread");
 
- die(mps_root_create_table(&root, arena, MPS_RANK_AMBIG, 0, &temp_root, 1),
+ die(mps_root_create_table(&root, arena, mps_rank_ambig(), 0, &temp_root, 1),
      "create temp root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -68,13 +68,13 @@ static void test(void)
  die(mmqa_pool_create_chain(&pool1, arena, mps_class_amc(), format, chain),
      "create pool(amc)");
 
- die(mps_pool_create(&pool2, arena, mps_class_awl(), format),
+ die(mps_pool_create(&pool2, arena, mps_class_awl(), format, getassociated),
      "create pool(awl)");
 
- die(mps_ap_create(&ap1, pool1, MPS_RANK_EXACT),
+ die(mps_ap_create(&ap1, pool1, mps_rank_exact()),
      "create ap(amc)");
 
- die(mps_ap_create(&ap2, pool2, MPS_RANK_EXACT),
+ die(mps_ap_create(&ap2, pool2, mps_rank_exact()),
      "create ap(awl)");
 
  ap=ap1;

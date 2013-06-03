@@ -92,7 +92,7 @@ Property                                       AMC    AMCZ   AMS    AWL    LO   
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====  =====
 Supports :c:func:`mps_alloc`?                  no     no     no     no     no     yes    yes    yes    no     no
 Supports :c:func:`mps_free`?                   no     no     no     no     no     yes    yes    yes    yes    no
-Supports allocation points?                    yes    yes    yes    yes    yes    no     no     yes    yes    yes
+Supports allocation points?                    yes    yes    yes    yes    yes    no     yes    yes    yes    yes
 Supports allocation frames?                    yes    yes    yes    yes    yes    no     no     yes    yes    yes
 Supports segregated allocation caches?         no     no     no     no     no     yes    yes    yes    no     no
 Timing of collections? [2]_                    auto   auto   auto   auto   auto   ---    ---    ---    ---    ---

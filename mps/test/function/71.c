@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = create 1000 spaces and destroy each one just before the next is created
  language = c
  link = testlib.o
@@ -11,16 +11,16 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
 
  int p;
 
- die(mps_space_create(&space), "create");
+ die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
 
  for (p=0; p<1000; p++)
  {
-  mps_space_destroy(space);
-  die(mps_space_create(&space), "create");
+  mps_arena_destroy(arena);
+  die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
   comment("%i", p);
  }
 }

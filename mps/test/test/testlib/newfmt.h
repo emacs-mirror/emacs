@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:newfmt.h(trunk.2) $
+/* $Id$
 newfmt.h
    A nice format with graph checking and statistics
 */
@@ -65,6 +65,7 @@ mycell *allocone(mps_ap_t ap, int size);
 mycell *allocdumb(mps_ap_t ap, size_t bytes);
 
 mps_addr_t getdata(mycell *obj);
+mps_addr_t getassociated(mps_addr_t addr);
 void setref(mycell *obj, int n, mycell *to);
 mycell *getref(mycell *obj, int n);
 

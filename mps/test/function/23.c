@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!23.c(trunk.5) $
+ id = $Id$
  summary = ensure allocation in MV pool causes collection
  language = c
  link = newfmt.o testlib.o
@@ -60,7 +60,7 @@ static void test(void)
       "create pool");
 
  cdie(
-  mps_ap_create(&ap, poolAMC, MPS_RANK_EXACT),
+  mps_ap_create(&ap, poolAMC, mps_rank_exact()),
   "create ap");
 
  comment("Sizes in megabytes:");

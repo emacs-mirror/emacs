@@ -6,6 +6,7 @@
  */
 
 #include "testlib.h"
+#include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpscmv.h"
@@ -582,6 +583,7 @@ int main(int argc, char *argv[])
   void *marker = &marker;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
       "arena_create");

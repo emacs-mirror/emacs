@@ -1,4 +1,4 @@
-/* $HopeName: $
+/* $Id$
 Before humanist interface;
  -- there was no spare committed fund
 */

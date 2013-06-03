@@ -1,4 +1,5 @@
-# $HopeName: MMQA_harness!script:useful(trunk.1) $
+#!/usr/bin/perl -w
+# $Id$
 # Various subroutines that the MMQA harness finds useful.
 #
 

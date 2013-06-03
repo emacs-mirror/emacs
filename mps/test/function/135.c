@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = mps_arena_commit_limit and small arena chunks
  language = c
  link = testlib.o

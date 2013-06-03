@@ -159,6 +159,15 @@ extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
 extern void cdie(int res, const char *s);
 
 
+/* assert_die -- always die on assertion
+ *
+ * The MPS assertion handler may not stop in the HOT variety,
+ * preventing tests from detecting defects.  This one does.
+ */
+
+void assert_die(const char *file, unsigned line, const char *condition);
+
+
 /* error, verror -- die with message */
 
 extern void error(const char *format, ...);

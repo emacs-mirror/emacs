@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!44.c(trunk.5) $
+ id = $Id$
  summary = clamp and arena_collect tests
  language = c
  harness = 2.1
@@ -53,12 +53,12 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
  cdie(
-  mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root1, arena, mps_rank_ambig(), 0, &exfmt_root, 1),
   "create exfmt root");
 
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
@@ -68,15 +68,15 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
+  mps_ap_create(&apawl, poolawl, mps_rank_weak()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  b = allocone(apamc, 1, 1);

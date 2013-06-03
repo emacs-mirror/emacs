@@ -732,6 +732,8 @@ found:
   arena->busyTraces = TraceSetAdd(arena->busyTraces, trace);
   AVERT(Trace, trace);
 
+  EVENT3(TraceCreate, trace, arena, (EventFU)why);
+
   /* We suspend the mutator threads so that the PoolWhiten methods */
   /* can calculate white sets without the mutator allocating in */
   /* buffers under our feet. */
@@ -1681,7 +1683,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(finishingTime >= 0.0);
 
   arena = trace->arena;
-
+  
   /* From the already set up white set, derive a grey set. */
 
   /* @@@@ Instead of iterating over all the segments, we could */
@@ -1788,6 +1790,11 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   }
 
   /* @@ DIAG for rate of scanning here. */
+
+  EVENT8(TraceStart, trace, mortality, finishingTime,
+         trace->condemned, trace->notCondemned,
+         trace->foundation, trace->white,
+         trace->rate);
 
   STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
                                trace->condemned, trace->notCondemned,

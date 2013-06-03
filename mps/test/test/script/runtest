@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.22) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # provides subroutines to run tests and testsets
 #
@@ -214,8 +214,7 @@ sub run_from_testset {
   open(LOG_VERBOSE, ">$LOG_DIR/last.log");
   &describe_test("verbose", LOG_VERBOSE);
   close(LOG_VERBOSE);
-  &mailfile("$LOG_DIR/last.log",
-   "$MAIL_SUBJECT $testid $testconclusion");
+  &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
  }
 }
 

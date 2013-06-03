@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!34.c(trunk.5) $
+ id = $Id$
  summary = random test of exact references in AWL 
  language = c
  link = testlib.o awlfmt.o
@@ -47,7 +47,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -58,15 +58,15 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  for(i=0; i<100; i++) {

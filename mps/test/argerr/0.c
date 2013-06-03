@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName$
- summary = create a space with a NULL space_t
+ id = $Id$
+ summary = create an arena with a NULL arena_t
  language = c
  link = testlib.o
 END_HEADER
@@ -12,8 +12,8 @@ END_HEADER
 
 static void test(void)
 {
- adie(mps_space_create(NULL),
-      "Create space");
+ adie(mps_arena_create(NULL, mps_arena_class_vm(), mmqaArenaSIZE),
+      "Create arena");
 }
 
 int main(void)

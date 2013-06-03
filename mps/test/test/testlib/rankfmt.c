@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.6) $
+/* $Id$
 rankfmt.c
    See comments in header file for usage.
 */
@@ -42,8 +42,11 @@ int freeze=0;
 
    Each objects begins with a pointer to a wrapper. To tag objects,
    use non-zero values for the low bits.
-   The second word in each object is a pointer to the associated object,
-   usual rules for references apply.
+
+   The second word in each object is a pointer to the associated
+   object, usual rules for references apply. The getassociated()
+   function looks up this reference and can be used as the
+   find_dependent function when creating an AWL pool.
 
    The wrapper begins with a wrapper-wrapper pointer, and the third word
    of the wrapper object has bit 0 set and bit 1 clear and at least one higher
@@ -362,12 +365,12 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
       res = MPS_FIX(ss, (mps_addr_t *) &p);
       if (res != MPS_RES_OK) return res;
       if (p == NULL) {
-       asserts(rank == MPS_RANK_WEAK,
+       asserts(rank == mps_rank_weak(),
                "non-weak reference fixed to NULL at %p[assoc]", obj);
        commentif(deathcomments, "fixed %p[assoc] to NULL", obj->data.id);
        INCCOUNT(DYING_REFERENCE_COUNT);
       } else if (p != q) {
-       asserts(rank != MPS_RANK_AMBIG,
+       asserts(rank != mps_rank_ambig(),
                "ambiguous reference changed by fix at %p[assoc]", obj);
       }
       obj->data.assoc = p;
@@ -386,12 +389,12 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        q = p;
        res = MPS_FIX(ss, (mps_addr_t *) &p);
        if (p == NULL) {
-        asserts(rank == MPS_RANK_WEAK,
+        asserts(rank == mps_rank_weak(),
                 "non-weak reference fixed to NULL at %p[i]", obj);
         commentif(deathcomments, "fixed %li[%i] to NULL", obj->data.id, i);
         INCCOUNT(DYING_REFERENCE_COUNT);
        } else if (p != q) {
-        asserts(rank != MPS_RANK_AMBIG,
+        asserts(rank != mps_rank_ambig(),
                 "ambiguous reference changed by fix at %p[i]", obj);
        }
        if (res != MPS_RES_OK) return res;
@@ -551,6 +554,13 @@ mycell *getref(mycell *obj, int n)
 mps_addr_t getdata(mycell *obj)
 {
  return (mps_addr_t) &(obj->data.ref[0]);
+}
+
+
+mps_addr_t getassociated(mps_addr_t addr)
+{
+  mycell *obj = addr;
+  return (mps_addr_t) &(obj->data.ref[1]);
 }
 
 

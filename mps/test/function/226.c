@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = test of mps_ld_merge
  language = c
  link = testlib.o rankfmt.o
@@ -15,6 +15,11 @@ END_HEADER
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 void *stackpointer;
 
@@ -59,9 +64,12 @@ static void test(void) {
  mps_root_t root0, root1, root2;
  mps_addr_t p;
 
+ mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t apawl, apamc;
 
+ mps_addr_t base;
+ mps_addr_t *addr;
  mycell *a;
 
  int i,j,merge,stale,prevstale;
@@ -73,22 +81,24 @@ static void test(void) {
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), 100*1024*1024),
   "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
+ base = &exfmt_root;
+ addr = base;
  cdie(
-  mps_root_create_table(&root0, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+  mps_root_create_table(&root0, arena, mps_rank_ambig(), 0, addr, 1),
   "create exfmt root");
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_EXACT, 0,
+  mps_root_create_table(&root2, arena, mps_rank_exact(), 0,
                         (mps_addr_t *)obj_table, MAXLDS),
   "create table root");
  cdie(
-  mps_root_create_reg(&root1, arena, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root1, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create register and stack root");
  cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create awl pool");
 
  cdie(
@@ -96,15 +106,17 @@ static void test(void) {
   "create mv pool");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format, chain),
   "create amc pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
 /* allocate MAXLDS objects, and make each LD depend on the corresponding
@@ -119,7 +131,7 @@ static void test(void) {
  }
 
  for (i=0; i < MAXLDS; i++) {
-  obj_table[i] = allocone(apamc, ranint(1000), MPS_RANK_EXACT);
+  obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
   mps_ld_reset(lds[i], arena);
   mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
   addr_table[i] = obj_table[i];
@@ -130,7 +142,7 @@ static void test(void) {
 
   for (i=0; i < MAXLDS; i++) {
    if (ranint(100) < BLATPERCENT) {
-    obj_table[i] = allocone(apamc, ranint(1000), MPS_RANK_EXACT);
+    obj_table[i] = allocone(apamc, ranint(1000), mps_rank_exact());
     mps_ld_reset(lds[i], arena);
     mps_ld_add(lds[i], arena, (mps_addr_t) obj_table[i]);
     addr_table[i] = obj_table[i];
@@ -154,7 +166,7 @@ static void test(void) {
     comment("inc to %d at %d", stale, i);
    }
    for (j = 0; j < JUNK; j++) {
-    a = allocdumb(apamc, ranint(1000), MPS_RANK_EXACT);
+    a = allocdumb(apamc, ranint(1000), mps_rank_exact());
    }
   }
  }
@@ -171,6 +183,9 @@ static void test(void) {
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
+
  mps_root_destroy(root0);
  mps_root_destroy(root1);
  mps_root_destroy(root2);
@@ -179,7 +194,7 @@ static void test(void) {
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(arena);
+ mps_arena_destroy(arena);
  comment("Destroyed arena.");
 
 }

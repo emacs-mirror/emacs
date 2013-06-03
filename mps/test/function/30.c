@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!30.c(trunk.6) $
+ id = $Id$
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o
@@ -37,16 +37,16 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
 
- die(mps_pool_create(&pool, arena, mps_class_awl(), format),
+ die(mps_pool_create(&pool, arena, mps_class_awl(), format, getassociated),
      "create pool");
 
- cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
+ cdie(mps_ap_create(&ap, pool, mps_rank_exact()), "create ap");
 
  for (j = 1; j < 100; j++) {
   comment("%i of 100.", j);

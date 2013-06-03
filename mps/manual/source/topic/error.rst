@@ -188,14 +188,34 @@ than the client program, but it is not unknown, so if you have made
 every effort to track down the cause (see :ref:`guide-debug`) without
 luck, :ref:`get in touch <contact>`.
 
-If you are running your MPS-enabled program from Emacs via the
-``compile`` command, you will probably want to recognize MPS
-assertions automatically, by adding the following to your ``.emacs``:
 
-.. code-block:: scheme
+.. index::
+   single: assertion
+   single: error handling; assertion; assertion handling
 
-    (add-to-list 'compilation-error-regexp-alist
-                 '("MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)" 1 2))
+.. _topic-error-assertion-handling:
+
+Assertion handling
+..................
+
+When the MPS detects an assertion failure, it calls the :term:`plinth`
+function :c:func:`mps_lib_assert_fail`. Unless you have replaced the plinth, this behaves as follows:
+
+- In the :term:`cool` :term:`variety`, print the assertion message to
+  standard error and terminate the program by calling :c:func:`abort`.
+
+- In the :term:`hot` and :term:`rash` varieties, print the assertion
+  message to standard error and do *not* terminate the program.
+
+You can change this behaviour by providing your own plinth, or using
+:c:func:`mps_lib_assert_fail_install`.
+
+In many applications, users don't want their program terminated when
+the MPS detects an error, no matter how severe. A lot of MPS
+assertions indicate that the program is going to crash very soon, but
+there still may be a chance for a user to get some useful results or
+save their work. This is why the default assertion handler only
+terminates in the :term:`cool` :term:`variety`.
 
 
 .. index::
@@ -204,7 +224,7 @@ assertions automatically, by adding the following to your ``.emacs``:
 .. _topic-error-cause:
 
 Common assertions and their causes
-----------------------------------
+..................................
 
 This section lists some commonly encountered assertions and suggests
 likely causes. If you encounter an assertion not listed here (or an
@@ -296,8 +316,11 @@ default.
 
     The cool variety is intended for development and testing.
 
-    All functions check the consistency of their data structures and
-    may assert, including functions on the :term:`critical path`.
+    All functions check the consistency of their data structures and may
+    assert, including functions on the :term:`critical path`.
+    Furthermore, in the default ANSI Library the default assertion
+    handler will terminate the program.  See
+    :c:func:`mps_lib_assert_fail_install`.
 
     All events are sent to the :term:`telemetry stream`, including
     events on the :term:`critical path`.
@@ -312,7 +335,9 @@ default.
     The hot variety is intended for production and deployment.
 
     Some functions check the consistency of their data structures and
-    may assert, namely those not on the :term:`critical path`.
+    may assert, namely those not on the :term:`critical path`.  However,
+    in the default ANSI Library, the default assertion handler will not
+    terminate the program.  See :c:func:`mps_lib_assert_fail_install`.
 
     Some events are sent to the telemetry stream, namely those not on
     the :term:`critical path`.

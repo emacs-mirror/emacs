@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = UNALIGNED &root_t for mps_root_create_fmt
  language = c
  link = testlib.o
@@ -20,15 +20,15 @@ static mps_res_t fmtscan(mps_ss_t ss,
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
  mps_thr_t thread;
  mps_addr_t a[32];
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_fmt(UNALIGNED, space, MPS_RANK_AMBIG, 0, 
+ cdie(mps_root_create_fmt(UNALIGNED, arena, mps_rank_ambig(), 0, 
                       fmtscan, a, &a[32]),
       "root create");
 

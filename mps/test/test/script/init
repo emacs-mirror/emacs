@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:dirs(trunk.3) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # harness_init is called from qa after loading everything in,
 # but before calling the command
