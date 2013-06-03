@@ -1,3 +1,7 @@
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac (HAVE_GFILENOTIFY): Check for gio >= 2.24.
+
 2013-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_GFILENOTIFY): Do not change $LIBS.

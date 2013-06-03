@@ -2321,12 +2321,13 @@ if test "${with_file_notification}" = "yes"; then
    fi
 fi
 
-dnl g_file_monitor exists since glib 2.18.  It has been tested under
+dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
+dnl has been added in glib 2.24.  It has been tested under
 dnl GNU/Linux only.  We take precedence over inotify, but this makes
 dnl only sense when glib has been compiled with inotify support.  How
 dnl to check?
 if test "${with_file_notification}" = "gfile"; then
-   PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.18, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+   PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
    if test "$HAVE_GFILENOTIFY" = "yes"; then
       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
       NOTIFY_OBJ=gfilenotify.o
