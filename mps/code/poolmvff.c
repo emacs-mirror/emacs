@@ -21,6 +21,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 #include "cbs.h"
+#include "freelist.h"
 #include "mpm.h"
 
 SRCID(poolmvff, "$Id$");
@@ -48,6 +49,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   Size total;                   /* total bytes in pool */
   Size free;                    /* total free bytes in pool */
   CBSStruct cbsStruct;          /* free list */
+  FreelistStruct flStruct;      /* emergency free list */
   Bool firstFit;                /* as opposed to last fit */
   Bool slotHigh;                /* prefers high part of large block */
   Sig sig;                      /* <design/sig/> */
@@ -58,6 +60,8 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 #define MVFF2Pool(mvff)       (&((mvff)->poolStruct))
 #define CBSOfMVFF(mvff)      (&((mvff)->cbsStruct))
 #define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
+#define FreelistOfMVFF(mvff)      (&((mvff)->flStruct))
+#define MVFFOfFreelist(fl)       PARENT(MVFFStruct, flStruct, fl)
 
 static Bool MVFFCheck(MVFF mvff);
 
@@ -92,9 +96,11 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   RangeInit(&range, *baseIO, *limitIO);
 
   res = CBSInsert(&newRange, CBSOfMVFF(mvff), &range);
-  if (ResIsAllocFailure(res))
-    /* CBS ran out of memory for splay nodes: lose freed range. */
-    return;
+  if (ResIsAllocFailure(res)) {
+    /* CBS ran out of memory for splay nodes: add range to emergency
+     * free list instead. */
+    res = FreelistInsert(&newRange, FreelistOfMVFF(mvff), &range);
+  }
 
   AVER(res == ResOK);
   mvff->free += RangeSize(&range);
@@ -142,16 +148,42 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     if (segBase >= base) { /* segment starts in range */
       RangeStruct range, oldRange;
       RangeInit(&range, segBase, segLimit);
+
+      /* Free the segment first to give the CBS the best chance of
+       * being able to delete the range. */
+      SegFree(seg);
+      mvff->total -= RangeSize(&range);
+
       res = CBSDelete(&oldRange, CBSOfMVFF(mvff), &range);
-      if (ResIsAllocFailure(res))
-        /* CBS ran out of memory for splay nodes: can't delete. */
-        return;
+      if (res == ResOK) {
+        mvff->free -= RangeSize(&range);
+      } else if (ResIsAllocFailure(res)) {
+        /* CBS ran out of memory for splay nodes, which must mean that
+         * there were fragments on both sides: see
+         * <design/cbs/#function.cbs.delete.fail>. Handle this by
+         * deleting the whole of oldRange (which requires no
+         * allocation) and re-inserting the fragments. */
+        RangeStruct oldRange2;
+        res = CBSDelete(&oldRange2, CBSOfMVFF(mvff), &oldRange);
+        AVER(res == ResOK);
+        AVER(RangesEqual(&oldRange2, &oldRange));
+        mvff->free -= RangeSize(&oldRange);
+        AVER(RangeBase(&oldRange) != segBase);
+        {
+          Addr leftBase = RangeBase(&oldRange);
+          Addr leftLimit = segBase;
+          MVFFAddToFreeList(&leftBase, &leftLimit, mvff);
+        }
+        AVER(RangeLimit(&oldRange) != segLimit);
+        {
+          Addr rightBase = segLimit;
+          Addr rightLimit = RangeLimit(&oldRange);
+          MVFFAddToFreeList(&rightBase, &rightLimit, mvff);
+        }
+      }
 
       AVER(res == ResOK);
       AVER(RangesNest(&oldRange, &range));
-      mvff->free -= AddrOffset(segBase, segLimit);
-      mvff->total -= AddrOffset(segBase, segLimit);
-      SegFree(seg);
     }
 
     /* Avoid calling SegNext if the next segment would fail */
@@ -220,7 +252,8 @@ static Res MVFFAddSeg(Seg *segReturn,
   }
 
   mvff->total += segSize;
-  base = SegBase(seg); limit = AddrAdd(base, segSize);
+  base = SegBase(seg);
+  limit = AddrAdd(base, segSize);
   DebugPoolFreeSplat(pool, base, limit);
   MVFFAddToFreeList(&base, &limit, mvff);
   AVER(base <= SegBase(seg));
@@ -256,11 +289,21 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(MVFF2Pool(mvff))));
 
+  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+
   findDelete = mvff->slotHigh ? FindDeleteHIGH : FindDeleteLOW;
 
   foundBlock =
     (mvff->firstFit ? CBSFindFirst : CBSFindLast)
     (&range, &oldRange, CBSOfMVFF(mvff), size, findDelete);
+
+  if (!foundBlock) {
+    /* Failed to find a block in the CBS: try the emergency free list
+     * as well. */
+    foundBlock =
+      (mvff->firstFit ? FreelistFindFirst : FreelistFindLast)
+      (&range, &oldRange, FreelistOfMVFF(mvff), size, findDelete);
+  }
 
   if (foundBlock) {
     *baseReturn = RangeBase(&range);
@@ -359,6 +402,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   RangeStruct range, oldRange;
   Bool foundBlock;
   Seg seg = NULL;
+  unsigned i;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -370,28 +414,27 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVERT(Bool, withReservoirPermit);
 
-  /* Hoping the largest is big enough, delete it and return if small. */
-  foundBlock = CBSFindLargest(&range, &oldRange,
-                              CBSOfMVFF(mvff), FindDeleteENTIRE);
-  if (foundBlock && RangeSize(&range) < size) {
-    RangeStruct newRange;
-    foundBlock = FALSE;
-    res = CBSInsert(&newRange, CBSOfMVFF(mvff), &range);
-    if (ResIsAllocFailure(res))
-      /* CBS ran out of memory for splay nodes: lose block. */
-      return res;
+  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
 
-    AVER(res == ResOK);
-    AVER(RangesEqual(&newRange, &range));
+  for (i = 0; i < 2; ++i) {
+    foundBlock = CBSFindLargest(&range, &oldRange, CBSOfMVFF(mvff),
+                                size, FindDeleteENTIRE);
+    if (foundBlock) break;
+
+    /* No block was big enough: try the emergency free list. */
+    foundBlock = FreelistFindLargest(&range, &oldRange, FreelistOfMVFF(mvff),
+                                     size, FindDeleteENTIRE);
+    if (foundBlock) break;
+    
+    if (i == 0) {
+      /* Add a new segment to the free list: it will be found on the
+       * second time around the loop. */
+      res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
+      if (res != ResOK)
+        return res;
+    }
   }
-  if (!foundBlock) {
-    res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
-    if (res != ResOK)
-      return res;
-    foundBlock = CBSFindLargest(&range, &oldRange,
-                                CBSOfMVFF(mvff), FindDeleteENTIRE);
-    AVER(foundBlock); /* We will find the new segment. */
-  }
+  AVER(foundBlock);
 
   AVER(RangeSize(&range) >= size);
   mvff->free -= RangeSize(&range);
@@ -534,6 +577,10 @@ static Res MVFFInit(Pool pool, ArgList args)
   mvff->total = 0;
   mvff->free = 0;
 
+  res = FreelistInit(FreelistOfMVFF(mvff), align);
+  if (res != ResOK)
+    goto failInit;
+
   res = CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, align, TRUE, args);
   if (res != ResOK)
     goto failInit;
@@ -578,6 +625,7 @@ static void MVFFFinish(Pool pool)
   ControlFree(arena, mvff->segPref, sizeof(SegPrefStruct));
 
   CBSFinish(CBSOfMVFF(mvff));
+  FreelistFinish(FreelistOfMVFF(mvff));
 
   mvff->sig = SigInvalid;
 }
@@ -622,6 +670,10 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
     return res;
 
   res = CBSDescribe(CBSOfMVFF(mvff), stream);
+  if (res != ResOK)
+    return res;
+
+  res = FreelistDescribe(FreelistOfMVFF(mvff), stream);
   if (res != ResOK)
     return res;
 
@@ -729,6 +781,7 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(SizeIsAligned(mvff->free, PoolAlignment(MVFF2Pool(mvff))));
   CHECKL(SizeIsAligned(mvff->total, ArenaAlign(PoolArena(MVFF2Pool(mvff)))));
   CHECKD(CBS, CBSOfMVFF(mvff));
+  CHECKD(Freelist, FreelistOfMVFF(mvff));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
