@@ -562,7 +562,7 @@
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 3114A64B156E9596001E0AA3;
-			remoteInfo = cbstest;
+			remoteInfo = fbmtest;
 		};
 		3114A674156E9619001E0AA3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1127,7 +1127,7 @@
 		3114A633156E94DB001E0AA3 /* abqtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = abqtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A63D156E94EA001E0AA3 /* abqtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = abqtest.c; sourceTree = "<group>"; };
 		3114A645156E9525001E0AA3 /* abq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = abq.c; sourceTree = "<group>"; };
-		3114A64C156E9596001E0AA3 /* cbstest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cbstest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3114A64C156E9596001E0AA3 /* fbmtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = fbmtest; path = fbmtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A662156E95D9001E0AA3 /* btcv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = btcv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A66C156E95EB001E0AA3 /* btcv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = btcv.c; sourceTree = "<group>"; };
 		3114A67C156E9668001E0AA3 /* mv2test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mv2test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1724,7 +1724,7 @@
 				3114A605156E9430001E0AA3 /* bttest */,
 				3114A61C156E9485001E0AA3 /* teletest */,
 				3114A633156E94DB001E0AA3 /* abqtest */,
-				3114A64C156E9596001E0AA3 /* cbstest */,
+				3114A64C156E9596001E0AA3 /* fbmtest */,
 				3114A662156E95D9001E0AA3 /* btcv */,
 				3114A67C156E9668001E0AA3 /* mv2test */,
 				3114A695156E971B001E0AA3 /* messtest */,
@@ -2270,8 +2270,8 @@
 				3114A659156E95B1001E0AA3 /* PBXTargetDependency */,
 			);
 			name = fbmtest;
-			productName = cbstest;
-			productReference = 3114A64C156E9596001E0AA3 /* cbstest */;
+			productName = fbmtest;
+			productReference = 3114A64C156E9596001E0AA3 /* fbmtest */;
 			productType = "com.apple.product-type.tool";
 		};
 		3114A661156E95D9001E0AA3 /* btcv */ = {
@@ -2636,7 +2636,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awluthe btcv cbstest expt825 exposet0 finalcv \\\n           finaltest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
+			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
