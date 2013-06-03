@@ -137,9 +137,9 @@ character to the invoked process."
 			 (or (member command eshell-visual-commands)
 			     (member (car args)
 				     (cdr (assoc command eshell-visual-subcommands)))
-			     (intersection args
-					   (cdr (assoc command eshell-visual-options))
-					   :test 'string=)))))
+			     (cl-intersection args
+					      (cdr (assoc command eshell-visual-options))
+					      :test 'string=)))))
 		    'eshell-exec-visual)
 	      eshell-interpreter-alist)))
 

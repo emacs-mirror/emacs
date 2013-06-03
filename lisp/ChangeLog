@@ -1,3 +1,8 @@
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* eshell/em-term.el (eshell-term-initialize): Use
+	`cl-intersection' rather than `intersection'.
+
 2013-06-02  Eric Ludlam <zappo@gnu.org>
 
 	* emacs-lisp/eieio.el (eieio--defalias, eieio-hook)
