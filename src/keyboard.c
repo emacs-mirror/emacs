@@ -308,18 +308,15 @@ static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
 #ifdef HAVE_NTGUI
 Lisp_Object Qlanguage_change;
-#ifdef WINDOWSNT
-Lisp_Object Qfile_w32notify;
-#endif
 #endif
 static Lisp_Object Qdrag_n_drop;
 static Lisp_Object Qsave_session;
 #ifdef HAVE_DBUS
 static Lisp_Object Qdbus_event;
 #endif
-#ifdef HAVE_INOTIFY
-static Lisp_Object Qfile_inotify;
-#endif /* HAVE_INOTIFY */
+#ifdef USE_FILE_NOTIFY
+static Lisp_Object Qfile_notify;
+#endif /* USE_FILE_NOTIFY */
 static Lisp_Object Qconfig_changed_event;
 
 /* Lisp_Object Qmouse_movement; - also an event header */
@@ -4013,18 +4010,22 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#ifdef WINDOWSNT
+#ifdef USE_FILE_NOTIFY
       else if (event->kind == FILE_NOTIFY_EVENT)
 	{
+#ifdef HAVE_W32NOTIFY
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
-	  obj = Fcons (Qfile_w32notify,
+	  obj = Fcons (Qfile_notify,
 		       list2 (list3 (make_number (event->code),
 				     XCAR (event->arg),
 				     XCDR (event->arg)),
 			      event->frame_or_window));
+#else
+          obj = make_lispy_event (event);
+#endif
 	  kbd_fetch_ptr = event + 1;
 	}
-#endif
+#endif /* USE_FILE_NOTIFY */
       else if (event->kind == SAVE_SESSION_EVENT)
         {
           obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
@@ -4081,13 +4082,6 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  obj = make_lispy_event (event);
 	  kbd_fetch_ptr = event + 1;
 	}
-#endif
-#ifdef HAVE_INOTIFY
-      else if (event->kind == FILE_NOTIFY_EVENT)
-        {
-          obj = make_lispy_event (event);
-          kbd_fetch_ptr = event + 1;
-        }
 #endif
       else if (event->kind == CONFIG_CHANGED_EVENT)
 	{
@@ -5991,12 +5985,12 @@ make_lispy_event (struct input_event *event)
       }
 #endif /* HAVE_DBUS */
 
-#ifdef HAVE_INOTIFY
+#if defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY
     case FILE_NOTIFY_EVENT:
       {
-        return Fcons (Qfile_inotify, event->arg);
+        return Fcons (Qfile_notify, event->arg);
       }
-#endif /* HAVE_INOTIFY */
+#endif /* defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY */
 
     case CONFIG_CHANGED_EVENT:
 	return Fcons (Qconfig_changed_event,
@@ -11006,17 +11000,13 @@ syms_of_keyboard (void)
   DEFSYM (Qlanguage_change, "language-change");
 #endif
 
-#ifdef WINDOWSNT
-  DEFSYM (Qfile_w32notify, "file-w32notify");
-#endif
-
 #ifdef HAVE_DBUS
   DEFSYM (Qdbus_event, "dbus-event");
 #endif
 
-#ifdef HAVE_INOTIFY
-  DEFSYM (Qfile_inotify, "file-inotify");
-#endif /* HAVE_INOTIFY */
+#ifdef USE_FILE_NOTIFY
+  DEFSYM (Qfile_notify, "file-notify");
+#endif /* USE_FILE_NOTIFY */
 
   DEFSYM (QCenable, ":enable");
   DEFSYM (QCvisible, ":visible");
@@ -11762,20 +11752,18 @@ keys_of_keyboard (void)
 			    "dbus-handle-event");
 #endif
 
-#ifdef HAVE_INOTIFY
-  /* Define a special event which is raised for inotify callback
+#ifdef USE_FILE_NOTIFY
+  /* Define a special event which is raised for notification callback
      functions.  */
-  initial_define_lispy_key (Vspecial_event_map, "file-inotify",
-                            "inotify-handle-event");
-#endif /* HAVE_INOTIFY */
+  initial_define_lispy_key (Vspecial_event_map, "file-notify",
+                            "file-notify-handle-event");
+#endif /* USE_FILE_NOTIFY */
 
   initial_define_lispy_key (Vspecial_event_map, "config-changed-event",
 			    "ignore");
 #if defined (WINDOWSNT)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
-  initial_define_lispy_key (Vspecial_event_map, "file-w32notify",
-			    "w32notify-handle-event");
 #endif
 }
 

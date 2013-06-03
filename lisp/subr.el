@@ -4440,32 +4440,16 @@ convenience wrapper around `make-progress-reporter' and friends.
 
 ;;;; Support for watching filesystem events.
 
-(defun inotify-event-p (event)
-  "Check if EVENT is an inotify event."
-  (and (listp event)
-       (>= (length event) 3)
-       (eq (car event) 'file-inotify)))
-
-;;;###autoload
-(defun inotify-handle-event (event)
-  "Handle inotify file system monitoring event.
-If EVENT is an inotify filewatch event, call its callback.
+(defun file-notify-handle-event (event)
+  "Handle file system monitoring event.
+If EVENT is a filewatch event, call its callback.
 Otherwise, signal a `filewatch-error'."
   (interactive "e")
-  (unless (inotify-event-p event)
-    (signal 'filewatch-error (cons "Not a valid inotify event" event)))
-  (funcall (nth 2 event) (nth 1 event)))
-
-(defun w32notify-handle-event (event)
-  "Handle MS-Windows file system monitoring event.
-If EVENT is an MS-Windows filewatch event, call its callback.
-Otherwise, signal a `filewatch-error'."
-  (interactive "e")
-  (if (and (eq (car event) 'file-w32notify)
-	   (= (length event) 3))
+  (if (and (eq (car event) 'file-notify)
+	   (>= (length event) 3))
       (funcall (nth 2 event) (nth 1 event))
     (signal 'filewatch-error
-	    (cons "Not a valid MS-Windows file-notify event" event))))
+	    (cons "Not a valid file-notify event" event))))
 
 
 ;;;; Comparing version strings.

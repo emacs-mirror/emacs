@@ -1,3 +1,22 @@
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (NOTIFY_OBJ): New variable.
+	(base_obj): Replace inotify.o by $(NOTIFY_OBJ).
+
+	* emacs.c (main): Use HAVE_W32NOTIFY to wrap respective code.
+	Call syms_of_gfilenotify.
+
+	* gfilenotify.c: New file.
+
+	* keyboard.c (Qfile_notify): New variable.  Replaces Qfile_inotify
+	and Qfile_w32notify.
+	(top): Wrap respective code by HAVE_GFILENOTIFY, HAVE_INOTIFY,
+	HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+	* lisp.h: Declare syms_of_gfilenotify.
+
+	* termhooks.h (e): Wrap enum by USE_FILE_NOTIFY.
+
 2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Merge the specpdl and backtrace stacks.  Make the structure of the

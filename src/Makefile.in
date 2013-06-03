@@ -156,6 +156,11 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 ## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
+## gfilenotify.o if HAVE_GFILENOTIFY.
+## inotify.o if HAVE_INOTIFY.
+## w32notify.o if HAVE_W32NOTIFY.
+NOTIFY_OBJ = @NOTIFY_OBJ@
+
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
 ## terminfo.o if TERMINFO, else tparam.o.
@@ -363,7 +368,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o inotify.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)

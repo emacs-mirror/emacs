@@ -3784,14 +3784,19 @@ extern void syms_of_fontset (void);
 extern Lisp_Object Qfont_param;
 #endif
 
-#ifdef WINDOWSNT
-/* Defined on w32notify.c.  */
-extern void syms_of_w32notify (void);
+/* Defined in gfilenotify.c */
+#ifdef HAVE_GFILENOTIFY
+extern void syms_of_gfilenotify (void);
 #endif
 
 /* Defined in inotify.c */
 #ifdef HAVE_INOTIFY
 extern void syms_of_inotify (void);
+#endif
+
+#ifdef HAVE_W32NOTIFY
+/* Defined on w32notify.c.  */
+extern void syms_of_w32notify (void);
 #endif
 
 /* Defined in xfaces.c.  */

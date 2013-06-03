@@ -1,3 +1,14 @@
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-enabled)
+	(auto-revert-notify-rm-watch, auto-revert-notify-add-watch)
+	(auto-revert-notify-event-p, auto-revert-notify-event-file-name)
+	(auto-revert-notify-handler): Handle also gfilenotify.
+
+	* subr.el: (file-notify-handle-event): New defun. Replacing ...
+	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
+	Removed.
+
 2013-06-03  Juri Linkov  <juri@jurta.org>
 
 	* bindings.el (search-map): Bind `highlight-symbol-at-point' to
