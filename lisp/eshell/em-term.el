@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'esh-util)
 (require 'esh-ext)
 (eval-when-compile (require 'eshell))
@@ -79,7 +80,9 @@ visual fashion.  A likely entry is
 
 because git shows logs and diffs using a pager by default."
   :type '(repeat (cons (string :tag "Command")
-		       (repeat (string :tag "Subcommand")))))
+		       (repeat (string :tag "Subcommand"))))
+  :version "24.4"
+  :group 'eshell-term)
 
 (defcustom eshell-visual-options
   nil
@@ -96,7 +99,9 @@ fashion.  For example, a sensible entry would be
 because \"git <command> --help\" shows the command's
 documentation with a pager."
   :type '(repeat (cons (string :tag "Command")
-		       (repeat (string :tag "Option")))))
+		       (repeat (string :tag "Option"))))
+  :version "24.4"
+  :group 'eshell-term)
 
 ;; If you change this from term-term-name, you need to ensure that the
 ;; value you choose exists in the system's terminfo database.  (Bug#12485)
@@ -133,9 +138,9 @@ character to the invoked process."
 			 (or (member command eshell-visual-commands)
 			     (member (car args)
 				     (cdr (assoc command eshell-visual-subcommands)))
-			     (intersection args
-					   (cdr (assoc command eshell-visual-options))
-					   :test 'string=)))))
+			     (cl-intersection args
+					      (cdr (assoc command eshell-visual-options))
+					      :test 'string=)))))
 		    'eshell-exec-visual)
 	      eshell-interpreter-alist)))
 

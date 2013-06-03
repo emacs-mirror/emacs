@@ -28,6 +28,12 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
+** Emacs can be compiled with file notification support.
+The configure option `--with-file-notification=LIB' enables file
+notification support in Emacs. This option's value should be `yes',
+`no', `gfile', `inotify' or `w32'.  `yes' is a synonym for `w32' on
+MS-Windows, and for `gfile' otherwise.  The default value is `yes'.
+
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
@@ -128,6 +134,18 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** `eshell' now supports visual subcommands and options
+Eshell has been able to handle "visual" commands (interactive,
+non-line oriented commands such as top that require display
+capabilities not provided by eshell) by running them in an Emacs
+terminal emulator.  See `eshell-visual-commands'.
+
+This feature has been extended to subcommands and options that make a
+usually line-oriented command a visual command.  Typical examples are
+"git log" and "git <command> --help" which display their output in a
+pager by default.  See `eshell-visual-subcommands' and
+`eshell-visual-options'.
 
 ** `remember' can now store notes in separates files
 You can use the new function `remember-store-in-files' within the
@@ -248,7 +266,21 @@ callers to fit the image to a frame other than the selected frame.
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
 
+** Hi-Lock
+
+*** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
+will cycle through faces in `hi-lock-face-defaults' without prompting.
+
++++
+*** New global command `M-s h .' (`highlight-symbol-at-point')
+highlights the symbol found near point without prompting,
+using the next face automatically.
+
 ** Search and Replace
+
+*** New global command `M-s .' (`isearch-forward-symbol-at-point')
+starts a symbol (identifier) incremental search forward with the
+symbol found near point added to the search string initially.
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
@@ -418,8 +450,9 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
-'inotify' API on GNU/Linux systems.  On MS-Windows systems, this is
-supported for Windows XP and newer versions.
+`glib' API, or the 'inotify' API (on GNU/Linux systems only).  On
+MS-Windows systems, this is supported for Windows XP and newer
+versions.
 
 ** Changes in autorevert.el
 

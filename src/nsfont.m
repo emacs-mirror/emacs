@@ -119,7 +119,7 @@ ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
 {
     NSDictionary *tdict = [fdesc objectForKey: NSFontTraitsAttribute];
     NSNumber *val = [tdict objectForKey: trait];
-    return val == nil ? 0.0 : [val floatValue];
+    return val == nil ? 0.0F : [val floatValue];
 }
 
 
@@ -138,15 +138,15 @@ ns_spec_to_descriptor (Lisp_Object font_spec)
     /* add each attr in font_spec to fdAttrs.. */
     n = min (FONT_WEIGHT_NUMERIC (font_spec), 200);
     if (n != -1 && n != STYLE_REF)
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0) / 100.0]
+	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
 		  forKey: NSFontWeightTrait];
     n = min (FONT_SLANT_NUMERIC (font_spec), 200);
     if (n != -1 && n != STYLE_REF)
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0) / 100.0]
+	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
 		  forKey: NSFontSlantTrait];
     n = min (FONT_WIDTH_NUMERIC (font_spec), 200);
     if (n > -1 && (n > STYLE_REF + 10 || n < STYLE_REF - 10))
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0) / 100.0]
+	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
 		  forKey: NSFontWidthTrait];
     if ([tdict count] > 0)
 	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
@@ -240,10 +240,10 @@ ns_fallback_entity (void)
 
 
 /* Utility: get width of a char c in screen font SFONT */
-static float
+static CGFloat
 ns_char_width (NSFont *sfont, int c)
 {
-  float w = -1.0;
+  CGFloat w = -1.0;
   NSString *cstr = [NSString stringWithFormat: @"%c", c];
 
 #ifdef NS_IMPL_COCOA
@@ -269,7 +269,7 @@ static NSString *ascii_printable;
 static int
 ns_ascii_average_width (NSFont *sfont)
 {
-  float w = -1.0;
+  CGFloat w = -1.0;
 
   if (!ascii_printable)
     {
@@ -288,14 +288,14 @@ ns_ascii_average_width (NSFont *sfont)
     w = [sfont advancementForGlyph: glyph].width;
 #endif
 
-  if (w < 0.0)
+  if (w < (CGFloat) 0.0)
     {
       NSDictionary *attrsDictionary =
 	[NSDictionary dictionaryWithObject: sfont forKey: NSFontAttributeName];
       w = [ascii_printable sizeWithAttributes: attrsDictionary].width;
     }
 
-  return lrint (w / 95.0);
+  return lrint (w / (CGFloat) 95.0);
 }
 
 
@@ -323,7 +323,7 @@ ns_charset_covers(NSCharacterSet *set1, NSCharacterSet *set2, float pct)
 		off++;
 	  }
 //fprintf(stderr, "off = %d\ttot = %d\n", off,tot);
-    return (float)off / tot < 1.0 - pct;
+    return (float)off / tot < 1.0F - pct;
 }
 
 
@@ -514,8 +514,8 @@ static NSSet
 		    if (ns_charset_covers(fset, charset, pct))
 			[families addObject: family];
 		  }
-                pct -= 0.2;
-		if ([families count] > 0 || pct < 0.05)
+                pct -= 0.2F;
+		if ([families count] > 0 || pct < 0.05F)
 		    break;
 	      }
             [charset release];
@@ -763,9 +763,9 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
   /* Should be > 0.23 as some font descriptors (e.g. Terminus) set to that
      when setting family in ns_spec_to_descriptor(). */
-  if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50)
+  if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50F)
       traits |= NSBoldFontMask;
-  if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05))
+  if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05F))
       traits |= NSItalicFontMask;
 
   /* see http://cocoadev.com/forums/comments.php?DiscussionID=74 */
@@ -880,7 +880,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     font_info->max_bounds.width = lrint (font_info->width);
     font_info->max_bounds.lbearing = lrint (brect.origin.x);
     font_info->max_bounds.rbearing =
-      lrint (brect.size.width - font_info->width);
+      lrint (brect.size.width - (CGFloat) font_info->width);
 
 #ifdef NS_IMPL_COCOA
     /* set up synthItal and the CG font */
@@ -1041,8 +1041,8 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 /* NOTE: focus and clip must be set
      also, currently assumed (true in nsterm.m call) from ==0, to ==nchars */
 {
-  static char cbuf[1024];
-  char *c = cbuf;
+  static unsigned char cbuf[1024];
+  unsigned char *c = cbuf;
 #ifdef NS_IMPL_GNUSTEP
   static float advances[1024];
   float *adv = advances;
@@ -1209,7 +1209,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         [bgCol set];
         DPSmoveto (context, r.origin.x, r.origin.y);
 /*[context GSSetTextDrawingMode: GSTextFillStroke]; /// not implemented yet */
-        DPSxshow (context, cbuf, advances, len);
+        DPSxshow (context, (const char *) cbuf, advances, len);
         DPSstroke (context);
         [col set];
 /*[context GSSetTextDrawingMode: GSTextFill]; /// not implemented yet */
@@ -1219,7 +1219,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     /* draw with DPSxshow () */
     DPSmoveto (context, r.origin.x, r.origin.y);
-    DPSxshow (context, cbuf, advances, len);
+    DPSxshow (context, (const char *) cbuf, advances, len);
     DPSstroke (context);
 
     DPSgrestore (context);
@@ -1407,7 +1407,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
   metrics = font_info->metrics[block];
   for (g = block<<8, i =0; i<0x100 && g < numGlyphs; g++, i++, metrics++)
     {
-      float w, lb, rb;
+      CGFloat w, lb, rb;
       NSRect r = [sfont boundingRectForGlyph: g];
 
       w = max ([sfont advancementForGlyph: g].width, 2.0);
@@ -1419,7 +1419,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
       if (lb < 0)
         metrics->lbearing = round (lb - LCD_SMOOTHING_MARGIN);
       if (font_info->ital)
-        rb += 0.22 * font_info->height;
+        rb += (CGFloat) (0.22F * font_info->height);
       metrics->rbearing = lrint (w + rb + LCD_SMOOTHING_MARGIN);
 
       metrics->descent = r.origin.y < 0 ? -r.origin.y : 0;

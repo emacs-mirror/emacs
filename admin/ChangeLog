@@ -1,3 +1,10 @@
+2013-06-02  Eric Ludlam <zappo@gnu.org>
+
+	* grammars/srecode-template.wy (variable): Accept a single number
+	as a variable value.  Allows the 'priority' to be set to a number.
+	(wisent-srecode-template-lexer): Move number up so it can be
+	created.
+
 2013-05-16  Glenn Morris  <rgm@gnu.org>
 
 	* cus-test.el (cus-test-cus-load-groups): New function.

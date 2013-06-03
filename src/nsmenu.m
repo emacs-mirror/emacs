@@ -45,8 +45,6 @@ Carbon version by Yamamoto Mitsuharu. */
 #include <sys/types.h>
 #endif
 
-#define MenuStagger 10.0
-
 #if 0
 int menu_trace_num = 0;
 #define NSTRACE(x)        fprintf (stderr, "%s:%d: [%d] " #x "\n",        \
@@ -112,7 +110,7 @@ popup_activated (void)
     2) deep_p, submenu = nil: Recompute all submenus.
     3) deep_p, submenu = non-nil: Update contents of a single submenu.
    -------------------------------------------------------------------------- */
-void
+static void
 ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 {
   NSAutoreleasePool *pool;
@@ -505,6 +503,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 void
 x_activate_menubar (struct frame *f)
 {
+#ifdef NS_IMPL_COCOA
   NSArray *a = [[NSApp mainMenu] itemArray];
   /* Update each submenu separately so ns_update_menubar doesn't reset
      the delegate.  */
@@ -521,6 +520,7 @@ x_activate_menubar (struct frame *f)
       ++i;
     }
   ns_check_pending_open_menu ();
+#endif
 }
 
 
@@ -740,7 +740,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
           [submenu release];
-          [item setAction: nil];
+          [item setAction: (SEL)nil];
         }
     }
 
@@ -757,7 +757,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
   NSMenuItem *item = [self addItemWithTitle: titleStr
-                                     action: nil /*@selector (menuDown:) */
+                                     action: (SEL)nil /*@selector (menuDown:) */
                               keyEquivalent: @""];
   EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr frame: f];
   [self setSubmenu: submenu forItem: item];
@@ -1045,13 +1045,18 @@ update_frame_tool_bar (FRAME_PTR f)
     Update toolbar contents
    -------------------------------------------------------------------------- */
 {
-  int i;
+  int i, k = 0;
   EmacsView *view = FRAME_NS_VIEW (f);
   NSWindow *window = [view window];
   EmacsToolbar *toolbar = [view toolbar];
 
   block_input ();
+
+#ifdef NS_IMPL_COCOA
   [toolbar clearActive];
+#else
+  [toolbar clearAll];
+#endif
 
   /* update EmacsToolbar as in GtkUtils, build items list */
   for (i = 0; i < f->n_tool_bar_items; ++i)
@@ -1066,6 +1071,15 @@ update_frame_tool_bar (FRAME_PTR f)
       Lisp_Object image;
       Lisp_Object helpObj;
       const char *helpText;
+
+      /* Check if this is a separator.  */
+      if (EQ (TOOLPROP (TOOL_BAR_ITEM_TYPE), Qt))
+        {
+          /* Skip separators.  Newer OSX don't show them, and on GNUStep they
+             are wide as a button, thus overflowing the toolbar most of
+             the time.  */
+          continue;
+        }
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -1103,7 +1117,10 @@ update_frame_tool_bar (FRAME_PTR f)
           continue;
         }
 
-      [toolbar addDisplayItemWithImage: img->pixmap idx: i helpText: helpText
+      [toolbar addDisplayItemWithImage: img->pixmap
+                                   idx: k++
+                                   tag: i
+                              helpText: helpText
                                enabled: enabled_p];
 #undef TOOLPROP
     }
@@ -1111,6 +1128,7 @@ update_frame_tool_bar (FRAME_PTR f)
   if (![toolbar isVisible])
       [toolbar setVisible: YES];
 
+#ifdef NS_IMPL_COCOA
   if ([toolbar changed])
     {
       /* inform app that toolbar has changed */
@@ -1132,6 +1150,7 @@ update_frame_tool_bar (FRAME_PTR f)
       [toolbar setConfigurationFromDictionary: newDict];
       [newDict release];
     }
+#endif
 
   FRAME_TOOLBAR_HEIGHT (f) =
     NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
@@ -1159,6 +1178,7 @@ update_frame_tool_bar (FRAME_PTR f)
   [self setDelegate: self];
   identifierToItem = [[NSMutableDictionary alloc] initWithCapacity: 10];
   activeIdentifiers = [[NSMutableArray alloc] initWithCapacity: 8];
+  prevIdentifiers = nil;
   prevEnablement = enablement = 0L;
   return self;
 }
@@ -1180,18 +1200,29 @@ update_frame_tool_bar (FRAME_PTR f)
   enablement = 0L;
 }
 
+- (void) clearAll
+{
+  [self clearActive];
+  while ([[self items] count] > 0)
+    [self removeItemAtIndex: 0];
+}
+
 - (BOOL) changed
 {
   return [activeIdentifiers isEqualToArray: prevIdentifiers] &&
     enablement == prevEnablement ? NO : YES;
 }
 
-- (void) addDisplayItemWithImage: (EmacsImage *)img idx: (int)idx
-                        helpText: (const char *)help enabled: (BOOL)enabled
+- (void) addDisplayItemWithImage: (EmacsImage *)img
+                             idx: (int)idx
+                             tag: (int)tag
+                        helpText: (const char *)help
+                         enabled: (BOOL)enabled
 {
   /* 1) come up w/identifier */
   NSString *identifier
       = [NSString stringWithFormat: @"%u", [img hash]];
+  [activeIdentifiers addObject: identifier];
 
   /* 2) create / reuse item */
   NSToolbarItem *item = [identifierToItem objectForKey: identifier];
@@ -1203,20 +1234,25 @@ update_frame_tool_bar (FRAME_PTR f)
       [item setToolTip: [NSString stringWithUTF8String: help]];
       [item setTarget: emacsView];
       [item setAction: @selector (toolbarClicked:)];
+      [identifierToItem setObject: item forKey: identifier];
     }
 
-  [item setTag: idx];
+#ifdef NS_IMPL_GNUSTEP
+  [self insertItemWithItemIdentifier: identifier atIndex: idx];
+#endif
+  
+  [item setTag: tag];
   [item setEnabled: enabled];
 
   /* 3) update state */
-  [identifierToItem setObject: item forKey: identifier];
-  [activeIdentifiers addObject: identifier];
   enablement = (enablement << 1) | (enabled == YES);
 }
 
 /* This overrides super's implementation, which automatically sets
    all items to enabled state (for some reason). */
-- (void)validateVisibleItems { }
+- (void)validateVisibleItems
+{
+}
 
 
 /* delegate methods */
@@ -1239,7 +1275,8 @@ update_frame_tool_bar (FRAME_PTR f)
 - (NSArray *)toolbarAllowedItemIdentifiers: (NSToolbar *)toolbar
 {
   /* return entire set... */
-  return [identifierToItem allKeys];
+  return activeIdentifiers;
+  //return [identifierToItem allKeys];
 }
 
 /* optional and unneeded */
@@ -1531,7 +1568,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [img autorelease];
   [imgView autorelease];
 
-  aStyle = NSTitledWindowMask;
+  aStyle = NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask;
   flag = YES;
   rows = 0;
   cols = 1;
@@ -1599,9 +1636,6 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [self setOneShot: YES];
   [self setReleasedWhenClosed: YES];
   [self setHidesOnDeactivate: YES];
-  [self setStyleMask:
-          NSTitledWindowMask|NSClosableWindowMask|NSUtilityWindowMask];
-
   return self;
 }
 

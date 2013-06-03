@@ -1,4 +1,4 @@
-;;; lisp.el --- Lisp editing commands for Emacs
+;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1994, 2000-2013 Free Software Foundation,
 ;; Inc.
@@ -262,9 +262,9 @@ is called as a function to find the defun's beginning."
       ;; convention, fallback on the old implementation.
       (wrong-number-of-arguments
        (if (> arg 0)
-           (dotimes (i arg)
+           (dotimes (_ arg)
              (funcall beginning-of-defun-function))
-	 (dotimes (i (- arg))
+	 (dotimes (_ (- arg))
 	   (funcall end-of-defun-function))))))
 
    ((or defun-prompt-regexp open-paren-in-column-0-is-defun-start)
@@ -442,7 +442,7 @@ it marks the next defun after the ones already marked."
 	     (beginning-of-defun))
 	   (re-search-backward "^\n" (- (point) 1) t)))))
 
-(defun narrow-to-defun (&optional arg)
+(defun narrow-to-defun (&optional _arg)
   "Make text outside current defun invisible.
 The defun visible is the one that contains point or follows point.
 Optional ARG is ignored."
@@ -662,10 +662,96 @@ considered."
         (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
                               (plist-get plist :predicate))))))
 
+(defun lisp--local-variables-1 (vars sexp)
+  "Return the vars locally bound around the witness, or nil if not found."
+  (let (res)
+    (while
+        (unless
+            (setq res
+                  (pcase sexp
+                    (`(,(or `let `let*) ,bindings)
+                     (let ((vars vars))
+                       (when (eq 'let* (car sexp))
+                         (dolist (binding (cdr (reverse bindings)))
+                           (push (or (car-safe binding) binding) vars)))
+                       (lisp--local-variables-1
+                        vars (car (cdr-safe (car (last bindings)))))))
+                    (`(,(or `let `let*) ,bindings . ,body)
+                     (let ((vars vars))
+                       (dolist (binding bindings)
+                         (push (or (car-safe binding) binding) vars))
+                       (lisp--local-variables-1 vars (car (last body)))))
+                    (`(lambda ,_) (setq sexp nil))
+                    (`(lambda ,args . ,body)
+                     (lisp--local-variables-1
+                      (append args vars) (car (last body))))
+                    (`(condition-case ,_ ,e) (lisp--local-variables-1 vars e))
+                    (`(condition-case ,v ,_ . ,catches)
+                     (lisp--local-variables-1
+                      (cons v vars) (cdr (car (last catches)))))
+                    (`(,_ . ,_)
+                     (lisp--local-variables-1 vars (car (last sexp))))
+                    (`lisp--witness--lisp (or vars '(nil)))
+                    (_ nil)))
+          (setq sexp (ignore-errors (butlast sexp)))))
+    res))
 
-(defun lisp-completion-at-point (&optional predicate)
+(defun lisp--local-variables ()
+  "Return a list of locally let-bound variables at point."
+  (save-excursion
+    (skip-syntax-backward "w_")
+    (let* ((ppss (syntax-ppss))
+           (txt (buffer-substring-no-properties (or (car (nth 9 ppss)) (point))
+                                                (or (nth 8 ppss) (point))))
+           (closer ()))
+      (dolist (p (nth 9 ppss))
+        (push (cdr (syntax-after p)) closer))
+      (setq closer (apply #'string closer))
+      (let* ((sexp (car (read-from-string
+                         (concat txt "lisp--witness--lisp" closer))))
+             (macroexpand-advice (lambda (expander form &rest args)
+                                   (condition-case nil
+                                       (apply expander form args)
+                                     (error form))))
+             (sexp
+              (unwind-protect
+                  (progn
+                    (advice-add 'macroexpand :around macroexpand-advice)
+                    (macroexpand-all sexp))
+                (advice-remove 'macroexpand macroexpand-advice)))
+             (vars (lisp--local-variables-1 nil sexp)))
+        (delq nil
+              (mapcar (lambda (var)
+                        (and (symbolp var)
+                             (not (string-match (symbol-name var) "\\`[&_]"))
+                             ;; Eliminate uninterned vars.
+                             (intern-soft var)
+                             var))
+                      vars))))))
+
+(defvar lisp--local-variables-completion-table
+  ;; Use `defvar' rather than `defconst' since defconst would purecopy this
+  ;; value, which would doubly fail: it would fail because purecopy can't
+  ;; handle the recursive bytecode object, and it would fail because it would
+  ;; move `lastpos' and `lastvars' to pure space where they'd be immutable!
+  (let ((lastpos nil) (lastvars nil))
+    (letrec ((hookfun (lambda ()
+                        (setq lastpos nil)
+                        (remove-hook 'post-command-hook hookfun))))
+      (completion-table-dynamic
+       (lambda (_string)
+         (save-excursion
+           (skip-syntax-backward "_w")
+           (let ((newpos (cons (point) (current-buffer))))
+             (unless (equal lastpos newpos)
+               (add-hook 'post-command-hook hookfun)
+               (setq lastpos newpos)
+               (setq lastvars
+                     (mapcar #'symbol-name (lisp--local-variables))))))
+         lastvars)))))
+
+(defun lisp-completion-at-point (&optional _predicate)
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'."
-  ;; FIXME: the `end' could be after point?
   (with-syntax-table emacs-lisp-mode-syntax-table
     (let* ((pos (point))
 	   (beg (condition-case nil
@@ -691,7 +777,9 @@ considered."
                 ;; use it to provide a more specific completion table in some
                 ;; cases.  E.g. filter out keywords that are not understood by
                 ;; the macro/function being called.
-                (list nil obarray       ;Could be anything.
+                (list nil (completion-table-in-turn
+                           lisp--local-variables-completion-table
+                           obarray)       ;Could be anything.
                       :annotation-function
                       (lambda (str) (if (fboundp (intern-soft str)) " <f>")))
               ;; Looks like a funcall position.  Let's double check.

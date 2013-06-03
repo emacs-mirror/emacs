@@ -1198,8 +1198,6 @@ extern Lisp_Object Qdisplay;
 
 extern Lisp_Object Qrun_hook_with_args;
 
-extern Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
-
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The class of this X application.  */

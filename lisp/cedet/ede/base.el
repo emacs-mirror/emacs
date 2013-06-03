@@ -306,7 +306,8 @@ All specific project types must derive from this project."
 ;;
 (defcustom ede-project-placeholder-cache-file
   (locate-user-emacs-file "ede-projects.el" ".projects.ede")
-  "File containing the list of projects EDE has viewed."
+  "File containing the list of projects EDE has viewed.
+If set to nil, then the cache is not saved."
   :group 'ede
   :type 'file)
 
@@ -316,38 +317,39 @@ All specific project types must derive from this project."
 (defun ede-save-cache ()
   "Save a cache of EDE objects that Emacs has seen before."
   (interactive)
-  (let ((p ede-projects)
-	(c ede-project-cache-files)
-	(recentf-exclude '( (lambda (f) t) ))
-	)
-    (condition-case nil
-	(progn
-	  (set-buffer (find-file-noselect ede-project-placeholder-cache-file t))
-	  (erase-buffer)
-	  (insert ";; EDE project cache file.
-;; This contains a list of projects you have visited.\n(")
-	  (while p
-	    (when (and (car p) (ede-project-p p))
-	      (let ((f (oref (car p) file)))
-		(when (file-exists-p f)
-		  (insert "\n  \"" f "\""))))
-	    (setq p (cdr p)))
-	  (while c
-	    (insert "\n \"" (car c) "\"")
-	    (setq c (cdr c)))
-	  (insert "\n)\n")
-	  (condition-case nil
-	      (save-buffer 0)
-	    (error
-	     (message "File %s could not be saved."
-		      ede-project-placeholder-cache-file)))
-	  (kill-buffer (current-buffer))
+  (when ede-project-placeholder-cache-file
+    (let ((p ede-projects)
+	  (c ede-project-cache-files)
+	  (recentf-exclude '( (lambda (f) t) ))
 	  )
-      (error
-       (message "File %s could not be read."
-	       	ede-project-placeholder-cache-file))
+      (condition-case nil
+	  (progn
+	    (set-buffer (find-file-noselect ede-project-placeholder-cache-file t))
+	    (erase-buffer)
+	    (insert ";; EDE project cache file.
+;; This contains a list of projects you have visited.\n(")
+	    (while p
+	      (when (and (car p) (ede-project-p p))
+		(let ((f (oref (car p) file)))
+		  (when (file-exists-p f)
+		    (insert "\n  \"" f "\""))))
+	      (setq p (cdr p)))
+	    (while c
+	      (insert "\n \"" (car c) "\"")
+	      (setq c (cdr c)))
+	    (insert "\n)\n")
+	    (condition-case nil
+		(save-buffer 0)
+	      (error
+	       (message "File %s could not be saved."
+			ede-project-placeholder-cache-file)))
+	    (kill-buffer (current-buffer))
+	    )
+	(error
+	 (message "File %s could not be read."
+		  ede-project-placeholder-cache-file))
 
-      )))
+	))))
 
 (defun ede-load-cache ()
   "Load the cache of EDE projects."

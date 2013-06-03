@@ -4528,7 +4528,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#if defined (HAVE_GLIB)
           nfds = xg_select
 #elif defined (HAVE_NS)
 	  nfds = ns_select
@@ -7029,6 +7029,17 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+#ifndef NS_IMPL_GNUSTEP
+static
+#endif
+void
+catch_child_signal (void)
+{
+  struct sigaction action;
+  emacs_sigaction_init (&action, deliver_child_signal);
+  sigaction (SIGCHLD, &action, 0);
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -7044,9 +7055,7 @@ init_process_emacs (void)
   if (! noninteractive || initialized)
 #endif
     {
-      struct sigaction action;
-      emacs_sigaction_init (&action, deliver_child_signal);
-      sigaction (SIGCHLD, &action, 0);
+      catch_child_signal ();
     }
 
   FD_ZERO (&input_wait_mask);

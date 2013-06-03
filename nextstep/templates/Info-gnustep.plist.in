@@ -20,7 +20,7 @@
     NSRole = Application;
     NSTypes = (
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -30,7 +30,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -41,7 +41,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -51,7 +51,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -64,7 +64,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -74,7 +74,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";
@@ -84,7 +84,7 @@
 	    );
 	},
 	{
-	    NSDocumentClass = "";
+	    NSDocumentClass = "EmacsDocument";
 	    NSHumanReadableName = "";
 	    NSIcon = "";
 	    NSName = "";

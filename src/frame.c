@@ -114,7 +114,7 @@ Lisp_Object Qface_set_after_frame_default;
 
 static Lisp_Object Qdelete_frame_functions;
 
-Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
+static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
 #ifdef HAVE_WINDOW_SYSTEM
 static void x_report_frame_params (struct frame *, Lisp_Object *);
@@ -167,7 +167,7 @@ struct frame *
 decode_window_system_frame (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
-  
+
   if (!window_system_available (f))
     error ("Window system frame should be used");
   return f;
@@ -4138,6 +4138,8 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+# if (defined HAVE_NS \
+      || (!defined USE_GTK && (defined HAVE_XINERAMA || defined HAVE_XRANDR)))
 void
 free_monitors (struct MonitorInfo *monitors, int n_monitors)
 {
@@ -4146,6 +4148,7 @@ free_monitors (struct MonitorInfo *monitors, int n_monitors)
     xfree (monitors[i].name);
   xfree (monitors);
 }
+# endif
 
 Lisp_Object
 make_monitor_attribute_list (struct MonitorInfo *monitors,

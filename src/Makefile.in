@@ -156,6 +156,13 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 ## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
+## gfilenotify.o if HAVE_GFILENOTIFY.
+## inotify.o if HAVE_INOTIFY.
+## w32notify.o if HAVE_W32NOTIFY.
+NOTIFY_OBJ = @NOTIFY_OBJ@
+GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
+GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
 ## terminfo.o if TERMINFO, else tparam.o.
@@ -200,9 +207,12 @@ LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
-## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o if
+## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o if
 ## HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
+
+# xgselect.o if linking with GLib, else empty
+XGSELOBJ=@XGSELOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
 
@@ -337,7 +347,7 @@ ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBGNUTLS_CFLAGS) \
+  $(LIBGNUTLS_CFLAGS) $(GFILENOTIFY_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
@@ -363,10 +373,10 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o inotify.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -419,7 +429,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(LIB_MATH)
+   $(GFILENOTIFY_LIBS) $(LIB_MATH)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all

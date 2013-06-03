@@ -1,3 +1,28 @@
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac (HAVE_GFILENOTIFY): Check for gio >= 2.24.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_GFILENOTIFY): Do not change $LIBS.
+	(GFILENOTIFY_CFLAGS, GFILENOTIFY_LIBS): Substitute.
+
+2013-06-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GLIB): Add GLib check.  Set XGSELOBJ if GLib is
+	used.  Remove xgselect.o from XOBJ.
+
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac (file-notification): New option, replaces inotify option.
+	(HAVE_W32): Remove w32notify.o.
+	(with_file_notification): Add checks for glib and w32. Adapt check
+	for inotify.
+	(Summary): Add entry for file notification.
+
+	* autogen/config.in: Add entries for HAVE_GFILENOTIFY,
+	HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
 2013-06-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .bzrignore: Ignore dirs libexec/, share/ and var/.

@@ -1,3 +1,245 @@
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32console.c (initialize_w32_display): Return the dimensions of
+	the console window via 2 additional arguments, not via the current
+	frame.  This avoids crashes due to overrunning the bounds of
+	frame's decode_mode_spec_buffer, which is not resized following
+	the change of the frame dimensions from the initial 10x10.
+
+	* w32term.h (w32_initialize_display_info): Adjust prototype.
+
+	* term.c (init_tty): Take dimensions of the frame from the values
+	returned by initialize_w32_display.
+
+	* Makefile.in (GFILENOTIFY_CFLAGS, GFILENOTIFY_LIBS): New variables.
+	(ALL_CFLAGS): Add $(GFILENOTIFY_CFLAGS).
+	(LIBES): Add $(GFILENOTIFY_LIBS).
+
+	* w32inevt.c (handle_file_notifications): Add dummy implementation
+	for !HAVE_W32NOTIFY.
+
+	* w32term.c: Wrap code with HAVE_W32NOTIFY.
+
+2013-06-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c: Replace #if defined ... with #ifdef HAVE_GLIB.
+
+	* process.c (wait_reading_process_output): Call xg_select if HAVE_GLIB.
+
+	* Makefile.in (XGSELOBJ): New, xgselect.o if GLib is used, or empty.
+
+2013-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* data.c (pure_write_error):
+	Use xsignal2, not Fsignal, as Fsignal might return.
+	* eval.c (set_backtrace_debug_on_exit): Now static.
+	(backtrace_p, backtrace_top, backtrace_next, record_in_backtrace):
+	No longer inline.  EXTERN_INLINE is needed only for functions
+	defined in .h files.  Reindent function header as per GNU style.
+	(backtrace_p, backtrace_top, backtrace_next):
+	Mark EXTERNALLY_VISIBLE so they don't get optimized away by the
+	compiler or linker.  Add extern decls to pacify gcc -Wall.
+	* frame.c, frame.h (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource):
+	Now static.
+	* frame.c (free_monitors): Define only on platforms that need it.
+	* nsterm.m (ns_term_init):
+	* process.c (catch_child_signal):
+	Don't worry about whether SIGCHLD is defined, as SIGCHLD is
+	defined on all porting targets these days.
+	* process.c, process.h (catch_child_signal):
+	Make it extern only if NS_IMPL_GNUSTEP is defined.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (gettimeofday): Make the signature identical to prototype
+	in nt/inc/sys/time.h.
+
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (backtrace_p, backtrace_top, backtrace_next): Export them to
+	.gdbinit.
+
+	* keyboard.c (safe_run_hooks_error): Improve error message.
+
+	* data.c (pure_write_error): Add `object' argument.
+	* puresize.h (CHECK_IMPURE): Use it.
+
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (NOTIFY_OBJ): New variable.
+	(base_obj): Replace inotify.o by $(NOTIFY_OBJ).
+
+	* emacs.c (main): Use HAVE_W32NOTIFY to wrap respective code.
+	Call syms_of_gfilenotify.
+
+	* gfilenotify.c: New file.
+
+	* keyboard.c (Qfile_notify): New variable.  Replaces Qfile_inotify
+	and Qfile_w32notify.
+	(top): Wrap respective code by HAVE_GFILENOTIFY, HAVE_INOTIFY,
+	HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+	* lisp.h: Declare syms_of_gfilenotify.
+
+	* termhooks.h (e): Wrap enum by USE_FILE_NOTIFY.
+
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Merge the specpdl and backtrace stacks.  Make the structure of the
+	specpdl entries more obvious via a tagged union of structs.
+	* lisp.h (BITS_PER_PTRDIFF_T): New constant.
+	(enum specbind_tag): New enum.
+	(struct specbinding): Make it a tagged union of structs.
+	Add a case for backtrace records.
+	(specpdl_symbol, specpdl_old_value, specpdl_where, specpdl_arg)
+	(specpdl_func, backtrace_function, backtrace_nargs, backtrace_args)
+	(backtrace_debug_on_exit): New accessors.
+	(struct backtrace): Remove.
+	(struct catchtag): Remove backlist field.
+	* data.c (let_shadows_buffer_binding_p, let_shadows_global_binding_p):
+	Move to eval.c.
+	(Flocal_variable_p): Speed up the common case where the binding is
+	already loaded.
+	* eval.c (backtrace_list): Remove.
+	(set_specpdl_symbol, set_specpdl_old_value): Remove.
+	(set_backtrace_args, set_backtrace_nargs)
+	(set_backtrace_debug_on_exit, backtrace_p, backtrace_top)
+	(backtrace_next): New functions.
+	(Fdefvaralias, Fdefvar): Adjust to new specpdl format.
+	(unwind_to_catch, internal_lisp_condition_case)
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n): Don't bother
+	with backtrace_list any more.
+	(Fsignal): Adjust to new backtrace format.
+	(grow_specpdl): Move up.
+	(record_in_backtrace): New function.
+	(eval_sub, Ffuncall): Use it.
+	(apply_lambda): Adjust to new backtrace format.
+	(let_shadows_buffer_binding_p, let_shadows_global_binding_p): Move from
+	data.c.
+	(specbind): Adjust to new specpdl format.  Simplify.
+	(record_unwind_protect, unbind_to): Adjust to new specpdl format.
+	(Fbacktrace_debug, Fbacktrace, Fbacktrace_frame): Adjust to new
+	backtrace format.
+	(mark_backtrace): Remove.
+	(mark_specpdl, get_backtrace, backtrace_top_function): New functions.
+	* xdisp.c (redisplay_internal): Use record_in_backtrace.
+	* alloc.c (Fgarbage_collect): Use record_in_backtrace.
+	Use mark_specpdl.
+	* profiler.c (record_backtrace): Use get_backtrace.
+	(handle_profiler_signal): Use backtrace_top_function.
+	* .gdbinit (xbacktrace, hookpost-backtrace): Use new backtrace
+	accessor functions.
+
+2013-06-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.h (catch_child_signal): Declare.
+
+	* process.c (catch_child_signal): New function.
+	(init_process_emacs): Call it.
+
+	* nsterm.m: Include process.h if NS_IMPL_GNUSTEP.
+	(ns_menu_bar_is_hidden, menu_will_open_state): Define only if
+	NS_IMPL_COCOA.
+	(x_set_cursor_type): Remove declaration.
+	(ns_update_begin): Only use r and bp if NS_IMPL_COCOA.
+	(ns_update_end, ns_focus, ns_unfocus): Remove GNUStep specific code.
+	(x_set_window_size): Remove 3 pixels from toolbar if NS_IMPL_GNUSTEP.
+	(ns_get_color): Use F suffix on float.
+	(ns_color_to_lisp, ns_query_color): Use EmacsCGFloat.
+	(ns_get_rgb_color): Remove.
+	(x_set_frame_alpha): Move view inside NS_IMPL_COCOA.
+	(note_mouse_movement): x and y are CGFloat.
+	(ns_draw_fringe_bitmap): Remove unused rowY.
+	Change #if to COCOA && >= 10_6.
+	(ns_draw_window_cursor): Remove unused overspill.
+	(ns_draw_underwave): width and x are EamcsCGFloat.
+	(ns_draw_box): thickness is CGFloat.
+	(ns_dumpglyphs_image): Change #if to COCOA && >= 10_6.
+	(ns_send_appdefined): When NS_IMPL_GNUSTEP, redirect to main thread
+	if not in main thread.
+	(ns_get_pending_menu_title, ns_check_menu_open)
+	(ns_check_pending_open_menu): Put inside #if COCOA && >= 10_5.
+	(ns_term_init): Call catch_child_signal if NS_IMPL_GNUSTEP && SIGCHLD.
+	(sendFromMainThread:): New method.
+	(changeFont:): size is CGFloat.
+	(keyDown:): Check for Delete when NS_IMPL_GNUSTEP.
+	Disable warning about permanent text.
+	(characterIndexForPoint:): Adjust return type depending on GNUStep
+	version.
+	(mouseDown:): delta is CGFloat.
+	(updateFrameSize): Remove unised variable f.
+	(initFrameFromEmacs): Move toggleButton inside NS_IMPL_COCOA.
+	Cast float to EmacsCGFloat.
+	(windowWillUseStandardFrame:defaultFrame:): Set maximized_height
+	also to -1 when restoring.
+	(windowDidExitFullScreen:): Put call to updateCollectionBehaviour
+	inside NS_IMPL_COCOA.
+	(toggleFullScreen:): Put call to toggleFullScreen inside
+	NS_IMPL_COCOA.  Cast float to EmacsCGFloat.
+	(setPosition:portion:whole:): por is CGFloat.
+	(getMouseMotionPart:window:x:y:): Add F suffix to float.
+	(mouseDown:): Use CGFloat.
+	(mouseDragged:): Remove unised variable edge.
+	(EmacsDocument): Implement for NS_IMPL_GNUSTEP.
+
+	* nsterm.h (EmacsCGFloat): Typedef for OSX and GNUStep when the size
+	of CGFloat differs.
+	(EmacsApp): New variable nextappdefined.  Declare sendFromMainThread
+	when NS_IMPL_GNUSTEP.
+	(EmacsDocument): Declare when NS_IMPL_GNUSTEP.
+	(EmacsView): Remove unlockFocusNeedsFlush, add windowDidMove.
+	(EmacsToolbar): Add clearAll.  Add tag argument to
+	addDisplayItemWithImage.
+	(EmacsSavePanel, EmacsOpenPanel): Remove getFilename and getDirectory.
+
+	* nsselect.m (ns_get_local_selection): Remove unused variable type.
+
+	* nsmenu.m (ns_update_menubar): Make static.
+	(x_activate_menubar): Surround with ifdef NS_IMPL_COCOA
+	(fillWithWidgetValue:): Add cast to SEL for setAction.
+	(addSubmenuWithTitle:forFrame:): Add cast to SEL for action.
+	(update_frame_tool_bar): Update code for GNUStep.
+	(clearAll): New method.
+	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
+	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP. Move
+	identifierToItem setObject and activeIdentifiers addObject before
+	call to insertItemWithItemIdentifier.
+	(validateVisibleItems): Fix indentation.
+	(toolbarAllowedItemIdentifiers:): Return activeIdentifiers.
+	(initWithContentRect:styleMask:backing:defer:): Add ClosableWindow and
+	UtilityWindow to aStyle, remove call to setStyleMask.
+
+	* nsimage.m (setXBMColor:, getPixelAtX:Y:): Use EmacsCGFloat.
+
+	* nsfont.m (ns_attribute_fvalue, ns_spec_to_descriptor)
+	(ns_charset_covers, ns_get_covering_families, nsfont_open):
+	Use F suffix on floats.
+	(ns_char_width): Returns CGFloat.
+	(ns_ascii_average_width): w is CGFloat instead of float.
+	(nsfont_draw): cbuf and c are unsigned. Cast to char* in call to
+	DPSxshow.
+	(ns_glyph_metrics): CGFloat instead of float.
+
+	* nsfns.m (x_set_foreground_color, x_set_background_color): Use
+	EmacsCGFloat.
+	(ns_implicitly_set_icon_type, Fx_create_frame): Make static, remove
+	unused variables.
+	(Fns_read_file_name): Keep track if panel is for save.  Use
+	ns_filename_from_panel/ns_directory_from_panel.
+	(Fns_list_services): delegate only used for COCOA.
+	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.  Just
+	return the input if GNUStep.
+	(x_screen_planes): Remove.
+	(Fxw_color_values): Use EmacsCGFloat
+	(Fns_display_monitor_attributes_list): Only get screen number for
+	Cocoa.
+	(getDirectory, getFilename): Removed from EmacsOpenPanel and
+	EmacsSavePanel.
+	(EmacsOpenPanel:ok:): Use ns_filename_from_panel and
+	ns_directory_from_panel.
+
 2013-06-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (handle_child_signal): Also use WCONTINUED.

@@ -8,7 +8,6 @@
 
 /* The guards are for MinGW64, which defines these structs on its
    system headers which are included by ms-w32.h.  */
-#ifndef _W64
 /* Allow inclusion of sys/time.h and winsock2.h in any order.  Needed
    for running the configure test, which is only relevant to MinGW.  */
 #ifndef _TIMEVAL_DEFINED
@@ -25,7 +24,6 @@ struct timeval
         ((tvp)->tv_usec cmp (uvp)->tv_usec))
 #define timerclear(tvp)  (tvp)->tv_sec = (tvp)->tv_usec = 0
 #endif /* _TIMEVAL_DEFINED */
-#endif /* _W64 */
 
 #ifndef _TIMEZONE_DEFINED
 #define _TIMEZONE_DEFINED

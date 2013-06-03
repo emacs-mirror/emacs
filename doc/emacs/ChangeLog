@@ -1,9 +1,21 @@
+2013-06-03  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Add global keybindings
+	with the key prefix `M-s h'.  Document old command `highlight-phrase'.
+	Document new command `highlight-symbol-at-point'.
+
 2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* maintaining.texi (Branches): Add motivations for branching.
 	(VC Mode Line): Fix typo.
 	(VC Directory Commands): Mention `vc-dir-hide-up-to-date' with
 	prefix argument.
+
+2013-06-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* cmdargs.texi (General Variables): Use "unix:path=/dev/null" as
+	dummy value for $DBUS_SESSION_BUS_ADDRESS.  It also suppresses
+	autolaunching of the D-Bus session bus.
 
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 

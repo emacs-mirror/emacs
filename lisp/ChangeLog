@@ -1,7 +1,128 @@
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* eshell/em-term.el (cl-lib): Require `cl-lib'.
+
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el: Use lexical-binding.
+	(lisp--local-variables-1, lisp--local-variables): New functions.
+	(lisp--local-variables-completion-table): New var.
+	(lisp-completion-at-point): Use it to provide completion of let-bound vars.
+
+	* emacs-lisp/lisp-mode.el (eval-sexp-add-defvars): Expand macros
+	eagerly (bug#14422).
+
+2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* autorevert.el (auto-revert-notify-enabled)
+	(auto-revert-notify-rm-watch, auto-revert-notify-add-watch)
+	(auto-revert-notify-event-p, auto-revert-notify-event-file-name)
+	(auto-revert-notify-handler): Handle also gfilenotify.
+
+	* subr.el: (file-notify-handle-event): New defun. Replacing ...
+	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
+	Removed.
+
+2013-06-03  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (search-map): Bind `highlight-symbol-at-point' to
+	`M-s h .'.  (Bug#14427)
+
+	* hi-lock.el (highlight-symbol-at-point): New alias for the new
+	command `hi-lock-face-symbol-at-point'.
+	(hi-lock-face-symbol-at-point): New command.
+	(hi-lock-map): Bind `highlight-symbol-at-point' to `C-x w .'.
+	(hi-lock-menu): Add `highlight-symbol-at-point'.
+	(hi-lock-mode): Doc fix.
+
+	* isearch.el (isearch-forward-symbol-at-point): New command.
+	(search-map): Bind `isearch-forward-symbol-at-point' to `M-s .'.
+	(isearch-highlight-regexp): Add a regexp which matches
+	words/symbols for word/symbol mode.
+
+	* subr.el (find-tag-default-bounds): New function with the body
+	mostly moved from `find-tag-default'.
+	(find-tag-default): Move most code to `find-tag-default-bounds',
+	call it and apply `buffer-substring-no-properties' afterwards.
+
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* eshell/em-term.el (eshell-term-initialize): Use
+	`cl-intersection' rather than `intersection'.
+
 2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/log-view.el: Doc fix.
 	(log-view-mode-map): Copy keymap from `special-mode-map'.
+
+2013-06-02  Eric Ludlam <zappo@gnu.org>
+
+	* emacs-lisp/eieio.el (eieio--defalias, eieio-hook)
+	(eieio-error-unsupported-class-tags, eieio-skip-typecheck)
+	(eieio-optimize-primary-methods-flag, eieio-initializing-object)
+	(eieio-unbound, eieio-default-superclass)
+	(eieio--define-field-accessors, method-static, method-before)
+	(method-primary, method-after, method-num-lists)
+	(method-generic-before, method-generic-primary)
+	(method-generic-after, method-num-slots)
+	(eieio-specialized-key-to-generic-key)
+	(eieio--check-type, class-v, class-p)
+	(eieio-class-name, define-obsolete-function-alias)
+	(eieio-class-parents-fast, eieio-class-children-fast)
+	(same-class-fast-p, class-constructor, generic-p)
+	(generic-primary-only-p, generic-primary-only-one-p)
+	(class-option-assoc, class-option, eieio-object-p)
+	(class-abstract-p, class-method-invocation-order)
+	(eieio-defclass-autoload-map, eieio-defclass-autoload)
+	(eieio-class-un-autoload, eieio-defclass)
+	(eieio-eval-default-p, eieio-perform-slot-validation-for-default)
+	(eieio-add-new-slot, eieio-copy-parents-into-subclass)
+	(eieio--defgeneric-init-form, eieio-defgeneric-form)
+	(eieio-defgeneric-reset-generic-form)
+	(eieio-defgeneric-form-primary-only)
+	(eieio-defgeneric-reset-generic-form-primary-only)
+	(eieio-defgeneric-form-primary-only-one)
+	(eieio-defgeneric-reset-generic-form-primary-only-one)
+	(eieio-unbind-method-implementations)
+	(eieio--defmethod, eieio--typep)
+	(eieio-perform-slot-validation, eieio-validate-slot-value)
+	(eieio-validate-class-slot-value, eieio-barf-if-slot-unbound)
+	(eieio-oref, eieio-oref-default, eieio-default-eval-maybe)
+	(eieio-oset, eieio-oset-default, eieio-slot-originating-class-p)
+	(eieio-slot-name-index, eieio-class-slot-name-index)
+	(eieio-set-defaults, eieio-initarg-to-attribute)
+	(eieio-attribute-to-initarg, eieio-c3-candidate)
+	(eieio-c3-merge-lists, eieio-class-precedence-c3)
+	(eieio-class-precedence-dfs, eieio-class-precedence-bfs)
+	(eieio-class-precedence-list, eieio-generic-call-methodname)
+	(eieio-generic-call-arglst, eieio-generic-call-key)
+	(eieio-generic-call-next-method-list)
+	(eieio-pre-method-execution-functions, eieio-generic-call)
+	(eieio-generic-call-primary-only, eieiomt-method-list)
+	(eieiomt-optimizing-obarray, eieiomt-install)
+	(eieiomt-add, eieiomt-next, eieiomt-sym-optimize)
+	(eieio-generic-form, eieio-defmethod, make-obsolete)
+	(eieio-defgeneric, make-obsolete): Moved to eieio-core.el
+	(defclass): Remove `eval-and-compile' from macro.
+	(call-next-method, shared-initialize): Instead of using
+	`scoped-class' variable, use new eieio--scoped-class, and
+	eieio--with-scoped-class.
+	(initialize-instance): Rename local variable 'scoped-class' to
+	'this-class' to remove ambiguitity from old global.
+
+	* emacs-lisp/eieio-core.el: New file.  Derived from key parts of
+	eieio.el.
+	(eieio--scoped-class-stack): New variable
+	(eieio--scoped-class): New fcn
+	(eieio--with-scoped-class): New scoping macro.
+	(eieio-defclass): Use pushnew instead of add-to-list.
+	(eieio-defgeneric-form-primary-only-one, eieio-oset-default)
+	(eieio-slot-name-index, eieio-set-defaults, eieio-generic-call)
+	(eieio-generic-call-primary-only, eieiomt-add): Instead of using
+	`scoped-class' variable, use new eieio--scoped-class, and
+	eieio--with-scoped-class.
+
+	* emacs-lisp/eieio-base.el (cl-lib): Require during compile.
 
 2013-06-02  Tassilo Horn  <tsdh@gnu.org>
 

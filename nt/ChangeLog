@@ -1,3 +1,11 @@
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Add HAVE_GFILENOTIFY, HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timeval): Remove the _W64 guards.
+
 2013-06-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/time.h [!_TIMEZONE_DEFINED]: Define _TIMEZONE_DEFINED to

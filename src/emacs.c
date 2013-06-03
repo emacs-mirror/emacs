@@ -1252,7 +1252,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
   globals_of_w32 ();
+#ifdef HAVE_W32NOTIFY
   globals_of_w32notify ();
+#endif
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc (dumping); /* must precede init_editfns.  */
@@ -1409,6 +1411,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_gnutls ();
 #endif
 
+#ifdef HAVE_GFILENOTIFY
+      syms_of_gfilenotify ();
+#endif /* HAVE_GFILENOTIFY */
+
 #ifdef HAVE_INOTIFY
       syms_of_inotify ();
 #endif /* HAVE_INOTIFY */
@@ -1419,7 +1425,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #ifdef WINDOWSNT
       syms_of_ntterm ();
+#ifdef HAVE_W32NOTIFY
       syms_of_w32notify ();
+#endif /* HAVE_W32NOTIFY */
 #endif /* WINDOWSNT */
 
       syms_of_profiler ();
