@@ -37,8 +37,10 @@ extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream);
 extern void FreelistIterate(Freelist abq, FreelistIterateMethod iterate,
                             void *closureP, Size closureS);
 
-extern Bool FreelistFind(Range rangeReturn, Range oldRangeReturn,
-                         Freelist fl, Size size, FindDelete findDelete);
+extern Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn,
+                              Freelist fl, Size size, FindDelete findDelete);
+extern Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
+                             Freelist fl, Size size, FindDelete findDelete);
 extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
                                 Freelist fl, FindDelete findDelete);
 
