@@ -1,3 +1,8 @@
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (eval-sexp-add-defvars): Expand macros
+	eagerly (bug#14422).
+
 2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* autorevert.el (auto-revert-notify-enabled)
