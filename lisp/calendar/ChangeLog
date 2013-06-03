@@ -1,3 +1,12 @@
+2013-06-03  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-y-with-space): New defcustom.
+	(todos-y-or-n-p): New function.
+	(todos-delete-category, todos-move-category, todos-delete-item)
+	(todos-done-item-add-edit-or-delete-comment, todos-item-undone)
+	(todos-find-archive, todos-archive-done-item, todos-search)
+	(todos-read-category): Use it instead of y-or-n-p.
+
 2013-06-02  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-show-categories-table): Correct doc string.

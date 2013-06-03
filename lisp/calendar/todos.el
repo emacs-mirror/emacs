@@ -557,18 +557,18 @@ i.e. including all existing todo and done items."
 		       (concat "To delete a non-empty category, "
 			       "type C-u \\[todos-delete-category].")))
       (when (cond ((= (length todos-categories) 1)
-		   (y-or-n-p (concat "This is the only category in this file; "
+		   (todos-y-or-n-p (concat "This is the only category in this file; "
 				     "deleting it will also delete the file.\n"
 				     "Do you want to proceed? ")))
 		  ((> archived 0)
-		   (y-or-n-p (concat "This category has archived items; "
+		   (todos-y-or-n-p (concat "This category has archived items; "
 				     "the archived category will remain\n"
 				     "after deleting the todo category.  "
 				     "Do you still want to delete it\n"
 				     "(see `todos-skip-archived-categories' "
 				     "for another option)? ")))
 		  (t
-		   (y-or-n-p (concat "Permanently remove category \"" cat
+		   (todos-y-or-n-p (concat "Permanently remove category \"" cat
 				     "\"" (and arg " and all its entries")
 				     "? "))))
 	(widen)
@@ -608,7 +608,7 @@ If current category has archived items, also move those to the
 archive of the file moved to, creating it if it does not exist."
   (interactive)
   (when (or (> (length todos-categories) 1)
-	    (y-or-n-p (concat "This is the only category in this file; "
+	    (todos-y-or-n-p (concat "This is the only category in this file; "
 			      "moving it will also delete the file.\n"
 			      "Do you want to proceed? ")))
     (let* ((ofile todos-current-todos-file)
@@ -1291,13 +1291,13 @@ the item at point."
 	       (marked (assoc cat todos-categories-with-marks))
 	       (item (unless marked (todos-item-string)))
 	       (answer (if marked
-			   (y-or-n-p "Permanently delete all marked items? ")
+			   (todos-y-or-n-p "Permanently delete all marked items? ")
 			 (when item
 			   (setq ov (make-overlay
 				     (save-excursion (todos-item-start))
 				     (save-excursion (todos-item-end))))
 			   (overlay-put ov 'face 'todos-search)
-			   (y-or-n-p (concat "Permanently delete this item? ")))))
+			   (todos-y-or-n-p (concat "Permanently delete this item? ")))))
 	       buffer-read-only)
 	  (when answer
 	    (and marked (goto-char (point-min)))
@@ -2191,7 +2191,7 @@ With prefix ARG delete an existing comment."
 				       (regexp-quote todos-comment-string)
 				       ": \\([^]]+\\)\\]") end t)
 	    (if arg
-		(when (y-or-n-p "Delete comment? ")
+		(when (todos-y-or-n-p "Delete comment? ")
 		  (delete-region (match-beginning 0) (match-end 0)))
 	      (setq comment (read-string "Edit comment: "
 					 (cons (match-string 1) 1)))
@@ -2252,7 +2252,7 @@ comments without asking."
 		      (if (eq first 'first)
 			  (setq first
 				(if (eq todos-undo-item-omit-comment 'ask)
-				    (when (y-or-n-p (concat "Omit comment" pl
+				    (when (todos-y-or-n-p (concat "Omit comment" pl
 							    " from restored item"
 							    pl "? "))
 				      'omit)
@@ -2335,13 +2335,13 @@ displayed."
 	 place)
     (setq place (cond (ask 'other-archive)
 		      ((file-exists-p archive) 'this-archive)
-		      (t (when (y-or-n-p (concat "This file has no archive; "
+		      (t (when (todos-y-or-n-p (concat "This file has no archive; "
 						 "visit another archive? "))
 			   'other-archive))))
     (when (eq place 'other-archive)
       (setq archive (todos-read-file-name "Choose a Todos archive: " t t)))
     (when (and (eq place 'this-archive) (zerop count))
-      (setq place (when (y-or-n-p
+      (setq place (when (todos-y-or-n-p
 			  (concat "This category has no archived items;"
 				  " visit archive anyway? "))
 		     'other-cat)))
@@ -2388,7 +2388,7 @@ this category does not exist in the archive, it is created."
 	       buffer-read-only)
 	  (cond
 	   (all
-	    (if (y-or-n-p "Archive all done items in this category? ")
+	    (if (todos-y-or-n-p "Archive all done items in this category? ")
 		(save-excursion
 		  (save-restriction
 		    (goto-char (point-min))
@@ -3261,7 +3261,7 @@ face."
 	    (overlay-put ov 'face 'todos-search)
 	    (when matches
 	      (setq mlen (length matches))
-	      (if (y-or-n-p
+	      (if (todos-y-or-n-p
 		   (if (> mlen 1)
 		       (format "There are %d more matches; go to next match? "
 			       mlen)
@@ -3276,7 +3276,7 @@ face."
       (goto-char opoint)
       (message "No match for \"%s\"" regex))
     (when msg
-      (if (y-or-n-p (concat msg "\nUnhighlight matches? "))
+      (if (todos-y-or-n-p (concat msg "\nUnhighlight matches? "))
 	  (todos-clear-matches)
 	(message "You can unhighlight the matches later by typing %s"
 		 (key-description (car (where-is-internal
@@ -3728,6 +3728,22 @@ saved (the latter as a Todos Archive file) with a new name in
 ;; =============================================================================
 ;;; Todos utilities and internals
 ;; =============================================================================
+
+(defcustom todos-y-with-space nil
+  "Non-nil means allow SPC to affirm a \"y or n\" question."
+  :type 'boolean
+  :group 'todos)
+
+(defun todos-y-or-n-p (prompt)
+  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
+Also return t if answer is \"Y\", but unlike `y-or-n-p', allow
+SPC to affirm the question only if option `todos-y-with-space' is
+non-nil."
+  (unless todos-y-with-space
+    (define-key query-replace-map " " 'ignore))
+  (prog1
+   (y-or-n-p prompt)
+   (define-key query-replace-map " " 'act)))
 
 ;; -----------------------------------------------------------------------------
 ;;; File-level global variables and support functions
@@ -4692,7 +4708,7 @@ categories from `todos-category-completions-files'."
 	;; When user enters a nonexisting category name by jumping or
 	;; moving, confirm that it should be added, then validate.
 	(unless add
-	  (if (y-or-n-p (format "Add new category \"%s\" to file \"%s\"? "
+	  (if (todos-y-or-n-p (format "Add new category \"%s\" to file \"%s\"? "
 				cat (todos-short-file-name file0)))
 	      (progn
 		(when (assoc cat categories)
