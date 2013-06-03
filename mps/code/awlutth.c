@@ -20,7 +20,7 @@
 #include "mpsw3.h"
 #endif
 #include <string.h>
-#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
+#if defined(MPS_OS_LI) || defined(MPS_OS_FR) || defined(MPS_OS_XC)
 #include <pthread.h>
 #endif
 
