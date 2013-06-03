@@ -1,3 +1,11 @@
+2013-06-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c: Replace #if defined ... with #ifdef HAVE_GLIB.
+
+	* process.c (wait_reading_process_output): Call xg_select if HAVE_GLIB.
+
+	* Makefile.in (XGSELOBJ): New, xgselect.o if GLib is used, or empty.
+
 2013-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.

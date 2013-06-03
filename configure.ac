@@ -3612,6 +3612,23 @@ AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
 
+dnl Check this late.  It depends on what other libraries (lrsvg, Gtk+ etc)
+dnl Emacs uses.
+XGSELOBJ=
+AC_MSG_CHECKING([whether GLib is linked in])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[[#include <glib.h>
+ 	]],
+	[[g_print ("Hello world");]])],
+     [links_glib=yes],
+     [links_glib=no])
+AC_MSG_RESULT([$links_glib])
+if test "${links_glib}" = "yes"; then
+  AC_DEFINE(HAVE_GLIB, 1, [Define to 1 if GLib is linked in.])
+  XGSELOBJ=xgselect.o
+fi
+AC_SUBST(XGSELOBJ)
+
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
   [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
@@ -4398,7 +4415,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"

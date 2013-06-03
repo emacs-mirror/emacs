@@ -205,9 +205,12 @@ LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
-## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o if
+## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o if
 ## HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
+
+# xgselect.o if linking with GLib, else empty
+XGSELOBJ=@XGSELOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
 
@@ -371,7 +374,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.

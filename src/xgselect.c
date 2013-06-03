@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "xgselect.h"
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 
 #include <glib.h>
 #include <errno.h>
@@ -140,4 +140,4 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   return retval;
 }
-#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
+#endif /* HAVE_GLIB */
