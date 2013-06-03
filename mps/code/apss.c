@@ -10,6 +10,7 @@
 #include "mpscmvff.h"
 #include "mpscmvt.h"
 #include "mpslib.h"
+#include "mpsacl.h"
 #include "mpsavm.h"
 
 #include "testlib.h"
@@ -197,6 +198,12 @@ int main(int argc, char *argv[])
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
+      "mps_arena_create");
+  testInArena(arena, bothOptions);
+  mps_arena_destroy(arena);
+
+  die(mps_arena_create(&arena, mps_arena_class_cl(),
+                       testArenaSIZE, malloc(testArenaSIZE)),
       "mps_arena_create");
   testInArena(arena, bothOptions);
   mps_arena_destroy(arena);
