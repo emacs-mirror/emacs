@@ -121,25 +121,42 @@ _`.function.cbs.finish`: ``CBSFinish()`` is the function that finishes
 the CBS structure and discards any other resources associated with the
 CBS.
 
-``Res CBSInsert(Range *rangeReturn, CBS cbs, Range range)``
+``Res CBSInsert(Range rangeReturn, CBS cbs, Range range)``
 
-_`.function.cbs.insert`: ``CBSInsert()`` is the function used to add a
-contiguous range specified to the CBS. If any part of the range is
-already in the CBS, then ``ResFAIL`` is returned, and the CBS is
-unchanged. This function may cause allocation; if this allocation
-fails, then ``ResMEMORY`` is returned, and the CBS is unchanged. If it
-succeeds, then ``rangeReturn`` is updated to describe the contiguous
-isolated range containing the inserted range (this may differ from
-``range`` if there was coalescence on either side) and ``ResOK`` is
-returned.
- 
-``Res CBSDelete(CBS cbs, Range range)``
+_`.function.cbs.insert`: If any part of ``range`` is already in the
+CBS, then leave it unchanged and return ``ResFAIL``. Otherwise,
+attempt to insert ``range`` into the CBS. If the insertion succeeds,
+then update ``rangeReturn`` to describe the contiguous isolated range
+containing the inserted range (this may differ from ``range`` if there
+was coalescence on either side) and return ``ResOK``. If the insertion
+fails, return a result code indicating allocation failure.
 
-_`.function.cbs.delete`: ``CBSDelete()`` is the function used to
-remove a contiguous range from the CBS. If any part of the range is
-not in the CBS, then ``ResFAIL`` is returned, and the CBS is
-unchanged. This function may cause allocation; if this allocation
-fails, then ``ResMEMORY`` is returned, and the CBS is unchanged.
+_`.function.cbs.insert.fail`: Insertion of a valid range (that is, one
+that does not overlap with any range in the CBS) can only fail if the
+new range is isolated and the allocation of the necessary data
+structure to represent it failed.
+
+
+``Res CBSDelete(Range rangeReturn, CBS cbs, Range range)``
+
+_`.function.cbs.delete`: If any part of the range is not in the CBS,
+then leave the CBS unchanged and return ``ResFAIL``. Otherwise, update
+``rangeReturn`` to describe the contiguous isolated range that
+contains ``range`` (this may differ from ``range`` if there are
+fragments on either side) and attempt to delete the range from the
+CBS. If the deletion succeeds, return ``ResOK``. If the deletion
+fails, return a result code indicating allocation failure.
+
+_`.function.cbs.delete.fail`: Deletion of a valid range (that is, one
+that is wholly contained in the CBS) can only fail if there are
+fragments on both sides and the allocation of the necessary data
+structures to represent them fails.
+
+_`.function.cbs.delete.return`: ``CBSDelete()`` returns the contiguous
+isolated range that contains ``range`` even if the deletion fails.
+This is so that the caller can try deleting the whole block (which is
+guaranteed to succeed) and managing the fragments using a fallback
+strategy.
 
 ``void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP, Size closureS)``
 
@@ -160,15 +177,15 @@ purposes only.
 
 ``Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)``
 
-_`.function.cbs.find.first`: The ``CBSFindFirst()`` function locates
-the first block (in address order) within the CBS of at least the
-specified size, returns its range via the ``rangeReturn`` argument,
-and returns ``TRUE``. If there is no such block, it returns ``FALSE``.
+_`.function.cbs.find.first`: Locate the first block (in address order)
+within the CBS of at least the specified size, update ``rangeReturn``
+to describe that range, and return ``TRUE``. If there is no such
+block, it returns ``FALSE``.
 
-It optionally deletes the top, bottom, or all of the found range,
-depending on the ``findDelete`` argument. This saves a separate call
-to ``CBSDelete()``, and uses the knowledge of exactly where we found
-the range. The value of ``findDelete`` must come from this
+In addition, optionally delete the top, bottom, or all of the found
+range, depending on the ``findDelete`` argument. This saves a separate
+call to ``CBSDelete()``, and uses the knowledge of exactly where we
+found the range. The value of ``findDelete`` must come from this
 enumeration::
 
     enum {
@@ -178,9 +195,9 @@ enumeration::
         FindDeleteENTIRE   /* delete entire range */
     };
 
-The old range of the block from which the found range was deleted is
+The original contiguous isolated range in which the range was found is
 returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
-``FindDeleteNONE`` or ``FindDeleteENTIRE``, then these will be
+``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
 identical to the range returned via the ``rangeReturn`` argument.)
 
 ``CBSFindFirst()`` requires that ``fastFind`` was true when
@@ -188,25 +205,22 @@ identical to the range returned via the ``rangeReturn`` argument.)
 
 ``Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)``
 
-_`.function.cbs.find.last`: The ``CBSFindLast()`` function locates the
-last block (in address order) within the CBS of at least the specified
-size, returns its range via the ``rangeReturn`` argument, and returns
-``TRUE``. If there is no such block, it returns ``FALSE``.
+_`.function.cbs.find.last`: Like ``CBSFindFirst()``, except that it
+finds the last block in address order.
 
-Like ``CBSFindFirst()``, it optionally deletes the range, and requires
-that ``fastFind`` was true when ``CBSInit()`` was called.
+``Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)``
 
-``Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn, CBS cbs, FindDelete findDelete)``
+_`.function.cbs.find.largest`: Locate the largest block within the
+CBS, and if that block is at least as big as ``size``, return its
+range via the ``rangeReturn`` argument, and return ``TRUE``. If there
+are no blocks in the CBS at least as large as ``size``, return
+``FALSE``. Pass 0 for ``size`` if you want the largest block
+unconditionally.
 
-_`.function.cbs.find.largest`: The ``CBSFindLargest()`` function
-locates the largest block within the CBS, returns its range via the
-``rangeReturn`` argument, and returns ``TRUE``. If there are no blocks
-in the CBS, it returns ``FALSE``.
-
-Like ``CBSFindFirst()``, it optionally deletes the range (specifying
+Like ``CBSFindFirst()``, optionally delete the range (specifying
 ``FindDeleteLOW`` or ``FindDeleteHIGH`` has the same effect as
-``FindDeleteENTIRE``), and requires that ``fastFind`` was true when
-``CBSInit()`` was called.
+``FindDeleteENTIRE``). This feature requires that ``fastFind`` was
+true when ``CBSInit()`` was called.
 
 
 Implementation
