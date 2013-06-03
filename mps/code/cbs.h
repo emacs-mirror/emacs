@@ -53,7 +53,7 @@ extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
 extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
                         CBS cbs, Size size, FindDelete findDelete);
 extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
-                           CBS cbs, FindDelete findDelete);
+                           CBS cbs, Size size, FindDelete findDelete);
 
 
 #endif /* cbs_h */
