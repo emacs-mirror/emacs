@@ -1,3 +1,7 @@
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* eshell/em-term.el (cl-lib): Require `cl-lib'.
+
 2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el: Use lexical-binding.

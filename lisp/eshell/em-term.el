@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'esh-util)
 (require 'esh-ext)
 (eval-when-compile (require 'eshell))
