@@ -5,7 +5,6 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include "mpstd.h"
 #include <time.h>
@@ -47,7 +46,7 @@ static size_t max;
 static int verbose = 0;
 static mps_pool_t pool;
 
-static size_t randomSize(int i)
+static size_t randomSize(unsigned long i)
 {
   /* Distribution centered on mean.  Verify that allocations
      below min and above max are handled correctly */
@@ -93,11 +92,11 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
-                        size_t (*size)(int i), mps_arg_s args[])
+                        size_t (*size)(unsigned long i), mps_arg_s args[])
 {
   mps_res_t res;
   mps_ap_t ap;
-  int i, k;
+  unsigned long i, k;
   int *ps[TEST_SET_SIZE];
   size_t ss[TEST_SET_SIZE];
 
@@ -127,10 +126,10 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   }
 
   for (k=0; k<TEST_LOOPS; ++k) {
-    int x = rand()%(TEST_SET_SIZE-1);
+    unsigned long x = rnd()%(TEST_SET_SIZE-1);
     /* shuffle all the objects */
     for(i=0; i<TEST_SET_SIZE; ++i) {
-      int j = rand()%(TEST_SET_SIZE-i);
+      unsigned long j = rnd()%(TEST_SET_SIZE-i);
       void *tp;
       size_t ts;
      
