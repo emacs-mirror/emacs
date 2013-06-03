@@ -1,5 +1,17 @@
 2013-06-03  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: More code cleanup.  Update file copyright and author
+	lines, add commentary.  Reformat so most lines do not exceed 80
+	columns.  Fix doc strings problems found by checkdoc.
+	(todos-edit-file): Delete unused argument.
+	(todos-delete-item): Delete superfluous concat.
+	(todos-next-button, todos-previous-button): Delete optional
+	arguments, adjusting interactive spec accordingly, and add them as
+	non-nil arguments to the invocations of forward-button and
+	backward-button.
+
+2013-06-03  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-y-with-space): New defcustom.
 	(todos-y-or-n-p): New function.
 	(todos-delete-category, todos-move-category, todos-delete-item)

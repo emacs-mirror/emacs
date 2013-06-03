@@ -1,11 +1,8 @@
 ;;; todos.el --- facilities for making and maintaining todo lists
 
-;; Copyright (C) 1997, 1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2013  Free Software Foundation, Inc.
 
-;; Author: Oliver Seidel <privat@os10000.net>
-;;         Stephen Berman <stephen.berman@gmx.net>
-;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
-;; Created: 2 Aug 1997
+;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;; Keywords: calendar, todo
 
 ;; This file is [not yet] part of GNU Emacs.
@@ -24,6 +21,38 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This package provides facilities for making, displaying, navigating
+;; and editing todo lists, which are prioritized lists of todo items.
+;; Todo lists are identified with named categories, providing a means
+;; of grouping thematically related todo items.  Each category is
+;; stored in a file, which provides a further level of organization.
+
+;; You can navigate among the items of a category, and between
+;; categories and files.  You can edit items, reprioritize them within
+;; their category, move them to another category, delete them, or mark
+;; items as done and store them separately from the not yet done items
+;; in a category.  You can add new files and categories, rename
+;; categories, move them to another file or delete them.  You can also
+;; build cross-categorial lists of items that satisfy various
+;; criteria.  And you can display summary tables of the categories in
+;; a file and the types of items they contain.
+
+;; To get started, load this package and type `M-x todos-show'.  This
+;; will prompt you for the name of the first todo file and its first
+;; category, create these and display the empty category in Todos
+;; mode.  Then type `i i' to add the first todo item to the category
+;; (i.e., to the list).  To see a list of all Todos mode commands,
+;; which include entry points to several auxiliary modes, type `C-h
+;; m'.  Consult the document strings of the commands for details of
+;; their use.  The `todos' customization group and its subgroups list
+;; the options you can set to alter the behavior of many commands and
+;; various aspects of the display.
+
+;; This package is a new version of Oliver Seidel's todo-mode.el,
+;; which retains the same basic organization and handling of todo
+;; lists and the basic UI, but extends these in many ways and
+;; reimplements most of the internals.
 
 ;;; Code:
 
@@ -180,8 +209,8 @@ corresponding Todos file, displaying the corresponding category."
 		     	   ;; todo file.
 		     	   (not (called-interactively-p 'any)))
 		      (setq cat (todos-current-category))
-		      (concat (file-name-sans-extension todos-current-todos-file)
-		     	      ".todo"))
+		      (concat (file-name-sans-extension
+			       todos-current-todos-file) ".todo"))
 		     (t
 		      (or todos-current-todos-file
 			  (and todos-show-current-file
@@ -443,7 +472,7 @@ This command does not save the file to disk; to do that type
 (defvar todos-edit-buffer "*Todos Edit*"
   "Name of current buffer in Todos Edit mode.")
 
-(defun todos-edit-file (&optional item)
+(defun todos-edit-file ()
   "Put current buffer in `todos-edit-mode'.
 This makes the entire file visible and the buffer writeable and
 you can use the self-insertion keys and standard Emacs editing
@@ -517,7 +546,8 @@ If this file has an archive containing this category, rename the
 category there as well."
   (interactive)
   (let* ((cat (todos-current-category))
-	 (new (read-from-minibuffer (format "Rename category \"%s\" to: " cat))))
+	 (new (read-from-minibuffer
+	       (format "Rename category \"%s\" to: " cat))))
     (setq new (todos-validate-name new 'category))
     (let* ((ofile todos-current-todos-file)
 	   (archive (concat (file-name-sans-extension ofile) ".toda"))
@@ -557,9 +587,10 @@ i.e. including all existing todo and done items."
 		       (concat "To delete a non-empty category, "
 			       "type C-u \\[todos-delete-category].")))
       (when (cond ((= (length todos-categories) 1)
-		   (todos-y-or-n-p (concat "This is the only category in this file; "
-				     "deleting it will also delete the file.\n"
-				     "Do you want to proceed? ")))
+		   (todos-y-or-n-p
+		    (concat "This is the only category in this file; "
+			    "deleting it will also delete the file.\n"
+			    "Do you want to proceed? ")))
 		  ((> archived 0)
 		   (todos-y-or-n-p (concat "This category has archived items; "
 				     "the archived category will remain\n"
@@ -609,8 +640,8 @@ archive of the file moved to, creating it if it does not exist."
   (interactive)
   (when (or (> (length todos-categories) 1)
 	    (todos-y-or-n-p (concat "This is the only category in this file; "
-			      "moving it will also delete the file.\n"
-			      "Do you want to proceed? ")))
+				    "moving it will also delete the file.\n"
+				    "Do you want to proceed? ")))
     (let* ((ofile todos-current-todos-file)
 	   (cat (todos-current-category))
 	   (nfile (todos-read-file-name
@@ -628,7 +659,8 @@ archive of the file moved to, creating it if it does not exist."
 	  (widen)
 	  (goto-char (point-max))
 	  (let* ((beg (re-search-backward
-		       (concat "^" (regexp-quote (concat todos-category-beg cat))
+		       (concat "^"
+			       (regexp-quote (concat todos-category-beg cat))
 			       "$")
 		       nil t))
 		 (end (if (re-search-forward
@@ -699,7 +731,7 @@ archive of the file moved to, creating it if it does not exist."
 		  (when (member todos-current-todos-file todos-files)
 		    (todos-reevaluate-filelist-defcustoms)))
 	      (setq todos-categories (delete (assoc cat todos-categories)
-						 todos-categories))
+					     todos-categories))
 	      (todos-update-categories-sexp)
 	      (todos-category-select)))))
       (set-window-buffer (selected-window)
@@ -785,7 +817,7 @@ category."
 	(todos-update-categories-sexp)
 	(mapc (lambda (m) (set-marker m nil)) (list cbeg tbeg dbeg tend cend))))
     (when (file-exists-p archive)
-      ;; Merge in archive file.  
+      ;; Merge in archive file.
       (with-current-buffer (get-buffer (find-file-noselect archive))
 	(widen)
 	(goto-char (point-min))
@@ -924,7 +956,8 @@ marking of the next N items."
 	  (when (todos-marked-item-p)
 	    (overlay-put ov 'before-string (substring pref 1)))
 	  (todos-forward-item))))
-    (setq todos-categories-with-marks (delq marks todos-categories-with-marks))))
+    (setq todos-categories-with-marks
+	  (delq marks todos-categories-with-marks))))
 
 ;; -----------------------------------------------------------------------------
 ;;; Item editing options
@@ -1003,8 +1036,8 @@ is not given by HERE but by prompting.
 
 In command invocations, ARG is passed as a prefix argument as
 follows.  With no prefix argument, add the item to the current
-category; with one prefix argument (C-u), prompt for a category
-from the current Todos file; with two prefix arguments (C-u C-u),
+category; with one prefix argument (`C-u'), prompt for a category
+from the current Todos file; with two prefix arguments (`C-u C-u'),
 first prompt for a Todos file, then a category in that file.  If
 a non-existing category is entered, ask whether to add it to the
 Todos file; if answered affirmatively, add the category and
@@ -1128,7 +1161,8 @@ the new item:
 			    (setq todos-date-from-calendar date-type)
 			    (todos-set-date-from-calendar))
 			   (t
-			    (calendar-date-string (calendar-current-date) t t))))
+			    (calendar-date-string
+			     (calendar-current-date) t t))))
 	     (time-string (or (and time (todos-read-time))
 			      (and todos-always-add-time-string
 				   (substring (current-time-string) 11 16)))))
@@ -1155,8 +1189,9 @@ the new item:
 			    todos-nondiary-start
 			  (when (and nonmarking (not todos-diary-nonmarking))
 			    diary-nonmarking-symbol))
-			date-string (when (and time-string ; Can be empty string.
-					       (not (zerop (length time-string))))
+			date-string (when (and time-string ; Can be empty.
+					       (not (zerop (length
+							    time-string))))
 				      (concat " " time-string))
 			(when (not (and diary (not todos-include-in-diary)))
 			  todos-nondiary-end)
@@ -1255,7 +1290,7 @@ the new item:
 
 (defun todos-insert-item-from-calendar (&optional arg)
   "Prompt for and insert a new item with date selected from calendar.
-Invoked without a prefix argument, insert the item into the
+Invoked without prefix argument ARG, insert the item into the
 current category, without one prefix argument, prompt for the
 category from the current todo file or from one listed in
 `todos-category-completions-files'; with two prefix arguments,
@@ -1291,13 +1326,14 @@ the item at point."
 	       (marked (assoc cat todos-categories-with-marks))
 	       (item (unless marked (todos-item-string)))
 	       (answer (if marked
-			   (todos-y-or-n-p "Permanently delete all marked items? ")
+			   (todos-y-or-n-p
+			    "Permanently delete all marked items? ")
 			 (when item
 			   (setq ov (make-overlay
 				     (save-excursion (todos-item-start))
 				     (save-excursion (todos-item-end))))
 			   (overlay-put ov 'face 'todos-search)
-			   (todos-y-or-n-p (concat "Permanently delete this item? ")))))
+			   (todos-y-or-n-p "Permanently delete this item? "))))
 	       buffer-read-only)
 	  (when answer
 	    (and marked (goto-char (point-min)))
@@ -1308,13 +1344,14 @@ the item at point."
 		      (if (todos-done-item-p)
 			  (todos-update-count 'done -1)
 			(todos-update-count 'todo -1 cat)
-			(and (todos-diary-item-p) (todos-update-count 'diary -1)))
+			(and (todos-diary-item-p)
+			     (todos-update-count 'diary -1)))
 		      (if ov (delete-overlay ov))
 		      (todos-remove-item)
 		      ;; Don't leave point below last item.
 		      (and item (bolp) (eolp) (< (point-min) (point-max))
 			   (todos-backward-item))
-		      (when item 
+		      (when item
 			(throw 'done (setq item nil))))
 		  (todos-forward-item))))
 	    (when marked
@@ -1540,7 +1577,7 @@ otherwise, edit just the item at point."
 			    ((or (string= omonth "*") (= mm 13))
 			     (user-error "Cannot increment *"))
 			    (t
-			     (let ((mminc (+ mm inc))) 
+			     (let ((mminc (+ mm inc)))
 			       ;; Increment or decrement month by INC
 			       ;; modulo 12.
 			       (setq mm (% mminc 12))
@@ -1867,7 +1904,8 @@ meaning to raise or lower the item's priority by one."
 	      (todos-category-select)
 	      ;; Keep top of category in view while setting priority.
 	      (goto-char (point-min)))))
-	;; Prompt for priority only when the category has at least one todo item.
+	;; Prompt for priority only when the category has at least one
+	;; todo item.
 	(when (> maxnum 1)
 	  (while (not priority)
 	    (setq candidate (read-number prompt))
@@ -1912,14 +1950,16 @@ meaning to raise or lower the item's priority by one."
 	    ;; move it up to the empty line above the done items
 	    ;; separator.
 	    (when (looking-back (concat "^"
-					(regexp-quote todos-category-done) "\n"))
+					(regexp-quote todos-category-done)
+					"\n"))
 	      (todos-backward-item))))
 	(todos-insert-with-overlays item)
 	;; If item was marked, restore the mark.
 	(and marked
 	     (let* ((ov (todos-get-overlay 'prefix))
 		    (pref (overlay-get ov 'before-string)))
-	       (overlay-put ov 'before-string (concat todos-item-mark pref))))))))
+	       (overlay-put ov 'before-string
+			    (concat todos-item-mark pref))))))))
 
 (defun todos-raise-item-priority ()
   "Raise priority of current item by moving it up by one item."
@@ -2021,10 +2061,9 @@ section in the category moved to."
 		(todos-category-number cat2)
 		(widen)
 		(goto-char (point-min))
-		(re-search-forward (concat "^" (regexp-quote
-						(concat todos-category-beg cat2))
-					   "$")
-				   nil t)
+		(re-search-forward
+		 (concat "^" (regexp-quote (concat todos-category-beg cat2))
+			 "$") nil t)
 		(re-search-forward
 		 (concat "^" (regexp-quote todos-category-done)) nil t)
 		(forward-line)
@@ -2124,7 +2163,8 @@ visible."
 		     (looking-at "^$")))
       (let* ((date-string (calendar-date-string (calendar-current-date) t t))
 	     (time-string (if todos-always-add-time-string
-			      (concat " " (substring (current-time-string) 11 16))
+			      (concat " " (substring (current-time-string)
+						     11 16))
 			    ""))
 	     (done-prefix (concat "[" todos-done-string date-string time-string
 				  "] "))
@@ -2252,9 +2292,10 @@ comments without asking."
 		      (if (eq first 'first)
 			  (setq first
 				(if (eq todos-undo-item-omit-comment 'ask)
-				    (when (todos-y-or-n-p (concat "Omit comment" pl
-							    " from restored item"
-							    pl "? "))
+				    (when (todos-y-or-n-p
+					   (concat "Omit comment" pl
+						   " from restored item"
+						   pl "? "))
 				      'omit)
 				  (when todos-undo-item-omit-comment 'omit)))
 			t)
@@ -2335,8 +2376,9 @@ displayed."
 	 place)
     (setq place (cond (ask 'other-archive)
 		      ((file-exists-p archive) 'this-archive)
-		      (t (when (todos-y-or-n-p (concat "This file has no archive; "
-						 "visit another archive? "))
+		      (t (when (todos-y-or-n-p
+				(concat "This file has no archive; "
+					"visit another archive? "))
 			   'other-archive))))
     (when (eq place 'other-archive)
       (setq archive (todos-read-file-name "Choose a Todos archive: " t t)))
@@ -2361,10 +2403,11 @@ displayed."
 (defun todos-archive-done-item (&optional all)
   "Archive at least one done item in this category.
 
-With a prefix argument, prompt whether to archive all done items
-in this category and on confirmation archive them.  Otherwise, if
-there are marked done items (and no marked todo items), archive
-all of these; otherwise, archive the done item at point.
+With prefix argument ALL, prompt whether to archive all done
+items in this category and on confirmation archive them.
+Otherwise, if there are marked done items (and no marked todo
+items), archive all of these; otherwise, archive the done item at
+point.
 
 If the archive of this file does not exist, it is created.  If
 this category does not exist in the archive, it is created."
@@ -2381,7 +2424,8 @@ this category does not exist in the archive, it is created."
 	       (archive (if (file-exists-p afile)
 			    (find-file-noselect afile t)
 			  (get-buffer-create afile)))
-	       (item (and (todos-done-item-p) (concat (todos-item-string) "\n")))
+	       (item (and (todos-done-item-p)
+			  (concat (todos-item-string) "\n")))
 	       (count 0)
 	       (opoint (unless (todos-done-item-p) (point)))
 	       marked-items beg end all-done
@@ -2394,10 +2438,12 @@ this category does not exist in the archive, it is created."
 		    (goto-char (point-min))
 		    (widen)
 		    (setq beg (progn
-				(re-search-forward todos-done-string-start nil t)
+				(re-search-forward todos-done-string-start
+						   nil t)
 				(match-beginning 0))
 			  end (if (re-search-forward
-				   (concat "^" (regexp-quote todos-category-beg))
+				   (concat "^"
+					   (regexp-quote todos-category-beg))
 				   nil t)
 				  (match-beginning 0)
 				(point-max))
@@ -2628,7 +2674,7 @@ These reflect the priorities of the items in each category."
   :group 'todos-display)
 
 (defcustom todos-done-separator-string "="
-  "String for generating `todos-done-separator'.
+  "String determining the value of variable `todos-done-separator'.
 
 If the string consists of a single character,
 `todos-done-separator' will be the string made by repeating this
@@ -3136,18 +3182,18 @@ are shown in `todos-archived-only' face."
     (forward-line 2)
     (todos-update-categories-display 'archived)))
 
-(defun todos-next-button (n &optional wrap display-message)
-  "Move point to the next button in the table of categories."
-  (interactive "p\nd\nd")
-  (forward-button n wrap display-message)
+(defun todos-next-button (n)
+  "Move point to the Nth next button in the table of categories."
+  (interactive "p")
+  (forward-button n 'wrap 'display-message)
   (and (bolp) (button-at (point))
        ;; Align with beginning of category label.
        (forward-char (+ 4 (length todos-categories-number-separator)))))
 
-(defun todos-previous-button (n &optional wrap display-message)
-  "Move point to the previous button in the table of categories."
-  (interactive "p\nd\nd")
-  (backward-button n wrap display-message)
+(defun todos-previous-button (n)
+  "Move point to the Nth previous button in the table of categories."
+  (interactive "p")
+  (backward-button n 'wrap 'display-message)
   (and (bolp) (button-at (point))
        ;; Align with beginning of category label.
        (forward-char (+ 4 (length todos-categories-number-separator)))))
@@ -3160,7 +3206,7 @@ enter the new number with numerical prefix ARG.  Otherwise, if
 ARG is either of the symbols `raise' or `lower', raise or lower
 the category line in the table by one, respectively, thereby
 decreasing or increasing its number."
-  (interactive "P")  
+  (interactive "P")
   (let ((curnum (save-excursion
 		  ;; Get the number representing the priority of the category
 		  ;; on the current line.
@@ -3384,8 +3430,8 @@ if there is no such file, do the same as with prefix argument
   "Display a list of todo diary items from different categories.
 The categories can be any of those in the current Todos file.
 
-Called with no prefix argument, if a diary items file for the
-current Todos file has previously been saved (see
+Called with no prefix ARG, if a diary items file for the current
+Todos file has previously been saved (see
 `todos-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of diary items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3399,8 +3445,8 @@ The categories are a subset of the categories in the files listed
 in `todos-filter-files', or if this nil, in the files chosen from
 a file selection dialog that pops up in this case.
 
-Called with no prefix argument, if a diary items file for the
-chosen Todos files has previously been saved (see
+Called with no prefix ARG, if a diary items file for the chosen
+Todos files has previously been saved (see
 `todos-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of diary items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3415,8 +3461,8 @@ and with non-nil option `todos-filter-done-items', can include
 not only todo items but also done items, including those in
 Archive files.
 
-Called with no prefix argument, if a regexp items file for the
-current Todos file has previously been saved (see
+Called with no prefix ARG, if a regexp items file for the current
+Todos file has previously been saved (see
 `todos-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of regexp items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3433,8 +3479,8 @@ option `todos-filter-done-items', the matches can include not
 only todo items but also done items, including those in Archive
 files.
 
-Called with no prefix argument, if a regexp items file for the
-current Todos file has previously been saved (see
+Called with no prefix ARG, if a regexp items file for the current
+Todos file has previously been saved (see
 `todos-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of regexp items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3486,7 +3532,7 @@ regexp items."
 ;; -----------------------------------------------------------------------------
 
 (defcustom todos-print-buffer-function 'ps-print-buffer-with-faces
-  "Function called to print buffer content; see `todos-print-buffer'."
+  "Function called by the command `todos-print-buffer'."
   :type 'symbol
   :group 'todos)
 
@@ -3646,7 +3692,8 @@ saved (the latter as a Todos Archive file) with a new name in
 		  (forward-char)
 		  (when (looking-at todos-todo-mode-date-time-regexp)
 		    (todos-convert-legacy-date-time))
-		  (when (looking-at (concat " " (regexp-quote todo-initials) ":"))
+		  (when (looking-at (concat " "
+					    (regexp-quote todo-initials) ":"))
 		    (replace-match "")))
 		(if (re-search-forward
 		     (concat "^" todos-todo-mode-date-time-regexp) nil t)
@@ -3677,7 +3724,8 @@ saved (the latter as a Todos Archive file) with a new name in
 		      (delete-region beg (1+ end))
 		      (set-marker beg (point))
 		      (re-search-backward
-		       (concat "^" (regexp-quote (concat todos-category-beg cat))
+		       (concat "^"
+			       (regexp-quote (concat todos-category-beg cat))
 			       "$")
 		       nil t)
 		      (forward-line)
@@ -3735,7 +3783,7 @@ saved (the latter as a Todos Archive file) with a new name in
   :group 'todos)
 
 (defun todos-y-or-n-p (prompt)
-  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
+  "Ask \"y or n\" question PROMPT and return t if answer is \"y\".
 Also return t if answer is \"Y\", but unlike `y-or-n-p', allow
 SPC to affirm the question only if option `todos-y-with-space' is
 non-nil."
@@ -3805,12 +3853,13 @@ but the categories sexp differs from the current value of
 	      (user-error "Invalid or missing todos-categories sexp"))))
 	(forward-line)
 	;; Check well-formedness of categories.
-	(let ((legit (concat "\\(^" (regexp-quote todos-category-beg) "\\)"
-			     "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
-			     "\\|\\(^[ \t]+[^ \t]*\\)"
-			     "\\|^$"
-			     "\\|\\(^" (regexp-quote todos-category-done) "\\)"
-			     "\\|\\(" todos-done-string-start "\\)")))
+	(let ((legit (concat
+		      "\\(^" (regexp-quote todos-category-beg) "\\)"
+		      "\\|\\(" todos-date-string-start todos-date-pattern "\\)"
+		      "\\|\\(^[ \t]+[^ \t]*\\)"
+		      "\\|^$"
+		      "\\|\\(^" (regexp-quote todos-category-done) "\\)"
+		      "\\|\\(" todos-done-string-start "\\)")))
 	  (while (not (eobp))
 	    (unless (looking-at legit)
 	      (user-error "Illegitimate Todos file format at line %d"
@@ -4320,7 +4369,7 @@ empty line above the done items separator."
 
 (defun todos-marked-item-p ()
   "Non-nil if this item begins with `todos-item-mark'.
- In that case, return the item's prefix overlay."
+In that case, return the item's prefix overlay."
   (let* ((ov (todos-get-overlay 'prefix))
 	 ;; If an item insertion command is called on a Todos file
 	 ;; before it is visited, it has no prefix overlays yet, so
@@ -4398,7 +4447,7 @@ of each other."
 	(forward-line)))))
 
 ;; -----------------------------------------------------------------------------
-;;; Generation of item insertion commands and key bindings 
+;;; Generation of item insertion commands and key bindings
 ;; -----------------------------------------------------------------------------
 
 ;; Can either of these be included in Emacs?  The originals are GFDL'd.
@@ -4533,7 +4582,7 @@ their relation to key bindings, see `todos-basic-insert-item'."
   "List of mappings of insertion command arguments to key sequences.")
 
 (defun todos-insertion-key-bindings (map)
-  "Generate key binding definitions for item insertion commands."
+  "Generate key binding definitions for item insertion keymap MAP."
   (dolist (c todos-insertion-commands)
     (let* ((key "")
 	   (cname (symbol-name c)))
@@ -4732,43 +4781,44 @@ TYPE can be either of the symbols `file' or `category'."
 	(files (mapcar 'todos-short-file-name todos-files))
 	prompt)
     (while
-	(and (cond ((string= "" name)
-		    (setq prompt
-			  (cond ((eq type 'file)
-				 (if files
-				     "Enter a non-empty file name: "
-				   ;; Empty string passed by todos-show to
-				   ;; prompt for initial Todos file.
-				   (concat "Initial file name ["
-					   todos-initial-file "]: ")))
-				((eq type 'category)
-				 (if categories
-				     "Enter a non-empty category name: "
-				   ;; Empty string passed by todos-show to
-				   ;; prompt for initial category of a new
-				   ;; Todos file.
-				   (concat "Initial category name ["
-					   todos-initial-category "]: "))))))
-		   ((string-match "\\`\\s-+\\'" name)
-		    (setq prompt
-			  "Enter a name that does not contain only white space: "))
-		   ((and (eq type 'file) (member name files))
-		    (setq prompt "Enter a non-existing file name: "))
-		   ((and (eq type 'category) (assoc name categories))
-		    (setq prompt "Enter a non-existing category name: ")))
-	     (setq name (if (or (and (eq type 'file) files)
-				(and (eq type 'category) categories))
-			    (completing-read prompt (cond ((eq type 'file)
-							   files)
-							  ((eq type 'category)
-							   categories)))
-			  ;; Offer default initial name.
-			  (completing-read prompt (if (eq type 'file)
-						      files
-						    categories)
-					   nil nil (if (eq type 'file)
-						       todos-initial-file
-						     todos-initial-category))))))
+	(and
+	 (cond ((string= "" name)
+		(setq prompt
+		      (cond ((eq type 'file)
+			     (if files
+				 "Enter a non-empty file name: "
+			       ;; Empty string passed by todos-show to
+			       ;; prompt for initial Todos file.
+			       (concat "Initial file name ["
+				       todos-initial-file "]: ")))
+			    ((eq type 'category)
+			     (if categories
+				 "Enter a non-empty category name: "
+			       ;; Empty string passed by todos-show to
+			       ;; prompt for initial category of a new
+			       ;; Todos file.
+			       (concat "Initial category name ["
+				       todos-initial-category "]: "))))))
+	       ((string-match "\\`\\s-+\\'" name)
+		(setq prompt
+		      "Enter a name that does not contain only white space: "))
+	       ((and (eq type 'file) (member name files))
+		(setq prompt "Enter a non-existing file name: "))
+	       ((and (eq type 'category) (assoc name categories))
+		(setq prompt "Enter a non-existing category name: ")))
+	 (setq name (if (or (and (eq type 'file) files)
+			    (and (eq type 'category) categories))
+			(completing-read prompt (cond ((eq type 'file)
+						       files)
+						      ((eq type 'category)
+						       categories)))
+		      ;; Offer default initial name.
+		      (completing-read prompt (if (eq type 'file)
+						  files
+						categories)
+				       nil nil (if (eq type 'file)
+						   todos-initial-file
+						 todos-initial-category))))))
     name))
 
 ;; Adapted from calendar-read-date and calendar-date-string.
@@ -5031,7 +5081,7 @@ which is the value of the user option
 				(cons todos-categories-archived-label
 				      'archived)))
 			  "")
-	     " ") ; So highlighting of last column is consistent with the others.
+	     " ") ; Make highlighting on last column look better.
      'face (if (and todos-skip-archived-categories
 		    (zerop (todos-get-count 'todo cat))
 		    (zerop (todos-get-count 'done cat))
@@ -5075,7 +5125,7 @@ which is the value of the user option
     (kill-all-local-variables)
     (todos-categories-mode)
     (let ((archive (member todos-current-todos-file todos-archives))
-	  buffer-read-only) 
+	  buffer-read-only)
       (erase-buffer)
       (insert (format (concat "Category counts for Todos "
 			      (if archive "archive" "file")
@@ -5275,8 +5325,9 @@ the values of FILTER and FILE-LIST."
 	  (setq fname (todos-short-file-name f))
 	  (with-temp-buffer
 	    (when (and todos-filter-done-items (eq filter 'regexp))
-	      ;; If there is a corresponding archive file for the Todos file,
-	      ;; insert it first and add identifiers for todos-go-to-source-item.
+	      ;; If there is a corresponding archive file for the
+	      ;; Todos file, insert it first and add identifiers for
+	      ;; todos-go-to-source-item.
 	      (let ((arch (concat (file-name-sans-extension f) ".toda")))
 		(when (file-exists-p arch)
 		  (insert-file-contents arch)
@@ -5311,8 +5362,8 @@ the values of FILTER and FILE-LIST."
 		(setq fnum (or (nth 1 (assoc f todos-top-priorities-overrides))
 			       todos-top-priorities)))
 	      (while (re-search-forward
-		      (concat "^" (regexp-quote todos-category-beg) "\\(.+\\)\n")
-		      nil t)
+		      (concat "^" (regexp-quote todos-category-beg)
+			      "\\(.+\\)\n") nil t)
 		(setq cat (match-string 1))
 		(let (cnum)
 		  ;; Unless the number of top priorities to show was
@@ -5793,17 +5844,6 @@ If the file already exists, overwrite it only on confirmation."
   "Search for Todos done comment within LIM for font-locking."
   (re-search-forward (concat "\\[\\(?1:" todos-comment-string "\\):")
 		     lim t))
-
-;; (defun todos-category-string-matcher (lim)
-;;   "Search for Todos category name within LIM for font-locking.
-;; This is for fontifying category names appearing in Todos filter
-;; mode."
-;;   (if (eq major-mode 'todos-filtered-items-mode)
-;;       (re-search-forward
-;;        (concat "^\\(?:" todos-date-string-start "\\)?" todos-date-pattern
-;;        	       "\\(?: " diary-time-regexp "\\)?\\(?:"
-;;        	       (regexp-quote todos-nondiary-end) "\\)? \\(?1:\\[.+\\]\\)")
-;;        lim t)))
 
 (defun todos-category-string-matcher-1 (lim)
   "Search for Todos category name within LIM for font-locking.
