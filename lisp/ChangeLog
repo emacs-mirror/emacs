@@ -1,3 +1,25 @@
+2013-06-03  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (search-map): Bind `highlight-symbol-at-point' to
+	`M-s h .'.  (Bug#14427)
+
+	* hi-lock.el (highlight-symbol-at-point): New alias for the new
+	command `hi-lock-face-symbol-at-point'.
+	(hi-lock-face-symbol-at-point): New command.
+	(hi-lock-map): Bind `highlight-symbol-at-point' to `C-x w .'.
+	(hi-lock-menu): Add `highlight-symbol-at-point'.
+	(hi-lock-mode): Doc fix.
+
+	* isearch.el (isearch-forward-symbol-at-point): New command.
+	(search-map): Bind `isearch-forward-symbol-at-point' to `M-s .'.
+	(isearch-highlight-regexp): Add a regexp which matches
+	words/symbols for word/symbol mode.
+
+	* subr.el (find-tag-default-bounds): New function with the body
+	mostly moved from `find-tag-default'.
+	(find-tag-default): Move most code to `find-tag-default-bounds',
+	call it and apply `buffer-substring-no-properties' afterwards.
+
 2013-06-03  Tassilo Horn  <tsdh@gnu.org>
 
 	* eshell/em-term.el (eshell-term-initialize): Use

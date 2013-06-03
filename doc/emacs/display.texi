@@ -903,14 +903,16 @@ that you specify explicitly the regular expressions to highlight.  You
 control them with these commands:
 
 @table @kbd
-@item C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
+@item M-s h r @var{regexp} @key{RET} @var{face} @key{RET}
+@itemx C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex M-s h r
 @kindex C-x w h
 @findex highlight-regexp
 Highlight text that matches @var{regexp} using face @var{face}
 (@code{highlight-regexp}).  The highlighting will remain as long as
 the buffer is loaded.  For example, to highlight all occurrences of
 the word ``whim'' using the default face (a yellow background)
-@kbd{C-x w h whim @key{RET} @key{RET}}.  Any face can be used for
+@kbd{M-s h r whim @key{RET} @key{RET}}.  Any face can be used for
 highlighting, Hi Lock provides several of its own and these are
 pre-loaded into a list of default values.  While being prompted
 for a face use @kbd{M-n} and @kbd{M-p} to cycle through them.
@@ -918,7 +920,9 @@ for a face use @kbd{M-n} and @kbd{M-p} to cycle through them.
 You can use this command multiple times, specifying various regular
 expressions to highlight in different ways.
 
-@item C-x w r @var{regexp} @key{RET}
+@item M-s h u @var{regexp} @key{RET}
+@itemx C-x w r @var{regexp} @key{RET}
+@kindex M-s h u
 @kindex C-x w r
 @findex unhighlight-regexp
 Unhighlight @var{regexp} (@code{unhighlight-regexp}).
@@ -926,13 +930,15 @@ Unhighlight @var{regexp} (@code{unhighlight-regexp}).
 If you invoke this from the menu, you select the expression to
 unhighlight from a list.  If you invoke this from the keyboard, you
 use the minibuffer.  It will show the most recently added regular
-expression; use @kbd{M-p} to show the next older expression and
-@kbd{M-n} to select the next newer expression.  (You can also type the
+expression; use @kbd{M-n} to show the next older expression and
+@kbd{M-p} to select the next newer expression.  (You can also type the
 expression by hand, with completion.)  When the expression you want to
 unhighlight appears in the minibuffer, press @kbd{@key{RET}} to exit
 the minibuffer and unhighlight it.
 
-@item C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
+@item M-s h l @var{regexp} @key{RET} @var{face} @key{RET}
+@itemx C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex M-s h l
 @kindex C-x w l
 @findex highlight-lines-matching-regexp
 @cindex lines, highlighting
@@ -940,7 +946,31 @@ the minibuffer and unhighlight it.
 Highlight entire lines containing a match for @var{regexp}, using face
 @var{face} (@code{highlight-lines-matching-regexp}).
 
-@item C-x w b
+@item M-s h p @var{phrase} @key{RET} @var{face} @key{RET}
+@itemx C-x w p @var{phrase} @key{RET} @var{face} @key{RET}
+@kindex M-s h p
+@kindex C-x w p
+@findex highlight-phrase
+@cindex phrase, highlighting
+@cindex highlighting phrase
+Highlight matches of @var{phrase}, using face @var{face}
+(@code{highlight-phrase}).  @var{phrase} can be any regexp,
+but spaces will be replaced by matches to whitespace and
+initial lower-case letters will become case insensitive.
+
+@item M-s h .
+@itemx C-x w .
+@kindex M-s h .
+@kindex C-x w .
+@findex highlight-symbol-at-point
+@cindex symbol, highlighting
+@cindex highlighting symbol at point
+Highlight the symbol found near point without prompting, using the next
+available face automatically (@code{highlight-symbol-at-point}).
+
+@item M-s h w
+@itemx C-x w b
+@kindex M-s h w
 @kindex C-x w b
 @findex hi-lock-write-interactive-patterns
 Insert all the current highlighting regexp/face pairs into the buffer
@@ -952,7 +982,9 @@ These patterns are extracted from the comments, if appropriate, if you
 invoke @kbd{M-x hi-lock-find-patterns}, or if you visit the file while
 Hi Lock mode is enabled (since that runs @code{hi-lock-find-patterns}).
 
-@item C-x w i
+@item M-s h f
+@itemx C-x w i
+@kindex M-s h f
 @kindex C-x w i
 @findex hi-lock-find-patterns
 Extract regexp/face pairs from comments in the current buffer

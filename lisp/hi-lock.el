@@ -37,18 +37,18 @@
 ;;
 ;;    In program source code highlight a variable to quickly see all
 ;;    places it is modified or referenced:
-;;    M-x highlight-regexp ground_contact_switches_closed RET RET
+;;    M-x highlight-regexp RET ground_contact_switches_closed RET RET
 ;;
 ;;    In a shell or other buffer that is showing lots of program
 ;;    output, highlight the parts of the output you're interested in:
-;;    M-x highlight-regexp Total execution time [0-9]+ RET hi-blue-b RET
+;;    M-x highlight-regexp RET Total execution time [0-9]+ RET hi-blue-b RET
 ;;
 ;;    In buffers displaying tables, highlight the lines you're interested in:
-;;    M-x highlight-lines-matching-regexp January 2000 RET hi-black-b RET
+;;    M-x highlight-lines-matching-regexp RET January 2000 RET hi-black-b RET
 ;;
 ;;    When writing text, highlight personal cliches.  This can be
 ;;    amusing.
-;;    M-x highlight-phrase as can be seen RET RET
+;;    M-x highlight-phrase RET as can be seen RET RET
 ;;
 ;;  Setup:
 ;;
@@ -252,6 +252,10 @@ a library is being loaded.")
       '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
         :help "Highlight lines containing match of PATTERN (a regexp)."))
 
+    (define-key-after map [highlight-symbol-at-point]
+      '(menu-item "Highlight Symbol at Point" highlight-symbol-at-point
+        :help "Highlight symbol found near point without prompting."))
+
     (define-key-after map [unhighlight-regexp]
       '(menu-item "Remove Highlighting..." unhighlight-regexp
         :help "Remove previously entered highlighting pattern."
@@ -274,6 +278,7 @@ a library is being loaded.")
     (define-key map "\C-xwl" 'highlight-lines-matching-regexp)
     (define-key map "\C-xwp" 'highlight-phrase)
     (define-key map "\C-xwh" 'highlight-regexp)
+    (define-key map "\C-xw." 'highlight-symbol-at-point)
     (define-key map "\C-xwr" 'unhighlight-regexp)
     (define-key map "\C-xwb" 'hi-lock-write-interactive-patterns)
     map)
@@ -332,6 +337,10 @@ which can be called interactively, are:
 
 \\[highlight-lines-matching-regexp] REGEXP FACE
   Highlight lines containing matches of REGEXP in current buffer with FACE.
+
+\\[highlight-symbol-at-point]
+  Highlight the symbol found near point without prompting, using the next
+  available face automatically.
 
 \\[unhighlight-regexp] REGEXP
   Remove highlighting on matches of REGEXP in current buffer.
@@ -489,6 +498,27 @@ highlighting will not update as you type."
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
+
+;;;###autoload
+(defalias 'highlight-symbol-at-point 'hi-lock-face-symbol-at-point)
+;;;###autoload
+(defun hi-lock-face-symbol-at-point ()
+  "Set face of each match of the symbol at point.
+Use `find-tag-default-as-regexp' to retrieve the symbol at point.
+Use non-nil `hi-lock-auto-select-face' to retrieve the next face
+from `hi-lock-face-defaults' automatically.
+
+Use Font lock mode, if enabled, to highlight symbol at point.
+Otherwise, use overlays for highlighting.  If overlays are used,
+the highlighting will not update as you type."
+  (interactive)
+  (let* ((regexp (hi-lock-regexp-okay
+		  (find-tag-default-as-regexp)))
+	 (hi-lock-auto-select-face t)
+	 (face (hi-lock-read-face-name)))
+    (or (facep face) (setq face 'hi-yellow))
+    (unless hi-lock-mode (hi-lock-mode 1))
+    (hi-lock-set-pattern regexp face)))
 
 (defun hi-lock-keyword->face (keyword)
   (cadr (cadr (cadr keyword))))    ; Keyword looks like (REGEXP (0 'FACE) ...).

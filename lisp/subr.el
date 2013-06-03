@@ -2717,8 +2717,9 @@ customize the variable `user-emacs-directory-warning'."
   "Return non-nil if the current buffer is narrowed."
   (/= (- (point-max) (point-min)) (buffer-size)))
 
-(defun find-tag-default ()
-  "Determine default tag to search for, based on text at point.
+(defun find-tag-default-bounds ()
+  "Determine the boundaries of the default tag, based on text at point.
+Return a cons cell with the beginning and end of the found tag.
 If there is no plausible default, return nil."
   (let (from to bound)
     (when (or (progn
@@ -2742,7 +2743,14 @@ If there is no plausible default, return nil."
 		     (< (setq from (point)) bound)
 		     (skip-syntax-forward "w_")
 		     (setq to (point)))))
-      (buffer-substring-no-properties from to))))
+      (cons from to))))
+
+(defun find-tag-default ()
+  "Determine default tag to search for, based on text at point.
+If there is no plausible default, return nil."
+  (let ((bounds (find-tag-default-bounds)))
+    (when bounds
+      (buffer-substring-no-properties (car bounds) (cdr bounds)))))
 
 (defun find-tag-default-as-regexp ()
   "Return regexp that matches the default tag at point.

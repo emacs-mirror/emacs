@@ -1,3 +1,9 @@
+2013-06-03  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Add global keybindings
+	with the key prefix `M-s h'.  Document old command `highlight-phrase'.
+	Document new command `highlight-symbol-at-point'.
+
 2013-06-01  Glenn Morris  <rgm@gnu.org>
 
 	* programs.texi (Semantic): Fix typo.

@@ -667,6 +667,7 @@ Each set is a vector of the form:
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
 (define-key search-map "w" 'isearch-forward-word)
 (define-key search-map "_" 'isearch-forward-symbol)
+(define-key search-map "." 'isearch-forward-symbol-at-point)
 
 ;; Entry points to isearch-mode.
 
@@ -805,6 +806,25 @@ Like ordinary incremental search except that your input is treated
 as a regexp.  See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode nil (null not-regexp) nil (not no-recursive-edit)))
+
+(defun isearch-forward-symbol-at-point ()
+  "Do incremental search forward for a symbol found near point.
+Like ordinary incremental search except that the symbol found at point
+is added to the search string initially as a regexp surrounded
+by symbol boundary constructs \\_< and \\_>.
+See the command `isearch-forward-symbol' for more information."
+  (interactive)
+  (isearch-forward-symbol nil 1)
+  (let ((bounds (find-tag-default-bounds)))
+    (cond
+     (bounds
+      (when (< (car bounds) (point))
+	(goto-char (car bounds)))
+      (isearch-yank-string
+       (buffer-substring-no-properties (car bounds) (cdr bounds))))
+     (t
+      (setq isearch-error "No symbol at point")
+      (isearch-update)))))
 
 
 ;; isearch-mode only sets up incremental search for the minor mode.
@@ -1752,7 +1772,10 @@ and reads its face argument using `hi-lock-read-face-name'."
     (isearch-done nil t)
     (isearch-clean-overlays))
   (require 'hi-lock nil t)
-  (let ((string (cond (isearch-regexp isearch-string)
+  (let ((regexp (cond ((functionp isearch-word)
+		       (funcall isearch-word isearch-string))
+		      (isearch-word (word-search-regexp isearch-string))
+		      (isearch-regexp isearch-string)
 		      ((if (and (eq isearch-case-fold-search t)
 				search-upper-case)
 			   (isearch-no-upper-case-p
@@ -1768,7 +1791,7 @@ and reads its face argument using `hi-lock-read-face-name'."
 			      (regexp-quote s))))
 			isearch-string ""))
 		      (t (regexp-quote isearch-string)))))
-    (hi-lock-face-buffer string (hi-lock-read-face-name)))
+    (hi-lock-face-buffer regexp (hi-lock-read-face-name)))
   (and isearch-recursive-edit (exit-recursive-edit)))
 
 
