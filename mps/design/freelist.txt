@@ -148,7 +148,7 @@ See ``FreelistIterateMethod`` for details.
 
 _`.function.find.first`: Locate the first isolated contiguous range in
 address order, within the free list ``fl``, of at least ``size``
-bytes; update ``rangeReturn`` to that range; and return ``TRUE``. If
+bytes, update ``rangeReturn`` to that range, and return ``TRUE``. If
 there is no such continuous range, return ``FALSE``.
 
 In addition, optionally delete the found range from the free list,
@@ -174,16 +174,25 @@ identical to the range returned via the ``rangeReturn`` argument.)
 _`.function.find.last`: Like ``FreelistFindFirst()``, except that it
 finds the last block in address order.
 
-``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, FindDelete findDelete)``
+``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size, size, FindDelete findDelete)``
 
 _`.function.find.largest`: Locate the largest block within the free
-list ``fl``, return its range via the ``rangeReturn`` argument, and
-return ``TRUE``. If there are no blocks in the free list, return
-``FALSE``.
+list ``fl``, and if that block is at least as big as ``size``, return
+its range via the ``rangeReturn`` argument, and return ``TRUE``. If
+there are no blocks in the free list at least as large as ``size``,
+return ``FALSE``. Pass 0 for ``size`` if you want the largest block
+unconditionally.
 
-Like ``FreelistFind()``, optionally delete the range from the free
-list. (Always the whole range: specifying ``FindDeleteLOW`` or
+Like ``FreelistFindFirst()``, optionally delete the range from the
+free list. (Always the whole range: specifying ``FindDeleteLOW`` or
 ``FindDeleteHIGH`` has the same effect as ``FindDeleteENTIRE``).
+
+``void FreelistFlushToCBS(Freelist fl, CBS cbs)``
+
+Remove free address ranges from the free list ``fl`` and add them to
+the Coalescing Block Structure ``cbs``. Continue until a call to
+``CBSInsert()`` fails, or until the free list is empty, whichever
+happens first.
 
 ``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)``
 
