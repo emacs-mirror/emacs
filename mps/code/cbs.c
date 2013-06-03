@@ -536,6 +536,7 @@ static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
   oldBase = cbsBlock->base;
   oldLimit = cbsBlock->limit;
   oldSize = CBSBlockSize(cbsBlock);
+  RangeInit(rangeReturn, oldBase, oldLimit);
 
   if (base == oldBase && limit == oldLimit) {
     /* entire block */
@@ -570,7 +571,6 @@ static Res cbsDeleteFromTree(Range rangeReturn, CBS cbs, Range range)
     cbsBlockInsert(cbs, newBlock);
   }
 
-  RangeInit(rangeReturn, oldBase, oldLimit);
   return ResOK;
 
 failAlloc:
@@ -830,7 +830,7 @@ Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
 /* CBSFindLargest -- find the largest block in the CBS */
 
 Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
-                    CBS cbs, FindDelete findDelete)
+                    CBS cbs, Size size, FindDelete findDelete)
 {
   Bool found = FALSE;
   SplayNode root;
@@ -849,19 +849,21 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
     RangeStruct range;
     CBSBlock block;
     SplayNode node = NULL;    /* suppress "may be used uninitialized" */
-    Size size;
+    Size maxSize;
 
-    size = cbsBlockOfSplayNode(root)->maxSize;
-    METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
-    found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
-                           &cbsTestTree, NULL, size);
-    AVER(found); /* maxSize is exact, so we will find it. */
-    block = cbsBlockOfSplayNode(node);
-    AVER(CBSBlockSize(block) >= size);
-    RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
-    AVER(RangeSize(&range) >= size);
-    cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
-                       size, findDelete);
+    maxSize = cbsBlockOfSplayNode(root)->maxSize;
+    if (maxSize >= size) {
+      METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
+      found = SplayFindFirst(&node, splayTreeOfCBS(cbs), &cbsTestNode,
+                             &cbsTestTree, NULL, maxSize);
+      AVER(found); /* maxSize is exact, so we will find it. */
+      block = cbsBlockOfSplayNode(node);
+      AVER(CBSBlockSize(block) >= maxSize);
+      RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
+      AVER(RangeSize(&range) >= maxSize);
+      cbsFindDeleteRange(rangeReturn, oldRangeReturn, cbs, &range,
+                         maxSize, findDelete);
+    }
   }
 
   CBSLeave(cbs);
