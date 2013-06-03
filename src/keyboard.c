@@ -1882,7 +1882,7 @@ safe_run_hooks_error (Lisp_Object error_data)
     = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
   Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
   Lisp_Object args[4];
-  args[0] = build_string ("Error in %s (%s): %S");
+  args[0] = build_string ("Error in %s (%S): %S");
   args[1] = hook;
   args[2] = fun;
   args[3] = error_data;

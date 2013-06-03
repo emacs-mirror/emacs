@@ -1,3 +1,13 @@
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (backtrace_p, backtrace_top, backtrace_next): Export them to
+	.gdbinit.
+
+	* keyboard.c (safe_run_hooks_error): Improve error message.
+
+	* data.c (pure_write_error): Add `object' argument.
+	* puresize.h (CHECK_IMPURE): Use it.
+
 2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (NOTIFY_OBJ): New variable.

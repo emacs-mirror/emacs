@@ -100,9 +100,10 @@ wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 }
 
 void
-pure_write_error (void)
+pure_write_error (Lisp_Object obj)
 {
-  error ("Attempt to modify read-only object");
+  Fsignal (Qerror, Fcons (build_string ("Attempt to modify read-only object"),
+                          Fcons (obj, Qnil)));
 }
 
 void

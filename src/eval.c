@@ -128,16 +128,18 @@ void set_backtrace_debug_on_exit (struct specbinding *pdl, bool doe)
 
 /* Helper functions to scan the backtrace.  */
 
-LISP_INLINE bool backtrace_p (struct specbinding *pdl)
+EXTERN_INLINE bool backtrace_p (struct specbinding *pdl)
 { return pdl >= specpdl; }
-LISP_INLINE struct specbinding *backtrace_top (void)
+
+EXTERN_INLINE struct specbinding *backtrace_top (void)
 {
   struct specbinding *pdl = specpdl_ptr - 1;
-  while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)     \
+  while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
     pdl--;
   return pdl;
 }
-LISP_INLINE struct specbinding *backtrace_next (struct specbinding *pdl)
+
+EXTERN_INLINE struct specbinding *backtrace_next (struct specbinding *pdl)
 {
   pdl--;
   while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
