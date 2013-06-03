@@ -577,6 +577,7 @@ maybe_generate_resize_event (void)
 		     0, 0, 0);
 }
 
+#if HAVE_W32NOTIFY
 static int
 handle_file_notifications (struct input_event *hold_quit)
 {
@@ -644,6 +645,13 @@ handle_file_notifications (struct input_event *hold_quit)
   leave_crit ();
   return nevents;
 }
+#else  /* !HAVE_W32NOTIFY */
+static int
+handle_file_notifications (struct input_event *hold_quit)
+{
+  return 0;
+}
+#endif	/* !HAVE_W32NOTIFY */
 
 /* Here's an overview of how Emacs input works in non-GUI sessions on
    MS-Windows.  (For description of the GUI input, see the commentary

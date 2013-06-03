@@ -2329,7 +2329,6 @@ if test "${with_file_notification}" = "gfile"; then
    PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.18, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
    if test "$HAVE_GFILENOTIFY" = "yes"; then
       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
-      LIBS="$LIBS $GFILENOTIFY_LIBS"
       NOTIFY_OBJ=gfilenotify.o
       NOTIFY_SUMMARY="yes -lgio (gfile)"
    fi
@@ -2359,6 +2358,8 @@ if test -n "$NOTIFY_OBJ"; then
    AC_DEFINE(USE_FILE_NOTIFY, 1, [Define to 1 if using file notifications.])
 fi
 AC_SUBST(NOTIFY_OBJ)
+AC_SUBST(GFILENOTIFY_CFLAGS)
+AC_SUBST(GFILENOTIFY_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.

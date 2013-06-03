@@ -1,3 +1,14 @@
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (GFILENOTIFY_CFLAGS, GFILENOTIFY_LIBS): New variables.
+	(ALL_CFLAGS): Add $(GFILENOTIFY_CFLAGS).
+	(LIBES): Add $(GFILENOTIFY_LIBS).
+
+	* w32inevt.c (handle_file_notifications): Add dummy implementation
+	for !HAVE_W32NOTIFY.
+
+	* w32term.c: Wrap code with HAVE_W32NOTIFY.
+
 2013-06-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xgselect.c: Replace #if defined ... with #ifdef HAVE_GLIB.

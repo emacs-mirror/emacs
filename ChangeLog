@@ -1,3 +1,8 @@
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_GFILENOTIFY): Do not change $LIBS.
+	(GFILENOTIFY_CFLAGS, GFILENOTIFY_LIBS): Substitute.
+
 2013-06-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_GLIB): Add GLib check.  Set XGSELOBJ if GLib is

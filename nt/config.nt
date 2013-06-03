@@ -547,6 +547,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
 
+/* Define to 1 if using GFile. */
+#undef HAVE_GFILENOTIFY
+
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME
 
@@ -1141,6 +1144,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
 
+/* Define to 1 to use w32notify. */
+#define HAVE_W32NOTIFY 1
+
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
 
@@ -1496,6 +1502,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to nonzero if you want access control list support. */
 #undef USE_ACL
+
+/* Define to 1 if using file notifications. */
+#define USE_FILE_NOTIFY 1
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
