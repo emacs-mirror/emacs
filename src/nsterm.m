@@ -4361,7 +4361,7 @@ ns_term_init (Lisp_Object display_name)
   [NSApp run];
   ns_do_open_file = YES;
 
-#if defined (NS_IMPL_GNUSTEP) && defined (SIGCHLD)
+#ifdef NS_IMPL_GNUSTEP
   /* GNUstep steals SIGCHLD for use in NSTask, but we don't use NSTask.
      We must re-catch it so subprocess works.  */
   catch_child_signal ();
@@ -5600,7 +5600,7 @@ not_in_argv (NSString *arg)
 #ifdef NS_IMPL_GNUSTEP
   gsextra = 3;
 #endif
-  
+
   NSTRACE (windowWillResize);
 /*fprintf (stderr,"Window will resize: %.0f x %.0f\n",frameSize.width,frameSize.height); */
 
@@ -5666,7 +5666,7 @@ not_in_argv (NSString *arg)
 
 - (void)windowDidResize: (NSNotification *)notification
 {
-  if (! [self fsIsNative]) 
+  if (! [self fsIsNative])
     {
       NSWindow *theWindow = [notification object];
       /* We can get notification on the non-FS window when in
@@ -6115,7 +6115,7 @@ not_in_argv (NSString *arg)
     }
 }
 #endif
- 
+
 - (void)toggleFullScreen: (id)sender
 {
   NSWindow *w, *fw;

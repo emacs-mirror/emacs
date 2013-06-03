@@ -117,21 +117,29 @@ static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 /* Functions to modify slots of backtrace records.  */
 
-static void set_backtrace_args (struct specbinding *pdl, Lisp_Object *args)
+static void
+set_backtrace_args (struct specbinding *pdl, Lisp_Object *args)
 { eassert (pdl->kind == SPECPDL_BACKTRACE); pdl->v.bt.args = args; }
 
-static void set_backtrace_nargs (struct specbinding *pdl, ptrdiff_t n)
+static void
+set_backtrace_nargs (struct specbinding *pdl, ptrdiff_t n)
 { eassert (pdl->kind == SPECPDL_BACKTRACE); pdl->v.bt.nargs = n; }
 
-void set_backtrace_debug_on_exit (struct specbinding *pdl, bool doe)
+static void
+set_backtrace_debug_on_exit (struct specbinding *pdl, bool doe)
 { eassert (pdl->kind == SPECPDL_BACKTRACE); pdl->v.bt.debug_on_exit = doe; }
 
 /* Helper functions to scan the backtrace.  */
 
-EXTERN_INLINE bool backtrace_p (struct specbinding *pdl)
+bool backtrace_p (struct specbinding *) EXTERNALLY_VISIBLE;
+struct specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
+struct specbinding *backtrace_next (struct specbinding *pdl) EXTERNALLY_VISIBLE;
+
+bool backtrace_p (struct specbinding *pdl)
 { return pdl >= specpdl; }
 
-EXTERN_INLINE struct specbinding *backtrace_top (void)
+struct specbinding *
+backtrace_top (void)
 {
   struct specbinding *pdl = specpdl_ptr - 1;
   while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
@@ -139,7 +147,8 @@ EXTERN_INLINE struct specbinding *backtrace_top (void)
   return pdl;
 }
 
-EXTERN_INLINE struct specbinding *backtrace_next (struct specbinding *pdl)
+struct specbinding *
+backtrace_next (struct specbinding *pdl)
 {
   pdl--;
   while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
@@ -1925,7 +1934,7 @@ grow_specpdl (void)
   specpdl_ptr = specpdl + count;
 }
 
-LISP_INLINE void
+void
 record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 {
   eassert (nargs >= UNEVALLED);

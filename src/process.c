@@ -7029,14 +7029,15 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+#ifndef NS_IMPL_GNUSTEP
+static
+#endif
 void
 catch_child_signal (void)
 {
-#ifdef SIGCHLD
   struct sigaction action;
   emacs_sigaction_init (&action, deliver_child_signal);
   sigaction (SIGCHLD, &action, 0);
-#endif
 }
 
 

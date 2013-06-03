@@ -1,3 +1,25 @@
+2013-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* data.c (pure_write_error):
+	Use xsignal2, not Fsignal, as Fsignal might return.
+	* eval.c (set_backtrace_debug_on_exit): Now static.
+	(backtrace_p, backtrace_top, backtrace_next, record_in_backtrace):
+	No longer inline.  EXTERN_INLINE is needed only for functions
+	defined in .h files.  Reindent function header as per GNU style.
+	(backtrace_p, backtrace_top, backtrace_next):
+	Mark EXTERNALLY_VISIBLE so they don't get optimized away by the
+	compiler or linker.  Add extern decls to pacify gcc -Wall.
+	* frame.c, frame.h (Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource):
+	Now static.
+	* frame.c (free_monitors): Define only on platforms that need it.
+	* nsterm.m (ns_term_init):
+	* process.c (catch_child_signal):
+	Don't worry about whether SIGCHLD is defined, as SIGCHLD is
+	defined on all porting targets these days.
+	* process.c, process.h (catch_child_signal):
+	Make it extern only if NS_IMPL_GNUSTEP is defined.
+
 2013-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (gettimeofday): Make the signature identical to prototype
