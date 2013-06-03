@@ -204,6 +204,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
       mps_word_t *string;
 
       string = alloc_string("spong", leafap);
+      UNUSED(string);
     }
   }
 

@@ -199,6 +199,7 @@ static void *test(void *arg, size_t s)
                   obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
                   ++ final_this_time;
+                  UNUSED(obj);
           }
           finals += final_this_time;
           printf("%lu objects finalized: total %lu of %lu\n",
@@ -239,6 +240,7 @@ static void *test(void *arg, size_t s)
                   obj = (mps_word_t)objaddr;
                   mps_message_discard(arena, message);
                   ++ final_this_time;
+                  UNUSED(obj);
           }
           finals += final_this_time;
           printf("%lu objects finalized: total %lu of %lu\n",
