@@ -73,6 +73,7 @@
 #include "arg.c"
 #include "abq.c"
 #include "range.c"
+#include "freelist.c"
 
 /* Additional pool classes */
 
