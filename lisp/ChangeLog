@@ -1,5 +1,10 @@
 2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el: Use lexical-binding.
+	(lisp--local-variables-1, lisp--local-variables): New functions.
+	(lisp--local-variables-completion-table): New var.
+	(lisp-completion-at-point): Use it to provide completion of let-bound vars.
+
 	* emacs-lisp/lisp-mode.el (eval-sexp-add-defvars): Expand macros
 	eagerly (bug#14422).
 
