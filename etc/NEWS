@@ -28,6 +28,12 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
+** Emacs can be compiled with file notification support.
+The configure option `--with-file-notification=LIB' enables file
+notification support in Emacs. This option's value should be `yes',
+`no', `gfile', `inotify' or `w32'.  `yes' is a synonym for `w32' on
+MS-Windows, and for `gfile' otherwise.  The default value is `yes'.
+
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
@@ -444,8 +450,9 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
-'inotify' API on GNU/Linux systems.  On MS-Windows systems, this is
-supported for Windows XP and newer versions.
+`glib' API, or the 'inotify' API (on GNU/Linux systems only).  On
+MS-Windows systems, this is supported for Windows XP and newer
+versions.
 
 ** Changes in autorevert.el
 
