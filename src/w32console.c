@@ -601,7 +601,7 @@ w32_face_attributes (struct frame *f, int face_id)
 }
 
 void
-initialize_w32_display (struct terminal *term)
+initialize_w32_display (struct terminal *term, int *width, int *height)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
   Mouse_HLInfo *hlinfo;
@@ -722,23 +722,21 @@ initialize_w32_display (struct terminal *term)
 	      || info.srWindow.Right - info.srWindow.Left < 40
 	      || info.srWindow.Right - info.srWindow.Left > 100)))
     {
-      FRAME_LINES (SELECTED_FRAME ()) = 25;
-      SET_FRAME_COLS (SELECTED_FRAME (), 80);
+      *height = 25;
+      *width = 80;
     }
 
   else if (w32_use_full_screen_buffer)
     {
-      FRAME_LINES (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
-      SET_FRAME_COLS (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
+      *height = info.dwSize.Y;	/* lines per page */
+      *width = info.dwSize.X;	/* characters per line */
     }
   else
     {
       /* Lines per page.  Use buffer coords instead of buffer size.  */
-      FRAME_LINES (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
-	info.srWindow.Top;
+      *height = 1 + info.srWindow.Bottom - info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
-      SET_FRAME_COLS (SELECTED_FRAME (), 1 + info.srWindow.Right -
-		       info.srWindow.Left);
+      *width = 1 + info.srWindow.Right - info.srWindow.Left;
     }
 
   if (os_subtype == OS_NT)

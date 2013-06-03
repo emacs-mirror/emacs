@@ -1,5 +1,16 @@
 2013-06-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32console.c (initialize_w32_display): Return the dimensions of
+	the console window via 2 additional arguments, not via the current
+	frame.  This avoids crashes due to overrunning the bounds of
+	frame's decode_mode_spec_buffer, which is not resized following
+	the change of the frame dimensions from the initial 10x10.
+
+	* w32term.h (w32_initialize_display_info): Adjust prototype.
+
+	* term.c (init_tty): Take dimensions of the frame from the values
+	returned by initialize_w32_display.
+
 	* Makefile.in (GFILENOTIFY_CFLAGS, GFILENOTIFY_LIBS): New variables.
 	(ALL_CFLAGS): Add $(GFILENOTIFY_CFLAGS).
 	(LIBES): Add $(GFILENOTIFY_LIBS).
