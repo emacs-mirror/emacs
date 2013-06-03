@@ -13,13 +13,14 @@
 #include "mpsavm.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
 #endif
 #include <string.h>
-#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
+#if defined(MPS_OS_LI) || defined(MPS_OS_FR) || defined(MPS_OS_XC)
 #include <pthread.h>
 #endif
 
@@ -203,6 +204,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
       mps_word_t *string;
 
       string = alloc_string("spong", leafap);
+      UNUSED(string);
     }
   }
 
@@ -315,6 +317,7 @@ int main(int argc, char *argv[])
   pthread_t pthread1;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   initialise_wrapper(wrapper_wrapper);
   initialise_wrapper(string_wrapper);

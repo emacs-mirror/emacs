@@ -1,12 +1,11 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!170.c(trunk.2) $
+ id = $Id$
  summary = spare_commit_limit tests
  language = c
  link = testlib.o rankfmt.o
  harness = 2.1
- parameters = EXTEND=65536 AVGSIZE=32 ALIGN=4 \
-              BIGSIZE=(5*1024*1024);
+ parameters = EXTEND=65536 AVGSIZE=32 BIGSIZE=(5*1024*1024);
 OUTPUT_SPEC
  completed = yes
  failed = no
@@ -18,8 +17,8 @@ END_HEADER
 #include "mpsavm.h"
 
 
-#define MVFF_HI_PARMS EXTEND,AVGSIZE,ALIGN,1,1,0
-#define MVFF_LO_PARMS EXTEND,AVGSIZE,ALIGN,0,0,1
+#define MVFF_HI_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,1,1,0
+#define MVFF_LO_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,0,0,1
 
 
 enum {

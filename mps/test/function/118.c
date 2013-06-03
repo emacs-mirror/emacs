@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!118.c(trunk.5) $
+ id = $Id$
  summary = Collect with a fully initialised (but not committed) buffer
  language = c
  link = testlib.o
@@ -111,8 +111,8 @@ static void test(void)
   die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
       "create pool");
 
-  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
-  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, mps_rank_exact()), "BufferCreate");
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, objSIZE), "mps_reserve busy");

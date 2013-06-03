@@ -8,6 +8,7 @@
  */
 
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 #include "mpsclo.h"
 #include "mpsavm.h"

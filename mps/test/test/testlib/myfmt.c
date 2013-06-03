@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:myfmt.c(trunk.2) $
+/* $Id$
 myfmt.c
    a format for scannable objects
 */

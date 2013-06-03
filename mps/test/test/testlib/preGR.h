@@ -1,4 +1,4 @@
-/* $HopeName: $
+/* $Id$
 Before grotesque interface;
  - "arena" was called "space" in several functions
 */

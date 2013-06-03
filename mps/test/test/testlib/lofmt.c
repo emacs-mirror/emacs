@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:lofmt.c(trunk.3) $
+/* $Id$
 lofmt.c
    A format for pool class LO
 */

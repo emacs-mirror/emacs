@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!16.c(trunk.5) $
+ id = $Id$
  summary = regression test for scan of invalid obj after I=A
  language = c
  link = testlib.o newfmt.o
@@ -46,7 +46,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
 
@@ -56,8 +56,8 @@ static void test(void)
  cdie(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
       "create pool");
 
- die(mps_ap_create(&apA, pool, MPS_RANK_EXACT), "create apA");
- die(mps_ap_create(&apB, pool, MPS_RANK_EXACT), "create apB");
+ die(mps_ap_create(&apA, pool, mps_rank_exact()), "create apA");
+ die(mps_ap_create(&apB, pool, mps_rank_exact()), "create apB");
 
  bytes = offsetof(struct data, ref)+sizeof(struct refitem);
  alignment = MPS_PF_ALIGN;

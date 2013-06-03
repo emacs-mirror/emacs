@@ -2,3 +2,7 @@
 # $Id$
 # See <http://about.travis-ci.org/docs/user/languages/c/>.
 language: c
+notifications:
+  email:
+    - mps-travis@ravenbrook.com
+  irc: "irc.freenode.net#memorypoolsystem"

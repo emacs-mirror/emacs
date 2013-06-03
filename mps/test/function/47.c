@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!47.c(trunk.5) $
+ id = $Id$
  summary = LDs don't go stale when using only non-moving pools
  language = c
  link = testlib.o rankfmt.o
@@ -40,35 +40,35 @@ static void test(void) {
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_table(&root0, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root0, arena, mps_rank_ambig(), 0,
                             (mps_addr_t *)&exfmt_root, 1),
       "create exfmt root");
 
- cdie(mps_root_create_reg(&root1, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root1, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create register and stack root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
- cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+ cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create awl pool");
 
  cdie(mps_pool_create(&poolmv, arena, mps_class_mv(), 0x4000, 128, 0x4000),
       "create mv pool");
 
- cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apawl, poolawl, mps_rank_exact()),
       "create ap");
 
- b = allocone(apawl, 5, MPS_RANK_EXACT);
+ b = allocone(apawl, 5, mps_rank_exact());
 
  for (i=0; i < MAXLDS; i++) {
   comment("%d", i);
   mps_alloc(&p, poolmv, sizeof(mps_ld_s));
-  a = allocone(apawl, 5, MPS_RANK_EXACT);
+  a = allocone(apawl, 5, mps_rank_exact());
   setref(a, 0, b);
   b = a;
-  a = allocdumb(apawl, 256*1024, MPS_RANK_EXACT);
+  a = allocdumb(apawl, 256*1024, mps_rank_exact());
   comment("alloc");
   lds[i] = p;
   mps_ld_reset(lds[i], arena);

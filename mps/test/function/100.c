@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = MFS functional test  allocate and free in manual fixed small pool
  language = c
  link = testlib.o
@@ -14,7 +14,7 @@ END_HEADER
 #define MAXNUMBER 1000000
 
 void *stackpointer;
-mps_space_t space;
+mps_arena_t arena;
 
 static mps_addr_t queue[MAXNUMBER];
 
@@ -37,7 +37,7 @@ static void dotest(int kind, size_t unitSize, size_t extendBy,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, space, mps_class_mfs(), extendBy, unitSize),
+  mps_pool_create(&pool, arena, mps_class_mfs(), extendBy, unitSize),
   "create pool");
 
  for(hd=0; hd<number; hd++)
@@ -92,8 +92,8 @@ static void test(void)
 {
  mps_thr_t thread;
 
- cdie(mps_space_create(&space), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  dotest(SEQ, 8, 8, 1000, 10000);
  dotest(RAN, 8, 8, 1000, 10000);
@@ -125,7 +125,7 @@ static void test(void)
  dotest(SEQ, 64, 64, 100, 1000);
 
  mps_thread_dereg(thread);
- mps_space_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

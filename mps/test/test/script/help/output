@@ -1,5 +1,5 @@
 Conventions for test output
-% $HopeName$
+% $Id$
 
 Lines beginning with % are comments and will be ignored
 in all automatic processing. They'll only be useful

@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName$
+#!/usr/bin/perl -w
+# $Id$
 #
 # Settings that depend on the platform, including C compiler and command syntax
 #
@@ -74,6 +74,7 @@ sub settings_nt {
  $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
  $preprocommand = "$cc_command /nologo $cc_preonly";
  $exesuff = ".exe";
+ %ignored_headers = ();
 }
 
 sub settings_nt_cap {
@@ -119,6 +120,7 @@ sub settings_unix {
  $stringscommand = "strings";
  $preprocommand = "$cc_command $cc_preonly";
  $exesuff = "";
+ %ignored_headers = ("mpswin.h" => 1, "mpsw3.h" => 1);
 }
 
 
@@ -135,9 +137,11 @@ sub settings_linux {
 sub settings_macosx {
     $cc_command = "cc";
     $cc_link = "$obj_dir/platform.o";
-    $cc_link_opts = "-Xlinker -m";
+    $cc_link_opts =~ s/-z muldefs//;
     # See comments in impl.gmk.xcppgc and impl.h.osxc
     $cc_opts =~ s/-Wstrict-prototypes//;
+    $cc_opts =~ s/-ggdb3//;
+    $cc_opts .= " -fprofile-arcs -ftest-coverage";
     $cc_opts .= " -Wno-unused -Wno-long-long -D__inline__=";
     $stdboth_red = ">&%s";
     $preprocommand = "$cc_command $cc_preonly";

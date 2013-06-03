@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:awlfmt.h(trunk.2) $
+/* $Id$
 awlfmt.h
    A format for the awl pool
 */
@@ -66,6 +66,7 @@ mycell *allocone(mps_ap_t ap, int size, int countflag);
 mycell *allocdumb(mps_ap_t ap, size_t bytes, int countflag);
 
 mps_addr_t getdata(mycell *obj);
+mps_addr_t getassociated(mps_addr_t addr);
 void setref(mycell *obj, int n, mycell *to);
 mycell *getref(mycell *obj, int n);
 

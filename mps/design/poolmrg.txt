@@ -1,7 +1,7 @@
 .. mode: -*- rst -*-
 
-Guardian pool class
-===================
+MRG pool class
+==============
 
 :Tag: design.mps.poolmrg
 :Author: David Jones
@@ -16,9 +16,9 @@ Introduction
 
 _`.readership`: Any MPS developer.
 
-_`.intro`: This is the design of the Guardian pool class. The Guardian
-pool class is part of the MPS. The Guardian pool class is internal to
-the MPS (has no client interface) and is used to implement
+_`.intro`: This is the design of the MRG (Manual Rank Guardian) pool
+class. The MRG pool class is part of the MPS. The MRG pool class is
+internal to the MPS (has no client interface) and is used to implement
 finalization.
 
 _`.source`: Some of the techniques in paper.dbe93 ("Guardians in a
@@ -32,7 +32,7 @@ to look at design.mps.finalize and design.mps.message.
 Goals
 -----
 
-_`.goal.final`: The Guardian pool class should support all
+_`.goal.final`: The MRG pool class should support all
 requirements pertaining to finalization.
 
 
@@ -50,7 +50,7 @@ _`.req.general`: However, finalization is a very common piece of
 functionality that is provided by (sophisticated) memory managers, so
 we can expect other clients to request this sort of functionality.
 
-_`.anti-req`: Is it required that the Guardian pool class return
+_`.anti-req`: Is it required that the MRG pool class return
 unused segments to the arena? MFS, for example, does not do this. MRG
 will not do this in its initial implementation.
 
@@ -58,7 +58,7 @@ will not do this in its initial implementation.
 Terminology
 -----------
 
-_`.def.mrg`: **MRG**: The Guardian pool class's identifier will be MRG.
+_`.def.mrg`: **MRG**: The MRG pool class's identifier will be MRG.
 This stands for "Manual Rank Guardian". The pool is manually managed
 and implements guardians for references of a particular rank
 (currently just final).
@@ -80,7 +80,7 @@ client that the object is finalizable. The client is presumed to be
 interested in this information (typically it will apply some method to
 the object).
 
-_`.def.guardian`: **guardian**: An object allocated in the Guardian
+_`.def.guardian`: **guardian**: An object allocated in the MRG
 Pool. A guardian contains exactly one final reference, and some fields
 for the pool's internal use. Guardians are used to implement a
 finalization mechanism.
@@ -89,15 +89,15 @@ finalization mechanism.
 Overview
 --------
 
-_`.over`: The Guardian pool class is a pool class in the MPS. It is
+_`.over`: The MRG pool class is a pool class in the MPS. It is
 intended to provide the functionality of "finalization".
 
-_`.over.internal`: The Guardian pool class is internal to the MPM: it
+_`.over.internal`: The MRG pool class is internal to the MPM: it
 is not intended to have a client interface. Clients are expected to
 access the functionality provided by this pool (finalization) using a
 separate MPS finalization interface (design.mps.finalize).
 
-_`.over.one-size`: The Guardian pool class manages objects of a single
+_`.over.one-size`: The MRG pool class manages objects of a single
 size, each object containing a single reference of rank final.
 
 _`.over.one-size.justify`: This is all that is necessary to meet our
@@ -150,7 +150,7 @@ a communication. Messages allow the MPS to inform the client of
 finalization events when it is convenient for the MPS to do so (i.e.
 not in PageFault context).
 
-_`.over.manual`: Objects in the Guardian Pool are manually managed.  
+_`.over.manual`: Objects in the MRG pool are manually managed.
 
 _`.over.manual.alloc`: They are allocated by ``ArenaFinalize()`` when
 objects are registered for finalization.

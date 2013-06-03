@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:fastfmt.h(trunk.2) $
+/* $Id$
 fastfmt.h
    Format like rankfmt (see rankfmt.h) and with same object
    structure, but with no checking or comments.
@@ -61,6 +61,7 @@ mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank);
 mycell *allocdumb(mps_ap_t ap, size_t bytes, mps_rank_t rank);
 
 mps_addr_t getdata(mycell *obj);
+mps_addr_t getassociated(mps_addr_t addr);
 void setref(mycell *obj, int n, mycell *to);
 mycell *getref(mycell *obj, int n);
 

@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!70.c(trunk.3) $
- summary = create a space and see how much mem is taken
+ id = $Id$
+ summary = create an arena and see how much mem is taken
  language = c
  link = testlib.o
 END_HEADER
@@ -12,17 +12,17 @@ END_HEADER
 
 static void test(void)
 {
- mps_space_t space;
+ mps_arena_t arena;
 
  comment("Entered trampoline");
  mmqa_pause(10);
- cdie(mps_space_create(&space), "create space");
- comment("Created space");
- report("committed", "%ul", mps_arena_committed(space));
- report("reserved",  "%ul", mps_arena_reserved(space));
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
+ comment("Created arena");
+ report("committed", "%ul", mps_arena_committed(arena));
+ report("reserved",  "%ul", mps_arena_reserved(arena));
  mmqa_pause(10);
- mps_space_destroy(space);
- comment("Destroyed space");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena");
  mmqa_pause(10);
 }
 

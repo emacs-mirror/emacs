@@ -13,6 +13,13 @@
 Garbage collection
 ==================
 
+The :term:`arena` contains a :term:`garbage collector` that
+coordinates the collection of garbage in all of its
+:term:`automatically managed <automatic memory management>`
+:term:`pools`. The collector efficiently traces references between
+:term:`roots` and pools, and between objects in different pools. It is
+capable of collecting many automatically managed pools simultaneously.
+
 
 .. index::
    single: chain; generation

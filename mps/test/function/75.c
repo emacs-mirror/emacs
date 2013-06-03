@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!75.c(trunk.5) $
+ id = $Id$
  summary = AWL pool should get collected (cf request.dylan.170322)
  language = c
  link = testlib.o rankfmt.o
@@ -42,11 +42,11 @@ static void test(void)
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
- cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root0, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
  
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+ cdie(mps_root_create_table(&root1, arena, mps_rank_ambig(), 0,
                             (mps_addr_t *)&exfmt_root, 1),
       "create table root");
 
@@ -58,13 +58,13 @@ static void test(void)
  die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+ cdie(mps_ap_create(&apamc, poolamc, mps_rank_exact()),
       "create ap");
 
  /* alloc lots in an AMC pool; it should be collected away */
 
  for(j=0; j<1000; j++) {
-  a = allocdumb(apamc, 1024ul*1024, MPS_RANK_EXACT);
+  a = allocdumb(apamc, 1024ul*1024, mps_rank_exact());
  }
 
  /* (total allocated is 1000 M) */

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!5.c(trunk.6) $
+ id = $Id$
  summary = (regression test) have an ambiguous reference to a reserved but not committed object, and then allocate lots more with another AP, to make it collect
  language = c
  link = testlib.o newfmt.o
@@ -44,7 +44,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
  cdie(
-  mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
@@ -59,9 +59,9 @@ static void test(void)
       "create pool");
 
  cdie(
-  mps_ap_create(&apA, pool, MPS_RANK_EXACT), "create apA");
+  mps_ap_create(&apA, pool, mps_rank_exact()), "create apA");
  cdie(
-  mps_ap_create(&apB, pool, MPS_RANK_EXACT), "create apB");
+  mps_ap_create(&apB, pool, mps_rank_exact()), "create apB");
 
 
  die(mps_reserve(&p, apA, OBJ_SIZE), "Reserve: ");

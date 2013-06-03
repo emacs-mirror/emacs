@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!160.c(trunk.1) $
+ id = $Id$
  summary = MV fenceposting check
  language = c
  link = testlib.o

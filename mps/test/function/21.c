@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $Id$
  summary = allocate large promise, make it small, repeat
  language = c
  link = testlib.o
@@ -11,14 +11,14 @@ END_HEADER
 #include "mpscmv.h"
 
 static void test(void) {
- mps_space_t space;
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_addr_t q;
  int p;
 
- die(mps_space_create(&space), "create");
+ die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
 
- die(mps_pool_create(&pool, space, mps_class_mv(),
+ die(mps_pool_create(&pool, arena, mps_class_mv(),
   1024*32, 1024*16, 1024*256), "pool");
 
  for (p=0; p<2000; p++) {

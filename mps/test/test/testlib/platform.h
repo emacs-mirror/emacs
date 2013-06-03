@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:platform.h(trunk.6) $
+/* $Id$
    load appropriate header files to do platform-specific
    stuff.
 */

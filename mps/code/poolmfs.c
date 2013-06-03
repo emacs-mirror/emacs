@@ -1,7 +1,7 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -111,7 +111,6 @@ static Res MFSInit(Pool pool, ArgList args)
       extendBy = unitSize;
   }
 
-  AVER(unitSize >= UNIT_MIN);
   AVER(extendBy >= unitSize);
  
   mfs = PoolPoolMFS(pool);
@@ -119,6 +118,8 @@ static Res MFSInit(Pool pool, ArgList args)
 
   mfs->unroundedUnitSize = unitSize;
 
+  if (unitSize < UNIT_MIN)
+    unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
   extendBy = SizeAlignUp(extendBy, ArenaAlign(arena));
 
@@ -336,7 +337,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!48.c(trunk.4) $
+ id = $Id$
  summary = test awl and amc pools, checking ranks work properly
  language = c
  link = testlib.o rankfmt.o
@@ -45,7 +45,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -56,19 +56,19 @@ static void test(void)
      "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create pool");
 
  cdie(
-  mps_ap_create(&apweak, poolawl, MPS_RANK_WEAK),
+  mps_ap_create(&apweak, poolawl, mps_rank_weak()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
  
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  b = allocone(apamc, 1, 1);
@@ -76,7 +76,7 @@ static void test(void)
  for (j=1; j<10; j++) {
   comment("%i of 10.", j);
   UC;
-  a = allocone(apawl, 5, MPS_RANK_EXACT);
+  a = allocone(apawl, 5, mps_rank_exact());
   setref(b, 0, a);
   b = a;
   c = a;
@@ -88,11 +88,11 @@ static void test(void)
   for (i=1; i<1000; i++) {
    UC;
    if (ranint(3) == 0) {
-   c = allocone(apawl, 500, MPS_RANK_EXACT);
+   c = allocone(apawl, 500, mps_rank_exact());
    } else if (ranint(2) == 0) {
-   c = allocone(apweak, 500, MPS_RANK_WEAK);
+   c = allocone(apweak, 500, mps_rank_weak());
    } else {
-   c = allocone(apamc, 500, MPS_RANK_EXACT);
+   c = allocone(apamc, 500, mps_rank_exact());
    }
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;

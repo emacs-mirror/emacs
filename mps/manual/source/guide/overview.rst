@@ -111,21 +111,24 @@ for example by calling :c:func:`mps_free`) and others are
 **scan** for :term:`references` to allocated blocks. See
 :ref:`topic-scanning`.
 
-The arena needs you to tell it how to find your **roots**: references to
-allocated blocks that are stored in static data, in memory not managed
-by the MPS, or on your program's :term:`registers` or
+The arena needs you to tell it how to find your **roots**: references
+to allocated blocks that are stored in static data, in memory not
+managed by the MPS, in your program's :term:`registers`, or on its
 :term:`control stack`. See :ref:`topic-root`.
 
 The MPS is designed to work with multi-threaded programs. Functions in
-the C interface are thread safe, except in a few documented
-cases. See :ref:`topic-thread`. The :term:`allocation point
-protocol` provides fast lock-free allocation on multiple threads
-simultaneously. See :ref:`topic-allocation`.
+the C interface are thread safe, except in a few documented cases. See
+:ref:`topic-thread`. The :term:`allocation point protocol` provides
+fast lock-free allocation on multiple threads simultaneously. See
+:ref:`topic-allocation`.
 
 The garbage collector is :term:`incremental <incremental garbage
-collection>`: it proceeds in small steps interleaved with the execution
-of your program, so there are no long waits. See
-:ref:`topic-collection`.
+collection>`: it proceeds in small steps interleaved with the
+execution of your program, so there are no long waits. The garbage
+collector is designed to work efficiently with multiple pools, and
+in cases where there are many references between objects in different
+pools. See :ref:`topic-collection`.
+
 
 
 What next?

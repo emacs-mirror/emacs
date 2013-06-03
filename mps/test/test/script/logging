@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(MMQA_harness_dev.1) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # provides subroutines to help in creating test logs and
 # reports

@@ -10,6 +10,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "testlib.h"
+#include "mpslib.h"
 
 #include <stdlib.h>
 

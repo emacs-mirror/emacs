@@ -55,7 +55,7 @@ we can build variants of the MPS for use in different products.  This
 requirement has been retired on 2012-09-03 as part of work on the
 variety-reform_ branch.  Client-specific customisation of the MPS will
 be handled in source control, while the MPS source remains generic, to
-reduce costs and increase reliability.  See `[RB 2012-09-13]`_.
+reduce costs and increase reliability.  See [RB_2012-09-13]_.
 
 
 
@@ -162,7 +162,7 @@ upper case. Currently (2012-09-03):
 _`.var.hot`: ``HOT``
 
     Intended for release in products.  Optimised, reduced internal
-    checking, especially on the critical path `[RB 2012-09-07]`_.
+    checking, especially on the critical path [RB_2012-09-07]_.
 
 _`.var.cool`: ``COOL``
 
@@ -532,29 +532,16 @@ To document
 References
 ----------
 
-* .. _[MPS Manual]:
+.. [RB_2012-09-07] "The critical path through the MPS"; Richard Brooksby;
+   Ravenbrook Limited; 2012-09-07;
+   <http://www.ravenbrook.com/project/mps/master/design/critical-path>.
 
-  Ravenbrook Limited. "`Memory Pool System documentation
-  <http://www.ravenbrook.com/project/mps/master/manual/html/>`_".
+.. [RB_2012-09-13] "The Configura CET custom mainline"; Richard
+   Brooksby; Ravenbrook Limited; 2013-09-13;
+   <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>.
 
-* .. _[RB 2012-09-13]:
-
-  Richard Brooksby. Ravenbrook Limited. 2012-09-13. "`The Configura
-  CET custom mainline
-  <https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/>`_".
-
-* .. _[PP 2005-03-01]:
-
-  Pekka P. Pirinen. Global Graphics. "`MPS platforms
-  <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>`_".
-
-* .. _[RB 2012-09-07]:
-
-  Richard Brooksby. Ravenbrook Limited. 2012-09-07. "`The critical
-  path through the MPS
-  <http://www.ravenbrook.com/project/mps/master/design/critical-path>`_".
-
-.. _variety-reform: http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/
+.. [PP_2005-03-01] "MPS platforms"; Pekka Pirinen; Global Graphics;
+   2005-03-01; <https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/>.
 
 
 Document History
@@ -581,6 +568,7 @@ Document History
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License

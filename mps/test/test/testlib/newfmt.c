@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:newfmt.c(trunk.3) $
+/* $Id$
 newfmt.c
    My attempt to write a format using unions &c to avoid
    nasty casting all over the place
@@ -365,6 +365,12 @@ mycell *getref(mycell *obj, int n)
 mps_addr_t getdata(mycell *obj)
 {
  return (mps_addr_t) &(obj->data.ref[0]);
+}
+
+mps_addr_t getassociated(mps_addr_t addr)
+{
+  mycell *obj = addr;
+  return (mps_addr_t) &(obj->data.ref[1]);
 }
 
 long int getid(mycell *obj)

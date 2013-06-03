@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.6) $
+/* $Id$
 
    Format like exfmt but with rank-checking built in.
 
@@ -126,6 +126,7 @@ mps_res_t reservoir_allocrdumb(mycell **rvar, mps_ap_t ap, size_t bytes,
 
 
 mps_addr_t getdata(mycell *obj);
+mps_addr_t getassociated(mps_addr_t addr);
 
 void setref(mycell *obj, int n, mycell *to);
 mycell *getref(mycell *obj, int n);

@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!97.c(trunk.6) $
+ id = $Id$
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o
@@ -35,17 +35,23 @@ END_HEADER
 #define MAGICSIZE (342)
 #define MAGICPOINT ((mycell *) 214208)
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 long int appcount;
 long int apppadcount;
 
 int oldstamp, newstamp;
 
-mps_space_t space;
+mps_arena_t arena;
 mps_pool_t poolamc, poollo, poolawl;
 mps_thr_t thread;
 mps_root_t root, root1;
 
+ mps_chain_t chain;
 mps_fmt_t format;
 mps_ap_t apamc, aplo, apawl;
 
@@ -111,58 +117,60 @@ static void test(void)
  mps_addr_t addr;
  int i, j, k;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  addr = &a[0];
  cdie(
-  mps_root_create_table(&root, space, MPS_RANK_EXACT, 0, addr, 4),
+  mps_root_create_table(&root, arena, mps_rank_exact(), 0, addr, 4),
   "create a root table");
 
  addr = &b[0];
  cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, addr, 4),
+  mps_root_create_table(&root1, arena, mps_rank_ambig(), 0, addr, 4),
   "create b root table");
 
  cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
+  mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
-  mps_pool_create(&poollo, space, mps_class_lo(), format),
+  mps_pool_create(&poollo, arena, mps_class_lo(), format),
   "create pool");
 
  cdie(
-  mps_pool_create(&poolawl, space, mps_class_awl(), format),
+  mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
+  mps_ap_create(&aplo, poollo, mps_rank_exact()),
   "create ap");
 
  cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
+  mps_ap_create(&apawl, poolawl, mps_rank_exact()),
   "create ap");
 
  newstamp = 0;
 
  for (i=0; i<4; i++) {
   addr = &a[i];
-  die(allocrdumb(addr, aplo, 64, MPS_RANK_EXACT), "alloc failed");
+  die(allocrdumb(addr, aplo, 64, mps_rank_exact()), "alloc failed");
   addr = &b[i];
-  die(allocrone(addr, apawl, 5, MPS_RANK_EXACT), "alloc failed");
+  die(allocrone(addr, apawl, 5, mps_rank_exact()), "alloc failed");
   b[i]->data.ref[0].addr = a[i];
   addr = &a[i];
-  die(allocrone(addr, apamc, 5, MPS_RANK_EXACT), "alloc failed");
+  die(allocrone(addr, apamc, 5, mps_rank_exact()), "alloc failed");
   a[i]->data.ref[0].addr = b[i];
  }
 
@@ -174,28 +182,28 @@ static void test(void)
   for (i=0; i<10000; i++) {
    k = ranint(4);
    addr = &a[k];
-   die(allocrdumb(addr, aplo, 64, MPS_RANK_EXACT), "alloc failed");
+   die(allocrdumb(addr, aplo, 64, mps_rank_exact()), "alloc failed");
    k = ranint(4);
    addr = &b[k];
-   die(allocrone(addr, apawl, 5, MPS_RANK_EXACT), "alloc failed");
+   die(allocrone(addr, apawl, 5, mps_rank_exact()), "alloc failed");
    b[k]->data.ref[0].addr = a[ranint(4)];
    b[k]->data.ref[1].addr = b[ranint(4)];
    addr = &a[k];
-   die(allocrone(addr, apamc, 5, MPS_RANK_EXACT), "alloc failed");
+   die(allocrone(addr, apamc, 5, mps_rank_exact()), "alloc failed");
    f[k] = a[k]->data.ref[2].addr;
    a[k]->data.ref[2].addr = b[ranint(4)];
   }
 
   comment("walking...");
 
-  mps_arena_park(space);
-  mps_arena_collect(space);
+  mps_arena_park(arena);
+  mps_arena_collect(arena);
 
   oldstamp = newstamp;
   newstamp += 1;
-  mps_arena_formatted_objects_walk(space, stepper,
+  mps_arena_formatted_objects_walk(arena, stepper,
                                    (void *) MAGICPOINT, MAGICSIZE);
-  mps_arena_release(space);
+  mps_arena_release(arena);
 
   comment("tracing...");
 
@@ -227,6 +235,9 @@ static void test(void)
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
+
  mps_root_destroy(root);
  mps_root_destroy(root1);
  comment("Destroyed roots.");
@@ -234,8 +245,8 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 int main(void)

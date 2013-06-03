@@ -1,5 +1,5 @@
-#!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:commands:try(trunk.9) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, but doesn't give results in standard format)

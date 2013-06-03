@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!8.c(trunk.4) $
+ id = $Id$
  summary = create arenas until an error results, see if it leaks at failure
  language = c
  link = testlib.o

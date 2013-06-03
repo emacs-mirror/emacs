@@ -1,5 +1,5 @@
-#!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.15) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,

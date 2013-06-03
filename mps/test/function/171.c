@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName:$
+ id = $Id$
  summary = test of ramp allocation with tiny arena
  language = c
  link = testlib.o rankfmt.o
@@ -32,13 +32,19 @@ END_HEADER
 #define COLLECT_WORLD
 */
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 void *stackpointer;
 
-mps_space_t arena;
+mps_arena_t arena;
 mps_pool_t poolamc;
 mps_thr_t thread;
 mps_root_t root, root1;
 
+ mps_chain_t chain;
 mps_fmt_t format;
 mps_ap_t apamc;
 
@@ -49,7 +55,7 @@ static void alloc_back(void) {
 
  for (j = 0; j < BACKITER; j++) {
   i = ranint(ranint(ranint(ranint(TABSIZE)+1)+1)+1);
-  objtab[i] = allocdumb(apamc, BACKSIZE, MPS_RANK_EXACT);
+  objtab[i] = allocdumb(apamc, BACKSIZE, mps_rank_exact());
  }
 }
 
@@ -64,29 +70,31 @@ static void test(void) {
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
    (size_t) ARENALIMIT),
-  "create space");
+  "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
    mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
  cdie(
-  mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0, &objtab[0], TABSIZE),
+  mps_root_create_table(&root1, arena, mps_rank_exact(), 0, &objtab[0], TABSIZE),
   "create root table");
 
  cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
 
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
  cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
+  mps_pool_create(&poolamc, arena, mps_class_amc(), format, chain),
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap");
 
  inramp = 0;
@@ -97,16 +105,16 @@ static void test(void) {
   }
   alloc_back();
   if (inramp) {
-   s = allocone(apamc, 3, MPS_RANK_EXACT);
+   s = allocone(apamc, 3, mps_rank_exact());
    setref(r, 0, s);
    setref(s, 1, r);
    r = s;
-   s = allocdumb(apamc, RAMPSIZE, MPS_RANK_EXACT);
+   s = allocdumb(apamc, RAMPSIZE, mps_rank_exact());
    setref(r, 2, s);
    rsize ++;
    if (ranint(LEAVERAMP) == 0) {
-    r = allocone(apamc, 2, MPS_RANK_EXACT);
-    s = allocone(apamc, 2, MPS_RANK_EXACT);
+    r = allocone(apamc, 2, mps_rank_exact());
+    s = allocone(apamc, 2, mps_rank_exact());
 #ifdef RAMP_INTERFACE
     mps_ap_alloc_pattern_end(apamc, mps_alloc_pattern_ramp());
 #endif
@@ -123,7 +131,7 @@ static void test(void) {
     mps_ap_alloc_pattern_begin(apamc, mps_alloc_pattern_ramp());
 #endif
     comment("ramp begin");
-    r = allocone(apamc, 3, MPS_RANK_EXACT);
+    r = allocone(apamc, 3, mps_rank_exact());
     inramp = 1;
     rsize = 0;
    }
@@ -139,6 +147,9 @@ static void test(void) {
  mps_fmt_destroy(format);
  comment("Destroyed format.");
 
+ mps_chain_destroy(chain);
+ comment("Destroyed chain.");
+
  mps_root_destroy(root1);
  mps_root_destroy(root);
  comment("Destroyed roots.");
@@ -147,7 +158,7 @@ static void test(void) {
  comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 int main(void)

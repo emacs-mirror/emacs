@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!64.c(trunk.4) $
+ id = $Id$
  summary = use AMC with inactive LO pool
  language = c
  link = testlib.o awlfmt.o
@@ -45,7 +45,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                          mps_stack_scan_ambig, stackpointer, 0),
      "create root");
 
@@ -60,11 +60,11 @@ static void test(void)
   "create pool");
 
  cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+  mps_ap_create(&apamc, poolamc, mps_rank_exact()),
   "create ap(amc)");
 
  cdie(
-  mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
+  mps_ap_create(&aplo, poollo, mps_rank_exact()),
   "create ap");
 
  b = allocone(apamc, 1, 1);

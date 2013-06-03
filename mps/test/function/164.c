@@ -1,6 +1,6 @@
 /*
 TEST_HEADER
- id = $HopeName: MMQA_test_function!207.c(trunk.3) $
+ id = $Id$
  summary = MVFF low-memory test, 4-byte alignment and small objects
  language = c
  link = testlib.o
@@ -15,7 +15,7 @@ END_HEADER
 #define MAXNUMBER 1000000
 
 void *stackpointer;
-mps_space_t space;
+mps_arena_t arena;
 
 mps_bool_t slotHigh, arenaHigh, firstFit;
 int comments = 0;
@@ -72,7 +72,7 @@ static void dt(int kind,
  asserts(time0 != -1, "processor time not available");
 
  die(
-  mps_pool_create(&pool, space, mps_class_mvff(),
+  mps_pool_create(&pool, arena, mps_class_mvff(),
                   extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
   "create MVFF pool");
 
@@ -153,11 +153,11 @@ static void test(void)
  int symm;
  size_t comlimit;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  for (comlimit = 512*1024; comlimit > 0; comlimit -= 4*1024) {
-  mps_arena_commit_limit_set(space, comlimit);
+  mps_arena_commit_limit_set(arena, comlimit);
   report("limit", "%x", comlimit);
   symm = ranint(8);
   slotHigh = (symm >> 2) & 1;
@@ -166,11 +166,11 @@ static void test(void)
 
   mins = ranrange(1, 8);
 
-  dt(RANGAP, 64*1024, 32, 4, mins, ranrange(mins, 1+mins*64), 1000, 100000);
+  dt(RANGAP, 64*1024, 32, MPS_PF_ALIGN, mins, ranrange(mins, 1+mins*64), 1000, 100000);
  }
 
  mps_thread_dereg(thread);
- mps_arena_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

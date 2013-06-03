@@ -10,6 +10,7 @@
 #include "fmtdytst.h"
 #include "mps.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>

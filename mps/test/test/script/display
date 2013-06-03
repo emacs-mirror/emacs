@@ -1,5 +1,5 @@
-#!/usr/local/perl
-# $HopeName: MMQA_harness!script:display(trunk.1) $
+#!/usr/bin/perl -w
+# $Id$
 #
 # provide a subroutine to pretty-print tests to a
 # output stream

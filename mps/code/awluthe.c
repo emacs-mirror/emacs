@@ -14,6 +14,7 @@
 #include "fmthe.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "mpslib.h"
 #include "mps.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
@@ -305,6 +306,7 @@ int main(int argc, char *argv[])
   void *r;
 
   randomize(argc, argv);
+  mps_lib_assert_fail_install(assert_die);
 
   initialise_wrapper(wrapper_wrapper);
   initialise_wrapper(string_wrapper);

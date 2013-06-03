@@ -1,0 +1,591 @@
+.. mode: -*- rst -*-
+
+AWL pool class
+==============
+
+:Tag: design.mps.poolawl
+:Author: drj
+:Date: 1997-03-11
+:Status: incomplete document
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.readership`: Any MPS developer.
+
+_`.intro`: The AWL (Automatic Weak Linked) pool is used to manage
+Dylan Weak Tables (see req.dylan.fun.weak). Currently the design is
+specialised for Dylan Weak Tables, but it could be generalised in the
+future.
+
+
+Requirements
+------------
+
+See req.dylan.fun.weak.
+
+See meeting.dylan.1997-02-27(0) where many of the requirements for
+this pool were first sorted out.
+
+Must satisfy request.dylan.170123.
+
+_`.req.obj-format`: Only objects of a certain format need be
+supported. This format is a subset of the Dylan Object Format. The
+pool uses the first slot in the fixed part of an object to store an
+association. See mail.drj.1997-03-11.12-05
+
+
+Definitions
+-----------
+
+_`.def.grain`: alignment grain, grain. A grain is a range of addresses
+where both the base and the limit of the range are aligned and the
+size of range is equal to the (same) alignment. In this context the
+alignment is the pool's alignment (``pool->alignment``). The grain is
+the unit of allocation, marking, scanning, etc.
+
+
+Overview
+--------
+
+_`.overview`:
+
+_`.overview.ms`: The pool is mark and sweep. _`.overview.ms.justify`:
+Mark-sweep pools are slightly easier to write (than moving pools), and
+there are no requirements (yet) that this pool be high performance or
+moving or anything like that.
+
+_`.overview.alloc`: It is possible to allocate weak or exact objects
+using the normal reserve/commit AP protocol.
+_`.overview.alloc.justify`: Allocation of both weak and exact objects
+is required to implement Dylan Weak Tables. Objects are formatted; the
+pool uses format A.
+
+_`.overview.scan`: The pool handles the scanning of weak objects
+specially so that when a weak reference is deleted the corresponding
+reference in an associated object is deleted. The associated object is
+determined by using information stored in the object itself (see
+`.req.obj-format`_).
+
+
+Interface
+---------
+
+_`.if.init`: The init method takes one extra parameter in the vararg
+list. This parameter should have type ``Format`` and be a format
+object that describes the format of the objects to be allocated in
+this pool. The format should support scan and skip methods. There is
+an additional restriction on the layout of objects, see
+`.req.obj-format`_.
+
+_`.if.buffer`: The ``BufferInit()`` method takes one extra parameter
+in the vararg list. This parameter should be either ``RankEXACT`` or
+``RankWEAK``. It determines the rank of the objects allocated using
+that buffer.
+
+
+Data structures
+---------------
+
+_`.sig`: This signature for this pool will be 0x519bla3l (SIGPooLAWL).
+
+_`.poolstruct`: The class specific pool structure is::
+
+    struct AWLStruct {
+      PoolStruct poolStruct;
+      Format format;
+      Shift alignShift;
+      ActionStruct actionStruct;
+      double lastCollected;
+      Serial gen;
+      Sig sig;
+    }
+
+_`.poolstruct.format`: The format field is used to refer to the object
+format. The object format is passed to the pool during pool creation.
+
+_`.poolstruct.alignshift`: The ``alignShift`` field is the
+``SizeLog2`` of the pool's alignment. It is computed and initialised
+when a pool is created. It is used to compute the number of alignment
+grains in a segment which is the number of bits need in the segment's
+mark and alloc bit table (see `.awlseg.bt`_, `.awlseg.mark`_, and
+`.awlseg.alloc`_ below).
+
+.. note::
+
+    Clarify this.
+
+_`.poolstruct.actionStruct`: Contains an Action which is used to
+participate in the collection benefit protocol. See ``AWLBenefit()``
+below for a description of the algorithm used for determining when to
+collect.
+
+_`.poolstruct.lastCollected`: Records the time (using the mutator
+total allocation clock, ie that returned by
+``ArenaMutatorAllocSize()``) of the most recent call to either
+``AWLInit()`` or ``AWLTraceBegin()`` for this pool. So this is the
+time of the beginning of the last collection of this pool. Actually
+this isn't true because the pool can be collected without
+``AWLTraceBegin()`` being called (I think) as it will get collected by
+being in the same zone as another pool/generation that is being
+collected (which it does arrange to be, see the use of the gen field
+in `.poolstruct.gen`_ below and `.fun.awlsegcreate.where`_ below).
+
+_`.poolstruct.gen`: This part of the mechanism by which the pool
+arranges to be in a particular zone and arranges to be collected
+simultaneously with other cohorts in the system. ``gen`` is the
+generation that is used in expressing a generation preference when
+allocating a segment. The intention is that this pool will get
+collected simultaneously with any other segments that are also
+allocated using this generation preference (when using the VM arena,
+generation preferences get mapped more or less to zones, each
+generation to a unique set of zones in the ideal case). Whilst AWL is
+not generational it is expected that this mechanism will arrange for
+it to be collected simultaneously with some particular generation of
+AMC.
+
+_`.poolstruct.gen.1`: At the moment the ``gen`` field is set for all
+AWL pools to be 1.
+
+_`.awlseg`: The pool defines a segment class ``AWLSegClass``, which is
+a subclass of ``GCSegClass`` (see
+design.mps.seg.over.hierarchy.gcseg). All segments allocated by the
+pool are instances of this class, and are of type ``AWLSeg``, for
+which the structure is::
+
+    struct AWLSegStruct {
+      GCSegStruct gcSegStruct; 
+      BT mark;
+      BT scanned;
+      BT alloc;
+      Count grains;
+      Count free;
+      Count singleAccesses;
+      AWLStatSegStruct stats;
+      Sig sig;
+    }
+
+_`.awlseg.bt`: The mark, alloc, and scanned fields are bit-tables (see
+design.mps.bt). Each bit in the table corresponds to a a single
+alignment grain in the pool.
+
+_`.awlseg.mark`: The mark bit table is used to record mark bits during
+a trace. ``AWLCondemn()`` (see `.fun.condemn`_ below) sets all the
+bits of this table to zero. Fix will read and set bits in this table.
+Currently there is only one mark bit table. This means that the pool
+can only be condemned for one trace.
+
+_`.awlseg.mark.justify`: This is simple, and can be improved later
+when we want to run more than one trace.
+
+_`.awlseg.scanned`: The scanned bit-table is used to note which
+objects have been scanned. Scanning (see `.fun.scan`_ below) a segment
+will find objects that are marked but not scanned, scan each object
+found and set the corresponding bits in the scanned table.
+
+_`.awlseg.alloc`: The alloc bit table is used to record which portions
+of a segment have been allocated. Ranges of bits in this table are set
+when a buffer is attached to the segment. When a buffer is flushed (ie
+``AWLBufferEmpty()`` is called) from the segment, the bits
+corresponding to the unused portion at the end of the buffer are
+reset.
+
+_`.awlseg.alloc.invariant`: A bit is set in the alloc table if and
+only if the corresponding address is currently being buffered, or the
+corresponding address lies within the range of an allocated object.
+
+_`.awlseg.grains`: The grains field is the number of grains that fit
+in the segment. Strictly speaking this is not necessary as it can be
+computed from ``SegSize`` and AWL's alignment, however, precalculating
+it and storing it in the segment makes the code simpler by avoiding
+lots of repeated calculations.
+
+_`.awlseg.free`: A conservative estimate of the number of free grains
+in the segment. It is always guaranteed to be greater than or equal to
+the number of free grains in the segment, hence can be used during
+allocation to quickly pass over a segment.
+
+.. note::
+
+    Maintained by blah and blah. Unfinished obviously.
+
+
+Functions
+---------
+
+.. note::
+
+    How will pool collect? It needs an action structure.
+
+External
+........
+
+``Res AWLInit(Pool pool, va_list arg)``
+
+_`.fun.init`: ``AWLStruct`` has four fields, each one needs initializing.
+
+_`.fun.init.poolstruct`: The ``poolStruct`` field has already been
+initialized by generic code (impl.c.pool).
+
+_`.fun.init.format`: The format will be copied from the argument list,
+checked, and written into this field.
+
+_`.fun.init.alignshift`: The ``alignShift`` will be computed from the
+pool alignment and written into this field.
+
+_`.fun.init.sig`: The ``sig`` field will be initialized with the
+signature for this pool.
+
+``Res AWLFinish(Pool pool)``
+
+_`.fun.finish`: Iterates over all segments in the pool and destroys
+each segment (by calling ``SegFree()``). Overwrites the sig field in
+the ``AWLStruct``. Finishing the generic pool structure is done by the
+generic pool code (impl.c.pool).
+
+_`.fun.alloc`: ``PoolNoAlloc()`` will be used, as this class does not
+implement alloc.
+
+_`.fun.free`: ``PoolNoFree()`` will be used, as this class does not
+implement free.
+
+``Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Pool pool, Buffer buffer, Size size)``
+
+_`.fun.fill`: This zips round all the the segments applying
+``AWLSegAlloc()`` to each segment that has the same rank as the
+buffer. ``AWLSegAlloc()`` attempts to find a free range, if it finds a
+range then it may be bigger than the actual request, in which case the
+remainder can be used to "fill" the rest of the buffer. If no free
+range can be found in an existing segment then a new segment will be
+created (which is at least large enough). The range of buffered
+addresses is marked as allocated in the segment's alloc table.
+
+``void AWLBufferEmpty(Pool pool, Buffer buffer)``
+
+_`.fun.empty`: Locates the free portion of the buffer, that is the
+memory between the init and the limit of the buffer and records these
+locations as being free in the relevant alloc table. The segment that
+the buffer is pointing at (which contains the alloc table that needs
+to be dinked with) is available via ``BufferSeg()``.
+
+_`.fun.benefit`: The benefit returned is the total amount of mutator
+allocation minus the ``lastRembemberedSize`` minus 10 MiB, so the pool
+becomes an increasingly good candidate for collection at a constant
+(mutator allocation) rate, crossing the 0 line when there has been
+10 MiB of allocation since the (beginning of the) last collection. So
+it gets collected approximately every 10 MiB of allocation. Note that
+it will also get collected by virtue of being in the same zone as some
+AMC generation (assuming there are instantiated AMC pools), see
+`.poolstruct.gen`_ above.
+
+``Res AWLCondemn(Pool pool, Trace trace, Seg seg)``
+
+_`.fun.condemn`: The current design only permits each segment to be
+condemned for one trace (see `.awlseg.mark`_). This function checks
+that the segment is not condemned for any trace (``seg->white ==
+TraceSetEMPTY``). The segment's mark bit-table is reset, and the
+whiteness of the seg (``seg->white``) has the current trace added to
+it.
+
+``void AWLGrey(Pool pool, Trace trace, Seg seg)``
+
+_`.fun.grey`: If the segment is not condemned for this trace the
+segment's mark table is set to all 1s and the segment is recorded as
+being grey.
+
+``Res AWLScan(ScanState ss, Pool pool, Seg seg)``
+
+_`.fun.scan`:
+
+_`.fun.scan.overview`: The scanner performs a number of passes over
+the segment, scanning each marked and unscanned (grey) object that is
+finds.
+
+_`.fun.scan.overview.finish`: It keeps perform a pass over the segment
+until it is finished.
+
+_`.fun.scan.overview.finish.condition`: A condition for finishing is
+that no new marks got placed on objects in this segment during the
+pass.
+
+_`.fun.scan.overview.finish.approximation`: We use an even stronger
+condition for finishing that assumes that scanning any object may
+introduce marks onto this segment. It is finished when a pass results
+in scanning no objects (that is, all objects were either unmarked or
+both marked and scanned).
+
+_`.fun.scan.overview.finished-flag`: There is a flag called
+``finished`` which keeps track of whether we should finish or not. We
+only ever finish at the end of a pass. At the beginning of a pass the
+flag is set. During a pass if any objects are scanned then the
+``finished`` flag is reset. At the end of a pass if the ``finished``
+flag is still set then we are finished. No more passes take place and
+the function returns.
+
+_`.fun.scan.pass`: A pass consists of a setup phase and a repeated
+phase.
+
+_`.fun.scan.pass.buffer`: The following assumes that in the general
+case the segment is buffered; if the segment is not buffered then the
+actions that mention buffers are not taken (they are unimportant if
+the segment is not buffered).
+
+_`.fun.scan.pass.p`: The pass uses a cursor called ``p`` to progress
+over the segment. During a pass ``p`` will increase from the base
+address of the segment to the limit address of the segment. When ``p``
+reaches the limit address of the segment, the pass in complete.
+
+_`.fun.scan.pass.setup`: ``p`` initially points to the base address of
+the segment.
+
+_`.fun.scan.pass.repeat`: The following comprises the repeated phase.
+The repeated phase is repeated until the pass completion condition is
+true (that is, ``p`` has reached the limit of the segment, see
+`.fun.scan.pass.p`_ above and `.fun.scan.pass.repeat.complete`_
+below).
+
+_`.fun.scan.pass.repeat.complete`: If ``p`` is equal to the segment's
+limit then we are done. We proceed to check whether any further passes
+need to be performed (see `.fun.scan.pass.more`_ below).
+
+_`.fun.scan.pass.repeat.free`: If ``!alloc(p)`` (the grain is free)
+then increment ``p`` and return to the beginning of the loop.
+
+_`.fun.scan.pass.repeat.buffer`: If ``p`` is equal to the buffer's
+ScanLimit, as returned by ``BufferScanLimit()``, then set ``p`` equal
+to the buffer's Limit, as returned by ``BufferLimit()`` and return to
+the beginning of the loop.
+
+_`.fun.scan.pass.repeat.object-end`: The end of the object is located
+using the ``format->skip`` method.
+
+_`.fun.scan.pass.repeat.object`: if ``mark(p) && !scanned(p)`` then
+the object pointed at is marked but not scanned, which means we must
+scan it, otherwise we must skip it.
+
+_`.fun.scan.pass.repeat.object.dependent`: To scan the object the 
+object we first have to determine if the object has a dependent object (see 
+`.req.obj-format`_).
+
+_`.fun.scan.pass.repeat.object.dependent.expose`: If it has a
+dependent object then we must expose the segment that the dependent
+object is on (only if the dependent object actually points to MPS
+managed memory) prior to scanning and cover the segment subsequent to
+scanning.
+
+_`.fun.scan.pass.repeat.object.dependent.summary`: The summary of the
+dependent segment must be set to ``RefSetUNIV`` to reflect the fact
+that we are allowing it to be written to (and we don't know what gets
+written to the segment).
+
+_`.fun.scan.pass.repeat.object.scan`: The object is then scanned by
+calling the format's scan method with base and limit set to the
+beginning and end of the object (_`.fun.scan.scan.improve.single`: A
+scan1 format method would make it slightly simpler here). Then the
+finished flag is cleared and the bit in the segment's scanned table is
+set.
+
+_`.fun.scan.pass.repeat.advance`: ``p`` is advanced past the object
+and we return to the beginning of the loop.
+
+_`.fun.scan.pass.more`: At the end of a pass the finished flag is
+examined.
+
+_`.fun.scan.pass.more.not`: If the finished flag is set then we are
+done (see `.fun.scan.overview.finished-flag`_ above), ``AWLScan()``
+returns.
+
+_`.fun.scan.pass.more.so`: Otherwise (the finished flag is reset) we
+perform another pass (see `.fun.scan.pass`_ above).
+
+``Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+
+_`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
+with design.mps.fix.protocol.was-marked.conservative).
+
+If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
+immediately unless the reference is aligned to the pool alignment.
+
+If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
+immediately unless the referenced grain is allocated.
+
+The bit in the marked table corresponding to the referenced grain will
+be read. If it is already marked then fix returns. Otherwise (the
+grain is unmarked), ``ss->wasMarked`` is set to ``FALSE``, the
+remaining actions depend on whether the rank (``ss->rank``) is
+``RankWEAK`` or not. If the rank is weak then the reference is
+adjusted to 0 (see design.mps.weakness) and fix returns. If the rank
+is something else then the mark bit corresponding to the referenced
+grain is set, and the segment is greyed using ``TraceSegGreyen()``.
+
+Fix returns.
+
+
+``void AWLReclaim(Pool pool, Trace trace, Seg seg)``
+
+_`.fun.reclaim`: This iterates over all allocated objects in the
+segment and frees objects that are not marked. When this iteration is
+complete the marked array is completely reset.
+
+``p`` points to base of segment. Then::
+
+    while(p < SegLimit(seg) {
+      if(!alloc(p)) { ++p;continue; }
+      q = skip(p) /* q points to just past the object pointed at by p */
+      if !marked(p) free(p, q); /* reset the bits in the alloc table from p to q-1 inclusive. */
+      p = q
+    }
+
+Finally, reset the entire marked array using ``BTResRange()``.
+
+_`.fun.reclaim.improve.pad`: Consider filling free ranges with padding
+objects. Now reclaim doesn't need to check that the objects are
+allocated before skipping them. There may be a corresponding change
+for scan as well.
+
+``Res AWLDescribe(Pool pool, mps_lib_FILE *stream)``
+
+_`.fun.describe`:
+
+
+Internal
+........
+
+``Res AWLSegCreate(AWLSeg *awlsegReturn, Size size)``
+
+_`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
+
+_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to an
+``ArenaAlign`` before requesting the segment.
+_`.fun.awlsegcreate.size.round.justify`: The arena requires that all
+segment sizes are aligned to the ``ArenaAlign``.
+
+_`.fun.awlsegcreate.where`: The segment is allocated using a
+generation preference, using the generation number stored in the
+``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
+
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, Bool reservoirPermit, va_list args)``
+
+_`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
+``SegAlloc()`` whenever an ``AWLSeg`` is created (see
+`.fun.awlsegcreate`_ above).
+
+_`.fun.awlseginit.tables`: The segment's mark scanned and alloc tables
+(see `.awlseg.bt`_ above) are allocated and initialised. The segment's
+grains field is computed and stored.
+
+``void awlSegFinish(Seg seg)``
+
+_`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
+``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
+
+``Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn, AWLSeg awlseg, AWL awl, Size size)``
+
+_`.fun.awlsegalloc`: Will search for a free block in the segment that
+is at least size bytes long. The base address of the block is returned
+in ``*baseReturn``, the limit of the entire free block (which must be
+at least as large size and may be bigger) is returned in
+``*limitReturn``. The requested size is converted to a number of
+grains, ``BTFindResRange()`` is called to find a run of this length in
+the alloc bit-table (`.awlseg.alloc`_). The return results (if it is
+successful) from ``BTFindResRange()`` are in terms of grains, they are
+converted back to addresses before returning the relevant values from
+this function.
+
+``Bool AWLDependentObject(Addr *objReturn, Addr parent)``
+
+_`.fun.dependent-object`: This function abstracts the association
+between an object and its linked dependent (see `.req.obj-format`_).
+It currently assumes that objects are Dylan Object formatted according
+to design.dylan.container (see analysis.mps.poolawl.dependent.abstract
+for suggested improvements). An object has a dependent object iff the
+second word of the object, that is, ``((Word *)parent)[1]``, is
+non-``NULL``. The dependent object is the object referenced by the
+second word and must be a valid object.
+
+This function assumes objects are in Dylan Object Format (see
+design.dylan.container). It will check that the first word looks like
+a Dylan wrapper pointer. It will check that the wrapper indicates that
+the wrapper has a reasonable format (namely at least one fixed field).
+If the second word is ``NULL`` it will return ``FALSE``. If the second
+word is non-``NULL`` then the contents of it will be assigned to
+``*objReturn``, and it will return ``TRUE``.
+
+
+Test
+----
+
+- must create Dylan objects.
+- must create Dylan vectors with at least one fixed field.
+- must allocate weak thingies.
+- must allocate exact tables.
+- must link tables together.
+- must populate tables with junk.
+- some junk must die.
+
+Use an LO pool and an AWL pool. Three buffers. One buffer for the LO
+pool, one exact buffer for the AWL pool, one weak buffer for the AWL
+pool.
+
+Initial test will allocate one object from each buffer and then
+destroy all buffers and pools and exit
+
+
+Document History
+----------------
+
+- 1997-03-11 David Jones. Incomplete document.
+
+- 2002-06-07 RB_ Converted from MMInfo database design document.
+
+- 2013-05-23 GDR_ Converted to reStructuredText.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

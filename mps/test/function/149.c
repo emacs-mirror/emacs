@@ -1,6 +1,6 @@
 /*
 TEST_HEADER
- id = $HopeName: MMQA_test_function!149.c(trunk.2) $
+ id = $Id$
  summary = SNC low-memory reservoir tests with commit limit
  language = c
  harness = 2.1
@@ -40,7 +40,7 @@ END_HEADER
 
 void *stackpointer;
 
-mps_space_t arena;
+mps_arena_t arena;
 mps_pool_t poolsnc;
 mps_pool_t poolmv;
 mps_thr_t thread;
@@ -61,11 +61,11 @@ static void test(void) {
  size_t lim5, avail5, commit5, lim6, avail6, commit6;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), ARENA_SIZE),
-  "create space");
+  "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+ cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create stack root");
 
  cdie(
@@ -77,7 +77,7 @@ static void test(void) {
   "create pool");
 
  cdie(
-  mps_ap_create(&apsnc, poolsnc, MPS_RANK_EXACT),
+  mps_ap_create(&apsnc, poolsnc, mps_rank_exact()),
   "create ap");
 
  report("lim0", "%d", lim0 = mps_reservoir_limit(arena));
@@ -124,7 +124,7 @@ static void test(void) {
  p = NULL;
  res = MPS_RES_OK;
  while (res == MPS_RES_OK) {
-  res = allocrone(&q, apsnc, 10, MPS_RANK_EXACT);
+  res = allocrone(&q, apsnc, 10, mps_rank_exact());
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
    p = q;
@@ -149,7 +149,7 @@ static void test(void) {
  i = -1;
  res = MPS_RES_OK;
  while (res == MPS_RES_OK) {
-  res = reservoir_allocrone(&q, apsnc, 10, MPS_RANK_EXACT);
+  res = reservoir_allocrone(&q, apsnc, 10, mps_rank_exact());
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
    p = q;
@@ -184,7 +184,7 @@ static void test(void) {
  comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
- comment("Destroyed space.");
+ comment("Destroyed arena.");
 }
 
 int main(void)
