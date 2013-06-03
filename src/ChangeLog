@@ -1,3 +1,8 @@
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (gettimeofday): Make the signature identical to prototype
+	in nt/inc/sys/time.h.
+
 2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (backtrace_p, backtrace_top, backtrace_next): Export them to
