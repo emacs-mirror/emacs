@@ -57,6 +57,7 @@ variety-reform_ branch.  Client-specific customisation of the MPS will
 be handled in source control, while the MPS source remains generic, to
 reduce costs and increase reliability.  See [RB_2012-09-13]_.
 
+.. _variety-reform: /project/mps/branch/2012-08-15/variety-reform
 
 
 Definitions
