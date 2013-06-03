@@ -493,7 +493,9 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           case 'F': {                   /* function */
             WriteFF f = va_arg(args, WriteFF);
             Byte *b = (Byte *)&f;
-            /* TODO: Why do we always write these little-endian? */
+            /* ISO C forbits casting function pointers to integer, so
+               decode bytes (see design.writef.f). 
+               TODO: Be smarter about endianness. */
             for(i=0; i < sizeof(WriteFF); i++) {
               res = WriteULongest(stream, (ULongest)(b[i]), 16,
                                   (CHAR_BIT + 3) / 4);
