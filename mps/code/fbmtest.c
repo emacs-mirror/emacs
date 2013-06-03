@@ -300,6 +300,8 @@ static void allocate(FBMState state, Addr block, BT allocTable,
     UNUSED(left);
     UNUSED(right);
     UNUSED(total);
+  } else {
+    outerBase = outerLimit = NULL;
   }
 
   RangeInit(&range, base, limit);
@@ -317,7 +319,7 @@ static void allocate(FBMState state, Addr block, BT allocTable,
 
   if (verbose) {
     printf("allocate: [%p,%p) -- %s\n",
-           base, limit, isFree ? "succeed" : "fail");
+           (void *)base, (void *)limit, isFree ? "succeed" : "fail");
     describe(state);
   }
 
@@ -394,7 +396,7 @@ static void deallocate(FBMState state, Addr block, BT allocTable,
 
   if (verbose) {
     printf("deallocate: [%p,%p) -- %s\n",
-           base, limit, isAllocated ? "succeed" : "fail");
+           (void *)base, (void *)limit, isAllocated ? "succeed" : "fail");
     describe(state);
   }
 
@@ -477,13 +479,14 @@ static void find(FBMState state, void *block, BT alloc, Size size, Bool high,
     printf("find %s %lu: ", high ? "last" : "first",
            (unsigned long)(size * Alignment));
     if (expected) {
-      printf("expecting [%p,%p)\n", addrOfIndex(block, expectedBase),
-             addrOfIndex(block, expectedLimit));
+      printf("expecting [%p,%p)\n", (void *)addrOfIndex(block, expectedBase),
+             (void *)addrOfIndex(block, expectedLimit));
     } else {
       printf("expecting this not to be found\n");
     }
     if (found) {
-      printf("  found [%p,%p)\n", RangeBase(&foundRange), RangeLimit(&foundRange));
+      printf("  found [%p,%p)\n", (void *)RangeBase(&foundRange),
+             (void *)RangeLimit(&foundRange));
     } else {
       printf("  not found\n");
     }
