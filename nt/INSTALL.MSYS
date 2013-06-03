@@ -52,7 +52,7 @@ Windows 9X as well).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=d:/usr/emacs --enable-checking
+       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=/d/usr/emacs --enable-checking
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -244,7 +244,11 @@ Windows 9X as well).
   These are snapshot builds of many packages, but you only need
   make.exe from there.  The advantage of this make.exe is that it
   supports parallel builds, so you can use "make -j N" to considerably
-  speed up your builds
+  speed up your builds.
+
+  Several users reported that MSYS 1.0.18 causes Make to hang in
+  parallel builds.  If you bump into this, we suggest to downgrade to
+  MSYS 1.0.17, which doesn't have that problem.
 
   For each of these packages, install the 'bin' and 'dll' tarballs of
   their latest stable releases.  If there's an 'ext' tarball (e.g.,
@@ -325,7 +329,7 @@ Windows 9X as well).
      ./nt/msysconfig.sh --prefix=PREFIX ...
 
   Here PREFIX is the place where you eventually want to install Emacs
-  once built, e.g. d:/usr.  We recommend to always use --prefix when
+  once built, e.g. /d/usr.  We recommend to always use --prefix when
   building Emacs on Windows, because the default '/usr/local' is not
   appropriate for Windows: it will be mapped by MSYS to something like
   C:\MSYS\local, and it will defeat the purpose of PREFIX, which is to
@@ -336,6 +340,13 @@ Windows 9X as well).
   something only you, the user who builds Emacs, can know, and the
   Emacs build process cannot guess, because usually there's no
   '/usr/local' directory on any drive on Windows systems.
+
+  Do NOT use Windows-style x:/foo/bar file names on the configure
+  script command line; use the MSYS-style /x/foo/bar instead.  Using
+  Windows-style file names was reported to cause subtle and hard to
+  figure out problems during the build.  This applies both to
+  --prefix= switch and the absolute file name of msysconfig.sh, if you
+  are building outside of the source tree.
 
   You can pass additional options to the configure script, for the
   full list type
@@ -353,7 +364,7 @@ Windows 9X as well).
   headers in C:\emacs\libs\jpeg-6b-4-lib\include, you will need to say
   something like this:
 
-    CPPFLAGS='-Ic:/emacs/libs/libpng-1.2.37-lib/include -Ic:/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
+    CPPFLAGS='-I/c/emacs/libs/libpng-1.2.37-lib/include -I/c/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
 
   which is quite a mouth-full, especially if you have more directories
   to specify...  Perhaps you may wish to revisit your installation
@@ -418,10 +429,11 @@ Windows 9X as well).
 
   This is simple: just type "make" and sit back, watching the fun.
 
-  If you installed a snapshot build of Make, the build will be much
-  faster if you type "make -j N" instead, where N is the number of
-  independent processing units on your machine.  E.g., on a core i7
-  system try using N of 6 or even 8.
+  If you  installed a snapshot build  of Make, the build  will be much
+  faster if  you type "make  -j N" instead, where  N is the  number of
+  independent processing  units on your  machine.  E.g., on a  core i7
+  system try using  N of 6 or  even 8.  (If this hangs,  see the notes
+  above about downgrading to MSYS 1.0.17.)
 
   When Make finishes, you can install the produced binaries:
 
@@ -520,12 +532,12 @@ Windows 9X as well).
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  PNG, JPEG and TIFF libraries are also
-  included with GTK, which is installed along with other Free Software
-  that requires it.  Note specifically that, due to some packaging
-  snafus in the GnuWin32-supplied image libraries, you will need to
-  download _source_ packages for some of the libraries in order to get
-  the header files necessary for building Emacs with image support.
+  the GnuWin32 project.  The PNG libraries are also included with GTK,
+  which is installed along with other Free Software that requires it.
+  Note specifically that, due to some packaging snafus in the
+  GnuWin32-supplied image libraries, you will need to download
+  _source_ packages for some of the libraries in order to get the
+  header files necessary for building Emacs with image support.
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
