@@ -1,3 +1,51 @@
+2013-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Merge the specpdl and backtrace stacks.  Make the structure of the
+	specpdl entries more obvious via a tagged union of structs.
+	* lisp.h (BITS_PER_PTRDIFF_T): New constant.
+	(enum specbind_tag): New enum.
+	(struct specbinding): Make it a tagged union of structs.
+	Add a case for backtrace records.
+	(specpdl_symbol, specpdl_old_value, specpdl_where, specpdl_arg)
+	(specpdl_func, backtrace_function, backtrace_nargs, backtrace_args)
+	(backtrace_debug_on_exit): New accessors.
+	(struct backtrace): Remove.
+	(struct catchtag): Remove backlist field.
+	* data.c (let_shadows_buffer_binding_p, let_shadows_global_binding_p):
+	Move to eval.c.
+	(Flocal_variable_p): Speed up the common case where the binding is
+	already loaded.
+	* eval.c (backtrace_list): Remove.
+	(set_specpdl_symbol, set_specpdl_old_value): Remove.
+	(set_backtrace_args, set_backtrace_nargs)
+	(set_backtrace_debug_on_exit, backtrace_p, backtrace_top)
+	(backtrace_next): New functions.
+	(Fdefvaralias, Fdefvar): Adjust to new specpdl format.
+	(unwind_to_catch, internal_lisp_condition_case)
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n): Don't bother
+	with backtrace_list any more.
+	(Fsignal): Adjust to new backtrace format.
+	(grow_specpdl): Move up.
+	(record_in_backtrace): New function.
+	(eval_sub, Ffuncall): Use it.
+	(apply_lambda): Adjust to new backtrace format.
+	(let_shadows_buffer_binding_p, let_shadows_global_binding_p): Move from
+	data.c.
+	(specbind): Adjust to new specpdl format.  Simplify.
+	(record_unwind_protect, unbind_to): Adjust to new specpdl format.
+	(Fbacktrace_debug, Fbacktrace, Fbacktrace_frame): Adjust to new
+	backtrace format.
+	(mark_backtrace): Remove.
+	(mark_specpdl, get_backtrace, backtrace_top_function): New functions.
+	* xdisp.c (redisplay_internal): Use record_in_backtrace.
+	* alloc.c (Fgarbage_collect): Use record_in_backtrace.
+	Use mark_specpdl.
+	* profiler.c (record_backtrace): Use get_backtrace.
+	(handle_profiler_signal): Use backtrace_top_function.
+	* .gdbinit (xbacktrace, hookpost-backtrace): Use new backtrace
+	accessor functions.
+
 2013-06-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.h (catch_child_signal): Declare.

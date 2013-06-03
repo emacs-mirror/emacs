@@ -138,10 +138,8 @@ static void evict_lower_half (log_t *log)
 static void
 record_backtrace (log_t *log, EMACS_INT count)
 {
-  struct backtrace *backlist = backtrace_list;
   Lisp_Object backtrace;
-  ptrdiff_t index, i = 0;
-  ptrdiff_t asize;
+  ptrdiff_t index;
 
   if (!INTEGERP (log->next_free))
     /* FIXME: transfer the evicted counts to a special entry rather
@@ -151,16 +149,7 @@ record_backtrace (log_t *log, EMACS_INT count)
 
   /* Get a "working memory" vector.  */
   backtrace = HASH_KEY (log, index);
-  asize = ASIZE (backtrace);
-
-  /* Copy the backtrace contents into working memory.  */
-  for (; i < asize && backlist; i++, backlist = backlist->next)
-    /* FIXME: For closures we should ignore the environment.  */
-    ASET (backtrace, i, backlist->function);
-
-  /* Make sure that unused space of working memory is filled with nil.  */
-  for (; i < asize; i++)
-    ASET (backtrace, i, Qnil);
+  get_backtrace (backtrace);
 
   { /* We basically do a `gethash+puthash' here, except that we have to be
        careful to avoid memory allocation since we're in a signal
@@ -232,7 +221,7 @@ static EMACS_INT current_sampling_interval;
 static void
 handle_profiler_signal (int signal)
 {
-  if (backtrace_list && EQ (backtrace_list->function, Qautomatic_gc))
+  if (EQ (backtrace_top_function (), Qautomatic_gc))
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does

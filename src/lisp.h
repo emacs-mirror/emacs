@@ -73,6 +73,7 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
+    BITS_PER_PTRDIFF_T = CHAR_BIT * sizeof (ptrdiff_t),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -2176,12 +2177,24 @@ typedef jmp_buf sys_jmp_buf;
 #endif
 
 
+/* Elisp uses several stacks:
+   - the C stack.
+   - the bytecode stack: used internally by the bytecode interpreter.
+     Allocated from the C stack.
+   - The specpdl stack: keeps track of active unwind-protect and
+     dynamic-let-bindings.  Allocated from the `specpdl' array, a manually
+     managed stack.
+   - The catch stack: keeps track of active catch tags.
+     Allocated on the C stack.  This is where the setmp data is kept.
+   - The handler stack: keeps track of active condition-case handlers.
+     Allocated on the C stack.  Every entry there also uses an entry in
+     the catch stack.  */
+
 /* Structure for recording Lisp call stack for backtrace purposes.  */
 
 /* The special binding stack holds the outer values of variables while
    they are bound by a function application or a let form, stores the
-   code to be executed for Lisp unwind-protect forms, and stores the C
-   functions to be called for record_unwind_protect.
+   code to be executed for unwind-protect forms.
 
    If func is non-zero, undoing this binding applies func to old_value;
       This implements record_unwind_protect.
@@ -2194,34 +2207,76 @@ typedef jmp_buf sys_jmp_buf;
    which means having bound a local value while CURRENT-BUFFER was active.
    If WHERE is nil this means we saw the default value when binding SYMBOL.
    WHERE being a buffer or frame means we saw a buffer-local or frame-local
-   value.  Other values of WHERE mean an internal error.  */
+   value.  Other values of WHERE mean an internal error.
+
+   NOTE: The specbinding struct is defined here, because SPECPDL_INDEX is
+   used all over the place, needs to be fast, and needs to know the size of
+   struct specbinding.  But only eval.c should access it.  */
 
 typedef Lisp_Object (*specbinding_func) (Lisp_Object);
 
+enum specbind_tag {
+  SPECPDL_UNWIND,		/* An unwind_protect function.  */
+  SPECPDL_BACKTRACE,		/* An element of the backtrace.  */
+  SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
+  /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
+  SPECPDL_LET_LOCAL,		/* A buffer-local let-binding.  */
+  SPECPDL_LET_DEFAULT		/* A global binding for a localized var.  */
+};
+
 struct specbinding
   {
-    Lisp_Object symbol, old_value;
-    specbinding_func func;
-    Lisp_Object unused;		/* Dividing by 16 is faster than by 12.  */
+    enum specbind_tag kind;
+    union {
+      struct {
+	Lisp_Object arg;
+	specbinding_func func;
+      } unwind;
+      struct {
+	/* `where' is not used in the case of SPECPDL_LET.  */
+	Lisp_Object symbol, old_value, where;
+      } let;
+      struct {
+	Lisp_Object function;
+	Lisp_Object *args;
+	ptrdiff_t nargs : BITS_PER_PTRDIFF_T - 1;
+	bool debug_on_exit : 1;
+      } bt;
+    } v;
   };
+
+LISP_INLINE Lisp_Object specpdl_symbol (struct specbinding *pdl)
+{ eassert (pdl->kind >= SPECPDL_LET); return pdl->v.let.symbol; }
+
+LISP_INLINE Lisp_Object specpdl_old_value (struct specbinding *pdl)
+{ eassert (pdl->kind >= SPECPDL_LET); return pdl->v.let.old_value; }
+
+LISP_INLINE Lisp_Object specpdl_where (struct specbinding *pdl)
+{ eassert (pdl->kind > SPECPDL_LET); return pdl->v.let.where; }
+
+LISP_INLINE Lisp_Object specpdl_arg (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_UNWIND); return pdl->v.unwind.arg; }
+
+LISP_INLINE specbinding_func specpdl_func (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_UNWIND); return pdl->v.unwind.func; }
+
+LISP_INLINE Lisp_Object backtrace_function (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.function; }
+
+LISP_INLINE ptrdiff_t backtrace_nargs (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.nargs; }
+
+LISP_INLINE Lisp_Object *backtrace_args (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.args; }
+
+LISP_INLINE bool backtrace_debug_on_exit (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.debug_on_exit; }
 
 extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
 extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
-
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  ptrdiff_t nargs;	/* Length of vector.  */
-  /* Nonzero means call value of debugger when done with this operation.  */
-  unsigned int debug_on_exit : 1;
-};
-
-extern struct backtrace *backtrace_list;
 
 /* Everything needed to describe an active condition case.
 
@@ -2277,9 +2332,10 @@ struct catchtag
   Lisp_Object tag;
   Lisp_Object volatile val;
   struct catchtag *volatile next;
+#if 1 /* GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS, but they're defined later.  */
   struct gcpro *gcpro;
+#endif
   sys_jmp_buf jmp;
-  struct backtrace *backlist;
   struct handler *handlerlist;
   EMACS_INT lisp_eval_depth;
   ptrdiff_t volatile pdlcount;
@@ -3337,10 +3393,15 @@ extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
-#if BYTE_MARK_STACK
-extern void mark_backtrace (void);
-#endif
 extern void syms_of_eval (void);
+extern void record_in_backtrace (Lisp_Object function,
+				 Lisp_Object *args, ptrdiff_t nargs);
+extern void mark_specpdl (void);
+extern void get_backtrace (Lisp_Object array);
+Lisp_Object backtrace_top_function (void);
+extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
+extern bool let_shadows_global_binding_p (Lisp_Object symbol);
+
 
 /* Defined in editfns.c.  */
 extern Lisp_Object Qfield;
