@@ -9,6 +9,9 @@ AMS pool class
 :Status: draft design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: AMS pool class; design
+   single: pool class; AMS design
 
 
 Introduction

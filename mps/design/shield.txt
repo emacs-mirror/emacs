@@ -9,6 +9,7 @@ Shield
 :Status: incomplete guide
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:    pair: shield; design
 
 
 Introduction
@@ -46,13 +47,13 @@ by MPS).
 
 ``void ShieldRaise(Arena arena, Seg seg, AccessSet mode)``
 
-Prevent the mutator accessing the memory in the specified mode
-(``AccessREAD``, ``AccessWRITE``, or both).
+    Prevent the mutator accessing the memory in the specified mode
+    (``AccessREAD``, ``AccessWRITE``, or both).
 
 ``void ShieldLower(Arena arena, Seg seg, AccessSet mode)``
 
-Allow the mutator to access the memory in the specified mode
-(``AccessREAD``, ``AccessWRITE``, or both).
+    Allow the mutator to access the memory in the specified mode
+    (``AccessREAD``, ``AccessWRITE``, or both).
 
 If the mutator attempts an access that hits a shield, the MPS gets a
 barrier hit (in the form of a fault, interrupt, exception), quickly
@@ -65,11 +66,11 @@ this.
 
 ``void ShieldSuspend(Arena arena)``
 
-Stop all registered mutator threads.
+    Stop all registered mutator threads.
 
 ``void ShieldResume(Arena arena)``
 
-Resume all registered mutator threads.
+    Resume all registered mutator threads.
 
 
 Control of collector access
@@ -108,7 +109,7 @@ calls to ``ShieldExpose()`` on the same segment, as long as each is
 balanced by a corresponding ``ShieldCover()`` before ``ShieldLeave()``
 is called). A usage count is maintained on each segment in
 ``seg->depth``: a positive "depth" means a positive number of
-outstanding reasons why the segment must be exposed to the collector.
+outstanding *reasons* why the segment must be exposed to the collector.
 When the usage count reaches zero, there is no longer any reason the
 segment should be unprotected, and the Shield could re-instate
 hardware protection.
@@ -116,14 +117,14 @@ hardware protection.
 However, as a performance-improving hysteresis, the Shield defers
 re-protection, maintaining a cache of the last ``ShieldCacheSIZE``
 times a segment no longer had a reason to be collector-accessible.
-Presence in the cache counts as a 'reason': segments in the cache have
+Presence in the cache counts as a reason: segments in the cache have
 ``seg->depth`` increased by one. As segments get pushed out of the
-cache, or at ``ShieldLeave()``, this artificial 'reason' is
+cache, or at ``ShieldLeave()``, this artificial reason is
 decremented from ``seg->depth``, and (if ``seg->depth`` is now zero)
 the deferred reinstatement of hardware protection happens.
 
 So whenever hardware protection is temporarily removed to allow
-collector access, there is a 'nurse' that will ensure this protection
+collector access, there is a *nurse* that will ensure this protection
 is re-established: the nurse is either the balancing ``ShieldCover()``
 call in collector code, or an entry in the shield cache.
 

@@ -9,6 +9,8 @@ ANSI fake VM
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: ANSI fake VM; design
+
 
 _`.intro`: The ANSI fake VM is an implementation of the MPS VM
 interface (see design.mps.vm) using services provided by the ANSI C

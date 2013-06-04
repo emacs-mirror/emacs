@@ -9,6 +9,7 @@ Allocation buffers and allocation points
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: buffers; design
 
 
 Introduction

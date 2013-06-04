@@ -9,6 +9,10 @@ SunOS 4 protection module
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: SunOS 4; protection interface design
+   pair: SunOS 4 protection interface; design
+
 
 .. warning::
 

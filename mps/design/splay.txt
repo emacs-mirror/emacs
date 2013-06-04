@@ -9,6 +9,7 @@ Splay trees
 :Status: draft document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: splay trees; design
 
 
 Introduction

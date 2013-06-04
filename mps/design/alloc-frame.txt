@@ -9,6 +9,7 @@ Allocation frame protocol
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: allocation frames; design
 
 
 Introduction
@@ -252,8 +253,7 @@ the ``SelectFrameOfAddr()`` operation.
 _`.fn.client.in-frame`: This function is used by clients to invoke the
 ``AddrInFrame()`` operation.
 
-``mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t 
-class)``
+``mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t class)``
 
 _`.fn.client.set`: This function is used by clients to invoke the 
 ``SetFrameClass()`` operation.

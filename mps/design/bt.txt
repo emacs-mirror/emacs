@@ -9,6 +9,7 @@ Bit tables
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: bit tables; design
 
 
 Introduction

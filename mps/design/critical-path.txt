@@ -8,6 +8,10 @@ The critical path through the MPS
 :Date: 2012-09-07
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms:
+   single: critical path
+   single: path; critical
+   single: Memory Pool System; critical path
 
 
 Introduction

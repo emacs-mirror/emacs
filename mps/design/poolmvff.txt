@@ -9,6 +9,9 @@ MVFF pool class
 :Organization: Harlequin
 :Status: incomplete doc
 :Revision: $Id$
+:Index terms:
+   pair: MVFF pool class; design
+   single: pool class; MVFF design
 
 
 Introduction
@@ -50,11 +53,11 @@ Methods
 
 _`.method`: The MVFF pool supports the following methods:
 
-``Res MVFFInit(Pool pool, va_list arg)``
+``Res MVFFInit(Pool pool, Args arg)``
 
 _`.method.init`: This takes six `keyword arguments`_:
 
-.. _`keyword arguments`: keyword-arguments.rst
+.. _`keyword arguments`: keyword-arguments
 
 ================================== ============================================
 Keyword argument                   Description
@@ -117,6 +120,7 @@ Implementation
 --------------
 
 _`.impl.free-list`: The pool stores its free list in a CBS (see
+//gdr-peewit/info.ravenbrook.com/project/mps/branch/2013-05-17/emergency/design/poolmvff.txt
 `design.mps.cbs <cbs/>`_), failing over in emergencies to a Freelist
 (see design.mps.freelist) when the CBS cannot allocate new control
 structures. This is the reason for the alignment restriction above.
@@ -131,7 +135,9 @@ object size (in both cases we align up).
 
 _`.design.seg-fail`: If allocating a segment fails, we try again with
 a segment size just large enough for the object we're allocating. This
-is in response to request.mps.170186.
+is in response to `request.mps.170186`_.
+
+.. _`request.mps.170186`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/170186/
 
 
 Document History

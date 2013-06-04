@@ -9,6 +9,7 @@ Finalization
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: finalization; design
 
 
 Overview
