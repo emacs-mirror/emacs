@@ -328,7 +328,7 @@ void verror(const char *format, va_list args)
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
   fflush(stderr); /* make sure the message is output */
-  exit(1);
+  abort();
 }
 
 
