@@ -45,7 +45,7 @@ extern Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
 extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
                                 Freelist fl, Size size, FindDelete findDelete);
 
-void FreelistFlushToCBS(Freelist fl, CBS cbs);
+extern void FreelistFlushToCBS(Freelist fl, CBS cbs);
 
 #endif /* freelist.h */
 
