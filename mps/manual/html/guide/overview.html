@@ -126,18 +126,20 @@ for example by calling <a class="reference internal" href="../topic/allocation.h
 <p><a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">Formatted</em></a> pools need you to tell them how to
 <strong>scan</strong> for <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> to allocated blocks. See
 <a class="reference internal" href="../topic/scanning.html#topic-scanning"><em>Scanning</em></a>.</p>
-<p>The arena needs you to tell it how to find your <strong>roots</strong>: references to
-allocated blocks that are stored in static data, in memory not managed
-by the MPS, or on your program&#8217;s <a class="reference internal" href="../glossary/r.html#term-register"><em class="xref std std-term">registers</em></a> or
+<p>The arena needs you to tell it how to find your <strong>roots</strong>: references
+to allocated blocks that are stored in static data, in memory not
+managed by the MPS, in your program&#8217;s <a class="reference internal" href="../glossary/r.html#term-register"><em class="xref std std-term">registers</em></a>, or on its
 <a class="reference internal" href="../glossary/c.html#term-control-stack"><em class="xref std std-term">control stack</em></a>. See <a class="reference internal" href="../topic/root.html#topic-root"><em>Roots</em></a>.</p>
 <p>The MPS is designed to work with multi-threaded programs. Functions in
-the C interface are thread safe, except in a few documented
-cases. See <a class="reference internal" href="../topic/thread.html#topic-thread"><em>Threads</em></a>. The <a class="reference internal" href="../glossary/a.html#term-allocation-point-protocol"><em class="xref std std-term">allocation point
-protocol</em></a> provides fast lock-free allocation on multiple threads
-simultaneously. See <a class="reference internal" href="../topic/allocation.html#topic-allocation"><em>Allocation</em></a>.</p>
-<p>The garbage collector is <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incremental</em></a>: it proceeds in small steps interleaved with the execution
-of your program, so there are no long waits. See
-<a class="reference internal" href="../topic/collection.html#topic-collection"><em>Garbage collection</em></a>.</p>
+the C interface are thread safe, except in a few documented cases. See
+<a class="reference internal" href="../topic/thread.html#topic-thread"><em>Threads</em></a>. The <a class="reference internal" href="../glossary/a.html#term-allocation-point-protocol"><em class="xref std std-term">allocation point protocol</em></a> provides
+fast lock-free allocation on multiple threads simultaneously. See
+<a class="reference internal" href="../topic/allocation.html#topic-allocation"><em>Allocation</em></a>.</p>
+<p>The garbage collector is <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incremental</em></a>: it proceeds in small steps interleaved with the
+execution of your program, so there are no long waits. The garbage
+collector is designed to work efficiently with multiple pools, and
+in cases where there are many references between objects in different
+pools. See <a class="reference internal" href="../topic/collection.html#topic-collection"><em>Garbage collection</em></a>.</p>
 </div>
 <div class="section" id="what-next">
 <h2>1.3. What next?<a class="headerlink" href="#what-next" title="Permalink to this headline">¶</a></h2>

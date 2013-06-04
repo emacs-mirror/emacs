@@ -1,0 +1,118 @@
+.. _design-protsu:
+
+
+.. index::
+   pair: SunOS 4; protection interface design
+   pair: SunOS 4 protection interface; design
+
+
+SunOS 4 protection module
+=========================
+
+.. mps:prefix:: design.mps.protsu
+   pair: SunOS 4; protection interface design
+   pair: SunOS 4 protection interface; design
+
+
+.. warning::
+
+    As of 2013-05-26, the MPS is no longer supported on SunOS, so
+    this document is only of historical interest.
+
+
+Introduction
+------------
+
+:mps:tag:`readership` Any MPS developer.
+
+:mps:tag:`intro` This is the design of the SunOS 4 implementation of the
+protection module. It is intended to be used only in SunOS 4 (os.su).
+It makes use of various services provided by SunOS 4.
+
+
+Requirements
+------------
+
+:mps:tag:`req.general` Required to implement the general protection
+interface defined in design.mps.prot.if.*.
+
+
+Overview
+--------
+
+Uses :c:func:`mprotect()`.
+
+
+Misc
+----
+
+:mps:tag:`improve.sig-stack` Currently we do not handle signals on a
+separate signal stack. If we handled signals on our own stack then we
+could guarantee not to run out of stack while we were handling the
+signal. This would be useful (it may even be required). We would have
+to use ``sigvec(2)`` rather than ``signal(3)`` (set the :c:macro:`SV_ONSTACK`
+flag and use ``sigstack(2)``). This has drawbacks as the signal stack
+is not grown automatically, so we would have to to frig the stacks
+back if we wanted to pass on the signal to some other handler as that
+handler may require arbitrary amounts of stack.
+
+:mps:tag:`improve.sigvec` Note 1 of :c:func:`ProtSetup()` notes that we can't
+honour the ``sigvec(2)`` entries of the next handler in the chain.
+What if when we want to pass on the signal instead of calling the
+handler we call :c:func:`sigvec()` with the old entry and use kill to send
+the signal to ourselves and then restore our handler using sigvec
+again.
+
+
+Data structures
+---------------
+
+:mps:tag:`data.signext` This is static. Because that is the only
+communications channel available to signal handlers. [write a little
+more here]
+
+
+Functions
+---------
+
+:mps:tag:`fun.setup` :c:func:`ProtSetup()`. The setup involves installing a signal
+handler for the signal :c:macro:`SIGSEGV` to catch and handle protection
+faults (this handler is the function :c:func:`sigHandle()`, see
+:mps:ref:`.fun.sighandle`). The previous handler is recorded (in the variable
+``sigNext``, see :mps:ref:`.data.signext`) so that it can be reached from
+:c:func:`sigHandle()` if it fails to handle the fault.
+
+The problem with this approach is that we can't honor the wishes of the 
+``sigvec(2)`` entry for the previous handler (in terms of masks in particular).
+
+Obviously it would be okay to always chain the previous signal handler
+onto ``sigNext``, however in the case where the previous handler is
+the one we've just installed (that is, ``sigHandle``) then it is not
+necessary to chain the handler, so we don't.
+
+:mps:tag:`fun.set` :c:func:`ProtSet()`
+
+:mps:tag:`fun.set.convert` The requested protection (which is expressed in
+the mode parameter, see design.mps.prot.if.set) is translated into an
+operating system protection. If read accesses are to be forbidden then
+all accesses are forbidden, this is done by setting the protection of
+the page to :c:macro:`PROT_NONE`. If write access are to be forbidden (and
+not read accesses) then write accesses are forbidden and read accesses
+are allowed, this is done by setting the protection of the page to
+``PROT_READ | PROT_EXEC``. Otherwise (all access are okay), the
+protection is set to ``PROT_READ | PROT_WRITE | PROT_EXEC``.
+
+:mps:tag:`fun.set.assume.mprotect` We assume that the call to :c:func:`mprotect()`
+always succeeds. This is because we should always call the function
+with valid arguments (aligned, references to mapped pages, and with an
+access that is compatible with the access of the underlying object).
+
+:mps:tag:`fun.sync` :c:func:`ProtSync()`. This does nothing in this implementation
+as ProtSet sets the protection without any delay.
+
+:mps:tag:`fun.tramp` :c:func:`ProtTramp()`. The protection trampoline is trivial
+under SunOS, as there is nothing that needs to be done in the dynamic
+context of the mutator in order to catch faults. (Contrast this with
+Win32 Structured Exception Handling.)
+
+

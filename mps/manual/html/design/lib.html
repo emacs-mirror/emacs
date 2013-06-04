@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>14. Library interface &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="15. The lock module" href="lock.html" />
+    <link rel="prev" title="13. I/O subsystem" href="io.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="lock.html" title="15. The lock module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="io.html" title="13. I/O subsystem"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-lib"></span><div class="section" id="library-interface">
+<span id="index-0"></span><h1>14. Library interface<a class="headerlink" href="#library-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.lib"></span><h2>14.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.lib.intro"></span><a class="mpstag reference internal" href="#design.mps.lib.intro">.intro:</a> This document is the design of the MPS Library Interface, a
+part of the plinth.</p>
+<p><span class="target" id="design.mps.lib.readership"></span><a class="mpstag reference internal" href="#design.mps.lib.readership">.readership:</a> Any MPS developer. Any clients that are prepared to
+read this in order to get documentation.</p>
+</div>
+<div class="section" id="goals">
+<h2>14.2. Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.lib.goal"></span><a class="mpstag reference internal" href="#design.mps.lib.goal">.goal:</a> The goals of the MPS library interface are:</p>
+<p><span class="target" id="design.mps.lib.goal.host"></span><a class="mpstag reference internal" href="#design.mps.lib.goal.host">.goal.host:</a> To control the dependency of the MPS on the hosted ISO
+C library so that the core MPS remains freestanding (see
+design.mps.exec-env).</p>
+<p><span class="target" id="design.mps.lib.goal.free"></span><a class="mpstag reference internal" href="#design.mps.lib.goal.free">.goal.free:</a> To allow the core MPS convenient access to ISO C
+functionality that is provided on freestanding platforms (see
+design.mps.exec-env.std.com.free).</p>
+</div>
+<div class="section" id="description">
+<h2>14.3. Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="overview">
+<h3>14.3.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.lib.overview.access"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.access">.overview.access:</a> The core MPS needs to access functionality that
+could be provided by an ISO C hosted environment.</p>
+<p><span class="target" id="design.mps.lib.overview.hosted"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.hosted">.overview.hosted:</a> The core MPS must not make direct use of any
+facilities in the hosted environment (design.mps.exec-env). However,
+it is sensible to make use of them when the MPS is deployed in a
+hosted environment.</p>
+<p><span class="target" id="design.mps.lib.overview.hosted.indirect"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.hosted.indirect">.overview.hosted.indirect:</a> The core MPS does not make any direct
+use of hosted ISO C library facilities. Instead, it indirects through
+the MPS Library Interface, impl.h.mpslib.</p>
+<p><span class="target" id="design.mps.lib.overview.free"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.free">.overview.free:</a> The core MPS can make direct use of freestanding
+ISO C library facilities and does not need to include any of the
+header files <tt class="docutils literal"><span class="pre">&lt;limits.h&gt;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;stdarg.h&gt;</span></tt>, and <tt class="docutils literal"><span class="pre">&lt;stddef.h&gt;</span></tt>
+directly.</p>
+<p><span class="target" id="design.mps.lib.overview.complete"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.complete">.overview.complete:</a> The MPS Library Interface can be considered as
+the complete &#8220;interface to ISO&#8221; (in that it provides direct access to
+facilities that we get in a freestanding environment and equivalents
+of any functionality we require from the hosted environment).</p>
+<p><span class="target" id="design.mps.lib.overview.provision.client"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.provision.client">.overview.provision.client:</a> In a freestanding environment the
+client is expected to provide functions meeting this interface to the
+MPS.</p>
+<p><span class="target" id="design.mps.lib.overview.provision.hosted"></span><a class="mpstag reference internal" href="#design.mps.lib.overview.provision.hosted">.overview.provision.hosted:</a> In a hosted environment,
+impl.c.mpsliban may be used. It just maps impl.h.mpslib directly onto
+the ISO C library equivalents.</p>
+<p>[missing diagram]</p>
+</div>
+<div class="section" id="outside-the-interface">
+<h3>14.3.2. Outside the interface<a class="headerlink" href="#outside-the-interface" title="Permalink to this headline">¶</a></h3>
+<p>We provide impl.c.mpsliban to the client, for two reasons:</p>
+<ol class="arabic simple">
+<li>the client can use it to connect the MPS to the ISO C library if it
+exists;</li>
+<li>as an example implementation of the MPS Library Interface.</li>
+</ol>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>14.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.lib.impl"></span><a class="mpstag reference internal" href="#design.mps.lib.impl">.impl:</a> The MPS Library Interface comprises a header file
+impl.h.mpslib and some documentation.</p>
+<p><span class="target" id="design.mps.lib.impl.decl"></span><a class="mpstag reference internal" href="#design.mps.lib.impl.decl">.impl.decl:</a> The header file defines the interface to definitions
+which parallel those parts of the non-freestanding ISO headers which
+are used by the MPS.</p>
+<p><span class="target" id="design.mps.lib.impl.include"></span><a class="mpstag reference internal" href="#design.mps.lib.impl.include">.impl.include:</a> The header file also includes the freestanding
+headers <tt class="docutils literal"><span class="pre">&lt;limits.h&gt;</span></tt>, <tt class="docutils literal"><span class="pre">&lt;stdarg.h&gt;</span></tt>, and <tt class="docutils literal"><span class="pre">&lt;stddef.h&gt;</span></tt> (and not
+<tt class="docutils literal"><span class="pre">&lt;float.h&gt;</span></tt>, though perhaps it should).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">14. Library interface</a><ul>
+<li><a class="reference internal" href="#introduction">14.1. Introduction</a></li>
+<li><a class="reference internal" href="#goals">14.2. Goals</a></li>
+<li><a class="reference internal" href="#description">14.3. Description</a><ul>
+<li><a class="reference internal" href="#overview">14.3.1. Overview</a></li>
+<li><a class="reference internal" href="#outside-the-interface">14.3.2. Outside the interface</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">14.4. Implementation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="io.html"
+                        title="previous chapter">13. I/O subsystem</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lock.html"
+                        title="next chapter">15. The lock module</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="lock.html" title="15. The lock module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="io.html" title="13. I/O subsystem"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

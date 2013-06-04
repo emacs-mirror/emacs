@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>8. The generic fix function &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>11. The generic fix function &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="9. The lock module" href="lock.html" />
-    <link rel="prev" title="7. Finalization" href="finalize.html" /> 
+    <link rel="next" title="12. C interface design" href="interface-c.html" />
+    <link rel="prev" title="10. Finalization" href="finalize.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="interface-c.html" title="12. C interface design"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="finalize.html" title="7. Finalization"
+          <a href="finalize.html" title="10. Finalization"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-generic-fix-function">
-<span id="design-design-fix"></span><span id="design-fix"></span><span id="index-0"></span><h1>8. The generic fix function<a class="headerlink" href="#the-generic-fix-function" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-fix"></span><div class="section" id="the-generic-fix-function">
+<span id="index-0"></span><h1>11. The generic fix function<a class="headerlink" href="#the-generic-fix-function" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.fix"></span><h2>8.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.fix"></span><h2>11.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.fix.intro"></span><a class="mpstag reference internal" href="#design.mps.fix.intro">.intro:</a> Fix is the interface through which the existence of
 references are communicated from the MPS client to the MPS. The
 interface also allows the value of such references to be changed (this
 is necessary in order to implement a moving memory manager).</p>
 </div>
 <div class="section" id="architecture">
-<h2>8.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>11.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.fix.protocol.was-marked"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked">.protocol.was-marked:</a> The <tt class="xref c c-type docutils literal"><span class="pre">ScanState</span></tt> has a <a class="reference internal" href="type.html#Bool" title="Bool"><tt class="xref c c-type docutils literal"><span class="pre">Bool</span></tt></a>
 <tt class="docutils literal"><span class="pre">wasMarked</span></tt> field. This is used for finalization.</p>
 <p><span class="target" id="design.mps.fix.protocol.was-marked.set"></span><a class="mpstag reference internal" href="#design.mps.fix.protocol.was-marked.set">.protocol.was-marked.set:</a> All pool-specific fix methods must set
@@ -82,7 +82,7 @@ uses the value of the <tt class="docutils literal"><span class="pre">wasMarked</
 object is finalizable.</p>
 </div>
 <div class="section" id="implementation">
-<h2>8.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>11.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.fix.fix.nailed"></span><a class="mpstag reference internal" href="#design.mps.fix.fix.nailed">.fix.nailed:</a> In a copying collection, a non-ambiguous fix to a
 broken heart should be snapped out <em>even if</em> there is a <tt class="docutils literal"><span class="pre">RankAMBIG</span></tt>
 ref to same object (that is, if the broken heart is nailed); the
@@ -102,20 +102,20 @@ or bogus.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">8. The generic fix function</a><ul>
-<li><a class="reference internal" href="#introduction">8.1. Introduction</a></li>
-<li><a class="reference internal" href="#architecture">8.2. Architecture</a></li>
-<li><a class="reference internal" href="#implementation">8.3. Implementation</a></li>
+<li><a class="reference internal" href="#">11. The generic fix function</a><ul>
+<li><a class="reference internal" href="#introduction">11.1. Introduction</a></li>
+<li><a class="reference internal" href="#architecture">11.2. Architecture</a></li>
+<li><a class="reference internal" href="#implementation">11.3. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="finalize.html"
-                        title="previous chapter">7. Finalization</a></p>
+                        title="previous chapter">10. Finalization</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="lock.html"
-                        title="next chapter">9. The lock module</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="interface-c.html"
+                        title="next chapter">12. C interface design</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -141,10 +141,10 @@ or bogus.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="interface-c.html" title="12. C interface design"
              >next</a> |</li>
         <li class="right" >
-          <a href="finalize.html" title="7. Finalization"
+          <a href="finalize.html" title="10. Finalization"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

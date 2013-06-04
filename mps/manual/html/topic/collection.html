@@ -56,6 +56,12 @@
             
   <div class="section" id="garbage-collection">
 <span id="topic-collection"></span><span id="index-0"></span><h1>11. Garbage collection<a class="headerlink" href="#garbage-collection" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> contains a <a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">garbage collector</em></a> that
+coordinates the collection of garbage in all of its
+<a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a>
+<a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pools</em></a>. The collector efficiently traces references between
+<a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a> and pools, and between objects in different pools. It is
+capable of collecting many automatically managed pools simultaneously.</p>
 <div class="section" id="generation-chains">
 <span id="index-1"></span><h2>11.1. Generation chains<a class="headerlink" href="#generation-chains" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="../glossary/g.html#term-generation-chain"><em class="xref std std-term">generation chain</em></a> describes the structure of the
@@ -74,8 +80,8 @@ prepared to start collecting the generation. See
     <span class="p">{</span> <span class="mi">2048</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">},</span>
 <span class="p">};</span>
 
-<span class="n">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_chain_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chain</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                        <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                        <span class="n">gen_params</span><span class="p">);</span>

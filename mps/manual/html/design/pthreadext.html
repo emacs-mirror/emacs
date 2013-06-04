@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>33. POSIX thread extensions &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="34. The low-memory reservoir" href="reservoir.html" />
+    <link rel="prev" title="32. Protocol inheritance" href="protocol.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="reservoir.html" title="34. The low-memory reservoir"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="protocol.html" title="32. Protocol inheritance"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-pthreadext"></span><div class="section" id="posix-thread-extensions">
+<span id="index-0"></span><h1>33. POSIX thread extensions<a class="headerlink" href="#posix-thread-extensions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.pthreadext"></span><h2>33.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.pthreadext.readership"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.readership">.readership:</a> Any MPS developer.</p>
+<p><span class="target" id="design.mps.pthreadext.intro"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.intro">.intro:</a> This is the design of the Pthreads extension module, which
+provides some low-level threads support for use by MPS (notably
+suspend and resume).</p>
+</div>
+<div class="section" id="definitions">
+<h2>33.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.pthreadext.pthreads"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.pthreads">.pthreads:</a> The term &#8220;Pthreads&#8221; means an implementation of the POSIX
+1003.1c-1995 thread standard. (Or the Single UNIX Specification,
+Version 2, aka USV2 or UNIX98.)</p>
+<p><span class="target" id="design.mps.pthreadext.context"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.context">.context:</a> The &#8220;context&#8221; of a thread is a (platform-specific)
+OS-defined structure which describes the current state of the
+registers for that thread.</p>
+</div>
+<div class="section" id="requirements">
+<h2>33.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.pthreadext.req.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend">.req.suspend:</a> A means to suspend threads, so that they don&#8217;t make
+any progress.</p>
+<p><span class="target" id="design.mps.pthreadext.req.suspend.why"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.why">.req.suspend.why:</a> Needed by the thread manager so that other
+threads registered with an arena can be suspended (see
+design.mps.thread-manager). Not directly provided by Pthreads.</p>
+<p><span class="target" id="design.mps.pthreadext.req.resume"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.resume">.req.resume:</a> A means to resume suspended threads, so that they are
+able to make progress again. <span class="target" id="design.mps.pthreadext.req.resume.why"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.resume.why">.req.resume.why:</a> Needed by the thread
+manager. Not directly provided by Pthreads.</p>
+<p><span class="target" id="design.mps.pthreadext.req.suspend.multiple"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.multiple">.req.suspend.multiple:</a> Allow a thread to be suspended on behalf of
+one arena when it has already been suspended on behalf of one or more
+other arenas. <span class="target" id="design.mps.pthreadext.req.suspend.multiple.why"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.multiple.why">.req.suspend.multiple.why:</a> The thread manager
+contains no design for cooperation between arenas to prevent this.</p>
+<p><span class="target" id="design.mps.pthreadext.req.resume.multiple"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.resume.multiple">.req.resume.multiple:</a> Allow requests to resume a thread on behalf
+of each arena which had previously suspended the thread. The thread
+must only be resumed when requests from all such arenas have been
+received. <span class="target" id="design.mps.pthreadext.req.resume.multiple.why"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.resume.multiple.why">.req.resume.multiple.why:</a> A thread manager for an arena
+must not permit a thread to make progress before it explicitly resumes
+the thread.</p>
+<p><span class="target" id="design.mps.pthreadext.req.suspend.context"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.context">.req.suspend.context:</a> Must be able to access the context for a
+thread when it is suspended.</p>
+<p><span class="target" id="design.mps.pthreadext.req.suspend.protection"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.protection">.req.suspend.protection:</a> Must be able to suspend a thread which is
+currently handling a protection fault (i.e., an arena access). Such a
+thread might even own an arena lock.</p>
+<p><span class="target" id="design.mps.pthreadext.req.legal"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.legal">.req.legal:</a> Must use the Pthreads and other POSIX APIs in a legal
+manner.</p>
+</div>
+<div class="section" id="analysis">
+<h2>33.4. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.pthreadext.anal.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.suspend">.anal.suspend:</a> Thread suspension is inherently asynchronous. MPS
+needs to be able to suspend another thread without prior knowledge of
+the code that thread is running. (That is, we can&#8217;t rely on
+cooperation between threads.) The only asynchronous communication
+available on POSIX is via signals &#8211; so the suspend and resume
+mechanism must ultimately be built from signals.</p>
+<p><span class="target" id="design.mps.pthreadext.anal.signal.safety"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.signal.safety">.anal.signal.safety:</a> POSIX imposes some restrictions on what a
+signal handler function might do when invoked asynchronously (see the
+<a class="reference external" href="http://www.opengroup.org/onlinepubs/007908799/xsh/sigaction.html">sigaction</a> documentation, and search for the string &#8220;reentrant&#8221;). In
+summary, a small number of POSIX functions are defined to be
+&#8220;async-signal safe&#8221;, which means they may be invoked without
+restriction in signal handlers. All other POSIX functions are
+considered to be unsafe. Behaviour is undefined if an unsafe function
+is interrupted by a signal and the signal handler then proceeds to
+call another unsafe function. See mail.tony.1999-08-24.15-40(0)and
+followups for some further analysis.</p>
+<p><span class="target" id="design.mps.pthreadext.anal.signal.safety.implication"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.signal.safety.implication">.anal.signal.safety.implication:</a> Since we can&#8217;t assume that we
+won&#8217;t attempt to suspend a thread while it is running an unsafe
+function, we must limit the use of POSIX functions in the suspend
+signal handler to those which are designed to be &#8220;async-signal safe&#8221;.
+One of the few such functions related to synchronization is
+<tt class="xref c c-func docutils literal"><span class="pre">sem_post()</span></tt>.</p>
+<p><span class="target" id="design.mps.pthreadext.anal.signal.example"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.signal.example">.anal.signal.example:</a> An example of how to suspend threads in POSIX
+was posted to newsgroup comp.programming.threads in August 1999
+<a class="reference internal" href="#lau-1999-08-16">[Lau_1999-08-16]</a>. The code in the post was written by David Butenhof, who
+contributed some comments on his implementation <a class="reference internal" href="#butenhof-1999-08-16">[Butenhof_1999-08-16]</a></p>
+<p><span class="target" id="design.mps.pthreadext.anal.signal.linux-hack"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.signal.linux-hack">.anal.signal.linux-hack:</a> In the current implementation of Linux
+Pthreads, it would be possible to implement suspend/resume using
+<tt class="xref c c-macro docutils literal"><span class="pre">SIGSTOP</span></tt> and <tt class="xref c c-macro docutils literal"><span class="pre">SIGCONT</span></tt>. This is, however, nonportable and will
+probably stop working on Linux at some point.</p>
+<p><span class="target" id="design.mps.pthreadext.anal.component"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.component">.anal.component:</a> There is no known way to meet the requirements
+above in a way which cooperates with another component in the system
+which also provides its own mechanism to suspend and resume threads.
+The best bet for achieving this is to provide the functionality in
+shared low-level component which may be used by MPS and other clients.
+This will require some discussion with other potential clients and/or
+standards bodies.</p>
+<p><span class="target" id="design.mps.pthreadext.anal.component.dylan"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.component.dylan">.anal.component.dylan:</a> Note that such cooperation is actually a
+requirement for Dylan (req.dylan.dc.env.self), though this is not a
+problem, since all the Dylan components share the MPS mechanism.</p>
+</div>
+<div class="section" id="interface">
+<h2>33.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<dl class="type">
+<dt id="PThreadext">
+<a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct">PThreadextStruct</a> *<tt class="descname">PThreadext</tt><a class="headerlink" href="#PThreadext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.pthreadext.abstract"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.pthreadext.abstract">.if.pthreadext.abstract:</a> A thread is represented by the abstract
+type <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a>. A <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object corresponds directly with
+a PThread (of type <tt class="docutils literal"><span class="pre">pthread_t</span></tt>). There may be more than one
+<a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object for the same PThread.</p>
+<p><span class="target" id="design.mps.pthreadext.if.pthreadext.structure"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.pthreadext.structure">.if.pthreadext.structure:</a> The structure definition of
+<a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> (<a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct"><tt class="xref c c-type docutils literal"><span class="pre">PThreadextStruct</span></tt></a>) is exposed by the interface so
+that it may be embedded in a client datastructure (for example,
+<tt class="xref c c-type docutils literal"><span class="pre">ThreadStruct</span></tt>). This means that all storage management can be left
+to the client (which is important because there might be multiple
+arenas involved). Clients may not access the fields of a
+<a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct"><tt class="xref c c-type docutils literal"><span class="pre">PThreadextStruct</span></tt></a> directly.</p>
+<dl class="function">
+<dt id="PThreadextInit">
+void <tt class="descname">PThreadextInit</tt><big>(</big><a class="reference internal" href="#PThreadext" title="PThreadext">PThreadext</a><em>&nbsp;pthreadext</em>, pthread_t<em>&nbsp;id</em><big>)</big><a class="headerlink" href="#PThreadextInit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.init"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.init">.if.init:</a> Initializes a <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object for a thread with the
+given <tt class="docutils literal"><span class="pre">id</span></tt>.</p>
+<dl class="function">
+<dt id="PThreadextCheck">
+<a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">PThreadextCheck</tt><big>(</big><a class="reference internal" href="#PThreadext" title="PThreadext">PThreadext</a><em>&nbsp;pthreadext</em><big>)</big><a class="headerlink" href="#PThreadextCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.check"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.check">.if.check:</a> Checks a <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object for consistency. Note
+that this function takes the mutex, so it must not be called with the
+mutex held (doing so will probably deadlock the thread).</p>
+<dl class="function">
+<dt id="PThreadextSuspend">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">PThreadextSuspend</tt><big>(</big><a class="reference internal" href="#PThreadext" title="PThreadext">PThreadext</a><em>&nbsp;pthreadext</em>, struct sigcontext<em>&nbsp;**contextReturn</em><big>)</big><a class="headerlink" href="#PThreadextSuspend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.suspend">.if.suspend:</a> Suspends a <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object (puts it into a
+suspended state). Meets <a class="reference internal" href="#design.mps.pthreadext.req.suspend">.req.suspend</a>. The object must not already
+be in a suspended state. If the function returns <tt class="docutils literal"><span class="pre">ResOK</span></tt>, the
+context of the thread is returned in contextReturn, and the
+corresponding PThread will not make any progress until it is resumed:</p>
+<dl class="function">
+<dt id="PThreadextResume">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">PThreadextResume</tt><big>(</big><a class="reference internal" href="#PThreadext" title="PThreadext">PThreadext</a><em>&nbsp;pthreadext</em><big>)</big><a class="headerlink" href="#PThreadextResume" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.resume"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.resume">.if.resume:</a> Resumes a <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object. Meets
+<a class="reference internal" href="#design.mps.pthreadext.req.resume">.req.resume</a>. The object must already be in a suspended state.
+Puts the object into a non-suspended state. Permits the corresponding
+PThread to make progress again, (although that might not happen
+immediately if there is another suspended <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object
+corresponding to the same thread):</p>
+<dl class="function">
+<dt id="PThreadextFinish">
+void <tt class="descname">PThreadextFinish</tt><big>(</big><a class="reference internal" href="#PThreadext" title="PThreadext">PThreadext</a><em>&nbsp;pthreadext</em><big>)</big><a class="headerlink" href="#PThreadextFinish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.if.finish"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.finish">.if.finish:</a> Finishes a PThreadext object.</p>
+</div>
+<div class="section" id="implementation">
+<h2>33.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<dl class="type">
+<dt id="PThreadextStruct">
+struct <a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct">PThreadextStruct</a> <tt class="descname">PThreadextStruct</tt><a class="headerlink" href="#PThreadextStruct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.pthreadext.impl.pthreadext"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.pthreadext">.impl.pthreadext:</a> The structure definition for a <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a>
+object is:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">PThreadextStruct</span> <span class="p">{</span>
+  <span class="n">Sig</span> <span class="n">sig</span><span class="p">;</span>                         <span class="cm">/* design.mps.sig */</span>
+  <span class="kt">pthread_t</span> <span class="n">id</span><span class="p">;</span>                    <span class="cm">/* Thread ID */</span>
+  <span class="k">struct</span> <span class="n">sigcontext</span> <span class="o">*</span><span class="n">suspendedScp</span><span class="p">;</span> <span class="cm">/* sigcontext if suspended */</span>
+  <span class="n">RingStruct</span> <span class="n">threadRing</span><span class="p">;</span>           <span class="cm">/* ring of suspended threads */</span>
+  <span class="n">RingStruct</span> <span class="n">idRing</span><span class="p">;</span>               <span class="cm">/* duplicate suspensions for id */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p><span class="target" id="design.mps.pthreadext.impl.field.id"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.field.id">.impl.field.id:</a> The <tt class="docutils literal"><span class="pre">id</span></tt> field shows which PThread the object
+corresponds to.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.field.scp"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.field.scp">.impl.field.scp:</a> The <tt class="docutils literal"><span class="pre">suspendedScp</span></tt> field contains the context
+when in a suspended state. Otherwise it is <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt>.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.field.threadring"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.field.threadring">.impl.field.threadring:</a> The <tt class="docutils literal"><span class="pre">threadRing</span></tt> field is used to chain
+the object onto the suspend ring when it is in the suspended state
+(see <a class="reference internal" href="#design.mps.pthreadext.impl.suspend-ring">.impl.suspend-ring</a>). When not in a suspended state, this ring
+is single.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.field.idring"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.field.idring">.impl.field.idring:</a> The <tt class="docutils literal"><span class="pre">idRing</span></tt> field is used to group the
+object with other objects corresponding to the same PThread (same
+<tt class="docutils literal"><span class="pre">id</span></tt> field) when they are in the suspended state. When not in a
+suspended state, or when this is the only <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object with
+this <tt class="docutils literal"><span class="pre">id</span></tt> in the suspended state, this ring is single.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.global.suspend-ring"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.global.suspend-ring">.impl.global.suspend-ring:</a> The module maintains a global
+suspend-ring &#8211; a ring of <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> objects which are in a
+suspended state. This is primarily so that it&#8217;s possible to determine
+whether a thread is curently suspended anyway because of another
+<a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object, when a suspend attempt is made.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.global.victim"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.global.victim">.impl.global.victim:</a> The module maintains a global variable which
+is used to indicate which <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> is the current victim during
+suspend operations. This is used to communicate information between
+the controlling thread and the thread being suspended (the victim).
+The variable has value <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> at other times.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.static.mutex"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.static.mutex">.impl.static.mutex:</a> We use a lock (mutex) around the suspend and
+resume operations. This protects the state data (the suspend-ring the
+victim: see <a class="reference internal" href="#design.mps.pthreadext.impl.global.suspend-ring">.impl.global.suspend-ring</a> and <a class="reference internal" href="#design.mps.pthreadext.impl.global.victim">.impl.global.victim</a>
+respectively). Since only one thread can be suspended at a time,
+there&#8217;s no possibility of two arenas suspending each other by
+concurrently suspending each other&#8217;s threads.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.static.semaphore"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.static.semaphore">.impl.static.semaphore:</a> We use a semaphore to synchronize between
+the controlling and victim threads during the suspend operation. See
+<a class="reference internal" href="#design.mps.pthreadext.impl.suspend">.impl.suspend</a> and <a class="reference internal" href="#design.mps.pthreadext.impl.suspend-handler">.impl.suspend-handler</a>).</p>
+<p><span class="target" id="design.mps.pthreadext.impl.static.init"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.static.init">.impl.static.init:</a> The static data and global variables of the
+module are initialized on the first call to <a class="reference internal" href="#PThreadextSuspend" title="PThreadextSuspend"><tt class="xref c c-func docutils literal"><span class="pre">PThreadextSuspend()</span></tt></a>,
+using <tt class="xref c c-func docutils literal"><span class="pre">pthread_once()</span></tt> to avoid concurrency problems. We also enable
+the signal handlers at the same time (see <a class="reference internal" href="#design.mps.pthreadext.impl.suspend-handler">.impl.suspend-handler</a> and
+<a class="reference internal" href="#design.mps.pthreadext.impl.resume-handler">.impl.resume-handler</a>).</p>
+<p><span class="target" id="design.mps.pthreadext.impl.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.suspend">.impl.suspend:</a> <a class="reference internal" href="#PThreadextSuspend" title="PThreadextSuspend"><tt class="xref c c-func docutils literal"><span class="pre">PThreadextSuspend()</span></tt></a> first ensures the module is
+initialized (see <a class="reference internal" href="#design.mps.pthreadext.impl.static.init">.impl.static.init</a>). After this, it claims the
+mutex (see <a class="reference internal" href="#design.mps.pthreadext.impl.static.mutex">.impl.static.mutex</a>). It then checks to see whether
+thread of the target <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object has already been suspended
+on behalf of another <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object. It does this by iterating
+over the suspend ring.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.suspend.already-suspended"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.suspend.already-suspended">.impl.suspend.already-suspended:</a> If another object with the same id
+is found on the suspend ring, then the thread is already suspended.
+The context of the target object is updated from the other object, and
+the other object is linked into the <tt class="docutils literal"><span class="pre">idRing</span></tt> of the target.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.suspend.not-suspended"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.suspend.not-suspended">.impl.suspend.not-suspended:</a> If the thread is not already
+suspended, then we forcibly suspend it using a technique similar to
+Butenhof&#8217;s (see <a class="reference internal" href="#design.mps.pthreadext.anal.signal.example">.anal.signal.example</a>): First we set the victim
+variable (see <a class="reference internal" href="#design.mps.pthreadext.impl.global.victim">.impl.global.victim</a>) to indicate the target object.
+Then we send the signal <tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGSUSPEND</span></tt> to the thread (see
+<a class="reference internal" href="#design.mps.pthreadext.impl.signals">.impl.signals</a>), and wait on the semaphore for it to indicate that
+it has received the signal and updated the victim variable with the
+context. If either of these operations fail (for example, because of
+thread termination) we unlock the mutex and return <tt class="docutils literal"><span class="pre">ResFAIL</span></tt>.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.suspend.update"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.suspend.update">.impl.suspend.update:</a> Once we have ensured that the thread is
+definitely suspended, we add the target <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object to the
+suspend ring, unlock the mutex, and return the context to the caller.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.suspend-handler"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.suspend-handler">.impl.suspend-handler:</a> The suspend signal handler is invoked in the
+target thread during a suspend operation, when a
+<tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGSUSPEND</span></tt> signal is sent by the controlling thread
+(see <a class="reference internal" href="#design.mps.pthreadext.impl.suspend.not-suspended">.impl.suspend.not-suspended</a>). The handler determines the
+context (received as a parameter, although this may be
+platform-specific) and stores this in the victim object (see
+<a class="reference internal" href="#design.mps.pthreadext.impl.global.victim">.impl.global.victim</a>). The handler then masks out all signals except
+the one that will be received on a resume operation
+(<tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGRESUME</span></tt>) and synchronizes with the controlling
+thread by posting the semaphore. Finally the handler suspends until
+the resume signal is received, using <tt class="xref c c-func docutils literal"><span class="pre">sigsuspend()</span></tt>.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.resume"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.resume">.impl.resume:</a> <a class="reference internal" href="#PThreadextResume" title="PThreadextResume"><tt class="xref c c-func docutils literal"><span class="pre">PThreadextResume()</span></tt></a> first claims the mutex (see
+<a class="reference internal" href="#design.mps.pthreadext.impl.static.mutex">.impl.static.mutex</a>). It then checks to see whether thread of the
+target <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object has also been suspended on behalf of
+another <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object (in which case the id ring of the target
+object will not be single).</p>
+<p><span class="target" id="design.mps.pthreadext.impl.resume.also-suspended"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.resume.also-suspended">.impl.resume.also-suspended:</a> If the thread is also suspended on
+behalf of another <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a>, then the target object is removed from
+the id ring.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.resume.not-also"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.resume.not-also">.impl.resume.not-also:</a> If the thread is not also suspended on
+behalf of another <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a>, then the thread is resumed using the
+technique proposed by Butenhof (see <a class="reference internal" href="#design.mps.pthreadext.anal.signal.example">.anal.signal.example</a>). I.e. we
+send it the signal <tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGRESUME</span></tt> (see <a class="reference internal" href="#design.mps.pthreadext.impl.signals">.impl.signals</a>) and
+expect it to wake up. If this operation fails (for example, because of
+thread termination) we unlock the mutex and return <tt class="docutils literal"><span class="pre">ResFAIL</span></tt>.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.resume.update"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.resume.update">.impl.resume.update:</a> Once the target thread is in the appropriate
+state, we remove the target <a class="reference internal" href="#PThreadext" title="PThreadext"><tt class="xref c c-type docutils literal"><span class="pre">PThreadext</span></tt></a> object from the suspend
+ring, set its context to <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> and unlock the mutex.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.resume-handler"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.resume-handler">.impl.resume-handler:</a> The resume signal handler is invoked in the
+target thread during a resume operation, when a
+<tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGRESUME</span></tt> signal is sent by the controlling thread (see
+<a class="reference internal" href="#design.mps.pthreadext.impl.resume.not-also">.impl.resume.not-also</a>). The resume signal handler simply returns.
+This is sufficient to unblock the suspend handler, which will have
+been blocking the thread at the time of the signal. The Pthreads
+implementation ensures that the signal mask is restored to the value
+it had before the signal handler was invoked.</p>
+<p><span class="target" id="design.mps.pthreadext.impl.finish"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.finish">.impl.finish:</a> <a class="reference internal" href="#PThreadextFinish" title="PThreadextFinish"><tt class="xref c c-func docutils literal"><span class="pre">PThreadextFinish()</span></tt></a> supports the finishing of
+objects in the suspended state, and removes them from the suspend ring
+and id ring as necessary. It must claim the mutex for the removal
+operation (to ensure atomicity of the operation). Finishing of
+suspended objects is supported so that clients can dispose of
+resources if a resume operation fails (which probably means that the
+PThread has terminated).</p>
+<p><span class="target" id="design.mps.pthreadext.impl.signals"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.impl.signals">.impl.signals:</a> The choice of which signals to use for suspend and
+restore operations may need to be platform-specific. Some signals are
+likely to be generated and/or handled by other parts of the
+application and so should not be used (for example, <tt class="xref c c-macro docutils literal"><span class="pre">SIGSEGV</span></tt>). Some
+implementations of PThreads use some signals for themselves, so they
+may not be used; for example, LinuxThreads uses <tt class="xref c c-macro docutils literal"><span class="pre">SIGUSR1</span></tt> and
+<tt class="xref c c-macro docutils literal"><span class="pre">SIGUSR2</span></tt> for its own purposes. The design abstractly names the
+signals <tt class="xref c c-macro docutils literal"><span class="pre">PTHREADEXT_SIGSUSPEND</span></tt> and <tt class="xref c c-macro docutils literal"><span class="pre">PTHREAD_SIGRESUME</span></tt>, so that
+they may be easily mapped to appropriate real signal values. Candidate
+choices are <tt class="xref c c-macro docutils literal"><span class="pre">SIGXFSZ</span></tt> and <tt class="xref c c-macro docutils literal"><span class="pre">SIGPWR</span></tt>.</p>
+</div>
+<div class="section" id="attachments">
+<h2>33.7. Attachments<a class="headerlink" href="#attachments" title="Permalink to this headline">¶</a></h2>
+<p>[missing attachment &#8220;posix.txt&#8221;]</p>
+<p>[missing attachment &#8220;susp.c&#8221;]</p>
+</div>
+<div class="section" id="references">
+<h2>33.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils citation" frame="void" id="butenhof-1999-08-16" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[Butenhof_1999-08-16]</a></td><td>Dave Butenhof. comp.programming.threads. 1999-08-16. &#8220;<a class="reference external" href="https://groups.google.com/group/comp.programming.threads/msg/2a604c5f03f388d0">Re: Problem with Suspend &amp; Resume Thread Example</a>&#8221;.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="lau-1999-08-16" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[Lau_1999-08-16]</a></td><td>Raymond Lau. comp.programming.threads. 1999-08-16. &#8220;<a class="reference external" href="https://groups.google.com/group/comp.programming.threads/msg/dc4d9a45866331eb">Problem with Suspend &amp; Resume Thread Example</a>&#8221;.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">33. POSIX thread extensions</a><ul>
+<li><a class="reference internal" href="#introduction">33.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">33.2. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">33.3. Requirements</a></li>
+<li><a class="reference internal" href="#analysis">33.4. Analysis</a></li>
+<li><a class="reference internal" href="#interface">33.5. Interface</a></li>
+<li><a class="reference internal" href="#implementation">33.6. Implementation</a></li>
+<li><a class="reference internal" href="#attachments">33.7. Attachments</a></li>
+<li><a class="reference internal" href="#references">33.8. References</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="protocol.html"
+                        title="previous chapter">32. Protocol inheritance</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="reservoir.html"
+                        title="next chapter">34. The low-memory reservoir</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="reservoir.html" title="34. The low-memory reservoir"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="protocol.html" title="32. Protocol inheritance"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

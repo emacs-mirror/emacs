@@ -87,11 +87,11 @@ General debugging advice
         set dont-handle-bad-access 1
         handle SIGBUS pass nostop noprint
 
-   If you are using GDB on Linux, run this command::
+   If you are using GDB on Linux or FreeBSD, run this command::
 
-        handle SIGXFSZ pass nostop noprint
+        handle SIGSEGV pass nostop noprint
 
-   (On either operating system, you can add these commands to your
+   (On these operating systems, you can add these commands to your
    ``.gdbinit`` if you always want them to be run.)
 
 

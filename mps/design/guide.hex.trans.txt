@@ -10,6 +10,7 @@ Transliterating the alphabet into hexadecimal
 :Date: 1997-04-11
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: hexadecimal; transliterating
 
 
 Introduction

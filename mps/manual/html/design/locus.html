@@ -1,0 +1,715 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>16. MPS Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="17. Client message protocol" href="message.html" />
+    <link rel="prev" title="15. The lock module" href="lock.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="message.html" title="17. Client message protocol"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lock.html" title="15. The lock module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-locus"></span><div class="section" id="mps-configuration">
+<span id="index-0"></span><h1>16. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.locus"></span><h2>16.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.intro"></span><a class="mpstag reference internal" href="#design.mps.locus.intro">.intro:</a> The locus manager coordinates between the pools and takes
+the burden of having to be clever about tract/group placement away
+from the pools, preserving trace differentiability and contiguity
+where appropriate.</p>
+<p><span class="target" id="design.mps.locus.source"></span><a class="mpstag reference internal" href="#design.mps.locus.source">.source:</a> mail.gavinm.1998-02-05.17-52(0), mail.ptw.1998-02-05.19-53(0),
+mail.pekka.1998-02-09.13-58(0), and mail.gavinm.1998-02-09.14-05(0).</p>
+<p><span class="target" id="design.mps.locus.readership"></span><a class="mpstag reference internal" href="#design.mps.locus.readership">.readership:</a> Any MPS developer.</p>
+</div>
+<div class="section" id="overview">
+<h2>16.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The MPS manages three main resources:</p>
+<ol class="arabic simple">
+<li>storage;</li>
+<li>address space;</li>
+<li>time.</li>
+</ol>
+<p>The locus manager manages address space at the arena level.</p>
+<p>When a pool wants some address space, it expresses some preferences to
+the locus manager. The locus manager and the arena (working together)
+try to honour these preferences, and decide what address space the
+pool gets.</p>
+<p>Preferences are expressed by the <tt class="docutils literal"><span class="pre">SegPref</span></tt> argument to
+<tt class="xref c c-func docutils literal"><span class="pre">SegAlloc()</span></tt>. Note that, when they call <tt class="xref c c-func docutils literal"><span class="pre">SegAlloc()</span></tt>, pools are
+asking for address space and writeable storage simultaneously, in a
+single call. There is currently no way for pools to reserve address
+space without requesting storage.</p>
+<div class="section" id="why-is-it-important-to-manage-address-space">
+<h3>16.2.1. Why is it important to manage address space?<a class="headerlink" href="#why-is-it-important-to-manage-address-space" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Trace differentiability</p>
+<p>Carefully chosen addresses are used by reference tracing systems
+(ie. automatic pools), to categorise objects into clumps; and to
+summarise and cheaply find references between clumps.</p>
+<p>Different clumps will become worth collecting at different times
+(the classic example, of course, is generations in a generational
+collector). For these partial collections to be efficient, it must
+be cheap to keep these clumps differentiable, cheap to condemn
+(Whiten) a particular clump, and cheap to find a good conservative
+approximation to all inward references to a clump (both initially
+to construct the Grey set, and to make scanning the Grey set
+efficient).</p>
+<p>This is what the MPS zone mechanism is all about.</p>
+<p>The locus manager manages the mapping from clumps to zones.</p>
+<p>To specify a clump, pools use the <tt class="docutils literal"><span class="pre">SegPrefGen</span></tt> argument to
+<tt class="xref c c-func docutils literal"><span class="pre">SegPrefExpress()</span></tt>.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">The name is misleading: generations are only one sort of clump.
+Richard Kistruck, 2007-04-24.</p>
+</div>
+</li>
+<li><p class="first">Prevent address space fragmentation (within the arena)</p>
+<p>Address space is not infinite.</p>
+<p>In some use cases, the MPS is required to remain efficient when
+using very nearly all available address space and storage. For
+example, with the client-arena class, where the only address space
+available is that of the storage available.</p>
+<p>Even with the VM arena class, typical storage sizes (as of 2007)
+can make 32-bit address space constrained: the client may need
+several gigabytes, which leaves little spare address space.</p>
+<p>Address space fragmentation incurs failure when there is no way to
+allocate a big block of address space. The big block may be
+requested via the MPS (by the client), or by something else in the
+same process, such as a third-party graphics library, image
+library, etc.</p>
+<p>Address space fragmentation incurs cost when:</p>
+<ul class="simple">
+<li>desired large-block requests (such as for buffering) are denied,
+causing them to be re-requested as a smaller block, or as several
+smaller blocks;</li>
+<li>possible operating-system costs in maintaining a fragmented
+mapping?</li>
+</ul>
+</li>
+<li><p class="first">Prevent storage fragmentation (within tracts and segments)</p>
+<blockquote>
+<div><p>Storage is not infinite: it is allocated in multiples of a
+fixed-size tract. Small lonely objects, each retaining a whole
+tract, cause storage fragmentation.</p>
+<p>Non-moving pools manage this fragmentation with placement
+strategies that use:</p>
+<ul class="simple">
+<li>co-located death (in space and time);</li>
+<li>segment merging and splitting.</li>
+</ul>
+<p>These pool-level strategies always care about contiguity of object
+storage. They also often care about the <em>ordering</em> of addresses,
+because pool code uses an address-ordered search when choosing
+where to place a new object. For these two reasons, the address
+chosen (by the locus manager and arena) for new tracts is
+important.</p>
+<p>Certain specialised pools, and/or some client programs that use
+them, have carefully tuned segment sizes, positioning, and search
+order. Be careful: seemingly inconsequential changes can
+catastrophically break this tuning.</p>
+<p>Pools can specify a preference for High and Low ends of address
+space, which implies a search-order. Pools could also specify
+clumping, using either <tt class="docutils literal"><span class="pre">SegPrefGen</span></tt> or <tt class="docutils literal"><span class="pre">SegPrefZoneSet</span></tt>.</p>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="discovering-the-layout">
+<h3>16.2.2. Discovering the layout<a class="headerlink" href="#discovering-the-layout" title="Permalink to this headline">¶</a></h3>
+<p>The locus manager is not given advance notice of how much address
+space will be required with what preferences. Instead, the locus
+manager starts with an empty layout, and adapts it as more requests
+come in over time. It is attempting to discover a suitable layout by
+successive refinement. This is ambitious.</p>
+</div>
+</div>
+<div class="section" id="definitions">
+<h2>16.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.note.cohort"></span><a class="mpstag reference internal" href="#design.mps.locus.note.cohort">.note.cohort:</a> We use the word &#8220;cohort&#8221; in its usual sense here, but
+we&#8217;re particularly interested in cohorts that have properties relevant
+to tract placement. It is such cohorts that the pools will try to
+organize using the services of the locus manager. Typical properties
+would be trace differentiability or (en masse) death-time
+predictability. Typical cohorts would be instances of a
+non-generational pool, or generations of a collection strategy.</p>
+<p><span class="target" id="design.mps.locus.def.trace.differentiability"></span><a class="mpstag reference internal" href="#design.mps.locus.def.trace.differentiability">.def.trace.differentiability:</a> Objects (and hence tracts) that are
+collected, may or may not have &#8220;trace differentiability&#8221; from each
+other, depending on their placement in the different zones. Objects
+(or pointers to them) can also have trace differentiability (or not)
+from non-pointers in ambiguous references; in practice, we will be
+worried about low integers, that may appear to be in zones 0 or -1.</p>
+</div>
+<div class="section" id="requirements">
+<h2>16.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.req.cohort"></span><a class="mpstag reference internal" href="#design.mps.locus.req.cohort">.req.cohort:</a> Tract allocations must specify the cohort they
+allocate in. These kind of cohorts will be called loci, and they will
+have such attributes as are implied by the other requirements.
+Critical.</p>
+<p><span class="target" id="design.mps.locus.req.counter.objects"></span><a class="mpstag reference internal" href="#design.mps.locus.req.counter.objects">.req.counter.objects:</a> As a counter-requirement, pools are expected
+to manage objects. Objects the size of a tract allocation request
+(segment-sized) are exceptional. Critical.
+<span class="target" id="design.mps.locus.req.counter.objects.just"></span><a class="mpstag reference internal" href="#design.mps.locus.req.counter.objects.just">.req.counter.objects.just:</a> This means the locus manager is not
+meant to solve the problems of allocating large objects, and it isn&#8217;t
+required to know what goes on in pools.</p>
+<p><span class="target" id="design.mps.locus.req.contiguity"></span><a class="mpstag reference internal" href="#design.mps.locus.req.contiguity">.req.contiguity:</a> Must support a high level of contiguity within
+cohorts when requested. This means minimizing the number of times a
+cohort is made aware of discontiguity. Essential (as we&#8217;ve effectively
+renegotiated this in SW, down to a vague hope that certain critical
+cohorts are not too badly fragmented). <span class="target" id="design.mps.locus.req.contiguity.just"></span><a class="mpstag reference internal" href="#design.mps.locus.req.contiguity.just">.req.contiguity.just:</a> TSBA.</p>
+<p><span class="target" id="design.mps.locus.req.contiguity.specific"></span><a class="mpstag reference internal" href="#design.mps.locus.req.contiguity.specific">.req.contiguity.specific:</a> It should be possible to request another
+allocation next to a specific tract on either side (or an extension in
+that direction, as the case may be). Such a request can fail, if
+there&#8217;s no space there. Nice. It would also be nice to have one for
+&#8220;next to the largest free block&#8221;.</p>
+<p><span class="target" id="design.mps.locus.req.differentiable"></span><a class="mpstag reference internal" href="#design.mps.locus.req.differentiable">.req.differentiable:</a> Must support the trace differentiability of
+segments that may be condemned separately. Due to the limited number
+of zones, it must be possible to place several cohorts into the same
+zone. Essential.</p>
+<p><span class="target" id="design.mps.locus.req.differentiable.integer"></span><a class="mpstag reference internal" href="#design.mps.locus.req.differentiable.integer">.req.differentiable.integer:</a> It must be possible to place
+collectable allocations so that they are trace-differentiable from
+small integers. Essential.</p>
+<p><span class="target" id="design.mps.locus.req.disjoint"></span><a class="mpstag reference internal" href="#design.mps.locus.req.disjoint">.req.disjoint:</a> Must support the disjointness of pages that have
+different VM properties (such as mutable/immutable,
+read-only/read-write, and different lifetimes). Optional.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">I expect the implementation will simply work at page or larger
+granularity, so the problem will not arise, but Tucker insisted on
+stating this as a requirement. Pekka P. Pirinen, 1998-10-28.</p>
+</div>
+<p><span class="target" id="design.mps.locus.req.low-memory"></span><a class="mpstag reference internal" href="#design.mps.locus.req.low-memory">.req.low-memory:</a> The architecture of the locus manager must not
+prevent the design of efficient applications that often use all
+available memory. Critical. <span class="target" id="design.mps.locus.req.low-memory.expl"></span><a class="mpstag reference internal" href="#design.mps.locus.req.low-memory.expl">.req.low-memory.expl:</a> This basically
+says it must be designed to perform well in low-memory conditions, but
+that there can be configurations where it doesn&#8217;t do as well, as long
+as this is documented for the application programmer. Note that it
+doesn&#8217;t say all applications are efficient, only that if you manage to
+design an otherwise efficient application, the locus manager will not
+sink it.</p>
+<p><span class="target" id="design.mps.locus.req.address"></span><a class="mpstag reference internal" href="#design.mps.locus.req.address">.req.address:</a> Must conserve address space in VM arenas to a
+reasonable extent. Critical.</p>
+<p><span class="target" id="design.mps.locus.req.inter-pool"></span><a class="mpstag reference internal" href="#design.mps.locus.req.inter-pool">.req.inter-pool:</a> Must support the association of sets of tracts in
+different pools into one cohort. Nice.</p>
+<p><span class="target" id="design.mps.locus.req.ep-style"></span><a class="mpstag reference internal" href="#design.mps.locus.req.ep-style">.req.ep-style:</a> Must support the existing EP-style of allocation
+whereby allocation is from one end of address space either upwards or
+downwards (or a close approximation thereto with the same behavior).
+<span class="target" id="design.mps.locus.req.ep-style.just"></span><a class="mpstag reference internal" href="#design.mps.locus.req.ep-style.just">.req.ep-style.just:</a> We cannot risk disrupting a policy with
+well-known properties when this technology is introduced.</p>
+<p><span class="target" id="design.mps.locus.req.attributes"></span><a class="mpstag reference internal" href="#design.mps.locus.req.attributes">.req.attributes:</a> There should be a way to inform the locus manager
+about various attributes of cohorts that might be useful for
+placement: deathtime, expected total size, and so on. Optional. It&#8217;s a
+given that the cohorts must then have these attributes, within the
+limits set in the contract of the appropriate interface.
+<span class="target" id="design.mps.locus.req.attributes.action"></span><a class="mpstag reference internal" href="#design.mps.locus.req.attributes.action">.req.attributes.action:</a> The locus manager should use the attributes
+to guide its placement decisions. Nice.</p>
+<p><span class="target" id="design.mps.locus.req.blacklisting"></span><a class="mpstag reference internal" href="#design.mps.locus.req.blacklisting">.req.blacklisting:</a> There should be a way of maintaining at least
+one blacklist for pages (or some other small unit), that can
+not/should not be allocated to collectable pools. Optional.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">How to do blacklist breaking for ambiguous refs?</p>
+</div>
+<p><span class="target" id="design.mps.locus.req.hysteresis"></span><a class="mpstag reference internal" href="#design.mps.locus.req.hysteresis">.req.hysteresis:</a> There should be a way to indicate which cohorts
+fluctuate in size and by how much, to guide the arena hysteresis to
+hold on to suitable pages. Optional.</p>
+</div>
+<div class="section" id="analysis">
+<h2>16.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.anal.sw"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.sw">.anal.sw:</a> Almost any placement policy would be an improvement on
+the current SW one.</p>
+<p><span class="target" id="design.mps.locus.anal.cause-and-effect"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.cause-and-effect">.anal.cause-and-effect:</a> The locus manager doesn&#8217;t usually need to
+know <em>why</em> things need to be differentiable, disjoint, contiguous, and
+so on. Abstracting the reason away from the interface makes it more
+generic, more likely to have serendipitous new uses. Attributes
+described by a quantity (deathtime, size, etc.) are an exception to
+this, because we can&#8217;t devise a common measure.</p>
+<p><span class="target" id="design.mps.locus.anal.stable"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.stable">.anal.stable:</a> The strategy must be stable: it must avoid repeated
+recomputation, especially the kind that switches between alternatives
+with a short period (repeated &#8220;bites&#8221; out the same region or
+flip-flopping between two regions).</p>
+<p><span class="target" id="design.mps.locus.anal.fragmentation"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.fragmentation">.anal.fragmentation:</a> There&#8217;s some call to avoid fragmentation in
+cohorts that don&#8217;t need strict contiguity, but this is not a separate
+requirement, since fragmentation is a global condition, and can only
+be ameliorated if there&#8217;s a global strategy that clumps allocations
+together.</p>
+<p><span class="target" id="design.mps.locus.anal.deathtime"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.deathtime">.anal.deathtime:</a> Cohorts with good death-time clumping of their
+objects could use some locality of tract allocation, because it
+increases the chances of creating large holes in the address space
+(for other allocation to use). OTOH. many cohorts will not do multiple
+frees in short succession, or at least cannot reasonably be predicted
+to do so. This locality is not contiguity, nor is it low
+fragmentation, it&#8217;s just the requirement to place the new tracts next
+to the tract where the last object was allocated in the cohort. Note
+that the placement of objects is under the control of the pool, and
+the locus manager will not know it, therefore this requirement should
+be pursued by requesting allocation next to a particular tract (which
+we already have a requirement for).</p>
+<p><span class="target" id="design.mps.locus.anal.asymmetrical"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.asymmetrical">.anal.asymmetrical:</a> The strategy has to be asymmetrical with
+respect to cohorts growing and shrinking. The reason of this asymmetry
+is that it can choose where to grow, but it cannot choose where to
+shrink (except in a small way by growing with good locality).</p>
+</div>
+<div class="section" id="interface">
+<h2>16.6. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.interface.locus"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.locus">.interface.locus:</a> A cohort will typically reside on multiple tracts
+(and the pools will avoid putting objects of other cohorts on them),
+so there should be an interface to describe the properties of the
+cohort, and associate each allocation request with the cohort. We
+shall call such an object, created to represent a cohort, a locus (pl.
+loci).</p>
+<p><span class="target" id="design.mps.locus.interface.locus.pool"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.locus.pool">.interface.locus.pool:</a> Loci will usually be created by the pool
+that uses it. Some of the locus attributes will be inherited from
+client-specified pool attributes [this means there will be additional
+pool attributes].</p>
+<p><span class="target" id="design.mps.locus.interface.detail"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.detail">.interface.detail:</a> This describes interface in overview; for
+details, see implementation section and code, or user doc.</p>
+<div class="section" id="loci">
+<h3>16.6.1. Loci<a class="headerlink" href="#loci" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="LocusCreate">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">LocusCreate</tt><big>(</big>Locus<em>&nbsp;*locusReturn</em>, LocusAttrs<em>&nbsp;attrs</em>, ZoneGroup<em>&nbsp;zg</em>, LocusAllocDesc<em>&nbsp;adesc</em><big>)</big><a class="headerlink" href="#LocusCreate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.create"></span><a class="mpstag reference internal" href="#design.mps.locus.function.create">.function.create:</a> A function to create a locus: <tt class="docutils literal"><span class="pre">adesc</span></tt> contains
+the information about the allocation sequences in the locus, <tt class="docutils literal"><span class="pre">zg</span></tt> is
+used for zone differentiability, and <tt class="docutils literal"><span class="pre">attrs</span></tt> encodes the following:</p>
+<ul class="simple">
+<li><span class="target" id="design.mps.locus.locus.contiguity"></span><a class="mpstag reference internal" href="#design.mps.locus.locus.contiguity">.locus.contiguity:</a> A locus can be contiguous. This means
+performing as required in <a class="reference internal" href="#design.mps.locus.req.contiguity">.req.contiguity</a>, non-contiguous
+allocations can be freely placed anywhere (but efficiency dictates
+that similar allocations are placed close together and apart from
+others).</li>
+<li><span class="target" id="design.mps.locus.locus.blacklist"></span><a class="mpstag reference internal" href="#design.mps.locus.locus.blacklist">.locus.blacklist:</a> Allocations in the locus will avoid blacklisted
+pages (for collectable segments).</li>
+<li><span class="target" id="design.mps.locus.locus.zero"></span><a class="mpstag reference internal" href="#design.mps.locus.locus.zero">.locus.zero:</a> Allocations in the locus are zero-filled.</li>
+</ul>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Other attributes will be added, I&#8217;m sure.</p>
+</div>
+<p><span class="target" id="design.mps.locus.interface.zone-group"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.zone-group">.interface.zone-group:</a> The locus can be made a member of a zone
+group. Passing <tt class="docutils literal"><span class="pre">ZoneGroupNONE</span></tt> means it&#8217;s not a member of any group
+(allocations will be placed without regard to zone, except to keep
+them out of stripes likely to be needed for some group).</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">I propose no mechanism for managing zone groups at this time,
+since it&#8217;s only used internally for one purpose. Pekka P. Pirinen,
+2000-01-17.</p>
+</div>
+<p><span class="target" id="design.mps.locus.interface.size"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size">.interface.size:</a> An allocation descriptor (<tt class="docutils literal"><span class="pre">LocusAllocDesc</span></tt>)
+contains various descriptions of how the locus will develop over time
+(inconsistent specifications are forbidden, of course):</p>
+<ul>
+<li><p class="first"><span class="target" id="design.mps.locus.interface.size.typical-alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size.typical-alloc">.interface.size.typical-alloc:</a> Size of a typical allocation in
+this locus, in bytes. This will mainly affect the grouping of
+non-contiguous loci.</p>
+</li>
+<li><p class="first"><span class="target" id="design.mps.locus.interface.size.large-alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size.large-alloc">.interface.size.large-alloc:</a> Typical large allocation that the
+manager should try to allow for (this allows some relief from
+<a class="reference internal" href="#design.mps.locus.req.counter.objects">.req.counter.objects</a>), in bytes. This will mainly affect the size
+of gaps that will be allotted adjoining this locus.</p>
+</li>
+<li><dl class="first docutils">
+<dt><span class="target" id="design.mps.locus.interface.size.direction"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size.direction">.interface.size.direction:</a> Direction of growth: up/down/none.</dt>
+<dd><p class="first last">Only useful if the locus is contiguous.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><span class="target" id="design.mps.locus.interface.size.lifetime"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size.lifetime">.interface.size.lifetime:</a> Some measure of the lifetime of tracts
+(not objects) in the cohort.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Don&#8217;t know the details yet, probably only useful for placing
+similar cohorts next to each other, so the details don&#8217;t
+actually matter. Pekka P. Pirinen, 2000-01-17.</p>
+</div>
+</li>
+<li><p class="first"><span class="target" id="design.mps.locus.interface.size.deathtime"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.size.deathtime">.interface.size.deathtime:</a> Some measure of the deathtime of
+tracts (not objects) in the cohort.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Ditto. Pekka P. Pirinen, 2000-01-17.</p>
+</div>
+</li>
+</ul>
+<p><span class="target" id="design.mps.locus.function.init"></span><a class="mpstag reference internal" href="#design.mps.locus.function.init">.function.init:</a> <tt class="xref c c-func docutils literal"><span class="pre">LocusInit()</span></tt> is like <a class="reference internal" href="#LocusCreate" title="LocusCreate"><tt class="xref c c-func docutils literal"><span class="pre">LocusCreate()</span></tt></a>, but
+without the allocation. This is the usual interface, since most loci
+are embedded in a pool or something.</p>
+<p><span class="target" id="design.mps.locus.function.alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.function.alloc">.function.alloc:</a> <tt class="xref c c-func docutils literal"><span class="pre">ArenaAlloc()</span></tt> to take a locus argument.
+<tt class="xref c c-func docutils literal"><span class="pre">ArenaAllocHere()</span></tt> is like it, plus it takes a tract and a
+specification to place the new allocation immediately above/below a
+given tract; if that is not possible, it returns <tt class="docutils literal"><span class="pre">ResFAIL</span></tt> (this
+will make it useful for reallocation functionality).</p>
+<dl class="function">
+<dt id="ArenaSetTotalLoci">
+<tt class="descname">ArenaSetTotalLoci</tt><big>(</big><a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;nLoci</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;nZoneGroups</em><big>)</big><a class="headerlink" href="#ArenaSetTotalLoci" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.set-total"></span><a class="mpstag reference internal" href="#design.mps.locus.function.set-total">.function.set-total:</a> A function to tell the arena the expected
+number of (non-miscible client) loci, and of zone groups.</p>
+</div>
+<div class="section" id="peaks">
+<h3>16.6.2. Peaks<a class="headerlink" href="#peaks" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="mps_peak_create">
+<a class="reference internal" href="../topic/error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_peak_create</tt><big>(</big>mps_peak_t*, <a class="reference internal" href="../topic/arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><big>)</big><a class="headerlink" href="#mps_peak_create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.peak.create"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.create">.function.peak.create:</a> A function to create a peak. A newly-created
+peak is open, and will not be used to guide the strategy of the locus
+manager.</p>
+<dl class="function">
+<dt id="mps_peak_describe_pool">
+<a class="reference internal" href="../topic/error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_peak_describe_pool</tt><big>(</big>mps_peak_t, <a class="reference internal" href="../topic/pool.html#mps_pool_t" title="mps_pool_t">mps_pool_t</a>, mps_size_desc_t<big>)</big><a class="headerlink" href="#mps_peak_describe_pool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.peak.add"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.add">.function.peak.add:</a> A function to add a description of the state of
+one pool into the peak. Calling this function again for the same peak and pool instance will replace
+the earlier description.</p>
+<p><span class="target" id="design.mps.locus.function.peak.add.size"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.add.size">.function.peak.add.size:</a> The size descriptor contains a total size
+in bytes or percent of arena size.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Is this right? Pekka P. Pirinen, 2000-01-17.</p>
+</div>
+<p><span class="target" id="design.mps.locus.function.peak.add.remove"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.add.remove">.function.peak.add.remove:</a> Specifying a <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt> size will remove
+the pool from the peak. The client is not allowed to destroy a pool
+that is mentioned in any peak; it must be first removed from the peak,
+or the peak must be destroyed. This is to ensure that the client
+adjusts the peaks in a manner that makes sense to the application; the
+locus manager can&#8217;t know how to do that.</p>
+<dl class="function">
+<dt id="mps_peak_close">
+<a class="reference internal" href="../topic/error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_peak_close</tt><big>(</big>mps_peak_t<big>)</big><a class="headerlink" href="#mps_peak_close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.peak.close"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.close">.function.peak.close:</a> A function to indicate that all the
+significant pools have been added to the peak, and it can now be used
+to guide the locus manager. For any pool not described in the peak,
+the locus manager will take its current size at any given moment as
+the best prediction of its size at the peak.</p>
+<p><span class="target" id="design.mps.locus.function.peak.close.after"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.close.after">.function.peak.close.after:</a> It is legal to add more descriptions to
+the peak after closing, but this will reopen the peak, and it will
+have to be closed before the locus manager will use it again. The
+locus manager uses the previous closed state of the peak, while this
+is going on.</p>
+<dl class="function">
+<dt id="mps_peak_destroy">
+void <tt class="descname">mps_peak_destroy</tt><big>(</big>mps_peak_t<big>)</big><a class="headerlink" href="#mps_peak_destroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><span class="target" id="design.mps.locus.function.peak.destroy"></span><a class="mpstag reference internal" href="#design.mps.locus.function.peak.destroy">.function.peak.destroy:</a> A function to destroy a peak.</p>
+<p><span class="target" id="design.mps.locus.interface.ep-style"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.ep-style">.interface.ep-style:</a> This satisfies <a class="reference internal" href="#design.mps.locus.req.ep-style">.req.ep-style</a> by allowing SW
+to specify zero size for most pools (which will cause them to be place
+next to other loci with the same growth direction).</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Not sure this is good enough, but we&#8217;ll try it first. Pekka P.
+Pirinen, 2000-01-17.</p>
+</div>
+</div>
+</div>
+<div class="section" id="architecture">
+<h2>16.7. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-objects">
+<h3>16.7.1. Data objects<a class="headerlink" href="#data-objects" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.locus.arch.locus"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.locus">.arch.locus:</a> To represent the cohorts, we have locus objects.
+Usually a locus is embedded in a pool instance, but generations are
+separate loci.</p>
+<p><span class="target" id="design.mps.locus.arch.locus.attr"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.locus.attr">.arch.locus.attr:</a> contiguity, blacklist, zg, current region, &#64;&#64;&#64;&#64;</p>
+<p><span class="target" id="design.mps.locus.arch.locus.attr.exceptional"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.locus.attr.exceptional">.arch.locus.attr.exceptional:</a> The client can define a typical large
+allocation for the locus. Requests substantially larger than that are
+deemed exceptional.</p>
+<p><span class="target" id="design.mps.locus.arch.zone-group"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.zone-group">.arch.zone-group:</a> To satisfy <a class="reference internal" href="#design.mps.locus.req.condemn">.req.condemn</a>, we offer zone groups.
+Each locus can be a member of a zone group, and the locus manager will
+attempt to place allocations in this locus in different zones from all
+the other zone groups. A zone-group is represented as &#64;&#64;&#64;&#64;.</p>
+<p><span class="target" id="design.mps.locus.arch.page-table"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.page-table">.arch.page-table:</a> A page table is maintained by the arena, as usual
+to track association between tracts, pools and segments, and mapping
+status for VM arenas.</p>
+<p><span class="target" id="design.mps.locus.arch.region"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.region">.arch.region:</a> All of the address space is divided into disjoint
+regions, represented by region objects. These objects store their
+current limits, and high and low watermarks of currently allocated
+tracts (we hope there&#8217;s usually a gap of empty space between regions).
+The limits are actually quite porous and flexible.</p>
+<p><span class="target" id="design.mps.locus.arch.region.assoc"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.region.assoc">.arch.region.assoc:</a> Each region is associated with one contiguous
+locus or any number of non-contiguous loci (or none). We call the
+first kind of region &#8220;contiguous&#8221;. <span class="target" id="design.mps.locus.arch.locus.assoc"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.locus.assoc">.arch.locus.assoc:</a> Each locus
+remembers all regions where it has tracts currently, excepting the
+badly-placed allocations (see below). It is not our intention that any
+locus would have very many, or that loci that share regions would have
+any reason to stop doing do.</p>
+<p><span class="target" id="design.mps.locus.arch.region.more"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.region.more">.arch.region.more:</a> Various quantities used by the placement
+computation are also stored in the regions and the loci. Regions are
+created (and destroyed) by the placement recomputation. Regions are
+located in stripes (if it&#8217;s a zoned region), but they can extend into
+neighboring stripes if an exceptionally large tract allocation is
+requested (to allow for large objects).</p>
+<p><span class="target" id="design.mps.locus.arch.chunk"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.chunk">.arch.chunk:</a> Arenas may allocate more address space in additional
+chunks, which may be disjoint from the existing chunks. Inter-chunk
+space will be represented by dummy regions. There are also sentinel
+regions at both ends of the address space.</p>
+</div>
+<div class="section" id="overview-of-strategy">
+<h3>16.7.2. Overview of strategy<a class="headerlink" href="#overview-of-strategy" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.locus.arch.strategy.delay"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.delay">.arch.strategy.delay:</a> The general strategy is to delay placement
+decisions until they have to be made, but no later.</p>
+<p><span class="target" id="design.mps.locus.arch.strategy.delay.until"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.delay.until">.arch.strategy.delay.until:</a> Hence, the locus manager only makes
+placement decisions when an allocation is requested (frees and other
+operations might set a flag to cause the next allocation to redecide).
+This also allows the client to change the peak and pool configuration
+in complicated ways without causing a lot of recomputation, by doing
+all the changes without allocating in the middle (unless the control
+pool needs more space because of the changes).</p>
+<p><span class="target" id="design.mps.locus.arch.strategy.normal"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.normal">.arch.strategy.normal:</a> While we want the placement to be
+sophisticated, we do not believe it is worth the effort to consider
+all the data at each allocation. Hence, allocations are usually just
+placed in one of the regions used previously (see <a class="reference internal" href="#design.mps.locus.arch.alloc">.arch.alloc</a>)
+without reconsidering the issues.</p>
+<p><span class="target" id="design.mps.locus.arch.strategy.normal.limit"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.normal.limit">.arch.strategy.normal.limit:</a> However, the manager sets
+precautionary limits on the regions to ensure that the placement
+decisions are revisited when an irrevocable placement is about to be
+made.</p>
+<p><span class="target" id="design.mps.locus.arch.strategy.create"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.create">.arch.strategy.create:</a> The manager doesn&#8217;t create new regions until
+they are needed for allocation (but it might compute where they could
+be placed to accommodate a peak).</p>
+</div>
+<div class="section" id="allocation">
+<h3>16.7.3. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.locus.arch.alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc">.arch.alloc:</a> Normally, each allocation to a locus is placed in its
+current region. New regions are only sought when necessary to fulfill
+an allocation request or when there is reason to think the situation
+has changed significantly (see <a class="reference internal" href="#design.mps.locus.arch.significant">.arch.significant</a>).</p>
+<p><span class="target" id="design.mps.locus.arch.alloc.same"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.same">.arch.alloc.same:</a> An allocation is first attempted next to the
+previous allocation in the same locus, respecting growth direction. If
+that is not possible, a good place in the current region is sought.
+<span class="target" id="design.mps.locus.arch.alloc.same.hole"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.same.hole">.arch.alloc.same.hole:</a> At the moment, for finding a good place
+within a region, we just use the current algorithm, limited to the
+region. In future, the placement within regions will be more clever.</p>
+<p><span class="target" id="design.mps.locus.arch.alloc.extend"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.extend">.arch.alloc.extend:</a> If there&#8217;s no adequate hole in the current
+region and the request is not exceptional, the neighboring regions are
+examined to see if the region could be extended at one border. (This
+will basically only be done if the neighbor has shrunk since the last
+placement recomputation, because the limit was set on sophisticated
+criteria, and should not be changed without justification.)
+<span class="target" id="design.mps.locus.arch.alloc.extend.here"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.extend.here">.arch.alloc.extend.here:</a> When an allocation is requested next to a
+specific tract (<tt class="xref c c-func docutils literal"><span class="pre">ArenaAllocHere()</span></tt>), we try to extend a little
+harder (at least for <tt class="docutils literal"><span class="pre">change_size</span></tt>, perhaps not for locality).</p>
+<p><span class="target" id="design.mps.locus.arch.alloc.other"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.other">.arch.alloc.other:</a> If no way can be found to allocate in the
+current region, other regions used for this locus are considered in
+the same way, to see if space can be found there. [Or probably look at
+other regions before trying to extend anything?]</p>
+<p><span class="target" id="design.mps.locus.arch.alloc.recompute"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.recompute">.arch.alloc.recompute:</a> When no region of this locus has enough
+space for the request, or when otherwise required, region placement is
+recomputed to find a new region for the request (which might be the
+same region, after extension).</p>
+<p><span class="target" id="design.mps.locus.arch.alloc.current"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc.current">.arch.alloc.current:</a> This region where the allocation was placed
+then becomes the current region for this locus, except when the
+request was exceptional, or when the region chosen was &#8220;bad&#8221; (see
+&#64;&#64;&#64;&#64;).</p>
+<p><span class="target" id="design.mps.locus.arch.significant"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.significant">.arch.significant:</a> Significant changes to the parameters affecting
+placement are deemed to have happened at certain client calls and when
+the total allocation has changed substantially since the last
+recomputation. Such conditions set a flag that causes the next
+allocation to recompute even if its current region is not full
+(possibly second-guess the decision to recompute after some
+investigation of the current state?).</p>
+</div>
+<div class="section" id="deallocation">
+<h3>16.7.4. Deallocation<a class="headerlink" href="#deallocation" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.locus.arch.free"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.free">.arch.free:</a> Deallocation simply updates the counters in the region
+and the locus. For some loci, it will make the region of the
+deallocation the current region. <span class="target" id="design.mps.locus.arch.free.remove"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.free.remove">.arch.free.remove:</a> If a region
+becomes entirely empty, it is deleted (and the neighbors limits might
+be adjusted).</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">This is quite tricky to get right.</p>
+</div>
+</div>
+<div class="section" id="region-placement-recomputation">
+<h3>16.7.5. Region placement recomputation<a class="headerlink" href="#region-placement-recomputation" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.locus.arch.gap"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.gap">.arch.gap:</a> When doing placement computations, we view the arena as
+a sequence of alternating region cores and gaps (which can be small,
+even zero-sized). Initially, we&#8217;ll take the core of a region to be the
+area between the high and low watermark, but in the future we might be
+more flexible about that.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Edge determination is actually a worthwhile direction to explore.</p>
+</div>
+<p><span class="target" id="design.mps.locus.arch.reach"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.reach">.arch.reach:</a> The gap between two cores could potentially end up
+being allocated to either region, if they grow in that direction, or
+one or neither, if they don&#8217;t. The set of states that the region
+assignment could reach by assigning the gaps to their neighbors is
+called the reach of the current configuration.</p>
+<p><span class="target" id="design.mps.locus.arch.placement.object"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.placement.object">.arch.placement.object:</a> The object of the recomputation is to find
+a configuration of regions that is not too far from the current
+configuration and that keeps all the peaks inside its reach; if that
+is not possible, keep the nearest ones in the reach and then minimize
+the total distance from the rest.</p>
+<p><span class="target" id="design.mps.locus.arch.placement.hypothetical"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.placement.hypothetical">.arch.placement.hypothetical:</a> The configurations that are
+considered will include hypothetical placements for new regions for
+loci that cannot fit in their existing regions at the peak. This is
+necessary to avoid choosing a bad alternative.</p>
+<p><span class="target" id="design.mps.locus.arch.placement.interesting"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.placement.interesting">.arch.placement.interesting:</a> The computation will only consider new
+regions of loci that are deemed interesting, that is, far from their
+peak state. This will reduce the computational burden and avoid
+jittering near a peak.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Details missing.</p>
+</div>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>16.8. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>[missing]</p>
+</div>
+<div class="section" id="notes">
+<h2>16.9. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.locus.idea.change"></span><a class="mpstag reference internal" href="#design.mps.locus.idea.change">.idea.change:</a> Even after the first segment, be prepared to change
+your mind, if by the second segment a lot of new loci have been
+created.</p>
+<p><span class="target" id="design.mps.locus.distance"></span><a class="mpstag reference internal" href="#design.mps.locus.distance">.distance:</a> If the current state is far from a peak, there&#8217;s time to
+reassign regions and for free space to appear (in fact, under the
+steady arena assumption, enough free space <em>will</em> appear).</p>
+<p><span class="target" id="design.mps.locus.clear-pool"></span><a class="mpstag reference internal" href="#design.mps.locus.clear-pool">.clear-pool:</a> Need to have a function to deallocate all objects in a
+pool, so that <tt class="xref c c-func docutils literal"><span class="pre">PoolDestroy()</span></tt> won&#8217;t have to be used for that
+purpose.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">16. MPS Configuration</a><ul>
+<li><a class="reference internal" href="#introduction">16.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">16.2. Overview</a><ul>
+<li><a class="reference internal" href="#why-is-it-important-to-manage-address-space">16.2.1. Why is it important to manage address space?</a></li>
+<li><a class="reference internal" href="#discovering-the-layout">16.2.2. Discovering the layout</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#definitions">16.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">16.4. Requirements</a></li>
+<li><a class="reference internal" href="#analysis">16.5. Analysis</a></li>
+<li><a class="reference internal" href="#interface">16.6. Interface</a><ul>
+<li><a class="reference internal" href="#loci">16.6.1. Loci</a></li>
+<li><a class="reference internal" href="#peaks">16.6.2. Peaks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#architecture">16.7. Architecture</a><ul>
+<li><a class="reference internal" href="#data-objects">16.7.1. Data objects</a></li>
+<li><a class="reference internal" href="#overview-of-strategy">16.7.2. Overview of strategy</a></li>
+<li><a class="reference internal" href="#allocation">16.7.3. Allocation</a></li>
+<li><a class="reference internal" href="#deallocation">16.7.4. Deallocation</a></li>
+<li><a class="reference internal" href="#region-placement-recomputation">16.7.5. Region placement recomputation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">16.8. Implementation</a></li>
+<li><a class="reference internal" href="#notes">16.9. Notes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lock.html"
+                        title="previous chapter">15. The lock module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="message.html"
+                        title="next chapter">17. Client message protocol</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="message.html" title="17. Client message protocol"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lock.html" title="15. The lock module"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -212,9 +212,9 @@ call <a class="reference internal" href="#mps_arena_extend" title="mps_arena_ext
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>, pass the size and base
 address like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="n">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
-                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="kt">mps_arena_class_t</span> <span class="n">mps_arena_class_cl</span><span class="p">,</span>
+                           <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -303,8 +303,8 @@ the operating system refused to provide enough memory.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="#mps_arena_create" title="mps_arena_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create()</span></tt></a>, pass the size like
 this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="n">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
-                           <span class="n">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_arena_create</span><span class="p">(</span><span class="kt">mps_arena_t</span> <span class="o">*</span><span class="n">arena_o</span><span class="p">,</span>
+                           <span class="kt">mps_arena_class_t</span> <span class="n">arena_class_vm</span><span class="p">(),</span>
                            <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
 </pre></div>
 </div>

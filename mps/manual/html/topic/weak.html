@@ -78,14 +78,14 @@ all weak references to the block have been splatted, the block may be
 reclaimed.</p>
 <p>For example, a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a> for objects in an AWL pool might
 look like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
-            <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">;</span>
+            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">;</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
-                <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+                <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
                     <span class="cm">/* reference was splatted */</span>

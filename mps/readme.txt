@@ -52,7 +52,7 @@ using it.  The basic case is straightforward on supported platforms
 
 This will produce an object file you can link with your project.  For
 details of how to configure the MPS, build libraries and tests, use
-IDEs, autoconf, etc. see `Building the MPS <manual/build.txt>`_.
+IDEs, autoconf, etc. see `Building the MPS <manual/build.txt>`__.
 
 For an example of using the MPS, see the `Scheme interpreter
 example <example/scheme/>`_.
@@ -81,7 +81,7 @@ that we are powerless to correct.  It is due to be fixed in Windows 8.
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see `Building the MPS
-<manual/guide/build.html>`_). Most of the MPS is written in very pure
+<manual/guide/build.html>`__). Most of the MPS is written in very pure
 ANSI C and compiles without warnings on anything.
 
 

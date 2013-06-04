@@ -9,6 +9,9 @@ AWL pool class
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: AWL pool class; design
+   single: pool class; AWL design
 
 
 Introduction

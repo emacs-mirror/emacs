@@ -1,0 +1,131 @@
+.. _design-sso1al:
+
+
+.. index::
+   pair: Digital Unix on Alpha stack scanner; design
+   pair: Digital Unix on Alpha; stack scanner design
+
+
+Stack scanner for Digital Unix on Alpha
+=======================================
+
+.. mps:prefix:: design.mps.sso1al
+   pair: Digital Unix on Alpha stack scanner; design
+   pair: Digital Unix on Alpha; stack scanner design
+
+.. warning::
+
+    As of 2013-05-26, the MPS is no longer supported on Digital Unix,
+    so this document is only of historical interest.
+
+
+Introduction
+------------
+
+:mps:tag:`readership` Any MPS developer.
+
+:mps:tag:`intro` This is the design for Stack Scanner module that runs on
+Digital UNIX / Alpha systems (See os.o1 and arch.al). The design
+adheres to the general design and interface described (probably not
+described actually) in design.mps.ss.
+
+:mps:tag:`source.alpha` book.digital96 (Alpha Architecture Handbook)
+describes the Alpha Architecture independently of any particular
+implementation. The instruction mnemonics and the semantics for each
+instruction are specified in that document.
+
+[DEC_Assembler]_ describes the assembler syntax and assembler
+directives. It also summarises the calling conventions used. Chapters
+1 and 6 were especially useful, especially chapter 6.
+
+[DEC_Alpha_Calling_Standard]_ describes the calling conventions used
+for Digital Alpha systems. Chapter 2 was useful. But the whole
+document was not used as much as the previous 2 documents.
+
+
+Definitions
+-----------
+
+:mps:tag:`def.saved` Saved Register.  A saved register is one whose value is defined to 
+be preserved across a procedure call according to the Calling Standard.  They 
+are ``$9``--``$15``, ``$26``, and ``$30``.  ``$30`` is the stack pointer.
+
+:mps:tag:`def.non-saved` Non-Saved Register. A non-save register is a
+register that is assumed to be modified across a procedure call
+according to the Calling Standard.
+
+:mps:tag:`def.tos` Top of Stack. The top of stack is the youngest portion of
+the stack.
+
+:mps:tag:`def.bos` Bottom of Stack. The bottom of stack is the oldest
+portion of the stack.
+
+:mps:tag:`def.base` Base. Of a range of addresses, the base is the lowest
+address in the range.
+
+:mps:tag:`def.limit` Limit. Of a range of addresses, the limit is "one past"
+the highest address in the range.
+
+
+Overview
+--------
+
+:mps:tag:`overview` The registers and the stack need to be scanned. This is
+achieved by storing the contents of the registers into a frame at the
+top of the stack and then passing the base and limit of the stack
+region, including the newly created frame, to the function
+:c:func:`TraceScanAreaTagged()`. :c:func:`TraceScanAreaTagged()` performs the
+actual scanning and fixing.
+
+
+Detail Design
+-------------
+
+Functions
+.........
+
+:mps:tag:`fun.stackscan` :c:func:`StackScan()`
+
+:mps:tag:`fun.stackscan.asm` The function is written in assembler.
+:mps:tag:`fun.stackscan.asm.justify` This is because the machine registers
+need to be examined, and it is only possible to access the machine
+registers using assembler.
+
+:mps:tag:`fun.stackscan.entry` On entry to this procedure all the non-saved
+(temporary) registers that contain live pointers must have been saved
+in some root (usually the stack) by the mutator (otherwise it would
+lose the values). Therefore only the saved registers need to be stored
+by this procedure.
+
+:mps:tag:`fun.stackscan.assume.saved` We assume that all the saved registers
+are roots. This is conservative since some of the saved registers
+might not be used.
+
+:mps:tag:`fun.stackscan.frame` A frame is be created on the top of the
+stack. :mps:tag:`fun.stackscan.frame.justify` This frame is used to store
+the saved registers into so that they can be scanned.
+
+:mps:tag:`fun.stackscan.save` All the saved registers, apart from $30 the
+stack pointer, are to be stored in the frame.
+:mps:tag:`fun.stackscan.save.justify` This is so that they can be scanned.
+The stack pointer itself is not scanned as the stack is assumed to be
+a root (and therefore a priori alive).
+
+:mps:tag:`fun.stackscan.call` :c:func:`TraceScanAreaTagged()` is called with the
+current stack pointer as the base and the (passed in) ``StackBot`` as
+the limit of the region to be scanned. :mps:tag:`fun.stackscan.call.justify`
+This function does the actual scanning. The Stack on Alpha systems
+grows down so the stack pointer (which points to the top of the stack)
+is lower in memory than the bottom of the stack.
+
+:mps:tag:`fun.stackscan.return` The return value from
+:c:func:`TraceScanAreaTagged()` is used as the return value for
+:c:func:`StackScan()`.
+
+
+References
+----------
+
+.. [DEC_Assembler] Digital Equipment Corporation. 1996; <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APS31DTE/TITLE.HTM>. .. [DEC_Alpha_Calling_Standard] "Calling Standard for Alpha Systems"; Digital Equipment Corporation. 1996. "`Assembly Language Programmer's Guide <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APY8ACTE/TITLE.HTM>`__".
+
+

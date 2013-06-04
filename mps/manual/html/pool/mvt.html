@@ -129,7 +129,7 @@ five <a class="reference internal" href="../glossary/k.html#term-keyword-argumen
 smallest general purpose alignment for the architecture) is the
 predicted minimum size of blocks that will be allocated from the
 pool.</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MEAN_SIZE" title="MPS_KEY_MEAN_SIZE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></a> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
 predicted mean size of blocks that will be allocated from the
 pool.</li>
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 8192) is the
@@ -201,13 +201,13 @@ of temporal fit due to varying object life expectancies.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the arguments like
 this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
                           <span class="kt">size_t</span> <span class="n">minimum_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">mean_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">maximum_size</span><span class="p">,</span>
-                          <span class="n">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
-                          <span class="n">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
+                          <span class="kt">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
+                          <span class="kt">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition-note last admonition">

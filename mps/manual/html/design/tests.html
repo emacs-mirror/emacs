@@ -1,0 +1,136 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tests &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tests">
+<span id="design-tests"></span><h1>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.tests"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.tests.intro"></span><a class="mpstag reference internal" href="#design.mps.tests.intro">.intro:</a> This document contains a guide to the Memory Pool System
+tests.</p>
+<p><span class="target" id="design.mps.tests.readership"></span><a class="mpstag reference internal" href="#design.mps.tests.readership">.readership:</a> This document is intended for any MPS developer.</p>
+</div>
+<div class="section" id="smoke-tests">
+<h2>Smoke tests<a class="headerlink" href="#smoke-tests" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.tests.smoke"></span><a class="mpstag reference internal" href="#design.mps.tests.smoke">.smoke:</a> The &#8220;smoke tests&#8221; provide quick checks that the MPS is
+working. They run quickly enough for it to be practical to run them
+every time the MPS is built.</p>
+<p><span class="target" id="design.mps.tests.randomize"></span><a class="mpstag reference internal" href="#design.mps.tests.randomize">.randomize:</a> Each time a test case is run, it randomly chooses some
+of its parameters (for example, the sizes of objects, or how many
+links to create in a graph of references). This allows a fast test
+to cover many cases over time.</p>
+<p><span class="target" id="design.mps.tests.randomize.repeatable"></span><a class="mpstag reference internal" href="#design.mps.tests.randomize.repeatable">.randomize.repeatable:</a> The random numbers are chosen
+pseudo-randomly based on a seed initialized from environmental data
+(the time and the processor cycle count). The seed is reported at test
+startup. Each test can be run with a specified seed. This ensures
+that the deterministic tests are repeatable.</p>
+<div class="section" id="smoke-test-list">
+<h3>Smoke test list<a class="headerlink" href="#smoke-test-list" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.tests.test.finalcv"></span><a class="mpstag reference internal" href="#design.mps.tests.test.finalcv">.test.finalcv:</a> Registers objects for finalization, makes them
+unreachable, deregisters them, etc. Churns to provoke minor (nursery)
+collection.</p>
+<p><span class="target" id="design.mps.tests.test.finaltest"></span><a class="mpstag reference internal" href="#design.mps.tests.test.finaltest">.test.finaltest:</a> Creates a large binary tree, and registers every
+node. Drops the top reference, requests collection, and counts the
+finalization messages.</p>
+<p><span class="target" id="design.mps.tests.test.zcoll"></span><a class="mpstag reference internal" href="#design.mps.tests.test.zcoll">.test.zcoll:</a> Collection scheduling, and collection feedback.</p>
+<p><span class="target" id="design.mps.tests.test.zmess"></span><a class="mpstag reference internal" href="#design.mps.tests.test.zmess">.test.zmess:</a> Message lifecycle and finalization messages.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tests</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#smoke-tests">Smoke tests</a><ul>
+<li><a class="reference internal" href="#smoke-test-list">Smoke test list</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

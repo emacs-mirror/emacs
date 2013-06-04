@@ -216,16 +216,27 @@ provoke these assertions.</p>
 than the client program, but it is not unknown, so if you have made
 every effort to track down the cause (see <a class="reference internal" href="../guide/debug.html#guide-debug"><em>Debugging with the Memory Pool System</em></a>) without
 luck, <a class="reference internal" href="../contact.html#contact"><em>get in touch</em></a>.</p>
-<p>If you are running your MPS-enabled program from Emacs via the
-<tt class="docutils literal"><span class="pre">compile</span></tt> command, you will probably want to recognize MPS
-assertions automatically, by adding the following to your <tt class="docutils literal"><span class="pre">.emacs</span></tt>:</p>
-<div class="highlight-scheme"><div class="highlight"><pre><span class="p">(</span><span class="nf">add-to-list</span> <span class="ss">&#39;compilation-error-regexp-alist</span>
-             <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;MPS ASSERTION FAILURE: .*\n\\(.*\\)\n\\([0-9]+\\)&quot;</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">))</span>
-</pre></div>
-</div>
+<div class="section" id="assertion-handling">
+<span id="topic-error-assertion-handling"></span><span id="index-2"></span><h3>3.2.1. Assertion handling<a class="headerlink" href="#assertion-handling" title="Permalink to this headline">¶</a></h3>
+<p>When the MPS detects an assertion failure, it calls the <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a>
+function <a class="reference internal" href="plinth.html#mps_lib_assert_fail" title="mps_lib_assert_fail"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail()</span></tt></a>. Unless you have replaced the plinth, this behaves as follows:</p>
+<ul class="simple">
+<li>In the <a class="reference internal" href="../glossary/c.html#term-cool"><em class="xref std std-term">cool</em></a> <a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">variety</em></a>, print the assertion message to
+standard error and terminate the program by calling <tt class="xref c c-func docutils literal"><span class="pre">abort()</span></tt>.</li>
+<li>In the <a class="reference internal" href="../glossary/h.html#term-hot"><em class="xref std std-term">hot</em></a> and <a class="reference internal" href="../glossary/r.html#term-rash"><em class="xref std std-term">rash</em></a> varieties, print the assertion
+message to standard error and do <em>not</em> terminate the program.</li>
+</ul>
+<p>You can change this behaviour by providing your own plinth, or using
+<a class="reference internal" href="plinth.html#mps_lib_assert_fail_install" title="mps_lib_assert_fail_install"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail_install()</span></tt></a>.</p>
+<p>In many applications, users don&#8217;t want their program terminated when
+the MPS detects an error, no matter how severe. A lot of MPS
+assertions indicate that the program is going to crash very soon, but
+there still may be a chance for a user to get some useful results or
+save their work. This is why the default assertion handler only
+terminates in the <a class="reference internal" href="../glossary/c.html#term-cool"><em class="xref std std-term">cool</em></a> <a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">variety</em></a>.</p>
 </div>
 <div class="section" id="common-assertions-and-their-causes">
-<span id="topic-error-cause"></span><span id="index-2"></span><h2>3.3. Common assertions and their causes<a class="headerlink" href="#common-assertions-and-their-causes" title="Permalink to this headline">¶</a></h2>
+<span id="topic-error-cause"></span><span id="index-3"></span><h3>3.2.2. Common assertions and their causes<a class="headerlink" href="#common-assertions-and-their-causes" title="Permalink to this headline">¶</a></h3>
 <p>This section lists some commonly encountered assertions and suggests
 likely causes. If you encounter an assertion not listed here (or an
 assertion that is listed here but for which you discovered a different
@@ -276,34 +287,40 @@ have kept the block alive failed to be scanned. Perhaps a
 <a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">formatted object</em></a> was updated in some way that has a race
 condition?</div></blockquote>
 </div>
+</div>
 <div class="section" id="varieties">
-<span id="index-3"></span><h2>3.4. Varieties<a class="headerlink" href="#varieties" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>3.3. Varieties<a class="headerlink" href="#varieties" title="Permalink to this headline">¶</a></h2>
 <p>The MPS has three behaviours with respect to internal checking and
 <a class="reference internal" href="telemetry.html#topic-telemetry"><em>telemetry</em></a>, which need to be selected at
 compile time, by defining one of the following preprocessor
 constants. If none is specified then <a class="reference internal" href="#CONFIG_VAR_HOT" title="CONFIG_VAR_HOT"><tt class="xref c c-macro docutils literal"><span class="pre">CONFIG_VAR_HOT</span></tt></a> is the
 default.</p>
-<span class="target" id="index-4"></span><dl class="macro">
+<span class="target" id="index-5"></span><dl class="macro">
 <dt id="CONFIG_VAR_COOL">
 <tt class="descname">CONFIG_VAR_COOL</tt><a class="headerlink" href="#CONFIG_VAR_COOL" title="Permalink to this definition">¶</a></dt>
 <dd><p>The cool variety is intended for development and testing.</p>
-<p>All functions check the consistency of their data structures and
-may assert, including functions on the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.</p>
+<p>All functions check the consistency of their data structures and may
+assert, including functions on the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.
+Furthermore, in the default ANSI Library the default assertion
+handler will terminate the program.  See
+<a class="reference internal" href="plinth.html#mps_lib_assert_fail_install" title="mps_lib_assert_fail_install"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail_install()</span></tt></a>.</p>
 <p>All events are sent to the <a class="reference internal" href="../glossary/t.html#term-telemetry-stream"><em class="xref std std-term">telemetry stream</em></a>, including
 events on the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.</p>
 </dd></dl>
 
-<span class="target" id="index-5"></span><dl class="macro">
+<span class="target" id="index-6"></span><dl class="macro">
 <dt id="CONFIG_VAR_HOT">
 <tt class="descname">CONFIG_VAR_HOT</tt><a class="headerlink" href="#CONFIG_VAR_HOT" title="Permalink to this definition">¶</a></dt>
 <dd><p>The hot variety is intended for production and deployment.</p>
 <p>Some functions check the consistency of their data structures and
-may assert, namely those not on the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.</p>
+may assert, namely those not on the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.  However,
+in the default ANSI Library, the default assertion handler will not
+terminate the program.  See <a class="reference internal" href="plinth.html#mps_lib_assert_fail_install" title="mps_lib_assert_fail_install"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail_install()</span></tt></a>.</p>
 <p>Some events are sent to the telemetry stream, namely those not on
 the <a class="reference internal" href="../glossary/c.html#term-critical-path"><em class="xref std std-term">critical path</em></a>.</p>
 </dd></dl>
 
-<span class="target" id="index-6"></span><dl class="macro">
+<span class="target" id="index-7"></span><dl class="macro">
 <dt id="CONFIG_VAR_RASH">
 <tt class="descname">CONFIG_VAR_RASH</tt><a class="headerlink" href="#CONFIG_VAR_RASH" title="Permalink to this definition">¶</a></dt>
 <dd><p>The rash variety is intended for mature integrations, or for
@@ -329,9 +346,12 @@ consequently there are no assertions.</p>
   <ul>
 <li><a class="reference internal" href="#">3. Error handing</a><ul>
 <li><a class="reference internal" href="#result-codes">3.1. Result codes</a></li>
-<li><a class="reference internal" href="#assertions">3.2. Assertions</a></li>
-<li><a class="reference internal" href="#common-assertions-and-their-causes">3.3. Common assertions and their causes</a></li>
-<li><a class="reference internal" href="#varieties">3.4. Varieties</a></li>
+<li><a class="reference internal" href="#assertions">3.2. Assertions</a><ul>
+<li><a class="reference internal" href="#assertion-handling">3.2.1. Assertion handling</a></li>
+<li><a class="reference internal" href="#common-assertions-and-their-causes">3.2.2. Common assertions and their causes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#varieties">3.3. Varieties</a></li>
 </ul>
 </li>
 </ul>

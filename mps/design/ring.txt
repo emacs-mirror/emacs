@@ -9,6 +9,7 @@ Ring data structure
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms:   pair: ring structure; design
 
 
 Introduction

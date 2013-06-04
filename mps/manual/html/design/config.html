@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="mps-configuration">
-<span id="design-design-config"></span><span id="design-config"></span><span id="index-0"></span><h1>1. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-config"></span><div class="section" id="mps-configuration">
+<span id="index-0"></span><h1>1. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <span id="design.mps.config"></span><h2>1.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.intro"></span><a class="mpstag reference internal" href="#design.mps.config.intro">.intro:</a> This document describes how the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool System</a> source code is configured so
@@ -83,9 +83,9 @@ not consume much developer time.</p>
 <p><span class="target" id="design.mps.config.req.prod"></span><a class="mpstag reference internal" href="#design.mps.config.req.prod">.req.prod:</a> Allow product specific configurations of the MPS, so that
 we can build variants of the MPS for use in different products.  This
 requirement has been retired on 2012-09-03 as part of work on the
-<a class="reference external" href="http://www.ravenbrook.com/project/mps/branch/2012-08-15/variety-reform/">variety-reform</a> branch.  Client-specific customisation of the MPS will
+<a class="reference external" href="/project/mps/branch/2012-08-15/variety-reform">variety-reform</a> branch.  Client-specific customisation of the MPS will
 be handled in source control, while the MPS source remains generic, to
-reduce costs and increase reliability.  See <a class="reference internal" href="#rb-2012-09-13">[RB 2012-09-13]</a>.</p>
+reduce costs and increase reliability.  See <a class="reference internal" href="#rb-2012-09-13">[RB_2012-09-13]</a>.</p>
 </div>
 </div>
 <div class="section" id="definitions">
@@ -139,9 +139,9 @@ general rules for implementation [ref?] that are enforced by MPS
 development procedures including code review and inspection.</p>
 </div>
 <div class="section" id="the-build-system">
-<h2>1.5. The Build System<a class="headerlink" href="#the-build-system" title="Permalink to this headline">¶</a></h2>
+<h2>1.5. The build system<a class="headerlink" href="#the-build-system" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="abstract-build-function">
-<h3>1.5.1. Abstract Build Function<a class="headerlink" href="#abstract-build-function" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.1. Abstract build function<a class="headerlink" href="#abstract-build-function" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.build.fun"></span><a class="mpstag reference internal" href="#design.mps.config.build.fun">.build.fun:</a> The MPS implementation assumes only a simple &#8220;build
 function&#8221; that takes a set of sources, possibly in several languages,
 compiles them with a set of predefined preprocessor symbols, and links
@@ -170,7 +170,7 @@ upper case. Currently (2012-09-03):</p>
 <p><span class="target" id="design.mps.config.var.hot"></span><a class="mpstag reference internal" href="#design.mps.config.var.hot">.var.hot:</a> <tt class="xref c c-macro docutils literal"><span class="pre">HOT</span></tt></p>
 <blockquote>
 <div>Intended for release in products.  Optimised, reduced internal
-checking, especially on the critical path <a class="reference internal" href="#rb-2012-09-07">[RB 2012-09-07]</a>.</div></blockquote>
+checking, especially on the critical path <a class="reference internal" href="#rb-2012-09-07">[RB_2012-09-07]</a>.</div></blockquote>
 <p><span class="target" id="design.mps.config.var.cool"></span><a class="mpstag reference internal" href="#design.mps.config.var.cool">.var.cool:</a> <tt class="xref c c-macro docutils literal"><span class="pre">COOL</span></tt></p>
 <blockquote>
 <div>Intended for use during development.  Moderately thorough internal
@@ -192,9 +192,12 @@ It will be phased out of the open sources.</div></blockquote>
 <p><span class="target" id="design.mps.config.build.srcs"></span><a class="mpstag reference internal" href="#design.mps.config.build.srcs">.build.srcs:</a> The &#8220;srcs&#8221; are the set of sources that must be
 compiled in order to build the target. The set of sources may vary
 depending on the configuration. For example, different sets of sources
-may be required to build different architectures. [This is a
-dependency between the makefile (or whatever) and the module
-configuration in <a class="reference external" href="&lt;../code/config.h&gt;">config.h</a>.]</p>
+may be required to build different architectures.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">This is a dependency between the makefile (or whatever) and the
+module configuration in <a class="reference external" href="&lt;../code/config.h&gt;">config.h</a>.</p>
+</div>
 <p><span class="target" id="design.mps.config.build.libs"></span><a class="mpstag reference internal" href="#design.mps.config.build.libs">.build.libs:</a> The &#8220;libs&#8221; are the set of libraries to which the
 compiled sources must be linked in order to build the target. For
 example, when building a test program, it might include the ANSI C
@@ -215,27 +218,28 @@ indicates the source language.</p>
 in their name.  See <a class="reference internal" href="#design.mps.config.mod.impls">.mod.impls</a>.</p>
 </div>
 <div class="section" id="modules-and-naming">
-<h3>1.5.3. Modules and Naming<a class="headerlink" href="#modules-and-naming" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.3. Modules and naming<a class="headerlink" href="#modules-and-naming" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.mod.unique"></span><a class="mpstag reference internal" href="#design.mps.config.mod.unique">.mod.unique:</a> Each module has an identifier which is unique within the MPS.</p>
 <p><span class="target" id="design.mps.config.mod.impls"></span><a class="mpstag reference internal" href="#design.mps.config.mod.impls">.mod.impls:</a> Each module has one or more implementations which may be
-in any language supported by the relevant build environment.
-<span class="target" id="design.mps.config.mod.primary"></span><a class="mpstag reference internal" href="#design.mps.config.mod.primary">.mod.primary:</a> The primary implementation of a module is written in
+in any language supported by the relevant build environment.</p>
+<p><span class="target" id="design.mps.config.mod.primary"></span><a class="mpstag reference internal" href="#design.mps.config.mod.primary">.mod.primary:</a> The primary implementation of a module is written in
 target-independent ANSI C in a source file with the same name as the
-module.  <span class="target" id="design.mps.config.mod.an"></span><a class="mpstag reference internal" href="#design.mps.config.mod.an">.mod.an:</a> Where there are platform-specific implementations
-and an inferior portable ANSI C fallback implementation, &#8220;an&#8221; is used in
-place of the platform code.  <span class="target" id="design.mps.config.mod.secondary"></span><a class="mpstag reference internal" href="#design.mps.config.mod.secondary">.mod.secondary:</a> The names of other
-implementations should begin with the same prefix (the module id or a
-shortened version of it) and be suffixed with on or more target
-parameter codes (defined below).  In particular, the names of assembly
-language sources must include the target parameter code for the relevant
-architecture.</p>
+module.</p>
+<p><span class="target" id="design.mps.config.mod.an"></span><a class="mpstag reference internal" href="#design.mps.config.mod.an">.mod.an:</a> Where there are platform-specific implementations and an
+inferior portable ANSI C fallback implementation, &#8220;an&#8221; is used in
+place of the platform code.</p>
+<p><span class="target" id="design.mps.config.mod.secondary"></span><a class="mpstag reference internal" href="#design.mps.config.mod.secondary">.mod.secondary:</a> The names of other implementations should begin
+with the same prefix (the module id or a shortened version of it) and
+be suffixed with on or more target parameter codes (defined below). In
+particular, the names of assembly language sources must include the
+target parameter code for the relevant architecture.</p>
 <p><span class="target" id="design.mps.config.mod.example"></span><a class="mpstag reference internal" href="#design.mps.config.mod.example">.mod.example:</a> For example, the stack scanner is defined in <a class="reference external" href="../code/ss.h">ss.h</a> (which is platform-independent).  It has some
 platform-independent C in <a class="reference external" href="../code/ss.c">ss.c</a> and, for example,
 <a class="reference external" href="../code/ssw3i6mv.c">ssw3i6mv.c</a> is specific to Windows on the x64
 architecture built with Microsoft Visual C.</p>
 </div>
 <div class="section" id="build-system-rationale">
-<h3>1.5.4. Build System Rationale<a class="headerlink" href="#build-system-rationale" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.4. Build system rationale<a class="headerlink" href="#build-system-rationale" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.build.rat"></span><a class="mpstag reference internal" href="#design.mps.config.build.rat">.build.rat:</a> This simple design makes it possible to build the MPS
 using many different tools.  Microsoft Visual C and other graphical
 development tools do not support much in the way of generated sources,
@@ -303,7 +307,7 @@ identifers beginning &#8220;CONFIG_&#8221; should only appear in impl.h.config.
 Code may depend on configuration parameters in certain, limited ways, as
 defined below (<a class="reference internal" href="#design.mps.config.conf">.conf</a>).</p>
 <div class="section" id="target-platform-detection">
-<h3>1.6.1. Target Platform Detection<a class="headerlink" href="#target-platform-detection" title="Permalink to this headline">¶</a></h3>
+<h3>1.6.1. Target platform detection<a class="headerlink" href="#target-platform-detection" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.pf"></span><a class="mpstag reference internal" href="#design.mps.config.pf">.pf:</a> The target platform is &#8220;detected&#8221; by the preprocessor directives in
 <a class="reference external" href="&lt;../code/mpstd.h&gt;">mpstd.h</a>.</p>
 <p><span class="target" id="design.mps.config.pf.form"></span><a class="mpstag reference internal" href="#design.mps.config.pf.form">.pf.form:</a> This file consists of sets of directives of the form:</p>
@@ -340,16 +344,16 @@ the the target detected (<a class="reference internal" href="#design.mps.config.
 </pre></div>
 </div>
 <p><span class="target" id="design.mps.config.pf.word"></span><a class="mpstag reference internal" href="#design.mps.config.pf.word">.pf.word:</a> The declaration of <a class="reference internal" href="../topic/platform.html#MPS_T_WORD" title="MPS_T_WORD"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_T_WORD</span></tt></a> defines the unsigned
-integral type which corresponds, on the detected target, to the machine
-word.  It is used to defined the MPS Word type (design.mps.type.word).
-[Insert backwards ref there.]  (We avoid using <tt class="docutils literal"><span class="pre">typedef</span></tt> here because
-<a class="reference external" href="&lt;../code/mpstd.h&gt;">mpstd.h</a> could potentially be included in assembly language source
-code.)  For example:</p>
+integral type which corresponds, on the detected target, to the
+machine word. It is used to defined the MPS Word type
+(design.mps.type.word). For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define MPS_T_WORD      unsigned long</span>
 </pre></div>
 </div>
+<p>We avoid using <tt class="docutils literal"><span class="pre">typedef</span></tt> here because <a class="reference external" href="&lt;../code/mpstd.h&gt;">mpstd.h</a> could potentially
+be included in assembly language source code.</p>
 <p><span class="target" id="design.mps.config.pf.word-width"></span><a class="mpstag reference internal" href="#design.mps.config.pf.word-width">.pf.word-width:</a> The declaration of <a class="reference internal" href="../topic/platform.html#MPS_WORD_WIDTH" title="MPS_WORD_WIDTH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_WORD_WIDTH</span></tt></a> defines the
-number of bits in the type defined by <cite>MPS_T_WORD</cite> (<a class="reference internal" href="#design.mps.config.pf.word">.pf.word</a>) on the
+number of bits in the type defined by <a class="reference internal" href="../topic/platform.html#MPS_T_WORD" title="MPS_T_WORD"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_T_WORD</span></tt></a> (<a class="reference internal" href="#design.mps.config.pf.word">.pf.word</a>) on the
 target. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define MPS_WORD_WIDTH  32</span>
 </pre></div>
@@ -380,37 +384,31 @@ that is used to identify the target platform in <a class="reference external" hr
 </div>
 </div>
 <div class="section" id="target-varieties">
-<h3>1.6.2. Target Varieties<a class="headerlink" href="#target-varieties" title="Permalink to this headline">¶</a></h3>
+<h3>1.6.2. Target varieties<a class="headerlink" href="#target-varieties" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.var"></span><a class="mpstag reference internal" href="#design.mps.config.var">.var:</a> The target variety is handled by preprocessor directives in
-impl.h.config.  <span class="target" id="design.mps.config.var.form"></span><a class="mpstag reference internal" href="#design.mps.config.var.form">.var.form:</a> The file contains sets of directives of
-the form:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="cp">#elif defined(CONFIG_VAR_DF)</span>
-<span class="cp">#define MPS_VAR_DF</span>
-<span class="cp">#define ASSERT_MPSI</span>
-<span class="cp">#define ASSERT_MPM</span>
-<span class="n">etc</span><span class="p">.</span>
+impl.h.config.</p>
+<p><span class="target" id="design.mps.config.var.form"></span><a class="mpstag reference internal" href="#design.mps.config.var.form">.var.form:</a> The file contains sets of directives of the form:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(CONFIG_VAR_COOL)</span>
+<span class="cp">#define CONFIG_ASSERT</span>
+<span class="cp">#define CONFIG_ASSERT_ALL</span>
+<span class="cp">#define CONFIG_STATS</span>
 </pre></div>
 </div>
 <p><span class="target" id="design.mps.config.var.detect"></span><a class="mpstag reference internal" href="#design.mps.config.var.detect">.var.detect:</a> The configured variety is one of the variety
-preprocessor definitions passed to the build function (<a class="reference internal" href="#design.mps.config.build.defs">.build.defs</a>),
-e.g. <a class="reference internal" href="../topic/error.html#CONFIG_VAR_HOT" title="CONFIG_VAR_HOT"><tt class="xref c c-macro docutils literal"><span class="pre">CONFIG_VAR_HOT</span></tt></a>. These are decoupled so that it&#8217;s possible to
-tell the difference between overridden settings etc.  [Explain.]</p>
+preprocessor definitions passed to the build function
+(<a class="reference internal" href="#design.mps.config.build.defs">.build.defs</a>), for example, <a class="reference internal" href="../topic/error.html#CONFIG_VAR_COOL" title="CONFIG_VAR_COOL"><tt class="xref c c-macro docutils literal"><span class="pre">CONFIG_VAR_COOL</span></tt></a>. These are
+decoupled in order to keep the number of supported varieties small,
+controlling each feature (for example, assertions) by a single
+preprocessor definition, and maintaining flexibility about which
+features are enabled in each variety.</p>
 <p><span class="target" id="design.mps.config.var.symbols"></span><a class="mpstag reference internal" href="#design.mps.config.var.symbols">.var.symbols:</a> The directives should define whatever symbols are
-necessary to control annotations.  These symbols parameterize other
-parts of the code, such as the declaration of assertions, etc.  The
-symbols should all begin with the prefix <tt class="docutils literal"><span class="pre">MPS_VAR\_</span></tt>.</p>
-<p>[Tidy this up:]
-Note, anything which can be configured, is configured, even if it&#8217;s just
-configured to &#8220;NONE&#8221; meaning nothing.  This makes sure that you can&#8217;t
-choose something by omission.  Where these symbols are used there will
-be a #error to catch the unused case.  Exception: To allow simple
-building of the MPS with &#8220;cc -c mps.c&#8221; we choose CONFIG_VAR_HOT by
-default.
-[This is a general principle which applies to other configuration stuff too.]</p>
+necessary to control featrues. These symbols parameterize other parts
+of the code, such as the declaration of assertions, etc. The symbols
+should all begin with the prefix <tt class="xref c c-macro docutils literal"><span class="pre">CONFIG_</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="source-code-configuration">
-<h2>1.7. Source Code Configuration<a class="headerlink" href="#source-code-configuration" title="Permalink to this headline">¶</a></h2>
+<h2>1.7. Source code configuration<a class="headerlink" href="#source-code-configuration" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.conf"></span><a class="mpstag reference internal" href="#design.mps.config.conf">.conf:</a> This section describes how the configuration may affect the
 source code of the MPS.</p>
 <p><span class="target" id="design.mps.config.conf.limit"></span><a class="mpstag reference internal" href="#design.mps.config.conf.limit">.conf.limit:</a> The form of dependency allowed is carefully limited to
@@ -447,19 +445,19 @@ possibly their types, depending on the protocol defined</li>
 configuration parameter.  However, the concrete interface may vary.</p>
 <p>For example, this isn&#8217;t allowed, because there is a change in the interface:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(PROT_FOO)</span>
-<span class="kt">void</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
 <span class="cp">#else</span>
-<span class="kt">int</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
+<span class="kt">int</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
 <p>This example shows how:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#ifdef PROTECTION</span>
-<span class="kt">void</span> <span class="n">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
-<span class="cp">/* more decls. */</span>
+<span class="kt">void</span> <span class="nf">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#else </span><span class="cm">/* PROTECTION not */</span><span class="cp"></span>
 <span class="cp">#define ProtSync(space) NOOP</span>
-<span class="cp">/* more decls. */</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#endif </span><span class="cm">/* PROTECTION */</span><span class="cp"></span>
 </pre></div>
 </div>
@@ -511,18 +509,24 @@ elsewhere.)</li>
 </div>
 <div class="section" id="references">
 <h2>1.9. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p id="mps-manual">Ravenbrook Limited. &#8220;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/manual/html/">Memory Pool System documentation</a>&#8221;.</p>
-</li>
-<li><p id="rb-2012-09-13">Richard Brooksby. Ravenbrook Limited. 2012-09-13. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/">The Configura
-CET custom mainline</a>&#8221;.</p>
-</li>
-<li><p id="pp-2005-03-01">Pekka P. Pirinen. Global Graphics. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/">MPS platforms</a>&#8221;.</p>
-</li>
-<li><p id="rb-2012-09-07">Richard Brooksby. Ravenbrook Limited. 2012-09-07. &#8220;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/design/critical-path">The critical
-path through the MPS</a>&#8221;.</p>
-</li>
-</ul>
+<table class="docutils citation" frame="void" id="rb-2012-09-07" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[RB_2012-09-07]</a></td><td>Richard Brooksby. Ravenbrook Limited. 2012-09-07. &#8220;<a class="reference external" href="http://www.ravenbrook.com/project/mps/master/design/critical-path">The critical path through the MPS</a>&#8221;.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="rb-2012-09-13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[RB_2012-09-13]</a></td><td>Richard Brooksby. Ravenbrook Limited. 2013-09-13. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2012/09/13/16-43-35/0/">The Configura CET custom mainline</a>&#8221;.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="pp-2005-03-01" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[PP_2005-03-01]</td><td>Pekka Pirinen. Global Graphics. 2005-03-01. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2005/03/01/15-45-17/0/">MPS platforms</a>&#8221;.</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -545,19 +549,19 @@ path through the MPS</a>&#8221;.</p>
 </li>
 <li><a class="reference internal" href="#definitions">1.3. Definitions</a></li>
 <li><a class="reference internal" href="#overview">1.4. Overview</a></li>
-<li><a class="reference internal" href="#the-build-system">1.5. The Build System</a><ul>
-<li><a class="reference internal" href="#abstract-build-function">1.5.1. Abstract Build Function</a></li>
+<li><a class="reference internal" href="#the-build-system">1.5. The build system</a><ul>
+<li><a class="reference internal" href="#abstract-build-function">1.5.1. Abstract build function</a></li>
 <li><a class="reference internal" href="#file-structure">1.5.2. File Structure</a></li>
-<li><a class="reference internal" href="#modules-and-naming">1.5.3. Modules and Naming</a></li>
-<li><a class="reference internal" href="#build-system-rationale">1.5.4. Build System Rationale</a></li>
+<li><a class="reference internal" href="#modules-and-naming">1.5.3. Modules and naming</a></li>
+<li><a class="reference internal" href="#build-system-rationale">1.5.4. Build system rationale</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#implementation">1.6. Implementation</a><ul>
-<li><a class="reference internal" href="#target-platform-detection">1.6.1. Target Platform Detection</a></li>
-<li><a class="reference internal" href="#target-varieties">1.6.2. Target Varieties</a></li>
+<li><a class="reference internal" href="#target-platform-detection">1.6.1. Target platform detection</a></li>
+<li><a class="reference internal" href="#target-varieties">1.6.2. Target varieties</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#source-code-configuration">1.7. Source Code Configuration</a><ul>
+<li><a class="reference internal" href="#source-code-configuration">1.7. Source code configuration</a><ul>
 <li><a class="reference internal" href="#configuration-parameters">1.7.1. Configuration Parameters</a></li>
 <li><a class="reference internal" href="#abstract-and-concrete-module-interfaces">1.7.2. Abstract and Concrete Module Interfaces</a></li>
 </ul>

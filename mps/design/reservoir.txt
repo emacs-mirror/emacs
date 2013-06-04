@@ -9,6 +9,7 @@ The low-memory reservoir
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: reservoir; design
 
 
 Introduction

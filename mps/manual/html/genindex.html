@@ -81,6 +81,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="design/buffer.html#(BufferAP)">(BufferAP) (C function)</a>
+  </dt>
+
+      
   <dt><a href="design/ring.html#(RingInsert)">(RingInsert) (C function)</a>
   </dt>
 
@@ -136,6 +140,8 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     -i &lt;filename&gt;
@@ -147,8 +153,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     -l &lt;filename&gt;
@@ -356,6 +360,17 @@
   </dt>
 
       
+  <dt>
+    allocation frames
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/alloc-frame.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="glossary/a.html#term-allocation-mechanism"><strong>allocation mechanism</strong></a>
   </dt>
 
@@ -410,14 +425,20 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/a.html#term-allocation-strategy"><strong>allocation strategy</strong></a>
   </dt>
 
       
   <dt><a href="glossary/a.html#term-allocator"><strong>allocator</strong></a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#AllocFrame">AllocFrame (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#AllocFrameClass">AllocFrameClass (C type)</a>
   </dt>
 
       
@@ -454,7 +475,7 @@
       </dl></dd>
       
   <dt>
-    AMC pool
+    AMC pool class
   </dt>
 
       <dd><dl>
@@ -471,6 +492,8 @@
   <dt><a href="design/poolamc.html#AMCBufferFill">AMCBufferFill (C function)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/poolamc.html#AMCFinish">AMCFinish (C function)</a>
   </dt>
@@ -512,6 +535,50 @@
 
         
   <dt><a href="pool/ams.html#index-1">properties</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    AMS pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poolams.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    ANSI
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protan.html#index-0">protection interface design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    ANSI fake VM
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/vman.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    ANSI protection interface
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protan.html#index-0">design</a>
   </dt>
 
       </dl></dd>
@@ -588,6 +655,10 @@
   </dt>
 
       
+  <dt><a href="design/locus.html#ArenaSetTotalLoci">ArenaSetTotalLoci (C function)</a>
+  </dt>
+
+      
   <dt>
     arguments
   </dt>
@@ -599,20 +670,16 @@
 
       </dl></dd>
       
-  <dt><a href="design/poolmvff.html#as">as (C macro)</a>
-  </dt>
-
-      
   <dt><a href="guide/debug.html#index-2">ASLR</a>
   </dt>
 
       
-  <dt><a href="topic/error.html#index-1">assertion</a>, <a href="glossary/a.html#term-assertion"><strong>[1]</strong></a>
+  <dt><a href="topic/error.html#index-1">assertion</a>, <a href="topic/error.html#index-2">[1]</a>, <a href="glossary/a.html#term-assertion"><strong>[2]</strong></a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="topic/error.html#index-2">common causes</a>
+  <dt><a href="topic/error.html#index-3">common causes</a>
   </dt>
 
       </dl></dd>
@@ -677,6 +744,77 @@
   </dt>
 
       </dl></dd>
+      
+  <dt>
+    AWL pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poolawl.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/poolawl.html#AWLBufferEmpty">AWLBufferEmpty (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLBufferFill">AWLBufferFill (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLCondemn">AWLCondemn (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLDependentObject">AWLDependentObject (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLDescribe">AWLDescribe (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLFinish">AWLFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLFix">AWLFix (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLGrey">AWLGrey (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLInit">AWLInit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLReclaim">AWLReclaim (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLScan">AWLScan (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLSegAlloc">AWLSegAlloc (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#AWLSegCreate">AWLSegCreate (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#awlSegFinish">awlSegFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolawl.html#awlSegInit">awlSegInit (C function)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -815,8 +953,6 @@
   <dt><a href="glossary/b.html#term-broken-heart"><strong>broken heart</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/bt.html#BT">BT (C type)</a>
   </dt>
@@ -865,6 +1001,8 @@
   <dt><a href="design/bt.html#BTFindShortResRangeHigh">BTFindShortResRangeHigh (C function)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/bt.html#BTGet">BTGet (C function)</a>
   </dt>
@@ -907,6 +1045,105 @@
 
       
   <dt><a href="glossary/b.html#term-buffer"><strong>buffer</strong></a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferArena">BufferArena (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferAttach">BufferAttach (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferAttachMethod">BufferAttachMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferCheck">BufferCheck (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferCommit">BufferCommit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferCreate">BufferCreate (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferDescribeMethod">BufferDescribeMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferDestroy">BufferDestroy (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferDetach">BufferDetach (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferDetachMethod">BufferDetachMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferFill">BufferFill (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferFinishMethod">BufferFinishMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferInitMethod">BufferInitMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferIsReady">BufferIsReady (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferIsReset">BufferIsReset (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferOfAP">BufferOfAP (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferPool">BufferPool (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferRankSetMethod">BufferRankSetMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferReserve">BufferReserve (C function)</a>
+  </dt>
+
+      
+  <dt>
+    buffers
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/buffer.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/buffer.html#BufferSegMethod">BufferSegMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferSetRankSetMethod">BufferSetRankSetMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/buffer.html#BufferTrip">BufferTrip (C function)</a>
   </dt>
 
       
@@ -968,6 +1205,39 @@
   <dt><a href="mmref/lang.html#term-c"><strong>C</strong></a>
   </dt>
 
+      
+  <dt>
+    C interface
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/interface-c.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    C language
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/guide.impl.c.format.html#index-0">formatting guide</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    C language formatting
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/guide.impl.c.format.html#index-0">guide</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="mmref/lang.html#term-5"><strong>C#</strong></a>
   </dt>
@@ -1053,66 +1323,6 @@
   </dt>
 
       </dl></dd>
-      
-  <dt><a href="design/cbs.html#CBSBlockBase">CBSBlockBase (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSBlockDescribe">CBSBlockDescribe (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSBlockLimit">CBSBlockLimit (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSBlockSize">CBSBlockSize (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSDelete">CBSDelete (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSDescribe">CBSDescribe (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSFindFirst">CBSFindFirst (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSFindLargest">CBSFindLargest (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSFindLast">CBSFindLast (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSFinish">CBSFinish (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSInit">CBSInit (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSInsert">CBSInsert (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSIterate">CBSIterate (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSIterateLarge">CBSIterateLarge (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/cbs.html#CBSSetMinSize">CBSSetMinSize (C function)</a>
-  </dt>
-
       
   <dt><a href="glossary/c.html#term-cell"><strong>cell</strong></a>
   </dt>
@@ -1202,8 +1412,6 @@
   <dt><a href="glossary/c.html#term-client-program"><strong>client program</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/c.html#term-closure"><strong>closure</strong></a>
   </dt>
@@ -1260,6 +1468,8 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/c.html#term-collector-1"><strong>collector (1)</strong></a>
   </dt>
@@ -1306,6 +1516,22 @@
 
       
   <dt><a href="design/type.html#Compare">Compare (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/interface-c.html#COMPATFIELD">COMPATFIELD (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/interface-c.html#COMPATFIELDAPPROX">COMPATFIELDAPPROX (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/interface-c.html#COMPATLVALUE">COMPATLVALUE (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/interface-c.html#COMPATTYPE">COMPATTYPE (C function)</a>
   </dt>
 
       
@@ -1411,7 +1637,7 @@
   </dt>
 
       
-  <dt><a href="topic/error.html#index-4">cool variety</a>, <a href="guide/debug.html#index-1">[1]</a>
+  <dt><a href="topic/error.html#index-5">cool variety</a>, <a href="guide/debug.html#index-1">[1]</a>
   </dt>
 
       
@@ -1560,15 +1786,83 @@
 
       <dd><dl>
         
-  <dt><a href="design/poolamc.html#index-0">AMC pool</a>
+  <dt><a href="design/poolamc.html#index-0">AMC pool class</a>
   </dt>
 
         
-  <dt><a href="design/poolmvff.html#index-0">MVFF</a>
+  <dt><a href="design/poolams.html#index-0">AMS pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/vman.html#index-0">ANSI fake VM</a>
+  </dt>
+
+        
+  <dt><a href="design/protan.html#index-0">ANSI protection interface</a>
+  </dt>
+
+        
+  <dt><a href="design/poolawl.html#index-0">AWL pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/interface-c.html#index-0">C interface</a>
+  </dt>
+
+        
+  <dt><a href="design/sso1al.html#index-0">Digital Unix on Alpha stack scanner</a>
+  </dt>
+
+        
+  <dt><a href="design/io.html#index-0">I/O subsystem</a>
+  </dt>
+
+        
+  <dt><a href="design/poollo.html#index-0">LO pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/protli.html#index-0">Linux protection interface</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmfs.html#index-0">MFS pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmrg.html#index-0">MRG pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmvff.html#index-0">MVFF pool class</a>
+  </dt>
+
+        
+  <dt><a href="design/pthreadext.html#index-0">POSIX thread extensions</a>
+  </dt>
+
+        
+  <dt><a href="design/protsu.html#index-0">SunOS 4 protection interface</a>
+  </dt>
+
+        
+  <dt><a href="design/arenavm.html#index-0">VM arena</a>
+  </dt>
+
+        
+  <dt><a href="design/vmo1.html#index-0">VM for Digital Unix</a>
+  </dt>
+
+        
+  <dt><a href="design/vmso.html#index-0">VM for Solaris</a>
   </dt>
 
         
   <dt><a href="design/writef.html#index-0">WriteF function</a>
+  </dt>
+
+        
+  <dt><a href="design/alloc-frame.html#index-0">allocation frames</a>
   </dt>
 
         
@@ -1577,6 +1871,10 @@
 
         
   <dt><a href="design/bt.html#index-0">bit tables</a>
+  </dt>
+
+        
+  <dt><a href="design/buffer.html#index-0">buffers</a>
   </dt>
 
         
@@ -1600,11 +1898,19 @@
   </dt>
 
         
+  <dt><a href="design/diag.html#index-0">diagnostic feedback</a>
+  </dt>
+
+        
   <dt><a href="design/finalize.html#index-0">finalization</a>
   </dt>
 
         
   <dt><a href="design/fix.html#index-0">fix function</a>
+  </dt>
+
+        
+  <dt><a href="design/message-gc.html#index-0">garbage collection messages</a>
   </dt>
 
         
@@ -1620,11 +1926,19 @@
   </dt>
 
         
+  <dt><a href="design/lib.html#index-0">library interface</a>
+  </dt>
+
+        
   <dt><a href="design/version-library.html#index-0">library version mechanism</a>
   </dt>
 
         
   <dt><a href="design/lock.html#index-0">locking</a>
+  </dt>
+
+        
+  <dt><a href="design/locus.html#index-0">locus manager</a>
   </dt>
 
         
@@ -1660,6 +1974,10 @@
   </dt>
 
         
+  <dt><a href="design/shield.html#index-0">shield</a>
+  </dt>
+
+        
   <dt><a href="design/version.html#index-0">software versions</a>
   </dt>
 
@@ -1676,6 +1994,10 @@
   </dt>
 
         
+  <dt><a href="design/thread-manager.html#index-0">thread manager</a>
+  </dt>
+
+        
   <dt><a href="design/thread-safety.html#index-0">thread safety</a>
   </dt>
 
@@ -1687,9 +2009,11 @@
   <dt><a href="design/vm.html#index-0">virtual mapping</a>
   </dt>
 
+        
+  <dt><a href="design/arenavm.html#index-0">virtual memory arena</a>
+  </dt>
+
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="guide/lang.html#index-16">destroying</a>
   </dt>
@@ -1704,10 +2028,45 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/d.html#term-dgc"><strong>DGC</strong></a>
   </dt>
 
+      
+  <dt>
+    diagnostic feedback
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/diag.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    Digital Unix on Alpha
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/sso1al.html#index-0">stack scanner design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    Digital Unix on Alpha stack scanner
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/sso1al.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="glossary/d.html#term-direct-method"><strong>direct method</strong></a>
   </dt>
@@ -1822,11 +2181,15 @@
   </dt>
 
         
+  <dt><a href="topic/error.html#index-2">assertion; assertion handling</a>
+  </dt>
+
+        
   <dt><a href="topic/error.html#index-0">introduction</a>
   </dt>
 
         
-  <dt><a href="topic/error.html#index-3">varieties</a>
+  <dt><a href="topic/error.html#index-4">varieties</a>
   </dt>
 
       </dl></dd>
@@ -2019,11 +2382,22 @@
   </dt>
 
       
+  <dt>
+    formatting guide
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/guide.impl.c.format.html#index-0">C language</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
   <dt><a href="mmref/lang.html#term-fortran"><strong>Fortran</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="guide/lang.html#index-7">forward method</a>, <a href="glossary/f.html#term-forward-method"><strong>[1]</strong></a>
   </dt>
@@ -2099,10 +2473,6 @@
   </dt>
 
       
-  <dt><a href="design/poolmvff.html#frees">frees (C macro)</a>
-  </dt>
-
-      
   <dt><a href="topic/plinth.html#index-0">freestanding environment</a>
   </dt>
 
@@ -2167,6 +2537,17 @@
 
         
   <dt><a href="topic/arena.html#index-10">using idle time</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    garbage collection messages
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/message-gc.html#index-0">design</a>
   </dt>
 
       </dl></dd>
@@ -2276,6 +2657,17 @@
   <dt><a href="glossary/g.html#term-grey-list"><strong>grey list</strong></a>
   </dt>
 
+      
+  <dt>
+    guide
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/guide.impl.c.format.html#index-0">C language formatting</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
 </tr></table>
 
@@ -2338,10 +2730,6 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="design/poolmvff.html#highest">highest (C macro)</a>
-  </dt>
-
-      
   <dt><a href="glossary/h.html#term-hit"><strong>hit</strong></a>
   </dt>
 
@@ -2358,7 +2746,7 @@
   </dt>
 
       
-  <dt><a href="topic/error.html#index-5">hot variety</a>
+  <dt><a href="topic/error.html#index-6">hot variety</a>
   </dt>
 
       
@@ -2375,6 +2763,17 @@
   <dt><a href="topic/plinth.html#index-1">I/O module</a>
   </dt>
 
+      
+  <dt>
+    I/O subsystem
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/io.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
       
   <dt>
     identifiers
@@ -2690,6 +3089,17 @@
   </dt>
 
       
+  <dt>
+    library interface
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/lib.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="topic/plinth.html#index-3">library module</a>
   </dt>
 
@@ -2735,6 +3145,28 @@
   </dt>
 
       
+  <dt>
+    Linux
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protli.html#index-0">protection interface design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    Linux protection interface
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protli.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="mmref/lang.html#term-lisp"><strong>Lisp</strong></a>
   </dt>
 
@@ -2761,15 +3193,26 @@
 
       </dl></dd>
       
+  <dt>
+    LO pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poollo.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="glossary/l.html#term-load"><strong>load</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/l.html#term-locality-of-reference"><strong>locality of reference</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/l.html#term-location"><strong>location</strong></a>
   </dt>
@@ -2864,11 +3307,38 @@
   </dt>
 
       
+  <dt>
+    locus manager
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/locus.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/locus.html#LocusCreate">LocusCreate (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poollo.html#LOFix">LOFix (C function)</a>
+  </dt>
+
+      
   <dt><a href="glossary/l.html#term-logical-address"><strong>logical address</strong></a>
   </dt>
 
       
   <dt><a href="glossary/l.html#term-longword"><strong>longword</strong></a>
+  </dt>
+
+      
+  <dt><a href="design/poollo.html#LOReclaim">LOReclaim (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poollo.html#loSegReclaim">loSegReclaim (C function)</a>
   </dt>
 
       
@@ -3137,6 +3607,17 @@
 
       </dl></dd>
       
+  <dt>
+    MFS pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poolmfs.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="glossary/m.html#term-misaligned"><strong>misaligned</strong></a>
   </dt>
 
@@ -3216,6 +3697,10 @@
   </dt>
 
       
+  <dt><a href="design/alloc-frame.html#mps_alloc_frame_class_stack">mps_alloc_frame_class_stack (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/pattern.html#mps_alloc_pattern_ramp">mps_alloc_pattern_ramp (C function)</a>
   </dt>
 
@@ -3233,6 +3718,10 @@
 
       
   <dt><a href="pool/amc.html#mps_amc_apply_stepper_t">mps_amc_apply_stepper_t (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#mps_ap_addr_in_frame">mps_ap_addr_in_frame (C function)</a>
   </dt>
 
       
@@ -3276,7 +3765,19 @@
   </dt>
 
       
+  <dt><a href="design/alloc-frame.html#mps_ap_frame_select">mps_ap_frame_select (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#mps_ap_frame_select_from_addr">mps_ap_frame_select_from_addr (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/allocation.html#mps_ap_s">mps_ap_s (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#mps_ap_set_frame_class">mps_ap_set_frame_class (C function)</a>
   </dt>
 
       
@@ -3631,8 +4132,6 @@
   <dt><a href="topic/format.html#mps_fmt_isfwd_t">mps_fmt_isfwd_t (C type)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_pad_t">mps_fmt_pad_t (C type)</a>
   </dt>
@@ -3645,6 +4144,8 @@
   <dt><a href="topic/format.html#mps_fmt_scan_t">mps_fmt_scan_t (C type)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/format.html#mps_fmt_skip_t">mps_fmt_skip_t (C type)</a>
   </dt>
@@ -3655,6 +4156,10 @@
 
       
   <dt><a href="topic/format.html#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#mps_frame_class_t">mps_frame_class_t (C type)</a>
   </dt>
 
       
@@ -3682,35 +4187,19 @@
   </dt>
 
       
+  <dt><a href="design/io.html#mps_io_receive">mps_io_receive (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/io.html#mps_io_send">mps_io_send (C function)</a>
+  </dt>
+
+      
   <dt><a href="topic/plinth.html#mps_io_t">mps_io_t (C type)</a>
   </dt>
 
       
   <dt><a href="topic/plinth.html#mps_io_write">mps_io_write (C function)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_ALIGN">MPS_KEY_ALIGN (C macro)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_EXTEND_BY">MPS_KEY_EXTEND_BY (C macro)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_MEAN_SIZE">MPS_KEY_MEAN_SIZE (C macro)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_MVFF_ARENA_HIGH">MPS_KEY_MVFF_ARENA_HIGH (C macro)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_MVFF_FIRST_FIT">MPS_KEY_MVFF_FIRST_FIT (C macro)</a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#MPS_KEY_MVFF_SLOT_HIGH">MPS_KEY_MVFF_SLOT_HIGH (C macro)</a>
   </dt>
 
       
@@ -3747,6 +4236,14 @@
 
       
   <dt><a href="topic/plinth.html#mps_lib_assert_fail">mps_lib_assert_fail (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/plinth.html#mps_lib_assert_fail_install">mps_lib_assert_fail_install (C function)</a>
+  </dt>
+
+      
+  <dt><a href="topic/plinth.html#mps_lib_assert_fail_t">mps_lib_assert_fail_t (C type)</a>
   </dt>
 
       
@@ -3903,6 +4400,22 @@
 
       
   <dt><a href="topic/platform.html#MPS_OS_XC">MPS_OS_XC (C macro)</a>
+  </dt>
+
+      
+  <dt><a href="design/locus.html#mps_peak_close">mps_peak_close (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/locus.html#mps_peak_create">mps_peak_create (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/locus.html#mps_peak_describe_pool">mps_peak_describe_pool (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/locus.html#mps_peak_destroy">mps_peak_destroy (C function)</a>
   </dt>
 
       
@@ -4307,6 +4820,45 @@
 
       </dl></dd>
       
+  <dt>
+    MRG pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poolmrg.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/poolmrg.html#MRGCheck">MRGCheck (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGDeregister">MRGDeregister (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGDescribe">MRGDescribe (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGFinish">MRGFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGInit">MRGInit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGRegister">MRGRegister (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/poolmrg.html#MRGScan">MRGScan (C function)</a>
+  </dt>
+
+      
   <dt><a href="glossary/m.html#term-mutable"><strong>mutable</strong></a>
   </dt>
 
@@ -4342,10 +4894,6 @@
 
       <dd><dl>
         
-  <dt><a href="design/poolmvff.html#index-0">design</a>
-  </dt>
-
-        
   <dt><a href="pool/mvff.html#index-2">interface</a>
   </dt>
 
@@ -4358,6 +4906,21 @@
   </dt>
 
       </dl></dd>
+      
+  <dt>
+    MVFF pool class
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/poolmvff.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/poolmvff.html#MVFFInit">MVFFInit (C function)</a>
+  </dt>
+
       
   <dt><a href="pool/mvt.html#index-0">MVT</a>
   </dt>
@@ -4488,18 +5051,14 @@
   <dt><a href="glossary/o.html#term-oldspace"><strong>oldspace</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/o.html#term-one-bit-reference-count"><strong>one-bit reference count</strong></a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/o.html#term-opaque-type"><strong>opaque type</strong></a>
-  </dt>
-
-      
-  <dt><a href="design/poolmvff.html#opposed">opposed (C macro)</a>
   </dt>
 
       
@@ -4730,8 +5289,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/p.html#term-pointer"><strong>pointer</strong></a>
   </dt>
@@ -4745,14 +5302,6 @@
   </dt>
 
       <dd><dl>
-        
-  <dt><a href="design/poolamc.html#index-0">AMC design</a>
-  </dt>
-
-        
-  <dt><a href="design/poolmvff.html#index-0">MVFF design</a>
-  </dt>
-
         
   <dt><a href="guide/lang.html#index-11">creating</a>, <a href="topic/pool.html#index-0">[1]</a>
   </dt>
@@ -4776,6 +5325,10 @@
   </dt>
 
         
+  <dt><a href="design/poolamc.html#index-0">AMC design</a>
+  </dt>
+
+        
   <dt><a href="pool/amcz.html#index-0">AMCZ</a>
   </dt>
 
@@ -4784,7 +5337,15 @@
   </dt>
 
         
+  <dt><a href="design/poolams.html#index-0">AMS design</a>
+  </dt>
+
+        
   <dt><a href="pool/awl.html#index-0">AWL</a>
+  </dt>
+
+        
+  <dt><a href="design/poolawl.html#index-0">AWL design</a>
   </dt>
 
         
@@ -4792,7 +5353,19 @@
   </dt>
 
         
+  <dt><a href="design/poollo.html#index-0">LO design</a>
+  </dt>
+
+        
   <dt><a href="pool/mfs.html#index-0">MFS</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmfs.html#index-0">MFS design</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmrg.html#index-0">MRG design</a>
   </dt>
 
         
@@ -4801,6 +5374,10 @@
 
         
   <dt><a href="pool/mvff.html#index-0">MVFF</a>
+  </dt>
+
+        
+  <dt><a href="design/poolmvff.html#index-0">MVFF design</a>
   </dt>
 
         
@@ -4836,6 +5413,32 @@
 
       </dl></dd>
       
+  <dt><a href="design/alloc-frame.html#PoolAddrInFrameMethod">PoolAddrInFrameMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#PoolFramePopMethod">PoolFramePopMethod (C type)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="design/alloc-frame.html#PoolFramePushMethod">PoolFramePushMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#PoolFrameSelectFromAddrMethod">PoolFrameSelectFromAddrMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#PoolFrameSelectMethod">PoolFrameSelectMethod (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/alloc-frame.html#PoolSetFrameClassMethod">PoolSetFrameClassMethod (C type)</a>
+  </dt>
+
+      
   <dt>
     porting
   </dt>
@@ -4843,6 +5446,17 @@
       <dd><dl>
         
   <dt><a href="topic/plinth.html#index-0">plinth</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    POSIX thread extensions
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/pthreadext.html#index-0">design</a>
   </dt>
 
       </dl></dd>
@@ -4935,6 +5549,25 @@
 
       </dl></dd>
       
+  <dt>
+    protection interface design
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protan.html#index-0">ANSI</a>
+  </dt>
+
+        
+  <dt><a href="design/protli.html#index-0">Linux</a>
+  </dt>
+
+        
+  <dt><a href="design/protsu.html#index-0">SunOS 4</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="glossary/p.html#term-protection-violation"><strong>protection violation</strong></a>
   </dt>
 
@@ -4978,6 +5611,34 @@
   </dt>
 
       
+  <dt><a href="design/pthreadext.html#PThreadext">PThreadext (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextCheck">PThreadextCheck (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextFinish">PThreadextFinish (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextInit">PThreadextInit (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextResume">PThreadextResume (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextStruct">PThreadextStruct (C type)</a>
+  </dt>
+
+      
+  <dt><a href="design/pthreadext.html#PThreadextSuspend">PThreadextSuspend (C function)</a>
+  </dt>
+
+      
   <dt>
     punning
   </dt>
@@ -5013,7 +5674,7 @@
   </dt>
 
       
-  <dt><a href="topic/pattern.html#index-1">ramp allocation</a>, <a href="glossary/r.html#term-ramp-allocation"><strong>[1]</strong></a>
+  <dt><a href="glossary/r.html#term-ramp-allocation"><strong>ramp allocation</strong></a>, <a href="topic/pattern.html#index-1">[1]</a>
   </dt>
 
       
@@ -5039,7 +5700,7 @@
   </dt>
 
       
-  <dt><a href="topic/error.html#index-6">rash variety</a>
+  <dt><a href="topic/error.html#index-7">rash variety</a>
   </dt>
 
       
@@ -5524,10 +6185,6 @@
   </dt>
 
       
-  <dt><a href="design/poolmvff.html#SegPrefLOW">SegPrefLOW (C macro)</a>
-  </dt>
-
-      
   <dt><a href="topic/cache.html#index-0">segregated allocation cache</a>, <a href="glossary/s.html#term-segregated-allocation-cache"><strong>[1]</strong></a>
   </dt>
 
@@ -5590,6 +6247,33 @@
   </dt>
 
       
+  <dt>
+    shield
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/shield.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="design/shield.html#ShieldLower">ShieldLower (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/shield.html#ShieldRaise">ShieldRaise (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/shield.html#ShieldResume">ShieldResume (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/shield.html#ShieldSuspend">ShieldSuspend (C function)</a>
+  </dt>
+
+      
   <dt><a href="design/type.html#Shift">Shift (C type)</a>
   </dt>
 
@@ -5624,12 +6308,6 @@
   <dt><a href="glossary/s.html#term-size"><strong>size</strong></a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="design/poolmvff.html#size">(C macro)</a>, <a href="design/poolmvff.html#size">[1]</a>
-  </dt>
-
-      </dl></dd>
       
   <dt><a href="design/type.html#Size">Size (C type)</a>
   </dt>
@@ -5750,12 +6428,12 @@
   <dt><a href="design/splay.html#SplayNodeInit">SplayNodeInit (C function)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/splay.html#SplayNodeRefresh">SplayNodeRefresh (C function)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/splay.html#SplayNodeStruct">SplayNodeStruct (C type)</a>
   </dt>
@@ -5860,6 +6538,17 @@
 
       
   <dt>
+    stack scanner design
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/sso1al.html#index-0">Digital Unix on Alpha</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
     staleness
   </dt>
 
@@ -5869,10 +6558,6 @@
   </dt>
 
       </dl></dd>
-      
-  <dt><a href="design/poolmvff.html#start">start (C macro)</a>
-  </dt>
-
       
   <dt><a href="glossary/s.html#term-static-allocation"><strong>static allocation</strong></a>
   </dt>
@@ -5988,6 +6673,28 @@
   <dt><a href="glossary/s.html#term-subgraph"><strong>subgraph</strong></a>
   </dt>
 
+      
+  <dt>
+    SunOS 4
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protsu.html#index-0">protection interface design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    SunOS 4 protection interface
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/protsu.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="design/protocol.html#SUPERCLASS">SUPERCLASS (C function)</a>
   </dt>
@@ -6194,6 +6901,21 @@
 
       </dl></dd>
       
+  <dt><a href="design/thread-manager.html#Thread">Thread (C type)</a>
+  </dt>
+
+      
+  <dt>
+    thread manager
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/thread-manager.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="topic/thread.html#index-1">thread safety</a>
   </dt>
 
@@ -6208,6 +6930,26 @@
 
       </dl></dd>
       
+  <dt><a href="design/thread-manager.html#ThreadDeregister">ThreadDeregister (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/thread-manager.html#ThreadRegister">ThreadRegister (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/thread-manager.html#ThreadRingResume">ThreadRingResume (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/thread-manager.html#ThreadRingSuspend">ThreadRingSuspend (C function)</a>
+  </dt>
+
+      
+  <dt><a href="design/thread-manager.html#ThreadScan">ThreadScan (C function)</a>
+  </dt>
+
+      
   <dt><a href="glossary/t.html#term-threatened-set"><strong>threatened set</strong></a>
   </dt>
 
@@ -6220,10 +6962,6 @@
   </dt>
 
       
-  <dt><a href="design/poolmvff.html#to">to (C macro)</a>
-  </dt>
-
-      
   <dt><a href="glossary/t.html#term-to-space"><strong>to space</strong></a>
   </dt>
 
@@ -6231,6 +6969,8 @@
   <dt><a href="glossary/t.html#term-tospace"><strong>tospace</strong></a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/t.html#term-trace"><strong>trace</strong></a>
   </dt>
@@ -6250,8 +6990,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="design/type.html#TraceSet">TraceSet (C type)</a>
   </dt>
@@ -6440,20 +7178,20 @@
   </dt>
 
       
-  <dt><a href="topic/error.html#index-3">variety</a>, <a href="glossary/v.html#term-variety"><strong>[1]</strong></a>
+  <dt><a href="topic/error.html#index-4">variety</a>, <a href="glossary/v.html#term-variety"><strong>[1]</strong></a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="topic/error.html#index-4">cool</a>, <a href="guide/debug.html#index-1">[1]</a>
+  <dt><a href="topic/error.html#index-5">cool</a>, <a href="guide/debug.html#index-1">[1]</a>
   </dt>
 
         
-  <dt><a href="topic/error.html#index-5">hot</a>
+  <dt><a href="topic/error.html#index-6">hot</a>
   </dt>
 
         
-  <dt><a href="topic/error.html#index-6">rash</a>
+  <dt><a href="topic/error.html#index-7">rash</a>
   </dt>
 
       </dl></dd>
@@ -6491,8 +7229,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="glossary/v.html#term-virtual-memory"><strong>virtual memory</strong></a>
   </dt>
@@ -6501,6 +7237,14 @@
   <dt><a href="glossary/v.html#term-virtual-memory-arena"><strong>virtual memory arena</strong></a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="design/arenavm.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="topic/arena.html#index-3">virtual memory arena class</a>
   </dt>
@@ -6516,6 +7260,39 @@
       <dd><dl>
         
   <dt><a href="glossary/v.html#term-vm-2"><strong>(2)</strong></a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    VM arena
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/arenavm.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    VM for Digital Unix
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/vmo1.html#index-0">design</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    VM for Solaris
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="design/vmso.html#index-0">design</a>
   </dt>
 
       </dl></dd>

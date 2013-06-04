@@ -135,8 +135,8 @@ be output.</p>
 connect to the system logging interface.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls <tt class="docutils literal"><span class="pre">fopen</span></tt> on
-the file named by the environment variable
+<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls
+<tt class="xref c c-func docutils literal"><span class="pre">fopen()</span></tt> on the file named by the environment variable
 <span class="target" id="index-2"></span><a class="reference internal" href="telemetry.html#envvar-MPS_TELEMETRY_FILENAME"><tt class="xref std std-envvar docutils literal"><span class="pre">MPS_TELEMETRY_FILENAME</span></tt></a>.</p>
 </div>
 </dd></dl>
@@ -152,7 +152,8 @@ parameter is undefined.</p>
 value <tt class="docutils literal"><span class="pre">io</span></tt> again.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls <tt class="docutils literal"><span class="pre">fclose</span></tt>.</p>
+<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls
+<tt class="xref c c-func docutils literal"><span class="pre">fclose()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -168,7 +169,8 @@ parameter is undefined.</p>
 <p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if successful.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls <tt class="docutils literal"><span class="pre">fwrite</span></tt>.</p>
+<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls
+<tt class="xref c c-func docutils literal"><span class="pre">fwrite()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -190,7 +192,8 @@ bug, for example) or some interactive tool require access to the
 event data.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls <tt class="docutils literal"><span class="pre">fflush</span></tt>.</p>
+<p class="last">In the ANSI I/O module, <tt class="docutils literal"><span class="pre">mpsioan.c</span></tt>, this calls
+<tt class="xref c c-func docutils literal"><span class="pre">fflush()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -218,13 +221,13 @@ scheduling decisions and the quality of telemetry output. For
 instance, with <tt class="docutils literal"><span class="pre">getrusage()</span></tt>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &lt;sys/resource.h&gt;</span>
 
-<span class="n">mps_clock_t</span> <span class="nf">mps_clock</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+<span class="kt">mps_clock_t</span> <span class="nf">mps_clock</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">struct</span> <span class="n">rusage</span> <span class="n">s</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">res</span> <span class="o">=</span> <span class="n">getrusage</span><span class="p">(</span><span class="n">RUSAGE_SELF</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="cm">/* handle error */</span>
     <span class="p">}</span>
-    <span class="k">return</span> <span class="p">((</span><span class="n">mps_clock_t</span><span class="p">)</span><span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_usec</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="kt">mps_clock_t</span><span class="p">)</span><span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_usec</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -245,15 +248,39 @@ instance, with <tt class="docutils literal"><span class="pre">getrusage()</span>
 <dl class="function">
 <dt id="mps_lib_assert_fail">
 void <tt class="descname">mps_lib_assert_fail</tt><big>(</big>const char<em>&nbsp;*message</em><big>)</big><a class="headerlink" href="#mps_lib_assert_fail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Report an assertion failure and abort.</p>
+<dd><p>Report an assertion failure.</p>
 <p><tt class="docutils literal"><span class="pre">message</span></tt> is a NUL-terminated string describing the assertion
 failure.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this reports the
-failure using <tt class="docutils literal"><span class="pre">fprintf(stderr,</span> <span class="pre">&quot;...%s...&quot;,</span> <span class="pre">message)</span></tt> and
-terminates the program by calling <tt class="docutils literal"><span class="pre">abort</span></tt>.</p>
+failure using <tt class="docutils literal"><span class="pre">fprintf(stderr,</span> <span class="pre">&quot;...%s...&quot;,</span> <span class="pre">message)</span></tt> and, in
+the <a class="reference internal" href="../glossary/c.html#term-cool"><em class="xref std std-term">cool</em></a> <a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">variety</em></a>, terminates the program by
+calling <tt class="xref c c-func docutils literal"><span class="pre">abort()</span></tt>. You can change this behaviour with
+<a class="reference internal" href="#mps_lib_assert_fail_install" title="mps_lib_assert_fail_install"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail_install()</span></tt></a>. For a discussion of the
+default behaviour, see <a class="reference internal" href="error.html#topic-error-assertion-handling"><em>Assertion handling</em></a>.</p>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_lib_assert_fail_install">
+extern <a class="reference internal" href="#mps_lib_assert_fail_t" title="mps_lib_assert_fail_t">mps_lib_assert_fail_t</a> <tt class="descname">mps_lib_assert_fail_install</tt><big>(</big><a class="reference internal" href="#mps_lib_assert_fail_t" title="mps_lib_assert_fail_t">mps_lib_assert_fail_t</a><em>&nbsp;handler</em><big>)</big><a class="headerlink" href="#mps_lib_assert_fail_install" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function customises the behaviour of the default assertion handler
+in the ANSI Library module.  It is not otherwise required by the MPS
+and you need not implement it if you are providing an alternative plinth.</p>
+<p>If you&#8217;re using the ANSI Library module, you can use this function
+to change the behaviour of the MPS when an assertion fails.  For
+example, you could terminate the program in the <a class="reference internal" href="../glossary/h.html#term-hot"><em class="xref std std-term">hot</em></a>
+<a class="reference internal" href="../glossary/v.html#term-variety"><em class="xref std std-term">variety</em></a> too.  (The MPS test programs do exactly that.)</p>
+<p><tt class="docutils literal"><span class="pre">handler</span></tt> is the assertion handler to install.</p>
+<p>Returns the previously installed handler.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="mps_lib_assert_fail_t">
+typedef void <tt class="descname">(*mps_lib_assert_fail_t)</tt><big>(</big>const char<em>&nbsp;*</em>, unsigned, const char<em>&nbsp;*</em><big>)</big><a class="headerlink" href="#mps_lib_assert_fail_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of assertion handlers passed to and returned by
+<a class="reference internal" href="#mps_lib_assert_fail_install" title="mps_lib_assert_fail_install"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_assert_fail_install()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="type">
@@ -276,11 +303,12 @@ int <tt class="descname">mps_lib_fputc</tt><big>(</big>int<em>&nbsp;c</em>, <a c
 <p>Return the character written if successful, or
 <a class="reference internal" href="#mps_lib_get_EOF" title="mps_lib_get_EOF"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_get_EOF()</span></tt></a> if not.</p>
 <p>This function is intended to have the same semantics as the
-<tt class="docutils literal"><span class="pre">fputc</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC 9899:1990</em></a> §7.11.7.3).</p>
+<tt class="xref c c-func docutils literal"><span class="pre">fputc()</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
+9899:1990</em></a> §7.11.7.3).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
-wrapper around <tt class="docutils literal"><span class="pre">fputc</span></tt>.</p>
+wrapper around <tt class="xref c c-func docutils literal"><span class="pre">fputc()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -291,13 +319,14 @@ int <tt class="descname">mps_lib_fputs</tt><big>(</big>const char<em>&nbsp;*s</e
 <p><tt class="docutils literal"><span class="pre">s</span></tt> is the NUL-terminated string.</p>
 <p><tt class="docutils literal"><span class="pre">stream</span></tt> is the stream.</p>
 <p>This function is intended to have the same semantics as the
-<tt class="docutils literal"><span class="pre">fputs</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC 9899:1990</em></a> §7.11.7.4).</p>
+<tt class="xref c c-func docutils literal"><span class="pre">fputs()</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
+9899:1990</em></a> §7.11.7.4).</p>
 <p>Return a non-negative integer if successful, or
 <a class="reference internal" href="#mps_lib_get_EOF" title="mps_lib_get_EOF"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_get_EOF()</span></tt></a> if not.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
-wrapper around <tt class="docutils literal"><span class="pre">fputs</span></tt>.</p>
+wrapper around <tt class="xref c c-func docutils literal"><span class="pre">fputs()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -350,7 +379,7 @@ in future.</p>
 <dt id="mps_lib_memcmp">
 int <tt class="descname">mps_lib_memcmp</tt><big>(</big>const void<em>&nbsp;*s1</em>, const void<em>&nbsp;*s2</em>, size_t<em>&nbsp;n</em><big>)</big><a class="headerlink" href="#mps_lib_memcmp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a> function similar to the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
-function <tt class="docutils literal"><span class="pre">memcmp</span></tt>.</p>
+function <tt class="xref c c-func docutils literal"><span class="pre">memcmp()</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">s1</span></tt> and <tt class="docutils literal"><span class="pre">s2</span></tt> point to <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">blocks</em></a> of memory to be
 compared.</p>
 <p><tt class="docutils literal"><span class="pre">n</span></tt> is the <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of the blocks.</p>
@@ -358,12 +387,12 @@ compared.</p>
 zero, accordingly as the block pointed to by <tt class="docutils literal"><span class="pre">s1</span></tt> is greater than,
 equal to, or less than the block pointed to by <tt class="docutils literal"><span class="pre">s2</span></tt>.</p>
 <p>This function is intended to have the same semantics as the
-<tt class="docutils literal"><span class="pre">memcmp</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
+<tt class="xref c c-func docutils literal"><span class="pre">memcmp()</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
 9899:1990</em></a> §7.11.4.1).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
-wrapper around <tt class="docutils literal"><span class="pre">memcmp</span></tt>.</p>
+wrapper around <tt class="xref c c-func docutils literal"><span class="pre">memcmp()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -371,20 +400,20 @@ wrapper around <tt class="docutils literal"><span class="pre">memcmp</span></tt>
 <dt id="mps_lib_memcpy">
 void *<tt class="descname">mps_lib_memcpy</tt><big>(</big>void<em>&nbsp;*dest</em>, const void<em>&nbsp;*source</em>, size_t<em>&nbsp;n</em><big>)</big><a class="headerlink" href="#mps_lib_memcpy" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a> function similar to the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
-function <tt class="docutils literal"><span class="pre">memcpy</span></tt>.</p>
+function <tt class="xref c c-func docutils literal"><span class="pre">memcpy()</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">dest</span></tt> points to the destination.</p>
 <p><tt class="docutils literal"><span class="pre">source</span></tt> points to the source.</p>
 <p><tt class="docutils literal"><span class="pre">n</span></tt> is the number of bytes to copy from <tt class="docutils literal"><span class="pre">source</span></tt> to <tt class="docutils literal"><span class="pre">dest</span></tt>.</p>
 <p>Returns <tt class="docutils literal"><span class="pre">dest</span></tt>.</p>
 <p>This function is intended to have the same semantics as the
-<tt class="docutils literal"><span class="pre">memcpy</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
+<tt class="xref c c-func docutils literal"><span class="pre">memcpy()</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
 9899:1990</em></a> §7.11.2.1).</p>
 <p>The MPS never passes overlapping blocks to
 <a class="reference internal" href="#mps_lib_memcpy" title="mps_lib_memcpy"><tt class="xref c c-func docutils literal"><span class="pre">mps_lib_memcpy()</span></tt></a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
-wrapper around <tt class="docutils literal"><span class="pre">memcpy</span></tt>.</p>
+wrapper around <tt class="xref c c-func docutils literal"><span class="pre">memcpy()</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -392,18 +421,18 @@ wrapper around <tt class="docutils literal"><span class="pre">memcpy</span></tt>
 <dt id="mps_lib_memset">
 void *<tt class="descname">mps_lib_memset</tt><big>(</big>void<em>&nbsp;*s</em>, int<em>&nbsp;c</em>, size_t<em>&nbsp;n</em><big>)</big><a class="headerlink" href="#mps_lib_memset" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <a class="reference internal" href="../glossary/p.html#term-plinth"><em class="xref std std-term">plinth</em></a> function similar to the standard <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
-function <tt class="docutils literal"><span class="pre">memset</span></tt>.</p>
+function <tt class="xref c c-func docutils literal"><span class="pre">memset()</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">s</span></tt> points to the <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">block</em></a> to fill with the byte <tt class="docutils literal"><span class="pre">c</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">c</span></tt> is the byte to fill with (when converted to <tt class="docutils literal"><span class="pre">unsigned</span> <span class="pre">char</span></tt>).</p>
 <p><tt class="docutils literal"><span class="pre">n</span></tt> is the <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of the block.</p>
 <p>Returns <tt class="docutils literal"><span class="pre">s</span></tt>.</p>
 <p>This function is intended to have the same semantics as the
-<tt class="docutils literal"><span class="pre">memset</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
+<tt class="xref c c-func docutils literal"><span class="pre">memset()</span></tt> function of the ANSI C Standard (<a class="reference internal" href="../mmref/bib.html#iso90"><em>ISO/IEC
 9899:1990</em></a> §7.11.6.1).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In the ANSI Library module, <tt class="docutils literal"><span class="pre">mpsliban.c</span></tt>, this is a simple
-wrapper around <tt class="docutils literal"><span class="pre">memset</span></tt>.</p>
+wrapper around <tt class="xref c c-func docutils literal"><span class="pre">memset()</span></tt>.</p>
 </div>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>

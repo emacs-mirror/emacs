@@ -9,6 +9,7 @@ MPS Configuration
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: locus manager; design
 
 
 Introduction
@@ -323,8 +324,7 @@ details, see implementation section and code, or user doc.
 Loci
 ....
 
-``Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg, 
-LocusAllocDesc adesc)``
+``Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg, LocusAllocDesc adesc)``
 
 _`.function.create`: A function to create a locus: ``adesc`` contains
 the information about the allocation sequences in the locus, ``zg`` is

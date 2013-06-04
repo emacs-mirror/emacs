@@ -8,6 +8,7 @@ Keyword arguments in the MPS
 :Date: 2013-05-09
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: keyword arguments; design
 
 
 Introduction

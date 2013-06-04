@@ -1,0 +1,177 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>29. ANSI implementation of protection module &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="30. Linux implementation of protection module" href="protli.html" />
+    <link rel="prev" title="28. The protection module" href="prot.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="protli.html" title="30. Linux implementation of protection module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="prot.html" title="28. The protection module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-protan"></span><div class="section" id="ansi-implementation-of-protection-module">
+<span id="index-0"></span><h1>29. ANSI implementation of protection module<a class="headerlink" href="#ansi-implementation-of-protection-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.protan"></span><h2>29.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.protan.readership"></span><a class="mpstag reference internal" href="#design.mps.protan.readership">.readership:</a> Any MPS developer.</p>
+<p><span class="target" id="design.mps.protan.intro"></span><a class="mpstag reference internal" href="#design.mps.protan.intro">.intro:</a> This is the design for the ANSI implementation of the
+protection module.</p>
+</div>
+<div class="section" id="requirements">
+<h2>29.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.protan.req.test"></span><a class="mpstag reference internal" href="#design.mps.protan.req.test">.req.test:</a> This module is required for testing. Particularly on
+platforms where no real implementation of the protection module
+exists.</p>
+<p><span class="target" id="design.mps.protan.req.rapid-port"></span><a class="mpstag reference internal" href="#design.mps.protan.req.rapid-port">.req.rapid-port:</a> This module is required for rapid porting. It
+should enable a developer to port a minimally useful configuration of
+the MPS to new platforms very quickly.</p>
+</div>
+<div class="section" id="overview">
+<h2>29.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.protan.overview"></span><a class="mpstag reference internal" href="#design.mps.protan.overview">.overview:</a> Most of the functions in the module do nothing. The
+exception is <a class="reference internal" href="prot.html#ProtSync" title="ProtSync"><tt class="xref c c-func docutils literal"><span class="pre">ProtSync()</span></tt></a> which traverses over all segments in the
+arena and simulates an access to each segment that has any protection
+on it. This means that this module depends on certain fields in the
+segment structure.</p>
+<p><span class="target" id="design.mps.protan.overview.noos"></span><a class="mpstag reference internal" href="#design.mps.protan.overview.noos">.overview.noos:</a> No operating system specific (or even ANSI hosted
+specific) code is in this module. It can therefore be used on any
+platform, particularly where no real implementation of the module
+exists. It satisfies <a class="reference internal" href="#design.mps.protan.req.test">.req.test</a> and <a class="reference internal" href="#design.mps.protan.req.rapid-port">.req.rapid-port</a> in this way.</p>
+</div>
+<div class="section" id="functions">
+<h2>29.4. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.protan.fun.protsetup"></span><a class="mpstag reference internal" href="#design.mps.protan.fun.protsetup">.fun.protsetup:</a> <a class="reference internal" href="prot.html#ProtSetup" title="ProtSetup"><tt class="xref c c-func docutils literal"><span class="pre">ProtSetup()</span></tt></a> does nothing as there is nothing to
+do (under UNIX we might expect the protection module to install one or
+more signal handlers at this pointer, but that is not appropriate for
+the ANSI implementation). Of course, we can&#8217;t have an empty function
+body, so there is a <tt class="docutils literal"><span class="pre">NOOP;</span></tt> here.</p>
+<p><span class="target" id="design.mps.protan.fun.sync"></span><a class="mpstag reference internal" href="#design.mps.protan.fun.sync">.fun.sync:</a> <a class="reference internal" href="prot.html#ProtSync" title="ProtSync"><tt class="xref c c-func docutils literal"><span class="pre">ProtSync()</span></tt></a> is called to ensure that the actual
+protection of each segment (as determined by the OS) is in accordance
+with the segments&#8217;s pm field. In the ANSI implementation we have no
+way of changing the protection of a segment, so instead we generate
+faults on all protected segments in the assumption that that will
+remove the protection on segments.</p>
+<p><span class="target" id="design.mps.protan.fun.sync.how"></span><a class="mpstag reference internal" href="#design.mps.protan.fun.sync.how">.fun.sync.how:</a> Continually loops over all the segments until it
+finds that all segments have no protection.</p>
+<p><span class="target" id="design.mps.protan.fun.sync.seg"></span><a class="mpstag reference internal" href="#design.mps.protan.fun.sync.seg">.fun.sync.seg:</a> If it finds a segment that is protected then
+<tt class="xref c c-func docutils literal"><span class="pre">PoolAccess()</span></tt> is called on that segment&#8217;s pool and with that
+segment. The call to <tt class="xref c c-func docutils literal"><span class="pre">PoolAccess()</span></tt> is wrapped with a
+<tt class="xref c c-func docutils literal"><span class="pre">ShieldEnter()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ShieldLeave()</span></tt> thereby giving the pool the
+illusion that the fault was generated outside the MM. This depends on
+being able to determine the protection of a segment (using the <tt class="docutils literal"><span class="pre">pm</span></tt>
+field), on being able to call <tt class="xref c c-func docutils literal"><span class="pre">ShieldEnter()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ShieldLeave()</span></tt>,
+and on being able to call <tt class="xref c c-func docutils literal"><span class="pre">PoolAccess()</span></tt>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">29. ANSI implementation of protection module</a><ul>
+<li><a class="reference internal" href="#introduction">29.1. Introduction</a></li>
+<li><a class="reference internal" href="#requirements">29.2. Requirements</a></li>
+<li><a class="reference internal" href="#overview">29.3. Overview</a></li>
+<li><a class="reference internal" href="#functions">29.4. Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="prot.html"
+                        title="previous chapter">28. The protection module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="protli.html"
+                        title="next chapter">30. Linux implementation of protection module</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="protli.html" title="30. Linux implementation of protection module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="prot.html" title="28. The protection module"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

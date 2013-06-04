@@ -1,0 +1,26 @@
+.. _design-vman:
+
+
+.. index::
+   pair: ANSI fake VM; design
+
+
+ANSI fake VM
+============
+
+.. mps:prefix:: design.mps.vman
+
+
+:mps:tag:`intro` The ANSI fake VM is an implementation of the MPS VM
+interface (see design.mps.vm) using services provided by the ANSI C
+Library (standard.ansic.7) -- :c:func:`malloc()` and :c:func:`free()`, as it
+happens.
+
+:mps:tag:`align` The VM is aligned to :c:macro:`VMAN_ALIGN` (defined in
+impl.h.mpmconf) by adding :c:macro:`VMAN_ALIGN` to the requested size,
+allocating a block that large using :c:func:`malloc()`, then rounding the
+pointer to the base of the block. ``vm->base`` is the aligned pointer,
+``vm->block`` is the pointer returned by :c:func:`malloc()`, which is used
+in :c:func:`VMDestroy()`.
+
+
