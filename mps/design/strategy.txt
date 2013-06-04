@@ -7,7 +7,7 @@ MPS Strategy
 :Author: Nick Barnes
 :Organization: Ravenbrook Limited
 :Date: 2013-06-04
-       :Revision: $Id$ : //info.ravenbrook.com/project/mps/master/design/txt#8 $
+:Revision: $Id$
 :Copyright: See section `Copyright and License`_.
 
 
