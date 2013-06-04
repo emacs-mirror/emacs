@@ -9,6 +9,9 @@ Linux implementation of protection module
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: Linux; protection interface design
+   pair: Linux protection interface; design
 
 
 Introduction

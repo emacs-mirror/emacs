@@ -9,6 +9,9 @@ LO pool class
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: LO pool class; design
+   single: pool class; LO design
 
 
 Introduction

@@ -9,7 +9,9 @@ Virtual Memory Arena
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-
+:Index terms:
+   pair: virtual memory arena; design
+   pair: VM arena; design
 
 
 Introduction

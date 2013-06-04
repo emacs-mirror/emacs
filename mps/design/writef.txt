@@ -9,6 +9,7 @@ The WriteF function
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:    pair: WriteF function; design
 
 
 Introduction

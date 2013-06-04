@@ -40,7 +40,8 @@ help:
 	@echo "  tools      to install a local copy of the Python tools using virtualenv"
 
 clean:
-	-rm -rf $(BUILDDIR)/{changes,devhelp,dirhtml,doctest,doctrees,epub,html,htmlhelp,json,latex,linkcheck,locale,man,pickle,qthelp,singlehtml,texinfo,text,converted}
+	-rm -rf $(BUILDDIR)/{changes,devhelp,dirhtml,doctest,doctrees,epub,html,htmlhelp,json,latex,linkcheck,locale,man,pickle,qthelp,singlehtml,texinfo,text}
+	-find $(BUILDDIR)/source/design -name '*.rst' ! -name 'index.rst' ! -name 'old.rst' -exec rm -f '{}' ';'
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

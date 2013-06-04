@@ -9,6 +9,8 @@ VM for Digital Unix
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: VM for Digital Unix; design
+
 
 .. warning::
 
