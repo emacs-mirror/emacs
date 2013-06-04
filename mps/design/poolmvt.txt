@@ -242,16 +242,16 @@ available-block queue (ABQ).
 _`.arch.overview.abq`: The ABQ holds blocks of a minimum configurable
 size: "reuse size".
 
-_`.arch.overview.storage`: The ABQ acquires storage from the arena or
-from the coalescing-block structure (CBS).
+_`.arch.overview.storage`: The ABQ acquires storage from the arena,
+and from its internal free block managers.
 
 _`.arch.overview.storage.contiguous`: The arena storage is requested
 to be contiguous to maximize opportunities for coalescing (Loci will
 be used when available).
 
-_`.arch.overview.cbs`: The CBS holds blocks freed by the client until,
-through coalescing, they have reached the reuse size, at which point
-they are made available on the ABQ.
+_`.arch.overview.cbs`: The free block managers hold blocks freed by
+the client until, through coalescing, they have reached the reuse
+size, at which point they are made available on the ABQ.
 
 _`.arch.ap`: The pool will use allocation points as the allocation
 interface to the client.
@@ -272,7 +272,8 @@ space of the allocation point, there may be a remaining fragment.
 
 _`.arch.ap.no-fit.sawdust`: If the fragment is below a configurable
 threshold (minimum size), it will be left unused (but returned to the
-CBS so it will be reclaimed when adjacent objects are freed).
+free block managers so it will be reclaimed when adjacent objects are
+freed).
 
 _`.arch.ap.no-fit.splinter`: otherwise, the remaining fragment will be
 (effectively) returned to the head of the available-block queue, so
@@ -328,9 +329,9 @@ _`.arch.cbs.abq`: When a block reaches reuse size, it is added to the
 ABQ.
 
 _`.arch.cbs.data-structure`: The data structures are organized so that
-a block can be on both the CBS and ABQ simultaneously to permit
-additional coalescing, up until the time the block is removed from the
-ABQ and assigned to an AP.
+a block can be both in the free block managers and on the ABQ
+simultaneously to permit additional coalescing, up until the time the
+block is removed from the ABQ and assigned to an AP.
 
 _`.arch.fragmentation.internal`: Internal fragmentation results from
 The pool will request large segments from the arena to minimize the
@@ -345,7 +346,7 @@ storage (where applicable), that do or do not support derived object
 descriptions, etc.
 
 _`.arch.modular.initial`: The initial architecture will use
-`.mech.freelist.splay-tree`_ for the CBS,
+`.sol.mech.free-list`_ for the free block managers,
 `.sol.mech.storage.out-of-band`_, `.sol.mech.desc.derived`_, and
 `.sol.mech.allocate.buffer`_.
 
@@ -388,26 +389,26 @@ work.
 
 _`.arch.contingency.pathological`: In particular, pathological
 allocation patterns could result in fragmentation such that no blocks
-recycle from the CBS to ABQ.
+recycle from the free bock managers to the ABQ.
 
 _`.arch.contingency.fallback`: As a fallback, there will be a pool
-creation parameter for a high water mark for the CBS.
+creation parameter for a high water mark for the free space.
 
-_`.arch.contingency.fragmentation-limit`: When the free space in the
-CBS as a percentage of all the memory managed by the pool (a measure
-of fragmentation) reaches that high water mark, the CBS will be
-searched oldest-fit before requesting additional segments from the
-arena.
+_`.arch.contingency.fragmentation-limit`: When the free space as a
+percentage of all the memory managed by the pool (a measure of
+fragmentation) reaches that high water mark, the free block managers
+will be searched oldest-fit before requesting additional segments from
+the arena.
 
 _`.arch.contingency.alternative`: We also plan to implement
-`.mech.freelist.cartesian-tree`_ as an alternative CBS, which would
-permit more efficient searching of the CBS.
+`.mech.free-list.cartesian-tree`_ as an alternative free block manager,
+which would permit more efficient searching of the free blocks.
 
 _`.arch.parameters`: The architecture supports several parameters so
 that multiple pools may be instantiated and tuned to support different
 object cohorts. The important parameters are: reuse size, minimum
-size, fill size, ABQ high water mark, CBS fragmentation limit (see
-`.arch.contingency.fragmentation-limit`_).
+size, fill size, ABQ high water mark, free block fragmentation limit
+(see `.arch.contingency.fragmentation-limit`_).
 
 _`.arch.parameters.client-visible`: The client-visible parameters of
 the pool are the minimum object size, the mean object size, the
@@ -522,13 +523,13 @@ approximate compaction by sparse mapping. If every other page of a
 segment is unused, the unused pages can be unmapped, freeing up
 physical memory that can be mapped to a new contiguous vm range.)
 
-_`.anal.mech.freelist`: The literature (paper.grun92(1),
-paper.vo96(0)) indicate that `.sol.freelist.cartesian-tree`_ provides
-a space-efficient implementation at some cost in speed.
-`.sol.freelist.splay-tree`_ is faster but less space-efficient.
-`.sol.freelist.bitmap`_ is unstudied. Many of the faster allocators
-maintain caches of free blocks by size to speed allocation of
-"popular" sizes. We intend to initially explore not doing so, as we
+_`.anal.mech.free-list`: The literature (paper.grun92(1),
+paper.vo96(0)) indicate that `.sol.mech.free-list.cartesian-tree`_
+provides a space-efficient implementation at some cost in speed.
+`.sol.mech.free-list.splay-tree`_ is faster but less space-efficient.
+`.sol.mech.free-list.bitmap`_ is unstudied. Many of the faster
+allocators maintain caches of free blocks by size to speed allocation
+of "popular" sizes. We intend to initially explore not doing so, as we
 believe that policy ultimately leads to fragmentation by mixing
 objects of varying death times. Instead we intend to use a free list
 mechanism to support fast coalescing, deferring reuse of blocks until
@@ -673,12 +674,17 @@ refcount can be very efficient if objects can be placed accurately
 according to death time. A hybrid mechanism may offer better
 performance for a wider range of situations.
 
+_`.sol.mech.free-list.linked`: An address-ordered singly linked free
+list using space in each free block to store the block's size and a
+pointer to the next block.
+
 _`.sol.mech.storage`: Methods that can be used to store the free list description.
 
-_`.sol.mech.storage.in-band`: The tree data structures are amenable to
-being stored in the free blocks themselves, minimizing the space
-overhead of management. To do so imposes a minimum size on free blocks
-and reduces the locality of the data structure.
+_`.sol.mech.storage.in-band`: The tree data structures (and
+`.sol.mech.free-list.linked`_) are amenable to being stored in the
+free blocks themselves, minimizing the space overhead of management.
+To do so imposes a minimum size on free blocks and reduces the
+locality of the data structure.
 
 _`.sol.mech.storage.out-of-band`: The bit-map data structure must be
 stored separately.
@@ -754,6 +760,20 @@ checking and description should be provided. See design.mps.splay(0)
 and design.mps.cbs(0).
 
 
+Fail-over to address-ordered free list
+......................................
+
+_`.impl.c.freelist`: Because the CBS uses out-of-band storage, it may
+be unable to handle insert (design.mps.cbs.function.cbs.insert.fail)
+and delete (design.mps.cbs.function.cbs.delete.fail) operations. When
+this happen MVT fails over to an address-ordered singly linked free
+list. This uses in-band storage and so cannot run out of memory, but
+it has much worse performance than the CBS. Therefore MVT eagerly
+attempts to flush blocks from the free list back to the CBS. See
+design.mps.freelist for the design and implementation of the free
+list.
+
+
 Available Block Queue
 .....................
 
@@ -775,8 +795,8 @@ the pool. Creation takes parameters: minimum size, mean size, maximum
 size, reserve depth and fragmentation limit. Minimum, mean, and
 maximum size are used to calculate the internal fill and reuse sizes.
 Reserve depth and mean size are used to calculate the ABQ high water
-mark. Fragmentation limit is used to set the CBS contingency mode.
-Must support buffer initialization, filling and emptying. Must support
+mark. Fragmentation limit is used to set the contingency mode. Must
+support buffer initialization, filling and emptying. Must support
 freeing. Standard checking and description should be provided.
 [Eventually, it should support scanning, so it can be used with
 collected pools, but no manual pool currently does.]
@@ -802,7 +822,7 @@ many reuse blocks as would take to cover the population hysteresis if
 the population consisted solely of mean-sized blocks, see
 `.arch.abq.high-water`_).
 
-_`.impl.c.parameter.avail-limit`: The CBS high-water limit is
+_`.impl.c.parameter.avail-limit`: The free block high-water limit is
 implemented by comparing the available free space to an "available
 limit". The available limit is updated each time a segment is
 allocated from or returned to the arena by setting it to the total
@@ -818,31 +838,32 @@ _`.impl.c.ap.fill`: An AP fill request will be handled as follows:
   large enough.
 
 - Attempt to retrieve a free block from the head of the ABQ (removing
-  it from ABQ and CBS if found).
+  it from ABQ and the free block managers if found).
 
-- If above fragmentation limit, attempt to find a block on the CBS,
-  using oldest-fit search.
+- If above fragmentation limit, attempt to find a block in the free
+  block managers, using oldest-fit search.
 
 - Attempt to request a segment of fill size from the arena.
 
-- Attempt to find a block on the CBS, using oldest-fit search.
+- Attempt to find a block in the free block managers, using oldest-fit
+  search.
 
 - Otherwise, fail.
 
 _`.impl.c.ap.empty`: An AP empty request will be handled as follows:
 
-- If remaining free is less than min size, return it to the CBS.
+- If remaining free is less than min size, return it to the free block
+  managers.
 
 - If the remaining free is larger than any previous splinter, return
-  that splinter to the CBS and save this one for use by a subsequent
-  fill.
+  that splinter to the free block managers and save this one for use
+  by a subsequent fill.
 
-- Otherwise return the remaining block to the CBS
+- Otherwise return the remaining block to the free block managers.
 
-_`.impl.c.free`: When blocks are returned to the CBS a search is made
-for adjacent blocks that can be merged. If not, the block is simply
-inserted in the CBS. If a merge occurs between two blocks on the ABQ,
-the ABQ must be adjusted to reflect the merge.
+_`.impl.c.free`: When blocks are returned to the free block managers
+they may be merged with adjacent blocks. If a merge occurs with a
+block on the ABQ, the ABQ must be adjusted to reflect the merge.
 
 _`.impl.c.free.exception`: Exceptional blocks are returned directly to
 the arena.
@@ -851,26 +872,26 @@ _`.impl.c.free.merge`: If a merge occurs and the merged block is
 larger than reuse size:
 
 - If the ABQ is full, remove the block at the head of the ABQ from the
-  ABQ and CBS and return it to the arena(*).
+  ABQ and the free block managers and return it to the arena(*).
 
-- Insert the newly merged block at the tail of the ABQ, leaving it on
-  the CBS for further merging.
+- Insert the newly merged block at the tail of the ABQ, leaving it in
+  the free block managers for further merging.
 
 _`.impl.c.free.merge.segment`: (*) Merged blocks may not align with
 arena segments. If necessary, return the interior segments of a block
-to the arena and return the splinters to the CBS.
+to the arena and return the splinters to the free block managers.
 
 _`.impl.c.free.merge.segment.reuse`: If the reuse size (the size at
-which blocks recycle from the CBS to the ABQ) is at least twice the
-fill size (the size of segments the pool allocates from the arena), we
-can guarantee that there will always be a returnable segment in every
-ABQ block.
+which blocks recycle from the free block managers to the ABQ) is at
+least twice the fill size (the size of segments the pool allocates
+from the arena), we can guarantee that there will always be a
+returnable segment in every ABQ block.
 
 _`.impl.c.free.merge.segment.overflow`: If the reuse size is set
 smaller (see `.arch.adapt`_), there may not be a returnable segment in
 an ABQ block, in which case the ABQ has "overflowed". Whenever this
-occurs, the ABQ will be refilled by searching the CBS for dropped
-reusable blocks when needed.
+occurs, the ABQ will be refilled by searching the free block managers
+for dropped reusable blocks when needed.
 
 _`.impl.c.free.merge.segment.risk`: The current segment structure does
 not really support what we would like to do. Loci should do better:
