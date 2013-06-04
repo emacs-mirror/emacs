@@ -1,5 +1,14 @@
 2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-add-item-if-new-category): Change default value.
+	(todos-show, todos-jump-to-category, todos-add-file)
+	(todos-add-category): Update doc string to reflect new default
+	prompt for item insertion.
+	(todos-add-file): Add omitted argument to called-interactively-p.
+	(todos-show): Improve handling of adding first category.
+
+2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Allow prompting for first item on adding a new
 	category.  Fix handling of default todo file on adding first file.
 	(todos-add-item-if-new-category): New defcustom.

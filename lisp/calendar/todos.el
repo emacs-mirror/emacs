@@ -173,7 +173,9 @@ file was last visited.
 Calling this command before any Todos file exists prompts for a
 file name and an initial category (defaulting to
 `todos-initial-file' and `todos-initial-category'), creates both
-of these, visits the file and displays the category.
+of these, visits the file and displays the category, and if
+option `todos-add-item-if-new-category' is non-nil (the default),
+prompts for the first item.
 
 The first invocation of this command on an existing Todos file
 interacts with the option `todos-show-first': if its value is
@@ -194,7 +196,6 @@ Invoking this command in Todos Archive mode visits the
 corresponding Todos file, displaying the corresponding category."
   (interactive "P")
   (let* ((cat)
-	 (add-item nil)
 	 (show-first todos-show-first)
 	 (file (cond ((or solicit-file
 			  (and (called-interactively-p 'any)
@@ -218,10 +219,12 @@ corresponding Todos file, displaying the corresponding category."
 			  (and todos-show-current-file
 			       todos-global-current-todos-file)
 			  (todos-absolute-file-name todos-default-todos-file)
-			  (todos-add-file))))))
+			  (todos-add-file)))))
+	 add-item first-file)
     (unless todos-default-todos-file
       ;; We just initialized the first todo file, so make it the default.
-      (setq todos-default-todos-file (todos-short-file-name file))
+      (setq todos-default-todos-file (todos-short-file-name file)
+	    first-file t)
       (todos-reevaluate-default-file-defcustom))
     (unless (member file todos-visited)
       ;; Can't setq t-c-t-f here, otherwise wrong file shown when
@@ -265,9 +268,26 @@ corresponding Todos file, displaying the corresponding category."
       	(setq todos-category-number (todos-category-number cat)))
       ;; If this is a new Todos file, add its first category.
       (when (zerop (buffer-size))
-	(setq todos-category-number (todos-add-category todos-current-todos-file
-							"")
-	      add-item todos-add-item-if-new-category))
+	(let (cat-added)
+	  (unwind-protect
+	      (setq todos-category-number
+		    (todos-add-category todos-current-todos-file "")
+		    add-item todos-add-item-if-new-category
+		    cat-added t)
+	    (if cat-added
+		;; If the category was added, save the file now, so we
+		;; don't end up with an empty file, which would signal
+		;; an error if we tried to visit it later.
+		(save-buffer 0)
+	      ;; If user cancels before adding the category, clean up
+	      ;; and exit, so we have a fresh slate the next time.
+	      (delete-file file)
+	      (setq todos-files (delete file todos-files))
+	      (when first-file
+		(setq todos-default-todos-file nil
+		      todos-current-todos-file nil))
+	      (kill-buffer)
+	      (keyboard-quit)))))
       (save-excursion (todos-category-select))
       (when add-item (todos-basic-insert-item)))
     (setq todos-show-first show-first)
@@ -353,9 +373,10 @@ in it to jump to; otherwise, choose and jump to any category in
 either the current Todos file or a file in
 `todos-category-completions-files'.
 
-You can also enter a non-existing category name, triggering a
-prompt whether to add a new category by that name; on
-confirmation it is added and you jump to that category.
+Also accept a non-existing category name and ask whether to add a
+new category by that name; on confirmation, add it and jump to
+that category, and if option `todos-add-item-if-new-category' is
+non-nil (the default), then prompt for the first item.
 
 In noninteractive calls non-nil WHERE specifies either the goal
 category or its file.  If its value is `archive', the choice of
@@ -458,7 +479,9 @@ empty line above the done items separator."
 
 (defun todos-add-file ()
   "Name and initialize a new Todos file.
-Interactively, prompt for a category and display it.
+Interactively, prompt for a category and display it, and if
+option `todos-add-item-if-new-category' is non-nil (the default),
+prompt for the first item.
 Noninteractively, return the name of the new file.
 
 This command does not save the file to disk; to do that type
@@ -474,7 +497,7 @@ This command does not save the file to disk; to do that type
       (kill-buffer file))
     (setq todos-files (funcall todos-files-function))
     (todos-reevaluate-filelist-defcustoms)
-    (if (called-interactively-p)
+    (if (called-interactively-p 'any)
 	(progn
 	  (set-window-buffer (selected-window)
 			     (set-buffer (find-file-noselect file)))
@@ -512,8 +535,10 @@ this command should be used with caution."
 
 Called interactively with prefix argument FILE, prompt for a file
 and then for a new category to add to that file, otherwise prompt
-just for a category to add to the current Todos file.  After adding
-the category, visit it in Todos mode.
+just for a category to add to the current Todos file.  After
+adding the category, visit it in Todos mode and if option
+`todos-add-item-if-new-category' is non-nil (the default), prompt
+for the first item.
 
 Non-interactively, add category CAT to file FILE; if FILE is nil,
 add CAT to the current Todos file.  After adding the category,
@@ -978,7 +1003,7 @@ marking of the next N items."
 ;;; Item editing options
 ;; -----------------------------------------------------------------------------
 
-(defcustom todos-add-item-if-new-category nil
+(defcustom todos-add-item-if-new-category t
   "Non-nil to prompt for an item after adding a new category."
   :type 'boolean
   :group 'todos-edit)
