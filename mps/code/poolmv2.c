@@ -441,7 +441,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   Seg seg;
   MVT mvt;
   Res res;
-  Addr base, limit;
+  Addr base = NULL, limit = NULL;
   Arena arena;
   Size alignedSize, fillSize;
   RangeStruct range;
