@@ -50,11 +50,11 @@ Methods
 
 _`.method`: The MVFF pool supports the following methods:
 
-``Res MVFFInit(Pool pool, va_list arg)``
+``Res MVFFInit(Pool pool, Args arg)``
 
 _`.method.init`: This takes six `keyword arguments`_:
 
-.. _`keyword arguments`: keyword-arguments.rst
+.. _`keyword arguments`: keyword-arguments
 
 ================================== ============================================
 Keyword argument                   Description
@@ -118,7 +118,7 @@ Implementation
 
 _`.impl.free-list`: The pool stores its free list in a CBS (see
 `design.mps.cbs <cbs/>`_). It uses the CBS's mayUseInline facility to
-avoid running out of memory to store the free this. This is the reason
+avoid running out of memory to store the free list. This is the reason
 for the alignment restriction above.
 
 
@@ -131,7 +131,9 @@ object size (in both cases we align up).
 
 _`.design.seg-fail`: If allocating a segment fails, we try again with
 a segment size just large enough for the object we're allocating. This
-is in response to request.mps.170186.
+is in response to `request.mps.170186`_.
+
+.. _`request.mps.170186`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/170186/
 
 
 Document History
@@ -149,7 +151,7 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-05-10 RB_ Converted to reStructuredText. Updated to document
-  keyword arguments, replacing varargs. ========== ======
+  keyword arguments, replacing varargs.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 
