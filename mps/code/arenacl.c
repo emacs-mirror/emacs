@@ -8,7 +8,9 @@
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
  * and last free pages in each chunk, and start searching from these
- * in ChunkAlloc.  See request.epcore.170534.
+ * in ChunkAlloc.  See request.epcore.170534_.
+ *
+ * .. _request.epcore.170534: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170534
  */
 
 #include "boot.h"

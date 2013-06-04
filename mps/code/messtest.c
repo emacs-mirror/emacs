@@ -179,9 +179,11 @@ static void eatTopMessage(Arena arena)
 
 /* testInterleaving -- test interleaving messages of different types
  *
- * See request.dylan.160204
+ * See request.dylan.160204_
  * must be able to retrieve a message even if a message of
  * another type is at the head of the queue.
+ *
+ * .. _request.dylan.160204: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160204
  */
 
 static void testInterleaving(Arena arena)
@@ -207,7 +209,8 @@ static void testInterleaving(Arena arena)
 
 /* testDisabling -- test message types can be disabled
  *
- * See request.dylan.160204
+ * See request.dylan.160204_
+ * .. _request.dylan.160204: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160204
  */
 
 static void testDisabling(Arena arena)
