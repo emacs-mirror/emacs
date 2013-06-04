@@ -425,7 +425,7 @@ Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
 {
   Bool found = FALSE;
   Addr prev, cur, next;
-  Addr foundPrev, foundCur;
+  Addr foundPrev = NULL, foundCur = NULL;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -459,7 +459,7 @@ Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
 {
   Bool found = FALSE;
   Addr prev, cur, next;
-  Addr bestPrev, bestCur;
+  Addr bestPrev = NULL, bestCur = NULL;
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
