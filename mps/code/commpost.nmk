@@ -1,44 +1,21 @@
-# commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+# commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
 # Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
 
 
-# PSEUDO-TARGETS
+# == Pseudo-targets ==
 
-# "all" builds all the varieties of all targets
-# %%TARGET: When adding a new target, add it to the all dependencies.
-
-all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
-     mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     sacss.exe finalcv.exe finaltest.exe \
-     arenacv.exe bttest.exe teletest.exe \
-     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
-     locbwcss.exe locusss.exe zcoll.exe zmess.exe \
-     mpseventcnv.exe mpseventtxt.exe \
-     mps.lib
+all: $(ALL_TARGETS)
 
 
 # Convenience targets
 
-# %%TARGET: When adding a new target, add a pseudo-target for it here,
-# first rule for variety-dependent targets, and second for
-# variety-independent ones.
-
-mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
-     mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     sacss.exe finalcv.exe finaltest.exe \
-     arenacv.exe bttest.exe teletest.exe \
-     expt825.exe \
-     abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
-     walkt0.exe locbwcss.exe locusss.exe \
-     exposet0.exe zcoll.exe zmess.exe \
-     replay.exe replaysw.exe mpseventcnv.exe mpseventtxt.exe mpseventsql.exe \
-     mps.lib:
+$(ALL_TARGETS):
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -78,6 +55,17 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
+
+# testrun
+# Runs automated test cases.
+
+testrun: $(AUTO_TEST_TARGETS)
+!IFDEF VARIETY
+	..\tool\testrun.bat $(PFM) $(VARIETY) $(AUTO_TEST_TARGETS)
+!ELSE
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=cool testrun
+!ENDIF
 
 
 # THE MPS LIBRARY
@@ -133,46 +121,16 @@ $(PFM)\di\mps.lib: \
 
 !IFDEF VARIETY
 
-$(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+$(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
+	$(PFM)\$(VARIETY)\abq.obj $(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amcssth.exe: $(PFM)\$(VARIETY)\amcssth.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
@@ -181,17 +139,11 @@ $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 $(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
+$(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
+$(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\dwstress.exe: $(PFM)\$(VARIETY)\dwstress.obj \
-	$(DWOBJ) $(PFM)\$(VARIETY)\mps.lib
 
 $(PFM)\$(VARIETY)\awlut.exe: $(PFM)\$(VARIETY)\awlut.obj \
         $(FMTTESTOBJ) \
@@ -201,27 +153,75 @@ $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 	$(FMTTESTOBJ) \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
+
+$(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
+	$(PFM)\$(VARIETY)\poolmv2.obj $(PFM)\$(VARIETY)\abq.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
+$(PFM)\$(VARIETY)\sacss.exe: $(PFM)\$(VARIETY)\sacss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
-	$(PFM)\$(VARIETY)\abq.obj $(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+$(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
+$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
-	$(PFM)\$(VARIETY)\poolmv2.obj $(PFM)\$(VARIETY)\abq.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+$(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\zcoll.exe: $(PFM)\$(VARIETY)\zcoll.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) \
@@ -250,18 +250,6 @@ $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
 $(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
 	$(ECHO) $@
 	copy $** $@ >nul:
-
-$(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
-
-$(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 !ENDIF
 
@@ -307,7 +295,7 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
