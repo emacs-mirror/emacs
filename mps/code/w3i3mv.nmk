@@ -1,7 +1,7 @@
-# w3i3mv.nmk: WINDOWS (INTEL) NMAKE FILE
+# w3i3mv.nmk: WINDOWS (IA-32) NMAKE FILE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
 
 PFM = w3i3mv
 
@@ -11,30 +11,11 @@ PFM = w3i3mv
 PFMDEFS = /DCONFIG_PF_STRING="w3i3mv" /DCONFIG_PF_W3I3MV \
       /DWIN32 /D_WINDOWS /Gs
 
-MPM = <ring> <mpm> <bt> <protocol> <boot> \
-      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
-      <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <walk> <lockw3> \
-      <ref> <trace> <traceanc> <protw3> <proti3> <prmci3w3> \
-      <shield> <vmw3> <table> \
-      <thw3> <thw3i3> <ss> <ssw3i3mv> <mpsi> <mpsiw3> <ld> <spi3> \
-      <event> <seg> <sac> <poolmrg> <message> <dbgpool> <dbgpooli> \
-      <abq> <meter> <cbs> <poolmv2> <splay> <diag> <arg>
-PLINTH = <mpsliban> <mpsioan>
-AMC = <poolamc>
-AMS = <poolams> <poolamsi>
-AWL = <poolawl>
-LO = <poollo>
-SNC = <poolsnc>
-MVFF = <poolmvff>
-N = <pooln>
-DW = <fmtdy> <fmtno>
-FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
-POOLN = <pooln>
-TESTLIB = <testlib>
-
-
 !INCLUDE commpre.nmk
+
+# MPM sources: core plus platform-specific.
+MPM = $(MPMCOMMON) <proti3> <prmci3w3> <spi3> <ssw3i3mv> <thw3i3>
+
 
 
 # Source to object file mappings and CFLAGS amalgamation
@@ -187,7 +168,7 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
