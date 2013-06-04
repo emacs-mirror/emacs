@@ -115,7 +115,8 @@ Bool BufferCheck(Buffer buffer)
     /* flipped, initAtFlip should hold the init at flip, which is */
     /* between the base and current init.  Otherwise, initAtFlip */
     /* is kept at zero to avoid misuse (see */
-    /* request.dylan.170429.sol.zero). */
+    /* request.dylan.170429.sol.zero_). */
+    /* .. _request.dylan.170429.sol.zero: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170429 */
 
     if ((buffer->ap_s._enabled && aplimit == (Addr)0) /* see .lwcheck */
         || (!buffer->ap_s._enabled && BufferIsTrapped(buffer))) {

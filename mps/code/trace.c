@@ -737,7 +737,8 @@ found:
   /* We suspend the mutator threads so that the PoolWhiten methods */
   /* can calculate white sets without the mutator allocating in */
   /* buffers under our feet. */
-  /* @@@@ This is a short-term fix for request.dylan.160098. */
+  /* @@@@ This is a short-term fix for request.dylan.160098_. */
+  /* .. _request.dylan.160098: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/160098 */
   ShieldSuspend(arena);
 
   traceCopySizes(trace);
