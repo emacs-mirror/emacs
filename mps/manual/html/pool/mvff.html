@@ -129,28 +129,28 @@ Fit) <a class="reference internal" href="../glossary/p.html#term-pool"><em class
 <p>When creating an MVFF pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> may take
 the following <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
 <ul class="simple">
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_EXTEND_BY" title="MPS_KEY_EXTEND_BY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt></a> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default
 65536) is the <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of segment that the pool will request
 from the <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>.</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MEAN_SIZE" title="MPS_KEY_MEAN_SIZE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></a> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32)
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32)
 is the predicted mean size of blocks that will be allocated from
 the pool. This is a <em>hint</em> to the MPS: the pool will be less
 efficient if this is wrong, but nothing will break.</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_ALIGN" title="MPS_KEY_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt></a> (type <a class="reference internal" href="../topic/interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>, default is
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt> (type <a class="reference internal" href="../topic/interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>, default is
 smallest general purpose alignment for the architecture) is the
 <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of addresses for allocation (and freeing) in
 the pool. If an unaligned size is passed to <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a> or
 <a class="reference internal" href="../topic/allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a>, it will be rounded up to the pool&#8217;s alignment.
 The minimum alignment supported by pools of this class is
 <tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt>.</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_ARENA_HIGH" title="MPS_KEY_MVFF_ARENA_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt></a> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>,
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>,
 default false) determines whether new segments are acquired at high
 addresses (if true), or at low addresses (if false).</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_SLOT_HIGH" title="MPS_KEY_MVFF_SLOT_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></a> <a class="footnote-reference" href="#not-ap" id="id1">[1]</a> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>,
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt> <a class="footnote-reference" href="#not-ap" id="id1">[1]</a> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>,
 default false) determines whether to search for the highest
 addressed free area (if true) or lowest (if false) when allocating
 using <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>.</li>
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_FIRST_FIT" title="MPS_KEY_MVFF_FIRST_FIT"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></a> <a class="footnote-reference" href="#not-ap" id="id2">[1]</a> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>, default
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt> <a class="footnote-reference" href="#not-ap" id="id2">[1]</a> (type <a class="reference internal" href="../topic/interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>, default
 true) determines whether to allocate from the highest address in a
 found free area (if true) or lowest (if false) when allocating
 using <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>.</li>
@@ -159,16 +159,16 @@ using <a class="reference internal" href="../topic/allocation.html#mps_alloc" ti
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> Allocation points are not affected by
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_SLOT_HIGH" title="MPS_KEY_MVFF_SLOT_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></a> or
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_FIRST_FIT" title="MPS_KEY_MVFF_FIRST_FIT"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></a>.
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt> or
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt>.
 They use a worst-fit policy in order to maximise the number of
 in-line allocations.</td></tr>
 </tbody>
 </table>
 <p>The defaults yield a a simple first-fit allocator.  Specify
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_ARENA_HIGH" title="MPS_KEY_MVFF_ARENA_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt></a> and
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_SLOT_HIGH" title="MPS_KEY_MVFF_SLOT_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></a> true, and
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_FIRST_FIT" title="MPS_KEY_MVFF_FIRST_FIT"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></a> false to get a first-fit
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt> and
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt> true, and
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt> false to get a first-fit
 allocator that works from the top of memory downwards.
 Other combinations may be useful in special circumstances.</p>
 <p>For example:</p>
@@ -189,14 +189,14 @@ Other combinations may be useful in special circumstances.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the arguments like
 this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvff</span><span class="p">(),</span>
-                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="n">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvff</span><span class="p">(),</span>
+                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="kt">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -210,27 +210,27 @@ class.</p>
 <p>When creating a debugging MVFF pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a>
 requires seven <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>.</p>
 <ul class="simple">
-<li><a class="reference internal" href="../design/poolmvff.html#MPS_KEY_EXTEND_BY" title="MPS_KEY_EXTEND_BY"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt></a>, <a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MEAN_SIZE" title="MPS_KEY_MEAN_SIZE"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></a>,
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_ALIGN" title="MPS_KEY_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt></a>, <a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_ARENA_HIGH" title="MPS_KEY_MVFF_ARENA_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt></a>,
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_SLOT_HIGH" title="MPS_KEY_MVFF_SLOT_HIGH"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></a>, and
-<a class="reference internal" href="../design/poolmvff.html#MPS_KEY_MVFF_FIRST_FIT" title="MPS_KEY_MVFF_FIRST_FIT"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></a> are as described above, and
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt>, <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt>,
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt>, <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt>,
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt>, and
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt> are as described above, and
 <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_POOL_DEBUG_OPTIONS</span></tt> specifies the debugging
-:c:options. See <tt class="xref c c-type docutils literal"><span class="pre">mps_debug_option_s</span></tt>.</li>
+options. See <tt class="xref c c-type docutils literal"><span class="pre">mps_debug_option_s</span></tt>.</li>
 </ul>
 <div class="admonition-deprecated admonition">
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the debugging
 options, and other arguments like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvff_debug</span><span class="p">(),</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvff_debug</span><span class="p">(),</span>
                           <span class="n">mps_debug_option_s</span> <span class="n">debug_option</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="n">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
-                          <span class="n">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
+                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="kt">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
+                          <span class="kt">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

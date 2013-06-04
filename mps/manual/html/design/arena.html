@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>1. Arena &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>2. Arena &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="2. Bit tables" href="bt.html" />
-    <link rel="prev" title="Old design" href="old.html" /> 
+    <link rel="next" title="3. Virtual Memory Arena" href="arenavm.html" />
+    <link rel="prev" title="1. Allocation frame protocol" href="alloc-frame.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="arenavm.html" title="3. Virtual Memory Arena"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="old.html" title="Old design"
+          <a href="alloc-frame.html" title="1. Allocation frame protocol"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,14 +55,14 @@
           <div class="body">
             
   <div class="section" id="arena">
-<span id="design-design-arena"></span><span id="design-arena"></span><span id="index-0"></span><h1>1. Arena<a class="headerlink" href="#arena" title="Permalink to this headline">¶</a></h1>
+<span id="design-arena"></span><span id="index-0"></span><h1>2. Arena<a class="headerlink" href="#arena" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.arena"></span><h2>1.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.arena"></span><h2>2.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.arena.intro"></span><a class="mpstag reference internal" href="#design.mps.arena.intro">.intro:</a> This is the design of the arena structure.</p>
 <p><span class="target" id="design.mps.arena.readership"></span><a class="mpstag reference internal" href="#design.mps.arena.readership">.readership:</a> MPS developers.</p>
 </div>
 <div class="section" id="overview">
-<h2>1.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>2.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.arena.overview"></span><a class="mpstag reference internal" href="#design.mps.arena.overview">.overview:</a> The arena serves two purposes. It is a structure that is
 the top-level state of the MPS, and as such contains a lot of fields
 which are considered &#8220;global&#8221;. And it provides raw memory to pools.</p>
@@ -75,7 +75,7 @@ virtual memory, client provided, or via malloc). Some behaviour
 by generic arena code, and some by arena class code.</p>
 </div>
 <div class="section" id="definitions">
-<h2>1.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>2.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.arena.def.tract"></span><a class="mpstag reference internal" href="#design.mps.arena.def.tract">.def.tract:</a> Pools request memory from the arena by calling
 <tt class="xref c c-func docutils literal"><span class="pre">ArenaAlloc()</span></tt>. This returns a block comprising a contiguous sequence
 of &#8220;tracts&#8221;. A tract has a specific size (also known as the &#8220;arena
@@ -84,16 +84,19 @@ size) and all tracts are aligned to that size. &#8220;Tract&#8221; is also used
 for the data structure used to manage tracts.</p>
 </div>
 <div class="section" id="requirements">
-<h2>1.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>[copied from design.mps.arena.vm(1) and edited slightly &#8211; drj
-1999-06-23]</p>
-<p>[Where do these come from? Need to identify and document the sources
-of requirements so that they are traceable to client requirements.
-Most of these come from the architectural design
-(design.mps.architecture) or the fix function design (design.mps.fix).
-&#8211; richard 1995-08-28]</p>
+<h2>2.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p>Where do these come from? Need to identify and document the
+sources of requirements so that they are traceable to client
+requirements. Most of these come from the architectural design
+(design.mps.architecture) or the fix function design
+(design.mps.fix). Richard Brooksby, 1995-08-28.</p>
+<p class="last">They were copied from design.mps.arena.vm(1) and edited slightly.
+David Jones, 1999-06-23.</p>
+</div>
 <div class="section" id="block-management">
-<h3>1.4.1. Block management<a class="headerlink" href="#block-management" title="Permalink to this headline">¶</a></h3>
+<h3>2.4.1. Block management<a class="headerlink" href="#block-management" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.req.fun.block.alloc"></span><a class="mpstag reference internal" href="#design.mps.arena.req.fun.block.alloc">.req.fun.block.alloc:</a> The arena must provide allocation of
 contiguous blocks of memory.</p>
 <p><span class="target" id="design.mps.arena.req.fun.block.free"></span><a class="mpstag reference internal" href="#design.mps.arena.req.fun.block.free">.req.fun.block.free:</a> It must also provide freeing of contiguously
@@ -110,12 +113,12 @@ least).</p>
 <p><span class="target" id="design.mps.arena.req.attr.block.align.min"></span><a class="mpstag reference internal" href="#design.mps.arena.req.attr.block.align.min">.req.attr.block.align.min:</a> The alignment of blocks shall not be less
 than <a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a> for the architecture. This is so that pool
 classes can conveniently guarantee pool allocated blocks are aligned
-to <a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>. (A trivial requirement)</p>
+to <a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>. (A trivial requirement.)</p>
 <p><span class="target" id="design.mps.arena.req.attr.block.grain.max"></span><a class="mpstag reference internal" href="#design.mps.arena.req.attr.block.grain.max">.req.attr.block.grain.max:</a> The granularity of allocation shall not
 be more than the grain size provided by the virtual mapping interface.</p>
 </div>
 <div class="section" id="address-translation">
-<h3>1.4.2. Address translation<a class="headerlink" href="#address-translation" title="Permalink to this headline">¶</a></h3>
+<h3>2.4.2. Address translation<a class="headerlink" href="#address-translation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.req.fun.trans"></span><a class="mpstag reference internal" href="#design.mps.arena.req.fun.trans">.req.fun.trans:</a> The arena must provide a translation from any
 address to either an indication that the address is not in any tract
 (if that is so) or the following data associated with the tract
@@ -131,12 +134,12 @@ can run very quickly.</p>
 [something not very large &#8211; drj 1999-06-23]</p>
 </div>
 <div class="section" id="iteration-protocol">
-<h3>1.4.3. Iteration protocol<a class="headerlink" href="#iteration-protocol" title="Permalink to this headline">¶</a></h3>
+<h3>2.4.3. Iteration protocol<a class="headerlink" href="#iteration-protocol" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.req.iter"></span><a class="mpstag reference internal" href="#design.mps.arena.req.iter">.req.iter:</a> er, there&#8217;s a tract iteration protocol which is
 presumably required for some reason?</p>
 </div>
 <div class="section" id="arena-partition">
-<h3>1.4.4. Arena partition<a class="headerlink" href="#arena-partition" title="Permalink to this headline">¶</a></h3>
+<h3>2.4.4. Arena partition<a class="headerlink" href="#arena-partition" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.req.fun.set"></span><a class="mpstag reference internal" href="#design.mps.arena.req.fun.set">.req.fun.set:</a> The arena must provide a method for approximating sets
 of addresses.</p>
 <p><span class="target" id="design.mps.arena.req.fun.set.time"></span><a class="mpstag reference internal" href="#design.mps.arena.req.fun.set.time">.req.fun.set.time:</a> The determination of membership shall take no
@@ -144,20 +147,24 @@ more than &#64;&#64;&#64;&#64; [something very small indeed]. (the non-obvious
 solution is refsets)</p>
 </div>
 <div class="section" id="constraints">
-<h3>1.4.5. Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h3>
+<h3>2.4.5. Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.req.attr.space.overhead"></span><a class="mpstag reference internal" href="#design.mps.arena.req.attr.space.overhead">.req.attr.space.overhead:</a> req.dylan.attr.space.struct implies that
 the arena must limit the space overhead. The arena is not the only
 part that introduces an overhead (pool classes being the next most
 obvious), so multiple parts must cooperate in order to meet the
 ultimate requirements.</p>
-<p><span class="target" id="design.mps.arena.req.attr.time.overhead"></span><a class="mpstag reference internal" href="#design.mps.arena.req.attr.time.overhead">.req.attr.time.overhead:</a> Time overhead constraint? [how can there be
-a time &#8220;overhead&#8221; on a necessary component? drj 1999-06-23]</p>
+<p><span class="target" id="design.mps.arena.req.attr.time.overhead"></span><a class="mpstag reference internal" href="#design.mps.arena.req.attr.time.overhead">.req.attr.time.overhead:</a> Time overhead constraint?</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">How can there be a time &#8220;overhead&#8221; on a necessary component? David
+Jones, 1999-06-23.</p>
+</div>
 </div>
 </div>
 <div class="section" id="architecture">
-<h2>1.5. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>2.5. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="statics">
-<h3>1.5.1. Statics<a class="headerlink" href="#statics" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.1. Statics<a class="headerlink" href="#statics" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.static"></span><a class="mpstag reference internal" href="#design.mps.arena.static">.static:</a> There is no higher-level data structure than a arena, so in
 order to support several arenas, we have to have some static data in
 impl.c.arena. See impl.c.arena.static.</p>
@@ -177,7 +184,7 @@ by the lock module.</p>
 checked.</p>
 </div>
 <div class="section" id="arena-classes">
-<h3>1.5.2. Arena classes<a class="headerlink" href="#arena-classes" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.2. Arena classes<a class="headerlink" href="#arena-classes" title="Permalink to this headline">¶</a></h3>
 <dl class="type">
 <dt id="Arena">
 mps_arena_s *<tt class="descname">Arena</tt><a class="headerlink" href="#Arena" title="Permalink to this definition">¶</a></dt>
@@ -215,7 +222,7 @@ implementations of those methods which must be overridden. Instead
 each abstract method is initialized to <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt>.</p>
 </div>
 <div class="section" id="tracts">
-<h3>1.5.3. Tracts<a class="headerlink" href="#tracts" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.3. Tracts<a class="headerlink" href="#tracts" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.tract"></span><a class="mpstag reference internal" href="#design.mps.arena.tract">.tract:</a> The arena allocation function <tt class="xref c c-func docutils literal"><span class="pre">ArenaAlloc()</span></tt> allocates a
 block of memory to pools, of a size which is aligned to the arena
 alignment. Each alignment unit (grain) of allocation is represented by
@@ -284,13 +291,13 @@ purpose and is less efficient.</p>
 <tt class="xref c c-func docutils literal"><span class="pre">TraceFix()</span></tt> (see design.mps.trace.fix.tractofaddr).</p>
 </div>
 <div class="section" id="control-pool">
-<h3>1.5.4. Control pool<a class="headerlink" href="#control-pool" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.4. Control pool<a class="headerlink" href="#control-pool" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.pool"></span><a class="mpstag reference internal" href="#design.mps.arena.pool">.pool:</a> Each arena has a &#8220;control pool&#8221;,
 <tt class="docutils literal"><span class="pre">arena-&gt;controlPoolStruct</span></tt>, which is used for allocating MPS control
 data structures by calling <tt class="xref c c-func docutils literal"><span class="pre">ControlAlloc()</span></tt>.</p>
 </div>
 <div class="section" id="polling">
-<h3>1.5.5. Polling<a class="headerlink" href="#polling" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.5. Polling<a class="headerlink" href="#polling" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.poll"></span><a class="mpstag reference internal" href="#design.mps.arena.poll">.poll:</a> <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoll()</span></tt> is called &#8220;often&#8221; by other code (for instance,
 on buffer fill or allocation). It is the entry point for doing tracing
 work. If the polling clock exceeds a set threshold, and we&#8217;re not
@@ -300,12 +307,17 @@ it calls <tt class="xref c c-func docutils literal"><span class="pre">TracePoll(
 because internal allocation is only significant when copy segments are
 being allocated, and we don&#8217;t want to have the pause times to shrink
 because of that. There is no current requirement for the trace rate to
-guard against running out of memory. [Clearly it really ought to: we
-have a requirement to not run out of memory (see
-req.dylan.prot.fail-alloc, req.dylan.prot.consult), and emergency
-tracing should not be our only story. drj 1999-06-22] <tt class="docutils literal"><span class="pre">BufferEmpty</span></tt>
-is not taken into account, because the splinter will rarely be useable
-for allocation and we are wary of the clock running backward.</p>
+guard against running out of memory.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Clearly it really ought to: we have a requirement to not run out
+of memory (see req.dylan.prot.fail-alloc, req.dylan.prot.consult),
+and emergency tracing should not be our only story. David Jones,
+1999-06-22.</p>
+</div>
+<p><tt class="xref c c-func docutils literal"><span class="pre">BufferEmpty()</span></tt> is not taken into account, because the splinter will
+rarely be useable for allocation and we are wary of the clock running
+backward.</p>
 <p><span class="target" id="design.mps.arena.poll.clamp"></span><a class="mpstag reference internal" href="#design.mps.arena.poll.clamp">.poll.clamp:</a> Polling is disabled when the arena is &#8220;clamped&#8221;, in
 which case <tt class="docutils literal"><span class="pre">arena-&gt;clamped</span></tt> is <tt class="xref c c-macro docutils literal"><span class="pre">TRUE</span></tt>. Clamping the arena prevents
 background tracing work, and further new garbage collections from
@@ -317,7 +329,7 @@ and prevents further collection. Parking is implemented by the
 <tt class="xref c c-func docutils literal"><span class="pre">ArenaPark()</span></tt> method.</p>
 </div>
 <div class="section" id="commit-limit">
-<h3>1.5.6. Commit limit<a class="headerlink" href="#commit-limit" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.6. Commit limit<a class="headerlink" href="#commit-limit" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.commit-limit"></span><a class="mpstag reference internal" href="#design.mps.arena.commit-limit">.commit-limit:</a> The arena supports a client configurable &#8220;commit
 limit&#8221; which is a limit on the total amount of committed memory. The
 generic arena structure contains a field to hold the value of the
@@ -341,7 +353,7 @@ ambiguous with respect to which result code in returned in such a
 situation however.</p>
 </div>
 <div class="section" id="spare-committed-aka-hysteresis">
-<h3>1.5.7. Spare committed (aka &#8220;hysteresis&#8221;)<a class="headerlink" href="#spare-committed-aka-hysteresis" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.7. Spare committed (aka &#8220;hysteresis&#8221;)<a class="headerlink" href="#spare-committed-aka-hysteresis" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.spare-committed"></span><a class="mpstag reference internal" href="#design.mps.arena.spare-committed">.spare-committed:</a> See <a class="reference internal" href="../topic/arena.html#mps_arena_spare_committed" title="mps_arena_spare_committed"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_spare_committed()</span></tt></a>. The generic
 arena structure contains two fields for the spare committed memory
 fund: <tt class="docutils literal"><span class="pre">spareCommitted</span></tt> records the total number of spare committed
@@ -363,7 +375,7 @@ than the amount of spare committed memory (stored in
 <tt class="docutils literal"><span class="pre">spareCommitExceeded</span></tt> is called.</p>
 </div>
 <div class="section" id="locks">
-<h3>1.5.8. Locks<a class="headerlink" href="#locks" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.8. Locks<a class="headerlink" href="#locks" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.lock.ring"></span><a class="mpstag reference internal" href="#design.mps.arena.lock.ring">.lock.ring:</a> <tt class="xref c c-func docutils literal"><span class="pre">ArenaAccess()</span></tt> is called when we fault on a barrier.
 The first thing it does is claim the non-recursive global lock to
 protect the arena ring (see design.mps.lock(0)).</p>
@@ -385,22 +397,22 @@ when the recursive global lock is already held, and we never claim the
 binary global lock when the arena lock is held.</p>
 </div>
 <div class="section" id="location-dependencies">
-<h3>1.5.9. Location dependencies<a class="headerlink" href="#location-dependencies" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.9. Location dependencies<a class="headerlink" href="#location-dependencies" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.ld"></span><a class="mpstag reference internal" href="#design.mps.arena.ld">.ld:</a> Location dependencies use fields in the arena to maintain a
 history of summaries of moved objects, and to keep a notion of time,
 so that the staleness of location dependency can be determined.</p>
 </div>
 <div class="section" id="finalization">
-<h3>1.5.10. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.10. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.final"></span><a class="mpstag reference internal" href="#design.mps.arena.final">.final:</a> There is a pool which is optionally (and dynamically)
 instantiated to implement finalization. The fields <tt class="docutils literal"><span class="pre">finalPool</span></tt> and
 <tt class="docutils literal"><span class="pre">isFinalPool</span></tt> are used.</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>1.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>2.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="tract-cache">
-<h3>1.6.1. Tract cache<a class="headerlink" href="#tract-cache" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.1. Tract cache<a class="headerlink" href="#tract-cache" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.tract.cache"></span><a class="mpstag reference internal" href="#design.mps.arena.tract.cache">.tract.cache:</a> When tracts are allocated to pools by <tt class="xref c c-func docutils literal"><span class="pre">ArenaAlloc()</span></tt>,
 the first tract of the block and it&#8217;s base address are cached in arena
 fields <tt class="docutils literal"><span class="pre">lastTract</span></tt> and <tt class="docutils literal"><span class="pre">lastTractBase</span></tt>. The function
@@ -416,7 +428,7 @@ is invalid, and must be reset. The <tt class="docutils literal"><span class="pre
 fields are set to <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt>.</p>
 </div>
 <div class="section" id="id1">
-<h3>1.6.2. Control pool<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.2. Control pool<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.pool.init"></span><a class="mpstag reference internal" href="#design.mps.arena.pool.init">.pool.init:</a> The control pool is initialized by a call to
 <tt class="xref c c-func docutils literal"><span class="pre">PoolInit()</span></tt> during <tt class="xref c c-func docutils literal"><span class="pre">ArenaCreate()</span></tt>.</p>
 <p><span class="target" id="design.mps.arena.pool.ready"></span><a class="mpstag reference internal" href="#design.mps.arena.pool.ready">.pool.ready:</a> All the other fields in the arena are made checkable
@@ -427,7 +439,7 @@ the return from <tt class="xref c c-func docutils literal"><span class="pre">Poo
 <tt class="docutils literal"><span class="pre">poolReady</span></tt>.</p>
 </div>
 <div class="section" id="traces">
-<h3>1.6.3. Traces<a class="headerlink" href="#traces" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.3. Traces<a class="headerlink" href="#traces" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.trace"></span><a class="mpstag reference internal" href="#design.mps.arena.trace">.trace:</a> <tt class="docutils literal"><span class="pre">arena-&gt;trace[ti]</span></tt> is valid if and only if
 <tt class="docutils literal"><span class="pre">TraceSetIsMember(arena-&gt;busyTraces,</span> <span class="pre">ti)</span></tt>.</p>
 <p><span class="target" id="design.mps.arena.trace.create"></span><a class="mpstag reference internal" href="#design.mps.arena.trace.create">.trace.create:</a> Since the arena created by <tt class="xref c c-func docutils literal"><span class="pre">ArenaCreate()</span></tt> has
@@ -437,7 +449,7 @@ meaningful.</p>
 can be checked.</p>
 </div>
 <div class="section" id="id2">
-<h3>1.6.4. Polling<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.4. Polling<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.poll.fields"></span><a class="mpstag reference internal" href="#design.mps.arena.poll.fields">.poll.fields:</a> There are three fields of a arena used for polling:
 <tt class="docutils literal"><span class="pre">pollThreshold</span></tt>, <tt class="docutils literal"><span class="pre">insidePoll</span></tt>, and <tt class="docutils literal"><span class="pre">clamped</span></tt> (see above).
 <tt class="docutils literal"><span class="pre">pollThreshold</span></tt> is the threshold for the next poll: it is set at the
@@ -445,7 +457,7 @@ end of <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoll()<
 <tt class="xref c c-macro docutils literal"><span class="pre">ARENA_POLL_MAX</span></tt>.</p>
 </div>
 <div class="section" id="id3">
-<h3>1.6.5. Location dependencies<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.5. Location dependencies<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.ld.epoch"></span><a class="mpstag reference internal" href="#design.mps.arena.ld.epoch">.ld.epoch:</a> <tt class="docutils literal"><span class="pre">arena-&gt;epoch</span></tt> is the &#8220;current epoch&#8221;. This is the
 number of &#8216;flips&#8217; of traces in the arena since the arena was created.
 From the mutator&#8217;s point of view locations change atomically at flip.</p>
@@ -464,7 +476,7 @@ whether a really old location dependency is stale, it is compared with
 this summary.</p>
 </div>
 <div class="section" id="roots">
-<h3>1.6.6. Roots<a class="headerlink" href="#roots" title="Permalink to this headline">¶</a></h3>
+<h3>2.6.6. Roots<a class="headerlink" href="#roots" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.arena.root-ring"></span><a class="mpstag reference internal" href="#design.mps.arena.root-ring">.root-ring:</a> The arena holds a member of a ring of roots in the
 arena. It holds an incremental serial which is the serial of the next
 root.</p>
@@ -483,38 +495,38 @@ root.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">1. Arena</a><ul>
-<li><a class="reference internal" href="#introduction">1.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">1.2. Overview</a></li>
-<li><a class="reference internal" href="#definitions">1.3. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">1.4. Requirements</a><ul>
-<li><a class="reference internal" href="#block-management">1.4.1. Block management</a></li>
-<li><a class="reference internal" href="#address-translation">1.4.2. Address translation</a></li>
-<li><a class="reference internal" href="#iteration-protocol">1.4.3. Iteration protocol</a></li>
-<li><a class="reference internal" href="#arena-partition">1.4.4. Arena partition</a></li>
-<li><a class="reference internal" href="#constraints">1.4.5. Constraints</a></li>
+<li><a class="reference internal" href="#">2. Arena</a><ul>
+<li><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">2.2. Overview</a></li>
+<li><a class="reference internal" href="#definitions">2.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">2.4. Requirements</a><ul>
+<li><a class="reference internal" href="#block-management">2.4.1. Block management</a></li>
+<li><a class="reference internal" href="#address-translation">2.4.2. Address translation</a></li>
+<li><a class="reference internal" href="#iteration-protocol">2.4.3. Iteration protocol</a></li>
+<li><a class="reference internal" href="#arena-partition">2.4.4. Arena partition</a></li>
+<li><a class="reference internal" href="#constraints">2.4.5. Constraints</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#architecture">1.5. Architecture</a><ul>
-<li><a class="reference internal" href="#statics">1.5.1. Statics</a></li>
-<li><a class="reference internal" href="#arena-classes">1.5.2. Arena classes</a></li>
-<li><a class="reference internal" href="#tracts">1.5.3. Tracts</a></li>
-<li><a class="reference internal" href="#control-pool">1.5.4. Control pool</a></li>
-<li><a class="reference internal" href="#polling">1.5.5. Polling</a></li>
-<li><a class="reference internal" href="#commit-limit">1.5.6. Commit limit</a></li>
-<li><a class="reference internal" href="#spare-committed-aka-hysteresis">1.5.7. Spare committed (aka &#8220;hysteresis&#8221;)</a></li>
-<li><a class="reference internal" href="#locks">1.5.8. Locks</a></li>
-<li><a class="reference internal" href="#location-dependencies">1.5.9. Location dependencies</a></li>
-<li><a class="reference internal" href="#finalization">1.5.10. Finalization</a></li>
+<li><a class="reference internal" href="#architecture">2.5. Architecture</a><ul>
+<li><a class="reference internal" href="#statics">2.5.1. Statics</a></li>
+<li><a class="reference internal" href="#arena-classes">2.5.2. Arena classes</a></li>
+<li><a class="reference internal" href="#tracts">2.5.3. Tracts</a></li>
+<li><a class="reference internal" href="#control-pool">2.5.4. Control pool</a></li>
+<li><a class="reference internal" href="#polling">2.5.5. Polling</a></li>
+<li><a class="reference internal" href="#commit-limit">2.5.6. Commit limit</a></li>
+<li><a class="reference internal" href="#spare-committed-aka-hysteresis">2.5.7. Spare committed (aka &#8220;hysteresis&#8221;)</a></li>
+<li><a class="reference internal" href="#locks">2.5.8. Locks</a></li>
+<li><a class="reference internal" href="#location-dependencies">2.5.9. Location dependencies</a></li>
+<li><a class="reference internal" href="#finalization">2.5.10. Finalization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">1.6. Implementation</a><ul>
-<li><a class="reference internal" href="#tract-cache">1.6.1. Tract cache</a></li>
-<li><a class="reference internal" href="#id1">1.6.2. Control pool</a></li>
-<li><a class="reference internal" href="#traces">1.6.3. Traces</a></li>
-<li><a class="reference internal" href="#id2">1.6.4. Polling</a></li>
-<li><a class="reference internal" href="#id3">1.6.5. Location dependencies</a></li>
-<li><a class="reference internal" href="#roots">1.6.6. Roots</a></li>
+<li><a class="reference internal" href="#implementation">2.6. Implementation</a><ul>
+<li><a class="reference internal" href="#tract-cache">2.6.1. Tract cache</a></li>
+<li><a class="reference internal" href="#id1">2.6.2. Control pool</a></li>
+<li><a class="reference internal" href="#traces">2.6.3. Traces</a></li>
+<li><a class="reference internal" href="#id2">2.6.4. Polling</a></li>
+<li><a class="reference internal" href="#id3">2.6.5. Location dependencies</a></li>
+<li><a class="reference internal" href="#roots">2.6.6. Roots</a></li>
 </ul>
 </li>
 </ul>
@@ -522,11 +534,11 @@ root.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="old.html"
-                        title="previous chapter">Old design</a></p>
+  <p class="topless"><a href="alloc-frame.html"
+                        title="previous chapter">1. Allocation frame protocol</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="bt.html"
-                        title="next chapter">2. Bit tables</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="arenavm.html"
+                        title="next chapter">3. Virtual Memory Arena</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -552,10 +564,10 @@ root.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="arenavm.html" title="3. Virtual Memory Arena"
              >next</a> |</li>
         <li class="right" >
-          <a href="old.html" title="Old design"
+          <a href="alloc-frame.html" title="1. Allocation frame protocol"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>24. Tracer &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>45. Tracer &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="25. General MPS types" href="type.html" />
-    <link rel="prev" title="23. Thread safety in the MPS" href="thread-safety.html" /> 
+    <link rel="next" title="46. General MPS types" href="type.html" />
+    <link rel="prev" title="44. Thread safety in the MPS" href="thread-safety.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="type.html" title="25. General MPS types"
+          <a href="type.html" title="46. General MPS types"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="thread-safety.html" title="23. Thread safety in the MPS"
+          <a href="thread-safety.html" title="44. Thread safety in the MPS"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="tracer">
-<span id="design-design-trace"></span><span id="design-trace"></span><span id="index-0"></span><h1>24. Tracer<a class="headerlink" href="#tracer" title="Permalink to this headline">¶</a></h1>
+<span id="design-trace"></span><span id="index-0"></span><h1>45. Tracer<a class="headerlink" href="#tracer" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.trace"></span><h2>24.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.trace"></span><h2>45.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">This document is currently a mixture of very old design notes (the
@@ -66,14 +66,22 @@ It doesn&#8217;t yet form anything like a complete picture.</p>
 </div>
 </div>
 <div class="section" id="architecture">
-<h2>24.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>45.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.trace.instance.limit"></span><a class="mpstag reference internal" href="#design.mps.trace.instance.limit">.instance.limit:</a> There will be a limit on the number of traces that
 can be created at any one time. This effectively limits the number of
 concurrent traces. This limitation is expressed in the symbol
-<tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt> [currently set to 1, see request.mps.160020 &#8220;Multiple
-traces would not work&#8221; drj 1998-06-15].</p>
-<p><span class="target" id="design.mps.trace.rate"></span><a class="mpstag reference internal" href="#design.mps.trace.rate">.rate:</a> [see mail.nickb.1997-07-31.14-37]. [Now revised? See
-request.epcore.160062 and change.epcore.minnow.160062. drj 1998-06-15]</p>
+<tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt>.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last"><tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt> is currently set to 1, see request.mps.160020
+&#8220;Multiple traces would not work&#8221;. David Jones, 1998-06-15.</p>
+</div>
+<p><span class="target" id="design.mps.trace.rate"></span><a class="mpstag reference internal" href="#design.mps.trace.rate">.rate:</a> See <a class="reference external" href="/project/mps/mail/1997/07/31/14-37/0.txt">mail.nickb.1997-07-31.14-37</a>.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Now revised? See request.epcore.160062 and
+change.epcore.minnow.160062. David Jones, 1998-06-15.</p>
+</div>
 <p><span class="target" id="design.mps.trace.exact.legal"></span><a class="mpstag reference internal" href="#design.mps.trace.exact.legal">.exact.legal:</a> Exact references should either point outside the
 arena (to non-managed address space) or to a tract allocated to a
 pool. Exact references that are to addresses which the arena has
@@ -95,7 +103,7 @@ would vary according to the &#8220;width&#8221; of the white summary). See
 mail.pekka.1998-02-04.16-48 for improvement suggestions.</p>
 </div>
 <div class="section" id="analysis">
-<h2>24.3. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>45.3. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.trace.fix.copy-fail"></span><a class="mpstag reference internal" href="#design.mps.trace.fix.copy-fail">.fix.copy-fail:</a> Fixing can always succeed, even if copying the
 referenced object has failed (due to lack of memory, for example), by
 backing off to treating a reference as ambiguous. Assuming that fixing
@@ -105,16 +113,16 @@ more sophisticated way to proceed when you can no longer allocate
 memory for copying.</p>
 </div>
 <div class="section" id="ideas">
-<h2>24.4. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<h2>45.4. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.trace.flip.after"></span><a class="mpstag reference internal" href="#design.mps.trace.flip.after">.flip.after:</a> To avoid excessive barrier impact on the mutator
 immediately after flip, we could scan during flip other objects which
 are &#8220;near&#8221; the roots, or otherwise known to be likely to be accessed
 in the near future.</p>
 </div>
 <div class="section" id="implementation">
-<h2>24.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>45.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="speed">
-<h3>24.5.1. Speed<a class="headerlink" href="#speed" title="Permalink to this headline">¶</a></h3>
+<h3>45.5.1. Speed<a class="headerlink" href="#speed" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.trace.fix"></span><a class="mpstag reference internal" href="#design.mps.trace.fix">.fix:</a> The fix path is critical to garbage collection speed.
 Abstractly fix is applied to all the references in the non-white heap
 and all the references in the copied heap. Remembered sets cut down
@@ -150,13 +158,16 @@ the Dylan compiler.</p>
 rit&#8217;s profiles presented in request.dylan.170551 show a gap between
 the two varieties variety.hi and variety.wi.</p>
 <p><span class="target" id="design.mps.trace.reclaim.noaver"></span><a class="mpstag reference internal" href="#design.mps.trace.reclaim.noaver">.reclaim.noaver:</a> Converting <tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> statements in the loops of
-<tt class="xref c c-func docutils literal"><span class="pre">TraceReclaim()</span></tt>, <tt class="xref c c-func docutils literal"><span class="pre">PoolReclaim()</span></tt>, <a class="reference internal" href="poolamc.html#AMCReclaim" title="AMCReclaim"><tt class="xref c c-func docutils literal"><span class="pre">AMCReclaim()</span></tt></a> (<tt class="xref c c-func docutils literal"><span class="pre">LOReclaim()</span></tt>?
-<tt class="xref c c-func docutils literal"><span class="pre">AWLReclaim()</span></tt>?) will result in a noticeable speed improvement [insert
-actual speed improvement here].</p>
+<tt class="xref c c-func docutils literal"><span class="pre">TraceReclaim()</span></tt>, <tt class="xref c c-func docutils literal"><span class="pre">PoolReclaim()</span></tt>, <a class="reference internal" href="poolamc.html#AMCReclaim" title="AMCReclaim"><tt class="xref c c-func docutils literal"><span class="pre">AMCReclaim()</span></tt></a> (<a class="reference internal" href="poollo.html#LOReclaim" title="LOReclaim"><tt class="xref c c-func docutils literal"><span class="pre">LOReclaim()</span></tt></a>?
+<a class="reference internal" href="poolawl.html#AWLReclaim" title="AWLReclaim"><tt class="xref c c-func docutils literal"><span class="pre">AWLReclaim()</span></tt></a>?) will result in a noticeable speed improvement.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Insert actual speed improvement here, if any.</p>
+</div>
 </div>
 </div>
 <div class="section" id="life-cycle-of-a-trace-object">
-<h2>24.6. Life cycle of a trace object<a class="headerlink" href="#life-cycle-of-a-trace-object" title="Permalink to this headline">¶</a></h2>
+<h2>45.6. Life cycle of a trace object<a class="headerlink" href="#life-cycle-of-a-trace-object" title="Permalink to this headline">¶</a></h2>
 <p><tt class="xref c c-func docutils literal"><span class="pre">TraceCreate()</span></tt> creates a trace in state <tt class="docutils literal"><span class="pre">TraceINIT</span></tt></p>
 <p>Some segments get condemned (made white).</p>
 <p><tt class="xref c c-func docutils literal"><span class="pre">TraceStart()</span></tt> gets called which:</p>
@@ -186,7 +197,7 @@ in this state; all traces are immediately flipped to be in the
 work and it can be safely destroyed. Generally the callers of
 <tt class="docutils literal"><span class="pre">traceQuantum</span></tt> will destroy the trace.</p>
 <div class="section" id="making-progress-scanning-grey-segments">
-<h3>24.6.1. Making progress: scanning grey segments<a class="headerlink" href="#making-progress-scanning-grey-segments" title="Permalink to this headline">¶</a></h3>
+<h3>45.6.1. Making progress: scanning grey segments<a class="headerlink" href="#making-progress-scanning-grey-segments" title="Permalink to this headline">¶</a></h3>
 <p>Most of the interesting work of a trace, the actual tracing, happens
 in the <tt class="docutils literal"><span class="pre">TraceFLIPPED</span></tt> state (work <em>would</em> happen in the
 <tt class="docutils literal"><span class="pre">TraceUNFLIPPED</span></tt> state, but that is not implemented).</p>
@@ -206,7 +217,7 @@ all subsequent objects it can reach by following references of the
 second and first ranks. The third band is all subsequent objects it
 can reach by following references of the third, second, and first
 ranks. And so on. The description of the tracer working like this
-originated in <a class="reference internal" href="#rhsk-2007-06-25">[RHSK 2007-06-25]</a>.</p>
+originated in <a class="reference internal" href="#rhsk-2007-06-25">[RHSK_2007-06-25]</a>.</p>
 <p>A trace keep track of which band it is tracing. This is returned by
 the <tt class="xref c c-func docutils literal"><span class="pre">TraceBand()</span></tt> method. Keeping this band information helps it
 implement the semantics of finalization and weakness. The band used to
@@ -224,11 +235,13 @@ all the ranks in this fashion there is no more tracing to be done.</p>
 </div>
 </div>
 <div class="section" id="references">
-<h2>24.7. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p id="rhsk-2007-06-25">Richard Kistruck. 2007-06-25. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0/">The semantics of rank-based tracing</a>&#8221;.</p>
-</li>
-</ul>
+<h2>45.7. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils citation" frame="void" id="rhsk-2007-06-25" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[RHSK_2007-06-25]</a></td><td>Richard Kistruck. Ravenbrook Limited. 2007-06-25. &#8220;<a class="reference external" href="https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0/">The semantics of rank-based tracing</a>&#8221;.</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -243,30 +256,30 @@ all the ranks in this fashion there is no more tracing to be done.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">24. Tracer</a><ul>
-<li><a class="reference internal" href="#introduction">24.1. Introduction</a></li>
-<li><a class="reference internal" href="#architecture">24.2. Architecture</a></li>
-<li><a class="reference internal" href="#analysis">24.3. Analysis</a></li>
-<li><a class="reference internal" href="#ideas">24.4. Ideas</a></li>
-<li><a class="reference internal" href="#implementation">24.5. Implementation</a><ul>
-<li><a class="reference internal" href="#speed">24.5.1. Speed</a></li>
+<li><a class="reference internal" href="#">45. Tracer</a><ul>
+<li><a class="reference internal" href="#introduction">45.1. Introduction</a></li>
+<li><a class="reference internal" href="#architecture">45.2. Architecture</a></li>
+<li><a class="reference internal" href="#analysis">45.3. Analysis</a></li>
+<li><a class="reference internal" href="#ideas">45.4. Ideas</a></li>
+<li><a class="reference internal" href="#implementation">45.5. Implementation</a><ul>
+<li><a class="reference internal" href="#speed">45.5.1. Speed</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#life-cycle-of-a-trace-object">24.6. Life cycle of a trace object</a><ul>
-<li><a class="reference internal" href="#making-progress-scanning-grey-segments">24.6.1. Making progress: scanning grey segments</a></li>
+<li><a class="reference internal" href="#life-cycle-of-a-trace-object">45.6. Life cycle of a trace object</a><ul>
+<li><a class="reference internal" href="#making-progress-scanning-grey-segments">45.6.1. Making progress: scanning grey segments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#references">24.7. References</a></li>
+<li><a class="reference internal" href="#references">45.7. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="thread-safety.html"
-                        title="previous chapter">23. Thread safety in the MPS</a></p>
+                        title="previous chapter">44. Thread safety in the MPS</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="type.html"
-                        title="next chapter">25. General MPS types</a></p><h4>Downloads</h4>
+                        title="next chapter">46. General MPS types</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -292,10 +305,10 @@ all the ranks in this fashion there is no more tracing to be done.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="type.html" title="25. General MPS types"
+          <a href="type.html" title="46. General MPS types"
              >next</a> |</li>
         <li class="right" >
-          <a href="thread-safety.html" title="23. Thread safety in the MPS"
+          <a href="thread-safety.html" title="44. Thread safety in the MPS"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

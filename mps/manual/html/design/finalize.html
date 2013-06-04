@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>7. Finalization &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>11. Finalization &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="8. The generic fix function" href="fix.html" />
-    <link rel="prev" title="6. Collection framework" href="collection.html" /> 
+    <link rel="next" title="12. The generic fix function" href="fix.html" />
+    <link rel="prev" title="10. Diagnostic feedback" href="diag.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="fix.html" title="8. The generic fix function"
+          <a href="fix.html" title="12. The generic fix function"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="6. Collection framework"
+          <a href="diag.html" title="10. Diagnostic feedback"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="finalization">
-<span id="design-design-finalize"></span><span id="design-finalize"></span><span id="index-0"></span><h1>7. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
+<span id="design-finalize"></span><span id="index-0"></span><h1>11. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
-<span id="design.mps.finalize"></span><h2>7.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.finalize"></span><h2>11.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.finalize.overview"></span><a class="mpstag reference internal" href="#design.mps.finalize.overview">.overview:</a> Finalization is implemented internally using the
 Guardian Pool Class (design.mps.poolmrg). Objects can be registered
 for finalization using an interface function (called
@@ -66,15 +66,15 @@ via the messaging interface. <tt class="docutils literal"><span class="pre">Pool
 implements a Message Class which implements the finalization messages.</p>
 </div>
 <div class="section" id="requirements">
-<h2>7.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>11.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.finalize.req"></span><a class="mpstag reference internal" href="#design.mps.finalize.req">.req:</a> Historically only Dylan had requirements for finalization,
 see req.dylan.fun.final. Now (2003-02-19) Configura have requirements
 for finalization. Happily they are very similar.</p>
 </div>
 <div class="section" id="architecture">
-<h2>7.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>11.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="external-interface">
-<h3>7.3.1. External interface<a class="headerlink" href="#external-interface" title="Permalink to this headline">¶</a></h3>
+<h3>11.3.1. External interface<a class="headerlink" href="#external-interface" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.finalize.if.register"></span><a class="mpstag reference internal" href="#design.mps.finalize.if.register">.if.register:</a> <a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a> increases the number of times that
 an object has been registered for finalization by one. The object must
 have been allocated from the arena (space). Any finalization messages
@@ -92,7 +92,7 @@ to the finalized object stored in the finalization message.</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>7.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>11.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.finalize.int.over"></span><a class="mpstag reference internal" href="#design.mps.finalize.int.over">.int.over:</a> Registering an object for finalization corresponds to
 allocating a reference of rank FINAL to that object. This reference is
 allocated in a guardian object in a pool of <tt class="docutils literal"><span class="pre">PoolClassMRG</span></tt> (see
@@ -130,13 +130,17 @@ where the client asks. This must be done carefully, in order to avoid
 breaking the invariants or creating a hidden root.</p>
 <p><span class="target" id="design.mps.finalize.access.invariants"></span><a class="mpstag reference internal" href="#design.mps.finalize.access.invariants">.access.invariants:</a> We protect the invariants by using special
 routines <tt class="xref c c-func docutils literal"><span class="pre">ArenaRead()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt> to read and write the
-reference. This works as long as there&#8217;s no write-barrier collection.
-[Instead of <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, we could put in an <tt class="xref c c-func docutils literal"><span class="pre">ArenaWrite()</span></tt> that
-would be identical to <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, except for AVERring the invariant
-(or it can just AVER there are no busy traces unflipped). When we get
-write-barrier collection, we could change it to do the real thing, but
-in the absence of a write-barrier, it&#8217;s functionally identical to
-<tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>. Pekka 1997-12-09]</p>
+reference. This works as long as there&#8217;s no write-barrier collection.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Instead of <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, we could put in an <tt class="xref c c-func docutils literal"><span class="pre">ArenaWrite()</span></tt>
+that would be identical to <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>, except that it would
+<tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> the invariant (or it can just <tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> that there are
+no busy traces unflipped). When we get write-barrier collection,
+we could change it to do the real thing, but in the absence of a
+write-barrier, it&#8217;s functionally identical to <tt class="xref c c-func docutils literal"><span class="pre">ArenaPoke()</span></tt>.
+Pekka P. Pirinen, 1997-12-09.</p>
+</div>
 </div>
 </div>
 
@@ -151,24 +155,24 @@ in the absence of a write-barrier, it&#8217;s functionally identical to
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">7. Finalization</a><ul>
-<li><a class="reference internal" href="#overview">7.1. Overview</a></li>
-<li><a class="reference internal" href="#requirements">7.2. Requirements</a></li>
-<li><a class="reference internal" href="#architecture">7.3. Architecture</a><ul>
-<li><a class="reference internal" href="#external-interface">7.3.1. External interface</a></li>
+<li><a class="reference internal" href="#">11. Finalization</a><ul>
+<li><a class="reference internal" href="#overview">11.1. Overview</a></li>
+<li><a class="reference internal" href="#requirements">11.2. Requirements</a></li>
+<li><a class="reference internal" href="#architecture">11.3. Architecture</a><ul>
+<li><a class="reference internal" href="#external-interface">11.3.1. External interface</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">7.4. Implementation</a></li>
+<li><a class="reference internal" href="#implementation">11.4. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="collection.html"
-                        title="previous chapter">6. Collection framework</a></p>
+  <p class="topless"><a href="diag.html"
+                        title="previous chapter">10. Diagnostic feedback</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="fix.html"
-                        title="next chapter">8. The generic fix function</a></p><h4>Downloads</h4>
+                        title="next chapter">12. The generic fix function</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -194,10 +198,10 @@ in the absence of a write-barrier, it&#8217;s functionally identical to
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="fix.html" title="8. The generic fix function"
+          <a href="fix.html" title="12. The generic fix function"
              >next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="6. Collection framework"
+          <a href="diag.html" title="10. Diagnostic feedback"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

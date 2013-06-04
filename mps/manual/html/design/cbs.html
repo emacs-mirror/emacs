@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Coalescing block structure &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>6. Coalescing block structure &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="4. Checking" href="check.html" />
-    <link rel="prev" title="2. Bit tables" href="bt.html" /> 
+    <link rel="next" title="7. Checking" href="check.html" />
+    <link rel="prev" title="5. Allocation buffers and allocation points" href="buffer.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="check.html" title="4. Checking"
+          <a href="check.html" title="7. Checking"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="buffer.html" title="5. Allocation buffers and allocation points"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="coalescing-block-structure">
-<span id="design.mps.cbs"></span><h1>3. Coalescing block structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h1>
+<span id="design.mps.cbs"></span><h1>6. Coalescing block structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>6.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.intro"></span><a class="mpstag reference internal" href="#design.mps.cbs.intro">.intro:</a> This is the design for impl.c.cbs, which
 implements a data structure for the management of non-intersecting
 memory ranges, with eager coalescence.</p>
@@ -70,7 +70,7 @@ high level communication with the client about the size of contiguous
 ranges, and detection of protocol violations.</p>
 </div>
 <div class="section" id="history">
-<h2>3.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<h2>6.2. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.hist.0"></span><a class="mpstag reference internal" href="#design.mps.cbs.hist.0">.hist.0:</a> This document was derived from the outline in
 design.mps.poolmv2(2). Written by Gavin Matthews
 1998-05-01.</p>
@@ -86,7 +86,7 @@ Richard Brooksby, 2002-06-07.</p>
 2013-04-14.</p>
 </div>
 <div class="section" id="definitions">
-<h2>3.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>6.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.def.range"></span><a class="mpstag reference internal" href="#design.mps.cbs.def.range">.def.range:</a> A (contiguous) range of addresses is a semi-open
 interval on address space.</p>
 <p><span class="target" id="design.mps.cbs.def.isolated"></span><a class="mpstag reference internal" href="#design.mps.cbs.def.isolated">.def.isolated:</a> A contiguous range is isolated with respect to
@@ -95,7 +95,7 @@ some property it has, if adjacent elements do not have that property.</p>
 the minimum interesting size specified by the client.</p>
 </div>
 <div class="section" id="requirements">
-<h2>3.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>6.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.req.set"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.set">.req.set:</a> Must maintain a set of addresses.</p>
 <p><span class="target" id="design.mps.cbs.req.fast"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.fast">.req.fast:</a> Common operations must have a low amortized cost.</p>
 <p><span class="target" id="design.mps.cbs.req.add"></span><a class="mpstag reference internal" href="#design.mps.cbs.req.add">.req.add:</a> Must be able to add address ranges to the set.</p>
@@ -114,10 +114,10 @@ addresses specifying ranges) of down to <tt class="docutils literal"><span class
 losing memory.</p>
 </div>
 <div class="section" id="interface">
-<h2>3.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>6.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.header"></span><a class="mpstag reference internal" href="#design.mps.cbs.header">.header:</a> CBS is used through impl.h.cbs.</p>
 <div class="section" id="external-types">
-<h3>3.5.1. External types<a class="headerlink" href="#external-types" title="Permalink to this headline">¶</a></h3>
+<h3>6.5.1. External types<a class="headerlink" href="#external-types" title="Permalink to this headline">¶</a></h3>
 <dl class="type">
 <dt>
 <tt class="descname">typedef struct CBSStruct CBSStruct, *CBS;</tt></dt>
@@ -168,7 +168,7 @@ function returns a boolean indicating whether to continue with the
 iteration.</p>
 </div>
 <div class="section" id="external-functions">
-<h3>3.5.2. External functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h3>
+<h3>6.5.2. External functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="CBSInit">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">CBSInit</tt><big>(</big><a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em>, CBS<em>&nbsp;cbs</em>, CBSChangeSizeMethod<em>&nbsp;new</em>, CBSChangeSizeMethod<em>&nbsp;delete</em>, CBSChangeSizeMethod<em>&nbsp;grow</em>, CBSChangeSizeMethod<em>&nbsp;shrink</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;minSize</em>, <a class="reference internal" href="type.html#Align" title="Align">Align</a><em>&nbsp;alignment</em>, <a class="reference internal" href="type.html#Bool" title="Bool">Bool</a><em>&nbsp;mayUseInline</em><big>)</big><a class="headerlink" href="#CBSInit" title="Permalink to this definition">¶</a></dt>
@@ -384,7 +384,7 @@ range. If there are no blocks, it returns <tt class="docutils literal"><span cla
 </div>
 </div>
 <div class="section" id="alignment">
-<h2>3.6. Alignment<a class="headerlink" href="#alignment" title="Permalink to this headline">¶</a></h2>
+<h2>6.6. Alignment<a class="headerlink" href="#alignment" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.align"></span><a class="mpstag reference internal" href="#design.mps.cbs.align">.align:</a> When <tt class="docutils literal"><span class="pre">mayUseInline</span></tt> is specified to permit inline
 data structures and hence avoid losing memory in low memory
 situations, the alignments that the CBS supports are constrained by
@@ -403,12 +403,12 @@ stored at the start of an aligned range.</li>
 <tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt>, so we take that as the minimum alignment.</p>
 </div>
 <div class="section" id="implementation">
-<h2>3.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>6.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.impl"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl">.impl:</a> Note that this section is concerned with describing
 various aspects of the implementation. It does not form part of the
 interface definition.</p>
 <div class="section" id="size-change-callback-protocol">
-<h3>3.7.1. Size change callback protocol<a class="headerlink" href="#size-change-callback-protocol" title="Permalink to this headline">¶</a></h3>
+<h3>6.7.1. Size change callback protocol<a class="headerlink" href="#size-change-callback-protocol" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.cbs.impl.callback"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.callback">.impl.callback:</a> The size change callback protocol concerns
 the mechanism for informing the client of the appearance and
 disappearance of interesting ranges. The intention is that each range
@@ -496,7 +496,7 @@ called with the following parameters:</p>
 </ul>
 </div>
 <div class="section" id="splay-tree">
-<h3>3.7.2. Splay tree<a class="headerlink" href="#splay-tree" title="Permalink to this headline">¶</a></h3>
+<h3>6.7.2. Splay tree<a class="headerlink" href="#splay-tree" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.cbs.impl.splay"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.splay">.impl.splay:</a> The CBS is principally implemented using a splay
 tree (see design.mps.splay). Each splay tree node is
 embedded in a CBSBlock that represents a semi-open address range. The
@@ -509,7 +509,7 @@ This allows rapid location of the first or last suitable block, and
 very rapid failure if there is no suitable block.</p>
 <p><span class="target" id="design.mps.cbs.impl.find-largest"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.find-largest">.impl.find-largest:</a> <a class="reference internal" href="#CBSFindLargest" title="CBSFindLargest"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLargest()</span></tt></a> simply finds out
 the size of the largest block in the CBS from the root of the tree
-(using <tt class="xref c c-func docutils literal"><span class="pre">SplayRoot()</span></tt>), and does <tt class="xref c c-func docutils literal"><span class="pre">SplayFindFirst()</span></tt> for a
+(using <a class="reference internal" href="splay.html#SplayRoot" title="SplayRoot"><tt class="xref c c-func docutils literal"><span class="pre">SplayRoot()</span></tt></a>), and does <a class="reference internal" href="splay.html#SplayFindFirst" title="SplayFindFirst"><tt class="xref c c-func docutils literal"><span class="pre">SplayFindFirst()</span></tt></a> for a
 block of that size. This is O(log(<em>n</em>)) in the size of the free list,
 so it&#8217;s about the best you can do without maintaining a separate
 priority queue, just to do <a class="reference internal" href="#CBSFindLargest" title="CBSFindLargest"><tt class="xref c c-func docutils literal"><span class="pre">CBSFindLargest()</span></tt></a>. Except when the
@@ -517,7 +517,7 @@ emergency lists (see <a class="reference internal" href="#design.mps.cbs.impl.lo
 also searched.</p>
 </div>
 <div class="section" id="low-memory-behaviour">
-<h3>3.7.3. Low memory behaviour<a class="headerlink" href="#low-memory-behaviour" title="Permalink to this headline">¶</a></h3>
+<h3>6.7.3. Low memory behaviour<a class="headerlink" href="#low-memory-behaviour" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.cbs.impl.low-mem"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.low-mem">.impl.low-mem:</a> Low memory situations cause problems when the
 CBS tries to allocate a new <tt class="xref c c-type docutils literal"><span class="pre">CBSBlock</span></tt> structure for a new
 isolated range as a result of either <a class="reference internal" href="#CBSInsert" title="CBSInsert"><tt class="xref c c-func docutils literal"><span class="pre">CBSInsert()</span></tt></a> or
@@ -556,7 +556,7 @@ CBS&#8217;s client via callbacks. <a class="reference internal" href="#CBSIterat
 to the next such grain, or <tt class="docutils literal"><span class="pre">NULL</span></tt>.</p>
 </div>
 <div class="section" id="the-cbs-block">
-<h3>3.7.4. The CBS block<a class="headerlink" href="#the-cbs-block" title="Permalink to this headline">¶</a></h3>
+<h3>6.7.4. The CBS block<a class="headerlink" href="#the-cbs-block" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.cbs.impl.cbs.block"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.cbs.block">.impl.cbs.block:</a> The block contains a base-limit pair and a
 splay tree node.</p>
 <p><span class="target" id="design.mps.cbs.impl.cbs.block.special"></span><a class="mpstag reference internal" href="#design.mps.cbs.impl.cbs.block.special">.impl.cbs.block.special:</a> The base and limit may be equal if
@@ -566,7 +566,7 @@ status, but is justified because block size is very important.</p>
 </div>
 </div>
 <div class="section" id="testing">
-<h2>3.8. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<h2>6.8. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.test"></span><a class="mpstag reference internal" href="#design.mps.cbs.test">.test:</a> The following testing will be performed on this module:</p>
 <p><span class="target" id="design.mps.cbs.test.cbstest"></span><a class="mpstag reference internal" href="#design.mps.cbs.test.cbstest">.test.cbstest:</a> There is a stress test for this module in
 impl.c.cbstest. This allocates a large block of memory and
@@ -584,7 +584,7 @@ subject to testing in development, QA, and are/will be heavily
 exercised by customers.</p>
 </div>
 <div class="section" id="notes-for-future-development">
-<h2>3.9. Notes for future development<a class="headerlink" href="#notes-for-future-development" title="Permalink to this headline">¶</a></h2>
+<h2>6.9. Notes for future development<a class="headerlink" href="#notes-for-future-development" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.future.not-splay"></span><a class="mpstag reference internal" href="#design.mps.cbs.future.not-splay">.future.not-splay:</a> The initial implementation of CBSs is
 based on splay trees. It could be revised to use any other data
 structure that meets the requirements (especially
@@ -598,7 +598,7 @@ this would make coalescence slightly less eager, by up to
 <tt class="docutils literal"><span class="pre">(word-width</span> <span class="pre">-</span> <span class="pre">1)</span></tt>.</p>
 </div>
 <div class="section" id="risks">
-<h2>3.10. Risks<a class="headerlink" href="#risks" title="Permalink to this headline">¶</a></h2>
+<h2>6.10. Risks<a class="headerlink" href="#risks" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.cbs.risk.overhead"></span><a class="mpstag reference internal" href="#design.mps.cbs.risk.overhead">.risk.overhead:</a> Clients should note that the current
 implementation of CBSs has a space overhead proportional to the number
 of isolated contiguous ranges. [Four words per range.] If the CBS
@@ -608,7 +608,7 @@ compared to the size of that area. [Four words per two grains.] See
 alternative solution is to use CBSs only for managing long ranges.</p>
 </div>
 <div class="section" id="proposed-hybrid-implementation">
-<h2>3.11. Proposed hybrid implementation<a class="headerlink" href="#proposed-hybrid-implementation" title="Permalink to this headline">¶</a></h2>
+<h2>6.11. Proposed hybrid implementation<a class="headerlink" href="#proposed-hybrid-implementation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The following relates to a pending re-design and does not yet
@@ -703,38 +703,38 @@ supports the following methods (for sub-module internal use):</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Coalescing block structure</a><ul>
-<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
-<li><a class="reference internal" href="#history">3.2. History</a></li>
-<li><a class="reference internal" href="#definitions">3.3. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">3.4. Requirements</a></li>
-<li><a class="reference internal" href="#interface">3.5. Interface</a><ul>
-<li><a class="reference internal" href="#external-types">3.5.1. External types</a></li>
-<li><a class="reference internal" href="#external-functions">3.5.2. External functions</a></li>
+<li><a class="reference internal" href="#">6. Coalescing block structure</a><ul>
+<li><a class="reference internal" href="#introduction">6.1. Introduction</a></li>
+<li><a class="reference internal" href="#history">6.2. History</a></li>
+<li><a class="reference internal" href="#definitions">6.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">6.4. Requirements</a></li>
+<li><a class="reference internal" href="#interface">6.5. Interface</a><ul>
+<li><a class="reference internal" href="#external-types">6.5.1. External types</a></li>
+<li><a class="reference internal" href="#external-functions">6.5.2. External functions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#alignment">3.6. Alignment</a></li>
-<li><a class="reference internal" href="#implementation">3.7. Implementation</a><ul>
-<li><a class="reference internal" href="#size-change-callback-protocol">3.7.1. Size change callback protocol</a></li>
-<li><a class="reference internal" href="#splay-tree">3.7.2. Splay tree</a></li>
-<li><a class="reference internal" href="#low-memory-behaviour">3.7.3. Low memory behaviour</a></li>
-<li><a class="reference internal" href="#the-cbs-block">3.7.4. The CBS block</a></li>
+<li><a class="reference internal" href="#alignment">6.6. Alignment</a></li>
+<li><a class="reference internal" href="#implementation">6.7. Implementation</a><ul>
+<li><a class="reference internal" href="#size-change-callback-protocol">6.7.1. Size change callback protocol</a></li>
+<li><a class="reference internal" href="#splay-tree">6.7.2. Splay tree</a></li>
+<li><a class="reference internal" href="#low-memory-behaviour">6.7.3. Low memory behaviour</a></li>
+<li><a class="reference internal" href="#the-cbs-block">6.7.4. The CBS block</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#testing">3.8. Testing</a></li>
-<li><a class="reference internal" href="#notes-for-future-development">3.9. Notes for future development</a></li>
-<li><a class="reference internal" href="#risks">3.10. Risks</a></li>
-<li><a class="reference internal" href="#proposed-hybrid-implementation">3.11. Proposed hybrid implementation</a></li>
+<li><a class="reference internal" href="#testing">6.8. Testing</a></li>
+<li><a class="reference internal" href="#notes-for-future-development">6.9. Notes for future development</a></li>
+<li><a class="reference internal" href="#risks">6.10. Risks</a></li>
+<li><a class="reference internal" href="#proposed-hybrid-implementation">6.11. Proposed hybrid implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="bt.html"
-                        title="previous chapter">2. Bit tables</a></p>
+  <p class="topless"><a href="buffer.html"
+                        title="previous chapter">5. Allocation buffers and allocation points</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="check.html"
-                        title="next chapter">4. Checking</a></p><h4>Downloads</h4>
+                        title="next chapter">7. Checking</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -760,10 +760,10 @@ supports the following methods (for sub-module internal use):</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="check.html" title="4. Checking"
+          <a href="check.html" title="7. Checking"
              >next</a> |</li>
         <li class="right" >
-          <a href="bt.html" title="2. Bit tables"
+          <a href="buffer.html" title="5. Allocation buffers and allocation points"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>43. Thread Manager &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="44. Thread safety in the MPS" href="thread-safety.html" />
+    <link rel="prev" title="42. Telemetry" href="telemetry.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="thread-safety.html" title="44. Thread safety in the MPS"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="telemetry.html" title="42. Telemetry"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="design-thread-manager"><span id="index-0"></span></span><div class="section" id="thread-manager">
+<h1>43. Thread Manager<a class="headerlink" href="#thread-manager" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Tag:</th><td class="field-body">design.mps.thread-manager</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Richard Brooksby</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Date:</th><td class="field-body">1995-11-20</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status:</th><td class="field-body">incomplete design</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Revision:</th><td class="field-body">$Id: //info.ravenbrook.com/project/mps/master/design/thread-manager.txt#2 $</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Copyright:</th><td class="field-body">See <a class="reference internal" href="#copyright-and-license">Copyright and License</a>.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="purpose">
+<h2>43.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<p>The Thread Manager handles various thread-related functions required
+by the MPS. These are:</p>
+<ul class="simple">
+<li>stack scanning;</li>
+<li>suspension and resumption of the mutator threads.</li>
+</ul>
+</div>
+<div class="section" id="context">
+<h2>43.2. Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
+<p>The barrier requires suspension and resumption of threads in order to
+ensure that the collector has exclusive access to part of memory.
+[design.mps.barrier.&#64;&#64;&#64;&#64;]</p>
+<p>Stack scanning is provided as a service to the client. [Link?&#64;&#64;&#64;&#64;]</p>
+</div>
+<div class="section" id="overview">
+<h2>43.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">typedef</span> <span class="pre">struct</span> <span class="pre">mps_thr_s</span> <span class="pre">*Thread</span></tt></p>
+<p>Each thread is represented by an object of type <tt class="docutils literal"><span class="pre">Thread</span></tt>. The
+<tt class="docutils literal"><span class="pre">Thread</span></tt> type is implemented as an ADT. A list of <tt class="docutils literal"><span class="pre">Thread</span></tt> objects
+is maintained in the arena (as the <tt class="docutils literal"><span class="pre">Ring</span></tt> structure
+<tt class="docutils literal"><span class="pre">arena-&gt;threadRing</span></tt>). The <tt class="docutils literal"><span class="pre">Thread</span></tt> object contains
+operating-system-dependent information about the thread &#8211; information
+necessary for manipulating the thread and for scanning the thread
+context. Thread &#8220;registration&#8221; adds or removes the current thread to
+the <tt class="docutils literal"><span class="pre">Thread</span></tt> list in the arena.</p>
+</div>
+<div class="section" id="detailed-design">
+<h2>43.4. Detailed Design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="stack-scan">
+<h3>43.4.1. Stack scan<a class="headerlink" href="#stack-scan" title="Permalink to this headline">¶</a></h3>
+<p>This is a module providing a stack scanning function. The scanning is
+architecture and operating system dependent. Typically the function
+will push the subste of the save registers (those preserved across
+function calls) which may contain pointers (that is, neither
+floating-point or debugging registers) and call <tt class="docutils literal"><span class="pre">TraceScanStack()</span></tt>
+on the appropriate range.</p>
+</div>
+<div class="section" id="thread-interface">
+<h3>43.4.2. Thread interface<a class="headerlink" href="#thread-interface" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">ThreadRegister(Thread</span> <span class="pre">*threadReturn,</span> <span class="pre">Arena</span> <span class="pre">arena)</span></tt></p>
+<p>Register the current thread with the arena, allocating a new
+<tt class="docutils literal"><span class="pre">*threadReturn</span></tt> to point to it.</p>
+<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ThreadDeregister(Thread</span> <span class="pre">thread,</span> <span class="pre">Arena</span> <span class="pre">arena)</span></tt></p>
+<p>Remove <tt class="docutils literal"><span class="pre">thread</span></tt> from the list of threads managed by the arena and
+free it.</p>
+<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ThreadRingSuspend(Ring</span> <span class="pre">threadRing)</span></tt></p>
+<p>Suspend all the threads on the list <tt class="docutils literal"><span class="pre">threadRing</span></tt>, except for the
+current thread.</p>
+<p><tt class="docutils literal"><span class="pre">void</span> <span class="pre">ThreadRingResume(Ring</span> <span class="pre">threadRing)</span></tt></p>
+<p>Resume all the threads on the list <tt class="docutils literal"><span class="pre">threadRing</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">Res</span> <span class="pre">ThreadScan(ScanState</span> <span class="pre">ss,</span> <span class="pre">Thread</span> <span class="pre">thread,</span> <span class="pre">void</span> <span class="pre">*stackBot)</span></tt></p>
+<p>Scan the stacks and root registers of <tt class="docutils literal"><span class="pre">thread</span></tt>, treating each value
+found as an ambiguous reference. The exact definition is operating
+system and architecture dependent</p>
+</div>
+<div class="section" id="single-threaded-generic-implementation">
+<h3>43.4.3. Single-threaded generic implementation<a class="headerlink" href="#single-threaded-generic-implementation" title="Permalink to this headline">¶</a></h3>
+<p>In <tt class="docutils literal"><span class="pre">than.c</span></tt>.</p>
+<ul class="simple">
+<li>Single threaded (calling <tt class="docutils literal"><span class="pre">ThreadRegister()</span></tt> on a second thread
+causes an assertion failure).</li>
+<li><tt class="docutils literal"><span class="pre">ThreadRingSuspend()</span></tt> and <tt class="docutils literal"><span class="pre">ThreadRingResume()</span></tt> do nothing
+because there are no other threads.</li>
+<li><tt class="docutils literal"><span class="pre">ThreadScan()</span></tt> calls <tt class="docutils literal"><span class="pre">StackScan()</span></tt>.</li>
+</ul>
+</div>
+<div class="section" id="posix-threads-implementation">
+<h3>43.4.4. POSIX threads implementation<a class="headerlink" href="#posix-threads-implementation" title="Permalink to this headline">¶</a></h3>
+<p>In <tt class="docutils literal"><span class="pre">thix.c</span></tt>. See design.mps.pthreadext.</p>
+</div>
+<div class="section" id="win32-implementation">
+<h3>43.4.5. Win32 implementation<a class="headerlink" href="#win32-implementation" title="Permalink to this headline">¶</a></h3>
+<p>In <tt class="docutils literal"><span class="pre">thw3.c</span></tt>.</p>
+<ul class="simple">
+<li>Supports multiple threads.</li>
+<li>Structured exception style faults are expected.</li>
+<li><tt class="docutils literal"><span class="pre">ThreadRingSuspend()</span></tt> and <tt class="docutils literal"><span class="pre">ThreadRingResume()</span></tt> loop over threads
+and call Win32 API functions <tt class="docutils literal"><span class="pre">SuspendThread()</span></tt> and
+<tt class="docutils literal"><span class="pre">ResumeThread()</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">ThreadRegister()</span></tt> records information for the current thread:<ul>
+<li>A Win32 &#8220;handle&#8221; with access flags <tt class="docutils literal"><span class="pre">THREAD_SUSPEND_RESUME</span></tt> and
+<tt class="docutils literal"><span class="pre">THREAD_GET_CONTEXT</span></tt>. This handle is needed as parameter to
+<tt class="docutils literal"><span class="pre">SuspendThread()</span></tt> and <tt class="docutils literal"><span class="pre">ResumeThread()</span></tt>.</li>
+<li>The Win32 <tt class="docutils literal"><span class="pre">GetCurrentThreadId()</span></tt> so that the current thread may
+be identified.</li>
+</ul>
+</li>
+<li>Stack scanning is Win32 specific:<ul>
+<li><tt class="docutils literal"><span class="pre">ThreadScan()</span></tt> calls <tt class="docutils literal"><span class="pre">StackScan()</span></tt> if the thread is current.
+<tt class="docutils literal"><span class="pre">GetThreadContext()</span></tt> doesn&#8217;t work on the current thread (the
+context would not necessarily have the values which were in the
+saved registers on entry to the MM).</li>
+<li>Otherwise it calls <tt class="docutils literal"><span class="pre">GetThreadContext()</span></tt> to get the root
+registers and the stack pointer.</li>
+<li>The thread&#8217;s registers are dumped into a <tt class="docutils literal"><span class="pre">CONTEXT</span></tt> structure and
+fixed in memory.</li>
+<li>Scan the stack (getting the stack pointer from <tt class="docutils literal"><span class="pre">CONTEXT.Rsp</span></tt>).</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="issues">
+<h2>43.5. Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Scanning after exceptions. <tt class="docutils literal"><span class="pre">StackScan()</span></tt> relies on the
+non-preserved registers having been pushed on the stack. If we want
+to scan after a fault we must make sure that these registers are
+either already stored on the stack, or, have an extra function to
+do this explicitly.</li>
+<li>Multiple registration. It is not clear whether a thread should be
+allowed to be registered multiple times. We do not provide a
+mechanism for knowing whether a thread is already registered with
+an arena.</li>
+</ol>
+</div>
+<div class="section" id="document-history">
+<h2>43.6. Document History<a class="headerlink" href="#document-history" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>1995-11-20 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Incomplete design.</li>
+<li>2002-06-21 <a class="reference external" href="http://www.ravenbrook.com/consultants/rb/">RB</a> Converted from MMInfo database design document.</li>
+<li>2013-05-26 <a class="reference external" href="http://www.ravenbrook.com/consultants/gdr/">GDR</a> Converted to reStructuredText.</li>
+</ul>
+</div>
+<div class="section" id="copyright-and-license">
+<h2>43.7. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<p>Copyright © 2013 Ravenbrook Limited. All rights reserved.
+&lt;<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>&gt;. This is an open source license. Contact
+Ravenbrook for commercial licensing options.</p>
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+<ol class="arabic simple">
+<li>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</li>
+<li>Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.</li>
+</ol>
+<p><strong>This software is provided by the copyright holders and contributors
+&#8220;as is&#8221; and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.</strong></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">43. Thread Manager</a><ul>
+<li><a class="reference internal" href="#purpose">43.1. Purpose</a></li>
+<li><a class="reference internal" href="#context">43.2. Context</a></li>
+<li><a class="reference internal" href="#overview">43.3. Overview</a></li>
+<li><a class="reference internal" href="#detailed-design">43.4. Detailed Design</a><ul>
+<li><a class="reference internal" href="#stack-scan">43.4.1. Stack scan</a></li>
+<li><a class="reference internal" href="#thread-interface">43.4.2. Thread interface</a></li>
+<li><a class="reference internal" href="#single-threaded-generic-implementation">43.4.3. Single-threaded generic implementation</a></li>
+<li><a class="reference internal" href="#posix-threads-implementation">43.4.4. POSIX threads implementation</a></li>
+<li><a class="reference internal" href="#win32-implementation">43.4.5. Win32 implementation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#issues">43.5. Issues</a></li>
+<li><a class="reference internal" href="#document-history">43.6. Document History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">43.7. Copyright and License</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="telemetry.html"
+                        title="previous chapter">42. Telemetry</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="thread-safety.html"
+                        title="next chapter">44. Thread safety in the MPS</a></p><h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="thread-safety.html" title="44. Thread safety in the MPS"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="telemetry.html" title="42. Telemetry"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

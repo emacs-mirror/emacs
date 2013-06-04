@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>29. The WriteF function &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>53. The WriteF function &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
     <link rel="next" title="Introduction to memory management" href="../mmref/index.html" />
-    <link rel="prev" title="28. Virtual mapping" href="vm.html" /> 
+    <link rel="prev" title="52. VM for Solaris" href="vmso.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="../mmref/index.html" title="Introduction to memory management"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="vm.html" title="28. Virtual mapping"
+          <a href="vmso.html" title="52. VM for Solaris"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="the-writef-function">
-<span id="design-design-writef"></span><span id="design-writef"></span><span id="index-0"></span><h1>29. The WriteF function<a class="headerlink" href="#the-writef-function" title="Permalink to this headline">¶</a></h1>
+<span id="design-writef"></span><span id="index-0"></span><h1>53. The WriteF function<a class="headerlink" href="#the-writef-function" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.writef"></span><h2>29.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.writef"></span><h2>53.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.writef.intro"></span><a class="mpstag reference internal" href="#design.mps.writef.intro">.intro:</a> This document describes the <a class="reference internal" href="#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> function, which
 allows formatted output in a manner similar to ANSI C <tt class="docutils literal"><span class="pre">printf</span></tt>, but
 allows the MPM to operate in a freestanding environment (see
@@ -67,7 +67,7 @@ describe the design of the library interface and the reason that it
 exists.</p>
 </div>
 <div class="section" id="design">
-<h2>29.2. Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
+<h2>53.2. Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.writef.no-printf"></span><a class="mpstag reference internal" href="#design.mps.writef.no-printf">.no-printf:</a> There is no dependency on <tt class="xref c c-func docutils literal"><span class="pre">printf()</span></tt>. The MPM only
 depends on <tt class="xref c c-func docutils literal"><span class="pre">fputc()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">fputs()</span></tt>, via the Library Interface
 (design.mps.lib). This makes it much easier to deploy the MPS in a
@@ -144,7 +144,7 @@ used in future in some generalisation of varargs in the MPS.</p>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">$F</span></tt></td>
 <td>function</td>
 <td><tt class="docutils literal"><span class="pre">void</span> <span class="pre">*(*)()</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">000000019EF60100</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">0001D69E01000000</span></tt> (see <a class="reference internal" href="#f">.f</a>)</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">$S</span></tt></td>
 <td>string</td>
@@ -184,10 +184,10 @@ promotion of a <tt class="docutils literal"><span class="pre">char</span></tt> (
 incredible snazzy output engine. We only need it for <tt class="xref c c-func docutils literal"><span class="pre">Describe()</span></tt>
 methods and assertion messages. At the moment it&#8217;s a very simple bit
 of code &#8211; let&#8217;s keep it that way.</p>
-<p><span class="target" id="f">.f</span>: The <tt class="docutils literal"><span class="pre">F</span></tt> code is used for function pointers. They are
-currently printed as a hexadecimal string of the appropriate length
-for the platform, and may one day be extended to include function name
-lookup.</p>
+<p><span class="target" id="f">.f</span>: The <tt class="docutils literal"><span class="pre">F</span></tt> code is used for function pointers. ISO C forbids casting
+function pointers to other types, so the bytes of their representation are
+written sequentially, and may have a different endianness to other pointers.
+Could be smarter, or even look up function names, but see <a class="reference internal" href="#design.mps.writef.snazzy">.snazzy</a>.</p>
 </div>
 </div>
 
@@ -202,16 +202,16 @@ lookup.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">29. The WriteF function</a><ul>
-<li><a class="reference internal" href="#introduction">29.1. Introduction</a></li>
-<li><a class="reference internal" href="#design">29.2. Design</a></li>
+<li><a class="reference internal" href="#">53. The WriteF function</a><ul>
+<li><a class="reference internal" href="#introduction">53.1. Introduction</a></li>
+<li><a class="reference internal" href="#design">53.2. Design</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="vm.html"
-                        title="previous chapter">28. Virtual mapping</a></p>
+  <p class="topless"><a href="vmso.html"
+                        title="previous chapter">52. VM for Solaris</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../mmref/index.html"
                         title="next chapter">Introduction to memory management</a></p><h4>Downloads</h4>
@@ -243,7 +243,7 @@ lookup.</p>
           <a href="../mmref/index.html" title="Introduction to memory management"
              >next</a> |</li>
         <li class="right" >
-          <a href="vm.html" title="28. Virtual mapping"
+          <a href="vmso.html" title="52. VM for Solaris"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

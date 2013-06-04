@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>12. Pool and pool class mechanisms &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>21. Pool and pool class mechanisms &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="13. AMC pool class" href="poolamc.html" />
-    <link rel="prev" title="11. Debugging features for client objects" href="object-debug.html" /> 
+    <link rel="next" title="22. AMC pool class" href="poolamc.html" />
+    <link rel="prev" title="20. Debugging features for client objects" href="object-debug.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poolamc.html" title="13. AMC pool class"
+          <a href="poolamc.html" title="22. AMC pool class"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="object-debug.html" title="11. Debugging features for client objects"
+          <a href="object-debug.html" title="20. Debugging features for client objects"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="pool-and-pool-class-mechanisms">
-<span id="design-design-pool"></span><span id="design-pool"></span><span id="index-0"></span><h1>12. Pool and pool class mechanisms<a class="headerlink" href="#pool-and-pool-class-mechanisms" title="Permalink to this headline">¶</a></h1>
+<span id="design-pool"></span><span id="index-0"></span><h1>21. Pool and pool class mechanisms<a class="headerlink" href="#pool-and-pool-class-mechanisms" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="definitions">
-<span id="design.mps.pool"></span><h2>12.1. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.pool"></span><h2>21.1. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pool.def.outer-structure"></span><a class="mpstag reference internal" href="#design.mps.pool.def.outer-structure">.def.outer-structure:</a> The &#8220;outer structure&#8221; (of a pool) is a C
 object of type <tt class="xref c c-type docutils literal"><span class="pre">PoolXXXStruct</span></tt> or the type <tt class="docutils literal"><span class="pre">struct</span> <span class="pre">PoolXXXStruct</span></tt>
 itself.</p>
@@ -66,7 +66,7 @@ type <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</sp
 type <tt class="docutils literal"><span class="pre">struct</span> <span class="pre">PoolStruct</span></tt> itself.</p>
 </div>
 <div class="section" id="defaults">
-<h2>12.2. Defaults<a class="headerlink" href="#defaults" title="Permalink to this headline">¶</a></h2>
+<h2>21.2. Defaults<a class="headerlink" href="#defaults" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pool.align"></span><a class="mpstag reference internal" href="#design.mps.pool.align">.align:</a> When initialised, the pool gets the default alignment
 (<tt class="xref c c-macro docutils literal"><span class="pre">ARCH_ALIGN</span></tt>).</p>
 <p><span class="target" id="design.mps.pool.no"></span><a class="mpstag reference internal" href="#design.mps.pool.no">.no:</a> If a pool class doesn&#8217;t implement a method, and doesn&#8217;t expect
@@ -81,12 +81,15 @@ there&#8217;s already one at the beginning (in the poolStruct) so putting it
 at the end gives some extra fencepost checking.</p>
 </div>
 <div class="section" id="requirements">
-<h2>12.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>[Placeholder: must derive the requirements from the architecture.]</p>
+<h2>21.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Placeholder: must derive the requirements from the architecture.</p>
+</div>
 <p><span class="target" id="design.mps.pool.req.fix"></span><a class="mpstag reference internal" href="#design.mps.pool.req.fix">.req.fix:</a> <tt class="xref c c-func docutils literal"><span class="pre">PoolFix()</span></tt> must be fast.</p>
 </div>
 <div class="section" id="other">
-<h2>12.4. Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>21.4. Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
 <p>Interface in mpm.h
 Types in mpmst.h
 See also design.mps.poolclass</p>
@@ -104,21 +107,21 @@ See also design.mps.poolclass</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">12. Pool and pool class mechanisms</a><ul>
-<li><a class="reference internal" href="#definitions">12.1. Definitions</a></li>
-<li><a class="reference internal" href="#defaults">12.2. Defaults</a></li>
-<li><a class="reference internal" href="#requirements">12.3. Requirements</a></li>
-<li><a class="reference internal" href="#other">12.4. Other</a></li>
+<li><a class="reference internal" href="#">21. Pool and pool class mechanisms</a><ul>
+<li><a class="reference internal" href="#definitions">21.1. Definitions</a></li>
+<li><a class="reference internal" href="#defaults">21.2. Defaults</a></li>
+<li><a class="reference internal" href="#requirements">21.3. Requirements</a></li>
+<li><a class="reference internal" href="#other">21.4. Other</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="object-debug.html"
-                        title="previous chapter">11. Debugging features for client objects</a></p>
+                        title="previous chapter">20. Debugging features for client objects</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="poolamc.html"
-                        title="next chapter">13. AMC pool class</a></p><h4>Downloads</h4>
+                        title="next chapter">22. AMC pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -144,10 +147,10 @@ See also design.mps.poolclass</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poolamc.html" title="13. AMC pool class"
+          <a href="poolamc.html" title="22. AMC pool class"
              >next</a> |</li>
         <li class="right" >
-          <a href="object-debug.html" title="11. Debugging features for client objects"
+          <a href="object-debug.html" title="20. Debugging features for client objects"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

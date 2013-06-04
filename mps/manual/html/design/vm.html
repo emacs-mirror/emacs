@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>28. Virtual mapping &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>49. Virtual mapping &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="29. The WriteF function" href="writef.html" />
-    <link rel="prev" title="27. Software versions" href="version.html" /> 
+    <link rel="next" title="50. ANSI fake VM" href="vman.html" />
+    <link rel="prev" title="48. Software versions" href="version.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="writef.html" title="29. The WriteF function"
+          <a href="vman.html" title="50. ANSI fake VM"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="27. Software versions"
+          <a href="version.html" title="48. Software versions"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="virtual-mapping">
-<span id="design-design-vm"></span><span id="design-vm"></span><span id="index-0"></span><h1>28. Virtual mapping<a class="headerlink" href="#virtual-mapping" title="Permalink to this headline">¶</a></h1>
+<span id="design-vm"></span><span id="index-0"></span><h1>49. Virtual mapping<a class="headerlink" href="#virtual-mapping" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.vm"></span><h2>28.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.vm"></span><h2>49.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.intro"></span><a class="mpstag reference internal" href="#design.mps.vm.intro">.intro:</a> This the design of the VM interface. The VM interface
 provides a simple, low-level, operating-system independent interface
 to address-space. Each call to <a class="reference internal" href="#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a> reserves (from the
@@ -78,7 +78,7 @@ that there will also be enough address space somewhere to fit any
 particular segment in).</p>
 </div>
 <div class="section" id="definitions">
-<h2>28.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>49.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.def.reserve"></span><a class="mpstag reference internal" href="#design.mps.vm.def.reserve">.def.reserve:</a> The &#8220;reserve&#8221; operation: Exclusively reserve a
 portion of the virtual address space without arranging RAM or backing
 store for the virtual addresses. The intention is that no other
@@ -108,7 +108,7 @@ to the single contiguous range of address-space that was reserved
 (from the operating-system) when <a class="reference internal" href="#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a> was called.</p>
 </div>
 <div class="section" id="interface">
-<h2>28.3. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>49.3. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="VMCreate">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">VMCreate</tt><big>(</big>VM<em>&nbsp;*VMReturn</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em><big>)</big><a class="headerlink" href="#VMCreate" title="Permalink to this definition">¶</a></dt>
@@ -130,10 +130,13 @@ void <tt class="descname">VMDestroy</tt><big>(</big>VM<em>&nbsp;vm</em><big>)</b
 
 <p><span class="target" id="design.mps.vm.if.destroy"></span><a class="mpstag reference internal" href="#design.mps.vm.if.destroy">.if.destroy:</a> A VM is destroyed by calling <a class="reference internal" href="#VMDestroy" title="VMDestroy"><tt class="xref c c-func docutils literal"><span class="pre">VMDestroy()</span></tt></a>. Any
 address space that was mapped through this VM is unmapped.</p>
-<p>[lots of interfaces missing here]</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Lots of interfaces are missing here.</p>
+</div>
 </div>
 <div class="section" id="notes">
-<h2>28.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>49.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.testing"></span><a class="mpstag reference internal" href="#design.mps.vm.testing">.testing:</a> It is important to test that a VM implementation will
 work in extreme cases.</p>
 <p><span class="target" id="design.mps.vm.testing.large"></span><a class="mpstag reference internal" href="#design.mps.vm.testing.large">.testing.large:</a> It must be able to reserve a large address space.
@@ -161,21 +164,21 @@ this.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">28. Virtual mapping</a><ul>
-<li><a class="reference internal" href="#introduction">28.1. Introduction</a></li>
-<li><a class="reference internal" href="#definitions">28.2. Definitions</a></li>
-<li><a class="reference internal" href="#interface">28.3. Interface</a></li>
-<li><a class="reference internal" href="#notes">28.4. Notes</a></li>
+<li><a class="reference internal" href="#">49. Virtual mapping</a><ul>
+<li><a class="reference internal" href="#introduction">49.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">49.2. Definitions</a></li>
+<li><a class="reference internal" href="#interface">49.3. Interface</a></li>
+<li><a class="reference internal" href="#notes">49.4. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="version.html"
-                        title="previous chapter">27. Software versions</a></p>
+                        title="previous chapter">48. Software versions</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="writef.html"
-                        title="next chapter">29. The WriteF function</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="vman.html"
+                        title="next chapter">50. ANSI fake VM</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -201,10 +204,10 @@ this.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="writef.html" title="29. The WriteF function"
+          <a href="vman.html" title="50. ANSI fake VM"
              >next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="27. Software versions"
+          <a href="version.html" title="48. Software versions"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

@@ -93,11 +93,11 @@ or elsewhere; that doesn&#8217;t matter.</p>
 <p>For example, the toy Scheme interpreter inlines the location
 dependency in its hash table structure:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">table_s</span> <span class="p">{</span>
-  <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
-  <span class="n">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
-  <span class="n">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
+  <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
+  <span class="kt">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
+  <span class="kt">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
 <span class="hll">  <span class="n">mps_ld_s</span> <span class="n">ld</span><span class="p">;</span>                  <span class="cm">/* location dependency */</span>
-</span>  <span class="n">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
+</span>  <span class="kt">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
 <span class="p">}</span> <span class="n">table_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -125,12 +125,12 @@ references from one dependency to another.</p>
 that is added to the table must be added to the dependency before its
 address is hashed. In the toy Scheme interpreter this is most easily
 done in the function that hashes an address:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="n">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">)];</span> <span class="n">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
+    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">)];</span> <span class="kt">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
 <span class="hll">    <span class="k">if</span> <span class="p">(</span><span class="n">ld</span><span class="p">)</span> <span class="n">mps_ld_add</span><span class="p">(</span><span class="n">ld</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
 </span>    <span class="n">u</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">));</span>
+    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -168,7 +168,7 @@ old locations of the blocks; and</li>
 </ol>
 <p>For example, in the case of a hash table you should rehash based on
 the new locations of the blocks.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">key</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">key</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">bucket_s</span> <span class="o">*</span><span class="n">b</span> <span class="o">=</span> <span class="n">buckets_find</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="n">obj_deleted</span><span class="p">)</span>
@@ -229,7 +229,7 @@ found in the table.</p>
 <dd><p>The type of the structure used to represent a <a class="reference internal" href="../glossary/l.html#term-location-dependency"><em class="xref std std-term">location
 dependency</em></a>.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_ld_s</span> <span class="p">{</span>
-    <span class="n">mps_word_t</span> <span class="n">w0</span><span class="p">,</span> <span class="n">w1</span><span class="p">;</span>
+    <span class="kt">mps_word_t</span> <span class="n">w0</span><span class="p">,</span> <span class="n">w1</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_ld_s</span><span class="p">;</span>
 </pre></div>
 </div>

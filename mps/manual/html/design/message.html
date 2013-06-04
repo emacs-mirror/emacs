@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>10. Client message protocol &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>18. Client message protocol &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="11. Debugging features for client objects" href="object-debug.html" />
-    <link rel="prev" title="9. The lock module" href="lock.html" /> 
+    <link rel="next" title="19. GC messages" href="message-gc.html" />
+    <link rel="prev" title="17. MPS Configuration" href="locus.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="11. Debugging features for client objects"
+          <a href="message-gc.html" title="19. GC messages"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="locus.html" title="17. MPS Configuration"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="client-message-protocol">
-<span id="design-design-message"></span><span id="design-message"></span><span id="index-0"></span><h1>10. Client message protocol<a class="headerlink" href="#client-message-protocol" title="Permalink to this headline">¶</a></h1>
+<span id="design-message"></span><span id="index-0"></span><h1>18. Client message protocol<a class="headerlink" href="#client-message-protocol" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.message"></span><h2>10.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.message"></span><h2>18.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.message.intro"></span><a class="mpstag reference internal" href="#design.mps.message.intro">.intro:</a> The client message protocol provides a means by which
 clients can receive messages from the MPS asynchronously. Typical
 messages may be low memory notification (or in general low utility),
@@ -66,8 +66,12 @@ general assumption that it should not be disastrous for the MPS client
 to ignore messages, but that it is probably in the clients best
 interest to not ignore messages. The justification for this is that
 the MPS cannot force the MPS client to read and act on messages, so no
-message should be critical [bogus, since we cannot force clients to
-check error codes either - Pekka 1997-09-17].</p>
+message should be critical.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Bogus, since we cannot force clients to check error codes either.
+Pekka P. Pirinen, 1997-09-17.</p>
+</div>
 <p><span class="target" id="design.mps.message.contents"></span><a class="mpstag reference internal" href="#design.mps.message.contents">.contents:</a> This document describes the design of the external and
 internal interfaces and concludes with a sketch of an example design
 of an internal client. The example is that of implementing
@@ -75,19 +79,19 @@ finalization using PoolMRG.</p>
 <p><span class="target" id="design.mps.message.readership"></span><a class="mpstag reference internal" href="#design.mps.message.readership">.readership:</a> Any MPS developer.</p>
 </div>
 <div class="section" id="requirements">
-<h2>10.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>18.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.message.req"></span><a class="mpstag reference internal" href="#design.mps.message.req">.req:</a> The client message protocol will be used for implementing
 finalization (see design.mps.finalize and req.dylan.fun.final). It
 will also be used for implementing the notification of various
 conditions (possibly req.dylan.prot.consult is relevant here).</p>
 </div>
 <div class="section" id="external-interface">
-<h2>10.3. External interface<a class="headerlink" href="#external-interface" title="Permalink to this headline">¶</a></h2>
+<h2>18.3. External interface<a class="headerlink" href="#external-interface" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.message.if.queue"></span><a class="mpstag reference internal" href="#design.mps.message.if.queue">.if.queue:</a> Messages are presented as a single queue per arena.
 Various functions are provided to inspect the queue and inspect
 messages in it (see below).</p>
 <div class="section" id="functions">
-<h3>10.3.1. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<h3>18.3.1. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.message.if.fun"></span><a class="mpstag reference internal" href="#design.mps.message.if.fun">.if.fun:</a> The following functions are provided:</p>
 <p><span class="target" id="design.mps.message.if.fun.poll"></span><a class="mpstag reference internal" href="#design.mps.message.if.fun.poll">.if.fun.poll:</a> <a class="reference internal" href="../topic/message.html#mps_message_poll" title="mps_message_poll"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_poll()</span></tt></a> sees whether there are any
 messages pending. Returns 1 only if there is a message on the queue of
@@ -136,7 +140,7 @@ transaction (that is, after <a class="reference internal" href="../topic/message
 type that the client passed in the call to <a class="reference internal" href="../topic/message.html#mps_message_get" title="mps_message_get"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_get()</span></tt></a>.</p>
 </div>
 <div class="section" id="types-of-messages">
-<h3>10.3.2. Types of messages<a class="headerlink" href="#types-of-messages" title="Permalink to this headline">¶</a></h3>
+<h3>18.3.2. Types of messages<a class="headerlink" href="#types-of-messages" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.message.type"></span><a class="mpstag reference internal" href="#design.mps.message.type">.type:</a> The type governs the &#8220;shape&#8221; and meaning of the message.</p>
 <p><span class="target" id="design.mps.message.type.int"></span><a class="mpstag reference internal" href="#design.mps.message.type.int">.type.int:</a> Types themselves will just be a scalar quantity, an
 integer.</p>
@@ -159,7 +163,7 @@ finalizable) called <a class="reference internal" href="../topic/finalization.ht
 should be stored in scanned memory.</p>
 </div>
 <div class="section" id="compatibility-issues">
-<h3>10.3.3. Compatibility issues<a class="headerlink" href="#compatibility-issues" title="Permalink to this headline">¶</a></h3>
+<h3>18.3.3. Compatibility issues<a class="headerlink" href="#compatibility-issues" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.message.compatibility"></span><a class="mpstag reference internal" href="#design.mps.message.compatibility">.compatibility:</a> The following issues affect future compatibility of
 the interface:</p>
 <p><span class="target" id="design.mps.message.compatibility.future.type-new"></span><a class="mpstag reference internal" href="#design.mps.message.compatibility.future.type-new">.compatibility.future.type-new:</a> Notice that message of a type that
@@ -175,9 +179,9 @@ okay.</p>
 </div>
 </div>
 <div class="section" id="internal-interface">
-<h2>10.4. Internal interface<a class="headerlink" href="#internal-interface" title="Permalink to this headline">¶</a></h2>
+<h2>18.4. Internal interface<a class="headerlink" href="#internal-interface" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="types">
-<h3>10.4.1. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h3>
+<h3>18.4.1. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h3>
 <dl class="type">
 <dt id="Message">
 struct <a class="reference internal" href="#MessageStruct" title="MessageStruct">MessageStruct</a> *<tt class="descname">Message</tt><a class="headerlink" href="#Message" title="Permalink to this definition">¶</a></dt>
@@ -291,7 +295,7 @@ managing for queue of pending messages. This is a ring in the
 </div>
 </div>
 <div class="section" id="id1">
-<h3>10.4.2. Functions<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>18.4.2. Functions<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="MessageInit">
 void <tt class="descname">MessageInit</tt><big>(</big><a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em>, <a class="reference internal" href="#Message" title="Message">Message</a><em>&nbsp;message</em>, <a class="reference internal" href="#MessageClass" title="MessageClass">MessageClass</a><em>&nbsp;class</em><big>)</big><a class="headerlink" href="#MessageInit" title="Permalink to this definition">¶</a></dt>
@@ -334,7 +338,7 @@ the future.</p>
 </div>
 </div>
 <div class="section" id="message-life-cycle">
-<h2>10.5. Message life cycle<a class="headerlink" href="#message-life-cycle" title="Permalink to this headline">¶</a></h2>
+<h2>18.5. Message life cycle<a class="headerlink" href="#message-life-cycle" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.message.life"></span><a class="mpstag reference internal" href="#design.mps.message.life">.life:</a> A message will be allocated by a client of the message
 module, it will be initialised by calling <a class="reference internal" href="#MessageInit" title="MessageInit"><tt class="xref c c-func docutils literal"><span class="pre">MessageInit()</span></tt></a>. The
 client will eventually post the message on the external queue (in fact
@@ -344,11 +348,14 @@ message module will eventually destroy the message by applying the
 <tt class="docutils literal"><span class="pre">delete</span></tt> method to it.</p>
 </div>
 <div class="section" id="examples">
-<h2>10.6. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<h2>18.6. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="finalization">
-<h3>10.6.1. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h3>
-<p>[possibly out of date, see design.mps.finalize and design.mps.poolmrg
-instead &#8211; drj 1997-08-28]</p>
+<h3>18.6.1. Finalization<a class="headerlink" href="#finalization" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Possibly out of date, see design.mps.finalize and
+design.mps.poolmrg instead. David Jones, 1997-08-28.</p>
+</div>
 <p>This subsection is a sketch of how PoolMRG will use Messages for
 finalization (see design.mps.poolmrg).</p>
 <p>PoolMRG has guardians (see design.mps.poolmrg.guardian). Guardians are
@@ -379,23 +386,23 @@ of the guardian.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">10. Client message protocol</a><ul>
-<li><a class="reference internal" href="#introduction">10.1. Introduction</a></li>
-<li><a class="reference internal" href="#requirements">10.2. Requirements</a></li>
-<li><a class="reference internal" href="#external-interface">10.3. External interface</a><ul>
-<li><a class="reference internal" href="#functions">10.3.1. Functions</a></li>
-<li><a class="reference internal" href="#types-of-messages">10.3.2. Types of messages</a></li>
-<li><a class="reference internal" href="#compatibility-issues">10.3.3. Compatibility issues</a></li>
+<li><a class="reference internal" href="#">18. Client message protocol</a><ul>
+<li><a class="reference internal" href="#introduction">18.1. Introduction</a></li>
+<li><a class="reference internal" href="#requirements">18.2. Requirements</a></li>
+<li><a class="reference internal" href="#external-interface">18.3. External interface</a><ul>
+<li><a class="reference internal" href="#functions">18.3.1. Functions</a></li>
+<li><a class="reference internal" href="#types-of-messages">18.3.2. Types of messages</a></li>
+<li><a class="reference internal" href="#compatibility-issues">18.3.3. Compatibility issues</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#internal-interface">10.4. Internal interface</a><ul>
-<li><a class="reference internal" href="#types">10.4.1. Types</a></li>
-<li><a class="reference internal" href="#id1">10.4.2. Functions</a></li>
+<li><a class="reference internal" href="#internal-interface">18.4. Internal interface</a><ul>
+<li><a class="reference internal" href="#types">18.4.1. Types</a></li>
+<li><a class="reference internal" href="#id1">18.4.2. Functions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#message-life-cycle">10.5. Message life cycle</a></li>
-<li><a class="reference internal" href="#examples">10.6. Examples</a><ul>
-<li><a class="reference internal" href="#finalization">10.6.1. Finalization</a></li>
+<li><a class="reference internal" href="#message-life-cycle">18.5. Message life cycle</a></li>
+<li><a class="reference internal" href="#examples">18.6. Examples</a><ul>
+<li><a class="reference internal" href="#finalization">18.6.1. Finalization</a></li>
 </ul>
 </li>
 </ul>
@@ -403,11 +410,11 @@ of the guardian.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="lock.html"
-                        title="previous chapter">9. The lock module</a></p>
+  <p class="topless"><a href="locus.html"
+                        title="previous chapter">17. MPS Configuration</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="object-debug.html"
-                        title="next chapter">11. Debugging features for client objects</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="message-gc.html"
+                        title="next chapter">19. GC messages</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -433,10 +440,10 @@ of the guardian.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="11. Debugging features for client objects"
+          <a href="message-gc.html" title="19. GC messages"
              >next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="9. The lock module"
+          <a href="locus.html" title="17. MPS Configuration"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

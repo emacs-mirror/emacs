@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. AMC pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>22. AMC pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="14. Manually-Managed Variable-Size First-Fit Pool" href="poolmvff.html" />
-    <link rel="prev" title="12. Pool and pool class mechanisms" href="pool.html" /> 
+    <link rel="next" title="23. AMS pool class" href="poolams.html" />
+    <link rel="prev" title="21. Pool and pool class mechanisms" href="pool.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="14. Manually-Managed Variable-Size First-Fit Pool"
+          <a href="poolams.html" title="23. AMS pool class"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pool.html" title="12. Pool and pool class mechanisms"
+          <a href="pool.html" title="21. Pool and pool class mechanisms"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -55,16 +55,16 @@
           <div class="body">
             
   <div class="section" id="amc-pool-class">
-<span id="design-design-poolamc"></span><span id="design-poolamc"></span><span id="index-0"></span><h1>13. AMC pool class<a class="headerlink" href="#amc-pool-class" title="Permalink to this headline">¶</a></h1>
+<span id="design-poolamc"></span><span id="index-0"></span><h1>22. AMC pool class<a class="headerlink" href="#amc-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poolamc"></span><h2>13.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolamc"></span><h2>22.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolamc.intro"></span><a class="mpstag reference internal" href="#design.mps.poolamc.intro">.intro:</a> This document contains a guide (<a class="reference internal" href="#design.mps.poolamc.guide">.guide</a>) to the MPS AMC
 pool class, followed by the historical initial design
 (<a class="reference internal" href="#design.mps.poolamc.initial-design">.initial-design</a>).</p>
 <p><span class="target" id="design.mps.poolamc.readership"></span><a class="mpstag reference internal" href="#design.mps.poolamc.readership">.readership:</a> Any MPS developer.</p>
 </div>
 <div class="section" id="guide">
-<h2>13.2. Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>
+<h2>22.2. Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolamc.guide"></span><a class="mpstag reference internal" href="#design.mps.poolamc.guide">.guide:</a> The AMC pool class is a general-purpose automatic
 (collecting) pool class. It is intended for most client objects. AMC
 is &#8220;Automatic, Mostly Copying&#8221;: it preserves objects by copying,
@@ -74,7 +74,7 @@ to <em>N</em> − 1. Survivors from generation <em>N</em> − 1 get promoted int
 arena-wide &#8220;top&#8221; generation (often anachronistically called the
 &#8220;dynamic&#8221; generation, which was the term on the Lisp Machine).</p>
 <div class="section" id="segment-states">
-<h3>13.2.1. Segment states<a class="headerlink" href="#segment-states" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.1. Segment states<a class="headerlink" href="#segment-states" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.seg.state"></span><a class="mpstag reference internal" href="#design.mps.poolamc.seg.state">.seg.state:</a> AMC segments are in one of three states: &#8220;mobile&#8221;,
 &#8220;boarded&#8221;, or &#8220;stuck&#8221;.</p>
 <p><span class="target" id="design.mps.poolamc.seg.state.mobile"></span><a class="mpstag reference internal" href="#design.mps.poolamc.seg.state.mobile">.seg.state.mobile:</a> Segments are normally <strong>mobile</strong>: all objects on
@@ -88,7 +88,7 @@ discovery fix to an object in a mobile segment is recorded in the only
 non-allocating way available: by making the entire segment <strong>stuck</strong>.</p>
 </div>
 <div class="section" id="pads">
-<h3>13.2.2. Pads<a class="headerlink" href="#pads" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.2. Pads<a class="headerlink" href="#pads" title="Permalink to this headline">¶</a></h3>
 <p>(See <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001809/">job001809</a> and <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001811/">job001811</a>, and mps/branch/2009-03-31/padding.)</p>
 <p><span class="target" id="design.mps.poolamc.pad"></span><a class="mpstag reference internal" href="#design.mps.poolamc.pad">.pad:</a> A pad is logically a trivial client object. Pads are created
 by the MPS asking the client&#8217;s format code to create them, to fill up
@@ -140,7 +140,7 @@ object is replaced by an NMR pad.</p>
 calls <tt class="xref c c-func docutils literal"><span class="pre">SegFree()</span></tt> (new with <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001809/">job001809</a>).</p>
 </div>
 <div class="section" id="placement-pads-are-okay">
-<h3>13.2.3. Placement pads are okay<a class="headerlink" href="#placement-pads-are-okay" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.3. Placement pads are okay<a class="headerlink" href="#placement-pads-are-okay" title="Permalink to this headline">¶</a></h3>
 <p>Placement pads are the BEF and LSP pads created in &#8220;to-space&#8221; when
 placing objects into segments. This wasted space is an expected
 space-cost of AMC&#8217;s naive (but time-efficient) approach to placement
@@ -149,7 +149,7 @@ worst case is a client that always requests <tt class="docutils literal"><span c
 objects: this has a nearly 100% overhead).</p>
 </div>
 <div class="section" id="retained-pads-could-be-a-problem">
-<h3>13.2.4. Retained pads could be a problem<a class="headerlink" href="#retained-pads-could-be-a-problem" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.4. Retained pads could be a problem<a class="headerlink" href="#retained-pads-could-be-a-problem" title="Permalink to this headline">¶</a></h3>
 <p>Retained pads are the NMR pads stuck in &#8220;from-space&#8221;: non-mobile
 segments that were condemned but have preserved-in-place objects
 cannot be freed by <tt class="xref c c-func docutils literal"><span class="pre">amcReclaimNailed()</span></tt>. The space around the
@@ -166,7 +166,7 @@ overhead of wasted space.</p>
 specially.</p>
 </div>
 <div class="section" id="small-medium-and-large-segments">
-<h3>13.2.5. Small, medium, and large segments<a class="headerlink" href="#small-medium-and-large-segments" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.5. Small, medium, and large segments<a class="headerlink" href="#small-medium-and-large-segments" title="Permalink to this headline">¶</a></h3>
 <p>AMC categorises segments as <strong>small</strong> (one page), <strong>medium</strong>
 (several pages), or <strong>large</strong> (<tt class="docutils literal"><span class="pre">AMCLargeSegPAGES</span></tt> or more):</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">pages</span> <span class="o">=</span> <span class="n">SegSize</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">/</span> <span class="n">ArenaAlign</span><span class="p">(</span><span class="n">arena</span><span class="p">);</span>
@@ -224,7 +224,7 @@ increasing the structure size, by making the <tt class="docutils literal"><span 
 smaller than its current 32 bits.)</p>
 </div>
 <div class="section" id="the-lsp-payoff-calculation">
-<h3>13.2.6. The LSP payoff calculation<a class="headerlink" href="#the-lsp-payoff-calculation" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.6. The LSP payoff calculation<a class="headerlink" href="#the-lsp-payoff-calculation" title="Permalink to this headline">¶</a></h3>
 <p>The LSP fix for <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001811/">job001811</a> treats large segments differently. Without
 it, after allocating a very large object (in a new very large
 multi-page segment), MPS would happily place subsequent small objects
@@ -264,7 +264,7 @@ below. If this one-size-fits-all approach is not satisfactory,
 <tt class="docutils literal"><span class="pre">AMCLargeSegPAGES</span></tt> could be made a client-tunable parameter.</p>
 </div>
 <div class="section" id="retained-pages">
-<h3>13.2.7. Retained pages<a class="headerlink" href="#retained-pages" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.7. Retained pages<a class="headerlink" href="#retained-pages" title="Permalink to this headline">¶</a></h3>
 <p>The reasons why a segment and its pages might be retained are:</p>
 <ol class="arabic simple">
 <li>ambiguous reference to first-obj: unavoidable page retention (only
@@ -286,7 +286,7 @@ problem.</li>
 programmer first, and the more obscure reasons last.</p>
 </div>
 <div class="section" id="feedback-about-retained-pages">
-<h3>13.2.8. Feedback about retained pages<a class="headerlink" href="#feedback-about-retained-pages" title="Permalink to this headline">¶</a></h3>
+<h3>22.2.8. Feedback about retained pages<a class="headerlink" href="#feedback-about-retained-pages" title="Permalink to this headline">¶</a></h3>
 <p>(New with <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001811/">job001811</a>). AMC now accumulates counts of pages condemned
 and retained during a trace, in categories according to size and
 reason for retention, and emits diagnostic at trace-end via the
@@ -299,32 +299,35 @@ acceptable.</p>
 </div>
 </div>
 <div class="section" id="initial-design">
-<h2>13.3. Initial design<a class="headerlink" href="#initial-design" title="Permalink to this headline">¶</a></h2>
+<h2>22.3. Initial design<a class="headerlink" href="#initial-design" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id1">
-<h3>13.3.1. Introduction<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.1. Introduction<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.intro"></span><a class="mpstag reference internal" href="#design.mps.poolamc.intro">.intro:</a> This is the design of the AMC Pool Class. AMC stands for
 Automatic Mostly-Copying. This design is highly fragmentory and some
 may even be sufficiently old to be misleading.</p>
 <p><span class="target" id="design.mps.poolamc.readership"></span><a class="mpstag reference internal" href="#design.mps.poolamc.readership">.readership:</a> The intended readership is any MPS developer.</p>
 </div>
 <div class="section" id="overview">
-<h3>13.3.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.overview"></span><a class="mpstag reference internal" href="#design.mps.poolamc.overview">.overview:</a> This class is intended to be the main pool class used by
 Harlequin Dylan. It provides garbage collection of objects (hence
 &#8220;automatic&#8221;). It uses generational copying algorithms, but with some
 facility for handling small numbers of ambiguous references. Ambiguous
 references prevent the pool from copying objects (hence &#8220;mostly
 copying&#8221;). It provides incremental collection.</p>
-<p>[ lot of this design is awesomely old &#8211; drj 1998-02-04]</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">A lot of this design is awesomely old. David Jones, 1998-02-04.</p>
+</div>
 </div>
 <div class="section" id="definitions">
-<h3>13.3.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.def.grain"></span><a class="mpstag reference internal" href="#design.mps.poolamc.def.grain">.def.grain:</a> Grain. An quantity of memory which is both aligned to
 the pool&#8217;s alignment and equal to the pool&#8217;s alignment in size. That
 is, the smallest amount of memory worth talking about.</p>
 </div>
 <div class="section" id="segments">
-<h3>13.3.4. Segments<a class="headerlink" href="#segments" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.4. Segments<a class="headerlink" href="#segments" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.seg.class"></span><a class="mpstag reference internal" href="#design.mps.poolamc.seg.class">.seg.class:</a> AMC allocates segments of class <tt class="xref c c-type docutils literal"><span class="pre">AMCSegClass</span></tt>, which
 is a subclass of <tt class="xref c c-type docutils literal"><span class="pre">GCSegClass</span></tt>. Instances contain a <tt class="docutils literal"><span class="pre">segTypeP</span></tt>
 field, which is of type <tt class="docutils literal"><span class="pre">int*</span></tt>.</p>
@@ -342,9 +345,12 @@ to a generation or to a nail board.</p>
 <tt class="xref c c-func docutils literal"><span class="pre">AMCSegGen()</span></tt> which deals with all this.</p>
 </div>
 <div class="section" id="fixing-and-nailing">
-<h3>13.3.5. Fixing and nailing<a class="headerlink" href="#fixing-and-nailing" title="Permalink to this headline">¶</a></h3>
-<p><span class="target" id="design.mps.poolamc.fix.nail"></span><a class="mpstag reference internal" href="#design.mps.poolamc.fix.nail">.fix.nail:</a> [.fix.nail.* are placeholders for design rather than
-design really &#8211; drj 1998-02-04]</p>
+<h3>22.3.5. Fixing and nailing<a class="headerlink" href="#fixing-and-nailing" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">This section contains placeholders for design rather than design
+really. David Jones, 1998-02-04.</p>
+</div>
 <p><span class="target" id="design.mps.poolamc.nailboard"></span><a class="mpstag reference internal" href="#design.mps.poolamc.nailboard">.nailboard:</a> AMC uses a nail board structure for recording ambiguous
 references to segments. A nail board is a bit table with one bit per
 grain in the segment.</p>
@@ -408,7 +414,7 @@ each block of reclaimed objects between two nailed objects with a
 single padding object, speeding up further scans.</p>
 </div>
 <div class="section" id="emergency-tracing">
-<h3>13.3.6. Emergency tracing<a class="headerlink" href="#emergency-tracing" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.6. Emergency tracing<a class="headerlink" href="#emergency-tracing" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.emergency.fix"></span><a class="mpstag reference internal" href="#design.mps.poolamc.emergency.fix">.emergency.fix:</a> <tt class="xref c c-func docutils literal"><span class="pre">AMCFixEmergency()</span></tt> is at the core of AMC&#8217;s
 emergency tracing policy (unsurprisingly). <tt class="xref c c-func docutils literal"><span class="pre">AMCFixEmergency()</span></tt>
 chooses exactly one of three options:</p>
@@ -429,7 +435,7 @@ passes, as <tt class="xref c c-func docutils literal"><span class="pre">FixEmerg
 board.</p>
 </div>
 <div class="section" id="buffers">
-<h3>13.3.7. Buffers<a class="headerlink" href="#buffers" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.7. Buffers<a class="headerlink" href="#buffers" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.buffer.class"></span><a class="mpstag reference internal" href="#design.mps.poolamc.buffer.class">.buffer.class:</a> AMC uses buffer of class <tt class="xref c c-type docutils literal"><span class="pre">AMCBufClass</span></tt> (a subclass
 of SegBufClass).</p>
 <p><span class="target" id="design.mps.poolamc.buffer.gen"></span><a class="mpstag reference internal" href="#design.mps.poolamc.buffer.gen">.buffer.gen:</a> Each buffer allocates into exactly one generation.</p>
@@ -441,34 +447,45 @@ which is how segments get allocated in that generation.</p>
 <p><span class="target" id="design.mps.poolamc.buffer.condemn"></span><a class="mpstag reference internal" href="#design.mps.poolamc.buffer.condemn">.buffer.condemn:</a> We condemn buffered segments, but not the contents
 of the buffers themselves, because we can&#8217;t reclaim uncommitted
 buffers (see design.mps.buffer for details). If the segment has a
-forwarding buffer on it, we detach it [why? &#64;&#64;&#64;&#64; forwarding buffers
-are detached because they used to cause objects on the same segment to
-not get condemned, hence caused retention of garbage. Now that we
-condemn the non-buffered portion of buffered segments this is probably
-unnecessary &#8211; drj 1998-06-01 But it&#8217;s probably more efficient than
-keeping the buffer on the segment, because then the other stuff gets
-nailed &#8211; pekka 1998-07-10]. If the segment has a mutator buffer on
-it, we nail the buffer. If the buffer cannot be nailed, we give up
-condemning, since nailing the whole segment would make it survive
-anyway. The scan methods skip over buffers and fix methods don&#8217;t do
-anything to things that have already been nailed, so the buffer is
-effectively black.</p>
+forwarding buffer on it, we detach it.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p>Why? Forwarding buffers are detached because they used to cause
+objects on the same segment to not get condemned, hence caused
+retention of garbage. Now that we condemn the non-buffered portion
+of buffered segments this is probably unnecessary. David Jones,
+1998-06-01.</p>
+<p class="last">But it&#8217;s probably more efficient than keeping the buffer on the
+segment, because then the other stuff gets nailed &#8211; Pekka P.
+Pirinen, 1998-07-10.</p>
+</div>
+<p>If the segment has a mutator buffer on it, we nail the buffer. If the
+buffer cannot be nailed, we give up condemning, since nailing the
+whole segment would make it survive anyway. The scan methods skip over
+buffers and fix methods don&#8217;t do anything to things that have already
+been nailed, so the buffer is effectively black.</p>
 </div>
 <div class="section" id="types">
-<h3>13.3.8. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.8. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.struct"></span><a class="mpstag reference internal" href="#design.mps.poolamc.struct">.struct:</a> <tt class="xref c c-type docutils literal"><span class="pre">AMCStruct</span></tt> is the pool class AMC instance structure.</p>
 <p><span class="target" id="design.mps.poolamc.struct.pool"></span><a class="mpstag reference internal" href="#design.mps.poolamc.struct.pool">.struct.pool:</a> Like other pool class instances, it contains a
 <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> containing the generic pool fields.</p>
 <p><span class="target" id="design.mps.poolamc.struct.format"></span><a class="mpstag reference internal" href="#design.mps.poolamc.struct.format">.struct.format:</a> The <tt class="docutils literal"><span class="pre">format</span></tt> field points to a <tt class="xref c c-type docutils literal"><span class="pre">Format</span></tt>
 structure describing the object format of objects allocated in the
 pool. The field is intialized by <tt class="xref c c-func docutils literal"><span class="pre">AMCInit()</span></tt> from a parameter, and
-thereafter it is not changed until the pool is destroyed. [actually
-the format field is in the generic <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> these days. drj
-1998-09-21]</p>
-<p>[lots more fields here]</p>
+thereafter it is not changed until the pool is destroyed.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">Actually the format field is in the generic <tt class="xref c c-type docutils literal"><span class="pre">PoolStruct</span></tt> these
+days. David Jones, 1998-09-21.</p>
+</div>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">There are lots more fields here.</p>
+</div>
 </div>
 <div class="section" id="generations">
-<h3>13.3.9. Generations<a class="headerlink" href="#generations" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.9. Generations<a class="headerlink" href="#generations" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.gen"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen">.gen:</a> Generations partition the segments that a pool manages (see
 <a class="reference internal" href="#design.mps.poolamc.seg.gen.map">.seg.gen.map</a> above).</p>
 <p><span class="target" id="design.mps.poolamc.gen.collect"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.collect">.gen.collect:</a> Generations are more or less the units of
@@ -486,8 +503,12 @@ to the <tt class="xref c c-type docutils literal"><span class="pre">AMCStruct</s
 <p><span class="target" id="design.mps.poolamc.gen.manage.array"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.manage.array">.gen.manage.array:</a> They are also kept in an array which is
 allocated when the pool is created and attached to the <tt class="xref c c-type docutils literal"><span class="pre">AMCStruct</span></tt>
 (the gens field holds the number of generations, the <tt class="docutils literal"><span class="pre">gen</span></tt> field
-points to an array of <tt class="docutils literal"><span class="pre">AMCGen</span></tt>). [it seems to me that we could
-probably get rid of the ring &#8211; drj 1998-09-22]</p>
+points to an array of <tt class="docutils literal"><span class="pre">AMCGen</span></tt>).</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">it seems to me that we could probably get rid of the ring. David
+Jones, 1998-09-22.</p>
+</div>
 <p><span class="target" id="design.mps.poolamc.gen.number"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.number">.gen.number:</a> There are <tt class="docutils literal"><span class="pre">AMCTopGen</span> <span class="pre">+</span> <span class="pre">2</span></tt> generations in total.
 &#8220;normal&#8221; generations numbered from 0 to <tt class="docutils literal"><span class="pre">AMCTopGen</span></tt> inclusive and an
 extra &#8220;ramp&#8221; generation (see <a class="reference internal" href="#design.mps.poolamc.gen.ramp">.gen.ramp</a> below).</p>
@@ -504,7 +525,7 @@ associated with generations when the pool is created (just after the
 generations are created in <tt class="xref c c-func docutils literal"><span class="pre">AMCInitComm()</span></tt>).</p>
 </div>
 <div class="section" id="ramps">
-<h3>13.3.10. Ramps<a class="headerlink" href="#ramps" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.10. Ramps<a class="headerlink" href="#ramps" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.ramp"></span><a class="mpstag reference internal" href="#design.mps.poolamc.ramp">.ramp:</a> Ramps usefully implement the begin/end
 <a class="reference internal" href="../topic/pattern.html#mps_alloc_pattern_ramp" title="mps_alloc_pattern_ramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc_pattern_ramp()</span></tt></a> interface.</p>
 <p><span class="target" id="design.mps.poolamc.gen.ramp"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.ramp">.gen.ramp:</a> To implement ramping (request.dylan.170423), AMC uses a
@@ -587,7 +608,7 @@ and no longer has any effect (the flag is passed to
 <tt class="xref c c-func docutils literal"><span class="pre">AMCRampBegin()</span></tt>, but ignored there).</p>
 </div>
 <div class="section" id="headers">
-<h3>13.3.11. Headers<a class="headerlink" href="#headers" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.11. Headers<a class="headerlink" href="#headers" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.header"></span><a class="mpstag reference internal" href="#design.mps.poolamc.header">.header:</a> AMC supports a fixed-size header on objects, with the
 client pointers pointing after the header, rather than the base of the
 memory block. See format documentation for details of the interface.</p>
@@ -604,7 +625,7 @@ dispatch through the instance, rather than the class like all other
 methods.</p>
 </div>
 <div class="section" id="old-and-aging-notes-below-here">
-<h3>13.3.12. Old and aging notes below here<a class="headerlink" href="#old-and-aging-notes-below-here" title="Permalink to this headline">¶</a></h3>
+<h3>22.3.12. Old and aging notes below here<a class="headerlink" href="#old-and-aging-notes-below-here" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="AMCFinish">
 void <tt class="descname">AMCFinish</tt><big>(</big>Pool<em>&nbsp;pool</em><big>)</big><a class="headerlink" href="#AMCFinish" title="Permalink to this definition">¶</a></dt>
@@ -698,32 +719,32 @@ buffer is tripped.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">13. AMC pool class</a><ul>
-<li><a class="reference internal" href="#introduction">13.1. Introduction</a></li>
-<li><a class="reference internal" href="#guide">13.2. Guide</a><ul>
-<li><a class="reference internal" href="#segment-states">13.2.1. Segment states</a></li>
-<li><a class="reference internal" href="#pads">13.2.2. Pads</a></li>
-<li><a class="reference internal" href="#placement-pads-are-okay">13.2.3. Placement pads are okay</a></li>
-<li><a class="reference internal" href="#retained-pads-could-be-a-problem">13.2.4. Retained pads could be a problem</a></li>
-<li><a class="reference internal" href="#small-medium-and-large-segments">13.2.5. Small, medium, and large segments</a></li>
-<li><a class="reference internal" href="#the-lsp-payoff-calculation">13.2.6. The LSP payoff calculation</a></li>
-<li><a class="reference internal" href="#retained-pages">13.2.7. Retained pages</a></li>
-<li><a class="reference internal" href="#feedback-about-retained-pages">13.2.8. Feedback about retained pages</a></li>
+<li><a class="reference internal" href="#">22. AMC pool class</a><ul>
+<li><a class="reference internal" href="#introduction">22.1. Introduction</a></li>
+<li><a class="reference internal" href="#guide">22.2. Guide</a><ul>
+<li><a class="reference internal" href="#segment-states">22.2.1. Segment states</a></li>
+<li><a class="reference internal" href="#pads">22.2.2. Pads</a></li>
+<li><a class="reference internal" href="#placement-pads-are-okay">22.2.3. Placement pads are okay</a></li>
+<li><a class="reference internal" href="#retained-pads-could-be-a-problem">22.2.4. Retained pads could be a problem</a></li>
+<li><a class="reference internal" href="#small-medium-and-large-segments">22.2.5. Small, medium, and large segments</a></li>
+<li><a class="reference internal" href="#the-lsp-payoff-calculation">22.2.6. The LSP payoff calculation</a></li>
+<li><a class="reference internal" href="#retained-pages">22.2.7. Retained pages</a></li>
+<li><a class="reference internal" href="#feedback-about-retained-pages">22.2.8. Feedback about retained pages</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#initial-design">13.3. Initial design</a><ul>
-<li><a class="reference internal" href="#id1">13.3.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">13.3.2. Overview</a></li>
-<li><a class="reference internal" href="#definitions">13.3.3. Definitions</a></li>
-<li><a class="reference internal" href="#segments">13.3.4. Segments</a></li>
-<li><a class="reference internal" href="#fixing-and-nailing">13.3.5. Fixing and nailing</a></li>
-<li><a class="reference internal" href="#emergency-tracing">13.3.6. Emergency tracing</a></li>
-<li><a class="reference internal" href="#buffers">13.3.7. Buffers</a></li>
-<li><a class="reference internal" href="#types">13.3.8. Types</a></li>
-<li><a class="reference internal" href="#generations">13.3.9. Generations</a></li>
-<li><a class="reference internal" href="#ramps">13.3.10. Ramps</a></li>
-<li><a class="reference internal" href="#headers">13.3.11. Headers</a></li>
-<li><a class="reference internal" href="#old-and-aging-notes-below-here">13.3.12. Old and aging notes below here</a></li>
+<li><a class="reference internal" href="#initial-design">22.3. Initial design</a><ul>
+<li><a class="reference internal" href="#id1">22.3.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">22.3.2. Overview</a></li>
+<li><a class="reference internal" href="#definitions">22.3.3. Definitions</a></li>
+<li><a class="reference internal" href="#segments">22.3.4. Segments</a></li>
+<li><a class="reference internal" href="#fixing-and-nailing">22.3.5. Fixing and nailing</a></li>
+<li><a class="reference internal" href="#emergency-tracing">22.3.6. Emergency tracing</a></li>
+<li><a class="reference internal" href="#buffers">22.3.7. Buffers</a></li>
+<li><a class="reference internal" href="#types">22.3.8. Types</a></li>
+<li><a class="reference internal" href="#generations">22.3.9. Generations</a></li>
+<li><a class="reference internal" href="#ramps">22.3.10. Ramps</a></li>
+<li><a class="reference internal" href="#headers">22.3.11. Headers</a></li>
+<li><a class="reference internal" href="#old-and-aging-notes-below-here">22.3.12. Old and aging notes below here</a></li>
 </ul>
 </li>
 </ul>
@@ -732,10 +753,10 @@ buffer is tripped.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="pool.html"
-                        title="previous chapter">12. Pool and pool class mechanisms</a></p>
+                        title="previous chapter">21. Pool and pool class mechanisms</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="poolmvff.html"
-                        title="next chapter">14. Manually-Managed Variable-Size First-Fit Pool</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="poolams.html"
+                        title="next chapter">23. AMS pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -761,10 +782,10 @@ buffer is tripped.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="14. Manually-Managed Variable-Size First-Fit Pool"
+          <a href="poolams.html" title="23. AMS pool class"
              >next</a> |</li>
         <li class="right" >
-          <a href="pool.html" title="12. Pool and pool class mechanisms"
+          <a href="pool.html" title="21. Pool and pool class mechanisms"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 
