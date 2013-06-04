@@ -399,6 +399,30 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   return;
 }
 
+/* MVFFFindLargest -- call CBSFindLargest and then fall back to
+ * FreelistFindLargest if no block in the CBS was big enough. */
+
+static Bool MVFFFindLargest(Range range, Range oldRange, MVFF mvff,
+                            Size size, FindDelete findDelete)
+{
+  AVER(range != NULL);
+  AVER(oldRange != NULL);
+  AVERT(MVFF, mvff);
+  AVER(size > 0);
+  AVERT(FindDelete, findDelete);
+
+  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
+
+  if (CBSFindLargest(range, oldRange, CBSOfMVFF(mvff), size, findDelete))
+    return TRUE;
+
+  if (FreelistFindLargest(range, oldRange, FreelistOfMVFF(mvff),
+                          size, findDelete))
+    return TRUE;
+
+  return FALSE;
+}
+
 
 /* MVFFBufferFill -- Fill the buffer
  *
@@ -411,10 +435,8 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   Res res;
   MVFF mvff;
   RangeStruct range, oldRange;
-  Bool foundBlock;
+  Bool found;
   Seg seg = NULL;
-  unsigned i;
-
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -425,27 +447,15 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVERT(Bool, withReservoirPermit);
 
-  FreelistFlushToCBS(FreelistOfMVFF(mvff), CBSOfMVFF(mvff));
-
-  for (i = 0; i < 2; ++i) {
-    foundBlock = CBSFindLargest(&range, &oldRange, CBSOfMVFF(mvff),
-                                size, FindDeleteENTIRE);
-    if (foundBlock) break;
-
-    /* No block was big enough: try the emergency free list. */
-    foundBlock = FreelistFindLargest(&range, &oldRange, FreelistOfMVFF(mvff),
-                                     size, FindDeleteENTIRE);
-    if (foundBlock) break;
-    
-    if (i == 0) {
-      /* Add a new segment to the free list: it will be found on the
-       * second time around the loop. */
-      res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
-      if (res != ResOK)
-        return res;
-    }
+  found = MVFFFindLargest(&range, &oldRange, mvff, size, FindDeleteENTIRE);
+  if (!found) {
+    /* Add a new segment to the free list and try again. */
+    res = MVFFAddSeg(&seg, mvff, size, withReservoirPermit);
+    if (res != ResOK)
+      return res;
+    found = MVFFFindLargest(&range, &oldRange, mvff, size, FindDeleteENTIRE);
   }
-  AVER(foundBlock);
+  AVER(found);
 
   AVER(RangeSize(&range) >= size);
   mvff->free -= RangeSize(&range);
