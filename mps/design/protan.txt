@@ -9,6 +9,9 @@ ANSI implementation of protection module
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: ANSI; protection interface design
+   pair: ANSI protection interface; design
 
 
 Introduction

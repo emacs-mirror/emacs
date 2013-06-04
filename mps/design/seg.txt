@@ -9,6 +9,7 @@ Segment data structure
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:    pair: segments; design
 
 
 Introduction

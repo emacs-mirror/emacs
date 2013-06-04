@@ -9,6 +9,7 @@ Pool and pool class mechanisms
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: pool class mechanism; design
 
 
 Definitions

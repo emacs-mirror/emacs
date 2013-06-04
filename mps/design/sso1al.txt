@@ -9,6 +9,9 @@ Stack scanner for Digital Unix on Alpha
 :Status: draft document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: Digital Unix on Alpha stack scanner; design
+   pair: Digital Unix on Alpha; stack scanner design
 
 .. warning::
 

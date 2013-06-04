@@ -1,4 +1,4 @@
-# commpre.nmk: FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+# commpre.nmk: FIRST COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-1
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -14,17 +14,22 @@
 # %%PART: When adding a new part, add a new parameter for the files included
 # in the part
 # Parameters:
-#   PFM      platform code, e.g. "nti3mv"
+#   PFM      platform code, e.g. "w3i3mv"
 #   PFMDEFS  /D options to define platforms preprocessor symbols
 #            to the compiler.  Eg "/DOS_NT /DARCH_386 /DBUILD_MVC"
-#   MPM      list of sources which make up the "mpm" part for this
-#            platform.  Each source is stripped of its .c extension
+#   MPMCOMMON  list of sources which make up the "mpm" part for all
+#            platforms.  Each source is stripped of its .c extension
 #            and surrounded in angle brackets (<>)
+#   MPM      as above, plus sources for the "mpm" part for the current
+#            platform.
 #   PLINTH   as above for the "plinth" part
 #   AMC      as above for the "amc" part
 #   AMS      as above for the "ams" part
 #   LO       as above for the "lo" part
-#   MRG      as above for the "mrg" part
+#   POOLN    as above for the "pooln" part
+#   SNC      as above for the "snc" part
+#   DW       as above for the "dw" part
+#   FMTTEST  as above for the "fmttest" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -33,10 +38,74 @@
 #
 # To add new targets. varieties, and parts:
 # Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this makefile
-# and follow the instructions.  If you're adding a part, you'll have to change
-# the makefile for all the platforms which use this makefile to define the
-# source list for that part.
+# and follow the instructions.
 #
+
+
+# TARGETS
+# 
+# 
+# %%TARGET: When adding a new target, add it to one of the variables
+# in this section. Library components go in LIB_TARGETS.
+
+LIB_TARGETS=mps.lib
+
+# If it is suitable for running regularly (for example, after every
+# build) as an automated test case, add it to AUTO_TEST_TARGETS.
+
+AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe		\
+    amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe btcv.exe	\
+    cbstest.exe exposet0.exe expt825.exe finalcv.exe finaltest.exe	\
+    locbwcss.exe lockcov.exe lockutw3.exe locusss.exe locv.exe		\
+    messtest.exe mpmss.exe mpsicv.exe mv2test.exe poolncv.exe qs.exe	\
+    sacss.exe segsmss.exe steptest.exe walkt0.exe zmess.exe
+
+# If it is not runnable as an automated test case, but is buildable,
+# add it to OTHER_TEST_TARGETS with a note.
+#
+# bttest and teletest -- interactive and so cannot be run unattended.
+# zcoll -- takes too long to be useful as a regularly run smoke test.
+
+OTHER_TEST_TARGETS=bttest.exe teletest.exe zcoll.exe
+
+# Stand-alone programs go in EXTRA_TARGETS.
+
+EXTRA_TARGETS=mpseventcnv.exe mpseventtxt.exe
+
+# This target records programs that we were once able to build but
+# can't at the moment:
+# 
+# replay -- depends on the EPVM pool.
+
+UNBUILDABLE_TARGETS=replay.exe
+
+ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TARGETS)
+
+
+# PARAMETERS
+#
+#
+# %%PART: When adding a new part, add the sources for the new part here.
+
+MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>		\
+    <buffer> <cbs> <dbgpool> <dbgpooli> <diag> <event> <format>		\
+    <global> <ld> <lockw3> <locus> <message> <meter> <mpm> <mpsi>	\
+    <mpsiw3> <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2> <poolmv>	\
+    <protocol> <protw3> <ref> <reserv> <ring> <root> <sac> <seg>	\
+    <shield> <splay> <ss> <table> <thw3> <trace> <traceanc> <tract>	\
+    <vmw3> <walk>
+PLINTH = <mpsliban> <mpsioan>
+AMC = <poolamc>
+AMS = <poolams> <poolamsi>
+AWL = <poolawl>
+LO = <poollo>
+MVFF = <poolmvff>
+POOLN = <pooln>
+SNC = <poolsnc>
+DW = <fmtdy> <fmtno>
+FMTTEST = <fmthe> <fmtdy> <fmtno> <fmtdytst>
+TESTLIB = <testlib>
+
 
 # CHECK PARAMETERS
 #
@@ -50,8 +119,8 @@
 !IFNDEF PFMDEFS
 !ERROR commpre.nmk: PFMDEFS not defined
 !ENDIF
-!IFNDEF MPM
-!ERROR commpre.nmk: MPM not defined
+!IFNDEF MPMCOMMON
+!ERROR commpre.nmk: MPMCOMMON not defined
 !ENDIF
 !IFNDEF PLINTH
 !ERROR commpre.nmk: PLINTH not defined
@@ -166,7 +235,7 @@ LIBFLAGSCOOL =
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 #

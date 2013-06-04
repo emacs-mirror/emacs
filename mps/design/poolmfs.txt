@@ -9,6 +9,9 @@ MFS pool class
 :Status: Incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: MFS pool class; design
+   single: pool class; MFS design
 
 
 Overview
