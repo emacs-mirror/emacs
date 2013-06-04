@@ -1,3 +1,10 @@
+2013-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut, article-update-date-lapsed): Don't
+	assume Date header begins with "Date", that may be customized into
+	something like "X-Sent" using gnus-article-time-format.
+	(article-transform-date): Allow multi-line Date header.
+
 2013-06-02  David Engster  <deng@randomsample.de>
 
 	* registry.el (initialize-instance, registry-lookup)
