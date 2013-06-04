@@ -86,7 +86,7 @@ typedef MVFFDebugStruct *MVFFDebug;
  * coalesced range containing given range.  Does not attempt to free
  * segments (see MVFFFreeSegs).
  */
-static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
+static Res MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   Res res;
   RangeStruct range, newRange;
 
@@ -102,12 +102,13 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
     res = FreelistInsert(&newRange, FreelistOfMVFF(mvff), &range);
   }
 
-  AVER(res == ResOK);
-  mvff->free += RangeSize(&range);
-  *baseIO = RangeBase(&newRange);
-  *limitIO = RangeLimit(&newRange);
+  if (res == ResOK) {
+    mvff->free += RangeSize(&range);
+    *baseIO = RangeBase(&newRange);
+    *limitIO = RangeLimit(&newRange);
+  }
 
-  return;
+  return res;
 }
 
 
@@ -149,11 +150,6 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
       RangeStruct range, oldRange;
       RangeInit(&range, segBase, segLimit);
 
-      /* Free the segment first to give the CBS the best chance of
-       * being able to delete the range. */
-      SegFree(seg);
-      mvff->total -= RangeSize(&range);
-
       res = CBSDelete(&oldRange, CBSOfMVFF(mvff), &range);
       if (res == ResOK) {
         mvff->free -= RangeSize(&range);
@@ -172,18 +168,29 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
         {
           Addr leftBase = RangeBase(&oldRange);
           Addr leftLimit = segBase;
-          MVFFAddToFreeList(&leftBase, &leftLimit, mvff);
+          res = MVFFAddToFreeList(&leftBase, &leftLimit, mvff);
         }
         AVER(RangeLimit(&oldRange) != segLimit);
         {
           Addr rightBase = segLimit;
           Addr rightLimit = RangeLimit(&oldRange);
-          MVFFAddToFreeList(&rightBase, &rightLimit, mvff);
+          res = MVFFAddToFreeList(&rightBase, &rightLimit, mvff);
         }
+      } else if (res == ResFAIL) {
+        /* Not found in the CBS: must be found in the Freelist. */
+        res = FreelistDelete(&oldRange, FreelistOfMVFF(mvff), &range);
+        AVER(res == ResOK);
+        mvff->free -= RangeSize(&range);
       }
 
       AVER(res == ResOK);
       AVER(RangesNest(&oldRange, &range));
+
+      /* Can't free the segment earlier, because if it was on the
+       * Freelist rather than the CBS then it likely contains data
+       * that needs to be read in order to update the Freelist. */
+      SegFree(seg);
+      mvff->total -= RangeSize(&range);
     }
 
     /* Avoid calling SegNext if the next segment would fail */
@@ -255,7 +262,8 @@ static Res MVFFAddSeg(Seg *segReturn,
   base = SegBase(seg);
   limit = AddrAdd(base, segSize);
   DebugPoolFreeSplat(pool, base, limit);
-  MVFFAddToFreeList(&base, &limit, mvff);
+  res = MVFFAddToFreeList(&base, &limit, mvff);
+  AVER(res == ResOK);
   AVER(base <= SegBase(seg));
   if (mvff->minSegSize > segSize) mvff->minSegSize = segSize;
 
@@ -367,6 +375,7 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
 
 static void MVFFFree(Pool pool, Addr old, Size size)
 {
+  Res res;
   Addr base, limit;
   MVFF mvff;
 
@@ -382,10 +391,12 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   base = old;
   limit = AddrAdd(base, size);
 
+  res = MVFFAddToFreeList(&base, &limit, mvff);
+  AVER(res == ResOK);
+  if (res == ResOK)
+    MVFFFreeSegs(mvff, base, limit);
 
-  MVFFAddToFreeList(&base, &limit, mvff);
-
-  MVFFFreeSegs(mvff, base, limit);
+  return;
 }
 
 
@@ -450,6 +461,7 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 static void MVFFBufferEmpty(Pool pool, Buffer buffer,
                             Addr base, Addr limit)
 {
+  Res res;
   MVFF mvff;
 
   AVERT(Pool, pool);
@@ -462,8 +474,10 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   if (base == limit)
     return;
 
-  MVFFAddToFreeList(&base, &limit, mvff);
-  MVFFFreeSegs(mvff, base, limit);
+  res = MVFFAddToFreeList(&base, &limit, mvff);
+  AVER(res == ResOK);
+  if (res == ResOK)
+    MVFFFreeSegs(mvff, base, limit);
 
   return;
 }
@@ -785,6 +799,22 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
+}
+
+
+/* Return the CBS of an MVFF pool for the benefit of fotest.c. */
+
+extern CBS _mps_mvff_cbs(mps_pool_t);
+CBS _mps_mvff_cbs(mps_pool_t mps_pool) {
+  Pool pool;
+  MVFF mvff;
+
+  pool = (Pool)mps_pool;
+  AVERT(Pool, pool);
+  mvff = Pool2MVFF(pool);
+  AVERT(MVFF, mvff);
+
+  return CBSOfMVFF(mvff);
 }
 
 

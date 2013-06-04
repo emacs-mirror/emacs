@@ -229,8 +229,8 @@ LIB_TARGETS=mps.a mpsplan.a
 
 AUTO_TEST_TARGETS=abqtest amcss amcsshe amcssth amsss amssshe apss      \
     arenacv awlut awluthe btcv exposet0 expt825 fbmtest finalcv         \
-    finaltest lockcov locv messtest mpmss mpsicv mv2test poolncv qs     \
-    sacss segsmss steptest walkt0 zmess
+    finaltest fotest lockcov locv messtest mpmss mpsicv mv2test         \
+    poolncv qs sacss segsmss steptest walkt0 zmess
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
@@ -415,6 +415,9 @@ $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/mvfftest: $(PFM)/$(VARIETY)/mvfftest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
