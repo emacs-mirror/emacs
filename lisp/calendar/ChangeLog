@@ -1,3 +1,8 @@
+2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-read-category, todos-merge-category):
+	Fix argument value to accord with documented change from 2013-05-14.
+
 2013-06-03  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: More code cleanup.  Update file copyright and author

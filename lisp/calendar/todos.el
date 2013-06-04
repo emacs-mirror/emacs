@@ -761,7 +761,7 @@ category."
 	 (archive (concat (file-name-sans-extension (if file gfile tfile))
 			  ".toda"))
 	 (cat (todos-current-category))
-	 (cat+file (todos-read-category "Merge into category: " 'merge file))
+	 (cat+file (todos-read-category "Merge into category: " 'todo file))
 	 (goal (car cat+file))
 	 (gfile  (cdr cat+file))
 	 archived-count here)
@@ -4719,7 +4719,7 @@ categories from `todos-category-completions-files'."
 			      completions)))
 	   (completion-ignore-case todos-completion-ignore-case)
 	   (cat (completing-read prompt categories nil
-				 (eq match-type 'merge) nil nil
+				 (eq match-type 'todo) nil nil
 				 ;; Unless we're adding a category via
 				 ;; todos-add-category, set default
 				 ;; for existing categories to the
