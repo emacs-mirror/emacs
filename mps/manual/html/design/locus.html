@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>17. MPS Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>16. MPS Configuration &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="18. Client message protocol" href="message.html" />
-    <link rel="prev" title="16. The lock module" href="lock.html" /> 
+    <link rel="next" title="17. Client message protocol" href="message.html" />
+    <link rel="prev" title="15. The lock module" href="lock.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="message.html" title="18. Client message protocol"
+          <a href="message.html" title="17. Client message protocol"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="16. The lock module"
+          <a href="lock.html" title="15. The lock module"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="mps-configuration">
-<span id="design-locus"></span><span id="index-0"></span><h1>17. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-locus"></span><div class="section" id="mps-configuration">
+<span id="index-0"></span><h1>16. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.locus"></span><h2>17.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.locus"></span><h2>16.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.intro"></span><a class="mpstag reference internal" href="#design.mps.locus.intro">.intro:</a> The locus manager coordinates between the pools and takes
 the burden of having to be clever about tract/group placement away
 from the pools, preserving trace differentiability and contiguity
@@ -67,7 +67,7 @@ mail.pekka.1998-02-09.13-58(0), and mail.gavinm.1998-02-09.14-05(0).</p>
 <p><span class="target" id="design.mps.locus.readership"></span><a class="mpstag reference internal" href="#design.mps.locus.readership">.readership:</a> Any MPS developer.</p>
 </div>
 <div class="section" id="overview">
-<h2>17.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>16.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The MPS manages three main resources:</p>
 <ol class="arabic simple">
 <li>storage;</li>
@@ -85,7 +85,7 @@ asking for address space and writeable storage simultaneously, in a
 single call. There is currently no way for pools to reserve address
 space without requesting storage.</p>
 <div class="section" id="why-is-it-important-to-manage-address-space">
-<h3>17.2.1. Why is it important to manage address space?<a class="headerlink" href="#why-is-it-important-to-manage-address-space" title="Permalink to this headline">¶</a></h3>
+<h3>16.2.1. Why is it important to manage address space?<a class="headerlink" href="#why-is-it-important-to-manage-address-space" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Trace differentiability</p>
 <p>Carefully chosen addresses are used by reference tracing systems
@@ -161,7 +161,7 @@ clumping, using either <tt class="docutils literal"><span class="pre">SegPrefGen
 </ol>
 </div>
 <div class="section" id="discovering-the-layout">
-<h3>17.2.2. Discovering the layout<a class="headerlink" href="#discovering-the-layout" title="Permalink to this headline">¶</a></h3>
+<h3>16.2.2. Discovering the layout<a class="headerlink" href="#discovering-the-layout" title="Permalink to this headline">¶</a></h3>
 <p>The locus manager is not given advance notice of how much address
 space will be required with what preferences. Instead, the locus
 manager starts with an empty layout, and adapts it as more requests
@@ -170,7 +170,7 @@ successive refinement. This is ambitious.</p>
 </div>
 </div>
 <div class="section" id="definitions">
-<h2>17.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>16.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.note.cohort"></span><a class="mpstag reference internal" href="#design.mps.locus.note.cohort">.note.cohort:</a> We use the word &#8220;cohort&#8221; in its usual sense here, but
 we&#8217;re particularly interested in cohorts that have properties relevant
 to tract placement. It is such cohorts that the pools will try to
@@ -186,7 +186,7 @@ from non-pointers in ambiguous references; in practice, we will be
 worried about low integers, that may appear to be in zones 0 or -1.</p>
 </div>
 <div class="section" id="requirements">
-<h2>17.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>16.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.req.cohort"></span><a class="mpstag reference internal" href="#design.mps.locus.req.cohort">.req.cohort:</a> Tract allocations must specify the cohort they
 allocate in. These kind of cohorts will be called loci, and they will
 have such attributes as are implied by the other requirements.
@@ -260,7 +260,7 @@ fluctuate in size and by how much, to guide the arena hysteresis to
 hold on to suitable pages. Optional.</p>
 </div>
 <div class="section" id="analysis">
-<h2>17.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>16.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.anal.sw"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.sw">.anal.sw:</a> Almost any placement policy would be an improvement on
 the current SW one.</p>
 <p><span class="target" id="design.mps.locus.anal.cause-and-effect"></span><a class="mpstag reference internal" href="#design.mps.locus.anal.cause-and-effect">.anal.cause-and-effect:</a> The locus manager doesn&#8217;t usually need to
@@ -296,7 +296,7 @@ is that it can choose where to grow, but it cannot choose where to
 shrink (except in a small way by growing with good locality).</p>
 </div>
 <div class="section" id="interface">
-<h2>17.6. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>16.6. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.interface.locus"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.locus">.interface.locus:</a> A cohort will typically reside on multiple tracts
 (and the pools will avoid putting objects of other cohorts on them),
 so there should be an interface to describe the properties of the
@@ -310,7 +310,7 @@ pool attributes].</p>
 <p><span class="target" id="design.mps.locus.interface.detail"></span><a class="mpstag reference internal" href="#design.mps.locus.interface.detail">.interface.detail:</a> This describes interface in overview; for
 details, see implementation section and code, or user doc.</p>
 <div class="section" id="loci">
-<h3>17.6.1. Loci<a class="headerlink" href="#loci" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.1. Loci<a class="headerlink" href="#loci" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt>
 <tt class="descname">Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg,</tt></dt>
@@ -397,7 +397,7 @@ will make it useful for reallocation functionality).</p>
 number of (non-miscible client) loci, and of zone groups.</p>
 </div>
 <div class="section" id="peaks">
-<h3>17.6.2. Peaks<a class="headerlink" href="#peaks" title="Permalink to this headline">¶</a></h3>
+<h3>16.6.2. Peaks<a class="headerlink" href="#peaks" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="mps_peak_create">
 <a class="reference internal" href="../topic/error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_peak_create</tt><big>(</big>mps_peak_t*, <a class="reference internal" href="../topic/arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><big>)</big><a class="headerlink" href="#mps_peak_create" title="Permalink to this definition">¶</a></dt>
@@ -458,9 +458,9 @@ Pirinen, 2000-01-17.</p>
 </div>
 </div>
 <div class="section" id="architecture">
-<h2>17.7. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>16.7. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="data-objects">
-<h3>17.7.1. Data objects<a class="headerlink" href="#data-objects" title="Permalink to this headline">¶</a></h3>
+<h3>16.7.1. Data objects<a class="headerlink" href="#data-objects" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.locus.arch.locus"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.locus">.arch.locus:</a> To represent the cohorts, we have locus objects.
 Usually a locus is embedded in a pool instance, but generations are
 separate loci.</p>
@@ -499,7 +499,7 @@ space will be represented by dummy regions. There are also sentinel
 regions at both ends of the address space.</p>
 </div>
 <div class="section" id="overview-of-strategy">
-<h3>17.7.2. Overview of strategy<a class="headerlink" href="#overview-of-strategy" title="Permalink to this headline">¶</a></h3>
+<h3>16.7.2. Overview of strategy<a class="headerlink" href="#overview-of-strategy" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.locus.arch.strategy.delay"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.delay">.arch.strategy.delay:</a> The general strategy is to delay placement
 decisions until they have to be made, but no later.</p>
 <p><span class="target" id="design.mps.locus.arch.strategy.delay.until"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.strategy.delay.until">.arch.strategy.delay.until:</a> Hence, the locus manager only makes
@@ -523,7 +523,7 @@ they are needed for allocation (but it might compute where they could
 be placed to accommodate a peak).</p>
 </div>
 <div class="section" id="allocation">
-<h3>17.7.3. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h3>
+<h3>16.7.3. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.locus.arch.alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.alloc">.arch.alloc:</a> Normally, each allocation to a locus is placed in its
 current region. New regions are only sought when necessary to fulfill
 an allocation request or when there is reason to think the situation
@@ -564,7 +564,7 @@ allocation to recompute even if its current region is not full
 investigation of the current state?).</p>
 </div>
 <div class="section" id="deallocation">
-<h3>17.7.4. Deallocation<a class="headerlink" href="#deallocation" title="Permalink to this headline">¶</a></h3>
+<h3>16.7.4. Deallocation<a class="headerlink" href="#deallocation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.locus.arch.free"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.free">.arch.free:</a> Deallocation simply updates the counters in the region
 and the locus. For some loci, it will make the region of the
 deallocation the current region. <span class="target" id="design.mps.locus.arch.free.remove"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.free.remove">.arch.free.remove:</a> If a region
@@ -576,7 +576,7 @@ be adjusted).</p>
 </div>
 </div>
 <div class="section" id="region-placement-recomputation">
-<h3>17.7.5. Region placement recomputation<a class="headerlink" href="#region-placement-recomputation" title="Permalink to this headline">¶</a></h3>
+<h3>16.7.5. Region placement recomputation<a class="headerlink" href="#region-placement-recomputation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.locus.arch.gap"></span><a class="mpstag reference internal" href="#design.mps.locus.arch.gap">.arch.gap:</a> When doing placement computations, we view the arena as
 a sequence of alternating region cores and gaps (which can be small,
 even zero-sized). Initially, we&#8217;ll take the core of a region to be the
@@ -611,11 +611,11 @@ jittering near a peak.</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>17.8. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>16.8. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>[missing]</p>
 </div>
 <div class="section" id="notes">
-<h2>17.9. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>16.9. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.locus.idea.change"></span><a class="mpstag reference internal" href="#design.mps.locus.idea.change">.idea.change:</a> Even after the first segment, be prepared to change
 your mind, if by the second segment a lot of new loci have been
 created.</p>
@@ -639,41 +639,41 @@ purpose.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">17. MPS Configuration</a><ul>
-<li><a class="reference internal" href="#introduction">17.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">17.2. Overview</a><ul>
-<li><a class="reference internal" href="#why-is-it-important-to-manage-address-space">17.2.1. Why is it important to manage address space?</a></li>
-<li><a class="reference internal" href="#discovering-the-layout">17.2.2. Discovering the layout</a></li>
+<li><a class="reference internal" href="#">16. MPS Configuration</a><ul>
+<li><a class="reference internal" href="#introduction">16.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">16.2. Overview</a><ul>
+<li><a class="reference internal" href="#why-is-it-important-to-manage-address-space">16.2.1. Why is it important to manage address space?</a></li>
+<li><a class="reference internal" href="#discovering-the-layout">16.2.2. Discovering the layout</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#definitions">17.3. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">17.4. Requirements</a></li>
-<li><a class="reference internal" href="#analysis">17.5. Analysis</a></li>
-<li><a class="reference internal" href="#interface">17.6. Interface</a><ul>
-<li><a class="reference internal" href="#loci">17.6.1. Loci</a></li>
-<li><a class="reference internal" href="#peaks">17.6.2. Peaks</a></li>
+<li><a class="reference internal" href="#definitions">16.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">16.4. Requirements</a></li>
+<li><a class="reference internal" href="#analysis">16.5. Analysis</a></li>
+<li><a class="reference internal" href="#interface">16.6. Interface</a><ul>
+<li><a class="reference internal" href="#loci">16.6.1. Loci</a></li>
+<li><a class="reference internal" href="#peaks">16.6.2. Peaks</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#architecture">17.7. Architecture</a><ul>
-<li><a class="reference internal" href="#data-objects">17.7.1. Data objects</a></li>
-<li><a class="reference internal" href="#overview-of-strategy">17.7.2. Overview of strategy</a></li>
-<li><a class="reference internal" href="#allocation">17.7.3. Allocation</a></li>
-<li><a class="reference internal" href="#deallocation">17.7.4. Deallocation</a></li>
-<li><a class="reference internal" href="#region-placement-recomputation">17.7.5. Region placement recomputation</a></li>
+<li><a class="reference internal" href="#architecture">16.7. Architecture</a><ul>
+<li><a class="reference internal" href="#data-objects">16.7.1. Data objects</a></li>
+<li><a class="reference internal" href="#overview-of-strategy">16.7.2. Overview of strategy</a></li>
+<li><a class="reference internal" href="#allocation">16.7.3. Allocation</a></li>
+<li><a class="reference internal" href="#deallocation">16.7.4. Deallocation</a></li>
+<li><a class="reference internal" href="#region-placement-recomputation">16.7.5. Region placement recomputation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">17.8. Implementation</a></li>
-<li><a class="reference internal" href="#notes">17.9. Notes</a></li>
+<li><a class="reference internal" href="#implementation">16.8. Implementation</a></li>
+<li><a class="reference internal" href="#notes">16.9. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="lock.html"
-                        title="previous chapter">16. The lock module</a></p>
+                        title="previous chapter">15. The lock module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="message.html"
-                        title="next chapter">18. Client message protocol</a></p><h4>Downloads</h4>
+                        title="next chapter">17. Client message protocol</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -699,10 +699,10 @@ purpose.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="message.html" title="18. Client message protocol"
+          <a href="message.html" title="17. Client message protocol"
              >next</a> |</li>
         <li class="right" >
-          <a href="lock.html" title="16. The lock module"
+          <a href="lock.html" title="15. The lock module"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

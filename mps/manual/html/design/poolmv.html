@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>25. MFS pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>MV pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -26,10 +26,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
-    <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="26. MRG pool class" href="poolmrg.html" />
-    <link rel="prev" title="24. LO pool class" href="poollo.html" /> 
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,14 +35,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="poolmrg.html" title="26. MRG pool class"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="poollo.html" title="24. LO pool class"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,18 +44,14 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-poolmfs"></span><div class="section" id="mfs-pool-class">
-<span id="index-0"></span><h1>25. MFS pool class<a class="headerlink" href="#mfs-pool-class" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<span id="design.mps.poolmfs"></span><h2>25.1. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>MFS stands for &#8220;Manual Fixed Small&#8221;. The MFS pool class manages
-objects that are of a fixed size. It is intended to only manage small
-objects efficiently. Storage is recycled manually by the client
-programmer.</p>
-<p>A particular instance of an MFS Pool can manage objects only of a
-single size, but different instances can manage objects of different
-sizes. The size of object that an instance can manage is declared when
-the instance is created.</p>
+  <div class="section" id="mv-pool-class">
+<span id="design-poolmv"></span><h1>MV pool class<a class="headerlink" href="#mv-pool-class" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="implementation">
+<span id="design.mps.poolmv"></span><h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmv.lost"></span><a class="mpstag reference internal" href="#design.mps.poolmv.lost">.lost:</a> It is possible for MV to &#8220;lose&#8221; memory when freeing an
+objects. This happens when an extra block descriptor is needed (ie the
+interior of a block is being freed) and the call to allocate the block
+fails.</p>
 </div>
 </div>
 
@@ -80,18 +66,12 @@ the instance is created.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">25. MFS pool class</a><ul>
-<li><a class="reference internal" href="#overview">25.1. Overview</a></li>
+<li><a class="reference internal" href="#">MV pool class</a><ul>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
 </ul>
 </li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="poollo.html"
-                        title="previous chapter">24. LO pool class</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="poolmrg.html"
-                        title="next chapter">26. MRG pool class</a></p><h4>Downloads</h4>
+<h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -116,14 +96,7 @@ the instance is created.</p>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="poolmrg.html" title="26. MRG pool class"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="poollo.html" title="24. LO pool class"
-             >previous</a> |</li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
-          <li><a href="old.html" >Old design</a> &raquo;</li> 
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

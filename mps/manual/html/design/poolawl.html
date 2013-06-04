@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>24. AWL pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>23. AWL pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="25. LO pool class" href="poollo.html" />
-    <link rel="prev" title="23. AMS pool class" href="poolams.html" /> 
+    <link rel="next" title="24. LO pool class" href="poollo.html" />
+    <link rel="prev" title="22. AMS pool class" href="poolams.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poollo.html" title="25. LO pool class"
+          <a href="poollo.html" title="24. LO pool class"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="poolams.html" title="23. AMS pool class"
+          <a href="poolams.html" title="22. AMS pool class"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="awl-pool-class">
-<span id="design-poolawl"></span><span id="index-0"></span><h1>24. AWL pool class<a class="headerlink" href="#awl-pool-class" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-poolawl"></span><div class="section" id="awl-pool-class">
+<span id="index-0"></span><h1>23. AWL pool class<a class="headerlink" href="#awl-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poolawl"></span><h2>24.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolawl"></span><h2>23.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolawl.readership"></span><a class="mpstag reference internal" href="#design.mps.poolawl.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.poolawl.intro"></span><a class="mpstag reference internal" href="#design.mps.poolawl.intro">.intro:</a> The AWL (Automatic Weak Linked) pool is used to manage
 Dylan Weak Tables (see req.dylan.fun.weak). Currently the design is
@@ -65,7 +65,7 @@ specialised for Dylan Weak Tables, but it could be generalised in the
 future.</p>
 </div>
 <div class="section" id="requirements">
-<h2>24.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>23.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>See req.dylan.fun.weak.</p>
 <p>See meeting.dylan.1997-02-27(0) where many of the requirements for
 this pool were first sorted out.</p>
@@ -76,7 +76,7 @@ pool uses the first slot in the fixed part of an object to store an
 association. See mail.drj.1997-03-11.12-05</p>
 </div>
 <div class="section" id="definitions">
-<h2>24.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>23.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolawl.def.grain"></span><a class="mpstag reference internal" href="#design.mps.poolawl.def.grain">.def.grain:</a> alignment grain, grain. A grain is a range of addresses
 where both the base and the limit of the range are aligned and the
 size of range is equal to the (same) alignment. In this context the
@@ -84,7 +84,7 @@ alignment is the pool&#8217;s alignment (<tt class="docutils literal"><span clas
 the unit of allocation, marking, scanning, etc.</p>
 </div>
 <div class="section" id="overview">
-<h2>24.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>23.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolawl.overview"></span><a class="mpstag reference internal" href="#design.mps.poolawl.overview">.overview:</a></p>
 <p><span class="target" id="design.mps.poolawl.overview.ms"></span><a class="mpstag reference internal" href="#design.mps.poolawl.overview.ms">.overview.ms:</a> The pool is mark and sweep. <span class="target" id="design.mps.poolawl.overview.ms.justify"></span><a class="mpstag reference internal" href="#design.mps.poolawl.overview.ms.justify">.overview.ms.justify:</a>
 Mark-sweep pools are slightly easier to write (than moving pools), and
@@ -102,7 +102,7 @@ determined by using information stored in the object itself (see
 <a class="reference internal" href="#design.mps.poolawl.req.obj-format">.req.obj-format</a>).</p>
 </div>
 <div class="section" id="interface">
-<h2>24.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>23.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolawl.if.init"></span><a class="mpstag reference internal" href="#design.mps.poolawl.if.init">.if.init:</a> The init method takes one extra parameter in the vararg
 list. This parameter should have type <tt class="xref c c-type docutils literal"><span class="pre">Format</span></tt> and be a format
 object that describes the format of the objects to be allocated in
@@ -115,7 +115,7 @@ in the vararg list. This parameter should be either <tt class="docutils literal"
 that buffer.</p>
 </div>
 <div class="section" id="data-structures">
-<h2>24.6. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<h2>23.6. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolawl.sig"></span><a class="mpstag reference internal" href="#design.mps.poolawl.sig">.sig:</a> This signature for this pool will be 0x519bla3l (SIGPooLAWL).</p>
 <p><span class="target" id="design.mps.poolawl.poolstruct"></span><a class="mpstag reference internal" href="#design.mps.poolawl.poolstruct">.poolstruct:</a> The class specific pool structure is:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">AWLStruct</span> <span class="p">{</span>
@@ -225,13 +225,13 @@ allocation to quickly pass over a segment.</p>
 </div>
 </div>
 <div class="section" id="functions">
-<h2>24.7. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>23.7. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">How will pool collect? It needs an action structure.</p>
 </div>
 <div class="section" id="external">
-<h3>24.7.1. External<a class="headerlink" href="#external" title="Permalink to this headline">¶</a></h3>
+<h3>23.7.1. External<a class="headerlink" href="#external" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="AWLInit">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">AWLInit</tt><big>(</big>Pool<em>&nbsp;pool</em>, va_list<em>&nbsp;arg</em><big>)</big><a class="headerlink" href="#AWLInit" title="Permalink to this definition">¶</a></dt>
@@ -444,7 +444,7 @@ for scan as well.</p>
 <p><span class="target" id="design.mps.poolawl.fun.describe"></span><a class="mpstag reference internal" href="#design.mps.poolawl.fun.describe">.fun.describe:</a></p>
 </div>
 <div class="section" id="internal">
-<h3>24.7.2. Internal<a class="headerlink" href="#internal" title="Permalink to this headline">¶</a></h3>
+<h3>23.7.2. Internal<a class="headerlink" href="#internal" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="AWLSegCreate">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">AWLSegCreate</tt><big>(</big>AWLSeg<em>&nbsp;*awlsegReturn</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em><big>)</big><a class="headerlink" href="#AWLSegCreate" title="Permalink to this definition">¶</a></dt>
@@ -514,7 +514,7 @@ word is non-<tt class="xref c c-macro docutils literal"><span class="pre">NULL</
 </div>
 </div>
 <div class="section" id="test">
-<h2>24.8. Test<a class="headerlink" href="#test" title="Permalink to this headline">¶</a></h2>
+<h2>23.8. Test<a class="headerlink" href="#test" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>must create Dylan objects.</li>
 <li>must create Dylan vectors with at least one fixed field.</li>
@@ -543,29 +543,29 @@ destroy all buffers and pools and exit</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">24. AWL pool class</a><ul>
-<li><a class="reference internal" href="#introduction">24.1. Introduction</a></li>
-<li><a class="reference internal" href="#requirements">24.2. Requirements</a></li>
-<li><a class="reference internal" href="#definitions">24.3. Definitions</a></li>
-<li><a class="reference internal" href="#overview">24.4. Overview</a></li>
-<li><a class="reference internal" href="#interface">24.5. Interface</a></li>
-<li><a class="reference internal" href="#data-structures">24.6. Data structures</a></li>
-<li><a class="reference internal" href="#functions">24.7. Functions</a><ul>
-<li><a class="reference internal" href="#external">24.7.1. External</a></li>
-<li><a class="reference internal" href="#internal">24.7.2. Internal</a></li>
+<li><a class="reference internal" href="#">23. AWL pool class</a><ul>
+<li><a class="reference internal" href="#introduction">23.1. Introduction</a></li>
+<li><a class="reference internal" href="#requirements">23.2. Requirements</a></li>
+<li><a class="reference internal" href="#definitions">23.3. Definitions</a></li>
+<li><a class="reference internal" href="#overview">23.4. Overview</a></li>
+<li><a class="reference internal" href="#interface">23.5. Interface</a></li>
+<li><a class="reference internal" href="#data-structures">23.6. Data structures</a></li>
+<li><a class="reference internal" href="#functions">23.7. Functions</a><ul>
+<li><a class="reference internal" href="#external">23.7.1. External</a></li>
+<li><a class="reference internal" href="#internal">23.7.2. Internal</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#test">24.8. Test</a></li>
+<li><a class="reference internal" href="#test">23.8. Test</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="poolams.html"
-                        title="previous chapter">23. AMS pool class</a></p>
+                        title="previous chapter">22. AMS pool class</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="poollo.html"
-                        title="next chapter">25. LO pool class</a></p><h4>Downloads</h4>
+                        title="next chapter">24. LO pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -591,10 +591,10 @@ destroy all buffers and pools and exit</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poollo.html" title="25. LO pool class"
+          <a href="poollo.html" title="24. LO pool class"
              >next</a> |</li>
         <li class="right" >
-          <a href="poolams.html" title="23. AMS pool class"
+          <a href="poolams.html" title="22. AMS pool class"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

@@ -1,0 +1,18 @@
+.. _design-poolmv:
+
+
+MV pool class
+=============
+
+.. mps:prefix:: design.mps.poolmv
+
+
+Implementation
+--------------
+
+:mps:tag:`lost` It is possible for MV to "lose" memory when freeing an
+objects. This happens when an extra block descriptor is needed (ie the
+interior of a block is being freed) and the call to allocate the block
+fails.
+
+

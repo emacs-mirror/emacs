@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>10. Diagnostic feedback &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>9. Diagnostic feedback &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="11. Finalization" href="finalize.html" />
-    <link rel="prev" title="9. Collection framework" href="collection.html" /> 
+    <link rel="next" title="10. Finalization" href="finalize.html" />
+    <link rel="prev" title="8. Collection framework" href="collection.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="finalize.html" title="11. Finalization"
+          <a href="finalize.html" title="10. Finalization"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="9. Collection framework"
+          <a href="collection.html" title="8. Collection framework"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,16 +54,16 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="diagnostic-feedback">
-<span id="design-diag"></span><span id="index-0"></span><h1>10. Diagnostic feedback<a class="headerlink" href="#diagnostic-feedback" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-diag"></span><div class="section" id="diagnostic-feedback">
+<span id="index-0"></span><h1>9. Diagnostic feedback<a class="headerlink" href="#diagnostic-feedback" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.diag"></span><h2>10.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.diag"></span><h2>9.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.diag.intro"></span><a class="mpstag reference internal" href="#design.mps.diag.intro">.intro:</a> This document describes how to use the diagnostic feedback
 mechanism in the Memory Pool System.</p>
 <p><span class="target" id="design.mps.diag.sources"></span><a class="mpstag reference internal" href="#design.mps.diag.sources">.sources:</a> Initially abased on <a class="reference internal" href="#rhsk-2007-04-13">[RHSK_2007-04-13]</a> and <a class="reference internal" href="#rhsk-2007-04-18">[RHSK_2007-04-18]</a>.</p>
 </div>
 <div class="section" id="overview">
-<h2>10.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>9.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Diagnostic feedback is information created by the MPS diagnostic
 system for the purpose of helping MPS programmers client-code
 programmers.</p>
@@ -75,7 +75,7 @@ machine-parseable.</p>
 next: it may be modified or removed at any time.</p>
 </div>
 <div class="section" id="requirements">
-<h2>10.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>9.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>MPS diagnostic feedback code must do these things:</p>
 <ul class="simple">
 <li>calculate, store, and propagate data;</li>
@@ -90,7 +90,7 @@ utilities used to display the messages do not need to understand, or
 keep in sync with, the details of what&#8217;s going inside the MPS.</p>
 </div>
 <div class="section" id="usage">
-<h2>10.4. Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<h2>9.4. Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>To run the MPS and get diagnostic output from it:</p>
 <ol class="arabic simple">
 <li>Use a variety with diagnostics compiled-in. Currently, that means
@@ -104,7 +104,7 @@ at the diagnostic filter rules in <tt class="docutils literal"><span class="pre"
 used (for example, at a command-line if using <a class="reference internal" href="writef.html#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a>).</li>
 </ol>
 <div class="section" id="what-is-a-diagnostic">
-<h3>10.4.1. What is a diagnostic?<a class="headerlink" href="#what-is-a-diagnostic" title="Permalink to this headline">¶</a></h3>
+<h3>9.4.1. What is a diagnostic?<a class="headerlink" href="#what-is-a-diagnostic" title="Permalink to this headline">¶</a></h3>
 <p>A diagnostic has three parts:</p>
 <ol class="arabic simple">
 <li>a trigger condition, that causes this diagnostic to be emitted;</li>
@@ -124,7 +124,7 @@ objects. (For example, the <tt class="docutils literal"><span class="pre">TraceS
 include the output generated by, the <tt class="xref c c-func docutils literal"><span class="pre">TraceDescribe()</span></tt> method).</p>
 </div>
 <div class="section" id="how-do-i-control-filter-which-diagnostics-i-see">
-<h3>10.4.2. How do I control (filter) which diagnostics I see?<a class="headerlink" href="#how-do-i-control-filter-which-diagnostics-i-see" title="Permalink to this headline">¶</a></h3>
+<h3>9.4.2. How do I control (filter) which diagnostics I see?<a class="headerlink" href="#how-do-i-control-filter-which-diagnostics-i-see" title="Permalink to this headline">¶</a></h3>
 <p>All diagnostics are emitted and then filtered according to the
 &#8220;diagnostic filter rules&#8221;.</p>
 <p>The first level of control is filtering by tag. (For example, only
@@ -141,9 +141,9 @@ buffering or filtering See impl.c.diag.filter-disable.</p>
 </div>
 </div>
 <div class="section" id="how-to-write-a-diagnostic">
-<h2>10.5. How to write a diagnostic<a class="headerlink" href="#how-to-write-a-diagnostic" title="Permalink to this headline">¶</a></h2>
+<h2>9.5. How to write a diagnostic<a class="headerlink" href="#how-to-write-a-diagnostic" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="improve-stateless-describe-methods-where-possible">
-<h3>10.5.1. Improve stateless Describe methods where possible<a class="headerlink" href="#improve-stateless-describe-methods-where-possible" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.1. Improve stateless Describe methods where possible<a class="headerlink" href="#improve-stateless-describe-methods-where-possible" title="Permalink to this headline">¶</a></h3>
 <p>Where possible, don&#8217;t put clever code into an event-triggered
 diagnostic: put it into a stateless <tt class="xref c c-func docutils literal"><span class="pre">Describe()</span></tt> method instead, and
 then call that method when emitting your diagnostic.</p>
@@ -168,7 +168,7 @@ then call that method when emitting your diagnostic.</p>
 output in their diagnostics, or &#8216;live&#8217; in a debugger.</p>
 </div>
 <div class="section" id="use-the-output-macros">
-<h3>10.5.2. Use the output macros<a class="headerlink" href="#use-the-output-macros" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.2. Use the output macros<a class="headerlink" href="#use-the-output-macros" title="Permalink to this headline">¶</a></h3>
 <p>For a simple diagnostic, use <tt class="xref c c-func docutils literal"><span class="pre">DIAG_SINGLEF()</span></tt>. This begins the tag,
 puts text into the paragraph, and ends the tag immediately.</p>
 <p>For a more complex diagnostic, the first call must be
@@ -184,7 +184,7 @@ want stream-level access, you may use <tt class="xref c c-func docutils literal"
 <p>End the tag by calling <tt class="xref c c-macro docutils literal"><span class="pre">DIAG_END</span></tt>.</p>
 </div>
 <div class="section" id="compile-away-in-non-diag-varieties-no-side-effects">
-<h3>10.5.3. Compile away in non-diag varieties; no side effects<a class="headerlink" href="#compile-away-in-non-diag-varieties-no-side-effects" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.3. Compile away in non-diag varieties; no side effects<a class="headerlink" href="#compile-away-in-non-diag-varieties-no-side-effects" title="Permalink to this headline">¶</a></h3>
 <p>Wrap non-output code with the <tt class="xref c c-func docutils literal"><span class="pre">DIAG()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">DIAG_DECL()</span></tt> macros,
 to make sure that non-diag varieties do not execute
 diagnostic-generating code.</p>
@@ -194,7 +194,7 @@ name (for example, <tt class="xref c c-func docutils literal"><span class="pre">
 <p>Obviously, diagnostic-generating code must have no side effects.</p>
 </div>
 <div class="section" id="choosing-tags">
-<h3>10.5.4. Choosing tags<a class="headerlink" href="#choosing-tags" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.4. Choosing tags<a class="headerlink" href="#choosing-tags" title="Permalink to this headline">¶</a></h3>
 <p>Tags should be valid C identifiers. Unless you know of a good reason
 why not. (Not currently checked).</p>
 <p>There&#8217;s no formal scheme for tag naming, but make it helpful and
@@ -202,7 +202,7 @@ informally hierarchical, for example, <tt class="docutils literal"><span class="
 <tt class="docutils literal"><span class="pre">TraceEnd</span></tt>, and so on, not <tt class="docutils literal"><span class="pre">BeginTrace</span></tt>, <tt class="docutils literal"><span class="pre">EndTrace</span></tt>.</p>
 </div>
 <div class="section" id="writing-good-paragraph-text">
-<h3>10.5.5. Writing good paragraph text<a class="headerlink" href="#writing-good-paragraph-text" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.5. Writing good paragraph text<a class="headerlink" href="#writing-good-paragraph-text" title="Permalink to this headline">¶</a></h3>
 <p>IMPORTANT: Make your diagnostics easy to understand! Other people will
 read your diagnostics! Make them clear and helpful. Do not make them
 terse and cryptic. If you use symbols, print a key in the diagnostic.
@@ -210,15 +210,15 @@ terse and cryptic. If you use symbols, print a key in the diagnostic.
 add a filter rule to your personal rule set to filter it out).</p>
 </div>
 <div class="section" id="maintaining-helpful-filter-rules">
-<h3>10.5.6. Maintaining helpful filter rules<a class="headerlink" href="#maintaining-helpful-filter-rules" title="Permalink to this headline">¶</a></h3>
+<h3>9.5.6. Maintaining helpful filter rules<a class="headerlink" href="#maintaining-helpful-filter-rules" title="Permalink to this headline">¶</a></h3>
 <p>If you add a noisy diagnostic, add a rule to the default ruleset to
 turn it off.</p>
 </div>
 </div>
 <div class="section" id="how-the-mps-diagnostic-system-works">
-<h2>10.6. How the MPS diagnostic system works<a class="headerlink" href="#how-the-mps-diagnostic-system-works" title="Permalink to this headline">¶</a></h2>
+<h2>9.6. How the MPS diagnostic system works<a class="headerlink" href="#how-the-mps-diagnostic-system-works" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="channels">
-<h3>10.6.1. Channels<a class="headerlink" href="#channels" title="Permalink to this headline">¶</a></h3>
+<h3>9.6.1. Channels<a class="headerlink" href="#channels" title="Permalink to this headline">¶</a></h3>
 <p>The recommended channel is <a class="reference internal" href="writef.html#WriteF" title="WriteF"><tt class="xref c c-func docutils literal"><span class="pre">WriteF()</span></tt></a> to standard output.</p>
 <p>Other possible of future channels might be:</p>
 <ul class="simple">
@@ -241,7 +241,7 @@ message should not care which channel will be used to transmit it out
 of the MPS.</p>
 </div>
 <div class="section" id="parts-of-the-mps-diagnostic-system">
-<h3>10.6.2. Parts of the MPS diagnostic system<a class="headerlink" href="#parts-of-the-mps-diagnostic-system" title="Permalink to this headline">¶</a></h3>
+<h3>9.6.2. Parts of the MPS diagnostic system<a class="headerlink" href="#parts-of-the-mps-diagnostic-system" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.diag.parts"></span><a class="mpstag reference internal" href="#design.mps.diag.parts">.parts:</a> The following facilities are considered part of the MPS
 diagnostic system:</p>
 <ul class="simple">
@@ -252,7 +252,7 @@ diagnostic system:</p>
 </ul>
 </div>
 <div class="section" id="related-systems">
-<h3>10.6.3. Related systems<a class="headerlink" href="#related-systems" title="Permalink to this headline">¶</a></h3>
+<h3>9.6.3. Related systems<a class="headerlink" href="#related-systems" title="Permalink to this headline">¶</a></h3>
 <p>The MPS diagnostic system is separate from the following other MPS
 systems:</p>
 <ul class="simple">
@@ -274,7 +274,7 @@ design.mps.message.</li>
 </div>
 </div>
 <div class="section" id="references">
-<h2>10.7. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>9.7. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="rhsk-2007-04-13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -301,41 +301,41 @@ design.mps.message.</li>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">10. Diagnostic feedback</a><ul>
-<li><a class="reference internal" href="#introduction">10.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">10.2. Overview</a></li>
-<li><a class="reference internal" href="#requirements">10.3. Requirements</a></li>
-<li><a class="reference internal" href="#usage">10.4. Usage</a><ul>
-<li><a class="reference internal" href="#what-is-a-diagnostic">10.4.1. What is a diagnostic?</a></li>
-<li><a class="reference internal" href="#how-do-i-control-filter-which-diagnostics-i-see">10.4.2. How do I control (filter) which diagnostics I see?</a></li>
+<li><a class="reference internal" href="#">9. Diagnostic feedback</a><ul>
+<li><a class="reference internal" href="#introduction">9.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">9.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">9.3. Requirements</a></li>
+<li><a class="reference internal" href="#usage">9.4. Usage</a><ul>
+<li><a class="reference internal" href="#what-is-a-diagnostic">9.4.1. What is a diagnostic?</a></li>
+<li><a class="reference internal" href="#how-do-i-control-filter-which-diagnostics-i-see">9.4.2. How do I control (filter) which diagnostics I see?</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#how-to-write-a-diagnostic">10.5. How to write a diagnostic</a><ul>
-<li><a class="reference internal" href="#improve-stateless-describe-methods-where-possible">10.5.1. Improve stateless Describe methods where possible</a></li>
-<li><a class="reference internal" href="#use-the-output-macros">10.5.2. Use the output macros</a></li>
-<li><a class="reference internal" href="#compile-away-in-non-diag-varieties-no-side-effects">10.5.3. Compile away in non-diag varieties; no side effects</a></li>
-<li><a class="reference internal" href="#choosing-tags">10.5.4. Choosing tags</a></li>
-<li><a class="reference internal" href="#writing-good-paragraph-text">10.5.5. Writing good paragraph text</a></li>
-<li><a class="reference internal" href="#maintaining-helpful-filter-rules">10.5.6. Maintaining helpful filter rules</a></li>
+<li><a class="reference internal" href="#how-to-write-a-diagnostic">9.5. How to write a diagnostic</a><ul>
+<li><a class="reference internal" href="#improve-stateless-describe-methods-where-possible">9.5.1. Improve stateless Describe methods where possible</a></li>
+<li><a class="reference internal" href="#use-the-output-macros">9.5.2. Use the output macros</a></li>
+<li><a class="reference internal" href="#compile-away-in-non-diag-varieties-no-side-effects">9.5.3. Compile away in non-diag varieties; no side effects</a></li>
+<li><a class="reference internal" href="#choosing-tags">9.5.4. Choosing tags</a></li>
+<li><a class="reference internal" href="#writing-good-paragraph-text">9.5.5. Writing good paragraph text</a></li>
+<li><a class="reference internal" href="#maintaining-helpful-filter-rules">9.5.6. Maintaining helpful filter rules</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#how-the-mps-diagnostic-system-works">10.6. How the MPS diagnostic system works</a><ul>
-<li><a class="reference internal" href="#channels">10.6.1. Channels</a></li>
-<li><a class="reference internal" href="#parts-of-the-mps-diagnostic-system">10.6.2. Parts of the MPS diagnostic system</a></li>
-<li><a class="reference internal" href="#related-systems">10.6.3. Related systems</a></li>
+<li><a class="reference internal" href="#how-the-mps-diagnostic-system-works">9.6. How the MPS diagnostic system works</a><ul>
+<li><a class="reference internal" href="#channels">9.6.1. Channels</a></li>
+<li><a class="reference internal" href="#parts-of-the-mps-diagnostic-system">9.6.2. Parts of the MPS diagnostic system</a></li>
+<li><a class="reference internal" href="#related-systems">9.6.3. Related systems</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#references">10.7. References</a></li>
+<li><a class="reference internal" href="#references">9.7. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="collection.html"
-                        title="previous chapter">9. Collection framework</a></p>
+                        title="previous chapter">8. Collection framework</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="finalize.html"
-                        title="next chapter">11. Finalization</a></p><h4>Downloads</h4>
+                        title="next chapter">10. Finalization</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -361,10 +361,10 @@ design.mps.message.</li>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="finalize.html" title="11. Finalization"
+          <a href="finalize.html" title="10. Finalization"
              >next</a> |</li>
         <li class="right" >
-          <a href="collection.html" title="9. Collection framework"
+          <a href="collection.html" title="8. Collection framework"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

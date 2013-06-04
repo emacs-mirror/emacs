@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>25. LO pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>24. LO pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="26. MFS pool class" href="poolmfs.html" />
-    <link rel="prev" title="24. AWL pool class" href="poolawl.html" /> 
+    <link rel="next" title="25. MFS pool class" href="poolmfs.html" />
+    <link rel="prev" title="23. AWL pool class" href="poolawl.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poolmfs.html" title="26. MFS pool class"
+          <a href="poolmfs.html" title="25. MFS pool class"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="poolawl.html" title="24. AWL pool class"
+          <a href="poolawl.html" title="23. AWL pool class"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="lo-pool-class">
-<span id="design-poollo"></span><span id="index-0"></span><h1>25. LO pool class<a class="headerlink" href="#lo-pool-class" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-poollo"></span><div class="section" id="lo-pool-class">
+<span id="index-0"></span><h1>24. LO pool class<a class="headerlink" href="#lo-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poollo"></span><h2>25.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poollo"></span><h2>24.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.readership"></span><a class="mpstag reference internal" href="#design.mps.poollo.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.poollo.intro"></span><a class="mpstag reference internal" href="#design.mps.poollo.intro">.intro:</a> The LO (Leaf Object) pool class is a pool class developed
 for DylanWorks. It is designed to manage objects that have no
@@ -73,7 +73,7 @@ format alignment and the <tt class="xref c c-macro docutils literal"><span class
 </div>
 </div>
 <div class="section" id="definitions">
-<h2>25.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>24.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.def.leaf"></span><a class="mpstag reference internal" href="#design.mps.poollo.def.leaf">.def.leaf:</a> A &#8220;leaf&#8221; object is an object that contains no
 references, or an object all of whose references refer to roots. That
 is, any references that the object has must refer to a priori alive
@@ -84,7 +84,7 @@ area of memory of the smallest size possible (which is the same size
 as the alignment).</p>
 </div>
 <div class="section" id="requirements">
-<h2>25.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>24.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.req.source"></span><a class="mpstag reference internal" href="#design.mps.poollo.req.source">.req.source:</a> See req.dylan.fun.obj.alloc and
 req.dylan.prot.ffi.access.</p>
 <p><span class="target" id="design.mps.poollo.req.leaf"></span><a class="mpstag reference internal" href="#design.mps.poollo.req.leaf">.req.leaf:</a> The pool must manage formatted leaf objects (see
@@ -98,7 +98,7 @@ objects without using the MPS trampoline (the exception mechanism,
 q.v.).</p>
 </div>
 <div class="section" id="overview">
-<h2>25.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>24.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.overview"></span><a class="mpstag reference internal" href="#design.mps.poollo.overview">.overview:</a></p>
 <p><span class="target" id="design.mps.poollo.overview.ms"></span><a class="mpstag reference internal" href="#design.mps.poollo.overview.ms">.overview.ms:</a> The LO Pool is a non-moving mark-and-sweep collector.</p>
 <p><span class="target" id="design.mps.poollo.overview.ms.justify"></span><a class="mpstag reference internal" href="#design.mps.poollo.overview.ms.justify">.overview.ms.justify:</a> Mark-and-sweep pools are simpler than moving
@@ -112,7 +112,7 @@ derived from a variant A format (using variant A is overkill, see
 variant &#8216;A&#8217;).</p>
 </div>
 <div class="section" id="interface">
-<h2>25.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>24.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.if.init"></span><a class="mpstag reference internal" href="#design.mps.poollo.if.init">.if.init:</a></p>
 <p><span class="target" id="design.mps.poollo.if.init.args"></span><a class="mpstag reference internal" href="#design.mps.poollo.if.init.args">.if.init.args:</a> The init method for this class takes one extra
 parameter in the vararg parameter list.</p>
@@ -127,7 +127,7 @@ granularity at which memory should be managed.</p>
 though clearly that is overkill as only skip and alignment are used.</p>
 </div>
 <div class="section" id="data-structures">
-<h2>25.6. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<h2>24.6. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poollo.sig"></span><a class="mpstag reference internal" href="#design.mps.poollo.sig">.sig:</a> The signature for the LO Pool Class is 0x51970b07
 (SIGLOPOoL).</p>
 <p><span class="target" id="design.mps.poollo.poolstruct"></span><a class="mpstag reference internal" href="#design.mps.poollo.poolstruct">.poolstruct:</a> The class specific pool structure is:</p>
@@ -183,9 +183,9 @@ gets around to updating it. tony 1999-12-16</p>
 <p>[missing diagram]</p>
 </div>
 <div class="section" id="functions">
-<h2>25.7. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>24.7. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="external">
-<h3>25.7.1. External<a class="headerlink" href="#external" title="Permalink to this headline">¶</a></h3>
+<h3>24.7.1. External<a class="headerlink" href="#external" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poollo.fun.init"></span><a class="mpstag reference internal" href="#design.mps.poollo.fun.init">.fun.init:</a></p>
 <p><span class="target" id="design.mps.poollo.fun.destroy"></span><a class="mpstag reference internal" href="#design.mps.poollo.fun.destroy">.fun.destroy:</a></p>
 <p><span class="target" id="design.mps.poollo.fun.buffer-fill"></span><a class="mpstag reference internal" href="#design.mps.poollo.fun.buffer-fill">.fun.buffer-fill:</a></p>
@@ -222,7 +222,7 @@ void <tt class="descname">LOReclaim</tt><big>(</big>Pool<em>&nbsp;pool</em>, Tra
 <a class="reference internal" href="#loSegReclaim" title="loSegReclaim"><tt class="xref c c-func docutils literal"><span class="pre">loSegReclaim()</span></tt></a> (see <a class="reference internal" href="#design.mps.poollo.fun.segreclaim">.fun.segreclaim</a> below).</p>
 </div>
 <div class="section" id="internal">
-<h3>25.7.2. Internal<a class="headerlink" href="#internal" title="Permalink to this headline">¶</a></h3>
+<h3>24.7.2. Internal<a class="headerlink" href="#internal" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="loSegReclaim">
 void <tt class="descname">loSegReclaim</tt><big>(</big>LOSeg<em>&nbsp;loseg</em>, Trace<em>&nbsp;trace</em><big>)</big><a class="headerlink" href="#loSegReclaim" title="Permalink to this definition">¶</a></dt>
@@ -247,7 +247,7 @@ appropriate range of bits in the segment&#8217;s free bit table.</p>
 </div>
 </div>
 <div class="section" id="attachment">
-<h2>25.8. Attachment<a class="headerlink" href="#attachment" title="Permalink to this headline">¶</a></h2>
+<h2>24.8. Attachment<a class="headerlink" href="#attachment" title="Permalink to this headline">¶</a></h2>
 <p>[missing attachment &#8220;LOGROUP.CWK&#8221;]</p>
 </div>
 </div>
@@ -263,29 +263,29 @@ appropriate range of bits in the segment&#8217;s free bit table.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">25. LO pool class</a><ul>
-<li><a class="reference internal" href="#introduction">25.1. Introduction</a></li>
-<li><a class="reference internal" href="#definitions">25.2. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">25.3. Requirements</a></li>
-<li><a class="reference internal" href="#overview">25.4. Overview</a></li>
-<li><a class="reference internal" href="#interface">25.5. Interface</a></li>
-<li><a class="reference internal" href="#data-structures">25.6. Data structures</a></li>
-<li><a class="reference internal" href="#functions">25.7. Functions</a><ul>
-<li><a class="reference internal" href="#external">25.7.1. External</a></li>
-<li><a class="reference internal" href="#internal">25.7.2. Internal</a></li>
+<li><a class="reference internal" href="#">24. LO pool class</a><ul>
+<li><a class="reference internal" href="#introduction">24.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">24.2. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">24.3. Requirements</a></li>
+<li><a class="reference internal" href="#overview">24.4. Overview</a></li>
+<li><a class="reference internal" href="#interface">24.5. Interface</a></li>
+<li><a class="reference internal" href="#data-structures">24.6. Data structures</a></li>
+<li><a class="reference internal" href="#functions">24.7. Functions</a><ul>
+<li><a class="reference internal" href="#external">24.7.1. External</a></li>
+<li><a class="reference internal" href="#internal">24.7.2. Internal</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#attachment">25.8. Attachment</a></li>
+<li><a class="reference internal" href="#attachment">24.8. Attachment</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="poolawl.html"
-                        title="previous chapter">24. AWL pool class</a></p>
+                        title="previous chapter">23. AWL pool class</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="poolmfs.html"
-                        title="next chapter">26. MFS pool class</a></p><h4>Downloads</h4>
+                        title="next chapter">25. MFS pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -311,10 +311,10 @@ appropriate range of bits in the segment&#8217;s free bit table.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poolmfs.html" title="26. MFS pool class"
+          <a href="poolmfs.html" title="25. MFS pool class"
              >next</a> |</li>
         <li class="right" >
-          <a href="poolawl.html" title="24. AWL pool class"
+          <a href="poolawl.html" title="23. AWL pool class"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

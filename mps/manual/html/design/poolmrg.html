@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>27. MRG pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>26. MRG pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="28. MVFF pool class" href="poolmvff.html" />
-    <link rel="prev" title="26. MFS pool class" href="poolmfs.html" /> 
+    <link rel="next" title="27. MVFF pool class" href="poolmvff.html" />
+    <link rel="prev" title="25. MFS pool class" href="poolmfs.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="28. MVFF pool class"
+          <a href="poolmvff.html" title="27. MVFF pool class"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="poolmfs.html" title="26. MFS pool class"
+          <a href="poolmfs.html" title="25. MFS pool class"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="mrg-pool-class">
-<span id="design-poolmrg"></span><span id="index-0"></span><h1>27. MRG pool class<a class="headerlink" href="#mrg-pool-class" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-poolmrg"></span><div class="section" id="mrg-pool-class">
+<span id="index-0"></span><h1>26. MRG pool class<a class="headerlink" href="#mrg-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poolmrg"></span><h2>27.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolmrg"></span><h2>26.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.readership"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.poolmrg.intro"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.intro">.intro:</a> This is the design of the MRG (Manual Rank Guardian) pool
 class. The MRG pool class is part of the MPS. The MRG pool class is
@@ -71,12 +71,12 @@ should be understood before changing this document. It is also helpful
 to look at design.mps.finalize and design.mps.message.</p>
 </div>
 <div class="section" id="goals">
-<h2>27.2. Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h2>
+<h2>26.2. Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.goal.final"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.goal.final">.goal.final:</a> The MRG pool class should support all
 requirements pertaining to finalization.</p>
 </div>
 <div class="section" id="requirements">
-<h2>27.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>26.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.req"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.req">.req:</a> We have only one requirement pertaining to finalization:</p>
 <p><span class="target" id="design.mps.poolmrg.req.dylan.fun.finalization"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.req.dylan.fun.finalization">.req.dylan.fun.finalization:</a> Support the Dylan language-level
 implementation of finalized objects: objects are registered, and are
@@ -90,7 +90,7 @@ unused segments to the arena? MFS, for example, does not do this. MRG
 will not do this in its initial implementation.</p>
 </div>
 <div class="section" id="terminology">
-<h2>27.4. Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
+<h2>26.4. Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.def.mrg"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.def.mrg">.def.mrg:</a> <strong>MRG</strong>: The MRG pool class&#8217;s identifier will be MRG.
 This stands for &#8220;Manual Rank Guardian&#8221;. The pool is manually managed
 and implements guardians for references of a particular rank
@@ -114,7 +114,7 @@ for the pool&#8217;s internal use. Guardians are used to implement a
 finalization mechanism.</p>
 </div>
 <div class="section" id="overview">
-<h2>27.5. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>26.5. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.over"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.over">.over:</a> The MRG pool class is a pool class in the MPS. It is
 intended to provide the functionality of &#8220;finalization&#8221;.</p>
 <p><span class="target" id="design.mps.poolmrg.over.internal"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.over.internal">.over.internal:</a> The MRG pool class is internal to the MPM: it
@@ -171,16 +171,16 @@ destroyed.</p>
 easy to determine so manual memory management is appropriate.</p>
 </div>
 <div class="section" id="protocols">
-<h2>27.6. Protocols<a class="headerlink" href="#protocols" title="Permalink to this headline">¶</a></h2>
+<h2>26.6. Protocols<a class="headerlink" href="#protocols" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="object-registration">
-<h3>27.6.1. Object Registration<a class="headerlink" href="#object-registration" title="Permalink to this headline">¶</a></h3>
+<h3>26.6.1. Object Registration<a class="headerlink" href="#object-registration" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmrg.protocol.register"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.protocol.register">.protocol.register:</a> There is a protocol by which objects can be
 registered for finalization. This protocol is handled by the arena
 module on behalf of finalization. see
 design.mps.finalize.int.finalize.</p>
 </div>
 <div class="section" id="finalizer-execution">
-<h3>27.6.2. Finalizer execution<a class="headerlink" href="#finalizer-execution" title="Permalink to this headline">¶</a></h3>
+<h3>26.6.2. Finalizer execution<a class="headerlink" href="#finalizer-execution" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmrg.protocol.finalizer"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.protocol.finalizer">.protocol.finalizer:</a> If an object is proven to be finalizable then
 a message to this effect will eventually be posted. A client can
 receive the message, determine what to do about it, and do it.
@@ -189,7 +189,7 @@ object, and deleting the message. Once the message is deleted, the
 object may become recyclable.</p>
 </div>
 <div class="section" id="setup-destroy">
-<h3>27.6.3. Setup / destroy<a class="headerlink" href="#setup-destroy" title="Permalink to this headline">¶</a></h3>
+<h3>26.6.3. Setup / destroy<a class="headerlink" href="#setup-destroy" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmrg.protocol.life"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.protocol.life">.protocol.life:</a> An instance of PoolClassMRG is needed in order to
 support finalization, it is called the &#8220;final&#8221; pool and is attached to
 the arena (see design.mps.finalize.int.arena.struct).</p>
@@ -200,7 +200,7 @@ the arena (see design.mps.finalize.int.arena.struct).</p>
 </div>
 </div>
 <div class="section" id="data-structures">
-<h2>27.7. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<h2>26.7. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.guardian"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.guardian">.guardian:</a> The guardian</p>
 <p><span class="target" id="design.mps.poolmrg.guardian.over"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.guardian.over">.guardian.over:</a> A guardian is an object used to manage the
 references and other data structures that are used by the pool in
@@ -326,7 +326,7 @@ pointing to the relevant ref segment.</li>
 </ul>
 </div>
 <div class="section" id="functions">
-<h2>27.8. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>26.8. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="MRGCheck">
 <a class="reference internal" href="type.html#Bool" title="Bool">Bool</a> <tt class="descname">MRGCheck</tt><big>(</big>MRG<em>&nbsp;mrg</em><big>)</big><a class="headerlink" href="#MRGCheck" title="Permalink to this definition">¶</a></dt>
@@ -452,7 +452,7 @@ guardian and the value of the reference in it will be printed out.</p>
 for grey segments.</p>
 </div>
 <div class="section" id="transgressions">
-<h2>27.9. Transgressions<a class="headerlink" href="#transgressions" title="Permalink to this headline">¶</a></h2>
+<h2>26.9. Transgressions<a class="headerlink" href="#transgressions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.trans.no-finish"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.trans.no-finish">.trans.no-finish:</a> The MRG pool does not trouble itself to tidy up
 its internal rings properly when being destroyed.</p>
 <p><span class="target" id="design.mps.poolmrg.trans.free-seg"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.trans.free-seg">.trans.free-seg:</a> No attempt is made to release free segments to the
@@ -473,12 +473,12 @@ is not the place of the pool to support general segment hysteresis.</li>
 </ul>
 </div>
 <div class="section" id="future">
-<h2>27.10. Future<a class="headerlink" href="#future" title="Permalink to this headline">¶</a></h2>
+<h2>26.10. Future<a class="headerlink" href="#future" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.future.array"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.future.array">.future.array:</a> In future, for speed or simplicity, this pool could
 be rewritten to use an array. See mail.gavinm.1997-09-04.13-08(0).</p>
 </div>
 <div class="section" id="tests">
-<h2>27.11. Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
+<h2>26.11. Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">This section is utterly out of date. Pekka P. Pirinen, 1997-09-19.</p>
@@ -486,7 +486,7 @@ be rewritten to use an array. See mail.gavinm.1997-09-04.13-08(0).</p>
 <p><span class="target" id="design.mps.poolmrg.test"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.test">.test:</a> The test impl.c.finalcv is similar to the weakness test (see
 design.mps.weakness, impl.c.weakcv).</p>
 <div class="section" id="functionality">
-<h3>27.11.1. Functionality<a class="headerlink" href="#functionality" title="Permalink to this headline">¶</a></h3>
+<h3>26.11.1. Functionality<a class="headerlink" href="#functionality" title="Permalink to this headline">¶</a></h3>
 <p>This is the functionality to be tested:</p>
 <ul class="simple">
 <li><span class="target" id="design.mps.poolmrg.fun.alloc"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.fun.alloc">.fun.alloc:</a> Can allocate objects.</li>
@@ -507,14 +507,14 @@ exact references.</li>
 </ul>
 </div>
 <div class="section" id="attributes">
-<h3>27.11.2. Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<h3>26.11.2. Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
 <p>The following attributes will be tested:</p>
 <ul class="simple">
 <li><span class="target" id="design.mps.poolmrg.attr.none"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.attr.none">.attr.none:</a> There are no attribute requirements.</li>
 </ul>
 </div>
 <div class="section" id="implementation">
-<h3>27.11.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h3>
+<h3>26.11.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h3>
 <p>The test will simply allocate a number of objects in the AMC pool and
 finalize each one, throwing away the reference to the objects. Churn.</p>
 <p><span class="target" id="design.mps.poolmrg.test.mpm"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.test.mpm">.test.mpm:</a> The test will use the MPM interface (impl.h.mpm).</p>
@@ -575,7 +575,7 @@ and haven&#8217;t been finalized. This will test <a class="reference internal" h
 </div>
 </div>
 <div class="section" id="notes">
-<h2>27.12. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>26.12. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmrg.access.inadequate"></span><a class="mpstag reference internal" href="#design.mps.poolmrg.access.inadequate">.access.inadequate:</a> <tt class="xref c c-func docutils literal"><span class="pre">PoolAccess()</span></tt> will scan segments at
 <cite>RankEXACT`</cite>. Really it should be scanned at whatever the minimum rank
 of all grey segments is (the trace rank phase), however there is no
@@ -597,39 +597,39 @@ delayed.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">27. MRG pool class</a><ul>
-<li><a class="reference internal" href="#introduction">27.1. Introduction</a></li>
-<li><a class="reference internal" href="#goals">27.2. Goals</a></li>
-<li><a class="reference internal" href="#requirements">27.3. Requirements</a></li>
-<li><a class="reference internal" href="#terminology">27.4. Terminology</a></li>
-<li><a class="reference internal" href="#overview">27.5. Overview</a></li>
-<li><a class="reference internal" href="#protocols">27.6. Protocols</a><ul>
-<li><a class="reference internal" href="#object-registration">27.6.1. Object Registration</a></li>
-<li><a class="reference internal" href="#finalizer-execution">27.6.2. Finalizer execution</a></li>
-<li><a class="reference internal" href="#setup-destroy">27.6.3. Setup / destroy</a></li>
+<li><a class="reference internal" href="#">26. MRG pool class</a><ul>
+<li><a class="reference internal" href="#introduction">26.1. Introduction</a></li>
+<li><a class="reference internal" href="#goals">26.2. Goals</a></li>
+<li><a class="reference internal" href="#requirements">26.3. Requirements</a></li>
+<li><a class="reference internal" href="#terminology">26.4. Terminology</a></li>
+<li><a class="reference internal" href="#overview">26.5. Overview</a></li>
+<li><a class="reference internal" href="#protocols">26.6. Protocols</a><ul>
+<li><a class="reference internal" href="#object-registration">26.6.1. Object Registration</a></li>
+<li><a class="reference internal" href="#finalizer-execution">26.6.2. Finalizer execution</a></li>
+<li><a class="reference internal" href="#setup-destroy">26.6.3. Setup / destroy</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#data-structures">27.7. Data structures</a></li>
-<li><a class="reference internal" href="#functions">27.8. Functions</a></li>
-<li><a class="reference internal" href="#transgressions">27.9. Transgressions</a></li>
-<li><a class="reference internal" href="#future">27.10. Future</a></li>
-<li><a class="reference internal" href="#tests">27.11. Tests</a><ul>
-<li><a class="reference internal" href="#functionality">27.11.1. Functionality</a></li>
-<li><a class="reference internal" href="#attributes">27.11.2. Attributes</a></li>
-<li><a class="reference internal" href="#implementation">27.11.3. Implementation</a></li>
+<li><a class="reference internal" href="#data-structures">26.7. Data structures</a></li>
+<li><a class="reference internal" href="#functions">26.8. Functions</a></li>
+<li><a class="reference internal" href="#transgressions">26.9. Transgressions</a></li>
+<li><a class="reference internal" href="#future">26.10. Future</a></li>
+<li><a class="reference internal" href="#tests">26.11. Tests</a><ul>
+<li><a class="reference internal" href="#functionality">26.11.1. Functionality</a></li>
+<li><a class="reference internal" href="#attributes">26.11.2. Attributes</a></li>
+<li><a class="reference internal" href="#implementation">26.11.3. Implementation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#notes">27.12. Notes</a></li>
+<li><a class="reference internal" href="#notes">26.12. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="poolmfs.html"
-                        title="previous chapter">26. MFS pool class</a></p>
+                        title="previous chapter">25. MFS pool class</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="poolmvff.html"
-                        title="next chapter">28. MVFF pool class</a></p><h4>Downloads</h4>
+                        title="next chapter">27. MVFF pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -655,10 +655,10 @@ delayed.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poolmvff.html" title="28. MVFF pool class"
+          <a href="poolmvff.html" title="27. MVFF pool class"
              >next</a> |</li>
         <li class="right" >
-          <a href="poolmfs.html" title="26. MFS pool class"
+          <a href="poolmfs.html" title="25. MFS pool class"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

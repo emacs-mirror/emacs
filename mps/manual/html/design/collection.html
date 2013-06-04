@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>9. Collection framework &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>8. Collection framework &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="10. Diagnostic feedback" href="diag.html" />
-    <link rel="prev" title="8. Pool class interface" href="class-interface.html" /> 
+    <link rel="next" title="9. Diagnostic feedback" href="diag.html" />
+    <link rel="prev" title="7. Pool class interface" href="class-interface.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="diag.html" title="10. Diagnostic feedback"
+          <a href="diag.html" title="9. Diagnostic feedback"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="class-interface.html" title="8. Pool class interface"
+          <a href="class-interface.html" title="7. Pool class interface"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="collection-framework">
-<span id="design-collection"></span><span id="index-0"></span><h1>9. Collection framework<a class="headerlink" href="#collection-framework" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-collection"></span><div class="section" id="collection-framework">
+<span id="index-0"></span><h1>8. Collection framework<a class="headerlink" href="#collection-framework" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.collection"></span><h2>9.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.collection"></span><h2>8.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.collection.intro"></span><a class="mpstag reference internal" href="#design.mps.collection.intro">.intro:</a> This document describes the Collection Framework. It&#8217;s a
 framework for implementing garbage collection techniques and
 integrating them into a system of collectors that all cooperate in
 recycling garbage.</p>
 </div>
 <div class="section" id="overview">
-<h2>9.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>8.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.collection.framework"></span><a class="mpstag reference internal" href="#design.mps.collection.framework">.framework:</a> MPS provides a framework that allows the integration of
 many different types of GC strategies and provides many of the basic
 services that those strategies use.</p>
@@ -102,9 +102,9 @@ of pool (see design.mps.arch.pools) and segment (see
 design.mps.seg.over).</p>
 </div>
 <div class="section" id="collection-abstractions">
-<h2>9.3. Collection abstractions<a class="headerlink" href="#collection-abstractions" title="Permalink to this headline">¶</a></h2>
+<h2>8.3. Collection abstractions<a class="headerlink" href="#collection-abstractions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="colours-scanning-and-fixing">
-<h3>9.3.1. Colours, scanning and fixing<a class="headerlink" href="#colours-scanning-and-fixing" title="Permalink to this headline">¶</a></h3>
+<h3>8.3.1. Colours, scanning and fixing<a class="headerlink" href="#colours-scanning-and-fixing" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.state"></span><a class="mpstag reference internal" href="#design.mps.collection.state">.state:</a> The framework knows about the three colours of the
 tri-state abstraction and free blocks. Recording the state of each
 object is the responsibility of the pool, but the framework gets told
@@ -155,7 +155,7 @@ by a method on the pool that the reference points to.</p>
 segment.</p>
 </div>
 <div class="section" id="reference-sets">
-<h3>9.3.2. Reference sets<a class="headerlink" href="#reference-sets" title="Permalink to this headline">¶</a></h3>
+<h3>8.3.2. Reference sets<a class="headerlink" href="#reference-sets" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.refsets"></span><a class="mpstag reference internal" href="#design.mps.collection.refsets">.refsets:</a> The cost of scanning can be significantly reduced by
 storing remembered sets. We have chosen a very compact and efficient
 implementation, called reference sets, or refsets for short (see
@@ -209,7 +209,7 @@ refset with the universal refset.</p>
 </div>
 </div>
 <div class="section" id="the-tracer">
-<h2>9.4. The tracer<a class="headerlink" href="#the-tracer" title="Permalink to this headline">¶</a></h2>
+<h2>8.4. The tracer<a class="headerlink" href="#the-tracer" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.collection.tracer"></span><a class="mpstag reference internal" href="#design.mps.collection.tracer">.tracer:</a> The tracer is an engine for implementing multiple garbage
 collection processes. Each process (called a &#8220;trace&#8221;) proceeds
 independently of the others through five phases as described in
@@ -248,7 +248,7 @@ segment (see <a class="reference internal" href="#design.mps.collection.hw-barri
 <p><span class="target" id="design.mps.collection.mutator-colour"></span><a class="mpstag reference internal" href="#design.mps.collection.mutator-colour">.mutator-colour:</a> The framework keeps track of the colour of the
 mutator separately for each trace.</p>
 <div class="section" id="the-condemn-phase">
-<h3>9.4.1. The condemn phase<a class="headerlink" href="#the-condemn-phase" title="Permalink to this headline">¶</a></h3>
+<h3>8.4.1. The condemn phase<a class="headerlink" href="#the-condemn-phase" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.phase.condemn"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.condemn">.phase.condemn:</a> The agent that creates the trace (see
 <a class="reference internal" href="#design.mps.collection.trace.begin">.trace.begin</a>) determines the condemned set and colours it white.
 The tracer then examines the refsets on all scannable segments, and if
@@ -275,7 +275,7 @@ most commonly white.</p>
 </div>
 </div>
 <div class="section" id="the-grey-mutator-phase">
-<h3>9.4.2. The grey mutator phase<a class="headerlink" href="#the-grey-mutator-phase" title="Permalink to this headline">¶</a></h3>
+<h3>8.4.2. The grey mutator phase<a class="headerlink" href="#the-grey-mutator-phase" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.phase.grey-mutator"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.grey-mutator">.phase.grey-mutator:</a> Grey segments are chosen according to some
 sort of progress control and scanned by the pool to make them black.
 Eventually, the tracer will decide to flip or it runs out of grey
@@ -298,7 +298,7 @@ flip and because it doesn&#8217;t cause any copying.</p>
 </div>
 </div>
 <div class="section" id="the-flip-phase">
-<h3>9.4.3. The flip phase<a class="headerlink" href="#the-flip-phase" title="Permalink to this headline">¶</a></h3>
+<h3>8.4.3. The flip phase<a class="headerlink" href="#the-flip-phase" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.phase.flip"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.flip">.phase.flip:</a> The roots (see design.mps.root) are scanned. This has
 to be an atomic action as far as the mutator is concerned, so all
 threads are suspended for the duration.</p>
@@ -308,7 +308,7 @@ to white objects. Allocation will be in black (could be grey as well,
 but there&#8217;s no point to it).</p>
 </div>
 <div class="section" id="the-black-mutator-phase">
-<h3>9.4.4. The black mutator phase<a class="headerlink" href="#the-black-mutator-phase" title="Permalink to this headline">¶</a></h3>
+<h3>8.4.4. The black mutator phase<a class="headerlink" href="#the-black-mutator-phase" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.phase.black-mutator"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.black-mutator">.phase.black-mutator:</a> Grey segments are chosen according to some
 sort of progress control and scanned by the pool to make them black.
 Eventually, the tracer runs out of segments that are grey for this
@@ -319,7 +319,7 @@ barrier is used, as we must do for a copying collection, see
 analysis.async-gc.copied.pointers).</p>
 </div>
 <div class="section" id="the-reclaim-phase">
-<h3>9.4.5. The reclaim phase<a class="headerlink" href="#the-reclaim-phase" title="Permalink to this headline">¶</a></h3>
+<h3>8.4.5. The reclaim phase<a class="headerlink" href="#the-reclaim-phase" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.phase.reclaim"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.reclaim">.phase.reclaim:</a> The tracer finds the remaining white segments and
 asks the pool to reclaim any white objects in them.</p>
 <p><span class="target" id="design.mps.collection.phase.reclaim.barrier"></span><a class="mpstag reference internal" href="#design.mps.collection.phase.reclaim.barrier">.phase.reclaim.barrier:</a> Once a trace has started reclaiming
@@ -335,14 +335,14 @@ Pekka P. Pirinen, 1997-12-31.</p>
 </div>
 </div>
 <div class="section" id="barriers">
-<h2>9.5. Barriers<a class="headerlink" href="#barriers" title="Permalink to this headline">¶</a></h2>
+<h2>8.5. Barriers<a class="headerlink" href="#barriers" title="Permalink to this headline">¶</a></h2>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">An introduction and a discussion of general principles should go
 here. This is a completely undesigned area.</p>
 </div>
 <div class="section" id="hardware-barriers">
-<h3>9.5.1. Hardware barriers<a class="headerlink" href="#hardware-barriers" title="Permalink to this headline">¶</a></h3>
+<h3>8.5.1. Hardware barriers<a class="headerlink" href="#hardware-barriers" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.collection.hw-barriers"></span><a class="mpstag reference internal" href="#design.mps.collection.hw-barriers">.hw-barriers:</a> Hardware barrier services cannot, by their very
 nature, be independently provided to each trace. A segment is either
 protected or not, and we have to set the protection on a segment if
@@ -371,7 +371,7 @@ the traces that it had a barrier for.</p>
 </div>
 </div>
 <div class="section" id="software-barriers">
-<h3>9.5.2. Software barriers<a class="headerlink" href="#software-barriers" title="Permalink to this headline">¶</a></h3>
+<h3>8.5.2. Software barriers<a class="headerlink" href="#software-barriers" title="Permalink to this headline">¶</a></h3>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">Write something about software barriers.</p>
@@ -391,25 +391,25 @@ the traces that it had a barrier for.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">9. Collection framework</a><ul>
-<li><a class="reference internal" href="#introduction">9.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">9.2. Overview</a></li>
-<li><a class="reference internal" href="#collection-abstractions">9.3. Collection abstractions</a><ul>
-<li><a class="reference internal" href="#colours-scanning-and-fixing">9.3.1. Colours, scanning and fixing</a></li>
-<li><a class="reference internal" href="#reference-sets">9.3.2. Reference sets</a></li>
+<li><a class="reference internal" href="#">8. Collection framework</a><ul>
+<li><a class="reference internal" href="#introduction">8.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">8.2. Overview</a></li>
+<li><a class="reference internal" href="#collection-abstractions">8.3. Collection abstractions</a><ul>
+<li><a class="reference internal" href="#colours-scanning-and-fixing">8.3.1. Colours, scanning and fixing</a></li>
+<li><a class="reference internal" href="#reference-sets">8.3.2. Reference sets</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#the-tracer">9.4. The tracer</a><ul>
-<li><a class="reference internal" href="#the-condemn-phase">9.4.1. The condemn phase</a></li>
-<li><a class="reference internal" href="#the-grey-mutator-phase">9.4.2. The grey mutator phase</a></li>
-<li><a class="reference internal" href="#the-flip-phase">9.4.3. The flip phase</a></li>
-<li><a class="reference internal" href="#the-black-mutator-phase">9.4.4. The black mutator phase</a></li>
-<li><a class="reference internal" href="#the-reclaim-phase">9.4.5. The reclaim phase</a></li>
+<li><a class="reference internal" href="#the-tracer">8.4. The tracer</a><ul>
+<li><a class="reference internal" href="#the-condemn-phase">8.4.1. The condemn phase</a></li>
+<li><a class="reference internal" href="#the-grey-mutator-phase">8.4.2. The grey mutator phase</a></li>
+<li><a class="reference internal" href="#the-flip-phase">8.4.3. The flip phase</a></li>
+<li><a class="reference internal" href="#the-black-mutator-phase">8.4.4. The black mutator phase</a></li>
+<li><a class="reference internal" href="#the-reclaim-phase">8.4.5. The reclaim phase</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#barriers">9.5. Barriers</a><ul>
-<li><a class="reference internal" href="#hardware-barriers">9.5.1. Hardware barriers</a></li>
-<li><a class="reference internal" href="#software-barriers">9.5.2. Software barriers</a></li>
+<li><a class="reference internal" href="#barriers">8.5. Barriers</a><ul>
+<li><a class="reference internal" href="#hardware-barriers">8.5.1. Hardware barriers</a></li>
+<li><a class="reference internal" href="#software-barriers">8.5.2. Software barriers</a></li>
 </ul>
 </li>
 </ul>
@@ -418,10 +418,10 @@ the traces that it had a barrier for.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="class-interface.html"
-                        title="previous chapter">8. Pool class interface</a></p>
+                        title="previous chapter">7. Pool class interface</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="diag.html"
-                        title="next chapter">10. Diagnostic feedback</a></p><h4>Downloads</h4>
+                        title="next chapter">9. Diagnostic feedback</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -447,10 +447,10 @@ the traces that it had a barrier for.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="diag.html" title="10. Diagnostic feedback"
+          <a href="diag.html" title="9. Diagnostic feedback"
              >next</a> |</li>
         <li class="right" >
-          <a href="class-interface.html" title="8. Pool class interface"
+          <a href="class-interface.html" title="7. Pool class interface"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

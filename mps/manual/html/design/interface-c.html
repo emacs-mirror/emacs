@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>13. C interface design &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>12. C interface design &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="14. I/O subsystem" href="io.html" />
-    <link rel="prev" title="12. The generic fix function" href="fix.html" /> 
+    <link rel="next" title="13. I/O subsystem" href="io.html" />
+    <link rel="prev" title="11. The generic fix function" href="fix.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="io.html" title="14. I/O subsystem"
+          <a href="io.html" title="13. I/O subsystem"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="fix.html" title="12. The generic fix function"
+          <a href="fix.html" title="11. The generic fix function"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,25 +54,25 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="c-interface-design">
-<span id="design-interface-c"></span><span id="index-0"></span><h1>13. C interface design<a class="headerlink" href="#c-interface-design" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-interface-c"></span><div class="section" id="c-interface-design">
+<span id="index-0"></span><h1>12. C interface design<a class="headerlink" href="#c-interface-design" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.interface.c"></span><h2>13.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.interface.c"></span><h2>12.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.interface.c.scope"></span><a class="mpstag reference internal" href="#design.mps.interface.c.scope">.scope:</a> This document is the design for the Memory Pool System
 (MPS) interface to the C Language, impl.h.mps.</p>
 <p><span class="target" id="design.mps.interface.c.bg"></span><a class="mpstag reference internal" href="#design.mps.interface.c.bg">.bg:</a> See mail.richard.1996-07-24.10-57.</p>
 </div>
 <div class="section" id="analysis">
-<h2>13.2. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>12.2. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="goals">
-<h3>13.2.1. Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h3>
+<h3>12.2.1. Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.interface.c.goal.c"></span><a class="mpstag reference internal" href="#design.mps.interface.c.goal.c">.goal.c:</a> The file impl.h.mps is the C external interface to the
 MPS. It is the default interface between client code written in C and
 the MPS. <span class="target" id="design.mps.interface.c.goal.cpp"></span><a class="mpstag reference internal" href="#design.mps.interface.c.goal.cpp">.goal.cpp:</a> impl.h.mps is not specifically designed to be
 an interface to C++, but should be usable from C++.</p>
 </div>
 <div class="section" id="requirements">
-<h3>13.2.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<h3>12.2.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.interface.c.req"></span><a class="mpstag reference internal" href="#design.mps.interface.c.req">.req:</a> The interface must provide an interface from client code
 written in C to the functionality of the MPS required by the product
 (see req.product), Dylan (req.dylan), and the Core RIP (req.epcore).</p>
@@ -105,7 +105,7 @@ interoperate easily.</li>
 </div>
 </div>
 <div class="section" id="architecture">
-<h2>13.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>12.3. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.interface.c.fig.arch"></span><a class="mpstag reference internal" href="#design.mps.interface.c.fig.arch">.fig.arch:</a> The architecture of the MPS Interface</p>
 <p>[missing figure]</p>
 <p>Just behind <tt class="docutils literal"><span class="pre">mps.h</span></tt> is the file <tt class="docutils literal"><span class="pre">mpsi.c</span></tt>, the &#8220;MPS interface
@@ -113,7 +113,7 @@ layer&#8221; which does the job of converting types and checking parameters
 before calling through to the MPS proper, using internal MPS methods.</p>
 </div>
 <div class="section" id="general-conventions">
-<h2>13.4. General conventions<a class="headerlink" href="#general-conventions" title="Permalink to this headline">¶</a></h2>
+<h2>12.4. General conventions<a class="headerlink" href="#general-conventions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.interface.c.naming"></span><a class="mpstag reference internal" href="#design.mps.interface.c.naming">.naming:</a> The external interface names should adhere to the
 documented interface conventions; these are found in
 doc.mps.ref-man.if-conv(0).naming. They are paraphrased/recreated
@@ -193,7 +193,7 @@ case where you are declaring the prototype for an interface function.</p>
 <p>See guide.impl.c.misc.prototype.parameters.</p>
 </div>
 <div class="section" id="checking">
-<h2>13.5. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h2>
+<h2>12.5. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.interface.c.check.space"></span><a class="mpstag reference internal" href="#design.mps.interface.c.check.space">.check.space:</a> When the arena needs to be recovered from a parameter
 it is check using <tt class="docutils literal"><span class="pre">AVERT(Foo,</span> <span class="pre">foo)</span></tt> before any attempt to call
 <tt class="docutils literal"><span class="pre">FooArena(foo)</span></tt>. The macro <tt class="xref c c-func docutils literal"><span class="pre">AVERT()</span></tt> in impl.h.assert performs
@@ -261,7 +261,7 @@ two fields in two structure types.</p>
 </div>
 </div>
 <div class="section" id="binary-compatibility-issues">
-<h2>13.6. Binary compatibility issues<a class="headerlink" href="#binary-compatibility-issues" title="Permalink to this headline">¶</a></h2>
+<h2>12.6. Binary compatibility issues<a class="headerlink" href="#binary-compatibility-issues" title="Permalink to this headline">¶</a></h2>
 <p>As in, &#8220;Enumeration types are not allowed&#8221; (see
 mail.richard.1995-09-08.09-28).</p>
 <p>There are two main aspects to run-time compatibility: binary interface
@@ -279,7 +279,7 @@ header file version and the binary interface.</p>
 <p>The protocol is determined by the implementation of the library.</p>
 </div>
 <div class="section" id="constraints">
-<h2>13.7. Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
+<h2>12.7. Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.interface.c.cons"></span><a class="mpstag reference internal" href="#design.mps.interface.c.cons">.cons:</a> The MPS C Interface constrains the MPS in order to provide
 useful memory management services to a C or C++ program.</p>
 <p><span class="target" id="design.mps.interface.c.cons.addr"></span><a class="mpstag reference internal" href="#design.mps.interface.c.cons.addr">.cons.addr:</a> The interface constrains the MPS address type, Addr
@@ -299,7 +299,7 @@ interface constrains <a class="reference internal" href="type.html#Word" title="
 pointer type, <tt class="docutils literal"><span class="pre">void&nbsp;*</span></tt>.</p>
 </div>
 <div class="section" id="notes">
-<h2>13.8. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>12.8. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p>The file <tt class="docutils literal"><span class="pre">mpstd.h</span></tt> is the MPS target detection header. It decodes
 preprocessor symbols which are predefined by build environments in
 order to determine the target platform, and then defines uniform
@@ -341,29 +341,29 @@ in comments.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">13. C interface design</a><ul>
-<li><a class="reference internal" href="#introduction">13.1. Introduction</a></li>
-<li><a class="reference internal" href="#analysis">13.2. Analysis</a><ul>
-<li><a class="reference internal" href="#goals">13.2.1. Goals</a></li>
-<li><a class="reference internal" href="#requirements">13.2.2. Requirements</a></li>
+<li><a class="reference internal" href="#">12. C interface design</a><ul>
+<li><a class="reference internal" href="#introduction">12.1. Introduction</a></li>
+<li><a class="reference internal" href="#analysis">12.2. Analysis</a><ul>
+<li><a class="reference internal" href="#goals">12.2.1. Goals</a></li>
+<li><a class="reference internal" href="#requirements">12.2.2. Requirements</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#architecture">13.3. Architecture</a></li>
-<li><a class="reference internal" href="#general-conventions">13.4. General conventions</a></li>
-<li><a class="reference internal" href="#checking">13.5. Checking</a></li>
-<li><a class="reference internal" href="#binary-compatibility-issues">13.6. Binary compatibility issues</a></li>
-<li><a class="reference internal" href="#constraints">13.7. Constraints</a></li>
-<li><a class="reference internal" href="#notes">13.8. Notes</a></li>
+<li><a class="reference internal" href="#architecture">12.3. Architecture</a></li>
+<li><a class="reference internal" href="#general-conventions">12.4. General conventions</a></li>
+<li><a class="reference internal" href="#checking">12.5. Checking</a></li>
+<li><a class="reference internal" href="#binary-compatibility-issues">12.6. Binary compatibility issues</a></li>
+<li><a class="reference internal" href="#constraints">12.7. Constraints</a></li>
+<li><a class="reference internal" href="#notes">12.8. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="fix.html"
-                        title="previous chapter">12. The generic fix function</a></p>
+                        title="previous chapter">11. The generic fix function</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="io.html"
-                        title="next chapter">14. I/O subsystem</a></p><h4>Downloads</h4>
+                        title="next chapter">13. I/O subsystem</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -389,10 +389,10 @@ in comments.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="io.html" title="14. I/O subsystem"
+          <a href="io.html" title="13. I/O subsystem"
              >next</a> |</li>
         <li class="right" >
-          <a href="fix.html" title="12. The generic fix function"
+          <a href="fix.html" title="11. The generic fix function"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

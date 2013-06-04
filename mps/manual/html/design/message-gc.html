@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>19. GC messages &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>18. GC messages &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="20. Debugging features for client objects" href="object-debug.html" />
-    <link rel="prev" title="18. Client message protocol" href="message.html" /> 
+    <link rel="next" title="19. Debugging features for client objects" href="object-debug.html" />
+    <link rel="prev" title="17. Client message protocol" href="message.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="20. Debugging features for client objects"
+          <a href="object-debug.html" title="19. Debugging features for client objects"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="message.html" title="18. Client message protocol"
+          <a href="message.html" title="17. Client message protocol"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="gc-messages">
-<span id="design-message-gc"></span><span id="index-0"></span><h1>19. GC messages<a class="headerlink" href="#gc-messages" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-message-gc"></span><div class="section" id="gc-messages">
+<span id="index-0"></span><h1>18. GC messages<a class="headerlink" href="#gc-messages" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.config"></span><h2>19.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.config"></span><h2>18.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.intro"></span><a class="mpstag reference internal" href="#design.mps.config.intro">.intro:</a> This document describes the design of the MPS garbage
 collection messages. For a guide to the MPS message system in general,
 see design.mps.message.</p>
 <p><span class="target" id="design.mps.config.readership"></span><a class="mpstag reference internal" href="#design.mps.config.readership">.readership:</a> Any MPS developer.</p>
 </div>
 <div class="section" id="overview">
-<h2>19.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>18.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The MPS provides two types of GC messages:</p>
 <ul class="simple">
 <li><a class="reference internal" href="../topic/collection.html#mps_message_type_gc_start" title="mps_message_type_gc_start"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_type_gc_start()</span></tt></a>;</li>
@@ -74,7 +74,7 @@ see design.mps.message.</p>
 document and in most MPS source code.</p>
 </div>
 <div class="section" id="id1">
-<h2>19.3. Introduction<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>18.3. Introduction<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>The MPS posts a trace start message (<a class="reference internal" href="../topic/collection.html#mps_message_type_gc_start" title="mps_message_type_gc_start"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_type_gc_start()</span></tt></a>)
 near the start of every trace (but after calculating the condemned
 set, so we can report how large it is).</p>
@@ -95,7 +95,7 @@ and client than using a single message. Richard Kistruck,
 </div>
 </div>
 <div class="section" id="purpose">
-<h2>19.4. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<h2>18.4. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.purpose"></span><a class="mpstag reference internal" href="#design.mps.config.purpose">.purpose:</a> The purpose of these messages is to allow the client
 program to be aware of GC activity, in order to:</p>
 <ul class="simple">
@@ -113,7 +113,7 @@ present in release builds, are stable from release to release, and are
 designed to be parsed by the client program.</p>
 </div>
 <div class="section" id="names-and-parts">
-<h2>19.5. Names and parts<a class="headerlink" href="#names-and-parts" title="Permalink to this headline">¶</a></h2>
+<h2>18.5. Names and parts<a class="headerlink" href="#names-and-parts" title="Permalink to this headline">¶</a></h2>
 <p>Here&#8217;s a helpful list of the names used in the GC message system:</p>
 <p>Implementation is mostly in the source file <tt class="docutils literal"><span class="pre">traceanc.c</span></tt> (trace
 ancillary).</p>
@@ -163,7 +163,7 @@ Kistruck, 2008-12-15.</p>
 Reference Manual.</p>
 </div>
 <div class="section" id="lifecycle">
-<h2>19.6. Lifecycle<a class="headerlink" href="#lifecycle" title="Permalink to this headline">¶</a></h2>
+<h2>18.6. Lifecycle<a class="headerlink" href="#lifecycle" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.lifecycle"></span><a class="mpstag reference internal" href="#design.mps.config.lifecycle">.lifecycle:</a> for each trace id, pre-allocate a pair of start/end
 messages by calling <tt class="xref c c-func docutils literal"><span class="pre">ControlAlloc()</span></tt>. Then, when a trace runs using
 that trace id, fill in and post these messages. As soon as the trace
@@ -171,7 +171,7 @@ has posted both messages, immediately pre-allocate a new pair of
 messages, which wait in readiness for the next trace to use that
 trace id.</p>
 <div class="section" id="requirements">
-<h3>19.6.1. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<h3>18.6.1. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.config.req.no-start-alloc"></span><a class="mpstag reference internal" href="#design.mps.config.req.no-start-alloc">.req.no-start-alloc:</a> Should avoid attempting to allocate memory at
 trace start time. <span class="target" id="design.mps.config.req.no-start-alloc.why"></span><a class="mpstag reference internal" href="#design.mps.config.req.no-start-alloc.why">.req.no-start-alloc.why:</a> There may be no free
 memory at trace start time. Client would still like to hear about
@@ -202,7 +202,7 @@ is quite okay, and may be helpful to the client, for the same datum
 both the start and end message.</p>
 </div>
 <div class="section" id="storage">
-<h3>19.6.2. Storage<a class="headerlink" href="#storage" title="Permalink to this headline">¶</a></h3>
+<h3>18.6.2. Storage<a class="headerlink" href="#storage" title="Permalink to this headline">¶</a></h3>
 <p>For each trace-id (<a class="reference internal" href="#design.mps.config.req.multi-trace">.req.multi-trace</a>) a pair (<a class="reference internal" href="#design.mps.config.req.match">.req.match</a>) of
 start/end messages is dynamically allocated (<a class="reference internal" href="#design.mps.config.req.queue">.req.queue</a>) in advance
 (<a class="reference internal" href="#design.mps.config.req.no-start-alloc">.req.no-start-alloc</a>). Messages are allocated in the control pool
@@ -227,7 +227,7 @@ uninitialised memory) when not being used by a trace. See also
 </div>
 </div>
 <div class="section" id="creating-and-posting">
-<h3>19.6.3. Creating and Posting<a class="headerlink" href="#creating-and-posting" title="Permalink to this headline">¶</a></h3>
+<h3>18.6.3. Creating and Posting<a class="headerlink" href="#creating-and-posting" title="Permalink to this headline">¶</a></h3>
 <p>In <tt class="xref c c-func docutils literal"><span class="pre">ArenaCreate()</span></tt> we use <tt class="xref c c-macro docutils literal"><span class="pre">TRACE_SET_ITER</span></tt> to initialise the
 <tt class="docutils literal"><span class="pre">tsMessage[ti]</span></tt> and <tt class="docutils literal"><span class="pre">tMessage[ti]</span></tt> pointers to <tt class="xref c c-macro docutils literal"><span class="pre">NULL</span></tt>, and then
 (when the control pool is ready) <tt class="xref c c-macro docutils literal"><span class="pre">TRACE_SET_ITER</span></tt> calling
@@ -256,7 +256,7 @@ Currently this counter is never reported to the client (except in
 diagnostic varieties).</p>
 </div>
 <div class="section" id="getting-and-discarding">
-<h3>19.6.4. Getting and discarding<a class="headerlink" href="#getting-and-discarding" title="Permalink to this headline">¶</a></h3>
+<h3>18.6.4. Getting and discarding<a class="headerlink" href="#getting-and-discarding" title="Permalink to this headline">¶</a></h3>
 <p>If the client has not enabled that message type, the message is
 discarded immediately when posted, calling <tt class="xref c c-func docutils literal"><span class="pre">ControlFree()</span></tt> and
 reclaiming the memory.</p>
@@ -275,7 +275,7 @@ reclaimed until <tt class="xref c c-func docutils literal"><span class="pre">Are
 pool is not garbage-collected.</p>
 </div>
 <div class="section" id="final-clearup">
-<h3>19.6.5. Final clearup<a class="headerlink" href="#final-clearup" title="Permalink to this headline">¶</a></h3>
+<h3>18.6.5. Final clearup<a class="headerlink" href="#final-clearup" title="Permalink to this headline">¶</a></h3>
 <p>Final clearup is performed at <tt class="xref c c-func docutils literal"><span class="pre">ArenaDestroy()</span></tt>, as follows:</p>
 <ul class="simple">
 <li>Unused and unsent pre-allocated messages (one per trace id) are
@@ -291,12 +291,12 @@ control pool.</li>
 </div>
 </div>
 <div class="section" id="testing">
-<h2>19.7. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<h2>18.7. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p>The main test is &#8220;<tt class="docutils literal"><span class="pre">zmess.c</span></tt>&#8221;. See notes there.</p>
 <p>Various other tests, including <tt class="docutils literal"><span class="pre">amcss.c</span></tt>, also collect and report
 <a class="reference internal" href="../topic/collection.html#mps_message_type_gc" title="mps_message_type_gc"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_type_gc()</span></tt></a> and <a class="reference internal" href="../topic/collection.html#mps_message_type_gc_start" title="mps_message_type_gc_start"><tt class="xref c c-func docutils literal"><span class="pre">mps_message_type_gc_start()</span></tt></a>.</p>
 <div class="section" id="coverage">
-<h3>19.7.1. Coverage<a class="headerlink" href="#coverage" title="Permalink to this headline">¶</a></h3>
+<h3>18.7.1. Coverage<a class="headerlink" href="#coverage" title="Permalink to this headline">¶</a></h3>
 <p>Current tests do not check:</p>
 <ul class="simple">
 <li>The less common why-codes (reasons why a trace starts). These should
@@ -317,22 +317,22 @@ be added to <tt class="docutils literal"><span class="pre">zmess.c</span></tt>.<
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">19. GC messages</a><ul>
-<li><a class="reference internal" href="#introduction">19.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">19.2. Overview</a></li>
-<li><a class="reference internal" href="#id1">19.3. Introduction</a></li>
-<li><a class="reference internal" href="#purpose">19.4. Purpose</a></li>
-<li><a class="reference internal" href="#names-and-parts">19.5. Names and parts</a></li>
-<li><a class="reference internal" href="#lifecycle">19.6. Lifecycle</a><ul>
-<li><a class="reference internal" href="#requirements">19.6.1. Requirements</a></li>
-<li><a class="reference internal" href="#storage">19.6.2. Storage</a></li>
-<li><a class="reference internal" href="#creating-and-posting">19.6.3. Creating and Posting</a></li>
-<li><a class="reference internal" href="#getting-and-discarding">19.6.4. Getting and discarding</a></li>
-<li><a class="reference internal" href="#final-clearup">19.6.5. Final clearup</a></li>
+<li><a class="reference internal" href="#">18. GC messages</a><ul>
+<li><a class="reference internal" href="#introduction">18.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">18.2. Overview</a></li>
+<li><a class="reference internal" href="#id1">18.3. Introduction</a></li>
+<li><a class="reference internal" href="#purpose">18.4. Purpose</a></li>
+<li><a class="reference internal" href="#names-and-parts">18.5. Names and parts</a></li>
+<li><a class="reference internal" href="#lifecycle">18.6. Lifecycle</a><ul>
+<li><a class="reference internal" href="#requirements">18.6.1. Requirements</a></li>
+<li><a class="reference internal" href="#storage">18.6.2. Storage</a></li>
+<li><a class="reference internal" href="#creating-and-posting">18.6.3. Creating and Posting</a></li>
+<li><a class="reference internal" href="#getting-and-discarding">18.6.4. Getting and discarding</a></li>
+<li><a class="reference internal" href="#final-clearup">18.6.5. Final clearup</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#testing">19.7. Testing</a><ul>
-<li><a class="reference internal" href="#coverage">19.7.1. Coverage</a></li>
+<li><a class="reference internal" href="#testing">18.7. Testing</a><ul>
+<li><a class="reference internal" href="#coverage">18.7.1. Coverage</a></li>
 </ul>
 </li>
 </ul>
@@ -341,10 +341,10 @@ be added to <tt class="docutils literal"><span class="pre">zmess.c</span></tt>.<
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="message.html"
-                        title="previous chapter">18. Client message protocol</a></p>
+                        title="previous chapter">17. Client message protocol</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="object-debug.html"
-                        title="next chapter">20. Debugging features for client objects</a></p><h4>Downloads</h4>
+                        title="next chapter">19. Debugging features for client objects</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -370,10 +370,10 @@ be added to <tt class="docutils literal"><span class="pre">zmess.c</span></tt>.<
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="object-debug.html" title="20. Debugging features for client objects"
+          <a href="object-debug.html" title="19. Debugging features for client objects"
              >next</a> |</li>
         <li class="right" >
-          <a href="message.html" title="18. Client message protocol"
+          <a href="message.html" title="17. Client message protocol"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

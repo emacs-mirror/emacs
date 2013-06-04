@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>16. The lock module &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>15. The lock module &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="17. MPS Configuration" href="locus.html" />
-    <link rel="prev" title="15. Library interface" href="lib.html" /> 
+    <link rel="next" title="16. MPS Configuration" href="locus.html" />
+    <link rel="prev" title="14. Library interface" href="lib.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="locus.html" title="17. MPS Configuration"
+          <a href="locus.html" title="16. MPS Configuration"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="lib.html" title="15. Library interface"
+          <a href="lib.html" title="14. Library interface"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-lock-module">
-<span id="design-lock"></span><span id="index-0"></span><h1>16. The lock module<a class="headerlink" href="#the-lock-module" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="design-lock"></span><div class="section" id="the-lock-module">
+<span id="index-0"></span><h1>15. The lock module<a class="headerlink" href="#the-lock-module" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="purpose">
-<span id="design.mps.lock"></span><h2>16.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.lock"></span><h2>15.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.lock.purpose"></span><a class="mpstag reference internal" href="#design.mps.lock.purpose">.purpose:</a> Support the locking needs of the thread-safe design. In
 particular:</p>
 <ul class="simple">
@@ -77,7 +77,7 @@ historic requirements, and because the implementation will presumably
 be necessary anyway for the global recursive lock.</p>
 </div>
 <div class="section" id="background">
-<h2>16.2. Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
+<h2>15.2. Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.lock.need"></span><a class="mpstag reference internal" href="#design.mps.lock.need">.need:</a> In an environment where multiple threads are accessing
 shared data. The threads which access data which is shared with other
 threads need to cooperate with those threads to maintain consistency.
@@ -95,7 +95,7 @@ accessing thread. More generally any set of operations which are
 required to be mutually exclusive may be performed so by using locks.</p>
 </div>
 <div class="section" id="overview">
-<h2>16.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>15.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.lock.adt"></span><a class="mpstag reference internal" href="#design.mps.lock.adt">.adt:</a> There is an abstract datatype <tt class="xref c c-type docutils literal"><span class="pre">Lock</span></tt> which points to a
 locking structure <tt class="xref c c-type docutils literal"><span class="pre">LockStruct</span></tt>. This structure is opaque to any
 client, although an interface is provided to supply the size of the
@@ -123,7 +123,7 @@ design.mps.thread-safety.deadlock.)</p>
 needed and the claim/release interfaces defined to be no-ops.</p>
 </div>
 <div class="section" id="detailed-design">
-<h2>16.4. Detailed design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
+<h2>15.4. Detailed design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.lock.interface"></span><a class="mpstag reference internal" href="#design.mps.lock.interface">.interface:</a> The interface comprises the following functions:</p>
 <dl class="function">
 <dt id="LockSize">
@@ -247,21 +247,21 @@ success or <tt class="xref c c-macro docutils literal"><span class="pre">EDEADLK
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">16. The lock module</a><ul>
-<li><a class="reference internal" href="#purpose">16.1. Purpose</a></li>
-<li><a class="reference internal" href="#background">16.2. Background</a></li>
-<li><a class="reference internal" href="#overview">16.3. Overview</a></li>
-<li><a class="reference internal" href="#detailed-design">16.4. Detailed design</a></li>
+<li><a class="reference internal" href="#">15. The lock module</a><ul>
+<li><a class="reference internal" href="#purpose">15.1. Purpose</a></li>
+<li><a class="reference internal" href="#background">15.2. Background</a></li>
+<li><a class="reference internal" href="#overview">15.3. Overview</a></li>
+<li><a class="reference internal" href="#detailed-design">15.4. Detailed design</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="lib.html"
-                        title="previous chapter">15. Library interface</a></p>
+                        title="previous chapter">14. Library interface</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="locus.html"
-                        title="next chapter">17. MPS Configuration</a></p><h4>Downloads</h4>
+                        title="next chapter">16. MPS Configuration</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -287,10 +287,10 @@ success or <tt class="xref c c-macro docutils literal"><span class="pre">EDEADLK
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="locus.html" title="17. MPS Configuration"
+          <a href="locus.html" title="16. MPS Configuration"
              >next</a> |</li>
         <li class="right" >
-          <a href="lib.html" title="15. Library interface"
+          <a href="lib.html" title="14. Library interface"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 
