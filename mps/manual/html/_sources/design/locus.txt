@@ -323,8 +323,7 @@ details, see implementation section and code, or user doc.
 Loci
 ....
 
-.. c:function:: Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg, 
-LocusAllocDesc adesc)
+.. c:function:: Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg, LocusAllocDesc adesc)
 
 :mps:tag:`function.create` A function to create a locus: ``adesc`` contains
 the information about the allocation sequences in the locus, ``zg`` is

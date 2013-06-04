@@ -312,11 +312,10 @@ details, see implementation section and code, or user doc.</p>
 <div class="section" id="loci">
 <h3>16.6.1. Loci<a class="headerlink" href="#loci" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
-<dt>
-<tt class="descname">Res LocusCreate(Locus *locusReturn, LocusAttrs attrs, ZoneGroup zg,</tt></dt>
+<dt id="LocusCreate">
+<a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">LocusCreate</tt><big>(</big>Locus<em>&nbsp;*locusReturn</em>, LocusAttrs<em>&nbsp;attrs</em>, ZoneGroup<em>&nbsp;zg</em>, LocusAllocDesc<em>&nbsp;adesc</em><big>)</big><a class="headerlink" href="#LocusCreate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>LocusAllocDesc adesc)</p>
 <p><span class="target" id="design.mps.locus.function.create"></span><a class="mpstag reference internal" href="#design.mps.locus.function.create">.function.create:</a> A function to create a locus: <tt class="docutils literal"><span class="pre">adesc</span></tt> contains
 the information about the allocation sequences in the locus, <tt class="docutils literal"><span class="pre">zg</span></tt> is
 used for zone differentiability, and <tt class="docutils literal"><span class="pre">attrs</span></tt> encodes the following:</p>
@@ -380,7 +379,7 @@ tracts (not objects) in the cohort.</p>
 </div>
 </li>
 </ul>
-<p><span class="target" id="design.mps.locus.function.init"></span><a class="mpstag reference internal" href="#design.mps.locus.function.init">.function.init:</a> <tt class="xref c c-func docutils literal"><span class="pre">LocusInit()</span></tt> is like <tt class="xref c c-func docutils literal"><span class="pre">LocusCreate()</span></tt>, but
+<p><span class="target" id="design.mps.locus.function.init"></span><a class="mpstag reference internal" href="#design.mps.locus.function.init">.function.init:</a> <tt class="xref c c-func docutils literal"><span class="pre">LocusInit()</span></tt> is like <a class="reference internal" href="#LocusCreate" title="LocusCreate"><tt class="xref c c-func docutils literal"><span class="pre">LocusCreate()</span></tt></a>, but
 without the allocation. This is the usual interface, since most loci
 are embedded in a pool or something.</p>
 <p><span class="target" id="design.mps.locus.function.alloc"></span><a class="mpstag reference internal" href="#design.mps.locus.function.alloc">.function.alloc:</a> <tt class="xref c c-func docutils literal"><span class="pre">ArenaAlloc()</span></tt> to take a locus argument.

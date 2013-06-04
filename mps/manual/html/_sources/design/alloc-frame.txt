@@ -252,8 +252,7 @@ the :c:func:`SelectFrameOfAddr()` operation.
 :mps:tag:`fn.client.in-frame` This function is used by clients to invoke the
 :c:func:`AddrInFrame()` operation.
 
-.. c:function:: mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t 
-class)
+.. c:function:: mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t class)
 
 :mps:tag:`fn.client.set` This function is used by clients to invoke the 
 :c:func:`SetFrameClass()` operation.
