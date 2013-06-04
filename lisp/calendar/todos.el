@@ -96,7 +96,8 @@ makes it return the value of the variable `todos-archives'."
 (defun todos-short-file-name (file)
   "Return short form of Todos FILE.
 This lacks the extension and directory components."
-  (file-name-sans-extension (file-name-nondirectory file)))
+  (when (stringp file)
+    (file-name-sans-extension (file-name-nondirectory file))))
 
 (defcustom todos-visit-files-commands (list 'find-file 'dired-find-file)
   "List of file finding commands for `todos-display-as-todos-file'.
@@ -193,6 +194,7 @@ Invoking this command in Todos Archive mode visits the
 corresponding Todos file, displaying the corresponding category."
   (interactive "P")
   (let* ((cat)
+	 (add-item nil)
 	 (show-first todos-show-first)
 	 (file (cond ((or solicit-file
 			  (and (called-interactively-p 'any)
@@ -217,6 +219,10 @@ corresponding Todos file, displaying the corresponding category."
 			       todos-global-current-todos-file)
 			  (todos-absolute-file-name todos-default-todos-file)
 			  (todos-add-file))))))
+    (unless todos-default-todos-file
+      ;; We just initialized the first todo file, so make it the default.
+      (setq todos-default-todos-file (todos-short-file-name file))
+      (todos-reevaluate-default-file-defcustom))
     (unless (member file todos-visited)
       ;; Can't setq t-c-t-f here, otherwise wrong file shown when
       ;; todos-show is called from todos-show-categories-table.
@@ -259,9 +265,11 @@ corresponding Todos file, displaying the corresponding category."
       	(setq todos-category-number (todos-category-number cat)))
       ;; If this is a new Todos file, add its first category.
       (when (zerop (buffer-size))
-	(setq todos-category-number
-	      (todos-add-category todos-current-todos-file "")))
-      (save-excursion (todos-category-select)))
+	(setq todos-category-number (todos-add-category todos-current-todos-file
+							"")
+	      add-item todos-add-item-if-new-category))
+      (save-excursion (todos-category-select))
+      (when add-item (todos-basic-insert-item)))
     (setq todos-show-first show-first)
     (add-to-list 'todos-visited file)))
 
@@ -375,9 +383,12 @@ Categories mode."
 				 todos-current-todos-file) ".toda")
 		      ;; Otherwise, jump to current todos file.
 		      todos-current-todos-file)))
-	  (cat+file (unless cat
-		      (todos-read-category "Jump to category: "
-					   (if archive 'archive) file))))
+	   (len (length todos-categories))
+	   (cat+file (unless cat
+		       (todos-read-category "Jump to category: "
+					    (if archive 'archive) file)))
+	   (add-item (and todos-add-item-if-new-category
+			  (> (length todos-categories) len))))
       (setq category (or cat (car cat+file)))
       (unless cat (setq file0 (cdr cat+file)))
       (with-current-buffer (find-file-noselect file0 'nowarn)
@@ -391,7 +402,8 @@ Categories mode."
 	  (setq todos-global-current-todos-file todos-current-todos-file))
 	(todos-category-number category)
 	(todos-category-select)
-	(goto-char (point-min))))))
+	(goto-char (point-min))
+	(when add-item (todos-basic-insert-item))))))
 
 (defun todos-next-item (&optional count)
   "Move point down to the beginning of the next item.
@@ -460,6 +472,7 @@ This command does not save the file to disk; to do that type
       (erase-buffer)
       (write-region (point-min) (point-max) file nil 'nomessage nil t)
       (kill-buffer file))
+    (setq todos-files (funcall todos-files-function))
     (todos-reevaluate-filelist-defcustoms)
     (if (called-interactively-p)
 	(progn
@@ -537,7 +550,9 @@ return the new category number."
       (if (called-interactively-p 'any)
 	  (progn
 	    (setq todos-category-number num)
-	    (todos-category-select))
+	    (todos-category-select)
+	    (when todos-add-item-if-new-category
+	      (todos-basic-insert-item)))
 	num))))
 
 (defun todos-rename-category ()
@@ -962,6 +977,11 @@ marking of the next N items."
 ;; -----------------------------------------------------------------------------
 ;;; Item editing options
 ;; -----------------------------------------------------------------------------
+
+(defcustom todos-add-item-if-new-category nil
+  "Non-nil to prompt for an item after adding a new category."
+  :type 'boolean
+  :group 'todos-edit)
 
 (defcustom todos-include-in-diary nil
   "Non-nil to allow new Todo items to be included in the diary."

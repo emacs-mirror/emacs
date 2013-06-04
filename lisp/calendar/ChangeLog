@@ -1,5 +1,15 @@
 2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Allow prompting for first item on adding a new
+	category.  Fix handling of default todo file on adding first file.
+	(todos-add-item-if-new-category): New defcustom.
+	(todos-show, todos-jump-to-category, todos-add-category): Use it.
+	(todos-short-file-name): Return nil if file name is not a string.
+	(todos-add-file): Recalculate todos-files after adding a file.
+	(todos-show): If first file was just added, make it the default.
+
+2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-read-category, todos-merge-category):
 	Fix argument value to accord with documented change from 2013-05-14.
 
