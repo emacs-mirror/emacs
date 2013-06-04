@@ -1258,6 +1258,22 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 }
 
 
+/* Return the CBS of an MVT pool for the benefit of fotest.c. */
+
+extern CBS _mps_mvt_cbs(mps_pool_t);
+CBS _mps_mvt_cbs(mps_pool_t mps_pool) {
+  Pool pool;
+  MVT mvt;
+
+  pool = (Pool)mps_pool;
+  AVERT(Pool, pool);
+  mvt = Pool2MVT(pool);
+  AVERT(MVT, mvt);
+
+  return MVTCBS(mvt);
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
