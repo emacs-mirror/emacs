@@ -43,7 +43,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size, Pool pool,
                        Bool withReservoirPermit);
 
 static void MVTSegFree(MVT mvt, Seg seg);
-static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena);
+static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena);
 static Res MVTInsert(MVT mvt, Addr base, Addr limit);
 static Res MVTDelete(MVT mvt, Addr base, Addr limit);
 static void MVTRefillIfNecessary(MVT mvt, Size size);
@@ -632,7 +632,7 @@ static Res MVTReserve(MVT mvt, Range range)
     res = ABQPeek(MVTABQ(mvt), &oldRange);
     AVER(res == ResOK);
     AVERT(Range, &oldRange);
-    if (!MVTReturnRangeSegs(mvt, &oldRange, arena))
+    if (!MVTReturnSegs(mvt, &oldRange, arena))
       goto failOverflow;
     METER_ACC(mvt->returns, RangeSize(&oldRange));
     res = ABQPush(MVTABQ(mvt), range);
@@ -1086,10 +1086,9 @@ static void MVTSegFree(MVT mvt, Seg seg)
 }
 
 
-/* MVTReturnRangeSegs -- return (interior) segments of a block to the
- * arena
- */
-static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena)
+/* MVTReturnSegs -- return (interior) segments of a range to the arena */
+
+static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
 {
   Addr base, limit;
   Bool success = FALSE;

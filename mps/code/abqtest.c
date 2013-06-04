@@ -5,21 +5,12 @@
  */
 
 #include "abq.h"
-#include "cbs.h"
-#include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
-#include "testlib.h"
-#include "mpslib.h"
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
 #include "mpstd.h"
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
-#include <time.h>
-#include <math.h>
+#include "testlib.h"
+
+#include <stdlib.h>
 
 
 SRCID(abqtest, "$Id$");

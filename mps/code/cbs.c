@@ -29,12 +29,9 @@ typedef struct CBSBlockStruct {
   Size maxSize; /* accurate maximum block size of sub-tree */
 } CBSBlockStruct;
 
-
-extern Bool CBSBlockCheck(CBSBlock block);
 #define CBSBlockBase(block) ((block)->base)
 #define CBSBlockLimit(block) ((block)->limit)
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
-extern Size (CBSBlockSize)(CBSBlock block);
 
 
 #define cbsOfSplayTree(tree) PARENT(CBSStruct, splayTree, (tree))
@@ -44,7 +41,7 @@ extern Size (CBSBlockSize)(CBSBlock block);
 #define keyOfCBSBlock(block) ((void *)&((block)->base))
 
 
-/* CBSEnter, CBSLeave -- Avoid re-entrance
+/* cbsEnter, cbsLeave -- Avoid re-entrance
  *
  * .enter-leave: The callbacks are restricted in what they may call.
  * These functions enforce this.
@@ -52,7 +49,7 @@ extern Size (CBSBlockSize)(CBSBlock block);
  * .enter-leave.simple: Simple queries may be called from callbacks.
  */
 
-static void CBSEnter(CBS cbs)
+static void cbsEnter(CBS cbs)
 {
   /* Don't need to check as always called from interface function. */
   AVER(!cbs->inCBS);
@@ -60,7 +57,7 @@ static void CBSEnter(CBS cbs)
   return;
 }
 
-static void CBSLeave(CBS cbs)
+static void cbsLeave(CBS cbs)
 {
   /* Don't need to check as always called from interface function. */
   AVER(cbs->inCBS);
@@ -87,7 +84,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
-Bool CBSBlockCheck(CBSBlock block)
+static Bool CBSBlockCheck(CBSBlock block)
 {
   /* See .enter-leave.simple. */
   UNUSED(block); /* Required because there is no signature */
@@ -99,13 +96,6 @@ Bool CBSBlockCheck(CBSBlock block)
   CHECKL(CBSBlockBase(block) <= CBSBlockLimit(block));
   /* Can't check maxSize because it may be invalid at the time */
   return TRUE;
-}
-
-
-Size (CBSBlockSize)(CBSBlock block)
-{
-  /* See .enter-leave.simple. */
-  return CBSBlockSize(block);
 }
 
 
@@ -250,7 +240,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 
   AVERT(CBS, cbs);
   EVENT2(CBSInit, cbs, owner);
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return ResOK;
 }
 
@@ -263,7 +253,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment,
 void CBSFinish(CBS cbs)
 {
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   METER_EMIT(&cbs->splaySearch);
 
@@ -491,7 +481,7 @@ Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
   Res res;
 
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVERT(Range, range);
@@ -499,7 +489,7 @@ Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
 
   res = cbsInsertIntoTree(rangeReturn, cbs, range);
 
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return res;
 }
 
@@ -591,7 +581,7 @@ Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
   Res res;
 
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVERT(Range, range);
@@ -599,12 +589,12 @@ Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
 
   res = cbsDeleteFromTree(rangeReturn, cbs, range);
 
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return res;
 }
 
 
-static Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
+static Res cbsBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
 {
   Res res;
 
@@ -619,14 +609,14 @@ static Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream)
   return res;
 }
 
-static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
+static Res cbsSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
 {
   Res res;
 
   if (splayNode == NULL) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  res = CBSBlockDescribe(cbsBlockOfSplayNode(splayNode), stream);
+  res = cbsBlockDescribe(cbsBlockOfSplayNode(splayNode), stream);
   return res;
 }
 
@@ -637,15 +627,15 @@ static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
  * See <design/cbs/#function.cbs.iterate>.
  */
 
-/* Internal version without enter/leave checking. */
-static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
-                               void *closureP, Size closureS)
+void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+                void *closureP, Size closureS)
 {
   SplayNode splayNode;
   SplayTree splayTree;
   CBSBlock cbsBlock;
 
   AVERT(CBS, cbs);
+  cbsEnter(cbs);
   AVER(FUNCHECK(iterate));
 
   splayTree = splayTreeOfCBS(cbs);
@@ -662,20 +652,8 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
     splayNode = SplayTreeNext(splayTree, splayNode, keyOfCBSBlock(cbsBlock));
   }
-  return;
-}
 
-void CBSIterate(CBS cbs, CBSIterateMethod iterate,
-                void *closureP, Size closureS)
-{
-  AVERT(CBS, cbs);
-  CBSEnter(cbs);
-
-  AVER(FUNCHECK(iterate));
-
-  cbsIterateInternal(cbs, iterate, closureP, closureS);
-
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return;
 }
 
@@ -762,7 +740,7 @@ Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
   SplayNode node;
 
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -785,7 +763,7 @@ Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
                        size, findDelete);
   }
 
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return found;
 }
 
@@ -799,7 +777,7 @@ Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
   SplayNode node;
 
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -822,7 +800,7 @@ Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
                        size, findDelete);
   }
 
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return found;
 }
 
@@ -837,7 +815,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
   Bool notEmpty;
 
   AVERT(CBS, cbs);
-  CBSEnter(cbs);
+  cbsEnter(cbs);
 
   AVER(rangeReturn != NULL);
   AVER(oldRangeReturn != NULL);
@@ -866,7 +844,7 @@ Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
     }
   }
 
-  CBSLeave(cbs);
+  cbsLeave(cbs);
   return found;
 }
 
@@ -893,7 +871,7 @@ Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  res = SplayTreeDescribe(splayTreeOfCBS(cbs), stream, &CBSSplayNodeDescribe);
+  res = SplayTreeDescribe(splayTreeOfCBS(cbs), stream, &cbsSplayNodeDescribe);
   if (res != ResOK) return res;
 
   res = METER_WRITE(cbs->splaySearch, stream);
