@@ -295,7 +295,8 @@
 /* @@@@ knows the implementation of ZoneSets */
 
 /* .segpref.default: For EPcore, non-DL segments should be placed high */
-/* to reduce fragmentation of DL pools (see request.epcore.170193). */
+/* to reduce fragmentation of DL pools (see request.epcore.170193_). */
+/* .. _request.epcore.170193: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193 */
 #define SegPrefDEFAULT { \
   SegPrefSig,          /* sig */ \
   TRUE,                /* high */ \

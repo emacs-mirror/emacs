@@ -112,7 +112,9 @@ _`.req.count`: Must record (approximately) the amount of allocation (in bytes).
 
     Actually not a requirement any more, but once was put forward as a
     Dylan requirement. Bits of the code still reflect this
-    requirement. See request.dylan.170554.
+    requirement. See request.dylan.170554_.
+
+.. _request.dylan.170554: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170554
 
 
 Classes

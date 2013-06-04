@@ -586,10 +586,12 @@ Ramps
 _`.ramp`: Ramps usefully implement the begin/end
 ``mps_alloc_pattern_ramp()`` interface.
 
-_`.gen.ramp`: To implement ramping (request.dylan.170423), AMC uses a
+_`.gen.ramp`: To implement ramping (request.dylan.170423_), AMC uses a
 special "ramping mode", where promotions are redirected. One
 generation is designated the "ramp generation" (``amc->rampGen`` in
 the code).
+
+.. _request.dylan.170423: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170423
 
 _`.gen.ramp.ordinary`: Ordinarily, that is whilst not ramping, objects
 are promoted into the ramp generation from younger generations and are
