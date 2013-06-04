@@ -11,12 +11,6 @@ MPS Strategy
 :Copyright: See section `Copyright and License`_.
 
 
-.. sources:
-
-    `<https://info.ravenbrook.com/project/mps/master/design/strategy/>`_
-
-.. mps:prefix:: design.mps.strategy
-
 Introduction
 ------------
 
@@ -44,7 +38,7 @@ directions.
 Requirements
 ------------
 
-[We could source some from req.dylan, or do an up-to-date requirements
+[TODO: source some from req.dylan, or do an up-to-date requirements
 analysis -- NB 2013-03-25]
 
 Garbage collection is a trade-off between time and space: it consumes
@@ -217,44 +211,43 @@ shrink.
 Accounting
 ..........
 
-Each PoolGen
+- ``gen[N].mortality``
 
-gen[N].proflow ??
+  - Specified by the client.
+  - TODO: fill in how this is used.
 
-gen[N].mortality
-gen[N].capacity
+- ``gen[N].capacity``
 
-pgen->totalSize
-pgen->newSize
-pgen->newSizeAtCreate
+  - Specified by the client.
+  - TODO: fill in how this is used.
 
-amcSeg->new
+- ``amcSeg->new``
 
+  - TODO: fill this in
 
-pgen->totalSize incremented by AMCBufferFill(), decremented by
-amcReclaimNailed() and AMCReclaim(), added up by
-GenDescTotalSize(gen).
+- ``pgen->totalSize``:
 
-pgen->newSize incremented by AMCBufferFill() (*when not ramping*) and
-AMCRampEnd(), decremented by AMCWhiten().
+  - incremented by ``AMCBufferFill()``;
+  - decremented by ``amcReclaimNailed()`` and ``AMCReclaim()``;
+  - added up by ``GenDescTotalSize(gen)``.
 
-gen[N].proflow set to 1.0 by ChainCreate().  arena->topGen.proflow set
-to 0.0 by LocusInit(arena).  This field is never used.
+- ``pgen->newSize``:
 
-added up by GenDescNewSize(gen).
+  - incremented by ``AMCBufferFill()`` (*when not ramping*) and ``AMCRampEnd()``;
+  - decremented by ``AMCWhiten()``,
+  - added up by ``GenDescNewSize(gen)``.
 
+- ``gen[N].proflow``:
 
-
-
-pgen->newSizeAtCreate is set by traceCopySizes() (that is its
-purpose), and output by TraceStartGenDesc_diag().
-
-
+  - set to 1.0 by ``ChainCreate()``;
+  - ``arena->topGen.proflow`` set to 0.0 by ``LocusInit(arena)``;
+  - *The value of this field is never used*.
 
 
+- ``pgen->newSizeAtCreate``:
 
-
-
+  - set by ``traceCopySizes()`` (that is its purpose);
+  - output by ``TraceStartGenDesc_diag()``.
 
 Ramps
 .....
@@ -345,13 +338,13 @@ then it can increment to any value).
 5. When COLLECTING, the count can be anything (from the previous fact,
 and the transition to COLLECTING).
 
-6. **** THE BUG **** the ramp generation is not always reset (to forward
+6. *This is a bug!!* The ramp generation is not always reset (to forward
 to the after-ramp generation).  If we get into FINISH and then see
 another ramp before the next condemnation of the ramp generation, we
-will Enter followed by Leave.  The Enter will keep us in FINISH, and the
-Leave will take us back to OUTSIDE, skipping the transition to the
+will Enter followed by Leave.  The Enter will keep us in FINISH, and
+the Leave will take us back to OUTSIDE, skipping the transition to the
 COLLECTING state which is what resets the ramp generation forwarding
-buffer.
+buffer.  [TODO: check whether I made an issue and/or fixed it; NB 2013-06-04]
 
 The simplest change to fix this is to change the behaviour of the Leave
 transition, which should only take us OUTSIDE if we are in BEGIN or
@@ -372,10 +365,10 @@ mention this other snippet, which is the only other code relating to
 ramping (these notes are useful when thinking about the broader strategy
 code):
 
-- In ``AMCBufferFill()``, if we're RAMPING, and filling the forwarding
-buffer of the ramp generation, and the ramp generation is the
-forwarding buffer's generation, set ``amcSeg->new`` to FALSE.  Otherwise,
-add the segment size to ``poolGen.newSize``.
+    In ``AMCBufferFill()``, if we're RAMPING, and filling the forwarding
+    buffer of the ramp generation, and the ramp generation is the
+    forwarding buffer's generation, set ``amcSeg->new`` to FALSE.  Otherwise,
+    add the segment size to ``poolGen.newSize``.
 
 And since I've now mentioned the ``amcSeg->new`` flag, here are the only
 other uses of that:
@@ -383,11 +376,11 @@ other uses of that:
 - it initializes as TRUE.
 
 - When leaving an outermost ramp, go through all the segments in the
-pool.  Any non-white segment in the rampGen with new set to FALSE has
-its size added to ``poolGen->newSize`` and gets new set to TRUE.
+  pool.  Any non-white segment in the rampGen with new set to FALSE has
+  its size added to ``poolGen->newSize`` and gets new set to TRUE.
 
 - in ``AMCWhiten()``, if new is TRUE, the segment size is deducted
-from ``poolGen.newSize`` and new is set to FALSE.
+  from ``poolGen.newSize`` and new is set to FALSE.
 
 Non-AMC Pools 
 .............
@@ -411,9 +404,12 @@ Non-AMC pools have no support for ramps.
 
 Starting a Trace
 ................
+TODO: Why do we start a trace?  How do we choose what to condemn?
+
 
 Trace Progress
 ..............
+TODO: When do we do some tracing work?  How much tracing work do we do?
 
 Document History
 ----------------
