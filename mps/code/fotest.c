@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_DONE(args);
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
-  if (0) {
+  {
     extern CBS _mps_mvt_cbs(mps_pool_t);
     CBS cbs = _mps_mvt_cbs(pool);
     die(stress(randomSizeAligned, pool, cbs), "stress MVT");

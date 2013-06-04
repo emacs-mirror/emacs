@@ -14,6 +14,7 @@
 #include "mpscmvt.h"
 #include "abq.h"
 #include "cbs.h"
+#include "freelist.h"
 #include "meter.h"
 #include "range.h"
 
@@ -45,16 +46,13 @@ static void MVTSegFree(MVT mvt, Seg seg);
 static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena);
 static Res MVTInsert(MVT mvt, Addr base, Addr limit);
 static Res MVTDelete(MVT mvt, Addr base, Addr limit);
-static void ABQRefillIfNecessary(MVT mvt, Size size);
-static Bool ABQRefillCallback(CBS cbs, Range range,
-                              void *closureP, Size closureS);
-static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Size min);
-static Bool MVTContingencyCallback(CBS cbs, Range range,
-                                   void *closureP, Size closureS);
+static void MVTRefillIfNecessary(MVT mvt, Size size);
+static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
+                                MVT mvt, Size min);
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena);
 static ABQ MVTABQ(MVT mvt);
 static CBS MVTCBS(MVT mvt);
-static MVT CBSMVT(CBS cbs);
+static Freelist MVTFreelist(MVT mvt);
 static SegPref MVTSegPref(MVT mvt);
 
 
@@ -64,6 +62,7 @@ typedef struct MVTStruct
 {
   PoolStruct poolStruct;
   CBSStruct cbsStruct;          /* The coalescing block structure */
+  FreelistStruct flStruct;      /* The emergency free list structure */
   ABQStruct abqStruct;          /* The available block queue */
   SegPrefStruct segPrefStruct;  /* The preferences for segments */
   /* <design/poolmvt/#arch.parameters> */
@@ -177,9 +176,9 @@ static CBS MVTCBS(MVT mvt)
 }
 
 
-static MVT CBSMVT(CBS cbs)
+static Freelist MVTFreelist(MVT mvt)
 {
-  return PARENT(MVTStruct, cbsStruct, cbs);
+  return &mvt->flStruct;
 }
 
 
@@ -282,6 +281,8 @@ static Res MVTInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failABQ;
 
+  FreelistInit(MVTFreelist(mvt), MPS_PF_ALIGN);
+
   {
     ZoneSet zones;
     /* --- Loci needed here, what should the pref be? */
@@ -371,6 +372,7 @@ static Bool MVTCheck(MVT mvt)
   /* CHECKL(CBSCheck(MVTCBS(mvt))); */
   CHECKD(ABQ, &mvt->abqStruct);
   /* CHECKL(ABQCheck(MVTABQ(mvt))); */
+  CHECKD(Freelist, &mvt->flStruct);
   CHECKD(SegPref, &mvt->segPrefStruct);
   CHECKL(mvt->reuseSize >= 2 * mvt->fillSize);
   CHECKL(mvt->fillSize >= mvt->maxSize);
@@ -419,7 +421,8 @@ static void MVTFinish(Pool pool)
     MVTSegFree(mvt, SegOfPoolRing(node));
   }
 
-  /* Finish the ABQ and CBS structures */
+  /* Finish the Freelist, ABQ and CBS structures */
+  FreelistFinish(MVTFreelist(mvt));
   ABQFinish(arena, MVTABQ(mvt));
   CBSFinish(MVTCBS(mvt));
 
@@ -495,14 +498,14 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
  
   /* Attempt to retrieve a free block from the ABQ */
-  ABQRefillIfNecessary(mvt, minSize);
+  MVTRefillIfNecessary(mvt, minSize);
   res = ABQPeek(MVTABQ(mvt), &range);
   if (res != ResOK) {
     METER_ACC(mvt->underflows, minSize);
     /* <design/poolmvt/#arch.contingency.fragmentation-limit> */
     if (mvt->available >=  mvt->availLimit) {
       METER_ACC(mvt->fragLimitContingencies, minSize);
-      res = MVTContingencySearch(&base, &limit, MVTCBS(mvt), minSize);
+      res = MVTContingencySearch(&base, &limit, mvt, minSize);
     }
   } else {
     AVERT(Range, &range);
@@ -561,7 +564,7 @@ found:
  
   /* Try contingency */
   METER_ACC(mvt->emergencyContingencies, minSize);
-  res = MVTContingencySearch(&base, &limit, MVTCBS(mvt), minSize);
+  res = MVTContingencySearch(&base, &limit, mvt, minSize);
   if (res == ResOK)
     goto found;
 
@@ -646,8 +649,8 @@ failOverflow:
 }
 
 
-/* MVTInsert -- insert an address range into the CBS and update the
- * ABQ accordingly.
+/* MVTInsert -- insert an address range into the CBS (or the Freelist
+ * if that fails) and update the ABQ accordingly.
  */
 static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 {
@@ -656,9 +659,18 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 
   AVERT(MVT, mvt);
   AVER(base < limit);
+
+  /* Attempt to flush the Freelist to the CBS to give maximum
+   * opportunities for coalescence. */
+  FreelistFlushToCBS(MVTFreelist(mvt), MVTCBS(mvt));
   
   RangeInit(&range, base, limit);
   res = CBSInsert(&newRange, MVTCBS(mvt), &range);
+  if (ResIsAllocFailure(res)) {
+    /* CBS ran out of memory for splay nodes: add range to emergency
+     * free list instead. */
+    res = FreelistInsert(&newRange, MVTFreelist(mvt), &range);
+  }
   if (res != ResOK)
     return res;
 
@@ -675,8 +687,8 @@ static Res MVTInsert(MVT mvt, Addr base, Addr limit)
 }
 
 
-/* MVTDelete -- delete an address range from the CBS and update the
- * ABQ accordingly.
+/* MVTDelete -- delete an address range from the CBS and the Freelist,
+ * and update the ABQ accordingly.
  */
 static Res MVTDelete(MVT mvt, Addr base, Addr limit)
 {
@@ -688,8 +700,29 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
 
   RangeInit(&range, base, limit);
   res = CBSDelete(&rangeOld, MVTCBS(mvt), &range);
+  if (ResIsAllocFailure(res)) {
+    /* CBS ran out of memory for splay nodes, which must mean that
+     * there were fragments on both sides: see
+     * <design/cbs/#function.cbs.delete.fail>. Handle this by
+     * deleting the whole of rangeOld (which requires no
+     * allocation) and re-inserting the fragments. */
+    RangeStruct rangeOld2;
+    res = CBSDelete(&rangeOld2, MVTCBS(mvt), &rangeOld);
+    AVER(res == ResOK);
+    AVER(RangesEqual(&rangeOld2, &rangeOld));
+    AVER(RangeBase(&rangeOld) != base);
+    res = MVTInsert(mvt, RangeBase(&rangeOld), base);
+    AVER(res == ResOK);
+    AVER(RangeLimit(&rangeOld) != limit);
+    res = MVTInsert(mvt, limit, RangeLimit(&rangeOld));
+    AVER(res == ResOK);
+  } else if (res == ResFAIL) {
+    /* Not found in the CBS: try the Freelist. */
+    res = FreelistDelete(&rangeOld, MVTFreelist(mvt), &range);
+  }
   if (res != ResOK)
     return res;
+  AVER(RangesNest(&rangeOld, &range));
 
   /* If the old address range was larger than the reuse size, then it
    * might be on the ABQ, so ensure it is removed.
@@ -796,7 +829,6 @@ static void MVTFree(Pool pool, Addr base, Size size)
   AVER(base != (Addr)0);
   AVER(size > 0);
 
-
   /* We know the buffer observes pool->alignment  */
   size = SizeAlignUp(size, pool->alignment);
   limit = AddrAdd(base, size);
@@ -877,6 +909,9 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if(res != ResOK) return res;
 
   res = ABQDescribe(MVTABQ(mvt), (ABQDescribeElement)RangeDescribe, stream);
+  if(res != ResOK) return res;
+
+  res = FreelistDescribe(MVTFreelist(mvt), stream);
   if(res != ResOK) return res;
 
   res = METER_WRITE(mvt->segAllocs, stream);
@@ -1088,38 +1123,15 @@ static Bool MVTReturnRangeSegs(MVT mvt, Range range, Arena arena)
 }
 
 
-/* ABQRefillIfNecessary -- refill the ABQ from the CBS if it had
- * overflowed and is now empty.
+/* MVTRefillCallback -- called from CBSIterate or FreelistIterate at
+ * the behest of MVTRefillIfNecessary
  */
-static void ABQRefillIfNecessary(MVT mvt, Size size)
-{
-  AVERT(MVT, mvt);
-  AVER(size > 0);
-
-  if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
-    mvt->abqOverflow = FALSE;
-    METER_ACC(mvt->refills, size);
-    CBSIterate(MVTCBS(mvt), &ABQRefillCallback, NULL, 0);
-  }
-}
-
-
-/* ABQRefillCallback -- called from CBSIterate at the behest of
- * ABQRefillIfNecessary
- */
-static Bool ABQRefillCallback(CBS cbs, Range range,
-                              void *closureP, Size closureS)
+static Bool MVTRefillCallback(MVT mvt, Range range)
 {
   Res res;
-  MVT mvt;
 
-  AVERT(CBS, cbs);
-  mvt = CBSMVT(cbs);
-  AVERT(MVT, mvt);
   AVERT(ABQ, MVTABQ(mvt));
   AVERT(Range, range);
-  UNUSED(closureP);
-  UNUSED(closureS);
 
   if (RangeSize(range) < mvt->reuseSize)
     return TRUE;
@@ -1131,6 +1143,45 @@ static Bool ABQRefillCallback(CBS cbs, Range range,
 
   return TRUE;
 }
+
+static Bool MVTCBSRefillCallback(CBS cbs, Range range,
+                                 void *closureP, Size closureS)
+{
+  MVT mvt;
+  AVERT(CBS, cbs);
+  mvt = closureP;
+  AVERT(MVT, mvt);
+  UNUSED(closureS);
+  return MVTRefillCallback(mvt, range);
+}
+
+static Bool MVTFreelistRefillCallback(Bool *deleteReturn, Range range,
+                                      void *closureP, Size closureS)
+{
+  MVT mvt;
+  mvt = closureP;
+  AVERT(MVT, mvt);
+  UNUSED(closureS);
+  AVER(deleteReturn != NULL);
+  *deleteReturn = FALSE;
+  return MVTRefillCallback(mvt, range);
+}
+
+/* MVTRefillIfNecessary -- refill the ABQ from the CBS and the
+ * Freelist if it had overflowed and is now empty.
+ */
+static void MVTRefillIfNecessary(MVT mvt, Size size)
+{
+  AVERT(MVT, mvt);
+  AVER(size > 0);
+
+  if (mvt->abqOverflow && ABQIsEmpty(MVTABQ(mvt))) {
+    mvt->abqOverflow = FALSE;
+    METER_ACC(mvt->refills, size);
+    CBSIterate(MVTCBS(mvt), &MVTCBSRefillCallback, mvt, 0);
+    FreelistIterate(MVTFreelist(mvt), &MVTFreelistRefillCallback, mvt, 0);
+  }
+}
  
 
 /* Closure for MVTContingencySearch */
@@ -1138,6 +1189,7 @@ typedef struct MVTContigencyStruct *MVTContigency;
 
 typedef struct MVTContigencyStruct
 {
+  MVT mvt;
   Bool found;
   RangeStruct range;
   Arena arena;
@@ -1148,50 +1200,20 @@ typedef struct MVTContigencyStruct
 } MVTContigencyStruct;
 
 
-/* MVTContingencySearch -- search the CBS for a block of size min */
-
-static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn, CBS cbs, Size min)
-{
-  MVTContigencyStruct cls;
-
-  cls.found = FALSE;
-  cls.arena = PoolArena(MVT2Pool(CBSMVT(cbs)));
-  cls.min = min;
-  cls.steps = 0;
-  cls.hardSteps = 0;
- 
-  CBSIterate(cbs, MVTContingencyCallback, (void *)&cls, 0);
-  if (cls.found) {
-    AVER(RangeSize(&cls.range) >= min);
-    METER_ACC(CBSMVT(cbs)->contingencySearches, cls.steps);
-    if (cls.hardSteps) {
-      METER_ACC(CBSMVT(cbs)->contingencyHardSearches, cls.hardSteps);
-    }
-    *baseReturn = RangeBase(&cls.range);
-    *limitReturn = RangeLimit(&cls.range);
-    return ResOK;
-  }
-   
-  return ResFAIL;
-}
-
-
-/* MVTContingencyCallback -- called from CBSIterate at the behest of
- * MVTContingencySearch
+/* MVTContingencyCallback -- called from CBSIterate or FreelistIterate
+ * at the behest of MVTContingencySearch.
  */
-static Bool MVTContingencyCallback(CBS cbs, Range range,
-                                   void *closureP, Size closureS)
+static Bool MVTContingencyCallback(MVTContigency cl, Range range)
 {
-  MVTContigency cl;
+  MVT mvt;
   Size size;
   Addr base, limit;
- 
-  AVERT(CBS, cbs);
-  AVERT(Range, range);
-  AVER(closureP != NULL);
-  UNUSED(closureS);
 
-  cl = (MVTContigency)closureP;
+  AVER(cl != NULL);
+  mvt = cl->mvt;
+  AVERT(MVT, mvt);
+  AVERT(Range, range);
+
   base = RangeBase(range);
   limit = RangeLimit(range);
   size = RangeSize(range);
@@ -1217,6 +1239,59 @@ static Bool MVTContingencyCallback(CBS cbs, Range range,
  
   /* keep looking */
   return TRUE;
+}
+
+static Bool MVTCBSContingencyCallback(CBS cbs, Range range,
+                                      void *closureP, Size closureS)
+{
+  MVTContigency cl = closureP;
+  UNUSED(cbs);
+  UNUSED(closureS);
+  return MVTContingencyCallback(cl, range);
+}
+
+static Bool MVTFreelistContingencyCallback(Bool *deleteReturn, Range range,
+                                           void *closureP, Size closureS)
+{
+  MVTContigency cl = closureP;
+  UNUSED(closureS);
+  AVER(deleteReturn != NULL);
+  *deleteReturn = FALSE;
+  return MVTContingencyCallback(cl, range);
+}
+
+/* MVTContingencySearch -- search the CBS and the Freelist for a block
+ * of size min */
+
+static Res MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
+                                MVT mvt, Size min)
+{
+  MVTContigencyStruct cls;
+
+  cls.mvt = mvt;
+  cls.found = FALSE;
+  cls.arena = PoolArena(MVT2Pool(mvt));
+  cls.min = min;
+  cls.steps = 0;
+  cls.hardSteps = 0;
+
+  FreelistFlushToCBS(MVTFreelist(mvt), MVTCBS(mvt));
+
+  CBSIterate(MVTCBS(mvt), MVTCBSContingencyCallback, (void *)&cls, 0);
+  FreelistIterate(MVTFreelist(mvt), MVTFreelistContingencyCallback,
+                  (void *)&cls, 0);
+  if (cls.found) {
+    AVER(RangeSize(&cls.range) >= min);
+    METER_ACC(mvt->contingencySearches, cls.steps);
+    if (cls.hardSteps) {
+      METER_ACC(mvt->contingencyHardSearches, cls.hardSteps);
+    }
+    *baseReturn = RangeBase(&cls.range);
+    *limitReturn = RangeLimit(&cls.range);
+    return ResOK;
+  }
+   
+  return ResFAIL;
 }
 
 
