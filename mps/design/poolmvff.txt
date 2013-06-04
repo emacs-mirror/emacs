@@ -9,6 +9,9 @@ MVFF pool class
 :Organization: Harlequin
 :Status: incomplete doc
 :Revision: $Id$
+:Index terms:
+   pair: MVFF pool class; design
+   single: pool class; MVFF design
 
 
 Introduction

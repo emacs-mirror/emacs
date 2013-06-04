@@ -9,6 +9,7 @@ Thread Manager
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: thread manager; design
 
 
 Purpose

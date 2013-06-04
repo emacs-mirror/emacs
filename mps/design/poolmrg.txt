@@ -9,6 +9,9 @@ MRG pool class
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: MRG pool class; design
+   single: pool class; MRG design
 
 
 Introduction

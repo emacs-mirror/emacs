@@ -9,6 +9,7 @@ POSIX thread extensions
 :Status: Draft document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms:   pair: POSIX thread extensions; design
 
 
 Introduction

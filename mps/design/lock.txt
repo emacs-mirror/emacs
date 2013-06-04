@@ -9,6 +9,7 @@ The lock module
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: locking; design
 
 
 Purpose

@@ -9,6 +9,7 @@ The protection module
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: protection interface; design
 
 
 Introduction
