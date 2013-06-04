@@ -9,6 +9,7 @@ Allocation frame protocol
 :Status: incomplete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
+:Index terms: pair: allocation frames; design
 
 
 Introduction

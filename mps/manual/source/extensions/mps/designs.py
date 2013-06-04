@@ -26,7 +26,7 @@ TYPES = '''
 
 mode = re.compile(r'\.\. mode: .*\n')
 prefix = re.compile(r'^:Tag: ([a-z][a-z.0-9-]*[a-z0-9])$', re.MULTILINE)
-rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format):.*?$\n', re.MULTILINE)
+rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format|Index terms):.*?$\n', re.MULTILINE | re.IGNORECASE)
 mps_tag = re.compile(r'_`\.([a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`:')
 mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`_(?:        )?')
 funcdef = re.compile(r'^``([^`]*\([^`]*\))``$', re.MULTILINE)
@@ -78,8 +78,25 @@ def citation_sub(m):
         result += ' "{title}".'.format(**groups)
     return result
 
+index = re.compile(r'^:Index\s+terms:(.*$\n(?:[ \t]+.*$\n)*)', re.MULTILINE | re.IGNORECASE)
+
+# <http://sphinx-doc.org/markup/misc.html#directive-index>
+index_term = re.compile(r'^\s*(\w+):\s*(.*?)\s*$', re.MULTILINE)
+
+def index_sub(m):
+    s = '\n.. index::\n'
+    for term in index_term.finditer(m.group(1)):
+        s += '   %s: %s\n' % (term.group(1), term.group(2))
+    s += '\n'
+    return s
+
 def convert_file(name, source, dest):
     s = open(source).read()
+    # We want the index directive to go right at the start, so that it leads
+    # to the whole document.
+    m = index.search(s)
+    if m:
+        s = index_sub(m) + s
     s = mode.sub(r'', s)
     s = prefix.sub(r'.. mps:prefix:: \1', s)
     s = rst_tag.sub(r'', s)
@@ -99,7 +116,7 @@ def convert_file(name, source, dest):
     except:
         pass
     with open(dest, 'w') as out:
-        # out.write('.. _design-{0}:\n\n'.format(name))
+        out.write('.. _design-{0}:\n\n'.format(name))
         out.write(s)
 
 # Mini-make
@@ -107,7 +124,7 @@ def convert_updated(app):
     app.info(bold('converting MPS design documents'))
     for design in glob.iglob('../design/*.txt'):
         name = os.path.splitext(os.path.basename(design))[0]
-        converted = 'converted/%s.rst' % name
+        converted = 'source/design/%s.rst' % name
         if (not os.path.isfile(converted) or
             os.path.getmtime(converted) < os.path.getmtime(design)):
             app.info('converting design %s' % name)

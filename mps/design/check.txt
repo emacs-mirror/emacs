@@ -9,6 +9,7 @@ Checking
 :Status: incomplete design
 :Revision: $Id$
 :Copyright: See section `Copyright and License`_.
+:Index terms: pair: checking; design
 
 
 Introduction
