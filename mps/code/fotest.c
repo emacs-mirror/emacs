@@ -36,6 +36,12 @@
 #define testLOOPS 10
 
 
+/* Accessors for the CBS used to implement a pool. */
+
+extern CBS _mps_mvff_cbs(mps_pool_t);
+extern CBS _mps_mvt_cbs(mps_pool_t);
+
+
 /* "OOM" pool class -- dummy alloc/free pool class whose alloc()
  * method always returns ResMEMORY */
 
@@ -157,7 +163,6 @@ static size_t randomSizeAligned(unsigned long i)
   return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, MPS_PF_ALIGN);
 }
 
-
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
@@ -179,7 +184,6 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    extern CBS _mps_mvff_cbs(mps_pool_t);
     CBS cbs = _mps_mvff_cbs(pool);
     die(stress(randomSizeAligned, pool, cbs), "stress MVFF");
   }
@@ -198,7 +202,6 @@ int main(int argc, char *argv[])
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
   } MPS_ARGS_END(args);
   {
-    extern CBS _mps_mvt_cbs(mps_pool_t);
     CBS cbs = _mps_mvt_cbs(pool);
     die(stress(randomSizeAligned, pool, cbs), "stress MVT");
   }

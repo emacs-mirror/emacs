@@ -399,6 +399,9 @@ $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
+$(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
@@ -415,9 +418,6 @@ $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
-
-$(PFM)/$(VARIETY)/mvfftest: $(PFM)/$(VARIETY)/mvfftest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
