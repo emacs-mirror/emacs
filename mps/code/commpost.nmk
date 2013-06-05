@@ -15,7 +15,7 @@ all: $(ALL_TARGETS)
 
 # Convenience targets
 
-$(ALL_TARGETS):
+$(ALL_TARGETS) $(OPTIONAL_TARGETS):
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -249,6 +249,15 @@ $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
 # the template rule for .exe.obj won't be used.
 $(PFM)\$(VARIETY)\replaysw.obj: $(PFM)\$(VARIETY)\replay.obj
 	$(ECHO) $@
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventcnv.obj: $(PFM)\$(VARIETY)\eventcnv.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventtxt.obj: $(PFM)\$(VARIETY)\eventtxt.obj
+	copy $** $@ >nul:
+
+$(PFM)\$(VARIETY)\mpseventsql.obj: $(PFM)\$(VARIETY)\eventsql.obj
 	copy $** $@ >nul:
 
 !ENDIF
