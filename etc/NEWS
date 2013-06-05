@@ -292,6 +292,10 @@ when it's nil).
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
++++
+*** By default, prefix arguments do not now terminate Isearch mode.
+Set `isearch-allow-prefix' to nil to restore old behavior.
+
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
 

@@ -1,3 +1,9 @@
+2013-06-05  Alan Mackenzie  <acm@muc.de>
+
+	* isearch.el (isearch-allow-prefix): New user option.
+	(isearch-other-meta-char): don't exit isearch when a prefix
+	argument is typed whilst `isearch-allow-prefix' is non-nil.
+
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autorevert.el (auto-revert-notify-handler): Use memq.
