@@ -1,3 +1,7 @@
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Add prog-mode.el.
+
 2013-06-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Chain glib's SIGCHLD handler from Emacs's (Bug#14474).

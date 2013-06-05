@@ -129,6 +129,7 @@ lisp = \
 	$(lispsource)/textmodes/page.elc \
 	$(lispsource)/register.elc \
 	$(lispsource)/textmodes/paragraphs.elc \
+	$(lispsource)/progmodes/prog-mode.elc \
 	$(lispsource)/emacs-lisp/lisp-mode.elc \
 	$(lispsource)/textmodes/text-mode.elc \
 	$(lispsource)/textmodes/fill.elc \
