@@ -54,6 +54,12 @@
 	(compilation-auto-jump): Suppress the "Mark set" message to give
 	way to exit message.
 
+2013-06-04  Alan Mackenzie  <acm@muc.de>
+
+	Remove faulty optimisation from indentation calculation.
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Don't calculate
+	search limit based on 2000 characters back from indent-point.
+
 2013-06-03  Tassilo Horn  <tsdh@gnu.org>
 
 	* eshell/em-term.el (cl-lib): Require `cl-lib'.
