@@ -642,9 +642,6 @@ static Res MRGInit(Pool pool, ArgList args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
-  DIAG_PRINTF(( "mrg->extendBy = %u, MRGGuardiansPerSeg = %u\n", 
-                (unsigned int) mrg->extendBy, 
-                (unsigned int) MRGGuardiansPerSeg(mrg) ));
   EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
