@@ -1,3 +1,17 @@
+2013-06-05  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Further code cleanup.  Changes to commentary.  Remove
+	autoload cookies.  Handle todo items in Fancy Diary display.
+	(todos-done-separator): Reinstate length one less than
+	window-width until bug#2749 is fixed.
+	(todos-diary-goto-entry): New function, extracted from adapted
+	definition of diary-goto-entry, which is removed to be added to
+	diary-lib.el.
+	(todos-powerset): Rename from todos-powerset-iterative and remove
+	defalias by this name.  Add doc string and comments.
+	(todos-modes-set-1, todos-modes-set-2, todos-modes-set-3)
+	(todos-mode-external-set): Add doc string.
+
 2013-06-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-add-item-if-new-category): Change default value.

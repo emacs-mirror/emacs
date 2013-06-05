@@ -24,30 +24,40 @@
 
 ;; This package provides facilities for making, displaying, navigating
 ;; and editing todo lists, which are prioritized lists of todo items.
-;; Todo lists are identified with named categories, providing a means
-;; of grouping thematically related todo items.  Each category is
-;; stored in a file, which provides a further level of organization.
+;; Todo lists are identified with named categories, so you can group
+;; together thematically related todo items.  Each category is stored
+;; in a file, which thus provides a further level of organization.
+;; You can create as many todo files, and in each as many categories,
+;; as you want.
 
-;; You can navigate among the items of a category, and between
-;; categories and files.  You can edit items, reprioritize them within
-;; their category, move them to another category, delete them, or mark
-;; items as done and store them separately from the not yet done items
-;; in a category.  You can add new files and categories, rename
-;; categories, move them to another file or delete them.  You can also
-;; build cross-categorial lists of items that satisfy various
-;; criteria.  And you can display summary tables of the categories in
-;; a file and the types of items they contain.
+;; With Todos you can navigate among the items of a category, and
+;; between categories in the same and in different todo files.  You
+;; can edit todo items, reprioritize them within their category, move
+;; them to another category, delete them, or mark items as done and
+;; store them separately from the not yet done items in a category.
+;; You can add new todo files and categories, rename categories, move
+;; them to another file or delete them.  You can also display summary
+;; tables of the categories in a file and the types of items they
+;; contain.  And you can build cross-categorial lists of items that
+;; satisfy various criteria.
 
 ;; To get started, load this package and type `M-x todos-show'.  This
-;; will prompt you for the name of the first todo file and its first
-;; category, create these and display the empty category in Todos
-;; mode.  Then type `i i' to add the first todo item to the category
-;; (i.e., to the list).  To see a list of all Todos mode commands,
-;; which include entry points to several auxiliary modes, type `C-h
-;; m'.  Consult the document strings of the commands for details of
-;; their use.  The `todos' customization group and its subgroups list
-;; the options you can set to alter the behavior of many commands and
-;; various aspects of the display.
+;; will prompt you for the name of the first todo file, its first
+;; category and the category's first item, create these and display
+;; them in Todos mode.  Now you can insert further items into the list
+;; (i.e., the category) and assign them priorities by typing `i i'.
+
+;; You will probably find it convenient to give `todos-show' a global
+;; key binding in your init file, since it is one of the entry points
+;; to Todos mode; a good choice is `C-c t', since `todos-show' is
+;; bound to `t' in Todos mode.
+
+;; To see a list of all Todos mode commands and their key bindings,
+;; including other entry points, type `C-h m' in Todos mode.  Consult
+;; the document strings of the commands for details of their use.  The
+;; `todos' customization group and its subgroups list the options you
+;; can set to alter the behavior of many commands and various aspects
+;; of the display.
 
 ;; This package is a new version of Oliver Seidel's todo-mode.el,
 ;; which retains the same basic organization and handling of todo
@@ -158,7 +168,6 @@ Otherwise, `todos-show' always visits `todos-default-todos-file'."
 ;;; Entering and exiting Todos mode
 ;; -----------------------------------------------------------------------------
 
-;;;###autoload
 (defun todos-show (&optional solicit-file)
   "Visit a Todos file and display one of its categories.
 
@@ -276,8 +285,9 @@ corresponding Todos file, displaying the corresponding category."
 		    cat-added t)
 	    (if cat-added
 		;; If the category was added, save the file now, so we
-		;; don't end up with an empty file, which would signal
-		;; an error if we tried to visit it later.
+		;; don't risk having an empty todo file, which would
+		;; signal an error if we tried to visit it later,
+		;; since doing that looks for category boundaries.
 		(save-buffer 0)
 	      ;; If user cancels before adding the category, clean up
 	      ;; and exit, so we have a fresh slate the next time.
@@ -322,7 +332,9 @@ buries it and restores state as needed."
 	   (kill-buffer)
 	   (unless (eq major-mode 'todos-mode) (todos-show)))
 	  ((eq major-mode 'todos-archive-mode)
-	   (todos-save)	; Have to write previously nonexistant archives to file.
+	   ;; Have to write a newly created archive to file to avoid
+	   ;; subsequent errors.
+	   (todos-save)
 	   (todos-show)
 	   (bury-buffer buf))
 	  ((eq major-mode 'todos-mode)
@@ -363,7 +375,6 @@ category."
   (interactive)
   (todos-forward-category t))
 
-;;;###autoload
 (defun todos-jump-to-category (&optional file where)
   "Prompt for a category in a Todos file and jump to it.
 
@@ -1058,7 +1069,6 @@ means prompt user and omit comment only on confirmation."
 ;;; Item editing commands
 ;; -----------------------------------------------------------------------------
 
-;;;###autoload
 (defun todos-basic-insert-item (&optional arg diary nonmarking date-type time
 				    region-or-here)
   "Insert a new Todo item into a category.
@@ -4039,11 +4049,11 @@ number as its value."
   (let ((sep todos-done-separator-string))
     (propertize (if (= 1 (length sep))
 		    ;; Until bug#2749 is fixed, if separator's length
-		    ;; is window-width, then with non-nil
-		    ;; todos-wrap-lines an indented empty line appears
-		    ;; between the separator and the first done item.
-		    ;; (make-string (1- (window-width)) (string-to-char sep))
-		    (make-string (window-width) (string-to-char sep))
+		    ;; is window-width and todos-wrap-lines is
+		    ;; non-nil, an indented empty line appears between
+		    ;; the separator and the first done item.
+		    ;; (make-string (window-width) (string-to-char sep))
+		    (make-string (1- (window-width)) (string-to-char sep))
 		  todos-done-separator-string)
 		'face 'todos-done-sep)))
 
@@ -4386,6 +4396,17 @@ empty line above the done items separator."
       (todos-item-start)
       (not (looking-at (regexp-quote todos-nondiary-start))))))
 
+(defun todos-diary-goto-entry ()
+  "Jump to todo item included in Fancy Diary display.
+Helper function for `diary-goto-entry'."
+  (when (eq major-mode 'todos-mode)
+    (setq opoint (point))
+    (re-search-backward (concat "^" (regexp-quote todos-category-beg)
+				"\\(.*\\)\n") nil t)
+    (todos-category-number (match-string 1))
+    (todos-category-select)
+    (goto-char opoint)))
+
 (defun todos-done-item-p ()
   "Return non-nil if item at point is a done item."
   (save-excursion
@@ -4495,21 +4516,28 @@ of each other."
 ;;; Generation of item insertion commands and key bindings
 ;; -----------------------------------------------------------------------------
 
-;; Can either of these be included in Emacs?  The originals are GFDL'd.
+;; These two powerset definitions are adaptations of code published at
+;; http://rosettacode.org, whose content is licensed under GFDL 1.2.
+;; The recursive definition is a slight reformulation of
+;; http://rosettacode.org/wiki/Power_set#Common_Lisp.  The iterative
+;; definition is my Elisp implementation of
+;; http://rosettacode.org/wiki/Power_set#C.  Can either of these be
+;; included in Emacs, or is there no need to concerned about copyright
+;; here?
 
-;; Reformulation of http://rosettacode.org/wiki/Power_set#Common_Lisp.
-(defun todos-powerset-recursive (list)
-  (cond ((null list)
-	 (list nil))
-	(t
-	 (let ((recur (todos-powerset-recursive (cdr list)))
-	       pset)
-	   (dolist (elt recur pset)
-	     (push (cons (car list) elt) pset))
-	   (append pset recur)))))
+;; (defun todos-powerset (list)
+;;   "Return the powerset of LIST."
+;;   (cond ((null list)
+;; 	 (list nil))
+;; 	(t
+;; 	 (let ((recur (todos-powerset-recursive (cdr list)))
+;; 	       pset)
+;; 	   (dolist (elt recur pset)
+;; 	     (push (cons (car list) elt) pset))
+;; 	   (append pset recur)))))
 
-;; Elisp implementation of http://rosettacode.org/wiki/Power_set#C.
-(defun todos-powerset-iterative (list)
+(defun todos-powerset (list)
+  "Return the powerset of LIST."
   (let ((card (expt 2 (length list)))
 	 pset elt)
     (dotimes (n card)
@@ -4523,9 +4551,6 @@ of each other."
 	(setq pset (append pset (list elt)))
 	(setq elt nil)))
     pset))
-
-;; (defalias 'todos-powerset 'todos-powerset-recursive)
-(defalias 'todos-powerset 'todos-powerset-iterative)
 
 (defun todos-gen-arglists (arglist)
   "Return list of lists of non-nil atoms produced from ARGLIST.
@@ -6242,7 +6267,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
 ;; -----------------------------------------------------------------------------
 
 (defun todos-modes-set-1 ()
-  ""
+  "Make some settings that apply to multiple Todos modes."
   (setq-local font-lock-defaults '(todos-font-lock-keywords t))
   (setq-local tab-width todos-indent-to-here)
   (setq-local indent-line-function 'todos-indent)
@@ -6251,7 +6276,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
     (setq wrap-prefix (make-string todos-indent-to-here 32))))
 
 (defun todos-modes-set-2 ()
-  ""
+  "Make some settings that apply to multiple Todos modes."
   (add-to-invisibility-spec 'todos)
   (setq buffer-read-only t)
   (setq-local hl-line-range-function (lambda() (save-excursion
@@ -6260,7 +6285,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
 							 (todos-item-end)))))))
 
 (defun todos-modes-set-3 ()
-  ""
+  "Make some settings that apply to multiple Todos modes."
   (setq-local todos-categories (todos-set-categories))
   (setq-local todos-category-number 1)
   (add-hook 'find-file-hook 'todos-display-as-todos-file nil t))
@@ -6304,7 +6329,7 @@ Added to `window-configuration-change-hook' in `todos-mode'."
   (setq-local todos-show-done-only t))
 
 (defun todos-mode-external-set ()
-  ""
+  "Set `todos-categories' externally to `todos-current-todos-file'."
   (setq-local todos-current-todos-file todos-global-current-todos-file)
   (let ((cats (with-current-buffer
 		  ;; Can't use find-buffer-visiting when
@@ -6356,46 +6381,3 @@ Added to `window-configuration-change-hook' in `todos-mode'."
 (provide 'todos)
 
 ;;; todos.el ends here
-
-;;; necessitated adaptations to diary-lib.el
-
-(defun diary-goto-entry (button)
-  "Jump to the diary entry for the BUTTON at point."
-  (let* ((locator (button-get button 'locator))
-         (marker (car locator))
-         markbuf file opoint)
-    ;; If marker pointing to diary location is valid, use that.
-    (if (and marker (setq markbuf (marker-buffer marker)))
-        (progn
-          (pop-to-buffer markbuf)
-	  (when (eq major-mode 'todos-mode) (widen))
-          (goto-char (marker-position marker))
-	  (when (eq major-mode 'todos-mode)
-	    (re-search-backward (concat "^" (regexp-quote todos-category-beg)
-					"\\(.*\\)\n") nil t)
-	    (todos-category-number (match-string 1))
-	    (todos-category-select)
-	    (goto-char (marker-position marker))))
-      ;; Marker is invalid (eg buffer has been killed).
-      (or (and (setq file (cadr locator))
-               (file-exists-p file)
-               (find-file-other-window file)
-               (progn
-                 (when (eq major-mode (default-value 'major-mode)) (diary-mode))
-		 (when (eq major-mode 'todos-mode) (widen))
-                 (goto-char (point-min))
-                 (when (re-search-forward (format "%s.*\\(%s\\)"
-						  (regexp-quote (nth 2 locator))
-						  (regexp-quote (nth 3 locator)))
-					  nil t)
-		   (goto-char (match-beginning 1))
-		   (when (eq major-mode 'todos-mode)
-		     (setq opoint (point))
-		     (re-search-backward (concat "^"
-						 (regexp-quote todos-category-beg)
-						 "\\(.*\\)\n")
-					 nil t)
-		     (todos-category-number (match-string 1))
-		     (todos-category-select)
-		     (goto-char opoint)))))
-          (message "Unable to locate this diary entry")))))
