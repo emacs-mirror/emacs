@@ -1,6 +1,6 @@
 /* <code/event.h> -- Event Logging Interface
  *
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * READERSHIP
@@ -95,7 +95,7 @@ extern Word EventKindControl;
 
 #define EVENT0(name) EVENT_BEGIN(name, sizeof(EventAnyStruct)) EVENT_END(name, sizeof(EventAnyStruct))
 /* The following lines were generated with
-   python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) EVENT_BEGIN(name, sizeof(Event##name##Struct)) %s EVENT_END(name, sizeof(Event##name##Struct))" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["_event->f%d = (p%d);" % (j, j) for j in range(0, i)]))'
+   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) EVENT_BEGIN(name, sizeof(Event##name##Struct)) %s EVENT_END(name, sizeof(Event##name##Struct))" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["_event->f%d = (p%d);" % (j, j) for j in range(0, i)]))'
  */
 #define EVENT1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END(name, sizeof(Event##name##Struct))
@@ -111,6 +111,13 @@ extern Word EventKindControl;
 #define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT15(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT16(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT17(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT18(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT19(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT20(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); _event->f19 = (p19); EVENT_END(name, sizeof(Event##name##Struct))
+#define EVENT21(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); _event->f19 = (p19); _event->f20 = (p20); EVENT_END(name, sizeof(Event##name##Struct))
 
 
 #else /* EVENT not */
@@ -118,7 +125,7 @@ extern Word EventKindControl;
 
 #define EVENT0(name) NOOP
 /* The following lines were generated with
- python -c 'for i in range(1,15): print "#define EVENT%d(name, %s) BEGIN %s END" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["UNUSED(p%d);" % j for j in range(0, i)]))'
+   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) BEGIN %s END" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["UNUSED(p%d);" % j for j in range(0, i)]))'
  */
 #define EVENT1(name, p0) BEGIN UNUSED(p0); END
 #define EVENT2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
@@ -134,6 +141,13 @@ extern Word EventKindControl;
 #define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); END
 #define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); END
 #define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); END
+#define EVENT15(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); END
+#define EVENT16(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); END
+#define EVENT17(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); END
+#define EVENT18(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); END
+#define EVENT19(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); END
+#define EVENT20(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); UNUSED(p19); END
+#define EVENT21(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); UNUSED(p19); UNUSED(p20); END
 
 
 #endif /* EVENT */
@@ -144,7 +158,7 @@ extern Word EventKindControl;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
