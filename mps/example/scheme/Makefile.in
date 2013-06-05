@@ -14,7 +14,7 @@ TESTS = r5rs mps
 all: $(TARGETS)
 
 $(TARGETS): %: %.c Makefile
-	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c
+	$(CC) $(CFLAGS) -o $@ -I $(MPS) $< $(MPS)/mps.c -lpthread
 
 
 scheme-boehm: %: %.c Makefile
