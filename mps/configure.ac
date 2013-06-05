@@ -28,6 +28,13 @@ AC_PROG_CC
 AC_LANG_C
 AC_PROG_INSTALL
 
+# These flags aren't used for building the MPS, but for sample programs.
+CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+           -Wstrict-prototypes -Wmissing-prototypes \
+           -Winline -Waggregate-return -Wnested-externs \
+           -Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
+
 AC_CANONICAL_HOST
 AC_MSG_CHECKING([target platform])
 BUILD_TARGET=build-via-make
@@ -38,10 +45,12 @@ case $host in
   i*86-*-linux*)
       AC_MSG_RESULT([Linux x86])
       MPS_TARGET_NAME=lii3gc
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*)
       AC_MSG_RESULT([Linux x86_64])
       MPS_TARGET_NAME=lii6gc
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   i*86-*-darwin*)
       AC_MSG_RESULT([Mac OS X x86])
@@ -50,6 +59,7 @@ case $host in
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
       TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
       AC_MSG_RESULT([Mac OS X x86_64])
@@ -58,18 +68,23 @@ case $host in
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
       TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86])
       MPS_TARGET_NAME=fri3gc
+      # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   amd64-*-freebsd* | x86_64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
       MPS_TARGET_NAME=fri6gc
+      # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
@@ -83,12 +98,20 @@ fi
 EXTRA_TARGETS="mpseventcnv mpseventtxt"
 AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"])
 
+# Put platform compiler flags like -ansi -pedantic into CFLAGS only
+# after checking for sqlite3.h -- that header doesn't compile with
+# those flags.
+CFLAGS="$CFLAGS $PFMCFLAGS"
+
 AC_SUBST(MPS_TARGET_NAME)
 AC_SUBST(BUILD_TARGET)
 AC_SUBST(CLEAN_TARGET)
 AC_SUBST(INSTALL_TARGET)
 AC_SUBST(TEST_TARGET)
 AC_SUBST(EXTRA_TARGETS)
+AC_SUBST(CFLAGS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(CPPFLAGS)
 AC_CONFIG_FILES(Makefile example/scheme/Makefile)
 
 AC_OUTPUT
