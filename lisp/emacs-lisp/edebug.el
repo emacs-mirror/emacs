@@ -472,6 +472,8 @@ the option `edebug-all-forms'."
 (or (fboundp 'edebug-original-eval-defun)
     (defalias 'edebug-original-eval-defun (symbol-function 'eval-defun)))
 
+(defvar edebug-result) ; The result of the function call returned by body.
+
 ;; We should somehow arrange to be able to do this
 ;; without actually replacing the eval-defun command.
 (defun edebug-eval-defun (edebug-it)
@@ -487,7 +489,7 @@ With a prefix argument, instrument the code for Edebug.
 
 Setting option `edebug-all-defs' to a non-nil value reverses the meaning
 of the prefix argument.  Code is then instrumented when this function is
-invoked without a prefix argument
+invoked without a prefix argument.
 
 If acting on a `defun' for FUNCTION, and the function was instrumented,
 `Edebug: FUNCTION' is printed in the minibuffer.  If not instrumented,
@@ -2106,7 +2108,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 (defvar edebug-coverage) ; the coverage results of each expression of function.
 
 (defvar edebug-buffer) ; which buffer the function is in.
-(defvar edebug-result) ; the result of the function call returned by body
 (defvar edebug-outside-executing-macro)
 (defvar edebug-outside-defining-kbd-macro)
 

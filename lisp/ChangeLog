@@ -1,3 +1,14 @@
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (load-history-regexp, load-history-filename-element)
+	(eval-after-load, after-load-functions, do-after-load-evaluation)
+	(eval-next-after-load, display-delayed-warnings)
+	(collapse-delayed-warnings, delayed-warnings-hook): Move after the
+	definition of save-match-data.
+	(overriding-local-map): Remove accidental obsolescence declaration.
+
+	* emacs-lisp/edebug.el (edebug-result): Move before first use.
+
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	Generalize symbol prettify support to prog-mode and implement it
@@ -11,8 +22,8 @@
 	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables)
 	(lisp--prettify-symbols-alist): Implement prettify of lambda.
 	* progmodes/cfengine.el (cfengine3--augmented-font-lock-keywords)
-	(cfengine3--prettify-symbols-alist, cfengine3-mode): Implement
-	prettify of -> => :: strings.
+	(cfengine3--prettify-symbols-alist, cfengine3-mode):
+	Implement prettify of -> => :: strings.
 	* progmodes/perl-mode.el (perl-prettify-symbols)
 	(perl--font-lock-compose-symbol)
 	(perl--font-lock-symbols-keywords): Move to prog-mode.
@@ -21,8 +32,8 @@
 	(perl-font-lock-keywords-2): Remove explicit prettify support.
 	(perl--augmented-font-lock-keywords)
 	(perl--augmented-font-lock-keywords-1)
-	(perl--augmented-font-lock-keywords-2, perl-mode): Implement
-	prettify support.
+	(perl--augmented-font-lock-keywords-2, perl-mode):
+	Implement prettify support.
 
 2013-06-05  Leo Liu  <sdl.web@gmail.com>
 
@@ -109,7 +120,7 @@
 
 	* subr.el: (file-notify-handle-event): New defun. Replacing ...
 	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
-	Removed.
+	Remove.
 
 2013-06-03  Juri Linkov  <juri@jurta.org>
 
@@ -135,8 +146,8 @@
 
 2013-06-03  Tassilo Horn  <tsdh@gnu.org>
 
-	* eshell/em-term.el (eshell-term-initialize): Use
-	`cl-intersection' rather than `intersection'.
+	* eshell/em-term.el (eshell-term-initialize):
+	Use `cl-intersection' rather than `intersection'.
 
 2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
 
@@ -190,7 +201,7 @@
 	(eieiomt-optimizing-obarray, eieiomt-install)
 	(eieiomt-add, eieiomt-next, eieiomt-sym-optimize)
 	(eieio-generic-form, eieio-defmethod, make-obsolete)
-	(eieio-defgeneric, make-obsolete): Moved to eieio-core.el
+	(eieio-defgeneric, make-obsolete): Move to eieio-core.el
 	(defclass): Remove `eval-and-compile' from macro.
 	(call-next-method, shared-initialize): Instead of using
 	`scoped-class' variable, use new eieio--scoped-class, and
@@ -282,8 +293,8 @@
 
 2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-expansion-allowed-p): New
-	function, checks if point is inside a literal that allows
+	* progmodes/ruby-mode.el (ruby-syntax-expansion-allowed-p):
+	New function, checks if point is inside a literal that allows
 	expression expansion.
 	(ruby-syntax-propertize-expansion): Use it.
 	(ruby-syntax-propertize-function): Bind `case-fold-search' to nil
@@ -394,7 +405,7 @@
 	* emacs-lisp/trace.el (trace--read-args): Provide a default.
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Inherit from
-	prog-mode-map.
+	prog-mode-map (bug#14504).
 
 2013-05-29  Leo Liu  <sdl.web@gmail.com>
 
@@ -426,7 +437,7 @@
 
 2013-05-28  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell/em-unix.el: Added -r option to cp
+	* eshell/em-unix.el: Add -r option to cp.
 
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
@@ -2178,9 +2189,9 @@
 2013-04-19 Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
-	Handle function names with a single character.  (Bug#14111)
+	Handle function names with a single character.   (Bug#14111)
 
-2013-04-19  Dima Kogan  <dima@secretsauce.net>  (tiny change)
+2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
 
 	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
 	for subroutines defined in an eval (bug#14182).
@@ -2594,6 +2605,7 @@
 
 	* emacs-lisp/package.el (package-pinned-packages): New var.
 	(package--add-to-archive-contents): Obey it (bug#14118).
+
 
 2013-04-03  Alan Mackenzie  <acm@muc.de>
 
@@ -3234,7 +3246,7 @@
 2013-03-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* hi-lock.el (hi-lock-read-regexp-defaults-function): New var.
-	(hi-lock-read-regexp-defaults): New defun.
+	(hi-lock-read-regexp-defaults):	 New defun.
 	(hi-lock-line-face-buffer, hi-lock-face-buffer)
 	(hi-lock-face-phrase-buffer): Propagate above change.
 	Update docstring (bug#13892).

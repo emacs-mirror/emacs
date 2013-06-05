@@ -1261,8 +1261,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
 (make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
 (make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
-(make-obsolete-variable 'overriding-local-map
-                        'overriding-terminal-local-map "24.4" 'set)
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
 
@@ -1749,7 +1747,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 		(nconc found (list (cons toggle keymap)) rest))
 	    (push (cons toggle keymap) minor-mode-map-alist)))))))
 
-;;; Load history
+;;;; Load history
 
 (defsubst autoloadp (object)
   "Non-nil if OBJECT is an autoload."
@@ -1830,173 +1828,6 @@ and the file name is displayed in the echo area."
 	    (message "Library is file %s" (abbreviate-file-name file))
 	  (message "No library %s in search path" library)))
     file))
-
-
-;;;; Specifying things to do later.
-
-(defun load-history-regexp (file)
-  "Form a regexp to find FILE in `load-history'.
-FILE, a string, is described in the function `eval-after-load'."
-  (if (file-name-absolute-p file)
-      (setq file (file-truename file)))
-  (concat (if (file-name-absolute-p file) "\\`" "\\(\\`\\|/\\)")
-	  (regexp-quote file)
-	  (if (file-name-extension file)
-	      ""
-	    ;; Note: regexp-opt can't be used here, since we need to call
-	    ;; this before Emacs has been fully started.  2006-05-21
-	    (concat "\\(" (mapconcat 'regexp-quote load-suffixes "\\|") "\\)?"))
-	  "\\(" (mapconcat 'regexp-quote jka-compr-load-suffixes "\\|")
-	  "\\)?\\'"))
-
-(defun load-history-filename-element (file-regexp)
-  "Get the first elt of `load-history' whose car matches FILE-REGEXP.
-Return nil if there isn't one."
-  (let* ((loads load-history)
-	 (load-elt (and loads (car loads))))
-    (save-match-data
-      (while (and loads
-		  (or (null (car load-elt))
-		      (not (string-match file-regexp (car load-elt)))))
-	(setq loads (cdr loads)
-	      load-elt (and loads (car loads)))))
-    load-elt))
-
-(put 'eval-after-load 'lisp-indent-function 1)
-(defun eval-after-load (file form)
-  "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
-If FILE is already loaded, evaluate FORM right now.
-
-If a matching file is loaded again, FORM will be evaluated again.
-
-If FILE is a string, it may be either an absolute or a relative file
-name, and may have an extension \(e.g. \".el\") or may lack one, and
-additionally may or may not have an extension denoting a compressed
-format \(e.g. \".gz\").
-
-When FILE is absolute, this first converts it to a true name by chasing
-symbolic links.  Only a file of this name \(see next paragraph regarding
-extensions) will trigger the evaluation of FORM.  When FILE is relative,
-a file whose absolute true name ends in FILE will trigger evaluation.
-
-When FILE lacks an extension, a file name with any extension will trigger
-evaluation.  Otherwise, its extension must match FILE's.  A further
-extension for a compressed format \(e.g. \".gz\") on FILE will not affect
-this name matching.
-
-Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
-is evaluated at the end of any file that `provide's this feature.
-If the feature is provided when evaluating code not associated with a
-file, FORM is evaluated immediately after the provide statement.
-
-Usually FILE is just a library name like \"font-lock\" or a feature name
-like 'font-lock.
-
-This function makes or adds to an entry on `after-load-alist'."
-  ;; Add this FORM into after-load-alist (regardless of whether we'll be
-  ;; evaluating it now).
-  (let* ((regexp-or-feature
-	  (if (stringp file)
-              (setq file (purecopy (load-history-regexp file)))
-            file))
-	 (elt (assoc regexp-or-feature after-load-alist)))
-    (unless elt
-      (setq elt (list regexp-or-feature))
-      (push elt after-load-alist))
-    ;; Make sure `form' is evalled in the current lexical/dynamic code.
-    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
-    ;; Is there an already loaded file whose name (or `provide' name)
-    ;; matches FILE?
-    (prog1 (if (if (stringp file)
-		   (load-history-filename-element regexp-or-feature)
-		 (featurep file))
-	       (eval form))
-      (when (symbolp regexp-or-feature)
-	;; For features, the after-load-alist elements get run when `provide' is
-	;; called rather than at the end of the file.  So add an indirection to
-	;; make sure that `form' is really run "after-load" in case the provide
-	;; call happens early.
-	(setq form
-	      `(if load-file-name
-		   (let ((fun (make-symbol "eval-after-load-helper")))
-		     (fset fun `(lambda (file)
-				  (if (not (equal file ',load-file-name))
-				      nil
-				    (remove-hook 'after-load-functions ',fun)
-				    ,',form)))
-		     (add-hook 'after-load-functions fun))
-		 ;; Not being provided from a file, run form right now.
-		 ,form)))
-      ;; Add FORM to the element unless it's already there.
-      (unless (member form (cdr elt))
-	(nconc elt (list form))))))
-
-(defvar after-load-functions nil
-  "Special hook run after loading a file.
-Each function there is called with a single argument, the absolute
-name of the file just loaded.")
-
-(defun do-after-load-evaluation (abs-file)
-  "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
-ABS-FILE, a string, should be the absolute true name of a file just loaded.
-This function is called directly from the C code."
-  ;; Run the relevant eval-after-load forms.
-  (mapc #'(lambda (a-l-element)
-	    (when (and (stringp (car a-l-element))
-		       (string-match-p (car a-l-element) abs-file))
-	      ;; discard the file name regexp
-	      (mapc #'eval (cdr a-l-element))))
-	after-load-alist)
-  ;; Complain when the user uses obsolete files.
-  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
-    (run-with-timer 0 nil
-                    (lambda (file)
-                      (message "Package %s is obsolete!"
-                               (substring file 0
-                                          (string-match "\\.elc?\\>" file))))
-                    (file-name-nondirectory abs-file)))
-  ;; Finally, run any other hook.
-  (run-hook-with-args 'after-load-functions abs-file))
-
-(defun eval-next-after-load (file)
-  "Read the following input sexp, and run it whenever FILE is loaded.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (declare (obsolete eval-after-load "23.2"))
-  (eval-after-load file (read)))
-
-(defun display-delayed-warnings ()
-  "Display delayed warnings from `delayed-warnings-list'.
-Used from `delayed-warnings-hook' (which see)."
-  (dolist (warning (nreverse delayed-warnings-list))
-    (apply 'display-warning warning))
-  (setq delayed-warnings-list nil))
-
-(defun collapse-delayed-warnings ()
-  "Remove duplicates from `delayed-warnings-list'.
-Collapse identical adjacent warnings into one (plus count).
-Used from `delayed-warnings-hook' (which see)."
-  (let ((count 1)
-        collapsed warning)
-    (while delayed-warnings-list
-      (setq warning (pop delayed-warnings-list))
-      (if (equal warning (car delayed-warnings-list))
-          (setq count (1+ count))
-        (when (> count 1)
-          (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
-                                (cddr warning)))
-          (setq count 1))
-        (push warning collapsed)))
-    (setq delayed-warnings-list (nreverse collapsed))))
-
-;; At present this is only used for Emacs internals.
-;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
-(defvar delayed-warnings-hook '(collapse-delayed-warnings
-                                display-delayed-warnings)
-  "Normal hook run to process and display delayed warnings.
-By default, this hook contains functions to consolidate the
-warnings listed in `delayed-warnings-list', display them, and set
-`delayed-warnings-list' back to nil.")
 
 
 ;;;; Process stuff.
@@ -3863,6 +3694,173 @@ consisting of STR followed by an invisible left-to-right mark
   (if (string-match "\\cR" str)
       (concat str (propertize (string ?\x200e) 'invisible t))
     str))
+
+;;;; Specifying things to do later.
+
+(defun load-history-regexp (file)
+  "Form a regexp to find FILE in `load-history'.
+FILE, a string, is described in the function `eval-after-load'."
+  (if (file-name-absolute-p file)
+      (setq file (file-truename file)))
+  (concat (if (file-name-absolute-p file) "\\`" "\\(\\`\\|/\\)")
+	  (regexp-quote file)
+	  (if (file-name-extension file)
+	      ""
+	    ;; Note: regexp-opt can't be used here, since we need to call
+	    ;; this before Emacs has been fully started.  2006-05-21
+	    (concat "\\(" (mapconcat 'regexp-quote load-suffixes "\\|") "\\)?"))
+	  "\\(" (mapconcat 'regexp-quote jka-compr-load-suffixes "\\|")
+	  "\\)?\\'"))
+
+(defun load-history-filename-element (file-regexp)
+  "Get the first elt of `load-history' whose car matches FILE-REGEXP.
+Return nil if there isn't one."
+  (let* ((loads load-history)
+	 (load-elt (and loads (car loads))))
+    (save-match-data
+      (while (and loads
+		  (or (null (car load-elt))
+		      (not (string-match file-regexp (car load-elt)))))
+	(setq loads (cdr loads)
+	      load-elt (and loads (car loads)))))
+    load-elt))
+
+(put 'eval-after-load 'lisp-indent-function 1)
+(defun eval-after-load (file form)
+  "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
+If FILE is already loaded, evaluate FORM right now.
+
+If a matching file is loaded again, FORM will be evaluated again.
+
+If FILE is a string, it may be either an absolute or a relative file
+name, and may have an extension \(e.g. \".el\") or may lack one, and
+additionally may or may not have an extension denoting a compressed
+format \(e.g. \".gz\").
+
+When FILE is absolute, this first converts it to a true name by chasing
+symbolic links.  Only a file of this name \(see next paragraph regarding
+extensions) will trigger the evaluation of FORM.  When FILE is relative,
+a file whose absolute true name ends in FILE will trigger evaluation.
+
+When FILE lacks an extension, a file name with any extension will trigger
+evaluation.  Otherwise, its extension must match FILE's.  A further
+extension for a compressed format \(e.g. \".gz\") on FILE will not affect
+this name matching.
+
+Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
+is evaluated at the end of any file that `provide's this feature.
+If the feature is provided when evaluating code not associated with a
+file, FORM is evaluated immediately after the provide statement.
+
+Usually FILE is just a library name like \"font-lock\" or a feature name
+like 'font-lock.
+
+This function makes or adds to an entry on `after-load-alist'."
+  ;; Add this FORM into after-load-alist (regardless of whether we'll be
+  ;; evaluating it now).
+  (let* ((regexp-or-feature
+	  (if (stringp file)
+              (setq file (purecopy (load-history-regexp file)))
+            file))
+	 (elt (assoc regexp-or-feature after-load-alist)))
+    (unless elt
+      (setq elt (list regexp-or-feature))
+      (push elt after-load-alist))
+    ;; Make sure `form' is evalled in the current lexical/dynamic code.
+    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
+    ;; Is there an already loaded file whose name (or `provide' name)
+    ;; matches FILE?
+    (prog1 (if (if (stringp file)
+		   (load-history-filename-element regexp-or-feature)
+		 (featurep file))
+	       (eval form))
+      (when (symbolp regexp-or-feature)
+	;; For features, the after-load-alist elements get run when `provide' is
+	;; called rather than at the end of the file.  So add an indirection to
+	;; make sure that `form' is really run "after-load" in case the provide
+	;; call happens early.
+	(setq form
+	      `(if load-file-name
+		   (let ((fun (make-symbol "eval-after-load-helper")))
+		     (fset fun `(lambda (file)
+				  (if (not (equal file ',load-file-name))
+				      nil
+				    (remove-hook 'after-load-functions ',fun)
+				    ,',form)))
+		     (add-hook 'after-load-functions fun))
+		 ;; Not being provided from a file, run form right now.
+		 ,form)))
+      ;; Add FORM to the element unless it's already there.
+      (unless (member form (cdr elt))
+	(nconc elt (list form))))))
+
+(defvar after-load-functions nil
+  "Special hook run after loading a file.
+Each function there is called with a single argument, the absolute
+name of the file just loaded.")
+
+(defun do-after-load-evaluation (abs-file)
+  "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
+ABS-FILE, a string, should be the absolute true name of a file just loaded.
+This function is called directly from the C code."
+  ;; Run the relevant eval-after-load forms.
+  (mapc #'(lambda (a-l-element)
+	    (when (and (stringp (car a-l-element))
+		       (string-match-p (car a-l-element) abs-file))
+	      ;; discard the file name regexp
+	      (mapc #'eval (cdr a-l-element))))
+	after-load-alist)
+  ;; Complain when the user uses obsolete files.
+  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
+    (run-with-timer 0 nil
+                    (lambda (file)
+                      (message "Package %s is obsolete!"
+                               (substring file 0
+                                          (string-match "\\.elc?\\>" file))))
+                    (file-name-nondirectory abs-file)))
+  ;; Finally, run any other hook.
+  (run-hook-with-args 'after-load-functions abs-file))
+
+(defun eval-next-after-load (file)
+  "Read the following input sexp, and run it whenever FILE is loaded.
+This makes or adds to an entry on `after-load-alist'.
+FILE should be the name of a library, with no directory name."
+  (declare (obsolete eval-after-load "23.2"))
+  (eval-after-load file (read)))
+
+(defun display-delayed-warnings ()
+  "Display delayed warnings from `delayed-warnings-list'.
+Used from `delayed-warnings-hook' (which see)."
+  (dolist (warning (nreverse delayed-warnings-list))
+    (apply 'display-warning warning))
+  (setq delayed-warnings-list nil))
+
+(defun collapse-delayed-warnings ()
+  "Remove duplicates from `delayed-warnings-list'.
+Collapse identical adjacent warnings into one (plus count).
+Used from `delayed-warnings-hook' (which see)."
+  (let ((count 1)
+        collapsed warning)
+    (while delayed-warnings-list
+      (setq warning (pop delayed-warnings-list))
+      (if (equal warning (car delayed-warnings-list))
+          (setq count (1+ count))
+        (when (> count 1)
+          (setcdr warning (cons (format "%s [%d times]" (cadr warning) count)
+                                (cddr warning)))
+          (setq count 1))
+        (push warning collapsed)))
+    (setq delayed-warnings-list (nreverse collapsed))))
+
+;; At present this is only used for Emacs internals.
+;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
+(defvar delayed-warnings-hook '(collapse-delayed-warnings
+                                display-delayed-warnings)
+  "Normal hook run to process and display delayed warnings.
+By default, this hook contains functions to consolidate the
+warnings listed in `delayed-warnings-list', display them, and set
+`delayed-warnings-list' back to nil.")
+
 
 ;;;; invisibility specs
 
