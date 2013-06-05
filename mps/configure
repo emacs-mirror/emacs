@@ -2914,6 +2914,13 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+# These flags aren't used for building the MPS, but for sample programs.
+CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+           -Wstrict-prototypes -Wmissing-prototypes \
+           -Winline -Waggregate-return -Wnested-externs \
+           -Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
+
 # Make sure we can run config.sub.
 $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
   as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
@@ -2996,11 +3003,13 @@ case $host in
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
 $as_echo "Linux x86" >&6; }
       MPS_TARGET_NAME=lii3gc
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   x86_64-*-linux*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86_64" >&5
 $as_echo "Linux x86_64" >&6; }
       MPS_TARGET_NAME=lii6gc
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   i*86-*-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
@@ -3010,6 +3019,7 @@ $as_echo "Mac OS X x86" >&6; }
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
       TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
     ;;
   x86_64-apple-darwin*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86_64" >&5
@@ -3019,20 +3029,25 @@ $as_echo "Mac OS X x86_64" >&6; }
       CLEAN_TARGET=clean-xcode-build
       INSTALL_TARGET=install-xcode-build
       TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
     ;;
   i*86-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86" >&5
 $as_echo "FreeBSD x86" >&6; }
       MPS_TARGET_NAME=fri3gc
+      # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   amd64-*-freebsd* | x86_64-*-freebsd*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
 $as_echo "FreeBSD x86_64" >&6; }
       MPS_TARGET_NAME=fri6gc
+      # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   *)
     as_fn_error $? "MPS does not support this platform out of the box.  See manual/build.txt" "$LINENO" 5
@@ -3488,6 +3503,14 @@ ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac
 if test "x$ac_cv_header_sqlite3_h" = xyes; then :
   EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"
 fi
+
+
+
+# Put platform compiler flags like -ansi -pedantic into CFLAGS only
+# after checking for sqlite3.h -- that header doesn't compile with
+# those flags.
+CFLAGS="$CFLAGS $PFMCFLAGS"
+
 
 
 
