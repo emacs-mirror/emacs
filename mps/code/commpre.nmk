@@ -68,9 +68,11 @@ AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe		\
 
 OTHER_TEST_TARGETS=bttest.exe teletest.exe zcoll.exe
 
-# Stand-alone programs go in EXTRA_TARGETS.
+# Stand-alone programs go in EXTRA_TARGETS if they should always be
+# built, or in OPTIONAL_TARGETS if they should only be built if 
 
 EXTRA_TARGETS=mpseventcnv.exe mpseventtxt.exe
+OPTIONAL_TARGETS=mpseventsql.exe
 
 # This target records programs that we were once able to build but
 # can't at the moment:
