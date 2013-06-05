@@ -12132,11 +12132,26 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
   int hpos, vpos, prop_idx;
   struct glyph *glyph;
   Lisp_Object enabled_p;
+  int ts;
 
-  /* If not on the highlighted tool-bar item, return.  */
+  /* If not on the highlighted tool-bar item, and mouse-highlight is
+     non-nil, return.  This is so we generate the tool-bar button
+     click only when the mouse button is released on the same item as
+     where it was pressed.  However, when mouse-highlight is disabled,
+     generate the click when the button is released regardless of the
+     highlight, since tool-bar items are not highlighted in that
+     case.  */
   frame_to_window_pixel_xy (w, &x, &y);
-  if (get_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx) != 0)
+  ts = get_tool_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx);
+  if (ts == -1
+      || (ts != 0 && !NILP (Vmouse_highlight)))
     return;
+
+  /* When mouse-highlight is off, generate the click for the item
+     where the button was pressed, disregarding where it was
+     released.  */
+  if (NILP (Vmouse_highlight) && !down_p)
+    prop_idx = last_tool_bar_item;
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
@@ -12146,7 +12161,8 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
   if (down_p)
     {
       /* Show item in pressed state.  */
-      show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
+      if (!NILP (Vmouse_highlight))
+	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
       last_tool_bar_item = prop_idx;
     }
   else
@@ -12156,7 +12172,8 @@ handle_tool_bar_click (struct frame *f, int x, int y, int down_p,
       EVENT_INIT (event);
 
       /* Show item in released state.  */
-      show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
+      if (!NILP (Vmouse_highlight))
+	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
 
       key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
@@ -12229,7 +12246,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
 
   /* If tool-bar item is not enabled, don't highlight it.  */
   enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
-  if (!NILP (enabled_p))
+  if (!NILP (enabled_p) && !NILP (Vmouse_highlight))
     {
       /* Compute the x-position of the glyph.  In front and past the
 	 image is a space.  We include this in the highlighted area.  */
@@ -27399,7 +27416,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   if (STRINGP (string))
     {
       mouse_face = Fget_text_property (pos, Qmouse_face, string);
-      if (!NILP (mouse_face)
+      if (!NILP (Vmouse_highlight) && !NILP (mouse_face)
 	  && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
 	  && glyph)
 	{
@@ -27558,8 +27575,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
     return;
 #endif
 
-  if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p
+  if (!f->glyphs_initialized_p
       || f->pointer_invisible)
     return;
 
@@ -27649,7 +27665,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
 #ifdef HAVE_WINDOW_SYSTEM
       /* Look for :pointer property on image.  */
-      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
+      if (!NILP (Vmouse_highlight)
+	  && glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
 	  if (img != NULL && IMAGEP (img->spec))
@@ -27692,7 +27709,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 #endif	/* HAVE_WINDOW_SYSTEM */
 
       /* Clear mouse face if X/Y not over text.  */
-      if (glyph == NULL
+      if (NILP (Vmouse_highlight)
+	  || glyph == NULL
 	  || area != TEXT_AREA
 	  || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix, vpos))
 	  /* Glyph's OBJECT is an integer for glyphs inserted by the

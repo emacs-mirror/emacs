@@ -1,3 +1,15 @@
+2013-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_tool_bar_click): When mouse-highlight is off,
+	don't insist on being invoked on a highlighted tool-bar button.
+	Avoids losing tool-bar functionality when mouse-highlight is nil.
+	(note_tool_bar_highlight, note_mode_line_or_margin_highlight):
+	Don't highlight when mouse-highlight is nil.
+	(note_mouse_highlight): When mouse-highlight is nil, don't return
+	right away; instead, run tool-bar and mode-line highlight
+	subroutine, clear any existing highlight, and revert the mouse
+	pointer to its default shape.  (Bug#14558)
+
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.mk (lisp): Add prog-mode.el.
