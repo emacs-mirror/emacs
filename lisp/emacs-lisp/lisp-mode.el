@@ -187,6 +187,11 @@ It has `lisp-mode-abbrev-table' as its parent."
               font-lock-string-face))))
     font-lock-comment-face))
 
+;; Temporary variables used to add font-lock keywords dynamically.
+(defvar lisp--augmented-font-lock-keywords)
+(defvar lisp--augmented-font-lock-keywords-1)
+(defvar lisp--augmented-font-lock-keywords-2)
+
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
@@ -223,9 +228,20 @@ font-lock keywords will not be case sensitive."
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
   (setq-local syntax-begin-function 'beginning-of-defun)
+  (setq-local prog-prettify-symbols-alist lisp--prettify-symbols-alist)
+  (setq lisp--augmented-font-lock-keywords
+        (append lisp-font-lock-keywords
+                (prog-prettify-font-lock-symbols-keywords)))
+  (setq lisp--augmented-font-lock-keywords-1
+        (append lisp-font-lock-keywords-1
+                (prog-prettify-font-lock-symbols-keywords)))
+  (setq lisp--augmented-font-lock-keywords-2
+        (append lisp-font-lock-keywords-2
+                (prog-prettify-font-lock-symbols-keywords)))
   (setq font-lock-defaults
-	`((lisp-font-lock-keywords
-	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
+	`((lisp--augmented-font-lock-keywords
+	   lisp--augmented-font-lock-keywords-1
+           lisp--augmented-font-lock-keywords-2)
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
@@ -447,6 +463,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :options '(turn-on-eldoc-mode)
   :type 'hook
   :group 'lisp)
+
+(defconst lisp--prettify-symbols-alist
+  '(("lambda"  . ?λ)))
 
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.

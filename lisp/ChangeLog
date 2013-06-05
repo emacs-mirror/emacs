@@ -1,3 +1,29 @@
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Generalize symbol prettify support to prog-mode and implement it
+	for perl-mode, cfengine3-mode, and emacs-lisp-mode.
+	* simple.el (prog-prettify-symbols-alist, prog-prettify-symbols)
+	(prog--prettify-font-lock-compose-symbol)
+	(prog-prettify-font-lock-symbols-keywords): New variables and
+	functions to support symbol prettification.
+	* emacs-lisp/lisp-mode.el (lisp--augmented-font-lock-keywords)
+	(lisp--augmented-font-lock-keywords-1)
+	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables)
+	(lisp--prettify-symbols-alist): Implement prettify of lambda.
+	* progmodes/cfengine.el (cfengine3--augmented-font-lock-keywords)
+	(cfengine3--prettify-symbols-alist, cfengine3-mode): Implement
+	prettify of -> => :: strings.
+	* progmodes/perl-mode.el (perl-prettify-symbols)
+	(perl--font-lock-compose-symbol)
+	(perl--font-lock-symbols-keywords): Move to prog-mode.
+	(perl--prettify-symbols-alist): Prettify -> => :: strings.
+	(perl-font-lock-keywords-1)
+	(perl-font-lock-keywords-2): Remove explicit prettify support.
+	(perl--augmented-font-lock-keywords)
+	(perl--augmented-font-lock-keywords-1)
+	(perl--augmented-font-lock-keywords-2, perl-mode): Implement
+	prettify support.
+
 2013-06-05  Leo Liu  <sdl.web@gmail.com>
 
 	Re-implement smie matching block highlight using

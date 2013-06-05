@@ -397,8 +397,50 @@ instead."
   "Major mode for editing programming language source code."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (make-local-variable 'prog-prettify-symbols-alist)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
+
+(defvar prog-prettify-symbols-alist nil)
+
+(defcustom prog-prettify-symbols nil
+  "Whether symbols should be prettified.
+When set to an alist in the form `(STRING . CHARACTER)' it will
+augment the mode's native prettify alist."
+  :type '(choice
+          (const :tag "No thanks" nil)
+          (const :tag "Mode defaults" t)
+          (alist :tag "Mode defaults augmented with your own list"
+                 :key-type string :value-type character))
+  :group 'languages)
+
+(defun prog--prettify-font-lock-compose-symbol (alist)
+  "Compose a sequence of ascii chars into a symbol.
+Regexp match data 0 points to the chars."
+  ;; Check that the chars should really be composed into a symbol.
+  (let* ((start (match-beginning 0))
+	 (end (match-end 0))
+	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
+		       '(?w) '(?. ?\\))))
+    (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
+	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
+            (nth 8 (syntax-ppss)))
+	;; No composition for you.  Let's actually remove any composition
+	;; we may have added earlier and which is now incorrect.
+	(remove-text-properties start end '(composition))
+      ;; That's a symbol alright, so add the composition.
+      (compose-region start end (cdr (assoc (match-string 0) alist)))))
+  ;; Return nil because we're not adding any face property.
+  nil)
+
+(defun prog-prettify-font-lock-symbols-keywords ()
+  (when prog-prettify-symbols
+    (let ((alist (append prog-prettify-symbols-alist
+                         (if (listp prog-prettify-symbols)
+                             prog-prettify-symbols
+                           nil))))
+      `((,(regexp-opt (mapcar 'car alist) t)
+         (0 (prog--prettify-font-lock-compose-symbol ',alist)))))))
 
 ;; Making and deleting lines.
 
