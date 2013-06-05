@@ -2763,10 +2763,10 @@ surrounded by (cl-block NAME ...).
 
 ;;;###autoload
 (defun cl--compiler-macro-adjoin (form a list &rest keys)
-  (if (and (cl--simple-expr-p a) (cl--simple-expr-p list)
-	   (not (memq :key keys)))
-      `(if (cl-member ,a ,list ,@keys) ,list (cons ,a ,list))
-    form))
+  (if (memq :key keys) form
+    (macroexp-let2 macroexp-copyable-p va a
+      (macroexp-let2 macroexp-copyable-p vlist list
+        `(if (cl-member ,va ,vlist ,@keys) ,vlist (cons ,va ,vlist))))))
 
 (defun cl--compiler-macro-get (_form sym prop &optional def)
   (if def

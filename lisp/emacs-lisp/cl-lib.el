@@ -156,8 +156,8 @@ an element already on the list.
                  ;; earlier and should have triggered them already.
                  (with-no-warnings ,place)
                (setq ,place (cons ,var ,place))))
-	(list 'setq place (cl-list* 'cl-adjoin x place keys)))
-    (cl-list* 'cl-callf2 'cl-adjoin x place keys)))
+	`(setq ,place (cl-adjoin ,x ,place ,@keys)))
+    `(cl-callf2 cl-adjoin ,x ,place ,@keys)))
 
 (defun cl--set-elt (seq n val)
   (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))

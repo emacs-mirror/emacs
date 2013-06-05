@@ -1,3 +1,32 @@
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix compilation error with simultaneous dynamic+lexical scoping.
+	Add warning when a defvar appears after the first let-binding.
+	* emacs-lisp/bytecomp.el (byte-compile-lexical-variables): New var.
+	(byte-compile-close-variables): Initialize it.
+	(byte-compile--declare-var): New function.
+	(byte-compile-file-form-defvar)
+	(byte-compile-file-form-define-abbrev-table)
+	(byte-compile-file-form-custom-declare-variable): Use it.
+	(byte-compile-make-lambda-lexenv): Change the argument.  Simplify.
+	(byte-compile-lambda): Share call to byte-compile-arglist-vars.
+	(byte-compile-bind): Handle dynamic bindings that shadow
+	lexical bindings.
+	(byte-compile-unbind): Make arg non-optional.
+	(byte-compile-let): Simplify.
+	* emacs-lisp/cconv.el (byte-compile-lexical-variables): Declare var.
+	(cconv--analyse-function, cconv-analyse-form): Populate it.
+	Protect byte-compile-bound-variables to limit the scope of defvars.
+	(cconv-analyse-form): Add missing rule for (defvar <foo>).
+	Remove unneeded rule for `declare'.
+
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-adjoin): Use macroexp-let2
+	so as to avoid depending on cl-adjoin at run-time.
+	* emacs-lisp/cl-lib.el (cl-pushnew): Use backquotes.
+
+	* emacs-lisp/macroexp.el (macroexp--compiling-p): New function.
+	(macroexp--warn-and-return): Use it.
+
 2013-06-05  Leo Liu  <sdl.web@gmail.com>
 
 	* eshell/esh-mode.el (eshell-mode): Fix key bindings.
@@ -17,7 +46,7 @@
 	* emacs-lisp/lisp.el: Use lexical-binding.
 	(lisp--local-variables-1, lisp--local-variables): New functions.
 	(lisp--local-variables-completion-table): New var.
-	(lisp-completion-at-point): Use it to provide completion of let-bound vars.
+	(lisp-completion-at-point): Use it complete let-bound vars.
 
 	* emacs-lisp/lisp-mode.el (eval-sexp-add-defvars): Expand macros
 	eagerly (bug#14422).
