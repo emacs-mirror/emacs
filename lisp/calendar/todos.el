@@ -809,12 +809,12 @@ has archived items, the archived category is renamed to the goal
 category."
   (interactive "P")
   (let* ((tfile todos-current-todos-file)
-	 (archive (concat (file-name-sans-extension (if file gfile tfile))
-			  ".toda"))
 	 (cat (todos-current-category))
 	 (cat+file (todos-read-category "Merge into category: " 'todo file))
 	 (goal (car cat+file))
 	 (gfile  (cdr cat+file))
+	 (archive (concat (file-name-sans-extension (if file gfile tfile))
+			  ".toda"))
 	 archived-count here)
     ;; Merge in todo file.
     (with-current-buffer (get-buffer (find-file-noselect tfile))
@@ -2855,9 +2855,11 @@ shown in the Fancy Diary display."
   "Highlight or unhighlight the todo item the cursor is on."
   (interactive)
   (require 'hl-line)
-  (if hl-line-mode
-      (hl-line-mode -1)
-    (hl-line-mode 1)))
+  (when (memq major-mode '(todos-mode todos-archive-mode
+				      todos-filtered-items-mode))
+    (if hl-line-mode
+	(hl-line-mode -1)
+      (hl-line-mode 1))))
 
 (defun todos-toggle-item-header ()
   "Hide or show item date-time headers in the current file.
@@ -2867,20 +2869,21 @@ the the original date-time string."
   (save-excursion
     (save-restriction
       (goto-char (point-min))
-      (if (todos-get-overlay 'header)
-	  (remove-overlays 1 (1+ (buffer-size)) 'todos 'header)
-	(widen)
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (when (re-search-forward
-		 (concat todos-item-start
-			 "\\( " diary-time-regexp "\\)?"
-			 (regexp-quote todos-nondiary-end) "? ")
-		 nil t)
-	    (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
-	    (overlay-put ov 'todos 'header)
-	    (overlay-put ov 'display ""))
-	  (todos-forward-item))))))
+      (let ((ov (todos-get-overlay 'header)))
+	(if ov
+	    (remove-overlays 1 (1+ (buffer-size)) 'todos 'header)
+	  (widen)
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (when (re-search-forward
+		   (concat todos-item-start
+			   "\\( " diary-time-regexp "\\)?"
+			   (regexp-quote todos-nondiary-end) "? ")
+		   nil t)
+	      (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
+	      (overlay-put ov 'todos 'header)
+	      (overlay-put ov 'display ""))
+	    (todos-forward-item)))))))
 
 ;; -----------------------------------------------------------------------------
 ;;; Faces
@@ -3688,9 +3691,7 @@ saved (the latter as a Todos Archive file) with a new name in
 `todos-directory'.  See also the documentation string of
 `todos-todo-mode-date-time-regexp' for further details."
   (interactive)
-  (if (fboundp 'todo-mode)
-      (require 'todo-mode)
-    (user-error "Void function `todo-mode'"))
+  (require 'todo-mode)
   ;; Convert `todo-file-do'.
   (if (file-exists-p todo-file-do)
       (let ((default "todo-do-conv")
@@ -3824,7 +3825,7 @@ saved (the latter as a Todos Archive file) with a new name in
 	      (delete-region (line-beginning-position) (line-end-position))
 	      (prin1 sexp (current-buffer)))
 	    (write-region (point-min) (point-max) file nil 'nomessage)))
-	  (todos-reevaluate-filelist-defcustoms)
+	(todos-reevaluate-filelist-defcustoms)
 	(message "Format conversion done."))
     (user-error "No legacy Todo file exists")))
 
@@ -4400,12 +4401,12 @@ empty line above the done items separator."
   "Jump to todo item included in Fancy Diary display.
 Helper function for `diary-goto-entry'."
   (when (eq major-mode 'todos-mode)
-    (setq opoint (point))
-    (re-search-backward (concat "^" (regexp-quote todos-category-beg)
-				"\\(.*\\)\n") nil t)
-    (todos-category-number (match-string 1))
-    (todos-category-select)
-    (goto-char opoint)))
+    (let ((opoint (point)))
+      (re-search-backward (concat "^" (regexp-quote todos-category-beg)
+				  "\\(.*\\)\n") nil t)
+      (todos-category-number (match-string 1))
+      (todos-category-select)
+      (goto-char opoint))))
 
 (defun todos-done-item-p ()
   "Return non-nil if item at point is a done item."
@@ -5089,26 +5090,27 @@ option `todos-categories-align'."
 (defun todos-insert-sort-button (label)
   "Insert button for displaying categories sorted by item counts.
 LABEL determines which type of count is sorted."
-  (setq str (if (string= label todos-categories-category-label)
-		(todos-padded-string label)
-	      label))
-  (setq beg (point))
-  (setq end (+ beg (length str)))
-  (insert-button str 'face nil
-		 'action
-		 `(lambda (button)
-		    (let ((key (todos-label-to-key ,label)))
-		      (if (and (member key todos-descending-counts)
-			       (eq key 'alpha))
-			  (progn
-			    ;; If display is alphabetical, switch back to
-			    ;; category priority order.
-			    (todos-display-sorted nil)
-			    (setq todos-descending-counts
-				  (delete key todos-descending-counts)))
-			(todos-display-sorted key)))))
-  (setq ovl (make-overlay beg end))
-  (overlay-put ovl 'face 'todos-button))
+  (let* ((str (if (string= label todos-categories-category-label)
+		  (todos-padded-string label)
+		label))
+	 (beg (point))
+	 (end (+ beg (length str)))
+	 ov)
+    (insert-button str 'face nil
+		   'action
+		   `(lambda (button)
+		      (let ((key (todos-label-to-key ,label)))
+			(if (and (member key todos-descending-counts)
+				 (eq key 'alpha))
+			    (progn
+			      ;; If display is alphabetical, switch back to
+			      ;; category priority order.
+			      (todos-display-sorted nil)
+			      (setq todos-descending-counts
+				    (delete key todos-descending-counts)))
+			  (todos-display-sorted key)))))
+    (setq ov (make-overlay beg end))
+    (overlay-put ov 'face 'todos-button)))
 
 (defun todos-total-item-counts ()
   "Return a list of total item counts for the current file."
@@ -6279,10 +6281,12 @@ Added to `window-configuration-change-hook' in `todos-mode'."
   "Make some settings that apply to multiple Todos modes."
   (add-to-invisibility-spec 'todos)
   (setq buffer-read-only t)
-  (setq-local hl-line-range-function (lambda() (save-excursion
-						 (when (todos-item-end)
-						   (cons (todos-item-start)
-							 (todos-item-end)))))))
+  (when (boundp 'hl-line-range-function)
+    (setq-local hl-line-range-function
+		(lambda() (save-excursion
+			    (when (todos-item-end)
+			      (cons (todos-item-start)
+				    (todos-item-end))))))))
 
 (defun todos-modes-set-3 ()
   "Make some settings that apply to multiple Todos modes."

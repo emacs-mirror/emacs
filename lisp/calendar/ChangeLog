@@ -1,5 +1,18 @@
 2013-06-05  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Fix byte-compiler warnings.
+	(todos-merge-category): Relocate let-bound variable.
+	(todos-toggle-item-highlighting): Restrict to todos-mode,
+	todos-archive-mode and todos-filtered-items-mode.
+	(todos-toggle-item-header, todos-diary-goto-entry)
+	(todos-insert-sort-button): Let-bind variables that were
+	mistakenly free.
+	(todos-convert-legacy-files): Just require todo-mode instead of
+	conditionalizing it.
+	(todos-modes-set-2): Check whether hl-line-range-function is void.
+
+2013-06-05  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Further code cleanup.  Changes to commentary.  Remove
 	autoload cookies.  Handle todo items in Fancy Diary display.
 	(todos-done-separator): Reinstate length one less than
