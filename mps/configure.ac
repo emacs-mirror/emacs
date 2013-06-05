@@ -32,7 +32,7 @@ AC_PROG_INSTALL
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
 AC_CANONICAL_HOST
