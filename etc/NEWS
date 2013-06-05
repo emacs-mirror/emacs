@@ -2838,6 +2838,11 @@ should be derived.
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
 
+**** New option, `prog-prettify-symbols' lets the user control symbol
+prettify (replacing a string like "lambda" with the Greek lambda
+character.  The mode derived from `prog-mode' must call
+`prog-prettify-install' with its own custom alist, which can be empty.
+
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.
 
