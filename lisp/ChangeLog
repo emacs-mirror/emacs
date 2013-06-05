@@ -1,3 +1,7 @@
+2013-06-05  Leo Liu  <sdl.web@gmail.com>
+
+	* eshell/esh-mode.el (eshell-mode): Fix key bindings.
+
 2013-06-04  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/compile.el (compile-goto-error): Add optional arg NOMSG.
