@@ -412,6 +412,7 @@ augment the mode's native prettify alist."
           (const :tag "Mode defaults" t)
           (alist :tag "Mode defaults augmented with your own list"
                  :key-type string :value-type character))
+  :version "24.4"
   :group 'languages)
 
 (defun prog--prettify-font-lock-compose-symbol (alist)
@@ -441,6 +442,10 @@ Regexp match data 0 points to the chars."
                            nil))))
       `((,(regexp-opt (mapcar 'car alist) t)
          (0 (prog--prettify-font-lock-compose-symbol ',alist)))))))
+
+(defun prog-prettify-install (alist)
+  (setq-local prog-prettify-symbols-alist alist)
+  (font-lock-add-keywords nil (prog-prettify-font-lock-symbols-keywords)))
 
 ;; Making and deleting lines.
 

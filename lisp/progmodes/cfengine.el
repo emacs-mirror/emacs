@@ -532,8 +532,6 @@ Intended as the value of `indent-line-function'."
     ("=>"  . ?⇒)
     ("::" . ?∷)))
 
-(defvar cfengine3--augmented-font-lock-keywords)
-
 ;;;###autoload
 (define-derived-mode cfengine3-mode prog-mode "CFE3"
   "Major mode for editing CFEngine3 input.
@@ -546,17 +544,10 @@ to the action header."
 
   (set (make-local-variable 'indent-line-function) #'cfengine3-indent-line)
 
-  ;; Define the symbols to be prettified
-  (setq-local prog-prettify-symbols-alist cfengine3--prettify-symbols-alist)
-
-  ;; Tell font-lock.el how to handle cfengine3 keywords..
-  (setq cfengine3--augmented-font-lock-keywords
-        (append cfengine3-font-lock-keywords
-                (prog-prettify-font-lock-symbols-keywords)))
-
   (setq font-lock-defaults
-        '(cfengine3--augmented-font-lock-keywords
+        '(cfengine3-font-lock-keywords
           nil nil nil beginning-of-defun))
+  (prog-prettify-install cfengine3--prettify-symbols-alist)
 
   ;; Use defuns as the essential syntax block.
   (set (make-local-variable 'beginning-of-defun-function)

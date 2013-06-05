@@ -215,11 +215,6 @@
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
   "Default expressions to highlight in Perl mode.")
 
-;; Temporary variables used to add font-lock keywords dynamically.
-(defvar perl--augmented-font-lock-keywords)
-(defvar perl--augmented-font-lock-keywords-1)
-(defvar perl--augmented-font-lock-keywords-2)
-
 (defvar perl-quote-like-pairs
   '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\< . ?\>)))
 
@@ -656,26 +651,14 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq-local comment-indent-function #'perl-comment-indent)
   (setq-local parse-sexp-ignore-comments t)
 
-  ;; Define the symbols to be prettified.
-  (setq-local prog-prettify-symbols-alist perl--prettify-symbols-alist)
-
   ;; Tell font-lock.el how to handle Perl.
-  (setq perl--augmented-font-lock-keywords
-        (append perl-font-lock-keywords
-                (prog-prettify-font-lock-symbols-keywords)))
-  (setq perl--augmented-font-lock-keywords-1
-        (append perl-font-lock-keywords-1
-                (prog-prettify-font-lock-symbols-keywords)))
-  (setq perl--augmented-font-lock-keywords-2
-        (append perl-font-lock-keywords-2
-                (prog-prettify-font-lock-symbols-keywords)))
-
-  (setq font-lock-defaults '((perl--augmented-font-lock-keywords
-                              perl--augmented-font-lock-keywords-1
-                              perl--augmented-font-lock-keywords-2)
+  (setq font-lock-defaults '((perl-font-lock-keywords
+                              perl-font-lock-keywords-1
+                              perl-font-lock-keywords-2)
                              nil nil ((?\_ . "w")) nil
                              (font-lock-syntactic-face-function
                               . perl-font-lock-syntactic-face-function)))
+  (prog-prettify-install perl--prettify-symbols-alist)
   (setq-local syntax-propertize-function #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)

@@ -1,5 +1,23 @@
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* simple.el (prog-prettify-symbols): Add version.
+	(prog-prettify-install): Add convenience function to prettify symbols.
+
+	* progmodes/perl-mode.el (perl--augmented-font-lock-keywords)
+	(perl--augmented-font-lock-keywords-1)
+	(perl--augmented-font-lock-keywords-2, perl-mode): Remove unneeded
+	variables and use it.
+
+	* progmodes/cfengine.el (cfengine3--augmented-font-lock-keywords)
+	(cfengine3-mode): Remove unneeded variable and use it.
+
+	* emacs-lisp/lisp-mode.el (lisp--augmented-font-lock-keywords)
+	(lisp--augmented-font-lock-keywords-1)
+	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables):
+	Remove unneeded variables and use it.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
 	* net/tls.el (open-tls-stream): Remove unneeded buffer contents up
 	to point when opening the connection.
 	Suggested by João Távora <joaotavora@gmail.com> in
