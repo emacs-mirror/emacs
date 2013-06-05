@@ -1715,7 +1715,7 @@ static obj_t entry_quote(obj_t env, obj_t op_env, obj_t operator, obj_t operands
 
 static obj_t entry_define(obj_t env, obj_t op_env, obj_t operator, obj_t operands)
 {
-  obj_t symbol, value;
+  obj_t symbol = NULL, value = NULL;
   unless(TYPE(operands) == TYPE_PAIR &&
          TYPE(CDR(operands)) == TYPE_PAIR)
     error("%s: illegal syntax", operator->operator.name);
@@ -3479,7 +3479,7 @@ static obj_t entry_eqv_hash(obj_t env, obj_t op_env, obj_t operator, obj_t opera
 
 static obj_t make_hashtable(obj_t operator, obj_t rest, hash_t hashf, cmp_t cmpf, int weak_key, int weak_value)
 {
-  size_t length;
+  size_t length = 0;
   if (rest == obj_empty)
     length = 8;
   else unless(CDR(rest) == obj_empty)
