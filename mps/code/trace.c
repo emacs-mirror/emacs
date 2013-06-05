@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006, 2007 Ravenbrook Limited.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -18,7 +18,6 @@ Rank traceBand(Trace);
 Bool traceBandAdvance(Trace);
 Bool traceBandFirstStretch(Trace);
 void traceBandFirstStretchDone(Trace);
-DIAG_DECL( static void traceFindGrey_diag(Bool found, Rank rank); )
 
 /* Types */
 
@@ -1016,7 +1015,6 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
           *segReturn = seg;
           *rankReturn = rank;
           EVENT4(TraceFindGrey, arena, ti, seg, rank);
-          DIAG( traceFindGrey_diag(TRUE, rank); );
           return TRUE;
         }
       }
@@ -1025,76 +1023,11 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
     if(!traceBandAdvance(trace)) {
       /* No grey segments for this trace. */
-      DIAG( traceFindGrey_diag(FALSE, rank); );
       return FALSE;
     }
   }
 }
 
-
-/* diagnostic output for traceFindGrey */
-DIAG_DECL( 
-static void traceFindGrey_diag(Bool found, Rank rank)
-{
-  char this;
-  static char prev = '.';
-  static int segcount;
-  static char report_array[20];
-  static char *report_lim;
-  int report_maxchars = sizeof(report_array) - 2; /* '.' + '\0' */
-
-  this = (char)(!found ? '.'
-                : (rank == RankAMBIG) ? 'A'
-                : (rank == RankEXACT) ? 'E'
-                : (rank == RankFINAL) ? 'F'
-                : (rank == RankWEAK) ? 'W'
-                : '?');
-
-  if(prev == '.') {
-    /* First seg of new trace */
-    prev = this;
-    segcount = 0;
-    report_lim = report_array;
-  }
-
-  if(this == prev) {
-    segcount += 1;
-  } else {
-    /* Change of rank: add prev rank and segcount to report */
-    if((report_lim - report_array) + 2 > report_maxchars) {
-      /* no space to add 2 chars */
-      report_array[0] = '!';
-    } else {
-      /* prev rank */
-      *report_lim++ = prev;
-      /* prev rank's segcount [0..9, a..z (x10), or *] */
-      if(segcount < 10) {
-        *report_lim++ = (char)('0' + segcount);
-      } else if(segcount < 260) {
-        *report_lim++ = (char)(('a' - 1) + (segcount / 10));
-      } else {
-        *report_lim++ = '*';
-      }
-    }
-    /* begin new rank */
-    prev = this;
-    segcount = 1;
-  }
-  
-  if(!found) {
-    /* No more grey in this trace: output report */
-    AVER(this == '.');
-    AVER(segcount == 1);  /* single failed attempt to find a seg */
-    *report_lim++ = this;
-    *report_lim++ = '\0';
-    DIAG_SINGLEF(( "traceFindGrey",
-                   "rank sequence: $S",
-                   (WriteFS)report_array,
-                   NULL ));
-  }
-  return;
-}
-)
 
 /* ScanStateSetSummary -- set the summary of scanned references
  *
@@ -1626,36 +1559,15 @@ static Res rootGrey(Root root, void *p)
 }
 
 
-static void TraceStartGenDesc_diag(GenDesc desc, Bool top, Index i)
+static void TraceStartPoolGen(Chain chain, GenDesc desc, Bool top, Index i)
 {
   Ring n, nn;
-  
-#if !defined(DIAG_WITH_STREAM_AND_WRITEF)
-  UNUSED(i);
-#endif
-
-  if(top) {
-    DIAG_WRITEF(( DIAG_STREAM,
-      "         GenDesc [top]",
-      NULL ));
-  } else {
-    DIAG_WRITEF(( DIAG_STREAM,
-      "         GenDesc [$U]", (WriteFU)i,
-      NULL ));
-  }
-  DIAG_WRITEF(( DIAG_STREAM,
-    " $P capacity: $U KiB, mortality $D\n",
-    (WriteFP)desc, (WriteFU)desc->capacity, (WriteFD)desc->mortality,
-    "         ZoneSet:$B\n", (WriteFB)desc->zones,
-    NULL ));
   RING_FOR(n, &desc->locusRing, nn) {
-    DIAG_DECL( PoolGen gen = RING_ELT(PoolGen, genRing, n); )
-    DIAG_WRITEF(( DIAG_STREAM,
-      "           PoolGen $U ($S)", 
-      (WriteFU)gen->nr, (WriteFS)gen->pool->class->name,
-      " totalSize $U", (WriteFU)gen->totalSize,
-      " newSize $U\n", (WriteFU)gen->newSizeAtCreate,
-      NULL ));
+    PoolGen gen = RING_ELT(PoolGen, genRing, n);
+    EVENT11(TraceStartPoolGen, chain, top, i, desc,
+            desc->capacity, desc->mortality, desc->zones,
+            gen->pool, gen->nr, gen->totalSize,
+            gen->newSizeAtCreate);
   }
 }
 
@@ -1729,45 +1641,24 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, base));
   }
 
-  DIAG_FIRSTF(( "TraceStart",
-    "because code $U: $S\n",
-    (WriteFU)trace->why, (WriteFS)TraceStartWhyToString(trace->why),
-    NULL ));
-
-  DIAG( ArenaDescribe(arena, DIAG_STREAM); );
-
-  DIAG_MOREF((
-    "       white set:$B\n",
-    (WriteFB)trace->white,
-    NULL ));
-
-  {
+  STATISTIC_BEGIN {
     /* @@ */
     /* Iterate over all chains, all GenDescs within a chain, */
     /* (and all PoolGens within a GenDesc).  */
     Ring node, nextNode;
     Index i;
-
+    
     RING_FOR(node, &arena->chainRing, nextNode) {
       Chain chain = RING_ELT(Chain, chainRing, node);
-      DIAG_WRITEF(( DIAG_STREAM,
-        "       Chain $P\n", (WriteFP)chain,
-        NULL ));
-
       for(i = 0; i < chain->genCount; ++i) {
         GenDesc desc = &chain->gens[i];
-        TraceStartGenDesc_diag(desc, FALSE, i);
+        TraceStartPoolGen(chain, desc, FALSE, i);
       }
     }
-
+    
     /* Now do topgen GenDesc (and all PoolGens within it). */
-    DIAG_WRITEF(( DIAG_STREAM,
-      "       topGen\n",
-      NULL ));
-    TraceStartGenDesc_diag(&arena->topGen, TRUE, 0);
-  }
-  
-  DIAG_END( "TraceStart" );
+    TraceStartPoolGen(NULL, &arena->topGen, TRUE, 0);
+  } STATISTIC_END;
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
@@ -1790,7 +1681,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     trace->rate = (trace->foundation + sSurvivors) / (unsigned long)nPolls + 1;
   }
 
-  /* @@ DIAG for rate of scanning here. */
+  /* TODO: compute rate of scanning here. */
 
   EVENT8(TraceStart, trace, mortality, finishingTime,
          trace->condemned, trace->notCondemned,
@@ -1798,9 +1689,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
          trace->rate);
 
   STATISTIC_STAT(EVENT7(TraceStatCondemn, trace,
-                               trace->condemned, trace->notCondemned,
-                               trace->foundation, trace->rate,
-                               mortality, finishingTime));
+                        trace->condemned, trace->notCondemned,
+                        trace->foundation, trace->rate,
+                        mortality, finishingTime));
 
   trace->state = TraceUNFLIPPED;
   TracePostStartMessage(trace);
@@ -2009,7 +1900,7 @@ failStart:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006, 2007 Ravenbrook Limited
+ * Copyright (C) 2001-2013 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

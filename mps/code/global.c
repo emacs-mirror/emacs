@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -447,24 +447,17 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     TraceIdMessagesDestroy(arena, ti);
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  /* report dropped messages (currently in diagnostic varieties only) */
-  if(arena->droppedMessages > 0) {
+  /* report dropped messages */
+  if(arena->droppedMessages > 0)
     EVENT1(MessagesDropped, arena->droppedMessages);
-    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_dropped",
-      "arena->droppedMessages = $U", (WriteFU)arena->droppedMessages,
-      NULL ));
-  }
 
   /* .message.queue.empty: Empty the queue of messages before */
   /* proceeding to finish the arena.  It is important that this */
   /* is done before destroying the finalization pool as otherwise */
   /* the message queue would have dangling pointers to messages */
   /* whose memory has been unmapped. */
-  if(MessagePoll(arena)) {
+  if(MessagePoll(arena))
     EVENT0(MessagesExist);
-    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_queue",
-      "Message queue not empty", NULL ));
-  }
   MessageEmpty(arena);
 
   /* throw away the BT used by messages */
@@ -1104,8 +1097,6 @@ void ArenaSetEmergency(Arena arena, Bool emergency)
   AVERT(Arena, arena);
   AVERT(Bool, emergency);
 
-  DIAG_SINGLEF(( "ArenaSetEmergency",
-    "emergency: $U", (WriteFU)emergency, NULL ));
   EVENT2(ArenaSetEmergency, arena, emergency);
 
   arena->emergency = emergency;
@@ -1121,7 +1112,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
@@ -154,14 +154,6 @@ extern Res WriteF(mps_lib_FILE *stream, ...);
 extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
 extern Res WriteF_firstformat_v(mps_lib_FILE *stream,
                                 const char *firstformat, va_list args);
-
-#if defined(DIAG_WITH_STREAM_AND_WRITEF)
-extern int Stream_fputc(int c, mps_lib_FILE *stream);
-extern int Stream_fputs(const char *s, mps_lib_FILE *stream);
-#else
-#define Stream_fputc mps_lib_fputc
-#define Stream_fputs mps_lib_fputs
-#endif
 
 
 /* Miscellaneous support -- see <code/mpm.c> */
@@ -991,6 +983,9 @@ extern void StackProbe(Size depth);
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
  * of statistic fields.
  *
+ * STATISTIC_BEGIN and STATISTIC_END can be used around a block of
+ * statements.
+ *
  * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
  * the parameter is syntactically an expression.  The parameter is
@@ -1002,115 +997,29 @@ extern void StackProbe(Size depth);
 #define STATISTIC(gather) BEGIN (gather); END
 #define STATISTIC_STAT(gather) BEGIN gather; END
 #define STATISTIC_WRITE(format, arg) (format), (arg),
+#define STATISTIC_BEGIN BEGIN
+#define STATISTIC_END END
 
 #elif defined(STATISTICS_NONE)
 
 #define STATISTIC(gather) DISCARD(((gather), 0))
 #define STATISTIC_STAT DISCARD_STAT
 #define STATISTIC_WRITE(format, arg)
+#define STATISTIC_BEGIN BEGIN if (0) {
+#define STATISTIC_END } END
 
-#else
+#else /* !defined(STATISTICS) && !defined(STATISTICS_NONE) */
 
 #error "No statistics configured."
 
 #endif
-
-
-/* ------------ DIAG_WITH_STREAM_AND_WRITEF --------------- */
-
-Bool DiagIsOn(void);
-mps_lib_FILE *DiagStream(void);
-
-
-/* Diag*F functions -- formatted diagnostic output
- *
- * Note: do not call these directly; use the DIAG_*F macros below.
- */
-
-extern void DiagSingleF(const char *tag, ...);
-extern void DiagFirstF(const char *tag, ...);
-extern void DiagMoreF(const char *format, ...);
-extern void DiagEnd(const char *tag);
-
-
-#if defined(DIAG_WITH_STREAM_AND_WRITEF)
-
-/* Diagnostic Calculation and Output */
-#define DIAG_DECL(decl) decl
-#define DIAG_STREAM (DiagStream())
-#define DIAG(s) BEGIN \
-    s \
-  END
-
-
-/* DIAG_*F macros -- formatted diagnostic output
- *
- * Note: when invoking these macros, the value passed as macro 
- * argument "args" might contain commas; it must therefore be 
- * enclosed in parentheses.  That makes these macros unclean in 
- * all sorts of ways.
- */
-
-#define DIAG_WRITEF(args) DIAG( \
-  if(DiagIsOn()) { \
-    WriteF args; \
-  } \
-)
-#define DIAG_SINGLEF(args) DIAG( \
-  DiagSingleF args; \
-)
-#define DIAG_FIRSTF(args) DIAG( \
-  DiagFirstF args; \
-)
-#define DIAG_MOREF(args) DIAG( \
-  DiagMoreF args; \
-)
-
-/* Note: extra parens *not* required when invoking DIAG_END */
-#define DIAG_END(tag) DIAG( \
-  DiagEnd(tag); \
-)
-
-
-#else
-
-/* Diagnostic Calculation and Output */
-#define DIAG_DECL(decl)
-#define DIAG(s) BEGIN END
-#define DIAG_WRITEF(args) BEGIN END
-
-/* DIAG_*F macros */
-#define DIAG_SINGLEF(args) BEGIN END
-#define DIAG_FIRSTF(args) BEGIN END
-#define DIAG_MOREF(args) BEGIN END
-#define DIAG_END(tag) BEGIN END
-
-#endif
-
-/* ------------ DIAG_WITH_PRINTF --------------- */
-
-#if defined(DIAG_WITH_PRINTF)
-
-#include <stdio.h>
-
-#define DIAG_PRINTF(args) BEGIN\
-  printf args ; \
-  END
-
-#else
-
-#define DIAG_PRINTF(args) BEGIN\
-  END
-
-#endif
-
 
 #endif /* mpm_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
