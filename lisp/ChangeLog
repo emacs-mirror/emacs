@@ -1,3 +1,12 @@
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-notify-handler): Use memq.
+	Hide assertion failure.
+
+	* skeleton.el: Use cl-lib.
+	(skeleton-further-elements): Use defvar-local.
+	(skeleton-insert): Use cl-progv.
+
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* progmodes/prog-mode.el (prog-prettify-symbols)
