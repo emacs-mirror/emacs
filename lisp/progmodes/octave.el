@@ -153,10 +153,10 @@ parenthetical grouping.")
                                 'eldoc-mode))
      :style toggle :selected (or eldoc-post-insert-mode eldoc-mode)
      :help "Display function signatures after typing `SPC' or `('"]
-    ["Delimiter Matching"           smie-highlight-matching-block-mode
-     :style toggle :selected smie-highlight-matching-block-mode
+    ["Delimiter Matching"           show-paren-mode
+     :style toggle :selected show-paren-mode
      :help "Highlight matched pairs such as `if ... end'"
-     :visible (fboundp 'smie-highlight-matching-block-mode)]
+     :visible (fboundp 'smie--matching-block-data)]
     ["Auto Fill"                    auto-fill-mode
      :style toggle :selected auto-fill-function
      :help "Automatic line breaking"]
@@ -1715,9 +1715,13 @@ Functions implemented in C++ can be found if
    (list (format "\
 if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
                  fn fn fn)))
-  (let* ((line (car inferior-octave-output-list))
-         (file (when (and line (string-match "from the file \\(.*\\)$" line))
-                 (match-string 1 line))))
+  (let (line file)
+    ;; Skip garbage lines such as
+    ;;     warning: fmincg.m: possible Matlab-style ....
+    (while (and (not file) (consp inferior-octave-output-list))
+      (setq line (pop inferior-octave-output-list))
+      (when (string-match "from the file \\(.*\\)$" line)
+        (setq file (match-string 1 line))))
     (if (not file)
         (user-error "%s" (or line (format "`%s' not found" fn)))
       (require 'etags)

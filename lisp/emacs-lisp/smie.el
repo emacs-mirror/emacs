@@ -1021,87 +1021,63 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
             (let ((blink-matching-check-function #'smie-blink-matching-check))
               (blink-matching-open))))))))
 
-(defface smie-matching-block-highlight '((t (:inherit highlight)))
-  "Face used to highlight matching block."
-  :group 'smie)
+(defvar-local smie--matching-block-data-cache nil)
 
-(defvar smie--highlight-matching-block-overlay nil)
-(defvar-local smie--highlight-matching-block-lastpos -1)
-
-(defun smie-highlight-matching-block ()
-  (when (and smie-closer-alist
-             (/= (point) smie--highlight-matching-block-lastpos))
-    (unless (overlayp smie--highlight-matching-block-overlay)
-      (setq smie--highlight-matching-block-overlay
-            (make-overlay (point) (point))))
-    (setq smie--highlight-matching-block-lastpos (point))
-    (let ((beg-of-tok
-           (lambda (&optional start)
-             "Move to the beginning of current token at START."
-             (let* ((token)
-                    (start (or start (point)))
-                    (beg (progn
-                           (funcall smie-backward-token-function)
-                           (forward-comment (point-max))
-                           (point)))
-                    (end (progn
-                           (setq token (funcall smie-forward-token-function))
-                           (forward-comment (- (point)))
-                           (point))))
-               (if (and (<= beg start) (<= start end)
-                        (or (assoc token smie-closer-alist)
-                            (rassoc token smie-closer-alist)))
-                   (progn (goto-char beg) token)
-                 (goto-char start)
-                 nil))))
-          (highlight
-           (lambda (beg end)
-             (move-overlay smie--highlight-matching-block-overlay
-                           beg end (current-buffer))
-             (overlay-put smie--highlight-matching-block-overlay
-                          'face 'smie-matching-block-highlight))))
-      (overlay-put smie--highlight-matching-block-overlay 'face nil)
-      (unless (nth 8 (syntax-ppss))
-        (save-excursion
+(defun smie--matching-block-data (orig &rest args)
+  "A function suitable for `show-paren-data-function' (which see)."
+  (when smie-closer-alist
+    (if (eq (point) (car smie--matching-block-data-cache))
+        (or (cdr smie--matching-block-data-cache)
+            (apply orig args))
+      (setq smie--matching-block-data-cache (list (point)))
+      (let* ((beg-of-tok
+              (lambda (&optional start)
+                "Move to the beginning of current token at START."
+                (let* ((token)
+                       (start (or start (point)))
+                       (beg (progn
+                              (funcall smie-backward-token-function)
+                              (forward-comment (point-max))
+                              (point)))
+                       (end (progn
+                              (setq token (funcall smie-forward-token-function))
+                              (forward-comment (- (point)))
+                              (point))))
+                  (if (and (<= beg start) (<= start end)
+                           (or (assoc token smie-closer-alist)
+                               (rassoc token smie-closer-alist)))
+                      (progn (goto-char beg) (list token beg end))
+                    (goto-char start)
+                    nil))))
+             (tok-at-pt
+              (lambda ()
+                (or (funcall beg-of-tok)
+                    (funcall beg-of-tok
+                             (prog1 (point)
+                               (funcall smie-forward-token-function)))))))
+        (unless (nth 8 (syntax-ppss))
           (condition-case nil
-              (let ((token
-                     (or (funcall beg-of-tok)
-                         (funcall beg-of-tok
-                                  (prog1 (point)
-                                    (funcall smie-forward-token-function))))))
-                (cond
-                 ((assoc token smie-closer-alist) ; opener
-                  (forward-sexp 1)
-                  (let ((end (point))
-                        (closer (funcall smie-backward-token-function)))
-                    (when (rassoc closer smie-closer-alist)
-                      (funcall highlight (point) end))))
-                 ((rassoc token smie-closer-alist) ; closer
-                  (funcall smie-forward-token-function)
-                  (forward-sexp -1)
-                  (let ((beg (point))
-                        (opener (funcall smie-forward-token-function)))
-                    (when (assoc opener smie-closer-alist)
-                      (funcall highlight beg (point)))))))
-            (scan-error)))))))
-
-(defvar smie--highlight-matching-block-timer nil)
-
-;;;###autoload
-(define-minor-mode smie-highlight-matching-block-mode nil
-  :global t :group 'smie
-  (when (timerp smie--highlight-matching-block-timer)
-    (cancel-timer smie--highlight-matching-block-timer))
-  (setq smie--highlight-matching-block-timer nil)
-  (if smie-highlight-matching-block-mode
-      (progn
-        (remove-hook 'post-self-insert-hook #'smie-blink-matching-open 'local)
-        (setq smie--highlight-matching-block-timer
-              (run-with-idle-timer 0.2 t #'smie-highlight-matching-block)))
-    (when smie--highlight-matching-block-overlay
-      (delete-overlay smie--highlight-matching-block-overlay)
-      (setq smie--highlight-matching-block-overlay nil))
-    (kill-local-variable 'smie--highlight-matching-block-lastpos)))
+              (let ((here (funcall tok-at-pt)))
+                (when here
+                  (let (pair there)
+                    (cond
+                     ((assoc (car here) smie-closer-alist) ; opener
+                      (forward-sexp 1)
+                      (setq there (funcall tok-at-pt))
+                      (setq pair (cons (car here) (car there))))
+                     ((rassoc (car here) smie-closer-alist) ; closer
+                      (funcall smie-forward-token-function)
+                      (forward-sexp -1)
+                      (setq there (funcall tok-at-pt))
+                      (setq pair (cons (car there) (car here)))))
+                    ;; Update the cache
+                    (setcdr smie--matching-block-data-cache
+                            (list (nth 1 here) (nth 2 here)
+                                  (nth 1 there) (nth 2 there)
+                                  (not (member pair smie-closer-alist)))))))
+            (scan-error))
+          (goto-char (car smie--matching-block-data-cache))))
+      (apply #'smie--matching-block-data orig args))))
 
 ;;; The indentation engine.
 
@@ -1799,9 +1775,10 @@ KEYWORDS are additional arguments, which can use the following keywords:
       (setq-local smie-closer-alist ca)
       ;; Only needed for interactive calls to blink-matching-open.
       (setq-local blink-matching-check-function #'smie-blink-matching-check)
-      (unless smie-highlight-matching-block-mode
-        (add-hook 'post-self-insert-hook
-                  #'smie-blink-matching-open 'append 'local))
+      (add-hook 'post-self-insert-hook
+                #'smie-blink-matching-open 'append 'local)
+      (add-function :around (local 'show-paren-data-function)
+                    #'smie--matching-block-data)
       ;; Setup smie-blink-matching-triggers.  Rather than wait for SPC to
       ;; blink, try to blink as soon as we type the last char of a block ender.
       (let ((closers (sort (mapcar #'cdr smie-closer-alist) #'string-lessp))

@@ -1,3 +1,20 @@
+2013-06-05  Leo Liu  <sdl.web@gmail.com>
+
+	Re-implement smie matching block highlight using
+	show-paren-data-function.  (Bug#14395)
+	* emacs-lisp/smie.el (smie-matching-block-highlight)
+	(smie--highlight-matching-block-overlay)
+	(smie--highlight-matching-block-lastpos)
+	(smie-highlight-matching-block)
+	(smie-highlight-matching-block-mode): Remove.
+	(smie--matching-block-data-cache): New variable.
+	(smie--matching-block-data): New function.
+	(smie-setup): Use smie--matching-block-data for
+	show-paren-data-function.
+
+	* progmodes/octave.el (octave-mode-menu): Fix.
+	(octave-find-definition): Skip garbage lines.
+
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix compilation error with simultaneous dynamic+lexical scoping.
