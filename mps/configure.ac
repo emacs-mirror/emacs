@@ -76,7 +76,7 @@ case $host in
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC"
+      PFMCFLAGS="$CFLAGS_GC -pthread"
     ;;
   amd64-*-freebsd* | x86_64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
@@ -84,7 +84,7 @@ case $host in
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC"
+      PFMCFLAGS="$CFLAGS_GC -pthread"
     ;;
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
