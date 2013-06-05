@@ -58,8 +58,8 @@ instead."
 
 (defcustom prog-prettify-symbols nil
   "Whether symbols should be prettified.
-When set to an alist in the form `(STRING . CHARACTER)' it will
-augment the mode's native prettify alist."
+When set to an alist in the form `((STRING . CHARACTER)...)' it
+will augment the mode's native prettify alist."
   :type '(choice
           (const :tag "No thanks" nil)
           (const :tag "Mode defaults" t)
@@ -96,6 +96,12 @@ Regexp match data 0 points to the chars."
          (0 (prog--prettify-font-lock-compose-symbol ',alist)))))))
 
 (defun prog-prettify-install (alist)
+"Install prog-mode support to prettify symbols according to ALIST.
+
+ALIST is in the format `((STRING . CHARACTER)...)' like
+`prog-prettify-symbols'.
+
+Internally, `font-lock-add-keywords' is called."
   (setq-local prog-prettify-symbols-alist alist)
   (let ((keywords (prog-prettify-font-lock-symbols-keywords)))
     (if keywords (font-lock-add-keywords nil keywords))))

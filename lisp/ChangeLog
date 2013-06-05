@@ -1,3 +1,8 @@
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/prog-mode.el (prog-prettify-symbols)
+	(prog-prettify-install): Update docstrings.
+
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el: Move all the prog-mode code to prog-mode.el.
