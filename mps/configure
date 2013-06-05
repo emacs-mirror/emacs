@@ -2918,7 +2918,7 @@ test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wshadow -Wstrict-aliasing=2 -O -g3"
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
 # Make sure we can run config.sub.
