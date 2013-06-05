@@ -1,7 +1,7 @@
 # configure.ac -- autoconf configuration for the MPS    -*- Autoconf -*-
 #
 # $Id$
-# Copyright (C) 2012 Ravenbrook Limited.  See end of file for license.
+# Copyright (C) 2012-2013 Ravenbrook Limited.  See end of file for license.
 #
 # YOU DON'T NEED AUTOCONF TO BUILD THE MPS
 # This is just here for people who want or expect a configure script.
@@ -32,7 +32,7 @@ AC_PROG_INSTALL
 CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
            -Wstrict-prototypes -Wmissing-prototypes \
            -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wstrict-aliasing=2 -O -g3"
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
 CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
 
 AC_CANONICAL_HOST
@@ -76,7 +76,7 @@ case $host in
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC -pthread"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   amd64-*-freebsd* | x86_64-*-freebsd*)
       AC_MSG_RESULT([FreeBSD x86_64])
@@ -84,7 +84,7 @@ case $host in
       # Need /usr/local/include in order to find sqlite3.h
       CFLAGS="-I/usr/local/include"
       CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC -pthread"
+      PFMCFLAGS="$CFLAGS_GC"
     ;;
   *)
     AC_MSG_ERROR([MPS does not support this platform out of the box.  See manual/build.txt])
