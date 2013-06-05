@@ -1,3 +1,10 @@
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fcurrent_active_maps, Fdescribe_buffer_bindings):
+	* keyboard.c (menu_bar_items, tool_bar_items):
+	* doc.c (Fsubstitute_command_keys): Voverriding_terminal_local_map does
+	not override local keymaps any more.
+
 2013-06-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fpos_visible_in_window_p): Doc fix.  (Bug#14540)

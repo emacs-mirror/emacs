@@ -1,4 +1,4 @@
-;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8 -*-
+;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2013 Free Software
 ;; Foundation, Inc.
@@ -39,7 +39,7 @@ Each element of this list holds the arguments to one call to `defcustom'.")
   (setq custom-declare-variable-list
 	(cons arguments custom-declare-variable-list)))
 
-(defmacro declare-function (fn file &optional arglist fileonly)
+(defmacro declare-function (_fn _file &optional _arglist _fileonly)
   "Tell the byte-compiler that function FN is defined, in FILE.
 Optional ARGLIST is the argument list used by the function.  The
 FILE argument is not used by the byte-compiler, but by the
@@ -1261,6 +1261,8 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
 (make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
 (make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
+(make-obsolete-variable 'overriding-local-map
+                        'overriding-terminal-local-map "24.4" 'set)
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
 
@@ -1478,11 +1480,48 @@ ELEMENT is added at the end.
 
 The return value is the new value of LIST-VAR.
 
+This is handy to add some elements to configuration variables,
+but please do not abuse it in Elisp code, where you are usually better off
+using `push' or `cl-pushnew'.
+
 If you want to use `add-to-list' on a variable that is not defined
 until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
+  (declare
+   (compiler-macro
+    (lambda (exp)
+      ;; FIXME: Something like this could be used for `set' as well.
+      (if (or (not (eq 'quote (car-safe list-var)))
+              (special-variable-p (cadr list-var))
+              (and append compare-fn))
+          exp
+        (let* ((sym (cadr list-var))
+               (msg (format "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
+                            sym))
+               ;; Big ugly hack so we only output a warning during
+               ;; byte-compilation, and so we can use
+               ;; byte-compile-not-lexical-var-p to silence the warning
+               ;; when a defvar has been seen but not yet executed.
+               (warnfun (lambda ()
+                          ;; FIXME: We should also emit a warning for let-bound
+                          ;; variables with dynamic binding.
+                          (when (assq sym byte-compile--lexical-environment)
+                            (byte-compile-log-warning msg t :error))))
+               (code
+                (if append
+                    (macroexp-let2 macroexp-copyable-p x element
+                    `(unless (member ,x ,sym)
+                       (setq ,sym (append ,sym (list ,x)))))
+                  (require 'cl-lib)
+                  `(cl-pushnew ,element ,sym
+                               :test ,(or compare-fn '#'equal)))))
+          (if (not (macroexp--compiling-p))
+              code
+            `(progn
+               (macroexp--funcall-if-compiled ',warnfun)
+               ,code)))))))
   (if (cond
        ((null compare-fn)
 	(member element (symbol-value list-var)))
@@ -2054,8 +2093,8 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   ;; disable quail's input methods, so although read-key-sequence
   ;; always inherits the input method, in practice read-key does not
   ;; inherit the input method (at least not if it's based on quail).
-  (let ((overriding-terminal-local-map read-key-empty-map)
-	(overriding-local-map nil)
+  (let ((overriding-terminal-local-map nil)
+	(overriding-local-map read-key-empty-map)
         (echo-keystrokes 0)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer

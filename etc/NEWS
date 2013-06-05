@@ -396,6 +396,10 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** overriding-terminal-local-map does not replace the local keymaps any more.
+It used to disable the minor mode, major mode, and text-property keymaps,
+whereas now it simply has higher precedence.
+
 ** Default process filers and sentinels are not nil any more.
 Instead they default to a function which does what the nil value used to do.
 
