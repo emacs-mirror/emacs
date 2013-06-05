@@ -233,10 +233,15 @@ WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.  */)
 
 
 void
+globals_of_gfilenotify (void)
+{
+  g_type_init ();
+  watch_list = Qnil;
+}
+
+void
 syms_of_gfilenotify (void)
 {
-
-  g_type_init ();
 
   DEFSYM (Qgfile_add_watch, "gfile-add-watch");
   defsubr (&Sgfile_add_watch);
@@ -255,8 +260,6 @@ syms_of_gfilenotify (void)
   DEFSYM (Qunmounted, "unmounted");
   DEFSYM (Qmoved, "moved");
 
-  /* Initialize internal objects.  */
-  watch_list = Qnil;
   staticpro (&watch_list);
 
   Fprovide (intern_c_string ("gfilenotify"), Qnil);

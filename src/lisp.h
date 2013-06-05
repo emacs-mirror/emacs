@@ -3786,6 +3786,7 @@ extern Lisp_Object Qfont_param;
 
 /* Defined in gfilenotify.c */
 #ifdef HAVE_GFILENOTIFY
+extern void globals_of_gfilenotify (void);
 extern void syms_of_gfilenotify (void);
 #endif
 

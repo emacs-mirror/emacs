@@ -1,3 +1,12 @@
+2013-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs.c (main) [HAVE_GFILENOTIFY]: Call globals_of_gfilenotify.
+
+	* gfilenotify.c (globals_of_gfilenotify): New function.
+	(syms_of_gfilenotify): Move global initialization there.
+
+	* lisp.h (globals_of_gfilenotify) [HAVE_GFILENOTIFY]: Add prototype.
+
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fcurrent_active_maps, Fdescribe_buffer_bindings):
