@@ -1,3 +1,17 @@
+2013-06-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Chain glib's SIGCHLD handler from Emacs's (Bug#14474).
+	* process.c (dummy_handler): New function.
+	(lib_child_handler): New static var.
+	(handle_child_signal): Invoke it.
+	(catch_child_signal): If a library has set up a signal handler,
+	save it into lib_child_handler.
+	(init_process_emacs): If using glib and not on Windows, tickle glib's
+	child-handling code so that it initializes its private SIGCHLD handler.
+	* syssignal.h (SA_SIGINFO): Default to 0.
+	* xterm.c (x_term_init): Remove D-bus hack that I installed on May
+	31; it should no longer be needed now.
+
 2013-06-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* emacs.c (main) [HAVE_GFILENOTIFY]: Call globals_of_gfilenotify.
