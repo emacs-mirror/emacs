@@ -1,6 +1,6 @@
-;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding:t -*-
+;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) Free Software Foundation, Inc.
+;; Copyright (C) 2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -115,5 +115,5 @@ Internally, `font-lock-add-keywords' is called."
   (setq bidi-paragraph-direction 'left-to-right))
 
 (provide 'prog-mode)
-;; arch-tag: 6f3ded02-6cc9-11d8-b018-000a95e675a6
+
 ;;; prog-mode.el ends here
