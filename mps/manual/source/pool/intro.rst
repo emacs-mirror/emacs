@@ -113,7 +113,7 @@ Blocks may be protected by barriers?           yes    no     yes    yes    yes  
 Blocks may move?                               yes    yes    no     no     no     no     no     no     no     no
 Blocks may be finalized?                       yes    yes    yes    yes    yes    no     no     no     no     no
 Blocks must be formatted? [11]_                yes    yes    yes    yes    yes    no     no     no     no     yes
-Blocks may belong to format auto-header?       yes    yes    yes    yes    yes    ---    ---    ---    ---    no
+Blocks may use :term:`in-band headers`?        yes    yes    yes    yes    yes    ---    ---    ---    ---    no
 =============================================  =====  =====  =====  =====  =====  =====  =====  =====  =====  =====
 
 .. note::
@@ -174,9 +174,9 @@ Blocks may belong to format auto-header?       yes    yes    yes    yes    yes  
            location within the block is considered to be a reference
            to the block. It "supports base pointers only" if only a
            pointer to the base of the block (or, if the block belongs
-           to an object format of variant auto-header, a pointer just
-           past the end of the header) is considered to be a reference
-           to the block.
+           to an object format with :term:`in-band headers`, a pointer
+           just past the end of the header) is considered to be a
+           reference to the block.
 
 
 .. index::

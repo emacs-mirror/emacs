@@ -185,7 +185,7 @@ failInit:
 }
 
 
-/* PoolCreate, PoolCreateV: Allocate and initialise pool */
+/* PoolCreate: Allocate and initialise pool */
 
 Res PoolCreate(Pool *poolReturn, Arena arena,
                PoolClass class, ArgList args)

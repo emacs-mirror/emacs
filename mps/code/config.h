@@ -246,6 +246,17 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* Format defaults: see <code/format.c> */
+
+#define FMT_ALIGN_DEFAULT ((Align)MPS_PF_ALIGN)
+#define FMT_HEADER_SIZE_DEFAULT ((Size)0)
+#define FMT_SCAN_DEFAULT (&FormatNoScan)
+#define FMT_SKIP_DEFAULT (&FormatNoSkip)
+#define FMT_FWD_DEFAULT (&FormatNoMove)
+#define FMT_ISFWD_DEFAULT (&FormatNoIsMoved)
+#define FMT_PAD_DEFAULT (&FormatNoPad)
+#define FMT_CLASS_DEFAULT (&FormatDefaultClass)
+
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
 #define MV_EXTEND_BY_DEFAULT  ((Size)65536)
