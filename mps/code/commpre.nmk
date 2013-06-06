@@ -90,9 +90,9 @@ ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TA
 # %%PART: When adding a new part, add the sources for the new part here.
 
 MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>		\
-    <buffer> <cbs> <dbgpool> <dbgpooli> <diag> <event> <format>		\
-    <global> <ld> <lockw3> <locus> <message> <meter> <mpm> <mpsi>	\
-    <mpsiw3> <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2> <poolmv>	\
+    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format> <global>	\
+    <ld> <lockw3> <locus> <message> <meter> <mpm> <mpsi> <mpsiw3>	\
+    <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2> <poolmv>		\
     <protocol> <protw3> <ref> <reserv> <ring> <root> <sac> <seg>	\
     <shield> <splay> <ss> <table> <thw3> <trace> <traceanc> <tract>	\
     <vmw3> <walk>
@@ -191,7 +191,6 @@ CFLAGSEXTERNAL =
 # of flags for the new variety.
 CFRASH = /DCONFIG_VAR_RASH $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSEXTERNAL)
 CFHOT  = /DCONFIG_VAR_HOT  $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSINTERNAL)
-CFDIAG = /DCONFIG_VAR_DIAG $(CRTFLAGSHOT)  $(CFLAGSHOT)  $(CFLAGSINTERNAL)
 CFCOOL = /DCONFIG_VAR_COOL $(CRTFLAGSCOOL) $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 
 # Microsoft documentation is not very clear on the point of using both
@@ -208,7 +207,6 @@ LINKFLAGSEXTERNAL = /RELEASE
 
 LFRASH = $(LINKFLAGSHOT)    $(LINKFLAGSEXTERNAL)
 LFHOT  = $(LINKFLAGSHOT)    $(LINKFLAGSINTERNAL)
-LFDIAG = $(LINKFLAGSHOT)    $(LINKFLAGSINTERNAL)
 LFCOOL = $(LINKFLAGSCOOL)   $(LINKFLAGSINTERNAL)
 
 #LFCV = /PROFILE /DEBUG:full /DEBUGTYPE:cv
@@ -221,7 +219,6 @@ LIBFLAGSCOMMON = /nologo
 
 LIBFLAGSRASH =
 LIBFLAGSHOT =
-LIBFLAGSDIAG =
 LIBFLAGSCOOL =
 
 # Browser database manager [not used at present]

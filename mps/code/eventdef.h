@@ -1,7 +1,7 @@
 /* <code/eventdef.h> -- Event Logging Definitions
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/telemetry/>
  *
@@ -68,7 +68,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0078)
+#define EventCodeMAX ((EventCode)0x0082)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -184,11 +184,14 @@
   EVENT(X, EventClockSync     , 0x0075,  TRUE, Arena) \
   EVENT(X, ArenaAccess        , 0x0076,  TRUE, Arena) \
   EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena) \
-  EVENT(X, ArenaSetEmergency  , 0x0078,  TRUE, Arena)
-
+  EVENT(X, ArenaSetEmergency  , 0x0078,  TRUE, Arena) \
+  EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
+  EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
+  EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
+  EVENT(X, TraceStartPoolGen  , 0x0082,  TRUE, Trace)
   
 
-/* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! 
+/* Remember to update EventNameMAX and EventCodeMAX above! 
    (These are checked in EventInit.) */
 
 
@@ -668,12 +671,62 @@
   PARAM(X,  6, W, white)        /* white reference set */ \
   PARAM(X,  7, W, rate)         /* segs to scan per increment */
 
+#define EVENT_VMCompact_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
+  PARAM(X,  1, W, vmem1)        /* pre-compact reseved size*/ \
+  PARAM(X,  2, W, vmem2)        /* post-compact reserved size */
+
+#define EVENT_amcScanNailed_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, loops)        /* number of times around the loop */ \
+  PARAM(X,  1, W, summary)      /* summary of segment being scanned */ \
+  PARAM(X,  2, W, white)        /* scan state white set */ \
+  PARAM(X,  3, W, unfixed)      /* scan state unfixed summary */ \
+  PARAM(X,  4, W, fixed)        /* scan state fixed summary */ \
+  PARAM(X,  5, W, refset)       /* scan state refset */
+
+#define EVENT_AMCTraceEnd_PARAMS(PARAM, X) \
+  PARAM(X,  0, W, epoch)        /* current arena epoch */ \
+  PARAM(X,  1, U, why)          /* reason trace started */ \
+  PARAM(X,  2, W, align)        /* arena alignment */ \
+  PARAM(X,  3, W, large)        /* AMCLargeSegPAGES */ \
+  PARAM(X,  4, W, pRetMin)      /* threshold for event */ \
+  /* remaining parameters are copy of PageRetStruct, which see */ \
+  PARAM(X,  5, W, pCond) \
+  PARAM(X,  6, W, pRet) \
+  PARAM(X,  7, W, pCS) \
+  PARAM(X,  8, W, pRS) \
+  PARAM(X,  9, W, sCM) \
+  PARAM(X, 10, W, pCM) \
+  PARAM(X, 11, W, sRM) \
+  PARAM(X, 12, W, pRM) \
+  PARAM(X, 13, W, pRM1) \
+  PARAM(X, 14, W, pRMrr) \
+  PARAM(X, 15, W, pRMr1) \
+  PARAM(X, 16, W, sCL) \
+  PARAM(X, 17, W, pCL) \
+  PARAM(X, 18, W, sRL) \
+  PARAM(X, 19, W, pRL) \
+  PARAM(X, 20, W, pRLr)
+
+#define EVENT_TraceStartPoolGen_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, chain)        /* chain (or NULL for topGen) */ \
+  PARAM(X,  1, B, top)          /* 1 for topGen, 0 otherwise */ \
+  PARAM(X,  2, W, index)        /* index of generation in the chain */ \
+  PARAM(X,  3, P, gendesc)      /* generation description */ \
+  PARAM(X,  4, W, capacity)     /* capacity of generation */ \
+  PARAM(X,  5, D, mortality)    /* mortality of generation */ \
+  PARAM(X,  6, W, zone)         /* zone set of generation */ \
+  PARAM(X,  7, P, pool)         /* pool */ \
+  PARAM(X,  8, W, serial)       /* pool gen serial number */ \
+  PARAM(X,  9, W, totalSize)    /* total size of pool gen */ \
+  PARAM(X, 10, W, newSizeAtCreate) /* new size of pool gen at trace create */
+
 
 #endif /* eventdef_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

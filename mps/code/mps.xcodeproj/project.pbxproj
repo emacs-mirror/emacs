@@ -1249,7 +1249,6 @@
 		31EEAC32156AB2F200714D05 /* shield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shield.c; sourceTree = "<group>"; };
 		31EEAC3F156AB32500714D05 /* boot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = boot.c; sourceTree = "<group>"; };
 		31EEAC40156AB32500714D05 /* cbs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cbs.c; sourceTree = "<group>"; };
-		31EEAC41156AB32500714D05 /* diag.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = diag.c; sourceTree = "<group>"; };
 		31EEAC42156AB32500714D05 /* meter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = meter.c; sourceTree = "<group>"; };
 		31EEAC43156AB32500714D05 /* splay.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = splay.c; sourceTree = "<group>"; };
 		31EEAC44156AB32500714D05 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = version.c; sourceTree = "<group>"; };
@@ -1769,7 +1768,6 @@
 				31EEAC28156AB2F200714D05 /* dbgpool.c */,
 				311F2F5717398AE900C15B6A /* dbgpool.h */,
 				31EEAC29156AB2F200714D05 /* dbgpooli.c */,
-				31EEAC41156AB32500714D05 /* diag.c */,
 				31EEAC2A156AB2F200714D05 /* event.c */,
 				311F2F5817398AE900C15B6A /* event.h */,
 				311F2F5917398AE900C15B6A /* eventcom.h */,

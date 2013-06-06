@@ -117,7 +117,6 @@ CFLAGSCOMMONLAX = $(PFMDEFS) $(CFLAGSCOMPILER) $(CFLAGSCOMPILERLAX)
 # These flags are added to compilations for the indicated variety.
 CFRASH = -DCONFIG_VAR_RASH -DNDEBUG $(CFLAGSOPT)
 CFHOT  = -DCONFIG_VAR_HOT  -DNDEBUG $(CFLAGSOPT)
-CFDIAG = -DCONFIG_VAR_DIAG -DNDEBUG $(CFLAGSOPT)
 CFCOOL = -DCONFIG_VAR_COOL          $(CFLAGSDEBUG)
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
@@ -131,15 +130,10 @@ ifeq ($(VARIETY),hot)
 CFLAGS=$(CFLAGSCOMMON) $(CFHOT)
 CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFHOT)
 else
-ifeq ($(VARIETY),diag)
-CFLAGS=$(CFLAGSCOMMON) $(CFDIAG)
-CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFDIAG)
-else
 ifeq ($(VARIETY),cool)
 CFLAGS=$(CFLAGSCOMMON) $(CFCOOL)
 CFLAGSLAX=$(CFLAGSCOMMONLAX) $(CFCOOL)
 else
-endif
 endif
 endif
 endif
@@ -168,10 +162,10 @@ FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c		\
-    buffer.c cbs.c dbgpool.c dbgpooli.c diag.c event.c format.c		\
-    global.c ld.c locus.c message.c meter.c mpm.c mpsi.c pool.c		\
-    poolabs.c poolmfs.c poolmrg.c poolmv.c protocol.c ref.c reserv.c	\
-    ring.c root.c sac.c seg.c shield.c splay.c ss.c table.c trace.c	\
+    buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c global.c	\
+    ld.c locus.c message.c meter.c mpm.c mpsi.c pool.c poolabs.c	\
+    poolmfs.c poolmrg.c poolmv.c protocol.c ref.c reserv.c ring.c	\
+    root.c sac.c seg.c shield.c splay.c ss.c table.c trace.c		\
     traceanc.c tract.c walk.c
 MPM = $(MPMCOMMON) $(MPMPF)
 
@@ -326,9 +320,6 @@ endif
 $(PFM)/rash/mps.a: $(PFM)/rash/mps.o
 $(PFM)/hot/mps.a: $(PFM)/hot/mps.o
 
-$(PFM)/diag/mps.a: \
-  $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
-  $(MV2OBJ) $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)
 $(PFM)/cool/mps.a: \
   $(MPMOBJ) $(AMCOBJ) $(AMSOBJ) $(AWLOBJ) $(LOOBJ) $(SNCOBJ) \
   $(MV2OBJ) $(MVFFOBJ) $(PLINTHOBJ) $(POOLNOBJ)

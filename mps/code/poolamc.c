@@ -1595,24 +1595,9 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
   
     refset = ScanStateSummary(ss);
 
-#if 1
     /* A rare event, which might prompt a rare defect to appear. */
-    DIAG_SINGLEF(( "amcScanNailed_loop",
-      "scan completed, but had to loop $U times:\n", (WriteFU)loops,
-      " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
-      " ss.white:          $B\n", (WriteFB)ScanStateWhite(ss),
-      " ss.unfixedSummary: $B", (WriteFB)ScanStateUnfixedSummary(ss),
-        "$S\n", (WriteFS)( 
-          (RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg)))
-          ? ""
-          : " <=== This would have failed .verify.segsummary!"
-          ),
-      " ss.fixedSummary:   $B\n", (WriteFB)ss->fixedSummary,
-      "ScanStateSummary:   $B\n", (WriteFB)refset,
-      "MOVING ScanStateSummary TO fixedSummary, "
-      "RESETTING unfixedSummary.\n", NULL
-    ));
-#endif
+    EVENT6(amcScanNailed, loops, SegSummary(seg), ScanStateWhite(ss), 
+           ScanStateUnfixedSummary(ss), ss->fixedSummary, refset);
   
     ScanStateSetSummary(ss, refset);
   }
@@ -2231,14 +2216,12 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AMCTraceEnd -- emit end-of-trace diagnostics
- *
- */
+/* AMCTraceEnd -- emit end-of-trace event */
+
 static void AMCTraceEnd(Pool pool, Trace trace)
 {
   AMC amc;
   TraceId ti;
-  Count pRetMin = 100;
   
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -2248,33 +2231,18 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   ti = trace->ti;
   AVER(TraceIdCheck(ti));
 
-  if(amc->pageretstruct[ti].pRet >= pRetMin) {
-    DIAG_SINGLEF(( "AMCTraceEnd_pageret",
-      " $U", (WriteFU)ArenaEpoch(pool->arena),
-      " $U", (WriteFU)trace->why,
-      " $U", (WriteFU)amc->pageretstruct[ti].pCond,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRet, ",",
-      " $U", (WriteFU)amc->pageretstruct[ti].pCS,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRS, ",",
-      " $U", (WriteFU)amc->pageretstruct[ti].sCM,
-      " $U", (WriteFU)amc->pageretstruct[ti].pCM,
-      " $U", (WriteFU)amc->pageretstruct[ti].sRM,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRM,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRM1,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRMrr,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRMr1, ",",
-      " $U", (WriteFU)amc->pageretstruct[ti].sCL,
-      " $U", (WriteFU)amc->pageretstruct[ti].pCL,
-      " $U", (WriteFU)amc->pageretstruct[ti].sRL,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRL,
-      " $U", (WriteFU)amc->pageretstruct[ti].pRLr,
-      " (page = $Ub,", (WriteFU)ArenaAlign(pool->arena), 
-      " Large >= $Up,", (WriteFU)AMCLargeSegPAGES, 
-      " pRetMin $U)", (WriteFU)pRetMin,
-      NULL ));
-  }
-
-  STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
+  STATISTIC_BEGIN {
+      Count pRetMin = 100;
+      PageRetStruct *pr = &amc->pageretstruct[ti];
+      if(pr->pRet >= pRetMin) {
+        EVENT21(AMCTraceEnd, ArenaEpoch(pool->arena), (EventFU)trace->why,
+                ArenaAlign(pool->arena), AMCLargeSegPAGES, pRetMin, pr->pCond,
+                pr->pRet, pr->pCS, pr->pRS, pr->sCM, pr->pCM, pr->sRM, pr->pRM,
+                pr->pRM1, pr->pRMrr, pr->pRMr1, pr->sCL, pr->pCL, pr->sRL,
+                pr->pRL, pr->pRLr);
+      }
+      *pr = pageretstruct_Zero;
+  } STATISTIC_END;
 }
 
 
