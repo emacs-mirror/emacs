@@ -100,13 +100,29 @@ div.bodywrapper {
     margin: 0;
 }
 
+div.body h1 {
+    border-bottom: 2px solid #73626E;
+}
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6 {
+    border-bottom: none;
+}
+
+div.body {
+    padding: 1em;
+}
+
 div.body h1,
 div.body h2,
 div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    border-bottom: 2px solid {{ theme_relbarbgcolor }};
+    margin: 0;
+    padding-left: 0;
 }
 
 div.body h1 {
@@ -116,11 +132,14 @@ div.body h1 {
 dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
     font-family: {{ theme_headfont }};
     width:100%;
-    border-bottom: 1px solid {{ theme_relbarbgcolor }};
+    border-bottom: none;
     padding-bottom: 1px;
     margin-top: 2em;
     margin-bottom: 1em;
     font-size: 120%;
+    /* Use a hanging indent so that long wrapped prototypes are easier to read. */
+    padding-left: 4em;
+    text-indent: -4em;
 }
 
 pre, tt, code, a.mpstag {
@@ -138,7 +157,6 @@ tt.xref, a tt {
 
 pre {
     border: none;
-    font-size: 90%;
 }
 
 div.seealso, div.admonition {
@@ -172,3 +190,28 @@ sup {
 div.figure img {
     max-width: 100%;
 }
+
+/* Sphinx justifies body paragraphs by default, but this really doesn't work
+   when we have technical work with long identifiers mixed with text. */
+div.body p, div.body dd, div.body li {
+    text-align: left;
+}
+
+/* Space out list elements a little bit. */
+div.body ul li:not(:first-child),
+div.body ol li:not(:first-child) {
+    padding-top: 1.1ex;
+}
+/* When a <p> is inside an <li> to space it out, reduce that spacing a bit
+   to compensate for the above. */
+div.body li>p:first-child {
+    margin-top: 0.5ex;
+}
+div.body li>p:last-child {
+    margin-bottom: 0.5ex;
+}
+/* Don't space out the the table of contents. */
+li.toctree-l1, li.toctree-l2, li.toctree-l3 {
+    padding-top: 0 !important;
+}
+
