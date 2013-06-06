@@ -66,7 +66,6 @@
 #include "meter.c"
 #include "splay.c"
 #include "cbs.c"
-#include "diag.c"
 #include "ss.c"
 #include "version.c"
 #include "table.c"

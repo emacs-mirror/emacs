@@ -247,7 +247,7 @@ Accounting
 - ``pgen->newSizeAtCreate``:
 
   - set by ``traceCopySizes()`` (that is its purpose);
-  - output by ``TraceStartGenDesc_diag()``.
+  - output in the ``TraceStartPoolGen`` telemetry event.
 
 Ramps
 .....

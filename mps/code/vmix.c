@@ -1,7 +1,7 @@
 /* vmix.c: VIRTUAL MEMORY MAPPING FOR UNIX (ISH)
  *
  * $Id$
- * Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Unix-like operating systems.  It was created
@@ -167,13 +167,6 @@ Res VMCreate(VM *vmReturn, Size size, void *params)
   AVERT(VM, vm);
 
   EVENT3(VMCreate, vm, vm->base, vm->limit);
-  DIAG_SINGLEF((
-    "VM_ix_Create_ok",
-    "[$W..<$W>..$W)", 
-    (WriteFW)vm->base,
-    (WriteFW)AddrOffset(vm->base, vm->limit),
-    (WriteFW)vm->limit,
-    NULL ));
 
   *vmReturn = vm;
   return ResOK;
@@ -192,14 +185,6 @@ void VMDestroy(VM vm)
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
-
-  DIAG_SINGLEF((
-    "VM_ix_Destroy",
-    "[$W..<$W>..$W)", 
-    (WriteFW)vm->base, 
-    (WriteFW)AddrOffset(vm->base, vm->limit),
-    (WriteFW)vm->limit,
-    NULL ));
 
   /* This appears to be pretty pointless, since the descriptor */
   /* page is about to vanish completely.  However, munmap might fail */

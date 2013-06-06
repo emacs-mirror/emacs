@@ -179,12 +179,6 @@ _`.var.rash`: ``RASH``
     bugs.  We do not advise use of this variety, as memory management
     bugs tend to be extremely expensive to deal with.
 
-_`.var.diag`: ``DIAG`` (deprecated)
-
-    This variety does some client-specific analysis and produces some
-    specialised diagnostic output, and is not intended for general use.
-    It will be phased out of the open sources.
-
 _`.default.hot`: If no ``CONFIG_VAR`` is present, ``HOT`` is assumed in
 `config.h`_.
 
@@ -567,6 +561,8 @@ Document History
   It's not true any more that some choice must be made for each
   feature (for example, we now default to the hot variety if none is
   selected).
+
+- 2013-06-06 GDR_ Removed reference to obsolete DIAG variety.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _NB: http://www.ravenbrook.com/consultants/nb/

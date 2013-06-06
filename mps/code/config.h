@@ -39,29 +39,6 @@
 /* no telemetry log events */
 
 
-/* CONFIG_VAR_DIAG -- diagnostic variety
- *
- * Deprecated.  The diagnostic variety prints messages about the internals
- * of the MPS to an output stream.  This is being replaced by an extended
- * telemetry system.  RB 2012-08-31
- */
-
-#elif defined(CONFIG_VAR_DIAG) /* Diagnostic variety */
-#define CONFIG_ASSERT
-#define CONFIG_ASSERT_ABORT
-#ifndef CHECKLEVEL
-#define CHECKLEVEL      CheckLevelMINIMAL
-#endif
-#define CONFIG_STATS
-/* For diagnostics, choose a DIAG_WITH_... output method.
- * (We need to choose because the DIAG output system is under 
- * development.  RHSK 2007-05-21).
- */
-#define DIAG_WITH_STREAM_AND_WRITEF
-/* #define DIAG_WITH_PRINTF */
-#define CONFIG_LOG
-
-
 /* CONFIG_VAR_COOL -- cool variety
  *
  * The cool variety is intended for use when developing an integration with
@@ -129,10 +106,6 @@
 
 #if defined(CONFIG_STATS)
 /* CONFIG_STATS = STATISTICS = METERs */
-/* Note: the STATISTICS define used to be called "DIAGNOSTICS" (even */
-/* though it controls the STATISTIC system), but the term */
-/* "diagnostic" means something else now: see design/diag/. */
-/* RHSK 2007-06-28 */
 /* WARNING: this may change the size and fields of MPS structs */
 /* (...but see STATISTIC_DECL, which is invariant) */
 #define STATISTICS
@@ -423,20 +396,6 @@
 /* Assert Buffer */
 
 #define ASSERT_BUFFER_SIZE      ((Size)512)
-
-
-/* Diagnostics Buffer */
-
-#ifdef DIAG_WITH_STREAM_AND_WRITEF
-/* DIAG_BUFFER_SIZE: 100 screenfuls: 100x80x25 = 200000 */
-#define DIAG_BUFFER_SIZE      ((Size)200000)
-#else
-#define DIAG_BUFFER_SIZE      ((Size)1)
-#endif
-
-#define DIAG_PREFIX_TAGSTART "MPS."
-#define DIAG_PREFIX_LINE     " "
-#define DIAG_PREFIX_TAGEND   ""
 
 
 /* memory operator configuration
