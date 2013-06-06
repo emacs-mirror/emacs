@@ -1,3 +1,23 @@
+2013-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A few porting etc. fixes for the new file monitor code.
+	See the thread containing
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00109.html>.
+	* gfilenotify.c (dir_monitor_callback, Fgfile_add_watch)
+	(Fgfile_rm_watch): Don't assume EMACS_INT is the same width as a pointer.
+	(dir_monitor_callback, Fgfile_rm_watch):
+	Use assq_no_quit instead of Fassoc, for speed.
+	(dir_monitor_callback, Fgfile_rm_watch):
+	eassert that the monitor is a fixnum.
+	(dir_monitor_callback): No need for CDR_SAFE.
+	Simplify building of lisp with alternative tails.
+	(Fgfile_add_watch, Fgfile_rm_watch):
+	Do not assume glib functions set errno reliably on failure.
+	(Fgfile_add_watch): Check that the monitor survives the XIL trick,
+	and signal an error otherwise.
+	(Fgfile_rm_watch): Prefer CONSP to !NILP.
+	Use Fdelq instead of Fdelete, for speed.
+
 2013-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_tool_bar_click): When mouse-highlight is off,
