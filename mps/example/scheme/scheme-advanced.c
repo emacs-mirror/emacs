@@ -198,8 +198,8 @@ typedef struct table_s {
 
 /* fwd2, fwd, pad1, pad -- MPS forwarding and padding objects        %%MPS
  *
- * These object types are here to satisfy the MPS Format Protocol
- * for format variant "A". See topic/format.
+ * These object types are here to satisfy the MPS Format Protocol.
+ * See topic/format.
  *
  * The MPS needs to be able to replace any object with a forwarding
  * object or broken heart and since the smallest normal object defined
@@ -3889,8 +3889,7 @@ static struct {char *name; entry_t entry;} funtab[] = {
 
 /* MPS Format                                                   %%MPS
  *
- * These functions satisfy the MPS Format Protocol for format
- * variant "A". See topic/format.
+ * These functions describe Scheme objects to the MPS. See topic/format.
  *
  * In general, MPS format methods are performance critical, as they're used
  * on the MPS critical path. See topic/critical.
@@ -4138,23 +4137,6 @@ static void obj_pad(mps_addr_t addr, size_t size)
 }
 
 
-/* obj_fmt_s -- object format parameter structure               %%MPS
- *
- * This is simply a gathering of the object format methods and the chosen
- * pool alignment for passing to `mps_fmt_create_A`. See topic/format.
- */
-
-struct mps_fmt_A_s obj_fmt_s = {
-  ALIGNMENT,
-  obj_scan,
-  obj_skip,
-  NULL,                         /* Obsolete copy method */
-  obj_fwd,
-  obj_isfwd,
-  obj_pad
-};
-
-
 /* buckets_scan -- buckets format scan method                        %%MPS
  */
 
@@ -4219,20 +4201,6 @@ static mps_addr_t buckets_find_dependent(mps_addr_t addr)
   buckets_t buckets = addr;
   return buckets->dependent;
 }
-
-
-/* buckets_fmt_s -- buckets format parameter structure               %%MPS
- */
-
-struct mps_fmt_A_s buckets_fmt_s = {
-  ALIGNMENT,
-  buckets_scan,
-  buckets_skip,
-  NULL,                         /* Obsolete copy method */
-  NULL,                         /* fwd method not used by AWL */
-  NULL,                         /* isfwd method not used by AWL */
-  NULL                          /* pad method not used by AWL */
-};
 
 
 /* globals_scan -- scan static global variables                 %%MPS
@@ -4477,8 +4445,19 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create arena");
 
-  /* Create the object format. */
-  res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+  /* Create the object format. This gathers together the methods that
+     the MPS uses to interrogate your objects via the Format Protocol.
+     See topic/format. */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, obj_scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
+    MPS_ARGS_DONE(args);
+    res = mps_fmt_create_k(&obj_fmt, arena, args);
+  } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
 
   /* Create a chain controlling GC strategy. FIXME: explain! */
@@ -4520,7 +4499,12 @@ int main(int argc, char *argv[])
   if (res != MPS_RES_OK) error("Couldn't create leaf objects allocation point");
 
   /* Create the buckets format. */
-  res = mps_fmt_create_A(&buckets_fmt, arena, &buckets_fmt_s);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, buckets_scan);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, buckets_skip);
+    res = mps_fmt_create_k(&buckets_fmt, arena, args);
+  } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create buckets format");
 
   /* Create an Automatic Weak Linked (AWL) pool to manage the hash table

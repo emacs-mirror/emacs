@@ -21,9 +21,6 @@ Bool FormatCheck(Format format)
   CHECKS(Format, format);
   CHECKU(Arena, format->arena);
   CHECKL(format->serial < format->arena->formatSerial);
-  CHECKL(format->variety == FormatVarietyA
-         || format->variety == FormatVarietyB
-         || format->variety == FormatVarietyAutoHeader);
   CHECKL(RingCheck(&format->arenaRing));
   CHECKL(AlignCheck(format->alignment));
   /* TODO: Define the concept of the maximum alignment it is possible to
@@ -31,17 +28,55 @@ Bool FormatCheck(Format format)
      check that this alignment is not greater than that, as well as all other
      alignments. */
   CHECKL(FUNCHECK(format->scan));
-  CHECKL(format->variety == FormatVarietyFixed
-         ? format->skip == NULL : FUNCHECK(format->skip));
+  CHECKL(FUNCHECK(format->skip));
   CHECKL(FUNCHECK(format->move));
   CHECKL(FUNCHECK(format->isMoved));
-  /* Ignore unused copy field. */
   CHECKL(FUNCHECK(format->pad));
   CHECKL(FUNCHECK(format->class));
 
   return TRUE;
 }
 
+
+/* FormatNo methods -- default values for format keyword arguments */
+
+static mps_res_t FormatNoScan(mps_ss_t mps_ss, mps_addr_t base,
+                              mps_addr_t limit)
+{
+    UNUSED(mps_ss);
+    UNUSED(base);
+    UNUSED(limit);
+    NOTREACHED;
+    return ResFAIL;
+}
+
+static mps_addr_t FormatNoSkip(mps_addr_t object)
+{
+    UNUSED(object);
+    NOTREACHED;
+    return NULL;
+}
+
+static void FormatNoMove(mps_addr_t old, mps_addr_t new)
+{
+    UNUSED(old);
+    UNUSED(new);
+    NOTREACHED;
+}
+
+static mps_addr_t FormatNoIsMoved(mps_addr_t object)
+{
+    UNUSED(object);
+    NOTREACHED;
+    return NULL;
+}
+
+static void FormatNoPad(mps_addr_t addr, size_t size)
+{
+    UNUSED(addr);
+    UNUSED(size);
+    NOTREACHED;
+}
 
 static mps_addr_t FormatDefaultClass(mps_addr_t object)
 {
@@ -53,23 +88,50 @@ static mps_addr_t FormatDefaultClass(mps_addr_t object)
 
 /* FormatCreate -- create a format */
 
-Res FormatCreate(Format *formatReturn, Arena arena,
-                 Align alignment,
-                 FormatVariety variety,
-                 mps_fmt_scan_t scan,
-                 mps_fmt_skip_t skip,
-                 mps_fmt_fwd_t move,
-                 mps_fmt_isfwd_t isMoved,
-                 mps_fmt_copy_t copy,
-                 mps_fmt_pad_t pad,
-                 mps_fmt_class_t class,
-                 Size headerSize)
+ARG_DEFINE_KEY(fmt_align, Align);
+ARG_DEFINE_KEY(fmt_scan, Fun);
+ARG_DEFINE_KEY(fmt_skip, Fun);
+ARG_DEFINE_KEY(fmt_fwd, Fun);
+ARG_DEFINE_KEY(fmt_isfwd, Fun);
+ARG_DEFINE_KEY(fmt_pad, Fun);
+ARG_DEFINE_KEY(fmt_header_size, Size);
+ARG_DEFINE_KEY(fmt_class, Fun);
+
+Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 {
+  ArgStruct arg;
   Format format;
   Res res;
   void *p;
+  Align fmtAlign = FMT_ALIGN_DEFAULT;
+  Size fmtHeaderSize = FMT_HEADER_SIZE_DEFAULT;
+  mps_fmt_scan_t fmtScan = FMT_SCAN_DEFAULT;
+  mps_fmt_skip_t fmtSkip = FMT_SKIP_DEFAULT;
+  mps_fmt_fwd_t fmtFwd = FMT_FWD_DEFAULT;
+  mps_fmt_isfwd_t fmtIsfwd = FMT_ISFWD_DEFAULT;
+  mps_fmt_pad_t fmtPad = FMT_PAD_DEFAULT;
+  mps_fmt_class_t fmtClass = FMT_CLASS_DEFAULT;
 
   AVER(formatReturn != NULL);
+  AVERT(Arena, arena);
+  AVER(ArgListCheck(args));
+
+  if (ArgPick(&arg, args, MPS_KEY_FMT_ALIGN))
+    fmtAlign = arg.val.align;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_HEADER_SIZE))
+    fmtHeaderSize = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_SCAN))
+    fmtScan = arg.val.fmt_scan;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_SKIP))
+    fmtSkip = arg.val.fmt_skip;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_FWD))
+    fmtFwd = arg.val.fmt_fwd;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_ISFWD))
+    fmtIsfwd = arg.val.fmt_isfwd;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_PAD))
+    fmtPad = arg.val.fmt_pad;
+  if (ArgPick(&arg, args, MPS_KEY_FMT_CLASS))
+    fmtClass = arg.val.fmt_class;
 
   res = ControlAlloc(&p, arena, sizeof(FormatStruct),
                      /* withReservoirPermit */ FALSE);
@@ -79,26 +141,14 @@ Res FormatCreate(Format *formatReturn, Arena arena,
 
   format->arena = arena;
   RingInit(&format->arenaRing);
-  format->alignment = alignment;
-  format->variety = variety;
-  format->scan = scan;
-  format->skip = skip;
-  format->move = move;
-  format->isMoved = isMoved;
-  format->copy = copy;
-  format->pad = pad;
-  if (class == NULL) {
-    format->class = &FormatDefaultClass;
-  } else {
-    AVER(variety == FormatVarietyB);
-    format->class = class;
-  }
-  if (headerSize != 0) {
-    AVER(variety == FormatVarietyAutoHeader);
-    format->headerSize = headerSize;
-  } else {
-    format->headerSize = 0;
-  }
+  format->alignment = fmtAlign;
+  format->headerSize = fmtHeaderSize;
+  format->scan = fmtScan;
+  format->skip = fmtSkip;
+  format->move = fmtFwd;
+  format->isMoved = fmtIsfwd;
+  format->pad = fmtPad;
+  format->class = fmtClass;
 
   format->sig = FormatSig;
   format->serial = arena->formatSerial;
@@ -156,7 +206,6 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
                "  skip $F\n", (WriteFF)format->skip,
                "  move $F\n", (WriteFF)format->move,
                "  isMoved $F\n", (WriteFF)format->isMoved,
-               "  copy $F\n", (WriteFF)format->copy,
                "  pad $F\n", (WriteFF)format->pad,
                "} Format $P ($U)\n", (WriteFP)format, (WriteFU)format->serial,
                NULL);

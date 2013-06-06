@@ -60,7 +60,6 @@ typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
-typedef unsigned FormatVariety;        
 typedef int RootVar;                    /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
@@ -287,16 +286,6 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
-
-
-/* Format varieties */
-enum {
-  FormatVarietyA = 1,
-  FormatVarietyB,
-  FormatVarietyAutoHeader,
-  FormatVarietyFixed,
-  FormatVarietyLIMIT
-};
 
 
 /* Segment preferences */
