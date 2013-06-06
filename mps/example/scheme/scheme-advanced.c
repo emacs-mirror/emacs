@@ -4565,6 +4565,7 @@ int main(int argc, char *argv[])
      check final consistency and warn you about bugs.  It also allows the
      MPS to flush buffers for debugging data, etc.  It's good practise
      to destroy MPS objects on exit if possible rather than just quitting. */
+  mps_arena_park(arena);
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
   mps_ap_destroy(strong_buckets_ap);
