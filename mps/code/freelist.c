@@ -116,7 +116,7 @@ static void FreelistBlockSetLimit(Freelist fl, FreelistBlock block, Addr limit)
     AVER(size >= sizeof(block->small));
     block->small.next = FreelistTagSet(block->small.next);
   }
-  AVER(FreelistBlockLimit(block) == limit);
+  AVER(FreelistBlockLimit(fl, block) == limit);
 }
 
 
