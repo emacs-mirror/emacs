@@ -1,3 +1,9 @@
+2013-06-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-ems.el (gnus-image-type-available-p): Test `display-images-p'
+	before `image-type-available-p' to avoid loading the image libraries
+	needlessly.
+
 2013-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-date-ut, article-update-date-lapsed): Don't
