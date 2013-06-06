@@ -1,3 +1,9 @@
+2013-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-char-before)
+	(byte-compile-backward-char, byte-compile-backward-word):
+	Handle explicit nil arguments.  (Bug#14565)
+
 2013-06-05  Alan Mackenzie  <acm@muc.de>
 
 	* isearch.el (isearch-allow-prefix): New user option.
