@@ -83,8 +83,11 @@ a.mpstag:hover {
     color: {{ theme_bgcolor }};
 }
 
+p.logo {
+    text-align: center;
+}
 img.logo {
-    width: 100%;
+    width: 75%;
 }
 
 div.sphinxsidebar {
