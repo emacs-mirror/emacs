@@ -3,16 +3,66 @@
 
 @import url('default.css');
 
+/* See <http://www.paulirish.com/2009/bulletproof-font-face-implementation-syntax/> */
+
 @font-face {
-    font-family: 'SCP';
-    font-weight: bold;
-    src: url('SourceCodePro-Bold.ttf');
+  font-family: "Ubuntu Mono";
+  src: url("font/ubuntu-mono/UbuntuMono-R-webfont.eot");
+  src: url("font/ubuntu-mono/UbuntuMono-R-webfont.eot?#iefix")
+    format("embedded-opentype"),
+    url("font/ubuntu-mono/UbuntuMono-R-webfont.woff")
+    format("woff"),
+    url("font/ubuntu-mono/UbuntuMono-R-webfont.ttf")
+    format("truetype"),
+    url("font/ubuntu-mono/UbuntuMono-R-webfont.svg#UbuntuMonoRegular")
+    format("svg");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'SCP';
-    font-weight: normal;
-    src: url('SourceCodePro-Regular.ttf');
+  font-family: "Ubuntu Mono";
+  src: url("font/ubuntu-mono/UbuntuMono-RI-webfont.eot");
+  src: url("font/ubuntu-mono/UbuntuMono-RI-webfont.eot?#iefix")
+    format("embedded-opentype"),
+    url("font/ubuntu-mono/UbuntuMono-RI-webfont.woff")
+    format("woff"),
+    url("font/ubuntu-mono/UbuntuMono-RI-webfont.ttf")
+    format("truetype"),
+    url("font/ubuntu-mono/UbuntuMono-RI-webfont.svg#UbuntuMonoItalic")
+    format("svg");
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Ubuntu Mono";
+  src: url("font/ubuntu-mono/UbuntuMono-B-webfont.eot");
+  src: url("font/ubuntu-mono/UbuntuMono-B-webfont.eot?#iefix")
+    format("embedded-opentype"),
+    url("font/ubuntu-mono/UbuntuMono-B-webfont.woff")
+    format("woff"),
+    url("font/ubuntu-mono/UbuntuMono-B-webfont.ttf")
+    format("truetype"),
+    url("font/ubuntu-mono/UbuntuMono-B-webfont.svg#UbuntuMonoBold")
+    format("svg");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Ubuntu Mono";
+  src: url("font/ubuntu-mono/UbuntuMono-BI-webfont.eot");
+  src: url("font/ubuntu-mono/UbuntuMono-BI-webfont.eot?#iefix")
+    format("embedded-opentype"),
+    url("font/ubuntu-mono/UbuntuMono-BI-webfont.woff")
+    format("woff"),
+    url("font/ubuntu-mono/UbuntuMono-BI-webfont.ttf")
+    format("truetype"),
+    url("font/ubuntu-mono/UbuntuMono-BI-webfont.svg#UbuntuMonoBoldItalic")
+    format("svg");
+  font-weight: bold;
+  font-style: italic;
 }
 
 a, a:visited, a.reference.internal {
@@ -74,7 +124,7 @@ dl.glossary dt, dl.type dt, dl.function dt, dl.macro dt {
 }
 
 pre, tt, code, a.mpstag {
-    font-family: 'SCP', monospaced;
+    font-family: 'Ubuntu Mono', monospace;
     font-size: 100%;
 }
 
