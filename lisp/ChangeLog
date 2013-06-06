@@ -1,5 +1,8 @@
 2013-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Treat user-error like error.
+
 	* emacs-lisp/bytecomp.el (byte-compile-char-before)
 	(byte-compile-backward-char, byte-compile-backward-word):
 	Handle explicit nil arguments.  (Bug#14565)
