@@ -27554,8 +27554,10 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
 /* EXPORT:
    Take proper action when the mouse has moved to position X, Y on
-   frame F as regards highlighting characters that have mouse-face
-   properties.  Also de-highlighting chars where the mouse was before.
+   frame F with regards to highlighting portions of display that have
+   mouse-face properties.  Also de-highlight portions of display where
+   the mouse was before, set the mouse pointer shape as appropriate
+   for the mouse coordinates, and activate help echo (tooltips).
    X and Y can be negative or out of range.  */
 
 void
@@ -27665,8 +27667,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 
 #ifdef HAVE_WINDOW_SYSTEM
       /* Look for :pointer property on image.  */
-      if (!NILP (Vmouse_highlight)
-	  && glyph != NULL && glyph->type == IMAGE_GLYPH)
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
 	  if (img != NULL && IMAGEP (img->spec))
@@ -27709,8 +27710,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 #endif	/* HAVE_WINDOW_SYSTEM */
 
       /* Clear mouse face if X/Y not over text.  */
-      if (NILP (Vmouse_highlight)
-	  || glyph == NULL
+      if (glyph == NULL
 	  || area != TEXT_AREA
 	  || !MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->current_matrix, vpos))
 	  /* Glyph's OBJECT is an integer for glyphs inserted by the
@@ -27772,6 +27772,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	}
       else
 	noverlays = 0;
+
+      if (NILP (Vmouse_highlight))
+	{
+	  clear_mouse_face (hlinfo);
+	  goto check_help_echo;
+	}
 
       same_region = coords_in_mouse_face_p (w, hpos, vpos);
 
