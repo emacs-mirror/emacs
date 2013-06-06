@@ -814,15 +814,9 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK) return res;
   RING_FOR(node, &mrg->entryRing, nextNode) {
     refPart = MRGRefPartOfLink(linkOfRing(node), arena);
-    if (arena->insideShield) {
-      res = WriteF(stream, "    at $A Ref $A\n",
-                   (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
-                   NULL);
-    } else {
-      res = WriteF(stream, "    at $A Ref $A\n",
-                   (WriteFA)refPart, (WriteFA)refPart->ref,
-                   NULL);      
-    }
+    res = WriteF(stream, "    at $A Ref $A\n",
+                 (WriteFA)refPart, (WriteFA)MRGRefPartRef(arena, refPart),
+                 NULL);
     if (res != ResOK) return res;
   }
 
