@@ -85,8 +85,8 @@ passing them to :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
 
 The reference passed to :c:func:`MPS_FIX2` must be the address of the
 base of the block referred to (unless the referent belongs to an
-:term:`object format` of variant auto-header, in which case it must be
-a reference to the address just after the header).
+:term:`object format` with :term:`in-band headers`, in which case it
+must be a reference to the address just after the header).
 
 However, :c:func:`MPS_FIX1` allows some leeway: if you pass it a
 reference to the interior of an allocated block, then
@@ -116,7 +116,7 @@ is not of interest to the MPS.
 Similarly, if you use interior pointers, you do not need to convert
 them to base pointers before calling :c:func:`MPS_FIX1` (or, indeed,
 before calling :c:func:`MPS_FIX2`, if the target of the referent
-belongs to an :term:`object format` of variant auto-header).
+belongs to an :term:`object format` with :term:`in-band headers`).
 
 
 .. index::
@@ -485,9 +485,8 @@ Fixing interface
         afterwards.
 
         The only exception is for references to objects belonging to a
-        format of variant auto-header (see
-        :c:type:`mps_fmt_auto_header_s`): the header size must not be
-        subtracted from these references.
+        format with :term:`in-band headers`: the header size must not
+        be subtracted from these references.
 
     .. note::
 

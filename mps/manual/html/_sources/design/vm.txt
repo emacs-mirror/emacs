@@ -109,11 +109,15 @@ they ask for too much, :c:func:`mps_arena_create()` (and hence
 
 :mps:tag:`testing.larger` It must be possible to allocate in a large space;
 sometimes commiting will fail, because there's not enough space to
-replace the "reserve" mapping. See request.epcore.160201 for details.
+replace the "reserve" mapping. See request.epcore.160201_ for details.
+
+.. _request.epcore.160201: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160201
 
 :mps:tag:`testing.lots` It must be possible to have lots of mappings. The OS
 must either combine adjacent mappings or have lots of space in the
-kernel tables. See request.epcore.160117 for ideas on how to test
+kernel tables. See request.epcore.160117_ for ideas on how to test
 this.
+
+.. _request.epcore.160117: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160117
 
 

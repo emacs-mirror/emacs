@@ -29,9 +29,10 @@ Source
 ------
 
 :mps:tag:`source` Various requirements demand such a mechanism. See
-request.epcore.160021: There is no way to tell which version and
+request.epcore.160021_: There is no way to tell which version and
 release of the MM one is using.
 
+.. _request.epcore.160021: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160021
 
 Overview
 --------

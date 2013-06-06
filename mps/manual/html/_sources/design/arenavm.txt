@@ -199,7 +199,9 @@ tables.
 [missing figure]
 
 :mps:tag:`fig.count` How a count table can be used to partially map the page
-table, as proposed in request.dylan.170049.sol.map.
+table, as proposed in request.dylan.170049.sol.map_.
+
+.. _request.dylan.170049.sol.map: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170049
 
 [missing figure]
 

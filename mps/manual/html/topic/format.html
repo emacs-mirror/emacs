@@ -75,223 +75,78 @@ layout of objects belonging to the format. Format methods include the
 object), and the <a class="reference internal" href="../glossary/f.html#term-forward-method"><em class="xref std std-term">forward method</em></a> (which replaces an object that
 has moved with a <a class="reference internal" href="../glossary/f.html#term-forwarding-object"><em class="xref std std-term">forwarding object</em></a>).</p>
 <p>Not every <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> supports <a class="reference internal" href="../glossary/f.html#term-formatted-object"><em class="xref std std-term">formatted objects</em></a>.</p>
+<div class="section" id="interface">
+<span id="index-1"></span><h2>7.1. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_fmt_t">
 <tt class="descname">mps_fmt_t</tt><a class="headerlink" href="#mps_fmt_t" title="Permalink to this definition">¶</a></dt>
 <dd><p>The type of an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>.</p>
 </dd></dl>
 
-<div class="section" id="creating-an-object-format">
-<span id="index-1"></span><h2>7.1. Creating an object format<a class="headerlink" href="#creating-an-object-format" title="Permalink to this headline">¶</a></h2>
-<p>Different <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> use different sets of format methods
-and values (for example, a non-moving pool does not need forwarding
-objects, so its object formats do not need to contain a forward
-method). To accommodate this variance, it is possible to construct
-object formats from different collections of format methods and
-values. Such a collection is called a <em>format variant</em>.</p>
-<p>There are three supported format variants. All are suitable for
-copying and moving pools.</p>
+<dl class="function">
+<dt id="mps_fmt_create_k">
+void <tt class="descname">mps_fmt_create_k</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*mps_fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="keyword.html#mps_arg_s" title="mps_arg_s">mps_arg_s</a><em>&nbsp;args[]</em><big>)</big><a class="headerlink" href="#mps_fmt_create_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>.</p>
+<p><tt class="docutils literal"><span class="pre">fmt_o</span></tt> points to a location that will hold the address of the new
+object format.</p>
+<p><tt class="docutils literal"><span class="pre">arena</span></tt> is the arena in which to create the format.</p>
+<p><tt class="docutils literal"><span class="pre">args</span></tt> are <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a> describing the format. Each
+<a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> requires a particular subset of these keyword
+arguments: see the documentation for that pool class.</p>
 <ul class="simple">
-<li>Variant A (<a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>): for objects without
-<a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">headers</em></a>.</li>
-<li>Variant B (<a class="reference internal" href="#mps_fmt_B_s" title="mps_fmt_B_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_B_s</span></tt></a>): as variant A, but with the
-addition of a class method.</li>
-<li>Variant auto-header (<a class="reference internal" href="#mps_fmt_auto_header_s" title="mps_fmt_auto_header_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_auto_header_s</span></tt></a>): for objects
-with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">headers</em></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_ALIGN</span></tt> (type <a class="reference internal" href="interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>,
+default <a class="reference internal" href="platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>) is an integer value specifying
+the alignment of objects allocated with this format. It should
+be large enough to satisfy the alignment requirements of any
+field in the objects, and it must not be larger than the pool
+alignment.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_HEADER_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">mps_size_t</span></tt>,
+default 0) is an integer value specifying the header size for
+objects with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>. See
+<a class="reference internal" href="#topic-format-headers"><em>In-band headers</em></a> below.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_SCAN</span></tt> (type <a class="reference internal" href="#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>) is a
+<a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a> that identifies references within objects
+belonging to this format. See <a class="reference internal" href="#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_SKIP</span></tt> (type <a class="reference internal" href="#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>) is a
+<a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a> that skips over objects belonging to this
+format. See <a class="reference internal" href="#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_FWD</span></tt> (type <a class="reference internal" href="#mps_fmt_fwd_t" title="mps_fmt_fwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_fwd_t</span></tt></a>) is a
+<a class="reference internal" href="../glossary/f.html#term-forward-method"><em class="xref std std-term">forward method</em></a> that stores relocation information for an
+object belonging to this format that has moved. See
+<a class="reference internal" href="#mps_fmt_fwd_t" title="mps_fmt_fwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_fwd_t</span></tt></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_ISFWD</span></tt> (type <a class="reference internal" href="#mps_fmt_isfwd_t" title="mps_fmt_isfwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_isfwd_t</span></tt></a>) is
+a <a class="reference internal" href="../glossary/i.html#term-is-forwarded-method"><em class="xref std std-term">is-forwarded method</em></a> that determines if an object
+belonging to this format has been moved. See
+<a class="reference internal" href="#mps_fmt_isfwd_t" title="mps_fmt_isfwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_isfwd_t</span></tt></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_PAD</span></tt> (type <a class="reference internal" href="#mps_fmt_pad_t" title="mps_fmt_pad_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_pad_t</span></tt></a>) is a
+<a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a> that creates <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding objects</em></a>
+belonging to this format. See <a class="reference internal" href="#mps_fmt_pad_t" title="mps_fmt_pad_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_pad_t</span></tt></a>.</li>
+<li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_CLASS</span></tt> (type <a class="reference internal" href="#mps_fmt_class_t" title="mps_fmt_class_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_class_t</span></tt></a>) is
+a method that returns an address that is related to the class or
+type of the object, for inclusion in the <a class="reference internal" href="../glossary/t.html#term-telemetry-stream"><em class="xref std std-term">telemetry
+stream</em></a> for some events relating to the object. See
+<a class="reference internal" href="#mps_fmt_class_t" title="mps_fmt_class_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_class_t</span></tt></a>.</li>
 </ul>
-<p>The client program creates an object format by construct a format
-variant structure and then calling the appropriate <tt class="docutils literal"><span class="pre">mps_fmt_create_</span></tt>
-function for the variant. The variant structure can then be disposed
-of.</p>
+<p><a class="reference internal" href="#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a> returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if
+successful. The MPS may exhaust some resource in the course of
+<a class="reference internal" href="#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a> and will return an appropriate
+<a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> if so.</p>
+<p>The object format pointed to by <tt class="docutils literal"><span class="pre">fmt_o</span></tt> persists until it is
+destroyed by calling <a class="reference internal" href="#mps_fmt_destroy" title="mps_fmt_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_destroy()</span></tt></a>.</p>
 <p>For example:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="n">obj_fmt_s</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">ALIGNMENT</span><span class="p">,</span>
-    <span class="n">obj_scan</span><span class="p">,</span>
-    <span class="n">obj_skip</span><span class="p">,</span>
-    <span class="nb">NULL</span><span class="p">,</span>                         <span class="cm">/* Obsolete copy method */</span>
-    <span class="n">obj_fwd</span><span class="p">,</span>
-    <span class="n">obj_isfwd</span><span class="p">,</span>
-    <span class="n">obj_pad</span>
-<span class="p">};</span>
-
-<span class="kt">mps_pool_t</span> <span class="n">obj_pool</span><span class="p">;</span>
-<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
-<span class="cm">/* obj_fmt created successfully */</span>
-
-<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FORMAT</span><span class="p">,</span> <span class="n">obj_fmt</span><span class="p">);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_ALIGN</span><span class="p">,</span> <span class="n">ALIGNMENT</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SCAN</span><span class="p">,</span> <span class="n">obj_scan</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SKIP</span><span class="p">,</span> <span class="n">obj_skip</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_FWD</span><span class="p">,</span> <span class="n">obj_fwd</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_ISFWD</span><span class="p">,</span> <span class="n">obj_isfwd</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_PAD</span><span class="p">,</span> <span class="n">obj_pad</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">pool_class</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj pool&quot;</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<dl class="type">
-<dt id="mps_fmt_A_s">
-<tt class="descname">mps_fmt_A_s</tt><a class="headerlink" href="#mps_fmt_A_s" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
-of variant A.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">mps_fmt_A_s</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Broadly speaking, object formats of variant A are suitable for use
-in <a class="reference internal" href="../glossary/c.html#term-copying-garbage-collection"><em class="xref std std-term">copying</em></a> or <a class="reference internal" href="../glossary/m.html#term-moving-garbage-collector"><em class="xref std std-term">moving</em></a> <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pools</em></a>.</p>
-<p><tt class="docutils literal"><span class="pre">align</span></tt> is an integer value specifying the alignment of objects
-allocated with this format. It should be large enough to satisfy
-the alignment requirements of any field in the objects, and it
-must not be larger than the pool alignment.</p>
-<p><tt class="docutils literal"><span class="pre">scan</span></tt> is a <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a> that identifies references
-within objects belonging to this format. See
-<a class="reference internal" href="#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>.</p>
-<p><tt class="docutils literal"><span class="pre">skip</span></tt> is a <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a> that skips over objects
-belonging to this format. See <a class="reference internal" href="#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>.</p>
-<p><tt class="docutils literal"><span class="pre">copy</span></tt> is not used. (In older versions of the MPS it was a
-<a class="reference internal" href="../glossary/c.html#term-copy-method"><em class="xref std std-term">copy method</em></a> that copied objects belonging to this
-format.)</p>
-<p><tt class="docutils literal"><span class="pre">fwd</span></tt> is a <a class="reference internal" href="../glossary/f.html#term-forward-method"><em class="xref std std-term">forward method</em></a> that stores relocation
-information for an object belonging to this format that has moved.
-See <a class="reference internal" href="#mps_fmt_fwd_t" title="mps_fmt_fwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_fwd_t</span></tt></a>.</p>
-<p><tt class="docutils literal"><span class="pre">isfwd</span></tt> is a <a class="reference internal" href="../glossary/i.html#term-is-forwarded-method"><em class="xref std std-term">is-forwarded method</em></a> that determines if an
-object belonging to this format has been moved. See
-<a class="reference internal" href="#mps_fmt_isfwd_t" title="mps_fmt_isfwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_isfwd_t</span></tt></a>.</p>
-<p><tt class="docutils literal"><span class="pre">pad</span></tt> is a <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a> that creates <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding
-objects</em></a> belonging to this format. See <a class="reference internal" href="#mps_fmt_pad_t" title="mps_fmt_pad_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_pad_t</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="mps_fmt_create_A">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_A</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s">mps_fmt_A_s</a><em>&nbsp;*fmt_A</em><big>)</big><a class="headerlink" href="#mps_fmt_create_A" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant A.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_o</span></tt> points to a location that will hold the address of the new
-object format.</p>
-<p><tt class="docutils literal"><span class="pre">arena</span></tt> is the arena in which to create the format.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_A</span></tt> points to a description of an object format of variant A.</p>
-<p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if successful. The MPS may exhaust
-some resource in the course of <a class="reference internal" href="#mps_fmt_create_A" title="mps_fmt_create_A"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_A()</span></tt></a> and will
-return an appropriate <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> if so.</p>
-<p>After this function returns, the object format description pointed
-to be <tt class="docutils literal"><span class="pre">fmt_A</span></tt> is no longer needed and may be discarded. The object
-format pointed to by <tt class="docutils literal"><span class="pre">fmt_o</span></tt> persists until it is destroyed by
-calling <a class="reference internal" href="#mps_fmt_destroy" title="mps_fmt_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_destroy()</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="type">
-<dt id="mps_fmt_B_s">
-<tt class="descname">mps_fmt_B_s</tt><a class="headerlink" href="#mps_fmt_B_s" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
-of variant B.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_B_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-    <span class="kt">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">mps_fmt_B_s</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Variant B is the same as variant A except for the addition of the
-<tt class="docutils literal"><span class="pre">mps_class</span></tt> method. See <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="mps_fmt_create_B">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_B</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_B_s" title="mps_fmt_B_s">mps_fmt_B_s</a><em>&nbsp;*fmt_B</em><big>)</big><a class="headerlink" href="#mps_fmt_create_B" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant B.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_o</span></tt> points to a location that will hold the address of the new
-object format.</p>
-<p><tt class="docutils literal"><span class="pre">arena</span></tt> is the arena in which to create the format.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_B</span></tt> points to a description of an object format of variant B.</p>
-<p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if successful. The MPS may exhaust
-some resource in the course of <a class="reference internal" href="#mps_fmt_create_B" title="mps_fmt_create_B"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_B()</span></tt></a> and will
-return an appropriate <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> if so.</p>
-</dd></dl>
-
-<dl class="type">
-<dt id="mps_fmt_auto_header_s">
-<tt class="descname">mps_fmt_auto_header_s</tt><a class="headerlink" href="#mps_fmt_auto_header_s" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
-of variant auto-header.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_auto_header_s</span> <span class="p">{</span>
-    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-    <span class="kt">size_t</span>          <span class="n">mps_headerSize</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">mps_fmt_auto_header_s</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Variant auto-header is the same as variant A except for the
-removal of the unused <tt class="docutils literal"><span class="pre">copy</span></tt> method, and the addition of the
-<tt class="docutils literal"><span class="pre">mps_headerSize</span></tt> field. See <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>.</p>
-<p>Broadly speaking, the object formats of this variant are suitable
-for use in <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatic memory management</em></a> for objects with
-<a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">headers</em></a> (hence the name). More precisely,
-this variant is intended for formats where the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
-program&#8217;s</em></a> pointers point some distance into the
-memory <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">block</em></a> containing the object. This typically happens
-when the objects have a common header used for memory management
-or class system purposes, but this situation also arises when the
-low bits of a pointer are used for a tag. The MPS does not care
-what the reason is, only about the offset of the pointer in
-relation to the memory block.</p>
-<p><tt class="docutils literal"><span class="pre">mps_headerSize</span></tt> is the size of the header, that is, the offset of
-a client pointer from the base of the memory block.</p>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p>Format methods (other than the <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>) for
-formats of this variant will receive <em>client pointers</em> (that
-is, pointers past the header) but all other MPS functions
-expect to receive and return <em>base pointers</em> (that is,
-pointers to the base of the block where the header is stored).</p>
-<p class="last">In particular, <a class="reference internal" href="allocation.html#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> and <a class="reference internal" href="allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a>
-always hand out base pointers, and <a class="reference internal" href="allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a> expects
-to receive one.</p>
-</div>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">For technical reasons, formatted objects must be longer than
-the header. In other words, objects consisting of only a
-header are not supported.</p>
-</div>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<p class="last">Even if the header size is larger than or equal to
-<a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a>, the <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a> must still be
-able to create <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding objects</em></a> down
-to the alignment size.</p>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="mps_fmt_create_auto_header">
-<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_auto_header</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_auto_header_s" title="mps_fmt_auto_header_s">mps_fmt_auto_header_s</a><em>&nbsp;*fmt_ah</em><big>)</big><a class="headerlink" href="#mps_fmt_create_auto_header" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant auto-header.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_o</span></tt> points to a location that will hold the address of the new
-object format.</p>
-<p><tt class="docutils literal"><span class="pre">arena</span></tt> is the arena in which to create the format.</p>
-<p><tt class="docutils literal"><span class="pre">fmt_ah</span></tt> points to a description of an object format of variant
-auto-header.</p>
-<p>Returns <a class="reference internal" href="error.html#MPS_RES_OK" title="MPS_RES_OK"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_RES_OK</span></tt></a> if successful. The MPS may exhaust
-some resource in the course of
-<a class="reference internal" href="#mps_fmt_create_auto_header" title="mps_fmt_create_auto_header"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_auto_header()</span></tt></a> and will return an
-appropriate <a class="reference internal" href="../glossary/r.html#term-result-code"><em class="xref std std-term">result code</em></a> if so.</p>
 </dd></dl>
 
 <dl class="function">
@@ -304,8 +159,44 @@ void <tt class="descname">mps_fmt_destroy</tt><big>(</big><a class="reference in
 </dd></dl>
 
 </div>
+<div class="section" id="in-band-headers">
+<span id="topic-format-headers"></span><span id="index-2"></span><h2>7.2. In-band headers<a class="headerlink" href="#in-band-headers" title="Permalink to this headline">¶</a></h2>
+<p>There are use cases in which it is convenient for the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client
+program&#8217;s</em></a> pointers to point some distance into the
+memory <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">block</em></a> containing the object. This typically happens
+when the objects have a common <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band header</em></a> used for memory
+management or class system purposes, but this situation also arises
+when the low bits of a pointer are used for a tag. The MPS does not
+care what the reason is, only about the offset of the pointer in
+relation to the memory block.</p>
+<p>If you have one of these use cases, you should pass the
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_HEADER_SIZE</span></tt> <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a> to
+<a class="reference internal" href="#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a>, specifying the size of the header: that
+is, the offset of a client pointer from the base of the memory block.</p>
+<p>There are some cautions to be observed when using in-band headers:</p>
+<ol class="arabic">
+<li><p class="first">The format methods (other than the <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>) receive
+<em>client pointers</em> (that is, pointers past the header) but all other
+MPS functions expect to receive and return <em>base pointers</em> (that
+is, pointers to the base of the block where the header is stored).</p>
+<p>In particular, <a class="reference internal" href="allocation.html#mps_reserve" title="mps_reserve"><tt class="xref c c-func docutils literal"><span class="pre">mps_reserve()</span></tt></a> and <a class="reference internal" href="allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a> always
+hand out base pointers, and <a class="reference internal" href="allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a> expects to receive
+one.</p>
+</li>
+<li><p class="first">Formatted objects must be longer than the header. In other words,
+objects consisting of only a header are not supported.</p>
+</li>
+<li><p class="first">Even if the header size is larger than or equal to
+<a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a>, the <a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a> must still be able to
+create <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding objects</em></a> down to the alignment size.</p>
+</li>
+<li><p class="first">Not all <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool classes</em></a> support objects with in-band headers.
+See the documentation for the pool class.</p>
+</li>
+</ol>
+</div>
 <div class="section" id="cautions">
-<span id="topic-format-cautions"></span><span id="index-2"></span><h2>7.2. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
+<span id="topic-format-cautions"></span><span id="index-3"></span><h2>7.3. Cautions<a class="headerlink" href="#cautions" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">The MPS guarantees that format methods have exclusive access to the
 object for the duration of the call. This guarantee may entail
@@ -357,7 +248,7 @@ their contents;</li>
 </ol>
 </div>
 <div class="section" id="format-methods">
-<span id="index-3"></span><h2>7.3. Format methods<a class="headerlink" href="#format-methods" title="Permalink to this headline">¶</a></h2>
+<span id="index-4"></span><h2>7.4. Format methods<a class="headerlink" href="#format-methods" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="mps_fmt_class_t">
 <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a> <tt class="descname">(*mps_fmt_class_t)</tt><big>(</big><a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#mps_fmt_class_t" title="Permalink to this definition">¶</a></dt>
@@ -436,7 +327,8 @@ other methods in the format (the <a class="reference internal" href="../glossary
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">The padding method always receives a base pointer, even if the
-object format belongs to variant auto-header.</p>
+object format has a non-zero
+<tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_HEADER_SIZE</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -480,9 +372,8 @@ indicate references within the objects by calling
 <p>Returns the address of the &#8220;next object&#8221;. In an object format
 without headers (for example, a format of variant A), this is the
 address just past the end of this object. In an object format with
-headers (for example, a format of variant auto-header), it&#8217;s the
-address just past where the header of next object would be, if
-there were one.</p>
+<a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>, it&#8217;s the address just past where the
+header of next object would be, if there were one.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In either case, the result is the sum of <tt class="docutils literal"><span class="pre">addr</span></tt> and the size
@@ -499,7 +390,7 @@ them.</p>
 
 </div>
 <div class="section" id="object-format-introspection">
-<span id="index-4"></span><h2>7.4. Object format introspection<a class="headerlink" href="#object-format-introspection" title="Permalink to this headline">¶</a></h2>
+<span id="index-5"></span><h2>7.5. Object format introspection<a class="headerlink" href="#object-format-introspection" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="mps_addr_fmt">
 <a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t">mps_bool_t</a> <tt class="descname">mps_addr_fmt</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t">mps_addr_t</a><em>&nbsp;addr</em><big>)</big><a class="headerlink" href="#mps_addr_fmt" title="Permalink to this definition">¶</a></dt>
@@ -589,6 +480,143 @@ their contents;</li>
 </dd></dl>
 
 </div>
+<div class="section" id="obsolete-interface">
+<h2>7.6. Obsolete interface<a class="headerlink" href="#obsolete-interface" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-deprecated admonition">
+<p class="first admonition-title">Deprecated</p>
+<p>starting with version 1.112.</p>
+<p class="last">Use <a class="reference internal" href="allocation.html#mps_ap_create_k" title="mps_ap_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create_k()</span></tt></a> instead: the <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword
+arguments</em></a> interface is more flexible and easier to understand.</p>
+</div>
+<p>Formerly the only way to create object formats was to describe the
+format in the form of a <em>format variant structure</em>.</p>
+<p>There are four format variants.</p>
+<ul class="simple">
+<li>Variant A (<a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>): for objects without
+<a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">headers</em></a>.</li>
+<li>Variant B (<a class="reference internal" href="#mps_fmt_B_s" title="mps_fmt_B_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_B_s</span></tt></a>): as variant A, but with the
+addition of a class method.</li>
+<li>Variant auto-header (<a class="reference internal" href="#mps_fmt_auto_header_s" title="mps_fmt_auto_header_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_auto_header_s</span></tt></a>): for objects
+with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>.</li>
+<li>Variant fixed (<a class="reference internal" href="#mps_fmt_fixed_s" title="mps_fmt_fixed_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_fixed_s</span></tt></a>): for fixed-size objects.</li>
+</ul>
+<p>The client program creates an object format by construct a format
+variant structure and then calling the appropriate <tt class="docutils literal"><span class="pre">mps_fmt_create_</span></tt>
+function for the variant. The variant structure can then be disposed
+of.</p>
+<dl class="type">
+<dt id="mps_fmt_A_s">
+<tt class="descname">mps_fmt_A_s</tt><a class="headerlink" href="#mps_fmt_A_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
+of variant A.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="p">{</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mps_fmt_A_s</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The fields of this structure correspond to the keyword arguments
+to <a class="reference internal" href="#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a>, except for <tt class="docutils literal"><span class="pre">copy</span></tt>, which is not
+used. In older versions of the MPS this was a <a class="reference internal" href="../glossary/c.html#term-copy-method"><em class="xref std std-term">copy method</em></a>
+that copied objects belonging to this format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_fmt_create_A">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_A</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s">mps_fmt_A_s</a><em>&nbsp;*fmt_A</em><big>)</big><a class="headerlink" href="#mps_fmt_create_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> based on a description of an
+object format of variant A.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="mps_fmt_B_s">
+<tt class="descname">mps_fmt_B_s</tt><a class="headerlink" href="#mps_fmt_B_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
+of variant B.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_B_s</span> <span class="p">{</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mps_fmt_B_s</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Variant B is the same as variant A except for the addition of the
+<tt class="docutils literal"><span class="pre">mps_class</span></tt> method. See <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_fmt_create_B">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_B</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_B_s" title="mps_fmt_B_s">mps_fmt_B_s</a><em>&nbsp;*fmt_B</em><big>)</big><a class="headerlink" href="#mps_fmt_create_B" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> based on a description of an
+object format of variant B.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="mps_fmt_auto_header_s">
+<tt class="descname">mps_fmt_auto_header_s</tt><a class="headerlink" href="#mps_fmt_auto_header_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
+of variant auto-header.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_auto_header_s</span> <span class="p">{</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">size_t</span>          <span class="n">mps_headerSize</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mps_fmt_auto_header_s</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Variant auto-header is the same as variant A except for the
+removal of the unused <tt class="docutils literal"><span class="pre">copy</span></tt> method, and the addition of the
+<tt class="docutils literal"><span class="pre">mps_headerSize</span></tt> field. See <a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_fmt_create_auto_header">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_auto_header</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_auto_header_s" title="mps_fmt_auto_header_s">mps_fmt_auto_header_s</a><em>&nbsp;*fmt_ah</em><big>)</big><a class="headerlink" href="#mps_fmt_create_auto_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> based on a description of an
+object format of variant auto-header.</p>
+</dd></dl>
+
+<dl class="type">
+<dt id="mps_fmt_fixed_s">
+<tt class="descname">mps_fmt_fixed_s</tt><a class="headerlink" href="#mps_fmt_fixed_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
+of variant fixed.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_fixed_s</span> <span class="p">{</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">mps_fmt_fixed_s</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Variant fixed is the same as variant A except for the removal of
+the unused <tt class="docutils literal"><span class="pre">copy</span></tt> method, and the lack of a <tt class="docutils literal"><span class="pre">skip</span></tt> method
+(this is not needed because the objects are fixed in size). See
+<a class="reference internal" href="#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mps_fmt_create_fixed">
+<a class="reference internal" href="error.html#mps_res_t" title="mps_res_t">mps_res_t</a> <tt class="descname">mps_fmt_create_fixed</tt><big>(</big><a class="reference internal" href="#mps_fmt_t" title="mps_fmt_t">mps_fmt_t</a><em>&nbsp;*fmt_o</em>, <a class="reference internal" href="arena.html#mps_arena_t" title="mps_arena_t">mps_arena_t</a><em>&nbsp;arena</em>, <a class="reference internal" href="#mps_fmt_fixed_s" title="mps_fmt_fixed_s">mps_fmt_fixed_s</a><em>&nbsp;*fmt_fixed</em><big>)</big><a class="headerlink" href="#mps_fmt_create_fixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> based on a description of an
+object format of variant fixed.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -603,10 +631,12 @@ their contents;</li>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">7. Object formats</a><ul>
-<li><a class="reference internal" href="#creating-an-object-format">7.1. Creating an object format</a></li>
-<li><a class="reference internal" href="#cautions">7.2. Cautions</a></li>
-<li><a class="reference internal" href="#format-methods">7.3. Format methods</a></li>
-<li><a class="reference internal" href="#object-format-introspection">7.4. Object format introspection</a></li>
+<li><a class="reference internal" href="#interface">7.1. Interface</a></li>
+<li><a class="reference internal" href="#in-band-headers">7.2. In-band headers</a></li>
+<li><a class="reference internal" href="#cautions">7.3. Cautions</a></li>
+<li><a class="reference internal" href="#format-methods">7.4. Format methods</a></li>
+<li><a class="reference internal" href="#object-format-introspection">7.5. Object format introspection</a></li>
+<li><a class="reference internal" href="#obsolete-interface">7.6. Obsolete interface</a></li>
 </ul>
 </li>
 </ul>

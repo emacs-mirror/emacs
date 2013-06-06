@@ -73,13 +73,13 @@ concurrent traces. This limitation is expressed in the symbol
 <tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last"><tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt> is currently set to 1, see request.mps.160020
+<p class="last"><tt class="xref c c-macro docutils literal"><span class="pre">TRACE_MAX</span></tt> is currently set to 1, see <a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160020">request.mps.160020</a>
 &#8220;Multiple traces would not work&#8221;. David Jones, 1998-06-15.</p>
 </div>
 <p><span class="target" id="design.mps.trace.rate"></span><a class="mpstag reference internal" href="#design.mps.trace.rate">.rate:</a> See <a class="reference external" href="/project/mps/mail/1997/07/31/14-37/0.txt">mail.nickb.1997-07-31.14-37</a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">Now revised? See request.epcore.160062 and
+<p class="last">Now revised? See <a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160062">request.epcore.160062</a> and
 change.epcore.minnow.160062. David Jones, 1998-06-15.</p>
 </div>
 <p><span class="target" id="design.mps.trace.exact.legal"></span><a class="mpstag reference internal" href="#design.mps.trace.exact.legal">.exact.legal:</a> Exact references should either point outside the
@@ -108,7 +108,7 @@ mail.pekka.1998-02-04.16-48 for improvement suggestions.</p>
 referenced object has failed (due to lack of memory, for example), by
 backing off to treating a reference as ambiguous. Assuming that fixing
 an ambiguous reference doesn&#8217;t allocate memory (which is no longer
-true for AMC for example). See request.dylan.170560 for a slightly
+true for AMC for example). See <a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170560">request.dylan.170560</a> for a slightly
 more sophisticated way to proceed when you can no longer allocate
 memory for copying.</p>
 </div>
@@ -155,7 +155,7 @@ inlined by the C compiler. This change results in a 4–5% speed-up in
 the Dylan compiler.</p>
 <p><span class="target" id="design.mps.trace.reclaim"></span><a class="mpstag reference internal" href="#design.mps.trace.reclaim">.reclaim:</a> Because the reclaim phase of the trace (implemented by
 <tt class="xref c c-func docutils literal"><span class="pre">TraceReclaim()</span></tt>) examines every segment it is fairly time intensive.
-rit&#8217;s profiles presented in request.dylan.170551 show a gap between
+rit&#8217;s profiles presented in <a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170551">request.dylan.170551</a> show a gap between
 the two varieties variety.hi and variety.wi.</p>
 <p><span class="target" id="design.mps.trace.reclaim.noaver"></span><a class="mpstag reference internal" href="#design.mps.trace.reclaim.noaver">.reclaim.noaver:</a> Converting <tt class="xref c c-func docutils literal"><span class="pre">AVER()</span></tt> statements in the loops of
 <tt class="xref c c-func docutils literal"><span class="pre">TraceReclaim()</span></tt>, <tt class="xref c c-func docutils literal"><span class="pre">PoolReclaim()</span></tt>, <a class="reference internal" href="poolamc.html#AMCReclaim" title="AMCReclaim"><tt class="xref c c-func docutils literal"><span class="pre">AMCReclaim()</span></tt></a> (<a class="reference internal" href="poollo.html#LOReclaim" title="LOReclaim"><tt class="xref c c-func docutils literal"><span class="pre">LOReclaim()</span></tt></a>?

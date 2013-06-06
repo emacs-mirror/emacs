@@ -31,15 +31,19 @@ concurrent traces. This limitation is expressed in the symbol
 
 .. note::
 
-    :c:macro:`TRACE_MAX` is currently set to 1, see request.mps.160020
+    :c:macro:`TRACE_MAX` is currently set to 1, see request.mps.160020_
     "Multiple traces would not work". David Jones, 1998-06-15.
+
+.. _request.mps.160020: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/160020
 
 :mps:tag:`rate` See `mail.nickb.1997-07-31.14-37 </project/mps/mail/1997/07/31/14-37/0.txt>`_.
 
 .. note::
 
-    Now revised? See request.epcore.160062 and
+    Now revised? See request.epcore.160062_ and
     change.epcore.minnow.160062. David Jones, 1998-06-15.
+
+.. _request.epcore.160062: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/160062
 
 :mps:tag:`exact.legal` Exact references should either point outside the
 arena (to non-managed address space) or to a tract allocated to a
@@ -70,10 +74,11 @@ Analysis
 referenced object has failed (due to lack of memory, for example), by
 backing off to treating a reference as ambiguous. Assuming that fixing
 an ambiguous reference doesn't allocate memory (which is no longer
-true for AMC for example). See request.dylan.170560 for a slightly
+true for AMC for example). See request.dylan.170560_ for a slightly
 more sophisticated way to proceed when you can no longer allocate
 memory for copying.
 
+.. _request.dylan.170560: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170560
 
 Ideas
 -----
@@ -126,8 +131,10 @@ the Dylan compiler.
 
 :mps:tag:`reclaim` Because the reclaim phase of the trace (implemented by
 :c:func:`TraceReclaim()`) examines every segment it is fairly time intensive.
-rit's profiles presented in request.dylan.170551 show a gap between
+rit's profiles presented in request.dylan.170551_ show a gap between
 the two varieties variety.hi and variety.wi.
+
+.. _request.dylan.170551: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170551
 
 :mps:tag:`reclaim.noaver` Converting :c:func:`AVER()` statements in the loops of
 :c:func:`TraceReclaim()`, :c:func:`PoolReclaim()`, :c:func:`AMCReclaim()` (:c:func:`LOReclaim()`?

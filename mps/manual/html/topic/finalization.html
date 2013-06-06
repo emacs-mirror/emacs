@@ -199,6 +199,19 @@ circumstances.</p>
 deprecated. See Appendix&nbsp;A of <a class="reference internal" href="../mmref/bib.html#boehm02"><em>Boehm (2002)</em></a>
 for a discussion of this problem.</p>
 </div>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p>You can safely destroy pools containing objects registered for
+finalization if you follow the &#8220;safe tear-down&#8221; procedure
+described under <a class="reference internal" href="pool.html#mps_pool_destroy" title="mps_pool_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_destroy()</span></tt></a>, but the objects do
+not get finalized.</p>
+<p class="last">The only reliable way to ensure that all finalizable object
+gets finalized is to maintain a table of <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak
+references<sup>(1)</sup></em></a> to all such objects. The weak references don&#8217;t
+prevent the objects from being finalized, but you can iterate
+over the list at an appropriate point and finalize any
+remaining objects yourself.</p>
+</div>
 </li>
 </ol>
 <ol class="arabic simple" start="4">

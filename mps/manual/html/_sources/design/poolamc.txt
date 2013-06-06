@@ -293,13 +293,12 @@ Feedback about retained pages
 
 (New with job001811_). AMC now accumulates counts of pages condemned
 and retained during a trace, in categories according to size and
-reason for retention, and emits diagnostic at trace-end via the
-``pool->class->traceEnd`` method. See comments on the
-:c:type:`PageRetStruct` in poolamc.c. These page-based metrics are not as
-precise as actually counting the size of objects, but they require
-much less intrusive code to implement, and should be sufficient to
-assess whether AMC's page retention policies and behaviour are
-acceptable.
+reason for retention, and emits this via the ``AMCTraceEnd`` telemetry
+event. See comments on the :c:type:`PageRetStruct` in ``poolamc.c``. These
+page-based metrics are not as precise as actually counting the size of
+objects, but they require much less intrusive code to implement, and
+should be sufficient to assess whether AMC's page retention policies
+and behaviour are acceptable.
 
 
 Initial design
@@ -586,10 +585,12 @@ Ramps
 :mps:tag:`ramp` Ramps usefully implement the begin/end
 :c:func:`mps_alloc_pattern_ramp()` interface.
 
-:mps:tag:`gen.ramp` To implement ramping (request.dylan.170423), AMC uses a
+:mps:tag:`gen.ramp` To implement ramping (request.dylan.170423_), AMC uses a
 special "ramping mode", where promotions are redirected. One
 generation is designated the "ramp generation" (``amc->rampGen`` in
 the code).
+
+.. _request.dylan.170423: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170423
 
 :mps:tag:`gen.ramp.ordinary` Ordinarily, that is whilst not ramping, objects
 are promoted into the ramp generation from younger generations and are

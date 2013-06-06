@@ -74,9 +74,10 @@ be extra content that is only meaningful to MPS staff, to help us
 diagnose client problems.
 
 While there is some overlap with the Diagnostic Feedback system
-(design.mps.diag), the main contrasts are that these GC messages are
-present in release builds, are stable from release to release, and are
-designed to be parsed by the client program.
+(design.mps.diag) and the Telemetry system (design.mps.telemetry), the
+main contrasts are that these GC messages are present in release
+builds, are stable from release to release, and are designed to be
+parsed by the client program.
 
 
 Names and parts
@@ -226,8 +227,7 @@ for the next collection using this trace id, neither a start nor an
 end message will be sent (:mps:ref:`.req.match`). There is no direct way to
 report this failure to the client (:mps:ref:`.req.errors-not-direct`), so we
 just increment the ``droppedMessages`` counter in the :c:type:`ArenaStruct`.
-Currently this counter is never reported to the client (except in
-diagnostic varieties).
+This counter is available via the ``MessagesDropped`` telemetry event.
 
 
 Getting and discarding

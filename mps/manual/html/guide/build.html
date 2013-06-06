@@ -314,13 +314,25 @@ described in the section &#8220;Optimizing for your object format&#8221; above.<
 <p>The MPS Kit can build a command-line program <tt class="docutils literal"><span class="pre">mpseventsql</span></tt> that
 loads a diagnostic stream of events into a <a class="reference external" href="http://www.sqlite.org/">SQLite3</a> database for processing. In order to build
 this program, you need to install the SQLite3 development resources.</p>
-<p>On Mac OS X, SQLite3 is pre-installed, so this tool builds by default.</p>
-<p>On Linux, you need to install the <tt class="docutils literal"><span class="pre">libsqlite3-dev</span></tt> package:</p>
+<ul>
+<li><p class="first">On Mac OS X, SQLite3 is pre-installed, so this tool builds by
+default.</p>
+</li>
+<li><p class="first">On Linux, you need to install the <tt class="docutils literal"><span class="pre">libsqlite3-dev</span></tt> package:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libsqlite3</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 </div>
 <p>and then re-run <tt class="docutils literal"><span class="pre">./configure</span></tt> and <tt class="docutils literal"><span class="pre">make</span></tt> as described above.</p>
-<p>On Windows, you should visit the <a class="reference external" href="http://www.sqlite.org/download.html">SQLite Download Page</a> and download the
+</li>
+<li><p class="first">On FreeBSD, you need to build and install the <tt class="docutils literal"><span class="pre">databases/sqlite3</span></tt>
+port from the ports collection:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">cd</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">ports</span><span class="o">/</span><span class="n">databases</span><span class="o">/</span><span class="n">sqlite3</span>
+<span class="n">make</span> <span class="n">install</span> <span class="n">clean</span>
+</pre></div>
+</div>
+<p>and then re-run <tt class="docutils literal"><span class="pre">./configure</span></tt> and <tt class="docutils literal"><span class="pre">make</span></tt> as described above.</p>
+</li>
+<li><p class="first">On Windows, you should visit the <a class="reference external" href="http://www.sqlite.org/download.html">SQLite Download Page</a> and download the
 <tt class="docutils literal"><span class="pre">sqlite-amalgamation</span></tt> ZIP archive. (At time of writing this is the
 first download on the page.) When you unzip the archive, you&#8217;ll find
 it contains files named <tt class="docutils literal"><span class="pre">sqlite3.c</span></tt> and <tt class="docutils literal"><span class="pre">sqlite3.h</span></tt>. Copy these
@@ -330,6 +342,8 @@ the command:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">nmake</span> <span class="o">/</span><span class="n">f</span> <span class="n">w3i3mv</span><span class="p">.</span><span class="n">nmk</span> <span class="n">mpseventsql</span><span class="p">.</span><span class="n">exe</span>
 </pre></div>
 </div>
+</li>
+</ul>
 </div>
 </div>
 </div>

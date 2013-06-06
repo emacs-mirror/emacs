@@ -625,7 +625,7 @@ the range to be found, the other the maximum length. For
 
 :mps:tag:`fun.find-res-range` :c:func:`BTFindResRange()`. Iterate within the search
 boundaries, identifying candidate ranges by searching for a reset bit.
-The :ref:`Boyer–Moore algorithm <BM77>` is used (it's particularly
+The Boyer–Moore algorithm [Boyer_Moore_1977]_ is used (it's particularly
 easy to implement when there are only two symbols, 0 and 1, in the
 alphabet). For each candidate range, iterate backwards over the bits
 from the end of the range towards the beginning. If a set bit is
@@ -650,9 +650,11 @@ word or subword.
 
 :mps:tag:`fun.find-res-range.improve` Various other performance improvements
 have been suggested in the past, including some from
-request.epcore.170534. Here is a list of potential improvements which
-all sound plausible, but which have not led to performance
-improvements in practice:
+request.epcore.170534_. Here is a list of potential improvements which
+all sound plausible, but which have not led to performance improvements
+in practice:
+
+.. _request.epcore.170534: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170534
 
 * :mps:tag:`fun.find-res-range.improve.step.partial` When the top index in a
   candidate range fails, skip partial words as well as whole words,
@@ -705,5 +707,11 @@ used to exercise some of the :c:type:`BT` functionality by hand.
 :mps:tag:`test.dylan` It is possible to modify Dylan so that it uses Bit
 Tables more extensively. See change.mps.epcore.brisling.160181 TEST1
 and TEST2.
+
+
+References
+----------
+
+.. [Boyer_Moore_1977] Robert S. Boyer and J. Strother Moore. Communications of the ACM 20(10):762–772. 1977. "`A Fast String Searching Algorithm <http://www.cs.utexas.edu/~moore/publications/fstrpos.pdf>`__".
 
 

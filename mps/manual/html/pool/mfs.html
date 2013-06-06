@@ -104,7 +104,7 @@ managed pools (unless these are registered as <a class="reference internal" href
 <dd><p>Return the <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> for an MFS (Manual Fixed Small)
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a>.</p>
 <p>When creating an MFS pool, <a class="reference internal" href="../topic/pool.html#mps_pool_create_k" title="mps_pool_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create_k()</span></tt></a> requires
-one <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
+one <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a>:</p>
 <ul class="simple">
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MFS_UNIT_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>) is the
 <a class="reference internal" href="../glossary/s.html#term-size"><em class="xref std std-term">size</em></a> of blocks that will be allocated from this pool, in
@@ -121,8 +121,8 @@ be wasted space in each segment.</li>
 </ul>
 <p>For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MFS_UNIT_SIZE</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_EXTEND_BY</span><span class="p">,</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MFS_UNIT_SIZE</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_EXTEND_BY</span><span class="p">,</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_mfs</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>

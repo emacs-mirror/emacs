@@ -108,9 +108,10 @@ client-developers (with help from MPS staff if necessary). There may
 be extra content that is only meaningful to MPS staff, to help us
 diagnose client problems.</p>
 <p>While there is some overlap with the Diagnostic Feedback system
-(design.mps.diag), the main contrasts are that these GC messages are
-present in release builds, are stable from release to release, and are
-designed to be parsed by the client program.</p>
+(design.mps.diag) and the Telemetry system (design.mps.telemetry), the
+main contrasts are that these GC messages are present in release
+builds, are stable from release to release, and are designed to be
+parsed by the client program.</p>
 </div>
 <div class="section" id="names-and-parts">
 <h2>18.5. Names and parts<a class="headerlink" href="#names-and-parts" title="Permalink to this headline">¶</a></h2>
@@ -252,8 +253,7 @@ for the next collection using this trace id, neither a start nor an
 end message will be sent (<a class="reference internal" href="#design.mps.config.req.match">.req.match</a>). There is no direct way to
 report this failure to the client (<a class="reference internal" href="#design.mps.config.req.errors-not-direct">.req.errors-not-direct</a>), so we
 just increment the <tt class="docutils literal"><span class="pre">droppedMessages</span></tt> counter in the <tt class="xref c c-type docutils literal"><span class="pre">ArenaStruct</span></tt>.
-Currently this counter is never reported to the client (except in
-diagnostic varieties).</p>
+This counter is available via the <tt class="docutils literal"><span class="pre">MessagesDropped</span></tt> telemetry event.</p>
 </div>
 <div class="section" id="getting-and-discarding">
 <h3>18.6.4. Getting and discarding<a class="headerlink" href="#getting-and-discarding" title="Permalink to this headline">¶</a></h3>

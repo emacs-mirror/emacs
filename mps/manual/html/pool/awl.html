@@ -125,18 +125,18 @@ automatically <a class="reference internal" href="../glossary/r.html#term-reclai
 <li><p class="first">Blocks are <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanned</em></a>.</p>
 </li>
 <li><p class="first">Blocks may only be referenced by <a class="reference internal" href="../glossary/b.html#term-base-pointer"><em class="xref std std-term">base pointers</em></a> (unless they
-belong to an object format of variant auto-header).</p>
+have <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>).</p>
 </li>
 <li><p class="first">Blocks may be protected by <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a>.</p>
 </li>
-<li><p class="first">Blocks do not <a class="reference internal" href="../glossary/m.html#term-moving-garbage-collector"><em class="xref std std-term">move</em></a>. A consequence
-of this is that the pool&#8217;s <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> need not provide a
-<a class="reference internal" href="../glossary/f.html#term-forward-method"><em class="xref std std-term">forward method</em></a>, an <a class="reference internal" href="../glossary/i.html#term-is-forwarded-method"><em class="xref std std-term">is-forwarded method</em></a> or a
-<a class="reference internal" href="../glossary/p.html#term-padding-method"><em class="xref std std-term">padding method</em></a>.</p>
+<li><p class="first">Blocks do not <a class="reference internal" href="../glossary/m.html#term-moving-garbage-collector"><em class="xref std std-term">move</em></a>.</p>
 </li>
 <li><p class="first">Blocks may be registered for <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a>.</p>
 </li>
-<li><p class="first">Blocks must belong to an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>.</p>
+<li><p class="first">Blocks must belong to an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> which provides
+<a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan</em></a> and <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip</em></a> methods.</p>
+</li>
+<li><p class="first">Blocks may have <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>.</p>
 </li>
 </ul>
 </div>

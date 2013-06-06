@@ -33,7 +33,9 @@ See req.dylan.fun.weak.
 See meeting.dylan.1997-02-27(0) where many of the requirements for
 this pool were first sorted out.
 
-Must satisfy request.dylan.170123.
+Must satisfy request.dylan.170123_.
+
+.. _request.dylan.170123: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170123
 
 :mps:tag:`req.obj-format` Only objects of a certain format need be
 supported. This format is a subset of the Dylan Object Format. The

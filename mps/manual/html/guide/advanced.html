@@ -659,22 +659,15 @@ used&#8221;, and <tt class="docutils literal"><span class="pre">NULL</span></tt>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>as is the object format, since AWL only calls the scan and skip
-methods:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="n">buckets_fmt_s</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">ALIGNMENT</span><span class="p">,</span>
-    <span class="n">buckets_scan</span><span class="p">,</span>
-    <span class="n">buckets_skip</span><span class="p">,</span>
-    <span class="nb">NULL</span><span class="p">,</span>                       <span class="cm">/* Obsolete copy method */</span>
-    <span class="nb">NULL</span><span class="p">,</span>                       <span class="cm">/* fwd method not used by AWL */</span>
-    <span class="nb">NULL</span><span class="p">,</span>                       <span class="cm">/* isfwd method not used by AWL */</span>
-    <span class="nb">NULL</span>                        <span class="cm">/* pad method not used by AWL */</span>
-<span class="p">};</span>
-</pre></div>
-</div>
-<p>Finally, we can create the buckets pool and its allocation points:</p>
+<p>Now we can create the object format, the pool and the allocation
+points:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cm">/* Create the buckets format. */</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buckets_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">buckets_fmt_s</span><span class="p">);</span>
+<span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_ALIGN</span><span class="p">,</span> <span class="n">ALIGNMENT</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SCAN</span><span class="p">,</span> <span class="n">buckets_scan</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SKIP</span><span class="p">,</span> <span class="n">buckets_skip</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buckets_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create buckets format&quot;</span><span class="p">);</span>
 
 <span class="cm">/* Create an Automatic Weak Linked (AWL) pool to manage the hash table</span>

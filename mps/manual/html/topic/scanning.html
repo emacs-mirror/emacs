@@ -107,8 +107,8 @@ details, which are covered in the following sections.</p>
 passing them to <a class="reference internal" href="#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> and <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a>.</p>
 <p>The reference passed to <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a> must be the address of the
 base of the block referred to (unless the referent belongs to an
-<a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant auto-header, in which case it must be
-a reference to the address just after the header).</p>
+<a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>, in which case it
+must be a reference to the address just after the header).</p>
 <p>However, <a class="reference internal" href="#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> allows some leeway: if you pass it a
 reference to the interior of an allocated block, then
 <a class="reference internal" href="#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> correctly determines whether a reference to the
@@ -135,7 +135,7 @@ is not of interest to the MPS.</p>
 <p>Similarly, if you use interior pointers, you do not need to convert
 them to base pointers before calling <a class="reference internal" href="#MPS_FIX1" title="MPS_FIX1"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX1()</span></tt></a> (or, indeed,
 before calling <a class="reference internal" href="#MPS_FIX2" title="MPS_FIX2"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX2()</span></tt></a>, if the target of the referent
-belongs to an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> of variant auto-header).</p>
+belongs to an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a> with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>).</p>
 </div>
 <div class="section" id="critical-path">
 <span id="index-3"></span><h2>8.3. Critical path<a class="headerlink" href="#critical-path" title="Permalink to this headline">¶</a></h2>
@@ -455,9 +455,8 @@ decrypt the reference) before calling <a class="reference internal" href="#MPS_F
 restore the tag to the (possibly updated) reference
 afterwards.</p>
 <p class="last">The only exception is for references to objects belonging to a
-format of variant auto-header (see
-<a class="reference internal" href="format.html#mps_fmt_auto_header_s" title="mps_fmt_auto_header_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_auto_header_s</span></tt></a>): the header size must not be
-subtracted from these references.</p>
+format with <a class="reference internal" href="../glossary/i.html#term-in-band-header"><em class="xref std std-term">in-band headers</em></a>: the header size must not
+be subtracted from these references.</p>
 </div>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>

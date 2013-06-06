@@ -256,32 +256,27 @@ you need to tell it how to perform various operations on an object
 so on). You do this by creating an :term:`object format`. Here's the
 code for creating the object format for the toy Scheme interpreter::
 
-    struct mps_fmt_A_s obj_fmt_s = {
-        ALIGNMENT,
-        obj_scan,
-        obj_skip,
-        NULL,
-        obj_fwd,
-        obj_isfwd,
-        obj_pad,
-    };
-
-    mps_fmt_t obj_fmt;
-    res = mps_fmt_create_A(&obj_fmt, arena, &obj_fmt_s);
+    MPS_ARGS_BEGIN(args) {
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, obj_scan);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
+        MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
+        MPS_ARGS_DONE(args);
+        res = mps_fmt_create_k(&obj_fmt, arena, args);
+    } MPS_ARGS_END(args);
     if (res != MPS_RES_OK) error("Couldn't create obj format");
 
-The structure :c:type:`mps_fmt_A_s` is the simplest of several object
-format variants that are appropriate for moving pools like AMC.
-
-The first element of the structure is the :term:`alignment` of objects
-belonging to this format. Determining the alignment is hard to do
-portably, because it depends on the target architecture and on the way
-the compiler lays out its structures in memory. Here are some things
-you might try:
+The argument for the keyword :c:macro:`MPS_KEY_FMT_ALIGN` is the
+:term:`alignment` of objects belonging to this format. Determining the
+alignment is hard to do portably, because it depends on the target
+architecture and on the way the compiler lays out its structures in
+memory. Here are some things you might try:
 
 1. Some modern compilers support the ``alignof`` operator::
 
-         #define ALIGNMENT alignof(obj_s)
+        #define ALIGNMENT alignof(obj_s)
 
 2. On older compilers you may be able to use this trick::
 
@@ -301,10 +296,9 @@ you might try:
 
         #define ALIGNMENT sizeof(mps_word_t)
 
-The other elements of the structure are the :term:`format methods`,
-which are described in the following sections. (The ``NULL`` in the
-structure is a placeholder for the :term:`copy method`, which is now
-obsolete.)
+The other keyword arguments specify the :term:`format methods`
+required by the AMC pool class, which are described in the following
+sections.
 
 .. topics::
 
@@ -1227,6 +1221,7 @@ on.
 
 Here's the tear-down code from the toy Scheme interpreter::
 
+    mps_arena_park(arena);
     mps_ap_destroy(obj_ap);
     mps_pool_destroy(obj_pool);
     mps_chain_destroy(obj_chain);

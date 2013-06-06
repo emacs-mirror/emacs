@@ -178,12 +178,6 @@ upper case. Currently (2012-09-03):
     bugs.  We do not advise use of this variety, as memory management
     bugs tend to be extremely expensive to deal with.
 
-:mps:tag:`var.diag` :c:macro:`DIAG` (deprecated)
-
-    This variety does some client-specific analysis and produces some
-    specialised diagnostic output, and is not intended for general use.
-    It will be phased out of the open sources.
-
 :mps:tag:`default.hot` If no :c:macro:`CONFIG_VAR` is present, :c:macro:`HOT` is assumed in
 `config.h`_.
 

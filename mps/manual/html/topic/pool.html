@@ -126,6 +126,26 @@ pool may no longer be used.</p>
 <p>It is an error to destroy a pool without first destroying all
 <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation points</em></a> and <a class="reference internal" href="../glossary/s.html#term-segregated-allocation-cache"><em class="xref std std-term">segregated allocation caches</em></a>
 created in the pool.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>It is not safe to destroy an <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> pool if it contains any objects
+that are <a class="reference internal" href="../glossary/r.html#term-reachable"><em class="xref std std-term">reachable</em></a> from your roots, or any objects
+that have been registered for <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a> but not yet
+finalized, and then to carry on running the <a class="reference internal" href="../glossary/g.html#term-garbage-collector"><em class="xref std std-term">garbage
+collector</em></a>.</p>
+<p>Our recommended approach is to destroy automatically managed
+pools just before destroying the arena, and then only while
+the arena is in the <a class="reference internal" href="../glossary/p.html#term-parked-state"><em class="xref std std-term">parked state</em></a>. Thus a safe
+tear-down sequence looks like this:</p>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_arena_park</span><span class="p">(</span><span class="n">arena</span><span class="p">);</span>
+<span class="cm">/* destroy threads and roots belonging to the arena */</span>
+<span class="cm">/* destroy allocation points and caches belonging to the pool */</span>
+<span class="n">mps_pool_destroy</span><span class="p">(</span><span class="n">pool</span><span class="p">);</span>
+<span class="cm">/* destroy chains and formats belonging to the arena */</span>
+<span class="n">mps_arena_destroy</span><span class="p">(</span><span class="n">arena</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
 </dd></dl>
 
 <div class="section" id="pool-classes">

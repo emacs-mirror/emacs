@@ -134,8 +134,8 @@ object size (in both cases we align up).
 
 :mps:tag:`design.seg-fail` If allocating a segment fails, we try again with
 a segment size just large enough for the object we're allocating. This
-is in response to `request.mps.170186`_.
+is in response to request.mps.170186_.
 
-.. _`request.mps.170186`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/170186/
+.. _request.mps.170186: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/mps/170186
 
 

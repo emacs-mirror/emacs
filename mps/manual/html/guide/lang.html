@@ -266,28 +266,24 @@ you need to tell it how to perform various operations on an object
 <a class="reference internal" href="../glossary/f.html#term-forwarding-object"><em class="xref std std-term">forwarding</em></a> or <a class="reference internal" href="../glossary/p.html#term-padding-object"><em class="xref std std-term">padding object</em></a>, and
 so on). You do this by creating an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>. Here&#8217;s the
 code for creating the object format for the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="n">obj_fmt_s</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">ALIGNMENT</span><span class="p">,</span>
-    <span class="n">obj_scan</span><span class="p">,</span>
-    <span class="n">obj_skip</span><span class="p">,</span>
-    <span class="nb">NULL</span><span class="p">,</span>
-    <span class="n">obj_fwd</span><span class="p">,</span>
-    <span class="n">obj_isfwd</span><span class="p">,</span>
-    <span class="n">obj_pad</span><span class="p">,</span>
-<span class="p">};</span>
-
-<span class="kt">mps_fmt_t</span> <span class="n">obj_fmt</span><span class="p">;</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_A</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj_fmt_s</span><span class="p">);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_ALIGN</span><span class="p">,</span> <span class="n">ALIGNMENT</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SCAN</span><span class="p">,</span> <span class="n">obj_scan</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_SKIP</span><span class="p">,</span> <span class="n">obj_skip</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_FWD</span><span class="p">,</span> <span class="n">obj_fwd</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_ISFWD</span><span class="p">,</span> <span class="n">obj_isfwd</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_FMT_PAD</span><span class="p">,</span> <span class="n">obj_pad</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mps_fmt_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">obj_fmt</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+<span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create obj format&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The structure <a class="reference internal" href="../topic/format.html#mps_fmt_A_s" title="mps_fmt_A_s"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_A_s</span></tt></a> is the simplest of several object
-format variants that are appropriate for moving pools like AMC.</p>
-<p>The first element of the structure is the <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of objects
-belonging to this format. Determining the alignment is hard to do
-portably, because it depends on the target architecture and on the way
-the compiler lays out its structures in memory. Here are some things
-you might try:</p>
+<p>The argument for the keyword <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_ALIGN</span></tt> is the
+<a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of objects belonging to this format. Determining the
+alignment is hard to do portably, because it depends on the target
+architecture and on the way the compiler lays out its structures in
+memory. Here are some things you might try:</p>
 <ol class="arabic">
 <li><p class="first">Some modern compilers support the <tt class="docutils literal"><span class="pre">alignof</span></tt> operator:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#define ALIGNMENT alignof(obj_s)</span>
@@ -313,10 +309,9 @@ use:</p>
 </div>
 </li>
 </ol>
-<p>The other elements of the structure are the <a class="reference internal" href="../glossary/f.html#term-format-method"><em class="xref std std-term">format methods</em></a>,
-which are described in the following sections. (The <tt class="docutils literal"><span class="pre">NULL</span></tt> in the
-structure is a placeholder for the <a class="reference internal" href="../glossary/c.html#term-copy-method"><em class="xref std std-term">copy method</em></a>, which is now
-obsolete.)</p>
+<p>The other keyword arguments specify the <a class="reference internal" href="../glossary/f.html#term-format-method"><em class="xref std std-term">format methods</em></a>
+required by the AMC pool class, which are described in the following
+sections.</p>
 <div class="admonition-topic admonition">
 <p class="first admonition-title">Topic</p>
 <p class="last"><a class="reference internal" href="../topic/format.html#topic-format"><em>Object formats</em></a>.</p>
@@ -1095,7 +1090,8 @@ destroy all <a class="reference internal" href="../glossary/a.html#term-allocati
 were created in an <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a> before destroying the arena, and so
 on.</p>
 <p>Here&#8217;s the tear-down code from the toy Scheme interpreter:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_ap_destroy</span><span class="p">(</span><span class="n">obj_ap</span><span class="p">);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_arena_park</span><span class="p">(</span><span class="n">arena</span><span class="p">);</span>
+<span class="n">mps_ap_destroy</span><span class="p">(</span><span class="n">obj_ap</span><span class="p">);</span>
 <span class="n">mps_pool_destroy</span><span class="p">(</span><span class="n">obj_pool</span><span class="p">);</span>
 <span class="n">mps_chain_destroy</span><span class="p">(</span><span class="n">obj_chain</span><span class="p">);</span>
 <span class="n">mps_fmt_destroy</span><span class="p">(</span><span class="n">obj_fmt</span><span class="p">);</span>

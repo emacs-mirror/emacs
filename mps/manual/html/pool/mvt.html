@@ -186,11 +186,11 @@ of temporal fit due to varying object life expectancies.</p>
 </ul>
 <p>For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">MPS_ARGS_BEGIN</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MIN_SIZE</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MEAN_SIZE</span><span class="p">,</span> <span class="mi">32</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MAX_SIZE</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_RESERVE_DEPTH</span><span class="p">,</span> <span class="mi">256</span><span class="p">);</span>
-    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">ARGS</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_FRAG_LIMIT</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MIN_SIZE</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MEAN_SIZE</span><span class="p">,</span> <span class="mi">32</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MAX_SIZE</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_RESERVE_DEPTH</span><span class="p">,</span> <span class="mi">256</span><span class="p">);</span>
+    <span class="n">MPS_ARGS_ADD</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">MPS_KEY_MVT_FRAG_LIMIT</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">);</span>
     <span class="n">MPS_ARGS_DONE</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">mps_pool_create_k</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pool</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_class_mvt</span><span class="p">(),</span> <span class="n">args</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">MPS_ARGS_END</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>

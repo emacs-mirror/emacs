@@ -289,13 +289,12 @@ programmer first, and the more obscure reasons last.</p>
 <h3>21.2.8. Feedback about retained pages<a class="headerlink" href="#feedback-about-retained-pages" title="Permalink to this headline">¶</a></h3>
 <p>(New with <a class="reference external" href="http://www.ravenbrook.com/project/mps/issue/job001811/">job001811</a>). AMC now accumulates counts of pages condemned
 and retained during a trace, in categories according to size and
-reason for retention, and emits diagnostic at trace-end via the
-<tt class="docutils literal"><span class="pre">pool-&gt;class-&gt;traceEnd</span></tt> method. See comments on the
-<tt class="xref c c-type docutils literal"><span class="pre">PageRetStruct</span></tt> in poolamc.c. These page-based metrics are not as
-precise as actually counting the size of objects, but they require
-much less intrusive code to implement, and should be sufficient to
-assess whether AMC&#8217;s page retention policies and behaviour are
-acceptable.</p>
+reason for retention, and emits this via the <tt class="docutils literal"><span class="pre">AMCTraceEnd</span></tt> telemetry
+event. See comments on the <tt class="xref c c-type docutils literal"><span class="pre">PageRetStruct</span></tt> in <tt class="docutils literal"><span class="pre">poolamc.c</span></tt>. These
+page-based metrics are not as precise as actually counting the size of
+objects, but they require much less intrusive code to implement, and
+should be sufficient to assess whether AMC&#8217;s page retention policies
+and behaviour are acceptable.</p>
 </div>
 </div>
 <div class="section" id="initial-design">
@@ -528,7 +527,7 @@ generations are created in <tt class="xref c c-func docutils literal"><span clas
 <h3>21.3.10. Ramps<a class="headerlink" href="#ramps" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolamc.ramp"></span><a class="mpstag reference internal" href="#design.mps.poolamc.ramp">.ramp:</a> Ramps usefully implement the begin/end
 <a class="reference internal" href="../topic/pattern.html#mps_alloc_pattern_ramp" title="mps_alloc_pattern_ramp"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc_pattern_ramp()</span></tt></a> interface.</p>
-<p><span class="target" id="design.mps.poolamc.gen.ramp"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.ramp">.gen.ramp:</a> To implement ramping (request.dylan.170423), AMC uses a
+<p><span class="target" id="design.mps.poolamc.gen.ramp"></span><a class="mpstag reference internal" href="#design.mps.poolamc.gen.ramp">.gen.ramp:</a> To implement ramping (<a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/dylan/170423">request.dylan.170423</a>), AMC uses a
 special &#8220;ramping mode&#8221;, where promotions are redirected. One
 generation is designated the &#8220;ramp generation&#8221; (<tt class="docutils literal"><span class="pre">amc-&gt;rampGen</span></tt> in
 the code).</p>

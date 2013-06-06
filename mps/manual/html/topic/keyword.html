@@ -100,38 +100,20 @@ now <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARGS_E
 <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a> to a function.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_arg_s</span> <span class="p">{</span>
     <span class="kt">mps_key_t</span> <span class="n">key</span><span class="p">;</span>
-    <span class="k">union</span> <span class="p">{</span>
-        <span class="kt">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
-        <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
-        <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">;</span>
-        <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
-        <span class="kt">unsigned</span> <span class="n">u</span><span class="p">;</span>
-        <span class="kt">long</span> <span class="n">l</span><span class="p">;</span>
-        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">ul</span><span class="p">;</span>
-        <span class="kt">size_t</span> <span class="n">size</span><span class="p">;</span>
-        <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
-        <span class="kt">mps_fmt_t</span> <span class="n">format</span><span class="p">;</span>
-        <span class="kt">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
-        <span class="k">struct</span> <span class="n">mps_pool_debug_option_s</span> <span class="o">*</span><span class="n">pool_debug_options</span><span class="p">;</span>
-        <span class="kt">mps_addr_t</span> <span class="p">(</span><span class="o">*</span><span class="n">addr_method</span><span class="p">)(</span><span class="kt">mps_addr_t</span><span class="p">);</span>
-        <span class="kt">mps_align_t</span> <span class="n">align</span><span class="p">;</span>
-        <span class="kt">mps_word_t</span> <span class="n">count</span><span class="p">;</span>
-        <span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
-        <span class="kt">mps_rank_t</span> <span class="n">rank</span><span class="p">;</span>
-    <span class="p">}</span> <span class="n">val</span><span class="p">;</span>
+    <span class="k">union</span> <span class="p">{</span> <span class="cm">/* many fields; see table below */</span> <span class="p">}</span> <span class="n">val</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_arg_s</span><span class="p">;</span>
 </pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">key</span></tt> identifies the key. It must be one of the legal values
-of <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> listed in the documentation for that type.</p>
-<p><tt class="docutils literal"><span class="pre">val</span></tt> is the corresponding value. The table given in the
-documentation for <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> explains which structure
-field is used by that keyword.</p>
+<p><tt class="docutils literal"><span class="pre">key</span></tt> identifies the key. It must be one of the values listed in
+the documentation for the type <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a>.</p>
+<p><tt class="docutils literal"><span class="pre">val</span></tt> is the corresponding value. This union contains many
+fields: one for each keyword argument type. The table given in the
+documentation for <a class="reference internal" href="#mps_key_t" title="mps_key_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_key_t</span></tt></a> below indicates which
+structure field is used by each keyword.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
-<p class="last">If you use the convenience macros <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a> and
-<tt class="xref c c-func docutils literal"><span class="pre">MPS_ARG()</span></tt> you don&#8217;t need to know the name of the
-field.</p>
+<p class="last">If you use the convenience macro <a class="reference internal" href="#MPS_ARGS_ADD" title="MPS_ARGS_ADD"><tt class="xref c c-func docutils literal"><span class="pre">MPS_ARGS_ADD()</span></tt></a> then
+you don&#8217;t need to know the name of the field.</p>
 </div>
 </dd></dl>
 
@@ -152,13 +134,13 @@ keyword arguments. Equivalent to:</p>
 following values:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="19%" />
-<col width="10%" />
-<col width="71%" />
+<col width="16%" />
+<col width="22%" />
+<col width="61%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Keyword</th>
-<th class="head">Field</th>
+<th class="head">Type &amp; field in <tt class="docutils literal"><span class="pre">arg.val</span></tt></th>
 <th class="head">See</th>
 </tr>
 </thead>
@@ -168,83 +150,115 @@ following values:</p>
 <td><em>see above</em></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">align</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>           <tt class="docutils literal"><span class="pre">align</span></tt></td>
 <td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_AMS_SUPPORT_AMBIGUOUS</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="../pool/ams.html#mps_class_ams" title="mps_class_ams"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_CL_BASE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">addr</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_addr_t" title="mps_addr_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_addr_t</span></tt></a>            <tt class="docutils literal"><span class="pre">addr</span></tt></td>
 <td><a class="reference internal" href="arena.html#mps_arena_class_cl" title="mps_arena_class_cl"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_class_cl()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARENA_SIZE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="arena.html#mps_arena_class_vm" title="mps_arena_class_vm"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_class_vm()</span></tt></a>, <a class="reference internal" href="arena.html#mps_arena_class_cl" title="mps_arena_class_cl"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_class_cl()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_AWL_FIND_DEPENDENT</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">addr_method</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">void</span> <span class="pre">*(*)(void</span> <span class="pre">*)</span></tt>           <tt class="docutils literal"><span class="pre">addr_method</span></tt></td>
 <td><a class="reference internal" href="../pool/awl.html#mps_class_awl" title="mps_class_awl"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_awl()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_CHAIN</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">chain</span></tt></td>
+<td><a class="reference internal" href="collection.html#mps_chain_t" title="mps_chain_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_chain_t</span></tt></a>           <tt class="docutils literal"><span class="pre">chain</span></tt></td>
 <td><a class="reference internal" href="../pool/amc.html#mps_class_amc" title="mps_class_amc"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_amc()</span></tt></a>, <a class="reference internal" href="../pool/amcz.html#mps_class_amcz" title="mps_class_amcz"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_amcz()</span></tt></a>, <a class="reference internal" href="../pool/ams.html#mps_class_ams" title="mps_class_ams"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_EXTEND_BY</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="../pool/mfs.html#mps_class_mfs" title="mps_class_mfs"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mfs()</span></tt></a>, <a class="reference internal" href="../pool/mv.html#mps_class_mv" title="mps_class_mv"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mv()</span></tt></a>, <a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
+<tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_ALIGN</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>           <tt class="docutils literal"><span class="pre">align</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_CLASS</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_class_t" title="mps_fmt_class_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_class_t</span></tt></a>       <tt class="docutils literal"><span class="pre">fmt_class</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_FWD</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_fwd_t" title="mps_fmt_fwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_fwd_t</span></tt></a>         <tt class="docutils literal"><span class="pre">fmt_fwd</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_HEADER_SIZE</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_ISFWD</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_isfwd_t" title="mps_fmt_isfwd_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_isfwd_t</span></tt></a>       <tt class="docutils literal"><span class="pre">fmt_isfwd</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_PAD</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_pad_t" title="mps_fmt_pad_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_pad_t</span></tt></a>         <tt class="docutils literal"><span class="pre">fmt_pad</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_SCAN</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>        <tt class="docutils literal"><span class="pre">fmt_scan</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FMT_SKIP</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_skip_t" title="mps_fmt_skip_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_skip_t</span></tt></a>        <tt class="docutils literal"><span class="pre">fmt_skip</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_create_k" title="mps_fmt_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_fmt_create_k()</span></tt></a></td>
+</tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_FORMAT</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">format</span></tt></td>
+<td><a class="reference internal" href="format.html#mps_fmt_t" title="mps_fmt_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_t</span></tt></a>             <tt class="docutils literal"><span class="pre">format</span></tt></td>
 <td><a class="reference internal" href="../pool/amc.html#mps_class_amc" title="mps_class_amc"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_amc()</span></tt></a>, <a class="reference internal" href="../pool/amcz.html#mps_class_amcz" title="mps_class_amcz"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_amcz()</span></tt></a>, <a class="reference internal" href="../pool/ams.html#mps_class_ams" title="mps_class_ams"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams()</span></tt></a>, <a class="reference internal" href="../pool/awl.html#mps_class_awl" title="mps_class_awl"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_awl()</span></tt></a>, <a class="reference internal" href="../pool/lo.html#mps_class_lo" title="mps_class_lo"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_lo()</span></tt></a> , <a class="reference internal" href="../pool/snc.html#mps_class_snc" title="mps_class_snc"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_snc()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MAX_SIZE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="../pool/mv.html#mps_class_mv" title="mps_class_mv"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mv()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="../pool/mv.html#mps_class_mv" title="mps_class_mv"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mv()</span></tt></a>, <a class="reference internal" href="../pool/mvt.html#mps_class_mvt" title="mps_class_mvt"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvt()</span></tt></a>, <a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MFS_UNIT_SIZE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="../pool/mfs.html#mps_class_mfs" title="mps_class_mfs"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mfs()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MIN_SIZE</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">size</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>                <tt class="docutils literal"><span class="pre">size</span></tt></td>
 <td><a class="reference internal" href="../pool/mvt.html#mps_class_mvt" title="mps_class_mvt"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvt()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_ARENA_HIGH</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_FIRST_FIT</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVFF_SLOT_HIGH</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_FRAG_LIMIT</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">count</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>           <tt class="docutils literal"><span class="pre">count</span></tt></td>
 <td><a class="reference internal" href="../pool/mvt.html#mps_class_mvt" title="mps_class_mvt"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvt()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_RESERVE_DEPTH</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">count</span></tt></td>
+<td><tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>           <tt class="docutils literal"><span class="pre">count</span></tt></td>
 <td><a class="reference internal" href="../pool/mvt.html#mps_class_mvt" title="mps_class_mvt"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvt()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_POOL_DEBUG_OPTIONS</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">pool_debug_options</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">mps_pool_debug_options_s&nbsp;*</span></tt>  <tt class="docutils literal"><span class="pre">pool_debug_options</span></tt></td>
 <td><a class="reference internal" href="../pool/ams.html#mps_class_ams_debug" title="mps_class_ams_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_ams_debug()</span></tt></a>, <a class="reference internal" href="../pool/mv.html#mps_class_mv_debug" title="mps_class_mv_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mv_debug()</span></tt></a>, <a class="reference internal" href="../pool/mvff.html#mps_class_mvff_debug" title="mps_class_mvff_debug"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff_debug()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_RANK</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">rank</span></tt></td>
+<td><a class="reference internal" href="root.html#mps_rank_t" title="mps_rank_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_rank_t</span></tt></a>            <tt class="docutils literal"><span class="pre">rank</span></tt></td>
 <td><a class="reference internal" href="../pool/awl.html#mps_class_awl" title="mps_class_awl"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_awl()</span></tt></a>, <a class="reference internal" href="../pool/snc.html#mps_class_snc" title="mps_class_snc"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_snc()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_VMW3_TOP_DOWN</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">b</span></tt></td>
+<td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
 <td><a class="reference internal" href="arena.html#mps_arena_class_vm" title="mps_arena_class_vm"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_class_vm()</span></tt></a></td>
 </tr>
 </tbody>

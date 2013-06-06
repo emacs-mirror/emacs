@@ -655,7 +655,7 @@ the range to be found, the other the maximum length. For
 <span class="pre">``searchLimit</span> <span class="pre">-</span> <span class="pre">searchBase</span></tt>.</p>
 <p><span class="target" id="design.mps.bt.fun.find-res-range"></span><a class="mpstag reference internal" href="#design.mps.bt.fun.find-res-range">.fun.find-res-range:</a> <a class="reference internal" href="#BTFindResRange" title="BTFindResRange"><tt class="xref c c-func docutils literal"><span class="pre">BTFindResRange()</span></tt></a>. Iterate within the search
 boundaries, identifying candidate ranges by searching for a reset bit.
-The <a class="reference internal" href="../mmref/bib.html#bm77"><em>Boyer–Moore algorithm</em></a> is used (it&#8217;s particularly
+The Boyer–Moore algorithm <a class="reference internal" href="#boyer-moore-1977">[Boyer_Moore_1977]</a> is used (it&#8217;s particularly
 easy to implement when there are only two symbols, 0 and 1, in the
 alphabet). For each candidate range, iterate backwards over the bits
 from the end of the range towards the beginning. If a set bit is
@@ -679,9 +679,9 @@ finds the first (that is, with lowest index or weight) set bit in a
 word or subword.</p>
 <p><span class="target" id="design.mps.bt.fun.find-res-range.improve"></span><a class="mpstag reference internal" href="#design.mps.bt.fun.find-res-range.improve">.fun.find-res-range.improve:</a> Various other performance improvements
 have been suggested in the past, including some from
-request.epcore.170534. Here is a list of potential improvements which
-all sound plausible, but which have not led to performance
-improvements in practice:</p>
+<a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170534">request.epcore.170534</a>. Here is a list of potential improvements which
+all sound plausible, but which have not led to performance improvements
+in practice:</p>
 <ul class="simple">
 <li><span class="target" id="design.mps.bt.fun.find-res-range.improve.step.partial"></span><a class="mpstag reference internal" href="#design.mps.bt.fun.find-res-range.improve.step.partial">.fun.find-res-range.improve.step.partial:</a> When the top index in a
 candidate range fails, skip partial words as well as whole words,
@@ -725,6 +725,15 @@ used to exercise some of the <a class="reference internal" href="#BT" title="BT"
 Tables more extensively. See change.mps.epcore.brisling.160181 TEST1
 and TEST2.</p>
 </div>
+<div class="section" id="references">
+<h2>4.11. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils citation" frame="void" id="boyer-moore-1977" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[Boyer_Moore_1977]</a></td><td>Robert S. Boyer and J. Strother Moore. Communications of the ACM 20(10):762–772. 1977. &#8220;<a class="reference external" href="http://www.cs.utexas.edu/~moore/publications/fstrpos.pdf">A Fast String Searching Algorithm</a>&#8221;.</td></tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
@@ -753,6 +762,7 @@ and TEST2.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#testing">4.10. Testing</a></li>
+<li><a class="reference internal" href="#references">4.11. References</a></li>
 </ul>
 </li>
 </ul>
