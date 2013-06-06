@@ -81,7 +81,7 @@ MFS interface
     :term:`pool`.
 
     When creating an MFS pool, :c:func:`mps_pool_create_k` requires
-    one :term:`keyword arguments`:
+    one :term:`keyword argument`:
 
     * :c:macro:`MPS_KEY_MFS_UNIT_SIZE` (type :c:type:`size_t`) is the
       :term:`size` of blocks that will be allocated from this pool, in
