@@ -1221,6 +1221,7 @@ on.
 
 Here's the tear-down code from the toy Scheme interpreter::
 
+    mps_arena_park(arena);
     mps_ap_destroy(obj_ap);
     mps_pool_destroy(obj_pool);
     mps_chain_destroy(obj_chain);
