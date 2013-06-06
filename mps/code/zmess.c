@@ -145,11 +145,8 @@ static int state[myrootCOUNT];
  * .discard: The client should always call mps_message_discard when 
  * it has finished with the message.  But calling with the "discard" 
  * parameter set to false lets us check how the MPS handles naughty 
- * clients.  The undiscarded messages should be cleared up by 
- * ArenaDestroy.  In a diagnostic variety (eg .variety.di) the 
- * ArenaDestroy diag shows the contents of the control pool, and you 
- * can clearly see the undiscarded messages (just before the control 
- * pool is destroyed).
+ * clients.  The undiscarded messages must be cleared up by 
+ * ArenaDestroy.
  */
 static void report(mps_arena_t arena, const char *pm, Bool discard)
 {

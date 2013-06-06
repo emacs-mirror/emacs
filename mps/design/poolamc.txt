@@ -293,13 +293,12 @@ Feedback about retained pages
 
 (New with job001811_). AMC now accumulates counts of pages condemned
 and retained during a trace, in categories according to size and
-reason for retention, and emits diagnostic at trace-end via the
-``pool->class->traceEnd`` method. See comments on the
-``PageRetStruct`` in poolamc.c. These page-based metrics are not as
-precise as actually counting the size of objects, but they require
-much less intrusive code to implement, and should be sufficient to
-assess whether AMC's page retention policies and behaviour are
-acceptable.
+reason for retention, and emits this via the ``AMCTraceEnd`` telemetry
+event. See comments on the ``PageRetStruct`` in ``poolamc.c``. These
+page-based metrics are not as precise as actually counting the size of
+objects, but they require much less intrusive code to implement, and
+should be sufficient to assess whether AMC's page retention policies
+and behaviour are acceptable.
 
 
 Initial design
