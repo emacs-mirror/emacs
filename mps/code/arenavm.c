@@ -1135,12 +1135,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   } while(0);
 
   EVENT3(vmArenaExtendStart, size, chunkSize,
-                             VMArenaReserved(VMArena2Arena(vmArena)));
-  DIAG_SINGLEF(( "vmArenaExtend_Start", 
-    "to accommodate size $W, try chunkSize $W", (WriteFW)size, (WriteFW)chunkSize,
-    " (VMArenaReserved currently $W bytes)\n",
-    (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
-    NULL ));
+         VMArenaReserved(VMArena2Arena(vmArena)));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -1163,12 +1158,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           EVENT2(vmArenaExtendFail, chunkMin,
-                                    VMArenaReserved(VMArena2Arena(vmArena)));
-          DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
-            "no remaining address-space chunk >= min($W)", (WriteFW)chunkMin,
-            " (so VMArenaReserved remains $W bytes)\n",
-            (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
-            NULL ));
+                 VMArenaReserved(VMArena2Arena(vmArena)));
           return ResRESOURCE;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -1179,14 +1169,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   }
 
 vmArenaExtend_Done:
-
   EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
-  DIAG_SINGLEF(( "vmArenaExtend_Done",
-    "Request for new chunk of VM $W bytes succeeded", (WriteFW)chunkSize,
-    " (VMArenaReserved now $W bytes)\n", 
-    (WriteFW)VMArenaReserved(VMArena2Arena(vmArena)),
-    NULL ));
-
   return res;
 }
 
@@ -1677,46 +1660,17 @@ static void VMFree(Addr base, Size size, Pool pool)
 }
 
 
-/* M_whole, M_frac -- print count of bytes as Megabytes
- *
- * Split into a whole number of MB, "m" for the decimal point, and 
- * then the decimal fraction (thousandths of a MB, ie. kB).
- *
- * Input:                208896
- * Output:  (Megabytes)  0m209
- */
-#define bPerM ((Size)1000000)  /* Megabytes */
-#define bThou ((Size)1000)
-DIAG_DECL(
-static Count M_whole(Size bytes)
-{
-  Count M;  /* MBs */
-  M = (bytes + (bThou / 2)) / bPerM;
-  return M;
-}
-static Count M_frac(Size bytes)
-{
-  Count Mthou;  /* thousandths of a MB */
-  Mthou = (bytes + (bThou / 2)) / bThou;
-  Mthou = Mthou % 1000;
-  return Mthou;
-}
-)
-
-
 static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
   Ring node, next;
-  DIAG_DECL( Size vmem1; )
+  Size vmem1;
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  DIAG(
-    vmem1 = VMArenaReserved(arena);
-  );
+  vmem1 = VMArenaReserved(arena);
 
   /* Destroy any empty chunks (except the primary). */
   sparePagesPurge(vmArena);
@@ -1728,44 +1682,19 @@ static void VMCompact(Arena arena, Trace trace)
     }
   }
 
-  DIAG(
+  {
     Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = VMArenaReserved(arena);
-    Size vmemD = vmem1 - vmem2;
-    Size live = trace->forwardedSize + trace->preservedInPlaceSize;
-    Size livePerc = 0;
 
-    if(trace->condemned / 100 != 0)
-      livePerc = live / (trace->condemned / 100);
-
-    /* VMCompact diag: emit for all client-requested collections, */
+    /* VMCompact event: emit for all client-requested collections, */
     /* plus any others where chunks were gained or lost during the */
     /* collection.  */
     if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
        || trace->why == TraceStartWhyCLIENTFULL_BLOCK
        || vmem0 != vmem1
-       || vmem1 != vmem2) {
-      DIAG_SINGLEF(( "VMCompact",
-        "pre-collection vmem was $Um$3, ",
-        (WriteFU)M_whole(vmem0), (WriteFU)M_frac(vmem0),
-        "peaked at $Um$3, ", (WriteFU)M_whole(vmem1), (WriteFU)M_frac(vmem1),
-        "released $Um$3, ",  (WriteFU)M_whole(vmemD), (WriteFU)M_frac(vmemD),
-        "now $Um$3",         (WriteFU)M_whole(vmem2), (WriteFU)M_frac(vmem2),
-        " (why $U",          (WriteFU)trace->why,
-        ": $Um$3", 
-        (WriteFU)M_whole(trace->condemned), (WriteFU)M_frac(trace->condemned),
-        "[->$Um$3",          (WriteFU)M_whole(live), (WriteFU)M_frac(live),
-        " $U%-live",         (WriteFU)livePerc,
-        " $Um$3-stuck]", 
-        (WriteFU)M_whole(trace->preservedInPlaceSize), 
-        (WriteFU)M_frac(trace->preservedInPlaceSize),
-        " ($Um$3-not)", 
-        (WriteFU)M_whole(trace->notCondemned),
-        (WriteFU)M_frac(trace->notCondemned),
-        " )",
-        NULL));
-    }
-  );
+       || vmem1 != vmem2)
+      EVENT3(VMCompact, vmem0, vmem1, vmem2);
+  }
 }
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,

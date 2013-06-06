@@ -267,7 +267,7 @@ static Res WriteULongest(mps_lib_FILE *stream, ULongest w, unsigned base,
     buf[i] = pad;
   }
 
-  r = Stream_fputs(&buf[i], stream);
+  r = mps_lib_fputs(&buf[i], stream);
   if (r == mps_lib_EOF)
     return ResIO;
 
@@ -308,7 +308,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   int j = 0;
  
   if (F == 0.0) {
-    if (Stream_fputs("0", stream) == mps_lib_EOF)
+    if (mps_lib_fputs("0", stream) == mps_lib_EOF)
       return ResIO;
     return ResOK;
   }
@@ -323,7 +323,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
     if (E > DBL_MAX_10_EXP) {
-      if (Stream_fputs("Infinity", stream) == mps_lib_EOF)
+      if (mps_lib_fputs("Infinity", stream) == mps_lib_EOF)
         return ResIO;
       return ResOK;
     }
@@ -410,7 +410,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   }
   buf[j] = '\0';                /* arnold */
  
-  if (Stream_fputs(buf, stream) == mps_lib_EOF)
+  if (mps_lib_fputs(buf, stream) == mps_lib_EOF)
     return ResIO;
   return ResOK;
 }
@@ -469,7 +469,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
 
     while(*format != '\0') {
       if (*format != '$') {
-        r = Stream_fputc(*format, stream); /* Could be more efficient */
+        r = mps_lib_fputc(*format, stream); /* Could be more efficient */
         if (r == mps_lib_EOF) return ResIO;
       } else {
         ++format;
@@ -505,13 +505,13 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
            
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
-            r = Stream_fputs((const char *)s, stream);
+            r = mps_lib_fputs((const char *)s, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
-            r = Stream_fputc((int)c, stream);
+            r = mps_lib_fputc((int)c, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
@@ -541,7 +541,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           } break;
        
           case '$': {                   /* dollar char */
-            r = Stream_fputc('$', stream);
+            r = mps_lib_fputc('$', stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
 
