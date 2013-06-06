@@ -2157,6 +2157,7 @@ If nil, scrolling commands will first cancel Isearch mode."
 If non-nil, entering a prefix argument will not terminate the
 search.  This option is ignored \(presumed t) when
 `isearch-allow-scroll' is set."
+  :version "24.4"
   :type 'boolean
   :group 'isearch)
 
