@@ -179,7 +179,7 @@
 	(auto-revert-notify-event-p, auto-revert-notify-event-file-name)
 	(auto-revert-notify-handler): Handle also gfilenotify.
 
-	* subr.el: (file-notify-handle-event): New defun. Replacing ...
+	* subr.el (file-notify-handle-event): New defun. Replacing ...
 	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
 	Remove.
 
@@ -215,7 +215,7 @@
 	* vc/log-view.el: Doc fix.
 	(log-view-mode-map): Copy keymap from `special-mode-map'.
 
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
 
 	* emacs-lisp/eieio.el (eieio--defalias, eieio-hook)
 	(eieio-error-unsupported-class-tags, eieio-skip-typecheck)
@@ -3307,7 +3307,7 @@
 2013-03-08  Jambunathan K  <kjambunathan@gmail.com>
 
 	* hi-lock.el (hi-lock-read-regexp-defaults-function): New var.
-	(hi-lock-read-regexp-defaults):	 New defun.
+	(hi-lock-read-regexp-defaults): New defun.
 	(hi-lock-line-face-buffer, hi-lock-face-buffer)
 	(hi-lock-face-phrase-buffer): Propagate above change.
 	Update docstring (bug#13892).
@@ -3363,7 +3363,7 @@
 
 	Correct the position of point in some line-up functions.
 	* progmodes/cc-align.el (c-lineup-whitesmith-in-block)
-	(c-lineup-assignments, c-lineup-gcc-asm-reg ): take position of
+	(c-lineup-assignments, c-lineup-gcc-asm-reg ): Take position of
 	point at column 0 rather than at a random place in the line.
 
 2013-03-05  Michael Albinus  <michael.albinus@gmx.de>
@@ -7370,7 +7370,7 @@
 
 2012-11-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
-	* ses.el: symbol to coordinate mapping is made by symbol property
+	* ses.el: Symbol to coordinate mapping is made by symbol property
 	`ses-cell'.  This means that the same mapping is done for all SES
 	sheets.  That is good enough for cells with standard A1 names, but
 	not for named cell.  So a hash map is added for the latter.
@@ -11305,7 +11305,7 @@
 	* progmodes/python.el (python-shell-send-setup-max-wait): Delete var.
 	(python-shell-make-comint): accept-process-output at startup.
 	(run-python-internal): Set inferior-python-mode-hook to nil.
-	(python-shell-internal-get-or-create-process): call sit-for.
+	(python-shell-internal-get-or-create-process): Call sit-for.
 	(python-preoutput-result): Add obsolete alias.
 	(python-shell-internal-send-string): Use it.
 	(python-shell-send-setup-code): Remove call to
@@ -11497,7 +11497,7 @@
 2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Consistent completion in inferior python with emacs -nw.
-	* progmodes/python.el (inferior-python-mode): replace "<tab>"
+	* progmodes/python.el (inferior-python-mode): Replace "<tab>"
 	binding in inferior-python-mode-map with "\t".
 	(python-shell-completion-complete-at-point)
 	(python-completion-complete-at-point): Remove interactive spec.
@@ -19061,8 +19061,8 @@
 
 	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
 	parameters with embedded comments.  Reported by Ray Stevens.
-	(verilog-calc-1, verilog-fork-wait-re) (verilog-forward-sexp,
-	verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
+	(verilog-calc-1, verilog-fork-wait-re, verilog-forward-sexp)
+	(verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
 	Reported by Tim Holt.
 	(verilog-auto): Fix AUTOing a upper module then AUTOing module
 	instantiated by upper module causing wrong expansion until AUTOed a

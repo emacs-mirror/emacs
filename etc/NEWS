@@ -404,7 +404,7 @@ It is layered as:
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
 
-** Default process filers and sentinels are not nil any more.
+** Default process filters and sentinels are not nil any more.
 Instead they default to a function which does what the nil value used to do.
 
 ** `read-event' does not return decoded chars in ttys any more.

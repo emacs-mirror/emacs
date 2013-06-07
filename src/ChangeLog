@@ -298,15 +298,15 @@
 	DPSxshow.
 	(ns_glyph_metrics): CGFloat instead of float.
 
-	* nsfns.m (x_set_foreground_color, x_set_background_color): Use
-	EmacsCGFloat.
-	(ns_implicitly_set_icon_type, Fx_create_frame): Make static, remove
-	unused variables.
-	(Fns_read_file_name): Keep track if panel is for save.  Use
-	ns_filename_from_panel/ns_directory_from_panel.
+	* nsfns.m (x_set_foreground_color, x_set_background_color):
+	Use EmacsCGFloat.
+	(ns_implicitly_set_icon_type, Fx_create_frame): Make static,
+	remove unused variables.
+	(Fns_read_file_name): Keep track if panel is for save.
+	Use ns_filename_from_panel/ns_directory_from_panel.
 	(Fns_list_services): delegate only used for COCOA.
-	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.  Just
-	return the input if GNUStep.
+	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.
+	Just return the input if GNUStep.
 	(x_screen_planes): Remove.
 	(Fxw_color_values): Use EmacsCGFloat
 	(Fns_display_monitor_attributes_list): Only get screen number for
@@ -422,7 +422,7 @@
 2013-05-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (reseat_at_previous_visible_line_start):
-	Already	declared in dispextern.h, so remove it here.
+	Already declared in dispextern.h, so remove it here.
 	(move_it_vertically_backward): Likewise.
 
 2013-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -433,7 +433,7 @@
 	Mention `display-monitor-attributes-list' in docstrings.
 
 	* nsfns.m (ns_get_screen): Remove function.  All uses removed.
-	(check_ns_display_info): Sync with check_x_display_info	in xfns.c.
+	(check_ns_display_info): Sync with check_x_display_info in xfns.c.
 	(Fx_server_max_request_size, Fx_server_vendor, Fx_server_version)
 	(Fx_display_screens, Fx_display_mm_width, Fx_display_mm_height)
 	(Fx_display_backing_store, Fx_display_visual_class)
@@ -4672,7 +4672,7 @@
 	* w32term.c (x_window_to_scroll_bar): Likewise.
 	* window.c (window_list): Likewise.
 	* xdisp.c (x_consider_frame_title): Likewise.
-	* xfaces.c ( Fdisplay_supports_face_attributes_p): Likewise.
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Likewise.
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)
 	(x_menubar_window_to_frame, x_top_window_to_frame): Likewise.
 	* xmenu.c (menubar_id_to_frame): Likewise.
@@ -17904,7 +17904,7 @@
 
 	Fix memory allocation problems in Cygwin build (Bug#9273).
 
-	* unexcw.c ( __malloc_initialized): Declare external variable.
+	* unexcw.c (__malloc_initialized): Declare external variable.
 	(fixup_executable): Force the dumped emacs to reinitialize malloc.
 
 	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo):
