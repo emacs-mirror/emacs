@@ -1,3 +1,14 @@
+2013-06-07  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Reorganize file structure again, to pacify byte-compiler.
+
+2013-06-06  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Fix more byte-compiler warnings.
+	(todos-jump-to-category): Let-bind variable that was mistakenly free.
+	(todos-toggle-item-highlighting, todos-convert-legacy-files):
+	Use eval-when-compile.
+
 2013-06-05  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Fix byte-compiler warnings.
