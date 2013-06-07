@@ -26,10 +26,17 @@ Overview
 _`.overview`: The free list allocator is an "emergency" allocator. It
 is intended for use as a fallback allocation strategy in low memory
 situations, when memory is not available for the control structures
-needed by other allocators. In these situation the free list allocator
-ensures that memory is not lost, at the expense of performance. When
-memory becomes available again to allocate control structures, the
-free lists can be "flushed" back into the more efficient data
+needed by other allocators. In these situations the free list allocator
+ensures that memory is not lost, but with several disadvantages:
+
+1. operations on the free list are O(n) in the number of free blocks;
+2. the data structures are stored in client memory and so are
+   vulnerable to corruption;
+3. the data structures have poor locality (and thus potentially poor
+   cache performance).
+
+When memory becomes available again to allocate control structures,
+the free lists can be "flushed" back into the more efficient data
 structures.
 
 _`.bg`: The free list allocator was formerly part of the Coalescing
@@ -159,8 +166,8 @@ enumeration::
 
     enum {
         FindDeleteNONE,    /* don't delete after finding */
-        FindDeleteLOW,     /* delete precise size from low end */
-        FindDeleteHIGH,    /* delete precise size from high end */
+        FindDeleteLOW,     /* delete size bytes from low end of block */
+        FindDeleteHIGH,    /* delete size bytes from high end of block */
         FindDeleteENTIRE   /* delete entire range */
     };
 
@@ -206,7 +213,8 @@ Implementation
 --------------
 
 _`.impl.list`: The isolated contiguous free address ranges are kept on
-an address-ordered singly linked free list.
+an address-ordered singly linked free list. (As in traditional
+``malloc()`` implementations.)
 
 _`.impl.block`: If the free address range is large enough to contain
 an inline block descriptor consisting of two pointers, then the two
@@ -228,6 +236,13 @@ no two ranges are adjacent or overlapping.
 _`.impl.merge`: When a free address range is added to the free list,
 it is merged with adjacent ranges so as to maintain
 `.impl.invariant`_.
+
+_`.impl.rule.break`: The use of ``NULL`` to mark the end of the list
+violates the rule that exceptional values should not be used to
+distinguish exeptional situations. This infraction allows the
+implementation to meet `.req.zero-overhead`_. (There are other ways to
+do this, such as using another tag to indicate the last block in the
+list, but these would be more complicated.)
 
 
 Opportunities for improvement
