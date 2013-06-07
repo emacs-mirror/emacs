@@ -1057,24 +1057,24 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                                (funcall smie-forward-token-function)))))))
         (unless (nth 8 (syntax-ppss))
           (condition-case nil
-              (let ((here (funcall tok-at-pt)))
+              (let ((here (funcall tok-at-pt))
+                    there pair)
                 (when here
-                  (let (pair there)
-                    (cond
-                     ((assoc (car here) smie-closer-alist) ; opener
-                      (forward-sexp 1)
-                      (setq there (funcall tok-at-pt))
-                      (setq pair (cons (car here) (car there))))
-                     ((rassoc (car here) smie-closer-alist) ; closer
-                      (funcall smie-forward-token-function)
-                      (forward-sexp -1)
-                      (setq there (funcall tok-at-pt))
-                      (setq pair (cons (car there) (car here)))))
-                    ;; Update the cache
-                    (setcdr smie--matching-block-data-cache
-                            (list (nth 1 here) (nth 2 here)
-                                  (nth 1 there) (nth 2 there)
-                                  (not (member pair smie-closer-alist)))))))
+                  (cond
+                   ((assoc (car here) smie-closer-alist) ; opener
+                    (forward-sexp 1)
+                    (setq there (funcall tok-at-pt))
+                    (setq pair (cons (car here) (car there))))
+                   ((rassoc (car here) smie-closer-alist) ; closer
+                    (funcall smie-forward-token-function)
+                    (forward-sexp -1)
+                    (setq there (funcall tok-at-pt))
+                    (setq pair (cons (car there) (car here)))))
+                  ;; Update the cache
+                  (setcdr smie--matching-block-data-cache
+                          (list (nth 1 here)  (nth 2 here)
+                                (nth 1 there) (nth 2 there)
+                                (not (member pair smie-closer-alist))))))
             (scan-error))
           (goto-char (car smie--matching-block-data-cache))))
       (apply #'smie--matching-block-data orig args))))
