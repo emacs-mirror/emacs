@@ -3,7 +3,7 @@
 	* Makefile.in (msys_to_w32): Modify to support d:\foo file names.
 	(msys_lisppath_to_w32, msys_prefix_subst, msys_sed_sh_escape): New
 	variables.
-	(epaths-force-w32): Use them.
+	(epaths-force-w32): Use them.  (Bug#14513)
 
 2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
 
