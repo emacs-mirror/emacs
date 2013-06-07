@@ -276,6 +276,7 @@
 /* Pool MVT Configuration -- see <code/poolmv2.c> */
 /* FIXME: These numbers were lifted from mv2test and need thought. */
 
+#define MVT_ALIGN_DEFAULT         MPS_PF_ALIGN
 #define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN
 #define MVT_MEAN_SIZE_DEFAULT     32
 #define MVT_MAX_SIZE_DEFAULT      8192

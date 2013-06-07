@@ -571,6 +571,7 @@ static Res MVFFInit(Pool pool, ArgList args)
   AVER(extendBy > 0);           /* .arg.check */
   AVER(avgSize > 0);            /* .arg.check */
   AVER(avgSize <= extendBy);    /* .arg.check */
+  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
   AVER(BoolCheck(slotHigh));
   AVER(BoolCheck(arenaHigh));
   AVER(BoolCheck(firstFit));

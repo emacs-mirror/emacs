@@ -113,7 +113,15 @@ MVT interface
     Temporal) :term:`pool`.
 
     When creating an MVT pool, :c:func:`mps_pool_create_k` may take
-    five :term:`keyword arguments`:
+    six :term:`keyword arguments`:
+
+    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
+      smallest general purpose alignment for the architecture) is the
+      :term:`alignment` of addresses for allocation (and freeing) in
+      the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
+      :c:func:`mps_free`, it will be rounded up to the pool's alignment.
+      The minimum alignment supported by pools of this class is
+      ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`, default is
       smallest general purpose alignment for the architecture) is the
@@ -130,9 +138,9 @@ MVT interface
       this; doing so will result in the storage of the block never
       being reused.
 
-    These three arguments are *hints* to the MPS: the pool will be
-    less efficient if they are wrong, but the only thing that will
-    break is the partial freeing of large blocks.
+    The three ``SIZE`` arguments above are *hints* to the MPS: the
+    pool will be less efficient if they are wrong, but the only thing
+    that will break is the partial freeing of large blocks.
 
     * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (type
       :c:type:`mps_count_t`) is the expected hysteresis of the

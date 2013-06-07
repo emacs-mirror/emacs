@@ -89,7 +89,8 @@ static void set_oom(CBS cbs, int oom)
 
 /* stress -- create an allocation point and allocate in it */
 
-static mps_res_t stress(size_t (*size)(unsigned long i), mps_pool_t pool, CBS cbs)
+static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
+                        mps_align_t alignment, mps_pool_t pool, CBS cbs)
 {
   mps_res_t res = MPS_RES_OK;
   mps_ap_t ap;
@@ -101,7 +102,7 @@ static mps_res_t stress(size_t (*size)(unsigned long i), mps_pool_t pool, CBS cb
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
-    ss[i] = (*size)(i);
+    ss[i] = (*size)(i, alignment);
 
     res = make((mps_addr_t *)&ps[i], ap, ss[i]);
     if (res != MPS_RES_OK)
@@ -131,7 +132,7 @@ static mps_res_t stress(size_t (*size)(unsigned long i), mps_pool_t pool, CBS cb
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
-      ss[i] = (*size)(i);
+      ss[i] = (*size)(i, alignment);
       res = make((mps_addr_t *)&ps[i], ap, ss[i]);
       if (res != MPS_RES_OK)
         goto allocFail;
@@ -156,27 +157,29 @@ allocFail:
 /* randomSizeAligned -- produce sizes both large and small,
  * aligned by platform alignment */
 
-static size_t randomSizeAligned(unsigned long i)
+static size_t randomSizeAligned(unsigned long i, mps_align_t alignment)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
-  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, MPS_PF_ALIGN);
+  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, alignment);
 }
 
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
   mps_pool_t pool;
+  mps_align_t alignment;
 
   randomize(argc, argv);
   mps_lib_assert_fail_install(assert_die);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
+  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, (64 + rnd() % 64) * 1024);
     MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 8);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, MPS_PF_ALIGN);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, alignment);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, rnd() % 2);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, rnd() % 2);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, rnd() % 2);
@@ -185,14 +188,16 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
   {
     CBS cbs = _mps_mvff_cbs(pool);
-    die(stress(randomSizeAligned, pool, cbs), "stress MVFF");
+    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVFF");
   }
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
+  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
   MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, alignment);
     MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, (1 + rnd() % 4) * 4);
     MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 16);
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, (1 + rnd() % 4) * 1024);
@@ -203,7 +208,7 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
   {
     CBS cbs = _mps_mvt_cbs(pool);
-    die(stress(randomSizeAligned, pool, cbs), "stress MVT");
+    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVT");
   }
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
