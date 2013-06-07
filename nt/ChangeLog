@@ -1,3 +1,10 @@
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.MSYS: mingw-get is not a GUI program (yet).
+	msys-automake is not suitable for MinGW builds.  Mention the
+	--enable-locallisppath switch to msysconfig.sh.  Suggested by
+	Óscar Fuentes <ofv@wanadoo.es>.
+
 2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
 
 	* epaths.nt (PATH_SITELOADSEARCH): Fix commentary.
