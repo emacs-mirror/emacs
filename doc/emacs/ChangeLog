@@ -1,3 +1,8 @@
+2013-06-07  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (Branches): Remove text copied from other
+	sources.
+
 2013-06-05  Alan Mackenzie  <acm@muc.de>
 
 	* search.texi (Isearch Scroll): Rename to "Not Exiting Isearch".
