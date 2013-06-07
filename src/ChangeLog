@@ -1,3 +1,7 @@
+2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* epaths.in: Fix commentary to PATH_SITELOADSEARCH.
+
 2013-06-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (note_mouse_highlight): When mouse-highlight is off,

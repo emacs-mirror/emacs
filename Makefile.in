@@ -318,14 +318,37 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-# Convert MSYS-style /x/foo file name into x:/foo that Windows can grok.
-msys_to_w32=sed -e 's,^/\([A-Za-z]\)/,\1:/,'
+# Convert MSYS-style /x/foo or Windows-style x:\foo file names
+# into x:/foo that Windows can grok.
+msys_to_w32=sed -e 's,\\\\,/,g' -e 's,^/\([A-Za-z]\)/,\1:/,'
+
+# Transform directory search path and its components.  Original can
+# be MSYS or Windows style.  Set path separator to ";", directory
+# separator to "/" and transform MSYS-style "/c/" to "c:/".
+# Remove empty path components and escape semicolons.
+msys_lisppath_to_w32=sed -e 's,\\\\,/,g' 			\
+	-e 's,\(^\|[:;]\)\([A-Za-z]\):/,\1/\2/,g'		\
+	-e 's/:/;/g' -e 's,\(^\|;\)/\([A-Za-z]\)/,\1\2:/,g'	\
+	-e 's/;\+/;/g' -e 's/^;//' -e 's/;$$//' -e 's/;/\\\\;/g'
+
+# Replace "${prefix}" with '%emacs_dir%' (which expands to install
+# directory at runtime).
+msys_prefix_subst=sed -e 's!\(^\|;\)'"$${prefixpattern}"'\([;/]\|$$\)!\1%emacs_dir%\2!g'
+
+# Quote Sed special characters (except backslash and newline) with
+# a double backslash.
+msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 
 # The w32 build needs a slightly different editing, and it uses
 # nt/epaths.nt as the template.
+# Use the value of ${locallisppath} supplied by `configure',
+# to support the --enable-locallisppath argument.
 epaths-force-w32: FRC
 	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
+	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
