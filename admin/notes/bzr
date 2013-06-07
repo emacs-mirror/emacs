@@ -356,6 +356,8 @@ branches.  You can do this either by editing branch.conf in your Emacs
 branches, to override the server setting (untested; not sure this
 works), or by adding an entry to ~/.bazaar/locations.conf:
 
+FIXME: Don't do this, it doesn't work right.
+
   [bzr+ssh://USERNAME@bzr.savannah.gnu.org/emacs/*]
   post_commit_to = False
 
