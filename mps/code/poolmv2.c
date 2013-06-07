@@ -226,6 +226,7 @@ ARG_DEFINE_KEY(mvt_frag_limit, double);
 static Res MVTInit(Pool pool, ArgList args)
 {
   Arena arena;
+  Size align = MVT_ALIGN_DEFAULT;
   Size minSize = MVT_MIN_SIZE_DEFAULT;
   Size meanSize = MVT_MEAN_SIZE_DEFAULT;
   Size maxSize = MVT_MAX_SIZE_DEFAULT;
@@ -243,6 +244,8 @@ static Res MVTInit(Pool pool, ArgList args)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   
+  if (ArgPick(&arg, args, MPS_KEY_ALIGN))
+    align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
     minSize = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_MEAN_SIZE))
@@ -257,6 +260,7 @@ static Res MVTInit(Pool pool, ArgList args)
     fragLimit = (Count)(arg.val.d * 100);
   }
 
+  AVER(SizeIsAligned(align, MPS_PF_ALIGN));
   AVER(0 < minSize);
   AVER(minSize <= meanSize);
   AVER(meanSize <= maxSize);
@@ -273,7 +277,7 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, MPS_PF_ALIGN, FALSE, args);
+  res = CBSInit(arena, MVTCBS(mvt), (void *)mvt, align, FALSE, args);
   if (res != ResOK)
     goto failCBS;
  
@@ -281,7 +285,7 @@ static Res MVTInit(Pool pool, ArgList args)
   if (res != ResOK)
     goto failABQ;
 
-  FreelistInit(MVTFreelist(mvt), MPS_PF_ALIGN);
+  FreelistInit(MVTFreelist(mvt), align);
 
   {
     ZoneSet zones;
@@ -291,6 +295,7 @@ static Res MVTInit(Pool pool, ArgList args)
     SegPrefExpress(MVTSegPref(mvt), SegPrefZoneSet, (void *)&zones);
   }
 
+  pool->alignment = align;
   mvt->reuseSize = reuseSize;
   mvt->fillSize = fillSize;
   mvt->abqOverflow = FALSE;
