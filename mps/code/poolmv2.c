@@ -420,6 +420,8 @@ static void MVTFinish(Pool pool)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
+  mvt->sig = SigInvalid;
+
   /* Free the segments in the pool */
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {
@@ -430,8 +432,6 @@ static void MVTFinish(Pool pool)
   FreelistFinish(MVTFreelist(mvt));
   ABQFinish(arena, MVTABQ(mvt));
   CBSFinish(MVTCBS(mvt));
-
-  mvt->sig = SigInvalid;
 }
 
 
@@ -1056,6 +1056,8 @@ size_t mps_mvt_free_size(mps_pool_t mps_pool)
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Pool pool, Bool withReservoirPermit)
 {
+  /* Can't use plain old SegClass here because we need to call
+   * SegBuffer() in MVTFree(). */
   Res res = SegAlloc(segReturn, GCSegClassGet(),
                      MVTSegPref(mvt), size, pool, withReservoirPermit,
                      argsNone);
