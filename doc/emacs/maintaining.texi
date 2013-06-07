@@ -1267,16 +1267,7 @@ bring them back at a later time).
 @cindex branch (version control)
 
   One use of version control is to support multiple independent lines
-of development, which are called @dfn{branches}.  Branches allow for
-parts of software to be developed in parallel.  Large projects require
-many roles to be filled, including developers, build managers, and
-quality assurance personnel. Further, multiple releases on different
-operating system platforms may have to be maintained.  Branches allow
-contributors to isolate changes without destabilizing the codebase,
-for example, fixes for bugs, new features, and versions
-integration. These changes may be later merged (resynchronized) after
-testing.
-
+of development, which are called @dfn{branches}.
 
   VC's support for branch operations is currently fairly limited.  For
 decentralized version control systems, it provides commands for
