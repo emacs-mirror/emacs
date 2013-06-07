@@ -727,7 +727,7 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
   ArenaEnter(arena);
 
   AVERT(Pool, pool);
-  AVER(PoolHasAddr(pool, p));
+  AVER(PoolHasRange(pool, p, AddrAdd(p, size)));
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
   /* <design/class-interface/#alloc.size.align>. */

@@ -598,6 +598,40 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 }
 
 
+/* PoolOfRange -- return the pool containing a given range
+ *
+ * If all addresses in the range [base, limit) are owned by a single
+ * pool, update *poolReturn to that pool and return TRUE. Otherwise,
+ * leave *poolReturn unchanged and return FALSE.
+ */
+Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit)
+{
+  Pool pool;
+  Tract tract;
+
+  AVER(poolReturn != NULL);
+  AVERT(Arena, arena);
+  AVER(base < limit);
+
+  if (!TractOfAddr(&tract, arena, base)) 
+    return FALSE;
+
+  pool = TractPool(tract);
+  if (!pool)
+    return FALSE;
+
+  while (TractLimit(tract) < limit) {
+    if (!TractNext(&tract, arena, TractBase(tract)))
+      return FALSE;
+    if (TractPool(tract) != pool)
+      return FALSE;
+  }
+
+  *poolReturn = pool;
+  return TRUE;
+}
+
+
 Bool PoolHasAddr(Pool pool, Addr addr)
 {
   Pool addrPool;
@@ -609,6 +643,21 @@ Bool PoolHasAddr(Pool pool, Addr addr)
   arena = PoolArena(pool);
   managed = PoolOfAddr(&addrPool, arena, addr);
   return (managed && addrPool == pool);
+}
+
+
+Bool PoolHasRange(Pool pool, Addr base, Addr limit)
+{
+  Pool rangePool;
+  Arena arena;
+  Bool managed;
+
+  AVERT(Pool, pool);
+  AVER(base < limit);
+
+  arena = PoolArena(pool);
+  managed = PoolOfRange(&rangePool, arena, base, limit);
+  return (managed && rangePool == pool);
 }
 
 
