@@ -356,7 +356,7 @@ branches.  You can do this either by editing branch.conf in your Emacs
 branches, to override the server setting (untested; not sure this
 works), or by adding an entry to ~/.bazaar/locations.conf:
 
-  [/path/to/emacs/bzr/*]
+  [bzr+ssh://USERNAME@bzr.savannah.gnu.org/emacs/*]
   post_commit_to = False
 
 You have to use locations.conf rather than bazaar.conf because the
