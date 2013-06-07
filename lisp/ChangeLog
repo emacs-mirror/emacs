@@ -2,6 +2,9 @@
 
 	* progmodes/octave.el (octave-mode): Set comment-use-global-state
 	to t.  (Bug#14303)
+	(octave-function-header-regexp): Fix.  (Bug#14570)
+	(octave-help-mode-finish-hook, octave-help-mode-finish):
+	Remove.  Just use temp-buffer-show-hook.
 
 	* newcomment.el (comment-search-backward): Revert last change.
 	(Bug#14434)

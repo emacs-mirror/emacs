@@ -89,7 +89,7 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
 
 (defvar octave-function-header-regexp
   (concat "^\\s-*\\_<\\(function\\)\\_>"
-	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
+	  "\\([^=;(\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
   "Regexp to match an Octave function header.
 The string `function' and its name are given by the first and third
 parenthetical grouping.")
@@ -1606,15 +1606,6 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
                                (current-buffer)))
     (when (or help-xref-stack help-xref-forward-stack)
       (insert "\n"))))
-
-(defvar octave-help-mode-finish-hook nil
-  "Octave specific hook for `temp-buffer-show-hook'.")
-
-(defun octave-help-mode-finish ()
-  (when (eq major-mode 'octave-help-mode)
-    (run-hooks 'octave-help-mode-finish-hook)))
-
-(add-hook 'temp-buffer-show-hook 'octave-help-mode-finish)
 
 (defun octave-help (fn)
   "Display the documentation of FN."
