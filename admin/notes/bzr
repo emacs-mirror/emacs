@@ -316,3 +316,33 @@ When finished, use
   bzr bisect reset
 
 or simply delete the entire branch if you created it just for this.
+
+* Commit emails
+
+** Old method: bzr-hookless-email
+https://launchpad.net/bzr-hookless-email
+
+Runs hourly via cron.  Must ask Savannah admins to enable/disable it
+for each branch.  Stores the last revision that it mailed as
+last_revision_mailed in branch.conf on the server.  Breaks with bzr 2.6:
+
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-05/msg00000.html
+
+Fix from https://bugs.launchpad.net/bzr-hookless-email/+bug/988195
+only partially works.  Breaks again on every merge commit:
+
+https://lists.ubuntu.com/archives/bazaar/2013q2/075520.html
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-05/msg00024.html
+
+You can force it to skip the merge commit by changing the value for
+last_revision_mailed, eg:
+
+bzr config last_revision_mailed=xfq.free@gmail.com-20130603233720-u1aumaxvf3o0rlai -d bzr+ssh://USERNAME@bzr.savannah.gnu.org/emacs/trunk/
+
+** New method: bzr-email plugin
+https://launchpad.net/bzr-email
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-06/msg00007.html
+
+Runs on commit.  Projects can enable it themselves by using `bzr
+config' to set post_commit_to option for a branch.  See `bzr help email'
+(if you have the plugin installed) for other options.
