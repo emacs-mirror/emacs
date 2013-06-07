@@ -87,7 +87,7 @@ static void set_oom(CBS cbs, int oom)
 }
 
 
-/* stress -- create a pool of the requested type and allocate in it */
+/* stress -- create an allocation point and allocate in it */
 
 static mps_res_t stress(size_t (*size)(unsigned long i), mps_pool_t pool, CBS cbs)
 {
