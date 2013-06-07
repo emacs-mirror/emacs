@@ -1,3 +1,182 @@
+2013-06-07  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-mode): Set comment-use-global-state
+	to t.  (Bug#14303)
+	(octave-function-header-regexp): Fix.  (Bug#14570)
+	(octave-help-mode-finish-hook, octave-help-mode-finish):
+	Remove.  Just use temp-buffer-show-hook.
+
+	* newcomment.el (comment-search-backward): Revert last change.
+	(Bug#14434)
+
+	* emacs-lisp/smie.el (smie--matching-block-data): Minor simplification.
+
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (TAGS TAGS-LISP): Pass the (long) list of *.el files
+	through xargs, to avoid failure due to MS-Windows limitations on
+	command-line length.
+
+2013-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Treat user-error like error.
+
+	* emacs-lisp/bytecomp.el (byte-compile-char-before)
+	(byte-compile-backward-char, byte-compile-backward-word):
+	Handle explicit nil arguments.  (Bug#14565)
+
+2013-06-05  Alan Mackenzie  <acm@muc.de>
+
+	* isearch.el (isearch-allow-prefix): New user option.
+	(isearch-other-meta-char): Don't exit isearch when a prefix
+	argument is typed whilst `isearch-allow-prefix' is non-nil.
+	(Bug#9706)
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-notify-handler): Use memq.
+	Hide assertion failure.
+
+	* skeleton.el: Use cl-lib.
+	(skeleton-further-elements): Use defvar-local.
+	(skeleton-insert): Use cl-progv.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/prog-mode.el (prog-prettify-symbols)
+	(prog-prettify-install): Update docstrings.
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el: Move all the prog-mode code to prog-mode.el.
+	* progmodes/prog-mode.el: New file.
+	* loadup.el: Add prog-mode.el.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* simple.el (prog-prettify-symbols): Add version.
+	(prog-prettify-install): Add convenience function to prettify symbols.
+
+	* progmodes/perl-mode.el (perl--augmented-font-lock-keywords)
+	(perl--augmented-font-lock-keywords-1)
+	(perl--augmented-font-lock-keywords-2, perl-mode): Remove unneeded
+	variables and use it.
+
+	* progmodes/cfengine.el (cfengine3--augmented-font-lock-keywords)
+	(cfengine3-mode): Remove unneeded variable and use it.
+
+	* emacs-lisp/lisp-mode.el (lisp--augmented-font-lock-keywords)
+	(lisp--augmented-font-lock-keywords-1)
+	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables):
+	Remove unneeded variables and use it.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/tls.el (open-tls-stream): Remove unneeded buffer contents up
+	to point when opening the connection.
+	Suggested by João Távora <joaotavora@gmail.com> in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00464.html>.
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (load-history-regexp, load-history-filename-element)
+	(eval-after-load, after-load-functions, do-after-load-evaluation)
+	(eval-next-after-load, display-delayed-warnings)
+	(collapse-delayed-warnings, delayed-warnings-hook): Move after the
+	definition of save-match-data.
+	(overriding-local-map): Remove accidental obsolescence declaration.
+
+	* emacs-lisp/edebug.el (edebug-result): Move before first use.
+
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Generalize symbol prettify support to prog-mode and implement it
+	for perl-mode, cfengine3-mode, and emacs-lisp-mode.
+	* simple.el (prog-prettify-symbols-alist, prog-prettify-symbols)
+	(prog--prettify-font-lock-compose-symbol)
+	(prog-prettify-font-lock-symbols-keywords): New variables and
+	functions to support symbol prettification.
+	* emacs-lisp/lisp-mode.el (lisp--augmented-font-lock-keywords)
+	(lisp--augmented-font-lock-keywords-1)
+	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables)
+	(lisp--prettify-symbols-alist): Implement prettify of lambda.
+	* progmodes/cfengine.el (cfengine3--augmented-font-lock-keywords)
+	(cfengine3--prettify-symbols-alist, cfengine3-mode):
+	Implement prettify of -> => :: strings.
+	* progmodes/perl-mode.el (perl-prettify-symbols)
+	(perl--font-lock-compose-symbol)
+	(perl--font-lock-symbols-keywords): Move to prog-mode.
+	(perl--prettify-symbols-alist): Prettify -> => :: strings.
+	(perl-font-lock-keywords-1)
+	(perl-font-lock-keywords-2): Remove explicit prettify support.
+	(perl--augmented-font-lock-keywords)
+	(perl--augmented-font-lock-keywords-1)
+	(perl--augmented-font-lock-keywords-2, perl-mode):
+	Implement prettify support.
+
+2013-06-05  Leo Liu  <sdl.web@gmail.com>
+
+	Re-implement smie matching block highlight using
+	show-paren-data-function.  (Bug#14395)
+	* emacs-lisp/smie.el (smie-matching-block-highlight)
+	(smie--highlight-matching-block-overlay)
+	(smie--highlight-matching-block-lastpos)
+	(smie-highlight-matching-block)
+	(smie-highlight-matching-block-mode): Remove.
+	(smie--matching-block-data-cache): New variable.
+	(smie--matching-block-data): New function.
+	(smie-setup): Use smie--matching-block-data for
+	show-paren-data-function.
+
+	* progmodes/octave.el (octave-mode-menu): Fix.
+	(octave-find-definition): Skip garbage lines.
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix compilation error with simultaneous dynamic+lexical scoping.
+	Add warning when a defvar appears after the first let-binding.
+	* emacs-lisp/bytecomp.el (byte-compile-lexical-variables): New var.
+	(byte-compile-close-variables): Initialize it.
+	(byte-compile--declare-var): New function.
+	(byte-compile-file-form-defvar)
+	(byte-compile-file-form-define-abbrev-table)
+	(byte-compile-file-form-custom-declare-variable): Use it.
+	(byte-compile-make-lambda-lexenv): Change the argument.  Simplify.
+	(byte-compile-lambda): Share call to byte-compile-arglist-vars.
+	(byte-compile-bind): Handle dynamic bindings that shadow
+	lexical bindings.
+	(byte-compile-unbind): Make arg non-optional.
+	(byte-compile-let): Simplify.
+	* emacs-lisp/cconv.el (byte-compile-lexical-variables): Declare var.
+	(cconv--analyse-function, cconv-analyse-form): Populate it.
+	Protect byte-compile-bound-variables to limit the scope of defvars.
+	(cconv-analyse-form): Add missing rule for (defvar <foo>).
+	Remove unneeded rule for `declare'.
+
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-adjoin): Use macroexp-let2
+	so as to avoid depending on cl-adjoin at run-time.
+	* emacs-lisp/cl-lib.el (cl-pushnew): Use backquotes.
+
+	* emacs-lisp/macroexp.el (macroexp--compiling-p): New function.
+	(macroexp--warn-and-return): Use it.
+
+2013-06-05  Leo Liu  <sdl.web@gmail.com>
+
+	* eshell/esh-mode.el (eshell-mode): Fix key bindings.
+
+2013-06-04  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/compile.el (compile-goto-error): Add optional arg NOMSG.
+	(compilation-auto-jump): Suppress the "Mark set" message to give
+	way to exit message.
+
+2013-06-04  Alan Mackenzie  <acm@muc.de>
+
+	Remove faulty optimisation from indentation calculation.
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Don't calculate
+	search limit based on 2000 characters back from indent-point.
+
 2013-06-03  Tassilo Horn  <tsdh@gnu.org>
 
 	* eshell/em-term.el (cl-lib): Require `cl-lib'.
@@ -7,7 +186,7 @@
 	* emacs-lisp/lisp.el: Use lexical-binding.
 	(lisp--local-variables-1, lisp--local-variables): New functions.
 	(lisp--local-variables-completion-table): New var.
-	(lisp-completion-at-point): Use it to provide completion of let-bound vars.
+	(lisp-completion-at-point): Use it complete let-bound vars.
 
 	* emacs-lisp/lisp-mode.el (eval-sexp-add-defvars): Expand macros
 	eagerly (bug#14422).
@@ -19,9 +198,9 @@
 	(auto-revert-notify-event-p, auto-revert-notify-event-file-name)
 	(auto-revert-notify-handler): Handle also gfilenotify.
 
-	* subr.el: (file-notify-handle-event): New defun. Replacing ...
+	* subr.el (file-notify-handle-event): New defun. Replacing ...
 	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
-	Removed.
+	Remove.
 
 2013-06-03  Juri Linkov  <juri@jurta.org>
 
@@ -47,15 +226,15 @@
 
 2013-06-03  Tassilo Horn  <tsdh@gnu.org>
 
-	* eshell/em-term.el (eshell-term-initialize): Use
-	`cl-intersection' rather than `intersection'.
+	* eshell/em-term.el (eshell-term-initialize):
+	Use `cl-intersection' rather than `intersection'.
 
 2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/log-view.el: Doc fix.
 	(log-view-mode-map): Copy keymap from `special-mode-map'.
 
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
 
 	* emacs-lisp/eieio.el (eieio--defalias, eieio-hook)
 	(eieio-error-unsupported-class-tags, eieio-skip-typecheck)
@@ -102,7 +281,7 @@
 	(eieiomt-optimizing-obarray, eieiomt-install)
 	(eieiomt-add, eieiomt-next, eieiomt-sym-optimize)
 	(eieio-generic-form, eieio-defmethod, make-obsolete)
-	(eieio-defgeneric, make-obsolete): Moved to eieio-core.el
+	(eieio-defgeneric, make-obsolete): Move to eieio-core.el
 	(defclass): Remove `eval-and-compile' from macro.
 	(call-next-method, shared-initialize): Instead of using
 	`scoped-class' variable, use new eieio--scoped-class, and
@@ -194,8 +373,8 @@
 
 2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-expansion-allowed-p): New
-	function, checks if point is inside a literal that allows
+	* progmodes/ruby-mode.el (ruby-syntax-expansion-allowed-p):
+	New function, checks if point is inside a literal that allows
 	expression expansion.
 	(ruby-syntax-propertize-expansion): Use it.
 	(ruby-syntax-propertize-function): Bind `case-fold-search' to nil
@@ -306,7 +485,7 @@
 	* emacs-lisp/trace.el (trace--read-args): Provide a default.
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Inherit from
-	prog-mode-map.
+	prog-mode-map (bug#14504).
 
 2013-05-29  Leo Liu  <sdl.web@gmail.com>
 
@@ -338,7 +517,7 @@
 
 2013-05-28  Aidan Gauland  <aidalgol@amuri.net>
 
-	* eshell/em-unix.el: Added -r option to cp
+	* eshell/em-unix.el: Add -r option to cp.
 
 2013-05-28  Glenn Morris  <rgm@gnu.org>
 
@@ -2090,9 +2269,9 @@
 2013-04-19 Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/sh-script.el (sh-imenu-generic-expression):
-	Handle function names with a single character.  (Bug#14111)
+	Handle function names with a single character.   (Bug#14111)
 
-2013-04-19  Dima Kogan  <dima@secretsauce.net>  (tiny change)
+2013-04-19  Dima Kogan  <dima@secretsauce.net>    (tiny change)
 
 	* progmodes/gud.el (gud-perldb-marker-filter): Understand position info
 	for subroutines defined in an eval (bug#14182).
@@ -2506,6 +2685,7 @@
 
 	* emacs-lisp/package.el (package-pinned-packages): New var.
 	(package--add-to-archive-contents): Obey it (bug#14118).
+
 
 2013-04-03  Alan Mackenzie  <acm@muc.de>
 
@@ -3202,7 +3382,7 @@
 
 	Correct the position of point in some line-up functions.
 	* progmodes/cc-align.el (c-lineup-whitesmith-in-block)
-	(c-lineup-assignments, c-lineup-gcc-asm-reg ): take position of
+	(c-lineup-assignments, c-lineup-gcc-asm-reg ): Take position of
 	point at column 0 rather than at a random place in the line.
 
 2013-03-05  Michael Albinus  <michael.albinus@gmx.de>
@@ -7209,7 +7389,7 @@
 
 2012-11-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
-	* ses.el: symbol to coordinate mapping is made by symbol property
+	* ses.el: Symbol to coordinate mapping is made by symbol property
 	`ses-cell'.  This means that the same mapping is done for all SES
 	sheets.  That is good enough for cells with standard A1 names, but
 	not for named cell.  So a hash map is added for the latter.
@@ -11144,7 +11324,7 @@
 	* progmodes/python.el (python-shell-send-setup-max-wait): Delete var.
 	(python-shell-make-comint): accept-process-output at startup.
 	(run-python-internal): Set inferior-python-mode-hook to nil.
-	(python-shell-internal-get-or-create-process): call sit-for.
+	(python-shell-internal-get-or-create-process): Call sit-for.
 	(python-preoutput-result): Add obsolete alias.
 	(python-shell-internal-send-string): Use it.
 	(python-shell-send-setup-code): Remove call to
@@ -11336,7 +11516,7 @@
 2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	Consistent completion in inferior python with emacs -nw.
-	* progmodes/python.el (inferior-python-mode): replace "<tab>"
+	* progmodes/python.el (inferior-python-mode): Replace "<tab>"
 	binding in inferior-python-mode-map with "\t".
 	(python-shell-completion-complete-at-point)
 	(python-completion-complete-at-point): Remove interactive spec.
@@ -18900,8 +19080,8 @@
 
 	* progmodes/verilog-mode.el (verilog-read-defines): Fix reading
 	parameters with embedded comments.  Reported by Ray Stevens.
-	(verilog-calc-1, verilog-fork-wait-re) (verilog-forward-sexp,
-	verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
+	(verilog-calc-1, verilog-fork-wait-re, verilog-forward-sexp)
+	(verilog-wait-fork-re): Fix indentation of "wait fork", bug407.
 	Reported by Tim Holt.
 	(verilog-auto): Fix AUTOing a upper module then AUTOing module
 	instantiated by upper module causing wrong expansion until AUTOed a

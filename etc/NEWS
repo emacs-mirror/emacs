@@ -292,6 +292,10 @@ when it's nil).
 *** `query-replace' skips invisible text when `search-invisible' is nil,
 and opens overlays with hidden text when `search-invisible' is `open'.
 
++++
+*** By default, prefix arguments do not now terminate Isearch mode.
+Set `isearch-allow-prefix' to nil to restore old behavior.
+
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
 
@@ -396,7 +400,11 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
-** Default process filers and sentinels are not nil any more.
+** overriding-terminal-local-map does not replace the local keymaps any more.
+It used to disable the minor mode, major mode, and text-property keymaps,
+whereas now it simply has higher precedence.
+
+** Default process filters and sentinels are not nil any more.
 Instead they default to a function which does what the nil value used to do.
 
 ** `read-event' does not return decoded chars in ttys any more.
@@ -2833,6 +2841,11 @@ should be derived.
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
+
+**** New option, `prog-prettify-symbols' lets the user control symbol
+prettify (replacing a string like "lambda" with the Greek lambda
+character.  The mode derived from `prog-mode' must call
+`prog-prettify-install' with its own custom alist, which can be empty.
 
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.

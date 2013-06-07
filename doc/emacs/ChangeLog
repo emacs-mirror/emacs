@@ -1,3 +1,9 @@
+2013-06-05  Alan Mackenzie  <acm@muc.de>
+
+	* search.texi (Isearch Scroll): Rename to "Not Exiting Isearch".
+	(Not Exiting Isearch): Document new user option
+	`isearch-allow-prefix'.  (Bug#9706)
+
 2013-06-03  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Highlight Interactively): Add global keybindings

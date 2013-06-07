@@ -1,3 +1,91 @@
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (ctagsfiles1, ctagsfiles2): Don't include *.m files.
+	(ctagsfiles3): New variable, includes only *.m files.
+	(TAGS): Use an explicit language name in the regular expressions,
+	to avoid transformation of '/SOMETHING' by MSYS to
+	'c:\MSYS\SOMETHING'.
+
+2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* epaths.in: Fix commentary to PATH_SITELOADSEARCH.
+
+2013-06-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (note_mouse_highlight): When mouse-highlight is off,
+	still need to set the mouse pointer shape and activate help-echo.
+	(Bug#14558)
+
+2013-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A few porting etc. fixes for the new file monitor code.
+	See the thread containing
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00109.html>.
+	* gfilenotify.c (dir_monitor_callback, Fgfile_add_watch)
+	(Fgfile_rm_watch): Don't assume EMACS_INT is the same width as a pointer.
+	(dir_monitor_callback, Fgfile_rm_watch):
+	Use assq_no_quit instead of Fassoc, for speed.
+	(dir_monitor_callback, Fgfile_rm_watch):
+	eassert that the monitor is a fixnum.
+	(dir_monitor_callback): No need for CDR_SAFE.
+	Simplify building of lisp with alternative tails.
+	(Fgfile_add_watch, Fgfile_rm_watch):
+	Do not assume glib functions set errno reliably on failure.
+	(Fgfile_add_watch): Check that the monitor survives the XIL trick,
+	and signal an error otherwise.
+	(Fgfile_rm_watch): Prefer CONSP to !NILP.
+	Use Fdelq instead of Fdelete, for speed.
+
+2013-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_tool_bar_click): When mouse-highlight is off,
+	don't insist on being invoked on a highlighted tool-bar button.
+	Avoids losing tool-bar functionality when mouse-highlight is nil.
+	(note_tool_bar_highlight, note_mode_line_or_margin_highlight):
+	Don't highlight when mouse-highlight is nil.
+	(note_mouse_highlight): When mouse-highlight is nil, don't return
+	right away; instead, run tool-bar and mode-line highlight
+	subroutine, clear any existing highlight, and revert the mouse
+	pointer to its default shape.  (Bug#14558)
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.mk (lisp): Add prog-mode.el.
+
+2013-06-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Chain glib's SIGCHLD handler from Emacs's (Bug#14474).
+	* process.c (dummy_handler): New function.
+	(lib_child_handler): New static var.
+	(handle_child_signal): Invoke it.
+	(catch_child_signal): If a library has set up a signal handler,
+	save it into lib_child_handler.
+	(init_process_emacs): If using glib and not on Windows, tickle glib's
+	child-handling code so that it initializes its private SIGCHLD handler.
+	* syssignal.h (SA_SIGINFO): Default to 0.
+	* xterm.c (x_term_init): Remove D-bus hack that I installed on May
+	31; it should no longer be needed now.
+
+2013-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* emacs.c (main) [HAVE_GFILENOTIFY]: Call globals_of_gfilenotify.
+
+	* gfilenotify.c (globals_of_gfilenotify): New function.
+	(syms_of_gfilenotify): Move global initialization there.
+
+	* lisp.h (globals_of_gfilenotify) [HAVE_GFILENOTIFY]: Add prototype.
+
+2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fcurrent_active_maps, Fdescribe_buffer_bindings):
+	* keyboard.c (menu_bar_items, tool_bar_items):
+	* doc.c (Fsubstitute_command_keys): Voverriding_terminal_local_map does
+	not override local keymaps any more.
+
+2013-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fpos_visible_in_window_p): Doc fix.  (Bug#14540)
+
 2013-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32console.c (initialize_w32_display): Return the dimensions of
@@ -222,15 +310,15 @@
 	DPSxshow.
 	(ns_glyph_metrics): CGFloat instead of float.
 
-	* nsfns.m (x_set_foreground_color, x_set_background_color): Use
-	EmacsCGFloat.
-	(ns_implicitly_set_icon_type, Fx_create_frame): Make static, remove
-	unused variables.
-	(Fns_read_file_name): Keep track if panel is for save.  Use
-	ns_filename_from_panel/ns_directory_from_panel.
+	* nsfns.m (x_set_foreground_color, x_set_background_color):
+	Use EmacsCGFloat.
+	(ns_implicitly_set_icon_type, Fx_create_frame): Make static,
+	remove unused variables.
+	(Fns_read_file_name): Keep track if panel is for save.
+	Use ns_filename_from_panel/ns_directory_from_panel.
 	(Fns_list_services): delegate only used for COCOA.
-	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.  Just
-	return the input if GNUStep.
+	(Fns_convert_utf8_nfd_to_nfc): Remove warning for GNUStep.
+	Just return the input if GNUStep.
 	(x_screen_planes): Remove.
 	(Fxw_color_values): Use EmacsCGFloat
 	(Fns_display_monitor_attributes_list): Only get screen number for
@@ -346,7 +434,7 @@
 2013-05-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (reseat_at_previous_visible_line_start):
-	Already	declared in dispextern.h, so remove it here.
+	Already declared in dispextern.h, so remove it here.
 	(move_it_vertically_backward): Likewise.
 
 2013-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -357,7 +445,7 @@
 	Mention `display-monitor-attributes-list' in docstrings.
 
 	* nsfns.m (ns_get_screen): Remove function.  All uses removed.
-	(check_ns_display_info): Sync with check_x_display_info	in xfns.c.
+	(check_ns_display_info): Sync with check_x_display_info in xfns.c.
 	(Fx_server_max_request_size, Fx_server_vendor, Fx_server_version)
 	(Fx_display_screens, Fx_display_mm_width, Fx_display_mm_height)
 	(Fx_display_backing_store, Fx_display_visual_class)
@@ -4596,7 +4684,7 @@
 	* w32term.c (x_window_to_scroll_bar): Likewise.
 	* window.c (window_list): Likewise.
 	* xdisp.c (x_consider_frame_title): Likewise.
-	* xfaces.c ( Fdisplay_supports_face_attributes_p): Likewise.
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Likewise.
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)
 	(x_menubar_window_to_frame, x_top_window_to_frame): Likewise.
 	* xmenu.c (menubar_id_to_frame): Likewise.
@@ -17828,7 +17916,7 @@
 
 	Fix memory allocation problems in Cygwin build (Bug#9273).
 
-	* unexcw.c ( __malloc_initialized): Declare external variable.
+	* unexcw.c (__malloc_initialized): Declare external variable.
 	(fixup_executable): Force the dumped emacs to reinitialize malloc.
 
 	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo):

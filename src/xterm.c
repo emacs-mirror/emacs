@@ -9897,13 +9897,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         XSetLocaleModifiers ("");
 
-	/* If D-Bus is not already configured, inhibit D-Bus autolaunch,
-	   as autolaunch can mess up Emacs's SIGCHLD handler.
-	   FIXME: Rewrite subprocess handlers to use glib's child watchers.
-	   See Bug#14474.  */
-	if (! egetenv ("DBUS_SESSION_BUS_ADDRESS"))
-	  xputenv ("DBUS_SESSION_BUS_ADDRESS=unix:path=/dev/null");
-
         /* Emacs can only handle core input events, so make sure
            Gtk doesn't use Xinput or Xinput2 extensions.  */
 	xputenv ("GDK_CORE_DEVICE_EVENTS=1");

@@ -578,7 +578,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	     ((featurep 'w32notify) (nth 2 event)))))
 
 (defun auto-revert-notify-handler (event)
-  "Handle an event returned from file notification."
+  "Handle an EVENT returned from file notification."
   (when (auto-revert-notify-event-p event)
     (let* ((descriptor (auto-revert-notify-event-descriptor event))
 	   (action (auto-revert-notify-event-action event))
@@ -591,10 +591,12 @@ will use an up-to-date value of `auto-revert-interval'"
 	(cl-assert descriptor)
 	(cond
 	 ((featurep 'gfilenotify)
-	  (cl-assert (or (eq 'attribute-changed action)
-			 (eq 'changed action)
-			 (eq 'created action)
-			 (eq 'deleted action))))
+	  (cl-assert (memq action '(attribute-changed changed created deleted
+                                    ;; FIXME: I keep getting this action, so I
+                                    ;; added it here, but I have no idea what
+                                    ;; I'm doing.  --Stef
+                                    changes-done-hint))
+                     t))
 	 ((featurep 'inotify)
 	  (cl-assert (or (memq 'attrib action)
 			 (memq 'create action)

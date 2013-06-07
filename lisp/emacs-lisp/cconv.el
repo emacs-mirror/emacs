@@ -81,7 +81,6 @@
 ;;   and other oddities.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
 ;;   closures aren't needed at all.
-;; - inline source code of different binding mode by first compiling it.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
 ;;   Hmm... right, that's called constant propagation and could be done here,
@@ -95,6 +94,7 @@
 
 ;; (defmacro dlet (binders &rest body)
 ;;   ;; Works in both lexical and non-lexical mode.
+;;   (declare (indent 1) (debug let))
 ;;   `(progn
 ;;      ,@(mapcar (lambda (binder)
 ;;                  `(defvar ,(if (consp binder) (car binder) binder)))
@@ -489,6 +489,7 @@ places where they originally did not directly appear."
 (unless (fboundp 'byte-compile-not-lexical-var-p)
   ;; Only used to test the code in non-lexbind Emacs.
   (defalias 'byte-compile-not-lexical-var-p 'boundp))
+(defvar byte-compile-lexical-variables)
 
 (defun cconv--analyse-use (vardata form varkind)
   "Analyze the use of a variable.
@@ -530,6 +531,7 @@ FORM is the parent form that binds this var."
          ;; outside of it.
          (envcopy
           (mapcar (lambda (vdata) (list (car vdata) nil nil nil nil)) env))
+         (byte-compile-bound-variables byte-compile-bound-variables)
          (newenv envcopy))
     ;; Push it before recursing, so cconv-freevars-alist contains entries in
     ;; the order they'll be used by closure-convert-rec.
@@ -541,6 +543,7 @@ FORM is the parent form that binds this var."
          (format "Argument %S is not a lexical variable" arg)))
        ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
        (t (let ((varstruct (list arg nil nil nil nil)))
+            (cl-pushnew arg byte-compile-lexical-variables)
             (push (cons (list arg) (cdr varstruct)) newvars)
             (push varstruct newenv)))))
     (dolist (form body)                   ;Analyze body forms.
@@ -579,6 +582,7 @@ and updates the data stored in ENV."
      (let ((orig-env env)
            (newvars nil)
            (var nil)
+           (byte-compile-bound-variables byte-compile-bound-variables)
            (value nil))
        (dolist (binder binders)
          (if (not (consp binder))
@@ -592,6 +596,7 @@ and updates the data stored in ENV."
            (cconv-analyse-form value (if (eq letsym 'let*) env orig-env)))
 
          (unless (byte-compile-not-lexical-var-p var)
+           (cl-pushnew var byte-compile-lexical-variables)
            (let ((varstruct (list var nil nil nil nil)))
              (push (cons binder (cdr varstruct)) newvars)
              (push varstruct env))))
@@ -616,7 +621,8 @@ and updates the data stored in ENV."
 
     (`((lambda . ,_) . ,_)             ; First element is lambda expression.
      (byte-compile-log-warning
-      "Use of deprecated ((lambda ...) ...) form" t :warning)
+      (format "Use of deprecated ((lambda %s ...) ...) form" (nth 1 (car form)))
+      t :warning)
      (dolist (exp `((function ,(car form)) . ,(cdr form)))
        (cconv-analyse-form exp env)))
 
@@ -645,6 +651,7 @@ and updates the data stored in ENV."
     (`(track-mouse . ,body)
      (cconv--analyse-function () body env form))
 
+    (`(defvar ,var) (push var byte-compile-bound-variables))
     (`(,(or `defconst `defvar) ,var ,value . ,_)
      (push var byte-compile-bound-variables)
      (cconv-analyse-form value env))
@@ -668,7 +675,9 @@ and updates the data stored in ENV."
      ;; seem worth the trouble.
      (dolist (form forms) (cconv-analyse-form form nil)))
 
-    (`(declare . ,_) nil)               ;The args don't contain code.
+    ;; `declare' should now be macro-expanded away (and if they're not, we're
+    ;; in trouble because they *can* contain code nowadays).
+    ;; (`(declare . ,_) nil)               ;The args don't contain code.
 
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
      (dolist (form body-forms) (cconv-analyse-form form env)))

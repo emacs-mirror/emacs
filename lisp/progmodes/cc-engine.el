@@ -9355,10 +9355,6 @@ comment at the start of cc-engine.el for more info."
 			  containing-sexp nil)))
 	      (setq lim (1+ containing-sexp))))
 	(setq lim (point-min)))
-      (when (c-beginning-of-macro)
-	(goto-char indent-point)
-	(let ((lim1 (c-determine-limit 2000)))
-	  (setq lim (max lim lim1))))
 
       ;; If we're in a parenthesis list then ',' delimits the
       ;; "statements" rather than being an operator (with the

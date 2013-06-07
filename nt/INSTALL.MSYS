@@ -92,9 +92,9 @@ Windows 9X as well).
 
 ** Installing MinGW and MSYS using mingw-get
 
-  A nice GUI installer, called mingw-get, is available for those who
-  don't like to mess with manual installations.  You can download it
-  from here:
+  A nice installer, called mingw-get, is available for those who don't
+  like to mess with manual installations.  You can download it from
+  here:
 
     https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
 
@@ -110,7 +110,6 @@ Windows 9X as well).
 
    . msys-base
    . mingw-developer-toolkit
-   . msys-automake
 
   (We recommend that you refrain from installing the MSYS Texinfo
   package, which is part of msys-base, because it might produce mixed
@@ -118,6 +117,11 @@ Windows 9X as well).
   port of Texinfo, see the ezwinports URL below.  To uninstall the
   MSYS Texinfo, after installing it as part of msys-base, invoke the
   command "mingw-get remove msys-texinfo".)
+
+  As the above packages don't include automake, you will need to
+  install it, e.g. from here:
+
+    http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
 
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
@@ -188,11 +192,11 @@ Windows 9X as well).
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
-  well.  (Using the GUI installer mingw-get will fetch those
-  prerequisites automatically for you.)  A missing prerequisite will
-  manifest itself by the program failing to run and presenting a
-  pop-up dialog that states the missing or incompatible DLL; be sure
-  to find and install these missing DLLs.
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
 
   Once you think you have MinGW installed, test the installation by
   building a trivial "hello, world!" program, and make sure that it
@@ -228,8 +232,8 @@ Windows 9X as well).
      repository): Automake and Autoconf.  They are available from
      here:
 
-     http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
-     http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
+       http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
+       http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
 
   MSYS packages are distributed as .tar.lzma compressed archives.  To
   install the packages manually, we recommend to use the Windows port
@@ -256,11 +260,11 @@ Windows 9X as well).
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
-  well.  (Using the GUI installer mingw-get will fetch those
-  prerequisites automatically for you.)  A missing prerequisite will
-  manifest itself by the program failing to run and presenting a
-  pop-up dialog that states the missing or incompatible DLL; be sure
-  to find and install these missing DLLs.
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
 
   MSYS packages should be installed in a separate tree from MinGW.
   For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
@@ -344,9 +348,9 @@ Windows 9X as well).
   Do NOT use Windows-style x:/foo/bar file names on the configure
   script command line; use the MSYS-style /x/foo/bar instead.  Using
   Windows-style file names was reported to cause subtle and hard to
-  figure out problems during the build.  This applies both to
-  --prefix= switch and the absolute file name of msysconfig.sh, if you
-  are building outside of the source tree.
+  figure out problems during the build.  This applies both to the
+  command switches, such as --prefix=, and to the absolute file name
+  of msysconfig.sh, if you are building outside of the source tree.
 
   You can pass additional options to the configure script, for the
   full list type
@@ -369,6 +373,19 @@ Windows 9X as well).
   which is quite a mouth-full, especially if you have more directories
   to specify...  Perhaps you may wish to revisit your installation
   decisions now.
+
+  If you have a global site-lisp directory from previous Emacs
+  installation, and you want Emacs to continue using it, specify it
+  via the --enable-locallisppath switch to msysconfig.sh, like this:
+
+   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="%emacs_dir%/share/emacs/VERSION/site-lisp;/d/wherever/site-lisp"
+
+  The %emacs_dir% part is the root of the Emacs installation tree, it
+  will get expanded by Emacs when it starts up.  Using %emacs_dir%,
+  you can add directories relative to your Emacs installation, which
+  will continue to be valid if you move the entire Emacs tree into
+  another place on your disk.  Use the normal MSYS /d/foo/bar style to
+  specify directories by their absolute file names.
 
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:

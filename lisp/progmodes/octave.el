@@ -89,7 +89,7 @@ Used in `octave-mode' and `inferior-octave-mode' buffers.")
 
 (defvar octave-function-header-regexp
   (concat "^\\s-*\\_<\\(function\\)\\_>"
-	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
+	  "\\([^=;(\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
   "Regexp to match an Octave function header.
 The string `function' and its name are given by the first and third
 parenthetical grouping.")
@@ -153,10 +153,10 @@ parenthetical grouping.")
                                 'eldoc-mode))
      :style toggle :selected (or eldoc-post-insert-mode eldoc-mode)
      :help "Display function signatures after typing `SPC' or `('"]
-    ["Delimiter Matching"           smie-highlight-matching-block-mode
-     :style toggle :selected smie-highlight-matching-block-mode
+    ["Delimiter Matching"           show-paren-mode
+     :style toggle :selected show-paren-mode
      :help "Highlight matched pairs such as `if ... end'"
-     :visible (fboundp 'smie-highlight-matching-block-mode)]
+     :visible (fboundp 'smie--matching-block-data)]
     ["Auto Fill"                    auto-fill-mode
      :style toggle :selected auto-fill-function
      :help "Automatic line breaking"]
@@ -540,6 +540,7 @@ definitions can also be stored in files and used in batch mode."
   ;; a ";" at those places where it's correct (i.e. outside of parens).
   (setq-local electric-layout-rules '((?\; . after)))
 
+  (setq-local comment-use-global-state t)
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
   (setq-local comment-start-skip octave-comment-start-skip)
@@ -664,6 +665,7 @@ in the Inferior Octave buffer.")
   :abbrev-table octave-abbrev-table
   (setq comint-prompt-regexp inferior-octave-prompt)
 
+  (setq-local comment-use-global-state t)
   (setq-local comment-start octave-comment-start)
   (setq-local comment-end "")
   (setq comment-column 32)
@@ -1605,15 +1607,6 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
     (when (or help-xref-stack help-xref-forward-stack)
       (insert "\n"))))
 
-(defvar octave-help-mode-finish-hook nil
-  "Octave specific hook for `temp-buffer-show-hook'.")
-
-(defun octave-help-mode-finish ()
-  (when (eq major-mode 'octave-help-mode)
-    (run-hooks 'octave-help-mode-finish-hook)))
-
-(add-hook 'temp-buffer-show-hook 'octave-help-mode-finish)
-
 (defun octave-help (fn)
   "Display the documentation of FN."
   (interactive (list (octave-completing-read)))
@@ -1715,9 +1708,13 @@ Functions implemented in C++ can be found if
    (list (format "\
 if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
                  fn fn fn)))
-  (let* ((line (car inferior-octave-output-list))
-         (file (when (and line (string-match "from the file \\(.*\\)$" line))
-                 (match-string 1 line))))
+  (let (line file)
+    ;; Skip garbage lines such as
+    ;;     warning: fmincg.m: possible Matlab-style ....
+    (while (and (not file) (consp inferior-octave-output-list))
+      (setq line (pop inferior-octave-output-list))
+      (when (string-match "from the file \\(.*\\)$" line)
+        (setq file (match-string 1 line))))
     (if (not file)
         (user-error "%s" (or line (format "`%s' not found" fn)))
       (require 'etags)

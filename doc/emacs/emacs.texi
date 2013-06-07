@@ -396,14 +396,14 @@ Searching and Replacement
 
 Incremental Search
 
-* Basic Isearch::       Basic incremental search commands.
-* Repeat Isearch::      Searching for the same string again.
-* Error in Isearch::    When your string is not found.
-* Special Isearch::     Special input in incremental search.
-* Isearch Yank::        Commands that grab text into the search string
-                          or else edit the search string.
-* Isearch Scroll::      Scrolling during an incremental search.
-* Isearch Minibuffer::  Incremental search of the minibuffer history.
+* Basic Isearch::        Basic incremental search commands.
+* Repeat Isearch::       Searching for the same string again.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
+* Isearch Yank::         Commands that grab text into the search string
+                           or else edit the search string.
+* Not Exiting Isearch::  Prefix argument and scrolling commands.
+* Isearch Minibuffer::   Incremental search of the minibuffer history.
 
 Replacement Commands
 

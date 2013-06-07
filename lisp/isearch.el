@@ -2152,6 +2152,15 @@ If nil, scrolling commands will first cancel Isearch mode."
   :type 'boolean
   :group 'isearch)
 
+(defcustom isearch-allow-prefix t
+  "Whether prefix arguments are allowed during incremental search.
+If non-nil, entering a prefix argument will not terminate the
+search.  This option is ignored \(presumed t) when
+`isearch-allow-scroll' is set."
+  :version "24.4"
+  :type 'boolean
+  :group 'isearch)
+
 (defun isearch-string-out-of-window (isearch-point)
   "Test whether the search string is currently outside of the window.
 Return nil if it's completely visible, or if point is visible,
@@ -2304,12 +2313,19 @@ Isearch mode."
 	   (setq prefix-arg arg)
 	   (apply 'isearch-unread keylist)
 	   (isearch-edit-string))
-          ;; Handle a scrolling function.
-          ((and isearch-allow-scroll
-                (progn (setq key (isearch-reread-key-sequence-naturally keylist))
-                       (setq keylist (listify-key-sequence key))
-                       (setq main-event (aref key 0))
-                       (setq scroll-command (isearch-lookup-scroll-key key))))
+          ;; Handle a scrolling function or prefix argument.
+          ((progn
+	     (setq key (isearch-reread-key-sequence-naturally keylist)
+		   keylist (listify-key-sequence key)
+		   main-event (aref key 0))
+	     (or (and isearch-allow-scroll
+		      (setq scroll-command (isearch-lookup-scroll-key key)))
+		 (and isearch-allow-prefix
+		      (let (overriding-terminal-local-map)
+			(setq scroll-command (key-binding key))
+			(memq scroll-command
+			      '(universal-argument
+				negative-argument digit-argument))))))
            ;; From this point onwards, KEY, KEYLIST and MAIN-EVENT hold a
            ;; complete key sequence, possibly as modified by function-key-map,
            ;; not merely the one or two event fragment which invoked

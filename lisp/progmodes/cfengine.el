@@ -527,6 +527,11 @@ Intended as the value of `indent-line-function'."
   ;; Doze path separators.
   (modify-syntax-entry ?\\ "." table))
 
+(defconst cfengine3--prettify-symbols-alist
+  '(("->"  . ?→)
+    ("=>"  . ?⇒)
+    ("::" . ?∷)))
+
 ;;;###autoload
 (define-derived-mode cfengine3-mode prog-mode "CFE3"
   "Major mode for editing CFEngine3 input.
@@ -538,8 +543,11 @@ to the action header."
   (cfengine-common-syntax cfengine3-mode-syntax-table)
 
   (set (make-local-variable 'indent-line-function) #'cfengine3-indent-line)
+
   (setq font-lock-defaults
-        '(cfengine3-font-lock-keywords nil nil nil beginning-of-defun))
+        '(cfengine3-font-lock-keywords
+          nil nil nil beginning-of-defun))
+  (prog-prettify-install cfengine3--prettify-symbols-alist)
 
   ;; Use defuns as the essential syntax block.
   (set (make-local-variable 'beginning-of-defun-function)

@@ -372,34 +372,6 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
-;; Major mode meant to be the parent of programming modes.
-
-(defvar prog-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-\M-q] 'prog-indent-sexp)
-    map)
-  "Keymap used for programming modes.")
-
-(defun prog-indent-sexp (&optional defun)
-  "Indent the expression after point.
-When interactively called with prefix, indent the enclosing defun
-instead."
-  (interactive "P")
-  (save-excursion
-    (when defun
-      (end-of-line)
-      (beginning-of-defun))
-    (let ((start (point))
-	  (end (progn (forward-sexp 1) (point))))
-      (indent-region start end nil))))
-
-(define-derived-mode prog-mode fundamental-mode "Prog"
-  "Major mode for editing programming language source code."
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  ;; Any programming language is always written left to right.
-  (setq bidi-paragraph-direction 'left-to-right))
-
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))

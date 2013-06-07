@@ -210,6 +210,7 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
+(load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")

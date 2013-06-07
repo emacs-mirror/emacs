@@ -326,11 +326,8 @@ and the hook `eshell-exit-hook'."
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
-  (define-key eshell-mode-map [return] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?m)] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?j)] 'eshell-send-input)
-  (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
-  (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
+  (define-key eshell-mode-map "\r" 'eshell-send-input)
+  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
   (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 

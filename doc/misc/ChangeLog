@@ -1,3 +1,8 @@
+2013-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Date):
+	Fix description of gnus-article-update-date-headers.
+
 2013-05-28  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* erc.texi (Special Features): ERC is being maintained within

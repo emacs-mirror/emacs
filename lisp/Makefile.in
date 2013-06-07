@@ -209,8 +209,9 @@ update-authors:
 	$(emacs) -l authors -f batch-update-authors $(top_srcdir)/etc/AUTHORS $(top_srcdir)
 
 TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
-	${ETAGS} -o $@ $$els
+	rm -f $@; touch $@; \
+	 echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,," | \
+	xargs $(XARGS_LIMIT) ${ETAGS} -a -o $@
 
 # The src/Makefile.in has its own set of dependencies and when they decide
 # that one Lisp file needs to be re-compiled, we had better recompile it as

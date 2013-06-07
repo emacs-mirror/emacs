@@ -52,14 +52,14 @@ Incremental search backward (@code{isearch-backward}).
 @end table
 
 @menu
-* Basic Isearch::       Basic incremental search commands.
-* Repeat Isearch::      Searching for the same string again.
-* Error in Isearch::    When your string is not found.
-* Special Isearch::     Special input in incremental search.
-* Isearch Yank::        Commands that grab text into the search string
-                          or else edit the search string.
-* Isearch Scroll::      Scrolling during an incremental search.
-* Isearch Minibuffer::  Incremental search of the minibuffer history.
+* Basic Isearch::        Basic incremental search commands.
+* Repeat Isearch::       Searching for the same string again.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
+* Isearch Yank::         Commands that grab text into the search string
+                           or else edit the search string.
+* Not Exiting Isearch::  Prefix argument and scrolling commands.
+* Isearch Minibuffer::   Incremental search of the minibuffer history.
 @end menu
 
 @node Basic Isearch
@@ -332,9 +332,28 @@ alternative method to add the character after point is to enter the
 minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
 at the end of the search string in the minibuffer.
 
-@node Isearch Scroll
-@subsection Scrolling During Incremental Search
+@node Not Exiting Isearch
+@subsection Not Exiting Incremental Search
 
+This subsection describes two categories of commands which you can
+type without exiting the current incremental search, even though they
+are not themselves part of incremental search.
+
+@table @asis
+@item Prefix Arguments
+@vindex isearch-allow-prefix
+  In incremental search, when you enter a prefix argument
+(@pxref{Arguments}), by default it will apply either to the next
+action in the search or to the command that exits the search.
+
+  In previous versions of Emacs, entering a prefix argument always
+terminated the search.  You can revert to this behavior by setting the
+variable @code{isearch-allow-prefix} to @code{nil}.
+
+  When @code{isearch-allow-scroll} is non-@code{nil} (see below),
+prefix arguments always have the default behavior described above.
+
+@item Scrolling Commands
 @vindex isearch-allow-scroll
   Normally, scrolling commands exit incremental search.  If you change
 the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
@@ -366,6 +385,7 @@ This feature can be applied to any command that doesn't permanently
 change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.
+@end table
 
 @node Isearch Minibuffer
 @subsection Searching the Minibuffer

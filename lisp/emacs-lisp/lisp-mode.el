@@ -223,9 +223,11 @@ font-lock keywords will not be case sensitive."
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
   (setq-local syntax-begin-function 'beginning-of-defun)
+  (prog-prettify-install lisp--prettify-symbols-alist)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
-	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
+	   lisp-font-lock-keywords-1
+           lisp-font-lock-keywords-2)
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
@@ -447,6 +449,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :options '(turn-on-eldoc-mode)
   :type 'hook
   :group 'lisp)
+
+(defconst lisp--prettify-symbols-alist
+  '(("lambda"  . ?λ)))
 
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.

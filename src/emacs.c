@@ -1250,6 +1250,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     tzset ();
 #endif /* MSDOS */
 
+#ifdef HAVE_GFILENOTIFY
+  globals_of_gfilenotify ();
+#endif
+
 #ifdef WINDOWSNT
   globals_of_w32 ();
 #ifdef HAVE_W32NOTIFY
