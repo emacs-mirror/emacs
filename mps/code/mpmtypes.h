@@ -425,12 +425,12 @@ enum {
 };
 
 
-/* FindDelete operations -- see <design/cbs/> */
+/* FindDelete operations -- see <design/cbs/> and <design/freelist/> */
 
 enum {
   FindDeleteNONE = 1, /* don't delete after finding */
-  FindDeleteLOW,      /* delete precise size from low end */
-  FindDeleteHIGH,     /* delete precise size from high end */
+  FindDeleteLOW,      /* delete size bytes from low end of block */
+  FindDeleteHIGH,     /* delete size bytes from high end of block */
   FindDeleteENTIRE,   /* delete entire range */
   FindDeleteLIMIT     /* not a FindDelete operation; the limit of the enum. */
 };
