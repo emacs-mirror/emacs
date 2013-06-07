@@ -588,13 +588,16 @@ extraclean: distclean
 ## Arrange to make a tags table TAGS-LISP for ../lisp,
 ## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
 
-ctagsfiles1 = [xyzXYZ]*.[hcm]
-ctagsfiles2 = [a-wA-W]*.[hcm]
+ctagsfiles1 = [xyzXYZ]*.[hc]
+ctagsfiles2 = [a-wA-W]*.[hc]
+ctagsfiles3 = [a-zA-Z]*.m
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
-	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
+	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE) \
+	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles3)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags

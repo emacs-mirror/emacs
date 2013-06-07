@@ -1,3 +1,11 @@
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (ctagsfiles1, ctagsfiles2): Don't include *.m files.
+	(ctagsfiles3): New variable, includes only *.m files.
+	(TAGS): Use an explicit language name in the regular expressions,
+	to avoid transformation of '/SOMETHING' by MSYS to
+	'c:\MSYS\SOMETHING'.
+
 2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
 
 	* epaths.in: Fix commentary to PATH_SITELOADSEARCH.

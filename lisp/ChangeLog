@@ -1,3 +1,9 @@
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (TAGS TAGS-LISP): Pass the (long) list of *.el files
+	through xargs, to avoid failure due to MS-Windows limitations on
+	command-line length.
+
 2013-06-06  Glenn Morris  <rgm@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-2):
