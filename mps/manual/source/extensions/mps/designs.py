@@ -50,15 +50,15 @@ def secnum_sub(m):
 #     .. [THVV_1995] "Structure Marking"; Tom Van Vleck; 1995;
 #        <http://www.multicians.org/thvv/marking.html>.
 # to:
-#      .. [THVV_1995] Tom Van Vleck. 1995. "`Structure Marking <http://www.multicians.org/thvv/marking.html>`__".
+#     .. [THVV_1995] Tom Van Vleck. 1995. "`Structure Marking <http://www.multicians.org/thvv/marking.html>`__".
 citation = re.compile(
     r'''
-        \.\.\s+(?P<ref>\[.*?\])\s*
-        "(?P<title>.*?)"\s*
-        ;\s*(?P<author>.*?)\s*
-        (?:;\s*(?P<organization>.*?)\s*)?
+        ^\.\.\s+(?P<ref>\[.*?\])\s*
+        "(?P<title>[^"]*?)"\s*
+        ;\s*(?P<author>[^;]*?)\s*
+        (?:;\s*(?P<organization>[^;]*?)\s*)?
         ;\s*(?P<date>[0-9-]+)\s*
-        (?:;\s*<\s*(?P<url>.*?)\s*>\s*)?
+        (?:;\s*<\s*(?P<url>[^>]*?)\s*>\s*)?
         \.
     ''',
     re.VERBOSE | re.MULTILINE | re.IGNORECASE | re.DOTALL
@@ -96,7 +96,7 @@ def convert_file(name, source, dest):
     # to the whole document.
     m = index.search(s)
     if m:
-        s = index_sub(m) + s
+        s = index_sub(m) + '.. _design-{0}:\n\n'.format(name) + s
     s = mode.sub(r'', s)
     s = prefix.sub(r'.. mps:prefix:: \1', s)
     s = rst_tag.sub(r'', s)
@@ -116,7 +116,6 @@ def convert_file(name, source, dest):
     except:
         pass
     with open(dest, 'w') as out:
-        out.write('.. _design-{0}:\n\n'.format(name))
         out.write(s)
 
 # Mini-make
@@ -126,7 +125,8 @@ def convert_updated(app):
         name = os.path.splitext(os.path.basename(design))[0]
         if name == 'index': continue
         converted = 'source/design/%s.rst' % name
-        if (not os.path.isfile(converted) or
-            os.path.getmtime(converted) < os.path.getmtime(design)):
+        if (not os.path.isfile(converted)
+            or os.path.getmtime(converted) < os.path.getmtime(design)
+            or os.path.getmtime(converted) < os.path.getmtime(__file__)):
             app.info('converting design %s' % name)
             convert_file(name, design, converted)

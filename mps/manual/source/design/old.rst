@@ -40,6 +40,8 @@ Old design
     poollo
     poolmfs
     poolmrg
+    poolmv
+    poolmvt
     poolmvff
     prot
     protan
@@ -54,7 +56,9 @@ Old design
     shield
     splay
     sso1al
+    strategy
     telemetry
+    tests
     thread-manager
     thread-safety
     trace

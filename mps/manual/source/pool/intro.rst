@@ -23,10 +23,12 @@ of pools, choosing the most appropriate pool class for each.
 First, do you need the MPS to :term:`automatically <automatic memory
 management>` :term:`reclaim` :term:`unreachable` blocks? If so, you
 need an automatically managed (garbage collected) pool class and you
-should consult :ref:`Choosing an automatic pool class` below.
+should consult :ref:`pool-choose-automatic` below.
 Otherwise, you need a manually managed pool class and you should
-consult :ref:`Choosing a manual pool class` below.
+consult :ref:`pool-choose-manual` below.
 
+
+.. _pool-choose-automatic:
 
 Choosing an automatic pool class
 --------------------------------
@@ -59,6 +61,8 @@ no                      exact        :ref:`pool-ams`
 no                      weak         nothing suitable
 ======================  ===========  ===================
 
+
+.. _pool-choose-manual:
 
 Choosing a manual pool class
 ----------------------------
