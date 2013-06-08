@@ -139,9 +139,9 @@ MVT interface
     that will break is the partial freeing of large blocks.
 
     * :c:macro:`MPS_KEY_MVT_RESERVE_DEPTH` (type
-      :c:type:`mps_count_t`) is the expected hysteresis of the
-      population of the pool. When blocks are freed, the pool will
-      retain sufficient storage to allocate this many blocks of the
+      :c:type:`mps_count_t`, default 1024) is the expected hysteresis
+      of the population of the pool. When blocks are freed, the pool
+      will retain sufficient storage to allocate this many blocks of the
       mean size for near term allocations (rather than immediately
       making that storage available to other pools).
 
@@ -163,14 +163,14 @@ MVT interface
       object population does vary, at a slight cost in efficiency. The
       reserve does not guarantee any particular amount of allocation.
 
-    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`)
-      is a double from 0.0 to 1.0 (inclusive). It sets an upper
-      limit on the space overhead of an MVT pool, in case block death
-      times and allocations do not correlate well. If the free space
-      managed by the pool as a ratio of all the space managed by the
-      pool exceeds the fragmentation limit, the pool falls back to a
-      first fit allocation policy, exploiting space more efficiently
-      at a cost in time efficiency. A fragmentation limit of 0.0 would
+    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`,
+      default 0.3) is a double from 0.0 to 1.0 (inclusive). It sets an
+      upper limit on the space overhead of an MVT pool, in case block
+      death times and allocations do not correlate well. If the free
+      space managed by the pool as a ratio of all the space managed by
+      the pool exceeds the fragmentation limit, the pool falls back to a
+      first fit allocation policy, exploiting space more efficiently at
+      a cost in time efficiency. A fragmentation limit of 0.0 would
       cause the pool to operate as a first-fit pool, at a significant
       cost in time efficiency: therefore this is not permitted.
 
