@@ -1,0 +1,159 @@
+.. mode: -*- rst -*-
+
+Queue design
+============
+
+:Tag: design.mps.abq
+:Author: Gareth Rees
+:Date: 2013-05-20
+:Status: complete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the ABQ module, which implements a
+fixed-length queue of small objects.
+
+_`.readership`: This document is intended for any MM developer.
+
+_`.name`: The name ABQ originally stood for "Available Block Queue" as
+the module is used by the MVT pool.
+
+
+Requirements
+------------
+
+_`.req.push`: Clients can efficiently push new elements onto the queue.
+
+_`.req.pop`: Clients can efficiently pop elements from the queue.
+
+_`.req.empty`: Clients can efficiently test whether the queue is empty.
+
+_`.req.abstract`: The ABQ module does not know anything about the
+elements in the queue other than their size.
+
+_`.req.delete`: Clients can delete elements from the queue. (Note: not necessarily efficiently.)
+
+_`.req.iterate`: Clients can iterate over elements in the queue.
+
+
+Interface
+---------
+
+``typedef ABQStruct *ABQ``
+
+``ABQ`` is the type of a queue. It is an alias for ``ABQStruct *``.
+``ABQStruct`` is defined in the header so that it can be inlined in
+client structures: clients must not depend on its implementation
+details.
+
+``ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)``
+
+Initialize the queue ``abq``. The parameter ``arena`` is the arena
+whose control pool should be used to allocate the memory for the
+queue; ``owner`` is passed to ``MeterInit()`` for the statistics;
+``elements`` is the maximum number of elements that can be stored in
+the queue; and ``elementSize`` is the size of each element.
+
+``void ABQFinish(Arena arena, ABQ abq)``
+
+Finish ``abq`` and free all resources associated with it.
+
+``Res ABQPush(ABQ abq, void *element)``
+
+If the queue is full, leave it unchanged and return ``ResFAIL``.
+Otherwise, push ``element`` on to the queue and return ``ResOK``.
+
+``Res ABQPop(ABQ abq, void *elementReturn)``
+
+If the queue is empty, return ``ResFAIL``. Othwreise, copy the first
+element on the queue into the memory pointed to by ``elementReturn``,
+remove the element from the queue, and return ``ResOK``.
+
+``Res ABQPeek(ABQ abq, void *elementReturn)``
+
+If the queue is empty, return ``ResFAIL``. Otherwise, copy the first
+element on the queue into the memory pointed to by ``elementReturn``
+and return ``ResOK``. (This is the same as ``ABQPop()`` except that
+the queue is unchanged.)
+
+``Bool ABQIsEmpty(ABQ abq)``
+
+If the queue is empty, return ``TRUE``, otherwise return ``FALSE``.
+
+``Bool ABQIsFull(ABQ abq)``
+
+If the queue is full, return ``TRUE``, otherwise return ``FALSE``.
+
+``Count ABQDepth(ABQ abq)``
+
+Return the number of elements in the queue.
+
+``typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS)``
+
+A callback function for ``ABQIterate()``. The parameter ``element`` is
+an element in the queue, and ``closureP`` and ``closureS`` are the
+values that were originally passed to ``ABQIterate()``. This function
+must set ``*deleteReturn`` to ``FALSE`` if ``element`` must be kept in
+the queue, or ``TRUE`` if ``element`` must be deleted from the queue.
+It must return ``TRUE`` if the iteration must continue, or ``FALSE``
+if the iteration must stop after processing ``element``.
+
+``void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)``
+
+Call ``iterate`` for each elements in the queue, passing the element
+and ``closureP``. See ``ABQIterateMethod`` for details.
+
+
+Document History
+----------------
+
+- 2013-05-20 GDR_ Created.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

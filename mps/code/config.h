@@ -219,6 +219,11 @@
 #define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
+/* CBS Configuration -- see <code/cbs.c> */
+
+#define CBS_EXTEND_BY_DEFAULT ((Size)4096)
+
+
 /* Format defaults: see <code/format.c> */
 
 #define FMT_ALIGN_DEFAULT ((Align)MPS_PF_ALIGN)
@@ -229,6 +234,7 @@
 #define FMT_ISFWD_DEFAULT (&FormatNoIsMoved)
 #define FMT_PAD_DEFAULT (&FormatNoPad)
 #define FMT_CLASS_DEFAULT (&FormatDefaultClass)
+
 
 /* Pool MV Configuration -- see <code/poolmv.c> */
 
@@ -252,9 +258,10 @@
 #define MVFF_FIRST_FIT_DEFAULT   TRUE
 
 
-/* Pool MVT Configuration -- see <code.poolmv2.c> */
+/* Pool MVT Configuration -- see <code/poolmv2.c> */
 /* FIXME: These numbers were lifted from mv2test and need thought. */
 
+#define MVT_ALIGN_DEFAULT         MPS_PF_ALIGN
 #define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN
 #define MVT_MEAN_SIZE_DEFAULT     32
 #define MVT_MAX_SIZE_DEFAULT      8192

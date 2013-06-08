@@ -115,7 +115,7 @@ $(PFM)\cool\mps.lib: \
 !IFDEF VARIETY
 
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
-	$(PFM)\$(VARIETY)\abq.obj $(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
@@ -152,20 +152,23 @@ $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
+$(PFM)\$(VARIETY)\fbmtest.exe: $(PFM)\$(VARIETY)\fbmtest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
+	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
@@ -192,7 +195,6 @@ $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
-	$(PFM)\$(VARIETY)\poolmv2.obj $(PFM)\$(VARIETY)\abq.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \

@@ -214,6 +214,11 @@ extern void rnd_verify(int depth);
 extern mps_addr_t rnd_addr(void);
 
 
+/* rnd_double -- uniformly distributed random number between 0.0 and 1.0 */
+
+extern double rnd_double(void);
+
+
 /* randomize -- randomize the generator, or initialize to replay
  *
  * randomize(argc, argv) randomizes the rnd generator (using time(3))
