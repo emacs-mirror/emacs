@@ -221,7 +221,7 @@ LIB_TARGETS=mps.a mpsplan.a
 # If it is suitable for running regularly (for example, after every
 # build) as an automated test case, add it to AUTO_TEST_TARGETS.
 
-AUTO_TEST_TARGETS=abqtest amcss amcsshe amcssth amsss amssshe apss      \
+AUTO_TEST_TARGETS=abqtest amcss amcsshe amsss amssshe apss      \
     arenacv awlut awluthe btcv exposet0 expt825 fbmtest finalcv         \
     finaltest fotest lockcov locv messtest mpmss mpsicv mv2test         \
     poolncv qs sacss segsmss steptest walkt0 zmess
