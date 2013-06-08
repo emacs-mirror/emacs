@@ -564,6 +564,8 @@ definitions can also be stored in files and used in batch mode."
   (setq-local imenu-generic-expression octave-mode-imenu-generic-expression)
   (setq-local imenu-case-fold-search nil)
 
+  (setq-local add-log-current-defun-function #'octave-add-log-current-defun)
+
   (add-hook 'completion-at-point-functions 'octave-completion-at-point nil t)
   (add-hook 'before-save-hook 'octave-sync-function-file-names nil t)
   (setq-local beginning-of-defun-function 'octave-beginning-of-defun)
@@ -977,15 +979,16 @@ directory and makes this the current buffer's default directory."
 
 (defun octave-goto-function-definition (fn)
   "Go to the function definition of FN in current buffer."
-  (goto-char (point-min))
   (let ((search
          (lambda (re sub)
-           (let (done)
-             (while (and (not done) (re-search-forward re nil t))
+           (let ((orig (point)) found)
+             (goto-char (point-min))
+             (while (and (not found) (re-search-forward re nil t))
                (when (and (equal (match-string sub) fn)
                           (not (nth 8 (syntax-ppss))))
-                 (setq done t)))
-             (or done (goto-char (point-min)))))))
+                 (setq found t)))
+             (unless found (goto-char orig))
+             found))))
     (pcase (file-name-extension (buffer-file-name))
       (`"cc" (funcall search
                       "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
@@ -1347,8 +1350,6 @@ The block marked is the one that contains point or follows point."
               (forward-line 1))))
       t)))
 
-;;; Completions
-
 (defun octave-completion-at-point ()
   "Find the text to complete and the corresponding table."
   (let* ((beg (save-excursion (skip-syntax-backward "w_") (point)))
@@ -1365,6 +1366,16 @@ The block marked is the one that contains point or follows point."
 
 (define-obsolete-function-alias 'octave-complete-symbol
   'completion-at-point "24.1")
+
+(defun octave-add-log-current-defun ()
+  "A function for `add-log-current-defun-function' (which see)."
+  (save-excursion
+    (end-of-line)
+    (and (beginning-of-defun)
+         (re-search-forward octave-function-header-regexp
+                            (line-end-position) t)
+         (match-string 3))))
+
 
 ;;; Electric characters && friends
 (define-skeleton octave-insert-defun
@@ -1389,7 +1400,7 @@ entered without parens)."
   "function " > str \n
   _ \n
   "endfunction" > \n)
-
+
 ;;; Communication with the inferior Octave process
 (defun octave-kill-process ()
   "Kill inferior Octave process and its buffer."
@@ -1703,26 +1714,29 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
 Functions implemented in C++ can be found if
 `octave-source-directories' is set correctly."
   (interactive (list (octave-completing-read)))
-  (inferior-octave-send-list-and-digest
-   ;; help NAME is more verbose
-   (list (format "\
+  (require 'etags)
+  (let ((orig (point)))
+    (if (octave-goto-function-definition fn)
+        (ring-insert find-tag-marker-ring (copy-marker orig))
+      (inferior-octave-send-list-and-digest
+       ;; help NAME is more verbose
+       (list (format "\
 if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
-                 fn fn fn)))
-  (let (line file)
-    ;; Skip garbage lines such as
-    ;;     warning: fmincg.m: possible Matlab-style ....
-    (while (and (not file) (consp inferior-octave-output-list))
-      (setq line (pop inferior-octave-output-list))
-      (when (string-match "from the file \\(.*\\)$" line)
-        (setq file (match-string 1 line))))
-    (if (not file)
-        (user-error "%s" (or line (format "`%s' not found" fn)))
-      (require 'etags)
-      (ring-insert find-tag-marker-ring (point-marker))
-      (setq file (funcall octave-find-definition-filename-function file))
-      (when file
-        (find-file file)
-        (octave-goto-function-definition fn)))))
+                     fn fn fn)))
+      (let (line file)
+        ;; Skip garbage lines such as
+        ;;     warning: fmincg.m: possible Matlab-style ....
+        (while (and (not file) (consp inferior-octave-output-list))
+          (setq line (pop inferior-octave-output-list))
+          (when (string-match "from the file \\(.*\\)$" line)
+            (setq file (match-string 1 line))))
+        (if (not file)
+            (user-error "%s" (or line (format "`%s' not found" fn)))
+          (ring-insert find-tag-marker-ring (point-marker))
+          (setq file (funcall octave-find-definition-filename-function file))
+          (when file
+            (find-file file)
+            (octave-goto-function-definition fn)))))))
 
 
 (provide 'octave)

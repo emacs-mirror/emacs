@@ -1,3 +1,10 @@
+2013-06-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-add-log-current-defun): New function.
+	(octave-mode): Set add-log-current-defun-function.
+	(octave-goto-function-definition): Do not move point if not found.
+	(octave-find-definition): Enhance to try subfunctions first.
+
 2013-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-char-before)
