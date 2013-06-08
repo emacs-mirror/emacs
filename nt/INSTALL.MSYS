@@ -373,14 +373,10 @@ Windows 9X as well).
   installation, and you want Emacs to continue using it, specify it
   via the --enable-locallisppath switch to msysconfig.sh, like this:
 
-   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="%emacs_dir%/share/emacs/VERSION/site-lisp;/d/wherever/site-lisp"
+   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
 
-  The %emacs_dir% part is the root of the Emacs installation tree, it
-  will get expanded by Emacs when it starts up.  Using %emacs_dir%,
-  you can add directories relative to your Emacs installation, which
-  will continue to be valid if you move the entire Emacs tree into
-  another place on your disk.  Use the normal MSYS /d/foo/bar style to
-  specify directories by their absolute file names.
+  Use the normal MSYS /d/foo/bar style to specify directories by their
+  absolute file names.
 
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
