@@ -11,12 +11,12 @@ Release 1.112.0
 Interface changes
 .................
 
-1. In the :term:`hot` (production) variety, the MPS now prints
-   assertion messages to standard error but does *not* terminate the
-   program. This is because most assertions do not indicate *fatal*
-   error conditions, and continuing gives the application a chance to
-   shut down safely and save work, or even to limp along indefinitely.
-   See :ref:`topic-error-assertion-handling`.
+1. In the :term:`hot` (production) variety, the default assertion handler
+   now prints messages to standard error but does *not* terminate the
+   program. Even though assertions indicate serious problems in the
+   program, an end-user does not want an application to terminate when
+   there is a chance to shut down safely and save work, or even to limp
+   along indefinitely.  See :ref:`topic-error-assertion-handling`.
 
 2. The behaviour when an assertion is triggered is now configurable in
    the standard ANSI :term:`plinth` by installing an assertion
