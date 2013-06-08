@@ -3,7 +3,7 @@
 # fri3gc.gmk: BUILD FOR FreeBSD/i386/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
 
 PFM = fri3gc
 
@@ -11,13 +11,16 @@ MPMPF = lockix.c thix.c pthrdext.c vmix.c \
         protix.c protsgix.c prmcan.c prmci3fr.c ssixi3.c span.c
 
 LIBS = -lm -pthread
-LINKFLAGS = -L/usr/local/lib
 
 include gc.gmk
 
 # FIXME: We pun types through the MPS interface, setting off this warning.
 # Can we avoid this?  The puns might indeed be dangerous.
-CFLAGSCOMPILER := $(CFLAGSCOMPILER) -Wno-strict-aliasing -I/usr/local/include
+CFLAGSCOMPILER += -Wno-strict-aliasing
+
+# For SQLite3.
+LINKFLAGS += -L/usr/local/lib
+CFLAGSCOMPILER += -I/usr/local/include
 
 CC = cc
 
@@ -26,7 +29,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
