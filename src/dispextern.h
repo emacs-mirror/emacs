@@ -1881,6 +1881,7 @@ struct bidi_it {
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
   struct bidi_string_data string;	/* string to reorder */
+  struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   ptrdiff_t separator_limit;	/* where paragraph separator should end */
   unsigned prev_was_pdf : 1;	/* if non-zero, previous char was PDF */
@@ -3077,7 +3078,7 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
-					     int, int *);
+					     struct window *, int, int *);
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);

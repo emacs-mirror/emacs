@@ -2650,6 +2650,7 @@ init_iterator (struct it *it, struct window *w,
   it->bidi_it.string.lstring = Qnil;
   it->bidi_it.string.s = NULL;
   it->bidi_it.string.bufpos = 0;
+  it->bidi_it.w = w;
 
   /* The window in which we iterate over current_buffer:  */
   XSETWINDOW (it->window, w);
@@ -3124,6 +3125,7 @@ init_from_display_pos (struct it *it, struct window *w, struct display_pos *pos)
 	  it->bidi_it.string.bufpos = it->overlay_strings_charpos;
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (IT_STRING_CHARPOS (*it), IT_STRING_BYTEPOS (*it),
 			FRAME_WINDOW_P (it->f), &it->bidi_it);
 
@@ -3490,11 +3492,11 @@ next_overlay_change (ptrdiff_t pos)
 ptrdiff_t
 compute_display_string_pos (struct text_pos *position,
 			    struct bidi_string_data *string,
+			    struct window *w,
 			    int frame_window_p, int *disp_prop)
 {
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object =
-    (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
+  Lisp_Object object, object1;
   Lisp_Object pos, spec, limpos;
   int string_p = (string && (STRINGP (string->lstring) || string->s));
   ptrdiff_t eob = string_p ? string->schars : ZV;
@@ -3504,6 +3506,17 @@ compute_display_string_pos (struct text_pos *position,
     (charpos < eob - MAX_DISP_SCAN) ? charpos + MAX_DISP_SCAN : eob;
   struct text_pos tpos;
   int rv = 0;
+
+  if (string && STRINGP (string->lstring))
+    object1 = object = string->lstring;
+  else if (!string_p)
+    {
+      eassert (w != NULL);
+      XSETWINDOW (object, w);
+      object1 = Qnil;
+    }
+  else
+    object1 = object = Qnil;
 
   *disp_prop = 1;
 
@@ -3543,7 +3556,7 @@ compute_display_string_pos (struct text_pos *position,
      that will replace the underlying text when displayed.  */
   limpos = make_number (lim);
   do {
-    pos = Fnext_single_char_property_change (pos, Qdisplay, object, limpos);
+    pos = Fnext_single_char_property_change (pos, Qdisplay, object1, limpos);
     CHARPOS (tpos) = XFASTINT (pos);
     if (CHARPOS (tpos) >= lim)
       {
@@ -5031,6 +5044,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	      it->bidi_it.string.bufpos = bufpos;
 	      it->bidi_it.string.from_disp_str = 1;
 	      it->bidi_it.string.unibyte = !it->multibyte_p;
+	      it->bidi_it.w = it->w;
 	      bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	    }
 	}
@@ -5409,6 +5423,7 @@ next_overlay_string (struct it *it)
 	  it->bidi_it.string.bufpos = it->overlay_strings_charpos;
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
     }
@@ -5712,6 +5727,7 @@ get_overlay_strings_1 (struct it *it, ptrdiff_t charpos, int compute_stop_p)
 	  it->bidi_it.string.bufpos = pos;
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
       return 1;
@@ -6344,6 +6360,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.string.lstring = Qnil;
       it->bidi_it.string.bufpos = 0;
       it->bidi_it.string.unibyte = 0;
+      it->bidi_it.w = it->w;
     }
 
   if (set_stop_p)
@@ -6421,6 +6438,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (charpos, IT_STRING_BYTEPOS (*it),
 			FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
@@ -6452,6 +6470,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
 			&it->bidi_it);
 	}
@@ -18921,6 +18940,7 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
 	  it->bidi_it.string.bufpos = IT_CHARPOS (*it);
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  it->bidi_it.w = it->w;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
     }
@@ -19990,6 +20010,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.string.lstring = Qnil;
       itb.string.bufpos = 0;
       itb.string.unibyte = 0;
+      itb.w = XWINDOW (selected_window);
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
       bidi_unshelve_cache (itb_data, 0);
       set_buffer_temp (old);
