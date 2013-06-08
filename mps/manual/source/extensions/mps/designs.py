@@ -124,6 +124,7 @@ def convert_updated(app):
     app.info(bold('converting MPS design documents'))
     for design in glob.iglob('../design/*.txt'):
         name = os.path.splitext(os.path.basename(design))[0]
+        if name == 'index': continue
         converted = 'source/design/%s.rst' % name
         if (not os.path.isfile(converted) or
             os.path.getmtime(converted) < os.path.getmtime(design)):
