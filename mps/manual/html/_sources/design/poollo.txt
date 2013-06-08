@@ -1,9 +1,9 @@
-.. _design-poollo:
-
 
 .. index::
    pair: LO pool class; design
    single: pool class; LO design
+
+.. _design-poollo:
 
 
 LO pool class

@@ -59,7 +59,7 @@
 <div class="admonition-deprecated admonition">
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.111.</p>
-<p class="last"><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> should be used instead.</p>
+<p class="last"><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> or <a class="reference internal" href="mvt.html#pool-mvt"><em>MVT (Manual Variable Temporal)</em></a> should be used instead.</p>
 </div>
 <p><strong>MV</strong> is a general-purpose <a class="reference internal" href="../glossary/m.html#term-manual-memory-management"><em class="xref std std-term">manually managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool-class"><em class="xref std std-term">pool class</em></a> that manages <a class="reference internal" href="../glossary/b.html#term-block"><em class="xref std std-term">blocks</em></a> of
 variable size.</p>
@@ -127,11 +127,11 @@ less efficient if these are wrong, but nothing will break.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the segment size,
 mean size, and maximum size like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mv</span><span class="p">(),</span>
-                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_mv</span><span class="p">(),</span>
+                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -152,12 +152,12 @@ specifies the debugging options. See <tt class="xref c c-type docutils literal">
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the debugging
 options, segment size, mean size, and maximum size like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mv_debug</span><span class="p">(),</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_mv_debug</span><span class="p">(),</span>
                           <span class="n">mps_debug_option_s</span> <span class="n">debug_option</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
+                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">maximum_size</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

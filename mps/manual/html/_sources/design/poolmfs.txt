@@ -1,9 +1,9 @@
-.. _design-poolmfs:
-
 
 .. index::
    pair: MFS pool class; design
    single: pool class; MFS design
+
+.. _design-poolmfs:
 
 
 MFS pool class

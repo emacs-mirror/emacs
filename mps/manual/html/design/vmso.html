@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>51. VM for Solaris &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>55. VM for Solaris &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="52. The WriteF function" href="writef.html" />
-    <link rel="prev" title="50. VM for Digital Unix" href="vmo1.html" /> 
+    <link rel="next" title="56. The WriteF function" href="writef.html" />
+    <link rel="prev" title="54. VM for Digital Unix" href="vmo1.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="writef.html" title="52. The WriteF function"
+          <a href="writef.html" title="56. The WriteF function"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="vmo1.html" title="50. VM for Digital Unix"
+          <a href="vmo1.html" title="54. VM for Digital Unix"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,15 +54,15 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-vmso"></span><div class="section" id="vm-for-solaris">
-<span id="index-0"></span><h1>51. VM for Solaris<a class="headerlink" href="#vm-for-solaris" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="vm-for-solaris">
+<span id="design-vmso"></span><span id="index-0"></span><h1>55. VM for Solaris<a class="headerlink" href="#vm-for-solaris" title="Permalink to this headline">¶</a></h1>
 <div class="admonition warning" id="design.mps.vmso">
 <p class="first admonition-title">Warning</p>
 <p class="last">As of 2013-05-26, the MPS is no longer supported on Solaris, so
 this document is only of historical interest.</p>
 </div>
 <div class="section" id="introduction">
-<h2>51.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>55.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmso.intro"></span><a class="mpstag reference internal" href="#design.mps.vmso.intro">.intro:</a> This is the design for the VM implementation on Solaris 2.x
 (see os.so for OS details). The implementation is in MMsrc!vmso.c
 (impl.c.vm). The design follows the design for and implements the
@@ -78,11 +78,11 @@ as well. The generic interface and some generic design is in
 design.mps.vm.</p>
 </div>
 <div class="section" id="definitions">
-<h2>51.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>55.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmso.def"></span><a class="mpstag reference internal" href="#design.mps.vmso.def">.def:</a> See design.mps.vm.def.* for definitions common to all VMs.</p>
 </div>
 <div class="section" id="overview">
-<h2>51.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>55.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmso.over"></span><a class="mpstag reference internal" href="#design.mps.vmso.over">.over:</a> The system calls <tt class="xref c c-func docutils literal"><span class="pre">mmap()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">munmap()</span></tt> are used to
 access the underlying functionality. They are used in slightly unusual
 ways, typically to overcome baroque features or implementation details
@@ -96,7 +96,7 @@ created.</p>
 remove all the mappings previously created.</p>
 </div>
 <div class="section" id="implementation">
-<h2>51.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>55.4. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmso.impl.create"></span><a class="mpstag reference internal" href="#design.mps.vmso.impl.create">.impl.create:</a> <a class="reference internal" href="vm.html#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a></p>
 <p><span class="target" id="design.mps.vmso.impl.create.vmstruct"></span><a class="mpstag reference internal" href="#design.mps.vmso.impl.create.vmstruct">.impl.create.vmstruct:</a> Enough pages to hold the <tt class="xref c c-type docutils literal"><span class="pre">VMStruct</span></tt> are
 allocated by creating a mapping to <tt class="docutils literal"><span class="pre">/dev/zero</span></tt> (a read/write private
@@ -172,21 +172,21 @@ the existing mapping to <tt class="docutils literal"><span class="pre">/etc/pass
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">51. VM for Solaris</a><ul>
-<li><a class="reference internal" href="#introduction">51.1. Introduction</a></li>
-<li><a class="reference internal" href="#definitions">51.2. Definitions</a></li>
-<li><a class="reference internal" href="#overview">51.3. Overview</a></li>
-<li><a class="reference internal" href="#implementation">51.4. Implementation</a></li>
+<li><a class="reference internal" href="#">55. VM for Solaris</a><ul>
+<li><a class="reference internal" href="#introduction">55.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">55.2. Definitions</a></li>
+<li><a class="reference internal" href="#overview">55.3. Overview</a></li>
+<li><a class="reference internal" href="#implementation">55.4. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="vmo1.html"
-                        title="previous chapter">50. VM for Digital Unix</a></p>
+                        title="previous chapter">54. VM for Digital Unix</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="writef.html"
-                        title="next chapter">52. The WriteF function</a></p><h4>Downloads</h4>
+                        title="next chapter">56. The WriteF function</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -212,10 +212,10 @@ the existing mapping to <tt class="docutils literal"><span class="pre">/etc/pass
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="writef.html" title="52. The WriteF function"
+          <a href="writef.html" title="56. The WriteF function"
              >next</a> |</li>
         <li class="right" >
-          <a href="vmo1.html" title="50. VM for Digital Unix"
+          <a href="vmo1.html" title="54. VM for Digital Unix"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

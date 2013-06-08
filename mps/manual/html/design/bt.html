@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-bt"></span><div class="section" id="bit-tables">
-<span id="index-0"></span><h1>4. Bit tables<a class="headerlink" href="#bit-tables" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="bit-tables">
+<span id="design-bt"></span><span id="index-0"></span><h1>4. Bit tables<a class="headerlink" href="#bit-tables" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <span id="design.mps.bt"></span><h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.bt.intro"></span><a class="mpstag reference internal" href="#design.mps.bt.intro">.intro:</a> This is the design of the Bit Tables module. A Bit Table is a
@@ -400,7 +400,7 @@ now return 0 for <tt class="docutils literal"><span class="pre">base</span></tt>
 otherwise. Meets <a class="reference internal" href="#design.mps.bt.non-req.ops.test.range.same">.non-req.ops.test.range.same</a>.</p>
 <p><span class="target" id="design.mps.bt.if.find.general"></span><a class="mpstag reference internal" href="#design.mps.bt.if.find.general">.if.find.general:</a> There are four functions (below) to find reset
 ranges. All the functions have the same prototype (for symmetry):</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">Bool</span> <span class="nf">find</span><span class="p">(</span><span class="n">Index</span> <span class="o">*</span><span class="n">baseReturn</span><span class="p">,</span> <span class="n">Index</span> <span class="o">*</span><span class="n">limitReturn</span><span class="p">,</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">Bool</span> <span class="n">find</span><span class="p">(</span><span class="n">Index</span> <span class="o">*</span><span class="n">baseReturn</span><span class="p">,</span> <span class="n">Index</span> <span class="o">*</span><span class="n">limitReturn</span><span class="p">,</span>
           <span class="n">BT</span> <span class="n">bt</span><span class="p">,</span>
           <span class="n">Index</span> <span class="n">searchBase</span><span class="p">,</span> <span class="n">Index</span> <span class="n">searchLimit</span><span class="p">,</span>
           <span class="n">Count</span> <span class="n">length</span><span class="p">);</span>

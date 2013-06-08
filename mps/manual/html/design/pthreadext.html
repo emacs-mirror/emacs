@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>33. POSIX thread extensions &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>35. POSIX thread extensions &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="34. The low-memory reservoir" href="reservoir.html" />
-    <link rel="prev" title="32. Protocol inheritance" href="protocol.html" /> 
+    <link rel="next" title="36. The low-memory reservoir" href="reservoir.html" />
+    <link rel="prev" title="34. Protocol inheritance" href="protocol.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="reservoir.html" title="34. The low-memory reservoir"
+          <a href="reservoir.html" title="36. The low-memory reservoir"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="32. Protocol inheritance"
+          <a href="protocol.html" title="34. Protocol inheritance"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-pthreadext"></span><div class="section" id="posix-thread-extensions">
-<span id="index-0"></span><h1>33. POSIX thread extensions<a class="headerlink" href="#posix-thread-extensions" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="posix-thread-extensions">
+<span id="design-pthreadext"></span><span id="index-0"></span><h1>35. POSIX thread extensions<a class="headerlink" href="#posix-thread-extensions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.pthreadext"></span><h2>33.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.pthreadext"></span><h2>35.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pthreadext.readership"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.pthreadext.intro"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.intro">.intro:</a> This is the design of the Pthreads extension module, which
 provides some low-level threads support for use by MPS (notably
 suspend and resume).</p>
 </div>
 <div class="section" id="definitions">
-<h2>33.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>35.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pthreadext.pthreads"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.pthreads">.pthreads:</a> The term &#8220;Pthreads&#8221; means an implementation of the POSIX
 1003.1c-1995 thread standard. (Or the Single UNIX Specification,
 Version 2, aka USV2 or UNIX98.)</p>
@@ -73,7 +73,7 @@ OS-defined structure which describes the current state of the
 registers for that thread.</p>
 </div>
 <div class="section" id="requirements">
-<h2>33.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>35.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pthreadext.req.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend">.req.suspend:</a> A means to suspend threads, so that they don&#8217;t make
 any progress.</p>
 <p><span class="target" id="design.mps.pthreadext.req.suspend.why"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.req.suspend.why">.req.suspend.why:</a> Needed by the thread manager so that other
@@ -101,7 +101,7 @@ thread might even own an arena lock.</p>
 manner.</p>
 </div>
 <div class="section" id="analysis">
-<h2>33.4. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>35.4. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.pthreadext.anal.suspend"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.anal.suspend">.anal.suspend:</a> Thread suspension is inherently asynchronous. MPS
 needs to be able to suspend another thread without prior knowledge of
 the code that thread is running. (That is, we can&#8217;t rely on
@@ -144,7 +144,7 @@ requirement for Dylan (req.dylan.dc.env.self), though this is not a
 problem, since all the Dylan components share the MPS mechanism.</p>
 </div>
 <div class="section" id="interface">
-<h2>33.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>35.5. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="PThreadext">
 <a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct">PThreadextStruct</a> *<tt class="descname">PThreadext</tt><a class="headerlink" href="#PThreadext" title="Permalink to this definition">¶</a></dt>
@@ -205,7 +205,7 @@ void <tt class="descname">PThreadextFinish</tt><big>(</big><a class="reference i
 <p><span class="target" id="design.mps.pthreadext.if.finish"></span><a class="mpstag reference internal" href="#design.mps.pthreadext.if.finish">.if.finish:</a> Finishes a PThreadext object.</p>
 </div>
 <div class="section" id="implementation">
-<h2>33.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>35.6. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="PThreadextStruct">
 struct <a class="reference internal" href="#PThreadextStruct" title="PThreadextStruct">PThreadextStruct</a> <tt class="descname">PThreadextStruct</tt><a class="headerlink" href="#PThreadextStruct" title="Permalink to this definition">¶</a></dt>
@@ -215,7 +215,7 @@ struct <a class="reference internal" href="#PThreadextStruct" title="PThreadextS
 object is:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">PThreadextStruct</span> <span class="p">{</span>
   <span class="n">Sig</span> <span class="n">sig</span><span class="p">;</span>                         <span class="cm">/* design.mps.sig */</span>
-  <span class="kt">pthread_t</span> <span class="n">id</span><span class="p">;</span>                    <span class="cm">/* Thread ID */</span>
+  <span class="n">pthread_t</span> <span class="n">id</span><span class="p">;</span>                    <span class="cm">/* Thread ID */</span>
   <span class="k">struct</span> <span class="n">sigcontext</span> <span class="o">*</span><span class="n">suspendedScp</span><span class="p">;</span> <span class="cm">/* sigcontext if suspended */</span>
   <span class="n">RingStruct</span> <span class="n">threadRing</span><span class="p">;</span>           <span class="cm">/* ring of suspended threads */</span>
   <span class="n">RingStruct</span> <span class="n">idRing</span><span class="p">;</span>               <span class="cm">/* duplicate suspensions for id */</span>
@@ -336,12 +336,12 @@ they may be easily mapped to appropriate real signal values. Candidate
 choices are <tt class="xref c c-macro docutils literal"><span class="pre">SIGXFSZ</span></tt> and <tt class="xref c c-macro docutils literal"><span class="pre">SIGPWR</span></tt>.</p>
 </div>
 <div class="section" id="attachments">
-<h2>33.7. Attachments<a class="headerlink" href="#attachments" title="Permalink to this headline">¶</a></h2>
+<h2>35.7. Attachments<a class="headerlink" href="#attachments" title="Permalink to this headline">¶</a></h2>
 <p>[missing attachment &#8220;posix.txt&#8221;]</p>
 <p>[missing attachment &#8220;susp.c&#8221;]</p>
 </div>
 <div class="section" id="references">
-<h2>33.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>35.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="butenhof-1999-08-16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -368,25 +368,25 @@ choices are <tt class="xref c c-macro docutils literal"><span class="pre">SIGXFS
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">33. POSIX thread extensions</a><ul>
-<li><a class="reference internal" href="#introduction">33.1. Introduction</a></li>
-<li><a class="reference internal" href="#definitions">33.2. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">33.3. Requirements</a></li>
-<li><a class="reference internal" href="#analysis">33.4. Analysis</a></li>
-<li><a class="reference internal" href="#interface">33.5. Interface</a></li>
-<li><a class="reference internal" href="#implementation">33.6. Implementation</a></li>
-<li><a class="reference internal" href="#attachments">33.7. Attachments</a></li>
-<li><a class="reference internal" href="#references">33.8. References</a></li>
+<li><a class="reference internal" href="#">35. POSIX thread extensions</a><ul>
+<li><a class="reference internal" href="#introduction">35.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">35.2. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">35.3. Requirements</a></li>
+<li><a class="reference internal" href="#analysis">35.4. Analysis</a></li>
+<li><a class="reference internal" href="#interface">35.5. Interface</a></li>
+<li><a class="reference internal" href="#implementation">35.6. Implementation</a></li>
+<li><a class="reference internal" href="#attachments">35.7. Attachments</a></li>
+<li><a class="reference internal" href="#references">35.8. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="previous chapter">32. Protocol inheritance</a></p>
+                        title="previous chapter">34. Protocol inheritance</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="reservoir.html"
-                        title="next chapter">34. The low-memory reservoir</a></p><h4>Downloads</h4>
+                        title="next chapter">36. The low-memory reservoir</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -412,10 +412,10 @@ choices are <tt class="xref c c-macro docutils literal"><span class="pre">SIGXFS
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="reservoir.html" title="34. The low-memory reservoir"
+          <a href="reservoir.html" title="36. The low-memory reservoir"
              >next</a> |</li>
         <li class="right" >
-          <a href="protocol.html" title="32. Protocol inheritance"
+          <a href="protocol.html" title="34. Protocol inheritance"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

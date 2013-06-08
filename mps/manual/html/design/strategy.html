@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>MPS Strategy &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>43. MPS Strategy &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -26,7 +26,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="44. Telemetry" href="telemetry.html" />
+    <link rel="prev" title="42. Stack scanner for Digital Unix on Alpha" href="sso1al.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +38,14 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="telemetry.html" title="44. Telemetry"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sso1al.html" title="42. Stack scanner for Digital Unix on Alpha"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,14 +55,14 @@
           <div class="body">
             
   <div class="section" id="mps-strategy">
-<span id="design-strategy"></span><h1>MPS Strategy<a class="headerlink" href="#mps-strategy" title="Permalink to this headline">¶</a></h1>
+<h1>43. MPS Strategy<a class="headerlink" href="#mps-strategy" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.strategy"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.strategy"></span><h2>43.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="intro">.intro</span> This is the design of collection strategy for the MPS.</p>
 <p><span class="target" id="readership">.readership</span> MPS developers.</p>
 </div>
 <div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>43.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="id1">.overview</span> The MPS uses &#8220;strategy&#8221; code to make three decisions:</p>
 <ul class="simple">
 <li>when to start a collection trace;</li>
@@ -64,7 +74,7 @@ weaknesses in it, and outlines some possible future development
 directions.</p>
 </div>
 <div class="section" id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>43.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p>[TODO: source some from req.dylan, or do an up-to-date requirements
 analysis &#8211; NB 2013-03-25]</p>
 <p>Garbage collection is a trade-off between time and space: it consumes
@@ -102,13 +112,13 @@ object should be kept in the same cache line as that one&#8221;), to improve
 cache locality.</p>
 </div>
 <div class="section" id="generations">
-<h2>Generations<a class="headerlink" href="#generations" title="Permalink to this headline">¶</a></h2>
+<h2>43.4. Generations<a class="headerlink" href="#generations" title="Permalink to this headline">¶</a></h2>
 <p>The largest part of the current MPS strategy implementation is the
 support for generational GC.  Generations are only fully supported for
 AMC (and AMCZ) pools.  See under &#8220;Non-AMC Pools&#8221;, below, for more
 information.</p>
 <div class="section" id="data-structures">
-<h3>Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.1. Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h3>
 <p>The fundamental structure of generational GC is the <tt class="docutils literal"><span class="pre">Chain</span></tt>,
 which describes a set of generations.  A chain is created by client
 code calling <a class="reference internal" href="../topic/collection.html#mps_chain_create" title="mps_chain_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_chain_create()</span></tt></a>, specifying the &#8220;size&#8221; and
@@ -160,7 +170,7 @@ on, each AMC pool has an array of <tt class="xref c c-type docutils literal"><sp
 intended to help to assess AMC page retention code.  See job001811.</p>
 </div>
 <div class="section" id="zones">
-<h3>Zones<a class="headerlink" href="#zones" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.2. Zones<a class="headerlink" href="#zones" title="Permalink to this headline">¶</a></h3>
 <p>All collections in the MPS start with condemnation of a complete
 <tt class="docutils literal"><span class="pre">ZoneSet</span></tt>.  Each generation in each chain has a zoneset
 associated with it (<tt class="docutils literal"><span class="pre">chain-&gt;gen[N].zones</span></tt>); the condemned
@@ -215,7 +225,7 @@ The arena-wide per-generation-number zoneset
 shrink.</p>
 </div>
 <div class="section" id="accounting">
-<h3>Accounting<a class="headerlink" href="#accounting" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.3. Accounting<a class="headerlink" href="#accounting" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">gen[N].mortality</span></tt><ul>
 <li>Specified by the client.</li>
@@ -257,7 +267,7 @@ shrink.</p>
 </ul>
 </div>
 <div class="section" id="ramps">
-<h3>Ramps<a class="headerlink" href="#ramps" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.4. Ramps<a class="headerlink" href="#ramps" title="Permalink to this headline">¶</a></h3>
 <p>The intended semantics of ramping are pretty simple.  It allows the
 client to advise us of periods of large short-lived allocation on a
 particular AP.  Stuff allocated using that AP during its &#8220;ramp&#8221; will
@@ -373,7 +383,7 @@ from <tt class="docutils literal"><span class="pre">poolGen.newSize</span></tt> 
 </ul>
 </div>
 <div class="section" id="non-amc-pools">
-<h3>Non-AMC Pools<a class="headerlink" href="#non-amc-pools" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.5. Non-AMC Pools<a class="headerlink" href="#non-amc-pools" title="Permalink to this headline">¶</a></h3>
 <p>The implementations of AMS, AWL, and LO pool classes are all aware of
 generations (this is necessary because all tracing is driven by the
 generational data structures described above), but do not make use of
@@ -390,11 +400,11 @@ the <tt class="docutils literal"><span class="pre">arena-&gt;topGen</span></tt>,
 <p>Non-AMC pools have no support for ramps.</p>
 </div>
 <div class="section" id="starting-a-trace">
-<h3>Starting a Trace<a class="headerlink" href="#starting-a-trace" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.6. Starting a Trace<a class="headerlink" href="#starting-a-trace" title="Permalink to this headline">¶</a></h3>
 <p>TODO: Why do we start a trace?  How do we choose what to condemn?</p>
 </div>
 <div class="section" id="trace-progress">
-<h3>Trace Progress<a class="headerlink" href="#trace-progress" title="Permalink to this headline">¶</a></h3>
+<h3>43.4.7. Trace Progress<a class="headerlink" href="#trace-progress" title="Permalink to this headline">¶</a></h3>
 <p>TODO: When do we do some tracing work?  How much tracing work do we do?</p>
 </div>
 </div>
@@ -411,24 +421,30 @@ the <tt class="docutils literal"><span class="pre">arena-&gt;topGen</span></tt>,
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">MPS Strategy</a><ul>
-<li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#generations">Generations</a><ul>
-<li><a class="reference internal" href="#data-structures">Data Structures</a></li>
-<li><a class="reference internal" href="#zones">Zones</a></li>
-<li><a class="reference internal" href="#accounting">Accounting</a></li>
-<li><a class="reference internal" href="#ramps">Ramps</a></li>
-<li><a class="reference internal" href="#non-amc-pools">Non-AMC Pools</a></li>
-<li><a class="reference internal" href="#starting-a-trace">Starting a Trace</a></li>
-<li><a class="reference internal" href="#trace-progress">Trace Progress</a></li>
+<li><a class="reference internal" href="#">43. MPS Strategy</a><ul>
+<li><a class="reference internal" href="#introduction">43.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">43.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">43.3. Requirements</a></li>
+<li><a class="reference internal" href="#generations">43.4. Generations</a><ul>
+<li><a class="reference internal" href="#data-structures">43.4.1. Data Structures</a></li>
+<li><a class="reference internal" href="#zones">43.4.2. Zones</a></li>
+<li><a class="reference internal" href="#accounting">43.4.3. Accounting</a></li>
+<li><a class="reference internal" href="#ramps">43.4.4. Ramps</a></li>
+<li><a class="reference internal" href="#non-amc-pools">43.4.5. Non-AMC Pools</a></li>
+<li><a class="reference internal" href="#starting-a-trace">43.4.6. Starting a Trace</a></li>
+<li><a class="reference internal" href="#trace-progress">43.4.7. Trace Progress</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<h4>Downloads</h4>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sso1al.html"
+                        title="previous chapter">42. Stack scanner for Digital Unix on Alpha</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="telemetry.html"
+                        title="next chapter">44. Telemetry</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -453,7 +469,14 @@ the <tt class="docutils literal"><span class="pre">arena-&gt;topGen</span></tt>,
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="telemetry.html" title="44. Telemetry"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sso1al.html" title="42. Stack scanner for Digital Unix on Alpha"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

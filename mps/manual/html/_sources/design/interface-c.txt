@@ -1,8 +1,8 @@
-.. _design-interface-c:
-
 
 .. index::
    pair: C interface; design
+
+.. _design-interface-c:
 
 
 C interface design

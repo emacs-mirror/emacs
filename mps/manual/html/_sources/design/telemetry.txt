@@ -1,8 +1,8 @@
-.. _design-telemetry:
-
 
 .. index::
    pair: telemetry; design
+
+.. _design-telemetry:
 
 
 Telemetry

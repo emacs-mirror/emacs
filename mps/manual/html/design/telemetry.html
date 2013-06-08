@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>41. Telemetry &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>44. Telemetry &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="42. Thread Manager" href="thread-manager.html" />
-    <link rel="prev" title="40. Stack scanner for Digital Unix on Alpha" href="sso1al.html" /> 
+    <link rel="next" title="45. Tests" href="tests.html" />
+    <link rel="prev" title="43. MPS Strategy" href="strategy.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="thread-manager.html" title="42. Thread Manager"
+          <a href="tests.html" title="45. Tests"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="sso1al.html" title="40. Stack scanner for Digital Unix on Alpha"
+          <a href="strategy.html" title="43. MPS Strategy"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-telemetry"></span><div class="section" id="telemetry">
-<span id="index-0"></span><h1>41. Telemetry<a class="headerlink" href="#telemetry" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="telemetry">
+<span id="design-telemetry"></span><span id="index-0"></span><h1>44. Telemetry<a class="headerlink" href="#telemetry" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.telemetry"></span><h2>41.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.telemetry"></span><h2>44.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.intro"></span><a class="mpstag reference internal" href="#design.mps.telemetry.intro">.intro:</a> This documents the design of the telemetry mechanism within
 the MPS.</p>
 <p><span class="target" id="design.mps.telemetry.readership"></span><a class="mpstag reference internal" href="#design.mps.telemetry.readership">.readership:</a> This document is intended for any MPS developer.</p>
@@ -66,14 +66,14 @@ meeting.general.1997-03-04(0), mail.richard.1997-07-03.17-01(0),
 mail.gavinm.1997-05-01.12-40(0).</p>
 </div>
 <div class="section" id="overview">
-<h2>41.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>44.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.over"></span><a class="mpstag reference internal" href="#design.mps.telemetry.over">.over:</a> Telemetry permits the emission of events from the MPS. These
 can be used to drive a graphical tool, or to debug, or whatever. The
 system is flexible and robust, but doesn&#8217;t require heavy support from
 the client.</p>
 </div>
 <div class="section" id="requirements">
-<h2>41.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>44.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.req.simple"></span><a class="mpstag reference internal" href="#design.mps.telemetry.req.simple">.req.simple:</a> It must be possible to generate code both for the MPS
 and any tool without using complicated build tools.</p>
 <p><span class="target" id="design.mps.telemetry.req.open"></span><a class="mpstag reference internal" href="#design.mps.telemetry.req.open">.req.open:</a> We must not constrain the nature of events before we are
@@ -107,7 +107,7 @@ forms of corruption, e.g. packet loss.</p>
 <p><span class="target" id="design.mps.telemetry.req.intern"></span><a class="mpstag reference internal" href="#design.mps.telemetry.req.intern">.req.intern:</a> It should be possible to support string-interning.</p>
 </div>
 <div class="section" id="architecture">
-<h2>41.4. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>44.4. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.arch"></span><a class="mpstag reference internal" href="#design.mps.telemetry.arch">.arch:</a> Event annotations are scattered throughout the code, but
 there is a central registration of event types and properties. Events
 are written to a buffer via a specialist structure, and are optionally
@@ -116,7 +116,7 @@ range of types, indicated as a format both in the annotation and the
 the registry.</p>
 </div>
 <div class="section" id="analysis">
-<h2>41.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>44.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.anal"></span><a class="mpstag reference internal" href="#design.mps.telemetry.anal">.anal:</a> The proposed order of development, with summary of
 requirements impact is as follows (★ for positive impact, ⇓ for
 negative impact):</p>
@@ -561,7 +561,7 @@ firstly by completing all necessary support before changes are
 initiated, and secondly by performing all changes at the same time.</p>
 </div>
 <div class="section" id="ideas">
-<h2>41.6. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<h2>44.6. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.telemetry.sol.format"></span><a class="mpstag reference internal" href="#design.mps.telemetry.sol.format">.sol.format:</a> Event annotations indicate the types of their
 arguments, for example, <tt class="xref c c-macro docutils literal"><span class="pre">EVENT_WD</span></tt> for a <a class="reference internal" href="type.html#Word" title="Word"><tt class="xref c c-type docutils literal"><span class="pre">Word</span></tt></a> and a <tt class="docutils literal"><span class="pre">double</span></tt>.
 (<a class="reference internal" href="#design.mps.telemetry.req.type">.req.type</a>)</p>
@@ -620,9 +620,9 @@ or from a debugger, or whatever. (<a class="reference internal" href="#design.mp
 <p><span class="target" id="design.mps.telemetry.sol.client"></span><a class="mpstag reference internal" href="#design.mps.telemetry.sol.client">.sol.client:</a> Provide a mechanism for user events. (<a class="reference internal" href="#design.mps.telemetry.req.intern">.req.intern</a>)</p>
 </div>
 <div class="section" id="implementation">
-<h2>41.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>44.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="annotation">
-<h3>41.7.1. Annotation<a class="headerlink" href="#annotation" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.1. Annotation<a class="headerlink" href="#annotation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.annot"></span><a class="mpstag reference internal" href="#design.mps.telemetry.annot">.annot:</a> An event annotation is of the form:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">EVENT3</span><span class="p">(</span><span class="n">FooCreate</span><span class="p">,</span> <span class="n">pointer</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
 </pre></div>
@@ -638,7 +638,7 @@ remaining parameters of the event macro, in order as indicated in the
 event parameters definition in impl.h.eventdef.</p>
 </div>
 <div class="section" id="registration">
-<h3>41.7.2. Registration<a class="headerlink" href="#registration" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.2. Registration<a class="headerlink" href="#registration" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.reg"></span><a class="mpstag reference internal" href="#design.mps.telemetry.reg">.reg:</a> All event types and parameters should be registered in
 impl.h.eventdef, in the form of a higher-order list macros.</p>
 <p><span class="target" id="design.mps.telemetry.reg.just"></span><a class="mpstag reference internal" href="#design.mps.telemetry.reg.just">.reg.just:</a> This use of a higher-order macros enables great
@@ -712,7 +712,7 @@ more than one annotation. There are generally two reasons for this:</p>
 (as implied by <a class="reference internal" href="#design.mps.telemetry.sol.format">.sol.format</a>).</p>
 </div>
 <div class="section" id="control">
-<h3>41.7.3. Control<a class="headerlink" href="#control" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.3. Control<a class="headerlink" href="#control" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.control"></span><a class="mpstag reference internal" href="#design.mps.telemetry.control">.control:</a> There are two types of event control, buffer and output.</p>
 <p><span class="target" id="design.mps.telemetry.control.buffer"></span><a class="mpstag reference internal" href="#design.mps.telemetry.control.buffer">.control.buffer:</a> Buffer control affects whether particular events
 implemented at all, and is controlled statically by variety using the
@@ -765,7 +765,7 @@ output can be controlled like this:</p>
 <tt class="docutils literal"><span class="pre">EventKindControl</span></tt>.</p>
 </div>
 <div class="section" id="debugging">
-<h3>41.7.4. Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.4. Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.debug.buffer"></span><a class="mpstag reference internal" href="#design.mps.telemetry.debug.buffer">.debug.buffer:</a> Each event kind is logged in a separate buffer,
 <tt class="docutils literal"><span class="pre">EventBuffer[kind]</span></tt>.</p>
 <p><span class="target" id="design.mps.telemetry.debug.buffer.reverse"></span><a class="mpstag reference internal" href="#design.mps.telemetry.debug.buffer.reverse">.debug.buffer.reverse:</a> The events are logged in reverse order from
@@ -789,12 +789,12 @@ in some buffers, even if they have been flushed to the output stream.
 Some digging may be required.</p>
 </div>
 <div class="section" id="dumper-tool">
-<h3>41.7.5. Dumper tool<a class="headerlink" href="#dumper-tool" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.5. Dumper tool<a class="headerlink" href="#dumper-tool" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.dumper"></span><a class="mpstag reference internal" href="#design.mps.telemetry.dumper">.dumper:</a> A primitive dumper tool is available in impl.c.eventcnv.
 For details, see guide.mps.telemetry.</p>
 </div>
 <div class="section" id="allocation-replayer-tool">
-<h3>41.7.6. Allocation replayer tool<a class="headerlink" href="#allocation-replayer-tool" title="Permalink to this headline">¶</a></h3>
+<h3>44.7.6. Allocation replayer tool<a class="headerlink" href="#allocation-replayer-tool" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.telemetry.replayer"></span><a class="mpstag reference internal" href="#design.mps.telemetry.replayer">.replayer:</a> A tool for replaying an allocation sequence from a log
 is available in impl.c.replay. For details, see
 design.mps.telemetry.replayer.</p>
@@ -813,20 +813,20 @@ design.mps.telemetry.replayer.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">41. Telemetry</a><ul>
-<li><a class="reference internal" href="#introduction">41.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">41.2. Overview</a></li>
-<li><a class="reference internal" href="#requirements">41.3. Requirements</a></li>
-<li><a class="reference internal" href="#architecture">41.4. Architecture</a></li>
-<li><a class="reference internal" href="#analysis">41.5. Analysis</a></li>
-<li><a class="reference internal" href="#ideas">41.6. Ideas</a></li>
-<li><a class="reference internal" href="#implementation">41.7. Implementation</a><ul>
-<li><a class="reference internal" href="#annotation">41.7.1. Annotation</a></li>
-<li><a class="reference internal" href="#registration">41.7.2. Registration</a></li>
-<li><a class="reference internal" href="#control">41.7.3. Control</a></li>
-<li><a class="reference internal" href="#debugging">41.7.4. Debugging</a></li>
-<li><a class="reference internal" href="#dumper-tool">41.7.5. Dumper tool</a></li>
-<li><a class="reference internal" href="#allocation-replayer-tool">41.7.6. Allocation replayer tool</a></li>
+<li><a class="reference internal" href="#">44. Telemetry</a><ul>
+<li><a class="reference internal" href="#introduction">44.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">44.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">44.3. Requirements</a></li>
+<li><a class="reference internal" href="#architecture">44.4. Architecture</a></li>
+<li><a class="reference internal" href="#analysis">44.5. Analysis</a></li>
+<li><a class="reference internal" href="#ideas">44.6. Ideas</a></li>
+<li><a class="reference internal" href="#implementation">44.7. Implementation</a><ul>
+<li><a class="reference internal" href="#annotation">44.7.1. Annotation</a></li>
+<li><a class="reference internal" href="#registration">44.7.2. Registration</a></li>
+<li><a class="reference internal" href="#control">44.7.3. Control</a></li>
+<li><a class="reference internal" href="#debugging">44.7.4. Debugging</a></li>
+<li><a class="reference internal" href="#dumper-tool">44.7.5. Dumper tool</a></li>
+<li><a class="reference internal" href="#allocation-replayer-tool">44.7.6. Allocation replayer tool</a></li>
 </ul>
 </li>
 </ul>
@@ -834,11 +834,11 @@ design.mps.telemetry.replayer.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="sso1al.html"
-                        title="previous chapter">40. Stack scanner for Digital Unix on Alpha</a></p>
+  <p class="topless"><a href="strategy.html"
+                        title="previous chapter">43. MPS Strategy</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="thread-manager.html"
-                        title="next chapter">42. Thread Manager</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="tests.html"
+                        title="next chapter">45. Tests</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -864,10 +864,10 @@ design.mps.telemetry.replayer.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="thread-manager.html" title="42. Thread Manager"
+          <a href="tests.html" title="45. Tests"
              >next</a> |</li>
         <li class="right" >
-          <a href="sso1al.html" title="40. Stack scanner for Digital Unix on Alpha"
+          <a href="strategy.html" title="43. MPS Strategy"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

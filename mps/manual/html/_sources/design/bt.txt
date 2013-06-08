@@ -1,8 +1,8 @@
-.. _design-bt:
-
 
 .. index::
    pair: bit tables; design
+
+.. _design-bt:
 
 
 Bit tables

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>50. VM for Digital Unix &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>54. VM for Digital Unix &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="51. VM for Solaris" href="vmso.html" />
-    <link rel="prev" title="49. ANSI fake VM" href="vman.html" /> 
+    <link rel="next" title="55. VM for Solaris" href="vmso.html" />
+    <link rel="prev" title="53. ANSI fake VM" href="vman.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="vmso.html" title="51. VM for Solaris"
+          <a href="vmso.html" title="55. VM for Solaris"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="vman.html" title="49. ANSI fake VM"
+          <a href="vman.html" title="53. ANSI fake VM"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,22 +54,22 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-vmo1"></span><div class="section" id="vm-for-digital-unix">
-<span id="index-0"></span><h1>50. VM for Digital Unix<a class="headerlink" href="#vm-for-digital-unix" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="vm-for-digital-unix">
+<span id="design-vmo1"></span><span id="index-0"></span><h1>54. VM for Digital Unix<a class="headerlink" href="#vm-for-digital-unix" title="Permalink to this headline">¶</a></h1>
 <div class="admonition warning" id="design.mps.vmo1">
 <p class="first admonition-title">Warning</p>
 <p class="last">As of 2013-05-26, the MPS is no longer supported on Digital Unix,
 so this document is only of historical interest.</p>
 </div>
 <div class="section" id="introduction">
-<h2>50.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>54.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmo1.readership"></span><a class="mpstag reference internal" href="#design.mps.vmo1.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.vmo1.intro"></span><a class="mpstag reference internal" href="#design.mps.vmo1.intro">.intro:</a> This is the design of the VM Module for Digital UNIX (also
 known as OSF/1 and Tru64 Unix; see os.o1). In general aspects
 (including interface) the design is as for design.mps.vm.</p>
 </div>
 <div class="section" id="functions">
-<h2>50.2. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>54.2. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vmo1.fun.unmap"></span><a class="mpstag reference internal" href="#design.mps.vmo1.fun.unmap">.fun.unmap:</a> <tt class="xref c c-func docutils literal"><span class="pre">VMUnmap()</span></tt> &#8220;unmaps&#8221; a region by replacing the
 existing mapping with a mapping using the <tt class="docutils literal"><span class="pre">vm-&gt;none_fd</span></tt> file
 descriptor (see mumble mumble, <a class="reference internal" href="vm.html#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a>), and protection set to
@@ -102,19 +102,19 @@ can&#8217;t create a new file reference.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">50. VM for Digital Unix</a><ul>
-<li><a class="reference internal" href="#introduction">50.1. Introduction</a></li>
-<li><a class="reference internal" href="#functions">50.2. Functions</a></li>
+<li><a class="reference internal" href="#">54. VM for Digital Unix</a><ul>
+<li><a class="reference internal" href="#introduction">54.1. Introduction</a></li>
+<li><a class="reference internal" href="#functions">54.2. Functions</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="vman.html"
-                        title="previous chapter">49. ANSI fake VM</a></p>
+                        title="previous chapter">53. ANSI fake VM</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="vmso.html"
-                        title="next chapter">51. VM for Solaris</a></p><h4>Downloads</h4>
+                        title="next chapter">55. VM for Solaris</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -140,10 +140,10 @@ can&#8217;t create a new file reference.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="vmso.html" title="51. VM for Solaris"
+          <a href="vmso.html" title="55. VM for Solaris"
              >next</a> |</li>
         <li class="right" >
-          <a href="vman.html" title="49. ANSI fake VM"
+          <a href="vman.html" title="53. ANSI fake VM"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

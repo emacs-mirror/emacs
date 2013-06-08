@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-keyword-arguments"></span><div class="section" id="keyword-arguments-in-the-mps">
-<span id="index-0"></span><h1>8. Keyword arguments in the MPS<a class="headerlink" href="#keyword-arguments-in-the-mps" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="keyword-arguments-in-the-mps">
+<span id="design-keyword-arguments"></span><span id="index-0"></span><h1>8. Keyword arguments in the MPS<a class="headerlink" href="#keyword-arguments-in-the-mps" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>8.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Up to version 1.111, the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool System</a> used varags to pass arguments
@@ -70,9 +70,9 @@ parameters.</p>
 <h2>8.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The basic design is not specific to the MPS.  The keyword argument list is
 passed as an array of argument structures which look like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_key_s</span> <span class="o">*</span><span class="kt">mps_key_t</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_key_s</span> <span class="o">*</span><span class="n">mps_key_t</span><span class="p">;</span>
 <span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_arg_s</span> <span class="p">{</span>
-  <span class="kt">mps_key_t</span> <span class="n">key</span><span class="p">;</span>
+  <span class="n">mps_key_t</span> <span class="n">key</span><span class="p">;</span>
   <span class="k">union</span> <span class="p">{</span>
     <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
     <span class="kt">char</span> <span class="n">c</span><span class="p">;</span>
@@ -127,7 +127,7 @@ a checking method for the argument, like this:</p>
 <span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_key_s</span> <span class="p">{</span>
   <span class="n">Sig</span> <span class="n">sig</span><span class="p">;</span>              <span class="cm">/* Always KeySig */</span>
   <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span><span class="p">;</span>
-  <span class="n">Bool</span> <span class="nf">check</span><span class="p">(</span><span class="n">Arg</span> <span class="n">arg</span><span class="p">);</span>
+  <span class="n">Bool</span> <span class="n">check</span><span class="p">(</span><span class="n">Arg</span> <span class="n">arg</span><span class="p">);</span>
 <span class="p">}</span> <span class="n">KeyStruct</span><span class="p">;</span>
 </pre></div>
 </div>

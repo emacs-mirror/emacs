@@ -221,13 +221,13 @@ scheduling decisions and the quality of telemetry output. For
 instance, with <tt class="docutils literal"><span class="pre">getrusage()</span></tt>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#include &lt;sys/resource.h&gt;</span>
 
-<span class="kt">mps_clock_t</span> <span class="nf">mps_clock</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">mps_clock_t</span> <span class="nf">mps_clock</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">struct</span> <span class="n">rusage</span> <span class="n">s</span><span class="p">;</span>
     <span class="kt">int</span> <span class="n">res</span> <span class="o">=</span> <span class="n">getrusage</span><span class="p">(</span><span class="n">RUSAGE_SELF</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="cm">/* handle error */</span>
     <span class="p">}</span>
-    <span class="k">return</span> <span class="p">((</span><span class="kt">mps_clock_t</span><span class="p">)</span><span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_usec</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">mps_clock_t</span><span class="p">)</span><span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000000</span> <span class="o">+</span> <span class="n">s</span><span class="p">.</span><span class="n">ru_utime</span><span class="p">.</span><span class="n">tv_usec</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>

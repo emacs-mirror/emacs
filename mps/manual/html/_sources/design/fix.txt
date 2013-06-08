@@ -1,8 +1,8 @@
-.. _design-fix:
-
 
 .. index::
    pair: fix function; design
+
+.. _design-fix:
 
 
 The generic fix function

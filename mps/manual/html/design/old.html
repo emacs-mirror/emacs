@@ -505,265 +505,324 @@ date, they will be moved to the main <a class="reference internal" href="index.h
 <li class="toctree-l2"><a class="reference internal" href="poolmrg.html#notes">26.12. Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="poolmvff.html">27. MVFF pool class</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#introduction">27.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#overview">27.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#methods">27.3. Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#external-functions">27.4. External Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#implementation">27.5. Implementation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#details">27.6. Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="poolmv.html">27. MV pool class</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="poolmv.html#implementation">27.1. Implementation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="prot.html">28. The protection module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="prot.html#introduction">28.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="prot.html#interface">28.2. Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="poolmvt.html">28. Manual Variable Temporal (MVT) pool design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#introduction">28.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#definitions">28.2. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#abbreviations">28.3. Abbreviations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#overview">28.4. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#requirements">28.5. Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#critical-requirements">28.5.1. Critical requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#essential-requirements">28.5.2. Essential requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#nice-requirements">28.5.3. Nice requirements</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="protan.html">29. ANSI implementation of protection module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="protan.html#introduction">29.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protan.html#requirements">29.2. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protan.html#overview">29.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protan.html#functions">29.4. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#architecture">28.6. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#analysis">28.7. Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#ideas">28.8. Ideas</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#strategy">28.8.1. Strategy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#policy">28.8.2. Policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#mechanism">28.8.3. Mechanism</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="protli.html">30. Linux implementation of protection module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="protli.html#introduction">30.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protli.html#requirements">30.2. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protli.html#data-structures">30.3. Data structures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protli.html#functions">30.4. Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protli.html#threads">30.5. Threads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#implementation">28.9. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#coalescing-block-structure">28.9.1. Coalescing Block Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#fail-over-to-address-ordered-free-list">28.9.2. Fail-over to address-ordered free list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#available-block-queue">28.9.3. Available Block Queue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#pool-implementation">28.9.4. Pool implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="poolmvt.html#ap-dispatch">28.9.5. AP Dispatch</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="protsu.html">31. SunOS 4 protection module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#introduction">31.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#requirements">31.2. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#overview">31.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#misc">31.4. Misc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#data-structures">31.5. Data structures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protsu.html#functions">31.6. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#testing">28.10. Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvt.html#text">28.11. Text</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="protocol.html">32. Protocol inheritance</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#introduction">32.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#purpose">32.2. Purpose</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#requirements">32.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#overview">32.4. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#interface">32.5. Interface</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#class-definition">32.5.1. Class definition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#single-inheritance">32.5.2. Single inheritance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#specialization">32.5.3. Specialization</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#extension">32.5.4. Extension</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#introspection">32.5.5. Introspection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#multiple-inheritance">32.5.6. Multiple inheritance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#protocol-guidelines">32.5.7. Protocol guidelines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protocol.html#example">32.5.8. Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="poolmvff.html">29. MVFF pool class</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#introduction">29.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#overview">29.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#methods">29.3. Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#external-functions">29.4. External Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#implementation">29.5. Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poolmvff.html#details">29.6. Details</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="protocol.html#implementation">32.6. Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prot.html">30. The protection module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="prot.html#introduction">30.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prot.html#interface">30.2. Interface</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pthreadext.html">33. POSIX thread extensions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#introduction">33.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#definitions">33.2. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#requirements">33.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#analysis">33.4. Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#interface">33.5. Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#implementation">33.6. Implementation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#attachments">33.7. Attachments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#references">33.8. References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protan.html">31. ANSI implementation of protection module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="protan.html#introduction">31.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protan.html#requirements">31.2. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protan.html#overview">31.3. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protan.html#functions">31.4. Functions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="reservoir.html">34. The low-memory reservoir</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reservoir.html#introduction">34.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reservoir.html#architecture">34.2. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reservoir.html#implementation">34.3. Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protli.html">32. Linux implementation of protection module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="protli.html#introduction">32.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protli.html#requirements">32.2. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protli.html#data-structures">32.3. Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protli.html#functions">32.4. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protli.html#threads">32.5. Threads</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="root.html">35. Root manager</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="root.html#basics">35.1. Basics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="root.html#details">35.2. Details</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="root.html#creation">35.2.1. Creation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="root.html#destruction">35.2.2. Destruction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="root.html#invariants">35.2.3. Invariants</a></li>
-<li class="toctree-l3"><a class="reference internal" href="root.html#scanning">35.2.4. Scanning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protsu.html">33. SunOS 4 protection module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#introduction">33.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#requirements">33.2. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#overview">33.3. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#misc">33.4. Misc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#data-structures">33.5. Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protsu.html#functions">33.6. Functions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">34. Protocol inheritance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#introduction">34.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#purpose">34.2. Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#requirements">34.3. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#overview">34.4. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#interface">34.5. Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#class-definition">34.5.1. Class definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#single-inheritance">34.5.2. Single inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#specialization">34.5.3. Specialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#extension">34.5.4. Extension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#introspection">34.5.5. Introspection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#multiple-inheritance">34.5.6. Multiple inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#protocol-guidelines">34.5.7. Protocol guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protocol.html#example">34.5.8. Example</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="scan.html">36. The generic scanner</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="scan.html#summaries">36.1. Summaries</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scan.html#scanned-summary">36.1.1. Scanned summary</a></li>
-<li class="toctree-l3"><a class="reference internal" href="scan.html#partial-scans">36.1.2. Partial scans</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#implementation">34.6. Implementation</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="pthreadext.html">35. POSIX thread extensions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#introduction">35.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#definitions">35.2. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#requirements">35.3. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#analysis">35.4. Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#interface">35.5. Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#implementation">35.6. Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#attachments">35.7. Attachments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pthreadext.html#references">35.8. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="seg.html">37. Segment data structure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="seg.html#introduction">37.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="seg.html#overview">37.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="seg.html#data-structure">37.3. Data Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="seg.html#interface">37.4. Interface</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="seg.html#splitting-and-merging">37.4.1. Splitting and merging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reservoir.html">36. The low-memory reservoir</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reservoir.html#introduction">36.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reservoir.html#architecture">36.2. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reservoir.html#implementation">36.3. Implementation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="seg.html#extensibility">37.5. Extensibility</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="seg.html#id1">37.5.1. Splitting and merging</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="shield.html">38. Shield</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#introduction">38.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#overview">38.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#control-of-mutator-access">38.3. Control of mutator access</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#control-of-collector-access">38.4. Control of collector access</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#initial-ideas">38.5. Initial ideas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shield.html#references">38.6. References</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="splay.html">39. Splay trees</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#introduction">39.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#overview">39.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#definitions">39.3. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#requirements">39.4. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#external-types">39.5. External types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#external-functions">39.6. External functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#client-determined-properties">39.7. Client-determined properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#usage">39.8. Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#implementation">39.9. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="splay.html#top-down-splaying">39.9.1. Top-down splaying</a></li>
-<li class="toctree-l3"><a class="reference internal" href="splay.html#top-level-operations">39.9.2. Top-level operations</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#testing">39.10. Testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#error-handling">39.11. Error Handling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="splay.html#future">39.12. Future</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="sso1al.html">40. Stack scanner for Digital Unix on Alpha</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="sso1al.html#introduction">40.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sso1al.html#definitions">40.2. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sso1al.html#overview">40.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sso1al.html#detail-design">40.4. Detail Design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="sso1al.html#functions">40.4.1. Functions</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="sso1al.html#references">40.5. References</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="telemetry.html">41. Telemetry</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#introduction">41.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#overview">41.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#requirements">41.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#architecture">41.4. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#analysis">41.5. Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#ideas">41.6. Ideas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="telemetry.html#implementation">41.7. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#annotation">41.7.1. Annotation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#registration">41.7.2. Registration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#control">41.7.3. Control</a></li>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#debugging">41.7.4. Debugging</a></li>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#dumper-tool">41.7.5. Dumper tool</a></li>
-<li class="toctree-l3"><a class="reference internal" href="telemetry.html#allocation-replayer-tool">41.7.6. Allocation replayer tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="root.html">37. Root manager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="root.html#basics">37.1. Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="root.html#details">37.2. Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="root.html#creation">37.2.1. Creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="root.html#destruction">37.2.2. Destruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="root.html#invariants">37.2.3. Invariants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="root.html#scanning">37.2.4. Scanning</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="thread-manager.html">42. Thread Manager</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#purpose">42.1. Purpose</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#context">42.2. Context</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#overview">42.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#detailed-design">42.4. Detailed Design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#stack-scan">42.4.1. Stack scan</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#thread-interface">42.4.2. Thread interface</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#single-threaded-generic-implementation">42.4.3. Single-threaded generic implementation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#posix-threads-implementation">42.4.4. POSIX threads implementation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#win32-implementation">42.4.5. Win32 implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#issues">42.5. Issues</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="thread-safety.html">43. Thread safety in the MPS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#introduction">43.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#overview">43.2. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#requirements">43.3. Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#architecture">43.4. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#analysis">43.5. Analysis</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#performance-cost-of-locking">43.5.1. Performance cost of locking</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#recursive-vs-binary-locks">43.5.2. Recursive vs binary locks</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#ideas">43.6. Ideas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#implementation">43.7. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#locking-functions">43.7.1. Locking Functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#shared-and-non-shared-data">43.7.2. Shared and non-shared data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#validation">43.7.3. Validation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#safe-functions">43.7.4. Safe functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scan.html">38. The generic scanner</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scan.html#summaries">38.1. Summaries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scan.html#scanned-summary">38.1.1. Scanned summary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scan.html#partial-scans">38.1.2. Partial scans</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="trace.html">44. Tracer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#introduction">44.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#architecture">44.2. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#analysis">44.3. Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#ideas">44.4. Ideas</a></li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#implementation">44.5. Implementation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="trace.html#speed">44.5.1. Speed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seg.html">39. Segment data structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="seg.html#introduction">39.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seg.html#overview">39.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seg.html#data-structure">39.3. Data Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seg.html#interface">39.4. Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seg.html#splitting-and-merging">39.4.1. Splitting and merging</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#life-cycle-of-a-trace-object">44.6. Life cycle of a trace object</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="trace.html#making-progress-scanning-grey-segments">44.6.1. Making progress: scanning grey segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seg.html#extensibility">39.5. Extensibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seg.html#id1">39.5.1. Splitting and merging</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="trace.html#references">44.7. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="type.html">45. General MPS types</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="type.html#introduction">45.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#rationale">45.2. Rationale</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#concrete-types">45.3. Concrete types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="type.html#abstract-types">45.4. Abstract types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shield.html">40. Shield</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#introduction">40.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#overview">40.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#control-of-mutator-access">40.3. Control of mutator access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#control-of-collector-access">40.4. Control of collector access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#initial-ideas">40.5. Initial ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shield.html#references">40.6. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="version-library.html">46. Library version mechanism</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#introduction">46.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#readership">46.2. Readership</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#source">46.3. Source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#overview">46.4. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#architecture">46.5. Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version-library.html#implementation">46.6. Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="splay.html">41. Splay trees</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#introduction">41.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#overview">41.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#definitions">41.3. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#requirements">41.4. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#external-types">41.5. External types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#external-functions">41.6. External functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#client-determined-properties">41.7. Client-determined properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#usage">41.8. Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#implementation">41.9. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="splay.html#top-down-splaying">41.9.1. Top-down splaying</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splay.html#top-level-operations">41.9.2. Top-level operations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="version.html">47. Software versions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="version.html#introduction">47.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="version.html#overview">47.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#testing">41.10. Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#error-handling">41.11. Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splay.html#future">41.12. Future</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vm.html">48. Virtual mapping</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vm.html#introduction">48.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vm.html#definitions">48.2. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vm.html#interface">48.3. Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vm.html#notes">48.4. Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sso1al.html">42. Stack scanner for Digital Unix on Alpha</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sso1al.html#introduction">42.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sso1al.html#definitions">42.2. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sso1al.html#overview">42.3. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sso1al.html#detail-design">42.4. Detail Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sso1al.html#functions">42.4.1. Functions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vman.html">49. ANSI fake VM</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vmo1.html">50. VM for Digital Unix</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vmo1.html#introduction">50.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vmo1.html#functions">50.2. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sso1al.html#references">42.5. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vmso.html">51. VM for Solaris</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vmso.html#introduction">51.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vmso.html#definitions">51.2. Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vmso.html#overview">51.3. Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vmso.html#implementation">51.4. Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategy.html">43. MPS Strategy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="strategy.html#introduction">43.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategy.html#overview">43.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategy.html#requirements">43.3. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strategy.html#generations">43.4. Generations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#data-structures">43.4.1. Data Structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#zones">43.4.2. Zones</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#accounting">43.4.3. Accounting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#ramps">43.4.4. Ramps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#non-amc-pools">43.4.5. Non-AMC Pools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#starting-a-trace">43.4.6. Starting a Trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="strategy.html#trace-progress">43.4.7. Trace Progress</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="writef.html">52. The WriteF function</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="writef.html#introduction">52.1. Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="writef.html#design">52.2. Design</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="telemetry.html">44. Telemetry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#introduction">44.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#overview">44.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#requirements">44.3. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#architecture">44.4. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#analysis">44.5. Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#ideas">44.6. Ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="telemetry.html#implementation">44.7. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#annotation">44.7.1. Annotation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#registration">44.7.2. Registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#control">44.7.3. Control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#debugging">44.7.4. Debugging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#dumper-tool">44.7.5. Dumper tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="telemetry.html#allocation-replayer-tool">44.7.6. Allocation replayer tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">45. Tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#introduction">45.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#smoke-tests">45.2. Smoke tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tests.html#smoke-test-list">45.2.1. Smoke test list</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="thread-manager.html">46. Thread Manager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#purpose">46.1. Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#context">46.2. Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#overview">46.3. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#detailed-design">46.4. Detailed Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#stack-scan">46.4.1. Stack scan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#thread-interface">46.4.2. Thread interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#single-threaded-generic-implementation">46.4.3. Single-threaded generic implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#posix-threads-implementation">46.4.4. POSIX threads implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-manager.html#win32-implementation">46.4.5. Win32 implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="thread-manager.html#issues">46.5. Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="thread-safety.html">47. Thread safety in the MPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#introduction">47.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#overview">47.2. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#requirements">47.3. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#architecture">47.4. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#analysis">47.5. Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#performance-cost-of-locking">47.5.1. Performance cost of locking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#recursive-vs-binary-locks">47.5.2. Recursive vs binary locks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#ideas">47.6. Ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thread-safety.html#implementation">47.7. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#locking-functions">47.7.1. Locking Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#shared-and-non-shared-data">47.7.2. Shared and non-shared data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#validation">47.7.3. Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="thread-safety.html#safe-functions">47.7.4. Safe functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="trace.html">48. Tracer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#introduction">48.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#architecture">48.2. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#analysis">48.3. Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#ideas">48.4. Ideas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#implementation">48.5. Implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trace.html#speed">48.5.1. Speed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#life-cycle-of-a-trace-object">48.6. Life cycle of a trace object</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="trace.html#making-progress-scanning-grey-segments">48.6.1. Making progress: scanning grey segments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trace.html#references">48.7. References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="type.html">49. General MPS types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="type.html#introduction">49.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type.html#rationale">49.2. Rationale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type.html#concrete-types">49.3. Concrete types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type.html#abstract-types">49.4. Abstract types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="version-library.html">50. Library version mechanism</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#introduction">50.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#readership">50.2. Readership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#source">50.3. Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#overview">50.4. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#architecture">50.5. Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version-library.html#implementation">50.6. Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="version.html">51. Software versions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="version.html#introduction">51.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version.html#overview">51.2. Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vm.html">52. Virtual mapping</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vm.html#introduction">52.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vm.html#definitions">52.2. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vm.html#interface">52.3. Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vm.html#notes">52.4. Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vman.html">53. ANSI fake VM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vmo1.html">54. VM for Digital Unix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vmo1.html#introduction">54.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vmo1.html#functions">54.2. Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vmso.html">55. VM for Solaris</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vmso.html#introduction">55.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vmso.html#definitions">55.2. Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vmso.html#overview">55.3. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vmso.html#implementation">55.4. Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="writef.html">56. The WriteF function</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="writef.html#introduction">56.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="writef.html#design">56.2. Design</a></li>
 </ul>
 </li>
 </ul>

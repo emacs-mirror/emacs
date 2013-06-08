@@ -1,8 +1,8 @@
-.. _design-vmo1:
-
 
 .. index::
    pair: VM for Digital Unix; design
+
+.. _design-vmo1:
 
 
 VM for Digital Unix

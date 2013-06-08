@@ -1,8 +1,8 @@
-.. _design-alloc-frame:
-
 
 .. index::
    pair: allocation frames; design
+
+.. _design-alloc-frame:
 
 
 Allocation frame protocol

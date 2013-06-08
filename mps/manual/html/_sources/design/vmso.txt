@@ -1,8 +1,8 @@
-.. _design-vmso:
-
 
 .. index::
    pair: VM for Solaris; design
+
+.. _design-vmso:
 
 
 VM for Solaris

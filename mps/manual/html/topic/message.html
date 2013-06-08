@@ -103,11 +103,11 @@ messages from the message queue and prints a description of the
 contents of each one:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">mps_chat</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
+    <span class="n">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
 
     <span class="k">while</span> <span class="p">(</span><span class="n">mps_message_queue_type</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="n">arena</span><span class="p">))</span> <span class="p">{</span>
-        <span class="kt">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
-        <span class="kt">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
+        <span class="n">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
+        <span class="n">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">mps_message_get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
         <span class="n">assert</span><span class="p">(</span><span class="n">b</span><span class="p">);</span> <span class="cm">/* we just checked there was one */</span>
 

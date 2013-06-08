@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-diag"></span><div class="section" id="diagnostic-feedback">
-<span id="index-0"></span><h1>9. Diagnostic feedback<a class="headerlink" href="#diagnostic-feedback" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="diagnostic-feedback">
+<span id="design-diag"></span><span id="index-0"></span><h1>9. Diagnostic feedback<a class="headerlink" href="#diagnostic-feedback" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <span id="design.mps.diag"></span><h2>9.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.diag.intro"></span><a class="mpstag reference internal" href="#design.mps.diag.intro">.intro:</a> This document describes how to use the diagnostic feedback
@@ -99,33 +99,34 @@ places where you want to inspect data structures (or wait for the
 debugger to be entered via an <tt class="xref c c-func docutils literal"><span class="pre">abort()</span></tt> call or unhandled
 segmentation fault). Then at the debugger command prompt, run
 <tt class="xref c c-func docutils literal"><span class="pre">Describe()</span></tt> commands of your choice. For example:</p>
-<div class="highlight-c"><pre>(gdb) run
-Starting program: mv2test
-Reading symbols for shared libraries +............................. done
-cbs.c:94: MPS ASSERTION FAILED: !cbs-&gt;inCBS
+<div class="highlight-c"><div class="highlight"><pre><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+<span class="n">Starting</span> <span class="n">program</span><span class="o">:</span> <span class="n">mv2test</span>
+<span class="n">Reading</span> <span class="n">symbols</span> <span class="k">for</span> <span class="n">shared</span> <span class="n">libraries</span> <span class="o">+</span><span class="p">.............................</span> <span class="n">done</span>
+<span class="n">cbs</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">94</span><span class="o">:</span> <span class="n">MPS</span> <span class="n">ASSERTION</span> <span class="n">FAILED</span><span class="o">:</span> <span class="o">!</span><span class="n">cbs</span><span class="o">-&gt;</span><span class="n">inCBS</span>
 
-Program received signal SIGABRT, Aborted.
-0x00007fff83e42d46 in __kill ()
-(gdb) frame 12
-#12 0x000000010000b1fc in MVTFree (pool=0x103ffe160, base=0x101dfd000, size=5024) at poolmv2.c:711
-711         Res res = CBSInsert(MVTCBS(mvt), base, limit);
-(gdb) p MVTDescribe(mvt, mps_lib_get_stdout())
-MVT 0000000103FFE160
-{
-  minSize: 8
-  meanSize: 42
-  maxSize: 8192
-  fragLimit: 30
-  reuseSize: 16384
-  fillSize: 8192
-  availLimit: 1110835
-  abqOverflow: FALSE
-  splinter: TRUE
-  splinterSeg: 0000000103FEE780
-  splinterBase: 0000000101D7ABB8
-  splinterLimit: 0000000101D7B000
-  # ... etc ...
-}</pre>
+<span class="n">Program</span> <span class="n">received</span> <span class="n">signal</span> <span class="n">SIGABRT</span><span class="p">,</span> <span class="n">Aborted</span><span class="p">.</span>
+<span class="mh">0x00007fff83e42d46</span> <span class="n">in</span> <span class="n">__kill</span> <span class="p">()</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">frame</span> <span class="mi">12</span>
+<span class="cp">#12 0x000000010000b1fc in MVTFree (pool=0x103ffe160, base=0x101dfd000, size=5024) at poolmv2.c:711</span>
+<span class="mi">711</span>         <span class="n">Res</span> <span class="n">res</span> <span class="o">=</span> <span class="n">CBSInsert</span><span class="p">(</span><span class="n">MVTCBS</span><span class="p">(</span><span class="n">mvt</span><span class="p">),</span> <span class="n">base</span><span class="p">,</span> <span class="n">limit</span><span class="p">);</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="n">MVTDescribe</span><span class="p">(</span><span class="n">mvt</span><span class="p">,</span> <span class="n">mps_lib_get_stdout</span><span class="p">())</span>
+<span class="n">MVT</span> <span class="mf">0000000103FF</span><span class="n">E160</span>
+<span class="p">{</span>
+  <span class="nl">minSize:</span> <span class="mi">8</span>
+  <span class="nl">meanSize:</span> <span class="mi">42</span>
+  <span class="nl">maxSize:</span> <span class="mi">8192</span>
+  <span class="nl">fragLimit:</span> <span class="mi">30</span>
+  <span class="nl">reuseSize:</span> <span class="mi">16384</span>
+  <span class="nl">fillSize:</span> <span class="mi">8192</span>
+  <span class="nl">availLimit:</span> <span class="mi">1110835</span>
+  <span class="nl">abqOverflow:</span> <span class="n">FALSE</span>
+  <span class="nl">splinter:</span> <span class="n">TRUE</span>
+  <span class="nl">splinterSeg:</span> <span class="mf">0000000103F</span><span class="n">EE780</span>
+  <span class="nl">splinterBase:</span> <span class="mo">0000000101</span><span class="n">D7ABB8</span>
+  <span class="nl">splinterLimit:</span> <span class="mo">0000000101</span><span class="n">D7B000</span>
+<span class="cp">  # ... etc ...</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </li>
 </ol>

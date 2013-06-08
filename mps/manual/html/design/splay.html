@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>39. Splay trees &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>41. Splay trees &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="40. Stack scanner for Digital Unix on Alpha" href="sso1al.html" />
-    <link rel="prev" title="38. Shield" href="shield.html" /> 
+    <link rel="next" title="42. Stack scanner for Digital Unix on Alpha" href="sso1al.html" />
+    <link rel="prev" title="40. Shield" href="shield.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="sso1al.html" title="40. Stack scanner for Digital Unix on Alpha"
+          <a href="sso1al.html" title="42. Stack scanner for Digital Unix on Alpha"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="shield.html" title="38. Shield"
+          <a href="shield.html" title="40. Shield"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-splay"></span><div class="section" id="splay-trees">
-<span id="index-0"></span><h1>39. Splay trees<a class="headerlink" href="#splay-trees" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="splay-trees">
+<span id="design-splay"></span><span id="index-0"></span><h1>41. Splay trees<a class="headerlink" href="#splay-trees" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.splay"></span><h2>39.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.splay"></span><h2>41.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.intro"></span><a class="mpstag reference internal" href="#design.mps.splay.intro">.intro:</a> This document explains the design of impl.c.splay, an
 implementation of Splay Trees, including its interface and
 implementation.</p>
@@ -70,7 +70,7 @@ PoolMV2 is an (obsolescent?) indirect client, design.mps.poolmv2.</p>
 guide.impl.c.adt(0).</p>
 </div>
 <div class="section" id="overview">
-<h2>39.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>41.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.overview"></span><a class="mpstag reference internal" href="#design.mps.splay.overview">.overview:</a> Splay trees are a form of binary tree where each access
 brings the accessed element (or the nearest element) to the root of
 the tree. The restructuring of the tree caused by the access gives
@@ -78,7 +78,7 @@ excellent amortised performance, as the splay tree adapts its shape to
 usage patterns. Unused nodes have essentially no time overhead.</p>
 </div>
 <div class="section" id="definitions">
-<h2>39.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>41.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.def.splay-tree"></span><a class="mpstag reference internal" href="#design.mps.splay.def.splay-tree">.def.splay-tree:</a> A &#8220;Splay Tree&#8221; is a self-adjusting binary tree as
 described in paper.st85(0), paper.sleator96(0).</p>
 <p><span class="target" id="design.mps.splay.def.node"></span><a class="mpstag reference internal" href="#design.mps.splay.def.node">.def.node:</a> A &#8220;node&#8221; is used in the typical datastructure sense to
@@ -111,7 +111,7 @@ for efficiently finding the first or last nodes with suitably large
 client property values. See also <a class="reference internal" href="#design.mps.splay.prop">.prop</a> below.</p>
 </div>
 <div class="section" id="requirements">
-<h2>39.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>41.4. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.req"></span><a class="mpstag reference internal" href="#design.mps.splay.req">.req:</a> These requirements are drawn from those implied by
 design.mps.poolmv2, design.mps.poolmvff(1), design.mps.cbs(2) and
 general inferred MPS requirements.</p>
@@ -149,7 +149,7 @@ property. This is a common operation.</p>
 exists).</p>
 </div>
 <div class="section" id="external-types">
-<h2>39.5. External types<a class="headerlink" href="#external-types" title="Permalink to this headline">¶</a></h2>
+<h2>41.5. External types<a class="headerlink" href="#external-types" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="SplayTreeStruct">
 struct <a class="reference internal" href="#SplayTreeStruct" title="SplayTreeStruct">SplayTreeStruct</a> <tt class="descname">SplayTreeStruct</tt><a class="headerlink" href="#SplayTreeStruct" title="Permalink to this definition">¶</a></dt>
@@ -246,7 +246,7 @@ have changed. If the node does not have one or both children, then
 <a class="reference internal" href="#design.mps.splay.usage.callback">.usage.callback</a> for an example)</p>
 </div>
 <div class="section" id="external-functions">
-<h2>39.6. External functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
+<h2>41.6. External functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.function.no-thread"></span><a class="mpstag reference internal" href="#design.mps.splay.function.no-thread">.function.no-thread:</a> The interface functions are not designed to be
 either thread-safe or re-entrant. Clients of the interface are
 responsible for synchronization, and for ensuring that client-provided
@@ -441,7 +441,7 @@ client key for the node must also be supplied; the function splays the
 tree at this key. (See <a class="reference internal" href="#design.mps.splay.usage.insert">.usage.insert</a> for an example use).</p>
 </div>
 <div class="section" id="client-determined-properties">
-<h2>39.7. Client-determined properties<a class="headerlink" href="#client-determined-properties" title="Permalink to this headline">¶</a></h2>
+<h2>41.7. Client-determined properties<a class="headerlink" href="#client-determined-properties" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.prop"></span><a class="mpstag reference internal" href="#design.mps.splay.prop">.prop:</a> To support <a class="reference internal" href="#design.mps.splay.req.property.find">.req.property.find</a>, this splay tree
 implementation provides additional features to permit clients to cache
 maximum (or minimum) values of client properties for all the nodes in
@@ -498,7 +498,7 @@ Updating the right tree is the same, mutatis mutandis. (See
 <a class="reference internal" href="#design.mps.splay.future.reverse">.future.reverse</a> for an alternative approach).</p>
 </div>
 <div class="section" id="usage">
-<h2>39.8. Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<h2>41.8. Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.usage"></span><a class="mpstag reference internal" href="#design.mps.splay.usage">.usage:</a> Here&#8217;s a simple example of a client which uses a splay tree
 to implement an address ordered tree of free blocks. The significant
 client usages of the splay tree interface might look as follows:-</p>
@@ -688,12 +688,12 @@ block:</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>39.9. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>41.9. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.impl"></span><a class="mpstag reference internal" href="#design.mps.splay.impl">.impl:</a> For more details of how splay trees work, see paper.st85(0).
 For more details of how to implement operations on splay trees, see
 paper.sleator96(0). Here we describe the operations involved.</p>
 <div class="section" id="top-down-splaying">
-<h3>39.9.1. Top-down splaying<a class="headerlink" href="#top-down-splaying" title="Permalink to this headline">¶</a></h3>
+<h3>41.9.1. Top-down splaying<a class="headerlink" href="#top-down-splaying" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.splay.impl.top-down"></span><a class="mpstag reference internal" href="#design.mps.splay.impl.top-down">.impl.top-down:</a> The method chosen to implement the splaying
 operation is called &#8220;top-down splay&#8221;. This is described as &#8220;procedure
 top-down splay&#8221; in paper.st85(0) - although the implementation here
@@ -816,7 +816,7 @@ follows (where any of sub-trees A, B, L and R may be empty):</p>
 <p>[missing diagram]</p>
 </div>
 <div class="section" id="top-level-operations">
-<h3>39.9.2. Top-level operations<a class="headerlink" href="#top-level-operations" title="Permalink to this headline">¶</a></h3>
+<h3>41.9.2. Top-level operations<a class="headerlink" href="#top-level-operations" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.splay.impl.insert"></span><a class="mpstag reference internal" href="#design.mps.splay.impl.insert">.impl.insert:</a> <a class="reference internal" href="#SplayTreeInsert" title="SplayTreeInsert"><tt class="xref c c-func docutils literal"><span class="pre">SplayTreeInsert()</span></tt></a>: (See paper.sleator96(0), chapter
 4, function insert). If the tree has no nodes, [how does it smell?]
 add the inserted node and we&#8217;re done; otherwise splay the tree around
@@ -874,13 +874,13 @@ this tree.</p>
 </div>
 </div>
 <div class="section" id="testing">
-<h2>39.10. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<h2>41.10. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.test"></span><a class="mpstag reference internal" href="#design.mps.splay.test">.test:</a> There is no plan to test splay trees directly. It is
 believed that the testing described in design.mps.cbs.test will be
 sufficient to test this implementation.</p>
 </div>
 <div class="section" id="error-handling">
-<h2>39.11. Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<h2>41.11. Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.error"></span><a class="mpstag reference internal" href="#design.mps.splay.error">.error:</a> This module detects and reports most common classes of
 protocol error. The cases it doesn&#8217;t handle will result in undefined
 behaviour and probably cause an <tt class="xref c c-macro docutils literal"><span class="pre">AVER</span></tt> to fire. These are:</p>
@@ -894,7 +894,7 @@ implement a total ordering on splay nodes.</p>
 <p><span class="target" id="design.mps.splay.error.out-of-stack"></span><a class="mpstag reference internal" href="#design.mps.splay.error.out-of-stack">.error.out-of-stack:</a> Stack exhaustion under <a class="reference internal" href="#SplayTreeDescribe" title="SplayTreeDescribe"><tt class="xref c c-func docutils literal"><span class="pre">SplayTreeDescribe()</span></tt></a>.</p>
 </div>
 <div class="section" id="future">
-<h2>39.12. Future<a class="headerlink" href="#future" title="Permalink to this headline">¶</a></h2>
+<h2>41.12. Future<a class="headerlink" href="#future" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.splay.future.tree"></span><a class="mpstag reference internal" href="#design.mps.splay.future.tree">.future.tree:</a> It would be possible to split the splay tree module
 into two: one that implements binary trees; and one that implements
 splay trees on top of a binary tree.</p>
@@ -926,33 +926,33 @@ need for the assembly phase to reverse them.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">39. Splay trees</a><ul>
-<li><a class="reference internal" href="#introduction">39.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">39.2. Overview</a></li>
-<li><a class="reference internal" href="#definitions">39.3. Definitions</a></li>
-<li><a class="reference internal" href="#requirements">39.4. Requirements</a></li>
-<li><a class="reference internal" href="#external-types">39.5. External types</a></li>
-<li><a class="reference internal" href="#external-functions">39.6. External functions</a></li>
-<li><a class="reference internal" href="#client-determined-properties">39.7. Client-determined properties</a></li>
-<li><a class="reference internal" href="#usage">39.8. Usage</a></li>
-<li><a class="reference internal" href="#implementation">39.9. Implementation</a><ul>
-<li><a class="reference internal" href="#top-down-splaying">39.9.1. Top-down splaying</a></li>
-<li><a class="reference internal" href="#top-level-operations">39.9.2. Top-level operations</a></li>
+<li><a class="reference internal" href="#">41. Splay trees</a><ul>
+<li><a class="reference internal" href="#introduction">41.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">41.2. Overview</a></li>
+<li><a class="reference internal" href="#definitions">41.3. Definitions</a></li>
+<li><a class="reference internal" href="#requirements">41.4. Requirements</a></li>
+<li><a class="reference internal" href="#external-types">41.5. External types</a></li>
+<li><a class="reference internal" href="#external-functions">41.6. External functions</a></li>
+<li><a class="reference internal" href="#client-determined-properties">41.7. Client-determined properties</a></li>
+<li><a class="reference internal" href="#usage">41.8. Usage</a></li>
+<li><a class="reference internal" href="#implementation">41.9. Implementation</a><ul>
+<li><a class="reference internal" href="#top-down-splaying">41.9.1. Top-down splaying</a></li>
+<li><a class="reference internal" href="#top-level-operations">41.9.2. Top-level operations</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#testing">39.10. Testing</a></li>
-<li><a class="reference internal" href="#error-handling">39.11. Error Handling</a></li>
-<li><a class="reference internal" href="#future">39.12. Future</a></li>
+<li><a class="reference internal" href="#testing">41.10. Testing</a></li>
+<li><a class="reference internal" href="#error-handling">41.11. Error Handling</a></li>
+<li><a class="reference internal" href="#future">41.12. Future</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="shield.html"
-                        title="previous chapter">38. Shield</a></p>
+                        title="previous chapter">40. Shield</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="sso1al.html"
-                        title="next chapter">40. Stack scanner for Digital Unix on Alpha</a></p><h4>Downloads</h4>
+                        title="next chapter">42. Stack scanner for Digital Unix on Alpha</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -978,10 +978,10 @@ need for the assembly phase to reverse them.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="sso1al.html" title="40. Stack scanner for Digital Unix on Alpha"
+          <a href="sso1al.html" title="42. Stack scanner for Digital Unix on Alpha"
              >next</a> |</li>
         <li class="right" >
-          <a href="shield.html" title="38. Shield"
+          <a href="shield.html" title="40. Shield"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

@@ -1,9 +1,9 @@
-.. _design-poolawl:
-
 
 .. index::
    pair: AWL pool class; design
    single: pool class; AWL design
+
+.. _design-poolawl:
 
 
 AWL pool class

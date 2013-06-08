@@ -62,7 +62,7 @@ acquisition of an external resource such as a file handle or a network
 connection. When the block dies, the corresponding resource must be
 released. This procedure is known as <a class="reference internal" href="../glossary/f.html#term-finalization"><em class="xref std std-term">finalization</em></a>.</p>
 <p>A block requiring finalization must be registered by calling <a class="reference internal" href="#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">block_requiring_finalization</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">block_requiring_finalization</span><span class="p">;</span>
 <span class="n">mps_finalize</span><span class="p">(</span><span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ref</span><span class="p">);</span>
 </pre></div>
 </div>

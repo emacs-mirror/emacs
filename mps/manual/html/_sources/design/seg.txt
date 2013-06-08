@@ -1,8 +1,8 @@
-.. _design-seg:
-
 
 .. index::
    pair: segments; design
+
+.. _design-seg:
 
 
 Segment data structure

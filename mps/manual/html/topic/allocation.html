@@ -255,10 +255,10 @@ may point to the old location of blocks that moved.</p>
 </ol>
 <p>The usual implementation of the allocation point protocol in <a class="reference internal" href="../mmref/lang.html#term-c"><em class="xref std std-term">C</em></a>
 is thus:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-<span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
 <span class="k">do</span> <span class="p">{</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="cm">/* handle the error */</span><span class="p">;</span>
     <span class="cm">/* p is now an ambiguous reference to the reserved block */</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
@@ -362,18 +362,18 @@ may evaluate its arguments multiple times.</p>
 <div class="section" id="example-allocating-a-symbol">
 <span id="index-4"></span><h2>6.4. Example: allocating a symbol<a class="headerlink" href="#example-allocating-a-symbol" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">symbol_s</span> <span class="p">{</span>
-    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
+    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
     <span class="kt">size_t</span> <span class="n">length</span><span class="p">;</span>                <span class="cm">/* length of symbol string (excl. NUL) */</span>
     <span class="kt">char</span> <span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>               <span class="cm">/* symbol string, NUL terminated */</span>
-<span class="p">}</span> <span class="n">symbol_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">symbol_t</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">symbol_s</span><span class="p">,</span> <span class="o">*</span><span class="n">symbol_t</span><span class="p">;</span>
 
-<span class="kt">symbol_t</span> <span class="nf">make_symbol</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="n">string</span><span class="p">[])</span>
+<span class="n">symbol_t</span> <span class="nf">make_symbol</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="n">string</span><span class="p">[])</span>
 <span class="p">{</span>
-    <span class="kt">symbol_t</span> <span class="n">symbol</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="n">symbol_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="n">offsetof</span><span class="p">(</span><span class="n">symbol_s</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span> <span class="o">+</span> <span class="n">length</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_symbol&quot;</span><span class="p">);</span>
         <span class="n">symbol</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
         <span class="n">symbol</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_SYMBOL</span><span class="p">;</span>
@@ -438,21 +438,21 @@ choosing. See <a class="reference internal" href="debugging.html#topic-debugging
 <span id="index-6"></span><h2>6.6. Example: inserting into a doubly linked list<a class="headerlink" href="#example-inserting-into-a-doubly-linked-list" title="Permalink to this headline">¶</a></h2>
 <p>This example contains several mistakes. See the highlighted lines:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">link_s</span> <span class="p">{</span>
-    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                       <span class="cm">/* TYPE_LINK */</span>
+    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                       <span class="cm">/* TYPE_LINK */</span>
     <span class="cm">/* all three of these pointers are fixed: */</span>
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>
     <span class="k">struct</span> <span class="n">link_s</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
-    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">link_t</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">link_s</span><span class="p">,</span> <span class="o">*</span><span class="n">link_t</span><span class="p">;</span>
 
 <span class="cm">/* insert &#39;obj&#39; into the doubly-linked list after &#39;head&#39; */</span>
-<span class="kt">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="kt">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">)</span>
+<span class="n">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="n">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-    <span class="kt">link_t</span> <span class="n">link</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+    <span class="n">link_t</span> <span class="n">link</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">link_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
         <span class="n">link</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
         <span class="n">link</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_LINK</span><span class="p">;</span>
@@ -478,13 +478,13 @@ be deferred until after a successful commit.</li>
 scan method, so it must be initialized before the call to commit.</li>
 </ol>
 <p>A correct version of <tt class="docutils literal"><span class="pre">insert_link</span></tt> looks like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="kt">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">link_t</span> <span class="nf">insert_link</span><span class="p">(</span><span class="n">link_t</span> <span class="n">head</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">obj</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-    <span class="kt">link_t</span> <span class="n">link</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+    <span class="n">link_t</span> <span class="n">link</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">link_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory&quot;</span><span class="p">);</span>
         <span class="n">link</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
         <span class="n">link</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_LINK</span><span class="p">;</span>
@@ -598,9 +598,9 @@ instruction at this point.</p>
 <dd><p>The type of the structure used to represent <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation
 points</em></a>:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_ap_s</span> <span class="p">{</span>
-    <span class="kt">mps_addr_t</span> <span class="n">init</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">alloc</span><span class="p">;</span>
-    <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">init</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">alloc</span><span class="p">;</span>
+    <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">;</span>
     <span class="cm">/* ... private fields ... */</span>
 <span class="p">}</span> <span class="n">mps_ap_s</span><span class="p">;</span>
 </pre></div>

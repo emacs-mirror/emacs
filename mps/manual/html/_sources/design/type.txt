@@ -1,8 +1,8 @@
-.. _design-type:
-
 
 .. index::
    pair: general types; design
+
+.. _design-type:
 
 
 General MPS types

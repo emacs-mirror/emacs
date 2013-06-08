@@ -1,8 +1,8 @@
-.. _design-vman:
-
 
 .. index::
    pair: ANSI fake VM; design
+
+.. _design-vman:
 
 
 ANSI fake VM

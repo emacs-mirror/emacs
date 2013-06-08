@@ -1,8 +1,8 @@
-.. _design-diag:
-
 
 .. index::
    pair: diagnostic feedback; design
+
+.. _design-diag:
 
 
 Diagnostic feedback

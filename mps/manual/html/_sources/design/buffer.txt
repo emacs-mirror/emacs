@@ -1,8 +1,8 @@
-.. _design-buffer:
-
 
 .. index::
    pair: buffers; design
+
+.. _design-buffer:
 
 
 Allocation buffers and allocation points

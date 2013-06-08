@@ -169,8 +169,8 @@ the work function is not inlined so that the address is definitely in
 the stack frame below any potential roots.</p>
 <p id="index-4">For example, here&#8217;s the code from the toy Scheme interpreter that
 registers a thread root and then calls the program:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
-<span class="kt">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_thr_t</span> <span class="kr">thread</span><span class="p">;</span>
+<span class="n">mps_root_t</span> <span class="n">reg_root</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">exit_code</span><span class="p">;</span>
 <span class="kt">void</span> <span class="o">*</span><span class="n">marker</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">marker</span><span class="p">;</span>
 
@@ -500,17 +500,17 @@ calling <a class="reference internal" href="#mps_root_destroy" title="mps_root_d
 <span class="cm">/* Global symbol table. */</span>
 <span class="kt">size_t</span> <span class="n">symtab_size</span><span class="p">;</span>
 <span class="k">struct</span> <span class="p">{</span>
-    <span class="kt">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
-    <span class="kt">obj_t</span> <span class="n">value</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">value</span><span class="p">;</span>
 <span class="p">}</span> <span class="o">*</span><span class="n">symtab</span><span class="p">;</span>
 
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="kt">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_root_t</span> <span class="n">root</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table_masked</span><span class="p">(</span><span class="o">&amp;</span><span class="n">root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                                    <span class="n">mps_rank_exact</span><span class="p">(),</span>
-                                   <span class="p">(</span><span class="kt">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="p">(</span><span class="n">mps_rm_t</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span>
                                    <span class="n">symtab</span><span class="p">,</span> <span class="n">symtab_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-                                   <span class="p">(</span><span class="kt">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
+                                   <span class="p">(</span><span class="n">mps_word_t</span><span class="p">)</span><span class="n">TAG_MASK</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">errror</span><span class="p">(</span><span class="s">&quot;can&#39;t create symtab root&quot;</span><span class="p">);</span>
 </pre></div>
 </div>

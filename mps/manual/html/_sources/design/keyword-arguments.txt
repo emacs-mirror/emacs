@@ -1,8 +1,8 @@
-.. _design-keyword-arguments:
-
 
 .. index::
    pair: keyword arguments; design
+
+.. _design-keyword-arguments:
 
 
 Keyword arguments in the MPS

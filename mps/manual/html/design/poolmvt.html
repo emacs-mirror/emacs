@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Manual Variable Temporal (MVT) pool design &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>28. Manual Variable Temporal (MVT) pool design &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -26,7 +26,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="29. MVFF pool class" href="poolmvff.html" />
+    <link rel="prev" title="27. MV pool class" href="poolmv.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +38,14 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="poolmvff.html" title="29. MVFF pool class"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="poolmv.html" title="27. MV pool class"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="manual-variable-temporal-mvt-pool-design">
-<span id="design-poolmvt"></span><h1>Manual Variable Temporal (MVT) pool design<a class="headerlink" href="#manual-variable-temporal-mvt-pool-design" title="Permalink to this headline">¶</a></h1>
+<h1>28. Manual Variable Temporal (MVT) pool design<a class="headerlink" href="#manual-variable-temporal-mvt-pool-design" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poolmvt"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolmvt"></span><h2>28.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.intro"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.intro">.intro:</a> This is a second-generation design for a pool that manually
 manages variable-sized objects. It is intended as a replacement for
 poolmv (except in its control pool role) and poolepdl, and it is
@@ -60,7 +70,7 @@ design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
 paper.grun92(1), paper.beck82(0), mail.ptw.1998-02-25.22-18(0)</p>
 </div>
 <div class="section" id="definitions">
-<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>28.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.def.alignment"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.alignment">.def.alignment:</a> Alignment is a constraint on an object&#8217;s address,
 typically to be a power of 2 (see also, glossary.alignment )</p>
 <p><span class="target" id="design.mps.poolmvt.def.bit-map"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.bit-map">.def.bit-map:</a> A bitmap is a boolean-valued vector (see also,
@@ -105,7 +115,7 @@ manage by the client for its own use, typically a subset of a block
 (compare with <a class="reference internal" href="#design.mps.poolmvt.def.block">.def.block</a>).</p>
 </div>
 <div class="section" id="abbreviations">
-<h2>Abbreviations<a class="headerlink" href="#abbreviations" title="Permalink to this headline">¶</a></h2>
+<h2>28.3. Abbreviations<a class="headerlink" href="#abbreviations" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.abbr.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.abq">.abbr.abq:</a> ABQ = Available Block Queue</p>
 <p><span class="target" id="design.mps.poolmvt.abbr.ap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.ap">.abbr.ap:</a> AP = Allocation Point</p>
 <p><span class="target" id="design.mps.poolmvt.abbr.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.cbs">.abbr.cbs:</a> CBS = Coalescing Block Structure</p>
@@ -114,7 +124,7 @@ manage by the client for its own use, typically a subset of a block
 <p><span class="target" id="design.mps.poolmvt.abbr.ps"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.ps">.abbr.ps:</a> PS = PostScript</p>
 </div>
 <div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>28.4. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.overview"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.overview">.overview:</a> MVT is intended to satisfy the requirements of the
 clients that need manual-variable pools, improving on the performance
 of the existing manual-variable pool implementations, and reducing the
@@ -124,12 +134,12 @@ pool, but all pools other than the PS object pool), and Product
 (initially the malloc/new pool, but also other manual pool classes).</p>
 </div>
 <div class="section" id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>28.5. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.req.cat"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.cat">.req.cat:</a> Requirements are categorized per guide.req(2).</p>
 <p><span class="target" id="design.mps.poolmvt.req.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.risk">.req.risk:</a> req.epcore(16) is known to be obsolete, but the revised
 document has not yet been accepted.</p>
 <div class="section" id="critical-requirements">
-<h3>Critical requirements<a class="headerlink" href="#critical-requirements" title="Permalink to this headline">¶</a></h3>
+<h3>28.5.1. Critical requirements<a class="headerlink" href="#critical-requirements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.req.fun.man-var"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.man-var">.req.fun.man-var:</a> The pool class must support manual allocation and
 freeing of variable-sized blocks (source: req.dylan.fun.misc.alloc,
 req.epcore.fun.{dl,gen,tmp,stat,cache,trap}.{alloc,free},
@@ -186,7 +196,7 @@ incorrect, overlapping, and double frees.</p>
 erroneous usage (source req.product.attr.use.level.1).</p>
 </div>
 <div class="section" id="essential-requirements">
-<h3>Essential requirements<a class="headerlink" href="#essential-requirements" title="Permalink to this headline">¶</a></h3>
+<h3>28.5.2. Essential requirements<a class="headerlink" href="#essential-requirements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.req.fun.profile"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.profile">.req.fun.profile:</a> The pool class should support memory usage
 profiling (source: req.product.attr.{mkt.eval, perform}).</p>
 <p><span class="target" id="design.mps.poolmvt.req.attr.flex"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.flex">.req.attr.flex:</a> The pool class should be flexible so that it can be
@@ -200,14 +210,14 @@ req.epcore.fun.{tmp,stat}.policy,
 req.product.attr.{mkt.eval,perform}).</p>
 </div>
 <div class="section" id="nice-requirements">
-<h3>Nice requirements<a class="headerlink" href="#nice-requirements" title="Permalink to this headline">¶</a></h3>
+<h3>28.5.3. Nice requirements<a class="headerlink" href="#nice-requirements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.req.fun.suballocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.suballocate">.req.fun.suballocate:</a> The pool class may support freeing of any
 aligned, contiguous subset of an allocated block (source
 req.epcore.fun.dl.free.any, req.product.attr.{mkt.eval,perform}).</p>
 </div>
 </div>
 <div class="section" id="architecture">
-<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>28.6. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.arch.overview"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview">.arch.overview:</a> The pool has several layers: client allocation is
 by Allocation Points (APs).</p>
 <p><span class="target" id="design.mps.poolmvt.arch.overview.ap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.ap">.arch.overview.ap:</a> APs acquire storage from the pool
@@ -370,7 +380,7 @@ of sufficient size will be used for each allocation.</p>
 should not be delivered to clients until thoroughly tested.</p>
 </div>
 <div class="section" id="analysis">
-<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>28.7. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.anal.discard"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.discard">.anal.discard:</a> We have discarded many traditional solutions based
 on experience and analysis in paper.wil95(1). In particular, managing
 the free list as a linear list arranged by address or size and basing
@@ -462,12 +472,12 @@ believe a better mechanism is to choose to preserve or not, based on
 <a class="reference internal" href="#design.mps.poolmvt.sol.policy.allocate">.sol.policy.allocate</a>.</p>
 </div>
 <div class="section" id="ideas">
-<h2>Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<h2>28.8. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.sol"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol">.sol:</a> Many solution ideas for manual management of variable-sized
 memory blocks are enumerated by paper.wil95(1). Here we list the most
 promising, and some of our own.</p>
 <div class="section" id="strategy">
-<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<h3>28.8.1. Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.sol.strategy"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy">.sol.strategy:</a> To run a program in the minimal required memory,
 with minimal overhead, utilize memory efficiently. Memory becomes
 unusable when fragmented. Strategy is to minimize fragmentation. So
@@ -488,7 +498,7 @@ the pool will provide support for debugging that would be expensive or
 impossible to allocate outside the pool.</p>
 </div>
 <div class="section" id="policy">
-<h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
+<h3>28.8.2. Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
 <p>Policy is an implementable decision procedure, hopefully approximating
 the strategy.</p>
 <p><span class="target" id="design.mps.poolmvt.sol.policy.reuse"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.reuse">.sol.policy.reuse:</a> Defer reusing blocks, to encourage coalescing.</p>
@@ -517,7 +527,7 @@ pool that are queried with a generic interface.</p>
 overlapping frees.</p>
 </div>
 <div class="section" id="mechanism">
-<h3>Mechanism<a class="headerlink" href="#mechanism" title="Permalink to this headline">¶</a></h3>
+<h3>28.8.3. Mechanism<a class="headerlink" href="#mechanism" title="Permalink to this headline">¶</a></h3>
 <p>Mechanisms are algorithms or data structures used to implement policy.</p>
 <p><span class="target" id="design.mps.poolmvt.sol.mech.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list">.sol.mech.free-list:</a> Mechanisms that can be used to describe the
 free list.</p>
@@ -596,10 +606,10 @@ overlapping free by using separate interfaces.</p>
 </div>
 </div>
 <div class="section" id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>28.9. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>The implementation consists of the following separable modules:</p>
 <div class="section" id="coalescing-block-structure">
-<h3>Coalescing Block Structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h3>
+<h3>28.9.1. Coalescing Block Structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.impl.c.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.cbs">.impl.c.cbs:</a> The initial implementation will use
 <a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.splay-tree">.sol.mech.free-list.splay-tree</a> and
 <a class="reference internal" href="#design.mps.poolmvt.sol.mech.storage.out-of-band">.sol.mech.storage.out-of-band</a>. For locality, this storage should be
@@ -614,7 +624,7 @@ checking and description should be provided. See design.mps.splay(0)
 and design.mps.cbs(0).</p>
 </div>
 <div class="section" id="fail-over-to-address-ordered-free-list">
-<h3>Fail-over to address-ordered free list<a class="headerlink" href="#fail-over-to-address-ordered-free-list" title="Permalink to this headline">¶</a></h3>
+<h3>28.9.2. Fail-over to address-ordered free list<a class="headerlink" href="#fail-over-to-address-ordered-free-list" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.impl.c.freelist"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.freelist">.impl.c.freelist:</a> Because the CBS uses out-of-band storage, it may
 be unable to handle insert (design.mps.cbs.function.cbs.insert.fail)
 and delete (design.mps.cbs.function.cbs.delete.fail) operations. When
@@ -626,7 +636,7 @@ design.mps.freelist for the design and implementation of the free
 list.</p>
 </div>
 <div class="section" id="available-block-queue">
-<h3>Available Block Queue<a class="headerlink" href="#available-block-queue" title="Permalink to this headline">¶</a></h3>
+<h3>28.9.3. Available Block Queue<a class="headerlink" href="#available-block-queue" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.impl.c.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.abq">.impl.c.abq:</a> The initial implementation will be a queue of fixed
 size (determined at pool creation time from the high water mark). Must
 support creation and destruction of an empty queue. Must support
@@ -636,7 +646,7 @@ or any element of the queue (found by a search). Standard checking and
 description should be provided. See design.mps.abq.</p>
 </div>
 <div class="section" id="pool-implementation">
-<h3>Pool implementation<a class="headerlink" href="#pool-implementation" title="Permalink to this headline">¶</a></h3>
+<h3>28.9.4. Pool implementation<a class="headerlink" href="#pool-implementation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.impl.c"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c">.impl.c:</a> The initial implementation will use the above modules to
 implement a buffered pool. Must support creation and destruction of
 the pool. Creation takes parameters: minimum size, mean size, maximum
@@ -729,7 +739,7 @@ substrate permitted mapping/unmapping of pages, the pool could use
 very large segments and map/unmap pages as needed.</p>
 </div>
 <div class="section" id="ap-dispatch">
-<h3>AP Dispatch<a class="headerlink" href="#ap-dispatch" title="Permalink to this headline">¶</a></h3>
+<h3>28.9.5. AP Dispatch<a class="headerlink" href="#ap-dispatch" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.poolmvt.impl.c.multiap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.multiap">.impl.c.multiap:</a> The initial implementation will be a glue layer
 that selects among several AP&#8217;s for allocation according to the
 predicted deathtime (as approximated by size) of the requested
@@ -745,7 +755,7 @@ clients will likely want to choose among multiple AP&#8217;s more directly.</p>
 </div>
 </div>
 <div class="section" id="testing">
-<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<h2>28.10. Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvt.test.component"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.test.component">.test.component:</a> Components <a class="reference internal" href="#design.mps.poolmvt.impl.c.splay">.impl.c.splay</a>, <a class="reference internal" href="#design.mps.poolmvt.impl.c.cbs">.impl.c.cbs</a>, and
 <a class="reference internal" href="#design.mps.poolmvt.impl.c.abq">.impl.c.abq</a> will be subjected to individual component tests to
 verify their functionality.</p>
@@ -760,7 +770,7 @@ per-customer basis before release to that customer (cf.
 proc.release.epcore(2).test)</p>
 </div>
 <div class="section" id="text">
-<h2>Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
+<h2>28.11. Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
 <p>Possible tweaks (from mail.pekka.1998-04-15.13-10(0)):</p>
 <ul class="simple">
 <li>Try to coalesce splinters returned from AP&#8217;s with the front (or any)
@@ -782,39 +792,45 @@ example, proximity to recently allocated blocks.</li>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Manual Variable Temporal (MVT) pool design</a><ul>
-<li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#definitions">Definitions</a></li>
-<li><a class="reference internal" href="#abbreviations">Abbreviations</a></li>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#requirements">Requirements</a><ul>
-<li><a class="reference internal" href="#critical-requirements">Critical requirements</a></li>
-<li><a class="reference internal" href="#essential-requirements">Essential requirements</a></li>
-<li><a class="reference internal" href="#nice-requirements">Nice requirements</a></li>
+<li><a class="reference internal" href="#">28. Manual Variable Temporal (MVT) pool design</a><ul>
+<li><a class="reference internal" href="#introduction">28.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">28.2. Definitions</a></li>
+<li><a class="reference internal" href="#abbreviations">28.3. Abbreviations</a></li>
+<li><a class="reference internal" href="#overview">28.4. Overview</a></li>
+<li><a class="reference internal" href="#requirements">28.5. Requirements</a><ul>
+<li><a class="reference internal" href="#critical-requirements">28.5.1. Critical requirements</a></li>
+<li><a class="reference internal" href="#essential-requirements">28.5.2. Essential requirements</a></li>
+<li><a class="reference internal" href="#nice-requirements">28.5.3. Nice requirements</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#architecture">Architecture</a></li>
-<li><a class="reference internal" href="#analysis">Analysis</a></li>
-<li><a class="reference internal" href="#ideas">Ideas</a><ul>
-<li><a class="reference internal" href="#strategy">Strategy</a></li>
-<li><a class="reference internal" href="#policy">Policy</a></li>
-<li><a class="reference internal" href="#mechanism">Mechanism</a></li>
+<li><a class="reference internal" href="#architecture">28.6. Architecture</a></li>
+<li><a class="reference internal" href="#analysis">28.7. Analysis</a></li>
+<li><a class="reference internal" href="#ideas">28.8. Ideas</a><ul>
+<li><a class="reference internal" href="#strategy">28.8.1. Strategy</a></li>
+<li><a class="reference internal" href="#policy">28.8.2. Policy</a></li>
+<li><a class="reference internal" href="#mechanism">28.8.3. Mechanism</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#implementation">Implementation</a><ul>
-<li><a class="reference internal" href="#coalescing-block-structure">Coalescing Block Structure</a></li>
-<li><a class="reference internal" href="#fail-over-to-address-ordered-free-list">Fail-over to address-ordered free list</a></li>
-<li><a class="reference internal" href="#available-block-queue">Available Block Queue</a></li>
-<li><a class="reference internal" href="#pool-implementation">Pool implementation</a></li>
-<li><a class="reference internal" href="#ap-dispatch">AP Dispatch</a></li>
+<li><a class="reference internal" href="#implementation">28.9. Implementation</a><ul>
+<li><a class="reference internal" href="#coalescing-block-structure">28.9.1. Coalescing Block Structure</a></li>
+<li><a class="reference internal" href="#fail-over-to-address-ordered-free-list">28.9.2. Fail-over to address-ordered free list</a></li>
+<li><a class="reference internal" href="#available-block-queue">28.9.3. Available Block Queue</a></li>
+<li><a class="reference internal" href="#pool-implementation">28.9.4. Pool implementation</a></li>
+<li><a class="reference internal" href="#ap-dispatch">28.9.5. AP Dispatch</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#testing">Testing</a></li>
-<li><a class="reference internal" href="#text">Text</a></li>
+<li><a class="reference internal" href="#testing">28.10. Testing</a></li>
+<li><a class="reference internal" href="#text">28.11. Text</a></li>
 </ul>
 </li>
 </ul>
-<h4>Downloads</h4>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="poolmv.html"
+                        title="previous chapter">27. MV pool class</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poolmvff.html"
+                        title="next chapter">29. MVFF pool class</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -839,7 +855,14 @@ example, proximity to recently allocated blocks.</li>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="poolmvff.html" title="29. MVFF pool class"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="poolmv.html" title="27. MV pool class"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

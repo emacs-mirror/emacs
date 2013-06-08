@@ -1,8 +1,8 @@
-.. _design-lock:
-
 
 .. index::
    pair: locking; design
+
+.. _design-lock:
 
 
 The lock module

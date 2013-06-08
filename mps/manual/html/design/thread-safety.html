@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>43. Thread safety in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>47. Thread safety in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="44. Tracer" href="trace.html" />
-    <link rel="prev" title="42. Thread Manager" href="thread-manager.html" /> 
+    <link rel="next" title="48. Tracer" href="trace.html" />
+    <link rel="prev" title="46. Thread Manager" href="thread-manager.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="trace.html" title="44. Tracer"
+          <a href="trace.html" title="48. Tracer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="thread-manager.html" title="42. Thread Manager"
+          <a href="thread-manager.html" title="46. Thread Manager"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,14 +54,14 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-thread-safety"></span><div class="section" id="thread-safety-in-the-mps">
-<span id="index-0"></span><h1>43. Thread safety in the MPS<a class="headerlink" href="#thread-safety-in-the-mps" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="thread-safety-in-the-mps">
+<span id="design-thread-safety"></span><span id="index-0"></span><h1>47. Thread safety in the MPS<a class="headerlink" href="#thread-safety-in-the-mps" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.thread-safety"></span><h2>43.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.thread-safety"></span><h2>47.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.intro"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.intro">.intro:</a> This describes how thread safety is achieved in the MPS.</p>
 </div>
 <div class="section" id="overview">
-<h2>43.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>47.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.over"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.over">.over:</a> The MPS is expected to run in an environment with multiple
 threads calling into the MPS. The initial approach is very simple.
 Some of the code is known to operate with exclusive access to the data
@@ -72,13 +72,13 @@ MPS and released on exit from it. So there is at most a single thread
 (per arena) running &#8220;inside&#8221; the MPS at a time.</p>
 </div>
 <div class="section" id="requirements">
-<h2>43.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>47.3. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.req.mt"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.req.mt">.req.mt:</a> Code must work correctly in presence of multiple threads
 all calling into the MPS.</p>
 <p><span class="target" id="design.mps.thread-safety.req.perf"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.req.perf">.req.perf:</a> Performance should not be unreasonably hindered.</p>
 </div>
 <div class="section" id="architecture">
-<h2>43.4. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>47.4. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.arch.arena"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.arch.arena">.arch.arena:</a> Arena Lock: no shared data between arenas.</p>
 <p><span class="target" id="design.mps.thread-safety.arch.global.binary"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.arch.global.binary">.arch.global.binary:</a> Global binary lock: protects mutable data
 shared between arenas &#8211; that is, the arena ring, see
@@ -109,12 +109,12 @@ Each arena lock is independent of all other arena locks; that is, a
 thread may not attempt to claim more than one arena lock at a time.</p>
 </div>
 <div class="section" id="analysis">
-<h2>43.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<h2>47.5. Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.anal.simple"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.anal.simple">.anal.simple:</a> To have the code functioning correctly it should be
 easy to change correctly. So a simple approach is desirable. We have
 to also ensure that performance is not unreasonably downgraded.</p>
 <div class="section" id="performance-cost-of-locking">
-<h3>43.5.1. Performance cost of locking<a class="headerlink" href="#performance-cost-of-locking" title="Permalink to this headline">¶</a></h3>
+<h3>47.5.1. Performance cost of locking<a class="headerlink" href="#performance-cost-of-locking" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.thread-safety.lock-cost"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.lock-cost">.lock-cost:</a> The cost of locking in performance terms are:</p>
 <ul class="simple">
 <li><span class="target" id="design.mps.thread-safety.lock-cost.overhead"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.lock-cost.overhead">.lock-cost.overhead:</a> the overhead of claiming and releasing locks;</li>
@@ -149,7 +149,7 @@ functions. Hence it would be undesirable from a performance point of
 view to have more than one lock.</p>
 </div>
 <div class="section" id="recursive-vs-binary-locks">
-<h3>43.5.2. Recursive vs binary locks<a class="headerlink" href="#recursive-vs-binary-locks" title="Permalink to this headline">¶</a></h3>
+<h3>47.5.2. Recursive vs binary locks<a class="headerlink" href="#recursive-vs-binary-locks" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.thread-safety.anal.reentrance"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.anal.reentrance">.anal.reentrance:</a> The simplest way to lock the code safely is to
 define which code runs inside or outside the lock. Calling from the
 outside to the inside implies a lock has to be claimed. Returning
@@ -180,7 +180,7 @@ strategy. (That evolution has now happened. tony 1999-08-31).</p>
 </div>
 </div>
 <div class="section" id="ideas">
-<h2>43.6. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<h2>47.6. Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.thread-safety.sol.arena-lock"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.sol.arena-lock">.sol.arena-lock:</a> Lock per arena which locks all MPS structures
 associated with the arena, except allocation buffers.</p>
 <p><span class="target" id="design.mps.thread-safety.sol.init"></span><a class="mpstag reference internal" href="#design.mps.thread-safety.sol.init">.sol.init:</a> Shared static data may not be changed. It is initialised
@@ -196,10 +196,10 @@ be updated dynamically. An ordering between global and arena locks
 would avoid deadlock.</p>
 </div>
 <div class="section" id="implementation">
-<h2>43.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>47.7. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>Use MPS locks (design.mps.lock) to do locking.</p>
 <div class="section" id="locking-functions">
-<h3>43.7.1. Locking Functions<a class="headerlink" href="#locking-functions" title="Permalink to this headline">¶</a></h3>
+<h3>47.7.1. Locking Functions<a class="headerlink" href="#locking-functions" title="Permalink to this headline">¶</a></h3>
 <p><tt class="xref c c-func docutils literal"><span class="pre">ArenaEnter()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ArenaLeave()</span></tt> are used to claim and release the
 arena lock. To implement this:</p>
 <ul class="simple">
@@ -213,7 +213,7 @@ pointer to it from the arena.</li>
 </ul>
 </div>
 <div class="section" id="shared-and-non-shared-data">
-<h3>43.7.2. Shared and non-shared data<a class="headerlink" href="#shared-and-non-shared-data" title="Permalink to this headline">¶</a></h3>
+<h3>47.7.2. Shared and non-shared data<a class="headerlink" href="#shared-and-non-shared-data" title="Permalink to this headline">¶</a></h3>
 <p>Non-shared data is data for which no other thread has a handle on it.
 shared-non-mutable data is data which is never changed after
 initialisation. It may be re-initialised, if re-initialisation does
@@ -247,7 +247,7 @@ lock is already held;</li>
 shared-non-mutable. <tt class="docutils literal"><span class="pre">buffer-&gt;pool</span></tt> is shared-non-mutable.</p>
 </div>
 <div class="section" id="validation">
-<h3>43.7.3. Validation<a class="headerlink" href="#validation" title="Permalink to this headline">¶</a></h3>
+<h3>47.7.3. Validation<a class="headerlink" href="#validation" title="Permalink to this headline">¶</a></h3>
 <p>We have to be careful about validation. Any function that is called
 from a arena-safe function without the arena-lock held, must itself be
 safe, or manipulating non-shared data.</p>
@@ -264,7 +264,7 @@ functions.</p>
 - shared-non-mutable</p>
 </div>
 <div class="section" id="safe-functions">
-<h3>43.7.4. Safe functions<a class="headerlink" href="#safe-functions" title="Permalink to this headline">¶</a></h3>
+<h3>47.7.4. Safe functions<a class="headerlink" href="#safe-functions" title="Permalink to this headline">¶</a></h3>
 <p>Arena</p>
 <ul class="simple">
 <li><tt class="xref c c-func docutils literal"><span class="pre">ArenaCreate()</span></tt> &#8211; no shared data; no lock; calls <a class="reference internal" href="lock.html#LockInit" title="LockInit"><tt class="xref c c-func docutils literal"><span class="pre">LockInit()</span></tt></a>.</li>
@@ -340,22 +340,22 @@ constant value)</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">43. Thread safety in the MPS</a><ul>
-<li><a class="reference internal" href="#introduction">43.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">43.2. Overview</a></li>
-<li><a class="reference internal" href="#requirements">43.3. Requirements</a></li>
-<li><a class="reference internal" href="#architecture">43.4. Architecture</a></li>
-<li><a class="reference internal" href="#analysis">43.5. Analysis</a><ul>
-<li><a class="reference internal" href="#performance-cost-of-locking">43.5.1. Performance cost of locking</a></li>
-<li><a class="reference internal" href="#recursive-vs-binary-locks">43.5.2. Recursive vs binary locks</a></li>
+<li><a class="reference internal" href="#">47. Thread safety in the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">47.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">47.2. Overview</a></li>
+<li><a class="reference internal" href="#requirements">47.3. Requirements</a></li>
+<li><a class="reference internal" href="#architecture">47.4. Architecture</a></li>
+<li><a class="reference internal" href="#analysis">47.5. Analysis</a><ul>
+<li><a class="reference internal" href="#performance-cost-of-locking">47.5.1. Performance cost of locking</a></li>
+<li><a class="reference internal" href="#recursive-vs-binary-locks">47.5.2. Recursive vs binary locks</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ideas">43.6. Ideas</a></li>
-<li><a class="reference internal" href="#implementation">43.7. Implementation</a><ul>
-<li><a class="reference internal" href="#locking-functions">43.7.1. Locking Functions</a></li>
-<li><a class="reference internal" href="#shared-and-non-shared-data">43.7.2. Shared and non-shared data</a></li>
-<li><a class="reference internal" href="#validation">43.7.3. Validation</a></li>
-<li><a class="reference internal" href="#safe-functions">43.7.4. Safe functions</a></li>
+<li><a class="reference internal" href="#ideas">47.6. Ideas</a></li>
+<li><a class="reference internal" href="#implementation">47.7. Implementation</a><ul>
+<li><a class="reference internal" href="#locking-functions">47.7.1. Locking Functions</a></li>
+<li><a class="reference internal" href="#shared-and-non-shared-data">47.7.2. Shared and non-shared data</a></li>
+<li><a class="reference internal" href="#validation">47.7.3. Validation</a></li>
+<li><a class="reference internal" href="#safe-functions">47.7.4. Safe functions</a></li>
 </ul>
 </li>
 </ul>
@@ -364,10 +364,10 @@ constant value)</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="thread-manager.html"
-                        title="previous chapter">42. Thread Manager</a></p>
+                        title="previous chapter">46. Thread Manager</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="trace.html"
-                        title="next chapter">44. Tracer</a></p><h4>Downloads</h4>
+                        title="next chapter">48. Tracer</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -393,10 +393,10 @@ constant value)</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="trace.html" title="44. Tracer"
+          <a href="trace.html" title="48. Tracer"
              >next</a> |</li>
         <li class="right" >
-          <a href="thread-manager.html" title="42. Thread Manager"
+          <a href="thread-manager.html" title="46. Thread Manager"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

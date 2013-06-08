@@ -1,8 +1,8 @@
-.. _design-shield:
-
 
 .. index::
    pair: shield; design
+
+.. _design-shield:
 
 
 Shield

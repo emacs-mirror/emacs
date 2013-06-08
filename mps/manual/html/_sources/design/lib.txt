@@ -1,8 +1,8 @@
-.. _design-lib:
-
 
 .. index::
    pair: library interface; design
+
+.. _design-lib:
 
 
 Library interface

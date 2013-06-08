@@ -121,12 +121,12 @@ reference is within the object and need not be stripped. So your code
 might look like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">))</span> <span class="p">{</span>
     <span class="cm">/* strip the tag */</span>
-    <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+    <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="o">~</span><span class="mh">0x7</span><span class="p">;</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
     <span class="cm">/* restore the tag and update reference */</span>
-    <span class="kt">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
-    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="kt">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
+    <span class="n">mps_word_t</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">&amp;</span> <span class="mh">0x7</span><span class="p">;</span>
+    <span class="n">obj</span><span class="o">-&gt;</span><span class="n">ref</span> <span class="o">=</span> <span class="p">(</span><span class="n">obj_t</span><span class="p">)((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span> <span class="o">+</span> <span class="n">tag</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -154,7 +154,7 @@ determine whether or not the word is a reference.</p>
 references to non-references, on how often genuine references turn out
 to be &#8220;of interest&#8221;, and what kind of code the compiler has
 generated. There is no substitute for measurement.</p>
-<p>See <em class="xref std std-ref">design-critical-path</em>.</p>
+<p>See <a class="reference internal" href="../design/critical-path.html#design-critical-path"><em>The critical path through the MPS</em></a>.</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Note</p>
 <p class="last">In one application with a high proportion of <a class="reference internal" href="../glossary/u.html#term-unboxed"><em class="xref std std-term">unboxed</em></a>
@@ -244,11 +244,11 @@ reference and cast it to this type. The behaviour of such a cast
 is not defined by the C standard. See <a class="reference internal" href="interface.html#topic-interface-pun"><em>Type punning</em></a>.</p>
 </div>
 <p>Here&#8217;s the Scheme scanner:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="kt">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="n">obj_t</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="k">switch</span> <span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
                 <span class="k">case</span> <span class="n">TYPE_PAIR</span>:
                     <span class="n">FIX</span><span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">pair</span><span class="p">.</span><span class="n">car</span><span class="p">);</span>
@@ -366,10 +366,10 @@ references inside the object&#8217;s <tt class="docutils literal"><span class="p
 <tt class="docutils literal"><span class="pre">data_scan</span></tt>. In order to ensure that the scan state is passed
 correctly to <tt class="docutils literal"><span class="pre">data_scan</span></tt>, the call must be wrapped in
 <a class="reference internal" href="#MPS_FIX_CALL" title="MPS_FIX_CALL"><tt class="xref c c-func docutils literal"><span class="pre">MPS_FIX_CALL()</span></tt></a>.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="nf">obj_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">obj</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span> <span class="n">obj</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">;</span> <span class="n">obj</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX12</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>

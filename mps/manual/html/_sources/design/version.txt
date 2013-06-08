@@ -1,9 +1,9 @@
-.. _design-version:
-
 
 .. index::
    pair: software versions; design
    single: versions; design
+
+.. _design-version:
 
 
 Software versions

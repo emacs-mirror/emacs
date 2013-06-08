@@ -1,8 +1,8 @@
-.. _design-thread-manager:
-
 
 .. index::
    pair: thread manager; design
+
+.. _design-thread-manager:
 
 
 Thread Manager

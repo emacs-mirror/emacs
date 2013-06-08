@@ -1,8 +1,8 @@
-.. _design-collection:
-
 
 .. index::
    pair: collection framework; design
+
+.. _design-collection:
 
 
 Collection framework

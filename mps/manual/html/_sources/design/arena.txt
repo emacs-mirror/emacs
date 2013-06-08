@@ -1,8 +1,8 @@
-.. _design-arena:
-
 
 .. index::
    pair: arena; design
+
+.. _design-arena:
 
 
 Arena

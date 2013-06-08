@@ -1,8 +1,8 @@
-.. _design-finalize:
-
 
 .. index::
    pair: finalization; design
+
+.. _design-finalize:
 
 
 Finalization

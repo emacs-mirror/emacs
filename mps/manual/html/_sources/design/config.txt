@@ -1,8 +1,8 @@
-.. _design-config:
-
 
 .. index::
    pair: configuration; design
+
+.. _design-config:
 
 
 MPS Configuration

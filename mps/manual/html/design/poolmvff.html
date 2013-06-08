@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>27. MVFF pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>29. MVFF pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="28. The protection module" href="prot.html" />
-    <link rel="prev" title="26. MRG pool class" href="poolmrg.html" /> 
+    <link rel="next" title="30. The protection module" href="prot.html" />
+    <link rel="prev" title="28. Manual Variable Temporal (MVT) pool design" href="poolmvt.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="prot.html" title="28. The protection module"
+          <a href="prot.html" title="30. The protection module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="poolmrg.html" title="26. MRG pool class"
+          <a href="poolmvt.html" title="28. Manual Variable Temporal (MVT) pool design"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-poolmvff"></span><div class="section" id="mvff-pool-class">
-<span id="index-0"></span><h1>27. MVFF pool class<a class="headerlink" href="#mvff-pool-class" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="mvff-pool-class">
+<span id="design-poolmvff"></span><span id="index-0"></span><h1>29. MVFF pool class<a class="headerlink" href="#mvff-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.poolmvff"></span><h2>27.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolmvff"></span><h2>29.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.intro"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.intro">.intro:</a> This is the design of the MVFF (Manual Variable First-Fit)
 pool class. This pool implements a first (or last) fit policy for
 variable-sized manually-managed objects, with control over first/last,
@@ -67,7 +67,7 @@ EPDL/EPDR&#8217;s first fit policy is beneficial for some classes of client
 behaviour, but the performance of a linear free list was unacceptable.</p>
 </div>
 <div class="section" id="overview">
-<h2>27.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>29.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.over"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.over">.over:</a> This pool implements certain variants of the address-ordered
 first-fit policy. The implementation allows allocation across segment
 boundaries.</p>
@@ -83,7 +83,7 @@ segment boundaries.</p>
 (SegClass). There&#8217;s no need for anything more complex.</p>
 </div>
 <div class="section" id="methods">
-<h2>27.3. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<h2>29.3. Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.method"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.method">.method:</a> The MVFF pool supports the following methods:</p>
 <dl class="function">
 <dt id="MVFFInit">
@@ -147,7 +147,7 @@ supported, implementing the policy set by the pool params (see
 strategy.</p>
 </div>
 <div class="section" id="external-functions">
-<h2>27.4. External Functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
+<h2>29.4. External Functions<a class="headerlink" href="#external-functions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.function"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function">.function:</a> MVFF supports the following external functions:</p>
 <p><span class="target" id="design.mps.poolmvff.function.free-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.function.free-size">.function.free-size:</a> <a class="reference internal" href="../pool/mvff.html#mps_mvff_free_size" title="mps_mvff_free_size"><tt class="xref c c-func docutils literal"><span class="pre">mps_mvff_free_size()</span></tt></a> returns the total
 size of free space in segments allocated to the MVFF pool instance.</p>
@@ -157,7 +157,7 @@ by pool segments, whether free or allocated.</p>
 the pool class, to be used in pool creation.</p>
 </div>
 <div class="section" id="implementation">
-<h2>27.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>29.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.impl.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.impl.free-list">.impl.free-list:</a> The pool stores its free list in a CBS (see
 //gdr-peewit/info.ravenbrook.com/project/mps/branch/2013-05-17/emergency/design/poolmvff.txt
 <a class="reference external" href="cbs/">design.mps.cbs</a>), failing over in emergencies to a Freelist
@@ -165,7 +165,7 @@ the pool class, to be used in pool creation.</p>
 structures. This is the reason for the alignment restriction above.</p>
 </div>
 <div class="section" id="details">
-<h2>27.6. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<h2>29.6. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.design.seg-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.design.seg-size">.design.seg-size:</a> When adding a segment, we use extendBy as the
 segment size unless the object won&#8217;t fit, in which case we use the
 object size (in both cases we align up).</p>
@@ -186,23 +186,23 @@ is in response to <a class="reference external" href="https://info.ravenbrook.co
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">27. MVFF pool class</a><ul>
-<li><a class="reference internal" href="#introduction">27.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">27.2. Overview</a></li>
-<li><a class="reference internal" href="#methods">27.3. Methods</a></li>
-<li><a class="reference internal" href="#external-functions">27.4. External Functions</a></li>
-<li><a class="reference internal" href="#implementation">27.5. Implementation</a></li>
-<li><a class="reference internal" href="#details">27.6. Details</a></li>
+<li><a class="reference internal" href="#">29. MVFF pool class</a><ul>
+<li><a class="reference internal" href="#introduction">29.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">29.2. Overview</a></li>
+<li><a class="reference internal" href="#methods">29.3. Methods</a></li>
+<li><a class="reference internal" href="#external-functions">29.4. External Functions</a></li>
+<li><a class="reference internal" href="#implementation">29.5. Implementation</a></li>
+<li><a class="reference internal" href="#details">29.6. Details</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="poolmrg.html"
-                        title="previous chapter">26. MRG pool class</a></p>
+  <p class="topless"><a href="poolmvt.html"
+                        title="previous chapter">28. Manual Variable Temporal (MVT) pool design</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="prot.html"
-                        title="next chapter">28. The protection module</a></p><h4>Downloads</h4>
+                        title="next chapter">30. The protection module</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -228,10 +228,10 @@ is in response to <a class="reference external" href="https://info.ravenbrook.co
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="prot.html" title="28. The protection module"
+          <a href="prot.html" title="30. The protection module"
              >next</a> |</li>
         <li class="right" >
-          <a href="poolmrg.html" title="26. MRG pool class"
+          <a href="poolmvt.html" title="28. Manual Variable Temporal (MVT) pool design"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

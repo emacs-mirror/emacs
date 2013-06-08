@@ -20,50 +20,63 @@ of pools, choosing the most appropriate pool class for each.
     class in the open source MPS exactly matches your needs, then it
     is possible to develop new pool classes. See :ref:`pool-writing`.
 
-First, answer these questions about your data:
+First, do you need the MPS to :term:`automatically <automatic memory
+management>` :term:`reclaim` :term:`unreachable` blocks? If so, you
+need an automatically managed (garbage collected) pool class and you
+should consult :ref:`pool-choose-automatic` below.
+Otherwise, you need a manually managed pool class and you should
+consult :ref:`pool-choose-manual` below.
 
-1. Do you need the MPS to :term:`automatically <automatic memory
-   management>` :term:`reclaim` :term:`unreachable` blocks?
 
-2. Is it acceptable for the MPS to :term:`move <moving memory
+.. _pool-choose-automatic:
+
+Choosing an automatic pool class
+--------------------------------
+
+Answer these questions about your data:
+
+1. Is it acceptable for the MPS to :term:`move <moving memory
    manager>` blocks in memory and to place :term:`barriers (1)` on
    blocks? (For example, it might not be acceptable to move a block if
    it has been passed to :term:`foreign code` that remembered its
    location.)
 
-3. Do your blocks contain :term:`references` to blocks stored in
+2. Do your blocks contain :term:`references` to blocks stored in
    automatically managed pools (including references to other blocks
    in the same pool, if it's automatically managed)? And if so, are
-   these references :term:`exact <exact reference>`, :term:`ambiguous
-   <ambiguous reference>` or :term:`weak <weak reference (1)>`?
+   these references :term:`exact <exact reference>` or :term:`weak
+   <weak reference (1)>`?
 
 Second, look up your answers in this table to find the recommended
 pool class to use:
 
-==========  ======================  ===========  ====================================
-Automatic?  Movable & protectable?  References?  Use this pool class
-==========  ======================  ===========  ====================================
-yes         yes                     none         :ref:`pool-amcz`
-yes         yes                     exact        :ref:`pool-amc`
-yes         yes                     ambiguous    nothing suitable
-yes         yes                     weak         :ref:`pool-awl`
-yes         no                      none         :ref:`pool-lo`
-yes         no                      exact        :ref:`pool-ams`
-yes         no                      ambiguous    nothing suitable
-yes         no                      weak         nothing suitable
-no          *any*                   none         :ref:`pool-mvff`
-no          *any*                   exact        :ref:`pool-mvff` [1]_
-no          *any*                   ambiguous    :ref:`pool-mvff` [1]_
-no          *any*                   weak         :ref:`pool-mvff` [1]_
-==========  ======================  ===========  ====================================
+======================  ===========  ===================
+Movable & protectable?  References?  Use this pool class
+======================  ===========  ===================
+yes                     none         :ref:`pool-amcz`
+yes                     exact        :ref:`pool-amc`
+yes                     weak         :ref:`pool-awl`
+no                      none         :ref:`pool-lo`
+no                      exact        :ref:`pool-ams`
+no                      weak         nothing suitable
+======================  ===========  ===================
 
-.. note::
 
-    .. [1] :ref:`pool-mvff` doesn't scan for references, but you can
-           work around this by registering your blocks as
-           :term:`roots` (with the appropriate :term:`rank`) just
-           after they are allocated, and deregistering them just
-           before freeing them.
+.. _pool-choose-manual:
+
+Choosing a manual pool class
+----------------------------
+
+Answer these questions about your data:
+
+1. Are the blocks fixed in size? If so, use :ref:`pool-mfs`.
+
+2. Are the lifetimes of blocks predictable? If so, use
+   :ref:`pool-mvt`, and arrange that objects that are predicted to die
+   at about the same time are allocated from the same
+   :term:`allocation point`.
+
+3. Otherwise, use :ref:`pool-mvff`.
 
 
 .. Sources:

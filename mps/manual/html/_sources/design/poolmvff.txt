@@ -1,9 +1,9 @@
-.. _design-poolmvff:
-
 
 .. index::
    pair: MVFF pool class; design
    single: pool class; MVFF design
+
+.. _design-poolmvff:
 
 
 MVFF pool class

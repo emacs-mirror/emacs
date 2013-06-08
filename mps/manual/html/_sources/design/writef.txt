@@ -1,8 +1,8 @@
-.. _design-writef:
-
 
 .. index::
    pair: WriteF function; design
+
+.. _design-writef:
 
 
 The WriteF function

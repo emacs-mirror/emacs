@@ -1,8 +1,8 @@
-.. _design-thread-safety:
-
 
 .. index::
    pair: thread safety; design
+
+.. _design-thread-safety:
 
 
 Thread safety in the MPS

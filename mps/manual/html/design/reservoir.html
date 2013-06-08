@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>34. The low-memory reservoir &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>36. The low-memory reservoir &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="35. Root manager" href="root.html" />
-    <link rel="prev" title="33. POSIX thread extensions" href="pthreadext.html" /> 
+    <link rel="next" title="37. Root manager" href="root.html" />
+    <link rel="prev" title="35. POSIX thread extensions" href="pthreadext.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="root.html" title="35. Root manager"
+          <a href="root.html" title="37. Root manager"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pthreadext.html" title="33. POSIX thread extensions"
+          <a href="pthreadext.html" title="35. POSIX thread extensions"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-reservoir"></span><div class="section" id="the-low-memory-reservoir">
-<span id="index-0"></span><h1>34. The low-memory reservoir<a class="headerlink" href="#the-low-memory-reservoir" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="the-low-memory-reservoir">
+<span id="design-reservoir"></span><span id="index-0"></span><h1>36. The low-memory reservoir<a class="headerlink" href="#the-low-memory-reservoir" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.reservoir"></span><h2>34.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.reservoir"></span><h2>36.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.reservoir.intro"></span><a class="mpstag reference internal" href="#design.mps.reservoir.intro">.intro:</a> The low-memory reservoir provides client support for
 implementing handlers for low-memory situations which allocate. The
 reservoir is implemented inside the arena as a pool of unallocatable
 segments.</p>
 </div>
 <div class="section" id="architecture">
-<h2>34.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<h2>36.2. Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Reservoir">
 struct ReservoirStruct *<tt class="descname">Reservoir</tt><a class="headerlink" href="#Reservoir" title="Permalink to this definition">¶</a></dt>
@@ -88,7 +88,7 @@ case, the client won&#8217;t even want an allowance to be made for wastage
 in active buffers.</p>
 </div>
 <div class="section" id="implementation">
-<h2>34.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>36.3. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.reservoir.interface"></span><a class="mpstag reference internal" href="#design.mps.reservoir.interface">.interface:</a> The following functions comprise the interface to the
 reservoir module:</p>
 <dl class="function">
@@ -181,20 +181,20 @@ of each tract object.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">34. The low-memory reservoir</a><ul>
-<li><a class="reference internal" href="#introduction">34.1. Introduction</a></li>
-<li><a class="reference internal" href="#architecture">34.2. Architecture</a></li>
-<li><a class="reference internal" href="#implementation">34.3. Implementation</a></li>
+<li><a class="reference internal" href="#">36. The low-memory reservoir</a><ul>
+<li><a class="reference internal" href="#introduction">36.1. Introduction</a></li>
+<li><a class="reference internal" href="#architecture">36.2. Architecture</a></li>
+<li><a class="reference internal" href="#implementation">36.3. Implementation</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="pthreadext.html"
-                        title="previous chapter">33. POSIX thread extensions</a></p>
+                        title="previous chapter">35. POSIX thread extensions</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="root.html"
-                        title="next chapter">35. Root manager</a></p><h4>Downloads</h4>
+                        title="next chapter">37. Root manager</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -220,10 +220,10 @@ of each tract object.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="root.html" title="35. Root manager"
+          <a href="root.html" title="37. Root manager"
              >next</a> |</li>
         <li class="right" >
-          <a href="pthreadext.html" title="33. POSIX thread extensions"
+          <a href="pthreadext.html" title="35. POSIX thread extensions"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

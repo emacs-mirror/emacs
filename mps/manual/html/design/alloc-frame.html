@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-alloc-frame"></span><div class="section" id="allocation-frame-protocol">
-<span id="index-0"></span><h1>1. Allocation frame protocol<a class="headerlink" href="#allocation-frame-protocol" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="allocation-frame-protocol">
+<span id="design-alloc-frame"></span><span id="index-0"></span><h1>1. Allocation frame protocol<a class="headerlink" href="#allocation-frame-protocol" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <span id="design.mps.alloc-frame"></span><h2>1.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.alloc-frame.intro"></span><a class="mpstag reference internal" href="#design.mps.alloc-frame.intro">.intro:</a> This document explains the design of the support for
@@ -407,9 +407,9 @@ responding to a <tt class="xref c c-func docutils literal"><span class="pre">Sel
 </tbody>
 </table>
 <p><span class="target" id="design.mps.alloc-frame.lw-frame.state-impl"></span><a class="mpstag reference internal" href="#design.mps.alloc-frame.lw-frame.state-impl">.lw-frame.state-impl:</a> Each AP contains 3 additional fields to hold this state:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">frameptr</span><span class="p">;</span>
-<span class="kt">mps_bool_t</span> <span class="n">enabled</span><span class="p">;</span>
-<span class="kt">mps_bool_t</span> <span class="n">lwPopPending</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">frameptr</span><span class="p">;</span>
+<span class="n">mps_bool_t</span> <span class="n">enabled</span><span class="p">;</span>
+<span class="n">mps_bool_t</span> <span class="n">lwPopPending</span><span class="p">;</span>
 </pre></div>
 </div>
 <p><span class="target" id="design.mps.alloc-frame.lw-frame.enabled"></span><a class="mpstag reference internal" href="#design.mps.alloc-frame.lw-frame.enabled">.lw-frame.enabled:</a> The <tt class="docutils literal"><span class="pre">enabled</span></tt> slot holds the following values for

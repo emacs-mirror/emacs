@@ -1,8 +1,8 @@
-.. _design-prot:
-
 
 .. index::
    pair: protection interface; design
+
+.. _design-prot:
 
 
 The protection module

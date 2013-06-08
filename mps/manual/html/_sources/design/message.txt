@@ -1,9 +1,9 @@
-.. _design-message:
-
 
 .. index::
    pair: messages; design
    single: client message protocol
+
+.. _design-message:
 
 
 Client message protocol

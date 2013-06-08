@@ -137,7 +137,7 @@ is the predicted mean size of blocks that will be allocated from
 the pool. This is a <em>hint</em> to the MPS: the pool will be less
 efficient if this is wrong, but nothing will break.</li>
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt> (type <a class="reference internal" href="../topic/interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>, default is
-smallest general purpose alignment for the architecture) is the
+<a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>) is the
 <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of addresses for allocation (and freeing) in
 the pool. If an unaligned size is passed to <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a> or
 <a class="reference internal" href="../topic/allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a>, it will be rounded up to the pool&#8217;s alignment.
@@ -189,14 +189,14 @@ Other combinations may be useful in special circumstances.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the arguments like
 this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvff</span><span class="p">(),</span>
-                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="kt">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvff</span><span class="p">(),</span>
+                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="n">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -222,15 +222,15 @@ options. See <tt class="xref c c-type docutils literal"><span class="pre">mps_de
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the debugging
 options, and other arguments like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvff_debug</span><span class="p">(),</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvff_debug</span><span class="p">(),</span>
                           <span class="n">mps_debug_option_s</span> <span class="n">debug_option</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
-                          <span class="kt">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
-                          <span class="kt">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
-                          <span class="kt">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
+                          <span class="n">mps_size_t</span> <span class="n">extend_size</span><span class="p">,</span>
+                          <span class="n">mps_size_t</span> <span class="n">average_size</span><span class="p">,</span>
+                          <span class="n">mps_align_t</span> <span class="n">alignment</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">slot_high</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">arena_high</span><span class="p">,</span>
+                          <span class="n">mps_bool_t</span> <span class="n">first_fit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

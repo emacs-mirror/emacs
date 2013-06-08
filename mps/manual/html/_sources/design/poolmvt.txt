@@ -1,5 +1,3 @@
-.. _design-poolmvt:
-
 
 
 Manual Variable Temporal (MVT) pool design

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>29. ANSI implementation of protection module &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>31. ANSI implementation of protection module &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="30. Linux implementation of protection module" href="protli.html" />
-    <link rel="prev" title="28. The protection module" href="prot.html" /> 
+    <link rel="next" title="32. Linux implementation of protection module" href="protli.html" />
+    <link rel="prev" title="30. The protection module" href="prot.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="protli.html" title="30. Linux implementation of protection module"
+          <a href="protli.html" title="32. Linux implementation of protection module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="prot.html" title="28. The protection module"
+          <a href="prot.html" title="30. The protection module"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,16 +54,16 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-protan"></span><div class="section" id="ansi-implementation-of-protection-module">
-<span id="index-0"></span><h1>29. ANSI implementation of protection module<a class="headerlink" href="#ansi-implementation-of-protection-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="ansi-implementation-of-protection-module">
+<span id="design-protan"></span><span id="index-0"></span><h1>31. ANSI implementation of protection module<a class="headerlink" href="#ansi-implementation-of-protection-module" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.protan"></span><h2>29.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.protan"></span><h2>31.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protan.readership"></span><a class="mpstag reference internal" href="#design.mps.protan.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.protan.intro"></span><a class="mpstag reference internal" href="#design.mps.protan.intro">.intro:</a> This is the design for the ANSI implementation of the
 protection module.</p>
 </div>
 <div class="section" id="requirements">
-<h2>29.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>31.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protan.req.test"></span><a class="mpstag reference internal" href="#design.mps.protan.req.test">.req.test:</a> This module is required for testing. Particularly on
 platforms where no real implementation of the protection module
 exists.</p>
@@ -72,7 +72,7 @@ should enable a developer to port a minimally useful configuration of
 the MPS to new platforms very quickly.</p>
 </div>
 <div class="section" id="overview">
-<h2>29.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>31.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protan.overview"></span><a class="mpstag reference internal" href="#design.mps.protan.overview">.overview:</a> Most of the functions in the module do nothing. The
 exception is <a class="reference internal" href="prot.html#ProtSync" title="ProtSync"><tt class="xref c c-func docutils literal"><span class="pre">ProtSync()</span></tt></a> which traverses over all segments in the
 arena and simulates an access to each segment that has any protection
@@ -84,7 +84,7 @@ platform, particularly where no real implementation of the module
 exists. It satisfies <a class="reference internal" href="#design.mps.protan.req.test">.req.test</a> and <a class="reference internal" href="#design.mps.protan.req.rapid-port">.req.rapid-port</a> in this way.</p>
 </div>
 <div class="section" id="functions">
-<h2>29.4. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>31.4. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protan.fun.protsetup"></span><a class="mpstag reference internal" href="#design.mps.protan.fun.protsetup">.fun.protsetup:</a> <a class="reference internal" href="prot.html#ProtSetup" title="ProtSetup"><tt class="xref c c-func docutils literal"><span class="pre">ProtSetup()</span></tt></a> does nothing as there is nothing to
 do (under UNIX we might expect the protection module to install one or
 more signal handlers at this pointer, but that is not appropriate for
@@ -120,21 +120,21 @@ and on being able to call <tt class="xref c c-func docutils literal"><span class
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">29. ANSI implementation of protection module</a><ul>
-<li><a class="reference internal" href="#introduction">29.1. Introduction</a></li>
-<li><a class="reference internal" href="#requirements">29.2. Requirements</a></li>
-<li><a class="reference internal" href="#overview">29.3. Overview</a></li>
-<li><a class="reference internal" href="#functions">29.4. Functions</a></li>
+<li><a class="reference internal" href="#">31. ANSI implementation of protection module</a><ul>
+<li><a class="reference internal" href="#introduction">31.1. Introduction</a></li>
+<li><a class="reference internal" href="#requirements">31.2. Requirements</a></li>
+<li><a class="reference internal" href="#overview">31.3. Overview</a></li>
+<li><a class="reference internal" href="#functions">31.4. Functions</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="prot.html"
-                        title="previous chapter">28. The protection module</a></p>
+                        title="previous chapter">30. The protection module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="protli.html"
-                        title="next chapter">30. Linux implementation of protection module</a></p><h4>Downloads</h4>
+                        title="next chapter">32. Linux implementation of protection module</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -160,10 +160,10 @@ and on being able to call <tt class="xref c c-func docutils literal"><span class
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="protli.html" title="30. Linux implementation of protection module"
+          <a href="protli.html" title="32. Linux implementation of protection module"
              >next</a> |</li>
         <li class="right" >
-          <a href="prot.html" title="28. The protection module"
+          <a href="prot.html" title="30. The protection module"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

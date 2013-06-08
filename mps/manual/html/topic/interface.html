@@ -188,7 +188,7 @@ ending with <tt class="docutils literal"><span class="pre">_k</span></tt>. See <
 out parameter, like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cm">/* allocate a struct foo */</span>
 <span class="k">struct</span> <span class="n">foo</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">((</span><span class="kt">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">fp</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">((</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">fp</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>This is known as <a class="reference internal" href="../glossary/t.html#term-type-punning"><em class="xref std std-term">type punning</em></a>, and its behaviour is not
@@ -197,7 +197,7 @@ defined in ANSI/ISO Standard C. See <a class="reference internal" href="../mmref
 another: the behaviour of this cast is not covered by any of the cases
 in the standard.</p>
 <p>Instead, we recommend this approach:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
 <span class="k">struct</span> <span class="n">foo</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
 <span class="k">if</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="cm">/* handle error case */</span><span class="p">;</span>

@@ -1,8 +1,8 @@
-.. _design-splay:
-
 
 .. index::
    pair: splay trees; design
+
+.. _design-splay:
 
 
 Splay trees

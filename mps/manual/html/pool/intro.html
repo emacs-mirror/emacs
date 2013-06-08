@@ -69,9 +69,15 @@ MPS might be able to make a better recommendation. And if no pool
 class in the open source MPS exactly matches your needs, then it
 is possible to develop new pool classes. See <a class="reference internal" href="#pool-writing"><em>Writing a new pool class</em></a>.</p>
 </div>
-<p>First, answer these questions about your data:</p>
+<p>First, do you need the MPS to <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically</em></a> <a class="reference internal" href="../glossary/r.html#term-reclaim"><em class="xref std std-term">reclaim</em></a> <a class="reference internal" href="../glossary/u.html#term-unreachable"><em class="xref std std-term">unreachable</em></a> blocks? If so, you
+need an automatically managed (garbage collected) pool class and you
+should consult <a class="reference internal" href="#pool-choose-automatic"><em>Choosing an automatic pool class</em></a> below.
+Otherwise, you need a manually managed pool class and you should
+consult <a class="reference internal" href="#pool-choose-manual"><em>Choosing a manual pool class</em></a> below.</p>
+<div class="section" id="choosing-an-automatic-pool-class">
+<span id="pool-choose-automatic"></span><h2>1.1. Choosing an automatic pool class<a class="headerlink" href="#choosing-an-automatic-pool-class" title="Permalink to this headline">¶</a></h2>
+<p>Answer these questions about your data:</p>
 <ol class="arabic simple">
-<li>Do you need the MPS to <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically</em></a> <a class="reference internal" href="../glossary/r.html#term-reclaim"><em class="xref std std-term">reclaim</em></a> <a class="reference internal" href="../glossary/u.html#term-unreachable"><em class="xref std std-term">unreachable</em></a> blocks?</li>
 <li>Is it acceptable for the MPS to <a class="reference internal" href="../glossary/m.html#term-moving-memory-manager"><em class="xref std std-term">move</em></a> blocks in memory and to place <a class="reference internal" href="../glossary/b.html#term-barrier-1"><em class="xref std std-term">barriers<sup>(1)</sup></em></a> on
 blocks? (For example, it might not be acceptable to move a block if
 it has been passed to <a class="reference internal" href="../glossary/f.html#term-foreign-code"><em class="xref std std-term">foreign code</em></a> that remembered its
@@ -79,99 +85,61 @@ location.)</li>
 <li>Do your blocks contain <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> to blocks stored in
 automatically managed pools (including references to other blocks
 in the same pool, if it&#8217;s automatically managed)? And if so, are
-these references <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact</em></a>, <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous</em></a> or <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak</em></a>?</li>
+these references <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact</em></a> or <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak</em></a>?</li>
 </ol>
 <p>Second, look up your answers in this table to find the recommended
 pool class to use:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="13%" />
-<col width="28%" />
-<col width="14%" />
-<col width="46%" />
+<col width="42%" />
+<col width="21%" />
+<col width="37%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Automatic?</th>
-<th class="head">Movable &amp; protectable?</th>
+<tr class="row-odd"><th class="head">Movable &amp; protectable?</th>
 <th class="head">References?</th>
 <th class="head">Use this pool class</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>yes</td>
-<td>yes</td>
 <td>none</td>
 <td><a class="reference internal" href="amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a></td>
 </tr>
 <tr class="row-odd"><td>yes</td>
-<td>yes</td>
 <td>exact</td>
 <td><a class="reference internal" href="amc.html#pool-amc"><em>AMC (Automatic Mostly-Copying)</em></a></td>
 </tr>
 <tr class="row-even"><td>yes</td>
-<td>yes</td>
-<td>ambiguous</td>
-<td>nothing suitable</td>
-</tr>
-<tr class="row-odd"><td>yes</td>
-<td>yes</td>
 <td>weak</td>
 <td><a class="reference internal" href="awl.html#pool-awl"><em>AWL (Automatic Weak Linked)</em></a></td>
 </tr>
-<tr class="row-even"><td>yes</td>
-<td>no</td>
+<tr class="row-odd"><td>no</td>
 <td>none</td>
 <td><a class="reference internal" href="lo.html#pool-lo"><em>LO (Leaf Object)</em></a></td>
 </tr>
-<tr class="row-odd"><td>yes</td>
-<td>no</td>
+<tr class="row-even"><td>no</td>
 <td>exact</td>
 <td><a class="reference internal" href="ams.html#pool-ams"><em>AMS (Automatic Mark and Sweep)</em></a></td>
 </tr>
-<tr class="row-even"><td>yes</td>
-<td>no</td>
-<td>ambiguous</td>
-<td>nothing suitable</td>
-</tr>
-<tr class="row-odd"><td>yes</td>
-<td>no</td>
+<tr class="row-odd"><td>no</td>
 <td>weak</td>
 <td>nothing suitable</td>
 </tr>
-<tr class="row-even"><td>no</td>
-<td><em>any</em></td>
-<td>none</td>
-<td><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a></td>
-</tr>
-<tr class="row-odd"><td>no</td>
-<td><em>any</em></td>
-<td>exact</td>
-<td><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> <a class="footnote-reference" href="#id4" id="id1">[1]</a></td>
-</tr>
-<tr class="row-even"><td>no</td>
-<td><em>any</em></td>
-<td>ambiguous</td>
-<td><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> <a class="footnote-reference" href="#id4" id="id2">[1]</a></td>
-</tr>
-<tr class="row-odd"><td>no</td>
-<td><em>any</em></td>
-<td>weak</td>
-<td><a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> <a class="footnote-reference" href="#id4" id="id3">[1]</a></td>
-</tr>
 </tbody>
 </table>
-<div class="admonition-note admonition">
-<p class="first admonition-title">Note</p>
-<table class="last docutils footnote" frame="void" id="id4" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id3">3</a>)</em> <a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> doesn&#8217;t scan for references, but you can
-work around this by registering your blocks as
-<a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a> (with the appropriate <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a>) just
-after they are allocated, and deregistering them just
-before freeing them.</td></tr>
-</tbody>
-</table>
+</div>
+<div class="section" id="choosing-a-manual-pool-class">
+<span id="pool-choose-manual"></span><h2>1.2. Choosing a manual pool class<a class="headerlink" href="#choosing-a-manual-pool-class" title="Permalink to this headline">¶</a></h2>
+<p>Answer these questions about your data:</p>
+<ol class="arabic simple">
+<li>Are the blocks fixed in size? If so, use <a class="reference internal" href="mfs.html#pool-mfs"><em>MFS (Manual Fixed Small)</em></a>.</li>
+<li>Are the lifetimes of blocks predictable? If so, use
+<a class="reference internal" href="mvt.html#pool-mvt"><em>MVT (Manual Variable Temporal)</em></a>, and arrange that objects that are predicted to die
+at about the same time are allocated from the same
+<a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>.</li>
+<li>Otherwise, use <a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a>.</li>
+</ol>
 </div>
 </div>
 <div class="section" id="pool-class-properties">
@@ -272,7 +240,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>Timing of collections? <a class="footnote-reference" href="#id23" id="id5">[2]</a></td>
+<tr class="row-odd"><td>Timing of collections? <a class="footnote-reference" href="#id19" id="id1">[2]</a></td>
 <td>auto</td>
 <td>auto</td>
 <td>auto</td>
@@ -284,7 +252,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>&#8212;</td>
 </tr>
-<tr class="row-even"><td>May contain references? <a class="footnote-reference" href="#id24" id="id6">[3]</a></td>
+<tr class="row-even"><td>May contain references? <a class="footnote-reference" href="#id20" id="id2">[3]</a></td>
 <td>yes</td>
 <td>no</td>
 <td>yes</td>
@@ -296,7 +264,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr class="row-odd"><td>May contain exact references? <a class="footnote-reference" href="#id25" id="id7">[4]</a></td>
+<tr class="row-odd"><td>May contain exact references? <a class="footnote-reference" href="#id21" id="id3">[4]</a></td>
 <td>yes</td>
 <td>&#8212;</td>
 <td>yes</td>
@@ -308,7 +276,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>yes</td>
 </tr>
-<tr class="row-even"><td>May contain ambiguous references? <a class="footnote-reference" href="#id25" id="id8">[4]</a></td>
+<tr class="row-even"><td>May contain ambiguous references? <a class="footnote-reference" href="#id21" id="id4">[4]</a></td>
 <td>no</td>
 <td>&#8212;</td>
 <td>no</td>
@@ -320,7 +288,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>May contain weak references? <a class="footnote-reference" href="#id25" id="id9">[4]</a></td>
+<tr class="row-odd"><td>May contain weak references? <a class="footnote-reference" href="#id21" id="id5">[4]</a></td>
 <td>no</td>
 <td>&#8212;</td>
 <td>no</td>
@@ -344,19 +312,19 @@ references<sup>(1)</sup></em></a>.</p>
 <td>var</td>
 <td>var</td>
 </tr>
-<tr class="row-odd"><td>Alignment? <a class="footnote-reference" href="#id26" id="id10">[5]</a></td>
+<tr class="row-odd"><td>Alignment? <a class="footnote-reference" href="#id22" id="id6">[5]</a></td>
 <td>conf</td>
 <td>conf</td>
 <td>conf</td>
 <td>conf</td>
 <td>conf</td>
-<td><a class="footnote-reference" href="#id27" id="id11">[6]</a></td>
-<td><a class="footnote-reference" href="#id27" id="id12">[6]</a></td>
-<td><a class="footnote-reference" href="#id28" id="id13">[7]</a></td>
-<td><a class="footnote-reference" href="#id28" id="id14">[7]</a></td>
+<td><a class="footnote-reference" href="#id23" id="id7">[6]</a></td>
+<td><a class="footnote-reference" href="#id23" id="id8">[6]</a></td>
+<td><a class="footnote-reference" href="#id24" id="id9">[7]</a></td>
+<td><a class="footnote-reference" href="#id24" id="id10">[7]</a></td>
 <td>conf</td>
 </tr>
-<tr class="row-even"><td>Dependent objects? <a class="footnote-reference" href="#id29" id="id15">[8]</a></td>
+<tr class="row-even"><td>Dependent objects? <a class="footnote-reference" href="#id25" id="id11">[8]</a></td>
 <td>no</td>
 <td>&#8212;</td>
 <td>no</td>
@@ -368,7 +336,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>May use remote references? <a class="footnote-reference" href="#id30" id="id16">[9]</a></td>
+<tr class="row-odd"><td>May use remote references? <a class="footnote-reference" href="#id26" id="id12">[9]</a></td>
 <td>no</td>
 <td>&#8212;</td>
 <td>no</td>
@@ -380,7 +348,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Blocks are automatically managed? <a class="footnote-reference" href="#id31" id="id17">[10]</a></td>
+<tr class="row-even"><td>Blocks are automatically managed? <a class="footnote-reference" href="#id27" id="id13">[10]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -392,7 +360,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-odd"><td>Blocks are manually managed? <a class="footnote-reference" href="#id31" id="id18">[10]</a></td>
+<tr class="row-odd"><td>Blocks are manually managed? <a class="footnote-reference" href="#id27" id="id14">[10]</a></td>
 <td>no</td>
 <td>no</td>
 <td>no</td>
@@ -404,7 +372,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>yes</td>
 <td>yes</td>
 </tr>
-<tr class="row-even"><td>Blocks are scanned? <a class="footnote-reference" href="#id32" id="id19">[11]</a></td>
+<tr class="row-even"><td>Blocks are scanned? <a class="footnote-reference" href="#id28" id="id15">[11]</a></td>
 <td>yes</td>
 <td>no</td>
 <td>yes</td>
@@ -416,7 +384,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>yes</td>
 </tr>
-<tr class="row-odd"><td>Blocks support base pointers only? <a class="footnote-reference" href="#id33" id="id20">[12]</a></td>
+<tr class="row-odd"><td>Blocks support base pointers only? <a class="footnote-reference" href="#id29" id="id16">[12]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -428,7 +396,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>&#8212;</td>
 <td>yes</td>
 </tr>
-<tr class="row-even"><td>Blocks support internal pointers? <a class="footnote-reference" href="#id33" id="id21">[12]</a></td>
+<tr class="row-even"><td>Blocks support internal pointers? <a class="footnote-reference" href="#id29" id="id17">[12]</a></td>
 <td>no</td>
 <td>no</td>
 <td>no</td>
@@ -476,7 +444,7 @@ references<sup>(1)</sup></em></a>.</p>
 <td>no</td>
 <td>no</td>
 </tr>
-<tr class="row-even"><td>Blocks must be formatted? <a class="footnote-reference" href="#id32" id="id22">[11]</a></td>
+<tr class="row-even"><td>Blocks must be formatted? <a class="footnote-reference" href="#id28" id="id18">[11]</a></td>
 <td>yes</td>
 <td>yes</td>
 <td>yes</td>
@@ -504,77 +472,77 @@ references<sup>(1)</sup></em></a>.</p>
 </table>
 <div class="admonition-note admonition">
 <p class="first admonition-title">Notes</p>
-<table class="docutils footnote" frame="void" id="id23" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>&#8220;Timing of collections&#8221; is &#8220;auto&#8221; if <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a>
+<tr><td class="label"><a class="fn-backref" href="#id1">[2]</a></td><td>&#8220;Timing of collections&#8221; is &#8220;auto&#8221; if <a class="reference internal" href="../glossary/g.html#term-garbage-collection"><em class="xref std std-term">garbage collection</em></a>
 is under the control of the MPS, which decides when collection
 should take place and performs it <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically</em></a> and <a class="reference internal" href="../glossary/i.html#term-incremental-garbage-collection"><em class="xref std std-term">incrementally</em></a>.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id24" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td>The references in question are references to blocks in
+<tr><td class="label"><a class="fn-backref" href="#id2">[3]</a></td><td>The references in question are references to blocks in
 <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a>
 <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pools</em></a>.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id25" rules="none">
+<table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[4]</td><td><em>(<a class="fn-backref" href="#id7">1</a>, <a class="fn-backref" href="#id8">2</a>, <a class="fn-backref" href="#id9">3</a>)</em> Pools &#8220;may contain <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous</em></a> /
+<tr><td class="label">[4]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>, <a class="fn-backref" href="#id5">3</a>)</em> Pools &#8220;may contain <a class="reference internal" href="../glossary/a.html#term-ambiguous-reference"><em class="xref std std-term">ambiguous</em></a> /
 <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact</em></a> / <a class="reference internal" href="../glossary/w.html#term-weak-reference-1"><em class="xref std std-term">weak</em></a> references&#8221; if the references that the client
 program fixes during scanning may include references of the
 indicated <a class="reference internal" href="../glossary/r.html#term-rank"><em class="xref std std-term">rank</em></a>.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id26" rules="none">
+<table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[5]</a></td><td>&#8220;Alignment&#8221; is &#8220;conf&#8221; if the client program may specify
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td>&#8220;Alignment&#8221; is &#8220;conf&#8221; if the client program may specify
 <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> for each pool.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id27" rules="none">
+<table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[6]</td><td><em>(<a class="fn-backref" href="#id11">1</a>, <a class="fn-backref" href="#id12">2</a>)</em> The alignment of blocks allocated from <a class="reference internal" href="mv.html#pool-mv"><em>MV (Manual Variable)</em></a> pools
+<tr><td class="label">[6]</td><td><em>(<a class="fn-backref" href="#id7">1</a>, <a class="fn-backref" href="#id8">2</a>)</em> The alignment of blocks allocated from <a class="reference internal" href="mv.html#pool-mv"><em>MV (Manual Variable)</em></a> pools
 is platform-dependent.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id28" rules="none">
+<table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[7]</td><td><em>(<a class="fn-backref" href="#id13">1</a>, <a class="fn-backref" href="#id14">2</a>)</em> <a class="reference internal" href="mvt.html#pool-mvt"><em>MVT (Manual Variable Temporal)</em></a> and <a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> pools have
+<tr><td class="label">[7]</td><td><em>(<a class="fn-backref" href="#id9">1</a>, <a class="fn-backref" href="#id10">2</a>)</em> <a class="reference internal" href="mvt.html#pool-mvt"><em>MVT (Manual Variable Temporal)</em></a> and <a class="reference internal" href="mvff.html#pool-mvff"><em>MVFF (Manual Variable First Fit)</em></a> pools have
 configurable alignment, but it may not be smaller than the
 <a class="reference internal" href="../glossary/n.html#term-natural-alignment"><em class="xref std std-term">natural alignment</em></a> for the <a class="reference internal" href="../glossary/p.html#term-platform"><em class="xref std std-term">platform</em></a> (see
 <a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>).</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id29" rules="none">
+<table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id15">[8]</a></td><td>In pools with this property, each object may specify an
+<tr><td class="label"><a class="fn-backref" href="#id11">[8]</a></td><td>In pools with this property, each object may specify an
 <a class="reference internal" href="../glossary/d.html#term-dependent-object"><em class="xref std std-term">dependent object</em></a> which the client program
 guarantees will be accessible during the scanning of the
 first object. This may be used in the implementation of
 <a class="reference internal" href="../glossary/w.html#term-weak-hash-table"><em class="xref std std-term">weak hash tables</em></a>.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id30" rules="none">
+<table class="docutils footnote" frame="void" id="id26" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id16">[9]</a></td><td>&#8220;Remote references&#8221; are references that are stored outside the
+<tr><td class="label"><a class="fn-backref" href="#id12">[9]</a></td><td>&#8220;Remote references&#8221; are references that are stored outside the
 block to which they logically belong (for example, in some kind
 of auxiliary table). A pool containing remote references cannot
 rely on a <a class="reference internal" href="../glossary/w.html#term-write-barrier"><em class="xref std std-term">write barrier</em></a> to detect changed references.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id31" rules="none">
+<table class="docutils footnote" frame="void" id="id27" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[10]</td><td><em>(<a class="fn-backref" href="#id17">1</a>, <a class="fn-backref" href="#id18">2</a>)</em> Blocks are &#8220;automatically managed&#8221; if they may be
+<tr><td class="label">[10]</td><td><em>(<a class="fn-backref" href="#id13">1</a>, <a class="fn-backref" href="#id14">2</a>)</em> Blocks are &#8220;automatically managed&#8221; if they may be
 automatically discarded when the MPS determines that they
 are unreachable; they are &#8220;manually managed&#8221; if they can be
 discarded when the <a class="reference internal" href="../glossary/c.html#term-client-program"><em class="xref std std-term">client program</em></a> requests it. Note
@@ -582,10 +550,10 @@ that these properties are not mutually exclusive, although
 the MPS does not provide a pool class that satisfies both.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id32" rules="none">
+<table class="docutils footnote" frame="void" id="id28" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[11]</td><td><em>(<a class="fn-backref" href="#id19">1</a>, <a class="fn-backref" href="#id22">2</a>)</em> Blocks &#8220;are scanned&#8221; if the MPS <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scans</em></a> them for
+<tr><td class="label">[11]</td><td><em>(<a class="fn-backref" href="#id15">1</a>, <a class="fn-backref" href="#id18">2</a>)</em> Blocks &#8220;are scanned&#8221; if the MPS <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scans</em></a> them for
 references; blocks &#8220;must be formatted&#8221; if they are
 described to the MPS by an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>. At
 present, the MPS only knows how to scan blocks using the
@@ -594,10 +562,10 @@ design does not preclude pools that scan unformatted
 blocks.</td></tr>
 </tbody>
 </table>
-<table class="last docutils footnote" frame="void" id="id33" rules="none">
+<table class="last docutils footnote" frame="void" id="id29" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[12]</td><td><em>(<a class="fn-backref" href="#id20">1</a>, <a class="fn-backref" href="#id21">2</a>)</em> A block &#8220;supports internal pointers&#8221; if a pointer to any
+<tr><td class="label">[12]</td><td><em>(<a class="fn-backref" href="#id16">1</a>, <a class="fn-backref" href="#id17">2</a>)</em> A block &#8220;supports internal pointers&#8221; if a pointer to any
 location within the block is considered to be a reference
 to the block. It &#8220;supports base pointers only&#8221; if only a
 pointer to the base of the block (or, if the block belongs
@@ -633,7 +601,11 @@ yourself, <a class="reference internal" href="../contact.html#contact"><em>we&#8
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">1. Choosing a pool class</a></li>
+<li><a class="reference internal" href="#">1. Choosing a pool class</a><ul>
+<li><a class="reference internal" href="#choosing-an-automatic-pool-class">1.1. Choosing an automatic pool class</a></li>
+<li><a class="reference internal" href="#choosing-a-manual-pool-class">1.2. Choosing a manual pool class</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pool-class-properties">2. Pool class properties</a></li>
 <li><a class="reference internal" href="#writing-a-new-pool-class">3. Writing a new pool class</a></li>
 </ul>

@@ -1,8 +1,8 @@
-.. _design-root:
-
 
 .. index::
    pair: root manager; design
+
+.. _design-root:
 
 
 Root manager

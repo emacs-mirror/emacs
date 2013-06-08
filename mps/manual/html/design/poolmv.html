@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>MV pool class &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>27. MV pool class &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -26,7 +26,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
+    <link rel="up" title="Old design" href="old.html" />
+    <link rel="next" title="28. Manual Variable Temporal (MVT) pool design" href="poolmvt.html" />
+    <link rel="prev" title="26. MRG pool class" href="poolmrg.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +38,14 @@
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="poolmvt.html" title="28. Manual Variable Temporal (MVT) pool design"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="poolmrg.html" title="26. MRG pool class"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,9 +55,9 @@
           <div class="body">
             
   <div class="section" id="mv-pool-class">
-<span id="design-poolmv"></span><h1>MV pool class<a class="headerlink" href="#mv-pool-class" title="Permalink to this headline">¶</a></h1>
+<h1>27. MV pool class<a class="headerlink" href="#mv-pool-class" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="implementation">
-<span id="design.mps.poolmv"></span><h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.poolmv"></span><h2>27.1. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmv.lost"></span><a class="mpstag reference internal" href="#design.mps.poolmv.lost">.lost:</a> It is possible for MV to &#8220;lose&#8221; memory when freeing an
 objects. This happens when an extra block descriptor is needed (ie the
 interior of a block is being freed) and the call to allocate the block
@@ -66,12 +76,18 @@ fails.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">MV pool class</a><ul>
-<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#">27. MV pool class</a><ul>
+<li><a class="reference internal" href="#implementation">27.1. Implementation</a></li>
 </ul>
 </li>
 </ul>
-<h4>Downloads</h4>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="poolmrg.html"
+                        title="previous chapter">26. MRG pool class</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poolmvt.html"
+                        title="next chapter">28. Manual Variable Temporal (MVT) pool design</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -96,7 +112,14 @@ fails.</p>
         <li class="right" style="margin-right: 10px">
           <a href="../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="poolmvt.html" title="28. Manual Variable Temporal (MVT) pool design"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="poolmrg.html" title="26. MRG pool class"
+             >previous</a> |</li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
+          <li><a href="old.html" >Old design</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

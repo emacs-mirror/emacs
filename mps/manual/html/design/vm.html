@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>48. Virtual mapping &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>52. Virtual mapping &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="49. ANSI fake VM" href="vman.html" />
-    <link rel="prev" title="47. Software versions" href="version.html" /> 
+    <link rel="next" title="53. ANSI fake VM" href="vman.html" />
+    <link rel="prev" title="51. Software versions" href="version.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="vman.html" title="49. ANSI fake VM"
+          <a href="vman.html" title="53. ANSI fake VM"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="47. Software versions"
+          <a href="version.html" title="51. Software versions"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-vm"></span><div class="section" id="virtual-mapping">
-<span id="index-0"></span><h1>48. Virtual mapping<a class="headerlink" href="#virtual-mapping" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="virtual-mapping">
+<span id="design-vm"></span><span id="index-0"></span><h1>52. Virtual mapping<a class="headerlink" href="#virtual-mapping" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.vm"></span><h2>48.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.vm"></span><h2>52.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.intro"></span><a class="mpstag reference internal" href="#design.mps.vm.intro">.intro:</a> This the design of the VM interface. The VM interface
 provides a simple, low-level, operating-system independent interface
 to address-space. Each call to <a class="reference internal" href="#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a> reserves (from the
@@ -78,7 +78,7 @@ that there will also be enough address space somewhere to fit any
 particular segment in).</p>
 </div>
 <div class="section" id="definitions">
-<h2>48.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>52.2. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.def.reserve"></span><a class="mpstag reference internal" href="#design.mps.vm.def.reserve">.def.reserve:</a> The &#8220;reserve&#8221; operation: Exclusively reserve a
 portion of the virtual address space without arranging RAM or backing
 store for the virtual addresses. The intention is that no other
@@ -108,7 +108,7 @@ to the single contiguous range of address-space that was reserved
 (from the operating-system) when <a class="reference internal" href="#VMCreate" title="VMCreate"><tt class="xref c c-func docutils literal"><span class="pre">VMCreate()</span></tt></a> was called.</p>
 </div>
 <div class="section" id="interface">
-<h2>48.3. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>52.3. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="VMCreate">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">VMCreate</tt><big>(</big>VM<em>&nbsp;*VMReturn</em>, <a class="reference internal" href="type.html#Size" title="Size">Size</a><em>&nbsp;size</em><big>)</big><a class="headerlink" href="#VMCreate" title="Permalink to this definition">¶</a></dt>
@@ -136,7 +136,7 @@ address space that was mapped through this VM is unmapped.</p>
 </div>
 </div>
 <div class="section" id="notes">
-<h2>48.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>52.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.vm.testing"></span><a class="mpstag reference internal" href="#design.mps.vm.testing">.testing:</a> It is important to test that a VM implementation will
 work in extreme cases.</p>
 <p><span class="target" id="design.mps.vm.testing.large"></span><a class="mpstag reference internal" href="#design.mps.vm.testing.large">.testing.large:</a> It must be able to reserve a large address space.
@@ -164,21 +164,21 @@ this.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">48. Virtual mapping</a><ul>
-<li><a class="reference internal" href="#introduction">48.1. Introduction</a></li>
-<li><a class="reference internal" href="#definitions">48.2. Definitions</a></li>
-<li><a class="reference internal" href="#interface">48.3. Interface</a></li>
-<li><a class="reference internal" href="#notes">48.4. Notes</a></li>
+<li><a class="reference internal" href="#">52. Virtual mapping</a><ul>
+<li><a class="reference internal" href="#introduction">52.1. Introduction</a></li>
+<li><a class="reference internal" href="#definitions">52.2. Definitions</a></li>
+<li><a class="reference internal" href="#interface">52.3. Interface</a></li>
+<li><a class="reference internal" href="#notes">52.4. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="version.html"
-                        title="previous chapter">47. Software versions</a></p>
+                        title="previous chapter">51. Software versions</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="vman.html"
-                        title="next chapter">49. ANSI fake VM</a></p><h4>Downloads</h4>
+                        title="next chapter">53. ANSI fake VM</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -204,10 +204,10 @@ this.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="vman.html" title="49. ANSI fake VM"
+          <a href="vman.html" title="53. ANSI fake VM"
              >next</a> |</li>
         <li class="right" >
-          <a href="version.html" title="47. Software versions"
+          <a href="version.html" title="51. Software versions"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

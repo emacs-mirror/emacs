@@ -93,8 +93,8 @@ takes one additional parameter, a <a class="reference internal" href="../glossar
 <a class="reference internal" href="../topic/root.html#mps_rank_exact" title="mps_rank_exact"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_exact()</span></tt></a> (to allocate ordinary objects containing
 <a class="reference internal" href="../glossary/e.html#term-exact-reference"><em class="xref std std-term">exact references</em></a>), or <a class="reference internal" href="../topic/root.html#mps_rank_weak" title="mps_rank_weak"><tt class="xref c c-func docutils literal"><span class="pre">mps_rank_weak()</span></tt></a> (to allocate
 objects that contain weak references). For example:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_ap_t</span> <span class="n">ap</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_ap_t</span> <span class="n">ap</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ap</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">mps_rank_weak</span><span class="p">());</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;can&#39;t create allocation point&quot;</span><span class="p">);</span>
 </pre></div>
@@ -169,31 +169,31 @@ values object, and vice versa (if necessary). The scan method looks
 out for the splatting of a reference, and when this is detected, it
 splats the corresponding reference in the dependent object.</p>
 <p>For example:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">obj_t</span> <span class="n">obj_deleted</span><span class="p">;</span>              <span class="cm">/* deleted entry in hash table */</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">obj_t</span> <span class="n">obj_deleted</span><span class="p">;</span>              <span class="cm">/* deleted entry in hash table */</span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="n">weak_array_s</span> <span class="p">{</span>
     <span class="k">struct</span> <span class="n">weak_array_s</span> <span class="o">*</span><span class="n">dependent</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">length</span><span class="p">;</span>              <span class="cm">/* tagged as &quot;length * 2 + 1&quot; */</span>
-    <span class="kt">obj_t</span> <span class="n">slot</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-<span class="p">}</span> <span class="n">weak_array_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">weak_array_t</span><span class="p">;</span>
+    <span class="n">obj_t</span> <span class="n">slot</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="p">}</span> <span class="n">weak_array_s</span><span class="p">,</span> <span class="o">*</span><span class="n">weak_array_t</span><span class="p">;</span>
 
 <span class="k">typedef</span> <span class="n">weak_table_s</span> <span class="p">{</span>
     <span class="n">type_s</span> <span class="n">type</span><span class="p">;</span>                <span class="cm">/* TYPE_WEAK_TABLE */</span>
-    <span class="kt">weak_array_t</span> <span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">weak_table_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">weak_table_t</span><span class="p">;</span>
+    <span class="n">weak_array_t</span> <span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">weak_table_s</span><span class="p">,</span> <span class="o">*</span><span class="n">weak_table_t</span><span class="p">;</span>
 
-<span class="kt">mps_addr_t</span> <span class="nf">weak_array_find_dependent</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
+<span class="n">mps_addr_t</span> <span class="nf">weak_array_find_dependent</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="kt">weak_array_t</span> <span class="n">a</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="n">weak_array_t</span> <span class="n">a</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
     <span class="k">return</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">mps_res_t</span> <span class="nf">weak_array_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<span class="n">mps_res_t</span> <span class="nf">weak_array_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-            <span class="kt">weak_array_t</span> <span class="n">a</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+            <span class="n">weak_array_t</span> <span class="n">a</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="kt">size_t</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">;</span> <span class="cm">/* untag */</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">;</span>
             <span class="n">MPS_FIX12</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
@@ -201,7 +201,7 @@ splats the corresponding reference in the dependent object.</p>
             <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
-                    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+                    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">)</span> <span class="p">{</span>
                         <span class="cm">/* key/value was splatted: splat value/key too */</span>
@@ -337,10 +337,10 @@ pool.</li>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the format and
 find-dependent function like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_awl</span><span class="p">(),</span>
-                          <span class="kt">mps_fmt_t</span> <span class="n">fmt</span><span class="p">,</span>
-                          <span class="kt">mps_awl_find_dependent_t</span> <span class="n">find_dependent</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_awl</span><span class="p">(),</span>
+                          <span class="n">mps_fmt_t</span> <span class="n">fmt</span><span class="p">,</span>
+                          <span class="n">mps_awl_find_dependent_t</span> <span class="n">find_dependent</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -366,8 +366,8 @@ objects will contain <a class="reference internal" href="../glossary/w.html#term
 <p class="first admonition-title">Deprecated</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/allocation.html#mps_ap_create" title="mps_ap_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_ap_create()</span></tt></a>, pass the rank like this:</p>
-<div class="last highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="kt">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="kt">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
-                        <span class="kt">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
+<div class="last highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_ap_create</span><span class="p">(</span><span class="n">mps_ap_t</span> <span class="o">*</span><span class="n">ap_o</span><span class="p">,</span> <span class="n">mps_pool_t</span> <span class="n">pool</span><span class="p">,</span>
+                        <span class="n">mps_rank_t</span> <span class="n">rank</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

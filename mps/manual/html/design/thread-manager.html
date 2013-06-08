@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>42. Thread Manager &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>46. Thread Manager &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="43. Thread safety in the MPS" href="thread-safety.html" />
-    <link rel="prev" title="41. Telemetry" href="telemetry.html" /> 
+    <link rel="next" title="47. Thread safety in the MPS" href="thread-safety.html" />
+    <link rel="prev" title="45. Tests" href="tests.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="thread-safety.html" title="43. Thread safety in the MPS"
+          <a href="thread-safety.html" title="47. Thread safety in the MPS"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="telemetry.html" title="41. Telemetry"
+          <a href="tests.html" title="45. Tests"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,10 +54,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-thread-manager"></span><div class="section" id="thread-manager">
-<span id="index-0"></span><h1>42. Thread Manager<a class="headerlink" href="#thread-manager" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="thread-manager">
+<span id="design-thread-manager"></span><span id="index-0"></span><h1>46. Thread Manager<a class="headerlink" href="#thread-manager" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="purpose">
-<span id="design.mps.thread-manager"></span><h2>42.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.thread-manager"></span><h2>46.1. Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
 <p>The Thread Manager handles various thread-related functions required
 by the MPS. These are:</p>
 <ul class="simple">
@@ -66,14 +66,14 @@ by the MPS. These are:</p>
 </ul>
 </div>
 <div class="section" id="context">
-<h2>42.2. Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
+<h2>46.2. Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
 <p>The barrier requires suspension and resumption of threads in order to
 ensure that the collector has exclusive access to part of memory.
 [design.mps.barrier.&#64;&#64;&#64;&#64;]</p>
 <p>Stack scanning is provided as a service to the client. [Link?&#64;&#64;&#64;&#64;]</p>
 </div>
 <div class="section" id="overview">
-<h2>42.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>46.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Thread">
 struct mps_thr_s *<tt class="descname">Thread</tt><a class="headerlink" href="#Thread" title="Permalink to this definition">¶</a></dt>
@@ -89,9 +89,9 @@ context. Thread &#8220;registration&#8221; adds or removes the current thread to
 the <a class="reference internal" href="#Thread" title="Thread"><tt class="xref c c-type docutils literal"><span class="pre">Thread</span></tt></a> list in the arena.</p>
 </div>
 <div class="section" id="detailed-design">
-<h2>42.4. Detailed Design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
+<h2>46.4. Detailed Design<a class="headerlink" href="#detailed-design" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="stack-scan">
-<h3>42.4.1. Stack scan<a class="headerlink" href="#stack-scan" title="Permalink to this headline">¶</a></h3>
+<h3>46.4.1. Stack scan<a class="headerlink" href="#stack-scan" title="Permalink to this headline">¶</a></h3>
 <p>This is a module providing a stack scanning function. The scanning is
 architecture and operating system dependent. Typically the function
 will push the subste of the save registers (those preserved across
@@ -100,7 +100,7 @@ floating-point or debugging registers) and call <tt class="xref c c-func docutil
 on the appropriate range.</p>
 </div>
 <div class="section" id="thread-interface">
-<h3>42.4.2. Thread interface<a class="headerlink" href="#thread-interface" title="Permalink to this headline">¶</a></h3>
+<h3>46.4.2. Thread interface<a class="headerlink" href="#thread-interface" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="ThreadRegister">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">ThreadRegister</tt><big>(</big><a class="reference internal" href="#Thread" title="Thread">Thread</a><em>&nbsp;*threadReturn</em>, <a class="reference internal" href="arena.html#Arena" title="Arena">Arena</a><em>&nbsp;arena</em><big>)</big><a class="headerlink" href="#ThreadRegister" title="Permalink to this definition">¶</a></dt>
@@ -138,7 +138,7 @@ found as an ambiguous reference. The exact definition is operating
 system and architecture dependent</p>
 </div>
 <div class="section" id="single-threaded-generic-implementation">
-<h3>42.4.3. Single-threaded generic implementation<a class="headerlink" href="#single-threaded-generic-implementation" title="Permalink to this headline">¶</a></h3>
+<h3>46.4.3. Single-threaded generic implementation<a class="headerlink" href="#single-threaded-generic-implementation" title="Permalink to this headline">¶</a></h3>
 <p>In <tt class="docutils literal"><span class="pre">than.c</span></tt>.</p>
 <ul class="simple">
 <li>Single threaded (calling <a class="reference internal" href="#ThreadRegister" title="ThreadRegister"><tt class="xref c c-func docutils literal"><span class="pre">ThreadRegister()</span></tt></a> on a second thread
@@ -149,11 +149,11 @@ because there are no other threads.</li>
 </ul>
 </div>
 <div class="section" id="posix-threads-implementation">
-<h3>42.4.4. POSIX threads implementation<a class="headerlink" href="#posix-threads-implementation" title="Permalink to this headline">¶</a></h3>
+<h3>46.4.4. POSIX threads implementation<a class="headerlink" href="#posix-threads-implementation" title="Permalink to this headline">¶</a></h3>
 <p>In <tt class="docutils literal"><span class="pre">thix.c</span></tt>. See design.mps.pthreadext.</p>
 </div>
 <div class="section" id="win32-implementation">
-<h3>42.4.5. Win32 implementation<a class="headerlink" href="#win32-implementation" title="Permalink to this headline">¶</a></h3>
+<h3>46.4.5. Win32 implementation<a class="headerlink" href="#win32-implementation" title="Permalink to this headline">¶</a></h3>
 <p>In <tt class="docutils literal"><span class="pre">thw3.c</span></tt>.</p>
 <ul class="simple">
 <li>Supports multiple threads.</li>
@@ -185,7 +185,7 @@ fixed in memory.</li>
 </div>
 </div>
 <div class="section" id="issues">
-<h2>42.5. Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
+<h2>46.5. Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li>Scanning after exceptions. <tt class="xref c c-func docutils literal"><span class="pre">StackScan()</span></tt> relies on the
 non-preserved registers having been pushed on the stack. If we want
@@ -211,29 +211,29 @@ an arena.</li>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">42. Thread Manager</a><ul>
-<li><a class="reference internal" href="#purpose">42.1. Purpose</a></li>
-<li><a class="reference internal" href="#context">42.2. Context</a></li>
-<li><a class="reference internal" href="#overview">42.3. Overview</a></li>
-<li><a class="reference internal" href="#detailed-design">42.4. Detailed Design</a><ul>
-<li><a class="reference internal" href="#stack-scan">42.4.1. Stack scan</a></li>
-<li><a class="reference internal" href="#thread-interface">42.4.2. Thread interface</a></li>
-<li><a class="reference internal" href="#single-threaded-generic-implementation">42.4.3. Single-threaded generic implementation</a></li>
-<li><a class="reference internal" href="#posix-threads-implementation">42.4.4. POSIX threads implementation</a></li>
-<li><a class="reference internal" href="#win32-implementation">42.4.5. Win32 implementation</a></li>
+<li><a class="reference internal" href="#">46. Thread Manager</a><ul>
+<li><a class="reference internal" href="#purpose">46.1. Purpose</a></li>
+<li><a class="reference internal" href="#context">46.2. Context</a></li>
+<li><a class="reference internal" href="#overview">46.3. Overview</a></li>
+<li><a class="reference internal" href="#detailed-design">46.4. Detailed Design</a><ul>
+<li><a class="reference internal" href="#stack-scan">46.4.1. Stack scan</a></li>
+<li><a class="reference internal" href="#thread-interface">46.4.2. Thread interface</a></li>
+<li><a class="reference internal" href="#single-threaded-generic-implementation">46.4.3. Single-threaded generic implementation</a></li>
+<li><a class="reference internal" href="#posix-threads-implementation">46.4.4. POSIX threads implementation</a></li>
+<li><a class="reference internal" href="#win32-implementation">46.4.5. Win32 implementation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#issues">42.5. Issues</a></li>
+<li><a class="reference internal" href="#issues">46.5. Issues</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="telemetry.html"
-                        title="previous chapter">41. Telemetry</a></p>
+  <p class="topless"><a href="tests.html"
+                        title="previous chapter">45. Tests</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="thread-safety.html"
-                        title="next chapter">43. Thread safety in the MPS</a></p><h4>Downloads</h4>
+                        title="next chapter">47. Thread safety in the MPS</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -259,10 +259,10 @@ an arena.</li>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="thread-safety.html" title="43. Thread safety in the MPS"
+          <a href="thread-safety.html" title="47. Thread safety in the MPS"
              >next</a> |</li>
         <li class="right" >
-          <a href="telemetry.html" title="41. Telemetry"
+          <a href="tests.html" title="45. Tests"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

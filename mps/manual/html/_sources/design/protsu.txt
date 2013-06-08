@@ -1,9 +1,9 @@
-.. _design-protsu:
-
 
 .. index::
    pair: SunOS 4; protection interface design
    pair: SunOS 4 protection interface; design
+
+.. _design-protsu:
 
 
 SunOS 4 protection module

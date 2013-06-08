@@ -1,8 +1,8 @@
-.. _design-io:
-
 
 .. index::
    pair: I/O subsystem; design
+
+.. _design-io:
 
 
 I/O subsystem

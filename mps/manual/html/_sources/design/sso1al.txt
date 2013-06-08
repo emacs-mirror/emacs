@@ -1,9 +1,9 @@
-.. _design-sso1al:
-
 
 .. index::
    pair: Digital Unix on Alpha stack scanner; design
    pair: Digital Unix on Alpha; stack scanner design
+
+.. _design-sso1al:
 
 
 Stack scanner for Digital Unix on Alpha
@@ -126,6 +126,8 @@ is lower in memory than the bottom of the stack.
 References
 ----------
 
-.. [DEC_Assembler] Digital Equipment Corporation. 1996; <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APS31DTE/TITLE.HTM>. .. [DEC_Alpha_Calling_Standard] "Calling Standard for Alpha Systems"; Digital Equipment Corporation. 1996. "`Assembly Language Programmer's Guide <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APY8ACTE/TITLE.HTM>`__".
+.. [DEC_Assembler] Digital Equipment Corporation. 1996. "`Assembly Language Programmer's Guide <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APS31DTE/TITLE.HTM>`__".
+
+.. [DEC_Alpha_Calling_Standard] Digital Equipment Corporation. 1996. "`Calling Standard for Alpha Systems <http://h30097.www3.hp.com/docs/base_doc/DOCUMENTATION/V40F_HTML/APY8ACTE/TITLE.HTM>`__".
 
 

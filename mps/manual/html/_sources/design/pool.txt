@@ -1,8 +1,8 @@
-.. _design-pool:
-
 
 .. index::
    pair: pool class mechanism; design
+
+.. _design-pool:
 
 
 Pool and pool class mechanisms

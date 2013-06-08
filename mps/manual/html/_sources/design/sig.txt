@@ -1,9 +1,9 @@
-.. _design-sig:
-
 
 .. index::
    pair: structure signatures; design
    single: signatures
+
+.. _design-sig:
 
 
 Signatures in the MPS

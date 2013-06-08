@@ -1,8 +1,8 @@
-.. _design-reservoir:
-
 
 .. index::
    pair: reservoir; design
+
+.. _design-reservoir:
 
 
 The low-memory reservoir

@@ -1,5 +1,3 @@
-.. _design-freelist:
-
 
 Free list allocator
 ===================

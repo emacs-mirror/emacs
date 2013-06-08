@@ -1,8 +1,8 @@
-.. _design-version-library:
-
 
 .. index::
    pair: library version mechanism; design
+
+.. _design-version-library:
 
 
 Library version mechanism

@@ -1,8 +1,8 @@
-.. _design-check:
-
 
 .. index::
    pair: checking; design
+
+.. _design-check:
 
 
 Checking

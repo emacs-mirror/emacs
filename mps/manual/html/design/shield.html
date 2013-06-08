@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>38. Shield &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>40. Shield &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="39. Splay trees" href="splay.html" />
-    <link rel="prev" title="37. Segment data structure" href="seg.html" /> 
+    <link rel="next" title="41. Splay trees" href="splay.html" />
+    <link rel="prev" title="39. Segment data structure" href="seg.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="splay.html" title="39. Splay trees"
+          <a href="splay.html" title="41. Splay trees"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="seg.html" title="37. Segment data structure"
+          <a href="seg.html" title="39. Segment data structure"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,17 +54,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-shield"></span><div class="section" id="shield">
-<span id="index-0"></span><h1>38. Shield<a class="headerlink" href="#shield" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="shield">
+<span id="design-shield"></span><span id="index-0"></span><h1>40. Shield<a class="headerlink" href="#shield" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.shield"></span><h2>38.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.shield"></span><h2>40.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.shield.intro"></span><a class="mpstag reference internal" href="#design.mps.shield.intro">.intro:</a> This document contains a guide to the MPS Shield. There is
 no historical initial design, but in its place there are some early
 ideas and discussions: see <a class="reference internal" href="#design.mps.shield.ideas">.ideas</a>.</p>
 <p><span class="target" id="design.mps.shield.readership"></span><a class="mpstag reference internal" href="#design.mps.shield.readership">.readership:</a> Any MPS developer. Not confidential.</p>
 </div>
 <div class="section" id="overview">
-<h2>38.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>40.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.shield.over"></span><a class="mpstag reference internal" href="#design.mps.shield.over">.over:</a> For incremental collection, we need <em>separate control</em> of
 collector access and mutator (client) access to memory. The collector
 must be able to incrementally scan objects, without the mutator being
@@ -76,7 +76,7 @@ limitation, and give the rest of the MPS the illusion that we can
 control collector and mutator access separately.</p>
 </div>
 <div class="section" id="control-of-mutator-access">
-<h2>38.3. Control of mutator access<a class="headerlink" href="#control-of-mutator-access" title="Permalink to this headline">¶</a></h2>
+<h2>40.3. Control of mutator access<a class="headerlink" href="#control-of-mutator-access" title="Permalink to this headline">¶</a></h2>
 <p>The MPS uses <a class="reference internal" href="#ShieldRaise" title="ShieldRaise"><tt class="xref c c-func docutils literal"><span class="pre">ShieldRaise()</span></tt></a> and <a class="reference internal" href="#ShieldLower" title="ShieldLower"><tt class="xref c c-func docutils literal"><span class="pre">ShieldLower()</span></tt></a> to forbid or
 permit the mutator access to object memory (that is, memory allocated
 by MPS).</p>
@@ -115,7 +115,7 @@ void <tt class="descname">ShieldResume</tt><big>(</big><a class="reference inter
 
 </div>
 <div class="section" id="control-of-collector-access">
-<h2>38.4. Control of collector access<a class="headerlink" href="#control-of-collector-access" title="Permalink to this headline">¶</a></h2>
+<h2>40.4. Control of collector access<a class="headerlink" href="#control-of-collector-access" title="Permalink to this headline">¶</a></h2>
 <p>When the collector wants to access object memory (that is, memory
 allocated by MPS), it must first call <tt class="xref c c-func docutils literal"><span class="pre">ShieldEnter()</span></tt>, then wrap any
 accesses with a <tt class="xref c c-func docutils literal"><span class="pre">ShieldExpose()</span></tt> and <tt class="xref c c-func docutils literal"><span class="pre">ShieldCover()</span></tt> pair, and
@@ -184,12 +184,12 @@ that is, we have reached <tt class="docutils literal"><span class="pre">shCacheL
 </div>
 </div>
 <div class="section" id="initial-ideas">
-<h2>38.5. Initial ideas<a class="headerlink" href="#initial-ideas" title="Permalink to this headline">¶</a></h2>
+<h2>40.5. Initial ideas<a class="headerlink" href="#initial-ideas" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.shield.ideas"></span><a class="mpstag reference internal" href="#design.mps.shield.ideas">.ideas:</a> There never was an initial design document, but
 <a class="reference internal" href="#rb-1995-11-29">[RB_1995-11-29]</a> and <a class="reference internal" href="#rb-1995-11-30">[RB_1995-11-30]</a> contain some initial ideas.</p>
 </div>
 <div class="section" id="references">
-<h2>38.6. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>40.6. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="rb-1995-11-29" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -216,23 +216,23 @@ that is, we have reached <tt class="docutils literal"><span class="pre">shCacheL
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">38. Shield</a><ul>
-<li><a class="reference internal" href="#introduction">38.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">38.2. Overview</a></li>
-<li><a class="reference internal" href="#control-of-mutator-access">38.3. Control of mutator access</a></li>
-<li><a class="reference internal" href="#control-of-collector-access">38.4. Control of collector access</a></li>
-<li><a class="reference internal" href="#initial-ideas">38.5. Initial ideas</a></li>
-<li><a class="reference internal" href="#references">38.6. References</a></li>
+<li><a class="reference internal" href="#">40. Shield</a><ul>
+<li><a class="reference internal" href="#introduction">40.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">40.2. Overview</a></li>
+<li><a class="reference internal" href="#control-of-mutator-access">40.3. Control of mutator access</a></li>
+<li><a class="reference internal" href="#control-of-collector-access">40.4. Control of collector access</a></li>
+<li><a class="reference internal" href="#initial-ideas">40.5. Initial ideas</a></li>
+<li><a class="reference internal" href="#references">40.6. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="seg.html"
-                        title="previous chapter">37. Segment data structure</a></p>
+                        title="previous chapter">39. Segment data structure</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="splay.html"
-                        title="next chapter">39. Splay trees</a></p><h4>Downloads</h4>
+                        title="next chapter">41. Splay trees</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -258,10 +258,10 @@ that is, we have reached <tt class="docutils literal"><span class="pre">shCacheL
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="splay.html" title="39. Splay trees"
+          <a href="splay.html" title="41. Splay trees"
              >next</a> |</li>
         <li class="right" >
-          <a href="seg.html" title="37. Segment data structure"
+          <a href="seg.html" title="39. Segment data structure"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

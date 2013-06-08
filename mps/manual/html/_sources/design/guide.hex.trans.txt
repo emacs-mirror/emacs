@@ -1,8 +1,8 @@
-.. _design-guide.hex.trans:
-
 
 .. index::
    pair: hexadecimal; transliterating
+
+.. _design-guide.hex.trans:
 
 
 Transliterating the alphabet into hexadecimal

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>37. Segment data structure &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>39. Segment data structure &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="38. Shield" href="shield.html" />
-    <link rel="prev" title="36. The generic scanner" href="scan.html" /> 
+    <link rel="next" title="40. Shield" href="shield.html" />
+    <link rel="prev" title="38. The generic scanner" href="scan.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="shield.html" title="38. Shield"
+          <a href="shield.html" title="40. Shield"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="scan.html" title="36. The generic scanner"
+          <a href="scan.html" title="38. The generic scanner"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,14 +54,14 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-seg"></span><div class="section" id="segment-data-structure">
-<span id="index-0"></span><h1>37. Segment data structure<a class="headerlink" href="#segment-data-structure" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="segment-data-structure">
+<span id="design-seg"></span><span id="index-0"></span><h1>39. Segment data structure<a class="headerlink" href="#segment-data-structure" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.seg"></span><h2>37.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.seg"></span><h2>39.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.seg.intro"></span><a class="mpstag reference internal" href="#design.mps.seg.intro">.intro:</a> This document describes the MPS Segment data structure.</p>
 </div>
 <div class="section" id="overview">
-<h2>37.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>39.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.seg.over.segments"></span><a class="mpstag reference internal" href="#design.mps.seg.over.segments">.over.segments:</a> Segments are the basic units of tracing and
 shielding. The MPM also uses them as units of scanning and colour,
 although pool classes may subdivide segments and be able to maintain
@@ -90,7 +90,7 @@ subclass of <a class="reference internal" href="#Seg" title="Seg"><tt class="xre
 and the ability to be linked onto the grey ring.</p>
 </div>
 <div class="section" id="data-structure">
-<h2>37.3. Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this headline">¶</a></h2>
+<h2>39.3. Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Seg">
 struct SegStruct *<tt class="descname">Seg</tt><a class="headerlink" href="#Seg" title="Permalink to this definition">¶</a></dt>
@@ -177,9 +177,9 @@ allocating in the segment. The field is initialized to <tt class="xref c c-macro
 the segment, because only that pool has the right to attach it.</p>
 </div>
 <div class="section" id="interface">
-<h2>37.4. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<h2>39.4. Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="splitting-and-merging">
-<h3>37.4.1. Splitting and merging<a class="headerlink" href="#splitting-and-merging" title="Permalink to this headline">¶</a></h3>
+<h3>39.4.1. Splitting and merging<a class="headerlink" href="#splitting-and-merging" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.seg.split-and-merge"></span><a class="mpstag reference internal" href="#design.mps.seg.split-and-merge">.split-and-merge:</a> There is support for splitting and merging
 segments, to give pools the flexibility to rearrange their tracts
 among segments as they see fit.</p>
@@ -250,9 +250,9 @@ of <tt class="docutils literal"><span class="pre">segLo</span></tt> and <tt clas
 </div>
 </div>
 <div class="section" id="extensibility">
-<h2>37.5. Extensibility<a class="headerlink" href="#extensibility" title="Permalink to this headline">¶</a></h2>
+<h2>39.5. Extensibility<a class="headerlink" href="#extensibility" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id1">
-<h3>37.5.1. Splitting and merging<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>39.5.1. Splitting and merging<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <dl class="type">
 <dt id="SegSplitMethod">
 <a class="reference internal" href="type.html#Res" title="Res">Res</a> <tt class="descname">(*SegSplitMethod)</tt><big>(</big><a class="reference internal" href="#Seg" title="Seg">Seg</a><em>&nbsp;seg</em>, <a class="reference internal" href="#Seg" title="Seg">Seg</a><em>&nbsp;segHi</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;base</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;mid</em>, <a class="reference internal" href="type.html#Addr" title="Addr">Addr</a><em>&nbsp;limit</em>, <a class="reference internal" href="type.html#Bool" title="Bool">Bool</a><em>&nbsp;withReservoirPermit</em><big>)</big><a class="headerlink" href="#SegSplitMethod" title="Permalink to this definition">¶</a></dt>
@@ -342,16 +342,16 @@ report an error in checking varieties.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">37. Segment data structure</a><ul>
-<li><a class="reference internal" href="#introduction">37.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">37.2. Overview</a></li>
-<li><a class="reference internal" href="#data-structure">37.3. Data Structure</a></li>
-<li><a class="reference internal" href="#interface">37.4. Interface</a><ul>
-<li><a class="reference internal" href="#splitting-and-merging">37.4.1. Splitting and merging</a></li>
+<li><a class="reference internal" href="#">39. Segment data structure</a><ul>
+<li><a class="reference internal" href="#introduction">39.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">39.2. Overview</a></li>
+<li><a class="reference internal" href="#data-structure">39.3. Data Structure</a></li>
+<li><a class="reference internal" href="#interface">39.4. Interface</a><ul>
+<li><a class="reference internal" href="#splitting-and-merging">39.4.1. Splitting and merging</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#extensibility">37.5. Extensibility</a><ul>
-<li><a class="reference internal" href="#id1">37.5.1. Splitting and merging</a></li>
+<li><a class="reference internal" href="#extensibility">39.5. Extensibility</a><ul>
+<li><a class="reference internal" href="#id1">39.5.1. Splitting and merging</a></li>
 </ul>
 </li>
 </ul>
@@ -360,10 +360,10 @@ report an error in checking varieties.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="scan.html"
-                        title="previous chapter">36. The generic scanner</a></p>
+                        title="previous chapter">38. The generic scanner</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="shield.html"
-                        title="next chapter">38. Shield</a></p><h4>Downloads</h4>
+                        title="next chapter">40. Shield</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -389,10 +389,10 @@ report an error in checking varieties.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="shield.html" title="38. Shield"
+          <a href="shield.html" title="40. Shield"
              >next</a> |</li>
         <li class="right" >
-          <a href="scan.html" title="36. The generic scanner"
+          <a href="scan.html" title="38. The generic scanner"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

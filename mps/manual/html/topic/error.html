@@ -242,6 +242,12 @@ likely causes. If you encounter an assertion not listed here (or an
 assertion that is listed here but for which you discovered a different
 cause), please <a class="reference internal" href="../contact.html#contact"><em>let us know</em></a> so that we can improve
 this documentation.</p>
+<p><tt class="docutils literal"><span class="pre">arenavm.c:</span> <span class="pre">BTIsResRange(vmChunk-&gt;pageTableMapped,</span> <span class="pre">0,</span> <span class="pre">chunk-&gt;pageTablePages)</span></tt></p>
+<blockquote>
+<div>The client program called <a class="reference internal" href="arena.html#mps_arena_destroy" title="mps_arena_destroy"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_destroy()</span></tt></a> without
+having destroyed all pools in that arena first. (The assertion is
+from the virtual memory manager which is checking that all pages
+have been unmapped.)</div></blockquote>
 <p><tt class="docutils literal"><span class="pre">dbgpool.c:</span> <span class="pre">fencepost</span> <span class="pre">check</span> <span class="pre">on</span> <span class="pre">free</span></tt></p>
 <blockquote>
 <div>The client program wrote to a location after the end, or before

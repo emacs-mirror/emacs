@@ -1,8 +1,8 @@
-.. _design-message-gc:
-
 
 .. index::
    pair: garbage collection messages; design
+
+.. _design-message-gc:
 
 
 GC messages

@@ -1,8 +1,8 @@
-.. _design-class-interface:
-
 
 .. index::
    pair: class interface; design
+
+.. _design-class-interface:
 
 
 Pool class interface

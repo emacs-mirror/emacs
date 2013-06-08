@@ -1,8 +1,8 @@
-.. _design-protocol:
-
 
 .. index::
    pair: protocol inheritance; design
+
+.. _design-protocol:
 
 
 Protocol inheritance

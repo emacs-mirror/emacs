@@ -1,8 +1,8 @@
-.. _design-locus:
-
 
 .. index::
    pair: locus manager; design
+
+.. _design-locus:
 
 
 MPS Configuration

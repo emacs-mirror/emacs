@@ -1,9 +1,9 @@
-.. _design-arenavm:
-
 
 .. index::
    pair: virtual memory arena; design
    pair: VM arena; design
+
+.. _design-arenavm:
 
 
 Virtual Memory Arena

@@ -54,8 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-config"></span><div class="section" id="mps-configuration">
-<span id="index-0"></span><h1>3. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="mps-configuration">
+<span id="design-config"></span><span id="index-0"></span><h1>3. MPS Configuration<a class="headerlink" href="#mps-configuration" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <span id="design.mps.config"></span><h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.config.intro"></span><a class="mpstag reference internal" href="#design.mps.config.intro">.intro:</a> This document describes how the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool System</a> source code is configured so
@@ -440,19 +440,19 @@ possibly their types, depending on the protocol defined</li>
 configuration parameter.  However, the concrete interface may vary.</p>
 <p>For example, this isn&#8217;t allowed, because there is a change in the interface:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(PROT_FOO)</span>
-<span class="kt">void</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
+<span class="kt">void</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
 <span class="cp">#else</span>
-<span class="kt">int</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
+<span class="kt">int</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
 <p>This example shows how:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#ifdef PROTECTION</span>
-<span class="kt">void</span> <span class="nf">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
-<span class="cm">/* more decls. */</span>
+<span class="kt">void</span> <span class="n">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
+<span class="cp">/* more decls. */</span>
 <span class="cp">#else </span><span class="cm">/* PROTECTION not */</span><span class="cp"></span>
 <span class="cp">#define ProtSync(space) NOOP</span>
-<span class="cm">/* more decls. */</span>
+<span class="cp">/* more decls. */</span>
 <span class="cp">#endif </span><span class="cm">/* PROTECTION */</span><span class="cp"></span>
 </pre></div>
 </div>

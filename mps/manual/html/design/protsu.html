@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>31. SunOS 4 protection module &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>33. SunOS 4 protection module &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="32. Protocol inheritance" href="protocol.html" />
-    <link rel="prev" title="30. Linux implementation of protection module" href="protli.html" /> 
+    <link rel="next" title="34. Protocol inheritance" href="protocol.html" />
+    <link rel="prev" title="32. Linux implementation of protection module" href="protli.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="32. Protocol inheritance"
+          <a href="protocol.html" title="34. Protocol inheritance"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="protli.html" title="30. Linux implementation of protection module"
+          <a href="protli.html" title="32. Linux implementation of protection module"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,31 +54,31 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-protsu"></span><div class="section" id="sunos-4-protection-module">
-<span id="index-0"></span><h1>31. SunOS 4 protection module<a class="headerlink" href="#sunos-4-protection-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="sunos-4-protection-module">
+<span id="design-protsu"></span><span id="index-0"></span><h1>33. SunOS 4 protection module<a class="headerlink" href="#sunos-4-protection-module" title="Permalink to this headline">¶</a></h1>
 <div class="admonition warning" id="design.mps.protsu">
 <p class="first admonition-title">Warning</p>
 <p class="last">As of 2013-05-26, the MPS is no longer supported on SunOS, so
 this document is only of historical interest.</p>
 </div>
 <div class="section" id="introduction">
-<h2>31.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>33.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protsu.readership"></span><a class="mpstag reference internal" href="#design.mps.protsu.readership">.readership:</a> Any MPS developer.</p>
 <p><span class="target" id="design.mps.protsu.intro"></span><a class="mpstag reference internal" href="#design.mps.protsu.intro">.intro:</a> This is the design of the SunOS 4 implementation of the
 protection module. It is intended to be used only in SunOS 4 (os.su).
 It makes use of various services provided by SunOS 4.</p>
 </div>
 <div class="section" id="requirements">
-<h2>31.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<h2>33.2. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protsu.req.general"></span><a class="mpstag reference internal" href="#design.mps.protsu.req.general">.req.general:</a> Required to implement the general protection
 interface defined in design.mps.prot.if.*.</p>
 </div>
 <div class="section" id="overview">
-<h2>31.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>33.3. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Uses <tt class="xref c c-func docutils literal"><span class="pre">mprotect()</span></tt>.</p>
 </div>
 <div class="section" id="misc">
-<h2>31.4. Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h2>
+<h2>33.4. Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protsu.improve.sig-stack"></span><a class="mpstag reference internal" href="#design.mps.protsu.improve.sig-stack">.improve.sig-stack:</a> Currently we do not handle signals on a
 separate signal stack. If we handled signals on our own stack then we
 could guarantee not to run out of stack while we were handling the
@@ -96,13 +96,13 @@ the signal to ourselves and then restore our handler using sigvec
 again.</p>
 </div>
 <div class="section" id="data-structures">
-<h2>31.5. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<h2>33.5. Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protsu.data.signext"></span><a class="mpstag reference internal" href="#design.mps.protsu.data.signext">.data.signext:</a> This is static. Because that is the only
 communications channel available to signal handlers. [write a little
 more here]</p>
 </div>
 <div class="section" id="functions">
-<h2>31.6. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<h2>33.6. Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.protsu.fun.setup"></span><a class="mpstag reference internal" href="#design.mps.protsu.fun.setup">.fun.setup:</a> <a class="reference internal" href="prot.html#ProtSetup" title="ProtSetup"><tt class="xref c c-func docutils literal"><span class="pre">ProtSetup()</span></tt></a>. The setup involves installing a signal
 handler for the signal <tt class="xref c c-macro docutils literal"><span class="pre">SIGSEGV</span></tt> to catch and handle protection
 faults (this handler is the function <tt class="xref c c-func docutils literal"><span class="pre">sigHandle()</span></tt>, see
@@ -149,23 +149,23 @@ Win32 Structured Exception Handling.)</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">31. SunOS 4 protection module</a><ul>
-<li><a class="reference internal" href="#introduction">31.1. Introduction</a></li>
-<li><a class="reference internal" href="#requirements">31.2. Requirements</a></li>
-<li><a class="reference internal" href="#overview">31.3. Overview</a></li>
-<li><a class="reference internal" href="#misc">31.4. Misc</a></li>
-<li><a class="reference internal" href="#data-structures">31.5. Data structures</a></li>
-<li><a class="reference internal" href="#functions">31.6. Functions</a></li>
+<li><a class="reference internal" href="#">33. SunOS 4 protection module</a><ul>
+<li><a class="reference internal" href="#introduction">33.1. Introduction</a></li>
+<li><a class="reference internal" href="#requirements">33.2. Requirements</a></li>
+<li><a class="reference internal" href="#overview">33.3. Overview</a></li>
+<li><a class="reference internal" href="#misc">33.4. Misc</a></li>
+<li><a class="reference internal" href="#data-structures">33.5. Data structures</a></li>
+<li><a class="reference internal" href="#functions">33.6. Functions</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="protli.html"
-                        title="previous chapter">30. Linux implementation of protection module</a></p>
+                        title="previous chapter">32. Linux implementation of protection module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="protocol.html"
-                        title="next chapter">32. Protocol inheritance</a></p><h4>Downloads</h4>
+                        title="next chapter">34. Protocol inheritance</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -191,10 +191,10 @@ Win32 Structured Exception Handling.)</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="protocol.html" title="32. Protocol inheritance"
+          <a href="protocol.html" title="34. Protocol inheritance"
              >next</a> |</li>
         <li class="right" >
-          <a href="protli.html" title="30. Linux implementation of protection module"
+          <a href="protli.html" title="32. Linux implementation of protection module"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 

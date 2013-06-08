@@ -1,8 +1,8 @@
-.. _design-scan:
-
 
 .. index::
    pair: generic scanner; design
+
+.. _design-scan:
 
 
 The generic scanner

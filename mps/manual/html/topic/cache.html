@@ -70,7 +70,7 @@ small number of relatively long-lived 128-byte objects, and a large
 number of relatively short-lived 8-byte objects, we might create a
 cache as follows:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">mps_sac_class_s</span> <span class="n">classes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mi">8</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">},</span> <span class="p">{</span><span class="mi">128</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">}};</span>
-<span class="kt">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
+<span class="n">mps_sac_t</span> <span class="n">sac</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sac</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="k">sizeof</span> <span class="n">classes</span> <span class="o">/</span> <span class="k">sizeof</span> <span class="n">classes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">classes</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>
@@ -83,8 +83,8 @@ otherwise from the pool. Similarly, deallocations through the cache
 (using <a class="reference internal" href="#mps_sac_free" title="mps_sac_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_sac_free()</span></tt></a> or <a class="reference internal" href="#MPS_SAC_FREE_FAST" title="MPS_SAC_FREE_FAST"><tt class="xref c c-func docutils literal"><span class="pre">MPS_SAC_FREE_FAST()</span></tt></a>) return
 the block to the appopriate free list for its size. For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">Foo</span> <span class="o">*</span><span class="n">foo</span><span class="p">;</span>
-<span class="kt">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
-<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="n">mps_addr_t</span> <span class="n">p</span><span class="p">;</span>
+<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_sac_alloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">sac</span><span class="p">,</span> <span class="k">sizeof</span> <span class="o">*</span><span class="n">foo</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span>

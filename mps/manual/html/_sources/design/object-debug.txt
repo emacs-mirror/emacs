@@ -1,8 +1,8 @@
-.. _design-object-debug:
-
 
 .. index::
    pair: debugging; design
+
+.. _design-object-debug:
 
 
 Debugging features for client objects

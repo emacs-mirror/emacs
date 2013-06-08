@@ -1,5 +1,3 @@
-.. _design-cbs:
-
 
 Coalescing block structure
 ==========================

@@ -100,9 +100,6 @@ the efficiency of stack-like allocation.</li>
 <li>Blocks may not contain <a class="reference internal" href="../glossary/r.html#term-reference"><em class="xref std std-term">references</em></a> to blocks in automatically
 managed pools (unless these are registered as <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">roots</em></a>).</li>
 <li>Allocations may be variable in size.</li>
-<li>The <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of blocks is not configurable: it is the
-<a class="reference internal" href="../glossary/n.html#term-natural-alignment"><em class="xref std std-term">natural alignment</em></a> of the platform (see
-<a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>).</li>
 <li>Blocks do not have <a class="reference internal" href="../glossary/d.html#term-dependent-object"><em class="xref std std-term">dependent objects</em></a>.</li>
 <li>Blocks are not automatically <a class="reference internal" href="../glossary/r.html#term-reclaim"><em class="xref std std-term">reclaimed</em></a>.</li>
 <li>Blocks are not <a class="reference internal" href="../glossary/s.html#term-scan"><em class="xref std std-term">scanned</em></a>.</li>
@@ -126,14 +123,14 @@ Temporal) <a class="reference internal" href="../glossary/p.html#term-pool"><em 
 six <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword arguments</em></a>:</p>
 <ul class="simple">
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt> (type <a class="reference internal" href="../topic/interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>, default is
-smallest general purpose alignment for the architecture) is the
+<a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>) is the
 <a class="reference internal" href="../glossary/a.html#term-alignment"><em class="xref std std-term">alignment</em></a> of addresses for allocation (and freeing) in
 the pool. If an unaligned size is passed to <a class="reference internal" href="../topic/allocation.html#mps_alloc" title="mps_alloc"><tt class="xref c c-func docutils literal"><span class="pre">mps_alloc()</span></tt></a> or
 <a class="reference internal" href="../topic/allocation.html#mps_free" title="mps_free"><tt class="xref c c-func docutils literal"><span class="pre">mps_free()</span></tt></a>, it will be rounded up to the pool&#8217;s alignment.
 The minimum alignment supported by pools of this class is
 <tt class="docutils literal"><span class="pre">sizeof(void</span> <span class="pre">*)</span></tt>.</li>
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MIN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default is
-smallest general purpose alignment for the architecture) is the
+<a class="reference internal" href="../topic/platform.html#MPS_PF_ALIGN" title="MPS_PF_ALIGN"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_PF_ALIGN</span></tt></a>) is the
 predicted minimum size of blocks that will be allocated from the
 pool.</li>
 <li><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MEAN_SIZE</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">size_t</span></tt>, default 32) is the
@@ -150,9 +147,9 @@ pool will be less efficient if they are wrong, but the only thing
 that will break is the partial freeing of large blocks.</p>
 <ul>
 <li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_RESERVE_DEPTH</span></tt> (type
-<tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>) is the expected hysteresis of the
-population of the pool. When blocks are freed, the pool will
-retain sufficient storage to allocate this many blocks of the
+<tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>, default 1024) is the expected hysteresis
+of the population of the pool. When blocks are freed, the pool
+will retain sufficient storage to allocate this many blocks of the
 mean size for near term allocations (rather than immediately
 making that storage available to other pools).</p>
 <p>If a pool has a stable population, or one which only grows over
@@ -171,14 +168,14 @@ undesirable, a reserve depth of 0 may be used for a pool whose
 object population does vary, at a slight cost in efficiency. The
 reserve does not guarantee any particular amount of allocation.</p>
 </li>
-<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_FRAG_LIMIT</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">mps_count_t</span></tt>)
-is a double from 0.0 to 1.0 (inclusive). It sets an upper
-limit on the space overhead of an MVT pool, in case block death
-times and allocations do not correlate well. If the free space
-managed by the pool as a ratio of all the space managed by the
-pool exceeds the fragmentation limit, the pool falls back to a
-first fit allocation policy, exploiting space more efficiently
-at a cost in time efficiency. A fragmentation limit of 0.0 would
+<li><p class="first"><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_MVT_FRAG_LIMIT</span></tt> (type <tt class="xref c c-type docutils literal"><span class="pre">double</span></tt>,
+default 0.3) is a double from 0.0 to 1.0 (inclusive). It sets an
+upper limit on the space overhead of an MVT pool, in case block
+death times and allocations do not correlate well. If the free
+space managed by the pool as a ratio of all the space managed by
+the pool exceeds the fragmentation limit, the pool falls back to a
+first fit allocation policy, exploiting space more efficiently at
+a cost in time efficiency. A fragmentation limit of 0.0 would
 cause the pool to operate as a first-fit pool, at a significant
 cost in time efficiency: therefore this is not permitted.</p>
 <p>A fragmentation limit of 1.0 causes the pool to always use
@@ -208,13 +205,13 @@ of temporal fit due to varying object life expectancies.</p>
 <p>starting with version 1.112.</p>
 <p>When using <a class="reference internal" href="../topic/pool.html#mps_pool_create" title="mps_pool_create"><tt class="xref c c-func docutils literal"><span class="pre">mps_pool_create()</span></tt></a>, pass the arguments like
 this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="kt">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
-                          <span class="kt">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">mps_pool_create</span><span class="p">(</span><span class="n">mps_pool_t</span> <span class="o">*</span><span class="n">pool_o</span><span class="p">,</span> <span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">,</span>
+                          <span class="n">mps_class_t</span> <span class="n">mps_class_mvt</span><span class="p">(),</span>
                           <span class="kt">size_t</span> <span class="n">minimum_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">mean_size</span><span class="p">,</span>
                           <span class="kt">size_t</span> <span class="n">maximum_size</span><span class="p">,</span>
-                          <span class="kt">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
-                          <span class="kt">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
+                          <span class="n">mps_count_t</span> <span class="n">reserve_depth</span><span class="p">,</span>
+                          <span class="n">mps_count_t</span> <span class="n">fragmentation_limit</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition-note last admonition">

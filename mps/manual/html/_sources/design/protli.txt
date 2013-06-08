@@ -1,9 +1,9 @@
-.. _design-protli:
-
 
 .. index::
    pair: Linux; protection interface design
    pair: Linux protection interface; design
+
+.. _design-protli:
 
 
 Linux implementation of protection module

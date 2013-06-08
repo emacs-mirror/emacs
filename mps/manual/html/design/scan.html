@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>36. The generic scanner &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>38. The generic scanner &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Old design" href="old.html" />
-    <link rel="next" title="37. Segment data structure" href="seg.html" />
-    <link rel="prev" title="35. Root manager" href="root.html" /> 
+    <link rel="next" title="39. Segment data structure" href="seg.html" />
+    <link rel="prev" title="37. Root manager" href="root.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="seg.html" title="37. Segment data structure"
+          <a href="seg.html" title="39. Segment data structure"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="root.html" title="35. Root manager"
+          <a href="root.html" title="37. Root manager"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" accesskey="U">Old design</a> &raquo;</li> 
@@ -54,12 +54,12 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <span class="target" id="design-scan"></span><div class="section" id="the-generic-scanner">
-<span id="index-0"></span><h1>36. The generic scanner<a class="headerlink" href="#the-generic-scanner" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="the-generic-scanner">
+<span id="design-scan"></span><span id="index-0"></span><h1>38. The generic scanner<a class="headerlink" href="#the-generic-scanner" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="summaries">
-<span id="design.mps.scan"></span><h2>36.1. Summaries<a class="headerlink" href="#summaries" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.scan"></span><h2>38.1. Summaries<a class="headerlink" href="#summaries" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="scanned-summary">
-<h3>36.1.1. Scanned summary<a class="headerlink" href="#scanned-summary" title="Permalink to this headline">¶</a></h3>
+<h3>38.1.1. Scanned summary<a class="headerlink" href="#scanned-summary" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.scan.summary.subset"></span><a class="mpstag reference internal" href="#design.mps.scan.summary.subset">.summary.subset:</a> The summary of reference seens by scan
 (ss.unfixedSummary) is a subset of the summary previously computed
 (SegSummary).</p>
@@ -79,7 +79,7 @@ summary is due to an &#8220;optimization&#8221; which has not been made in
 <tt class="docutils literal"><span class="pre">TraceFix</span></tt>. See impl.c.trace.fix.fixed.all.</p>
 </div>
 <div class="section" id="partial-scans">
-<h3>36.1.2. Partial scans<a class="headerlink" href="#partial-scans" title="Permalink to this headline">¶</a></h3>
+<h3>38.1.2. Partial scans<a class="headerlink" href="#partial-scans" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="design.mps.scan.clever-summary"></span><a class="mpstag reference internal" href="#design.mps.scan.clever-summary">.clever-summary:</a> With enough cleverness, it&#8217;s possible to have
 partial scans of condemned segments contribute to the segment summary.</p>
 <div class="admonition-note admonition">
@@ -145,10 +145,10 @@ approximated by setting the summary to <tt class="docutils literal"><span class=
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">36. The generic scanner</a><ul>
-<li><a class="reference internal" href="#summaries">36.1. Summaries</a><ul>
-<li><a class="reference internal" href="#scanned-summary">36.1.1. Scanned summary</a></li>
-<li><a class="reference internal" href="#partial-scans">36.1.2. Partial scans</a></li>
+<li><a class="reference internal" href="#">38. The generic scanner</a><ul>
+<li><a class="reference internal" href="#summaries">38.1. Summaries</a><ul>
+<li><a class="reference internal" href="#scanned-summary">38.1.1. Scanned summary</a></li>
+<li><a class="reference internal" href="#partial-scans">38.1.2. Partial scans</a></li>
 </ul>
 </li>
 </ul>
@@ -157,10 +157,10 @@ approximated by setting the summary to <tt class="docutils literal"><span class=
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="root.html"
-                        title="previous chapter">35. Root manager</a></p>
+                        title="previous chapter">37. Root manager</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="seg.html"
-                        title="next chapter">37. Segment data structure</a></p><h4>Downloads</h4>
+                        title="next chapter">39. Segment data structure</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -186,10 +186,10 @@ approximated by setting the summary to <tt class="docutils literal"><span class=
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="seg.html" title="37. Segment data structure"
+          <a href="seg.html" title="39. Segment data structure"
              >next</a> |</li>
         <li class="right" >
-          <a href="root.html" title="35. Root manager"
+          <a href="root.html" title="37. Root manager"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="old.html" >Old design</a> &raquo;</li> 
