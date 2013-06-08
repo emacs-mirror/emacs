@@ -79,12 +79,10 @@
 	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables):
 	Remove unneeded variables and use it.
 
-2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+2013-06-05  João Távora  <joaotavora@gmail.com>
 
 	* net/tls.el (open-tls-stream): Remove unneeded buffer contents up
-	to point when opening the connection.
-	Suggested by João Távora <joaotavora@gmail.com> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00464.html>.
+	to point when opening the connection.  (Bug#14380)
 
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
