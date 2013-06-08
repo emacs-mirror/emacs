@@ -22,49 +22,54 @@
 
 ;;; Commentary:
 
-;; This package provides facilities for making, displaying, navigating and
-;; editing todo lists, which are prioritized lists of todo items.  Todo lists
-;; are identified with named categories, so you can group together and
-;; separately prioritize thematically related todo items.  Each category is
-;; stored in a file, which thus provides a further level of organization.  You
-;; can create as many todo files, and in each as many categories, as you want.
+;; This package provides facilities for making, displaying, navigating
+;; and editing todo lists, which are prioritized lists of todo items.
+;; Todo lists are identified with named categories, so you can group
+;; together and separately prioritize thematically related todo items.
+;; Each category is stored in a file, which thus provides a further
+;; level of organization.  You can create as many todo files, and in
+;; each as many categories, as you want.
 
-;; With Todos you can navigate among the items of a category, and between
-;; categories in the same and in different todo files.  You can edit todo
-;; items, reprioritize them within their category, move them to another
-;; category, delete them, or mark items as done and store them separately from
-;; the not yet done items in a category.  You can add new todo files and
-;; categories, rename categories, move them to another file or delete them.
-;; You can also display summary tables of the categories in a file and the
-;; types of items they contain.  And you can build cross-categorial lists of
-;; items that satisfy various criteria.
+;; With Todos you can navigate among the items of a category, and
+;; between categories in the same and in different todo files.  You
+;; can edit todo items, reprioritize them within their category, move
+;; them to another category, delete them, or mark items as done and
+;; store them separately from the not yet done items in a category.
+;; You can add new todo files and categories, rename categories, move
+;; them to another file or delete them.  You can also display summary
+;; tables of the categories in a file and the types of items they
+;; contain.  And you can build cross-categorial lists of items that
+;; satisfy various criteria.
 
-;; To get started, load this package and type `M-x todos-show'.  This will
-;; prompt you for the name of the first todo file, its first category and the
-;; category's first item, create these and display them in Todos mode.  Now
-;; you can insert further items into the list (i.e., the category) and assign
-;; them priorities by typing `i i'.
+;; To get started, load this package and type `M-x todos-show'.  This
+;; will prompt you for the name of the first todo file, its first
+;; category and the category's first item, create these and display
+;; them in Todos mode.  Now you can insert further items into the list
+;; (i.e., the category) and assign them priorities by typing `i i'.
 
-;; You will probably find it convenient to give `todos-show' a global key
-;; binding in your init file, since it is one of the entry points to Todos
-;; mode; a good choice is `C-c t', since `todos-show' is bound to `t' in Todos
-;; mode.
+;; You will probably find it convenient to give `todos-show' a global
+;; key binding in your init file, since it is one of the entry points
+;; to Todos mode; a good choice is `C-c t', since `todos-show' is
+;; bound to `t' in Todos mode.
 
-;; To see a list of all Todos mode commands and their key bindings, including
-;; other entry points, type `C-h m' in Todos mode.  Consult the document
-;; strings of the commands for details of their use.  The `todos'
-;; customization group and its subgroups list the options you can set to alter
-;; the behavior of many commands and various aspects of the display.
+;; To see a list of all Todos mode commands and their key bindings,
+;; including other entry points, type `C-h m' in Todos mode.  Consult
+;; the document strings of the commands for details of their use.  The
+;; `todos' customization group and its subgroups list the options you
+;; can set to alter the behavior of many commands and various aspects
+;; of the display.
 
-;; This package is a new version of Oliver Seidel's todo-mode.el, which
-;; retains the same basic organization and handling of todo lists and the
-;; basic UI, but extends these in many ways and reimplements most of the
-;; internals.
+;; This package is a new version of Oliver Seidel's todo-mode.el.
+;; While it retains the same basic organization and handling of todo
+;; lists and the basic UI, it significantly extends these, adds many
+;; features, changes much of the internals and reimplements almost all
+;; of the code.
 
 ;;; Code:
 
 (require 'diary-lib)
-;; For cl-remove-duplicates (in todos-insertion-commands-args) and cl-oddp.
+;; For cl-remove-duplicates (in todos-insertion-commands-args) and
+;; cl-oddp.
 (require 'cl-lib)
 
 ;; -----------------------------------------------------------------------------
@@ -4918,10 +4923,7 @@ but the categories sexp differs from the current value of
 		   (if to-lim lim (point-max))))
       ;; For last todo item, skip back over the empty line before the done
       ;; items section, else just back to the end of the previous line.
-      ;; (When byte-comiled, backward-char barfs on an argument that evaluates
-      ;; to nil (bug#14565).)
-      ;; (backward-char (when (and to-lim (not done) (eq (point) lim)) 2))
-      (backward-char (if (and to-lim (not done) (eq (point) lim)) 2 1))
+      (backward-char (when (and to-lim (not done) (eq (point) lim)) 2))
       (point))))
 
 (defun todos-item-string ()

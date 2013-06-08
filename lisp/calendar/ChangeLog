@@ -1,6 +1,13 @@
+2013-06-08  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Improve commentary.
+	(todos-item-end): Revert last change, since bug#14565 is now fixed.
+
 2013-06-07  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Reorganize file structure again, to pacify byte-compiler.
+	(todos-item-end): Use if-else instead of when-sexp to avoid
+	explicit nil argument of backward-char (bug#14565).
 
 2013-06-06  Stephen Berman  <stephen.berman@gmx.net>
 
@@ -24,7 +31,7 @@
 
 2013-06-05  Stephen Berman  <stephen.berman@gmx.net>
 
-	* todos.el: Further code cleanup.  Changes to commentary.  Remove
+	* todos.el: Further code cleanup.  Improve commentary.  Remove
 	autoload cookies.  Handle todo items in Fancy Diary display.
 	(todos-done-separator): Reinstate length one less than
 	window-width until bug#2749 is fixed.
