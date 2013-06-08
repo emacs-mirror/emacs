@@ -125,7 +125,7 @@ MVFF interface
       efficient if this is wrong, but nothing will break.
 
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      smallest general purpose alignment for the architecture) is the
+      :c:macro:`MPS_PF_ALIGN`) is the
       :term:`alignment` of addresses for allocation (and freeing) in
       the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
       :c:func:`mps_free`, it will be rounded up to the pool's alignment.

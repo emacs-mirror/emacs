@@ -78,10 +78,6 @@ MVT properties
 
 * Allocations may be variable in size.
 
-* The :term:`alignment` of blocks is not configurable: it is the
-  :term:`natural alignment` of the platform (see
-  :c:macro:`MPS_PF_ALIGN`).
-
 * Blocks do not have :term:`dependent objects`.
 
 * Blocks are not automatically :term:`reclaimed`.
@@ -116,7 +112,7 @@ MVT interface
     six :term:`keyword arguments`:
 
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      smallest general purpose alignment for the architecture) is the
+      :c:macro:`MPS_PF_ALIGN`) is the
       :term:`alignment` of addresses for allocation (and freeing) in
       the pool. If an unaligned size is passed to :c:func:`mps_alloc` or
       :c:func:`mps_free`, it will be rounded up to the pool's alignment.
@@ -124,7 +120,7 @@ MVT interface
       ``sizeof(void *)``.
 
     * :c:macro:`MPS_KEY_MIN_SIZE` (type :c:type:`size_t`, default is
-      smallest general purpose alignment for the architecture) is the
+      :c:macro:`MPS_PF_ALIGN`) is the
       predicted minimum size of blocks that will be allocated from the
       pool.
 
