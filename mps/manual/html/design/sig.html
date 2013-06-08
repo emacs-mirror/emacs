@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>7. Signatures in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>11. Signatures in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
     <link rel="next" title="Old design" href="old.html" />
-    <link rel="prev" title="6. Ring data structure" href="ring.html" /> 
+    <link rel="prev" title="10. Ring data structure" href="ring.html" /> 
   </head>
   <body>
     <div class="related">
@@ -42,7 +42,7 @@
           <a href="old.html" title="Old design"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ring.html" title="6. Ring data structure"
+          <a href="ring.html" title="10. Ring data structure"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <span class="target" id="design-sig"></span><div class="section" id="signatures-in-the-mps">
-<span id="index-0"></span><h1>7. Signatures in the MPS<a class="headerlink" href="#signatures-in-the-mps" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>11. Signatures in the MPS<a class="headerlink" href="#signatures-in-the-mps" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.sig"></span><h2>7.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.sig"></span><h2>11.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Integrity of data structures is absolutely critical to the cost of
 deploying the Memory Pool System.  Memory corruption and memory
 management bugs are incredibly hard to detect and debug, often
@@ -67,7 +67,7 @@ ways the MPS detects corruption or the passing of illegal data is using
 defects early.</p>
 </div>
 <div class="section" id="overview">
-<h2>7.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>11.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Signatures are <a class="reference external" href="http://en.wikipedia.org/wiki/Magic_number_(programming)">magic numbers</a> which are written into structures when
 they are created and invalidated (by overwriting with <tt class="docutils literal"><span class="pre">SigInvalid</span></tt>)
 when they are destroyed. They provide a limited form of run-time type
@@ -76,7 +76,7 @@ checking and dynamic scope checking. They are a simplified form of
 <a class="reference internal" href="#thvv-1995">[THVV_1995]</a>.</p>
 </div>
 <div class="section" id="definitions">
-<h2>7.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<h2>11.3. Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <p>Nearly every structure should start with a field of type <tt class="xref c c-type docutils literal"><span class="pre">Sig</span></tt> with the name
 <tt class="docutils literal"><span class="pre">sig</span></tt>.  For example:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_message_s</span> <span class="p">{</span>
@@ -101,7 +101,7 @@ checking and dynamic scope checking. They are a simplified form of
 dump or memory window, or found using memory searches.</p>
 </div>
 <div class="section" id="init-and-finish">
-<h2>7.4. Init and Finish<a class="headerlink" href="#init-and-finish" title="Permalink to this headline">¶</a></h2>
+<h2>11.4. Init and Finish<a class="headerlink" href="#init-and-finish" title="Permalink to this headline">¶</a></h2>
 <p>When the structure is initialised, the signature is initialised as the
 <em>last</em> action, just before validating it.  (Think of it as putting your
 signature at the bottom of a document to say it&#8217;s done.)  This ensures
@@ -134,7 +134,7 @@ being torn down.  For example:</p>
 <p>Do not do anything else with signatures.  See <a class="reference internal" href="#design.mps.sig.rule.purpose">.rule.purpose</a>.</p>
 </div>
 <div class="section" id="checking">
-<h2>7.5. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h2>
+<h2>11.5. Checking<a class="headerlink" href="#checking" title="Permalink to this headline">¶</a></h2>
 <p>The signature is checked in various ways.  Every function that takes a
 (pointer to) a signed structure should check its argument using the
 <tt class="xref c c-macro docutils literal"><span class="pre">AVERT</span></tt> macro.  This macro has different definitions depending on how
@@ -157,7 +157,7 @@ wrong type, an uninitialized object, or a dead object, or a random
 pointer into a function.</p>
 </div>
 <div class="section" id="rules">
-<h2>7.6. Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
+<h2>11.6. Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.sig.rule.purpose"></span><a class="mpstag reference internal" href="#design.mps.sig.rule.purpose">.rule.purpose:</a> <strong>Do not</strong> use signatures for any other purpose.  For
 example, don&#8217;t use them to make any actual decisions within the code.
 They must not be used to discriminate between structure variants (or
@@ -167,7 +167,7 @@ double-check whether these facts are true. They lose their value as a
 consistency check if the code uses them as well.</p>
 </div>
 <div class="section" id="tools">
-<h2>7.7. Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h2>
+<h2>11.7. Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.sig.test.uniq"></span><a class="mpstag reference internal" href="#design.mps.sig.test.uniq">.test.uniq:</a> The Unix command:</p>
 <div class="highlight-c"><pre>sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c</pre>
 </div>
@@ -177,7 +177,7 @@ same signature value is being used for different signatures.  This is
 undesirable and the problem should be investigated.</p>
 </div>
 <div class="section" id="references">
-<h2>7.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>11.8. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="rb-1995-08-25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -204,22 +204,22 @@ undesirable and the problem should be investigated.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">7. Signatures in the MPS</a><ul>
-<li><a class="reference internal" href="#introduction">7.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">7.2. Overview</a></li>
-<li><a class="reference internal" href="#definitions">7.3. Definitions</a></li>
-<li><a class="reference internal" href="#init-and-finish">7.4. Init and Finish</a></li>
-<li><a class="reference internal" href="#checking">7.5. Checking</a></li>
-<li><a class="reference internal" href="#rules">7.6. Rules</a></li>
-<li><a class="reference internal" href="#tools">7.7. Tools</a></li>
-<li><a class="reference internal" href="#references">7.8. References</a></li>
+<li><a class="reference internal" href="#">11. Signatures in the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">11.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">11.2. Overview</a></li>
+<li><a class="reference internal" href="#definitions">11.3. Definitions</a></li>
+<li><a class="reference internal" href="#init-and-finish">11.4. Init and Finish</a></li>
+<li><a class="reference internal" href="#checking">11.5. Checking</a></li>
+<li><a class="reference internal" href="#rules">11.6. Rules</a></li>
+<li><a class="reference internal" href="#tools">11.7. Tools</a></li>
+<li><a class="reference internal" href="#references">11.8. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="ring.html"
-                        title="previous chapter">6. Ring data structure</a></p>
+                        title="previous chapter">10. Ring data structure</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="old.html"
                         title="next chapter">Old design</a></p><h4>Downloads</h4>
@@ -251,7 +251,7 @@ undesirable and the problem should be investigated.</p>
           <a href="old.html" title="Old design"
              >next</a> |</li>
         <li class="right" >
-          <a href="ring.html" title="6. Ring data structure"
+          <a href="ring.html" title="10. Ring data structure"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

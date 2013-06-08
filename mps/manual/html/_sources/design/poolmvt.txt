@@ -1,0 +1,952 @@
+.. _design-poolmvt:
+
+
+
+Manual Variable Temporal (MVT) pool design
+==========================================
+
+.. mps:prefix:: design.mps.poolmvt
+
+
+Introduction
+------------
+
+:mps:tag:`intro` This is a second-generation design for a pool that manually
+manages variable-sized objects. It is intended as a replacement for
+poolmv (except in its control pool role) and poolepdl, and it is
+intended to satisfy the requirements of the Dylan "misc" pool and the
+product malloc/new drop-in replacement.
+
+:mps:tag:`readership` MM developers
+
+:mps:tag:`source` req.dylan(6), req.epcore(16), req.product(2)
+
+:mps:tag:`background` design.mps.poolmv(0), design.mps.poolepdl(0),
+design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
+paper.grun92(1), paper.beck82(0), mail.ptw.1998-02-25.22-18(0)
+
+
+Definitions
+-----------
+
+:mps:tag:`def.alignment` Alignment is a constraint on an object's address,
+typically to be a power of 2 (see also, glossary.alignment )
+
+:mps:tag:`def.bit-map` A bitmap is a boolean-valued vector (see also,
+glossary.bitmap ).
+
+:mps:tag:`def.block` A block is a contiguous extent of memory. In this
+document, block is used to mean a contiguous extent of memory managed
+by the pool for the pool client, typically a subset of a segment
+(compare with :mps:ref:`.def.segment`).
+
+:mps:tag:`def.cartesian-tree` A cartesian tree is a binary tree ordered by
+two keys (paper.stephenson83(0)).
+
+:mps:tag:`def.crossing-map` A mechanism that supports finding the start of
+an object from any address within the object, typically only required
+on untagged architectures (see also, glossary.crossing.map ).
+
+:mps:tag:`def.footer` A block of descriptive information describing and
+immediately following another block of memory (see also
+:mps:ref:`.def.header`).
+
+:mps:tag:`def.fragmentation` Fragmented memory is memory reserved to the
+program but not usable by the program because of the arrangement of
+memory already in use (see also, glossary.fragmentation ).
+
+:mps:tag:`def.header` A block of descriptive information describing and
+immediately preceding another block of memory (see also,
+glossary.in-band.header ).
+
+:mps:tag:`def.in-band` From "in band signalling", when descriptive
+information about a data structure is stored in the data structure
+itself (see also, glossary.in-band.header ).
+
+:mps:tag:`def.out-of-band` When descriptive information about a data
+structure is stored separately from the structure itself (see also,
+glossary.out-of-band.header ).
+
+:mps:tag:`def.refcount` A refcount is a count of the number of users of an
+object (see also, glossary.reference.count ).
+
+:mps:tag:`def.segment` A segment is a contiguous extent of memory. In this
+document, segment is used to mean a contiguous extent of memory
+managed by the MPS arena (design.mps.arena(1)) and subdivided by the
+pool to provide blocks (see :mps:ref:`.def.block`) to its clients.
+
+:mps:tag:`def.splay-tree` A splay tree is a self-adjusting binary tree
+(paper.st85(0), paper.sleator96(0)).
+
+:mps:tag:`def.splinter` A splinter is a fragment of memory that is too small
+to be useful (see also, glossary.splinter )
+
+:mps:tag:`def.subblock` A subblock is a contiguous extent of memory. In this
+document, subblock is used to mean a contiguous extent of memory
+manage by the client for its own use, typically a subset of a block
+(compare with :mps:ref:`.def.block`).
+
+
+Abbreviations
+-------------
+
+:mps:tag:`abbr.abq` ABQ = Available Block Queue
+
+:mps:tag:`abbr.ap` AP = Allocation Point
+
+:mps:tag:`abbr.cbs` CBS = Coalescing Block Structure
+
+:mps:tag:`abbr.mps` MPS = Memory Pool System
+
+:mps:tag:`abbr.mv` MV = Manual-Variable
+
+:mps:tag:`abbr.ps` PS = PostScript
+
+
+
+Overview
+--------
+
+:mps:tag:`overview` MVT is intended to satisfy the requirements of the
+clients that need manual-variable pools, improving on the performance
+of the existing manual-variable pool implementations, and reducing the
+duplication of code that currently exists. The expected clients of MVT
+are: Dylan (currently for its misc pool), EP (particularly the dl
+pool, but all pools other than the PS object pool), and Product
+(initially the malloc/new pool, but also other manual pool classes).
+
+
+Requirements
+------------
+
+:mps:tag:`req.cat` Requirements are categorized per guide.req(2).
+
+:mps:tag:`req.risk` req.epcore(16) is known to be obsolete, but the revised
+document has not yet been accepted.
+
+
+Critical requirements
+.....................
+
+:mps:tag:`req.fun.man-var` The pool class must support manual allocation and
+freeing of variable-sized blocks (source: req.dylan.fun.misc.alloc,
+req.epcore.fun.{dl,gen,tmp,stat,cache,trap}.{alloc,free},
+req.product.fun.{malloc,new,man.man}).
+
+:mps:tag:`non-req.fun.gc` There is not a requirement that the pool class
+support formatted objects, scanning, or collection objects; but it
+should not be arbitrarily precluded.
+
+:mps:tag:`req.fun.align` The pool class must support aligned allocations to
+client-specified alignments. An individual instance need only support
+a single alignment; multiple instances may be used to support more
+than one alignment (source: req.epcore.attr.align).
+
+:mps:tag:`req.fun.reallocate` The pool class must support resizing of
+allocated blocks (source req.epcore.fun.dl.promise.free,
+req.product.dc.env.{ansi-c,cpp}).
+
+:mps:tag:`non-req.fun.reallocate.in-place` There is not a requirement blocks
+must be resized in place (where possible); but it seems like a good
+idea.
+
+:mps:tag:`req.fun.thread` Each instance of the pool class must support
+multiple threads of allocation (source req.epcore.fun.dl.multi,
+req.product.dc.env.{ansi-c,cpp}).
+
+:mps:tag:`req.attr.performance` The pool class must meet or exceed
+performance of "competitive" allocators (source:
+rec.epcore.attr.{run-time,tp}, req.product.attr.{mkt.eval, perform}).
+[Dylan does not seem to have any requirement that storage be allocated
+with a particular response time or throughput, just so long as we
+don't block for too long. Clearly there is a missing requirement.]
+
+:mps:tag:`req.attr.performance.time` By inference, the time overhead must be
+competetive.
+
+:mps:tag:`req.attr.performance.space` By inference, the space overhead must
+be competetive.
+
+:mps:tag:`req.attr.reliability` The pool class must have "rock-solid
+reliability" (source: req.dylan.attr.rel.mtbf, req.epcore.attr.rel,
+req.product.attr.rel).
+
+:mps:tag:`req.fun.range` The pool class must be able to manage blocks
+ranging in size from 1 byte to all of addressable memory
+(req.epcore.attr.{dl,gen,tmp,stat,cache,trap}.obj.{min,max}. The range
+requirement may be satisfied by multiple instances each managing a
+particular client-specified subrange of sizes. [Dylan has requirements
+req.dylan.attr.{capacity,obj.max}, but no requirement that such
+objects reside in a manual pool.]
+
+:mps:tag:`req.fun.debug` The pool class must support debugging erroneous
+usage by client programs (source: req.epcore.fun.{dc.variety,
+debug.support}, req.product.attr.{mkt.eval,perform}). Debugging is
+permitted to incur additional overhead.
+
+:mps:tag:`req.fun.debug.boundaries` The pool class must support checking for
+accesses outside the boundaries of live objects.
+
+:mps:tag:`req.fun.debug.log` The pool class must support logging of all
+allocations and deallocations.
+
+:mps:tag:`req.fun.debug.enumerate` The pool class must support examining all
+allocated objects.
+
+:mps:tag:`req.fun.debug.free` The pool class must support detecting
+incorrect, overlapping, and double frees.
+
+:mps:tag:`req.fun.tolerant` The pool class must support tolerance of
+erroneous usage (source req.product.attr.use.level.1).
+
+
+Essential requirements
+......................
+
+:mps:tag:`req.fun.profile` The pool class should support memory usage
+profiling (source: req.product.attr.{mkt.eval, perform}).
+
+:mps:tag:`req.attr.flex` The pool class should be flexible so that it can be
+tuned to specific allocation and freeing patterns (source:
+req.product.attr.flex,req.epcore.attr.{dl,cache,trap}.typ). The
+flexibility requirement may be satisfied by multiple instances each
+optimizing a specific pattern.
+
+:mps:tag:`req.attr.adapt` The pool class should be adaptive so that it can
+accommodate changing allocation and freeing patterns (source:
+req.epcore.fun.{tmp,stat}.policy,
+req.product.attr.{mkt.eval,perform}).
+
+
+Nice requirements
+.................
+
+:mps:tag:`req.fun.suballocate` The pool class may support freeing of any
+aligned, contiguous subset of an allocated block (source
+req.epcore.fun.dl.free.any, req.product.attr.{mkt.eval,perform}).
+
+
+Architecture
+------------
+
+:mps:tag:`arch.overview` The pool has several layers: client allocation is
+by Allocation Points (APs).
+
+:mps:tag:`arch.overview.ap` APs acquire storage from the pool
+available-block queue (ABQ).
+
+:mps:tag:`arch.overview.abq` The ABQ holds blocks of a minimum configurable
+size: "reuse size".
+
+:mps:tag:`arch.overview.storage` The ABQ acquires storage from the arena,
+and from its internal free block managers.
+
+:mps:tag:`arch.overview.storage.contiguous` The arena storage is requested
+to be contiguous to maximize opportunities for coalescing (Loci will
+be used when available).
+
+:mps:tag:`arch.overview.cbs` The free block managers hold blocks freed by
+the client until, through coalescing, they have reached the reuse
+size, at which point they are made available on the ABQ.
+
+:mps:tag:`arch.ap` The pool will use allocation points as the allocation
+interface to the client.
+
+:mps:tag:`arch.ap.two-phase` Allocation points will request blocks from the
+pool and suballocate those blocks (using the existing AP, compare and
+increment, 2-phase mechanism) to satisfy client requests.
+
+:mps:tag:`arch.ap.fill` The pool will have a configurable "fill size" that
+will be the preferred size block used to fill the allocation point.
+
+:mps:tag:`arch.ap.fill.size` The fill size should be chosen to amortize the
+cost of refill over a number of typical reserve/commit operations, but
+not so large as to exceed the typical object population of the pool.
+
+:mps:tag:`arch.ap.no-fit` When an allocation does not fit in the remaining
+space of the allocation point, there may be a remaining fragment.
+
+:mps:tag:`arch.ap.no-fit.sawdust` If the fragment is below a configurable
+threshold (minimum size), it will be left unused (but returned to the
+free block managers so it will be reclaimed when adjacent objects are
+freed).
+
+:mps:tag:`arch.ap.no-fit.splinter` otherwise, the remaining fragment will be
+(effectively) returned to the head of the available-block queue, so
+that it will be used as soon as possible (that is, by objects of similar
+birthdate).
+
+:mps:tag:`arch.ap.no-fit.oversize` If the requested allocation exceeds the
+fill size it is treated exceptionally (this may indicate the client
+has either misconfigured or misused the pool and should either change
+the pool configuration or create a separate pool for these exceptional
+objects for best performance).
+
+:mps:tag:`arch.ap.no-fit.oversize.policy` Oversize blocks are assumed to
+have exceptional lifetimes, hence are allocated to one side and do not
+participate in the normal storage recycling of the pool.
+
+:mps:tag:`arch.ap.refill.overhead` If reuse size is small, or becomes small
+due to :mps:ref:`.arch.adapt`, all allocations will effectively be treated
+exceptionally (the AP will trip and a oldest-fit block will be chosen
+on each allocation). This mode will be within a constant factor in
+overhead of an unbuffered pool.
+
+:mps:tag:`arch.abq` The available block queue holds blocks that have
+coalesced sufficiently to reach reuse size.
+
+:mps:tag:`arch.abq.reuse.size` A multiple of the quantum of virtual memory
+is used as the reuse size (:mps:ref:`.anal.policy.size`).
+
+:mps:tag:`arch.abq.fifo` It is a FIFO queue (recently coalesced blocks go to
+the tail of the queue, blocks are taken from the head of the queue for
+reuse).
+
+:mps:tag:`arch.abq.delay-reuse` By thus delaying reuse, coalescing
+opportunities are greater.
+
+:mps:tag:`arch.abq.high-water` It has a configurable high water mark, which
+when reached will cause blocks at the head of the queue to be returned
+to the arena, rather than reused.
+
+:mps:tag:`arch.abq.return` When the MPS supports it, the pool will be able
+to return free blocks from the ABQ to the arena on demand.
+
+:mps:tag:`arch.return.segment` arch.abq.return can be guaranteed to be able
+to return a segment by setting reuse size to twice the size of the
+segments the pool requests from the arena.
+
+:mps:tag:`arch.cbs` The coalescing block structure holds blocks that have
+been freed by the client.
+
+:mps:tag:`arch.cbs.optimize` The data structure is optimized for coalescing.
+
+:mps:tag:`arch.cbs.abq` When a block reaches reuse size, it is added to the
+ABQ.
+
+:mps:tag:`arch.cbs.data-structure` The data structures are organized so that
+a block can be both in the free block managers and on the ABQ
+simultaneously to permit additional coalescing, up until the time the
+block is removed from the ABQ and assigned to an AP.
+
+:mps:tag:`arch.fragmentation.internal` Internal fragmentation results from
+The pool will request large segments from the arena to minimize the
+internal fragmentation due to objects not crossing segment boundaries.
+
+:mps:tag:`arch.modular` The architecture will be modular, to allow building
+variations on the pool by assembling different parts.
+
+:mps:tag:`arch.modular.example` For example, it should be possible to build
+pools with any of the freelist mechanisms, with in-band or out-of-band
+storage (where applicable), that do or do not support derived object
+descriptions, etc.
+
+:mps:tag:`arch.modular.initial` The initial architecture will use
+:mps:ref:`.sol.mech.free-list` for the free block managers,
+:mps:ref:`.sol.mech.storage.out-of-band`, :mps:ref:`.sol.mech.desc.derived`, and
+:mps:ref:`.sol.mech.allocate.buffer`.
+
+:mps:tag:`arch.segregate` The architecture will support segregated
+allocation through the use of multiple allocation points. The client
+will choose the appropriate allocation point either at run time, or
+when possible, at compile time.
+
+:mps:tag:`arch.segregate.initial` The initial architecture will segregate
+allocations into two classes: large and small. This will be
+implemented by creating two pools with different parameters.
+
+:mps:tag:`arch.segregate.initial.choice` The initial architecture will
+provide glue code to choose which pool to allocate from at run time.
+If possible this glue code will be written in a way that a good
+compiler can optimize the selection of pool at compile time.
+Eventually this glue code should be subsumed by the client or
+generated automatically by a tool.
+
+:mps:tag:`arch.debug` Debugging features such as tags, fenceposts, types,
+creators will be implemented in a layer above the pool and APs. A
+generic pool debugging interface will be developed to support
+debugging in this outer layer.
+
+:mps:tag:`arch.debug.initial` The initial architecture will have counters
+for objects/bytes allocated/freed and support for detecting
+overlapping frees.
+
+:mps:tag:`arch.dependency.loci` The architecture depends on the arena being
+able to efficiently provide segments of varying sizes without
+excessive fragmentation. The locus mechanism should satisfy this
+dependency. (See :mps:ref:`.anal.strategy.risk`.)
+
+:mps:tag:`arch.dependency.mfs` The architecture internal data structures
+depend on efficient manual management of small, fixed-sized objects (2
+different sizes). The MFS pool should satisfy this dependency.
+
+:mps:tag:`arch.contingency` Since the strategy we propose is new, it may not
+work.
+
+:mps:tag:`arch.contingency.pathological` In particular, pathological
+allocation patterns could result in fragmentation such that no blocks
+recycle from the free bock managers to the ABQ.
+
+:mps:tag:`arch.contingency.fallback` As a fallback, there will be a pool
+creation parameter for a high water mark for the free space.
+
+:mps:tag:`arch.contingency.fragmentation-limit` When the free space as a
+percentage of all the memory managed by the pool (a measure of
+fragmentation) reaches that high water mark, the free block managers
+will be searched oldest-fit before requesting additional segments from
+the arena.
+
+:mps:tag:`arch.contingency.alternative` We also plan to implement
+:mps:ref:`.mech.free-list.cartesian-tree` as an alternative free block manager,
+which would permit more efficient searching of the free blocks.
+
+:mps:tag:`arch.parameters` The architecture supports several parameters so
+that multiple pools may be instantiated and tuned to support different
+object cohorts. The important parameters are: reuse size, minimum
+size, fill size, ABQ high water mark, free block fragmentation limit
+(see :mps:ref:`.arch.contingency.fragmentation-limit`).
+
+:mps:tag:`arch.parameters.client-visible` The client-visible parameters of
+the pool are the minimum object size, the mean object size, the
+maximum object size, the reserve depth and fragmentation limit. The
+minimum object size determines when a splinter is kept on the head of
+the ABQ (:mps:ref:`.arch.ap.no-fit.splinter`). The maximum object size
+determines the fill size (:mps:ref:`.arch.ap.fill-size`) and hence when a
+block is allocated exceptionally (:mps:ref:`.arch.ap.no-fit.oversize`). The
+mean object size is the most likely object size. The reserve depth is
+a measure of the hysteresis of the object population. The mean object
+size, reserve depth and, maximum object size are used to determine the
+size of the ABQ (:mps:ref:`.arch.abq.high-water`). The fragmentation limit is
+used to determine when contingency mode is used to satisfy an
+allocation request (:mps:ref:`.arch.contingency`).
+
+:mps:tag:`arch.adapt` We believe that an important adaptation to explore is
+tying the reuse size inversely to the fragmentation (as measured in
+:mps:ref:`.arch.contingency.fragmentation-limit`).
+
+:mps:tag:`arch.adapt.reuse` By setting reuse size low when fragmentation is
+high, smaller blocks will be available for reuse, so fragmentation
+should diminish.
+
+:mps:tag:`arch.adapt.overhead` This will result in higher overhead as the AP
+will need to be refilled more often, so reuse size should be raised
+again as fragmentation diminishes.
+
+:mps:tag:`arch.adapt.oldest-fit` In the limit, if reuse size goes to zero,
+the pool will implement a "oldest-fit" policy: the oldest free block
+of sufficient size will be used for each allocation.
+
+:mps:tag:`arch.adapt.risk` This adaptation is an experimental policy and
+should not be delivered to clients until thoroughly tested.
+
+
+Analysis
+--------
+
+:mps:tag:`anal.discard` We have discarded many traditional solutions based
+on experience and analysis in paper.wil95(1). In particular, managing
+the free list as a linear list arranged by address or size and basing
+policy on searching such a linear list in a particular direction, from
+a particular starting point, using fit and/or immediacy as criteria.
+We believe that none of these solutions is derived from considering
+the root of the problem to be solved (as described in
+:mps:ref:`.anal.strategy`), although their behavior as analyzed by Wilson
+gives several insights.
+
+:mps:tag:`anal.strategy` For any program to run in the minimum required
+memory (with minimal overhead -- we discard solutions such as
+compression for now), fragmentation must be eliminated. To eliminate
+fragmentation, simply place blocks in memory so that they die "in
+order" and can be immediately coalesced. This ideal is not achievable,
+but we believe we can find object attributes that correlate with
+deathtime and exploit them to approximate the ideal. Initially we
+believe birth time and type (as approximated by size) will be useful
+attributes to explore.
+
+:mps:tag:`anal.strategy.perform` To meet :mps:ref:`.req.attr.performance`, the
+implementation of :mps:ref:`.sol.strategy` must be competitive in both time
+and space.
+
+:mps:tag:`anal.strategy.risk` The current MPS segment substrate can cause
+internal fragmentation which an individual pool can do nothing about.
+We expect that `request.epcore.170193.sugg.loci`_ will be implemented to
+remove this risk.
+
+.. _`request.epcore.170193.sugg.loci`: https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193/
+
+:mps:tag:`anal.policy` Deferred coalescing, when taken to the extreme will
+not minimize the memory consumption of a program, as no memory would
+ever be reused. Eager reuse appears to lead to more fragmentation,
+whereas delayed reuse appears to reduce fragmentation
+(paper.wil95(1)). The systems studied by Wilson did not directly
+address deferring reuse. Our proposed policy is to reuse blocks when
+they reach a (configurable) size. We believe that this policy along
+with the policy of segregating allocations by death time, will greatly
+reduce fragmentation.
+
+:mps:tag:`anal.policy.risk` This policy could lead to pathological behavior
+if allocations cannot be successfully segregated.
+
+:mps:tag:`anal.policy.allocate.segregate` This policy has some similarities
+to CustomAlloc (paper.grun92(1)). CustomAlloc segregates objects by
+size classes, and then within those classes chooses a different
+allocator depending on whether that size class has a stable or
+unstable population. Classes with stable population recycle storage
+within the class, whereas classes with unstable populations return
+their storage to the general allocation pool for possible reuse by
+another class. CustomAlloc, however, requires profiling the
+application and tuning the allocator according to those profiles.
+Although we intend to support such tuning, we do not want to require
+it.
+
+:mps:tag:`anal.policy.reallocate` For reallocation, :mps:ref:`.fun.suballocate` can
+be used to free the remainder if a block is made smaller. Doing so
+will cause the freed block to obey :mps:ref:`.sol.policy.allocate` (that is,
+the freed block will not be treated specially, it will be subject to
+the normal policy on reuse). Copying can be used if a block is made
+larger. paper.vo96(0) reports success in over-allocating a block the
+first time it is resized larger, presumably because blocks that are
+resized once tend to be resized again and over-allocating may avoid a
+subsequent copy. If each object that will be reallocated can be given
+its own allocation point until its final reallocation, the allocation
+point can be used to hold released or spare storage.
+
+:mps:tag:`anal.policy.size` We believe that this will take advantage of the
+underlying virtual memory system's ability to compact the physical
+memory footprint of the program by discarding free fragments that
+align with the virtual memory quantum. (In a VM system one can
+approximate compaction by sparse mapping. If every other page of a
+segment is unused, the unused pages can be unmapped, freeing up
+physical memory that can be mapped to a new contiguous vm range.)
+
+:mps:tag:`anal.mech.free-list` The literature (paper.grun92(1),
+paper.vo96(0)) indicate that :mps:ref:`.sol.mech.free-list.cartesian-tree`
+provides a space-efficient implementation at some cost in speed.
+:mps:ref:`.sol.mech.free-list.splay-tree` is faster but less space-efficient.
+:mps:ref:`.sol.mech.free-list.bitmap` is unstudied. Many of the faster
+allocators maintain caches of free blocks by size to speed allocation
+of "popular" sizes. We intend to initially explore not doing so, as we
+believe that policy ultimately leads to fragmentation by mixing
+objects of varying death times. Instead we intend to use a free list
+mechanism to support fast coalescing, deferring reuse of blocks until
+a minimum size has been reached.
+
+:mps:tag:`anal.mech.allocate.optimize-small` Wilson (paper.wil95(1)) notes
+that small blocks typically have short lifetimes and that overall
+performance is improved if you optimize the management of small
+blocks, e.g., :mps:ref:`.sol.mech.allocate.lookup-table` for all small blocks.
+We believe that :mps:ref:`.sol.mech.allocate.buffer` does exactly that.
+
+:mps:tag:`anal.mech.allocate.optimize-new` Wilson (paper.wil95(1)) reports
+some benefit from "preserving wilderness", that is, when a block of
+memory must be requested from the system to satisfy an allocation,
+only the minimum amount of that block is used, the remainder is
+preserved (effectively by putting it at the tail of the free list).
+This mechanism may or may not implement :mps:ref:`.sol.policy.allocate`. We
+believe a better mechanism is to choose to preserve or not, based on
+:mps:ref:`.sol.policy.allocate`.
+
+
+Ideas
+-----
+
+:mps:tag:`sol` Many solution ideas for manual management of variable-sized
+memory blocks are enumerated by paper.wil95(1). Here we list the most
+promising, and some of our own.
+
+
+Strategy
+........
+
+:mps:tag:`sol.strategy` To run a program in the minimal required memory,
+with minimal overhead, utilize memory efficiently. Memory becomes
+unusable when fragmented. Strategy is to minimize fragmentation. So
+place blocks where they won't cause fragmentation later.
+
+:mps:tag:`sol.strategy.death` Objects that will die together (in time)
+should be allocated together (in space); thus they will coalesce,
+reducing fragmentation.
+
+:mps:tag:`sol.strategy.death.birth` Assume objects allocated near each other
+in time will have similar deathtimes (paper.beck82(0)).
+
+:mps:tag:`sol.strategy.death.type` Assume objects of different type may have
+different deathtimes, even if born together.
+
+:mps:tag:`sol.strategy.death.predict` Find and use program features to predict deathtimes.
+
+:mps:tag:`sol.strategy.reallocate` Reallocation implies rebirth, or at least
+a change in lifetime
+
+:mps:tag:`sol.strategy.debug` As much of the debugging functionality as
+possible should be implemented as a generally available MPS utility;
+the pool will provide support for debugging that would be expensive or
+impossible to allocate outside the pool.
+
+
+Policy
+......
+
+Policy is an implementable decision procedure, hopefully approximating
+the strategy.
+
+:mps:tag:`sol.policy.reuse` Defer reusing blocks, to encourage coalescing.
+
+:mps:tag:`sol.policy.split` When a block is split to satisfy an allocation,
+use the remainder as soon as possible.
+
+:mps:tag:`sol.policy.size` Prevent :mps:ref:`.policy.reuse` from consuming all of
+memory by choosing a (coalesced) block for reuse when it reaches a
+minimum size.
+
+:mps:tag:`sol.policy.size.fixed` Use the quantum of virtual memory (e.g.,
+one page) as minimum size.
+
+:mps:tag:`sol.policy.size.tune` Allow tuning minimum size.
+
+:mps:tag:`sol.policy.size.adapt` Adaptively change minimum size.
+
+:mps:tag:`sol.policy.allocate` Allocate objects with similar birthdate and
+lifetime together.
+
+:mps:tag:`sol.policy.allocate.segregate` Segregate allocations by type.
+
+:mps:tag:`sol.policy.allocate.segregate.size` Use size as a substitute for type.
+
+:mps:tag:`sol.policy.allocate.segregate.tune` Permit tuning of segregation.
+
+:mps:tag:`sol.policy.allocate.segregate.adapt` Adaptively segregate allocations.
+
+:mps:tag:`sol.policy.reallocate` Implement reallocation in a central
+mechanism outside of the pool, create a generic pool interface in
+support of same.
+
+:mps:tag:`sol.policy.debug` Implement a pool debugging interface.
+
+:mps:tag:`sol.policy.debug.counters` Implement debugging counters in the
+pool that are queried with a generic interface.
+
+:mps:tag:`sol.policy.debug.verify` Implement debugging error returns on
+overlapping frees.
+
+
+Mechanism
+.........
+
+Mechanisms are algorithms or data structures used to implement policy.
+
+:mps:tag:`sol.mech.free-list` Mechanisms that can be used to describe the
+free list.
+
+:mps:tag:`sol.mech.free-list.cartesian-tree` Using address and size as keys
+supports fast coalescing of adjacent blocks and fast searching for
+optimal-sized blocks. Unfortunately, because the shape of the tree is
+constrained by the second key, it can become unbalanced. This data
+structure is used in the SunOS 4.1 malloc (paper.grun92(1)).
+
+:mps:tag:`sol.mech.free-list.splay-tree` The amortized cost of a splay tree
+is competitive with balanced binary trees in the worst case, but can
+be significantly better for regular patterns of access because
+recently-accessed keys are moved to the root of the tree and hence can
+be re-accessed quickly. This data structure is used in the System Vr4
+malloc (paper.vo96(0)). (For a complete analysis of the splay tree
+algorithm time bounds see paper.st85(0).)
+
+:mps:tag:`sol.mech.free-list.bit-map` Using address as an index and
+fix-sized blocks, the booleans can represent whether a block is free
+or not. Adjacent blocks can be used to construct larger blocks.
+Efficient algorithms for searching for runs in a vector are known.
+This data structure is used in many file system disk block managers.
+
+:mps:tag:`sol.mech.free-list.refcount` A count of the number of allocated
+but not freed subblocks of a block can be used to determine when a
+block is available for reuse. This is an extremely compact data
+structure, but does not support subblock reuse.
+
+:mps:tag:`sol.mech.free-list.hybrid` Bitmaps appear suited particularly to
+managing small, contiguous blocks. The tree structures appear suited
+particularly to managing varying-sized, discontiguous blocks. A
+refcount can be very efficient if objects can be placed accurately
+according to death time. A hybrid mechanism may offer better
+performance for a wider range of situations.
+
+:mps:tag:`sol.mech.free-list.linked` An address-ordered singly linked free
+list using space in each free block to store the block's size and a
+pointer to the next block.
+
+:mps:tag:`sol.mech.storage` Methods that can be used to store the free list description.
+
+:mps:tag:`sol.mech.storage.in-band` The tree data structures (and
+:mps:ref:`.sol.mech.free-list.linked`) are amenable to being stored in the
+free blocks themselves, minimizing the space overhead of management.
+To do so imposes a minimum size on free blocks and reduces the
+locality of the data structure.
+
+:mps:tag:`sol.mech.storage.out-of-band` The bit-map data structure must be
+stored separately.
+
+:mps:tag:`sol.mech.desc` for an allocated block to be freed, its base and
+bound must be known
+
+:mps:tag:`sol.mech.desc.derived` Most clients can supply the base of the
+block. Some clients can supply the bound.
+
+:mps:tag:`sol.mech.desc.in-band` When the bound cannot be supplied, it can
+be stored as an in-band "header". If neither the base nor bound can be
+supplied (e.g., the client may only have an interior pointer to the
+block), a header and footer may be required.
+
+:mps:tag:`sol.mech.desc.out-of-band` In un-tagged architectures, it may be
+necessary to store the header and footer out-of-band to distinguish
+them from client data. Out-of-band storage can improve locality and
+reliability. Any of the free-list structures can also be used to
+describe allocated blocks out-of-band.
+
+:mps:tag:`sol.mech.desc.crossing-map` An alternative for untagged
+architectures is to store a "crossing map" which records an encoding
+of the start of objects and then store the descriptive information
+in-band.
+
+:mps:tag:`sol.mech.allocate` Mechanisms that can be used to allocate blocks
+(these typically sit on top of a more general free-list manager).
+
+:mps:tag:`sol.mech.allocate.lookup-table` Use a table of popular sizes to
+cache free blocks of those sizes.
+
+:mps:tag:`sol.mech.allocate.buffer` Allocate from contiguous blocks using
+compare and increment.
+
+:mps:tag:`sol.mech.allocate.optimize-small` Use a combination of techniques
+to ensure the time spent managing a block is small relative to the
+block's lifetime; assume small blocks typically have short lifetimes.
+
+:mps:tag:`sol.mech.allocate.optimize-new` When "virgin" memory is acquired
+from the operating system to satisfy a request, try to preserve it
+(that is, use only what is necessary).
+
+:mps:tag:`sol.mech.allocate.segregate.size` Use size as a substitute for
+type.
+
+:mps:tag:`sol.mech.reallocate` use :mps:ref:`.req.fun.suballocate` to return unused
+memory when a block shrinks, but differentiate this from an erroneous
+overlapping free by using separate interfaces.
+
+
+
+Implementation
+--------------
+
+The implementation consists of the following separable modules:
+
+
+Coalescing Block Structure
+..........................
+
+:mps:tag:`impl.c.cbs` The initial implementation will use
+:mps:ref:`.sol.mech.free-list.splay-tree` and
+:mps:ref:`.sol.mech.storage.out-of-band`. For locality, this storage should be
+managed as a linked free list of splay nodes suballocated from blocks
+acquired from a pool shared by all CBS's. Must support creation and
+destruction of an empty tree. Must support search, insert and delete
+by key of type Addr. Must support finding left and right neighbors of
+a failed search for a key. Must support iterating over the elements of
+the tree with reasonable efficiency. Must support storing and
+retrieving a value of type Size associated with the key. Standard
+checking and description should be provided. See design.mps.splay(0)
+and design.mps.cbs(0).
+
+
+Fail-over to address-ordered free list
+......................................
+
+:mps:tag:`impl.c.freelist` Because the CBS uses out-of-band storage, it may
+be unable to handle insert (design.mps.cbs.function.cbs.insert.fail)
+and delete (design.mps.cbs.function.cbs.delete.fail) operations. When
+this happen MVT fails over to an address-ordered singly linked free
+list. This uses in-band storage and so cannot run out of memory, but
+it has much worse performance than the CBS. Therefore MVT eagerly
+attempts to flush blocks from the free list back to the CBS. See
+design.mps.freelist for the design and implementation of the free
+list.
+
+
+Available Block Queue
+.....................
+
+:mps:tag:`impl.c.abq` The initial implementation will be a queue of fixed
+size (determined at pool creation time from the high water mark). Must
+support creation and destruction of an empty queue. Must support
+insertion at the head or tail of the queue (failing if full), peeking
+at the head of the queue, and removal of the head (failing if empty)
+or any element of the queue (found by a search). Standard checking and
+description should be provided. See design.mps.abq.
+
+
+Pool implementation
+...................
+
+:mps:tag:`impl.c` The initial implementation will use the above modules to
+implement a buffered pool. Must support creation and destruction of
+the pool. Creation takes parameters: minimum size, mean size, maximum
+size, reserve depth and fragmentation limit. Minimum, mean, and
+maximum size are used to calculate the internal fill and reuse sizes.
+Reserve depth and mean size are used to calculate the ABQ high water
+mark. Fragmentation limit is used to set the contingency mode. Must
+support buffer initialization, filling and emptying. Must support
+freeing. Standard checking and description should be provided.
+[Eventually, it should support scanning, so it can be used with
+collected pools, but no manual pool currently does.]
+
+:mps:tag:`impl.c.future` The implementation should not preclude "buffered
+free" (mail.ptw.1997-12-05.19-07(0), ff.) being added in the future.
+
+:mps:tag:`impl.c.parameters` The pool parameters are calculated as follows
+from the input parameters: minimum, mean, and maximum size are taked
+directly from the parameters.
+
+:mps:tag:`impl.c.parameter.fill-size` The fill size is set to the maximum
+size times the reciprocal of the fragmentation limit, aligned to the
+arena alignment.
+
+:mps:tag:`imple.c.parameter.reuse-size` The reuse size is set to twice the
+fill size (see :mps:ref:`.arch.abq.return.segment`,
+:mps:ref:`.impl.c.free.merge.segment`).
+
+:mps:tag:`impl.c.parameter.abq-limit` The ABQ high-water limit is set to the
+reserve depth times the mean size (that is, the queue should hold as
+many reuse blocks as would take to cover the population hysteresis if
+the population consisted solely of mean-sized blocks, see
+:mps:ref:`.arch.abq.high-water`).
+
+:mps:tag:`impl.c.parameter.avail-limit` The free block high-water limit is
+implemented by comparing the available free space to an "available
+limit". The available limit is updated each time a segment is
+allocated from or returned to the arena by setting it to the total
+size of the pool times the fragmentation limit divide vy 100 (see
+:mps:ref:`.arch.contingency.fallback`).
+
+:mps:tag:`impl.c.ap.fill` An AP fill request will be handled as follows:
+
+- If the request is larger than fill size, attempt to request a
+  segment from the arena sufficient to satisfy the request.
+
+- Use any previously returned splinter (from :mps:ref:`.impl.c.ap.empty`), if
+  large enough.
+
+- Attempt to retrieve a free block from the head of the ABQ (removing
+  it from ABQ and the free block managers if found).
+
+- If above fragmentation limit, attempt to find a block in the free
+  block managers, using oldest-fit search.
+
+- Attempt to request a segment of fill size from the arena.
+
+- Attempt to find a block in the free block managers, using oldest-fit
+  search.
+
+- Otherwise, fail.
+
+:mps:tag:`impl.c.ap.empty` An AP empty request will be handled as follows:
+
+- If remaining free is less than min size, return it to the free block
+  managers.
+
+- If the remaining free is larger than any previous splinter, return
+  that splinter to the free block managers and save this one for use
+  by a subsequent fill.
+
+- Otherwise return the remaining block to the free block managers.
+
+:mps:tag:`impl.c.free` When blocks are returned to the free block managers
+they may be merged with adjacent blocks. If a merge occurs with a
+block on the ABQ, the ABQ must be adjusted to reflect the merge.
+
+:mps:tag:`impl.c.free.exception` Exceptional blocks are returned directly to
+the arena.
+
+:mps:tag:`impl.c.free.merge` If a merge occurs and the merged block is
+larger than reuse size:
+
+- If the ABQ is full, remove the block at the head of the ABQ from the
+  ABQ and the free block managers and return it to the arena(*).
+
+- Insert the newly merged block at the tail of the ABQ, leaving it in
+  the free block managers for further merging.
+
+:mps:tag:`impl.c.free.merge.segment` (*) Merged blocks may not align with
+arena segments. If necessary, return the interior segments of a block
+to the arena and return the splinters to the free block managers.
+
+:mps:tag:`impl.c.free.merge.segment.reuse` If the reuse size (the size at
+which blocks recycle from the free block managers to the ABQ) is at
+least twice the fill size (the size of segments the pool allocates
+from the arena), we can guarantee that there will always be a
+returnable segment in every ABQ block.
+
+:mps:tag:`impl.c.free.merge.segment.overflow` If the reuse size is set
+smaller (see :mps:ref:`.arch.adapt`), there may not be a returnable segment in
+an ABQ block, in which case the ABQ has "overflowed". Whenever this
+occurs, the ABQ will be refilled by searching the free block managers
+for dropped reusable blocks when needed.
+
+:mps:tag:`impl.c.free.merge.segment.risk` The current segment structure does
+not really support what we would like to do. Loci should do better:
+support reserving contiguous address space and mapping/unmapping any
+portion of that address space.
+
+:mps:tag:`impl.c.free.merge.alternative` Alternatively, if the MPS segment
+substrate permitted mapping/unmapping of pages, the pool could use
+very large segments and map/unmap pages as needed.
+
+
+AP Dispatch
+...........
+
+:mps:tag:`impl.c.multiap` The initial implementation will be a glue layer
+that selects among several AP's for allocation according to the
+predicted deathtime (as approximated by size) of the requested
+allocation. Each AP will be filled from a pool instance tuned to the
+range of object sizes expected to be allocated from that AP. [For
+bonus points provide an interface that creates a batch of pools and
+AP's according to some set of expected object sizes. Eventually expand
+to understand object lifetimes and general lifetime prediction keys.]
+
+:mps:tag:`impl.c.multiap.sample-code` This glue code is not properly part of
+the pool or MPS interface. It is a layer on top of the MPS interface,
+intended as sample code for unsophisticated clients. Sophisticated
+clients will likely want to choose among multiple AP's more directly.
+
+
+Testing
+-------
+
+:mps:tag:`test.component` Components :mps:ref:`.impl.c.splay`, :mps:ref:`.impl.c.cbs`, and
+:mps:ref:`.impl.c.abq` will be subjected to individual component tests to
+verify their functionality.
+
+:mps:tag:`test.regression` All tests applied to poolmv
+(design.mps.poolmv(0)) and poolepdl (design.mps.poolepdl(0)) will be
+applied to poolmvt to ensure that mvt is at least as functional as the
+pools it is replacing.
+
+:mps:tag:`test.qa` Once poolmvt is integrated into the MPS, the standard MPS
+QA tests will be applied to poolmvt prior to each release.
+
+:mps:tag:`test.customer` Customer acceptance tests will be performed on a
+per-customer basis before release to that customer (cf.
+proc.release.epcore(2).test)
+
+
+Text
+----
+
+Possible tweaks (from mail.pekka.1998-04-15.13-10(0)):
+
+- Try to coalesce splinters returned from AP's with the front (or any)
+  block on the ABQ.
+
+- Sort ABQ in some other way to minimize splitting/splinters. For
+  example, proximity to recently allocated blocks.
+
+
+

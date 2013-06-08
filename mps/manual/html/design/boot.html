@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>&lt;no title&gt; &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>The MPS Bootstrap &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -44,10 +44,34 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <ul class="simple">
-<li><a class="reference external" href="http://www.ravenbrook.com/">Ravenbrook</a></li>
-<li><a class="reference external" href="http://www.google.com/">Google</a></li>
-</ul>
+  <div class="section" id="the-mps-bootstrap">
+<span id="design-boot"></span><h1>The MPS Bootstrap<a class="headerlink" href="#the-mps-bootstrap" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.boot"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The <a href="#id1"><span class="problematic" id="id2">`Memory Pool System`_</span></a> starts with no memory, but must somehow
+allocate its own control structures in order to provide memory to the
+client program.  The MPS is freestanding [ref?] and so it can&#8217;t get its
+memory from the C library&#8217;s <tt class="docutils literal"><span class="pre">malloc</span></tt>.  So how does it get off the
+ground? It pulls itself up by its own bootstraps.  This document
+describes how.</p>
+<div class="admonition-note admonition">
+<p class="first admonition-title">Note</p>
+<p class="last">This document was written as a prelude to reforming the bootstrap,
+so it shouldn&#8217;t be taken as advocating it as an amazing piece of
+design.</p>
+</div>
+<p>Pretty much the first call to the MPS is to <tt class="docutils literal"><span class="pre">ArenaCreate</span></tt>, which calls the
+arena class specific <tt class="docutils literal"><span class="pre">init</span></tt> method.  That must create an initialized arena,
+except for the &#8220;control pool&#8221;, from which many MPS data structures will be
+allocated.</p>
+<p>In the case of the VM arena, <tt class="docutils literal"><span class="pre">VMArenaInit</span></tt> creates a VM large enough to hold
+a <tt class="xref c c-type docutils literal"><span class="pre">VMArenaStruct</span></tt> (which contains the generic <tt class="xref c c-type docutils literal"><span class="pre">ArenaStruct</span></tt>) and maps
+pages into it.  It then calls <tt class="docutils literal"><span class="pre">ArenaInit</span></tt> to initialise the generic part,
+before filling in the VM-specific part.  Having done that, it adds the initial
+<tt class="docutils literal"><span class="pre">VMChunk</span></tt> &#8211; a large area of address space &#8211; that will be used to supply
+memory via <tt class="docutils literal"><span class="pre">ArenaAlloc</span></tt>.</p>
+</div>
+</div>
 
 
           </div>
@@ -57,7 +81,15 @@
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/logo.png" alt="Logo"/>
-            </a></p><h4>Downloads</h4>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The MPS Bootstrap</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+</ul>
+</li>
+</ul>
+<h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>

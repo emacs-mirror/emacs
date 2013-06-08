@@ -1,0 +1,329 @@
+.. _design-cbs:
+
+
+Coalescing block structure
+==========================
+
+.. mps:prefix:: design.mps.cbs
+
+
+Introduction
+------------
+
+:mps:tag:`intro` This is the design for impl.c.cbs, which implements a data
+structure for the management of non-intersecting memory ranges, with
+eager coalescence.
+
+:mps:tag:`readership` This document is intended for any MM developer.
+
+:mps:tag:`source` design.mps.poolmv2, design.mps.poolmvff.
+
+:mps:tag:`overview` The "coalescing block structure" is a set of addresses
+(or a subset of address space), with provision for efficient
+management of contiguous ranges, including insertion and deletion,
+high level communication with the client about the size of contiguous
+ranges, and detection of protocol violations.
+
+
+Definitions
+-----------
+
+:mps:tag:`def.range` A (contiguous) *range* of addresses is a semi-open
+interval on address space.
+
+:mps:tag:`def.isolated` A contiguous range is *isolated* with respect to
+some property it has, if adjacent elements do not have that property.
+
+
+Requirements
+------------
+
+:mps:tag:`req.set` Must maintain a set of addresses.
+
+:mps:tag:`req.fast` Common operations must have a low amortized cost.
+
+:mps:tag:`req.add` Must be able to add address ranges to the set.
+
+:mps:tag:`req.remove` Must be able to remove address ranges from the set.
+
+:mps:tag:`req.size` Must report concisely to the client when isolated
+contiguous ranges of at least a certain size appear and disappear.
+
+:mps:tag:`req.iterate` Must support the iteration of all isolated
+contiguous ranges. This will not be a common operation.
+
+:mps:tag:`req.protocol` Must detect protocol violations.
+
+:mps:tag:`req.debug` Must support debugging of client code.
+
+:mps:tag:`req.small` Must have a small space overhead for the storage of
+typical subsets of address space and not have abysmal overhead for the
+storage of any subset of address space.
+
+:mps:tag:`req.align` Must support an alignment (the alignment of all
+addresses specifying ranges) of down to ``sizeof(void *)`` without
+losing memory.
+
+
+Interface
+---------
+
+:mps:tag:`header` CBS is used through impl.h.cbs.
+
+
+External types
+..............
+
+.. c:type:: struct CBSStruct *CBS
+
+:mps:tag:`type.cbs` :c:macro:`CBS` is the main data structure for manipulating a
+CBS. It is intended that a :c:type:`CBSStruct` be embedded in another
+structure. No convenience functions are provided for the allocation or
+deallocation of the CBS.
+
+.. c:type:: Bool (*CBSIterateMethod)(CBS cbs, Range range, void *closureP, Size closureS)
+
+:mps:tag:`type.cbs.iterate.method` Type :c:type:`CBSIterateMethod` is a callback
+function that may be passed to :c:func:`CBSIterate()`. It is called for
+every isolated contiguous range in address order. The function must
+returns a :c:type:`Bool` indicating whether to continue with the iteration.
+
+
+External functions
+..................
+
+.. c:function:: Res CBSInit(Arena arena, CBS cbs, void *owner, Align alignment, Bool fastFind, ArgList args)
+
+:mps:tag:`function.cbs.init` :c:func:`CBSInit()` is the function that initialises
+the CBS structure. It performs allocation in the supplied arena. The
+parameter ``owner`` is passed to :c:func:`MeterInit()`, an ``alignment``
+indicates the alignment of ranges to be maintained. An initialised CBS
+contains no ranges.
+
+``fastFind``, if set, causes the CBS to maintain, for each subtree,
+the size of the largest block in that subtree. This must be true if
+any of the :c:func:`CBSFindFirst()`, :c:func:`CBSFindLast()`, or
+:c:func:`CBSFindLargest()` functions are going to be used on the CBS.
+
+:c:func:`CBSInit()` may take one keyword argument:
+
+* :c:macro:`MPS_KEY_CBS_EXTEND_BY` (type :c:type:`Size`; default 4096) is the size
+  of segment that the CBS will request from the arena in which to
+  allocate its ``CBSBlock`` structures.
+
+.. c:function:: void CBSFinish(CBS cbs)
+
+:mps:tag:`function.cbs.finish` :c:func:`CBSFinish()` is the function that finishes
+the CBS structure and discards any other resources associated with the
+CBS.
+
+.. c:function:: Res CBSInsert(Range rangeReturn, CBS cbs, Range range)
+
+:mps:tag:`function.cbs.insert` If any part of ``range`` is already in the
+CBS, then leave it unchanged and return ``ResFAIL``. Otherwise,
+attempt to insert ``range`` into the CBS. If the insertion succeeds,
+then update ``rangeReturn`` to describe the contiguous isolated range
+containing the inserted range (this may differ from ``range`` if there
+was coalescence on either side) and return ``ResOK``. If the insertion
+fails, return a result code indicating allocation failure.
+
+:mps:tag:`function.cbs.insert.fail` Insertion of a valid range (that is, one
+that does not overlap with any range in the CBS) can only fail if the
+new range is isolated and the allocation of the necessary data
+structure to represent it failed.
+
+
+.. c:function:: Res CBSDelete(Range rangeReturn, CBS cbs, Range range)
+
+:mps:tag:`function.cbs.delete` If any part of the range is not in the CBS,
+then leave the CBS unchanged and return ``ResFAIL``. Otherwise, update
+``rangeReturn`` to describe the contiguous isolated range that
+contains ``range`` (this may differ from ``range`` if there are
+fragments on either side) and attempt to delete the range from the
+CBS. If the deletion succeeds, return ``ResOK``. If the deletion
+fails, return a result code indicating allocation failure.
+
+:mps:tag:`function.cbs.delete.fail` Deletion of a valid range (that is, one
+that is wholly contained in the CBS) can only fail if there are
+fragments on both sides and the allocation of the necessary data
+structures to represent them fails.
+
+:mps:tag:`function.cbs.delete.return` :c:func:`CBSDelete()` returns the contiguous
+isolated range that contains ``range`` even if the deletion fails.
+This is so that the caller can try deleting the whole block (which is
+guaranteed to succeed) and managing the fragments using a fallback
+strategy.
+
+.. c:function:: void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP, Size closureS)
+
+:mps:tag:`function.cbs.iterate` :c:func:`CBSIterate()` is the function used to
+iterate all isolated contiguous ranges in a CBS. It receives a
+pointer, :c:type:`Size` closure pair to pass on to the iterator method,
+and an iterator method to invoke on every range in address order. If
+the iterator method returns :c:macro:`FALSE`, then the iteration is
+terminated.
+
+.. c:function:: Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)
+
+:mps:tag:`function.cbs.describe` :c:func:`CBSDescribe()` is a function that prints
+a textual representation of the CBS to the given stream, indicating
+the contiguous ranges in order, as well as the structure of the
+underlying splay tree implementation. It is provided for debugging
+purposes only.
+
+.. c:function:: Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)
+
+:mps:tag:`function.cbs.find.first` Locate the first block (in address order)
+within the CBS of at least the specified size, update ``rangeReturn``
+to describe that range, and return :c:macro:`TRUE`. If there is no such
+block, it returns :c:macro:`FALSE`.
+
+In addition, optionally delete the top, bottom, or all of the found
+range, depending on the ``findDelete`` argument. This saves a separate
+call to :c:func:`CBSDelete()`, and uses the knowledge of exactly where we
+found the range. The value of ``findDelete`` must come from this
+enumeration::
+
+    enum {
+        FindDeleteNONE,    /* don't delete after finding */
+        FindDeleteLOW,     /* delete size bytes from low end of block */
+        FindDeleteHIGH,    /* delete size bytes from high end of block */
+        FindDeleteENTIRE   /* delete entire range */
+    };
+
+The original contiguous isolated range in which the range was found is
+returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
+``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
+identical to the range returned via the ``rangeReturn`` argument.)
+
+:c:func:`CBSFindFirst()` requires that ``fastFind`` was true when
+:c:func:`CBSInit()` was called.
+
+.. c:function:: Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)
+
+:mps:tag:`function.cbs.find.last` Like :c:func:`CBSFindFirst()`, except that it
+finds the last block in address order.
+
+.. c:function:: Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn, CBS cbs, Size size, FindDelete findDelete)
+
+:mps:tag:`function.cbs.find.largest` Locate the largest block within the
+CBS, and if that block is at least as big as ``size``, return its
+range via the ``rangeReturn`` argument, and return :c:macro:`TRUE`. If there
+are no blocks in the CBS at least as large as ``size``, return
+:c:macro:`FALSE`. Pass 0 for ``size`` if you want the largest block
+unconditionally.
+
+Like :c:func:`CBSFindFirst()`, optionally delete the range (specifying
+``FindDeleteLOW`` or ``FindDeleteHIGH`` has the same effect as
+``FindDeleteENTIRE``). This feature requires that ``fastFind`` was
+true when :c:func:`CBSInit()` was called.
+
+
+Implementation
+--------------
+
+:mps:tag:`impl` This section is concerned with describing various aspects of
+the implementation. It does not form part of the interface definition.
+
+
+
+Splay tree
+..........
+
+:mps:tag:`impl.splay` The CBS is principally implemented using a splay tree
+(see design.mps.splay_). Each splay tree node is embedded in a
+``CBSBlock`` that represents a semi-open address range. The key passed
+for comparison is the base of another range.
+
+.. _design.mps.splay: splay
+
+:mps:tag:`impl.splay.fast-find` :c:func:`CBSFindFirst()` and :c:func:`CBSFindLast()` use
+the update/refresh facility of splay trees to store, in each
+``CBSBlock``, an accurate summary of the maximum block size in the
+tree rooted at the corresponding splay node. This allows rapid
+location of the first or last suitable block, and very rapid failure
+if there is no suitable block.
+
+:mps:tag:`impl.find-largest` :c:func:`CBSFindLargest()` simply finds out the size
+of the largest block in the CBS from the root of the tree, using
+:c:func:`SplayRoot()`, and does :c:func:`SplayFindFirst()` for a block of that
+size. This is O(log *n*) in the size of the free list, so it's about
+the best you can do without maintaining a separate priority queue,
+just to do :c:func:`CBSFindLargest()`.
+
+
+Low memory behaviour
+....................
+
+:mps:tag:`impl.low-mem` When the CBS tries to allocate a new ``CBSBlock``
+structure for a new isolated range as a result of either
+:c:func:`CBSInsert()` or :c:func:`CBSDelete()`, and there is insufficient memory
+to allocation the ``CBSBlock`` structure, then the range is not added
+to the CBS or deleted from it, and the call to :c:func:`CBSInsert()` or
+:c:func:`CBSDelete()` returns ``ResMEMORY``.
+
+
+The CBS block
+.............
+
+:mps:tag:`impl.cbs.block` The block contains a base-limit pair and a splay
+tree node.
+
+:mps:tag:`impl.cbs.block.special` The base and limit may be equal if the
+block is halfway through being deleted.
+
+:mps:tag:`impl.cbs.block.special.just` This conflates values and status, but
+is justified because block size is very important.
+
+
+Testing
+-------
+
+:mps:tag:`test` The following testing will be performed on this module:
+
+:mps:tag:`test.cbstest` There is a stress test for this module in
+impl.c.cbstest. This allocates a large block of memory and then
+simulates the allocation and deallocation of ranges within this block
+using both a :c:macro:`CBS` and a :c:type:`BT`. It makes both valid and invalid
+requests, and compares the :c:macro:`CBS` response to the correct behaviour
+as determined by the :c:type:`BT`. It also iterates the ranges in the
+:c:macro:`CBS`, comparing them to the :c:type:`BT`. It also invokes the
+:c:func:`CBSDescribe()` method, but makes no automatic test of the resulting
+output. It does not currently test the callbacks.
+
+:mps:tag:`test.pool` Several pools (currently MVT_ and MVFF_) are implemented
+on top of a CBS. These pool are subject to testing in development, QA,
+and are/will be heavily exercised by customers.
+
+.. _MVT: poolmvt
+.. _MVFF: poolmvff
+
+
+Notes for future development
+----------------------------
+
+:mps:tag:`future.not-splay` The initial implementation of CBSs is based on
+splay trees. It could be revised to use any other data structure that
+meets the requirements (especially :mps:ref:`.req.fast`).
+
+:mps:tag:`future.hybrid` It would be possible to attenuate the problem of
+:mps:ref:`.risk.overhead` (below) by using a single word bit set to represent
+the membership in a (possibly aligned) word-width of grains. This
+might be used for block sizes less than a word-width of grains,
+converting them when they reach all free in the bit set. Note that
+this would make coalescence slightly less eager, by up to
+``(word-width - 1)``.
+
+
+Risks
+-----
+
+:mps:tag:`risk.overhead` Clients should note that the current implementation
+of CBSs has a space overhead proportional to the number of isolated
+contiguous ranges. [Four words per range.] If the CBS contains every
+other grain in an area, then the overhead will be large compared to
+the size of that area. [Four words per two grains.] The CBS structure
+is thus suitable only for managing large enough ranges.
+
+
+

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Transliterating the alphabet into hexadecimal &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>6. Transliterating the alphabet into hexadecimal &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="4. C Style – formatting" href="guide.impl.c.format.html" />
-    <link rel="prev" title="2. The critical path through the MPS" href="critical-path.html" /> 
+    <link rel="next" title="7. C Style – formatting" href="guide.impl.c.format.html" />
+    <link rel="prev" title="5. Free list allocator" href="freelist.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="guide.impl.c.format.html" title="4. C Style – formatting"
+          <a href="guide.impl.c.format.html" title="7. C Style – formatting"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="critical-path.html" title="2. The critical path through the MPS"
+          <a href="freelist.html" title="5. Free list allocator"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <span class="target" id="design-guide-hex-trans"></span><div class="section" id="transliterating-the-alphabet-into-hexadecimal">
-<span id="index-0"></span><h1>3. Transliterating the alphabet into hexadecimal<a class="headerlink" href="#transliterating-the-alphabet-into-hexadecimal" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>6. Transliterating the alphabet into hexadecimal<a class="headerlink" href="#transliterating-the-alphabet-into-hexadecimal" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="guide.hex.trans"></span><h2>3.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="guide.hex.trans"></span><h2>6.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="guide.hex.trans.scope"></span><a class="mpstag reference internal" href="#guide.hex.trans.scope">.scope:</a> This document explains how to represent the alphabet as
 hexadecimal digits.</p>
 <p><span class="target" id="guide.hex.trans.readership"></span><a class="mpstag reference internal" href="#guide.hex.trans.readership">.readership:</a> This document is intended for anyone devising
@@ -66,7 +66,7 @@ arbitrary constants which may appear in hex-dumps.</p>
 mail.richardk.1997-04-07.13-44.</p>
 </div>
 <div class="section" id="transliteration">
-<h2>3.2. Transliteration<a class="headerlink" href="#transliteration" title="Permalink to this headline">¶</a></h2>
+<h2>6.2. Transliteration<a class="headerlink" href="#transliteration" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="guide.hex.trans.forward"></span><a class="mpstag reference internal" href="#guide.hex.trans.forward">.forward:</a> The chosen transliteration is as follows:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="n">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span>
 <span class="n">ABCDEF9811C7340BC6520F3812</span>
@@ -98,7 +98,7 @@ context.</p>
 suggested that you use 9 (as <a class="reference internal" href="#guide.hex.trans.pad">.pad</a>).</p>
 </div>
 <div class="section" id="justification">
-<h2>3.3. Justification<a class="headerlink" href="#justification" title="Permalink to this headline">¶</a></h2>
+<h2>6.3. Justification<a class="headerlink" href="#justification" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="guide.hex.trans.letters"></span><a class="mpstag reference internal" href="#guide.hex.trans.letters">.letters:</a> The hexadecimal letters (A-F) are all formed by
 similarity of sound. B and P sound similar, as do F and V, and C, K, &amp;
 Q can all sound similar.</p>
@@ -109,7 +109,7 @@ sound.</p>
 letter that it deserves it.</p>
 </div>
 <div class="section" id="notes">
-<h2>3.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2>6.4. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="guide.hex.trans.change"></span><a class="mpstag reference internal" href="#guide.hex.trans.change">.change:</a> This transliteration differs from the old transliteration
 used for signatures (see design.mps.sig(0)), as follows: J:6-&gt;1;
 L:1-&gt;7; N:9-&gt;4; R:4-&gt;6; W:8-&gt;3; X:5-&gt;8; Y:E-&gt;I.</p>
@@ -143,21 +143,21 @@ selected (by capitalisation), e.g.:</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Transliterating the alphabet into hexadecimal</a><ul>
-<li><a class="reference internal" href="#introduction">3.1. Introduction</a></li>
-<li><a class="reference internal" href="#transliteration">3.2. Transliteration</a></li>
-<li><a class="reference internal" href="#justification">3.3. Justification</a></li>
-<li><a class="reference internal" href="#notes">3.4. Notes</a></li>
+<li><a class="reference internal" href="#">6. Transliterating the alphabet into hexadecimal</a><ul>
+<li><a class="reference internal" href="#introduction">6.1. Introduction</a></li>
+<li><a class="reference internal" href="#transliteration">6.2. Transliteration</a></li>
+<li><a class="reference internal" href="#justification">6.3. Justification</a></li>
+<li><a class="reference internal" href="#notes">6.4. Notes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="critical-path.html"
-                        title="previous chapter">2. The critical path through the MPS</a></p>
+  <p class="topless"><a href="freelist.html"
+                        title="previous chapter">5. Free list allocator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="guide.impl.c.format.html"
-                        title="next chapter">4. C Style &#8211; formatting</a></p><h4>Downloads</h4>
+                        title="next chapter">7. C Style &#8211; formatting</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -183,10 +183,10 @@ selected (by capitalisation), e.g.:</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="guide.impl.c.format.html" title="4. C Style – formatting"
+          <a href="guide.impl.c.format.html" title="7. C Style – formatting"
              >next</a> |</li>
         <li class="right" >
-          <a href="critical-path.html" title="2. The critical path through the MPS"
+          <a href="freelist.html" title="5. Free list allocator"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

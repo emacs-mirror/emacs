@@ -1,0 +1,850 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Manual Variable Temporal (MVT) pool design &mdash; Memory Pool System 1.111.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.111.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="manual-variable-temporal-mvt-pool-design">
+<span id="design-poolmvt"></span><h1>Manual Variable Temporal (MVT) pool design<a class="headerlink" href="#manual-variable-temporal-mvt-pool-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<span id="design.mps.poolmvt"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.intro"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.intro">.intro:</a> This is a second-generation design for a pool that manually
+manages variable-sized objects. It is intended as a replacement for
+poolmv (except in its control pool role) and poolepdl, and it is
+intended to satisfy the requirements of the Dylan &#8220;misc&#8221; pool and the
+product malloc/new drop-in replacement.</p>
+<p><span class="target" id="design.mps.poolmvt.readership"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.readership">.readership:</a> MM developers</p>
+<p><span class="target" id="design.mps.poolmvt.source"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.source">.source:</a> req.dylan(6), req.epcore(16), req.product(2)</p>
+<p><span class="target" id="design.mps.poolmvt.background"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.background">.background:</a> design.mps.poolmv(0), design.mps.poolepdl(0),
+design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
+paper.grun92(1), paper.beck82(0), mail.ptw.1998-02-25.22-18(0)</p>
+</div>
+<div class="section" id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.def.alignment"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.alignment">.def.alignment:</a> Alignment is a constraint on an object&#8217;s address,
+typically to be a power of 2 (see also, glossary.alignment )</p>
+<p><span class="target" id="design.mps.poolmvt.def.bit-map"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.bit-map">.def.bit-map:</a> A bitmap is a boolean-valued vector (see also,
+glossary.bitmap ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.block"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.block">.def.block:</a> A block is a contiguous extent of memory. In this
+document, block is used to mean a contiguous extent of memory managed
+by the pool for the pool client, typically a subset of a segment
+(compare with <a class="reference internal" href="#design.mps.poolmvt.def.segment">.def.segment</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.def.cartesian-tree"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.cartesian-tree">.def.cartesian-tree:</a> A cartesian tree is a binary tree ordered by
+two keys (paper.stephenson83(0)).</p>
+<p><span class="target" id="design.mps.poolmvt.def.crossing-map"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.crossing-map">.def.crossing-map:</a> A mechanism that supports finding the start of
+an object from any address within the object, typically only required
+on untagged architectures (see also, glossary.crossing.map ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.footer"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.footer">.def.footer:</a> A block of descriptive information describing and
+immediately following another block of memory (see also
+<a class="reference internal" href="#design.mps.poolmvt.def.header">.def.header</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.def.fragmentation"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.fragmentation">.def.fragmentation:</a> Fragmented memory is memory reserved to the
+program but not usable by the program because of the arrangement of
+memory already in use (see also, glossary.fragmentation ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.header"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.header">.def.header:</a> A block of descriptive information describing and
+immediately preceding another block of memory (see also,
+glossary.in-band.header ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.in-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.in-band">.def.in-band:</a> From &#8220;in band signalling&#8221;, when descriptive
+information about a data structure is stored in the data structure
+itself (see also, glossary.in-band.header ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.out-of-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.out-of-band">.def.out-of-band:</a> When descriptive information about a data
+structure is stored separately from the structure itself (see also,
+glossary.out-of-band.header ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.refcount"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.refcount">.def.refcount:</a> A refcount is a count of the number of users of an
+object (see also, glossary.reference.count ).</p>
+<p><span class="target" id="design.mps.poolmvt.def.segment"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.segment">.def.segment:</a> A segment is a contiguous extent of memory. In this
+document, segment is used to mean a contiguous extent of memory
+managed by the MPS arena (design.mps.arena(1)) and subdivided by the
+pool to provide blocks (see <a class="reference internal" href="#design.mps.poolmvt.def.block">.def.block</a>) to its clients.</p>
+<p><span class="target" id="design.mps.poolmvt.def.splay-tree"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.splay-tree">.def.splay-tree:</a> A splay tree is a self-adjusting binary tree
+(paper.st85(0), paper.sleator96(0)).</p>
+<p><span class="target" id="design.mps.poolmvt.def.splinter"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.splinter">.def.splinter:</a> A splinter is a fragment of memory that is too small
+to be useful (see also, glossary.splinter )</p>
+<p><span class="target" id="design.mps.poolmvt.def.subblock"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.def.subblock">.def.subblock:</a> A subblock is a contiguous extent of memory. In this
+document, subblock is used to mean a contiguous extent of memory
+manage by the client for its own use, typically a subset of a block
+(compare with <a class="reference internal" href="#design.mps.poolmvt.def.block">.def.block</a>).</p>
+</div>
+<div class="section" id="abbreviations">
+<h2>Abbreviations<a class="headerlink" href="#abbreviations" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.abbr.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.abq">.abbr.abq:</a> ABQ = Available Block Queue</p>
+<p><span class="target" id="design.mps.poolmvt.abbr.ap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.ap">.abbr.ap:</a> AP = Allocation Point</p>
+<p><span class="target" id="design.mps.poolmvt.abbr.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.cbs">.abbr.cbs:</a> CBS = Coalescing Block Structure</p>
+<p><span class="target" id="design.mps.poolmvt.abbr.mps"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.mps">.abbr.mps:</a> MPS = Memory Pool System</p>
+<p><span class="target" id="design.mps.poolmvt.abbr.mv"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.mv">.abbr.mv:</a> MV = Manual-Variable</p>
+<p><span class="target" id="design.mps.poolmvt.abbr.ps"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.abbr.ps">.abbr.ps:</a> PS = PostScript</p>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.overview"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.overview">.overview:</a> MVT is intended to satisfy the requirements of the
+clients that need manual-variable pools, improving on the performance
+of the existing manual-variable pool implementations, and reducing the
+duplication of code that currently exists. The expected clients of MVT
+are: Dylan (currently for its misc pool), EP (particularly the dl
+pool, but all pools other than the PS object pool), and Product
+(initially the malloc/new pool, but also other manual pool classes).</p>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.req.cat"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.cat">.req.cat:</a> Requirements are categorized per guide.req(2).</p>
+<p><span class="target" id="design.mps.poolmvt.req.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.risk">.req.risk:</a> req.epcore(16) is known to be obsolete, but the revised
+document has not yet been accepted.</p>
+<div class="section" id="critical-requirements">
+<h3>Critical requirements<a class="headerlink" href="#critical-requirements" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.req.fun.man-var"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.man-var">.req.fun.man-var:</a> The pool class must support manual allocation and
+freeing of variable-sized blocks (source: req.dylan.fun.misc.alloc,
+req.epcore.fun.{dl,gen,tmp,stat,cache,trap}.{alloc,free},
+req.product.fun.{malloc,new,man.man}).</p>
+<p><span class="target" id="design.mps.poolmvt.non-req.fun.gc"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.non-req.fun.gc">.non-req.fun.gc:</a> There is not a requirement that the pool class
+support formatted objects, scanning, or collection objects; but it
+should not be arbitrarily precluded.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.align"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.align">.req.fun.align:</a> The pool class must support aligned allocations to
+client-specified alignments. An individual instance need only support
+a single alignment; multiple instances may be used to support more
+than one alignment (source: req.epcore.attr.align).</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.reallocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.reallocate">.req.fun.reallocate:</a> The pool class must support resizing of
+allocated blocks (source req.epcore.fun.dl.promise.free,
+req.product.dc.env.{ansi-c,cpp}).</p>
+<p><span class="target" id="design.mps.poolmvt.non-req.fun.reallocate.in-place"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.non-req.fun.reallocate.in-place">.non-req.fun.reallocate.in-place:</a> There is not a requirement blocks
+must be resized in place (where possible); but it seems like a good
+idea.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.thread"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.thread">.req.fun.thread:</a> Each instance of the pool class must support
+multiple threads of allocation (source req.epcore.fun.dl.multi,
+req.product.dc.env.{ansi-c,cpp}).</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.performance"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.performance">.req.attr.performance:</a> The pool class must meet or exceed
+performance of &#8220;competitive&#8221; allocators (source:
+rec.epcore.attr.{run-time,tp}, req.product.attr.{mkt.eval, perform}).
+[Dylan does not seem to have any requirement that storage be allocated
+with a particular response time or throughput, just so long as we
+don&#8217;t block for too long. Clearly there is a missing requirement.]</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.performance.time"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.performance.time">.req.attr.performance.time:</a> By inference, the time overhead must be
+competetive.</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.performance.space"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.performance.space">.req.attr.performance.space:</a> By inference, the space overhead must
+be competetive.</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.reliability"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.reliability">.req.attr.reliability:</a> The pool class must have &#8220;rock-solid
+reliability&#8221; (source: req.dylan.attr.rel.mtbf, req.epcore.attr.rel,
+req.product.attr.rel).</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.range"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.range">.req.fun.range:</a> The pool class must be able to manage blocks
+ranging in size from 1 byte to all of addressable memory
+(req.epcore.attr.{dl,gen,tmp,stat,cache,trap}.obj.{min,max}. The range
+requirement may be satisfied by multiple instances each managing a
+particular client-specified subrange of sizes. [Dylan has requirements
+req.dylan.attr.{capacity,obj.max}, but no requirement that such
+objects reside in a manual pool.]</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.debug"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.debug">.req.fun.debug:</a> The pool class must support debugging erroneous
+usage by client programs (source: req.epcore.fun.{dc.variety,
+debug.support}, req.product.attr.{mkt.eval,perform}). Debugging is
+permitted to incur additional overhead.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.debug.boundaries"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.debug.boundaries">.req.fun.debug.boundaries:</a> The pool class must support checking for
+accesses outside the boundaries of live objects.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.debug.log"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.debug.log">.req.fun.debug.log:</a> The pool class must support logging of all
+allocations and deallocations.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.debug.enumerate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.debug.enumerate">.req.fun.debug.enumerate:</a> The pool class must support examining all
+allocated objects.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.debug.free"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.debug.free">.req.fun.debug.free:</a> The pool class must support detecting
+incorrect, overlapping, and double frees.</p>
+<p><span class="target" id="design.mps.poolmvt.req.fun.tolerant"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.tolerant">.req.fun.tolerant:</a> The pool class must support tolerance of
+erroneous usage (source req.product.attr.use.level.1).</p>
+</div>
+<div class="section" id="essential-requirements">
+<h3>Essential requirements<a class="headerlink" href="#essential-requirements" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.req.fun.profile"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.profile">.req.fun.profile:</a> The pool class should support memory usage
+profiling (source: req.product.attr.{mkt.eval, perform}).</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.flex"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.flex">.req.attr.flex:</a> The pool class should be flexible so that it can be
+tuned to specific allocation and freeing patterns (source:
+req.product.attr.flex,req.epcore.attr.{dl,cache,trap}.typ). The
+flexibility requirement may be satisfied by multiple instances each
+optimizing a specific pattern.</p>
+<p><span class="target" id="design.mps.poolmvt.req.attr.adapt"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.attr.adapt">.req.attr.adapt:</a> The pool class should be adaptive so that it can
+accommodate changing allocation and freeing patterns (source:
+req.epcore.fun.{tmp,stat}.policy,
+req.product.attr.{mkt.eval,perform}).</p>
+</div>
+<div class="section" id="nice-requirements">
+<h3>Nice requirements<a class="headerlink" href="#nice-requirements" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.req.fun.suballocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.req.fun.suballocate">.req.fun.suballocate:</a> The pool class may support freeing of any
+aligned, contiguous subset of an allocated block (source
+req.epcore.fun.dl.free.any, req.product.attr.{mkt.eval,perform}).</p>
+</div>
+</div>
+<div class="section" id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.arch.overview"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview">.arch.overview:</a> The pool has several layers: client allocation is
+by Allocation Points (APs).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.overview.ap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.ap">.arch.overview.ap:</a> APs acquire storage from the pool
+available-block queue (ABQ).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.overview.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.abq">.arch.overview.abq:</a> The ABQ holds blocks of a minimum configurable
+size: &#8220;reuse size&#8221;.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.overview.storage"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.storage">.arch.overview.storage:</a> The ABQ acquires storage from the arena,
+and from its internal free block managers.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.overview.storage.contiguous"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.storage.contiguous">.arch.overview.storage.contiguous:</a> The arena storage is requested
+to be contiguous to maximize opportunities for coalescing (Loci will
+be used when available).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.overview.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.overview.cbs">.arch.overview.cbs:</a> The free block managers hold blocks freed by
+the client until, through coalescing, they have reached the reuse
+size, at which point they are made available on the ABQ.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap">.arch.ap:</a> The pool will use allocation points as the allocation
+interface to the client.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.two-phase"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.two-phase">.arch.ap.two-phase:</a> Allocation points will request blocks from the
+pool and suballocate those blocks (using the existing AP, compare and
+increment, 2-phase mechanism) to satisfy client requests.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.fill"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.fill">.arch.ap.fill:</a> The pool will have a configurable &#8220;fill size&#8221; that
+will be the preferred size block used to fill the allocation point.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.fill.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.fill.size">.arch.ap.fill.size:</a> The fill size should be chosen to amortize the
+cost of refill over a number of typical reserve/commit operations, but
+not so large as to exceed the typical object population of the pool.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.no-fit"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.no-fit">.arch.ap.no-fit:</a> When an allocation does not fit in the remaining
+space of the allocation point, there may be a remaining fragment.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.no-fit.sawdust"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.sawdust">.arch.ap.no-fit.sawdust:</a> If the fragment is below a configurable
+threshold (minimum size), it will be left unused (but returned to the
+free block managers so it will be reclaimed when adjacent objects are
+freed).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.no-fit.splinter"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.splinter">.arch.ap.no-fit.splinter:</a> otherwise, the remaining fragment will be
+(effectively) returned to the head of the available-block queue, so
+that it will be used as soon as possible (that is, by objects of similar
+birthdate).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.no-fit.oversize"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.oversize">.arch.ap.no-fit.oversize:</a> If the requested allocation exceeds the
+fill size it is treated exceptionally (this may indicate the client
+has either misconfigured or misused the pool and should either change
+the pool configuration or create a separate pool for these exceptional
+objects for best performance).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.no-fit.oversize.policy"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.oversize.policy">.arch.ap.no-fit.oversize.policy:</a> Oversize blocks are assumed to
+have exceptional lifetimes, hence are allocated to one side and do not
+participate in the normal storage recycling of the pool.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.ap.refill.overhead"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.ap.refill.overhead">.arch.ap.refill.overhead:</a> If reuse size is small, or becomes small
+due to <a class="reference internal" href="#design.mps.poolmvt.arch.adapt">.arch.adapt</a>, all allocations will effectively be treated
+exceptionally (the AP will trip and a oldest-fit block will be chosen
+on each allocation). This mode will be within a constant factor in
+overhead of an unbuffered pool.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq">.arch.abq:</a> The available block queue holds blocks that have
+coalesced sufficiently to reach reuse size.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq.reuse.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq.reuse.size">.arch.abq.reuse.size:</a> A multiple of the quantum of virtual memory
+is used as the reuse size (<a class="reference internal" href="#design.mps.poolmvt.anal.policy.size">.anal.policy.size</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq.fifo"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq.fifo">.arch.abq.fifo:</a> It is a FIFO queue (recently coalesced blocks go to
+the tail of the queue, blocks are taken from the head of the queue for
+reuse).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq.delay-reuse"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq.delay-reuse">.arch.abq.delay-reuse:</a> By thus delaying reuse, coalescing
+opportunities are greater.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq.high-water"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq.high-water">.arch.abq.high-water:</a> It has a configurable high water mark, which
+when reached will cause blocks at the head of the queue to be returned
+to the arena, rather than reused.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.abq.return"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.abq.return">.arch.abq.return:</a> When the MPS supports it, the pool will be able
+to return free blocks from the ABQ to the arena on demand.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.return.segment"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.return.segment">.arch.return.segment:</a> arch.abq.return can be guaranteed to be able
+to return a segment by setting reuse size to twice the size of the
+segments the pool requests from the arena.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.cbs">.arch.cbs:</a> The coalescing block structure holds blocks that have
+been freed by the client.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.cbs.optimize"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.cbs.optimize">.arch.cbs.optimize:</a> The data structure is optimized for coalescing.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.cbs.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.cbs.abq">.arch.cbs.abq:</a> When a block reaches reuse size, it is added to the
+ABQ.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.cbs.data-structure"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.cbs.data-structure">.arch.cbs.data-structure:</a> The data structures are organized so that
+a block can be both in the free block managers and on the ABQ
+simultaneously to permit additional coalescing, up until the time the
+block is removed from the ABQ and assigned to an AP.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.fragmentation.internal"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.fragmentation.internal">.arch.fragmentation.internal:</a> Internal fragmentation results from
+The pool will request large segments from the arena to minimize the
+internal fragmentation due to objects not crossing segment boundaries.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.modular"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.modular">.arch.modular:</a> The architecture will be modular, to allow building
+variations on the pool by assembling different parts.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.modular.example"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.modular.example">.arch.modular.example:</a> For example, it should be possible to build
+pools with any of the freelist mechanisms, with in-band or out-of-band
+storage (where applicable), that do or do not support derived object
+descriptions, etc.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.modular.initial"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.modular.initial">.arch.modular.initial:</a> The initial architecture will use
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list">.sol.mech.free-list</a> for the free block managers,
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.storage.out-of-band">.sol.mech.storage.out-of-band</a>, <a class="reference internal" href="#design.mps.poolmvt.sol.mech.desc.derived">.sol.mech.desc.derived</a>, and
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.allocate.buffer">.sol.mech.allocate.buffer</a>.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.segregate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.segregate">.arch.segregate:</a> The architecture will support segregated
+allocation through the use of multiple allocation points. The client
+will choose the appropriate allocation point either at run time, or
+when possible, at compile time.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.segregate.initial"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.segregate.initial">.arch.segregate.initial:</a> The initial architecture will segregate
+allocations into two classes: large and small. This will be
+implemented by creating two pools with different parameters.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.segregate.initial.choice"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.segregate.initial.choice">.arch.segregate.initial.choice:</a> The initial architecture will
+provide glue code to choose which pool to allocate from at run time.
+If possible this glue code will be written in a way that a good
+compiler can optimize the selection of pool at compile time.
+Eventually this glue code should be subsumed by the client or
+generated automatically by a tool.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.debug"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.debug">.arch.debug:</a> Debugging features such as tags, fenceposts, types,
+creators will be implemented in a layer above the pool and APs. A
+generic pool debugging interface will be developed to support
+debugging in this outer layer.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.debug.initial"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.debug.initial">.arch.debug.initial:</a> The initial architecture will have counters
+for objects/bytes allocated/freed and support for detecting
+overlapping frees.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.dependency.loci"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.dependency.loci">.arch.dependency.loci:</a> The architecture depends on the arena being
+able to efficiently provide segments of varying sizes without
+excessive fragmentation. The locus mechanism should satisfy this
+dependency. (See <a class="reference internal" href="#design.mps.poolmvt.anal.strategy.risk">.anal.strategy.risk</a>.)</p>
+<p><span class="target" id="design.mps.poolmvt.arch.dependency.mfs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.dependency.mfs">.arch.dependency.mfs:</a> The architecture internal data structures
+depend on efficient manual management of small, fixed-sized objects (2
+different sizes). The MFS pool should satisfy this dependency.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.contingency"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.contingency">.arch.contingency:</a> Since the strategy we propose is new, it may not
+work.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.contingency.pathological"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.contingency.pathological">.arch.contingency.pathological:</a> In particular, pathological
+allocation patterns could result in fragmentation such that no blocks
+recycle from the free bock managers to the ABQ.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.contingency.fallback"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.contingency.fallback">.arch.contingency.fallback:</a> As a fallback, there will be a pool
+creation parameter for a high water mark for the free space.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.contingency.fragmentation-limit"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.contingency.fragmentation-limit">.arch.contingency.fragmentation-limit:</a> When the free space as a
+percentage of all the memory managed by the pool (a measure of
+fragmentation) reaches that high water mark, the free block managers
+will be searched oldest-fit before requesting additional segments from
+the arena.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.contingency.alternative"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.contingency.alternative">.arch.contingency.alternative:</a> We also plan to implement
+<a class="reference internal" href="#design.mps.poolmvt.mech.free-list.cartesian-tree">.mech.free-list.cartesian-tree</a> as an alternative free block manager,
+which would permit more efficient searching of the free blocks.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.parameters"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.parameters">.arch.parameters:</a> The architecture supports several parameters so
+that multiple pools may be instantiated and tuned to support different
+object cohorts. The important parameters are: reuse size, minimum
+size, fill size, ABQ high water mark, free block fragmentation limit
+(see <a class="reference internal" href="#design.mps.poolmvt.arch.contingency.fragmentation-limit">.arch.contingency.fragmentation-limit</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.parameters.client-visible"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.parameters.client-visible">.arch.parameters.client-visible:</a> The client-visible parameters of
+the pool are the minimum object size, the mean object size, the
+maximum object size, the reserve depth and fragmentation limit. The
+minimum object size determines when a splinter is kept on the head of
+the ABQ (<a class="reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.splinter">.arch.ap.no-fit.splinter</a>). The maximum object size
+determines the fill size (<a class="reference internal" href="#design.mps.poolmvt.arch.ap.fill-size">.arch.ap.fill-size</a>) and hence when a
+block is allocated exceptionally (<a class="reference internal" href="#design.mps.poolmvt.arch.ap.no-fit.oversize">.arch.ap.no-fit.oversize</a>). The
+mean object size is the most likely object size. The reserve depth is
+a measure of the hysteresis of the object population. The mean object
+size, reserve depth and, maximum object size are used to determine the
+size of the ABQ (<a class="reference internal" href="#design.mps.poolmvt.arch.abq.high-water">.arch.abq.high-water</a>). The fragmentation limit is
+used to determine when contingency mode is used to satisfy an
+allocation request (<a class="reference internal" href="#design.mps.poolmvt.arch.contingency">.arch.contingency</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.adapt"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.adapt">.arch.adapt:</a> We believe that an important adaptation to explore is
+tying the reuse size inversely to the fragmentation (as measured in
+<a class="reference internal" href="#design.mps.poolmvt.arch.contingency.fragmentation-limit">.arch.contingency.fragmentation-limit</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.arch.adapt.reuse"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.adapt.reuse">.arch.adapt.reuse:</a> By setting reuse size low when fragmentation is
+high, smaller blocks will be available for reuse, so fragmentation
+should diminish.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.adapt.overhead"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.adapt.overhead">.arch.adapt.overhead:</a> This will result in higher overhead as the AP
+will need to be refilled more often, so reuse size should be raised
+again as fragmentation diminishes.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.adapt.oldest-fit"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.adapt.oldest-fit">.arch.adapt.oldest-fit:</a> In the limit, if reuse size goes to zero,
+the pool will implement a &#8220;oldest-fit&#8221; policy: the oldest free block
+of sufficient size will be used for each allocation.</p>
+<p><span class="target" id="design.mps.poolmvt.arch.adapt.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.arch.adapt.risk">.arch.adapt.risk:</a> This adaptation is an experimental policy and
+should not be delivered to clients until thoroughly tested.</p>
+</div>
+<div class="section" id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.anal.discard"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.discard">.anal.discard:</a> We have discarded many traditional solutions based
+on experience and analysis in paper.wil95(1). In particular, managing
+the free list as a linear list arranged by address or size and basing
+policy on searching such a linear list in a particular direction, from
+a particular starting point, using fit and/or immediacy as criteria.
+We believe that none of these solutions is derived from considering
+the root of the problem to be solved (as described in
+<a class="reference internal" href="#design.mps.poolmvt.anal.strategy">.anal.strategy</a>), although their behavior as analyzed by Wilson
+gives several insights.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.strategy"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.strategy">.anal.strategy:</a> For any program to run in the minimum required
+memory (with minimal overhead &#8211; we discard solutions such as
+compression for now), fragmentation must be eliminated. To eliminate
+fragmentation, simply place blocks in memory so that they die &#8220;in
+order&#8221; and can be immediately coalesced. This ideal is not achievable,
+but we believe we can find object attributes that correlate with
+deathtime and exploit them to approximate the ideal. Initially we
+believe birth time and type (as approximated by size) will be useful
+attributes to explore.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.strategy.perform"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.strategy.perform">.anal.strategy.perform:</a> To meet <a class="reference internal" href="#design.mps.poolmvt.req.attr.performance">.req.attr.performance</a>, the
+implementation of <a class="reference internal" href="#design.mps.poolmvt.sol.strategy">.sol.strategy</a> must be competitive in both time
+and space.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.strategy.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.strategy.risk">.anal.strategy.risk:</a> The current MPS segment substrate can cause
+internal fragmentation which an individual pool can do nothing about.
+We expect that <a class="reference external" href="https://info.ravenbrook.com/project/mps/import/2001-11-05/mmprevol/request/epcore/170193/">request.epcore.170193.sugg.loci</a> will be implemented to
+remove this risk.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.policy"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.policy">.anal.policy:</a> Deferred coalescing, when taken to the extreme will
+not minimize the memory consumption of a program, as no memory would
+ever be reused. Eager reuse appears to lead to more fragmentation,
+whereas delayed reuse appears to reduce fragmentation
+(paper.wil95(1)). The systems studied by Wilson did not directly
+address deferring reuse. Our proposed policy is to reuse blocks when
+they reach a (configurable) size. We believe that this policy along
+with the policy of segregating allocations by death time, will greatly
+reduce fragmentation.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.policy.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.policy.risk">.anal.policy.risk:</a> This policy could lead to pathological behavior
+if allocations cannot be successfully segregated.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.policy.allocate.segregate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.policy.allocate.segregate">.anal.policy.allocate.segregate:</a> This policy has some similarities
+to CustomAlloc (paper.grun92(1)). CustomAlloc segregates objects by
+size classes, and then within those classes chooses a different
+allocator depending on whether that size class has a stable or
+unstable population. Classes with stable population recycle storage
+within the class, whereas classes with unstable populations return
+their storage to the general allocation pool for possible reuse by
+another class. CustomAlloc, however, requires profiling the
+application and tuning the allocator according to those profiles.
+Although we intend to support such tuning, we do not want to require
+it.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.policy.reallocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.policy.reallocate">.anal.policy.reallocate:</a> For reallocation, <a class="reference internal" href="#design.mps.poolmvt.fun.suballocate">.fun.suballocate</a> can
+be used to free the remainder if a block is made smaller. Doing so
+will cause the freed block to obey <a class="reference internal" href="#design.mps.poolmvt.sol.policy.allocate">.sol.policy.allocate</a> (that is,
+the freed block will not be treated specially, it will be subject to
+the normal policy on reuse). Copying can be used if a block is made
+larger. paper.vo96(0) reports success in over-allocating a block the
+first time it is resized larger, presumably because blocks that are
+resized once tend to be resized again and over-allocating may avoid a
+subsequent copy. If each object that will be reallocated can be given
+its own allocation point until its final reallocation, the allocation
+point can be used to hold released or spare storage.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.policy.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.policy.size">.anal.policy.size:</a> We believe that this will take advantage of the
+underlying virtual memory system&#8217;s ability to compact the physical
+memory footprint of the program by discarding free fragments that
+align with the virtual memory quantum. (In a VM system one can
+approximate compaction by sparse mapping. If every other page of a
+segment is unused, the unused pages can be unmapped, freeing up
+physical memory that can be mapped to a new contiguous vm range.)</p>
+<p><span class="target" id="design.mps.poolmvt.anal.mech.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.mech.free-list">.anal.mech.free-list:</a> The literature (paper.grun92(1),
+paper.vo96(0)) indicate that <a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.cartesian-tree">.sol.mech.free-list.cartesian-tree</a>
+provides a space-efficient implementation at some cost in speed.
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.splay-tree">.sol.mech.free-list.splay-tree</a> is faster but less space-efficient.
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.bitmap">.sol.mech.free-list.bitmap</a> is unstudied. Many of the faster
+allocators maintain caches of free blocks by size to speed allocation
+of &#8220;popular&#8221; sizes. We intend to initially explore not doing so, as we
+believe that policy ultimately leads to fragmentation by mixing
+objects of varying death times. Instead we intend to use a free list
+mechanism to support fast coalescing, deferring reuse of blocks until
+a minimum size has been reached.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.mech.allocate.optimize-small"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.mech.allocate.optimize-small">.anal.mech.allocate.optimize-small:</a> Wilson (paper.wil95(1)) notes
+that small blocks typically have short lifetimes and that overall
+performance is improved if you optimize the management of small
+blocks, e.g., <a class="reference internal" href="#design.mps.poolmvt.sol.mech.allocate.lookup-table">.sol.mech.allocate.lookup-table</a> for all small blocks.
+We believe that <a class="reference internal" href="#design.mps.poolmvt.sol.mech.allocate.buffer">.sol.mech.allocate.buffer</a> does exactly that.</p>
+<p><span class="target" id="design.mps.poolmvt.anal.mech.allocate.optimize-new"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.anal.mech.allocate.optimize-new">.anal.mech.allocate.optimize-new:</a> Wilson (paper.wil95(1)) reports
+some benefit from &#8220;preserving wilderness&#8221;, that is, when a block of
+memory must be requested from the system to satisfy an allocation,
+only the minimum amount of that block is used, the remainder is
+preserved (effectively by putting it at the tail of the free list).
+This mechanism may or may not implement <a class="reference internal" href="#design.mps.poolmvt.sol.policy.allocate">.sol.policy.allocate</a>. We
+believe a better mechanism is to choose to preserve or not, based on
+<a class="reference internal" href="#design.mps.poolmvt.sol.policy.allocate">.sol.policy.allocate</a>.</p>
+</div>
+<div class="section" id="ideas">
+<h2>Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.sol"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol">.sol:</a> Many solution ideas for manual management of variable-sized
+memory blocks are enumerated by paper.wil95(1). Here we list the most
+promising, and some of our own.</p>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy">.sol.strategy:</a> To run a program in the minimal required memory,
+with minimal overhead, utilize memory efficiently. Memory becomes
+unusable when fragmented. Strategy is to minimize fragmentation. So
+place blocks where they won&#8217;t cause fragmentation later.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.death"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.death">.sol.strategy.death:</a> Objects that will die together (in time)
+should be allocated together (in space); thus they will coalesce,
+reducing fragmentation.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.death.birth"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.death.birth">.sol.strategy.death.birth:</a> Assume objects allocated near each other
+in time will have similar deathtimes (paper.beck82(0)).</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.death.type"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.death.type">.sol.strategy.death.type:</a> Assume objects of different type may have
+different deathtimes, even if born together.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.death.predict"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.death.predict">.sol.strategy.death.predict:</a> Find and use program features to predict deathtimes.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.reallocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.reallocate">.sol.strategy.reallocate:</a> Reallocation implies rebirth, or at least
+a change in lifetime</p>
+<p><span class="target" id="design.mps.poolmvt.sol.strategy.debug"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.strategy.debug">.sol.strategy.debug:</a> As much of the debugging functionality as
+possible should be implemented as a generally available MPS utility;
+the pool will provide support for debugging that would be expensive or
+impossible to allocate outside the pool.</p>
+</div>
+<div class="section" id="policy">
+<h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
+<p>Policy is an implementable decision procedure, hopefully approximating
+the strategy.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.reuse"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.reuse">.sol.policy.reuse:</a> Defer reusing blocks, to encourage coalescing.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.split"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.split">.sol.policy.split:</a> When a block is split to satisfy an allocation,
+use the remainder as soon as possible.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.size">.sol.policy.size:</a> Prevent <a class="reference internal" href="#design.mps.poolmvt.policy.reuse">.policy.reuse</a> from consuming all of
+memory by choosing a (coalesced) block for reuse when it reaches a
+minimum size.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.size.fixed"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.size.fixed">.sol.policy.size.fixed:</a> Use the quantum of virtual memory (e.g.,
+one page) as minimum size.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.size.tune"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.size.tune">.sol.policy.size.tune:</a> Allow tuning minimum size.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.size.adapt"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.size.adapt">.sol.policy.size.adapt:</a> Adaptively change minimum size.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.allocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.allocate">.sol.policy.allocate:</a> Allocate objects with similar birthdate and
+lifetime together.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.allocate.segregate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.allocate.segregate">.sol.policy.allocate.segregate:</a> Segregate allocations by type.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.allocate.segregate.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.allocate.segregate.size">.sol.policy.allocate.segregate.size:</a> Use size as a substitute for type.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.allocate.segregate.tune"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.allocate.segregate.tune">.sol.policy.allocate.segregate.tune:</a> Permit tuning of segregation.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.allocate.segregate.adapt"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.allocate.segregate.adapt">.sol.policy.allocate.segregate.adapt:</a> Adaptively segregate allocations.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.reallocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.reallocate">.sol.policy.reallocate:</a> Implement reallocation in a central
+mechanism outside of the pool, create a generic pool interface in
+support of same.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.debug"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.debug">.sol.policy.debug:</a> Implement a pool debugging interface.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.debug.counters"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.debug.counters">.sol.policy.debug.counters:</a> Implement debugging counters in the
+pool that are queried with a generic interface.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.policy.debug.verify"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.policy.debug.verify">.sol.policy.debug.verify:</a> Implement debugging error returns on
+overlapping frees.</p>
+</div>
+<div class="section" id="mechanism">
+<h3>Mechanism<a class="headerlink" href="#mechanism" title="Permalink to this headline">¶</a></h3>
+<p>Mechanisms are algorithms or data structures used to implement policy.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list">.sol.mech.free-list:</a> Mechanisms that can be used to describe the
+free list.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.cartesian-tree"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.cartesian-tree">.sol.mech.free-list.cartesian-tree:</a> Using address and size as keys
+supports fast coalescing of adjacent blocks and fast searching for
+optimal-sized blocks. Unfortunately, because the shape of the tree is
+constrained by the second key, it can become unbalanced. This data
+structure is used in the SunOS 4.1 malloc (paper.grun92(1)).</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.splay-tree"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.splay-tree">.sol.mech.free-list.splay-tree:</a> The amortized cost of a splay tree
+is competitive with balanced binary trees in the worst case, but can
+be significantly better for regular patterns of access because
+recently-accessed keys are moved to the root of the tree and hence can
+be re-accessed quickly. This data structure is used in the System Vr4
+malloc (paper.vo96(0)). (For a complete analysis of the splay tree
+algorithm time bounds see paper.st85(0).)</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.bit-map"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.bit-map">.sol.mech.free-list.bit-map:</a> Using address as an index and
+fix-sized blocks, the booleans can represent whether a block is free
+or not. Adjacent blocks can be used to construct larger blocks.
+Efficient algorithms for searching for runs in a vector are known.
+This data structure is used in many file system disk block managers.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.refcount"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.refcount">.sol.mech.free-list.refcount:</a> A count of the number of allocated
+but not freed subblocks of a block can be used to determine when a
+block is available for reuse. This is an extremely compact data
+structure, but does not support subblock reuse.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.hybrid"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.hybrid">.sol.mech.free-list.hybrid:</a> Bitmaps appear suited particularly to
+managing small, contiguous blocks. The tree structures appear suited
+particularly to managing varying-sized, discontiguous blocks. A
+refcount can be very efficient if objects can be placed accurately
+according to death time. A hybrid mechanism may offer better
+performance for a wider range of situations.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.free-list.linked"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.free-list.linked">.sol.mech.free-list.linked:</a> An address-ordered singly linked free
+list using space in each free block to store the block&#8217;s size and a
+pointer to the next block.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.storage"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.storage">.sol.mech.storage:</a> Methods that can be used to store the free list description.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.storage.in-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.storage.in-band">.sol.mech.storage.in-band:</a> The tree data structures (and
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.linked">.sol.mech.free-list.linked</a>) are amenable to being stored in the
+free blocks themselves, minimizing the space overhead of management.
+To do so imposes a minimum size on free blocks and reduces the
+locality of the data structure.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.storage.out-of-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.storage.out-of-band">.sol.mech.storage.out-of-band:</a> The bit-map data structure must be
+stored separately.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.desc"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.desc">.sol.mech.desc:</a> for an allocated block to be freed, its base and
+bound must be known</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.desc.derived"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.desc.derived">.sol.mech.desc.derived:</a> Most clients can supply the base of the
+block. Some clients can supply the bound.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.desc.in-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.desc.in-band">.sol.mech.desc.in-band:</a> When the bound cannot be supplied, it can
+be stored as an in-band &#8220;header&#8221;. If neither the base nor bound can be
+supplied (e.g., the client may only have an interior pointer to the
+block), a header and footer may be required.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.desc.out-of-band"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.desc.out-of-band">.sol.mech.desc.out-of-band:</a> In un-tagged architectures, it may be
+necessary to store the header and footer out-of-band to distinguish
+them from client data. Out-of-band storage can improve locality and
+reliability. Any of the free-list structures can also be used to
+describe allocated blocks out-of-band.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.desc.crossing-map"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.desc.crossing-map">.sol.mech.desc.crossing-map:</a> An alternative for untagged
+architectures is to store a &#8220;crossing map&#8221; which records an encoding
+of the start of objects and then store the descriptive information
+in-band.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate">.sol.mech.allocate:</a> Mechanisms that can be used to allocate blocks
+(these typically sit on top of a more general free-list manager).</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate.lookup-table"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate.lookup-table">.sol.mech.allocate.lookup-table:</a> Use a table of popular sizes to
+cache free blocks of those sizes.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate.buffer"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate.buffer">.sol.mech.allocate.buffer:</a> Allocate from contiguous blocks using
+compare and increment.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate.optimize-small"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate.optimize-small">.sol.mech.allocate.optimize-small:</a> Use a combination of techniques
+to ensure the time spent managing a block is small relative to the
+block&#8217;s lifetime; assume small blocks typically have short lifetimes.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate.optimize-new"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate.optimize-new">.sol.mech.allocate.optimize-new:</a> When &#8220;virgin&#8221; memory is acquired
+from the operating system to satisfy a request, try to preserve it
+(that is, use only what is necessary).</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.allocate.segregate.size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.allocate.segregate.size">.sol.mech.allocate.segregate.size:</a> Use size as a substitute for
+type.</p>
+<p><span class="target" id="design.mps.poolmvt.sol.mech.reallocate"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.sol.mech.reallocate">.sol.mech.reallocate:</a> use <a class="reference internal" href="#design.mps.poolmvt.req.fun.suballocate">.req.fun.suballocate</a> to return unused
+memory when a block shrinks, but differentiate this from an erroneous
+overlapping free by using separate interfaces.</p>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>The implementation consists of the following separable modules:</p>
+<div class="section" id="coalescing-block-structure">
+<h3>Coalescing Block Structure<a class="headerlink" href="#coalescing-block-structure" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.impl.c.cbs"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.cbs">.impl.c.cbs:</a> The initial implementation will use
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.free-list.splay-tree">.sol.mech.free-list.splay-tree</a> and
+<a class="reference internal" href="#design.mps.poolmvt.sol.mech.storage.out-of-band">.sol.mech.storage.out-of-band</a>. For locality, this storage should be
+managed as a linked free list of splay nodes suballocated from blocks
+acquired from a pool shared by all CBS&#8217;s. Must support creation and
+destruction of an empty tree. Must support search, insert and delete
+by key of type Addr. Must support finding left and right neighbors of
+a failed search for a key. Must support iterating over the elements of
+the tree with reasonable efficiency. Must support storing and
+retrieving a value of type Size associated with the key. Standard
+checking and description should be provided. See design.mps.splay(0)
+and design.mps.cbs(0).</p>
+</div>
+<div class="section" id="fail-over-to-address-ordered-free-list">
+<h3>Fail-over to address-ordered free list<a class="headerlink" href="#fail-over-to-address-ordered-free-list" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.impl.c.freelist"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.freelist">.impl.c.freelist:</a> Because the CBS uses out-of-band storage, it may
+be unable to handle insert (design.mps.cbs.function.cbs.insert.fail)
+and delete (design.mps.cbs.function.cbs.delete.fail) operations. When
+this happen MVT fails over to an address-ordered singly linked free
+list. This uses in-band storage and so cannot run out of memory, but
+it has much worse performance than the CBS. Therefore MVT eagerly
+attempts to flush blocks from the free list back to the CBS. See
+design.mps.freelist for the design and implementation of the free
+list.</p>
+</div>
+<div class="section" id="available-block-queue">
+<h3>Available Block Queue<a class="headerlink" href="#available-block-queue" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.impl.c.abq"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.abq">.impl.c.abq:</a> The initial implementation will be a queue of fixed
+size (determined at pool creation time from the high water mark). Must
+support creation and destruction of an empty queue. Must support
+insertion at the head or tail of the queue (failing if full), peeking
+at the head of the queue, and removal of the head (failing if empty)
+or any element of the queue (found by a search). Standard checking and
+description should be provided. See design.mps.abq.</p>
+</div>
+<div class="section" id="pool-implementation">
+<h3>Pool implementation<a class="headerlink" href="#pool-implementation" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.impl.c"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c">.impl.c:</a> The initial implementation will use the above modules to
+implement a buffered pool. Must support creation and destruction of
+the pool. Creation takes parameters: minimum size, mean size, maximum
+size, reserve depth and fragmentation limit. Minimum, mean, and
+maximum size are used to calculate the internal fill and reuse sizes.
+Reserve depth and mean size are used to calculate the ABQ high water
+mark. Fragmentation limit is used to set the contingency mode. Must
+support buffer initialization, filling and emptying. Must support
+freeing. Standard checking and description should be provided.
+[Eventually, it should support scanning, so it can be used with
+collected pools, but no manual pool currently does.]</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.future"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.future">.impl.c.future:</a> The implementation should not preclude &#8220;buffered
+free&#8221; (mail.ptw.1997-12-05.19-07(0), ff.) being added in the future.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.parameters"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.parameters">.impl.c.parameters:</a> The pool parameters are calculated as follows
+from the input parameters: minimum, mean, and maximum size are taked
+directly from the parameters.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.parameter.fill-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.parameter.fill-size">.impl.c.parameter.fill-size:</a> The fill size is set to the maximum
+size times the reciprocal of the fragmentation limit, aligned to the
+arena alignment.</p>
+<p><span class="target" id="design.mps.poolmvt.imple.c.parameter.reuse-size"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.imple.c.parameter.reuse-size">.imple.c.parameter.reuse-size:</a> The reuse size is set to twice the
+fill size (see <a class="reference internal" href="#design.mps.poolmvt.arch.abq.return.segment">.arch.abq.return.segment</a>,
+<a class="reference internal" href="#design.mps.poolmvt.impl.c.free.merge.segment">.impl.c.free.merge.segment</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.parameter.abq-limit"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.parameter.abq-limit">.impl.c.parameter.abq-limit:</a> The ABQ high-water limit is set to the
+reserve depth times the mean size (that is, the queue should hold as
+many reuse blocks as would take to cover the population hysteresis if
+the population consisted solely of mean-sized blocks, see
+<a class="reference internal" href="#design.mps.poolmvt.arch.abq.high-water">.arch.abq.high-water</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.parameter.avail-limit"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.parameter.avail-limit">.impl.c.parameter.avail-limit:</a> The free block high-water limit is
+implemented by comparing the available free space to an &#8220;available
+limit&#8221;. The available limit is updated each time a segment is
+allocated from or returned to the arena by setting it to the total
+size of the pool times the fragmentation limit divide vy 100 (see
+<a class="reference internal" href="#design.mps.poolmvt.arch.contingency.fallback">.arch.contingency.fallback</a>).</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.ap.fill"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.ap.fill">.impl.c.ap.fill:</a> An AP fill request will be handled as follows:</p>
+<ul class="simple">
+<li>If the request is larger than fill size, attempt to request a
+segment from the arena sufficient to satisfy the request.</li>
+<li>Use any previously returned splinter (from <a class="reference internal" href="#design.mps.poolmvt.impl.c.ap.empty">.impl.c.ap.empty</a>), if
+large enough.</li>
+<li>Attempt to retrieve a free block from the head of the ABQ (removing
+it from ABQ and the free block managers if found).</li>
+<li>If above fragmentation limit, attempt to find a block in the free
+block managers, using oldest-fit search.</li>
+<li>Attempt to request a segment of fill size from the arena.</li>
+<li>Attempt to find a block in the free block managers, using oldest-fit
+search.</li>
+<li>Otherwise, fail.</li>
+</ul>
+<p><span class="target" id="design.mps.poolmvt.impl.c.ap.empty"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.ap.empty">.impl.c.ap.empty:</a> An AP empty request will be handled as follows:</p>
+<ul class="simple">
+<li>If remaining free is less than min size, return it to the free block
+managers.</li>
+<li>If the remaining free is larger than any previous splinter, return
+that splinter to the free block managers and save this one for use
+by a subsequent fill.</li>
+<li>Otherwise return the remaining block to the free block managers.</li>
+</ul>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free">.impl.c.free:</a> When blocks are returned to the free block managers
+they may be merged with adjacent blocks. If a merge occurs with a
+block on the ABQ, the ABQ must be adjusted to reflect the merge.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.exception"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.exception">.impl.c.free.exception:</a> Exceptional blocks are returned directly to
+the arena.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge">.impl.c.free.merge:</a> If a merge occurs and the merged block is
+larger than reuse size:</p>
+<ul class="simple">
+<li>If the ABQ is full, remove the block at the head of the ABQ from the
+ABQ and the free block managers and return it to the arena(*).</li>
+<li>Insert the newly merged block at the tail of the ABQ, leaving it in
+the free block managers for further merging.</li>
+</ul>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge.segment"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge.segment">.impl.c.free.merge.segment:</a> (*) Merged blocks may not align with
+arena segments. If necessary, return the interior segments of a block
+to the arena and return the splinters to the free block managers.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge.segment.reuse"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge.segment.reuse">.impl.c.free.merge.segment.reuse:</a> If the reuse size (the size at
+which blocks recycle from the free block managers to the ABQ) is at
+least twice the fill size (the size of segments the pool allocates
+from the arena), we can guarantee that there will always be a
+returnable segment in every ABQ block.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge.segment.overflow"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge.segment.overflow">.impl.c.free.merge.segment.overflow:</a> If the reuse size is set
+smaller (see <a class="reference internal" href="#design.mps.poolmvt.arch.adapt">.arch.adapt</a>), there may not be a returnable segment in
+an ABQ block, in which case the ABQ has &#8220;overflowed&#8221;. Whenever this
+occurs, the ABQ will be refilled by searching the free block managers
+for dropped reusable blocks when needed.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge.segment.risk"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge.segment.risk">.impl.c.free.merge.segment.risk:</a> The current segment structure does
+not really support what we would like to do. Loci should do better:
+support reserving contiguous address space and mapping/unmapping any
+portion of that address space.</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.free.merge.alternative"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.free.merge.alternative">.impl.c.free.merge.alternative:</a> Alternatively, if the MPS segment
+substrate permitted mapping/unmapping of pages, the pool could use
+very large segments and map/unmap pages as needed.</p>
+</div>
+<div class="section" id="ap-dispatch">
+<h3>AP Dispatch<a class="headerlink" href="#ap-dispatch" title="Permalink to this headline">¶</a></h3>
+<p><span class="target" id="design.mps.poolmvt.impl.c.multiap"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.multiap">.impl.c.multiap:</a> The initial implementation will be a glue layer
+that selects among several AP&#8217;s for allocation according to the
+predicted deathtime (as approximated by size) of the requested
+allocation. Each AP will be filled from a pool instance tuned to the
+range of object sizes expected to be allocated from that AP. [For
+bonus points provide an interface that creates a batch of pools and
+AP&#8217;s according to some set of expected object sizes. Eventually expand
+to understand object lifetimes and general lifetime prediction keys.]</p>
+<p><span class="target" id="design.mps.poolmvt.impl.c.multiap.sample-code"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.impl.c.multiap.sample-code">.impl.c.multiap.sample-code:</a> This glue code is not properly part of
+the pool or MPS interface. It is a layer on top of the MPS interface,
+intended as sample code for unsophisticated clients. Sophisticated
+clients will likely want to choose among multiple AP&#8217;s more directly.</p>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p><span class="target" id="design.mps.poolmvt.test.component"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.test.component">.test.component:</a> Components <a class="reference internal" href="#design.mps.poolmvt.impl.c.splay">.impl.c.splay</a>, <a class="reference internal" href="#design.mps.poolmvt.impl.c.cbs">.impl.c.cbs</a>, and
+<a class="reference internal" href="#design.mps.poolmvt.impl.c.abq">.impl.c.abq</a> will be subjected to individual component tests to
+verify their functionality.</p>
+<p><span class="target" id="design.mps.poolmvt.test.regression"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.test.regression">.test.regression:</a> All tests applied to poolmv
+(design.mps.poolmv(0)) and poolepdl (design.mps.poolepdl(0)) will be
+applied to poolmvt to ensure that mvt is at least as functional as the
+pools it is replacing.</p>
+<p><span class="target" id="design.mps.poolmvt.test.qa"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.test.qa">.test.qa:</a> Once poolmvt is integrated into the MPS, the standard MPS
+QA tests will be applied to poolmvt prior to each release.</p>
+<p><span class="target" id="design.mps.poolmvt.test.customer"></span><a class="mpstag reference internal" href="#design.mps.poolmvt.test.customer">.test.customer:</a> Customer acceptance tests will be performed on a
+per-customer basis before release to that customer (cf.
+proc.release.epcore(2).test)</p>
+</div>
+<div class="section" id="text">
+<h2>Text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
+<p>Possible tweaks (from mail.pekka.1998-04-15.13-10(0)):</p>
+<ul class="simple">
+<li>Try to coalesce splinters returned from AP&#8217;s with the front (or any)
+block on the ABQ.</li>
+<li>Sort ABQ in some other way to minimize splitting/splinters. For
+example, proximity to recently allocated blocks.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Manual Variable Temporal (MVT) pool design</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#definitions">Definitions</a></li>
+<li><a class="reference internal" href="#abbreviations">Abbreviations</a></li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#critical-requirements">Critical requirements</a></li>
+<li><a class="reference internal" href="#essential-requirements">Essential requirements</a></li>
+<li><a class="reference internal" href="#nice-requirements">Nice requirements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#architecture">Architecture</a></li>
+<li><a class="reference internal" href="#analysis">Analysis</a></li>
+<li><a class="reference internal" href="#ideas">Ideas</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+<li><a class="reference internal" href="#policy">Policy</a></li>
+<li><a class="reference internal" href="#mechanism">Mechanism</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#coalescing-block-structure">Coalescing Block Structure</a></li>
+<li><a class="reference internal" href="#fail-over-to-address-ordered-free-list">Fail-over to address-ordered free list</a></li>
+<li><a class="reference internal" href="#available-block-queue">Available Block Queue</a></li>
+<li><a class="reference internal" href="#pool-implementation">Pool implementation</a></li>
+<li><a class="reference internal" href="#ap-dispatch">AP Dispatch</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#text">Text</a></li>
+</ul>
+</li>
+</ul>
+<h4>Downloads</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
+<a href="http://www.ravenbrook.com/project/mps/release/">All MPS Kit releases</a>
+</p>
+
+<h4>Issues</h4>
+
+<p class="topless">
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=list&amp;view=status%3dopen&amp;display=Job:Priority:Title&amp;sort=Priority">Known issues</a><br>
+<a href="http://www.ravenbrook.com/project/mps/issue/?action=fixed&release_fixed=1.111.0">Issues fixed in release 1.111.0</a>
+</p><h4>Contact us</h4>
+
+<p class="topless"><a href="mailto:mps-questions@ravenbrook.com">mps-questions@ravenbrook.com</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; <a href="../copyright.html">Copyright</a> 2013, Ravenbrook Limited.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

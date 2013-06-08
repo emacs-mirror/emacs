@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. The critical path through the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>4. The critical path through the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="3. Transliterating the alphabet into hexadecimal" href="guide.hex.trans.html" />
-    <link rel="prev" title="1. MPS Configuration" href="config.html" /> 
+    <link rel="next" title="5. Free list allocator" href="freelist.html" />
+    <link rel="prev" title="3. MPS Configuration" href="config.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="guide.hex.trans.html" title="3. Transliterating the alphabet into hexadecimal"
+          <a href="freelist.html" title="5. Free list allocator"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="config.html" title="1. MPS Configuration"
+          <a href="config.html" title="3. MPS Configuration"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,13 +55,13 @@
           <div class="body">
             
   <span class="target" id="design-critical-path"></span><div class="section" id="the-critical-path-through-the-mps">
-<span id="index-0"></span><h1>2. The critical path through the MPS<a class="headerlink" href="#the-critical-path-through-the-mps" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>4. The critical path through the MPS<a class="headerlink" href="#the-critical-path-through-the-mps" title="Permalink to this headline">¶</a></h1>
 <blockquote>
 <div>single: critical path
 single: path; critical
 single: Memory Pool System; critical path</div></blockquote>
 <div class="section" id="introduction">
-<h2>2.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The critical path is a key concept in the design of the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool
 System</a>.  Code on the critical
 path is usually executed more than any other code in the process.  A
@@ -72,7 +72,7 @@ This document describes the critical path and explains some of that
 design, with reference to more detailed documents.</p>
 </div>
 <div class="section" id="what-makes-the-critical-path-critical">
-<h2>2.2. What makes the critical path critical<a class="headerlink" href="#what-makes-the-critical-path-critical" title="Permalink to this headline">¶</a></h2>
+<h2>4.2. What makes the critical path critical<a class="headerlink" href="#what-makes-the-critical-path-critical" title="Permalink to this headline">¶</a></h2>
 <p>In order to determine which object can be recycled, the garbage
 collector has to frequently examine a very large number of pointers in
 the program&#8217;s objects.  It does this by <a class="reference external" href="http://www.memorymanagement.org/glossary/s.html#scan">scanning</a> memory, both
@@ -90,7 +90,7 @@ the objects in existence.  The path through fixing must also be highly
 optimised, especially in the early stages.</p>
 </div>
 <div class="section" id="how-the-mps-avoids-scanning-and-fixing">
-<h2>2.3. How the MPS avoids scanning and fixing<a class="headerlink" href="#how-the-mps-avoids-scanning-and-fixing" title="Permalink to this headline">¶</a></h2>
+<h2>4.3. How the MPS avoids scanning and fixing<a class="headerlink" href="#how-the-mps-avoids-scanning-and-fixing" title="Permalink to this headline">¶</a></h2>
 <p>This is just a brief overview of how the MPS is designed to reduce
 unnecessary scanning and fixing.</p>
 <p>Firstly, the MPS must occasionally decide which objects to try to
@@ -133,7 +133,7 @@ their objects even once, but many other programs will preserve nearly
 all of theirs many times.)</p>
 </div>
 <div class="section" id="where-to-find-the-critical-path">
-<h2>2.4. Where to find the critical path<a class="headerlink" href="#where-to-find-the-critical-path" title="Permalink to this headline">¶</a></h2>
+<h2>4.4. Where to find the critical path<a class="headerlink" href="#where-to-find-the-critical-path" title="Permalink to this headline">¶</a></h2>
 <p>Very briefly, the critical path consists of five stages:</p>
 <ol class="arabic">
 <li><p class="first">The scanner, which iterates over pointers in objects.  The MPS has
@@ -174,7 +174,7 @@ contains pointers.</li>
 </ol>
 </div>
 <div class="section" id="the-format-scanner">
-<h2>2.5. The format scanner<a class="headerlink" href="#the-format-scanner" title="Permalink to this headline">¶</a></h2>
+<h2>4.5. The format scanner<a class="headerlink" href="#the-format-scanner" title="Permalink to this headline">¶</a></h2>
 <p>The critical path starts when a format scan method is called.  That is a
 call from the MPS to a client function of type <a class="reference internal" href="../topic/format.html#mps_fmt_scan_t" title="mps_fmt_scan_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_fmt_scan_t</span></tt></a>
 registered with one of the <tt class="xref c c-func docutils literal"><span class="pre">mps_format_create()</span></tt> functions in <a class="reference external" href="../code/mps.h">mps.h</a>.</p>
@@ -245,7 +245,7 @@ about inlining parts of <tt class="docutils literal"><span class="pre">_mps_fix2
 instructions for doing this are in <a class="reference external" href="../manual/build.txt">Building the Memory Pool System</a>, part of the manual.</p>
 </div>
 <div class="section" id="the-second-stage-fix-in-the-mpm">
-<h2>2.6. The second stage fix in the MPM<a class="headerlink" href="#the-second-stage-fix-in-the-mpm" title="Permalink to this headline">¶</a></h2>
+<h2>4.6. The second stage fix in the MPM<a class="headerlink" href="#the-second-stage-fix-in-the-mpm" title="Permalink to this headline">¶</a></h2>
 <p>If a pointer gets past the first-stage fix filters, it is passed to
 <tt class="docutils literal"><span class="pre">_mps_fix2</span></tt>, the &#8220;second stage fix&#8221;.  The second stage can filter out
 yet more pointers using information about segments before it has to
@@ -290,7 +290,7 @@ exploited to optimize fixing in the AMC Pool depending on what kind of
 object format it is managing.</p>
 </div>
 <div class="section" id="the-third-stage-fix-in-the-pool-class">
-<h2>2.7. The third stage fix in the pool class<a class="headerlink" href="#the-third-stage-fix-in-the-pool-class" title="Permalink to this headline">¶</a></h2>
+<h2>4.7. The third stage fix in the pool class<a class="headerlink" href="#the-third-stage-fix-in-the-pool-class" title="Permalink to this headline">¶</a></h2>
 <p>The final stage of fixing is entirely dependent on the pool class.  The
 MPM can&#8217;t, in general, know how the objects within a pool are arranged,
 so this is pool class specific code.</p>
@@ -328,7 +328,7 @@ recycling when <cite>LOReclaim</cite> is called later on. <cite>LOFix</cite> ill
 about the minimum and most efficient thing a pool fix method can do.</p>
 </div>
 <div class="section" id="other-considerations">
-<h2>2.8. Other considerations<a class="headerlink" href="#other-considerations" title="Permalink to this headline">¶</a></h2>
+<h2>4.8. Other considerations<a class="headerlink" href="#other-considerations" title="Permalink to this headline">¶</a></h2>
 <p>So far this document has described the ways in which the garbage
 collector is designed around optimising the critical path.  There are a
 few other things that the MPS does that are important.</p>
@@ -349,7 +349,7 @@ review around the critical path is especially vigilant.</p>
 <p>And we write long documents about it.</p>
 </div>
 <div class="section" id="references">
-<h2>2.9. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>4.9. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="mmref" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -370,26 +370,26 @@ review around the critical path is especially vigilant.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">2. The critical path through the MPS</a><ul>
-<li><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
-<li><a class="reference internal" href="#what-makes-the-critical-path-critical">2.2. What makes the critical path critical</a></li>
-<li><a class="reference internal" href="#how-the-mps-avoids-scanning-and-fixing">2.3. How the MPS avoids scanning and fixing</a></li>
-<li><a class="reference internal" href="#where-to-find-the-critical-path">2.4. Where to find the critical path</a></li>
-<li><a class="reference internal" href="#the-format-scanner">2.5. The format scanner</a></li>
-<li><a class="reference internal" href="#the-second-stage-fix-in-the-mpm">2.6. The second stage fix in the MPM</a></li>
-<li><a class="reference internal" href="#the-third-stage-fix-in-the-pool-class">2.7. The third stage fix in the pool class</a></li>
-<li><a class="reference internal" href="#other-considerations">2.8. Other considerations</a></li>
-<li><a class="reference internal" href="#references">2.9. References</a></li>
+<li><a class="reference internal" href="#">4. The critical path through the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">4.1. Introduction</a></li>
+<li><a class="reference internal" href="#what-makes-the-critical-path-critical">4.2. What makes the critical path critical</a></li>
+<li><a class="reference internal" href="#how-the-mps-avoids-scanning-and-fixing">4.3. How the MPS avoids scanning and fixing</a></li>
+<li><a class="reference internal" href="#where-to-find-the-critical-path">4.4. Where to find the critical path</a></li>
+<li><a class="reference internal" href="#the-format-scanner">4.5. The format scanner</a></li>
+<li><a class="reference internal" href="#the-second-stage-fix-in-the-mpm">4.6. The second stage fix in the MPM</a></li>
+<li><a class="reference internal" href="#the-third-stage-fix-in-the-pool-class">4.7. The third stage fix in the pool class</a></li>
+<li><a class="reference internal" href="#other-considerations">4.8. Other considerations</a></li>
+<li><a class="reference internal" href="#references">4.9. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="config.html"
-                        title="previous chapter">1. MPS Configuration</a></p>
+                        title="previous chapter">3. MPS Configuration</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="guide.hex.trans.html"
-                        title="next chapter">3. Transliterating the alphabet into hexadecimal</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="freelist.html"
+                        title="next chapter">5. Free list allocator</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -415,10 +415,10 @@ review around the critical path is especially vigilant.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="guide.hex.trans.html" title="3. Transliterating the alphabet into hexadecimal"
+          <a href="freelist.html" title="5. Free list allocator"
              >next</a> |</li>
         <li class="right" >
-          <a href="config.html" title="1. MPS Configuration"
+          <a href="config.html" title="3. MPS Configuration"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

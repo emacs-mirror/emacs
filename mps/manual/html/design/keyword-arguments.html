@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>5. Keyword arguments in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>8. Keyword arguments in the MPS &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="6. Ring data structure" href="ring.html" />
-    <link rel="prev" title="4. C Style – formatting" href="guide.impl.c.format.html" /> 
+    <link rel="next" title="9. Ranges" href="range.html" />
+    <link rel="prev" title="7. C Style – formatting" href="guide.impl.c.format.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="ring.html" title="6. Ring data structure"
+          <a href="range.html" title="9. Ranges"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="guide.impl.c.format.html" title="4. C Style – formatting"
+          <a href="guide.impl.c.format.html" title="7. C Style – formatting"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,9 +55,9 @@
           <div class="body">
             
   <span class="target" id="design-keyword-arguments"></span><div class="section" id="keyword-arguments-in-the-mps">
-<span id="index-0"></span><h1>5. Keyword arguments in the MPS<a class="headerlink" href="#keyword-arguments-in-the-mps" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>8. Keyword arguments in the MPS<a class="headerlink" href="#keyword-arguments-in-the-mps" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<h2>5.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>8.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Up to version 1.111, the <a class="reference external" href="http://www.ravenbrook.com/project/mps/">Memory Pool System</a> used varags to pass arguments
 to arena and pool classes, because the general MPS interface can&#8217;t
 specify what arguments those classes might need in C prototypes. This
@@ -67,7 +67,7 @@ parameters.</p>
 <p>Starting with version 1.112, the MPS uses an idiom for keyword arguments.</p>
 </div>
 <div class="section" id="overview">
-<h2>5.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>8.2. Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The basic design is not specific to the MPS.  The keyword argument list is
 passed as an array of argument structures which look like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_key_s</span> <span class="o">*</span><span class="kt">mps_key_t</span><span class="p">;</span>
@@ -120,7 +120,7 @@ past MPS checking.</li>
 </ul>
 </div>
 <div class="section" id="internals">
-<h2>5.3. Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h2>
+<h2>8.3. Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h2>
 <p>Internally, keys are static constant structures which are signed and contain
 a checking method for the argument, like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_arg_s</span> <span class="o">*</span><span class="n">Arg</span><span class="p">;</span>
@@ -156,7 +156,7 @@ it, but instead uses the macro.  This gives us adaptability to change the
 design and replace keys with, say, magic numbers.</p>
 </div>
 <div class="section" id="the-varargs-legacy">
-<h2>5.4. The varargs legacy<a class="headerlink" href="#the-varargs-legacy" title="Permalink to this headline">¶</a></h2>
+<h2>8.4. The varargs legacy<a class="headerlink" href="#the-varargs-legacy" title="Permalink to this headline">¶</a></h2>
 <p>For backward compatibility, varargs to arena and pool creation are
 converted into keyword arguments by position, using a method in the
 arena or pool class. For example:</p>
@@ -179,7 +179,7 @@ handle keyword arguments only.</p>
 methods can be deleted at some point in the future.</p>
 </div>
 <div class="section" id="references">
-<h2>5.5. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>8.5. References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="rb-2012-05-24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -200,22 +200,22 @@ methods can be deleted at some point in the future.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">5. Keyword arguments in the MPS</a><ul>
-<li><a class="reference internal" href="#introduction">5.1. Introduction</a></li>
-<li><a class="reference internal" href="#overview">5.2. Overview</a></li>
-<li><a class="reference internal" href="#internals">5.3. Internals</a></li>
-<li><a class="reference internal" href="#the-varargs-legacy">5.4. The varargs legacy</a></li>
-<li><a class="reference internal" href="#references">5.5. References</a></li>
+<li><a class="reference internal" href="#">8. Keyword arguments in the MPS</a><ul>
+<li><a class="reference internal" href="#introduction">8.1. Introduction</a></li>
+<li><a class="reference internal" href="#overview">8.2. Overview</a></li>
+<li><a class="reference internal" href="#internals">8.3. Internals</a></li>
+<li><a class="reference internal" href="#the-varargs-legacy">8.4. The varargs legacy</a></li>
+<li><a class="reference internal" href="#references">8.5. References</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="guide.impl.c.format.html"
-                        title="previous chapter">4. C Style &#8211; formatting</a></p>
+                        title="previous chapter">7. C Style &#8211; formatting</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="ring.html"
-                        title="next chapter">6. Ring data structure</a></p><h4>Downloads</h4>
+  <p class="topless"><a href="range.html"
+                        title="next chapter">9. Ranges</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -241,10 +241,10 @@ methods can be deleted at some point in the future.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="ring.html" title="6. Ring data structure"
+          <a href="range.html" title="9. Ranges"
              >next</a> |</li>
         <li class="right" >
-          <a href="guide.impl.c.format.html" title="4. C Style – formatting"
+          <a href="guide.impl.c.format.html" title="7. C Style – formatting"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

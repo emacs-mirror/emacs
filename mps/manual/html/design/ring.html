@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>6. Ring data structure &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>10. Ring data structure &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="7. Signatures in the MPS" href="sig.html" />
-    <link rel="prev" title="5. Keyword arguments in the MPS" href="keyword-arguments.html" /> 
+    <link rel="next" title="11. Signatures in the MPS" href="sig.html" />
+    <link rel="prev" title="9. Ranges" href="range.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="sig.html" title="7. Signatures in the MPS"
+          <a href="sig.html" title="11. Signatures in the MPS"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="keyword-arguments.html" title="5. Keyword arguments in the MPS"
+          <a href="range.html" title="9. Ranges"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,14 +55,14 @@
           <div class="body">
             
   <span class="target" id="design-ring"></span><div class="section" id="ring-data-structure">
-<span id="index-0"></span><h1>6. Ring data structure<a class="headerlink" href="#ring-data-structure" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>10. Ring data structure<a class="headerlink" href="#ring-data-structure" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="design.mps.ring"></span><h2>6.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="design.mps.ring"></span><h2>10.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.ring.source"></span><a class="mpstag reference internal" href="#design.mps.ring.source">.source:</a> rings are derived from the earlier use of Deques. See
 design.mps.deque.</p>
 </div>
 <div class="section" id="description">
-<h2>6.2. Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<h2>10.2. Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <dl class="type">
 <dt id="Ring">
 RingStruct *<tt class="descname">Ring</tt><a class="headerlink" href="#Ring" title="Permalink to this definition">¶</a></dt>
@@ -102,7 +102,7 @@ whose previous and next nodes are itself (see <a class="reference internal" href
 <p>[missing figure]</p>
 </div>
 <div class="section" id="init-finish">
-<h2>6.3. Init / Finish<a class="headerlink" href="#init-finish" title="Permalink to this headline">¶</a></h2>
+<h2>10.3. Init / Finish<a class="headerlink" href="#init-finish" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="RingInit">
 void <tt class="descname">RingInit</tt><big>(</big><a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;ring</em><big>)</big><a class="headerlink" href="#RingInit" title="Permalink to this definition">¶</a></dt>
@@ -120,7 +120,7 @@ ring must be a singleton ring before it can be finished (it is an
 error to attempt to finish a non-singleton ring).</p>
 </div>
 <div class="section" id="iteration">
-<h2>6.4. Iteration<a class="headerlink" href="#iteration" title="Permalink to this headline">¶</a></h2>
+<h2>10.4. Iteration<a class="headerlink" href="#iteration" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="RING_FOR">
 <tt class="descname">RING_FOR</tt><big>(</big><a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;node</em>, <a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;ring</em>, <a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;next</em><big>)</big><a class="headerlink" href="#RING_FOR" title="Permalink to this definition">¶</a></dt>
@@ -155,7 +155,7 @@ iteration.</p>
 almost universal when using <a class="reference internal" href="#RING_FOR" title="RING_FOR"><tt class="xref c c-func docutils literal"><span class="pre">RING_FOR()</span></tt></a>.</p>
 </div>
 <div class="section" id="subclass">
-<h2>6.5. Subclass<a class="headerlink" href="#subclass" title="Permalink to this headline">¶</a></h2>
+<h2>10.5. Subclass<a class="headerlink" href="#subclass" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="RING_ELT">
 <tt class="descname">RING_ELT</tt><big>(</big>type, field, <a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;node</em><big>)</big><a class="headerlink" href="#RING_ELT" title="Permalink to this definition">¶</a></dt>
@@ -173,7 +173,7 @@ result is a pointer to the enclosing structure.</p>
 </div>
 </div>
 <div class="section" id="append-remove">
-<h2>6.6. Append / Remove<a class="headerlink" href="#append-remove" title="Permalink to this headline">¶</a></h2>
+<h2>10.6. Append / Remove<a class="headerlink" href="#append-remove" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="RingAppend">
 void <tt class="descname">RingAppend</tt><big>(</big><a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;ring</em>, <a class="reference internal" href="#Ring" title="Ring">Ring</a><em>&nbsp;new</em><big>)</big><a class="headerlink" href="#RingAppend" title="Permalink to this definition">¶</a></dt>
@@ -200,7 +200,7 @@ element to already be a singleton.</p>
 that joined two rings. This is not done as it is not required.</p>
 </div>
 <div class="section" id="naming">
-<h2>6.7. Naming<a class="headerlink" href="#naming" title="Permalink to this headline">¶</a></h2>
+<h2>10.7. Naming<a class="headerlink" href="#naming" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.ring.naming"></span><a class="mpstag reference internal" href="#design.mps.ring.naming">.naming:</a> By convention, when one structure <tt class="docutils literal"><span class="pre">Foo</span></tt> contains one
 ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> structures, the field in <tt class="docutils literal"><span class="pre">Foo</span></tt> is usually known as
 <tt class="docutils literal"><span class="pre">barRing</span></tt>, and the field in <tt class="docutils literal"><span class="pre">Bar</span></tt> is known as <tt class="docutils literal"><span class="pre">fooRing</span></tt>. If the
@@ -208,14 +208,14 @@ ring of <tt class="docutils literal"><span class="pre">Bar</span></tt> structure
 then they will have names such as <tt class="docutils literal"><span class="pre">spongRing</span></tt> and <tt class="docutils literal"><span class="pre">frobRing</span></tt>.</p>
 </div>
 <div class="section" id="deques">
-<h2>6.8. Deques<a class="headerlink" href="#deques" title="Permalink to this headline">¶</a></h2>
+<h2>10.8. Deques<a class="headerlink" href="#deques" title="Permalink to this headline">¶</a></h2>
 <p>This section documents where rings differ significantly from deques.</p>
 <p><span class="target" id="design.mps.ring.head"></span><a class="mpstag reference internal" href="#design.mps.ring.head">.head:</a> Deques used a distinguished head structure for the head of
 the ring. Rings still have a separate head structure, but it is not
 distinguished by type.</p>
 </div>
 <div class="section" id="defects">
-<h2>6.9. Defects<a class="headerlink" href="#defects" title="Permalink to this headline">¶</a></h2>
+<h2>10.9. Defects<a class="headerlink" href="#defects" title="Permalink to this headline">¶</a></h2>
 <p>This section documents known defects with the current design.</p>
 <p><span class="target" id="design.mps.ring.app_for.misuse"></span><a class="mpstag reference internal" href="#design.mps.ring.app_for.misuse">.app_for.misuse:</a> It is easy to pass <a class="reference internal" href="#RingAppend" title="RingAppend"><tt class="xref c c-func docutils literal"><span class="pre">RingAppend()</span></tt></a> and
 <a class="reference internal" href="#RING_FOR" title="RING_FOR"><tt class="xref c c-func docutils literal"><span class="pre">RING_FOR()</span></tt></a> the arguments in the wrong order as all the arguments
@@ -236,26 +236,26 @@ check. This could be added.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">6. Ring data structure</a><ul>
-<li><a class="reference internal" href="#introduction">6.1. Introduction</a></li>
-<li><a class="reference internal" href="#description">6.2. Description</a></li>
-<li><a class="reference internal" href="#init-finish">6.3. Init / Finish</a></li>
-<li><a class="reference internal" href="#iteration">6.4. Iteration</a></li>
-<li><a class="reference internal" href="#subclass">6.5. Subclass</a></li>
-<li><a class="reference internal" href="#append-remove">6.6. Append / Remove</a></li>
-<li><a class="reference internal" href="#naming">6.7. Naming</a></li>
-<li><a class="reference internal" href="#deques">6.8. Deques</a></li>
-<li><a class="reference internal" href="#defects">6.9. Defects</a></li>
+<li><a class="reference internal" href="#">10. Ring data structure</a><ul>
+<li><a class="reference internal" href="#introduction">10.1. Introduction</a></li>
+<li><a class="reference internal" href="#description">10.2. Description</a></li>
+<li><a class="reference internal" href="#init-finish">10.3. Init / Finish</a></li>
+<li><a class="reference internal" href="#iteration">10.4. Iteration</a></li>
+<li><a class="reference internal" href="#subclass">10.5. Subclass</a></li>
+<li><a class="reference internal" href="#append-remove">10.6. Append / Remove</a></li>
+<li><a class="reference internal" href="#naming">10.7. Naming</a></li>
+<li><a class="reference internal" href="#deques">10.8. Deques</a></li>
+<li><a class="reference internal" href="#defects">10.9. Defects</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="keyword-arguments.html"
-                        title="previous chapter">5. Keyword arguments in the MPS</a></p>
+  <p class="topless"><a href="range.html"
+                        title="previous chapter">9. Ranges</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="sig.html"
-                        title="next chapter">7. Signatures in the MPS</a></p><h4>Downloads</h4>
+                        title="next chapter">11. Signatures in the MPS</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -281,10 +281,10 @@ check. This could be added.</p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="sig.html" title="7. Signatures in the MPS"
+          <a href="sig.html" title="11. Signatures in the MPS"
              >next</a> |</li>
         <li class="right" >
-          <a href="keyword-arguments.html" title="5. Keyword arguments in the MPS"
+          <a href="range.html" title="9. Ranges"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

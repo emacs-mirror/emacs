@@ -1,0 +1,106 @@
+.. _design-abq:
+
+
+Queue design
+============
+
+.. mps:prefix:: design.mps.abq
+
+
+Introduction
+------------
+
+:mps:tag:`intro` This is the design of the ABQ module, which implements a
+fixed-length queue of small objects.
+
+:mps:tag:`readership` This document is intended for any MM developer.
+
+:mps:tag:`name` The name ABQ originally stood for "Available Block Queue" as
+the module is used by the MVT pool.
+
+
+Requirements
+------------
+
+:mps:tag:`req.push` Clients can efficiently push new elements onto the queue.
+
+:mps:tag:`req.pop` Clients can efficiently pop elements from the queue.
+
+:mps:tag:`req.empty` Clients can efficiently test whether the queue is empty.
+
+:mps:tag:`req.abstract` The ABQ module does not know anything about the
+elements in the queue other than their size.
+
+:mps:tag:`req.delete` Clients can delete elements from the queue. (Note: not necessarily efficiently.)
+
+:mps:tag:`req.iterate` Clients can iterate over elements in the queue.
+
+
+Interface
+---------
+
+.. c:type:: ABQStruct *ABQ
+
+:c:macro:`ABQ` is the type of a queue. It is an alias for ``ABQStruct *``.
+:c:type:`ABQStruct` is defined in the header so that it can be inlined in
+client structures: clients must not depend on its implementation
+details.
+
+.. c:function:: ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
+
+Initialize the queue ``abq``. The parameter ``arena`` is the arena
+whose control pool should be used to allocate the memory for the
+queue; ``owner`` is passed to :c:func:`MeterInit()` for the statistics;
+``elements`` is the maximum number of elements that can be stored in
+the queue; and ``elementSize`` is the size of each element.
+
+.. c:function:: void ABQFinish(Arena arena, ABQ abq)
+
+Finish ``abq`` and free all resources associated with it.
+
+.. c:function:: Res ABQPush(ABQ abq, void *element)
+
+If the queue is full, leave it unchanged and return ``ResFAIL``.
+Otherwise, push ``element`` on to the queue and return ``ResOK``.
+
+.. c:function:: Res ABQPop(ABQ abq, void *elementReturn)
+
+If the queue is empty, return ``ResFAIL``. Othwreise, copy the first
+element on the queue into the memory pointed to by ``elementReturn``,
+remove the element from the queue, and return ``ResOK``.
+
+.. c:function:: Res ABQPeek(ABQ abq, void *elementReturn)
+
+If the queue is empty, return ``ResFAIL``. Otherwise, copy the first
+element on the queue into the memory pointed to by ``elementReturn``
+and return ``ResOK``. (This is the same as :c:func:`ABQPop()` except that
+the queue is unchanged.)
+
+.. c:function:: Bool ABQIsEmpty(ABQ abq)
+
+If the queue is empty, return :c:macro:`TRUE`, otherwise return :c:macro:`FALSE`.
+
+.. c:function:: Bool ABQIsFull(ABQ abq)
+
+If the queue is full, return :c:macro:`TRUE`, otherwise return :c:macro:`FALSE`.
+
+.. c:function:: Count ABQDepth(ABQ abq)
+
+Return the number of elements in the queue.
+
+.. c:type:: Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS)
+
+A callback function for :c:func:`ABQIterate()`. The parameter ``element`` is
+an element in the queue, and ``closureP`` and ``closureS`` are the
+values that were originally passed to :c:func:`ABQIterate()`. This function
+must set ``*deleteReturn`` to :c:macro:`FALSE` if ``element`` must be kept in
+the queue, or :c:macro:`TRUE` if ``element`` must be deleted from the queue.
+It must return :c:macro:`TRUE` if the iteration must continue, or :c:macro:`FALSE`
+if the iteration must stop after processing ``element``.
+
+.. c:function:: void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)
+
+Call ``iterate`` for each elements in the queue, passing the element
+and ``closureP``. See :c:type:`ABQIterateMethod` for details.
+
+

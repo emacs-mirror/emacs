@@ -159,9 +159,10 @@ the pool class, to be used in pool creation.</p>
 <div class="section" id="implementation">
 <h2>27.5. Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="design.mps.poolmvff.impl.free-list"></span><a class="mpstag reference internal" href="#design.mps.poolmvff.impl.free-list">.impl.free-list:</a> The pool stores its free list in a CBS (see
-<a class="reference external" href="cbs/">design.mps.cbs</a>). It uses the CBS&#8217;s mayUseInline facility to
-avoid running out of memory to store the free list. This is the reason
-for the alignment restriction above.</p>
+//gdr-peewit/info.ravenbrook.com/project/mps/branch/2013-05-17/emergency/design/poolmvff.txt
+<a class="reference external" href="cbs/">design.mps.cbs</a>), failing over in emergencies to a Freelist
+(see design.mps.freelist) when the CBS cannot allocate new control
+structures. This is the reason for the alignment restriction above.</p>
 </div>
 <div class="section" id="details">
 <h2>27.6. Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>

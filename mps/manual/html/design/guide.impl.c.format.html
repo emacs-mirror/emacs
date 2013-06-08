@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>4. C Style – formatting &mdash; Memory Pool System 1.111.0 documentation</title>
+    <title>7. C Style – formatting &mdash; Memory Pool System 1.111.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/mps.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <link rel="copyright" title="Copyright" href="../copyright.html" />
     <link rel="top" title="Memory Pool System 1.111.0 documentation" href="../index.html" />
     <link rel="up" title="Design" href="index.html" />
-    <link rel="next" title="5. Keyword arguments in the MPS" href="keyword-arguments.html" />
-    <link rel="prev" title="3. Transliterating the alphabet into hexadecimal" href="guide.hex.trans.html" /> 
+    <link rel="next" title="8. Keyword arguments in the MPS" href="keyword-arguments.html" />
+    <link rel="prev" title="6. Transliterating the alphabet into hexadecimal" href="guide.hex.trans.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="keyword-arguments.html" title="5. Keyword arguments in the MPS"
+          <a href="keyword-arguments.html" title="8. Keyword arguments in the MPS"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="guide.hex.trans.html" title="3. Transliterating the alphabet into hexadecimal"
+          <a href="guide.hex.trans.html" title="6. Transliterating the alphabet into hexadecimal"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Design</a> &raquo;</li> 
@@ -55,18 +55,18 @@
           <div class="body">
             
   <span class="target" id="design-guide-impl-c-format"></span><div class="section" id="c-style-formatting">
-<span id="index-0"></span><h1>4. C Style &#8211; formatting<a class="headerlink" href="#c-style-formatting" title="Permalink to this headline">¶</a></h1>
+<span id="index-0"></span><h1>7. C Style &#8211; formatting<a class="headerlink" href="#c-style-formatting" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
-<span id="guide.impl.c.format"></span><h2>4.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="guide.impl.c.format"></span><h2>7.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><span class="target" id="guide.impl.c.format.scope"></span><a class="mpstag reference internal" href="#guide.impl.c.format.scope">.scope:</a> This document describes the Ravenbrook conventions for the
 general format of C source code in the MPS.</p>
 <p><span class="target" id="guide.impl.c.format.readership"></span><a class="mpstag reference internal" href="#guide.impl.c.format.readership">.readership:</a> This document is intended for anyone working on or with the
 C source code.</p>
 </div>
 <div class="section" id="general-formatting-conventions">
-<h2>4.2. General Formatting Conventions<a class="headerlink" href="#general-formatting-conventions" title="Permalink to this headline">¶</a></h2>
+<h2>7.2. General Formatting Conventions<a class="headerlink" href="#general-formatting-conventions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="line-width">
-<h3>4.2.1. Line Width<a class="headerlink" href="#line-width" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.1. Line Width<a class="headerlink" href="#line-width" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.width"></span><a class="mpstag reference internal" href="#guide.impl.c.format.width">.width:</a> Lines should be no wider than 72 characters. <span class="target" id="guide.impl.c.format.width.why"></span><a class="mpstag reference internal" href="#guide.impl.c.format.width.why">.width.why:</a> Many
 people use 80 column terminal windows so that multiple windows can be
 placed side by side. Restricting lines to 72 characters allows line
@@ -74,7 +74,7 @@ numbering to be used (in vi for example) and also allows diffs to be
 displayed without overflowing the terminal.</p>
 </div>
 <div class="section" id="white-space">
-<h3>4.2.2. White Space<a class="headerlink" href="#white-space" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.2. White Space<a class="headerlink" href="#white-space" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.space.notab"></span><a class="mpstag reference internal" href="#guide.impl.c.format.space.notab">.space.notab:</a> No tab characters should appear in the source files.
 Ordinary spaces should be used to indent and format the sources.
 <span class="target" id="guide.impl.c.format.space.notab.why"></span><a class="mpstag reference internal" href="#guide.impl.c.format.space.notab.why">.space.notab.why:</a> Tab characters are displayed differently on different
@@ -96,7 +96,7 @@ distinguish them visually and when searching with tools like grep.</p>
 paren beginning its argument list.</p>
 </div>
 <div class="section" id="sections-and-paragraphs">
-<h3>4.2.3. Sections and Paragraphs<a class="headerlink" href="#sections-and-paragraphs" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.3. Sections and Paragraphs<a class="headerlink" href="#sections-and-paragraphs" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.section"></span><a class="mpstag reference internal" href="#guide.impl.c.format.section">.section:</a> Source files can be thought of as breaking down into
 &#8220;sections&#8221; and &#8220;paragraphs&#8221;. A section might be the leader comment of a
 file, the imports, or a set of declarations which are related.</p>
@@ -112,7 +112,7 @@ a structure, for example).</p>
 <p><span class="target" id="guide.impl.c.format.para.space"></span><a class="mpstag reference internal" href="#guide.impl.c.format.para.space">.para.space:</a> Precede paragraphs by a single blank line.</p>
 </div>
 <div class="section" id="statements">
-<h3>4.2.4. Statements<a class="headerlink" href="#statements" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.4. Statements<a class="headerlink" href="#statements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.statement.one"></span><a class="mpstag reference internal" href="#guide.impl.c.format.statement.one">.statement.one:</a> Generally only have at most one statement per line. In
 particular the following are deprecated:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="n">thing</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
@@ -130,7 +130,7 @@ Annoying because <tt class="docutils literal"><span class="pre">if</span> <span 
 otherwise.</p>
 </div>
 <div class="section" id="indentation">
-<h3>4.2.5. Indentation<a class="headerlink" href="#indentation" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.5. Indentation<a class="headerlink" href="#indentation" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.indent"></span><a class="mpstag reference internal" href="#guide.impl.c.format.indent">.indent:</a> Indent the body of a block by two spaces. For formatting
 purposes, the &#8220;body of a block&#8221; means:</p>
 <ul class="simple">
@@ -221,7 +221,7 @@ two more spaces. The main exceptions are lines starting with a close
 brace, goto-labels, and line-breaks between parentheses.</p>
 </div>
 <div class="section" id="positioning-of-braces">
-<h3>4.2.6. Positioning of Braces<a class="headerlink" href="#positioning-of-braces" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.6. Positioning of Braces<a class="headerlink" href="#positioning-of-braces" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.brace.otb"></span><a class="mpstag reference internal" href="#guide.impl.c.format.brace.otb">.brace.otb:</a> Use the &#8220;One True Brace&#8221; (or OTB) style. This places the
 open brace after the control word or expression, separated by a space,
 and when there is an else, places that after the close brace. For
@@ -256,7 +256,7 @@ this will be a <tt class="docutils literal"><span class="pre">goto</span></tt> o
 paths.</p>
 </div>
 <div class="section" id="switch-statements">
-<h3>4.2.7. Switch Statements<a class="headerlink" href="#switch-statements" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.7. Switch Statements<a class="headerlink" href="#switch-statements" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.switch"></span><a class="mpstag reference internal" href="#guide.impl.c.format.switch">.switch:</a> format switch statements like this:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">switch</span> <span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="p">{</span>
 <span class="k">case</span> <span class="n">WIBBLE</span>:
@@ -295,7 +295,7 @@ even if all it contains is <tt class="xref c c-macro docutils literal"><span cla
 <tt class="xref c c-macro docutils literal"><span class="pre">NOTREACHED</span></tt> doesn&#8217;t stop the process in all build varieties.</p>
 </div>
 <div class="section" id="formatting-comments">
-<h3>4.2.8. Formatting Comments<a class="headerlink" href="#formatting-comments" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.8. Formatting Comments<a class="headerlink" href="#formatting-comments" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.comment"></span><a class="mpstag reference internal" href="#guide.impl.c.format.comment">.comment:</a> There are three types of comments: banners, paragraph
 comments, and columnar comments.</p>
 <p><span class="target" id="guide.impl.c.format.comment.banner"></span><a class="mpstag reference internal" href="#guide.impl.c.format.comment.banner">.comment.banner:</a> Banner comments come at the start of sections. A banner
@@ -349,7 +349,7 @@ comment clearer. Don&#8217;t write more than one line. Here&#8217;s an example:<
 </div>
 </div>
 <div class="section" id="macros">
-<h3>4.2.9. Macros<a class="headerlink" href="#macros" title="Permalink to this headline">¶</a></h3>
+<h3>7.2.9. Macros<a class="headerlink" href="#macros" title="Permalink to this headline">¶</a></h3>
 <p><span class="target" id="guide.impl.c.format.macro.careful"></span><a class="mpstag reference internal" href="#guide.impl.c.format.macro.careful">.macro.careful:</a> Macros in C are a real horror bag, be extra careful.
 There&#8217;s lots that could go here, but proper coverage probably deserves a
 separate document. Which isn&#8217;t written yet.</p>
@@ -369,7 +369,7 @@ in the way. Example:</p>
 </div>
 </div>
 <div class="section" id="history">
-<h2>4.3. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<h2>7.3. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>2007-06-04  <a class="reference external" href="http://www.ravenbrook.com/consultants/drj">DRJ</a>  Adopted from Harlequin MMinfo version and edited.</li>
 <li>2007-06-04  <a class="reference external" href="http://www.ravenbrook.com/consultants/drj">DRJ</a>  Changed .width from 80 to 72. Banned space between
@@ -386,7 +386,7 @@ switch &#8220;law&#8221;.</li>
 </ul>
 </div>
 <div class="section" id="copyright-and-license">
-<h2>4.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
+<h2>7.4. Copyright and License<a class="headerlink" href="#copyright-and-license" title="Permalink to this headline">¶</a></h2>
 <p>This document is copyright © 2002-2012 [Ravenbrook
 Limited](<a class="reference external" href="http://www.ravenbrook.com/">http://www.ravenbrook.com/</a>). All rights reserved. This is an
 open source license. Contact Ravenbrook for commercial licensing
@@ -437,32 +437,32 @@ possibility of such damage.</strong></p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">4. C Style &#8211; formatting</a><ul>
-<li><a class="reference internal" href="#introduction">4.1. Introduction</a></li>
-<li><a class="reference internal" href="#general-formatting-conventions">4.2. General Formatting Conventions</a><ul>
-<li><a class="reference internal" href="#line-width">4.2.1. Line Width</a></li>
-<li><a class="reference internal" href="#white-space">4.2.2. White Space</a></li>
-<li><a class="reference internal" href="#sections-and-paragraphs">4.2.3. Sections and Paragraphs</a></li>
-<li><a class="reference internal" href="#statements">4.2.4. Statements</a></li>
-<li><a class="reference internal" href="#indentation">4.2.5. Indentation</a></li>
-<li><a class="reference internal" href="#positioning-of-braces">4.2.6. Positioning of Braces</a></li>
-<li><a class="reference internal" href="#switch-statements">4.2.7. Switch Statements</a></li>
-<li><a class="reference internal" href="#formatting-comments">4.2.8. Formatting Comments</a></li>
-<li><a class="reference internal" href="#macros">4.2.9. Macros</a></li>
+<li><a class="reference internal" href="#">7. C Style &#8211; formatting</a><ul>
+<li><a class="reference internal" href="#introduction">7.1. Introduction</a></li>
+<li><a class="reference internal" href="#general-formatting-conventions">7.2. General Formatting Conventions</a><ul>
+<li><a class="reference internal" href="#line-width">7.2.1. Line Width</a></li>
+<li><a class="reference internal" href="#white-space">7.2.2. White Space</a></li>
+<li><a class="reference internal" href="#sections-and-paragraphs">7.2.3. Sections and Paragraphs</a></li>
+<li><a class="reference internal" href="#statements">7.2.4. Statements</a></li>
+<li><a class="reference internal" href="#indentation">7.2.5. Indentation</a></li>
+<li><a class="reference internal" href="#positioning-of-braces">7.2.6. Positioning of Braces</a></li>
+<li><a class="reference internal" href="#switch-statements">7.2.7. Switch Statements</a></li>
+<li><a class="reference internal" href="#formatting-comments">7.2.8. Formatting Comments</a></li>
+<li><a class="reference internal" href="#macros">7.2.9. Macros</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#history">4.3. History</a></li>
-<li><a class="reference internal" href="#copyright-and-license">4.4. Copyright and License</a></li>
+<li><a class="reference internal" href="#history">7.3. History</a></li>
+<li><a class="reference internal" href="#copyright-and-license">7.4. Copyright and License</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="guide.hex.trans.html"
-                        title="previous chapter">3. Transliterating the alphabet into hexadecimal</a></p>
+                        title="previous chapter">6. Transliterating the alphabet into hexadecimal</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="keyword-arguments.html"
-                        title="next chapter">5. Keyword arguments in the MPS</a></p><h4>Downloads</h4>
+                        title="next chapter">8. Keyword arguments in the MPS</a></p><h4>Downloads</h4>
 
 <p class="topless">
 <a href="http://www.ravenbrook.com/project/mps/release/1.111.0/">MPS Kit release 1.111.0</a><br>
@@ -488,10 +488,10 @@ possibility of such damage.</strong></p>
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="keyword-arguments.html" title="5. Keyword arguments in the MPS"
+          <a href="keyword-arguments.html" title="8. Keyword arguments in the MPS"
              >next</a> |</li>
         <li class="right" >
-          <a href="guide.hex.trans.html" title="3. Transliterating the alphabet into hexadecimal"
+          <a href="guide.hex.trans.html" title="6. Transliterating the alphabet into hexadecimal"
              >previous</a> |</li>
         <li><a href="../index.html">Memory Pool System 1.111.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Design</a> &raquo;</li> 

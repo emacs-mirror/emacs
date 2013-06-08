@@ -120,9 +120,10 @@ Implementation
 --------------
 
 :mps:tag:`impl.free-list` The pool stores its free list in a CBS (see
-`design.mps.cbs <cbs/>`_). It uses the CBS's mayUseInline facility to
-avoid running out of memory to store the free list. This is the reason
-for the alignment restriction above.
+//gdr-peewit/info.ravenbrook.com/project/mps/branch/2013-05-17/emergency/design/poolmvff.txt
+`design.mps.cbs <cbs/>`_), failing over in emergencies to a Freelist
+(see design.mps.freelist) when the CBS cannot allocate new control
+structures. This is the reason for the alignment restriction above.
 
 
 Details
