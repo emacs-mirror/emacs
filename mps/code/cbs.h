@@ -9,23 +9,16 @@
 #ifndef cbs_h
 #define cbs_h
 
+#include "arg.h"
 #include "meter.h"
-#include "splay.h"
 #include "mpmtypes.h"
+#include "range.h"
+#include "splay.h"
 
 
 typedef struct CBSStruct *CBS;
-typedef struct CBSBlockStruct *CBSBlock;
-typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
-              Size oldSize, Size newSize);
-typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block, void *closureP);
-
-
-/* See <design/cbs/#impl.low-mem.inline.block> */
-typedef void **CBSEmergencyBlock; /* next, limit */
-
-/* See <design/cbs/#impl.low-mem.inline.block> */
-typedef void **CBSEmergencyGrain; /* next */
+typedef Bool (*CBSIterateMethod)(CBS cbs, Range range,
+                                 void *closureP, Size closureS);
 
 
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
@@ -34,81 +27,33 @@ typedef struct CBSStruct {
   SplayTreeStruct splayTree;
   Count splayTreeSize;
   Pool blockPool;
-  CBSChangeSizeMethod new;
-  CBSChangeSizeMethod delete;
-  CBSChangeSizeMethod grow;
-  CBSChangeSizeMethod shrink;
-  Size minSize;
   Align alignment;
-  Bool mayUseInline;
   Bool fastFind;
   Bool inCBS; /* prevent reentrance */
-  CBSEmergencyBlock emergencyBlockList;
-  Count eblSize;
-  CBSEmergencyGrain emergencyGrainList;
-  Count eglSize;
   /* meters for sizes of search structures at each op */
   METER_DECL(splaySearch);
-  METER_DECL(eblSearch);
-  METER_DECL(eglSearch);
   Sig sig; /* sig at end because embeded */
 } CBSStruct;
 
-typedef struct CBSBlockStruct {
-  SplayNodeStruct splayNode;
-  Addr base;
-  Addr limit;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-} CBSBlockStruct;
-
-
 extern Bool CBSCheck(CBS cbs);
-extern Bool CBSBlockCheck(CBSBlock block);
 
 extern Res CBSInit(Arena arena, CBS cbs, void *owner,
-                   CBSChangeSizeMethod new,
-                   CBSChangeSizeMethod delete,
-                   CBSChangeSizeMethod grow,
-                   CBSChangeSizeMethod shrink,
-                   Size minSize,
-                   Align alignment,
-                   Bool mayUseInline,
-                   Bool fastFind);
+                   Align alignment, Bool fastFind, ArgList args);
 extern void CBSFinish(CBS cbs);
 
-extern Res CBSInsert(CBS cbs, Addr base, Addr limit);
-extern Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
-                                   CBS cbs, Addr base, Addr limit);
-extern Res CBSDelete(CBS cbs, Addr base, Addr limit);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP);
-extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP);
-extern void CBSSetMinSize(CBS cbs, Size minSize);
+extern Res CBSInsert(Range rangeReturn, CBS cbs, Range range);
+extern Res CBSDelete(Range rangeReturn, CBS cbs, Range range);
+extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
+                       void *closureP, Size closureS);
 
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
-extern Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream);
 
-/* CBSBlockBase -- See <design/cbs/#function.cbs.block.base> */
-#define CBSBlockBase(block) ((block)->base)
-/* CBSBlockLimit -- See <design/cbs/#function.cbs.block.limit> */
-#define CBSBlockLimit(block) ((block)->limit)
-#define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
-extern Size (CBSBlockSize)(CBSBlock block);
-
-typedef unsigned CBSFindDelete;
-enum {
-  CBSFindDeleteNONE = 1,/* don't delete after finding */
-  CBSFindDeleteLOW,     /* delete precise size from low end */
-  CBSFindDeleteHIGH,    /* delete precise size from high end */
-  CBSFindDeleteENTIRE   /* delete entire range */
-};
-
-extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
-                         CBS cbs, Size size, CBSFindDelete findDelete);
-extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
-                        CBS cbs, Size size, CBSFindDelete findDelete);
-
-extern Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
-                           CBS cbs, CBSFindDelete findDelete);
+extern Bool CBSFindFirst(Range rangeReturn, Range oldRangeReturn,
+                         CBS cbs, Size size, FindDelete findDelete);
+extern Bool CBSFindLast(Range rangeReturn, Range oldRangeReturn,
+                        CBS cbs, Size size, FindDelete findDelete);
+extern Bool CBSFindLargest(Range rangeReturn, Range oldRangeReturn,
+                           CBS cbs, Size size, FindDelete findDelete);
 
 
 #endif /* cbs_h */

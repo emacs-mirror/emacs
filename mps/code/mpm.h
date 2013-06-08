@@ -186,7 +186,9 @@ extern Bool PoolFormat(Format *formatReturn, Pool pool);
 extern double PoolMutatorAllocSize(Pool pool);
 
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
+extern Bool PoolOfRange(Pool *poolReturn, Arena arena, Addr base, Addr limit);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
+extern Bool PoolHasRange(Pool pool, Addr base, Addr limit);
 
 extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class,
                       ArgList args);
@@ -789,6 +791,11 @@ extern BufferClass RankBufClassGet(void);
 
 extern AllocPattern AllocPatternRamp(void);
 extern AllocPattern AllocPatternRampCollectAll(void);
+
+
+/* FindDelete -- see <code/cbs.c> and <code/freelist.c> */
+
+extern Bool FindDeleteCheck(FindDelete findDelete);
 
 
 /* Format Interface -- see <code/format.c> */

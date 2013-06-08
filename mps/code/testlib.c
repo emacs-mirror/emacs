@@ -230,6 +230,11 @@ mps_addr_t rnd_addr(void)
   return (mps_addr_t)res;
 }
 
+double rnd_double(void)
+{
+  return rnd() / R_m_float;
+}
+
 
 /* randomize -- randomize the generator, or initialize to replay
  *
@@ -323,7 +328,7 @@ void verror(const char *format, va_list args)
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
   fflush(stderr); /* make sure the message is output */
-  exit(1);
+  abort();
 }
 
 

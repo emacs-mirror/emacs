@@ -55,10 +55,11 @@ LIB_TARGETS=mps.lib
 
 AUTO_TEST_TARGETS=abqtest.exe amcss.exe amcsshe.exe amsss.exe		\
     amssshe.exe apss.exe arenacv.exe awlut.exe awluthe.exe btcv.exe	\
-    cbstest.exe exposet0.exe expt825.exe finalcv.exe finaltest.exe	\
-    locbwcss.exe lockcov.exe lockutw3.exe locusss.exe locv.exe		\
-    messtest.exe mpmss.exe mpsicv.exe mv2test.exe poolncv.exe qs.exe	\
-    sacss.exe segsmss.exe steptest.exe walkt0.exe zmess.exe
+    exposet0.exe expt825.exe fbmtest.exe finalcv.exe finaltest.exe	\
+    fotest.exe locbwcss.exe lockcov.exe lockutw3.exe locusss.exe	\
+    locv.exe messtest.exe mpmss.exe mpsicv.exe mv2test.exe		\
+    poolncv.exe qs.exe sacss.exe segsmss.exe steptest.exe walkt0.exe	\
+    zmess.exe
 
 # If it is not runnable as an automated test case, but is buildable,
 # add it to OTHER_TEST_TARGETS with a note.
@@ -90,12 +91,12 @@ ALL_TARGETS=$(LIB_TARGETS) $(AUTO_TEST_TARGETS) $(OTHER_TEST_TARGETS) $(EXTRA_TA
 # %%PART: When adding a new part, add the sources for the new part here.
 
 MPMCOMMON = <abq> <arena> <arenacl> <arenavm> <arg> <boot> <bt>		\
-    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format> <global>	\
-    <ld> <lockw3> <locus> <message> <meter> <mpm> <mpsi> <mpsiw3>	\
-    <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2> <poolmv>		\
-    <protocol> <protw3> <ref> <reserv> <ring> <root> <sac> <seg>	\
-    <shield> <splay> <ss> <table> <thw3> <trace> <traceanc> <tract>	\
-    <vmw3> <walk>
+    <buffer> <cbs> <dbgpool> <dbgpooli> <event> <format>		\
+    <freelist> <global> <ld> <lockw3> <locus> <message> <meter> <mpm>	\
+    <mpsi> <mpsiw3> <pool> <poolabs> <poolmfs> <poolmrg> <poolmv2>	\
+    <poolmv> <protocol> <protw3> <range> <ref> <reserv> <ring> <root>	\
+    <sac> <seg> <shield> <splay> <ss> <table> <thw3> <trace>		\
+    <traceanc> <tract> <vmw3> <walk>
 PLINTH = <mpsliban> <mpsioan>
 AMC = <poolamc>
 AMS = <poolams> <poolamsi>
