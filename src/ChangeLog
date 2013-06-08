@@ -1,5 +1,10 @@
 2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xgselect.c: Remove unneeded include xterm.h
+
+	* process.c (wait_reading_process_output): Check for NS before GLIB.
+	GLIB may be linked in due to rsvg, but ns_select must be called.
+
 	* xgselect.c (xg_select): Remove call to window_system_available
 	and g_main_context_pending at the top, so Gdk events (i.e. file
 	notify) are processed when Emacs is started with -nw.

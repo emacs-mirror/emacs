@@ -1,3 +1,8 @@
+2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.ac (HAVE_GLIB): Only set XGSELOBJ if HAVE_NS = no.
+	(with_file_notification): Don't set to gfile if with_ns = yes.
+
 2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
 
 	* Makefile.in (msys_to_w32): Modify to support d:\foo file names.
