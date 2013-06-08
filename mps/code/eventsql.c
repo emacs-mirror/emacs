@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2013 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that imports events from a text-format
  * MPS telemetry file into a SQLite database file.
@@ -228,7 +228,7 @@ static void parseArgs(int argc, char *argv[])
           } else { /* not last character in arg; name is rest of arg */
             logFileName = p+1;
           }
-          continue;
+          goto next_i;
         case 'o': /* output (database file) name */
           if (p[1] == '\0') { /* last character in this arg; name is next arg */
             databaseName = argv[i+1];
@@ -236,7 +236,7 @@ static void parseArgs(int argc, char *argv[])
           } else { /* not last character in arg; name is rest of arg */
             databaseName = p+1;
           }
-          continue;
+          goto next_i;
         case 'h':
           usage();
           exit(EXIT_SUCCESS);
@@ -248,6 +248,7 @@ static void parseArgs(int argc, char *argv[])
     } else { /* not an option argument */
       usageError();
     }
+  next_i:
     ++ i;
   }
   if (verbosity > LOG_ALWAYS)
