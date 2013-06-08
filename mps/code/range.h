@@ -1,69 +1,59 @@
-/* abq.h: QUEUE INTERFACE
+/* range.h: ADDRESS RANGE INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: A fixed-length FIFO queue.
+ * .purpose: Representation of address ranges.
  *
- * .design: <design/abq/>
+ * .design: <design/range/>
  */
 
-#ifndef abq_h
-#define abq_h
+#ifndef range_h
+#define range_h
 
-#include "meter.h"
-#include "mpm.h"
+#include "mpmtypes.h"
 
 
 /* Signatures */
 
-#define ABQSig ((Sig)0x519AB099) /* SIGnature ABQ */
+#define RangeSig ((Sig)0x5196A493) /* SIGnature RANGE */
 
 
-/* Prototypes  */
+/* Prototypes */
 
-typedef struct ABQStruct *ABQ;
-typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
-typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS);
+typedef struct RangeStruct *Range;
 
-extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
-extern Bool ABQCheck(ABQ abq);
-extern void ABQFinish(Arena arena, ABQ abq);
-extern Res ABQPush(ABQ abq, void *element);
-extern Res ABQPop(ABQ abq, void *elementReturn);
-extern Res ABQPeek(ABQ abq, void *elementReturn);
-extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
-extern Bool ABQIsEmpty(ABQ abq);
-extern Bool ABQIsFull(ABQ abq);
-extern Count ABQDepth(ABQ abq);
-extern void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS);
+#define RangeBase(range) ((range)->base)
+#define RangeLimit(range) ((range)->limit)
+#define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
+
+extern void RangeInit(Range range, Addr base, Addr limit);
+extern void RangeFinish(Range range);
+extern Res RangeDescribe(Range range, mps_lib_FILE *stream);
+extern Bool RangeCheck(Range range);
+extern Bool RangeIsAligned(Range range, Align align);
+extern Bool RangesOverlap(Range range1, Range range2);
+extern Bool RangesNest(Range outer, Range inner);
+extern Bool RangesEqual(Range range1, Range range2);
+extern Addr (RangeBase)(Range range);
+extern Addr (RangeLimit)(Range range);
+extern Size (RangeSize)(Range range);
 
 
 /* Types */
 
-typedef struct ABQStruct
-{
-  Count elements;
-  Size elementSize;
-  Index in;
-  Index out;
-  void *queue;
-
-  /* Meter queue depth at each operation */
-  METER_DECL(push);
-  METER_DECL(pop);
-  METER_DECL(peek);
-  METER_DECL(delete);
- 
+typedef struct RangeStruct {
   Sig sig;
-} ABQStruct;
+  Addr base;
+  Addr limit;
+} RangeStruct;
 
-#endif /* abq_h */
+#endif /* range_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

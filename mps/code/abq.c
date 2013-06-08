@@ -1,18 +1,15 @@
-/* abq.c: AVAILABLE BLOCK QUEUE
+/* abq.c: QUEUE IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .readership: Any MPS developer
+ * .purpose: A fixed-length FIFO queue.
  *
- * .purpose: A FIFO queue substrate for <code/poolmv2.c>
- *
- * .design: See <design/poolmvt/>
+ * .design: <design/abq/>
  */
 
 #include "meter.h"
 #include "abq.h"
-#include "cbs.h"
 #include "mpm.h"
 
 SRCID(abq, "$Id$");
@@ -20,37 +17,40 @@ SRCID(abq, "$Id$");
 
 /* Private prototypes */
 
-static Size ABQQueueSize(Count elements);
+static Size ABQQueueSize(Count elements, Size elementSize);
 static Index ABQNextIndex(ABQ abq, Index index);
+static void *ABQElement(ABQ abq, Index index);
 
 
 /* Methods */
 
 /* ABQInit -- Initialize an ABQ
  *
- * items is the number of items the queue can hold
+ * elements is the number of elements the queue can hold
  */
-Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
+Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
 {
-  Count elements;
   void *p;
   Res res;
 
   AVERT(Arena, arena);
   AVER(abq != NULL);
-  AVER(items > 0);
+  AVER(elements > 0);
 
-  elements = items + 1;
- 
-  res = ControlAlloc(&p, arena, ABQQueueSize(elements),
+  /* Allocate a dummy extra element in order to be able to distinguish
+     "empty" from "full" */
+  elements = elements + 1;
+
+  res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize),
                      /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     return res;
 
   abq->elements = elements;
+  abq->elementSize = elementSize;
   abq->in = 0;
   abq->out = 0;
-  abq->queue = (CBSBlock *)p;
+  abq->queue = p;
 
   METER_INIT(abq->push, "push", owner);
   METER_INIT(abq->pop, "pop", owner);
@@ -67,19 +67,12 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
 /* ABQCheck -- validate an ABQ */
 Bool ABQCheck(ABQ abq)
 {
-  Index index;
- 
   CHECKS(ABQ, abq);
   CHECKL(abq->elements > 0);
+  CHECKL(abq->elementSize > 0);
   CHECKL(abq->in < abq->elements);
   CHECKL(abq->out < abq->elements);
   CHECKL(abq->queue != NULL);
-  /* Is this really a local check? */
-  for (index = abq->out; index != abq->in; ) {
-    CHECKL(CBSBlockCheck(abq->queue[index]));
-    if (++index == abq->elements)
-      index = 0;
-  }
 
   return TRUE;
 }
@@ -95,7 +88,7 @@ void ABQFinish(Arena arena, ABQ abq)
   METER_EMIT(&abq->pop);
   METER_EMIT(&abq->peek);
   METER_EMIT(&abq->delete);
-  ControlFree(arena, abq->queue, ABQQueueSize(abq->elements));
+  ControlFree(arena, abq->queue, ABQQueueSize(abq->elements, abq->elementSize));
  
   abq->elements = 0;
   abq->queue = NULL;
@@ -104,18 +97,17 @@ void ABQFinish(Arena arena, ABQ abq)
 }
 
 
-/* ABQPush -- push a block onto the tail of the ABQ */
-Res ABQPush(ABQ abq, CBSBlock block)
+/* ABQPush -- push an element onto the tail of the ABQ */
+Res ABQPush(ABQ abq, void *element)
 {
   AVERT(ABQ, abq);
-  AVERT(CBSBlock, block);
 
   METER_ACC(abq->push, ABQDepth(abq));
 
   if (ABQIsFull(abq))
     return ResFAIL;
  
-  abq->queue[abq->in] = block;
+  mps_lib_memcpy(ABQElement(abq, abq->in), element, abq->elementSize);
   abq->in = ABQNextIndex(abq, abq->in);
 
   AVERT(ABQ, abq);
@@ -123,10 +115,10 @@ Res ABQPush(ABQ abq, CBSBlock block)
 }
 
 
-/* ABQPop -- pop a block from the head of the ABQ */
-Res ABQPop(ABQ abq, CBSBlock *blockReturn)
+/* ABQPop -- pop an element from the head of the ABQ */
+Res ABQPop(ABQ abq, void *elementReturn)
 {
-  AVER(blockReturn != NULL);
+  AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
 
   METER_ACC(abq->pop, ABQDepth(abq));
@@ -134,8 +126,7 @@ Res ABQPop(ABQ abq, CBSBlock *blockReturn)
   if (ABQIsEmpty(abq))
     return ResFAIL;
 
-  *blockReturn = abq->queue[abq->out];
-  AVERT(CBSBlock, *blockReturn);
+  mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   abq->out = ABQNextIndex(abq, abq->out);
  
@@ -145,9 +136,9 @@ Res ABQPop(ABQ abq, CBSBlock *blockReturn)
 
 
 /* ABQPeek -- peek at the head of the ABQ */
-Res ABQPeek(ABQ abq, CBSBlock *blockReturn)
+Res ABQPeek(ABQ abq, void *elementReturn)
 {
-  AVER(blockReturn != NULL);
+  AVER(elementReturn != NULL);
   AVERT(ABQ, abq);
 
   METER_ACC(abq->peek, ABQDepth(abq));
@@ -155,8 +146,7 @@ Res ABQPeek(ABQ abq, CBSBlock *blockReturn)
   if (ABQIsEmpty(abq))
     return ResFAIL;
 
-  *blockReturn = abq->queue[abq->out];
-  AVERT(CBSBlock, *blockReturn);
+  mps_lib_memcpy(elementReturn, ABQElement(abq, abq->out), abq->elementSize);
 
   /* Identical to pop, but don't increment out */
 
@@ -165,53 +155,14 @@ Res ABQPeek(ABQ abq, CBSBlock *blockReturn)
 }
 
 
-/* ABQDelete -- delete a block from the ABQ */
-Res ABQDelete(ABQ abq, CBSBlock block)
-{
-  Index index, next, in;
-  CBSBlock *queue;
-
-  AVERT(ABQ, abq);
-  AVERT(CBSBlock, block);
-
-  METER_ACC(abq->delete, ABQDepth(abq));
-
-  index = abq->out;
-  in = abq->in;
-  queue = abq->queue;
- 
-  while (index != in) {
-    if (queue[index] == block) {
-      goto found;
-    }
-    index = ABQNextIndex(abq, index);
-  }
-
-  return ResFAIL;
-
-found:
-  /* index points to the node to be removed */
-  next = ABQNextIndex(abq, index);
-  while (next != in) {
-    queue[index] = queue[next];
-    index = next;
-    next = ABQNextIndex(abq, index);
-  }
-  abq->in = index;
-  AVERT(ABQ, abq);
-  return ResOK;
-}
-
-
 /* ABQDescribe -- Describe an ABQ */
-Res ABQDescribe(ABQ abq, mps_lib_FILE *stream)
+Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream)
 {
   Res res;
   Index index;
 
-  AVERT(ABQ, abq);
-
-  AVER(stream != NULL);
+  if (!TESTT(ABQ, abq)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "ABQ $P\n{\n", (WriteFP)abq,
@@ -224,11 +175,10 @@ Res ABQDescribe(ABQ abq, mps_lib_FILE *stream)
     return res;
 
   for (index = abq->out; index != abq->in; ) {
-    res = CBSBlockDescribe(abq->queue[index], stream);
+    res = (*describeElement)(ABQElement(abq, index), stream);
     if(res != ResOK)
       return res;
-    if (++index == abq->elements)
-      index = 0;
+    index = ABQNextIndex(abq, index);
   }
 
   res = WriteF(stream, "\n", NULL);
@@ -274,7 +224,7 @@ Bool ABQIsFull(ABQ abq)
 }
 
 
-/* ABQDepth -- return the number of items in an ABQ */
+/* ABQDepth -- return the number of elements in an ABQ */
 Count ABQDepth(ABQ abq)
 {
   Index out, in;
@@ -290,13 +240,55 @@ Count ABQDepth(ABQ abq)
 }
 
 
-/* ABQQueueSize -- calculate the storage required for the vector to
-   store elements items */
-static Size ABQQueueSize(Count elements)
+/* ABQIterate -- call 'iterate' for each element in an ABQ */
+void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS)
 {
-  /* strange but true: the sizeof expression calculates the size of a
-     single queue element */
-  return (Size)(sizeof(((ABQ)NULL)->queue[0]) * elements);
+  Index copy, index, in;
+
+  AVERT(ABQ, abq);
+  AVER(FUNCHECK(iterate));
+
+  copy = abq->out;
+  index = abq->out;
+  in = abq->in;
+ 
+  while (index != in) {
+    void *element = ABQElement(abq, index);
+    Bool delete = FALSE;
+    Bool cont;
+    cont = (*iterate)(&delete, element, closureP, closureS);
+    AVERT(Bool, cont);
+    AVERT(Bool, delete);
+    if (!delete) {
+      if (copy != index)
+        mps_lib_memcpy(ABQElement(abq, copy), element, abq->elementSize);
+      copy = ABQNextIndex(abq, copy);
+    }
+    index = ABQNextIndex(abq, index);
+    if (!cont)
+      break;
+  }
+
+  /* If any elements were deleted, need to copy remainder of queue. */
+  if (copy != index) {
+    while (index != in) {
+      mps_lib_memcpy(ABQElement(abq, copy), ABQElement(abq, index),
+                     abq->elementSize);
+      copy = ABQNextIndex(abq, copy);
+      index = ABQNextIndex(abq, index);
+    }
+    abq->in = copy;
+  }
+
+  AVERT(ABQ, abq);
+}
+
+
+/* ABQQueueSize -- calculate the storage required for the vector to
+   store the elements */
+static Size ABQQueueSize(Count elements, Size elementSize)
+{
+  return (Size)(elements * elementSize);
 }
 
 
@@ -308,6 +300,12 @@ static Index ABQNextIndex(ABQ abq, Index index)
   if (next == abq->elements)
     next = 0;
   return next;
+}
+
+/* ABQElement -- return pointer to the index'th element in the queue
+   vector. */
+static void *ABQElement(ABQ abq, Index index) {
+  return PointerAdd(abq->queue, index * abq->elementSize);
 }
 
 

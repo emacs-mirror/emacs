@@ -1,0 +1,310 @@
+.. mode: -*- rst -*-
+
+Free list allocator
+===================
+
+:Tag: design.mps.freelist
+:Author: Gareth Rees
+:Date: 2013-05-18
+:Status: incomplete design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+
+
+Introduction
+------------
+
+_`.intro`: This document describes the free list allocator for the
+Memory Pool System.
+
+_`.readership`: Any MPS developer.
+
+
+Overview
+--------
+
+_`.overview`: The free list allocator is an "emergency" allocator. It
+is intended for use as a fallback allocation strategy in low memory
+situations, when memory is not available for the control structures
+needed by other allocators. In these situations the free list allocator
+ensures that memory is not lost, but with several disadvantages:
+
+1. operations on the free list are O(n) in the number of free blocks;
+2. the data structures are stored in client memory and so are
+   vulnerable to corruption;
+3. the data structures have poor locality (and thus potentially poor
+   cache performance).
+
+When memory becomes available again to allocate control structures,
+the free lists can be "flushed" back into the more efficient data
+structures.
+
+_`.bg`: The free list allocator was formerly part of the Coalescing
+Block Structure module (see design.mps.cbs) but it was split into its
+own module because this makes it:
+
+1. simpler (no need to interact with CBS) and thus more maintainable;
+2. possible to test directly (no need to create a CBS and then force
+   its control pool to run out of memory); and
+3. usable as a fallback allocator in other pools (not just in pools
+   that use CBS).
+
+
+Definitions
+-----------
+
+_`.def.range`: A (contiguous) *range* of addresses is a semi-open
+interval on address space.
+
+_`.def.isolated`: A contiguous range is *isolated* with respect to
+some property it has, if adjacent elements do not have that property.
+
+
+Requirements
+------------
+
+_`.req.set`: Must maintain a set of free address ranges.
+
+_`.req.add`: Must be able to add free address ranges to the set.
+
+_`.req.remove`: Must be able to remove address ranges from the set (in
+particular, when memory is allocated).
+
+_`.req.iterate`: Must support the iteration of all isolated contiguous
+ranges.
+
+_`.req.protocol`: Must detect protocol violations.
+
+_`.req.align`: Must support an alignment (the alignment of all
+addresses specifying ranges) of down to ``sizeof(void *)`` without
+losing memory.
+
+_`.req.zero-overhead`: Must have zero space overhead for the storage
+of any set of free blocks, so that it can be used to manage memory
+when no memory can be allocated for control structures.
+
+_`.req.source`: This set of requirements is derived from those of the
+CBS module (see design.mps.cbs.req), except that there is no
+equivalent of design.mps.cbs.req.fast, and design.mps.cbs.req.small
+has been replaced with `.req.zero-overhead`_.
+
+
+Interface
+---------
+
+
+Types
+.....
+
+``typedef struct FreelistStruct *Freelist``
+
+_`.type.freelist`: The type of free lists. The structure
+``FreelistStruct`` is declared in the header so that it can be inlined
+in other structures, but you should not depend on its details.
+
+``typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Freelist fl, Range range, void *closureP, Size closureS)``
+
+_`.type.iterate.method`: A callback function that may be passed to
+``FreelistIterate()``. It is called for every isolated contiguous
+range in address order, and with the closure arguments that were
+originally passed to ``FreelistIterate()``. It must update
+``*deleteReturn`` to ``TRUE`` if the range must be deleted from the
+free lists, or ``FALSE`` if the range must be kept. The function must
+return ``TRUE`` if the iteration must continue, and ``FALSE`` if the
+iteration must stop (after possibly deleting the current range).
+
+
+Functions
+.........
+
+``Res FreelistInit(Freelist fl, Align alignment)``
+
+_`.function.init`: Initialize the ``Freelist`` structure pointed to by
+``fl``. The argument ``alignment`` is the alignment of address ranges
+to be maintained. An initialised free list contains no address ranges.
+
+``void FreelistFinish(Freelist fl)``
+
+_`.function.finish`: Finish the free list pointed to by ``fl``.
+
+``Res FreelistInsert(Range rangeReturn, Freelist fl, Range range)``
+
+_`.function.insert`: If any part of ``range`` is already in the free
+list ``fl``, then leave the free list unchanged and return
+``ResFAIL``. Otherwise, insert ``range`` into the free list ``fl``;
+update ``rangeReturn`` to describe the contiguous isolated range
+containing the inserted range (this may differ from ``range`` if there
+was coalescence on either side) and return ``ResOK``.
+
+``Res FreelistDelete(Range rangeReturn, Freelist fl, Range range)``
+
+_`.function.delete`: If any part of the range is not in the free list,
+then leave the free list unchanged and return ``ResFAIL``. Otherwise,
+remove ``range`` from the free list and update ``rangeReturn`` to
+describe the contiguous isolated range that formerly contained the
+deleted range (this may differ from ``range`` if there were fragments
+left on either side), and return ``ResOK``.
+
+``void FreelistIterate(Freelist fl, FreelistIterateMethod iterate, void *closureP, Size closureS)``
+
+_`.function.iterate`: Iterate all isolated contiguous ranges in the
+free list ``fl`` in address order, calling ``iterate`` for each one.
+See ``FreelistIterateMethod`` for details.
+
+``Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
+
+_`.function.find.first`: Locate the first isolated contiguous range in
+address order, within the free list ``fl``, of at least ``size``
+bytes, update ``rangeReturn`` to that range, and return ``TRUE``. If
+there is no such continuous range, return ``FALSE``.
+
+In addition, optionally delete the found range from the free list,
+depending on the ``findDelete`` argument. This saves a separate call
+to ``FreelistDelete()``, and uses the knowledge of exactly where we
+found the range. The value of ``findDelete`` must come from this
+enumeration::
+
+    enum {
+        FindDeleteNONE,    /* don't delete after finding */
+        FindDeleteLOW,     /* delete size bytes from low end of block */
+        FindDeleteHIGH,    /* delete size bytes from high end of block */
+        FindDeleteENTIRE   /* delete entire range */
+    };
+
+The original contiguous isolated range in which the range was found is
+returned via the ``oldRangeReturn`` argument. (If ``findDelete`` is
+``FindDeleteNONE`` or ``FindDeleteENTIRE``, then this will be
+identical to the range returned via the ``rangeReturn`` argument.)
+
+``Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size size, FindDelete findDelete)``
+
+_`.function.find.last`: Like ``FreelistFindFirst()``, except that it
+finds the last block in address order.
+
+``Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn, Freelist fl, Size, size, FindDelete findDelete)``
+
+_`.function.find.largest`: Locate the largest block within the free
+list ``fl``, and if that block is at least as big as ``size``, return
+its range via the ``rangeReturn`` argument, and return ``TRUE``. If
+there are no blocks in the free list at least as large as ``size``,
+return ``FALSE``. Pass 0 for ``size`` if you want the largest block
+unconditionally.
+
+Like ``FreelistFindFirst()``, optionally delete the range from the
+free list. (Always the whole range: specifying ``FindDeleteLOW`` or
+``FindDeleteHIGH`` has the same effect as ``FindDeleteENTIRE``).
+
+``void FreelistFlushToCBS(Freelist fl, CBS cbs)``
+
+Remove free address ranges from the free list ``fl`` and add them to
+the Coalescing Block Structure ``cbs``. Continue until a call to
+``CBSInsert()`` fails, or until the free list is empty, whichever
+happens first.
+
+``Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream)``
+
+_`.function.describe`: Print a textual representation of the free
+list ``fl`` to the given stream, indicating the contiguous ranges in
+order. It is provided for debugging purposes only.
+
+
+
+Implementation
+--------------
+
+_`.impl.list`: The isolated contiguous free address ranges are kept on
+an address-ordered singly linked free list. (As in traditional
+``malloc()`` implementations.)
+
+_`.impl.block`: If the free address range is large enough to contain
+an inline block descriptor consisting of two pointers, then the two
+pointers stored are to the next free range in address order (or
+``NULL`` if there are no more ranges), and to the limit of current
+free address range, in that order.
+
+_`.impl.grain`: Otherwise, the free address range must be large enough
+to contain a single pointer. The pointer stored is to the next free
+range in address order, or ``NULL`` if there are no more ranges.
+
+_`.impl.tag`: Grains and blocks are distinguished by a one-bit tag in
+the low bit of the first word (the one containing the pointer to the
+next range). Grains have this bit set; blocks have this bit reset.
+
+_`.impl.invariant`: The ranges stored in the free list are *isolated*:
+no two ranges are adjacent or overlapping.
+
+_`.impl.merge`: When a free address range is added to the free list,
+it is merged with adjacent ranges so as to maintain
+`.impl.invariant`_.
+
+_`.impl.rule.break`: The use of ``NULL`` to mark the end of the list
+violates the rule that exceptional values should not be used to
+distinguish exeptional situations. This infraction allows the
+implementation to meet `.req.zero-overhead`_. (There are other ways to
+do this, such as using another tag to indicate the last block in the
+list, but these would be more complicated.)
+
+
+Opportunities for improvement
+-----------------------------
+
+_`.improve.length`: When iterating over the list, we could check that
+the number of elements visited in the course of the iteration does not
+exceed the recorded size of the list.
+
+_`.improve.maxsize`: We could maintain the maximum size of any range
+on the list, and use that to make an early exit from
+``FreelistFindLargest()``. It's not clear that this would actually be
+an improvement.
+
+
+
+Document History
+----------------
+
+- 2013-05-18 GDR_ Initial draft based on CBS "emergency block" design.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2013 Ravenbrook Limited. All rights reserved. 
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

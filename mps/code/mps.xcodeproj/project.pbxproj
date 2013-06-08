@@ -39,11 +39,12 @@
 				2291A5C0175CAB5F001D4920 /* PBXTargetDependency */,
 				3114A677156E961C001E0AA3 /* PBXTargetDependency */,
 				3114A612156E943B001E0AA3 /* PBXTargetDependency */,
-				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
 				2291A5E6175CB207001D4920 /* PBXTargetDependency */,
 				2291A5E8175CB20E001D4920 /* PBXTargetDependency */,
+				3114A65B156E95B4001E0AA3 /* PBXTargetDependency */,
 				3114A5CC156E932C001E0AA3 /* PBXTargetDependency */,
 				3114A5EA156E93C4001E0AA3 /* PBXTargetDependency */,
+				224CC79D175E187C002FF81B /* PBXTargetDependency */,
 				31D60034156D3D5A00337B26 /* PBXTargetDependency */,
 				3114A5A0156E915A001E0AA3 /* PBXTargetDependency */,
 				3114A6A7156E9739001E0AA3 /* PBXTargetDependency */,
@@ -69,6 +70,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		224CC791175E1821002FF81B /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		224CC793175E1821002FF81B /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
+		224CC79F175E321C002FF81B /* mv2test.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A686156E9674001E0AA3 /* mv2test.c */; };
+		224CC7A0175E322C002FF81B /* fotest.c in Sources */ = {isa = PBXBuildFile; fileRef = 224CC79E175E3202002FF81B /* fotest.c */; };
 		2291A5B1175CAB2F001D4920 /* fmtdy.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC6156BE48D00753214 /* fmtdy.c */; };
 		2291A5B2175CAB2F001D4920 /* fmtdytst.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC7156BE48D00753214 /* fmtdytst.c */; };
 		2291A5B3175CAB2F001D4920 /* fmthe.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAE4156BE6D500753214 /* fmthe.c */; };
@@ -88,6 +93,7 @@
 		2291A5DB175CB05F001D4920 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		2291A5DD175CB05F001D4920 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		2291A5E4175CB076001D4920 /* exposet0.c in Sources */ = {isa = PBXBuildFile; fileRef = 2291A5AA175CAA9B001D4920 /* exposet0.c */; };
+		2291A5ED175CB5E2001D4920 /* fbmtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 2291A5E9175CB4EC001D4920 /* fbmtest.c */; };
 		22FA176916E8D6FC0098B23F /* fmtdy.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC6156BE48D00753214 /* fmtdy.c */; };
 		22FA176A16E8D6FC0098B23F /* fmtdytst.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC7156BE48D00753214 /* fmtdytst.c */; };
 		22FA176B16E8D6FC0098B23F /* fmthe.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAE4156BE6D500753214 /* fmthe.c */; };
@@ -159,17 +165,12 @@
 		3114A63E156E94EA001E0AA3 /* abqtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A63D156E94EA001E0AA3 /* abqtest.c */; };
 		3114A63F156E94F0001E0AA3 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3114A640156E94F0001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
-		3114A646156E9525001E0AA3 /* abq.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A645156E9525001E0AA3 /* abq.c */; };
-		3114A657156E95A6001E0AA3 /* cbstest.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A656156E95A6001E0AA3 /* cbstest.c */; };
 		3114A66E156E95F2001E0AA3 /* btcv.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A66C156E95EB001E0AA3 /* btcv.c */; };
 		3114A66F156E95F2001E0AA3 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3114A670156E95F2001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3114A672156E95F6001E0AA3 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3114A673156E95F6001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
-		3114A687156E9674001E0AA3 /* mv2test.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A686156E9674001E0AA3 /* mv2test.c */; };
 		3114A688156E967C001E0AA3 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
-		3114A68F156E96B6001E0AA3 /* poolmv2.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A68E156E96B6001E0AA3 /* poolmv2.c */; };
-		3114A690156E96CE001E0AA3 /* abq.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A645156E9525001E0AA3 /* abq.c */; };
 		3114A6A1156E9729001E0AA3 /* messtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A69F156E9725001E0AA3 /* messtest.c */; };
 		3114A6A2156E972D001E0AA3 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3114A6A3156E972D001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -245,6 +246,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		224CC78E175E1821002FF81B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 31EEABFA156AAF9D00714D05;
+			remoteInfo = mps;
+		};
+		224CC79C175E187C002FF81B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 224CC78C175E1821002FF81B;
+			remoteInfo = mvfftest;
+		};
 		2275798816C5422900B662B0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
@@ -565,7 +580,7 @@
 			containerPortal = 31EEABDA156AAE9E00714D05 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 3114A64B156E9596001E0AA3;
-			remoteInfo = cbstest;
+			remoteInfo = fbmtest;
 		};
 		3114A674156E9619001E0AA3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -752,6 +767,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		224CC794175E1821002FF81B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		2291A5B8175CAB2F001D4920 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1079,6 +1103,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		224CC799175E1821002FF81B /* fotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "fotest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		224CC79E175E3202002FF81B /* fotest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fotest.c; sourceTree = "<group>"; };
 		2291A5A8175CAA51001D4920 /* poolmv2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poolmv2.h; sourceTree = "<group>"; };
 		2291A5A9175CAA9B001D4920 /* awlutth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlutth.c; sourceTree = "<group>"; };
 		2291A5AA175CAA9B001D4920 /* exposet0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = exposet0.c; sourceTree = "<group>"; };
@@ -1086,6 +1112,13 @@
 		2291A5BD175CAB2F001D4920 /* awlutth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlutth; sourceTree = BUILT_PRODUCTS_DIR; };
 		2291A5D1175CAFCA001D4920 /* expt825 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = expt825; sourceTree = BUILT_PRODUCTS_DIR; };
 		2291A5E3175CB05F001D4920 /* exposet0 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = exposet0; sourceTree = BUILT_PRODUCTS_DIR; };
+		2291A5E9175CB4EC001D4920 /* fbmtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fbmtest.c; sourceTree = "<group>"; };
+		2291A5EA175CB503001D4920 /* abq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = abq.h; sourceTree = "<group>"; };
+		2291A5EB175CB53E001D4920 /* range.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = range.c; sourceTree = "<group>"; };
+		2291A5EC175CB53E001D4920 /* range.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = range.h; sourceTree = "<group>"; };
+		2291A5EE175CB768001D4920 /* freelist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = freelist.c; sourceTree = "<group>"; };
+		2291A5EF175CB768001D4920 /* freelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = freelist.h; sourceTree = "<group>"; };
+		2291A5F0175CB7A4001D4920 /* testlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testlib.h; sourceTree = "<group>"; };
 		22FA177516E8D6FC0098B23F /* amcssth */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcssth; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FA177616E8D7A80098B23F /* amcssth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcssth.c; sourceTree = "<group>"; };
 		2D07B96C1636FC7200DB751B /* eventsql.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = eventsql.c; sourceTree = "<group>"; };
@@ -1123,13 +1156,11 @@
 		3114A633156E94DB001E0AA3 /* abqtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = abqtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A63D156E94EA001E0AA3 /* abqtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = abqtest.c; sourceTree = "<group>"; };
 		3114A645156E9525001E0AA3 /* abq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = abq.c; sourceTree = "<group>"; };
-		3114A64C156E9596001E0AA3 /* cbstest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cbstest; sourceTree = BUILT_PRODUCTS_DIR; };
-		3114A656156E95A6001E0AA3 /* cbstest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cbstest.c; sourceTree = "<group>"; };
+		3114A64C156E9596001E0AA3 /* fbmtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fbmtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A662156E95D9001E0AA3 /* btcv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = btcv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A66C156E95EB001E0AA3 /* btcv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = btcv.c; sourceTree = "<group>"; };
 		3114A67C156E9668001E0AA3 /* mv2test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mv2test; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A686156E9674001E0AA3 /* mv2test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mv2test.c; sourceTree = "<group>"; };
-		3114A68E156E96B6001E0AA3 /* poolmv2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv2.c; sourceTree = "<group>"; };
 		3114A695156E971B001E0AA3 /* messtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = messtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A69F156E9725001E0AA3 /* messtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = messtest.c; sourceTree = "<group>"; };
 		3114A6AC156E9759001E0AA3 /* walkt0 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = walkt0; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1275,6 +1306,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		224CC792175E1821002FF81B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				224CC793175E1821002FF81B /* libmps.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2291A5B6175CAB2F001D4920 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1589,15 +1628,6 @@
 			name = mpseventtxt;
 			sourceTree = "<group>";
 		};
-		3114A647156E956C001E0AA3 /* Mysterious */ = {
-			isa = PBXGroup;
-			children = (
-				3114A68E156E96B6001E0AA3 /* poolmv2.c */,
-				3114A645156E9525001E0AA3 /* abq.c */,
-			);
-			name = Mysterious;
-			sourceTree = "<group>";
-		};
 		3114A6D6156E9846001E0AA3 /* Tools */ = {
 			isa = PBXGroup;
 			children = (
@@ -1633,15 +1663,16 @@
 				2291A5A9175CAA9B001D4920 /* awlutth.c */,
 				3114A66C156E95EB001E0AA3 /* btcv.c */,
 				3114A613156E944A001E0AA3 /* bttest.c */,
-				3114A656156E95A6001E0AA3 /* cbstest.c */,
 				2291A5AA175CAA9B001D4920 /* exposet0.c */,
 				2291A5AB175CAA9B001D4920 /* expt825.c */,
+				2291A5E9175CB4EC001D4920 /* fbmtest.c */,
 				3114A5CD156E9369001E0AA3 /* finalcv.c */,
 				3114A5E5156E93B9001E0AA3 /* finaltest.c */,
 				3124CAC6156BE48D00753214 /* fmtdy.c */,
 				3124CAC7156BE48D00753214 /* fmtdytst.c */,
 				3124CAE4156BE6D500753214 /* fmthe.c */,
 				3124CACC156BE4C200753214 /* fmtno.c */,
+				224CC79E175E3202002FF81B /* fotest.c */,
 				31D60036156D3E0200337B26 /* lockcov.c */,
 				3114A5A1156E9168001E0AA3 /* locv.c */,
 				3114A69F156E9725001E0AA3 /* messtest.c */,
@@ -1654,6 +1685,7 @@
 				31D60006156D3C5F00337B26 /* segsmss.c */,
 				31D60098156D403C00337B26 /* steptest.c */,
 				3114A628156E949A001E0AA3 /* teletest.c */,
+				2291A5F0175CB7A4001D4920 /* testlib.h */,
 				31EEAC9E156AB73400714D05 /* testlib.c */,
 				3114A6BA156E9768001E0AA3 /* walkt0.c */,
 				31D6005E156D3F4A00337B26 /* zcoll.c */,
@@ -1695,7 +1727,6 @@
 			children = (
 				2D07B97B163705E400DB751B /* libsqlite3.dylib */,
 				3114A6D6156E9846001E0AA3 /* Tools */,
-				3114A647156E956C001E0AA3 /* Mysterious */,
 				31A47BA8156C1E930039B1C2 /* MPS */,
 				3124CAB3156BE1B700753214 /* Tests */,
 				31EEABEF156AAF5C00714D05 /* Products */,
@@ -1730,7 +1761,7 @@
 				3114A605156E9430001E0AA3 /* bttest */,
 				3114A61C156E9485001E0AA3 /* teletest */,
 				3114A633156E94DB001E0AA3 /* abqtest */,
-				3114A64C156E9596001E0AA3 /* cbstest */,
+				3114A64C156E9596001E0AA3 /* fbmtest */,
 				3114A662156E95D9001E0AA3 /* btcv */,
 				3114A67C156E9668001E0AA3 /* mv2test */,
 				3114A695156E971B001E0AA3 /* messtest */,
@@ -1742,6 +1773,7 @@
 				2291A5BD175CAB2F001D4920 /* awlutth */,
 				2291A5D1175CAFCA001D4920 /* expt825 */,
 				2291A5E3175CB05F001D4920 /* exposet0 */,
+				224CC799175E1821002FF81B /* fotest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1749,6 +1781,8 @@
 		31EEABF4156AAF6500714D05 /* MPM Core */ = {
 			isa = PBXGroup;
 			children = (
+				3114A645156E9525001E0AA3 /* abq.c */,
+				2291A5EA175CB503001D4920 /* abq.h */,
 				31EEAC05156AB27B00714D05 /* arena.c */,
 				31EEAC06156AB27B00714D05 /* arenacl.c */,
 				31EEAC03156AB23A00714D05 /* arenavm.c */,
@@ -1775,6 +1809,8 @@
 				311F2F5B17398AE900C15B6A /* eventpro.h */,
 				311F2F5C17398AE900C15B6A /* eventrep.h */,
 				31EEAC1A156AB2B200714D05 /* format.c */,
+				2291A5EE175CB768001D4920 /* freelist.c */,
+				2291A5EF175CB768001D4920 /* freelist.h */,
 				31EEAC07156AB27B00714D05 /* global.c */,
 				31EEAC2B156AB2F200714D05 /* ld.c */,
 				311F2F5E17398B0E00C15B6A /* lock.h */,
@@ -1811,6 +1847,8 @@
 				31EEAC0B156AB27B00714D05 /* protocol.c */,
 				311F2F7117398B7100C15B6A /* protocol.h */,
 				311F2F7217398B7100C15B6A /* pthrdext.h */,
+				2291A5EB175CB53E001D4920 /* range.c */,
+				2291A5EC175CB53E001D4920 /* range.h */,
 				31EEAC1B156AB2B200714D05 /* ref.c */,
 				31EEAC0C156AB27B00714D05 /* reserv.c */,
 				31EEAC30156AB2F200714D05 /* ring.c */,
@@ -1897,6 +1935,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		224CC78C175E1821002FF81B /* fotest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 224CC795175E1821002FF81B /* Build configuration list for PBXNativeTarget "fotest" */;
+			buildPhases = (
+				224CC78F175E1821002FF81B /* Sources */,
+				224CC792175E1821002FF81B /* Frameworks */,
+				224CC794175E1821002FF81B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				224CC78D175E1821002FF81B /* PBXTargetDependency */,
+			);
+			name = fotest;
+			productName = mv2test;
+			productReference = 224CC799175E1821002FF81B /* fotest */;
+			productType = "com.apple.product-type.tool";
+		};
 		2291A5AC175CAB2F001D4920 /* awlutth */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2291A5B9175CAB2F001D4920 /* Build configuration list for PBXNativeTarget "awlutth" */;
@@ -2255,9 +2311,9 @@
 			productReference = 3114A633156E94DB001E0AA3 /* abqtest */;
 			productType = "com.apple.product-type.tool";
 		};
-		3114A64B156E9596001E0AA3 /* cbstest */ = {
+		3114A64B156E9596001E0AA3 /* fbmtest */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3114A653156E9596001E0AA3 /* Build configuration list for PBXNativeTarget "cbstest" */;
+			buildConfigurationList = 3114A653156E9596001E0AA3 /* Build configuration list for PBXNativeTarget "fbmtest" */;
 			buildPhases = (
 				3114A648156E9596001E0AA3 /* Sources */,
 				3114A649156E9596001E0AA3 /* Frameworks */,
@@ -2268,9 +2324,9 @@
 			dependencies = (
 				3114A659156E95B1001E0AA3 /* PBXTargetDependency */,
 			);
-			name = cbstest;
-			productName = cbstest;
-			productReference = 3114A64C156E9596001E0AA3 /* cbstest */;
+			name = fbmtest;
+			productName = fbmtest;
+			productReference = 3114A64C156E9596001E0AA3 /* fbmtest */;
 			productType = "com.apple.product-type.tool";
 		};
 		3114A661156E95D9001E0AA3 /* btcv */ = {
@@ -2595,11 +2651,12 @@
 				2291A5AC175CAB2F001D4920 /* awlutth */,
 				3114A661156E95D9001E0AA3 /* btcv */,
 				3114A604156E9430001E0AA3 /* bttest */,
-				3114A64B156E9596001E0AA3 /* cbstest */,
+				3114A64B156E9596001E0AA3 /* fbmtest */,
 				2291A5D3175CB05F001D4920 /* exposet0 */,
 				2291A5C1175CAFCA001D4920 /* expt825 */,
 				3114A5BC156E9315001E0AA3 /* finalcv */,
 				3114A5D5156E93A0001E0AA3 /* finaltest */,
+				224CC78C175E1821002FF81B /* fotest */,
 				31D60026156D3D3E00337B26 /* lockcov */,
 				3114A58F156E913C001E0AA3 /* locv */,
 				3114A694156E971B001E0AA3 /* messtest */,
@@ -2635,12 +2692,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awluthe btcv cbstest expt825 exposet0 finalcv \\\n           finaltest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
+			shellScript = "# Not listed here:\n# awlutth -- fails (job003506).\n# bttest and teletest -- interactive and so cannot be run unattended.\n# zcoll -- takes too long to be useful as a regularly run smoke test.\nTESTCASES=\"abqtest amcss amcsshe amcssth amsss amssshe apss arenacv \\\n           awlut awluthe btcv expt825 exposet0 fbmtest finalcv \\\n           finaltest fotest lockcov locv messtest mpmss mpsicv mv2test \\\n           poolncv qs sacss segsmss steptest walkt0 zmess\"\n\n../tool/testrun.sh $(for TEST in $TESTCASES; do echo $TARGET_BUILD_DIR/$TEST; done)\n\n# Coverage\nif [ \"$CONFIGURATION\" == \"Debug\" ]; then\n    (cd xc/$PROJECT.build/$CONFIGURATION/$PROJECT.build/Objects-normal/x86_64 &&\n     gcov mps.c 2> /dev/null) | ../tool/gcovfmt.py\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		224CC78F175E1821002FF81B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				224CC7A0175E322C002FF81B /* fotest.c in Sources */,
+				224CC791175E1821002FF81B /* testlib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2291A5AF175CAB2F001D4920 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2850,7 +2916,6 @@
 			files = (
 				3114A63E156E94EA001E0AA3 /* abqtest.c in Sources */,
 				3114A63F156E94F0001E0AA3 /* testlib.c in Sources */,
-				3114A646156E9525001E0AA3 /* abq.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2858,7 +2923,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3114A657156E95A6001E0AA3 /* cbstest.c in Sources */,
+				2291A5ED175CB5E2001D4920 /* fbmtest.c in Sources */,
 				3114A672156E95F6001E0AA3 /* testlib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2876,10 +2941,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3114A687156E9674001E0AA3 /* mv2test.c in Sources */,
+				224CC79F175E321C002FF81B /* mv2test.c in Sources */,
 				3114A688156E967C001E0AA3 /* testlib.c in Sources */,
-				3114A68F156E96B6001E0AA3 /* poolmv2.c in Sources */,
-				3114A690156E96CE001E0AA3 /* abq.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3040,6 +3103,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		224CC78D175E1821002FF81B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 31EEABFA156AAF9D00714D05 /* mps */;
+			targetProxy = 224CC78E175E1821002FF81B /* PBXContainerItemProxy */;
+		};
+		224CC79D175E187C002FF81B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 224CC78C175E1821002FF81B /* fotest */;
+			targetProxy = 224CC79C175E187C002FF81B /* PBXContainerItemProxy */;
+		};
 		2275798916C5422900B662B0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2D604B9B16514B1A003AAF46 /* mpseventtxt */;
@@ -3267,7 +3340,7 @@
 		};
 		3114A65B156E95B4001E0AA3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 3114A64B156E9596001E0AA3 /* cbstest */;
+			target = 3114A64B156E9596001E0AA3 /* fbmtest */;
 			targetProxy = 3114A65A156E95B4001E0AA3 /* PBXContainerItemProxy */;
 		};
 		3114A675156E9619001E0AA3 /* PBXTargetDependency */ = {
@@ -3403,12 +3476,39 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		224CC796175E1821002FF81B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		224CC797175E1821002FF81B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		224CC798175E1821002FF81B /* WE */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = WE;
+		};
 		2291A5BA175CAB2F001D4920 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = awlutth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -3417,7 +3517,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = awlutth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -3426,7 +3526,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = awlutth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = WE;
 		};
@@ -3435,7 +3535,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = expt825;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -3444,7 +3544,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = expt825;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -3453,7 +3553,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = expt825;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = WE;
 		};
@@ -3462,7 +3562,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = exposet0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -3471,7 +3571,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = exposet0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -3480,7 +3580,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = exposet0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = WE;
 		};
@@ -3510,7 +3610,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = YES;
-				PRODUCT_NAME = amcssth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -3519,7 +3619,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = amcssth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -3528,7 +3628,7 @@
 			buildSettings = {
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
-				PRODUCT_NAME = amcssth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = WE;
 		};
@@ -4609,6 +4709,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		224CC795175E1821002FF81B /* Build configuration list for PBXNativeTarget "fotest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				224CC796175E1821002FF81B /* Debug */,
+				224CC797175E1821002FF81B /* Release */,
+				224CC798175E1821002FF81B /* WE */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2291A5B9175CAB2F001D4920 /* Build configuration list for PBXNativeTarget "awlutth" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -4829,7 +4939,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3114A653156E9596001E0AA3 /* Build configuration list for PBXNativeTarget "cbstest" */ = {
+		3114A653156E9596001E0AA3 /* Build configuration list for PBXNativeTarget "fbmtest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3114A654156E9596001E0AA3 /* Debug */,

@@ -1,28 +1,66 @@
-/* apss.c: AP MANUAL ALLOC STRESS TEST
+/* fotest.c: FAIL-OVER TEST
  *
  * $Id$
  * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
+ *
+ * This tests fail-over behaviour in low memory situations. The MVFF
+ * and MVT pool classes normally maintain their list of free blocks in
+ * a Coalescing Block Structure (CBS), but if the CBS cannot handle a
+ * request due to running out of memory, they fall back to a Freelist
+ * (which has zero memory overhead, at some cost in performance).
+ *
+ * This is a white box test: it patches the class of the CBS's
+ * internal block pool (MFS) with a pointer to a dummy class whose
+ * alloc() method always returns ResMEMORY.
  */
 
 
-#include "mpscmv.h"
 #include "mpscmvff.h"
 #include "mpscmvt.h"
-#include "mpslib.h"
-#include "mpsacl.h"
 #include "mpsavm.h"
 
 #include "testlib.h"
-#include "mpslib.h"
+
+#include "cbs.h"
+#include "mpm.h"
+#include "mpmst.h"
+#include "mpmtypes.h"
+#include "poolmfs.h"
 
 #include <stdarg.h>
-#include <stdlib.h> /* malloc */
 
 
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
-#define testSetSIZE 200
+#define testSetSIZE 2000
 #define testLOOPS 10
+
+
+/* Accessors for the CBS used to implement a pool. */
+
+extern CBS _mps_mvff_cbs(mps_pool_t);
+extern CBS _mps_mvt_cbs(mps_pool_t);
+
+
+/* "OOM" pool class -- dummy alloc/free pool class whose alloc()
+ * method always returns ResMEMORY */
+
+static Res OOMAlloc(Addr *pReturn, Pool pool, Size size,
+                       Bool withReservoirPermit)
+{
+  UNUSED(pReturn);
+  UNUSED(pool);
+  UNUSED(size);
+  UNUSED(withReservoirPermit);
+  return ResMEMORY;
+}
+
+extern PoolClass PoolClassOOM(void);
+DEFINE_POOL_CLASS(OOMPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractAllocFreePoolClass);
+  this->alloc = OOMAlloc;
+}
 
 
 /* make -- allocate one object */
@@ -41,30 +79,30 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 }
 
 
-/* stress -- create a pool of the requested type and allocate in it */
+/* set_oom -- set blockPool of CBS to OOM or MFS according to argument. */
 
-static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
-                        mps_arena_t arena, ...)
+static void set_oom(CBS cbs, int oom)
+{
+  cbs->blockPool->class = oom ? EnsureOOMPoolClass() : PoolClassMFS();
+}
+
+
+/* stress -- create an allocation point and allocate in it */
+
+static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
+                        mps_align_t alignment, mps_pool_t pool, CBS cbs)
 {
   mps_res_t res = MPS_RES_OK;
-  mps_pool_t pool;
   mps_ap_t ap;
-  va_list arg;
   unsigned long i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
-
-  va_start(arg, arena);
-  res = mps_pool_create_v(&pool, arena, class, arg);
-  va_end(arg);
-  if (res != MPS_RES_OK)
-    return res;
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
-    ss[i] = (*size)(i);
+    ss[i] = (*size)(i, alignment);
 
     res = make((mps_addr_t *)&ps[i], ap, ss[i]);
     if (res != MPS_RES_OK)
@@ -72,8 +110,6 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
   }
-
-  mps_pool_check_fenceposts(pool);
 
   for (k=0; k<testLOOPS; ++k) {
     /* shuffle all the objects */
@@ -96,16 +132,18 @@ static mps_res_t stress(mps_class_t class, size_t (*size)(unsigned long i),
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
-      ss[i] = (*size)(i);
+      ss[i] = (*size)(i, alignment);
       res = make((mps_addr_t *)&ps[i], ap, ss[i]);
       if (res != MPS_RES_OK)
         goto allocFail;
     }
+
+    set_oom(cbs, rnd() % 2);
   }
+  set_oom(cbs, 0);
 
 allocFail:
   mps_ap_destroy(ap);
-  mps_pool_destroy(pool);
 
   return res;
 }
@@ -119,95 +157,60 @@ allocFail:
 /* randomSizeAligned -- produce sizes both large and small,
  * aligned by platform alignment */
 
-static size_t randomSizeAligned(unsigned long i)
+static size_t randomSizeAligned(unsigned long i, mps_align_t alignment)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
-  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, MPS_PF_ALIGN);
+  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, alignment);
 }
-
-
-static mps_pool_debug_option_s bothOptions8 = {
-  /* .fence_template = */   (void *)"postpost",
-  /* .fence_size = */       8,
-  /* .free_template = */    (void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s bothOptions16 = {
-  /* .fence_template = */   (void *)"postpostpostpost",
-  /* .fence_size = */       16,
-  /* .free_template = */    (void *)"DEAD",
-  /* .free_size = */        4
-};
-
-static mps_pool_debug_option_s fenceOptions = {
-  /* .fence_template = */   (void *)"\0XXX ''\"\"'' XXX\0",
-  /* .fence_size = */       16,
-  /* .free_template = */    NULL,
-  /* .free_size = */        0
-};
-
-/* testInArena -- test all the pool classes in the given arena */
-
-static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
-{
-  mps_res_t res;
-
-  /* IWBN to test MVFFDebug, but the MPS doesn't support debugging APs, */
-  /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
-  printf("MVFF\n");
-  res = stress(mps_class_mvff(), randomSizeAligned, arena,
-               (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE);
-  if (res == MPS_RES_COMMIT_LIMIT) return;
-  die(res, "stress MVFF");
-
-  printf("MV debug\n");
-  res = stress(mps_class_mv_debug(), randomSizeAligned, arena,
-               options, (size_t)65536, (size_t)32, (size_t)65536);
-  if (res == MPS_RES_COMMIT_LIMIT) return;
-  die(res, "stress MV debug");
-
-  printf("MV\n");
-  res = stress(mps_class_mv(), randomSizeAligned, arena,
-               (size_t)65536, (size_t)32, (size_t)65536);
-  if (res == MPS_RES_COMMIT_LIMIT) return;
-  die(res, "stress MV");
-
-  printf("MVT\n");
-  res = stress(mps_class_mvt(), randomSizeAligned, arena,
-               (size_t)8, (size_t)32, (size_t)65536, (mps_word_t)4,
-               (mps_word_t)50);
-  if (res == MPS_RES_COMMIT_LIMIT) return;
-  die(res, "stress MVT");
-}
-
 
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
-  mps_pool_debug_option_s *bothOptions;
-  
-  bothOptions = MPS_PF_ALIGN == 8 ? &bothOptions8 : &bothOptions16;
+  mps_pool_t pool;
+  mps_align_t alignment;
 
   randomize(argc, argv);
   mps_lib_assert_fail_install(assert_die);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "commit limit");
-  testInArena(arena, &fenceOptions);
+  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, (64 + rnd() % 64) * 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 8);
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, alignment);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, rnd() % 2);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, rnd() % 2);
+    MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, rnd() % 2);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "create MVFF");
+  } MPS_ARGS_END(args);
+  {
+    CBS cbs = _mps_mvff_cbs(pool);
+    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVFF");
+  }
+  mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-  testInArena(arena, bothOptions);
-  mps_arena_destroy(arena);
-
-  die(mps_arena_create(&arena, mps_arena_class_cl(),
-                       testArenaSIZE, malloc(testArenaSIZE)),
-      "mps_arena_create");
-  testInArena(arena, bothOptions);
+  alignment = (1 << (rnd() % 4)) * MPS_PF_ALIGN;
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, alignment);
+    MPS_ARGS_ADD(args, MPS_KEY_MIN_SIZE, (1 + rnd() % 4) * 4);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 16);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, (1 + rnd() % 4) * 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, (1 + rnd() % 64) * 16);
+    MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (rnd() % 101) / 100.0);
+    MPS_ARGS_DONE(args);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
+  } MPS_ARGS_END(args);
+  {
+    CBS cbs = _mps_mvt_cbs(pool);
+    die(stress(randomSizeAligned, alignment, pool, cbs), "stress MVT");
+  }
+  mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

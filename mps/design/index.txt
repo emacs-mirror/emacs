@@ -1,0 +1,249 @@
+.. mode: -*- rst -*-
+
+MPS Design Documents
+====================
+:Author: Richard Brooksby
+:Organization: Ravenbrook Limited
+:Date: 2002-05-23
+:Revision: $Id$
+:Readership: developers
+:Confidentiality: public
+:Type: index
+:Copyright: See `Copyright and License`_.
+
+
+Introduction
+------------
+
+This is the catalogue of design documents of the Memory Pool System
+product.
+
+.. warning::
+
+   This is not a complete set of design documents for the MPS.  We have
+   many hundreds of documents from before the MPS was acquired by
+   Ravenbrook on 2001-08-10, many of which contain confidential
+   information [RB_2002-06-18]_.  We are sorting through these and will
+   include more as time goes on.  We have tried to select the key
+   documents for inclusion in the open source release, by including
+   those documents referenced by the source code.
+
+   If there is a document you think might exist and want to see it,
+   please write to mps-questions@ravenbrook.com and we will try to dig
+   it up.
+
+
+Designs
+-------
+
+.. class:: index
+
+======================  ================================================
+alloc-frame_            Design of the MPS allocation frame protocol
+arena_                  The design of the MPS arena
+arenavm_                Virtual memory arena
+bt_                     Bit tables
+buffer_                 Allocation buffers and allocation points
+cbs_                    Design for coalescing block structure
+check_                  Design of checking in MPS
+class-interface_        Design of the pool class interface
+collection_             The collection framework
+config_                 The design of MPS configuration
+critical-path_          The critical path through the MPS
+diag_                   The design of MPS diagnostic feedback
+finalize_               Finalization
+fix_                    The Design of the Generic Fix Function
+freelist_               Free list allocator
+guide.hex.trans_        Guide to transliterating the alphabet into hexadecimal
+guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
+interface-c_            The design of the Memory Pool System interface to C
+io_                     The design of the MPS I/O subsystem
+keyword-arguments_      The design of the MPS mechanism for passing arguments by keyword.
+lib_                    The design of the Memory Pool System library interface
+lock_                   The design of the lock module
+locus_                  The design for the locus manager
+message_                MPS to client message protocol
+message-gc_             Messages sent when garbage collection begins or ends
+object-debug_           Debugging Features for Client Objects
+pool_                   The design of the pool and pool class mechanisms
+poolamc_                The design of the automatic mostly-copying memory pool class
+poolams_                The design of the automatic mark-and-sweep pool class
+poolawl_                Automatic weak linked
+poollo_                 Leaf object pool class
+poolmfs_                The design of the manual fixed small memory pool class
+poolmrg_                Guardian poolclass
+poolmv_                 The design of the manual variable memory pool class
+poolmvt_                The design of a new manual-variable memory pool class
+poolmvff_               Design of the manually-managed variable-size first-fit pool
+prot_                   Generic design of the protection module
+protan_                 ANSI implementation of protection module
+protli_                 Linux implementation of protection module
+protocol_               The design for protocol inheritance in MPS
+protsu_                 SunOS 4 implementation of protection module
+pthreadext_             Design of the Posix thread extensions for MPS
+reservoir_              The design of the low-memory reservoir
+ring_                   The design of the ring data structure
+root_                   The design of the root manager
+scan_                   The design of the generic scanner
+seg_                    The design of the MPS segment data structure
+shield_                 Shield abstraction: separate control of collector access and mutator (client) access to memory
+sig_                    Signatures in the MPS
+splay_                  Design of splay trees
+sso1al_                 Stack scanner for Digital Unix / Alpha systems
+telemetry_              The design of the MPS telemetry mechanism
+tests_                  The design of MPS internal tests
+thread-manager_         The design of the MPS thread manager
+thread-safety_          Thread Safety in the MPS
+trace_                  Tracer
+type_                   The design of the general MPS types
+version-library_        Design of the MPS library version mechanism
+version_                Design of MPS software versions
+vm_                     The design of the virtual mapping interface
+vman_                   ANSI fake VM
+vmo1_                   VM Module on DEC Unix
+vmso_                   VM Design for Solaris
+writef_                 The design of the MPS writef function 
+======================  ================================================
+
+.. _alloc-frame: alloc-frame
+.. _arena: arena
+.. _arenavm: arenavm
+.. _bt: bt
+.. _buffer: buffer
+.. _cbs: cbs
+.. _check: check
+.. _class-interface: class-interface
+.. _collection: collection
+.. _config: config
+.. _critical-path: critical-path
+.. _diag: diag
+.. _finalize: finalize
+.. _fix: fix
+.. _freelist: freelist
+.. _guide.hex.trans: guide.hex.trans
+.. _guide.impl.c.format: guide.impl.c.format
+.. _interface-c: interface-c
+.. _io: io
+.. _keyword-arguments: keyword-arguments
+.. _lib: lib
+.. _lock: lock
+.. _locus: locus
+.. _message: message
+.. _message-gc: message-gc
+.. _object-debug: object-debug
+.. _pool: pool
+.. _poolamc: poolamc
+.. _poolams: poolams
+.. _poolawl: poolawl
+.. _poollo: poollo
+.. _poolmfs: poolmfs
+.. _poolmrg: poolmrg
+.. _poolmv: poolmv
+.. _poolmvt: poolmvt
+.. _poolmvff: poolmvff
+.. _prot: prot
+.. _protan: protan
+.. _protli: protli
+.. _protocol: protocol
+.. _protsu: protsu
+.. _pthreadext: pthreadext
+.. _reservoir: reservoir
+.. _ring: ring
+.. _root: root
+.. _scan: scan
+.. _seg: seg
+.. _shield: shield
+.. _sig: sig
+.. _splay: splay
+.. _sso1al: sso1al
+.. _telemetry: telemetry
+.. _tests: tests
+.. _thread-manager: thread-manager
+.. _thread-safety: thread-safety
+.. _trace: trace
+.. _type: type
+.. _version-library: version-library
+.. _version: version
+.. _vm: vm
+.. _vman: vman
+.. _vmo1: vmo1
+.. _vmso: vmso
+.. _writef: writef
+
+
+References
+----------
+
+.. [RB_2002-06-18]
+   "The Obsolete Memory Management Information System";
+   Richard Brooksby;
+   Ravenbrook Limited;
+   2002-06-18;
+   <http://www.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo>.
+
+
+Document History
+----------------
+
+- 2002-05-23 	RB_ 	Created empty catalogue based on P4DTI design document catalogue.
+- 2002-06-07 	RB_ 	Added a bunch of design documents referenced by the source code.
+- 2002-06-21 	NB_ 	Remove P4DTI reference, which doesn't fit here. Maybe one day we'll have a corporate design document procedure.
+- 2002-06-24 	RB_ 	Added fix, object-debug, thread-manager, and thread-safety.
+- 2007-02-08 	RHSK 	Added message-gc and shield.
+- 2007-06-12 	RHSK 	Added cstyle.
+- 2007-06-28 	RHSK 	Added diag.
+- 2008-12-04 	RHSK 	Added tests.
+- 2008-12-10 	RHSK 	Correct description of message-gc: gc begin or end.
+- 2012-09-14 	RB_ 	Added link to critical-path
+- 2013-05-10 	RB_ 	Fixed link to sig and added guide.hex.trans
+- 2013-05-22 	GDR_ 	Add link to keyword-arguments.
+- 2013-05-25 	RB_ 	Replacing "cstyle" with reworked "guide.impl.c.format".
+- 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
+
+.. _RB: http://www.ravenbrook.com/consultants/rb
+.. _NB: http://www.ravenbrook.com/consultants/nb
+.. _GDR: http://www.ravenbrook.com/consultants/gdr
+.. _reST: http://docutils.sourceforge.net/rst.html
+
+
+Copyright and License
+---------------------
+
+Copyright © 2002-2013 Ravenbrook Limited. All rights reserved.
+<http://www.ravenbrook.com/>. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

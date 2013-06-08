@@ -1,69 +1,59 @@
-/* abq.h: QUEUE INTERFACE
+/* freelist.h: FREE LIST ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: A fixed-length FIFO queue.
- *
- * .design: <design/abq/>
+ * .source: <design/freelist/>.
  */
 
-#ifndef abq_h
-#define abq_h
+#ifndef freelist_h
+#define freelist_h
 
-#include "meter.h"
-#include "mpm.h"
+#include "cbs.h"
+#include "mpmtypes.h"
+#include "range.h"
 
+#define FreelistSig ((Sig)0x519F6331) /* SIGnature FREEL */
 
-/* Signatures */
+typedef struct FreelistStruct *Freelist;
+typedef union FreelistBlockUnion *FreelistBlock;
 
-#define ABQSig ((Sig)0x519AB099) /* SIGnature ABQ */
+typedef Bool (*FreelistIterateMethod)(Bool *deleteReturn, Range range,
+                                      void *closureP, Size closureS);
 
-
-/* Prototypes  */
-
-typedef struct ABQStruct *ABQ;
-typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream);
-typedef Bool (*ABQIterateMethod)(Bool *deleteReturn, void *element, void *closureP, Size closureS);
-
-extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
-extern Bool ABQCheck(ABQ abq);
-extern void ABQFinish(Arena arena, ABQ abq);
-extern Res ABQPush(ABQ abq, void *element);
-extern Res ABQPop(ABQ abq, void *elementReturn);
-extern Res ABQPeek(ABQ abq, void *elementReturn);
-extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE *stream);
-extern Bool ABQIsEmpty(ABQ abq);
-extern Bool ABQIsFull(ABQ abq);
-extern Count ABQDepth(ABQ abq);
-extern void ABQIterate(ABQ abq, ABQIterateMethod iterate, void *closureP, Size closureS);
-
-
-/* Types */
-
-typedef struct ABQStruct
-{
-  Count elements;
-  Size elementSize;
-  Index in;
-  Index out;
-  void *queue;
-
-  /* Meter queue depth at each operation */
-  METER_DECL(push);
-  METER_DECL(pop);
-  METER_DECL(peek);
-  METER_DECL(delete);
- 
+typedef struct FreelistStruct {
   Sig sig;
-} ABQStruct;
+  Align alignment;
+  FreelistBlock list;
+  Count listSize;
+} FreelistStruct;
 
-#endif /* abq_h */
+extern Bool FreelistCheck(Freelist fl);
+extern Res FreelistInit(Freelist fl, Align alignment);
+extern void FreelistFinish(Freelist fl);
+
+extern Res FreelistInsert(Range rangeReturn, Freelist fl, Range range);
+extern Res FreelistDelete(Range rangeReturn, Freelist fl, Range range);
+extern Res FreelistDescribe(Freelist fl, mps_lib_FILE *stream);
+
+extern void FreelistIterate(Freelist abq, FreelistIterateMethod iterate,
+                            void *closureP, Size closureS);
+
+extern Bool FreelistFindFirst(Range rangeReturn, Range oldRangeReturn,
+                              Freelist fl, Size size, FindDelete findDelete);
+extern Bool FreelistFindLast(Range rangeReturn, Range oldRangeReturn,
+                             Freelist fl, Size size, FindDelete findDelete);
+extern Bool FreelistFindLargest(Range rangeReturn, Range oldRangeReturn,
+                                Freelist fl, Size size, FindDelete findDelete);
+
+extern void FreelistFlushToCBS(Freelist fl, CBS cbs);
+
+#endif /* freelist.h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

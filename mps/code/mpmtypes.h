@@ -60,6 +60,7 @@ typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
+typedef unsigned FormatVariety;        
 typedef int RootVar;                    /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
@@ -108,6 +109,7 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 typedef struct StackContextStruct *StackContext;
+typedef unsigned FindDelete;    /* <design/cbs/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -288,6 +290,16 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
 
 
+/* Format varieties */
+enum {
+  FormatVarietyA = 1,
+  FormatVarietyB,
+  FormatVarietyAutoHeader,
+  FormatVarietyFixed,
+  FormatVarietyLIMIT
+};
+
+
 /* Segment preferences */
 enum {
   SegPrefHigh = 1,
@@ -410,6 +422,17 @@ enum {
   MessageTypeGC,  /* MPS_MESSAGE_TYPE_GC = trace end */
   MessageTypeGCSTART,  /* MPS_MESSAGE_TYPE_GC_START */
   MessageTypeLIMIT /* not a message type, the limit of the enum. */
+};
+
+
+/* FindDelete operations -- see <design/cbs/> and <design/freelist/> */
+
+enum {
+  FindDeleteNONE = 1, /* don't delete after finding */
+  FindDeleteLOW,      /* delete size bytes from low end of block */
+  FindDeleteHIGH,     /* delete size bytes from high end of block */
+  FindDeleteENTIRE,   /* delete entire range */
+  FindDeleteLIMIT     /* not a FindDelete operation; the limit of the enum. */
 };
 
 
