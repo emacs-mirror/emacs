@@ -232,6 +232,13 @@ assertion that is listed here but for which you discovered a different
 cause), please :ref:`let us know <contact>` so that we can improve
 this documentation.
 
+``arenavm.c: BTIsResRange(vmChunk->pageTableMapped, 0, chunk->pageTablePages)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    having destroyed all pools in that arena first. (The assertion is
+    from the virtual memory manager which is checking that all pages
+    have been unmapped.)
+
 
 ``dbgpool.c: fencepost check on free``
 

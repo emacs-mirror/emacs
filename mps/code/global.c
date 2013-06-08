@@ -381,16 +381,15 @@ void GlobalsFinish(Globals arenaGlobals)
   Arena arena;
   Rank rank;
 
-  /* The client may have failed to destroy all data structures
-   * associated with the arena. If this happens we must assert (and
-   * not crash). But at this point in the code the control pool has
-   * been destroyed and so the address space containing these rings
-   * has potentially been unmapped. GlobalsCheck calls RingCheck,
-   * which (if the ring is not single) will dereference a pointer into
-   * the space formerly occupied by the control pool and so crash.
-   * Hence we must check that these rings are single *before* calling
-   * GlobalsCheck via the AVERT. See job000652.
-   */
+  /* Check that the tear-down is complete: that the client has
+   * destroyed all data structures associated with the arena. We do
+   * this *before* calling AVERT(Globals, arenaGlobals) because the
+   * AVERT will crash if there are any remaining data structures, and
+   * it is politer to assert than to crash. (The crash would happen
+   * because by this point in the code the control pool has been
+   * destroyed and so the address space containing all these rings has
+   * potentially been unmapped, and so RingCheck dereferences a
+   * pointer into that unmapped memory.) See job000652. */
   arena = GlobalsArena(arenaGlobals);
   AVER(RingIsSingle(&arena->formatRing));
   AVER(RingIsSingle(&arena->chainRing));
@@ -404,7 +403,7 @@ void GlobalsFinish(Globals arenaGlobals)
   AVERT(Globals, arenaGlobals);
 
   STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
-                          arena->writeBarrierHitCount));
+                        arena->writeBarrierHitCount));
 
   arenaGlobals->sig = SigInvalid;
 
@@ -418,7 +417,6 @@ void GlobalsFinish(Globals arenaGlobals)
   RingFinish(&arenaGlobals->poolRing);
   RingFinish(&arenaGlobals->globalRing);
 }
-
 
 /* GlobalsPrepareToDestroy -- prepare to destroy the globals of the arena
  *
@@ -480,6 +478,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     PoolDestroy(pool);
   }
 }
+
 
 Ring GlobalsRememberedSummaryRing(Globals global)
 {
