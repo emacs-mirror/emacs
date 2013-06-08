@@ -163,7 +163,7 @@ MVT interface
       object population does vary, at a slight cost in efficiency. The
       reserve does not guarantee any particular amount of allocation.
 
-    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`mps_count_t`,
+    * :c:macro:`MPS_KEY_MVT_FRAG_LIMIT` (type :c:type:`double`,
       default 0.3) is a double from 0.0 to 1.0 (inclusive). It sets an
       upper limit on the space overhead of an MVT pool, in case block
       death times and allocations do not correlate well. If the free
