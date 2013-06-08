@@ -3446,6 +3446,7 @@ discarding."
 (byte-defop-compiler (/ byte-quo) byte-compile-quo)
 (byte-defop-compiler nconc)
 
+;; Is this worth it?  Both -before and -after are written in C.
 (defun byte-compile-char-before (form)
   (cond ((or (= 1 (length form))
 	     (and (= 2 (length form)) (not (nth 1 form))))
@@ -3453,10 +3454,12 @@ discarding."
 	((= 2 (length form))
 	 (byte-compile-form (list 'char-after (if (numberp (nth 1 form))
 						  (1- (nth 1 form))
-						`(1- ,(nth 1 form))))))
+						`(1- (or ,(nth 1 form)
+							 (point)))))))
 	(t (byte-compile-subr-wrong-args form "0-1"))))
 
 ;; backward-... ==> forward-... with negated argument.
+;; Is this worth it?  Both -backward and -forward are written in C.
 (defun byte-compile-backward-char (form)
   (cond ((or (= 1 (length form))
 	     (and (= 2 (length form)) (not (nth 1 form))))
@@ -3464,7 +3467,7 @@ discarding."
 	((= 2 (length form))
 	 (byte-compile-form (list 'forward-char (if (numberp (nth 1 form))
 						    (- (nth 1 form))
-						  `(- ,(nth 1 form))))))
+						  `(- (or ,(nth 1 form) 1))))))
 	(t (byte-compile-subr-wrong-args form "0-1"))))
 
 (defun byte-compile-backward-word (form)
@@ -3474,7 +3477,7 @@ discarding."
 	((= 2 (length form))
 	 (byte-compile-form (list 'forward-word (if (numberp (nth 1 form))
 						    (- (nth 1 form))
-						  `(- ,(nth 1 form))))))
+						  `(- (or ,(nth 1 form) 1))))))
 	(t (byte-compile-subr-wrong-args form "0-1"))))
 
 (defun byte-compile-list (form)
