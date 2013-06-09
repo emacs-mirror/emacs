@@ -2317,7 +2317,9 @@ if test "${with_file_notification}" = "yes"; then
    if test "${opsys}" = "mingw32"; then
       with_file_notification=w32
    else
-      with_file_notification=gfile
+      if test "${with_ns}" != yes; then
+        with_file_notification=gfile
+      fi
    fi
 fi
 
@@ -3627,7 +3629,9 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM(
 AC_MSG_RESULT([$links_glib])
 if test "${links_glib}" = "yes"; then
   AC_DEFINE(HAVE_GLIB, 1, [Define to 1 if GLib is linked in.])
-  XGSELOBJ=xgselect.o
+  if test "$HAVE_NS" = no;then
+    XGSELOBJ=xgselect.o
+  fi
 fi
 AC_SUBST(XGSELOBJ)
 

@@ -132,17 +132,22 @@ character to the invoked process."
   "Initialize the `term' interface code."
   (make-local-variable 'eshell-interpreter-alist)
   (setq eshell-interpreter-alist
-	(cons (cons (function
-		     (lambda (command args)
-		       (let ((command (file-name-nondirectory command)))
-			 (or (member command eshell-visual-commands)
-			     (member (car args)
-				     (cdr (assoc command eshell-visual-subcommands)))
-			     (cl-intersection args
-					      (cdr (assoc command eshell-visual-options))
-					      :test 'string=)))))
+	(cons (cons #'eshell-visual-command-p
 		    'eshell-exec-visual)
 	      eshell-interpreter-alist)))
+
+(defun eshell-visual-command-p (command args)
+  "Returns non-nil when given a visual command.
+If either COMMAND or a subcommand in ARGS (e.g. git log) is a
+visual command, returns non-nil."
+  (let ((command (file-name-nondirectory command)))
+    (and (eshell-interactive-output-p)
+         (or (member command eshell-visual-commands)
+             (member (car args)
+                     (cdr (assoc command eshell-visual-subcommands)))
+             (cl-intersection args
+                              (cdr (assoc command eshell-visual-options))
+                              :test 'string=)))))
 
 (defun eshell-exec-visual (&rest args)
   "Run the specified PROGRAM in a terminal emulation buffer.

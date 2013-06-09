@@ -4528,10 +4528,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-#if defined (HAVE_GLIB)
-          nfds = xg_select
-#elif defined (HAVE_NS)
-	  nfds = ns_select
+#if defined (HAVE_NS)
+          nfds = ns_select
+#elif defined (HAVE_GLIB)
+	  nfds = xg_select
 #else
 	  nfds = pselect
 #endif

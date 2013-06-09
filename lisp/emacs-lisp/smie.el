@@ -957,7 +957,7 @@ If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"
     (let ((ender (funcall smie-backward-token-function)))
       (cond
        ((not (and ender (rassoc ender smie-closer-alist)))
-        ;; This not is one of the begin..end we know how to check.
+        ;; This is not one of the begin..end we know how to check.
         (blink-matching-check-mismatch start end))
        ((not start) t)
        ((eq t (car (rassoc ender smie-closer-alist))) nil)
@@ -1012,6 +1012,9 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                      (or (eq (char-before) last-command-event)
                          (not (memq (char-before)
                                     smie-blink-matching-triggers)))
+                     ;; FIXME: For octave's "switch ... case ... case" we flash
+                     ;; `switch' at the end of the first `case' and we burp
+                     ;; "mismatch" at the end of the second `case'.
                      (or smie-blink-matching-inners
                          (not (numberp (nth 2 (assoc token smie-grammar))))))
             ;; The major mode might set blink-matching-check-function
@@ -1023,61 +1026,88 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
 
 (defvar-local smie--matching-block-data-cache nil)
 
+(defun smie--opener/closer-at-point ()
+  "Return (OPENER TOKEN START END) or nil.
+OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
+  (let* ((start (point))
+         ;; Move to a previous position outside of a token.
+         (_ (funcall smie-backward-token-function))
+         ;; Move to the end of the token before point.
+         (btok (funcall smie-forward-token-function))
+         (bend (point)))
+    (cond
+     ;; Token before point is a closer?
+     ((and (>= bend start) (rassoc btok smie-closer-alist))
+      (funcall smie-backward-token-function)
+      (when (< (point) start)
+        (prog1 (list nil btok (point) bend)
+          (goto-char bend))))
+     ;; Token around point is an opener?
+     ((and (> bend start) (assoc btok smie-closer-alist))
+      (funcall smie-backward-token-function)
+      (when (<= (point) start) (list t btok (point) bend)))
+     ((<= bend start)
+      (let ((atok (funcall smie-forward-token-function))
+            (aend (point)))
+        (cond
+         ((< aend start) nil)           ;Hopefully shouldn't happen.
+         ;; Token after point is a closer?
+         ((assoc atok smie-closer-alist)
+          (funcall smie-backward-token-function)
+          (when (<= (point) start)
+            (list t atok (point) aend)))))))))
+
 (defun smie--matching-block-data (orig &rest args)
   "A function suitable for `show-paren-data-function' (which see)."
-  (when smie-closer-alist
-    (if (eq (point) (car smie--matching-block-data-cache))
-        (or (cdr smie--matching-block-data-cache)
-            (apply orig args))
-      (setq smie--matching-block-data-cache (list (point)))
-      (let* ((beg-of-tok
-              (lambda (&optional start)
-                "Move to the beginning of current token at START."
-                (let* ((token)
-                       (start (or start (point)))
-                       (beg (progn
-                              (funcall smie-backward-token-function)
-                              (forward-comment (point-max))
-                              (point)))
-                       (end (progn
-                              (setq token (funcall smie-forward-token-function))
-                              (forward-comment (- (point)))
-                              (point))))
-                  (if (and (<= beg start) (<= start end)
-                           (or (assoc token smie-closer-alist)
-                               (rassoc token smie-closer-alist)))
-                      (progn (goto-char beg) (list token beg end))
-                    (goto-char start)
-                    nil))))
-             (tok-at-pt
-              (lambda ()
-                (or (funcall beg-of-tok)
-                    (funcall beg-of-tok
-                             (prog1 (point)
-                               (funcall smie-forward-token-function)))))))
-        (unless (nth 8 (syntax-ppss))
-          (condition-case nil
-              (let ((here (funcall tok-at-pt))
-                    there pair)
-                (when here
-                  (cond
-                   ((assoc (car here) smie-closer-alist) ; opener
-                    (forward-sexp 1)
-                    (setq there (funcall tok-at-pt))
-                    (setq pair (cons (car here) (car there))))
-                   ((rassoc (car here) smie-closer-alist) ; closer
-                    (funcall smie-forward-token-function)
-                    (forward-sexp -1)
-                    (setq there (funcall tok-at-pt))
-                    (setq pair (cons (car there) (car here)))))
-                  ;; Update the cache
-                  (setcdr smie--matching-block-data-cache
-                          (list (nth 1 here)  (nth 2 here)
-                                (nth 1 there) (nth 2 there)
-                                (not (member pair smie-closer-alist))))))
-            (scan-error))
-          (goto-char (car smie--matching-block-data-cache))))
-      (apply #'smie--matching-block-data orig args))))
+  (if (or (null smie-closer-alist)
+          (eq (point) (car smie--matching-block-data-cache)))
+      (or (cdr smie--matching-block-data-cache)
+          (apply orig args))
+    (setq smie--matching-block-data-cache (list (point)))
+    (unless (nth 8 (syntax-ppss))
+      (condition-case nil
+          (let ((here (smie--opener/closer-at-point)))
+            (when (and here
+                       (or smie-blink-matching-inners
+                           (not (numberp
+                                 (nth (if (nth 0 here) 1 2)
+                                      (assoc (nth 1 here) smie-grammar))))))
+              (let ((there
+                     (cond
+                      ((car here)       ; Opener.
+                       (let ((data (smie-forward-sexp 'halfsexp))
+                             (tend (point)))
+                         (unless (car data)
+                           (funcall smie-backward-token-function)
+                           (list (member (cons (nth 1 here) (nth 2 data))
+                                         smie-closer-alist)
+                                 (point) tend))))
+                      (t                ;Closer.
+                       (let ((data (smie-backward-sexp 'halfsexp))
+                             (htok (nth 1 here)))
+                         (if (car data)
+                             (let* ((hprec (nth 2 (assoc htok smie-grammar)))
+                                    (ttok (nth 2 data))
+                                    (tprec (nth 1 (assoc ttok smie-grammar))))
+                               (when (and (numberp hprec) ;Here is an inner.
+                                          (eq hprec tprec))
+                                 (goto-char (nth 1 data))
+                                 (let ((tbeg (point)))
+                                   (funcall smie-forward-token-function)
+                                   (list t tbeg (point)))))
+                           (let ((tbeg (point)))
+                             (funcall smie-forward-token-function)
+                             (list (member (cons (nth 2 data) htok)
+                                           smie-closer-alist)
+                                   tbeg (point)))))))))
+                ;; Update the cache.
+                (setcdr smie--matching-block-data-cache
+                        (list (nth 2 here)  (nth 3 here)
+                              (nth 1 there) (nth 2 there)
+                              (not (nth 0 there)))))))
+        (scan-error nil))
+      (goto-char (car smie--matching-block-data-cache)))
+    (apply #'smie--matching-block-data orig args)))
 
 ;;; The indentation engine.
 

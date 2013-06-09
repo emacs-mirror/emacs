@@ -1,3 +1,36 @@
+2013-06-09  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell/em-term.el (eshell-visual-command-p): Fix bug that caused
+	output redirection to be ignored with visual commands.
+
+2013-06-09  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell/em-term.el (eshell-visual-command-p): New function.
+	(eshell-term-initialize): Move long lambda to separate function eshell-visual-command-p.
+	* eshell/em-dirs.el (eshell-dirs-initialise): Add missing #' to lambda.
+	* eshell/em-script.el (eshell-script-initialize): Add missing #' to lambda.
+
+2013-06-08  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-add-log-current-defun): New function.
+	(octave-mode): Set add-log-current-defun-function.
+	(octave-goto-function-definition): Do not move point if not found.
+	(octave-find-definition): Enhance to try subfunctions first.
+
+2013-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-char-before)
+	(byte-compile-backward-char, byte-compile-backward-word):
+	Improve previous change, to handle non-explicit nil.
+
+2013-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el: Improve show-paren-mode behavior.
+	(smie--opener/closer-at-point): New function.
+	(smie--matching-block-data): Use it.  Don't match from right after an
+	opener or right before a closer.  Obey smie-blink-matching-inners.
+	Don't signal a mismatch for repeated inners like "switch..case..case".
+
 2013-06-07  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-mode): Set comment-use-global-state
@@ -71,12 +104,10 @@
 	(lisp--augmented-font-lock-keywords-2, lisp-mode-variables):
 	Remove unneeded variables and use it.
 
-2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+2013-06-05  João Távora  <joaotavora@gmail.com>
 
 	* net/tls.el (open-tls-stream): Remove unneeded buffer contents up
-	to point when opening the connection.
-	Suggested by João Távora <joaotavora@gmail.com> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00464.html>.
+	to point when opening the connection.  (Bug#14380)
 
 2013-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

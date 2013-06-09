@@ -118,11 +118,6 @@ Windows 9X as well).
   MSYS Texinfo, after installing it as part of msys-base, invoke the
   command "mingw-get remove msys-texinfo".)
 
-  As the above packages don't include automake, you will need to
-  install it, e.g. from here:
-
-    http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
-
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
   script" section for the build instructions.  If you want to build it
@@ -378,14 +373,10 @@ Windows 9X as well).
   installation, and you want Emacs to continue using it, specify it
   via the --enable-locallisppath switch to msysconfig.sh, like this:
 
-   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="%emacs_dir%/share/emacs/VERSION/site-lisp;/d/wherever/site-lisp"
+   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
 
-  The %emacs_dir% part is the root of the Emacs installation tree, it
-  will get expanded by Emacs when it starts up.  Using %emacs_dir%,
-  you can add directories relative to your Emacs installation, which
-  will continue to be valid if you move the entire Emacs tree into
-  another place on your disk.  Use the normal MSYS /d/foo/bar style to
-  specify directories by their absolute file names.
+  Use the normal MSYS /d/foo/bar style to specify directories by their
+  absolute file names.
 
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
