@@ -211,7 +211,7 @@ The final element is \"*\", indicating an unspecified month.")
 
 (defconst todos-date-pattern
   (let ((dayname (diary-name-pattern calendar-day-name-array nil t)))
-    (concat "\\(?5:" dayname "\\|"
+    (concat "\\(?4:\\(?5:" dayname "\\)\\|"
 	    (let ((dayname)
 		  (monthname (format "\\(?6:%s\\)" (diary-name-pattern
 						    todos-month-name-array
@@ -2099,6 +2099,7 @@ otherwise, edit just the item at point."
 			     (line-end-position) t)
 	  (let* ((odate (match-string-no-properties 1))
 		 (otime (match-string-no-properties 2))
+		 (odayname (match-string-no-properties 5))
 		 (omonthname (match-string-no-properties 6))
 		 (omonth (match-string-no-properties 7))
 		 (oday (match-string-no-properties 8))
@@ -2133,9 +2134,8 @@ otherwise, edit just the item at point."
 		(when (> (length ntime) 0)
 		  (setq ntime (concat " " ntime))))
 	       ;; When date string consists only of a day name,
-	       ;; passing other date components is a NOP.
-	       ((and (memq what '(year month day))
-		     (not (or oyear omonth oday))))
+	       ;; passing other date components is a noop.
+	       ((and odayname (memq what '(year month day))))
 	       ((eq what 'year)
 		(setq day oday
 		      monthname omonthname
@@ -2220,12 +2220,11 @@ otherwise, edit just the item at point."
 				(setq monthname (aref tma-array (1- adjmm))))
 			      ;; Return changed numerical day as a string.
 			      (number-to-string (nth 1 date)))))))))
-	    ;; If new year, month or day date string components were
-	    ;; calculated, rebuild the whole date string from them.
-	    (when (memq what '(year month day))
-	      (if (or oyear omonth omonthname oday)
-		  (setq ndate (mapconcat 'eval calendar-date-display-form ""))
-		(message "Cannot edit date component of empty date string")))
+	    (unless odayname
+	      ;; If year, month or day date string components were
+	      ;; changed, rebuild the date string.
+	      (when (memq what '(year month day))
+		(setq ndate (mapconcat 'eval calendar-date-display-form ""))))
 	    (when ndate (replace-match ndate nil nil nil 1))
 	    ;; Add new time string to the header, if it was supplied.
 	    (when ntime

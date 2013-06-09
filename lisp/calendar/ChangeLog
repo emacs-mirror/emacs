@@ -1,3 +1,11 @@
+2013-06-09  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el: Fix and improve item date string editing.
+	(todos-date-pattern): Make dayname an explicitly numbered group.
+	(todos-basic-edit-item-header): Set match for dayname and use it
+	to ensure attempting to edit day, month or year of a date header
+	containing a day name is a noop, simplifying and fixing buggy code.
+
 2013-06-08  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Improve commentary.
