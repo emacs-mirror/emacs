@@ -1,6 +1,7 @@
 2013-06-09  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc1-xtra.texi (Revision Tags): Add a cross reference.
+	(CVS Options): Fix the default value of `vc-cvs-stay-local'.
 
 2013-06-07  Xue Fuqiao  <xfq.free@gmail.com>
 
