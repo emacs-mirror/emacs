@@ -136,7 +136,8 @@ extern int c_tolower (int c) _GL_ATTRIBUTE_CONST;
 extern int c_toupper (int c) _GL_ATTRIBUTE_CONST;
 
 
-#if defined __GNUC__ && defined __OPTIMIZE__ && !defined __OPTIMIZE_SIZE__ && !defined NO_C_CTYPE_MACROS
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ && defined __OPTIMIZE__ \
+     && !defined __OPTIMIZE_SIZE__ && !defined NO_C_CTYPE_MACROS)
 
 /* ASCII optimizations. */
 

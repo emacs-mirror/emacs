@@ -1,3 +1,9 @@
+2013-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-06-02 sig2str: port to C++
+	2013-05-29 c-ctype, regex, verify: port to gcc -std=c90 -pedantic
+
 2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_GLIB): Only set XGSELOBJ if HAVE_NS = no.
