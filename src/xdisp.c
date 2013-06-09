@@ -18971,16 +18971,19 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
 static Lisp_Object
 get_it_property (struct it *it, Lisp_Object prop)
 {
-  Lisp_Object position;
+  Lisp_Object position, object = it->object;
 
-  if (STRINGP (it->object))
+  if (STRINGP (object))
     position = make_number (IT_STRING_CHARPOS (*it));
-  else if (BUFFERP (it->object))
-    position = make_number (IT_CHARPOS (*it));
+  else if (BUFFERP (object))
+    {
+      position = make_number (IT_CHARPOS (*it));
+      XSETWINDOW (object, it->w);
+    }
   else
     return Qnil;
 
-  return Fget_char_property (position, prop, it->object);
+  return Fget_char_property (position, prop, object);
 }
 
 /* See if there's a line- or wrap-prefix, and if so, push it on IT.  */

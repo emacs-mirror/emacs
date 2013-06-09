@@ -1,3 +1,9 @@
+2013-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_it_property): If it->object is a buffer, pass to
+	get-char-property the window that is being rendered, instead of
+	the buffer, to support window-specific overlays.  (Bug#14575)
+
 2013-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_fetch_char): Accept additional argument, the window
