@@ -1,5 +1,11 @@
 2013-06-09  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el (todos-edit-done-item-comment): Rename from
+	todos-done-item-add-edit-or-delete-comment.
+	(todos-key-bindings-t): Use it.
+
+2013-06-09  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el: Fix and improve item date string editing.
 	(todos-date-pattern): Make dayname an explicitly numbered group.
 	(todos-basic-edit-item-header): Set match for dayname and use it

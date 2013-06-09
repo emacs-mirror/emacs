@@ -2795,7 +2795,7 @@ visible."
 	  ;; When done items are shown, put cursor on first just done item.
 	  (when opoint (goto-char opoint)))))))
 
-(defun todos-done-item-add-edit-or-delete-comment (&optional arg)
+(defun todos-edit-done-item-comment (&optional arg)
   "Add a comment to this done item or edit an existing comment.
 With prefix ARG delete an existing comment."
   (interactive "P")
@@ -5989,7 +5989,7 @@ Filtered Items mode following todo (not done) items."
     ("et"	     todos-edit-item-time)
     ("eyy"	     todos-edit-item-diary-inclusion)
     ("eyk"	     todos-edit-item-diary-nonmarking)
-    ("ec"	     todos-done-item-add-edit-or-delete-comment)
+    ("ec"	     todos-edit-done-item-comment)
     ("d"	     todos-item-done)
     ("i"	     ,todos-insertion-map)
     ("k"	     todos-delete-item)
