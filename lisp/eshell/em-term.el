@@ -141,12 +141,13 @@ character to the invoked process."
 If either COMMAND or a subcommand in ARGS (e.g. git log) is a
 visual command, returns non-nil."
   (let ((command (file-name-nondirectory command)))
-    (or (member command eshell-visual-commands)
-        (member (car args)
-                (cdr (assoc command eshell-visual-subcommands)))
-        (cl-intersection args
-                         (cdr (assoc command eshell-visual-options))
-                         :test 'string=))))
+    (and (eshell-interactive-output-p)
+         (or (member command eshell-visual-commands)
+             (member (car args)
+                     (cdr (assoc command eshell-visual-subcommands)))
+             (cl-intersection args
+                              (cdr (assoc command eshell-visual-options))
+                              :test 'string=)))))
 
 (defun eshell-exec-visual (&rest args)
   "Run the specified PROGRAM in a terminal emulation buffer.
