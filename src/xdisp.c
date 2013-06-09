@@ -3509,9 +3509,8 @@ compute_display_string_pos (struct text_pos *position,
 
   if (string && STRINGP (string->lstring))
     object1 = object = string->lstring;
-  else if (!string_p)
+  else if (w && !string_p)
     {
-      eassert (w != NULL);
       XSETWINDOW (object, w);
       object1 = Qnil;
     }
@@ -20013,7 +20012,10 @@ See also `bidi-paragraph-direction'.  */)
       itb.string.lstring = Qnil;
       itb.string.bufpos = 0;
       itb.string.unibyte = 0;
-      itb.w = XWINDOW (selected_window);
+      /* We have no window to use here for ignoring window-specific
+	 overlays.  Using NULL for window pointer will cause
+	 compute_display_string_pos to use the current buffer.  */
+      itb.w = NULL;
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
       bidi_unshelve_cache (itb_data, 0);
       set_buffer_temp (old);

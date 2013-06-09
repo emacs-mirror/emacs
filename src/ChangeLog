@@ -3,6 +3,11 @@
 	* xdisp.c (get_it_property): If it->object is a buffer, pass to
 	get-char-property the window that is being rendered, instead of
 	the buffer, to support window-specific overlays.  (Bug#14575)
+	(compute_display_string_pos): When W is NULL, use the current
+	buffer as the object to pass to get-char-property.
+	(Fcurrent_bidi_paragraph_direction): Assign NULL to the window
+	pointer member of the bidi iterator, since no window is pertinent
+	to this function.
 
 2013-06-08  Eli Zaretskii  <eliz@gnu.org>
 
