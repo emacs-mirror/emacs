@@ -1,3 +1,8 @@
+2013-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_it_property): Use it->window instead of generating
+	a Lisp object from it->w.
+
 2013-06-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_it_property): If it->object is a buffer, pass to

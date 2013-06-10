@@ -18977,7 +18977,7 @@ get_it_property (struct it *it, Lisp_Object prop)
   else if (BUFFERP (object))
     {
       position = make_number (IT_CHARPOS (*it));
-      XSETWINDOW (object, it->w);
+      object = it->window;
     }
   else
     return Qnil;
