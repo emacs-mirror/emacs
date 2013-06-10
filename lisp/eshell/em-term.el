@@ -62,13 +62,19 @@ which commands are considered visual in nature."
     "less" "more"                       ; M-x view-file
     "lynx" "ncftp"                      ; w3.el, ange-ftp
     "pine" "tin" "trn" "elm")           ; GNUS!!
-  "A list of commands that present their output in a visual fashion."
+  "A list of commands that present their output in a visual fashion.
+
+Commands listed here are run in a term buffer.
+
+See also `eshell-visual-subcommands' and `eshell-visual-options'."
   :type '(repeat string)
   :group 'eshell-term)
 
 (defcustom eshell-visual-subcommands
   nil
-  "An alist of the form
+  "An alist of subcommands that present their output in a visual fashion.
+
+An alist of the form
 
   ((COMMAND1 SUBCOMMAND1 SUBCOMMAND2...)
    (COMMAND2 SUBCOMMAND1 ...))
@@ -78,7 +84,9 @@ visual fashion.  A likely entry is
 
   (\"git\" \"log\" \"diff\" \"show\")
 
-because git shows logs and diffs using a pager by default."
+because git shows logs and diffs using a pager by default.
+
+See also `eshell-visual-commands' and `eshell-visual-options'."
   :type '(repeat (cons (string :tag "Command")
 		       (repeat (string :tag "Subcommand"))))
   :version "24.4"
@@ -97,7 +105,9 @@ fashion.  For example, a sensible entry would be
   (\"git\" \"--help\")
 
 because \"git <command> --help\" shows the command's
-documentation with a pager."
+documentation with a pager.
+
+See also `eshell-visual-commands' and `eshell-visual-subcommands'."
   :type '(repeat (cons (string :tag "Command")
 		       (repeat (string :tag "Option"))))
   :version "24.4"
