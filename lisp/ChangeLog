@@ -1,3 +1,8 @@
+2013-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* epa.el (epa-read-file-name): New function.  (Bug#14510)
+	(epa-decrypt-file): Make plain-file optional.  Use epa-read-file-name.
+
 2013-06-09  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell/em-term.el (eshell-visual-command-p): Fix bug that caused

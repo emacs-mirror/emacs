@@ -620,21 +620,24 @@ If SECRET is non-nil, list secret keys instead of public keys."
 		   (floor (* (/ current (float total)) 100))))
       (message "%s..." prompt))))
 
+(defun epa-read-file-name (input)
+  "Interactively read an output file name based on INPUT file name."
+  (setq input (file-name-sans-extension (expand-file-name input)))
+  (expand-file-name
+   (read-file-name
+    (concat "To file (default " (file-name-nondirectory input) ") ")
+    (file-name-directory input)
+    input)))
+
 ;;;###autoload
-(defun epa-decrypt-file (decrypt-file plain-file)
-  "Decrypt DECRYPT-FILE into PLAIN-FILE."
+(defun epa-decrypt-file (decrypt-file &optional plain-file)
+  "Decrypt DECRYPT-FILE into PLAIN-FILE.
+If you do not specify PLAIN-FILE, this functions prompts for the value to use."
   (interactive
-   (let (file default-name plain)
-     (setq file (read-file-name "File to decrypt: "))
-     (setq default-name (file-name-sans-extension (expand-file-name file)))
-     (setq plain (expand-file-name
-		  (read-file-name
-		   (concat "To file (default "
-			   (file-name-nondirectory default-name)
-			   ") ")
-		   (file-name-directory default-name)
-		   default-name)))
+   (let* ((file (read-file-name "File to decrypt: "))
+	  (plain (epa-read-file-name file)))
      (list file plain)))
+  (or plain-file (setq plain-file (epa-read-file-name decrypt-file)))
   (setq decrypt-file (expand-file-name decrypt-file))
   (let ((context (epg-make-context epa-protocol)))
     (epg-context-set-passphrase-callback context
