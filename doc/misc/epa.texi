@@ -240,8 +240,9 @@ you answered yes, it will let you select the signing keys.
 @node Cryptographic operations on files
 @section Cryptographic operations on files
 
-@deffn Command epa-decrypt-file file
-Decrypt @var{file}.
+@deffn Command epa-decrypt-file file &optional output
+Decrypt @var{file}.  If you do not specify the name @var{output} to
+use for the decrypted file, this function prompts for the value to use.
 @end deffn
 
 @deffn Command epa-verify-file file
