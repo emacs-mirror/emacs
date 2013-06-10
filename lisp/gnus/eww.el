@@ -118,6 +118,7 @@
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'eww-quit)
+    (define-key map "g" 'eww-reload)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [delete] 'scroll-down-command)
@@ -158,6 +159,12 @@
   (let ((prev (pop eww-history)))
     (url-retrieve (car prev) 'eww-render (list (car prev) (cadr prev)))))
 
+(defun eww-reload ()
+  "Reload the current page."
+  (interactive)
+  (url-retrieve eww-current-url 'eww-render
+		(list eww-current-url (point))))
+
 ;; Form support.
 
 (defvar eww-form nil)
@@ -174,40 +181,112 @@
 		       'eww-form eww-form)))
 
 (defun eww-tag-input (cont)
-  (let ((start (point))
-	(widget (list
-		 'editable-field
-		 :size (string-to-number
-			(or (cdr (assq :size cont))
-			    "40"))
-		 :value (or (cdr (assq :value cont)) "")
-		 :action 'eww-submit
-		 :name (cdr (assq :name cont))
-		 :eww-form eww-form)))
-    (apply 'widget-create widget)
-    (shr-generic cont)
+  (let* ((start (point))
+	 (type (downcase (or (cdr (assq :type cont))
+			     "text")))
+	 (widget
+	  (cond
+	   ((equal type "submit")
+	    (list
+	     'push-button
+	     :notify 'eww-submit
+	     :name (cdr (assq :name cont))
+	     :eww-form eww-form
+	     (or (cdr (assq :value cont)) "Submit")))
+	   ((or (equal type "radio")
+		(equal type "checkbox"))
+	    (list 'checkbox
+		  :notify 'eww-click-radio
+		  :name (cdr (assq :name cont))
+		  :checkbox-value (cdr (assq :value cont))
+		  :eww-form eww-form
+		  (cdr (assq :checked cont))))
+	   ((equal type "hidden")
+	    (list 'hidden
+		  :name (cdr (assq :name cont))
+		  :value (cdr (assq :value cont))))
+	   (t
+	    (list
+	     'editable-field
+	     :size (string-to-number
+		    (or (cdr (assq :size cont))
+			"40"))
+	     :value (or (cdr (assq :value cont)) "")
+	     :action 'eww-submit
+	     :name (cdr (assq :name cont))
+	     :eww-form eww-form)))))
+    (if (eq (car widget) 'hidden)
+	(when shr-final-table-render
+	  (nconc eww-form (list widget)))
+      (apply 'widget-create widget))
     (put-text-property start (point) 'eww-widget widget)))
 
-(defun eww-submit (widget dummy)
-  (let ((form (getf (cdr widget) :eww-form))
+(defun eww-click-radio (widget &rest ignore)
+  (let ((form (plist-get (cdr widget) :eww-form))
+	(name (plist-get (cdr widget) :name)))
+    (if (widget-value widget)
+	;; Switch all the other radio buttons off.
+	(dolist (overlay (overlays-in (point-min) (point-max)))
+	  (let ((field (plist-get (overlay-properties overlay) 'button)))
+	    (when (and (eq (plist-get (cdr field) :eww-form) form)
+		       (equal name (plist-get (cdr field) :name)))
+	      (unless (eq field widget)
+		(widget-value-set field nil)))))
+      (widget-value-set widget t))
+    (eww-fix-widget-keymap)))
+
+(defun eww-submit (widget &rest ignore)
+  (let ((form (plist-get (cdr widget) :eww-form))
+	(first-button t)
 	values)
-    (dolist (overlay (overlays-in (point-min) (point-max)))
-      (let ((field (getf (overlay-properties overlay) 'field)))
-	(when (eq (getf (cdr field) :eww-form) form)
-	  (let ((name (getf (cdr field) :name)))
+    (dolist (overlay (sort (overlays-in (point-min) (point-max))
+			   (lambda (o1 o2)
+			     (< (overlay-start o1) (overlay-start o2)))))
+      (let ((field (or (plist-get (overlay-properties overlay) 'field)
+		       (plist-get (overlay-properties overlay) 'button)
+		       (plist-get (overlay-properties overlay) 'eww-hidden))))
+	(when (eq (plist-get (cdr field) :eww-form) form)
+	  (let ((name (plist-get (cdr field) :name)))
 	    (when name
-	      (push (cons name (widget-value field))
-		    values))))))
+	      (cond
+	       ((eq (car field) 'checkbox)
+		(when (widget-value field)
+		  (push (cons name (plist-get (cdr field) :checkbox-value))
+			values)))
+	       ((eq (car field) 'eww-hidden)
+		(push (cons name (plist-get (cdr field) :value))
+		      values))
+	       ((eq (car field) 'push-button)
+		;; We want the values from buttons if we hit a button,
+		;; or we're submitting something and this is the first
+		;; button displayed.
+		(when (or (and (eq (car widget) 'push-button)
+			       (eq widget field))
+			  (and (not (eq (car widget) 'push-button))
+			       (eq (car field) 'push-button)
+			       first-button))
+		  (setq first-button nil)
+		  (push (cons name (widget-value field))
+			values)))
+	       (t
+		(push (cons name (widget-value field))
+		      values))))))))
+    (dolist (elem form)
+      (when (and (consp elem)
+		 (eq (car elem) 'hidden))
+	(push (cons (plist-get (cdr elem) :name)
+		    (plist-get (cdr elem) :value))
+	      values)))
     (let ((shr-base eww-current-url))
-      (if (and (stringp (getf form :method))
-	       (equal (downcase (getf form :method)) "post"))
+      (if (and (stringp (plist-get form :method))
+	       (equal (downcase (plist-get form :method)) "post"))
 	  (let ((url-request-method "POST")
 		(url-request-data (mm-url-encode-www-form-urlencoded values)))
-	    (eww-browse-url (shr-expand-url (getf form :action))))
+	    (eww-browse-url (shr-expand-url (plist-get form :action))))
 	(eww-browse-url
 	 (shr-expand-url
 	  (concat
-	   (getf form :action)
+	   (cdr (assq :action form))
 	   "?"
 	   (mm-url-encode-www-form-urlencoded values))))))))
 
@@ -217,10 +296,19 @@
     (while (setq start (next-single-property-change start 'eww-widget))
       (setq widget (get-text-property start 'eww-widget))
       (goto-char start)
-      (delete-region start (next-single-property-change start 'eww-widget))
-      (apply 'widget-create widget)
-      (put-text-property start (point) 'not-read-only t))
-    (widget-setup)))
+      (let ((end (next-single-property-change start 'eww-widget)))
+	(dolist (overlay (overlays-in start end))
+	  (when (plist-get (overlay-properties overlay) 'button)
+	    (delete-overlay overlay)))
+	(delete-region start end))
+      (apply 'widget-create widget))
+    (widget-setup)
+    (eww-fix-widget-keymap)))
+
+(defun eww-fix-widget-keymap ()
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when (plist-get (overlay-properties overlay) 'button)
+      (overlay-put overlay 'local-map widget-keymap))))
 
 (provide 'eww)
 

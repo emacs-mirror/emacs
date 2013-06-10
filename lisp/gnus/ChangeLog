@@ -1,6 +1,18 @@
 2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-expand-url): Expand URLs that start with a slash
+	correctly.
+
+	* eww.el (eww-submit): Get submit button logic right.
+
+	* shr.el (shr-final-table-render): New variable to signal when we're
+	doing the final table rendering so that we can collect more data at
+	that point.
+
 	* eww.el (eww-submit): Make form submission work.
+	(eww-tag-input): Implement submit buttons.
+	(eww-click-radio): Implement radio and checkboxes.
+	(eww-submit): Handle hidden elements.
 
 	* shr.el (shr-descend): Allow other packages to override (or provide)
 	rendering of elements.
