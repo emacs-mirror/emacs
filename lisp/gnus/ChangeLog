@@ -1,3 +1,11 @@
+2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el: Don't require cl-lib.
+
+	* eww.el: Start writing a new, tiny web browser.
+	(eww-previous-url): New command.
+	(eww-quit): New command.
+
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
 	* sieve.el: Put point at beginning of buffer when viewing a script.
