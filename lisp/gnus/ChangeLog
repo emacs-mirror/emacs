@@ -1,3 +1,9 @@
+2013-06-10  Roy Hashimoto  <roy.hashimoto@gmail.com>  (tiny change)
+
+	* mm-view.el (mm-pkcs7-signed-magic): Allow newline in the regexp and
+	make it easier to read.
+	(mm-pkcs7-enveloped-magic): Ditto.
+
 2013-06-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-ems.el (gnus-image-type-available-p): Test `display-images-p'
