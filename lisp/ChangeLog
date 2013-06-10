@@ -1,3 +1,8 @@
+2013-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-encryption-plaintext-sanitization-regexps):
+	Fix make-variable-buffer-local call to refer to the correct variable.
+
 2013-06-10  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell/em-term.el (eshell-visual-commands)
