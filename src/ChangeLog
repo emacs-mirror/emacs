@@ -24,8 +24,8 @@
 	* xdisp.c (init_from_display_pos, init_iterator)
 	(handle_single_display_spec, next_overlay_string)
 	(get_overlay_strings_1, reseat_1, reseat_to_string)
-	(push_prefix_prop, Fcurrent_bidi_paragraph_direction): Set
-	bidi_it.w member from it->w.
+	(push_prefix_prop, Fcurrent_bidi_paragraph_direction):
+	Set bidi_it.w member from it->w.
 	(compute_display_string_pos): Accept additional argument, the
 	window being displayed, and pass it to Fget_char_property.
 	(Bug#14575)
@@ -36,7 +36,7 @@
 
 2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xgselect.c: Remove unneeded include xterm.h
+	* xgselect.c: Remove unneeded include xterm.h.
 
 	* process.c (wait_reading_process_output): Check for NS before GLIB.
 	GLIB may be linked in due to rsvg, but ns_select must be called.
@@ -338,8 +338,8 @@
 	(update_frame_tool_bar): Update code for GNUStep.
 	(clearAll): New method.
 	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
-	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP. Move
-	identifierToItem setObject and activeIdentifiers addObject before
+	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
+	Move identifierToItem setObject and activeIdentifiers addObject before
 	call to insertItemWithItemIdentifier.
 	(validateVisibleItems): Fix indentation.
 	(toolbarAllowedItemIdentifiers:): Return activeIdentifiers.
@@ -353,7 +353,7 @@
 	Use F suffix on floats.
 	(ns_char_width): Returns CGFloat.
 	(ns_ascii_average_width): w is CGFloat instead of float.
-	(nsfont_draw): cbuf and c are unsigned. Cast to char* in call to
+	(nsfont_draw): cbuf and c are unsigned.  Cast to char* in call to
 	DPSxshow.
 	(ns_glyph_metrics): CGFloat instead of float.
 
@@ -648,7 +648,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* Makefile.in (LIB_ACL): New macro.
 	(LIBACL_LIBS): Remove.
 	(LIBES): Use LIB_ACL, not LIBACL_LIBS.
@@ -3081,11 +3081,10 @@
 2012-12-31  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	* xterm.c (scroll-bar-adjust-thumb-portion): New variable to
-	determine whether scroll bar thumb size should be adjusted or
-	not. Use variable for MOTIF.
+	determine whether scroll bar thumb size should be adjusted or not.
+	Use variable for MOTIF.
 
-	* gtkutil.c (scroll-bar-adjust-thumb-portion): Use variable for
-	GTK.
+	* gtkutil.c (scroll-bar-adjust-thumb-portion): Use variable for GTK.
 
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -3630,7 +3629,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* dired.c (Ffile_attributes): Return t as the 9th attribute,
 	to mark it as a placeholder.  The old value was often wrong.
 	The only user of this attribute has been changed to use

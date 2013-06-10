@@ -6,9 +6,8 @@
 2013-06-10  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell/em-term.el (eshell-visual-commands)
-	(eshell-visual-subcommands)
-	(eshell-visual-options): Add summary line to docstrings.  Add
-	cross-references.
+	(eshell-visual-subcommands, eshell-visual-options):
+	Add summary line to docstrings.  Add cross-references.
 
 2013-06-10  Glenn Morris  <rgm@gnu.org>
 
@@ -25,8 +24,9 @@
 	* eshell/em-term.el (eshell-visual-command-p): New function.
 	(eshell-term-initialize): Move long lambda to separate function
 	eshell-visual-command-p.
-	* eshell/em-dirs.el (eshell-dirs-initialise): Add missing #' to lambda.
-	* eshell/em-script.el (eshell-script-initialize): Add missing #' to lambda.
+	* eshell/em-dirs.el (eshell-dirs-initialise):
+	* eshell/em-script.el (eshell-script-initialize):
+	Add missing #' to lambda.
 
 2013-06-08  Leo Liu  <sdl.web@gmail.com>
 
@@ -247,7 +247,7 @@
 	(auto-revert-notify-event-p, auto-revert-notify-event-file-name)
 	(auto-revert-notify-handler): Handle also gfilenotify.
 
-	* subr.el (file-notify-handle-event): New defun. Replacing ...
+	* subr.el (file-notify-handle-event): New defun.  Replacing ...
 	(inotify-event-p, inotify-handle-event, w32notify-handle-event):
 	Remove.
 
@@ -359,10 +359,10 @@
 	(eshell-find-interpreter): Add new second parameter ARGS.
 
 	* eshell/em-script.el (eshell-script-initialize): Add second arg
-	to the function added as MATCH to `eshell-interpreter-alist'
+	to the function added as MATCH to `eshell-interpreter-alist'.
 
 	* eshell/em-dirs.el (eshell-dirs-initialize): Add second arg to
-	the function added as MATCH to `eshell-interpreter-alist'
+	the function added as MATCH to `eshell-interpreter-alist'.
 
 	* eshell/em-term.el (eshell-visual-subcommands): New defcustom.
 	(eshell-visual-options): New defcustom.
@@ -2267,7 +2267,7 @@
 
 	* comint.el (comint-dynamic-complete-functions, comint-mode-map):
 	`comint-dynamic-complete' is obsolete since 24.1, replaced by
-	`completion-at-point'. (Bug#13774)
+	`completion-at-point'.  (Bug#13774)
 
 	* startup.el (normal-no-mouse-startup-screen): Bug fix, the
 	default key binding for `describe-distribution' has been moved to
@@ -2296,7 +2296,8 @@
 
 	* comint.el (comint-redirect-original-filter-function): Remove.
 	(comint-redirect-cleanup, comint-redirect-send-command-to-process):
-	* vc/vc-cvs.el (vc-cvs-annotate-process-filter,vc-cvs-annotate-command):
+	* vc/vc-cvs.el (vc-cvs-annotate-process-filter)
+	(vc-cvs-annotate-command):
 	* progmodes/octave-inf.el (inferior-octave-send-list-and-digest):
 	* progmodes/prolog.el (prolog-consult-compile):
 	* progmodes/gdb-mi.el (gdb, gdb--check-interpreter):
@@ -2734,7 +2735,6 @@
 
 	* emacs-lisp/package.el (package-pinned-packages): New var.
 	(package--add-to-archive-contents): Obey it (bug#14118).
-
 
 2013-04-03  Alan Mackenzie  <acm@muc.de>
 
@@ -4966,7 +4966,7 @@
 2013-01-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* autorevert.el (auto-revert-notify-handler): Fix filtering of
-	file notification by ACTION. For filtering by file name, compare
+	file notification by ACTION.  For filtering by file name, compare
 	only the non-directory part of the file name.
 
 2013-01-12  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -5049,7 +5049,7 @@
 2013-01-11  Julien Danjou  <julien@danjou.info>
 
 	* color.el (color-rgb-to-hsv): Fix conversion computing in case min and
-	max are almost equal. Also return the correct value for V which is
+	max are almost equal.  Also return the correct value for V which is
 	already between 0 and 1.
 
 2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -5503,7 +5503,7 @@
 2012-12-31  Jürgen Hötzel  <juergen@archlinux.org>
 
 	* net/tramp-adb.el (tramp-adb-maybe-open-connection): Handle errors
-	(No device connected, invalid device name). (Bug #13299)
+	(No device connected, invalid device name).  (Bug #13299)
 
 2012-12-31  Martin Rudalics  <rudalics@gmx.at>
 
@@ -5888,7 +5888,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* files.el (backup-buffer): Don't rely on 9th output of
 	file-attributes, as it's now a placeholder.  Instead, use the new
 	optional arg of file-ownership-preserved-p.
@@ -6346,7 +6346,7 @@
 	* textmodes/ispell.el (ispell-init-process)
 	(ispell-start-process, ispell-internal-change-dictionary):
 	Make sure personal dictionary name is expanded after initial
-	`default-directory' value. Use expanded strings for
+	`default-directory' value.  Use expanded strings for
 	keep/restart checks and for value (Bug#13019).
 
 2012-12-03  Jay Belanger  <jay.p.belanger@gmail.com>
@@ -7028,7 +7028,7 @@
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score-1):
 	Don't signal an error with a score that is too low to add to the
-	list of top scores. (Bug#12779)
+	list of top scores.  (Bug#12779)
 
 2012-11-17  Chong Yidong  <cyd@gnu.org>
 
@@ -7097,7 +7097,7 @@
 
 	* window.el (record-window-buffer)
 	(display-buffer-record-window): When copying the markers to
-	window-point preserve window-point-insertion-type. (Bug#12588)
+	window-point preserve window-point-insertion-type.  (Bug#12588)
 
 2012-11-16  Glenn Morris  <rgm@gnu.org>
 
@@ -7185,8 +7185,8 @@
 	(ad-advice-definition): Redefine as functions.
 	(ad-advice-classes): Move before first use.
 	(ad-make-origname, ad-set-orig-definition, ad-clear-orig-definition)
-	(ad-make-mapped-call, ad-make-advised-docstring,ad-make-plain-docstring)
-	(ad--defalias-fset): Remove functions.
+	(ad-make-mapped-call, ad-make-advised-docstring)
+	(ad-make-plain-docstring, ad--defalias-fset): Remove functions.
 	(ad-make-advicefunname, ad-clear-advicefunname-definition): New funs.
 	(ad-get-orig-definition): Rewrite.
 	(ad-make-advised-definition-docstring): Change base docstring.
@@ -7534,7 +7534,7 @@
 	buffer and calls `ispell-buffer' with debugging enabled.
 
 	* textmodes/ispell.el (ispell-region): Do not prefix sent string by
-	comment in autoconf mode. (Bug#12768)
+	comment in autoconf mode.  (Bug#12768)
 
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -8679,13 +8679,13 @@
 
 	* textmodes/reftex-cite.el (reftex-create-bibtex-file): Make sure
 	that entries with whitespace at various places are found.
-	Doc fix. Include entries that are cross-referenced from cited entries.
+	Doc fix.  Include entries that are cross-referenced from cited entries.
 	Include @String definitions in the resulting bib file.  Add header
 	and footer defined in `reftex-create-bibtex-header' and
 	`reftex-create-bibtex-footer'.
 	(reftex-do-citation): Make it possible again to insert
 	non-existent entries.  Save match data when asking for optional
-	arguments. Return all keys, not just the first one.
+	arguments.  Return all keys, not just the first one.
 	(reftex-all-used-citation-keys): Fix regexp to correctly extract
 	all citations in the same line.
 	(reftex-parse-bibtex-entry): Accept additional optional argument
@@ -8745,7 +8745,7 @@
 
 	* textmodes/reftex-sel.el
 	(reftex-select-cycle-ref-style-internal): Adapt to new structure
-	of `reftex-ref-style-alist'. Remove code for testing macro type.
+	of `reftex-ref-style-alist'.  Remove code for testing macro type.
 	(reftex-select-toggle-varioref)
 	(reftex-select-toggle-fancyref): Remove.
 	(reftex-select-cycle-ref-style-internal)
@@ -9287,7 +9287,7 @@
 
 	* textmodes/bibtex.el (bibtex-autokey-transcriptions):
 	Transcribe also LaTeX hyphenation.
-	(bibtex-reformat): Bug fix. Do not quote twice the elements of
+	(bibtex-reformat): Bug fix.  Do not quote twice the elements of
 	bibtex-reformat-previous-options.
 
 2012-09-23  Roland Winkler  <winkler@gnu.org>
@@ -12314,7 +12314,7 @@
 	(xml-name-start-char-re, xml-name-char-re, xml-name-re)
 	(xml-names-re, xml-nmtoken-re, xml-nmtokens-re, xml-char-ref-re)
 	(xml-entity-ref, xml-pe-reference-re)
-	(xml-reference-re,xml-att-value-re, xml-tokenized-type-re)
+	(xml-reference-re, xml-att-value-re, xml-tokenized-type-re)
 	(xml-notation-type-re, xml-enumeration-re, xml-enumerated-type-re)
 	(xml-att-type-re, xml-default-decl-re, xml-att-def-re)
 	(xml-entity-value-re): Use syntax references in regexps where
@@ -20699,7 +20699,7 @@
 
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
-	* bindings.el ([M-left],[M-right]): Bind to left-word and
+	* bindings.el ([M-left], [M-right]): Bind to left-word and
 	right-word respectively.
 
 2011-10-07  Glenn Morris  <rgm@gnu.org>
@@ -26021,15 +26021,15 @@
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
-	* international/quail.el (quail-insert-kbd-layout): and and -> and
-	* kermit.el: and and -> and
-	* net/ldap.el (ldap-search-internal): to to -> to
+	* international/quail.el (quail-insert-kbd-layout): and and -> and.
+	* kermit.el: and and -> and.
+	* net/ldap.el (ldap-search-internal): to to -> to.
 	* progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
-	* progmodes/js.el (js-mode): and and -> and
-	* textmodes/artist.el (artist-move-to-xy): at at -> at
-	(artist-draw-region-trim-line-endings): if if -> if
+	* progmodes/js.el (js-mode): and and -> and.
+	* textmodes/artist.el (artist-move-to-xy): at at -> at.
+	(artist-draw-region-trim-line-endings): if if -> if.
 	And Safetyc -> Safety.
-	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
+	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a.
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
