@@ -177,8 +177,9 @@
     (shr-ensure-paragraph)
     (shr-generic cont)
     (shr-ensure-paragraph)
-    (put-text-property start (1+ start)
-		       'eww-form eww-form)))
+    (when (> (point) start)
+      (put-text-property start (1+ start)
+			 'eww-form eww-form))))
 
 (defun eww-tag-input (cont)
   (let* ((start (point))

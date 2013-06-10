@@ -1,5 +1,7 @@
 2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* eww.el (eww-tag-form): Protect against degenerate forms.
+
 	* shr.el (shr-expand-url): Expand URLs that start with a slash
 	correctly.
 
