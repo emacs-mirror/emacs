@@ -1,3 +1,7 @@
+2013-06-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (File Attributes): Fix typo.
+
 2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* functions.texi (Lambda Expressions): Lambda expressions don't

@@ -1166,11 +1166,11 @@ target.  However, they both recursively follow symbolic links at all
 levels of parent directories.
 
 @defun file-nlinks filename
-This functions returns the number of names (i.e., hard links) that
-file @var{filename} has.  If the file does not exist, then this function
-returns @code{nil}.  Note that symbolic links have no effect on this
-function, because they are not considered to be names of the files they
-link to.
+This function returns the number of names (i.e., hard link(s) + 1)
+that file @var{filename} has.  If the file does not exist, then this
+function returns @code{nil}.  Note that symbolic links have no effect
+on this function, because they are not considered to be names of the
+files they link to.
 
 @example
 @group
