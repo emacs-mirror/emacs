@@ -11,7 +11,8 @@
 2013-06-09  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell/em-term.el (eshell-visual-command-p): New function.
-	(eshell-term-initialize): Move long lambda to separate function eshell-visual-command-p.
+	(eshell-term-initialize): Move long lambda to separate function
+	eshell-visual-command-p.
 	* eshell/em-dirs.el (eshell-dirs-initialise): Add missing #' to lambda.
 	* eshell/em-script.el (eshell-script-initialize): Add missing #' to lambda.
 
