@@ -114,6 +114,7 @@ cid: URL as the argument.")
 (defvar shr-stylesheet nil)
 (defvar shr-base nil)
 (defvar shr-ignore-cache nil)
+(defvar shr-external-rendering-functions nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -291,7 +292,12 @@ size, and full-buffer size."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+  (let ((function
+	 (or
+	  ;; Allow other packages to override (or provide) rendering
+	  ;; of elements.
+	  (cdr (assq (car dom) shr-external-rendering-functions))
+	  (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
 	(style (cdr (assq :style (cdr dom))))
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
@@ -478,20 +484,23 @@ size, and full-buffer size."
     (not failed)))
 
 (defun shr-expand-url (url)
-  (cond
-   ;; Absolute URL.
-   ((or (not url)
-	(string-match "\\`[a-z]*:" url)
-	(not shr-base))
-    url)
-   ((and (string-match "\\`//" url)
-	 (string-match "\\`[a-z]*:" shr-base))
-    (concat (match-string 0 shr-base) url))
-   ((and (not (string-match "/\\'" shr-base))
-	 (not (string-match "\\`/" url)))
-    (concat shr-base "/" url))
-   (t
-    (concat shr-base url))))
+  (if (or (not url)
+	  (string-match "\\`[a-z]*:" url)
+	  (not shr-base))
+      ;; Absolute URL.
+      url
+    (let ((base shr-base))
+      (when (string-match "^\\([^?]+\\)[?]" base)
+	(setq base (match-string 1 base)))
+      (cond
+       ((and (string-match "\\`//" url)
+	     (string-match "\\`[a-z]*:" base))
+	(concat (match-string 0 base) url))
+       ((and (not (string-match "/\\'" base))
+	     (not (string-match "\\`/" url)))
+	(concat base "/" url))
+       (t
+	(concat base url))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

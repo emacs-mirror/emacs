@@ -27,6 +27,7 @@
 (eval-when-compile (require 'cl))
 (require 'shr)
 (require 'url)
+(require 'mm-url)
 
 (defvar eww-current-url nil)
 (defvar eww-history nil)
@@ -82,8 +83,13 @@
 	  (libxml-parse-html-region (point) (point-max)))))
     (eww-setup-buffer)
     (setq eww-current-url url)
-    (let ((inhibit-read-only t))
-      (shr-insert-document document))
+    (let ((inhibit-read-only t)
+	  (shr-external-rendering-functions
+	   '((form . eww-tag-form)
+	     (input . eww-tag-input)
+	     (submit . eww-tag-submit))))
+      (shr-insert-document document)
+      (eww-convert-widgets))
     (goto-char (point-min))))
 
 (defun eww-display-raw (charset)
@@ -102,6 +108,8 @@
 
 (defun eww-setup-buffer ()
   (pop-to-buffer (get-buffer-create "*eww*"))
+  (remove-overlays)
+  (setq widget-field-list nil)
   (let ((inhibit-read-only t))
     (erase-buffer))
   (eww-mode))
@@ -128,7 +136,7 @@
 	mode-name "eww")
   (set (make-local-variable 'eww-current-url) 'author)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
-  (setq buffer-read-only t)
+  ;;(setq buffer-read-only t)
   (use-local-map eww-mode-map))
 
 (defun eww-browse-url (url &optional new-window)
@@ -149,6 +157,70 @@
     (error "No previous page"))
   (let ((prev (pop eww-history)))
     (url-retrieve (car prev) 'eww-render (list (car prev) (cadr prev)))))
+
+;; Form support.
+
+(defvar eww-form nil)
+
+(defun eww-tag-form (cont)
+  (let ((eww-form
+	 (list (assq :method cont)
+	       (assq :action cont)))
+	(start (point)))
+    (shr-ensure-paragraph)
+    (shr-generic cont)
+    (shr-ensure-paragraph)
+    (put-text-property start (1+ start)
+		       'eww-form eww-form)))
+
+(defun eww-tag-input (cont)
+  (let ((start (point))
+	(widget (list
+		 'editable-field
+		 :size (string-to-number
+			(or (cdr (assq :size cont))
+			    "40"))
+		 :value (or (cdr (assq :value cont)) "")
+		 :action 'eww-submit
+		 :name (cdr (assq :name cont))
+		 :eww-form eww-form)))
+    (apply 'widget-create widget)
+    (shr-generic cont)
+    (put-text-property start (point) 'eww-widget widget)))
+
+(defun eww-submit (widget dummy)
+  (let ((form (getf (cdr widget) :eww-form))
+	values)
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (let ((field (getf (overlay-properties overlay) 'field)))
+	(when (eq (getf (cdr field) :eww-form) form)
+	  (let ((name (getf (cdr field) :name)))
+	    (when name
+	      (push (cons name (widget-value field))
+		    values))))))
+    (let ((shr-base eww-current-url))
+      (if (and (stringp (getf form :method))
+	       (equal (downcase (getf form :method)) "post"))
+	  (let ((url-request-method "POST")
+		(url-request-data (mm-url-encode-www-form-urlencoded values)))
+	    (eww-browse-url (shr-expand-url (getf form :action))))
+	(eww-browse-url
+	 (shr-expand-url
+	  (concat
+	   (getf form :action)
+	   "?"
+	   (mm-url-encode-www-form-urlencoded values))))))))
+
+(defun eww-convert-widgets ()
+  (let ((start (point-min))
+	widget)
+    (while (setq start (next-single-property-change start 'eww-widget))
+      (setq widget (get-text-property start 'eww-widget))
+      (goto-char start)
+      (delete-region start (next-single-property-change start 'eww-widget))
+      (apply 'widget-create widget)
+      (put-text-property start (point) 'not-read-only t))
+    (widget-setup)))
 
 (provide 'eww)
 

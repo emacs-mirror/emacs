@@ -1,6 +1,13 @@
 2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* eww.el (eww-submit): Make form submission work.
+
+	* shr.el (shr-descend): Allow other packages to override (or provide)
+	rendering of elements.
+	(shr-expand-url): Strip query strings from URLs before expanding them.
+
 	* eww.el: Don't require cl-lib.
+	(eww-tag-form): Start form support.
 
 	* eww.el: Start writing a new, tiny web browser.
 	(eww-previous-url): New command.
