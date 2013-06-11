@@ -2105,10 +2105,6 @@ start with @samp{~}.)  Otherwise, the current buffer's value of
 (expand-file-name "foo" "/usr/spool/")
      @result{} "/usr/spool/foo"
 @end group
-@group
-(expand-file-name "$HOME/foo")
-     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
-@end group
 @end example
 
 If the part of the combined file name before the first slash is
@@ -2142,7 +2138,14 @@ This is for the sake of filesystems that have the concept of a
 @file{/../} is interpreted exactly the same as @file{/}.
 
 Note that @code{expand-file-name} does @emph{not} expand environment
-variables; only @code{substitute-in-file-name} does that.
+variables; only @code{substitute-in-file-name} does that:
+
+@example
+@group
+(expand-file-name "$HOME/foo")
+     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
+@end group
+@end example
 
 Note also that @code{expand-file-name} does not follow symbolic links
 at any level.  This results in a difference between the way
