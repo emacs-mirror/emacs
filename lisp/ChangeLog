@@ -1,3 +1,11 @@
+2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/generic.el (generic--normalise-comments)
+	(generic-set-comment-syntax, generic-set-comment-vars): New functions.
+	(generic-mode-set-comments): Use them.
+	(generic-bracket-support): Use setq-local.
+	(generic-make-keywords-list): Declare obsolete.
+
 2013-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
