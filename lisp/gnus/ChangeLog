@@ -1,3 +1,21 @@
+2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
+
+	* sieve-manage.el (sieve-manage-open): work with STARTTLS: shorten
+	stream managing functions by using open-protocol-stream to do most of
+	the work. Has the nice benefit of enabling STARTTLS.
+	Wait for capabilities after STARTTLS: following RFC5804, the server
+	sends new capabilities after successfully establishing a TLS connection
+	with the client. The client should update the cached list of
+	capabilities, but we just ignore the answer for now.
+	(sieve-manage-network-p, sieve-manage-network-open)
+	(sieve-manage-starttls-p, sieve-manage-starttls-open)
+	(sieve-manage-forward, sieve-manage-streams)
+	(sieve-manage-stream-alist): Remove unneeded functions neither in the
+	API, nor called by any other function.
+	Enable Multibyte for SieveManage buffers: The parser won't properly
+	handle umlauts and line endings unless multibyte is turned on in the
+	process buffer.
+
 2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-tag-input): Support password fields.
