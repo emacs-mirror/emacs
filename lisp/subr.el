@@ -4234,32 +4234,6 @@ use `called-interactively-p'."
   (declare (obsolete called-interactively-p "23.2"))
   (called-interactively-p 'interactive))
 
-(defun function-arity (f &optional num)
-  "Return the (MIN . MAX) arity of F.
-If the maximum arity is infinite, MAX is `many'.
-F can be a function or a macro.
-If NUM is non-nil, return non-nil iff F can be called with NUM args."
-  (if (symbolp f) (setq f (indirect-function f)))
-  (if (eq (car-safe f) 'macro) (setq f (cdr f)))
-  (let ((res
-	 (if (subrp f)
-	     (let ((x (subr-arity f)))
-	       (if (eq (cdr x) 'unevalled) (cons (car x) 'many)))
-	   (let* ((args (if (consp f) (cadr f) (aref f 0)))
-		  (max (length args))
-		  (opt (memq '&optional args))
-		  (rest (memq '&rest args))
-		  (min (- max (length opt))))
-	     (if opt
-		 (cons min (if rest 'many (1- max)))
-	       (if rest
-		   (cons (- max (length rest)) 'many)
-		 (cons min max)))))))
-    (if (not num)
-	res
-      (and (>= num (car res))
-	   (or (eq 'many (cdr res)) (<= num (cdr res)))))))
-
 (defun set-temporary-overlay-map (map &optional keep-pred)
   "Set MAP as a temporary keymap taking precedence over most other keymaps.
 Note that this does NOT take precedence over the \"overriding\" maps

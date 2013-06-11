@@ -1,5 +1,7 @@
 2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (function-arity): Remove (mistakenly added) (bug#14590).
+
 	* progmodes/prolog.el (prolog-make-keywords-regexp): Remove.
 	(prolog-font-lock-keywords): Use regexp-opt instead.
 	Don't manually highlight strings.
