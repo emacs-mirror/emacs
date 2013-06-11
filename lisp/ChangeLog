@@ -1,3 +1,12 @@
+2013-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (query-replace, occur-read-regexp-defaults-function)
+	(replace-search):
+	* subr.el (declare-function, number-sequence, local-set-key)
+	(substitute-key-definition, locate-user-emacs-file)
+	(with-silent-modifications, split-string, eval-after-load):
+	Fix typos, remove unneeded backslashes and reflow some docstrings.
+
 2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-conf.el (file-coding-system-alist): Use utf-8 as

@@ -41,11 +41,11 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 
 (defmacro declare-function (_fn _file &optional _arglist _fileonly)
   "Tell the byte-compiler that function FN is defined, in FILE.
-Optional ARGLIST is the argument list used by the function.  The
-FILE argument is not used by the byte-compiler, but by the
+Optional ARGLIST is the argument list used by the function.
+The FILE argument is not used by the byte-compiler, but by the
 `check-declare' package, which checks that FILE contains a
-definition for FN.  ARGLIST is used by both the byte-compiler and
-`check-declare' to check for consistency.
+definition for FN.  ARGLIST is used by both the byte-compiler
+and `check-declare' to check for consistency.
 
 FILE can be either a Lisp file (in which case the \".el\"
 extension is optional), or a C file.  C files are expanded
@@ -396,9 +396,9 @@ non-nil."
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
 INC is the increment used between numbers in the sequence and defaults to 1.
-So, the Nth element of the list is \(+ FROM \(* N INC)) where N counts from
+So, the Nth element of the list is (+ FROM (* N INC)) where N counts from
 zero.  TO is only included if there is an N for which TO = FROM + N * INC.
-If TO is nil or numerically equal to FROM, return \(FROM).
+If TO is nil or numerically equal to FROM, return (FROM).
 If INC is positive and TO is less than FROM, or INC is negative
 and TO is larger than FROM, return nil.
 If INC is zero and TO is neither nil nor numerically equal to
@@ -408,11 +408,11 @@ This function is primarily designed for integer arguments.
 Nevertheless, FROM, TO and INC can be integer or float.  However,
 floating point arithmetic is inexact.  For instance, depending on
 the machine, it may quite well happen that
-\(number-sequence 0.4 0.6 0.2) returns the one element list \(0.4),
-whereas \(number-sequence 0.4 0.8 0.2) returns a list with three
+\(number-sequence 0.4 0.6 0.2) returns the one element list (0.4),
+whereas (number-sequence 0.4 0.8 0.2) returns a list with three
 elements.  Thus, if some of the arguments are floats and one wants
 to make sure that TO is included, one may have to explicitly write
-TO as \(+ FROM \(* N INC)) or use a variable whose value was
+TO as (+ FROM (* N INC)) or use a variable whose value was
 computed with this exact expression.  Alternatively, you can,
 of course, also replace TO with a slightly larger value
 \(or a slightly more negative value if INC is negative)."
@@ -784,8 +784,8 @@ KEY is a key sequence; noninteractively, it is a string or vector
 of characters or event types, and non-ASCII characters with codes
 above 127 (such as ISO Latin-1) can be included if you use a vector.
 
-The binding goes in the current buffer's local map,
-which in most cases is shared with all other buffers in the same major mode."
+The binding goes in the current buffer's local map, which in most
+cases is shared with all other buffers in the same major mode."
   (interactive "KSet key locally: \nCSet key %s locally to command: ")
   (let ((map (current-local-map)))
     (or map
@@ -821,7 +821,7 @@ in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
 
 If you don't specify OLDMAP, you can usually get the same results
 in a cleaner way with command remapping, like this:
-  \(define-key KEYMAP [remap OLDDEF] NEWDEF)
+  (define-key KEYMAP [remap OLDDEF] NEWDEF)
 \n(fn OLDDEF NEWDEF KEYMAP &optional OLDMAP)"
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
@@ -2540,7 +2540,7 @@ Set this to nil at your own risk..."
 (defun locate-user-emacs-file (new-name &optional old-name)
   "Return an absolute per-user Emacs-specific file name.
 If NEW-NAME exists in `user-emacs-directory', return it.
-Else If OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
+Else if OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
 Else return NEW-NAME in `user-emacs-directory', creating the
 directory if it does not exist."
   (convert-standard-filename
@@ -3231,7 +3231,7 @@ than cosmetic ones, undo data may become corrupted.
 
 This macro will run BODY normally, but doesn't count its buffer
 modifications as being buffer modifications.  This affects things
-like buffer-modified-p, checking whether the file is locked by
+like `buffer-modified-p', checking whether the file is locked by
 someone else, running buffer modification hooks, and other things
 of that nature.
 
@@ -3536,7 +3536,7 @@ which separates, but is not part of, the substrings.  If nil it defaults to
 `split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
 OMIT-NULLS is forced to t.
 
-If OMIT-NULLS is t, zero-length substrings are omitted from the list \(so
+If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
@@ -3733,18 +3733,18 @@ If FILE is already loaded, evaluate FORM right now.
 If a matching file is loaded again, FORM will be evaluated again.
 
 If FILE is a string, it may be either an absolute or a relative file
-name, and may have an extension \(e.g. \".el\") or may lack one, and
+name, and may have an extension (e.g. \".el\") or may lack one, and
 additionally may or may not have an extension denoting a compressed
-format \(e.g. \".gz\").
+format (e.g. \".gz\").
 
 When FILE is absolute, this first converts it to a true name by chasing
-symbolic links.  Only a file of this name \(see next paragraph regarding
+symbolic links.  Only a file of this name (see next paragraph regarding
 extensions) will trigger the evaluation of FORM.  When FILE is relative,
 a file whose absolute true name ends in FILE will trigger evaluation.
 
 When FILE lacks an extension, a file name with any extension will trigger
 evaluation.  Otherwise, its extension must match FILE's.  A further
-extension for a compressed format \(e.g. \".gz\") on FILE will not affect
+extension for a compressed format (e.g. \".gz\") on FILE will not affect
 this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
