@@ -1,5 +1,10 @@
 2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Tickle glib by waiting for Emacs itself, not for process 0 (Bug#14569).
+	* process.c (init_process_emacs) [HAVE_GLIB && !WINDOWSNT]:
+	Wait for self, not for 0.  This can't hurt on GNU or similar
+	system, and may help with Cygwin.
+
 	* keyboard.c: Don't use PROP (...) as an lvalue.
 	(parse_tool_bar_item) [!USE_GTK && !HAVE_NS]:
 	Use set_prop (A, B), not PROP (A) = B.
