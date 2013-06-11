@@ -1,3 +1,9 @@
+2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c: Don't use PROP (...) as an lvalue.
+	(parse_tool_bar_item) [!USE_GTK && !HAVE_NS]:
+	Use set_prop (A, B), not PROP (A) = B.
+
 2013-06-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_it_property): Use it->window instead of generating
