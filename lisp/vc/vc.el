@@ -115,10 +115,10 @@
 ;;   Return non-nil if FILE is registered in this backend.  Both this
 ;;   function as well as `state' should be careful to fail gracefully
 ;;   in the event that the backend executable is absent.  It is
-;;   preferable that this function's body is autoloaded, that way only
+;;   preferable that this function's *body* is autoloaded, that way only
 ;;   calling vc-registered does not cause the backend to be loaded
 ;;   (all the vc-FOO-registered functions are called to try to find
-;;   the controlling backend for FILE.
+;;   the controlling backend for FILE).
 ;;
 ;; * state (file)
 ;;
@@ -233,6 +233,7 @@
 ;;   The implementation should pass the value of vc-register-switches
 ;;   to the backend command.  (Note: in older versions of VC, this
 ;;   command took a single file argument and not a list.)
+;;   The REV argument is a historical leftover and is never used.
 ;;
 ;; - init-revision (file)
 ;;
@@ -999,7 +1000,7 @@ current buffer."
 		nil)
 	(list (vc-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
-     (t (error "No fileset is available here")))))
+     (t (error "File is not under version control")))))
 
 (defun vc-dired-deduce-fileset ()
   (let ((backend (vc-responsible-backend default-directory)))
@@ -1040,6 +1041,11 @@ current buffer."
   (or
    (eq p q)
    (and (member p '(edited added removed)) (member q '(edited added removed)))))
+
+(defun vc-read-backend (prompt)
+  (intern
+   (completing-read prompt (mapcar 'symbol-name vc-handled-backends)
+                    nil 'require-match)))
 
 ;; Here's the major entry point.
 
@@ -1099,8 +1105,9 @@ For old-style locking-based version control systems, like RCS:
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
        (verbose
-	;; go to a different revision
+	;; Go to a different revision.
 	(let* ((revision
+                ;; FIXME: Provide completion.
                 (read-string "Branch, revision, or backend to move to: "))
                (revision-downcase (downcase revision)))
 	  (if (member
@@ -1161,15 +1168,10 @@ For old-style locking-based version control systems, like RCS:
 	    (message "No files remain to be committed")
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit backend)
-	    (let* ((revision (read-string "New revision or backend: "))
-                   (revision-downcase (downcase revision)))
-	      (if (member
-		   revision-downcase
-		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
-			   vc-handled-backends))
-		  (let ((vsym (intern revision-downcase)))
-		    (dolist (file files) (vc-transfer-file file vsym)))
-		(vc-checkin ready-for-commit backend revision)))))))
+            (let ((new-backend (vc-read-backend "New backend: ")))
+	      (if new-backend
+                  (dolist (file files)
+                    (vc-transfer-file file new-backend))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on

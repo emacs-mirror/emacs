@@ -1,5 +1,9 @@
 2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc.el (vc-deduce-fileset): Change error message.
+	(vc-read-backend): New function.
+	(vc-next-action): Use it.
+
 	* subr.el (function-arity): Remove (mistakenly added) (bug#14590).
 
 	* progmodes/prolog.el (prolog-make-keywords-regexp): Remove.
