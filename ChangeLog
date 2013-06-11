@@ -1,3 +1,8 @@
+2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	--without-all should imply --with-file-notification=no.  (Bug#14569)
+	* configure.ac (with_file_notification): Default to $with_features.
+
 2013-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
