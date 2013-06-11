@@ -1,7 +1,11 @@
+2013-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (VC Directory Commands): Copyedit.
+	(Branches): Put back milder version of pre 2013-06-07 text.
+
 2013-06-07  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* maintaining.texi (Branches): Remove text copied from other
-	sources.
+	* maintaining.texi (Branches): Remove text copied from other sources.
 
 2013-06-05  Alan Mackenzie  <acm@muc.de>
 
