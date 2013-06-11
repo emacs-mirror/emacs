@@ -1,3 +1,8 @@
+2013-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* vc/log-view.el (log-view-mode-map): Inherit from special-mode-map,
+	although define-derived-mode was doing this anyway.  (Bug#14583)
+
 2013-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-encryption-plaintext-sanitization-regexps):
