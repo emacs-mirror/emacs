@@ -181,18 +181,18 @@ registered with one of the <tt class="xref c c-func docutils literal"><span clas
 <p>Here is an example of part of a format scanner for scanning contiguous
 runs of pointers, from <a class="reference external" href="../code/fmtdy.c">fmtdy.c</a>, the scanner for the <a class="reference external" href="http://opendylan.org/">Open Dylan</a>
 runtime:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">dylan_scan_contig</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">mps_ss</span><span class="p">,</span>
-                                   <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">dylan_scan_contig</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">mps_ss</span><span class="p">,</span>
+                                   <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-  <span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>        <span class="cm">/* reference cursor */</span>
-  <span class="n">mps_addr_t</span> <span class="n">r</span><span class="p">;</span>         <span class="cm">/* reference to be fixed */</span>
+  <span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+  <span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>        <span class="cm">/* reference cursor */</span>
+  <span class="kt">mps_addr_t</span> <span class="n">r</span><span class="p">;</span>         <span class="cm">/* reference to be fixed */</span>
 
   <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">)</span> <span class="p">{</span>
           <span class="n">p</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
     <span class="nl">loop:</span> <span class="k">if</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">)</span> <span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
           <span class="n">r</span> <span class="o">=</span> <span class="o">*</span><span class="n">p</span><span class="o">++</span><span class="p">;</span>
-          <span class="k">if</span><span class="p">(((</span><span class="n">mps_word_t</span><span class="p">)</span><span class="n">r</span><span class="o">&amp;</span><span class="mi">3</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="cm">/* pointers tagged with 0 */</span>
+          <span class="k">if</span><span class="p">(((</span><span class="kt">mps_word_t</span><span class="p">)</span><span class="n">r</span><span class="o">&amp;</span><span class="mi">3</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="cm">/* pointers tagged with 0 */</span>
             <span class="k">goto</span> <span class="n">loop</span><span class="p">;</span>             <span class="cm">/* not a pointer */</span>
           <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span> <span class="k">goto</span> <span class="n">loop</span><span class="p">;</span>
           <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">mps_ss</span><span class="p">,</span> <span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>

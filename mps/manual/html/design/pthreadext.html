@@ -215,7 +215,7 @@ struct <a class="reference internal" href="#PThreadextStruct" title="PThreadextS
 object is:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">struct</span> <span class="n">PThreadextStruct</span> <span class="p">{</span>
   <span class="n">Sig</span> <span class="n">sig</span><span class="p">;</span>                         <span class="cm">/* design.mps.sig */</span>
-  <span class="n">pthread_t</span> <span class="n">id</span><span class="p">;</span>                    <span class="cm">/* Thread ID */</span>
+  <span class="kt">pthread_t</span> <span class="n">id</span><span class="p">;</span>                    <span class="cm">/* Thread ID */</span>
   <span class="k">struct</span> <span class="n">sigcontext</span> <span class="o">*</span><span class="n">suspendedScp</span><span class="p">;</span> <span class="cm">/* sigcontext if suspended */</span>
   <span class="n">RingStruct</span> <span class="n">threadRing</span><span class="p">;</span>           <span class="cm">/* ring of suspended threads */</span>
   <span class="n">RingStruct</span> <span class="n">idRing</span><span class="p">;</span>               <span class="cm">/* duplicate suspensions for id */</span>

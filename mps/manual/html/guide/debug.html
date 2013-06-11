@@ -227,13 +227,13 @@ up to the detection of the error. See <a class="reference internal" href="../top
 <span id="guide-debug-size"></span><span id="index-5"></span><h2>4.3. Example: allocating with wrong size<a class="headerlink" href="#example-allocating-with-wrong-size" title="Permalink to this headline">¶</a></h2>
 <p>Here&#8217;s another kind of mistake: an off-by-one error in <tt class="docutils literal"><span class="pre">make_string</span></tt>
 leading to the allocation of string objects with the wrong size:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_string</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_string</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-  <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+  <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+  <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
 <span class="hll">  <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="n">offsetof</span><span class="p">(</span><span class="n">string_s</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span> <span class="o">+</span> <span class="n">length</span><span class="cm">/* oops, forgot: +1 */</span><span class="p">);</span>
 </span>  <span class="k">do</span> <span class="p">{</span>
-    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_string&quot;</span><span class="p">);</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
     <span class="n">obj</span><span class="o">-&gt;</span><span class="n">string</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_STRING</span><span class="p">;</span>

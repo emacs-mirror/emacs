@@ -80,8 +80,8 @@ prepared to start collecting the generation. See
     <span class="p">{</span> <span class="mi">2048</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">},</span>
 <span class="p">};</span>
 
-<span class="n">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
-<span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_chain_t</span> <span class="n">chain</span><span class="p">;</span>
+<span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_chain_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chain</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span>
                        <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">gen_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                        <span class="n">gen_params</span><span class="p">);</span>

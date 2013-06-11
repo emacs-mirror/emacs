@@ -61,8 +61,8 @@
 <p>In Scheme, an open file is represented by a <em>port</em>. In the toy Scheme
 interpreter, a port is a wrapper around a standard C file handle:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">port_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                    <span class="cm">/* TYPE_PORT */</span>
-    <span class="n">obj_t</span> <span class="n">name</span><span class="p">;</span>                     <span class="cm">/* name of stream */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                    <span class="cm">/* TYPE_PORT */</span>
+    <span class="kt">obj_t</span> <span class="n">name</span><span class="p">;</span>                     <span class="cm">/* name of stream */</span>
     <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">port_s</span><span class="p">;</span>
 </pre></div>
@@ -84,14 +84,14 @@ reliable mechanisms for releasing resources (like Scheme&#8217;s
 <p>Any block in an <a class="reference internal" href="../glossary/a.html#term-automatic-memory-management"><em class="xref std std-term">automatically managed</em></a> <a class="reference internal" href="../glossary/p.html#term-pool"><em class="xref std std-term">pool</em></a> can be registered for finalization by calling
 <a class="reference internal" href="../topic/finalization.html#mps_finalize" title="mps_finalize"><tt class="xref c c-func docutils literal"><span class="pre">mps_finalize()</span></tt></a>. In the toy Scheme interpreter, this can be done
 in <tt class="docutils literal"><span class="pre">make_port</span></tt>:</p>
-<div class="highlight-c"><div class="highlight"><pre> <span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_port</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">name</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre> <span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_port</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">name</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">)</span>
  <span class="p">{</span>
-     <span class="n">mps_addr_t</span> <span class="n">port_ref</span><span class="p">;</span>
-     <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-     <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+     <span class="kt">mps_addr_t</span> <span class="n">port_ref</span><span class="p">;</span>
+     <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+     <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
      <span class="kt">size_t</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">port_s</span><span class="p">));</span>
      <span class="k">do</span> <span class="p">{</span>
-         <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+         <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
          <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_port&quot;</span><span class="p">);</span>
          <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
          <span class="n">obj</span><span class="o">-&gt;</span><span class="n">port</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_PORT</span><span class="p">;</span>
@@ -127,17 +127,17 @@ reachable.</p>
 message queue is at the start of the read–eval–print loop. When a
 finalization message is found, the associated file handle is closed
 (unless it has been closed already), and the message is discarded.</p>
-<div class="highlight-c"><div class="highlight"><pre> <span class="n">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre> <span class="kt">mps_message_type_t</span> <span class="n">type</span><span class="p">;</span>
 
  <span class="k">while</span> <span class="p">(</span><span class="n">mps_message_queue_type</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="n">arena</span><span class="p">))</span> <span class="p">{</span>
-     <span class="n">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
-     <span class="n">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
+     <span class="kt">mps_message_t</span> <span class="n">message</span><span class="p">;</span>
+     <span class="kt">mps_bool_t</span> <span class="n">b</span><span class="p">;</span>
      <span class="n">b</span> <span class="o">=</span> <span class="n">mps_message_get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">message</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
      <span class="n">assert</span><span class="p">(</span><span class="n">b</span><span class="p">);</span> <span class="cm">/* we just checked there was one */</span>
 
 <span class="hll">     <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">==</span> <span class="n">mps_message_type_finalization</span><span class="p">())</span> <span class="p">{</span>
-</span>         <span class="n">mps_addr_t</span> <span class="n">port_ref</span><span class="p">;</span>
-         <span class="n">obj_t</span> <span class="n">port</span><span class="p">;</span>
+</span>         <span class="kt">mps_addr_t</span> <span class="n">port_ref</span><span class="p">;</span>
+         <span class="kt">obj_t</span> <span class="n">port</span><span class="p">;</span>
 <span class="hll">         <span class="n">mps_message_finalization_ref</span><span class="p">(</span><span class="o">&amp;</span><span class="n">port_ref</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
 </span>         <span class="n">port</span> <span class="o">=</span> <span class="n">port_ref</span><span class="p">;</span>
          <span class="n">assert</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">port</span><span class="p">)</span> <span class="o">==</span> <span class="n">TYPE_PORT</span><span class="p">);</span>
@@ -176,11 +176,11 @@ finalization message is found, the associated file handle is closed
 optimization: setting <tt class="docutils literal"><span class="pre">stream</span></tt> to <tt class="docutils literal"><span class="pre">NULL</span></tt> ensures that the file
 handle wouldn&#8217;t be closed more than once, even if the port object were
 later finalized.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">port_close</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">port</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">port_close</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">port</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">port</span><span class="p">)</span> <span class="o">==</span> <span class="n">TYPE_PORT</span><span class="p">);</span>
     <span class="k">if</span><span class="p">(</span><span class="n">port</span><span class="o">-&gt;</span><span class="n">port</span><span class="p">.</span><span class="n">stream</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">mps_addr_t</span> <span class="n">port_ref</span> <span class="o">=</span> <span class="n">port</span><span class="p">;</span>
+        <span class="kt">mps_addr_t</span> <span class="n">port_ref</span> <span class="o">=</span> <span class="n">port</span><span class="p">;</span>
         <span class="n">fclose</span><span class="p">(</span><span class="n">port</span><span class="o">-&gt;</span><span class="n">port</span><span class="p">.</span><span class="n">stream</span><span class="p">);</span>
         <span class="n">port</span><span class="o">-&gt;</span><span class="n">port</span><span class="p">.</span><span class="n">stream</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
 <span class="hll">        <span class="n">mps_definalize</span><span class="p">(</span><span class="n">arena</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">port_ref</span><span class="p">);</span>
@@ -253,24 +253,24 @@ depended on might have moved since their location was depended upon.</p>
 case of a hash table, it is most convenient to inline it in the hash
 table&#8217;s metadata:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">table_s</span> <span class="p">{</span>
-  <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
-  <span class="n">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
-  <span class="n">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
+  <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_TABLE */</span>
+  <span class="kt">hash_t</span> <span class="n">hash</span><span class="p">;</span>                  <span class="cm">/* hash function */</span>
+  <span class="kt">cmp_t</span> <span class="n">cmp</span><span class="p">;</span>                    <span class="cm">/* comparison function */</span>
 <span class="hll">  <span class="n">mps_ld_s</span> <span class="n">ld</span><span class="p">;</span>                  <span class="cm">/* location dependency */</span>
-</span>  <span class="n">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
+</span>  <span class="kt">obj_t</span> <span class="n">buckets</span><span class="p">;</span>                <span class="cm">/* hash buckets */</span>
 <span class="p">}</span> <span class="n">table_s</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Before being used, the location dependency must be reset to indicate
 that nothing is depended upon, by calling <a class="reference internal" href="../topic/location.html#mps_ld_reset" title="mps_ld_reset"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_reset()</span></tt></a>.</p>
 <p>For example:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">make_table</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="n">hash_t</span> <span class="n">hashf</span><span class="p">,</span> <span class="n">cmp_t</span> <span class="n">cmpf</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">make_table</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">length</span><span class="p">,</span> <span class="kt">hash_t</span> <span class="n">hashf</span><span class="p">,</span> <span class="kt">cmp_t</span> <span class="n">cmpf</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">obj</span><span class="p">;</span>
+    <span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">l</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ALIGN</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">table_s</span><span class="p">));</span>
     <span class="k">do</span> <span class="p">{</span>
-        <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+        <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">mps_reserve</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="n">obj_ap</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;out of memory in make_table&quot;</span><span class="p">);</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
         <span class="n">obj</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_TABLE</span><span class="p">;</span>
@@ -296,12 +296,12 @@ have taken place after the hash was computed but before you added the
 dependency.)</p>
 <p>In the toy Scheme interpreter, this is done just before the computation
 of the hash of the address.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="n">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eq_hash</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">)];</span> <span class="n">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
+    <span class="k">union</span> <span class="p">{</span><span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">)];</span> <span class="kt">obj_t</span> <span class="n">addr</span><span class="p">;}</span> <span class="n">u</span><span class="p">;</span>
 <span class="hll">    <span class="k">if</span> <span class="p">(</span><span class="n">ld</span><span class="p">)</span> <span class="n">mps_ld_add</span><span class="p">(</span><span class="n">ld</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">obj</span><span class="p">);</span>
 </span>    <span class="n">u</span><span class="p">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">obj</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">obj_t</span><span class="p">));</span>
+    <span class="k">return</span> <span class="n">hash</span><span class="p">(</span><span class="n">u</span><span class="p">.</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">obj_t</span><span class="p">));</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -309,7 +309,7 @@ of the hash of the address.</p>
 avoids adding unnecessary dependencies on a location. For example, an
 <tt class="docutils literal"><span class="pre">eqv?</span></tt> hash table does not need to depend on the location of numbers
 and characters:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eqv_hash</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="n">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="nf">eqv_hash</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">obj</span><span class="p">,</span> <span class="kt">mps_ld_t</span> <span class="n">ld</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">switch</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="p">{</span>
         <span class="k">case</span> <span class="n">TYPE_INTEGER</span>:
@@ -339,7 +339,7 @@ the key is stale: that is, if the garbage collector moved the key. The
 function <a class="reference internal" href="../topic/location.html#mps_ld_isstale" title="mps_ld_isstale"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_isstale()</span></tt></a> tells you if any of the blocks whose
 locations you depended upon since the last call to
 <a class="reference internal" href="../topic/location.html#mps_ld_reset" title="mps_ld_reset"><tt class="xref c c-func docutils literal"><span class="pre">mps_ld_reset()</span></tt></a> might have moved.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">key</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">table_ref</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">key</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">bucket_s</span> <span class="o">*</span><span class="n">b</span> <span class="o">=</span> <span class="n">buckets_find</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">tbl</span><span class="o">-&gt;</span><span class="n">table</span><span class="p">.</span><span class="n">buckets</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="n">obj_deleted</span><span class="p">)</span>
@@ -425,7 +425,7 @@ causes <a class="reference internal" href="../topic/location.html#mps_ld_isstale
 <p>Don&#8217;t forget to check the location dependency for staleness if you are
 about to delete a key from a hash table but discover that it&#8217;s not
 there. In the toy Scheme interpreter, deletion looks like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">table_delete</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="n">obj_t</span> <span class="n">key</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">table_delete</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">tbl</span><span class="p">,</span> <span class="kt">obj_t</span> <span class="n">key</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">struct</span> <span class="n">bucket_s</span> <span class="o">*</span><span class="n">b</span><span class="p">;</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">tbl</span><span class="p">)</span> <span class="o">==</span> <span class="n">TYPE_TABLE</span><span class="p">);</span>
@@ -500,9 +500,9 @@ vectors, one for the keys and the other for the values, to allow keys
 and values to have different ranks.</p>
 <p>These vectors will be allocated from an AWL pool with two allocation
 points, one for strong references, and one for weak references:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_pool_t</span> <span class="n">buckets_pool</span><span class="p">;</span> <span class="cm">/* pool for hash table buckets */</span>
-<span class="k">static</span> <span class="n">mps_ap_t</span> <span class="n">strong_buckets_ap</span><span class="p">;</span> <span class="cm">/* allocation point for strong buckets */</span>
-<span class="k">static</span> <span class="n">mps_ap_t</span> <span class="n">weak_buckets_ap</span><span class="p">;</span> <span class="cm">/* allocation point for weak buckets */</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_pool_t</span> <span class="n">buckets_pool</span><span class="p">;</span> <span class="cm">/* pool for hash table buckets */</span>
+<span class="k">static</span> <span class="kt">mps_ap_t</span> <span class="n">strong_buckets_ap</span><span class="p">;</span> <span class="cm">/* allocation point for strong buckets */</span>
+<span class="k">static</span> <span class="kt">mps_ap_t</span> <span class="n">weak_buckets_ap</span><span class="p">;</span> <span class="cm">/* allocation point for weak buckets */</span>
 </pre></div>
 </div>
 <div class="admonition-note admonition">
@@ -515,16 +515,16 @@ allocated in a <em>non-moving</em> pool such as AWL.</p>
 replacing it with a null pointer when it is <a class="reference internal" href="../glossary/f.html#term-fix"><em class="xref std std-term">fixed</em></a> by the object
 format&#8217;s <a class="reference internal" href="../glossary/s.html#term-scan-method"><em class="xref std std-term">scan method</em></a>. So the scan method for the buckets is
 going to have the following structure. (See below for the actual code.)</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">buckets_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">buckets_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="kt">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
             <span class="kt">size_t</span> <span class="n">length</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">;</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+                <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
-                    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+                    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
                         <span class="cm">/* TODO: key/value was splatted: splat value/key too */</span>
@@ -556,9 +556,9 @@ and vice versa.</p>
 <p>The AWL pool determines an object&#8217;s dependent object by calling a
 function that you supply when creating the pool. This means that each
 object needs to have a reference to its dependent object:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">buckets_find_dependent</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_addr_t</span> <span class="nf">buckets_find_dependent</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">addr</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+    <span class="kt">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
     <span class="k">return</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -580,25 +580,25 @@ See the <a class="reference internal" href="../pool/awl.html#pool-awl-caution"><
     <span class="kt">size_t</span> <span class="n">length</span><span class="p">;</span>                <span class="cm">/* number of buckets (tagged) */</span>
     <span class="kt">size_t</span> <span class="n">used</span><span class="p">;</span>                  <span class="cm">/* number of buckets in use (tagged) */</span>
     <span class="kt">size_t</span> <span class="n">deleted</span><span class="p">;</span>               <span class="cm">/* number of deleted buckets (tagged) */</span>
-    <span class="n">obj_t</span> <span class="n">bucket</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>              <span class="cm">/* hash buckets */</span>
-<span class="p">}</span> <span class="n">buckets_s</span><span class="p">,</span> <span class="o">*</span><span class="n">buckets_t</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">bucket</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>              <span class="cm">/* hash buckets */</span>
+<span class="p">}</span> <span class="n">buckets_s</span><span class="p">,</span> <span class="o">*</span><span class="kt">buckets_t</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Now the full details of the scan method can be given, with the revised
 code highlighted:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_res_t</span> <span class="nf">buckets_scan</span><span class="p">(</span><span class="n">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="n">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_res_t</span> <span class="nf">buckets_scan</span><span class="p">(</span><span class="kt">mps_ss_t</span> <span class="n">ss</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">,</span> <span class="kt">mps_addr_t</span> <span class="n">limit</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">MPS_SCAN_BEGIN</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">while</span> <span class="p">(</span><span class="n">base</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+            <span class="kt">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
 <span class="hll">            <span class="kt">size_t</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">UNTAG_SIZE</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
 </span><span class="hll">            <span class="n">FIX</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="p">);</span>
 </span><span class="hll">            <span class="k">if</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
 </span><span class="hll">                <span class="n">assert</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">dependent</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
 </span>            <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+                <span class="kt">mps_addr_t</span> <span class="n">p</span> <span class="o">=</span> <span class="n">buckets</span><span class="o">-&gt;</span><span class="n">bucket</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">MPS_FIX1</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="p">{</span>
-                    <span class="n">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
+                    <span class="kt">mps_res_t</span> <span class="n">res</span> <span class="o">=</span> <span class="n">MPS_FIX2</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">p</span><span class="p">);</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="o">!=</span> <span class="n">MPS_RES_OK</span><span class="p">)</span> <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
 <span class="hll">                        <span class="cm">/* key/value was splatted: splat value/key too */</span>
@@ -649,9 +649,9 @@ used&#8221;, and <tt class="docutils literal"><span class="pre">NULL</span></tt>
 </ol>
 </div>
 <p>The <a class="reference internal" href="../glossary/s.html#term-skip-method"><em class="xref std std-term">skip method</em></a> is straightforward:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_addr_t</span> <span class="nf">buckets_skip</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_addr_t</span> <span class="nf">buckets_skip</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="n">base</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
+    <span class="kt">buckets_t</span> <span class="n">buckets</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">length</span> <span class="o">=</span> <span class="n">UNTAG_SIZE</span><span class="p">(</span><span class="n">buckets</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
     <span class="k">return</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">base</span> <span class="o">+</span>
         <span class="n">ALIGN</span><span class="p">(</span><span class="n">offsetof</span><span class="p">(</span><span class="n">buckets_s</span><span class="p">,</span> <span class="n">bucket</span><span class="p">)</span> <span class="o">+</span>
@@ -751,15 +751,15 @@ other strong references keeping it alive.</li>
 </ol>
 <p>Here&#8217;s the new symbol structure:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">symbol_s</span> <span class="p">{</span>
-    <span class="n">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
-    <span class="n">obj_t</span> <span class="n">name</span><span class="p">;</span>                   <span class="cm">/* its name (a string) */</span>
+    <span class="kt">type_t</span> <span class="n">type</span><span class="p">;</span>                  <span class="cm">/* TYPE_SYMBOL */</span>
+    <span class="kt">obj_t</span> <span class="n">name</span><span class="p">;</span>                   <span class="cm">/* its name (a string) */</span>
 <span class="p">}</span> <span class="n">symbol_s</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>and the new implementation of <tt class="docutils literal"><span class="pre">intern</span></tt>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">obj_t</span> <span class="nf">intern_string</span><span class="p">(</span><span class="n">obj_t</span> <span class="n">name</span><span class="p">)</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">intern_string</span><span class="p">(</span><span class="kt">obj_t</span> <span class="n">name</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
+    <span class="kt">obj_t</span> <span class="n">symbol</span><span class="p">;</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">TYPE</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="n">TYPE_STRING</span><span class="p">);</span>
     <span class="n">symbol</span> <span class="o">=</span> <span class="n">table_ref</span><span class="p">(</span><span class="n">symtab</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
     <span class="k">if</span><span class="p">(</span><span class="n">symbol</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
@@ -769,7 +769,7 @@ other strong references keeping it alive.</li>
     <span class="k">return</span> <span class="n">symbol</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="k">static</span> <span class="n">obj_t</span> <span class="nf">intern</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">)</span>
+<span class="k">static</span> <span class="kt">obj_t</span> <span class="nf">intern</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">return</span> <span class="n">intern_string</span><span class="p">(</span><span class="n">make_string</span><span class="p">(</span><span class="n">strlen</span><span class="p">(</span><span class="n">string</span><span class="p">),</span> <span class="n">string</span><span class="p">));</span>
 <span class="p">}</span>
@@ -777,7 +777,7 @@ other strong references keeping it alive.</li>
 </div>
 <p>The symbol table now becomes a very simple <a class="reference internal" href="../glossary/r.html#term-root"><em class="xref std std-term">root</em></a>, that only has
 to be registered once (not <a class="reference internal" href="lang.html#guide-lang-root"><em>every time it is rehashed</em></a>, as previously):</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_addr_t</span> <span class="n">ref</span><span class="p">;</span>
 <span class="n">symtab</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
 <span class="n">ref</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">symtab</span><span class="p">;</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">mps_root_create_table</span><span class="p">(</span><span class="o">&amp;</span><span class="n">symtab_root</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">mps_rank_exact</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span>
@@ -829,8 +829,8 @@ avoided.</p>
 <p>Here the appropriate class is <a class="reference internal" href="../pool/amcz.html#pool-amcz"><em>AMCZ (Automatic Mostly-Copying Zero-rank)</em></a>, and the necessary code
 changes are straightforward. First, global variables for the new pool
 and its <a class="reference internal" href="../glossary/a.html#term-allocation-point"><em class="xref std std-term">allocation point</em></a>:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="n">mps_pool_t</span> <span class="n">leaf_pool</span><span class="p">;</span>    <span class="cm">/* pool for leaf objects */</span>
-<span class="k">static</span> <span class="n">mps_ap_t</span> <span class="n">leaf_ap</span><span class="p">;</span>        <span class="cm">/* allocation point for leaf objects */</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">static</span> <span class="kt">mps_pool_t</span> <span class="n">leaf_pool</span><span class="p">;</span>    <span class="cm">/* pool for leaf objects */</span>
+<span class="k">static</span> <span class="kt">mps_ap_t</span> <span class="n">leaf_ap</span><span class="p">;</span>        <span class="cm">/* allocation point for leaf objects */</span>
 </pre></div>
 </div>
 <p>Second, the leaf objects must be allocated on <tt class="docutils literal"><span class="pre">leaf_ap</span></tt> instead of

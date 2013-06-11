@@ -440,19 +440,19 @@ possibly their types, depending on the protocol defined</li>
 configuration parameter.  However, the concrete interface may vary.</p>
 <p>For example, this isn&#8217;t allowed, because there is a change in the interface:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#if defined(PROT_FOO)</span>
-<span class="kt">void</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Foo</span> <span class="n">foo</span><span class="p">,</span> <span class="n">Bar</span> <span class="n">bar</span><span class="p">);</span>
 <span class="cp">#else</span>
-<span class="kt">int</span> <span class="n">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
+<span class="kt">int</span> <span class="nf">ProtSpong</span><span class="p">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="p">,</span> <span class="n">Foo</span> <span class="n">foo</span><span class="p">);</span>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
 <p>This example shows how:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="cp">#ifdef PROTECTION</span>
-<span class="kt">void</span> <span class="n">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
-<span class="cp">/* more decls. */</span>
+<span class="kt">void</span> <span class="nf">ProtSync</span><span class="p">(</span><span class="n">Space</span> <span class="n">space</span><span class="p">);</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#else </span><span class="cm">/* PROTECTION not */</span><span class="cp"></span>
 <span class="cp">#define ProtSync(space) NOOP</span>
-<span class="cp">/* more decls. */</span>
+<span class="cm">/* more decls. */</span>
 <span class="cp">#endif </span><span class="cm">/* PROTECTION */</span><span class="cp"></span>
 </pre></div>
 </div>

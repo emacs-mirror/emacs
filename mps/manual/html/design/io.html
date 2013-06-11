@@ -190,7 +190,7 @@ liberty to define this structure.</p>
 several different types. It will probably choose to send them to
 different destinations based on their type: telemetry to the
 measurement tool, debugging output to the debugger, etc.</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="kt">int</span> <span class="n">mps_io_type_t</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="kt">int</span> <span class="kt">mps_io_type_t</span><span class="p">;</span>
 <span class="k">enum</span> <span class="p">{</span>
   <span class="n">MPS_IO_TYPE_TELEMETRY</span><span class="p">,</span>
   <span class="n">MPS_IO_TYPE_DEBUG</span>
@@ -293,11 +293,11 @@ just a few old messages. What can you do with it?</p>
   <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">debugging</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_io_s</span><span class="p">;</span>
 
-<span class="k">static</span> <span class="n">mps_bool_t</span> <span class="n">inited</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">static</span> <span class="kt">mps_bool_t</span> <span class="n">inited</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="k">static</span> <span class="n">mps_io_s</span> <span class="n">state</span><span class="p">;</span>
 
 
-<span class="n">mps_res_t</span> <span class="nf">mps_io_create</span><span class="p">(</span><span class="n">mps_io_t</span> <span class="o">*</span><span class="n">mps_io_o</span><span class="p">)</span>
+<span class="kt">mps_res_t</span> <span class="nf">mps_io_create</span><span class="p">(</span><span class="kt">mps_io_t</span> <span class="o">*</span><span class="n">mps_io_o</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">sock</span><span class="p">,</span> <span class="n">r</span><span class="p">;</span>
 
@@ -329,7 +329,7 @@ just a few old messages. What can you do with it?</p>
 <span class="p">}</span>
 
 
-<span class="kt">void</span> <span class="nf">mps_io_destroy</span><span class="p">(</span><span class="n">mps_io_t</span> <span class="n">mps_io</span><span class="p">)</span>
+<span class="kt">void</span> <span class="nf">mps_io_destroy</span><span class="p">(</span><span class="kt">mps_io_t</span> <span class="n">mps_io</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">mps_io</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">state</span><span class="p">);</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">inited</span><span class="p">);</span>
@@ -340,7 +340,7 @@ just a few old messages. What can you do with it?</p>
 <span class="p">}</span>
 
 
-<span class="n">mps_res_t</span> <span class="nf">mps_io_send</span><span class="p">(</span><span class="n">mps_io_t</span> <span class="n">mps_io</span><span class="p">,</span> <span class="n">mps_type_t</span> <span class="n">type</span><span class="p">,</span>
+<span class="kt">mps_res_t</span> <span class="nf">mps_io_send</span><span class="p">(</span><span class="kt">mps_io_t</span> <span class="n">mps_io</span><span class="p">,</span> <span class="kt">mps_type_t</span> <span class="n">type</span><span class="p">,</span>
                       <span class="kt">void</span> <span class="o">*</span><span class="n">message</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">toaddr</span><span class="p">;</span>
@@ -368,7 +368,7 @@ just a few old messages. What can you do with it?</p>
 <span class="p">}</span>
 
 
-<span class="n">mps_res_t</span> <span class="nf">mps_io_receive</span><span class="p">(</span><span class="n">mps_io_t</span> <span class="n">mps_io</span><span class="p">,</span>
+<span class="kt">mps_res_t</span> <span class="nf">mps_io_receive</span><span class="p">(</span><span class="kt">mps_io_t</span> <span class="n">mps_io</span><span class="p">,</span>
                          <span class="kt">void</span> <span class="o">**</span><span class="n">message_o</span><span class="p">,</span> <span class="kt">size_t</span> <span class="o">**</span><span class="n">size_o</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">r</span><span class="p">;</span>

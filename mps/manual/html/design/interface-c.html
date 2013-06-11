@@ -175,19 +175,19 @@ as pointer to function) are declared a prototype should be used and
 the parameters to the function should not be named. This includes the
 case where you are declaring the prototype for an interface function.</p>
 <p><span class="target" id="design.mps.interface.c.type.fun.example"></span><a class="mpstag reference internal" href="#design.mps.interface.c.type.fun.example">.type.fun.example:</a> So use:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">extern</span> <span class="n">mps_res_t</span> <span class="n">mps_alloc</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="p">,</span> <span class="n">mps_pool_t</span><span class="p">,</span> <span class="kt">size_t</span><span class="p">,</span> <span class="p">...);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">mps_res_t</span> <span class="nf">mps_alloc</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="o">*</span><span class="p">,</span> <span class="kt">mps_pool_t</span><span class="p">,</span> <span class="kt">size_t</span><span class="p">,</span> <span class="p">...);</span>
 </pre></div>
 </div>
 <p>rather than:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">extern</span> <span class="n">mps_res_t</span> <span class="n">mps_alloc</span><span class="p">(</span><span class="n">mps_addr_t</span> <span class="o">*</span><span class="n">addr_return</span><span class="p">,</span> <span class="n">mps_pool_t</span> <span class="n">pool</span> <span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="p">...);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">mps_res_t</span> <span class="nf">mps_alloc</span><span class="p">(</span><span class="kt">mps_addr_t</span> <span class="o">*</span><span class="n">addr_return</span><span class="p">,</span> <span class="kt">mps_pool_t</span> <span class="n">pool</span> <span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="p">...);</span>
 </pre></div>
 </div>
 <p>and:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="n">mps_addr_t</span> <span class="p">(</span><span class="o">*</span><span class="n">mps_fmt_class_t</span><span class="p">)(</span><span class="n">mps_addr_t</span><span class="p">);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="nf">mps_addr_t</span> <span class="p">(</span><span class="o">*</span><span class="kt">mps_fmt_class_t</span><span class="p">)(</span><span class="kt">mps_addr_t</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>rather than:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="n">mps_addr_t</span> <span class="p">(</span><span class="o">*</span><span class="n">mps_fmt_class_t</span><span class="p">)(</span><span class="n">mps_addr_t</span> <span class="n">object</span><span class="p">);</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="nf">mps_addr_t</span> <span class="p">(</span><span class="o">*</span><span class="kt">mps_fmt_class_t</span><span class="p">)(</span><span class="kt">mps_addr_t</span> <span class="n">object</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>See guide.impl.c.misc.prototype.parameters.</p>

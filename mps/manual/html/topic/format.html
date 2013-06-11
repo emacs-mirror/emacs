@@ -510,13 +510,13 @@ of.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant A.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_A_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_A_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -539,14 +539,14 @@ object format of variant A.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant B.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_B_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
-    <span class="n">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_copy_t</span>  <span class="n">copy</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_fmt_class_t</span> <span class="n">mps_class</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_B_s</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -567,12 +567,12 @@ object format of variant B.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant auto-header.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_auto_header_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_skip_t</span>  <span class="n">skip</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
     <span class="kt">size_t</span>          <span class="n">mps_headerSize</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_auto_header_s</span><span class="p">;</span>
 </pre></div>
@@ -595,11 +595,11 @@ object format of variant auto-header.</p>
 <dd><p>The type of the structure used to create an <a class="reference internal" href="../glossary/o.html#term-object-format"><em class="xref std std-term">object format</em></a>
 of variant fixed.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_fmt_fixed_s</span> <span class="p">{</span>
-    <span class="n">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
-    <span class="n">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
-    <span class="n">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
-    <span class="n">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
+    <span class="kt">mps_align_t</span>     <span class="n">align</span><span class="p">;</span>
+    <span class="kt">mps_fmt_scan_t</span>  <span class="n">scan</span><span class="p">;</span>
+    <span class="kt">mps_fmt_fwd_t</span>   <span class="n">fwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_isfwd_t</span> <span class="n">isfwd</span><span class="p">;</span>
+    <span class="kt">mps_fmt_pad_t</span>   <span class="n">pad</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_fmt_fixed_s</span><span class="p">;</span>
 </pre></div>
 </div>

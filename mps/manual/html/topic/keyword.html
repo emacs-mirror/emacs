@@ -62,8 +62,8 @@ some circumstances. For example, the function
 <a class="reference internal" href="arena.html#mps_arena_create_k" title="mps_arena_create_k"><tt class="xref c c-func docutils literal"><span class="pre">mps_arena_create_k()</span></tt></a> creates any class of <a class="reference internal" href="../glossary/a.html#term-arena"><em class="xref std std-term">arena</em></a>, but
 <a class="reference internal" href="../glossary/c.html#term-client-arena"><em class="xref std std-term">client arenas</em></a> require you to specify a base address. These
 arguments are passed in a keyword argument array, like this:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="n">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
-<span class="n">mps_arena_t</span> <span class="n">arena</span><span class="p">;</span>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">mps_res_t</span> <span class="n">res</span><span class="p">;</span>
+<span class="kt">mps_arena_t</span> <span class="n">arena</span><span class="p">;</span>
 <span class="n">mps_arg_s</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="n">MPS_KEY_ARENA_SIZE</span><span class="p">;</span>
 <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">val</span><span class="p">.</span><span class="n">size</span> <span class="o">=</span> <span class="mi">6553600</span><span class="p">;</span>
@@ -99,7 +99,7 @@ now <tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ARGS_E
 <dd><p>The type of the structure used to represent a single
 <a class="reference internal" href="../glossary/k.html#term-keyword-argument"><em class="xref std std-term">keyword argument</em></a> to a function.</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">mps_arg_s</span> <span class="p">{</span>
-    <span class="n">mps_key_t</span> <span class="n">key</span><span class="p">;</span>
+    <span class="kt">mps_key_t</span> <span class="n">key</span><span class="p">;</span>
     <span class="k">union</span> <span class="p">{</span> <span class="cm">/* many fields; see table below */</span> <span class="p">}</span> <span class="n">val</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">mps_arg_s</span><span class="p">;</span>
 </pre></div>
@@ -151,7 +151,7 @@ following values:</p>
 </tr>
 <tr class="row-odd"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_ALIGN</span></tt></td>
 <td><a class="reference internal" href="interface.html#mps_align_t" title="mps_align_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_align_t</span></tt></a>           <tt class="docutils literal"><span class="pre">align</span></tt></td>
-<td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a></td>
+<td><a class="reference internal" href="../pool/mvff.html#mps_class_mvff" title="mps_class_mvff"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvff()</span></tt></a>, <a class="reference internal" href="../pool/mvt.html#mps_class_mvt" title="mps_class_mvt"><tt class="xref c c-func docutils literal"><span class="pre">mps_class_mvt()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td><tt class="xref c c-macro docutils literal"><span class="pre">MPS_KEY_AMS_SUPPORT_AMBIGUOUS</span></tt></td>
 <td><a class="reference internal" href="interface.html#mps_bool_t" title="mps_bool_t"><tt class="xref c c-type docutils literal"><span class="pre">mps_bool_t</span></tt></a>            <tt class="docutils literal"><span class="pre">b</span></tt></td>
