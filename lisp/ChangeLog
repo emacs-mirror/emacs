@@ -1,3 +1,8 @@
+2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (file-coding-system-alist): Use utf-8 as
+	default for Elisp files.
+
 2013-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* vc/log-view.el (log-view-mode-map): Inherit from special-mode-map,

@@ -1508,6 +1508,7 @@ for decoding and encoding files, process I/O, etc."
 (setq file-coding-system-alist
       (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
       '(("\\.elc\\'" . utf-8-emacs)
+	("\\.el\\'" . utf-8)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	("\\.xml\\'" . xml-find-file-coding-system)
 	;; We use raw-text for reading loaddefs.el so that if it
