@@ -1,3 +1,8 @@
+2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-tag-input): Support password fields.
+	(eww-submit): Support POST.
+
 2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-tag-form): Protect against degenerate forms.

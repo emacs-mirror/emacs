@@ -32,6 +32,7 @@
 (defvar eww-current-url nil)
 (defvar eww-history nil)
 
+;;;###autoload
 (defun eww (url)
   "Fetch URL and render the page."
   (interactive "sUrl: ")
@@ -213,6 +214,7 @@
 		    (or (cdr (assq :size cont))
 			"40"))
 	     :value (or (cdr (assq :value cont)) "")
+	     :secret (and (equal type "password") ?*)
 	     :action 'eww-submit
 	     :name (cdr (assq :name cont))
 	     :eww-form eww-form)))))
@@ -279,11 +281,13 @@
 		    (plist-get (cdr elem) :value))
 	      values)))
     (let ((shr-base eww-current-url))
-      (if (and (stringp (plist-get form :method))
-	       (equal (downcase (plist-get form :method)) "post"))
+      (if (and (stringp (cdr (assq :method form)))
+	       (equal (downcase (cdr (assq :method form))) "post"))
 	  (let ((url-request-method "POST")
+		(url-request-extra-headers
+		 '(("Content-Type" . "application/x-www-form-urlencoded")))
 		(url-request-data (mm-url-encode-www-form-urlencoded values)))
-	    (eww-browse-url (shr-expand-url (plist-get form :action))))
+	    (eww-browse-url (shr-expand-url (cdr (assq :action form)))))
 	(eww-browse-url
 	 (shr-expand-url
 	  (concat
