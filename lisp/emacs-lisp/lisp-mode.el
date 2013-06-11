@@ -223,7 +223,6 @@ font-lock keywords will not be case sensitive."
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
   (setq-local syntax-begin-function 'beginning-of-defun)
-  (prog-prettify-install lisp--prettify-symbols-alist)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
 	   lisp-font-lock-keywords-1
@@ -231,7 +230,8 @@ font-lock keywords will not be case sensitive."
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
-	   . lisp-font-lock-syntactic-face-function))))
+	   . lisp-font-lock-syntactic-face-function)))
+  (prog-prettify-install lisp--prettify-symbols-alist))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."

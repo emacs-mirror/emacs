@@ -1,3 +1,8 @@
+2013-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Prettify after setting font-lock-defaults.  (Bug#14574)
+
 2013-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* replace.el (query-replace, occur-read-regexp-defaults-function)
