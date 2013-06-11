@@ -1,5 +1,11 @@
 2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el (prolog-make-keywords-regexp): Remove.
+	(prolog-font-lock-keywords): Use regexp-opt instead.
+	Don't manually highlight strings.
+	(prolog-mode-variables): Simplify comment-start-skip.
+	(prolog-consult-compile): Use display-buffer.  Remove unused old-filter.
+
 	* emacs-lisp/generic.el (generic--normalise-comments)
 	(generic-set-comment-syntax, generic-set-comment-vars): New functions.
 	(generic-mode-set-comments): Use them.
