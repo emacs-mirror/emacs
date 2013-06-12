@@ -115,6 +115,7 @@
     (with-temp-buffer
       (insert "test\n")
       (write-region (point-min) (point-max) bib-file))
+    (reftex-ensure-compiled-variables)
     (let ((parsed (reftex-parse-from-file tex-file nil temp-dir)))
       (should (equal (car parsed) `(eof ,tex-file)))
       (pop parsed)
