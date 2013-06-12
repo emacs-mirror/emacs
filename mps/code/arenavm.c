@@ -80,6 +80,8 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;                /* desired arena increment */
   Size extendMin;               /* minimum arena increment */
+  ArenaVMExtendedCallback extended;
+  ArenaVMContractedCallback contracted;
   Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
@@ -455,11 +457,42 @@ static void VMArenaVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 }
 
 
+/* VMArenaTrivExtended -- trivial callback for VM arena extension */
+
+static void vmArenaTrivExtended(Arena arena, Addr base, Size size)
+{
+  AVERT(Arena, arena);
+  AVER(base != 0);
+  AVER(size > 0);
+  UNUSED(arena);
+  UNUSED(base);
+  UNUSED(size);
+}
+
+/* VMArenaTrivContracted -- trivial callback for VM arena contraction */
+
+static void vmArenaTrivContracted(Arena arena, Addr base, Size size)
+{
+  AVERT(Arena, arena);
+  AVER(base != 0);
+  AVER(size > 0);
+  UNUSED(arena);
+  UNUSED(base);
+  UNUSED(size);
+}
+
+
 /* VMArenaInit -- create and initialize the VM arena
  *
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
+
+ARG_DEFINE_KEY(arena_extended, Fun);
+#define vmKeyArenaExtended (&_mps_key_arena_extended)
+ARG_DEFINE_KEY(arena_contracted, Fun);
+#define vmKeyArenaContracted (&_mps_key_arena_contracted)
+
 static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Size userSize;        /* size requested by user */
@@ -544,6 +577,14 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   vmArena->extendBy = userSize;
   vmArena->extendMin = 0;
 
+  vmArena->extended = vmArenaTrivExtended;
+  if (ArgPick(&arg, args, vmKeyArenaExtended))
+    vmArena->extended = (ArenaVMExtendedCallback)arg.val.fun;
+
+  vmArena->contracted = vmArenaTrivContracted;
+  if (ArgPick(&arg, args, vmKeyArenaContracted))
+    vmArena->contracted = (ArenaVMContractedCallback)arg.val.fun;
+
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
   res = VMChunkCreate(&chunk, vmArena, userSize);
@@ -564,6 +605,9 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
     EVENT3(ArenaCreateVM, arena, userSize, chunkSize);
   else
     EVENT3(ArenaCreateVMNZ, arena, userSize, chunkSize);
+
+  vmArena->extended(arena, chunk->base, chunkSize);
+  
   *arenaReturn = arena;
   return ResOK;
 
@@ -1170,6 +1214,10 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 
 vmArenaExtend_Done:
   EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
+  vmArena->extended(VMArena2Arena(vmArena),
+		    newChunk->base,
+		    AddrOffset(newChunk->base, newChunk->limit));
+
   return res;
 }
 
@@ -1678,7 +1726,12 @@ static void VMCompact(Arena arena, Trace trace)
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     if(chunk != arena->primary
        && BTIsResRange(chunk->allocTable, 0, chunk->pages)) {
+      Addr base = chunk->base;
+      Size size = AddrOffset(chunk->base, chunk->limit);
+
       vmChunkDestroy(chunk);
+
+      vmArena->contracted(arena, base, size);
     }
   }
 

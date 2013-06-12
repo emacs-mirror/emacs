@@ -129,6 +129,11 @@ typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
 
+/* These are not generally exposed and public, but are part of a commercial
+   extension to the MPS. */
+typedef void (*ArenaVMExtendedCallback)(Arena arena, Addr base, Size size);
+typedef void (*ArenaVMContractedCallback)(Arena arena, Addr base, Size size);
+
 
 /* TraceFixMethod */
 
