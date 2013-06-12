@@ -891,6 +891,9 @@ ones, in case fg and bg are nil."
 (defun shr-tag-comment (cont)
   )
 
+(defun shr-tag-svg (cont)
+  )
+
 (defun shr-tag-sup (cont)
   (let ((start (point)))
     (shr-generic cont)

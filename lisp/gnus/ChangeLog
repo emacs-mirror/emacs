@@ -1,3 +1,8 @@
+2013-06-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-svg): Ignore SVG elements, because we don't know how
+	to handle them at all.
+
 2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-convert-widgets): Make widgets from non-tabular layouts
