@@ -1,3 +1,7 @@
+2013-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Anonymous Functions): Put back ' removed 2012-10-23.
+
 2013-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi: Add some stuff specific to www.gnu.org.
