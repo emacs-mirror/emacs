@@ -4355,7 +4355,7 @@ this option's value should be \`yes', \`no', \`gfile', \`inotify' or \`w32'.
    with_file_notification=$val
 
 else
-  with_file_notification=yes
+  with_file_notification=$with_features
 fi
 
 
