@@ -5165,7 +5165,6 @@ returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
-  struct specbinding *bind;
   struct buffer *nextb;
   char stack_top_variable;
   ptrdiff_t i;
@@ -5174,7 +5173,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
   size_t tot_before = 0;
-  struct backtrace backtrace;
 
   if (abort_on_gc)
     emacs_abort ();
@@ -5185,12 +5183,7 @@ See Info node `(elisp)Garbage Collection'.  */)
     return Qnil;
 
   /* Record this function, so it appears on the profiler's backtraces.  */
-  backtrace.next = backtrace_list;
-  backtrace.function = Qautomatic_gc;
-  backtrace.args = &Qnil;
-  backtrace.nargs = 0;
-  backtrace.debug_on_exit = 0;
-  backtrace_list = &backtrace;
+  record_in_backtrace (Qautomatic_gc, &Qnil, 0);
 
   check_cons_list ();
 
@@ -5257,11 +5250,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
-  for (bind = specpdl; bind != specpdl_ptr; bind++)
-    {
-      mark_object (bind->symbol);
-      mark_object (bind->old_value);
-    }
+  mark_specpdl ();
   mark_terminals ();
   mark_kboards ();
 
@@ -5295,7 +5284,6 @@ See Info node `(elisp)Garbage Collection'.  */)
       mark_object (handler->var);
     }
   }
-  mark_backtrace ();
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5486,7 +5474,6 @@ See Info node `(elisp)Garbage Collection'.  */)
       malloc_probe (swept);
     }
 
-  backtrace_list = backtrace.next;
   return retval;
 }
 

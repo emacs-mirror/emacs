@@ -31,7 +31,9 @@
    Use this only with GCC.  If we were willing to slow 'configure'
    down we could also use it with other compilers, but since this
    affects only the quality of diagnostics, why bother?  */
-# if (4 < __GNUC__ || (__GNUC__ == 4 && 6 <= __GNUC_MINOR__)) && !defined __cplusplus
+# if (4 < __GNUC__ + (6 <= __GNUC_MINOR__) \
+      && (201112L <= __STDC_VERSION__  || !defined __STRICT_ANSI__) \
+      && !defined __cplusplus)
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
 /* The condition (99 < __GNUC__) is temporary, until we know about the

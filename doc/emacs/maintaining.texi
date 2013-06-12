@@ -342,7 +342,9 @@ before version control systems.
 modification log for the entire system, which makes change log files
 somewhat redundant.  One advantage that they retain is that it is
 sometimes useful to be able to view the transaction history of a
-single directory separately from those of other directories.
+single directory separately from those of other directories.  Another
+advantage is that commit logs can't be fixed in many version control
+systems.
 
   A project maintained with version control can use just the version
 control log, or it can use both kinds of logs.  It can handle some
@@ -377,7 +379,7 @@ merge-based version control system, a @samp{-} character indicates
 that the work file is unmodified, and @samp{:} indicates that it has
 been modified.  @samp{!} indicates that the file contains conflicts as
 result of a recent merge operation (@pxref{Merging}), or that the file
-was removed from the version control.  Finally, @samp{?}  means that
+was removed from the version control.  Finally, @samp{?} means that
 the file is under version control, but is missing from the working
 tree.
 
@@ -1201,7 +1203,8 @@ files and directories.
 
 @item x
 Hide files with @samp{up-to-date} status
-(@code{vc-dir-hide-up-to-date}).
+(@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
+whose state is that of the item at point.
 @end table
 
 @findex vc-dir-mark
@@ -1264,10 +1267,10 @@ bring them back at a later time).
 @cindex branch (version control)
 
   One use of version control is to support multiple independent lines
-of development, which are called @dfn{branches}.  Branches are used
-for maintaining separate ``stable'' and ``development'' versions of a
-program, and for developing unrelated features in isolation from one
-another.
+of development, which are called @dfn{branches}.  Amongst other
+things, branches can be used for maintaining separate ``stable'' and
+``development'' versions of a program, and for developing unrelated
+features in isolation from one another.
 
   VC's support for branch operations is currently fairly limited.  For
 decentralized version control systems, it provides commands for

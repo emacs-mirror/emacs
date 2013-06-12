@@ -1,3 +1,96 @@
+2013-06-02  Eric Ludlam <zappo@gnu.org>
+
+	* semantic/edit.el (semantic-change-function): Use
+	`save-match-data' around running hooks.
+
+	* semantic/decorate/mode.el
+	(semantic-decorate-style-predicate-default)
+	(semantic-decorate-style-highlighter-default): New.
+	(semantic-decoration-mode): Do not require
+	`semantic/decorate/include' anymore.
+	(semantic-toggle-decoration-style): Error if an unknown decoration
+	style is toggled.
+	(define-semantic-decoration-style): Add new :load option.  When
+	:load is specified, add autoload tokens for the definition
+	functions so that code is loaded when the mode is used.
+	(semantic-decoration-on-includes): New autoload definition for
+	highlighting includes.
+
+	* semantic/bovine/c.el (semantic-lex-c-ifdef): Allow some misc
+	characters to appear after the tested variable.
+
+	* semantic/ede-grammar.el (project-compile-target): Calculate full
+	src name via ede-expand-filename instead of the crutch of the
+	current buffer.  Enables this target to compile in batch mode.
+
+	* semantic/idle.el
+	(semantic-idle-symbol-maybe-highlight): Wrap highlighting of
+	remote symbol with `save-excursion'.
+	(semantic-idle-scheduler-work-parse-neighboring-files): Instead of
+	using directory-files on each found mode pattern, collect all the
+	patterns for the current mode, and then for each file, see if it
+	matches any of them.  If it does, parse the file.  (Patch
+	inspiration from Tomasz Gajewski.)
+
+	* semantic/ctxt.el (semantic-ctxt-end-of-symbol): New.
+	(semantic-ctxt-current-symbol-default): New.
+
+	* semantic/bovine/el.el (semantic-default-elisp-setup): Add
+	autoload cookie.  Explain existence.
+	(footer): Add local variable for loaddefs.
+
+	* semantic/db.el (semanticdb-file-table-object): Add new filter,
+	only checking for regular files too.
+
+	* semantic/wisent/python.el
+	(semantic-format-tag-abbreviate): New override.  Cuts back on size
+	of code tags.
+
+	* srecode/compile.el (srecode-compile-templates): Fix warning
+	punctuation.  Remove status messages to clean up testing output
+
+	* ede/base.el (ede-project-placeholder-cache-file): Update doc to
+	mention 'nil' value.
+	(ede-save-cache): Disable cache save if file is nil.
+
+	* ede.el (ede-initialize-state-current-buffer): Flush deleted
+	projects.
+	(global-ede-mode): Always append our find-file-hook to the end.
+	(ede-flush-deleted-projects): New command.
+
+	* ede/cpp-root.el (ede-preprocessor-map): Protect against init
+	problems.
+
+	* ede/proj.el (ede-proj-target): Added a new "custom" option for
+	custom symbols representing a compiler or linker instead of
+	restricting things to only the predefined compilers and linkers.
+
+2013-06-02  David Engster <dengste@eml.cc>
+
+	* semantic.el (semantic-mode-map): To avoid showing showing
+	Development menu twice, only disable menu item if menu-bar is
+	actually enabled, otherwise the popup 'global menu' might display
+	a disabled Development menu.
+
+	* srecode/srt-wy.el: Regenerate.
+
+2013-06-02  Pete Beardmore  <elbeardmorez@msn.com>
+
+	* semantic/complete.el
+	(semantic-displayor-show-request): Fix which slot in obj is set to
+	the max tags.
+
+2013-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/grammar.el (semantic-grammar-complete):
+	Replace the obsolete function lisp-complete-symbol.
+
+	* semantic/analyze/fcn.el (semantic-tag-similar-p): Autoload.
+
+	* srecode/args.el, srecode/java.el: Require ede.
+
+	* semantic/lex.el (semantic-lex-make-type-table): Fix transposed args.
+
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/bovine/grammar.el (bovine-make-parsers):

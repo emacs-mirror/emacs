@@ -1,3 +1,136 @@
+2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-convert-widgets): Make widgets from non-tabular layouts
+	work, too.
+	(eww-tag-select): Implement <select>.
+
+2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
+
+	* sieve-manage.el (sieve-manage-open): work with STARTTLS: shorten
+	stream managing functions by using open-protocol-stream to do most of
+	the work. Has the nice benefit of enabling STARTTLS.
+	Wait for capabilities after STARTTLS: following RFC5804, the server
+	sends new capabilities after successfully establishing a TLS connection
+	with the client. The client should update the cached list of
+	capabilities, but we just ignore the answer for now.
+	(sieve-manage-network-p, sieve-manage-network-open)
+	(sieve-manage-starttls-p, sieve-manage-starttls-open)
+	(sieve-manage-forward, sieve-manage-streams)
+	(sieve-manage-stream-alist): Remove unneeded functions neither in the
+	API, nor called by any other function.
+	Enable Multibyte for SieveManage buffers: The parser won't properly
+	handle umlauts and line endings unless multibyte is turned on in the
+	process buffer.
+
+2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-tag-input): Support password fields.
+	(eww-submit): Support POST.
+
+2013-06-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-tag-form): Protect against degenerate forms.
+
+	* shr.el (shr-expand-url): Expand URLs that start with a slash
+	correctly.
+
+	* eww.el (eww-submit): Get submit button logic right.
+
+	* shr.el (shr-final-table-render): New variable to signal when we're
+	doing the final table rendering so that we can collect more data at
+	that point.
+
+	* eww.el (eww-submit): Make form submission work.
+	(eww-tag-input): Implement submit buttons.
+	(eww-click-radio): Implement radio and checkboxes.
+	(eww-submit): Handle hidden elements.
+
+	* shr.el (shr-descend): Allow other packages to override (or provide)
+	rendering of elements.
+	(shr-expand-url): Strip query strings from URLs before expanding them.
+
+	* eww.el: Don't require cl-lib.
+	(eww-tag-form): Start form support.
+
+	* eww.el: Start writing a new, tiny web browser.
+	(eww-previous-url): New command.
+	(eww-quit): New command.
+
+2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
+
+	* sieve.el: Put point at beginning of buffer when viewing a script.
+	(sieve-open-server): respect the PORT parameter. Show the correct port
+	number in sieve-buffer's header. Fixed code to also work with a string
+	as port specifier. Properly close the connection on pressing 'q'. Make
+	sieve-manage-quit close the connection and process buffer. Also, remove
+	duplicate keybinding for 'q'.
+
+2013-06-10  Roy Hashimoto  <roy.hashimoto@gmail.com>  (tiny change)
+
+	* mm-view.el (mm-pkcs7-signed-magic): Allow newline in the regexp and
+	make it easier to read.
+	(mm-pkcs7-enveloped-magic): Ditto.
+
+2013-06-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-ems.el (gnus-image-type-available-p): Test `display-images-p'
+	before `image-type-available-p' to avoid loading the image libraries
+	needlessly.
+
+2013-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut, article-update-date-lapsed): Don't
+	assume Date header begins with "Date", that may be customized into
+	something like "X-Sent" using gnus-article-time-format.
+	(article-transform-date): Allow multi-line Date header.
+
+2013-06-02  David Engster  <deng@randomsample.de>
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune): Do
+	not wrap methods in `eval-and-compile'.  This breaks due to latest
+	changes in EIEIO (introduction of eieio-core.el).
+
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* nnmail.el (nnmail-fancy-expiry-target):
+	Also bind mail-dont-reply-to-names.
+
+	* spam-stat.el (spam-stat-save):
+	No need to tweak font-lock in temp buffers.
+
+	* shr.el (shr-put-image): Silence compiler.
+
+2013-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-ems.el (set-process-plist): Every supported Emacs has this.
+
+	* gnus-group.el (gnus-sequence-of-unread-articles)
+	(gnus-summary-add-mark, gnus-mark-article-as-read)
+	(gnus-group-make-articles-read): Declare.
+
+	* gnus-sum.el (gnus-parameter-list-identifier)
+	(gnus-article-stop-animations, gnus-stop-downloads)
+	(gnus-article-only-boring-p, article-goto-body)
+	(gnus-flush-original-article-buffer, article-narrow-to-head)
+	(gnus-article-hidden-text-p, gnus-delete-wash-type)
+	(gnus-summary-save-in-pipe, gnus-article-show-summary): Declare.
+
+	* gnus.el: No need to eval-and-compile autoloads.
+
+	* gravatar.el (help-function-arglist): Autoload.
+
+	* nnimap.el (gnus-refer-thread-use-nnir): Declare.
+
+	* nnmail.el (nnmail-fancy-expiry-target): Maybe use mail-dont-reply-to.
+
+	* spam.el: No need to load spam-report when compiling.
+	No need to eval-and-compile autoloads.
+	(spam-report-resend-to): Declare.
+	(spam-report-resend-register-routine): Require 'spam-report.
+
 2013-05-24  Julien Danjou  <julien@danjou.info>
 
 	* sieve.el (sieve-setup-buffer): Fix default port value in sieve buffer

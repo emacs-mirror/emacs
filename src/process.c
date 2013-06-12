@@ -4528,10 +4528,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-          nfds = xg_select
-#elif defined (HAVE_NS)
-	  nfds = ns_select
+#if defined (HAVE_NS)
+          nfds = ns_select
+#elif defined (HAVE_GLIB)
+	  nfds = xg_select
 #else
 	  nfds = pselect
 #endif
@@ -6100,6 +6100,12 @@ process has been transmitted to the serial port.  */)
    might inadvertently reap a GTK-created process that happened to
    have the same process ID.  */
 
+/* LIB_CHILD_HANDLER is a SIGCHLD handler that Emacs calls while doing
+   its own SIGCHLD handling.  On POSIXish systems, glib needs this to
+   keep track of its own children.  The default handler does nothing.  */
+static void dummy_handler (int sig) {}
+static signal_handler_t volatile lib_child_handler = dummy_handler;
+
 /* Handle a SIGCHLD signal by looking for known child processes of
    Emacs whose status have changed.  For each one found, record its
    new status.
@@ -6159,7 +6165,8 @@ handle_child_signal (int sig)
       struct Lisp_Process *p = XPROCESS (proc);
       int status;
 
-      if (p->alive && child_status_changed (p->pid, &status, WUNTRACED))
+      if (p->alive
+	  && child_status_changed (p->pid, &status, WUNTRACED | WCONTINUED))
 	{
 	  /* Change the status of the process that was found.  */
 	  p->tick = ++process_tick;
@@ -6183,6 +6190,8 @@ handle_child_signal (int sig)
 	    }
 	}
     }
+
+  lib_child_handler (sig);
 }
 
 static void
@@ -7028,6 +7037,21 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+#ifndef NS_IMPL_GNUSTEP
+static
+#endif
+void
+catch_child_signal (void)
+{
+  struct sigaction action, old_action;
+  emacs_sigaction_init (&action, deliver_child_signal);
+  sigaction (SIGCHLD, &action, &old_action);
+  eassert (! (old_action.sa_flags & SA_SIGINFO));
+  if (old_action.sa_handler != SIG_DFL && old_action.sa_handler != SIG_IGN
+      && old_action.sa_handler != deliver_child_signal)
+    lib_child_handler = old_action.sa_handler;
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -7043,9 +7067,13 @@ init_process_emacs (void)
   if (! noninteractive || initialized)
 #endif
     {
-      struct sigaction action;
-      emacs_sigaction_init (&action, deliver_child_signal);
-      sigaction (SIGCHLD, &action, 0);
+#if defined HAVE_GLIB && !defined WINDOWSNT
+      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+	 this should always fail, but is enough to initialize glib's
+	 private SIGCHLD handler.  */
+      g_source_unref (g_child_watch_source_new (getpid ()));
+#endif
+      catch_child_signal ();
     }
 
   FD_ZERO (&input_wait_mask);

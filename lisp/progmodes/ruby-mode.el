@@ -1349,6 +1349,7 @@ If the result is do-end block, it will always be multiline."
 (declare-function ruby-syntax-propertize-percent-literal "ruby-mode" (limit))
 ;; Unusual code layout confuses the byte-compiler.
 (declare-function ruby-syntax-propertize-expansion "ruby-mode" ())
+(declare-function ruby-syntax-expansion-allowed-p "ruby-mode" (parse-state))
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.
@@ -1380,51 +1381,52 @@ It will be properly highlighted even when the call omits parens.")
 
       (defun ruby-syntax-propertize-function (start end)
         "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
-        (goto-char start)
-        (remove-text-properties start end '(ruby-expansion-match-data))
-        (ruby-syntax-propertize-heredoc end)
-        (ruby-syntax-enclosing-percent-literal end)
-        (funcall
-         (syntax-propertize-rules
-          ;; $' $" $` .... are variables.
-          ;; ?' ?" ?` are ascii codes.
-          ("\\([?$]\\)[#\"'`]"
-           (1 (unless (save-excursion
-                        ;; Not within a string.
-                        (nth 3 (syntax-ppss (match-beginning 0))))
-                (string-to-syntax "\\"))))
-          ;; Regular expressions.  Start with matching unescaped slash.
-          ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
-           (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
-                (when (or
-                       ;; Beginning of a regexp.
-                       (and (null (nth 8 state))
-                            (save-excursion
-                              (forward-char -1)
-                              (looking-back ruby-syntax-before-regexp-re
-                                            (point-at-bol))))
-                       ;; End of regexp.  We don't match the whole
-                       ;; regexp at once because it can have
-                       ;; string interpolation inside, or span
-                       ;; several lines.
-                       (eq ?/ (nth 3 state)))
-                  (string-to-syntax "\"/")))))
-          ;; Expression expansions in strings.  We're handling them
-          ;; here, so that the regexp rule never matches inside them.
-          (ruby-expression-expansion-re
-           (0 (ignore (ruby-syntax-propertize-expansion))))
-          ("^=en\\(d\\)\\_>" (1 "!"))
-          ("^\\(=\\)begin\\_>" (1 "!"))
-          ;; Handle here documents.
-          ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-           (7 (unless (ruby-singleton-class-p (match-beginning 0))
-                (put-text-property (match-beginning 7) (match-end 7)
-                                   'syntax-table (string-to-syntax "\""))
-                (ruby-syntax-propertize-heredoc end))))
-          ;; Handle percent literals: %w(), %q{}, etc.
-          ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
-           (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
-         (point) end))
+        (let (case-fold-search)
+          (goto-char start)
+          (remove-text-properties start end '(ruby-expansion-match-data))
+          (ruby-syntax-propertize-heredoc end)
+          (ruby-syntax-enclosing-percent-literal end)
+          (funcall
+           (syntax-propertize-rules
+            ;; $' $" $` .... are variables.
+            ;; ?' ?" ?` are ascii codes.
+            ("\\([?$]\\)[#\"'`]"
+             (1 (unless (save-excursion
+                          ;; Not within a string.
+                          (nth 3 (syntax-ppss (match-beginning 0))))
+                  (string-to-syntax "\\"))))
+            ;; Regular expressions.  Start with matching unescaped slash.
+            ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
+             (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
+                  (when (or
+                         ;; Beginning of a regexp.
+                         (and (null (nth 8 state))
+                              (save-excursion
+                                (forward-char -1)
+                                (looking-back ruby-syntax-before-regexp-re
+                                              (point-at-bol))))
+                         ;; End of regexp.  We don't match the whole
+                         ;; regexp at once because it can have
+                         ;; string interpolation inside, or span
+                         ;; several lines.
+                         (eq ?/ (nth 3 state)))
+                    (string-to-syntax "\"/")))))
+            ;; Expression expansions in strings.  We're handling them
+            ;; here, so that the regexp rule never matches inside them.
+            (ruby-expression-expansion-re
+             (0 (ignore (ruby-syntax-propertize-expansion))))
+            ("^=en\\(d\\)\\_>" (1 "!"))
+            ("^\\(=\\)begin\\_>" (1 "!"))
+            ;; Handle here documents.
+            ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
+             (7 (unless (ruby-singleton-class-p (match-beginning 0))
+                  (put-text-property (match-beginning 7) (match-end 7)
+                                     'syntax-table (string-to-syntax "\""))
+                  (ruby-syntax-propertize-heredoc end))))
+            ;; Handle percent literals: %w(), %q{}, etc.
+            ((concat "\\(?:^\\|[[ \t\n<+(,=]\\)" ruby-percent-literal-beg-re)
+             (1 (prog1 "|" (ruby-syntax-propertize-percent-literal end)))))
+           (point) end)))
 
       (defun ruby-syntax-propertize-heredoc (limit)
         (let ((ppss (syntax-ppss))
@@ -1496,15 +1498,27 @@ It will be properly highlighted even when the call omits parens.")
       (defun ruby-syntax-propertize-expansion ()
         ;; Save the match data to a text property, for font-locking later.
         ;; Set the syntax of all double quotes and backticks to punctuation.
-        (let ((beg (match-beginning 2))
-              (end (match-end 2)))
-          (when (and beg (save-excursion (nth 3 (syntax-ppss beg))))
+        (let* ((beg (match-beginning 2))
+               (end (match-end 2))
+               (state (and beg (save-excursion (syntax-ppss beg)))))
+          (when (ruby-syntax-expansion-allowed-p state)
             (put-text-property beg (1+ beg) 'ruby-expansion-match-data
                                (match-data))
             (goto-char beg)
             (while (re-search-forward "[\"`]" end 'move)
               (put-text-property (match-beginning 0) (match-end 0)
                                  'syntax-table (string-to-syntax "."))))))
+
+      (defun ruby-syntax-expansion-allowed-p (parse-state)
+        "Return non-nil if expression expansion is allowed."
+        (let ((term (nth 3 parse-state)))
+          (cond
+           ((memq term '(?\" ?` ?\n ?/)))
+           ((eq term t)
+            (save-match-data
+              (save-excursion
+                (goto-char (nth 8 parse-state))
+                (looking-at "%\\(?:[QWrx]\\|\\W\\)")))))))
 
       (defun ruby-syntax-propertize-expansions (start end)
         (save-excursion

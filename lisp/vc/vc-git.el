@@ -234,30 +234,30 @@ matching the resulting Git log output, and KEYWORDS is a list of
             (vc-git--state-code diff-letter)))
       (if (vc-git--empty-db-p) 'added 'up-to-date))))
 
-(defun vc-git-working-revision (_file)
+(defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."
   (let* (process-file-side-effects
-	 (str (with-output-to-string
-		(with-current-buffer standard-output
-		  (vc-git--out-ok "symbolic-ref" "HEAD")))))
-    (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
-        (match-string 2 str)
-      str)))
+         (str (vc-git--run-command-string nil "symbolic-ref" "HEAD")))
+    (vc-file-setprop file 'vc-git-detached (null str))
+    (if str
+        (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
+            (match-string 2 str)
+          str)
+      (vc-git--rev-parse "HEAD"))))
 
 (defun vc-git-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-git-state file)))
 
 (defun vc-git-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
-  (let* ((branch (vc-working-revision file))
+  (let* ((rev (vc-working-revision file))
+         (detached (vc-file-getprop file 'vc-git-detached))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml)))
-    (if (zerop (length branch))
-        (propertize
-         (concat def-ml "!")
-         'help-echo (concat help-echo "\nNo current branch (detached HEAD)"))
-      (propertize def-ml
-                  'help-echo (concat help-echo "\nCurrent branch: " branch)))))
+    (propertize (if detached
+                    (substring def-ml 0 (- 7 (length rev)))
+                  def-ml)
+                'help-echo (concat help-echo "\nCurrent revision: " rev))))
 
 (cl-defstruct (vc-git-extra-fileinfo
             (:copier nil)
@@ -442,6 +442,12 @@ or an empty string if none."
       (funcall update-function result next-stage))
     (when next-stage
       (vc-git-dir-status-goto-stage next-stage files update-function))))
+
+;; Follows vc-git-command (or vc-do-async-command), which uses vc-do-command
+;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
+(declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
 (defun vc-git-dir-status-goto-stage (stage files update-function)
   (erase-buffer)
@@ -731,6 +737,8 @@ This prompts for a branch to merge from."
 
 ;;; HISTORY FUNCTIONS
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
@@ -857,6 +865,8 @@ or BRANCH^ (where \"^\" can be repeated)."
       (indent-region (point-min) (point-max) 2)
       (buffer-string))))
 
+(autoload 'vc-switches "vc")
+
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects)
@@ -943,10 +953,13 @@ or BRANCH^ (where \"^\" can be repeated)."
                            (point)
                            (1- (point-max)))))))
         (or (vc-git-symbolic-commit prev-rev) prev-rev))
-    (with-temp-buffer
-      (and
-       (vc-git--out-ok "rev-parse" (concat rev "^"))
-       (buffer-substring-no-properties (point-min) (+ (point-min) 40))))))
+    (vc-git--rev-parse (concat rev "^"))))
+
+(defun vc-git--rev-parse (rev)
+  (with-temp-buffer
+    (and
+     (vc-git--out-ok "rev-parse" rev)
+     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
@@ -1007,6 +1020,12 @@ or BRANCH^ (where \"^\" can be repeated)."
   (or (vc-file-getprop file 'git-root)
       (vc-file-setprop file 'git-root (vc-find-root file ".git"))))
 
+;; grep-compute-defaults autoloads grep.
+(declare-function grep-read-regexp "grep" ())
+(declare-function grep-read-files "grep" (regexp))
+(declare-function grep-expand-template "grep"
+                 (template &optional regexp files dir excl))
+
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)
   "Run git grep, searching for REGEXP in FILES in directory DIR.
@@ -1061,6 +1080,10 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	  (compilation-start command 'grep-mode))
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
+
+;; Everywhere but here, follows vc-git-command, which uses vc-do-command
+;; from vc-dispatcher.
+(autoload 'vc-resynch-buffer "vc-dispatcher")
 
 (defun vc-git-stash (name)
   "Create a stash."
@@ -1118,6 +1141,9 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
     (if (looking-at "^ +\\({[0-9]+}\\):")
 	(match-string 1)
       (error "Cannot find stash at point"))))
+
+;; vc-git-stash-delete-at-point must be called from a vc-dir buffer.
+(declare-function vc-dir-refresh "vc-dir" ())
 
 (defun vc-git-stash-delete-at-point ()
   (interactive)

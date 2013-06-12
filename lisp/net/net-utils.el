@@ -497,7 +497,7 @@ If your system's ping continues until interrupted, you can try setting
 
 (defvar nslookup-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     map))
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
@@ -567,7 +567,7 @@ If your system's ping continues until interrupted, you can try setting
 (defvar ftp-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Occasionally useful
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     map))
 
 (define-derived-mode ftp-mode comint-mode "FTP"

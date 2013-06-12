@@ -271,7 +271,7 @@ This variable becomes buffer local when set in any fashion.")
   :version "24.4")
 
 (defconst auto-revert-notify-enabled
-  (or (featurep 'inotify) (featurep 'w32notify))
+  (or (featurep 'gfilenotify) (featurep 'inotify) (featurep 'w32notify))
   "Non-nil when Emacs has been compiled with file notification support.")
 
 (defcustom auto-revert-use-notify auto-revert-notify-enabled
@@ -502,9 +502,12 @@ will use an up-to-date value of `auto-revert-interval'"
 	     (puthash key value auto-revert-notify-watch-descriptor-hash-list)
 	   (remhash key auto-revert-notify-watch-descriptor-hash-list)
 	   (ignore-errors
-	     (funcall (if (fboundp 'inotify-rm-watch)
-			  'inotify-rm-watch 'w32notify-rm-watch)
-		      auto-revert-notify-watch-descriptor)))))
+	     (funcall
+	      (cond
+	       ((fboundp 'gfile-rm-watch) 'gfile-rm-watch)
+	       ((fboundp 'inotify-rm-watch) 'inotify-rm-watch)
+	       ((fboundp 'w32notify-rm-watch) 'w32notify-rm-watch))
+	      auto-revert-notify-watch-descriptor)))))
      auto-revert-notify-watch-descriptor-hash-list)
     (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
@@ -519,12 +522,18 @@ will use an up-to-date value of `auto-revert-interval'"
 
   (when (and buffer-file-name auto-revert-use-notify
 	     (not auto-revert-notify-watch-descriptor))
-    (let ((func (if (fboundp 'inotify-add-watch)
-		    'inotify-add-watch 'w32notify-add-watch))
-	  ;; `attrib' is needed for file modification time.
-	  (aspect (if (fboundp 'inotify-add-watch)
-		      '(attrib create modify moved-to) '(size last-write-time)))
-	  (file (if (fboundp 'inotify-add-watch)
+    (let ((func
+	   (cond
+	    ((fboundp 'gfile-add-watch) 'gfile-add-watch)
+	    ((fboundp 'inotify-add-watch) 'inotify-add-watch)
+	    ((fboundp 'w32notify-add-watch) 'w32notify-add-watch)))
+	  (aspect
+	   (cond
+	    ((fboundp 'gfile-add-watch) '(watch-mounts))
+	    ;; `attrib' is needed for file modification time.
+	    ((fboundp 'inotify-add-watch) '(attrib create modify moved-to))
+	    ((fboundp 'w32notify-add-watch) '(size last-write-time))))
+	  (file (if (or (fboundp 'gfile-add-watch) (fboundp 'inotify-add-watch))
 		    (directory-file-name (expand-file-name default-directory))
 		  (buffer-file-name))))
       (setq auto-revert-notify-watch-descriptor
@@ -545,10 +554,13 @@ will use an up-to-date value of `auto-revert-interval'"
 
 (defun auto-revert-notify-event-p (event)
   "Check that event is a file notification event."
-  (cond ((featurep 'inotify)
-	 (and (listp event) (= (length event) 4)))
-	((featurep 'w32notify)
-	 (and (listp event) (= (length event) 3) (stringp (nth 2 event))))))
+  (and (listp event)
+       (cond ((featurep 'gfilenotify)
+	      (and (>= (length event) 3) (stringp (nth 2 event))))
+	     ((featurep 'inotify)
+	      (= (length event) 4))
+	     ((featurep 'w32notify)
+	      (and (= (length event) 3) (stringp (nth 2 event)))))))
 
 (defun auto-revert-notify-event-descriptor (event)
   "Return watch descriptor of file notification event, or nil."
@@ -561,11 +573,12 @@ will use an up-to-date value of `auto-revert-interval'"
 (defun auto-revert-notify-event-file-name (event)
   "Return file name of file notification event, or nil."
   (and (auto-revert-notify-event-p event)
-       (cond ((featurep 'inotify) (nth 3 event))
+       (cond ((featurep 'gfilenotify) (nth 2 event))
+	     ((featurep 'inotify) (nth 3 event))
 	     ((featurep 'w32notify) (nth 2 event)))))
 
 (defun auto-revert-notify-handler (event)
-  "Handle an event returned from file notification."
+  "Handle an EVENT returned from file notification."
   (when (auto-revert-notify-event-p event)
     (let* ((descriptor (auto-revert-notify-event-descriptor event))
 	   (action (auto-revert-notify-event-action event))
@@ -576,12 +589,20 @@ will use an up-to-date value of `auto-revert-interval'"
 	;; Check, that event is meant for us.
 	;; TODO: Filter events which stop watching, like `move' or `removed'.
 	(cl-assert descriptor)
-	(when (featurep 'inotify)
+	(cond
+	 ((featurep 'gfilenotify)
+	  (cl-assert (memq action '(attribute-changed changed created deleted
+                                    ;; FIXME: I keep getting this action, so I
+                                    ;; added it here, but I have no idea what
+                                    ;; I'm doing.  --Stef
+                                    changes-done-hint))
+                     t))
+	 ((featurep 'inotify)
 	  (cl-assert (or (memq 'attrib action)
 			 (memq 'create action)
 			 (memq 'modify action)
 			 (memq 'moved-to action))))
-	(when (featurep 'w32notify) (cl-assert (eq 'modified action)))
+	 ((featurep 'w32notify) (cl-assert (eq 'modified action))))
 	;; Since we watch a directory, a file name must be returned.
 	(cl-assert (stringp file))
 	(dolist (buffer buffers)

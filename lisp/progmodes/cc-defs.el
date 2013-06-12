@@ -48,16 +48,12 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
-(cc-bytecomp-defun buffer-syntactic-context-depth) ; XEmacs
 (cc-bytecomp-defun region-active-p)	; XEmacs
-(cc-bytecomp-defvar zmacs-region-stays)	; XEmacs
-(cc-bytecomp-defvar zmacs-regions)	; XEmacs
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
 (cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
-(cc-bytecomp-defvar lookup-syntax-properties) ; XEmacs
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
 
 
@@ -334,6 +330,8 @@ to it is returned.  This function does not modify the point or the mark."
 (defmacro c-region-is-active-p ()
   ;; Return t when the region is active.  The determination of region
   ;; activeness is different in both Emacs and XEmacs.
+  ;; FIXME? Emacs has region-active-p since 23.1, so maybe this test
+  ;; should be updated.
   (if (cc-bytecomp-boundp 'mark-active)
       ;; Emacs.
       'mark-active
@@ -343,7 +341,7 @@ to it is returned.  This function does not modify the point or the mark."
 (defmacro c-set-region-active (activate)
   ;; Activate the region if ACTIVE is non-nil, deactivate it
   ;; otherwise.  Covers the differences between Emacs and XEmacs.
-  (if (cc-bytecomp-fboundp 'zmacs-activate-region)
+  (if (fboundp 'zmacs-activate-region)
       ;; XEmacs.
       `(if ,activate
 	   (zmacs-activate-region)
@@ -707,9 +705,9 @@ be after it."
   ;; `c-parse-state'.
 
   `(progn
-     (if (and ,(cc-bytecomp-fboundp 'buffer-syntactic-context-depth)
+     (if (and ,(fboundp 'buffer-syntactic-context-depth)
 	      c-enable-xemacs-performance-kludge-p)
-	 ,(when (cc-bytecomp-fboundp 'buffer-syntactic-context-depth)
+	 ,(when (fboundp 'buffer-syntactic-context-depth)
 	    ;; XEmacs only.  This can improve the performance of
 	    ;; c-parse-state to between 3 and 60 times faster when
 	    ;; braces are hung.  It can also degrade performance by
@@ -1606,7 +1604,7 @@ non-nil, a caret is prepended to invert the set."
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)
+	  lookup-syntax-properties)	; XEmacs
       (with-current-buffer buf
 	(set-syntax-table (make-syntax-table))
 

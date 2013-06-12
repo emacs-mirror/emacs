@@ -168,7 +168,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o *.res
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}
@@ -209,4 +209,4 @@ runemacs${EXEEXT}: ${srcdir}/runemacs.c $(EMACSRES)
          -o runemacs${EXEEXT}
 
 emacs.res: ${srcdir}/emacs.rc ${srcdir}/icons/emacs.ico ${srcdir}/$(EMACS_MANIFEST)
-	${WINDRES} -O coff -o emacs.res ${srcdir}/emacs.rc
+	${WINDRES} -I ${srcdir} -O coff -o emacs.res ${srcdir}/emacs.rc

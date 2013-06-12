@@ -3,6 +3,7 @@
 ;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
+;;         Albert Krewinkel <tarleb@moltkeplatz.de>
 
 ;; This file is part of GNU Emacs.
 
@@ -66,6 +67,7 @@
 ;; 2001-10-31 Committed to Oort Gnus.
 ;; 2002-07-27 Added DELETESCRIPT.  Suggested by Ned Ludd.
 ;; 2002-08-03 Use SASL library.
+;; 2013-06-05 Enabled STARTTLS support, fixed bit rot.
 
 ;;; Code:
 
@@ -82,7 +84,6 @@
   (require 'sasl)
   (require 'starttls))
 (autoload 'sasl-find-mechanism "sasl")
-(autoload 'starttls-open-stream "starttls")
 (autoload 'auth-source-search "auth-source")
 
 ;; User customizable variables:
@@ -105,23 +106,6 @@
 (defcustom sieve-manage-client-eol "\r\n"
   "The EOL string we send to the server."
   :type 'string
-  :group 'sieve-manage)
-
-(defcustom sieve-manage-streams '(network starttls shell)
-  "Priority of streams to consider when opening connection to server."
-  :group 'sieve-manage)
-
-(defcustom sieve-manage-stream-alist
-  '((network   sieve-manage-network-p          sieve-manage-network-open)
-    (shell     sieve-manage-shell-p            sieve-manage-shell-open)
-    (starttls  sieve-manage-starttls-p         sieve-manage-starttls-open))
-  "Definition of network streams.
-
-\(NAME CHECK OPEN)
-
-NAME names the stream, CHECK is a function returning non-nil if the
-server support the stream and OPEN is a function for opening the
-stream."
   :group 'sieve-manage)
 
 (defcustom sieve-manage-authenticators '(digest-md5
@@ -156,8 +140,7 @@ for doing the actual authentication."
   :group 'sieve-manage)
 
 (defcustom sieve-manage-default-stream 'network
-  "Default stream type to use for `sieve-manage'.
-Must be a name of a stream in `sieve-manage-stream-alist'."
+  "Default stream type to use for `sieve-manage'."
   :version "24.1"
   :type 'symbol
   :group 'sieve-manage)
@@ -185,17 +168,21 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 (defvar sieve-manage-capability nil)
 
 ;; Internal utility functions
-
-(defmacro sieve-manage-disable-multibyte ()
-  "Enable multibyte in the current buffer."
-  (unless (featurep 'xemacs)
-    '(set-buffer-multibyte nil)))
+(defun sieve-manage-make-process-buffer ()
+  (with-current-buffer
+      (generate-new-buffer (format " *sieve %s:%s*"
+                                   sieve-manage-server
+                                   sieve-manage-port))
+    (mapc 'make-local-variable sieve-manage-local-variables)
+    (mm-enable-multibyte)
+    (buffer-disable-undo)
+    (current-buffer)))
 
 (defun sieve-manage-erase (&optional p buffer)
   (let ((buffer (or buffer (current-buffer))))
     (and sieve-manage-log
 	 (with-current-buffer (get-buffer-create sieve-manage-log)
-	   (sieve-manage-disable-multibyte)
+	   (mm-enable-multibyte)
 	   (buffer-disable-undo)
 	   (goto-char (point-max))
 	   (insert-buffer-substring buffer (with-current-buffer buffer
@@ -204,71 +191,32 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 					    (point-max)))))))
   (delete-region (point-min) (or p (point-max))))
 
-(defun sieve-manage-open-1 (buffer)
+(defun sieve-manage-open-server (server port &optional stream buffer)
+  "Open network connection to SERVER on PORT.
+Return the buffer associated with the connection."
   (with-current-buffer buffer
     (sieve-manage-erase)
-    (setq sieve-manage-state 'initial
-	  sieve-manage-process
-	  (condition-case ()
-	      (funcall (nth 2 (assq sieve-manage-stream
-				    sieve-manage-stream-alist))
-		       "sieve" buffer sieve-manage-server sieve-manage-port)
-	    ((error quit) nil)))
-    (when sieve-manage-process
-      (while (and (eq sieve-manage-state 'initial)
-		  (memq (process-status sieve-manage-process) '(open run)))
-	(message "Waiting for response from %s..." sieve-manage-server)
-	(accept-process-output sieve-manage-process 1))
-      (message "Waiting for response from %s...done" sieve-manage-server)
-      (and (memq (process-status sieve-manage-process) '(open run))
-	   sieve-manage-process))))
-
-;; Streams
-
-(defun sieve-manage-network-p (buffer)
-  t)
-
-(defun sieve-manage-network-open (name buffer server port)
-  (let* ((port (or port sieve-manage-default-port))
-	 (coding-system-for-read sieve-manage-coding-system-for-read)
-	 (coding-system-for-write sieve-manage-coding-system-for-write)
-	 (process (open-network-stream name buffer server port)))
-    (when process
-      (while (and (memq (process-status process) '(open run))
-		  (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-		  (goto-char (point-min))
-		  (not (sieve-manage-parse-greeting-1)))
-	(accept-process-output process 1)
-	(sit-for 1))
-      (sieve-manage-erase nil buffer)
-      (when (memq (process-status process) '(open run))
-	process))))
-
-(defun sieve-manage-starttls-p (buffer)
-  (condition-case ()
-      (progn
-	(require 'starttls)
-	(call-process "starttls"))
-    (error nil)))
-
-(defun sieve-manage-starttls-open (name buffer server port)
-  (let* ((port (or port sieve-manage-default-port))
-	 (coding-system-for-read sieve-manage-coding-system-for-read)
-	 (coding-system-for-write sieve-manage-coding-system-for-write)
-	 (process (starttls-open-stream name buffer server port))
-	 done)
-    (when process
-      (while (and (memq (process-status process) '(open run))
-		  (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-		  (goto-char (point-min))
-		  (not (sieve-manage-parse-greeting-1)))
-	(accept-process-output process 1)
-	(sit-for 1))
-      (sieve-manage-erase nil buffer)
-      (sieve-manage-send "STARTTLS")
-      (starttls-negotiate process))
-    (when (memq (process-status process) '(open run))
-      process)))
+    (setq sieve-manage-state 'initial)
+    (destructuring-bind (proc . props)
+        (open-protocol-stream
+         "SIEVE" buffer server port
+         :type stream
+         :capability-command "CAPABILITY\r\n"
+         :end-of-command "^\\(OK\\|NO\\).*\n"
+         :success "^OK.*\n"
+         :return-list t
+         :starttls-function
+         '(lambda (capabilities)
+            (when (string-match "\\bSTARTTLS\\b" capabilities)
+              "STARTTLS\r\n")))
+      (setq sieve-manage-process proc)
+      (setq sieve-manage-capability
+            (sieve-manage-parse-capability (getf props :capabilities)))
+      ;; Ignore new capabilities issues after successful STARTTLS
+      (when (and (memq stream '(nil network starttls))
+                 (eq (getf props :type) 'tls))
+        (sieve-manage-drop-next-answer))
+      (current-buffer))))
 
 ;; Authenticators
 (defun sieve-sasl-auth (buffer mech)
@@ -396,63 +344,33 @@ Optional argument AUTH indicates authenticator to use, see
 If nil, chooses the best stream the server is capable of.
 Optional argument BUFFER is buffer (buffer, or string naming buffer)
 to work in."
-  (or port (setq port sieve-manage-default-port))
-  (setq buffer (or buffer (format " *sieve* %s:%s" server port)))
-  (with-current-buffer (get-buffer-create buffer)
-    (mapc 'make-local-variable sieve-manage-local-variables)
-    (sieve-manage-disable-multibyte)
-    (buffer-disable-undo)
-    (setq sieve-manage-server (or server sieve-manage-server))
-    (setq sieve-manage-port port)
-    (setq sieve-manage-stream (or stream sieve-manage-stream))
+  (setq sieve-manage-port (or port sieve-manage-default-port))
+  (with-current-buffer (or buffer (sieve-manage-make-process-buffer))
+    (setq sieve-manage-server (or server
+                                  sieve-manage-server)
+          sieve-manage-stream (or stream
+                                  sieve-manage-stream
+                                  sieve-manage-default-stream)
+          sieve-manage-auth   (or auth
+                                  sieve-manage-auth))
     (message "sieve: Connecting to %s..." sieve-manage-server)
-    (if (let ((sieve-manage-stream
-	       (or sieve-manage-stream sieve-manage-default-stream)))
-	  (sieve-manage-open-1 buffer))
-	;; Choose stream.
-	(let (stream-changed)
-	  (message "sieve: Connecting to %s...done" sieve-manage-server)
-	  (when (null sieve-manage-stream)
-	    (let ((streams sieve-manage-streams))
-	      (while (setq stream (pop streams))
-		(if (funcall (nth 1 (assq stream
-					  sieve-manage-stream-alist)) buffer)
-		    (setq stream-changed
-			  (not (eq (or sieve-manage-stream
-				       sieve-manage-default-stream)
-				   stream))
-			  sieve-manage-stream stream
-			  streams nil)))
-	      (unless sieve-manage-stream
-		(error "Couldn't figure out a stream for server"))))
-	  (when stream-changed
-	    (message "sieve: Reconnecting with stream `%s'..."
-		     sieve-manage-stream)
-	    (sieve-manage-close buffer)
-	    (if (sieve-manage-open-1 buffer)
-		(message "sieve: Reconnecting with stream `%s'...done"
-			 sieve-manage-stream)
-	      (message "sieve: Reconnecting with stream `%s'...failed"
-		       sieve-manage-stream))
-	    (setq sieve-manage-capability nil))
-	  (if (sieve-manage-opened buffer)
-	      ;; Choose authenticator
-	      (when (and (null sieve-manage-auth)
-			 (not (eq sieve-manage-state 'auth)))
-		(let ((auths sieve-manage-authenticators))
-		  (while (setq auth (pop auths))
-		    (if (funcall (nth 1 (assq
-					 auth
-					 sieve-manage-authenticator-alist))
-				 buffer)
-			(setq sieve-manage-auth auth
-			      auths nil)))
-		  (unless sieve-manage-auth
-		    (error "Couldn't figure out authenticator for server"))))))
-      (message "sieve: Connecting to %s...failed" sieve-manage-server))
-    (when (sieve-manage-opened buffer)
+    (sieve-manage-open-server sieve-manage-server
+                              sieve-manage-port
+                              sieve-manage-stream
+                              (current-buffer))
+    (when (sieve-manage-opened (current-buffer))
+      ;; Choose authenticator
+      (when (and (null sieve-manage-auth)
+                 (not (eq sieve-manage-state 'auth)))
+        (dolist (auth sieve-manage-authenticators)
+          (when (funcall (nth 1 (assq auth sieve-manage-authenticator-alist))
+                       buffer)
+            (setq sieve-manage-auth auth)
+            (return)))
+        (unless sieve-manage-auth
+          (error "Couldn't figure out authenticator for server")))
       (sieve-manage-erase)
-      buffer)))
+      (current-buffer))))
 
 (defun sieve-manage-authenticate (&optional buffer)
   "Authenticate on server in BUFFER.
@@ -544,11 +462,21 @@ If NAME is nil, return the full server list of capabilities."
 
 ;; Protocol parsing routines
 
+(defun sieve-manage-wait-for-answer ()
+  (let ((pattern "^\\(OK\\|NO\\).*\n")
+        pos)
+    (while (not pos)
+      (setq pos (search-forward-regexp pattern nil t))
+      (goto-char (point-min))
+      (sleep-for 0 50))
+    pos))
+
+(defun sieve-manage-drop-next-answer ()
+  (sieve-manage-wait-for-answer)
+  (sieve-manage-erase))
+
 (defun sieve-manage-ok-p (rsp)
   (string= (downcase (or (car-safe rsp) "")) "ok"))
-
-(defsubst sieve-manage-forward ()
-  (or (eobp) (forward-char)))
 
 (defun sieve-manage-is-okno ()
   (when (looking-at (concat
@@ -571,21 +499,15 @@ If NAME is nil, return the full server list of capabilities."
     (sieve-manage-erase)
     rsp))
 
-(defun sieve-manage-parse-capability-1 ()
-  "Accept a managesieve greeting."
-  (let (str)
-    (while (setq str (sieve-manage-is-string))
-      (if (eq (char-after) ? )
-	  (progn
-	    (sieve-manage-forward)
-	    (push (list str (sieve-manage-is-string))
-		  sieve-manage-capability))
-	(push (list str) sieve-manage-capability))
-      (forward-line)))
-  (when (re-search-forward (concat "^OK.*" sieve-manage-server-eol) nil t)
-    (setq sieve-manage-state 'nonauth)))
-
-(defalias 'sieve-manage-parse-greeting-1 'sieve-manage-parse-capability-1)
+(defun sieve-manage-parse-capability (str)
+  "Parse managesieve capability string `STR'.
+Set variable `sieve-manage-capability' to "
+  (let ((capas (remove-if #'null
+                          (mapcar #'split-string-and-unquote
+                                  (split-string str "\n")))))
+    (when (string= "OK" (caar (last capas)))
+      (setq sieve-manage-state 'nonauth))
+    capas))
 
 (defun sieve-manage-is-string ()
   (cond ((looking-at "\"\\([^\"]+\\)\"")
@@ -639,7 +561,7 @@ If NAME is nil, return the full server list of capabilities."
   (setq cmdstr (concat cmdstr sieve-manage-client-eol))
   (and sieve-manage-log
        (with-current-buffer (get-buffer-create sieve-manage-log)
-	 (sieve-manage-disable-multibyte)
+	 (mm-enable-multibyte)
 	 (buffer-disable-undo)
 	 (goto-char (point-max))
 	 (insert cmdstr)))

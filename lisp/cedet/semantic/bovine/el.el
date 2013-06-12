@@ -940,8 +940,11 @@ ELisp variables can be pretty long, so track this one too.")
 (define-child-mode lisp-mode emacs-lisp-mode
   "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'.")
 
+;;;###autoload
 (defun semantic-default-elisp-setup ()
   "Setup hook function for Emacs Lisp files and Semantic."
+  ;; This is here mostly to get this file loaded when a .el file is
+  ;; loaded into Emacs.
   )
 
 (add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
@@ -960,6 +963,12 @@ ELisp variables can be pretty long, so track this one too.")
   '(require 'semantic/db-el)
   )
 
+
 (provide 'semantic/bovine/el)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-load-name: "semantic/bovine/el"
+;; End:
 
 ;;; semantic/bovine/el.el ends here

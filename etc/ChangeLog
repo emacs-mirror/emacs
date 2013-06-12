@@ -1,3 +1,30 @@
+2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Document new prog-mode symbol prettify support.
+
+2013-06-03  Tassilo Horn  <tsdh@gnu.org>
+
+	* NEWS: Document eshell visual subcommands and options.
+
+2013-06-02  Eric Ludlam <zappo@gnu.org>
+
+	* srecode/c.srt (header_guard): Add :c parameter so it works
+	standalone
+
+2013-06-01  Alex Ott  <alexott@gmail.com>
+
+	* tutorials/TUTORIAL.ru: Fix incorrectly translated wording.
+
+2013-05-31  Tassilo Horn  <tsdh@gnu.org>
+
+	* themes/tsdh-dark-theme.el (tsdh-dark): Refine mode-line faces.
+
+2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* refcards/refcard.tex: Refine some entries.  (Bug#14087)
+
+	* refcards/dired-ref.tex: Refine some entries. (Bug#14072)
+
 2013-05-24  Fabrice Niessen  <fni@missioncriticalit.com>
 
 	* themes/leuven-theme.el: Update theme.

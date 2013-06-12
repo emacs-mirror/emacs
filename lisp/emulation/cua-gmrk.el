@@ -25,10 +25,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cua-base)
-  (require 'cua-rect)
-  )
+(require 'cua-base)
+(require 'cua-rect)
 
 ;;; Global Marker
 

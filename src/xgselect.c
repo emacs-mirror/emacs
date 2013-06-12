@@ -21,11 +21,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "xgselect.h"
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 
 #include <glib.h>
 #include <errno.h>
-#include "xterm.h"
 #include "frame.h"
 
 int
@@ -44,9 +43,13 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   int i, nfds, tmo_in_millisec;
   USE_SAFE_ALLOCA;
 
-  if (! (window_system_available (NULL)
-	 && g_main_context_pending (context = g_main_context_default ())))
-    return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
+  /* Do not try to optimize with an initial check with g_main_context_pending
+     and a call to pselect if it returns false.  If Gdk has a timeout for 0.01
+     second, and Emacs has a timeout for 1 second, g_main_context_pending will
+     return false, but the timeout will be 1 second, thus missing the gdk
+     timeout with a lot.  */
+
+  context = g_main_context_default ();
 
   if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
@@ -140,4 +143,4 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   return retval;
 }
-#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
+#endif /* HAVE_GLIB */

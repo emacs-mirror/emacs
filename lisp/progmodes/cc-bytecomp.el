@@ -232,6 +232,9 @@ perhaps a `cc-bytecomp-restore-environment' is forgotten somewhere"))
 	  (cc-bytecomp-setup-environment)
 	  t))))
 
+(defvar cc-bytecomp-noruntime-functions nil
+  "Saved value of `byte-compile-noruntime-functions'.")
+
 (defmacro cc-require (cc-part)
   "Force loading of the corresponding .el file in the current directory
 during compilation, but compile in a `require'.  Don't use within
@@ -240,7 +243,16 @@ during compilation, but compile in a `require'.  Don't use within
 Having cyclic cc-require's will result in infinite recursion.  That's
 somewhat intentional."
   `(progn
-     (eval-when-compile (cc-bytecomp-load (symbol-name ,cc-part)))
+     (eval-when-compile
+       (setq cc-bytecomp-noruntime-functions byte-compile-noruntime-functions)
+       (cc-bytecomp-load (symbol-name ,cc-part)))
+     ;; Hack to suppress spurious "might not be defined at runtime" warnings.
+     ;; The basic issue is that
+     ;;   (eval-when-compile (require 'foo))
+     ;;   (require 'foo)
+     ;; produces bogus noruntime warnings about functions from foo.
+     (eval-when-compile
+       (setq byte-compile-noruntime-functions cc-bytecomp-noruntime-functions))
      (require ,cc-part)))
 
 (defmacro cc-provide (feature)
@@ -266,7 +278,7 @@ somewhat intentional."
 during compilation, but do a compile time `require' otherwise.  Don't
 use within `eval-when-compile'."
   `(eval-when-compile
-     (if (and (featurep 'cc-bytecomp)
+     (if (and (fboundp 'cc-bytecomp-is-compiling)
 	      (cc-bytecomp-is-compiling))
 	 (if (or (not load-in-progress)
 		 (not (featurep ,cc-part)))

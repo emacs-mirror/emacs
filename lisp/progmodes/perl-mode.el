@@ -158,44 +158,10 @@
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
 ;; Jim Campbell <jec@murzim.ca.boeing.com>.
 
-(defcustom perl-prettify-symbols t
-  "If non-nil, some symbols will be displayed using Unicode chars."
-  :version "24.4"
-  :type 'boolean)
-
 (defconst perl--prettify-symbols-alist
-  '(;;("andalso" . ?∧) ("orelse"  . ?∨) ("as" . ?≡)("not" . ?¬)
-    ;;("div" . ?÷) ("*"   . ?×) ("o"   . ?○)
-    ("->"  . ?→)
+  '(("->"  . ?→)
     ("=>"  . ?⇒)
-    ;;("<-"  . ?←) ("<>"  . ?≠) (">="  . ?≥) ("<="  . ?≤) ("..." . ?⋯)
-    ("::" . ?∷)
-    ))
-
-(defun perl--font-lock-compose-symbol ()
-  "Compose a sequence of ascii chars into a symbol.
-Regexp match data 0 points to the chars."
-  ;; Check that the chars should really be composed into a symbol.
-  (let* ((start (match-beginning 0))
-	 (end (match-end 0))
-	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
-		       '(?w) '(?. ?\\))))
-    (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
-	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
-            (nth 8 (syntax-ppss)))
-	;; No composition for you.  Let's actually remove any composition
-	;; we may have added earlier and which is now incorrect.
-	(remove-text-properties start end '(composition))
-      ;; That's a symbol alright, so add the composition.
-      (compose-region start end (cdr (assoc (match-string 0)
-                                            perl--prettify-symbols-alist)))))
-  ;; Return nil because we're not adding any face property.
-  nil)
-
-(defun perl--font-lock-symbols-keywords ()
-  (when perl-prettify-symbols
-    `((,(regexp-opt (mapcar 'car perl--prettify-symbols-alist) t)
-       (0 (perl--font-lock-compose-symbol))))))
+    ("::" . ?∷)))
 
 (defconst perl-font-lock-keywords-1
   '(;; What is this for?
@@ -243,8 +209,7 @@ Regexp match data 0 points to the chars."
      ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
      ("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-     ("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)
-     ,@(perl--font-lock-symbols-keywords)))
+     ("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
   "Gaudy level highlighting for Perl mode.")
 
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
@@ -685,13 +650,15 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq-local comment-start-skip "\\(^\\|\\s-\\);?#+ *")
   (setq-local comment-indent-function #'perl-comment-indent)
   (setq-local parse-sexp-ignore-comments t)
+
   ;; Tell font-lock.el how to handle Perl.
   (setq font-lock-defaults '((perl-font-lock-keywords
-			      perl-font-lock-keywords-1
-			      perl-font-lock-keywords-2)
-			     nil nil ((?\_ . "w")) nil
+                              perl-font-lock-keywords-1
+                              perl-font-lock-keywords-2)
+                             nil nil ((?\_ . "w")) nil
                              (font-lock-syntactic-face-function
                               . perl-font-lock-syntactic-face-function)))
+  (prog-prettify-install perl--prettify-symbols-alist)
   (setq-local syntax-propertize-function #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)

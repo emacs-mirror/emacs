@@ -558,6 +558,11 @@ unless the current buffer is a scratch buffer."
   (other-frame -1))
 
 ;; If no position specified, make new frame offset by 25 from current.
+;; You'd think this was a window manager's job, but apparently without
+;; this, new frames open exactly on top of old ones (?).
+;; http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00988.html
+;; Note that AFAICS it is not documented that functions on
+;; before-make-frame-hook can access PARAMETERS.
 (defvar parameters)		     ; dynamically bound in make-frame
 (add-hook 'before-make-frame-hook
           (lambda ()

@@ -286,7 +286,10 @@ NOT trusted. Accept anyway? " host)))))
 			     (format "Host name in certificate doesn't \
 match `%s'. Connect anyway? " host))))))
 	(setq done nil)
-	(delete-process process)))
+	(delete-process process))
+      ;; Delete all the informational messages that could confuse
+      ;; future uses of `buffer'.
+      (delete-region (point-min) (point)))
     (message "Opening TLS connection to `%s'...%s"
 	     host (if done "done" "failed"))
     (when use-temp-buffer

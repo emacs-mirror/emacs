@@ -1,3 +1,46 @@
+2013-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (VC Directory Commands): Copyedit.
+	(Branches): Put back milder version of pre 2013-06-07 text.
+
+2013-06-07  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (Branches): Remove text copied from other sources.
+
+2013-06-05  Alan Mackenzie  <acm@muc.de>
+
+	* search.texi (Isearch Scroll): Rename to "Not Exiting Isearch".
+	(Not Exiting Isearch): Document new user option
+	`isearch-allow-prefix'.  (Bug#9706)
+
+2013-06-03  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Add global keybindings
+	with the key prefix `M-s h'.  Document old command `highlight-phrase'.
+	Document new command `highlight-symbol-at-point'.
+
+2013-06-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (Branches): Add motivations for branching.
+	(VC Mode Line): Fix typo.
+	(VC Directory Commands): Mention `vc-dir-hide-up-to-date' with
+	prefix argument.
+
+2013-06-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* cmdargs.texi (General Variables): Use "unix:path=/dev/null" as
+	dummy value for $DBUS_SESSION_BUS_ADDRESS.  It also suppresses
+	autolaunching of the D-Bus session bus.
+
+2013-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* programs.texi (Semantic): Fix typo.
+
+2013-05-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* maintaining.texi (Types of Log File): Supplement some
+	information of change log files.
+
 2013-05-15  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Repeat Isearch): Mention key `RET' to finish

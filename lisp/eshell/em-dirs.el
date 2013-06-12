@@ -207,7 +207,8 @@ Thus, this does not include the current directory.")
   (when eshell-cd-on-directory
     (make-local-variable 'eshell-interpreter-alist)
     (setq eshell-interpreter-alist
-	  (cons (cons 'eshell-lone-directory-p
+	  (cons (cons #'(lambda (file args)
+                          (eshell-lone-directory-p file))
 		      'eshell-dirs-substitute-cd)
 		eshell-interpreter-alist)))
 

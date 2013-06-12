@@ -162,9 +162,11 @@ DESCRIPTION is the text of the news item."
 			       description
 			       archive-url))
 
-(defun package-upload-buffer-internal (pkg-info extension &optional archive-url)
+(declare-function lm-commentary "lisp-mnt" (&optional file))
+
+(defun package-upload-buffer-internal (pkg-desc extension &optional archive-url)
   "Upload a package whose contents are in the current buffer.
-PKG-INFO is the package info, see `package-buffer-info'.
+PKG-DESC is the `package-desc'.
 EXTENSION is the file extension, a string.  It can be either
 \"el\" or \"tar\".
 
@@ -196,18 +198,18 @@ if it exists."
 	(error "Aborted")))
     (save-excursion
       (save-restriction
-	(let* ((file-type (cond
-			   ((equal extension "el") 'single)
-			   ((equal extension "tar") 'tar)
-			   (t (error "Unknown extension `%s'" extension))))
-	       (file-name (aref pkg-info 0))
-	       (pkg-name (intern file-name))
-	       (requires (aref pkg-info 1))
-	       (desc (if (string= (aref pkg-info 2) "")
+	(let* ((file-type (package-desc-kind pkg-desc))
+	       (pkg-name (package-desc-name pkg-desc))
+	       (requires (package-desc-reqs pkg-desc))
+	       (desc (if (eq (package-desc-summary pkg-desc)
+                             package--default-summary)
 			 (read-string "Description of package: ")
-		       (aref pkg-info 2)))
-	       (pkg-version (aref pkg-info 3))
-	       (commentary (aref pkg-info 4))
+		       (package-desc-summary pkg-desc)))
+	       (pkg-version (package-desc-version pkg-desc))
+	       (commentary
+                (pcase file-type
+                  (`single (lm-commentary))
+                  (`tar nil))) ;; FIXME: Get it from the README file.
 	       (split-version (version-to-list pkg-version))
 	       (pkg-buffer (current-buffer)))
 
@@ -215,7 +217,8 @@ if it exists."
 	  ;; from `package-archive-upload-base' otherwise.
 	  (let ((contents (or (package--archive-contents-from-url archive-url)
 			      (package--archive-contents-from-file)))
-		(new-desc (vector split-version requires desc file-type)))
+		(new-desc (package-make-ac-desc
+                           split-version requires desc file-type)))
 	    (if (> (car contents) package-archive-version)
 		(error "Unrecognized archive version %d" (car contents)))
 	    (let ((elt (assq pkg-name (cdr contents))))
@@ -232,6 +235,7 @@ if it exists."
 	    ;; this and the package itself.  For now we assume ELPA is
 	    ;; writable via file primitives.
 	    (let ((print-level nil)
+                  (print-quoted t)
 		  (print-length nil))
 	      (write-region (concat (pp-to-string contents) "\n")
 			    nil
@@ -241,29 +245,29 @@ if it exists."
 	    ;; If there is a commentary section, write it.
 	    (when commentary
 	      (write-region commentary nil
-			    (expand-file-name
-			     (concat (symbol-name pkg-name) "-readme.txt")
-			     package-archive-upload-base)))
+	        	    (expand-file-name
+	        	     (concat (symbol-name pkg-name) "-readme.txt")
+	        	     package-archive-upload-base)))
 
 	    (set-buffer pkg-buffer)
 	    (write-region (point-min) (point-max)
 			  (expand-file-name
-			   (concat file-name "-" pkg-version "." extension)
+			   (format "%s-%s.%s" pkg-name pkg-version extension)
 			   package-archive-upload-base)
 			  nil nil nil 'excl)
 
 	    ;; Write a news entry.
 	    (and package-update-news-on-upload
 		 archive-url
-		 (package--update-news (concat file-name "." extension)
+		 (package--update-news (format "%s.%s" pkg-name extension)
 				       pkg-version desc archive-url))
 
 	    ;; special-case "package": write a second copy so that the
 	    ;; installer can easily find the latest version.
-	    (if (string= file-name "package")
+	    (if (eq pkg-name 'package)
 		(write-region (point-min) (point-max)
 			      (expand-file-name
-			       (concat file-name "." extension)
+			       (format "%s.%s" pkg-name extension)
 			       package-archive-upload-base)
 			      nil nil nil 'ask))))))))
 
@@ -275,8 +279,8 @@ destination, prompt for one."
   (save-excursion
     (save-restriction
       ;; Find the package in this buffer.
-      (let ((pkg-info (package-buffer-info)))
-	(package-upload-buffer-internal pkg-info "el")))))
+      (let ((pkg-desc (package-buffer-info)))
+	(package-upload-buffer-internal pkg-desc "el")))))
 
 (defun package-upload-file (file)
   "Upload the Emacs Lisp package FILE to the package archive.
@@ -288,12 +292,13 @@ destination, prompt for one."
   (interactive "fPackage file name: ")
   (with-temp-buffer
     (insert-file-contents-literally file)
-    (let ((info (cond
-		 ((string-match "\\.tar$" file) (package-tar-file-info file))
-		 ((string-match "\\.el$" file) (package-buffer-info))
-		 (t (error "Unrecognized extension `%s'"
-			   (file-name-extension file))))))
-      (package-upload-buffer-internal info (file-name-extension file)))))
+    (let ((pkg-desc
+           (cond
+            ((string-match "\\.tar\\'" file) (package-tar-file-info file))
+            ((string-match "\\.el\\'" file) (package-buffer-info))
+            (t (error "Unrecognized extension `%s'"
+                      (file-name-extension file))))))
+      (package-upload-buffer-internal pkg-desc (file-name-extension file)))))
 
 (defun package-gnus-summary-upload ()
   "Upload a package contained in the current *Article* buffer.

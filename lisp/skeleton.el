@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;; page 1:	statement skeleton language definition & interpreter
 ;; page 2:	paired insertion
 ;; page 3:	mirror-mode, an example for setting up paired insertion
@@ -84,13 +86,11 @@ The variables `v1' and `v2' are still set when calling this.")
   "When non-nil, indent rigidly under current line for element `\\n'.
 Else use mode's `indent-line-function'.")
 
-(defvar skeleton-further-elements ()
+(defvar-local skeleton-further-elements ()
   "A buffer-local varlist (see `let') of mode specific skeleton elements.
 These variables are bound while interpreting a skeleton.  Their value may
 in turn be any valid skeleton element if they are themselves to be used as
 skeleton elements.")
-(make-variable-buffer-local 'skeleton-further-elements)
-
 
 (defvar skeleton-subprompt
   (substitute-command-keys
@@ -260,8 +260,10 @@ When done with skeleton, but before going back to `_'-point call
 	  skeleton-modified skeleton-point resume: help input v1 v2)
       (setq skeleton-positions nil)
       (unwind-protect
-	  (eval `(let ,skeleton-further-elements
-		   (skeleton-internal-list skeleton str)))
+	  (cl-progv
+              (mapcar #'car skeleton-further-elements)
+              (mapcar (lambda (x) (eval (cadr x))) skeleton-further-elements)
+            (skeleton-internal-list skeleton str))
 	(run-hooks 'skeleton-end-hook)
 	(sit-for 0)
 	(or (pos-visible-in-window-p beg)

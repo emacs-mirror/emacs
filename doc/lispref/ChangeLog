@@ -1,3 +1,27 @@
+2013-06-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (File Name Expansion): Make the example more
+	intuitive.
+
+2013-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Documentation fix for 'ls' and hard links.
+	* compile.texi (Compilation Functions):
+	* files.texi (File Attributes, Changing Files):
+	Use current format for GNU 'ls' output.
+	(File Attributes): Fix problem introduced in previous change:
+	the link count is the number of hard links, not the number
+	of hard links + 1.
+
+2013-06-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (File Attributes): Fix typo.
+
+2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Lambda Expressions): Lambda expressions don't
+	evaluate to themselves in general (bug#11782).
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loading.texi (Autoload):

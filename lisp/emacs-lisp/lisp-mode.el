@@ -225,11 +225,13 @@ font-lock keywords will not be case sensitive."
   (setq-local syntax-begin-function 'beginning-of-defun)
   (setq font-lock-defaults
 	`((lisp-font-lock-keywords
-	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
+	   lisp-font-lock-keywords-1
+           lisp-font-lock-keywords-2)
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
-	   . lisp-font-lock-syntactic-face-function))))
+	   . lisp-font-lock-syntactic-face-function)))
+  (prog-prettify-install lisp--prettify-symbols-alist))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -266,6 +268,7 @@ font-lock keywords will not be case sensitive."
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     ;; This gets in the way when viewing a Lisp file in view-mode.  As
@@ -446,6 +449,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :options '(turn-on-eldoc-mode)
   :type 'hook
   :group 'lisp)
+
+(defconst lisp--prettify-symbols-alist
+  '(("lambda"  . ?λ)))
 
 (define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
@@ -808,6 +814,7 @@ With argument, print output into current buffer."
 (defun eval-sexp-add-defvars (exp &optional pos)
   "Prepend EXP with all the `defvar's that precede it in the buffer.
 POS specifies the starting position where EXP was found and defaults to point."
+  (setq exp (macroexpand-all exp))      ;Eager macro-expansion.
   (if (not lexical-binding)
       exp
     (save-excursion

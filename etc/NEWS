@@ -28,6 +28,12 @@ This happens by default if a suitable support library is found at
 build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
+** Emacs can be compiled with file notification support.
+The configure option `--with-file-notification=LIB' enables file
+notification support in Emacs. This option's value should be `yes',
+`no', `gfile', `inotify' or `w32'.  `yes' is a synonym for `w32' on
+MS-Windows, and for `gfile' otherwise.  The default value is `yes'.
+
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
@@ -38,6 +44,18 @@ This is from now on the preferred method of building Emacs on
 MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
 files are deprecated.  See the file nt/INSTALL.MSYS for detailed
 instructions.
+
+Using the Posix configure script and Makefile's also means a change in
+the directory structure of the Emacs installation on Windows.  It is
+now the same as on GNU and Unix systems.  In particular, the auxiliary
+programs, such as cmdproxy.exe and hexl.exe, are in
+libexec/emacs/VERSION/i686-pc-mingw32 (where VERSION is the Emacs
+version), version-independent site-lisp is in share/emacs/site-lisp,
+version-specific Lisp files are in share/emacs/VERSION/lisp and in
+share/emacs/VERSION/site-lisp, Info docs are in share/info, and data
+files are in share/emacs/VERSION/etc.  (Emacs knows about all these
+directories and will find the files in there automatically; there's no
+need to set any variables due to this change.)
 
 
 * Startup Changes in Emacs 24.4
@@ -116,6 +134,18 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
+
+** `eshell' now supports visual subcommands and options
+Eshell has been able to handle "visual" commands (interactive,
+non-line oriented commands such as top that require display
+capabilities not provided by eshell) by running them in an Emacs
+terminal emulator.  See `eshell-visual-commands'.
+
+This feature has been extended to subcommands and options that make a
+usually line-oriented command a visual command.  Typical examples are
+"git log" and "git <command> --help" which display their output in a
+pager by default.  See `eshell-visual-subcommands' and
+`eshell-visual-options'.
 
 ** `remember' can now store notes in separates files
 You can use the new function `remember-store-in-files' within the
@@ -236,10 +266,35 @@ callers to fit the image to a frame other than the selected frame.
 entries displayed by `Info-index-next', `Info-virtual-index' and
 `info-apropos'.
 
-** Isearch
+** Hi-Lock
+
+*** New option `hi-lock-auto-select-face'.  When non-nil, hi-lock commands
+will cycle through faces in `hi-lock-face-defaults' without prompting.
+
++++
+*** New global command `M-s h .' (`highlight-symbol-at-point')
+highlights the symbol found near point without prompting,
+using the next face automatically.
+
+** Search and Replace
+
+*** New global command `M-s .' (`isearch-forward-symbol-at-point')
+starts a symbol (identifier) incremental search forward with the
+symbol found near point added to the search string initially.
 
 *** `C-x 8 RET' in Isearch mode reads a character by its Unicode name
 and adds it to the search string.
+
+*** `M-s i' in Isearch mode toggles the variable `isearch-invisible'
+between nil and the value of the option `search-invisible' (or `open'
+when it's nil).
+
+*** `query-replace' skips invisible text when `search-invisible' is nil,
+and opens overlays with hidden text when `search-invisible' is `open'.
+
++++
+*** By default, prefix arguments do not now terminate Isearch mode.
+Set `isearch-allow-prefix' to nil to restore old behavior.
 
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
@@ -264,10 +319,12 @@ New features include:
   name and arguments.  Useful to trace the value of (current-buffer) or
   (point) when the function is invoked.
 
-** New command `delete-duplicate-lines' has two types of operation:
-when its arg ADJACENT is non-nil (when called interactively with C-u C-u)
+** New command `delete-duplicate-lines' has new types of operation:
+When its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
+When it arg KEEP-BLANKS is non-nil (when called interactively with C-u C-u C-u),
+duplicate blank lines are preserved.
 
 ** New `cycle-spacing' command allows cycling between having just one
 space, no spaces, or reverting to the original spacing.  Like
@@ -343,7 +400,11 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
-** Default process filers and sentinels are not nil any more.
+** overriding-terminal-local-map does not replace the local keymaps any more.
+It used to disable the minor mode, major mode, and text-property keymaps,
+whereas now it simply has higher precedence.
+
+** Default process filters and sentinels are not nil any more.
 Instead they default to a function which does what the nil value used to do.
 
 ** `read-event' does not return decoded chars in ttys any more.
@@ -382,6 +443,9 @@ file using `set-file-extended-attributes'.
 *** `lisp-complete-symbol'
 *** `field-complete'
 *** `minibuffer-completion-contents'
+*** `isearch-nonincremental-exit-minibuffer'
+*** `isearch-filter-visible'
+*** `generic-make-keywords-list'
 
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:
@@ -395,8 +459,9 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 ** Support for filesystem notifications.
 Emacs now supports notifications of filesystem changes, such as
 creation, modification, and deletion of files.  This requires the
-'inotify' API on GNU/Linux systems.  On MS-Windows systems, this is
-supported for Windows XP and newer versions.
+`glib' API, or the 'inotify' API (on GNU/Linux systems only).  On
+MS-Windows systems, this is supported for Windows XP and newer
+versions.
 
 ** Changes in autorevert.el
 
@@ -2777,6 +2842,11 @@ should be derived.
 **** `prog-mode-hook' can be used to enable features for programming
 modes, e.g. (add-hook 'prog-mode-hook 'flyspell-prog-mode) to enable
 on-the-fly spell checking for comments and strings.
+
+**** New option, `prog-prettify-symbols' lets the user control symbol
+prettify (replacing a string like "lambda" with the Greek lambda
+character.  The mode derived from `prog-mode' must call
+`prog-prettify-install' with its own custom alist, which can be empty.
 
 *** New hook `change-major-mode-after-body-hook', run by
 `run-mode-hooks' just before any other mode hooks.

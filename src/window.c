@@ -1620,12 +1620,13 @@ specifies the position of the last visible glyph in WINDOW.  POS
 defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+the return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
 where X and Y are the pixel coordinates relative to the top left corner
 of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
-off-window at the top and bottom of the row, ROWH is the height of the
-display row, and VPOS is the row number (0-based) containing POS.  */)
+off-window at the top and bottom of the screen line ("row") containing
+POS, ROWH is the visible height of that row, and VPOS is the row number
+\(zero-based).  */)
   (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   register struct window *w;

@@ -103,6 +103,8 @@ If no image available, return 'error."
 	(gravatar-create-image data nil t)
       'error)))
 
+(autoload 'help-function-arglist "help-fns")
+
 ;;;###autoload
 (defun gravatar-retrieve (mail-address cb &optional cbargs)
   "Retrieve MAIL-ADDRESS gravatar and call CB on retrieval.

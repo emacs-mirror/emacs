@@ -41,10 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PATH_LOADSEARCH "%emacs_dir%/share/emacs/@VER@/lisp;%emacs_dir%/share/emacs/@VER@/leim"
 
 /* Like PATH_LOADSEARCH, but contains the non-standard pieces.
-   These are the site-lisp directories, typically something like
+   These are the site-lisp directories.  Configure sets this to
+   ${locallisppath}, which typically defaults to something like:
    <datadir>/emacs/VERSION/site-lisp:<datadir>/emacs/site-lisp
-   Configure prepends any $locallisppath, as set by the
-   --enable-locallisppath argument.
+   but can be overridden by the --enable-locallisppath argument.
    This is combined with PATH_LOADSEARCH to make the default load-path.
    If the --no-site-lisp option is used, this piece is excluded.
 */

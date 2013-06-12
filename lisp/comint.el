@@ -1190,7 +1190,8 @@ If N is negative, find the next or Nth next match."
 		(funcall comint-get-old-input)))
       (setq comint-input-ring-index pos)
       (unless isearch-mode
-	(message "History item: %d" (1+ pos)))
+	(let ((message-log-max nil))	; Do not write to *Messages*.
+	  (message "History item: %d" (1+ pos))))
       (comint-delete-input)
       (insert (ring-ref comint-input-ring pos)))))
 

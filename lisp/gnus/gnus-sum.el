@@ -5492,6 +5492,8 @@ or a straight list of headers."
 	 (cdr (assq number gnus-newsgroup-scored))
 	 (memq number gnus-newsgroup-processable))))))
 
+(declare-function gnus-parameter-list-identifier "gnus-art" (name) t)
+
 (defun gnus-group-get-list-identifiers (group)
   "Get list identifier regexp for GROUP."
   (or (gnus-parameter-list-identifier group)
@@ -7267,6 +7269,9 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
 
+(declare-function gnus-article-stop-animations "gnus-art" ())
+(declare-function gnus-stop-downloads "gnus-art" ())
+
 (defalias 'gnus-summary-quit 'gnus-summary-exit-no-update)
 (defun gnus-summary-exit-no-update (&optional no-questions)
   "Quit reading current newsgroup without updating read article info."
@@ -7859,6 +7864,8 @@ If UNREAD is non-nil, only unread articles are selected."
    (and gnus-auto-select-same
 	(gnus-summary-article-subject))))
 
+(declare-function gnus-article-only-boring-p "gnus-art" ())
+
 (defun gnus-summary-next-page (&optional lines circular stop)
   "Show next page of the selected article.
 If at the end of the current article, select the next article.
@@ -8425,6 +8432,8 @@ If ALL is non-nil, limit strictly to unread articles."
 If REVERSE (the prefix), limit to articles that don't match."
   (interactive "sMatch headers (regexp): \nP")
   (gnus-summary-limit-to-bodies match reverse t))
+
+(declare-function article-goto-body "gnus-art" ())
 
 (defun gnus-summary-limit-to-bodies (match &optional reverse headersp)
   "Limit the summary buffer to articles that have bodies that match MATCH.
@@ -9556,6 +9565,8 @@ to save in."
 	  (ps-spool-buffer-with-faces)
 	(ps-spool-buffer)))))
 
+(declare-function gnus-flush-original-article-buffer "gnus-art" ())
+
 (defun gnus-summary-show-complete-article ()
   "Show a complete version of the current article.
 This is only useful if you're looking at a partial version of the
@@ -9678,6 +9689,10 @@ If ARG is a negative number, turn header display off."
 	      ((natnump arg)
 	       t)))
   (gnus-summary-show-article))
+
+(declare-function article-narrow-to-head "gnus-art" ())
+(declare-function gnus-article-hidden-text-p "gnus-art" (type))
+(declare-function gnus-delete-wash-type "gnus-art" (type))
 
 (defun gnus-summary-toggle-header (&optional arg)
   "Show the headers if they are hidden, or hide them if they are shown.
@@ -11962,6 +11977,8 @@ will not be marked as saved."
     (gnus-set-mode-line 'summary)
     n))
 
+(declare-function gnus-summary-save-in-pipe "gnus-art" (&optional command raw))
+
 (defun gnus-summary-pipe-output (&optional n sym)
   "Pipe the current article to a subprocess.
 If N is a positive number, pipe the N next articles.
@@ -12914,6 +12931,7 @@ If ALL is a number, fetch this number of articles."
   (gnus-summary-position-point))
 
 ;;; Bookmark support for Gnus.
+(declare-function gnus-article-show-summary "gnus-art" ())
 (declare-function bookmark-make-record-default
                   "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))

@@ -2328,7 +2328,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 	(1 font-lock-keyword-face)
 	(2 font-lock-constant-face nil t))
        ;; Erroneous structures.
-       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\_>" 1 font-lock-warning-face)
+       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|\\(?:user-\\)?error\\|signal\\)\\_>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
        ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
         (1 font-lock-constant-face prepend))

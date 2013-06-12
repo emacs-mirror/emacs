@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'eieio)
+(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib!
 
 ;;; eieio-instance-inheritor
 ;;

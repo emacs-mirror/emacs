@@ -100,9 +100,9 @@ wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 }
 
 void
-pure_write_error (void)
+pure_write_error (Lisp_Object obj)
 {
-  error ("Attempt to modify read-only object");
+  xsignal2 (Qerror, build_string ("Attempt to modify read-only object"), obj);
 }
 
 void
@@ -1069,40 +1069,6 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   return newval;
 }
 
-/* Return true if SYMBOL currently has a let-binding
-   which was made in the buffer that is now current.  */
-
-static bool
-let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
-{
-  struct specbinding *p;
-
-  for (p = specpdl_ptr; p > specpdl; )
-    if ((--p)->func == NULL
-	&& CONSP (p->symbol))
-      {
-	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (XCAR (p->symbol));
-	eassert (let_bound_symbol->redirect != SYMBOL_VARALIAS);
-	if (symbol == let_bound_symbol
-	    && XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
-	  return 1;
-      }
-
-  return 0;
-}
-
-static bool
-let_shadows_global_binding_p (Lisp_Object symbol)
-{
-  struct specbinding *p;
-
-  for (p = specpdl_ptr; p > specpdl; )
-    if ((--p)->func == NULL && EQ (p->symbol, symbol))
-      return 1;
-
-  return 0;
-}
-
 /* Store the value NEWVAL into SYMBOL.
    If buffer/frame-locality is an issue, WHERE specifies which context to use.
    (nil stands for the current buffer/frame).
@@ -1841,17 +1807,18 @@ BUFFER defaults to the current buffer.  */)
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
-	for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
-	  {
-	    elt = XCAR (tail);
-	    if (EQ (variable, XCAR (elt)))
-	      {
-		eassert (!blv->frame_local);
-		eassert (blv_found (blv) || !EQ (blv->where, tmp));
-		return Qt;
-	      }
-	  }
-	eassert (!blv_found (blv) || !EQ (blv->where, tmp));
+	if (EQ (blv->where, tmp)) /* The binding is already loaded.  */
+	  return blv_found (blv) ? Qt : Qnil;
+	else
+	  for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      if (EQ (variable, XCAR (elt)))
+		{
+		  eassert (!blv->frame_local);
+		  return Qt;
+		}
+	    }
 	return Qnil;
       }
     case SYMBOL_FORWARDED:

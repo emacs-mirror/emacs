@@ -1,3 +1,27 @@
+2013-06-10  Aidan Gauland  <aidalgol@amuri.net>
+
+	* eshell.texi (Input/Output): Expand to cover new visual-command
+	options, eshell-visual-subcommands and eshell-visual-options.
+	Divide into separate Visual Commands and Redirection sections.
+
+2013-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* epa.texi (Cryptographic operations on files): Update epa-decrypt-file.
+
+2013-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Date):
+	Fix description of gnus-article-update-date-headers.
+
+2013-05-28  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* erc.texi (Special Features): ERC is being maintained within
+	Emacs now.
+
+2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* flymake.texi: Changing from one space between sentences to two.
+
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (Obsolete Macros): Describe replacements for `flet'

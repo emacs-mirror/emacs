@@ -112,6 +112,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-regexp-starts-after-string ()
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
 
+(ert-deftest ruby-regexp-interpolation-is-highlighted ()
+  (ruby-assert-face "/#{foobs}/" 4 font-lock-variable-name-face))
+
 (ert-deftest ruby-regexp-skips-over-interpolation ()
   (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
 
@@ -352,6 +355,23 @@ VALUES-PLIST is a list with alternating index and value elements."
     (ruby-assert-face s 10 font-lock-string-face)
     ;; It's confused by the closing paren in the middle.
     (ruby-assert-state s 8 nil)))
+
+(ert-deftest ruby-interpolation-inside-double-quoted-percent-literals ()
+  (ruby-assert-face "%Q{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%W{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%r{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%x{foo #@bar}" 8 font-lock-variable-name-face))
+
+(ert-deftest ruby-no-interpolation-in-single-quoted-literals ()
+  (ruby-assert-face "'foo #@bar'" 7 font-lock-string-face)
+  (ruby-assert-face "%q{foo #@bar}" 8 font-lock-string-face)
+  (ruby-assert-face "%w{foo #@bar}" 8 font-lock-string-face)
+  (ruby-assert-face "%s{foo #@bar}" 8 font-lock-string-face))
+
+(ert-deftest ruby-no-unknown-percent-literals ()
+  ;; No folding of case.
+  (ruby-assert-face "%S{foo}" 4 nil)
+  (ruby-assert-face "%R{foo}" 4 nil))
 
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")

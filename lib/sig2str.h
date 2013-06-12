@@ -27,8 +27,16 @@
 /* Size of a buffer needed to hold a signal name like "HUP".  */
 # define SIG2STR_MAX (sizeof "SIGRTMAX" + INT_STRLEN_BOUND (int) - 1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int sig2str (int, char *);
 int str2sig (char const *, int *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

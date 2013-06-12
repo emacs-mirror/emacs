@@ -372,34 +372,6 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
-;; Major mode meant to be the parent of programming modes.
-
-(defvar prog-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-\M-q] 'prog-indent-sexp)
-    map)
-  "Keymap used for programming modes.")
-
-(defun prog-indent-sexp (&optional defun)
-  "Indent the expression after point.
-When interactively called with prefix, indent the enclosing defun
-instead."
-  (interactive "P")
-  (save-excursion
-    (when defun
-      (end-of-line)
-      (beginning-of-defun))
-    (let ((start (point))
-	  (end (progn (forward-sexp 1) (point))))
-      (indent-region start end nil))))
-
-(define-derived-mode prog-mode fundamental-mode "Prog"
-  "Major mode for editing programming language source code."
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  ;; Any programming language is always written left to right.
-  (setq bidi-paragraph-direction 'left-to-right))
-
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
@@ -1268,9 +1240,7 @@ is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.
 Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `X'.
-  ;; FIXME: Share code with `eval-expression'.
-  (eval (read-from-minibuffer prompt initial-contents read-expression-map
-                              t read-expression-history)))
+  (eval (read--expression prompt initial-contents)))
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
@@ -1322,6 +1292,17 @@ display the result of expression evaluation."
 (defvar eval-expression-minibuffer-setup-hook nil
   "Hook run by `eval-expression' when entering the minibuffer.")
 
+(defun read--expression (prompt &optional initial-contents)
+  (let ((minibuffer-completing-symbol t))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (add-hook 'completion-at-point-functions
+                    #'lisp-completion-at-point nil t)
+          (run-hooks 'eval-expression-minibuffer-setup-hook))
+      (read-from-minibuffer prompt initial-contents
+                            read-expression-map t
+                            'read-expression-history))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (exp &optional insert-value)
@@ -1338,12 +1319,7 @@ and `eval-expression-print-level'.
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (minibuffer-with-setup-hook
-	       (lambda () (run-hooks 'eval-expression-minibuffer-setup-hook))
-	     (read-from-minibuffer "Eval: "
-				   nil read-expression-map t
-				   'read-expression-history)))
+   (list (read--expression "Eval: ")
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)

@@ -3210,6 +3210,8 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 }
 
 
+#if HAVE_W32NOTIFY
+
 /* File event notifications (see w32notify.c).  */
 
 Lisp_Object
@@ -3325,7 +3327,8 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
   /* We've stuffed all the events ourselves, so w32_read_socket shouldn't.  */
   event->kind = NO_EVENT;
 }
-#endif
+#endif	/* WINDOWSNT */
+#endif	/* HAVE_W32NOTIFY */
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -4968,7 +4971,7 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
-#ifdef WINDOWSNT
+#if HAVE_W32NOTIFY
 	case WM_EMACS_FILENOTIFY:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)

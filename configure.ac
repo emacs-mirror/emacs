@@ -200,7 +200,23 @@ OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
-OPTION_DEFAULT_ON([inotify],[don't compile with inotify (file-watch) support])
+
+AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
+ [use a file notification library (LIB one of: yes, gfile, inotify, w32, no)])],
+ [ case "${withval}" in
+    y | ye | yes )	val=yes ;;
+    n | no )		val=no  ;;
+    g | gf | gfi | gfil | gfile )	val=gfile ;;
+    i | in | ino | inot | inoti | inotif | inotify )	val=inotify ;;
+    w | w3 | w32 )	val=w32 ;;
+    * ) AC_MSG_ERROR([`--with-file-notification=$withval' is invalid;
+this option's value should be `yes', `no', `gfile', `inotify' or `w32'.
+`yes' is a synonym for `w32' on MS-Windows, and for `gfile' otherwise.])
+    ;;
+   esac
+   with_file_notification=$val
+ ],
+ [with_file_notification=$with_features])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -1668,7 +1684,6 @@ if test "${HAVE_W32}" = "yes"; then
     W32_RES_LINK="-Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
-    W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
     W32_RES_LINK="\$(EMACSRES)"
@@ -2294,16 +2309,60 @@ fi
 AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_CFLAGS)
 
-dnl inotify is only available on GNU/Linux.
-if test "${with_inotify}" = "yes"; then
-   AC_CHECK_HEADERS(sys/inotify.h)
-   if test "$ac_cv_header_sys_inotify_h" = yes ; then
-     AC_CHECK_FUNC(inotify_init1)
+NOTIFY_OBJ=
+NOTIFY_SUMMARY=no
+
+dnl Set defaults of $with_file_notification.
+if test "${with_file_notification}" = "yes"; then
+   if test "${opsys}" = "mingw32"; then
+      with_file_notification=w32
+   else
+      if test "${with_ns}" != yes; then
+        with_file_notification=gfile
+      fi
    fi
 fi
-if test "$ac_cv_func_inotify_init1" = yes; then
-  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+
+dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
+dnl has been added in glib 2.24.  It has been tested under
+dnl GNU/Linux only.  We take precedence over inotify, but this makes
+dnl only sense when glib has been compiled with inotify support.  How
+dnl to check?
+if test "${with_file_notification}" = "gfile"; then
+   PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+   if test "$HAVE_GFILENOTIFY" = "yes"; then
+      AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
+      NOTIFY_OBJ=gfilenotify.o
+      NOTIFY_SUMMARY="yes -lgio (gfile)"
+   fi
 fi
+dnl inotify is only available on GNU/Linux.
+if test "${with_file_notification}" = "inotify"; then
+   AC_CHECK_HEADER(sys/inotify.h)
+   if test "$ac_cv_header_sys_inotify_h" = yes ; then
+       AC_CHECK_FUNC(inotify_init1)
+       if test "$ac_cv_func_inotify_init1" = yes; then
+           AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+	   NOTIFY_OBJ=inotify.o
+	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
+	fi
+  fi
+fi
+dnl MS Windows native file monitor is available for mingw32 only.
+if test "${with_file_notification}" = "w32"; then
+   AC_CHECK_HEADER(windows.h)
+   if test "$ac_cv_header_windows_h" = yes ; then
+      AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
+      NOTIFY_OBJ=w32notify.o
+      NOTIFY_SUMMARY="yes (w32)"
+   fi
+fi
+if test -n "$NOTIFY_OBJ"; then
+   AC_DEFINE(USE_FILE_NOTIFY, 1, [Define to 1 if using file notifications.])
+fi
+AC_SUBST(NOTIFY_OBJ)
+AC_SUBST(GFILENOTIFY_CFLAGS)
+AC_SUBST(GFILENOTIFY_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
@@ -2999,7 +3058,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test $HAVE_XRANDR = no; then
     # Test old way in case pkg-config doesn't have it (older machines).
     AC_CHECK_HEADER(X11/extensions/Xrandr.h,
-      [AC_CHECK_LIB(Xrandr, XRRQueryExtension, HAVE_XRANDR=yes)])
+      [AC_CHECK_LIB(Xrandr, XRRGetScreenResources, HAVE_XRANDR=yes)])
     if test $HAVE_XRANDR = yes; then
       XRANDR_LIBS=-lXrandr
       AC_SUBST(XRANDR_LIBS)
@@ -3556,6 +3615,25 @@ esac
 AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
+
+dnl Check this late.  It depends on what other libraries (lrsvg, Gtk+ etc)
+dnl Emacs uses.
+XGSELOBJ=
+AC_MSG_CHECKING([whether GLib is linked in])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[[#include <glib.h>
+ 	]],
+	[[g_print ("Hello world");]])],
+     [links_glib=yes],
+     [links_glib=no])
+AC_MSG_RESULT([$links_glib])
+if test "${links_glib}" = "yes"; then
+  AC_DEFINE(HAVE_GLIB, 1, [Define to 1 if GLib is linked in.])
+  if test "$HAVE_NS" = no;then
+    XGSELOBJ=xgselect.o
+  fi
+fi
+AC_SUBST(XGSELOBJ)
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
@@ -4343,7 +4421,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
@@ -4682,6 +4760,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
+echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

@@ -1484,7 +1484,10 @@ expression then Lisp symbols are completed."
   (interactive)
   (if (semantic-grammar-in-lisp-p)
       ;; We are in lisp code.  Do lisp completion.
-      (lisp-complete-symbol)
+      (let ((completion-at-point-functions
+             (append '(lisp-completion-at-point)
+                     completion-at-point-functions)))
+        (completion-at-point))
     ;; We are not in lisp code.  Do rule completion.
     (let* ((nonterms (semantic-find-tags-by-class 'nonterminal (current-buffer)))
            (sym (car (semantic-ctxt-current-symbol)))

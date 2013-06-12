@@ -239,8 +239,7 @@ See `wdired-mode'."
        (dired-remember-marks (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
-  (set (make-local-variable 'isearch-filter-predicate)
-       'wdired-isearch-filter-read-only)
+  (add-hook 'isearch-filter-predicates 'wdired-isearch-filter-read-only nil t)
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -268,9 +267,8 @@ or \\[wdired-abort-changes] to abort changes")))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."
-  (and (isearch-filter-visible beg end)
-       (not (text-property-not-all (min beg end) (max beg end)
-				   'read-only nil))))
+  (not (text-property-not-all (min beg end) (max beg end)
+			      'read-only nil)))
 
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.

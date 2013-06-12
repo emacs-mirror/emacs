@@ -36,6 +36,11 @@
 
 ;;; Code:
 
+;; FIXME?
+;; Maybe this file should be obsolete.
+;; http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00517.html
+;; It only adds rlogin-directory-tracking-mode.  Is that useful?
+
 (require 'comint)
 (require 'shell)
 
@@ -44,13 +49,15 @@
   :group 'processes
   :group 'unix)
 
-(defcustom rlogin-program "rlogin"
-  "Name of program to invoke rlogin"
+(defcustom rlogin-program "ssh"
+  "Name of program to invoke remote login."
+  :version "24.4"                       ; rlogin -> ssh
   :type 'string
   :group 'rlogin)
 
-(defcustom rlogin-explicit-args nil
-  "List of arguments to pass to rlogin on the command line."
+(defcustom rlogin-explicit-args '("-t" "-t")
+  "List of arguments to pass to `rlogin-program' on the command line."
+  :version "24.4"                       ; nil -> -t -t
   :type '(repeat (string :tag "Argument"))
   :group 'rlogin)
 
@@ -62,13 +69,15 @@
 (defcustom rlogin-process-connection-type
   ;; Solaris 2.x `rlogin' will spew a bunch of ioctl error messages if
   ;; stdin isn't a tty.
-  (and (string-match-p "-solaris2" system-configuration) t)
+  (and (string-match "rlogin" rlogin-program)
+       (string-match-p "-solaris2" system-configuration) t)
   "If non-nil, use a pty for the local rlogin process.
 If nil, use a pipe (if pipes are supported on the local system).
 
 Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
 a pty is being used, and errors will result from using a pipe instead."
+  :set-after '(rlogin-program)
   :type '(choice (const :tag "pipes" nil)
 		 (other :tag "ptys" t))
   :group 'rlogin)
@@ -98,7 +107,7 @@ re-synching of directories."
 (make-variable-buffer-local 'rlogin-directory-tracking-mode)
 
 (defcustom rlogin-host nil
-  "The name of the remote host.  This variable is buffer-local."
+  "The name of the default remote host.  This variable is buffer-local."
   :type '(choice (const nil) string)
   :group 'rlogin)
 
@@ -165,7 +174,9 @@ If you wish to change directory tracking styles during a session, use the
 function `rlogin-directory-tracking-mode' rather than simply setting the
 variable."
   (interactive (list
-		(read-from-minibuffer "rlogin arguments (hostname first): "
+		(read-from-minibuffer (format
+                                       "Arguments for `%s' (hostname first): "
+                                       (file-name-nondirectory rlogin-program))
 				      nil nil nil 'rlogin-history)
 		current-prefix-arg))
   (let* ((process-connection-type rlogin-process-connection-type)
@@ -297,7 +308,7 @@ local one share the same directories (e.g. through NFS)."
   "Complete file name if doing directory tracking, or just insert TAB."
   (interactive)
   (if rlogin-directory-tracking-mode
-      (comint-dynamic-complete)
+      (completion-at-point)
     (insert "\C-i")))
 
 (provide 'rlogin)

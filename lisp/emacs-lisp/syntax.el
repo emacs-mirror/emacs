@@ -56,12 +56,13 @@
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
   "Mode-specific function to apply `syntax-table' text properties.
-The value of this variable is a function to be called by Font
-Lock mode, prior to performing syntactic fontification on a
-stretch of text.  It is given two arguments, START and END: the
-start and end of the text to be fontified.  Major modes can
-specify a custom function to apply `syntax-table' properties to
-override the default syntax table in special cases.
+It is the work horse of `syntax-propertize', which is called by things like
+Font-Lock and indentation.
+
+It is given two arguments, START and END: the start and end of the text to
+which `syntax-table' might need to be applied.  Major modes can use this to
+override the buffer's syntax table for special syntactic constructs that
+cannot be handled just by the buffer's syntax-table.
 
 The specified function may call `syntax-ppss' on any position
 before END, but it should not call `syntax-ppss-flush-cache',

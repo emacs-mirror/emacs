@@ -494,6 +494,11 @@ provided `global-ede-mode' is enabled."
 (defun ede-initialize-state-current-buffer ()
   "Initialize the current buffer's state for EDE.
 Sets buffer local variables for EDE."
+  ;; due to inode recycling, make sure we don't
+  ;; we flush projects deleted off the system.
+  (ede-flush-deleted-projects)
+
+  ;; Init the buffer.
   (let* ((ROOT nil)
 	 (proj (ede-directory-get-open-project default-directory
 					       'ROOT))
@@ -569,7 +574,9 @@ an EDE controlled project."
 	(add-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
 	(add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
 	(add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
-	(add-hook 'find-file-hook 'ede-turn-on-hook)
+	;; Append our hook to the end.  This allows mode-local to finish
+	;; it's stuff before we start doing misc file loads, etc.
+	(add-hook 'find-file-hook 'ede-turn-on-hook t)
 	(add-hook 'dired-mode-hook 'ede-turn-on-hook)
 	(add-hook 'kill-emacs-hook 'ede-save-cache)
 	(ede-load-cache)
@@ -1056,6 +1063,18 @@ On success, return the added project."
     (error "Attempt to add a non-project to the ede projects list"))
   (add-to-list 'ede-projects proj)
   proj)
+
+(defun ede-flush-deleted-projects ()
+  "Scan the projects list for projects which no longer exist.
+Flush the dead projects from the project cache."
+  (interactive)
+  (let ((dead nil))
+    (dolist (P ede-projects)
+      (when (not (file-exists-p (oref P :file)))
+	(add-to-list 'dead P)))
+    (dolist (D dead)
+      (setq ede-projects (remove D ede-projects)))
+    ))
 
 (defun ede-load-project-file (dir &optional rootreturn)
   "Project file independent way to read a project in from DIR.

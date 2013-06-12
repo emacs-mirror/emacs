@@ -105,7 +105,6 @@ static int as_status;
 static ptrdiff_t image_cache_refcount;
 #endif
 
-static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes, Qsource;
 
 /* ==========================================================================
 
@@ -288,7 +287,7 @@ static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
-  CGFloat r, g, b, alpha;
+  EmacsCGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -320,7 +319,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  CGFloat r, g, b, alpha;
+  EmacsCGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -345,7 +344,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       [[view window] setBackgroundColor: col];
 
-      if (alpha != 1.0)
+      if (alpha != (EmacsCGFloat) 1.0)
           [[view window] setOpaque: NO];
       else
           [[view window] setOpaque: YES];
@@ -715,7 +714,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
-void
+static void
 ns_implicitly_set_icon_type (struct frame *f)
 {
   Lisp_Object tem;
@@ -860,7 +859,7 @@ ns_cursor_type_to_lisp (int arg)
 }
 
 /* This is the same as the xfns.c definition.  */
-void
+static void
 x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
@@ -1083,7 +1082,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct ns_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
-  Lisp_Object tfont, tfontsize;
   static int desc_ctr = 1;
 
   /* x_get_arg modifies parms.  */
@@ -1190,10 +1188,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   {
     /* use for default font name */
     id font = [NSFont userFixedPitchFontOfSize: -1.0]; /* default */
-    tfontsize = x_default_parameter (f, parms, Qfontsize,
+    x_default_parameter (f, parms, Qfontsize,
                                     make_number (0 /*(int)[font pointSize]*/),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
-    tfont = x_default_parameter (f, parms, Qfont,
+    x_default_parameter (f, parms, Qfont,
                                  build_string ([[font fontName] UTF8String]),
                                  "font", "Font", RES_TYPE_STRING);
   }
@@ -1411,6 +1409,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 {
   static id fileDelegate = nil;
   BOOL ret;
+  BOOL isSave = NILP (mustmatch) && NILP (dir_only_p);
   id panel;
   Lisp_Object fname;
 
@@ -1432,7 +1431,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   if ([dirS characterAtIndex: 0] == '~')
     dirS = [dirS stringByExpandingTildeInPath];
 
-  panel = NILP (mustmatch) && NILP (dir_only_p) ?
+  panel = isSave ?
     (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
@@ -1447,7 +1446,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
       [panel setCanChooseDirectories: YES];
       [panel setCanChooseFiles: NO];
     }
-  else
+  else if (! isSave)
     {
       /* This is not quite what the documentation says, but it is compatible
          with the Gtk+ code.  Also, the menu entry says "Open File...".  */
@@ -1482,8 +1481,8 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 
   if (ret)
     {
-      NSString *str = [panel getFilename];
-      if (! str) str = [panel getDirectory];
+      NSString *str = ns_filename_from_panel (panel);
+      if (! str) str = ns_directory_from_panel (panel);
       if (! str) ret = NO;
       else fname = build_string ([str UTF8String]);
     }
@@ -1910,7 +1909,9 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 #else
   Lisp_Object ret = Qnil;
   NSMenu *svcs;
+#ifdef NS_IMPL_COCOA
   id delegate;
+#endif
 
   check_window_system (NULL);
   svcs = [[NSMenu alloc] initWithTitle: @"Services"];
@@ -1993,15 +1994,9 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
 
   CHECK_STRING (str);
   utfStr = [NSString stringWithUTF8String: SSDATA (str)];
-  if (![utfStr respondsToSelector:
-                 @selector (precomposedStringWithCanonicalMapping)])
-    {
-      message1
-        ("Warning: ns-convert-utf8-nfd-to-nfc unsupported under GNUstep.\n");
-      return Qnil;
-    }
-  else
+#ifdef NS_IMPL_COCOA
     utfStr = [utfStr precomposedStringWithCanonicalMapping];
+#endif
   return build_string ([utfStr UTF8String]);
 }
 
@@ -2156,6 +2151,9 @@ x_set_scroll_bar_default_width (struct frame *f)
 }
 
 
+extern const char *x_get_string_resource (XrmDatabase, char *, char *);
+
+
 /* terms impl this instead of x-get-resource directly */
 const char *
 x_get_string_resource (XrmDatabase rdb, char *name, char *class)
@@ -2204,13 +2202,6 @@ x_pixel_height (struct frame *f)
 }
 
 
-int
-x_screen_planes (struct frame *f)
-{
-  return FRAME_NS_DISPLAY_INFO (f)->n_planes;
-}
-
-
 void
 x_sync (struct frame *f)
 {
@@ -2243,7 +2234,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;
-  CGFloat red, green, blue, alpha;
+  EmacsCGFloat red, green, blue, alpha;
 
   check_window_system (NULL);
   CHECK_STRING (color);
@@ -2328,27 +2319,12 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   return make_number (x_display_pixel_height (dpyinfo));
 }
 
-struct MonitorInfo {
-  XRectangle geom, work;
-  int mm_width, mm_height;
-  char *name;
-};
-
-static void
-free_monitors (struct MonitorInfo *monitors, int n_monitors)
-{
-  int i;
-  for (i = 0; i < n_monitors; ++i)
-    xfree (monitors[i].name);
-  xfree (monitors);
-}
-
 #ifdef NS_IMPL_COCOA
 /* Returns the name for the screen that DICT came from, or NULL.
    Caller must free return value.
 */
 
-char *
+static char *
 ns_screen_name (CGDirectDisplayID did)
 {
   char *name = NULL;
@@ -2377,8 +2353,7 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                 const char *source)
 {
   Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
-  Lisp_Object frame, rest, attributes_list = Qnil;
-  Lisp_Object primary_monitor_attributes = Qnil;
+  Lisp_Object frame, rest;
   NSArray *screens = [NSScreen screens];
   int i;
 
@@ -2404,41 +2379,8 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
 	}
     }
 
-  for (i = 0; i < n_monitors; ++i)
-    {
-      Lisp_Object geometry, workarea, attributes = Qnil;
-      struct MonitorInfo *mi = &monitors[i];
-
-      if (mi->geom.width == 0) continue;
-
-      workarea = list4i (mi->work.x, mi->work.y,
-			 mi->work.width, mi->work.height);
-      geometry = list4i (mi->geom.x, mi->geom.y,
-			 mi->geom.width, mi->geom.height);
-      attributes = Fcons (Fcons (Qsource,
-                                 make_string (source, strlen (source))),
-                          attributes);
-      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
-			  attributes);
-      attributes = Fcons (Fcons (Qmm_size,
-                                 list2i (mi->mm_width, mi->mm_height)),
-                          attributes);
-      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
-      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
-      if (mi->name)
-        attributes = Fcons (Fcons (Qname, make_string (mi->name,
-                                                       strlen (mi->name))),
-                            attributes);
-
-      if (i == primary_monitor)
-        primary_monitor_attributes = attributes;
-      else
-        attributes_list = Fcons (attributes, attributes_list);
-    }
-
-  if (!NILP (primary_monitor_attributes))
-    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
-  return attributes_list;
+  return make_monitor_attribute_list (monitors, n_monitors, primary_monitor,
+                                      monitor_frames, source);
 }
 
 DEFUN ("ns-display-monitor-attributes-list",
@@ -2484,11 +2426,10 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       struct MonitorInfo *m = &monitors[i];
       NSRect fr = [s frame];
       NSRect vfr = [s visibleFrame];
-      NSDictionary *dict = [s deviceDescription];
-      NSValue *resval = [dict valueForKey:NSDeviceResolution];
       short y, vy;
 
 #ifdef NS_IMPL_COCOA
+      NSDictionary *dict = [s deviceDescription];
       NSNumber *nid = [dict objectForKey:@"NSScreenNumber"];
       CGDirectDisplayID did = [nid unsignedIntValue];
 #endif
@@ -2826,14 +2767,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
   [NSApp stop: self];
 }
 #endif
-- (NSString *) getFilename
-{
-  return ns_filename_from_panel (self);
-}
-- (NSString *) getDirectory
-{
-  return ns_directory_from_panel (self);
-}
 
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
@@ -2857,8 +2790,8 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
   [super ok: sender];
 
   // If not choosing directories, and Open is pressed on a directory, return.
-  if (! [self canChooseDirectories] && [self getDirectory] &&
-      ! [self getFilename])
+  if (! [self canChooseDirectories] && ns_directory_from_panel (self) &&
+      ! ns_filename_from_panel (self))
     return;
 
   panelOK = 1;
@@ -2871,14 +2804,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 }
 
 #endif
-- (NSString *) getFilename
-{
-  return ns_filename_from_panel (self);
-}
-- (NSString *) getDirectory
-{
-  return ns_directory_from_panel (self);
-}
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
   // NSOpenPanel inherits NSSavePanel, so passing self is OK.
@@ -2922,11 +2847,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 void
 syms_of_nsfns (void)
 {
-  DEFSYM (Qgeometry, "geometry");
-  DEFSYM (Qworkarea, "workarea");
-  DEFSYM (Qmm_size, "mm-size");
-  DEFSYM (Qframes, "frames");
-  DEFSYM (Qsource, "source");
   Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 

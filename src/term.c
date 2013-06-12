@@ -3189,12 +3189,13 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 #ifdef WINDOWSNT
   {
     struct frame *f = XFRAME (selected_frame);
+    int height, width;
 
-    initialize_w32_display (terminal);
+    initialize_w32_display (terminal, &width, &height);
 
-    FrameRows (tty) = FRAME_LINES (f);
-    FrameCols (tty) = FRAME_COLS (f);
-    tty->specified_window = FRAME_LINES (f);
+    FrameRows (tty) = height;
+    FrameCols (tty) = width;
+    tty->specified_window = height;
 
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
     terminal->char_ins_del_ok = 1;

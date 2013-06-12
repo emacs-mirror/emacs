@@ -267,7 +267,7 @@ including `cl-block' and `cl-eval-when'.
 ;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
 ;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
 ;;;;;;  cl-gensym cl--compiler-macro-cXXr cl--compiler-macro-list*)
-;;;;;;  "cl-macs" "cl-macs.el" "b839ad3781c4f2f849df0639b4eba166")
+;;;;;;  "cl-macs" "cl-macs.el" "fd824d987086eafec0b1cb2efa8312f4")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl--compiler-macro-list* "cl-macs" "\
@@ -699,9 +699,10 @@ OPTION is either a single keyword or (KEYWORD VALUE) where
 KEYWORD can be one of :conc-name, :constructor, :copier, :predicate,
 :type, :named, :initial-offset, :print-function, or :include.
 
-Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
-SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
-one keyword is supported, `:read-only'.  If this has a non-nil
+Each SLOT may instead take the form (SNAME SDEFAULT SOPTIONS...), where
+SDEFAULT is the default value of that slot and SOPTIONS are keyword-value
+pairs for that slot.
+Currently, only one keyword is supported, `:read-only'.  If this has a non-nil
 value, that slot cannot be set via `setf'.
 
 \(fn NAME SLOTS...)" nil t)
@@ -723,6 +724,8 @@ Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier.
 
 \(fn OBJECT TYPE)" nil nil)
+
+(eval-and-compile (put 'cl-typep 'compiler-macro #'cl--compiler-macro-typep))
 
 (autoload 'cl-check-type "cl-macs" "\
 Verify that FORM is of type TYPE; signal an error if not.

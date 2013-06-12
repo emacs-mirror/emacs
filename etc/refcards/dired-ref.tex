@@ -302,8 +302,7 @@ For copies of the GNU Emacs manual, see:
 \key{move to first child subdirectory}{M-C-d}
 
 \section{Mouse Commands}
-\metax{visit file}{Mouse_Button_2}
-\metax{popup menu}{Control-Mouse_Button_3}
+\metax{visit file or directory}{Mouse_Button_2}
 
 \section{Immediate Actions on Files}
 
@@ -326,7 +325,7 @@ For copies of the GNU Emacs manual, see:
 \key{mark all directories}{* /}
 \key{mark all symlinks}{* @}
 \key{mark all executables}{* *}
-\key{invert marking}{* t}
+\key{invert marking}{t}
 \key{mark all files in the current subdir}{* s}
 \key{mark file names matching a regular expression}{* \%}
 \key{change the marks to a different character}{* c}
@@ -340,7 +339,7 @@ For copies of the GNU Emacs manual, see:
 \key{re-read all directories (retains all marks)}{g}
 \key{toggle sorting of current subdir by name/date}{s}
 \key{edit ls switches}{C-u s}
-\key{recover marks, hidden lines, and such}{C-_}
+\key{recover marks, hidden lines, and such (undo)}{C-_}
 \key{hide all subdirectories}{M-\$}
 \key{hide or unhide subdirectory}{\$}
 
@@ -354,7 +353,7 @@ For copies of the GNU Emacs manual, see:
 \key{print file(s)}{P}
 \key{convert filename(s) to lower case}{\% l}
 \key{convert filename(s) to upper case}{\% u}
-\key{delete marked (as opposed to flagged) files}{D}
+\key{delete marked (as opposed to flagged) file(s)}{D}
 %% Huh?
 %%\key{uuencode or uudecode file(s)}{U}
 \key{compress or uncompress file(s)}{Z}
@@ -364,9 +363,9 @@ For copies of the GNU Emacs manual, see:
 \key{make relative symbolic link(s)}{Y}
 \key{make hard link(s)}{H}
 \key{search files for a regular expression}{A}
-\key{query replace regular expression}{Q}
-\key{byte-compile files}{B}
-\key{load files}{L}
+\key{regexp query replace on marked files}{Q}
+\key{byte-compile file(s)}{B}
+\key{load file(s)}{L}
 \key{shell command on file(s)}{!}
 \key{asynchronous shell command on file(s)}{\&}
 

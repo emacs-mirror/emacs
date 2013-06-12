@@ -1149,11 +1149,7 @@ VERSION is of the format (Major . Minor)"
   (set (make-local-variable 'comment-start) "%")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-add) 1)
-  (set (make-local-variable 'comment-start-skip)
-       ;; This complex regexp makes sure that comments cannot start
-       ;; inside quoted atoms or strings
-       (format "^\\(\\(%s\\|%s\\|[^\n\'\"%%]\\)*\\)\\(/\\*+ *\\|%%+ *\\)"
-               prolog-quoted-atom-regexp prolog-string-regexp))
+  (set (make-local-variable 'comment-start-skip) "\\(?:/\\*+ *\\|%%+ *\\)")
   (set (make-local-variable 'parens-require-spaces) nil)
   ;; Initialize Prolog system specific variables
   (dolist (var '(prolog-keywords prolog-types prolog-mode-specificators
@@ -1739,8 +1735,7 @@ This function must be called from the source code buffer."
          (real-file buffer-file-name)
          (command-string (prolog-build-prolog-command compilep file
                                                       real-file first-line))
-         (process (get-process "prolog"))
-         (old-filter (process-filter process)))
+         (process (get-process "prolog")))
     (with-current-buffer buffer
       (delete-region (point-min) (point-max))
       ;; FIXME: Wasn't this supposed to use prolog-inferior-mode?
@@ -1759,8 +1754,7 @@ This function must be called from the source code buffer."
                'prolog-parse-sicstus-compilation-errors))
       (setq buffer-read-only nil)
       (insert command-string "\n"))
-    (save-selected-window
-      (pop-to-buffer buffer))
+    (display-buffer buffer)
     (setq prolog-process-flag t
           prolog-consult-compile-output ""
           prolog-consult-compile-first-line (if first-line (1- first-line) 0)
@@ -1954,20 +1948,6 @@ If COMPILEP is non-nil, compile, otherwise consult."
 ;;-------------------------------------------------------------------
 
 ;; Auxiliary functions
-(defun prolog-make-keywords-regexp (keywords &optional protect)
-  "Create regexp from the list of strings KEYWORDS.
-If PROTECT is non-nil, surround the result regexp by word breaks."
-  (let ((regexp
-         (if (fboundp 'regexp-opt)
-             ;; Emacs 20
-             ;; Avoid compile warnings under earlier versions by using eval
-             (eval '(regexp-opt keywords))
-           ;; Older Emacsen
-           (concat (mapconcat 'regexp-quote keywords "\\|")))
-         ))
-    (if protect
-        (concat "\\<\\(" regexp "\\)\\>")
-      regexp)))
 
 (defun prolog-font-lock-object-matcher (bound)
   "Find SICStus objects method name for font lock.
@@ -2084,20 +2064,16 @@ Argument BOUND is a buffer position limiting searching."
             (if (eq prolog-system 'mercury)
                 (concat
                  "\\<\\("
-                 (prolog-make-keywords-regexp prolog-keywords-i)
+                 (regexp-opt prolog-keywords-i)
                  "\\|"
-                 (prolog-make-keywords-regexp
+                 (regexp-opt
                   prolog-determinism-specificators-i)
                  "\\)\\>")
               (concat
                "^[?:]- *\\("
-               (prolog-make-keywords-regexp prolog-keywords-i)
+               (regexp-opt prolog-keywords-i)
                "\\)\\>"))
               1 prolog-builtin-face))
-          (quoted_atom (list prolog-quoted-atom-regexp
-                             2 'font-lock-string-face 'append))
-          (string (list prolog-string-regexp
-                        1 'font-lock-string-face 'append))
           ;; SICStus specific patterns
           (sicstus-object-methods
            (if (eq prolog-system 'sicstus)
@@ -2107,17 +2083,17 @@ Argument BOUND is a buffer position limiting searching."
           (types
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-types-i t)
+                (regexp-opt prolog-types-i 'words)
                 0 'font-lock-type-face)))
           (modes
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-mode-specificators-i t)
+                (regexp-opt prolog-mode-specificators-i 'words)
                 0 'font-lock-constant-face)))
           (directives
            (if (eq prolog-system 'mercury)
                (list
-                (prolog-make-keywords-regexp prolog-directives-i t)
+                (regexp-opt prolog-directives-i 'words)
                 0 'prolog-warning-face)))
           ;; Inferior mode specific patterns
           (prompt
@@ -2211,8 +2187,6 @@ Argument BOUND is a buffer position limiting searching."
          (list
           head-predicates
           head-predicates-1
-          quoted_atom
-          string
           variables
           important-elements
           important-elements-1

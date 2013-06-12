@@ -1288,6 +1288,7 @@ canonical
 configuration
 version
 copyright
+XGSELOBJ
 KRB4LIB
 DESLIB
 KRB5LIB
@@ -1325,6 +1326,9 @@ FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
 LIBXMU
 LIBXTR6
+NOTIFY_OBJ
+GFILENOTIFY_LIBS
+GFILENOTIFY_CFLAGS
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
@@ -1529,7 +1533,7 @@ with_gconf
 with_gsettings
 with_selinux
 with_gnutls
-with_inotify
+with_file_notification
 with_makeinfo
 with_compress_info
 with_pkg_config_prog
@@ -2257,7 +2261,9 @@ Optional Packages:
   --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
-  --without-inotify       don't compile with inotify (file-watch) support
+  --with-file-notification=LIB
+                          use a file notification library (LIB one of: yes,
+                          gfile, inotify, w32, no)
   --without-makeinfo      don't require makeinfo for building manuals
   --without-compress-info don't compress the installed Info pages
   --with-pkg-config-prog=FILENAME
@@ -4332,11 +4338,24 @@ else
 fi
 
 
-# Check whether --with-inotify was given.
-if test "${with_inotify+set}" = set; then :
-  withval=$with_inotify;
+
+# Check whether --with-file-notification was given.
+if test "${with_file_notification+set}" = set; then :
+  withval=$with_file_notification;  case "${withval}" in
+    y | ye | yes )	val=yes ;;
+    n | no )		val=no  ;;
+    g | gf | gfi | gfil | gfile )	val=gfile ;;
+    i | in | ino | inot | inoti | inotif | inotify )	val=inotify ;;
+    w | w3 | w32 )	val=w32 ;;
+    * ) as_fn_error "\`--with-file-notification=$withval' is invalid;
+this option's value should be \`yes', \`no', \`gfile', \`inotify' or \`w32'.
+\`yes' is a synonym for \`w32' on MS-Windows, and for \`gfile' otherwise." "$LINENO" 5
+    ;;
+   esac
+   with_file_notification=$val
+
 else
-     with_inotify=$with_features
+  with_file_notification=$with_features
 fi
 
 
@@ -10236,7 +10255,6 @@ fi
     W32_RES_LINK="-Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
-    W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
     W32_RES_LINK="\$(EMACSRES)"
@@ -12007,32 +12025,124 @@ fi
 
 
 
-if test "${with_inotify}" = "yes"; then
-   for ac_header in sys/inotify.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
+NOTIFY_OBJ=
+NOTIFY_SUMMARY=no
+
+if test "${with_file_notification}" = "yes"; then
+   if test "${opsys}" = "mingw32"; then
+      with_file_notification=w32
+   else
+      if test "${with_ns}" != yes; then
+        with_file_notification=gfile
+      fi
+   fi
+fi
+
+if test "${with_file_notification}" = "gfile"; then
+
+  succeeded=no
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GFILENOTIFY=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if "$PKG_CONFIG" --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-2.0 >= 2.24" >&5
+$as_echo_n "checking for gio-2.0 >= 2.24... " >&6; }
+
+        if "$PKG_CONFIG" --exists "gio-2.0 >= 2.24" 2>&5 &&
+	   GFILENOTIFY_CFLAGS=`"$PKG_CONFIG" --cflags "gio-2.0 >= 2.24" 2>&5` &&
+	   GFILENOTIFY_LIBS=`"$PKG_CONFIG" --libs "gio-2.0 >= 2.24" 2>&5`; then
+	    edit_cflags="
+	      s,///*,/,g
+	      s/^/ /
+	      s/ -I/ $isystem/g
+	      s/^ //
+	    "
+	    GFILENOTIFY_CFLAGS=`$as_echo "$GFILENOTIFY_CFLAGS" | sed -e "$edit_cflags"`
+	    GFILENOTIFY_LIBS=`$as_echo "$GFILENOTIFY_LIBS" | sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes CFLAGS='$GFILENOTIFY_CFLAGS' LIBS='$GFILENOTIFY_LIBS'" >&5
+$as_echo "yes CFLAGS='$GFILENOTIFY_CFLAGS' LIBS='$GFILENOTIFY_LIBS'" >&6; }
+            succeeded=yes
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GFILENOTIFY_CFLAGS=""
+            GFILENOTIFY_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    GFILENOTIFY_PKG_ERRORS=`("$PKG_CONFIG" --print-errors "gio-2.0 >= 2.24") 2>&1`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GFILENOTIFY=yes
+  else
+     HAVE_GFILENOTIFY=no
+  fi
+
+   if test "$HAVE_GFILENOTIFY" = "yes"; then
+
+$as_echo "#define HAVE_GFILENOTIFY 1" >>confdefs.h
+
+      NOTIFY_OBJ=gfilenotify.o
+      NOTIFY_SUMMARY="yes -lgio (gfile)"
+   fi
+fi
+if test "${with_file_notification}" = "inotify"; then
+   ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_inotify_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_INOTIFY_H 1
-_ACEOF
 
 fi
 
-done
 
    if test "$ac_cv_header_sys_inotify_h" = yes ; then
-     ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
+       ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
 if test "x$ac_cv_func_inotify_init1" = x""yes; then :
 
 fi
 
-   fi
-fi
-if test "$ac_cv_func_inotify_init1" = yes; then
+       if test "$ac_cv_func_inotify_init1" = yes; then
 
 $as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
 
+	   NOTIFY_OBJ=inotify.o
+	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
+	fi
+  fi
 fi
+if test "${with_file_notification}" = "w32"; then
+   ac_fn_c_check_header_mongrel "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
+if test "x$ac_cv_header_windows_h" = x""yes; then :
+
+fi
+
+
+   if test "$ac_cv_header_windows_h" = yes ; then
+
+$as_echo "#define HAVE_W32NOTIFY 1" >>confdefs.h
+
+      NOTIFY_OBJ=w32notify.o
+      NOTIFY_SUMMARY="yes (w32)"
+   fi
+fi
+if test -n "$NOTIFY_OBJ"; then
+
+$as_echo "#define USE_FILE_NOTIFY 1" >>confdefs.h
+
+fi
+
+
+
 
 HAVE_XAW3D=no
 LUCID_LIBW=
@@ -13956,9 +14066,9 @@ $as_echo "no" >&6; }
     # Test old way in case pkg-config doesn't have it (older machines).
     ac_fn_c_check_header_mongrel "$LINENO" "X11/extensions/Xrandr.h" "ac_cv_header_X11_extensions_Xrandr_h" "$ac_includes_default"
 if test "x$ac_cv_header_X11_extensions_Xrandr_h" = x""yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRQueryExtension in -lXrandr" >&5
-$as_echo_n "checking for XRRQueryExtension in -lXrandr... " >&6; }
-if test "${ac_cv_lib_Xrandr_XRRQueryExtension+set}" = set; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XRRGetScreenResources in -lXrandr" >&5
+$as_echo_n "checking for XRRGetScreenResources in -lXrandr... " >&6; }
+if test "${ac_cv_lib_Xrandr_XRRGetScreenResources+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -13972,27 +14082,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char XRRQueryExtension ();
+char XRRGetScreenResources ();
 int
 main ()
 {
-return XRRQueryExtension ();
+return XRRGetScreenResources ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_Xrandr_XRRQueryExtension=yes
+  ac_cv_lib_Xrandr_XRRGetScreenResources=yes
 else
-  ac_cv_lib_Xrandr_XRRQueryExtension=no
+  ac_cv_lib_Xrandr_XRRGetScreenResources=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRQueryExtension" >&5
-$as_echo "$ac_cv_lib_Xrandr_XRRQueryExtension" >&6; }
-if test "x$ac_cv_lib_Xrandr_XRRQueryExtension" = x""yes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xrandr_XRRGetScreenResources" >&5
+$as_echo "$ac_cv_lib_Xrandr_XRRGetScreenResources" >&6; }
+if test "x$ac_cv_lib_Xrandr_XRRGetScreenResources" = x""yes; then :
   HAVE_XRANDR=yes
 fi
 
@@ -16061,6 +16171,40 @@ fi
 done
 
 
+XGSELOBJ=
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether GLib is linked in" >&5
+$as_echo_n "checking whether GLib is linked in... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <glib.h>
+
+int
+main ()
+{
+g_print ("Hello world");
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  links_glib=yes
+else
+  links_glib=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $links_glib" >&5
+$as_echo "$links_glib" >&6; }
+if test "${links_glib}" = "yes"; then
+
+$as_echo "#define HAVE_GLIB 1" >>confdefs.h
+
+  if test "$HAVE_NS" = no;then
+    XGSELOBJ=xgselect.o
+  fi
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nl_langinfo and CODESET" >&5
 $as_echo_n "checking for nl_langinfo and CODESET... " >&6; }
 if test "${emacs_cv_langinfo_codeset+set}" = set; then :
@@ -17025,7 +17169,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
 $as_echo "#define HAVE_X_WINDOWS 1" >>confdefs.h
 
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
@@ -28413,6 +28557,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
+echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

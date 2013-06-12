@@ -196,9 +196,8 @@ an example:
 @end example
 
 @noindent
-In Emacs Lisp, such a list is valid as an expression---it evaluates to
-itself.  But its main use is not to be evaluated as an expression, but
-to be called as a function.
+In Emacs Lisp, such a list is a valid expression which evaluates to
+a function object.
 
   A lambda expression, by itself, has no name; it is an @dfn{anonymous
 function}.  Although lambda expressions can be used this way

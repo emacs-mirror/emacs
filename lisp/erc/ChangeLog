@@ -1,3 +1,7 @@
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el: Require erc at run-time too.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* erc-log.el (erc-network-name): Declare.

@@ -204,7 +204,7 @@ The format is (FUNCTION ARGS...).")
 		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
 
-(define-button-type 'help-function-cmacro
+(define-button-type 'help-function-cmacro ; FIXME: Obsolete since 24.4.
   :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (setq file (locate-library file t))
@@ -213,7 +213,7 @@ The format is (FUNCTION ARGS...).")
 			 (pop-to-buffer (find-file-noselect file))
 			 (goto-char (point-min))
 			 (if (re-search-forward
-			      (format "^[ \t]*(define-compiler-macro[ \t]+%s"
+			      (format "^[ \t]*(\\(cl-\\)?define-compiler-macro[ \t]+%s"
 				      (regexp-quote (symbol-name fun))) nil t)
 			     (forward-line 0)
 			   (message "Unable to find location in file")))

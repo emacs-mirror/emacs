@@ -86,8 +86,8 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
-(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
+(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-engine)
 (cc-require 'cc-styles)
 (cc-require 'cc-cmds)
@@ -97,7 +97,6 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
-(cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
 
 ;; We set these variables during mode init, yet we don't require
@@ -212,7 +211,7 @@ control).  See \"cc-mode.el\" for more info."
      ((cc-bytecomp-fboundp 'set-keymap-parent)
       (set-keymap-parent map c-mode-base-map))
      ;; XEmacs
-     ((cc-bytecomp-fboundp 'set-keymap-parents)
+     ((fboundp 'set-keymap-parents)
       (set-keymap-parents map c-mode-base-map))
      ;; incompatible
      (t (error "CC Mode is incompatible with this version of Emacs")))
@@ -1059,7 +1058,7 @@ Note that the style variables are always made local to the buffer."
   ;; This calls the language variable c-before-font-lock-functions, if non nil.
   ;; This typically sets `syntax-table' properties.
 
-  (c-save-buffer-state ()
+  (c-save-buffer-state (case-fold-search)
     ;; When `combine-after-change-calls' is used we might get calls
     ;; with regions outside the current narrowing.  This has been
     ;; observed in Emacs 20.7.
@@ -1077,12 +1076,13 @@ Note that the style variables are always made local to the buffer."
 	    (setq beg end)))
 
 	;; C-y is capable of spuriously converting category properties
-	;; c-</>-as-paren-syntax into hard syntax-table properties.  Remove
-	;; these when it happens.
+	;; c-</>-as-paren-syntax and c-cpp-delimiter into hard syntax-table
+	;; properties.  Remove these when it happens.
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c-<-as-paren-syntax)
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c->-as-paren-syntax)
+	(c-clear-char-property-with-value beg end 'syntax-table nil)
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)

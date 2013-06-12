@@ -262,7 +262,17 @@ be printed along with the arguments in the trace."
 
 (defun trace--read-args (prompt)
   (cons
-   (intern (completing-read prompt obarray 'fboundp t))
+   (let ((default (function-called-at-point))
+         (beg (string-match ":[ \t]*\\'" prompt)))
+     (intern (completing-read (if default
+                                  (format
+                                   "%s (default %s)%s"
+                                   (substring prompt 0 beg)
+                                   default
+                                   (if beg (substring prompt beg) ": "))
+                                prompt)
+                              obarray 'fboundp t nil nil
+                              (if default (symbol-name default)))))
    (when current-prefix-arg
      (list
       (read-buffer "Output to buffer: " trace-buffer)

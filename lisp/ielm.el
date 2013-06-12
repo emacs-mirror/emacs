@@ -167,7 +167,7 @@ This variable is buffer-local.")
 
 (defvar ielm-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     (define-key map "\C-m" 'ielm-return)
     (define-key map "\C-j" 'ielm-send-input)
     (define-key map "\e\C-x" 'eval-defun)         ; for consistency with
@@ -209,12 +209,13 @@ This variable is buffer-local.")
 
 (defun ielm-complete-symbol nil
   "Complete the Lisp symbol before point."
-  ;; A wrapper for lisp-complete symbol that returns non-nil if
+  ;; A wrapper for completion-at-point that returns non-nil if
   ;; completion has occurred
   (let* ((btick (buffer-modified-tick))
 	 (cbuffer (get-buffer "*Completions*"))
-	 (ctick (and cbuffer (buffer-modified-tick cbuffer))))
-    (lisp-complete-symbol)
+	 (ctick (and cbuffer (buffer-modified-tick cbuffer)))
+	 (completion-at-point-functions '(lisp-completion-at-point)))
+    (completion-at-point)
      ;; completion has occurred if:
     (or
      ;; the buffer has been modified
@@ -461,7 +462,7 @@ Uses the interface provided by `comint-mode' (which see).
   Inputs longer than one line are moved to the line following the
   prompt (but see variable `ielm-dynamic-multiline-inputs').
 
-* \\[comint-dynamic-complete] completes Lisp symbols (or filenames, within strings),
+* \\[completion-at-point] completes Lisp symbols (or filenames, within strings),
   or indents the line if there is nothing to complete.
 
 The current working buffer may be changed (with a call to `set-buffer',
@@ -498,7 +499,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
-  (set (make-local-variable 'comint-dynamic-complete-functions)
+  (set (make-local-variable 'completion-at-point-functions)
        '(ielm-tab comint-replace-by-expanded-history
 	 ielm-complete-filename ielm-complete-symbol))
   (set (make-local-variable 'ielm-prompt-internal) ielm-prompt)
@@ -513,8 +514,6 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (set (make-local-variable 'indent-line-function) 'ielm-indent-line)
   (set (make-local-variable 'ielm-working-buffer) (current-buffer))
   (set (make-local-variable 'fill-paragraph-function) 'lisp-fill-paragraph)
-  (add-hook 'completion-at-point-functions
-            'lisp-completion-at-point nil 'local)
 
   ;; Value holders
   (set (make-local-variable '*) nil)

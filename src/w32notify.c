@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    return, and watch_worker then issues another call to
    ReadDirectoryChangesW.  (Except when it does not, see below.)
 
-   In a GUI session, The WM_EMACS_FILENOTIFY message, posted to the
+   In a GUI session, the WM_EMACS_FILENOTIFY message posted to the
    message queue gets dispatched to the main Emacs window procedure,
    which queues it for processing by w32_read_socket.  When
    w32_read_socket sees this message, it accesses the buffer with file

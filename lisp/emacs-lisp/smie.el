@@ -957,7 +957,7 @@ If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"
     (let ((ender (funcall smie-backward-token-function)))
       (cond
        ((not (and ender (rassoc ender smie-closer-alist)))
-        ;; This not is one of the begin..end we know how to check.
+        ;; This is not one of the begin..end we know how to check.
         (blink-matching-check-mismatch start end))
        ((not start) t)
        ((eq t (car (rassoc ender smie-closer-alist))) nil)
@@ -1012,6 +1012,9 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                      (or (eq (char-before) last-command-event)
                          (not (memq (char-before)
                                     smie-blink-matching-triggers)))
+                     ;; FIXME: For octave's "switch ... case ... case" we flash
+                     ;; `switch' at the end of the first `case' and we burp
+                     ;; "mismatch" at the end of the second `case'.
                      (or smie-blink-matching-inners
                          (not (numberp (nth 2 (assoc token smie-grammar))))))
             ;; The major mode might set blink-matching-check-function
@@ -1021,90 +1024,90 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
             (let ((blink-matching-check-function #'smie-blink-matching-check))
               (blink-matching-open))))))))
 
-(defface smie-matching-block-highlight '((t (:inherit highlight)))
-  "Face used to highlight matching block."
-  :group 'smie)
+(defvar-local smie--matching-block-data-cache nil)
 
-(defvar smie--highlight-matching-block-overlay nil)
-(defvar-local smie--highlight-matching-block-lastpos -1)
+(defun smie--opener/closer-at-point ()
+  "Return (OPENER TOKEN START END) or nil.
+OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
+  (let* ((start (point))
+         ;; Move to a previous position outside of a token.
+         (_ (funcall smie-backward-token-function))
+         ;; Move to the end of the token before point.
+         (btok (funcall smie-forward-token-function))
+         (bend (point)))
+    (cond
+     ;; Token before point is a closer?
+     ((and (>= bend start) (rassoc btok smie-closer-alist))
+      (funcall smie-backward-token-function)
+      (when (< (point) start)
+        (prog1 (list nil btok (point) bend)
+          (goto-char bend))))
+     ;; Token around point is an opener?
+     ((and (> bend start) (assoc btok smie-closer-alist))
+      (funcall smie-backward-token-function)
+      (when (<= (point) start) (list t btok (point) bend)))
+     ((<= bend start)
+      (let ((atok (funcall smie-forward-token-function))
+            (aend (point)))
+        (cond
+         ((< aend start) nil)           ;Hopefully shouldn't happen.
+         ;; Token after point is a closer?
+         ((assoc atok smie-closer-alist)
+          (funcall smie-backward-token-function)
+          (when (<= (point) start)
+            (list t atok (point) aend)))))))))
 
-(defun smie-highlight-matching-block ()
-  (when (and smie-closer-alist
-             (/= (point) smie--highlight-matching-block-lastpos))
-    (unless (overlayp smie--highlight-matching-block-overlay)
-      (setq smie--highlight-matching-block-overlay
-            (make-overlay (point) (point))))
-    (setq smie--highlight-matching-block-lastpos (point))
-    (let ((beg-of-tok
-           (lambda (&optional start)
-             "Move to the beginning of current token at START."
-             (let* ((token)
-                    (start (or start (point)))
-                    (beg (progn
+(defun smie--matching-block-data (orig &rest args)
+  "A function suitable for `show-paren-data-function' (which see)."
+  (if (or (null smie-closer-alist)
+          (eq (point) (car smie--matching-block-data-cache)))
+      (or (cdr smie--matching-block-data-cache)
+          (apply orig args))
+    (setq smie--matching-block-data-cache (list (point)))
+    (unless (nth 8 (syntax-ppss))
+      (condition-case nil
+          (let ((here (smie--opener/closer-at-point)))
+            (when (and here
+                       (or smie-blink-matching-inners
+                           (not (numberp
+                                 (nth (if (nth 0 here) 1 2)
+                                      (assoc (nth 1 here) smie-grammar))))))
+              (let ((there
+                     (cond
+                      ((car here)       ; Opener.
+                       (let ((data (smie-forward-sexp 'halfsexp))
+                             (tend (point)))
+                         (unless (car data)
                            (funcall smie-backward-token-function)
-                           (forward-comment (point-max))
-                           (point)))
-                    (end (progn
-                           (setq token (funcall smie-forward-token-function))
-                           (forward-comment (- (point)))
-                           (point))))
-               (if (and (<= beg start) (<= start end)
-                        (or (assoc token smie-closer-alist)
-                            (rassoc token smie-closer-alist)))
-                   (progn (goto-char beg) token)
-                 (goto-char start)
-                 nil))))
-          (highlight
-           (lambda (beg end)
-             (move-overlay smie--highlight-matching-block-overlay
-                           beg end (current-buffer))
-             (overlay-put smie--highlight-matching-block-overlay
-                          'face 'smie-matching-block-highlight))))
-      (save-excursion
-        (condition-case nil
-            (if (nth 8 (syntax-ppss))
-                (overlay-put smie--highlight-matching-block-overlay 'face nil)
-              (let ((token
-                     (or (funcall beg-of-tok)
-                         (funcall beg-of-tok
-                                  (prog1 (point)
-                                    (funcall smie-forward-token-function))))))
-                (cond
-                 ((assoc token smie-closer-alist) ; opener
-                  (forward-sexp 1)
-                  (let ((end (point))
-                        (closer (funcall smie-backward-token-function)))
-                    (when (rassoc closer smie-closer-alist)
-                      (funcall highlight (point) end))))
-                 ((rassoc token smie-closer-alist) ; closer
-                  (funcall smie-forward-token-function)
-                  (forward-sexp -1)
-                  (let ((beg (point))
-                        (opener (funcall smie-forward-token-function)))
-                    (when (assoc opener smie-closer-alist)
-                      (funcall highlight beg (point)))))
-                 (t (overlay-put smie--highlight-matching-block-overlay
-                                 'face nil)))))
-          (scan-error
-           (overlay-put smie--highlight-matching-block-overlay 'face nil)))))))
-
-(defvar smie--highlight-matching-block-timer nil)
-
-;;;###autoload
-(define-minor-mode smie-highlight-matching-block-mode nil
-  :global t :group 'smie
-  (when (timerp smie--highlight-matching-block-timer)
-    (cancel-timer smie--highlight-matching-block-timer))
-  (setq smie--highlight-matching-block-timer nil)
-  (if smie-highlight-matching-block-mode
-      (progn
-        (remove-hook 'post-self-insert-hook #'smie-blink-matching-open 'local)
-        (setq smie--highlight-matching-block-timer
-              (run-with-idle-timer 0.2 t #'smie-highlight-matching-block)))
-    (when smie--highlight-matching-block-overlay
-      (delete-overlay smie--highlight-matching-block-overlay)
-      (setq smie--highlight-matching-block-overlay nil))
-    (kill-local-variable 'smie--highlight-matching-block-lastpos)))
+                           (list (member (cons (nth 1 here) (nth 2 data))
+                                         smie-closer-alist)
+                                 (point) tend))))
+                      (t                ;Closer.
+                       (let ((data (smie-backward-sexp 'halfsexp))
+                             (htok (nth 1 here)))
+                         (if (car data)
+                             (let* ((hprec (nth 2 (assoc htok smie-grammar)))
+                                    (ttok (nth 2 data))
+                                    (tprec (nth 1 (assoc ttok smie-grammar))))
+                               (when (and (numberp hprec) ;Here is an inner.
+                                          (eq hprec tprec))
+                                 (goto-char (nth 1 data))
+                                 (let ((tbeg (point)))
+                                   (funcall smie-forward-token-function)
+                                   (list t tbeg (point)))))
+                           (let ((tbeg (point)))
+                             (funcall smie-forward-token-function)
+                             (list (member (cons (nth 2 data) htok)
+                                           smie-closer-alist)
+                                   tbeg (point)))))))))
+                ;; Update the cache.
+                (setcdr smie--matching-block-data-cache
+                        (list (nth 2 here)  (nth 3 here)
+                              (nth 1 there) (nth 2 there)
+                              (not (nth 0 there)))))))
+        (scan-error nil))
+      (goto-char (car smie--matching-block-data-cache)))
+    (apply #'smie--matching-block-data orig args)))
 
 ;;; The indentation engine.
 
@@ -1735,37 +1738,45 @@ to which that point should be aligned, if we were to reindent it.")
           (save-excursion (indent-line-to indent))
         (indent-line-to indent)))))
 
-(defun smie-auto-fill ()
+(defun smie-auto-fill (do-auto-fill)
   (let ((fc (current-fill-column)))
-    (while (and fc (> (current-column) fc))
-      (or (unless (or (nth 8 (save-excursion
-                               (syntax-ppss (line-beginning-position))))
-                      (nth 8 (syntax-ppss)))
-            (save-excursion
-              (let ((end (point))
-                    (bsf (progn (beginning-of-line)
+    (when (and fc (> (current-column) fc))
+      ;; The loop below presumes BOL is outside of strings or comments.  Also,
+      ;; sometimes we prefer to fill the comment than the code around it.
+      (unless (or (nth 8 (save-excursion
+                           (syntax-ppss (line-beginning-position))))
+                  (nth 4 (save-excursion
+                           (move-to-column fc)
+                           (syntax-ppss))))
+        (while
+            (and (with-demoted-errors
+                   (save-excursion
+                     (let ((end (point))
+                           (bsf nil)    ;Best-so-far.
+                           (gain 0))
+                       (beginning-of-line)
+                       (while (progn
                                 (smie-indent-forward-token)
-                                (point)))
-                    (gain 0)
-                    curcol)
-                (while (and (<= (point) end)
-                            (<= (setq curcol (current-column)) fc))
-                  ;; FIXME?  `smie-indent-calculate' can (and often will)
-                  ;; return a result that actually depends on the
-                  ;; presence/absence of a newline, so the gain computed here
-                  ;; may not be accurate, but in practice it seems to works
-                  ;; well enough.
-                  (let* ((newcol (smie-indent-calculate))
-                         (newgain (- curcol newcol)))
-                    (when (> newgain gain)
-                      (setq gain newgain)
-                      (setq bsf (point))))
-                  (smie-indent-forward-token))
-                (when (> gain 0)
-                  (goto-char bsf)
-                  (newline-and-indent)
-                  'done))))
-          (do-auto-fill)))))
+                                (and (<= (point) end)
+                                     (<= (current-column) fc)))
+                         ;; FIXME?  `smie-indent-calculate' can (and often
+                         ;; does) return a result that actually depends on the
+                         ;; presence/absence of a newline, so the gain computed
+                         ;; here may not be accurate, but in practice it seems
+                         ;; to work well enough.
+                         (skip-chars-forward " \t")
+                         (let* ((newcol (smie-indent-calculate))
+                                (newgain (- (current-column) newcol)))
+                           (when (> newgain gain)
+                             (setq gain newgain)
+                             (setq bsf (point)))))
+                       (when (> gain 0)
+                         (goto-char bsf)
+                         (newline-and-indent)
+                         'done))))
+                 (> (current-column) fc))))
+      (when (> (current-column) fc)
+        (funcall do-auto-fill)))))
 
 
 (defun smie-setup (grammar rules-function &rest keywords)
@@ -1775,12 +1786,11 @@ RULES-FUNCTION is a set of indentation rules for use on `smie-rules-function'.
 KEYWORDS are additional arguments, which can use the following keywords:
 - :forward-token FUN
 - :backward-token FUN"
-  (set (make-local-variable 'smie-rules-function) rules-function)
-  (set (make-local-variable 'smie-grammar) grammar)
-  (set (make-local-variable 'indent-line-function) 'smie-indent-line)
-  (set (make-local-variable 'normal-auto-fill-function) 'smie-auto-fill)
-  (set (make-local-variable 'forward-sexp-function)
-       'smie-forward-sexp-command)
+  (setq-local smie-rules-function rules-function)
+  (setq-local smie-grammar grammar)
+  (setq-local indent-line-function #'smie-indent-line)
+  (add-function :around (local 'normal-auto-fill-function) #'smie-auto-fill)
+  (setq-local forward-sexp-function #'smie-forward-sexp-command)
   (while keywords
     (let ((k (pop keywords))
           (v (pop keywords)))
@@ -1792,30 +1802,27 @@ KEYWORDS are additional arguments, which can use the following keywords:
         (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))
     (when ca
-      (set (make-local-variable 'smie-closer-alist) ca)
+      (setq-local smie-closer-alist ca)
       ;; Only needed for interactive calls to blink-matching-open.
-      (set (make-local-variable 'blink-matching-check-function)
-           #'smie-blink-matching-check)
-      (unless smie-highlight-matching-block-mode
-        (add-hook 'post-self-insert-hook
-                  #'smie-blink-matching-open 'append 'local))
-      (set (make-local-variable 'smie-blink-matching-triggers)
-           (append smie-blink-matching-triggers
-                   ;; Rather than wait for SPC to blink, try to blink as
-                   ;; soon as we type the last char of a block ender.
-                   (let ((closers (sort (mapcar #'cdr smie-closer-alist)
-                                        #'string-lessp))
-                         (triggers ())
-                         closer)
-                     (while (setq closer (pop closers))
-                       (unless (and closers
-                                    ;; FIXME: this eliminates prefixes of other
-                                    ;; closers, but we should probably
-                                    ;; eliminate prefixes of other keywords
-                                    ;; as well.
-                                    (string-prefix-p closer (car closers)))
-                         (push (aref closer (1- (length closer))) triggers)))
-                     (delete-dups triggers)))))))
+      (setq-local blink-matching-check-function #'smie-blink-matching-check)
+      (add-hook 'post-self-insert-hook
+                #'smie-blink-matching-open 'append 'local)
+      (add-function :around (local 'show-paren-data-function)
+                    #'smie--matching-block-data)
+      ;; Setup smie-blink-matching-triggers.  Rather than wait for SPC to
+      ;; blink, try to blink as soon as we type the last char of a block ender.
+      (let ((closers (sort (mapcar #'cdr smie-closer-alist) #'string-lessp))
+            (triggers ())
+            closer)
+        (while (setq closer (pop closers))
+          (unless
+              ;; FIXME: this eliminates prefixes of other closers, but we
+              ;; should probably eliminate prefixes of other keywords as well.
+              (and closers (string-prefix-p closer (car closers)))
+            (push (aref closer (1- (length closer))) triggers)))
+        (setq-local smie-blink-matching-triggers
+                    (append smie-blink-matching-triggers
+                            (delete-dups triggers)))))))
 
 
 (provide 'smie)

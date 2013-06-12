@@ -1,3 +1,7 @@
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove *.res files.
+
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --enable-gcc-warnings to clang.

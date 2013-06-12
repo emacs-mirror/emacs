@@ -776,8 +776,9 @@ probably use `make-temp-file' instead, except in three circumstances:
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
-\(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
-the current buffer's value of `default-directory' is used.
+\(does not start with slash or tilde); both the directory name and
+a directory's file name are accepted.  If DEFAULT-DIRECTORY is nil or
+missing, the current buffer's value of `default-directory' is used.
 NAME should be a string that is a valid file name for the underlying
 filesystem.
 File name components that are `.' are removed, and
@@ -3489,7 +3490,6 @@ by calling `format-decode', which see.  */)
   EMACS_TIME mtime;
   int fd;
   ptrdiff_t inserted = 0;
-  bool nochange = 0;
   ptrdiff_t how_much;
   off_t beg_offset, end_offset;
   int unprocessed;
@@ -3506,6 +3506,11 @@ by calling `format-decode', which see.  */)
   bool set_coding_system = 0;
   Lisp_Object coding_system;
   bool read_quit = 0;
+  /* If the undo log only contains the insertion, there's no point
+     keeping it.  It's typically when we first fill a file-buffer.  */
+  bool empty_undo_list_p
+    = (!NILP (visit) && NILP (BVAR (current_buffer, undo_list))
+       && BEG == Z);
   Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
   bool we_locked_file = 0;
   bool deferred_remove_unwind_protect = 0;
@@ -4055,9 +4060,7 @@ by calling `format-decode', which see.  */)
       if (bufpos == inserted)
 	{
 	  /* Truncate the buffer to the size of the file.  */
-	  if (same_at_start == same_at_end)
-	    nochange = 1;
-	  else
+	  if (same_at_start != same_at_end)
 	    del_range_byte (same_at_start, same_at_end, 0);
 	  inserted = 0;
 
@@ -4108,6 +4111,7 @@ by calling `format-decode', which see.  */)
 	{
 	  del_range_byte (same_at_start, same_at_end, 0);
 	  temp = GPT;
+	  eassert (same_at_start == GPT_BYTE);
 	  same_at_start = GPT_BYTE;
 	}
       else
@@ -4120,6 +4124,7 @@ by calling `format-decode', which see.  */)
 	= buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
 				  same_at_start - BEGV_BYTE
 				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
+      eassert (same_at_start_charpos == temp - (BEGV - BEG));
       inserted_chars
 	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
 				   same_at_start + inserted - BEGV_BYTE
@@ -4404,7 +4409,7 @@ by calling `format-decode', which see.  */)
 
   if (!NILP (visit))
     {
-      if (!EQ (BVAR (current_buffer, undo_list), Qt) && !nochange)
+      if (empty_undo_list_p)
 	bset_undo_list (current_buffer, Qnil);
 
       if (NILP (handler))
@@ -4546,7 +4551,7 @@ by calling `format-decode', which see.  */)
 	  p = XCDR (p);
 	}
 
-      if (NILP (visit))
+      if (!empty_undo_list_p)
 	{
 	  bset_undo_list (current_buffer, old_undo);
 	  if (CONSP (old_undo) && inserted != old_inserted)

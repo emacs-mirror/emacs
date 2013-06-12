@@ -547,8 +547,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME
 
+/* Define to 1 if using GFile. */
+#undef HAVE_GFILENOTIFY
+
 /* Define to 1 if you have a gif (or ungif) library. */
 #undef HAVE_GIF
+
+/* Define to 1 if GLib is linked in. */
+#undef HAVE_GLIB
 
 /* Define if using GnuTLS. */
 #undef HAVE_GNUTLS
@@ -1033,9 +1039,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
 
-/* Define to 1 if you have the <sys/inotify.h> header file. */
-#undef HAVE_SYS_INOTIFY_H
-
 /* Define to 1 if you have the <sys/inttypes.h> header file. */
 #undef HAVE_SYS_INTTYPES_H
 
@@ -1139,6 +1142,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
+
+/* Define to 1 to use w32notify. */
+#undef HAVE_W32NOTIFY
 
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
@@ -1495,6 +1501,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to nonzero if you want access control list support. */
 #undef USE_ACL
+
+/* Define to 1 if using file notifications. */
+#undef USE_FILE_NOTIFY
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK

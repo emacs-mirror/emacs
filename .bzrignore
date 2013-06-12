@@ -7,9 +7,12 @@
 ./data
 ./etc/icons
 ./etc/__pycache__
+./libexec
 ./lock
 ./README.W32
+./share
 ./site-lisp
+./var
 oo
 oo-spd
 *.dSYM

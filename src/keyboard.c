@@ -308,18 +308,15 @@ static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
 #ifdef HAVE_NTGUI
 Lisp_Object Qlanguage_change;
-#ifdef WINDOWSNT
-Lisp_Object Qfile_w32notify;
-#endif
 #endif
 static Lisp_Object Qdrag_n_drop;
 static Lisp_Object Qsave_session;
 #ifdef HAVE_DBUS
 static Lisp_Object Qdbus_event;
 #endif
-#ifdef HAVE_INOTIFY
-static Lisp_Object Qfile_inotify;
-#endif /* HAVE_INOTIFY */
+#ifdef USE_FILE_NOTIFY
+static Lisp_Object Qfile_notify;
+#endif /* USE_FILE_NOTIFY */
 static Lisp_Object Qconfig_changed_event;
 
 /* Lisp_Object Qmouse_movement; - also an event header */
@@ -1885,7 +1882,7 @@ safe_run_hooks_error (Lisp_Object error_data)
     = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
   Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
   Lisp_Object args[4];
-  args[0] = build_string ("Error in %s (%s): %S");
+  args[0] = build_string ("Error in %s (%S): %S");
   args[1] = hook;
   args[2] = fun;
   args[3] = error_data;
@@ -4013,18 +4010,22 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#ifdef WINDOWSNT
+#ifdef USE_FILE_NOTIFY
       else if (event->kind == FILE_NOTIFY_EVENT)
 	{
+#ifdef HAVE_W32NOTIFY
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
-	  obj = Fcons (Qfile_w32notify,
+	  obj = Fcons (Qfile_notify,
 		       list2 (list3 (make_number (event->code),
 				     XCAR (event->arg),
 				     XCDR (event->arg)),
 			      event->frame_or_window));
+#else
+          obj = make_lispy_event (event);
+#endif
 	  kbd_fetch_ptr = event + 1;
 	}
-#endif
+#endif /* USE_FILE_NOTIFY */
       else if (event->kind == SAVE_SESSION_EVENT)
         {
           obj = Fcons (Qsave_session, Fcons (event->arg, Qnil));
@@ -4081,13 +4082,6 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  obj = make_lispy_event (event);
 	  kbd_fetch_ptr = event + 1;
 	}
-#endif
-#ifdef HAVE_INOTIFY
-      else if (event->kind == FILE_NOTIFY_EVENT)
-        {
-          obj = make_lispy_event (event);
-          kbd_fetch_ptr = event + 1;
-        }
 #endif
       else if (event->kind == CONFIG_CHANGED_EVENT)
 	{
@@ -5991,12 +5985,12 @@ make_lispy_event (struct input_event *event)
       }
 #endif /* HAVE_DBUS */
 
-#ifdef HAVE_INOTIFY
+#if defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY
     case FILE_NOTIFY_EVENT:
       {
-        return Fcons (Qfile_inotify, event->arg);
+        return Fcons (Qfile_notify, event->arg);
       }
-#endif /* HAVE_INOTIFY */
+#endif /* defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY */
 
     case CONFIG_CHANGED_EVENT:
 	return Fcons (Qconfig_changed_event,
@@ -7398,7 +7392,8 @@ menu_bar_items (Lisp_Object old)
     Lisp_Object *tmaps;
 
     /* Should overriding-terminal-local-map and overriding-local-map apply?  */
-    if (!NILP (Voverriding_local_map_menu_flag))
+    if (!NILP (Voverriding_local_map_menu_flag)
+	&& !NILP (Voverriding_local_map))
       {
 	/* Yes, use them (if non-nil) as well as the global map.  */
 	maps = alloca (3 * sizeof (maps[0]));
@@ -7418,8 +7413,11 @@ menu_bar_items (Lisp_Object old)
 	Lisp_Object tem;
 	ptrdiff_t nminor;
 	nminor = current_minor_maps (NULL, &tmaps);
-	maps = alloca ((nminor + 3) * sizeof *maps);
+	maps = alloca ((nminor + 4) * sizeof *maps);
 	nmaps = 0;
+	tem = KVAR (current_kboard, Voverriding_terminal_local_map);
+	if (!NILP (tem) && !NILP (Voverriding_local_map_menu_flag))
+	  maps[nmaps++] = tem;
 	if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	  maps[nmaps++] = tem;
 	memcpy (maps + nmaps, tmaps, nminor * sizeof (maps[0]));
@@ -7944,7 +7942,8 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
      to process.  */
 
   /* Should overriding-terminal-local-map and overriding-local-map apply?  */
-  if (!NILP (Voverriding_local_map_menu_flag))
+  if (!NILP (Voverriding_local_map_menu_flag)
+      && !NILP (Voverriding_local_map))
     {
       /* Yes, use them (if non-nil) as well as the global map.  */
       maps = alloca (3 * sizeof *maps);
@@ -7964,8 +7963,11 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       Lisp_Object tem;
       ptrdiff_t nminor;
       nminor = current_minor_maps (NULL, &tmaps);
-      maps = alloca ((nminor + 3) * sizeof *maps);
+      maps = alloca ((nminor + 4) * sizeof *maps);
       nmaps = 0;
+      tem = KVAR (current_kboard, Voverriding_terminal_local_map);
+      if (!NILP (tem) && !NILP (Voverriding_local_map_menu_flag))
+	maps[nmaps++] = tem;
       if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	maps[nmaps++] = tem;
       memcpy (maps + nmaps, tmaps, nminor * sizeof (maps[0]));
@@ -8148,11 +8150,12 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 #if !defined (USE_GTK) && !defined (HAVE_NS)
 	  /* If we use build_desired_tool_bar_string to render the
 	     tool bar, the separator is rendered as an image.  */
-	  PROP (TOOL_BAR_ITEM_IMAGES)
-	    = menu_item_eval_property (Vtool_bar_separator_image_expression);
-	  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qnil;
-	  PROP (TOOL_BAR_ITEM_SELECTED_P) = Qnil;
-	  PROP (TOOL_BAR_ITEM_CAPTION) = Qnil;
+	  set_prop (TOOL_BAR_ITEM_IMAGES,
+		    (menu_item_eval_property
+		     (Vtool_bar_separator_image_expression)));
+	  set_prop (TOOL_BAR_ITEM_ENABLED_P, Qnil);
+	  set_prop (TOOL_BAR_ITEM_SELECTED_P, Qnil);
+	  set_prop (TOOL_BAR_ITEM_CAPTION, Qnil);
 #endif
 	  return 1;
 	}
@@ -11006,17 +11009,13 @@ syms_of_keyboard (void)
   DEFSYM (Qlanguage_change, "language-change");
 #endif
 
-#ifdef WINDOWSNT
-  DEFSYM (Qfile_w32notify, "file-w32notify");
-#endif
-
 #ifdef HAVE_DBUS
   DEFSYM (Qdbus_event, "dbus-event");
 #endif
 
-#ifdef HAVE_INOTIFY
-  DEFSYM (Qfile_inotify, "file-inotify");
-#endif /* HAVE_INOTIFY */
+#ifdef USE_FILE_NOTIFY
+  DEFSYM (Qfile_notify, "file-notify");
+#endif /* USE_FILE_NOTIFY */
 
   DEFSYM (QCenable, ":enable");
   DEFSYM (QCvisible, ":visible");
@@ -11453,10 +11452,7 @@ tool-bar separators natively.  Otherwise it is unused (e.g. on GTK).  */);
 
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
-		 doc: /* Per-terminal keymap that overrides all other local keymaps.
-If this variable is non-nil, it is used as a keymap instead of the
-buffer's local map, and the minor mode keymaps and text property keymaps.
-It also replaces `overriding-local-map'.
+		 doc: /* Per-terminal keymap that takes precedence over all other keymaps.
 
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.
@@ -11466,7 +11462,7 @@ terminal device.
 See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_LISP ("overriding-local-map", Voverriding_local_map,
-	       doc: /* Keymap that overrides all other local keymaps.
+	       doc: /* Keymap that overrides almost all other local keymaps.
 If this variable is non-nil, it is used as a keymap--replacing the
 buffer's local map, the minor mode keymaps, and char property keymaps.  */);
   Voverriding_local_map = Qnil;
@@ -11762,20 +11758,18 @@ keys_of_keyboard (void)
 			    "dbus-handle-event");
 #endif
 
-#ifdef HAVE_INOTIFY
-  /* Define a special event which is raised for inotify callback
+#ifdef USE_FILE_NOTIFY
+  /* Define a special event which is raised for notification callback
      functions.  */
-  initial_define_lispy_key (Vspecial_event_map, "file-inotify",
-                            "inotify-handle-event");
-#endif /* HAVE_INOTIFY */
+  initial_define_lispy_key (Vspecial_event_map, "file-notify",
+                            "file-notify-handle-event");
+#endif /* USE_FILE_NOTIFY */
 
   initial_define_lispy_key (Vspecial_event_map, "config-changed-event",
 			    "ignore");
 #if defined (WINDOWSNT)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
-  initial_define_lispy_key (Vspecial_event_map, "file-w32notify",
-			    "w32notify-handle-event");
 #endif
 }
 

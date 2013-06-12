@@ -155,6 +155,8 @@ For a description of possible values, see `vc-check-master-templates'."
             (vc-sccs-state file))))
     (vc-sccs-state file)))
 
+(autoload 'vc-expand-dirs "vc")
+
 (defun vc-sccs-dir-status (dir update-function)
   ;; FIXME: this function should be rewritten, using `vc-expand-dirs'
   ;; is not TRTD because it returns files from multiple backends.
@@ -215,6 +217,8 @@ Optional string REV is a revision."
   "Create a new SCCS repository."
   ;; SCCS is totally file-oriented, so all we have to do is make the directory
   (make-directory "SCCS"))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-sccs-register (files &optional rev comment)
   "Register FILES into the SCCS version-control system.
@@ -356,6 +360,9 @@ Remaining arguments are ignored."
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
   (when limit 'limit-unsupported))
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+(autoload 'vc-delistify "vc-dispatcher")
+
 ;; FIXME use sccsdiff if present?
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
@@ -432,6 +439,9 @@ Remaining arguments are ignored."
 ;;; our own set of name-to-revision mappings.
 ;;;
 
+(autoload 'vc-tag-precondition "vc")
+(declare-function vc-file-tree-walk "vc" (dirname func &rest args))
+
 (defun vc-sccs-create-tag (dir name branchp)
   (when branchp
     (error "SCCS backend does not support module branches"))
@@ -459,6 +469,8 @@ Remaining arguments are ignored."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward  "%[A-Z]%" nil t)))
+
+(autoload 'vc-rename-master "vc")
 
 (defun vc-sccs-rename-file (old new)
   ;; Move the master file (using vc-rcs-master-templates).

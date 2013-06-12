@@ -485,6 +485,20 @@ Return a list as per `semantic-ctxt-current-symbol'.
 Return nil if there is nothing relevant."
   nil)
 
+;;; Tag Formatting
+;;
+(define-mode-local-override semantic-format-tag-abbreviate python-mode (tag &optional parent color)
+  "Format an abbreviated tag for python.
+Shortens 'code' tags, but passes through for others."
+  (cond ((semantic-tag-of-class-p tag 'code)
+	 ;; Just take the first line.
+	 (let ((name (semantic-tag-name tag)))
+	   (when (string-match "\n" name)
+	     (setq name (substring name 0 (match-beginning 0))))
+	   name))
+	(t
+	 (semantic-format-tag-abbreviate-default tag parent color))))
+
 ;;; Enable Semantic in `python-mode'.
 ;;
 

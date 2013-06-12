@@ -114,6 +114,8 @@ cid: URL as the argument.")
 (defvar shr-stylesheet nil)
 (defvar shr-base nil)
 (defvar shr-ignore-cache nil)
+(defvar shr-external-rendering-functions nil)
+(defvar shr-final-table-render nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -291,7 +293,12 @@ size, and full-buffer size."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+  (let ((function
+	 (or
+	  ;; Allow other packages to override (or provide) rendering
+	  ;; of elements.
+	  (cdr (assq (car dom) shr-external-rendering-functions))
+	  (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
 	(style (cdr (assq :style (cdr dom))))
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
@@ -478,20 +485,27 @@ size, and full-buffer size."
     (not failed)))
 
 (defun shr-expand-url (url)
-  (cond
-   ;; Absolute URL.
-   ((or (not url)
-	(string-match "\\`[a-z]*:" url)
-	(not shr-base))
-    url)
-   ((and (string-match "\\`//" url)
-	 (string-match "\\`[a-z]*:" shr-base))
-    (concat (match-string 0 shr-base) url))
-   ((and (not (string-match "/\\'" shr-base))
-	 (not (string-match "\\`/" url)))
-    (concat shr-base "/" url))
-   (t
-    (concat shr-base url))))
+  (if (or (not url)
+	  (string-match "\\`[a-z]*:" url)
+	  (not shr-base))
+      ;; Absolute URL.
+      url
+    (let ((base shr-base))
+      ;; Chop off query string.
+      (when (string-match "^\\([^?]+\\)[?]" base)
+	(setq base (match-string 1 base)))
+      (cond
+       ((and (string-match "\\`//" url)
+	     (string-match "\\`[a-z]*:" base))
+	(concat (match-string 0 base) url))
+       ((and (not (string-match "/\\'" base))
+	     (not (string-match "\\`/" url)))
+	(concat base "/" url))
+       ((and (string-match "\\`/" url)
+	     (string-match "\\(\\`[^:]*://[^/]+\\)/" base))
+	(concat (match-string 1 base) url))
+       (t
+	(concat base url))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -631,12 +645,13 @@ size, and full-buffer size."
 		  (overlay-put overlay 'face 'default)))
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (if (fboundp 'image-multi-frame-p)
-		    ;; Only animate multi-frame things that specify a
-		    ;; delay; eg animated gifs as opposed to
-		    ;; multi-page tiffs.  FIXME?
-		    (cdr (image-multi-frame-p image))
-		  (image-animated-p image))
+	  (when (cond ((fboundp 'image-multi-frame-p)
+		       ;; Only animate multi-frame things that specify a
+		       ;; delay; eg animated gifs as opposed to
+		       ;; multi-page tiffs.  FIXME?
+		       (cdr (image-multi-frame-p image)))
+		      ((fboundp 'image-animated-p)
+		       (image-animated-p image)))
 	    (image-animate image nil 60)))
 	image)
     (insert alt)))
@@ -944,7 +959,8 @@ ones, in case fg and bg are nil."
       plist)))
 
 (defun shr-tag-base (cont)
-  (setq shr-base (cdr (assq :href cont))))
+  (setq shr-base (cdr (assq :href cont)))
+  (shr-generic cont))
 
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
@@ -1166,7 +1182,8 @@ ones, in case fg and bg are nil."
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
-    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
+    (let ((shr-final-table-render t))
+      (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
   ;; Finally, insert all the images after the table.  The Emacs buffer
   ;; model isn't strong enough to allow us to put the images actually
   ;; into the tables.

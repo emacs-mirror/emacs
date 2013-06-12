@@ -50,7 +50,6 @@
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
 
-(eval-when-compile (require 'spam-report))
 (eval-when-compile (require 'hashcash))
 
 ;; for nnimap-split-download-body-default
@@ -60,11 +59,10 @@
 (autoload 'query-dig "dig")
 
 ;; autoload spam-report
-(eval-and-compile
-  (autoload 'spam-report-gmane "spam-report")
-  (autoload 'spam-report-gmane-spam "spam-report")
-  (autoload 'spam-report-gmane-ham "spam-report")
-  (autoload 'spam-report-resend "spam-report"))
+(autoload 'spam-report-gmane "spam-report")
+(autoload 'spam-report-gmane-spam "spam-report")
+(autoload 'spam-report-gmane-ham "spam-report")
+(autoload 'spam-report-resend "spam-report")
 
 ;; autoload gnus-registry
 (autoload 'gnus-registry-group-count "gnus-registry")
@@ -2473,7 +2471,10 @@ With a non-nil REMOVE, remove the ADDRESSES."
 (defun spam-report-resend-register-ham-routine (articles)
   (spam-report-resend-register-routine articles t))
 
+(defvar spam-report-resend-to)
+
 (defun spam-report-resend-register-routine (articles &optional ham)
+  (require 'spam-report)
   (let* ((resend-to-gp
           (if ham
               (gnus-parameter-ham-resend-to gnus-newsgroup-name)
