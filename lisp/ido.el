@@ -3288,7 +3288,7 @@ for first matching file."
            (shell-command-to-string
             (concat "find "
                     (shell-quote-argument dir)
-                    " -name "
+                    (if ido-case-fold " -iname " " -name ")
                     (shell-quote-argument
                      (concat (if prefix "" "*") file "*"))
                     " -type " (if finddir "d" "f") " -print")))))
