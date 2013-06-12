@@ -1,3 +1,23 @@
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* textmodes/reftex-cite.el (reftex-cite-regexp-hist)
+	(reftex-citation-prompt, reftex-default-bibliography)
+	(reftex-bib-or-thebib, reftex-get-bibfile-list)
+	(reftex-pop-to-bibtex-entry, reftex-extract-bib-entries)
+	(reftex-bib-sort-author, reftex-bib-sort-year)
+	(reftex-bib-sort-year-reverse, reftex-get-crossref-alist)
+	(reftex-extract-bib-entries-from-thebibliography)
+	(reftex-get-bibkey-default, reftex-get-bib-names)
+	(reftex-parse-bibtex-entry, reftex-get-bib-field)
+	(reftex-format-bib-entry, reftex-parse-bibitem)
+	(reftex-format-bibitem, reftex-do-citation)
+	(reftex-figure-out-cite-format, reftex-offer-bib-menu)
+	(reftex-restrict-bib-matches, reftex-extract-bib-file)
+	(reftex-insert-bib-matches, reftex-format-citation)
+	(reftex-make-cite-echo-string, reftex-bibtex-selection-callback)
+	(reftex-create-bibtex-file): Add docstrings, mostly by converting
+	existing comments into docstrings.
+
 2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ibuf-ext.el (ibuffer-mark-help-buffers): Doc fix.
