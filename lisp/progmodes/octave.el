@@ -772,7 +772,7 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-send-list-and-digest
      (list "more off;\n"
            (unless (equal inferior-octave-output-string ">> ")
-             "PS1 ('\\\\s> ');\n")
+             "PS1 ('\\s> ');\n")
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
              (format "source ('%s');\n" inferior-octave-startup-file))))
