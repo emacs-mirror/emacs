@@ -435,14 +435,19 @@ suitable file is found, return nil."
   (let ((handler (function-get function 'compiler-macro)))
     (when handler
       (insert "\nThis function has a compiler macro")
-      (let ((lib (get function 'compiler-macro-file)))
-        ;; FIXME: rather than look at the compiler-macro-file property,
-        ;; just look at `handler' itself.
-        (when (stringp lib)
-          (insert (format " in `%s'" lib))
-          (save-excursion
-            (re-search-backward "`\\([^`']+\\)'" nil t)
-            (help-xref-button 1 'help-function-cmacro function lib))))
+      (if (symbolp handler)
+          (progn
+            (insert (format " `%s'" handler))
+            (save-excursion
+              (re-search-backward "`\\([^`']+\\)'" nil t)
+              (help-xref-button 1 'help-function handler)))
+        ;; FIXME: Obsolete since 24.4.
+        (let ((lib (get function 'compiler-macro-file)))
+          (when (stringp lib)
+            (insert (format " in `%s'" lib))
+            (save-excursion
+              (re-search-backward "`\\([^`']+\\)'" nil t)
+              (help-xref-button 1 'help-function-cmacro function lib)))))
       (insert ".\n"))))
 
 (defun help-fns--signature (function doc real-def real-function)

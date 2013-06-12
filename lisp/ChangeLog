@@ -1,4 +1,15 @@
 2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-fns--compiler-macro): If the handler function is
+	named, then put a link to it.
+	* help-mode.el (help-function-cmacro): Adjust regexp for cl-lib names.
+	* emacs-lisp/cl-macs.el (cl--compiler-macro-typep): New function.
+	(cl-typep): Use it.
+	(cl-eval-when): Simplify debug spec.
+	(cl-define-compiler-macro): Use eval-and-compile.  Give a name to the
+	compiler-macro function instead of setting `compiler-macro-file'.
+
+2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 	    Daniel Hackney  <dan@haxney.org>
 
 	First part of Daniel Hackney's patch to package.el.
