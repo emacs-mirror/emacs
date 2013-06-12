@@ -108,7 +108,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
 	* inc/ms-w32.h (EOPNOTSUPP): New macro.
 
@@ -636,7 +636,7 @@
 
 2012-09-01  Daniel Colascione  <dancol@dancol.org>
 
-	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring.
 
 2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -934,8 +934,8 @@
 	(install-other-dirs-nmake, install-other-dirs-gmake): Depend on `all'.
 	(install-shortcuts): Depend on $(INSTALL_DIR)/bin.  Copy addpm.exe
 	here.
-	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist): Depend
-	on create-tmp-dist-dir.
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist):
+	Depend on create-tmp-dist-dir.
 
 	* nmake.defs (DIRNAME): New variable.
 	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of

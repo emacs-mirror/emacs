@@ -1523,7 +1523,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 
 ;;;###autoload
 (defun ibuffer-mark-help-buffers ()
-  "Mark buffers like *Help*, *Apropos*, *Info*."
+  "Mark buffers whose major mode is in variable `ibuffer-help-buffer-modes'."
   (interactive)
   (ibuffer-mark-on-buffer
    #'(lambda (buf)

@@ -246,7 +246,7 @@ Matching is independent of case if `case-fold-search' is non-nil and
 FROM-STRING has no uppercase letters.  Replacement transfers the case
 pattern of the old text to the new text, if `case-replace' and
 `case-fold-search' are non-nil and FROM-STRING has no uppercase
-letters.  \(Transferring the case pattern means that if the old text
+letters.  (Transferring the case pattern means that if the old text
 matched is all caps, or capitalized, then its replacement is upcased
 or capitalized.)
 
@@ -1175,8 +1175,8 @@ is called only during interactive use.
 
 For example, to check for occurrence of symbol at point use
 
-    \(setq occur-read-regexp-defaults-function
-	  'find-tag-default-as-regexp\).")
+    (setq occur-read-regexp-defaults-function
+	  'find-tag-default-as-regexp).")
 
 (defun occur-read-regexp-defaults ()
   "Return the latest regexp from `regexp-history'.
@@ -1874,7 +1874,7 @@ It is called with three arguments, as if it were
 
 (defun replace-search (search-string limit regexp-flag delimited-flag
 				     case-fold-search)
-  "Search for the next occurence of SEARCH-STRING to replace."
+  "Search for the next occurrence of SEARCH-STRING to replace."
   ;; Let-bind global isearch-* variables to values used
   ;; to search the next replacement.  These let-bindings
   ;; should be effective both at the time of calling

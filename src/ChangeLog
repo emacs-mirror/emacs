@@ -1,3 +1,34 @@
+2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* fileio.c (expand_file_name): Doc fix.
+
+2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Tickle glib by waiting for Emacs itself, not for process 0 (Bug#14569).
+	* process.c (init_process_emacs) [HAVE_GLIB && !WINDOWSNT]:
+	Wait for self, not for 0.  This can't hurt on GNU or similar
+	system, and may help with Cygwin.
+
+	* keyboard.c: Don't use PROP (...) as an lvalue.
+	(parse_tool_bar_item) [!USE_GTK && !HAVE_NS]:
+	Use set_prop (A, B), not PROP (A) = B.
+
+2013-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_it_property): Use it->window instead of generating
+	a Lisp object from it->w.
+
+2013-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (get_it_property): If it->object is a buffer, pass to
+	get-char-property the window that is being rendered, instead of
+	the buffer, to support window-specific overlays.  (Bug#14575)
+	(compute_display_string_pos): When W is NULL, use the current
+	buffer as the object to pass to get-char-property.
+	(Fcurrent_bidi_paragraph_direction): Assign NULL to the window
+	pointer member of the bidi iterator, since no window is pertinent
+	to this function.
+
 2013-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_fetch_char): Accept additional argument, the window
@@ -8,8 +39,8 @@
 	* xdisp.c (init_from_display_pos, init_iterator)
 	(handle_single_display_spec, next_overlay_string)
 	(get_overlay_strings_1, reseat_1, reseat_to_string)
-	(push_prefix_prop, Fcurrent_bidi_paragraph_direction): Set
-	bidi_it.w member from it->w.
+	(push_prefix_prop, Fcurrent_bidi_paragraph_direction):
+	Set bidi_it.w member from it->w.
 	(compute_display_string_pos): Accept additional argument, the
 	window being displayed, and pass it to Fget_char_property.
 	(Bug#14575)
@@ -20,7 +51,7 @@
 
 2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xgselect.c: Remove unneeded include xterm.h
+	* xgselect.c: Remove unneeded include xterm.h.
 
 	* process.c (wait_reading_process_output): Check for NS before GLIB.
 	GLIB may be linked in due to rsvg, but ns_select must be called.
@@ -322,8 +353,8 @@
 	(update_frame_tool_bar): Update code for GNUStep.
 	(clearAll): New method.
 	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
-	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP. Move
-	identifierToItem setObject and activeIdentifiers addObject before
+	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
+	Move identifierToItem setObject and activeIdentifiers addObject before
 	call to insertItemWithItemIdentifier.
 	(validateVisibleItems): Fix indentation.
 	(toolbarAllowedItemIdentifiers:): Return activeIdentifiers.
@@ -337,7 +368,7 @@
 	Use F suffix on floats.
 	(ns_char_width): Returns CGFloat.
 	(ns_ascii_average_width): w is CGFloat instead of float.
-	(nsfont_draw): cbuf and c are unsigned. Cast to char* in call to
+	(nsfont_draw): cbuf and c are unsigned.  Cast to char* in call to
 	DPSxshow.
 	(ns_glyph_metrics): CGFloat instead of float.
 
@@ -632,7 +663,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* Makefile.in (LIB_ACL): New macro.
 	(LIBACL_LIBS): Remove.
 	(LIBES): Use LIB_ACL, not LIBACL_LIBS.
@@ -3065,11 +3096,10 @@
 2012-12-31  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	* xterm.c (scroll-bar-adjust-thumb-portion): New variable to
-	determine whether scroll bar thumb size should be adjusted or
-	not. Use variable for MOTIF.
+	determine whether scroll bar thumb size should be adjusted or not.
+	Use variable for MOTIF.
 
-	* gtkutil.c (scroll-bar-adjust-thumb-portion): Use variable for
-	GTK.
+	* gtkutil.c (scroll-bar-adjust-thumb-portion): Use variable for GTK.
 
 2013-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -3614,7 +3644,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* dired.c (Ffile_attributes): Return t as the 9th attribute,
 	to mark it as a placeholder.  The old value was often wrong.
 	The only user of this attribute has been changed to use

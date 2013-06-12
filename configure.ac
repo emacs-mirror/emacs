@@ -216,7 +216,7 @@ this option's value should be `yes', `no', `gfile', `inotify' or `w32'.
    esac
    with_file_notification=$val
  ],
- [with_file_notification=yes])
+ [with_file_notification=$with_features])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.

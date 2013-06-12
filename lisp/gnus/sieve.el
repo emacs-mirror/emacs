@@ -109,7 +109,6 @@ require \"fileinto\";
     ;; various
     (define-key map "?" 'sieve-help)
     (define-key map "h" 'sieve-help)
-    (define-key map "q" 'kill-buffer)
     ;; activating
     (define-key map "m" 'sieve-activate)
     (define-key map "u" 'sieve-deactivate)
@@ -152,6 +151,8 @@ require \"fileinto\";
 (defun sieve-manage-quit ()
   "Quit."
   (interactive)
+  (sieve-manage-close sieve-manage-buffer)
+  (kill-buffer sieve-manage-buffer)
   (kill-buffer (current-buffer)))
 
 (defun sieve-activate (&optional pos)
@@ -206,6 +207,7 @@ require \"fileinto\";
       (insert sieve-template))
     (sieve-mode)
     (setq sieve-buffer-script-name name)
+    (beginning-of-buffer)
     (message
      (substitute-command-keys
       "Press \\[sieve-upload] to upload script to server."))))
@@ -256,10 +258,9 @@ Used to bracket operations which move point in the sieve-buffer."
   (setq buffer-read-only nil)
   (erase-buffer)
   (buffer-disable-undo)
-  (insert "\
-Server  : " server ":" (or port sieve-manage-default-port) "
-
-")
+  (let* ((port (or port sieve-manage-default-port))
+         (header (format "Server : %s:%s\n\n" server port)))
+    (insert header))
   (set (make-local-variable 'sieve-buffer-header-end)
        (point-max)))
 
@@ -305,7 +306,7 @@ Server  : " server ":" (or port sieve-manage-default-port) "
   (with-current-buffer
       (or ;; open server
        (set (make-local-variable 'sieve-manage-buffer)
-	    (sieve-manage-open server))
+	    (sieve-manage-open server port))
        (error "Error opening server %s" server))
     (sieve-manage-authenticate)))
 

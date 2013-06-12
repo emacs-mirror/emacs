@@ -1,3 +1,14 @@
+2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	--without-all should imply --with-file-notification=no.  (Bug#14569)
+	* configure.ac (with_file_notification): Default to $with_features.
+
+2013-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-06-02 sig2str: port to C++
+	2013-05-29 c-ctype, regex, verify: port to gcc -std=c90 -pedantic
+
 2013-06-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.ac (HAVE_GLIB): Only set XGSELOBJ if HAVE_NS = no.
@@ -6,8 +17,8 @@
 2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
 
 	* Makefile.in (msys_to_w32): Modify to support d:\foo file names.
-	(msys_lisppath_to_w32, msys_prefix_subst, msys_sed_sh_escape): New
-	variables.
+	(msys_lisppath_to_w32, msys_prefix_subst, msys_sed_sh_escape):
+	New variables.
 	(epaths-force-w32): Use them.  (Bug#14513)
 
 2013-06-03  Michael Albinus  <michael.albinus@gmx.de>
@@ -28,7 +39,7 @@
 
 	* configure.ac (file-notification): New option, replaces inotify option.
 	(HAVE_W32): Remove w32notify.o.
-	(with_file_notification): Add checks for glib and w32. Adapt check
+	(with_file_notification): Add checks for glib and w32.  Adapt check
 	for inotify.
 	(Summary): Add entry for file notification.
 
@@ -118,7 +129,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* configure.ac: Remove -with-acl option, since Gnulib does that for
 	us now.
 	(LIBACL_LIBS): Remove; no longer needed.
@@ -490,7 +501,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* configure.ac (BSD4_2): Remove; no longer needed.
 
 2012-12-13  Glenn Morris  <rgm@gnu.org>
@@ -2180,7 +2191,7 @@
 
 2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* make-dist (README.W32): Include file in source tarball. (Bug#9750)
+	* make-dist (README.W32): Include file in source tarball.  (Bug#9750)
 
 	* lib/makefile.w32-in (PRAGMA_SYSTEM_HEADER): Move to platform
 	specific makefiles to support getopt_.h generation with MSVC.

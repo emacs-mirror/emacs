@@ -123,8 +123,6 @@
 
 (easy-mmode-defmap log-view-mode-map
   '(
-    ;; FIXME: (copy-keymap special-mode-map) instead
-    (" "	. 	scroll-up-command)
     ("-"	. 	negative-argument)
     ("0"	.	digit-argument)
     ("1"	.	digit-argument)
@@ -136,14 +134,6 @@
     ("7"	.	digit-argument)
     ("8"	.	digit-argument)
     ("9"	.	digit-argument)
-    ("<"	.	beginning-of-buffer)
-    (">"	.	end-of-buffer)
-    ("?"	.	describe-mode)
-    ("h"	.	describe-mode)
-    (""	. 	scroll-down-command)
-    (33554464	.	scroll-down-command)
-    ("q"	.	quit-window)
-    ("g"	.	revert-buffer)
 
     ("\C-m" . log-view-toggle-entry-display)
     ("m" . log-view-toggle-mark-entry)
@@ -162,6 +152,7 @@
     ("\M-n" . log-view-file-next)
     ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
+  :inherit special-mode-map
   :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map

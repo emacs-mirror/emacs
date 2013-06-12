@@ -1204,7 +1204,7 @@ files and directories.
 @item x
 Hide files with @samp{up-to-date} status
 (@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
-that are in state of item at point from display.
+whose state is that of the item at point.
 @end table
 
 @findex vc-dir-mark
@@ -1267,7 +1267,10 @@ bring them back at a later time).
 @cindex branch (version control)
 
   One use of version control is to support multiple independent lines
-of development, which are called @dfn{branches}.
+of development, which are called @dfn{branches}.  Amongst other
+things, branches can be used for maintaining separate ``stable'' and
+``development'' versions of a program, and for developing unrelated
+features in isolation from one another.
 
   VC's support for branch operations is currently fairly limited.  For
 decentralized version control systems, it provides commands for

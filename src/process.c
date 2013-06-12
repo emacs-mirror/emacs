@@ -7068,9 +7068,10 @@ init_process_emacs (void)
 #endif
     {
 #if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code so that it initializes its
+      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+	 this should always fail, but is enough to initialize glib's
 	 private SIGCHLD handler.  */
-      g_source_unref (g_child_watch_source_new (0));
+      g_source_unref (g_child_watch_source_new (getpid ()));
 #endif
       catch_child_signal ();
     }

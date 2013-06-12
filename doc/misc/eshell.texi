@@ -701,14 +701,25 @@ groups ``eshell-glob'' and ``eshell-pred''.
 @node Input/Output
 @chapter Input/Output
 Since Eshell does not communicate with a terminal like most command
-shells, IO is a little different.  If you try to run programs from
-within Eshell that are not line-oriented, such as programs that use
-ncurses, you will just get garbage output, since the Eshell buffer is
-not a terminal emulator.  Eshell solves this problem by running
-specified commands in Emacs's terminal emulator; to let Eshell know
-which commands need to be run in a terminal, add them to the list
-@var{eshell-visual-commands}.
+shells, IO is a little different.
 
+@section Visual Commands
+If you try to run programs from within Eshell that are not
+line-oriented, such as programs that use ncurses, you will just get
+garbage output, since the Eshell buffer is not a terminal emulator.
+Eshell solves this problem by running such programs in Emacs's
+terminal emulator.
+
+Programs that need a terminal to display output properly are referred
+to in this manual as ``visual commands,'' because they are not simply
+line-oriented.  You must tell Eshell which commands are visual, by
+adding them to @var{eshell-visual-commands}; for commands that are
+visual for only certain @emph{sub}-commands -- e.g. @samp{git log} but
+not @samp{git status} -- use @var{eshell-visual-subcommands}; and for
+commands that are visual only when passed certain options, use
+@var{eshell-visual-options}.
+
+@section Redirection
 Redirection is mostly the same in Eshell as it is in other command
 shells.  The output redirection operators @code{>} and @code{>>} as
 well as pipes are supported, but there is not yet any support for

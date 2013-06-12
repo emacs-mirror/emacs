@@ -181,8 +181,8 @@ after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group
-% ls -l push*
--rw-r--r--  1 lewis     791 Oct  5 20:31 push.el
+$ ls -l push*
+-rw-r--r-- 1 lewis lewis 791 Oct  5 20:31 push.el
 @end group
 
 @group
@@ -191,9 +191,9 @@ after compiling it.  Interactively, @var{load} is the prefix argument.
 @end group
 
 @group
-% ls -l push*
--rw-r--r--  1 lewis     791 Oct  5 20:31 push.el
--rw-rw-rw-  1 lewis     638 Oct  8 20:25 push.elc
+$ ls -l push*
+-rw-r--r-- 1 lewis lewis 791 Oct  5 20:31 push.el
+-rw-rw-rw- 1 lewis lewis 638 Oct  8 20:25 push.elc
 @end group
 @end example
 @end deffn
@@ -232,7 +232,7 @@ If @var{noforce} is non-@code{nil}, this function does not recompile
 files that have an up-to-date @samp{.elc} file.
 
 @example
-% emacs -batch -f batch-byte-compile *.el
+$ emacs -batch -f batch-byte-compile *.el
 @end example
 @end defun
 

@@ -445,6 +445,7 @@ file using `set-file-extended-attributes'.
 *** `minibuffer-completion-contents'
 *** `isearch-nonincremental-exit-minibuffer'
 *** `isearch-filter-visible'
+*** `generic-make-keywords-list'
 
 ** `with-wrapper-hook' is obsoleted by `add-function'.
 The few hooks that used with-wrapper-hook are replaced as follows:

@@ -206,7 +206,8 @@ from; the default is `load-path'."
 	      (setq version (ignore-errors (version-to-list version)))
 	      (setq entry (assq package package--builtins))
 	      (cond ((null entry)
-		     (push (cons package (vector version nil summary))
+		     (push (cons package
+                                 (package-make-builtin version summary))
 			   package--builtins))
 		    ((eq base-name package)
 		     (setq desc (cdr entry))
