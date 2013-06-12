@@ -1,3 +1,19 @@
+2013-06-12  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (inferior-octave-startup)
+	(inferior-octave-completion-table)
+	(inferior-octave-track-window-width-change)
+	(octave-eldoc-function-signatures, octave-help)
+	(octave-find-definition): Use single quoted strings.
+	(inferior-octave-startup-args): Change default value.
+	(inferior-octave-startup): Do not hard code "-i" and
+	"--no-line-editing".
+	(inferior-octave-resync-dirs): Add optional arg NOERROR.
+	(inferior-octave-directory-tracker): Use it.
+	(octave-goto-function-definition): Robustify.
+	(octave-help): Support highlighting operators in 'See also'.
+	(octave-find-definition): Find subfunctions only in Octave mode.
+
 2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (help-fns--compiler-macro): If the handler function is

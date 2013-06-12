@@ -608,12 +608,13 @@ startup."
   :group 'octave
   :version "24.4")
 
-(defcustom inferior-octave-startup-args nil
+(defcustom inferior-octave-startup-args '("-i" "--no-line-editing")
   "List of command line arguments for the inferior Octave process.
 For example, for suppressing the startup message and using `traditional'
-mode, set this to (\"-q\" \"--traditional\")."
+mode, include \"-q\" and \"--traditional\"."
   :type '(repeat string)
-  :group 'octave)
+  :group 'octave
+  :version "24.4")
 
 (defcustom inferior-octave-mode-hook nil
   "Hook to be run when Inferior Octave mode is started."
@@ -723,13 +724,13 @@ startup file, `~/.emacs-octave'."
                (substring inferior-octave-buffer 1 -1)
                inferior-octave-buffer
                inferior-octave-program
-               (append (list "-i" "--no-line-editing")
-                       ;; --no-gui is introduced in Octave > 3.7
-                       (when (zerop (process-file inferior-octave-program
-                                                  nil nil nil
-                                                  "--no-gui" "--help"))
-                         (list "--no-gui"))
-                       inferior-octave-startup-args))))
+               (append
+                inferior-octave-startup-args
+                ;; --no-gui is introduced in Octave > 3.7
+                (and (not (member "--no-gui" inferior-octave-startup-args))
+                     (zerop (process-file inferior-octave-program
+                                          nil nil nil "--no-gui" "--help"))
+                     '("--no-gui"))))))
     (set-process-filter proc 'inferior-octave-output-digest)
     (setq inferior-octave-process proc
           inferior-octave-output-list nil
@@ -759,10 +760,10 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-send-list-and-digest (list "PS2\n"))
     (when (string-match "\\(PS2\\|ans\\) = *$"
                         (car inferior-octave-output-list))
-      (inferior-octave-send-list-and-digest (list "PS2 (\"> \");\n")))
+      (inferior-octave-send-list-and-digest (list "PS2 ('> ');\n")))
 
     (inferior-octave-send-list-and-digest
-     (list "disp(getenv(\"OCTAVE_SRCDIR\"))\n"))
+     (list "disp (getenv ('OCTAVE_SRCDIR'))\n"))
     (process-put proc 'octave-srcdir
                  (unless (equal (car inferior-octave-output-list) "")
                    (car inferior-octave-output-list)))
@@ -771,19 +772,19 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-send-list-and-digest
      (list "more off;\n"
            (unless (equal inferior-octave-output-string ">> ")
-             "PS1 (\"\\\\s> \");\n")
+             "PS1 ('\\\\s> ');\n")
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
-             (format "source (\"%s\");\n" inferior-octave-startup-file))))
+             (format "source ('%s');\n" inferior-octave-startup-file))))
     (when inferior-octave-output-list
       (insert-before-markers
        (mapconcat 'identity inferior-octave-output-list "\n")))
 
     ;; And finally, everything is back to normal.
     (set-process-filter proc 'comint-output-filter)
-    ;; Just in case, to be sure a cd in the startup file
-    ;; won't have detrimental effects.
-    (inferior-octave-resync-dirs)
+    ;; Just in case, to be sure a cd in the startup file won't have
+    ;; detrimental effects.
+    (with-demoted-errors (inferior-octave-resync-dirs))
     ;; Generate a proper prompt, which is critical to
     ;; `comint-history-isearch-backward-regexp'.  Bug#14433.
     (comint-send-string proc "\n")))
@@ -799,7 +800,7 @@ startup file, `~/.emacs-octave'."
        (unless (and (equal (car cache) command)
                     (< (float-time) (+ 5 (cadr cache))))
          (inferior-octave-send-list-and-digest
-          (list (concat "completion_matches (\"" command "\");\n")))
+          (list (format "completion_matches ('%s');\n" command)))
          (setq cache (list command (float-time)
                            (delete-consecutive-dups
                             (sort inferior-octave-output-list 'string-lessp)))))
@@ -898,8 +899,8 @@ output is passed to the filter `inferior-octave-output-digest'."
   "Tracks `cd' commands issued to the inferior Octave process.
 Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
   (when inferior-octave-directory-tracker-resync
-    (setq inferior-octave-directory-tracker-resync nil)
-    (inferior-octave-resync-dirs))
+    (or (inferior-octave-resync-dirs 'noerror)
+        (setq inferior-octave-directory-tracker-resync nil)))
   (cond
    ((string-match "^[ \t]*cd[ \t;]*$" string)
     (cd "~"))
@@ -911,13 +912,17 @@ Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
                       (error-message-string err)
                       (match-string 1 string)))))))
 
-(defun inferior-octave-resync-dirs ()
+(defun inferior-octave-resync-dirs (&optional noerror)
   "Resync the buffer's idea of the current directory.
 This command queries the inferior Octave process about its current
 directory and makes this the current buffer's default directory."
   (interactive)
   (inferior-octave-send-list-and-digest '("disp (pwd ())\n"))
-  (cd (car inferior-octave-output-list)))
+  (condition-case err
+      (progn
+        (cd (car inferior-octave-output-list))
+        t)
+    (error (unless noerror (signal (car err) (cdr err))))))
 
 (defcustom inferior-octave-minimal-columns 80
   "The minimal column width for the inferior Octave process."
@@ -935,7 +940,7 @@ directory and makes this the current buffer's default directory."
       (when (and inferior-octave-process
                  (process-live-p inferior-octave-process))
         (inferior-octave-send-list-and-digest
-         (list (format "putenv(\"COLUMNS\", \"%s\");\n" width)))))))
+         (list (format "putenv ('COLUMNS', '%s');\n" width)))))))
 
 
 ;;; Miscellaneous useful functions
@@ -989,7 +994,7 @@ directory and makes this the current buffer's default directory."
                  (setq found t)))
              (unless found (goto-char orig))
              found))))
-    (pcase (file-name-extension (buffer-file-name))
+    (pcase (and buffer-file-name (file-name-extension buffer-file-name))
       (`"cc" (funcall search
                       "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
       (t (funcall search octave-function-header-regexp 3)))))
@@ -1519,9 +1524,7 @@ code line."
 (defun octave-eldoc-function-signatures (fn)
   (unless (equal fn (car octave-eldoc-cache))
     (inferior-octave-send-list-and-digest
-     (list (format "\
-if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
-                   fn fn)))
+     (list (format "print_usage ('%s');\n" fn)))
     (let (result)
       (dolist (line inferior-octave-output-list)
         (when (string-match
@@ -1622,7 +1625,7 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
   "Display the documentation of FN."
   (interactive (list (octave-completing-read)))
   (inferior-octave-send-list-and-digest
-   (list (format "help \"%s\"\n" fn)))
+   (list (format "help ('%s');\n" fn)))
   (let ((lines inferior-octave-output-list)
         (inhibit-read-only t))
     (when (string-match "error: \\(.*\\)$" (car lines))
@@ -1658,12 +1661,15 @@ if ismember(exist(\"%s\"), [2 3 5 103]) print_usage(\"%s\") endif\n"
             (help-insert-xref-button (file-relative-name file dir)
                                      'octave-help-file fn)
             (insert "'")))
-        ;; Make 'See also' clickable
+        ;; Make 'See also' clickable.
         (with-syntax-table octave-mode-syntax-table
           (when (re-search-forward "^\\s-*See also:" nil t)
             (let ((end (save-excursion (re-search-forward "^\\s-*$" nil t))))
-              (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" end t)
-                (make-text-button (match-beginning 0) (match-end 0)
+              (while (re-search-forward
+                      ;; Match operators and symbols.
+                      "\\(?1:\\s.+?\\)\\(?:$\\|[,;]\\|\\s-\\)\\|\\_<\\(?1:\\(?:\\sw\\|\\s_\\)+\\)\\_>"
+                      end t)
+                (make-text-button (match-beginning 1) (match-end 1)
                                   :type 'octave-help-function)))))
         (octave-help-mode)))))
 
@@ -1716,12 +1722,13 @@ Functions implemented in C++ can be found if
   (interactive (list (octave-completing-read)))
   (require 'etags)
   (let ((orig (point)))
-    (if (octave-goto-function-definition fn)
+    (if (and (derived-mode-p 'octave-mode)
+             (octave-goto-function-definition fn))
         (ring-insert find-tag-marker-ring (copy-marker orig))
       (inferior-octave-send-list-and-digest
        ;; help NAME is more verbose
        (list (format "\
-if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
+if iskeyword('%s') disp('`%s'' is a keyword') else which('%s') endif\n"
                      fn fn fn)))
       (let (line file)
         ;; Skip garbage lines such as
@@ -1737,7 +1744,6 @@ if iskeyword(\"%s\") disp(\"`%s' is a keyword\") else which(\"%s\") endif\n"
           (when file
             (find-file file)
             (octave-goto-function-definition fn)))))))
-
 
 (provide 'octave)
 ;;; octave.el ends here
