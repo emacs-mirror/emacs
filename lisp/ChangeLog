@@ -1,3 +1,33 @@
+2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Daniel Hackney  <dan@haxney.org>
+
+	First part of Daniel Hackney's patch to package.el.
+	* emacs-lisp/package.el: Use defstruct.
+	(package-desc): New, main struct.
+	(package--bi-desc, package--ac-desc): New structs, used to describe the
+	format in external files.
+	(package-desc-vers): Replace with package-desc-version accessor.
+	(package-desc-doc): Replace with package-desc-summary accessor.
+	(package-activate-1): Remove `package' arg since the pkg-vec now
+	includes the name.
+	(define-package): Use package-desc-from-define.
+	(package-unpack-single): Change file-name arg to be a symbol.
+	(package--add-to-archive-contents): Use package-desc-create and new
+	accessor functions to package--ac-desc.
+	(package-buffer-info, package-tar-file-info): Return a package-desc.
+	(package-install-from-buffer): Remove `type' argument.  Change pkg-info
+	arg to be a package-desc.
+	(package-install-file): Adjust accordingly.  Use \' to match EOS.
+	(package--from-builtin): New function.
+	(describe-package-1, package-menu--generate): Use it.
+	(package--make-autoloads-and-compile): Change name arg to be a symbol.
+	(package-generate-autoloads): Idem and return the name of the file.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Change pkg-info arg to be a package-desc.
+	Use package-make-ac-desc.
+	(package-upload-file): Use \' to match EOS.
+	* finder.el (finder-compile-keywords): Use package-make-builtin.
+
 2013-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/vc.el (vc-deduce-fileset): Change error message.
