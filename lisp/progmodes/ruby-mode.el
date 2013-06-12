@@ -1347,6 +1347,8 @@ If the result is do-end block, it will always be multiline."
 (declare-function ruby-syntax-propertize-heredoc "ruby-mode" (limit))
 (declare-function ruby-syntax-enclosing-percent-literal "ruby-mode" (limit))
 (declare-function ruby-syntax-propertize-percent-literal "ruby-mode" (limit))
+;; Unusual code layout confuses the byte-compiler.
+(declare-function ruby-syntax-propertize-expansion "ruby-mode" ())
 
 (if (eval-when-compile (fboundp #'syntax-propertize-rules))
     ;; New code that works independently from font-lock.

@@ -1,3 +1,8 @@
+2013-05-24  Julien Danjou  <julien@danjou.info>
+
+	* sieve.el (sieve-setup-buffer): Fix default port value in sieve buffer
+	setup.
+
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (rmail-swap-buffers-maybe)

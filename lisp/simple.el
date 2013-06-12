@@ -2923,7 +2923,7 @@ interactively, this is t."
 	  (goto-char start)
 	  (and replace (push-mark (point) 'nomsg))
 	  (setq exit-status
-		(call-process-region start end shell-file-name t
+		(call-process-region start end shell-file-name replace
 				     (if error-file
 					 (list t error-file)
 				       t)

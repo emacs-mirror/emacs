@@ -547,7 +547,7 @@ will deactivate it."
 	     (when (member style list)
 	       (setq reftex-tables-dirty t
 		     changed t)
-	       (delete style list)))
+	       (setq list (delete style list))))
 	    (t
 	     (if (member style list)
 		 (delete style list)

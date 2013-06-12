@@ -94,11 +94,9 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	      ;; earlier versions did that with the current buffer's encoding.
 	      ;; So we want to favor detection of emacs-mule (whose normal
 	      ;; priority is quite low), but still allow detection of other
-	      ;; encodings if emacs-mule won't fit.  The call to
-	      ;; detect-coding-with-priority below achieves that.
-	      (car (detect-coding-with-priority
-		    from to
-		    '((coding-category-emacs-mule . emacs-mule))))))
+	      ;; encodings if emacs-mule won't fit.
+	      (car (with-coding-priority '(emacs-mule)
+		     (detect-coding-region from to)))))
       (unless (memq coding-system
 		    '(undecided undecided-unix))
 	(set-buffer-modified-p t)	; avoid locking when decoding

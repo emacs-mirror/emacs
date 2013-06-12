@@ -28,9 +28,13 @@
 
 ;;; Prologue
 ;;
-(declare-function semantic-c-reconstitute-token "semantic/bovine/c")
-(declare-function semantic-c-reconstitute-template "semantic/bovine/c")
-(declare-function semantic-expand-c-tag "semantic/bovine/c")
+(declare-function semantic-c-reconstitute-token "semantic/bovine/c"
+		  (tokenpart declmods typedecl))
+(declare-function semantic-c-reconstitute-template "semantic/bovine/c"
+		  (tag specifier))
+(declare-function semantic-expand-c-tag "semantic/bovine/c" (tag))
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
 
 ;;; Declarations
 ;;

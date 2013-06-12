@@ -343,6 +343,10 @@ If no function name is found, return nil."
 
 ;;; Integration with other packages
 
+(defvar ediff-window-A)
+(defvar ediff-window-B)
+(defvar ediff-window-C)
+
 (defun which-func-update-ediff-windows ()
   "Update Which-Function mode display for Ediff windows.
 This function is meant to be called from `ediff-select-hook'."

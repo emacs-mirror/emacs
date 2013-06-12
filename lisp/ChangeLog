@@ -1,3 +1,95 @@
+2013-05-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* doc-view.el: Integrate with desktop.el.  (Bug#14435)
+	(doc-view-desktop-save-buffer): New function.
+	(doc-view-restore-desktop-buffer): New function.
+	(desktop-buffer-mode-handlers): Add
+	`doc-view-restore-desktop-buffer' as desktop.el buffer mode
+	handler.
+	(doc-view-mode): Set `doc-view-desktop-save-buffer' as custom
+	`desktop-save-buffer' function.
+
+2013-05-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-enabled): New defconst.
+	(tramp-gvfs-file-name-handler): Raise a user error when
+	`tramp-gvfs-enabled' is nil.
+	(top): Register signals only when `tramp-gvfs-enabled' is non-nil.
+	Do not raise a user error when loading package.  (Bug#14447)
+
+	* net/xesam.el: Move to obsolete/.
+
+2013-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add with-coding-priority.
+
+	* emacs-lisp/chart.el (chart-sort): Replace obsolete `object-name'.
+
+	* progmodes/cperl-mode.el (cperl-mode): Use fboundp.
+	(Info-find-node, Man-getpage-in-background): Declare.
+
+	* mail/unrmail.el (unrmail):
+	Replace obsolete detect-coding-with-priority.
+
+	* net/socks.el (socks-split-string): Use this rather than split-string.
+	(socks-nslookup-host): Update for above change.
+	(dynamic-choice, s5-dynamic-choice-match)
+	(s5-dynamic-choice-match-inline, s5-widget-value-create):
+	Comment out unused code.
+
+	* tooltip.el (tooltip-use-echo-area): Warn only on 'set.
+	* progmodes/gud.el (gud-gdb-completion-function): Move before use.
+	(gud-tooltip-echo-area): Make obsolete.
+	(gud-tooltip-process-output, gud-tooltip-tips): Also check tooltip-mode.
+
+	* progmodes/js.el (js--optimize-arglist): Declare.
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-expansion): Declare.
+
+	* progmodes/which-func.el (ediff-window-A, ediff-window-B)
+	(ediff-window-C): Declare.
+
+	* obsolete/pgg-gpg.el, obsolete/pgg-pgp.el, obsolete/pgg-pgp5.el:
+	Tweak requires to silence compiler.
+
+	* obsolete/sym-comp.el: No need to load hipper-exp when compiling.
+	(he-search-string, he-tried-table, he-expand-list)
+	(he-init-string, he-string-member, he-substitute-string)
+	(he-reset-string): Declare.
+
+	* obsolete/options.el (list-options): Use custom-variable-p,
+	rather than obsolete alias.
+
+2013-05-23  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (shell-command-on-region): Pass the `replace' argument
+	down to `call-process-region' to comply with the doc as reported on
+	<http://stackoverflow.com/questions/16720458/emacs-noninteractive-call-to-shell-command-on-region-always-deletes-region>
+
+2013-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-forward-token)
+	(smie-indent-backward-token): Handle string tokens (bug#14381).
+
+2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* ielm.el (ielm-menu): New menu.
+	(inferior-emacs-lisp-mode): Set comment-start.
+
+2013-05-23  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* lisp/textmodes/reftex.el (reftex-ref-style-toggle):
+	Fix deactivate action.
+
+	* lisp/textmodes/reftex-vars.el (reftex-ref-style-alist):
+	Add cleveref macros.
+
+	* lisp/textmodes/reftex-parse.el
+	(reftex-locate-bibliography-files): Accept options for
+	bibliography commands.
+	* lisp/textmodes/reftex-vars.el (reftex-bibliography-commands):
+	Add addbibresource.  Basic Biblatex support.
+
 2013-05-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (top):
@@ -295,8 +387,8 @@
 
 2013-05-17  Leo Liu  <sdl.web@gmail.com>
 
-	* emacs-lisp/smie.el (smie-highlight-matching-block-mode): Clean
-	up when turned off.  (Bug#14395)
+	* emacs-lisp/smie.el (smie-highlight-matching-block-mode):
+	Clean up when turned off.  (Bug#14395)
 	(smie--highlight-matching-block-overlay): No longer buffer-local.
 	(smie-highlight-matching-block): Adjust.
 

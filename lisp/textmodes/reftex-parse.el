@@ -360,9 +360,9 @@ of master file."
 ;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
             "\\(^\\)[^%\n\r]*\\\\\\("
             (mapconcat 'identity reftex-bibliography-commands "\\|")
-            "\\){[ \t]*\\([^}]+\\)") nil t)
+            "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t)
           (setq files
-                (split-string (reftex-match-string 3)
+                (split-string (reftex-match-string 4)
                               "[ \t\n\r]*,[ \t\n\r]*")))))
   (when files
     (setq files

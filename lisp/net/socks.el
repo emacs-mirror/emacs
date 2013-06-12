@@ -36,64 +36,67 @@
   (require 'wid-edit))
 (require 'custom)
 
-;; FIXME this is bad practice, and who is it for anyway, since Emacs
-;; has split-string since at least 21.1.
-(if (not (fboundp 'split-string))
-    (defun split-string (string &optional pattern)
-      "Return a list of substrings of STRING which are separated by PATTERN.
+(eval-and-compile
+  (if (featurep 'emacs)
+      (defalias 'socks-split-string 'split-string) ; since at least 21.1
+    (if (fboundp 'split-string)
+	(defalias 'socks-split-string 'split-string)
+      (defun socks-split-string (string &optional pattern)
+	"Return a list of substrings of STRING which are separated by PATTERN.
 If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
-      (or pattern
-	  (setq pattern "[ \f\t\n\r\v]+"))
-      (let (parts (start 0))
-	(while (string-match pattern string start)
-	  (setq parts (cons (substring string start (match-beginning 0)) parts)
-		start (match-end 0)))
-	(nreverse (cons (substring string start) parts)))))
+	(or pattern
+	    (setq pattern "[ \f\t\n\r\v]+"))
+	(let (parts (start 0))
+	  (while (string-match pattern string start)
+	    (setq parts (cons (substring string start
+					 (match-beginning 0)) parts)
+		  start (match-end 0)))
+	  (nreverse (cons (substring string start) parts)))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Custom widgets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define-widget 'dynamic-choice 'menu-choice
-  "A pretty simple dynamic dropdown list"
-  :format "%[%t%]: %v"
-  :tag "Network"
-  :case-fold t
-  :void '(item :format "invalid (%t)\n")
-  :value-create 's5-widget-value-create
-  :value-delete 'widget-children-value-delete
-  :value-get 'widget-choice-value-get
-  :value-inline 'widget-choice-value-inline
-  :mouse-down-action 'widget-choice-mouse-down-action
-  :action 'widget-choice-action
-  :error "Make a choice"
-  :validate 'widget-choice-validate
-  :match 's5-dynamic-choice-match
-  :match-inline 's5-dynamic-choice-match-inline)
-
-(defun s5-dynamic-choice-match (widget value)
-  (let ((choices (funcall (widget-get widget :choice-function)))
-	current found)
-    (while (and choices (not found))
-      (setq current (car choices)
-	    choices (cdr choices)
-	    found (widget-apply current :match value)))
-    found))
-
-(defun s5-dynamic-choice-match-inline (widget value)
-  (let ((choices (funcall (widget-get widget :choice-function)))
-	current found)
-    (while (and choices (not found))
-      (setq current (car choices)
-	    choices (cdr choices)
-	    found (widget-match-inline current value)))
-    found))
-
-(defun s5-widget-value-create (widget)
-  (let ((choices (funcall (widget-get widget :choice-function)))
-	(value (widget-get widget :value)))
-    (if (not value)
-	(widget-put widget :value (widget-value (car choices))))
-    (widget-put widget :args choices)
-    (widget-choice-value-create widget)))
+;;; (define-widget 'dynamic-choice 'menu-choice
+;;;   "A pretty simple dynamic dropdown list"
+;;;   :format "%[%t%]: %v"
+;;;   :tag "Network"
+;;;   :case-fold t
+;;;   :void '(item :format "invalid (%t)\n")
+;;;   :value-create 's5-widget-value-create
+;;;   :value-delete 'widget-children-value-delete
+;;;   :value-get 'widget-choice-value-get
+;;;   :value-inline 'widget-choice-value-inline
+;;;   :mouse-down-action 'widget-choice-mouse-down-action
+;;;   :action 'widget-choice-action
+;;;   :error "Make a choice"
+;;;   :validate 'widget-choice-validate
+;;;   :match 's5-dynamic-choice-match
+;;;   :match-inline 's5-dynamic-choice-match-inline)
+;;;
+;;; (defun s5-dynamic-choice-match (widget value)
+;;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;;; 	current found)
+;;;     (while (and choices (not found))
+;;;       (setq current (car choices)
+;;; 	    choices (cdr choices)
+;;; 	    found (widget-apply current :match value)))
+;;;     found))
+;;;
+;;; (defun s5-dynamic-choice-match-inline (widget value)
+;;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;;; 	current found)
+;;;     (while (and choices (not found))
+;;;       (setq current (car choices)
+;;; 	    choices (cdr choices)
+;;; 	    found (widget-match-inline current value)))
+;;;     found))
+;;;
+;;; (defun s5-widget-value-create (widget)
+;;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;;; 	(value (widget-get widget :value)))
+;;;     (if (not value)
+;;; 	(widget-put widget :value (widget-value (car choices))))
+;;;     (widget-put widget :args choices)
+;;;     (widget-choice-value-create widget)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Customization support
@@ -104,65 +107,65 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   :prefix "socks-"
   :group 'processes)
 
-'(defcustom socks-server-aliases nil
-  "A list of server aliases for use in access control and filtering rules."
-  :group 'socks
-  :type '(repeat (list :format "%v"
-		       :value ("" "" 1080 5)
-		       (string :tag "Alias")
-		       (string :tag "Hostname/IP Address")
-		       (integer :tag "Port #")
-		       (choice :tag "SOCKS Version"
-			       (integer :tag "SOCKS v4" :value 4)
-			       (integer :tag "SOCKS v5" :value 5)))))
-
-'(defcustom socks-network-aliases
-  '(("Anywhere" (netmask "0.0.0.0" "0.0.0.0")))
-  "A list of network aliases for use in subsequent rules."
-  :group 'socks
-  :type '(repeat (list :format "%v"
-		       :value (netmask "" "255.255.255.0")
-		       (string :tag "Alias")
-		       (radio-button-choice
-			:format "%v"
-			(list :tag  "IP address range"
-			      (const :format "" :value range)
-			      (string :tag "From")
-			      (string :tag "To"))
-			(list :tag  "IP address/netmask"
-			      (const :format "" :value netmask)
-			      (string :tag "IP Address")
-			      (string :tag "Netmask"))
-			(list :tag  "Domain Name"
-			      (const :format "" :value domain)
-			      (string :tag "Domain name"))
-			(list :tag  "Unique hostname/IP address"
-			      (const :format "" :value exact)
-			      (string :tag "Hostname/IP Address"))))))
-
-'(defun s5-servers-filter ()
-  (if socks-server-aliases
-      (mapcar (lambda (x) (list 'const :tag (car x) :value (car x))) s5-server-aliases)
-    '((const :tag "No aliases defined" :value nil))))
-
-'(defun s5-network-aliases-filter ()
-  (mapcar (lambda (x) (list 'const :tag (car x) :value (car x)))
-	  socks-network-aliases))
-
-'(defcustom socks-redirection-rules
-   nil
-   "A list of redirection rules."
-   :group 'socks
-   :type '(repeat (list :format "%v"
-			:value ("Anywhere" nil)
-			(dynamic-choice :choice-function s5-network-aliases-filter
-					:tag "Destination network")
-			(radio-button-choice
-			 :tag "Connection type"
-			 (const :tag "Direct connection" :value nil)
-			 (dynamic-choice :format "%t: %[%v%]"
-					 :choice-function s5-servers-filter
-					 :tag "Proxy chain via")))))
+;;; (defcustom socks-server-aliases nil
+;;;   "A list of server aliases for use in access control and filtering rules."
+;;;   :group 'socks
+;;;   :type '(repeat (list :format "%v"
+;;; 		       :value ("" "" 1080 5)
+;;; 		       (string :tag "Alias")
+;;; 		       (string :tag "Hostname/IP Address")
+;;; 		       (integer :tag "Port #")
+;;; 		       (choice :tag "SOCKS Version"
+;;; 			       (integer :tag "SOCKS v4" :value 4)
+;;; 			       (integer :tag "SOCKS v5" :value 5)))))
+;;;
+;;; (defcustom socks-network-aliases
+;;;   '(("Anywhere" (netmask "0.0.0.0" "0.0.0.0")))
+;;;   "A list of network aliases for use in subsequent rules."
+;;;   :group 'socks
+;;;   :type '(repeat (list :format "%v"
+;;; 		       :value (netmask "" "255.255.255.0")
+;;; 		       (string :tag "Alias")
+;;; 		       (radio-button-choice
+;;; 			:format "%v"
+;;; 			(list :tag  "IP address range"
+;;; 			      (const :format "" :value range)
+;;; 			      (string :tag "From")
+;;; 			      (string :tag "To"))
+;;; 			(list :tag  "IP address/netmask"
+;;; 			      (const :format "" :value netmask)
+;;; 			      (string :tag "IP Address")
+;;; 			      (string :tag "Netmask"))
+;;; 			(list :tag  "Domain Name"
+;;; 			      (const :format "" :value domain)
+;;; 			      (string :tag "Domain name"))
+;;; 			(list :tag  "Unique hostname/IP address"
+;;; 			      (const :format "" :value exact)
+;;; 			      (string :tag "Hostname/IP Address"))))))
+;;;
+;;; (defun s5-servers-filter ()
+;;;   (if socks-server-aliases
+;;;       (mapcar (lambda (x) (list 'const :tag (car x) :value (car x))) s5-server-aliases)
+;;;     '((const :tag "No aliases defined" :value nil))))
+;;;
+;;; (defun s5-network-aliases-filter ()
+;;;   (mapcar (lambda (x) (list 'const :tag (car x) :value (car x)))
+;;; 	  socks-network-aliases))
+;;;
+;;; (defcustom socks-redirection-rules
+;;;    nil
+;;;    "A list of redirection rules."
+;;;    :group 'socks
+;;;    :type '(repeat (list :format "%v"
+;;; 			:value ("Anywhere" nil)
+;;; 			(dynamic-choice :choice-function s5-network-aliases-filter
+;;; 					:tag "Destination network")
+;;; 			(radio-button-choice
+;;; 			 :tag "Connection type"
+;;; 			 (const :tag "Direct connection" :value nil)
+;;; 			 (dynamic-choice :format "%t: %[%v%]"
+;;; 					 :choice-function s5-servers-filter
+;;; 					 :tag "Proxy chain via")))))
 
 (defcustom socks-server
   (list "Default server" "socks" 1080 5)
@@ -648,7 +651,8 @@ version.")
 	      (progn
 		(setq res (buffer-substring (match-beginning 2)
 					    (match-end 2))
-		      res (mapcar 'string-to-number (split-string res "\\.")))))
+		      res (mapcar 'string-to-number
+				  (socks-split-string res "\\.")))))
 	  (kill-buffer (current-buffer)))
 	res)
     host))

@@ -2704,6 +2704,10 @@ with `js--js-encode-value'."
 (defsubst js--js-true (value)
   (not (js--js-not value)))
 
+;; The somewhat complex code layout confuses the byte-compiler into
+;; thinking this function "might not be defined at runtime".
+(declare-function js--optimize-arglist "js" (arglist))
+
 (eval-and-compile
   (defun js--optimize-arglist (arglist)
     "Convert immediate js< and js! references to deferred ones."

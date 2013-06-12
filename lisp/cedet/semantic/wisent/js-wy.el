@@ -64,6 +64,8 @@
 
 ;;; Prologue
 ;;
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
 
 ;;; Declarations
 ;;
