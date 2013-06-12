@@ -1,3 +1,7 @@
+2013-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* ido.el (ido-delete-ignored-files): Rewrite to avoid cl-lib.
+
 2013-06-12  Eyal Lotem  <eyal.lotem@gmail.com>  (tiny change)
 
 	* ido.el (ido-delete-ignored-files): New function,

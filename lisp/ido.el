@@ -3273,12 +3273,12 @@ for first matching file."
 	      cur nil)))
     res))
 
-(require 'cl-lib)
-
 (defun ido-delete-ignored-files (files)
-  (cl-delete-if
-   (lambda (name) (ido-ignore-item-p name ido-ignore-files t))
-   files))
+  "Delete elements from list FILES that match `ido-ignore-item-p'."
+  (delq nil
+        (mapcar (lambda (name)
+                  (unless (ido-ignore-item-p name ido-ignore-files t) name))
+                files)))
 
 (defun ido-wide-find-dirs-or-files (dir file &optional prefix finddir)
   ;; As ido-run-find-command, but returns a list of cons pairs ("file" . "dir")
