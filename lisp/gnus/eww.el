@@ -88,7 +88,7 @@
 	  (shr-external-rendering-functions
 	   '((form . eww-tag-form)
 	     (input . eww-tag-input)
-	     (submit . eww-tag-submit))))
+	     (select . eww-tag-select))))
       (shr-insert-document document)
       (eww-convert-widgets))
     (goto-char (point-min))))
@@ -201,6 +201,7 @@
 		  :notify 'eww-click-radio
 		  :name (cdr (assq :name cont))
 		  :checkbox-value (cdr (assq :value cont))
+		  :checkbox-type type
 		  :eww-form eww-form
 		  (cdr (assq :checked cont))))
 	   ((equal type "hidden")
@@ -222,20 +223,43 @@
 	(when shr-final-table-render
 	  (nconc eww-form (list widget)))
       (apply 'widget-create widget))
-    (put-text-property start (point) 'eww-widget widget)))
+    (put-text-property start (point) 'eww-widget widget)
+    (insert " ")))
+
+(defun eww-tag-select (cont)
+  (shr-ensure-paragraph)
+  (let ((menu (list 'menu-choice
+		    :name (cdr (assq :name cont))
+		    :eww-form eww-form))
+	(options nil)
+	(start (point)))
+    (dolist (elem cont)
+      (when (eq (car elem) 'option)
+	(when (cdr (assq :selected (cdr elem)))
+	  (nconc menu (list :value
+			    (cdr (assq :value (cdr elem))))))
+	(push (list 'item
+		    :value (cdr (assq :value (cdr elem)))
+		    :tag (cdr (assq 'text (cdr elem))))
+	      options)))
+    (nconc menu options)
+    (apply 'widget-create menu)
+    (put-text-property start (point) 'eww-widget menu)
+    (shr-ensure-paragraph)))
 
 (defun eww-click-radio (widget &rest ignore)
   (let ((form (plist-get (cdr widget) :eww-form))
 	(name (plist-get (cdr widget) :name)))
-    (if (widget-value widget)
-	;; Switch all the other radio buttons off.
-	(dolist (overlay (overlays-in (point-min) (point-max)))
-	  (let ((field (plist-get (overlay-properties overlay) 'button)))
-	    (when (and (eq (plist-get (cdr field) :eww-form) form)
-		       (equal name (plist-get (cdr field) :name)))
-	      (unless (eq field widget)
-		(widget-value-set field nil)))))
-      (widget-value-set widget t))
+    (when (equal (plist-get (cdr widget) :type) "radio")
+      (if (widget-value widget)
+	  ;; Switch all the other radio buttons off.
+	  (dolist (overlay (overlays-in (point-min) (point-max)))
+	    (let ((field (plist-get (overlay-properties overlay) 'button)))
+	      (when (and (eq (plist-get (cdr field) :eww-form) form)
+			 (equal name (plist-get (cdr field) :name)))
+		(unless (eq field widget)
+		  (widget-value-set field nil)))))
+	(widget-value-set widget t)))
     (eww-fix-widget-keymap)))
 
 (defun eww-submit (widget &rest ignore)
@@ -298,12 +322,17 @@
 (defun eww-convert-widgets ()
   (let ((start (point-min))
 	widget)
+    ;; Some widgets come from different buffers (rendered for tables),
+    ;; so we need to nix out the list of widgets and recreate them.
+    (setq widget-field-list nil
+	  widget-field-new nil)
     (while (setq start (next-single-property-change start 'eww-widget))
       (setq widget (get-text-property start 'eww-widget))
       (goto-char start)
       (let ((end (next-single-property-change start 'eww-widget)))
 	(dolist (overlay (overlays-in start end))
-	  (when (plist-get (overlay-properties overlay) 'button)
+	  (when (or (plist-get (overlay-properties overlay) 'button)
+		    (plist-get (overlay-properties overlay) 'field))
 	    (delete-overlay overlay)))
 	(delete-region start end))
       (apply 'widget-create widget))

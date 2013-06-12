@@ -1,3 +1,9 @@
+2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-convert-widgets): Make widgets from non-tabular layouts
+	work, too.
+	(eww-tag-select): Implement <select>.
+
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
 	* sieve-manage.el (sieve-manage-open): work with STARTTLS: shorten
