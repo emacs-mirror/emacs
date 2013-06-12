@@ -3273,17 +3273,25 @@ for first matching file."
 	      cur nil)))
     res))
 
+(require 'cl-lib)
+
+(defun ido-delete-ignored-files (files)
+  (cl-delete-if
+   (lambda (name) (ido-ignore-item-p name ido-ignore-files t))
+   files))
+
 (defun ido-wide-find-dirs-or-files (dir file &optional prefix finddir)
   ;; As ido-run-find-command, but returns a list of cons pairs ("file" . "dir")
   (let ((filenames
-	 (split-string
-	  (shell-command-to-string
-	   (concat "find "
-		   (shell-quote-argument dir)
-		   " -name "
-		   (shell-quote-argument
-		    (concat (if prefix "" "*") file "*"))
-		   " -type " (if finddir "d" "f") " -print"))))
+         (ido-delete-ignored-files
+          (split-string
+           (shell-command-to-string
+            (concat "find "
+                    (shell-quote-argument dir)
+                    " -name "
+                    (shell-quote-argument
+                     (concat (if prefix "" "*") file "*"))
+                    " -type " (if finddir "d" "f") " -print")))))
 	filename d f
 	res)
     (while filenames
@@ -3578,12 +3586,10 @@ This is to make them appear as if they were \"virtual buffers\"."
   ;; If MERGED is non-nil, each file is cons'ed with DIR
   (and (or (ido-is-tramp-root dir) (ido-is-unc-root dir)
 	   (file-directory-p dir))
-       (delq nil
-	     (mapcar
-	      (lambda (name)
-		(if (not (ido-ignore-item-p name ido-ignore-files t))
-		    (if merged (cons name dir) name)))
-	      (ido-file-name-all-completions dir)))))
+       (mapcar
+	(lambda (name) (if merged (cons name dir) name))
+	(ido-delete-ignored-files
+	 (ido-file-name-all-completions dir)))))
 
 (defun ido-make-file-list (default)
   ;; Return the current list of files.

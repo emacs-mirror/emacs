@@ -1,3 +1,10 @@
+2013-06-12  Eyal Lotem  <eyal.lotem@gmail.com>  (tiny change)
+
+	* ido.el (ido-delete-ignored-files): New function,
+	split from ido-make-file-list-1.
+	(ido-wide-find-dirs-or-files): Maybe ignore files.  (Bug#13003)
+	(ido-make-file-list-1): Use ido-delete-ignored-files.
+
 2013-06-12  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (inferior-octave-startup)
