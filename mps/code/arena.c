@@ -241,7 +241,7 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
   if (res != ResOK)
     goto failInit;
 
-  arena->alignment = ChunkPageSize(arena->primary);
+  /* arena->alignment must have been set up by *class->init() */
   if (arena->alignment > ((Size)1 << arena->zoneShift)) {
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
