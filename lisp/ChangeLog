@@ -1,3 +1,8 @@
+2013-06-12  Andreas Schwab  <schwab@suse.de>
+
+	* international/mule.el (auto-coding-alist): Use utf-8-emacs-unix
+	for auto-save files.
+
 2013-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* ido.el (ido-delete-ignored-files): Remove.
