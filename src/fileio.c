@@ -776,8 +776,9 @@ probably use `make-temp-file' instead, except in three circumstances:
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
-\(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
-the current buffer's value of `default-directory' is used.
+\(does not start with slash or tilde); both the directory name and
+a directory's file name are accepted.  If DEFAULT-DIRECTORY is nil or
+missing, the current buffer's value of `default-directory' is used.
 NAME should be a string that is a valid file name for the underlying
 filesystem.
 File name components that are `.' are removed, and
