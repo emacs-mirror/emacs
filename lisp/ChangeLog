@@ -1,6 +1,8 @@
 2013-06-12  Glenn Morris  <rgm@gnu.org>
 
-	* ido.el (ido-delete-ignored-files): Rewrite to avoid cl-lib.
+	* ido.el (ido-delete-ignored-files): Remove.
+	(ido-wide-find-dirs-or-files, ido-make-file-list-1):
+	Go back to calling ido-ignore-item-p directly.
 
 2013-06-12  Eyal Lotem  <eyal.lotem@gmail.com>  (tiny change)
 
