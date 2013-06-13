@@ -438,6 +438,15 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
+FIXME - someone who knows what they are talking about, please improve
+this - see http://debbugs.gnu.org/14596
+** The default file coding for Emacs Lisp files is now utf-8.
+(See file-coding-system-alist.)  In most cases, this change is
+totally transparent.  Files that contain unusual characters but do
+not specify an explicit coding system may fail to load with obscure
+errors.  You should either convert them to utf-8 or add an explicit
+coding: cookie.
+
 ** Obsoleted functions:
 *** `dont-compile'
 *** `lisp-complete-symbol'
