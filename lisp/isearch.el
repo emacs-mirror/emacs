@@ -1540,17 +1540,22 @@ nil and a non-nil value of the option `search-invisible'
   "Return a regexp which matches words, ignoring punctuation.
 Given STRING, a string of words separated by word delimiters,
 compute a regexp that matches those exact words separated by
-arbitrary punctuation.  If LAX is non-nil, the end of the string
-need not match a word boundary unless it ends in whitespace.
+arbitrary punctuation.  If the string begins or ends in whitespace,
+the beginning or the end of the string matches arbitrary whitespace.
+Otherwise if LAX is non-nil, the beginning or the end of the string
+need not match a word boundary.
 
 Used in `word-search-forward', `word-search-backward',
 `word-search-forward-lax', `word-search-backward-lax'."
-  (if (string-match-p "^\\W*$" string)
-      ""
-    (concat
-     "\\b"
-     (mapconcat 'identity (split-string string "\\W+" t) "\\W+")
-     (if (or (not lax) (string-match-p "\\W$" string)) "\\b"))))
+  (cond
+   ((equal string "") "")
+   ((string-match-p "\\`\\W+\\'" string) "\\W+")
+   (t (concat
+       (if (string-match-p "\\`\\W" string) "\\W+"
+	 (unless lax "\\<"))
+       (mapconcat 'regexp-quote (split-string string "\\W+" t) "\\W+")
+       (if (string-match-p "\\W\\'" string) "\\W+"
+	 (unless lax "\\>"))))))
 
 (defun word-search-backward (string &optional bound noerror count)
   "Search backward from point for STRING, ignoring differences in punctuation.
@@ -1625,8 +1630,24 @@ to punctuation."
 (defun isearch-symbol-regexp (string &optional lax)
   "Return a regexp which matches STRING as a symbol.
 Creates a regexp where STRING is surrounded by symbol delimiters \\_< and \\_>.
-If LAX is non-nil, the end of the string need not match a symbol boundary."
-  (concat "\\_<" (regexp-quote string) (unless lax "\\_>")))
+If there are more than one symbol, then compute a regexp that matches
+those exact symbols separated by non-symbol characters.  If the string
+begins or ends in whitespace, the beginning or the end of the string
+matches arbitrary non-symbol whitespace.  Otherwise if LAX is non-nil,
+the beginning or the end of the string need not match a symbol boundary."
+  (let ((not-word-symbol-re
+	 ;; This regexp matches all syntaxes except word and symbol syntax.
+	 ;; FIXME: Replace it with something shorter if possible (bug#14602).
+	 "\\(?:\\s-\\|\\s.\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s/\\|\\s$\\|\\s'\\|\\s<\\|\\s>\\|\\s@\\|\\s!\\|\\s|\\)+"))
+    (cond
+     ((equal string "") "")
+     ((string-match-p (format "\\`%s\\'" not-word-symbol-re) string) not-word-symbol-re)
+     (t (concat
+	 (if (string-match-p (format "\\`%s" not-word-symbol-re) string) not-word-symbol-re
+	   (unless lax "\\_<"))
+	 (mapconcat 'regexp-quote (split-string string not-word-symbol-re t) not-word-symbol-re)
+	 (if (string-match-p (format "%s\\'" not-word-symbol-re) string) not-word-symbol-re
+	   (unless lax "\\_>")))))))
 
 (put 'isearch-symbol-regexp 'isearch-message-prefix "symbol ")
 

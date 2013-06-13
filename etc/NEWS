@@ -300,6 +300,14 @@ Set `isearch-allow-prefix' to nil to restore old behavior.
 `isearch-printing-char', `isearch-quote-char', `isearch-yank-word',
 `isearch-yank-line'.
 
+*** Word search now matches whitespace at the beginning/end
+of the search string if it contains leading/trailing whitespace.
+In an incremental word search or when using a non-nil LAX argument
+of `word-search-regexp', the lax matching can also match part of
+the first word (in addition to the lax matching of the last word).
+The same rules are now applied to the symbol search with the difference
+that it matches symbols, and non-symbol characters between symbols.
+
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
 

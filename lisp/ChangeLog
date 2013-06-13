@@ -1,5 +1,15 @@
 2013-06-13  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (word-search-regexp): Match whitespace if the search
+	string begins or ends in whitespace.  The LAX arg is applied to
+	both ends of the search string.  Use `regexp-quote' and explicit
+	\< and \> instead of \b.  Use \` and \' instead of ^ and $.
+	(isearch-symbol-regexp): Sync with `word-search-regexp' where word
+	boundaries are replaced with symbol boundaries, and characters
+	between symbols match non-word non-symbol syntax.  (Bug#14602)
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-del-char): Don't exceed the length of
 	`isearch-string' by the prefix arg.  (Bug#14563)
 
