@@ -1,3 +1,8 @@
+2013-06-13  Michael Hoffman  <9qobl2n02@sneakemail.com>  (tiny change)
+
+	* term.el (term-suppress-hard-newline): New option.  (Bug#12017)
+	(term-emulate-terminal): Respect term-suppress-hard-newline.
+
 2013-06-13  E Sabof  <esabof@gmail.com>  (tiny change)
 
 	* image-dired.el (image-dired-dired-toggle-marked-thumbs):
