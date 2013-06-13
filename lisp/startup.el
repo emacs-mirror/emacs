@@ -715,7 +715,7 @@ opening the first frame (e.g. open a connection to an X server).")
                      default-frame-alist))
 	      (t
                (push argi rest)))))
-    (nreverse rest)))
+    (nconc (nreverse rest) args)))
 
 (declare-function x-get-resource "frame.c"
 		  (attribute class &optional component subclass))
