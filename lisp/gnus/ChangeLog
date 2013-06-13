@@ -1,3 +1,9 @@
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve-manage.el (sieve-manage-open-server): Don't quote lambda.
+	Use plist-get rather than CL's getf.
+	(sieve-manage-parse-capability): Avoid CL's remove-if.
+
 2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-expand-url): Expansion should chop off the bits after the
@@ -29,7 +35,7 @@
 
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
-	* sieve-manage.el (sieve-manage-open): work with STARTTLS: shorten
+	* sieve-manage.el (sieve-manage-open): Work with STARTTLS: shorten
 	stream managing functions by using open-protocol-stream to do most of
 	the work. Has the nice benefit of enabling STARTTLS.
 	Wait for capabilities after STARTTLS: following RFC5804, the server
