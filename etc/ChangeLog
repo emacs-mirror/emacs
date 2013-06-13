@@ -1,6 +1,6 @@
 2013-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* DEBUG: Document -Og.
+	* DEBUG: Document -Og and -fno-omit-frame-pointer.
 
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
