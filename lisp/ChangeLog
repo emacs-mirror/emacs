@@ -1,5 +1,10 @@
 2013-06-13  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-del-char): Don't exceed the length of
+	`isearch-string' by the prefix arg.  (Bug#14563)
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-yank-word, isearch-yank-line)
 	(isearch-char-by-name, isearch-quote-char)
 	(isearch-printing-char, isearch-process-search-char):
