@@ -1919,29 +1919,33 @@ Subword is used when `subword-mode' is activated. "
 	   (forward-word 1))
        (forward-char 1)) (point))))
 
-(defun isearch-yank-word ()
+(defun isearch-yank-word (&optional arg)
   "Pull next word from buffer into search string."
-  (interactive)
-  (isearch-yank-internal (lambda () (forward-word 1) (point))))
+  (interactive "p")
+  (isearch-yank-internal (lambda () (forward-word arg) (point))))
 
-(defun isearch-yank-line ()
+(defun isearch-yank-line (&optional arg)
   "Pull rest of line from buffer into search string."
-  (interactive)
+  (interactive "p")
   (isearch-yank-internal
    (lambda () (let ((inhibit-field-text-motion t))
-		(line-end-position (if (eolp) 2 1))))))
+		(line-end-position (if (eolp) (1+ arg) arg))))))
 
-(defun isearch-char-by-name ()
+(defun isearch-char-by-name (&optional count)
   "Read a character by its Unicode name and add it to the search string.
-Completion is available like in `read-char-by-name' used by `insert-char'."
-  (interactive)
+Completion is available like in `read-char-by-name' used by `insert-char'.
+With argument, add COUNT copies of the character."
+  (interactive "p")
   (with-isearch-suspended
    (let ((char (read-char-by-name "Add character to search (Unicode name or hex): ")))
      (when char
-       (setq isearch-new-string (concat isearch-string (string char))
-	     isearch-new-message (concat isearch-message
-					 (mapconcat 'isearch-text-char-description
-						    (string char) "")))))))
+       (let ((string (if (and (integerp count) (> count 1))
+			 (make-string count char)
+		       (char-to-string char))))
+	 (setq isearch-new-string (concat isearch-string string)
+	       isearch-new-message (concat isearch-message
+					   (mapconcat 'isearch-text-char-description
+						      string ""))))))))
 
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.
@@ -2382,9 +2386,10 @@ Isearch mode."
           (t;; otherwise nil
 	   (isearch-process-search-string key key)))))
 
-(defun isearch-quote-char ()
-  "Quote special characters for incremental search."
-  (interactive)
+(defun isearch-quote-char (&optional count)
+  "Quote special characters for incremental search.
+With argument, add COUNT copies of the character."
+  (interactive "p")
   (let ((char (read-quoted-char (isearch-message t))))
     ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
@@ -2392,24 +2397,26 @@ Isearch mode."
     (if (and isearch-regexp isearch-regexp-lax-whitespace (= char ?\s))
 	(if (subregexp-context-p isearch-string (length isearch-string))
 	    (isearch-process-search-string "[ ]" " ")
-	  (isearch-process-search-char char))
+	  (isearch-process-search-char char count))
       (and enable-multibyte-characters
 	   (>= char ?\200)
 	   (<= char ?\377)
 	   (setq char (unibyte-char-to-multibyte char)))
-      (isearch-process-search-char char))))
+      (isearch-process-search-char char count))))
 
-(defun isearch-printing-char ()
-  "Add this ordinary printing character to the search string and search."
-  (interactive)
-  (let ((char last-command-event))
+(defun isearch-printing-char (&optional char count)
+  "Add this ordinary printing CHAR to the search string and search.
+With argument, add COUNT copies of the character."
+  (interactive (list last-command-event
+		     (prefix-numeric-value current-prefix-arg)))
+  (let ((char (or char last-command-event)))
     (if (= char ?\S-\ )
 	(setq char ?\s))
     (if current-input-method
-	(isearch-process-search-multibyte-characters char)
-      (isearch-process-search-char char))))
+	(isearch-process-search-multibyte-characters char count)
+      (isearch-process-search-char char count))))
 
-(defun isearch-process-search-char (char)
+(defun isearch-process-search-char (char &optional count)
   ;; * and ? are special in regexps when not preceded by \.
   ;; } and | are special in regexps when preceded by \.
   ;; Nothing special for + because it matches at least once.
@@ -2418,12 +2425,15 @@ Isearch mode."
    ((eq   char ?\})      (isearch-fallback t t))
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
-  ;; Append the char to the search string, update the message and re-search.
-  (isearch-process-search-string
-   (char-to-string char)
-   (if (>= char ?\200)
-       (char-to-string char)
-     (isearch-text-char-description char))))
+  ;; Append the char(s) to the search string,
+  ;; update the message and re-search.
+  (let* ((string (if (and (integerp count) (> count 1))
+		     (make-string count char)
+		   (char-to-string char)))
+	 (message (if (>= char ?\200)
+		      string
+		    (mapconcat 'isearch-text-char-description string ""))))
+    (isearch-process-search-string string message)))
 
 (defun isearch-process-search-string (string message)
   (setq isearch-string (concat isearch-string string)

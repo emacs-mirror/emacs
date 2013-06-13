@@ -1,3 +1,14 @@
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-yank-word, isearch-yank-line)
+	(isearch-char-by-name, isearch-quote-char)
+	(isearch-printing-char, isearch-process-search-char):
+	Add optional count prefix arg.  (Bug#14563)
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters):
+	Add optional count prefix arg.
+
 2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (internal-push-keymap, internal-pop-keymap): New functions.
@@ -4667,7 +4678,7 @@
 	* progmodes/grep.el (grep-regexp-alist): Use variable grep-match-face
 	instead of hard-coded default face `match'.  (Bug#9438)
 
-2012-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
+2013-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* vc/vc-arch.el (vc-arch-registered):
 	* vc/vc-bzr.el (vc-bzr-registered):

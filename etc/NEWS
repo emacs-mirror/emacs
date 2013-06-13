@@ -296,6 +296,10 @@ and opens overlays with hidden text when `search-invisible' is `open'.
 *** By default, prefix arguments do not now terminate Isearch mode.
 Set `isearch-allow-prefix' to nil to restore old behavior.
 
+*** More Isearch commands accept prefix arguments, namely
+`isearch-printing-char', `isearch-quote-char', `isearch-yank-word',
+`isearch-yank-line'.
+
 ** MH-E has been updated to MH-E version 8.5.
 See MH-E-NEWS for details.
 
