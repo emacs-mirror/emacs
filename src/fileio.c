@@ -5596,7 +5596,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
      point to non-strings reached from Vbuffer_alist.  */
 
   hook = intern ("auto-save-hook");
-  Frun_hooks (1, &hook);
+  safe_run_hooks (hook);
 
   if (STRINGP (Vauto_save_list_file_name))
     {
