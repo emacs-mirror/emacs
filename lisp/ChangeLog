@@ -151,6 +151,11 @@
 	(cl-define-compiler-macro): Use eval-and-compile.  Give a name to the
 	compiler-macro function instead of setting `compiler-macro-file'.
 
+2013-06-09  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-cvs.el (vc-cvs-stay-local): Doc fix.
+	* vc/vc-hooks.el (vc-stay-local): Doc fix.
+
 2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 	    Daniel Hackney  <dan@haxney.org>
 
@@ -240,11 +245,6 @@
 
 	* epa.el (epa-read-file-name): New function.  (Bug#14510)
 	(epa-decrypt-file): Make plain-file optional.  Use epa-read-file-name.
-
-2013-06-09  Xue Fuqiao  <xfq.free@gmail.com>
-
-	* vc/vc-cvs.el (vc-cvs-stay-local): Doc fix.
-	* vc/vc-hooks.el (vc-stay-local): Doc fix.
 
 2013-06-09  Aidan Gauland  <aidalgol@amuri.net>
 
