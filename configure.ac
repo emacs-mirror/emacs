@@ -86,7 +86,7 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to $enable_features.
+dnl Create a new --with option that defaults to $with_features.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set either to 'no' (for a plain --without-NAME) or to
 dnl   'yes' (if the option is not specified).  Note that the shell
