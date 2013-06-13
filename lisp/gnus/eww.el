@@ -154,9 +154,12 @@
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url))
 
 (defun eww-browse-url (url &optional new-window)
-  (push (list eww-current-url (point))
-	eww-history)
-  (eww url))
+  (let ((url-request-extra-headers
+	 (append '(("User-Agent" . "eww/1.0"))
+		 url-request-extra-headers)))
+    (push (list eww-current-url (point))
+	  eww-history)
+    (eww url)))
 
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
@@ -254,6 +257,9 @@
 		    :value (cdr (assq :value (cdr elem)))
 		    :tag (cdr (assq 'text (cdr elem))))
 	      options)))
+    ;; If we have no selected values, default to the first value.
+    (unless (plist-get (cdr menu) :value)
+      (nconc menu (list :value (nth 2 (car options)))))
     (nconc menu options)
     (apply 'widget-create menu)
     (put-text-property start (point) 'eww-widget menu)

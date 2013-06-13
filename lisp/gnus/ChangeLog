@@ -1,3 +1,10 @@
+2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Expansion should chop off the bits after the
+	last slash.
+
+	* eww.el (eww-tag-select): Use the first value as the default value.
+
 2013-06-13  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* eww.el (eww): Prepend urls with http:// if scheme is missing.

@@ -492,7 +492,10 @@ size, and full-buffer size."
       url
     (let ((base shr-base))
       ;; Chop off query string.
-      (when (string-match "^\\([^?]+\\)[?]" base)
+      (when (string-match "\\`\\([^?]+\\)[?]" base)
+	(setq base (match-string 1 base)))
+      ;; Chop off the bit after the last slash.
+      (when (string-match "\\`\\(.*\\)[/][^/]+" base)
 	(setq base (match-string 1 base)))
       (cond
        ((and (string-match "\\`//" url)
