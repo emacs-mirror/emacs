@@ -1,5 +1,15 @@
 2013-06-13  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (perform-replace): Display "symbol " and other search
+	modes from `isearch-message-prefix' in the *Help* buffer.
+
+	* isearch.el (isearch-query-replace): Add " symbol" and other
+	possible search modes from `isearch-message-prefix' to the prompt.
+	(isearch-occur): Use `with-isearch-suspended' to not exit Isearch
+	when reading a regexp to collect.
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (word-search-regexp): Match whitespace if the search
 	string begins or ends in whitespace.  The LAX arg is applied to
 	both ends of the search string.  Use `regexp-quote' and explicit

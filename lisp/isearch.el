@@ -1678,9 +1678,10 @@ the beginning or the end of the string need not match a symbol boundary."
   "Start `query-replace' with string to replace from last search string.
 The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  Note that using the prefix arg
-is possible only when `isearch-allow-scroll' is non-nil, and it doesn't
-always provide the correct matches for `query-replace', so the preferred
-way to run word replacements from Isearch is `M-s w ... M-%'."
+is possible only when `isearch-allow-scroll' is non-nil or
+`isearch-allow-prefix' is non-nil, and it doesn't always provide the
+correct matches for `query-replace', so the preferred way to run word
+replacements from Isearch is `M-s w ... M-%'."
   (interactive
    (list current-prefix-arg))
   (barf-if-buffer-read-only)
@@ -1714,7 +1715,15 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
      (query-replace-read-to
       isearch-string
       (concat "Query replace"
-	      (if (or delimited isearch-word) " word" "")
+	      (if (or delimited isearch-word)
+		  (let* ((symbol (or delimited isearch-word))
+			 (string (and symbol (symbolp symbol)
+				      (get symbol 'isearch-message-prefix))))
+		    (if (stringp string)
+			;; Move space from the end to the beginning.
+			(replace-regexp-in-string "\\(.*\\) \\'" " \\1" string)
+		      " word"))
+		"")
 	      (if isearch-regexp " regexp" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
@@ -1756,12 +1765,14 @@ characters in that string."
 		   ;; No subexpression so collect the entire match.
 		   "\\&"
 		 ;; Get the regexp for collection pattern.
-		 (isearch-done nil t)
-		 (isearch-clean-overlays)
-		 (let ((default (car occur-collect-regexp-history)))
-		   (read-regexp
-		    (format "Regexp to collect (default %s): " default)
-		    default 'occur-collect-regexp-history)))
+		 (let ((default (car occur-collect-regexp-history))
+		       regexp-collect)
+		   (with-isearch-suspended
+		    (setq regexp-collect
+			  (read-regexp
+			   (format "Regexp to collect (default %s): " default)
+			   default 'occur-collect-regexp-history)))
+		   regexp-collect))
 	     ;; Otherwise normal occur takes numerical prefix argument.
 	     (when current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg))))))
