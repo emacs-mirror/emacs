@@ -3729,6 +3729,8 @@ Return nil if there isn't one."
 (defun eval-after-load (file form)
   "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
+FORM can be an Elisp expression (in which case it's passed to `eval'),
+or a function (in which case it's passed to `funcall' with no argument).
 
 If a matching file is loaded again, FORM will be evaluated again.
 
@@ -3756,43 +3758,58 @@ Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
 
 This function makes or adds to an entry on `after-load-alist'."
+  (declare (compiler-macro
+            (lambda (whole)
+              (if (eq 'quote (car-safe form))
+                  ;; Quote with lambda so the compiler can look inside.
+                  `(eval-after-load ,file (lambda () ,(nth 1 form)))
+                whole))))
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
 	  (if (stringp file)
               (setq file (purecopy (load-history-regexp file)))
             file))
-	 (elt (assoc regexp-or-feature after-load-alist)))
+	 (elt (assoc regexp-or-feature after-load-alist))
+         (func
+          (if (functionp form) form
+            ;; Try to use the "current" lexical/dynamic mode for `form'.
+            (eval `(lambda () ,form) lexical-binding))))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
-    ;; Make sure `form' is evalled in the current lexical/dynamic code.
-    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
     (prog1 (if (if (stringp file)
 		   (load-history-filename-element regexp-or-feature)
 		 (featurep file))
-	       (eval form))
-      (when (symbolp regexp-or-feature)
-	;; For features, the after-load-alist elements get run when `provide' is
-	;; called rather than at the end of the file.  So add an indirection to
-	;; make sure that `form' is really run "after-load" in case the provide
-	;; call happens early.
-	(setq form
-	      `(if load-file-name
-		   (let ((fun (make-symbol "eval-after-load-helper")))
-		     (fset fun `(lambda (file)
-				  (if (not (equal file ',load-file-name))
-				      nil
-				    (remove-hook 'after-load-functions ',fun)
-				    ,',form)))
-		     (add-hook 'after-load-functions fun))
-		 ;; Not being provided from a file, run form right now.
-		 ,form)))
-      ;; Add FORM to the element unless it's already there.
-      (unless (member form (cdr elt))
-	(nconc elt (list form))))))
+	       (funcall func))
+      (let ((delayed-func
+             (if (not (symbolp regexp-or-feature)) func
+               ;; For features, the after-load-alist elements get run when
+               ;; `provide' is called rather than at the end of the file.
+               ;; So add an indirection to make sure that `func' is really run
+               ;; "after-load" in case the provide call happens early.
+               (lambda ()
+                 (if (not load-file-name)
+                     ;; Not being provided from a file, run func right now.
+                     (funcall func)
+                   (let ((lfn load-file-name))
+                     (letrec ((fun (lambda (file)
+                                     (when (equal file lfn)
+                                       (remove-hook 'after-load-functions fun)
+                                       (funcall func)))))
+                       (add-hook 'after-load-functions fun))))))))
+        ;; Add FORM to the element unless it's already there.
+        (unless (member delayed-func (cdr elt))
+          (nconc elt (list delayed-func)))))))
+
+(defmacro with-eval-after-load (file &rest body)
+  "Execute BODY after FILE is loaded.
+FILE is normally a feature name, but it can also be a file name,
+in case that file does not provide any feature."
+  (declare (indent 1) (debug t))
+  `(eval-after-load ,file (lambda () ,@body)))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
@@ -3804,12 +3821,11 @@ name of the file just loaded.")
 ABS-FILE, a string, should be the absolute true name of a file just loaded.
 This function is called directly from the C code."
   ;; Run the relevant eval-after-load forms.
-  (mapc #'(lambda (a-l-element)
-	    (when (and (stringp (car a-l-element))
-		       (string-match-p (car a-l-element) abs-file))
-	      ;; discard the file name regexp
-	      (mapc #'eval (cdr a-l-element))))
-	after-load-alist)
+  (dolist (a-l-element after-load-alist)
+    (when (and (stringp (car a-l-element))
+               (string-match-p (car a-l-element) abs-file))
+      ;; discard the file name regexp
+      (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
   (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
     (run-with-timer 0 nil

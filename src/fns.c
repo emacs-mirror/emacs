@@ -2545,6 +2545,8 @@ SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
   return (NILP (tem)) ? Qnil : Qt;
 }
 
+static Lisp_Object Qfuncall;
+
 DEFUN ("provide", Fprovide, Sprovide, 1, 2, 0,
        doc: /* Announce that FEATURE is a feature of the current Emacs.
 The optional argument SUBFEATURES should be a list of symbols listing
@@ -2567,7 +2569,7 @@ particular subfeatures supported in this version of FEATURE.  */)
   /* Run any load-hooks for this file.  */
   tem = Fassq (feature, Vafter_load_alist);
   if (CONSP (tem))
-    Fprogn (XCDR (tem));
+    Fmapc (Qfuncall, XCDR (tem));
 
   return feature;
 }
@@ -4866,6 +4868,7 @@ syms_of_fns (void)
 Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
   DEFSYM (Qsubfeatures, "subfeatures");
+  DEFSYM (Qfuncall, "funcall");
 
 #ifdef HAVE_LANGINFO_CODESET
   DEFSYM (Qcodeset, "codeset");

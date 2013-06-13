@@ -7295,8 +7295,7 @@ version and use the one distributed with Emacs."))
   "Alist of packages known to cause problems in this version of Emacs.
 Each element has the form (PACKAGE SYMBOL REGEXP STRING).
 PACKAGE is either a regular expression to match file names, or a
-symbol (a feature name); see the documentation of
-`after-load-alist', to which this variable adds functions.
+symbol (a feature name), like for `with-eval-after-load'.
 SYMBOL is either the name of a string variable, or `t'.  Upon
 loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
 warning using STRING as the message.")
@@ -7314,10 +7313,10 @@ warning using STRING as the message.")
              (display-warning package (nth 3 list) :warning)))
     (error nil)))
 
-(mapc (lambda (elem)
-        (eval-after-load (car elem) `(bad-package-check ',(car elem))))
-      bad-packages-alist)
-
+(dolist (elem bad-packages-alist)
+  (let ((pkg (car elem)))
+    (with-eval-after-load pkg
+      (bad-package-check pkg))))
 
 (provide 'simple)
 

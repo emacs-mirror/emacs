@@ -1,3 +1,11 @@
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-eval-after-load): New macro.
+	(eval-after-load): Allow form to be a function.
+	take advantage of lexical-binding.
+	(do-after-load-evaluation): Use dolist and adjust to new format.
+	* simple.el (bad-packages-alist): Use dolist and with-eval-after-load.
+
 2013-06-13  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (perform-replace): Display "symbol " and other search
