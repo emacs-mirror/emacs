@@ -4234,7 +4234,25 @@ use `called-interactively-p'."
   (declare (obsolete called-interactively-p "23.2"))
   (called-interactively-p 'interactive))
 
-(defun set-temporary-overlay-map (map &optional keep-pred)
+(defun internal-push-keymap (keymap symbol)
+  (let ((map (symbol-value symbol)))
+    (unless (memq keymap map)
+      (unless (memq 'add-keymap-witness (symbol-value symbol))
+        (setq map (make-composed-keymap nil (symbol-value symbol)))
+        (push 'add-keymap-witness (cdr map))
+        (set symbol map))
+      (push keymap (cdr map)))))
+
+(defun internal-pop-keymap (keymap symbol)
+  (let ((map (symbol-value symbol)))
+    (when (memq keymap map)
+      (setf (cdr map) (delq keymap (cdr map))))
+    (let ((tail (cddr map)))
+      (and (or (null tail) (keymapp tail))
+           (eq 'add-keymap-witness (nth 1 map))
+           (set symbol tail)))))
+
+(defun set-temporary-overlay-map (map &optional keep-pred on-exit)
   "Set MAP as a temporary keymap taking precedence over most other keymaps.
 Note that this does NOT take precedence over the \"overriding\" maps
 `overriding-terminal-local-map' and `overriding-local-map' (or the
@@ -4244,29 +4262,29 @@ found in MAP, the normal key lookup sequence then continues.
 Normally, MAP is used only once.  If the optional argument
 KEEP-PRED is t, MAP stays active if a key from MAP is used.
 KEEP-PRED can also be a function of no arguments: if it returns
-non-nil then MAP stays active."
-  (let* ((clearfunsym (make-symbol "clear-temporary-overlay-map"))
-         (overlaysym (make-symbol "t"))
-         (alist (list (cons overlaysym map)))
-         (clearfun
-          ;; FIXME: Use lexical-binding.
-          `(lambda ()
-             (unless ,(cond ((null keep-pred) nil)
+non-nil then MAP stays active.
+
+Optional ON-EXIT argument is a function that is called after the
+deactivation of MAP."
+  (letrec ((clearfun
+            (lambda ()
+              ;; FIXME: Handle the case of multiple temporary-overlay-maps
+              ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
+              ;; the lifetime of the C-u should be nested within the isearch
+              ;; overlay, so the pre-command-hook of isearch should be
+              ;; suspended during the C-u one so we don't exit isearch just
+              ;; because we hit 1 after C-u and that 1 exits isearch whereas it
+              ;; doesn't exit C-u.
+              (unless (cond ((null keep-pred) nil)
                             ((eq t keep-pred)
-                             `(eq this-command
-                                  (lookup-key ',map
-                                              (this-command-keys-vector))))
-                            (t `(funcall ',keep-pred)))
-               (set ',overlaysym nil)   ;Just in case.
-               (remove-hook 'pre-command-hook ',clearfunsym)
-               (setq emulation-mode-map-alists
-                     (delq ',alist emulation-mode-map-alists))))))
-    (set overlaysym overlaysym)
-    (fset clearfunsym clearfun)
-    (add-hook 'pre-command-hook clearfunsym)
-    ;; FIXME: That's the keymaps with highest precedence, except for
-    ;; the `keymap' text-property ;-(
-    (push alist emulation-mode-map-alists)))
+                             (eq this-command
+                                 (lookup-key map (this-command-keys-vector))))
+                            (t (funcall keep-pred)))
+                (remove-hook 'pre-command-hook clearfun)
+                (internal-pop-keymap map 'overriding-terminal-local-map)
+                (when on-exit (funcall on-exit))))))
+    (add-hook 'pre-command-hook clearfun)
+    (internal-push-keymap map 'overriding-terminal-local-map)))
 
 ;;;; Progress reporters.
 

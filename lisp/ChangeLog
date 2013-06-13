@@ -1,3 +1,13 @@
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal-push-keymap, internal-pop-keymap): New functions.
+	(set-temporary-overlay-map): Use them (bug#14095); and take advantage of
+	lexical-binding.
+
+2013-06-13  Vitalie Spinu  <spinuvit@gmail.com>
+
+	* subr.el (set-temporary-overlay-map): Add on-exit argument.
+
 2013-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (tty-handle-args):
