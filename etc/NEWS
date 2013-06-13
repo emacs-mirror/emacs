@@ -365,6 +365,8 @@ External su and sudo commands are now the default; the internal,
 TRAMP-using variants can still be used by enabling the eshell-tramp
 module.
 
+** New term.el option `term-suppress-hard-newline'.
+
 ** Obsolete packages:
 
 *** longlines.el is obsolete; use visual-line-mode instead.
