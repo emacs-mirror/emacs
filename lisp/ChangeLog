@@ -1,3 +1,8 @@
+2013-06-13  E Sabof  <esabof@gmail.com>  (tiny change)
+
+	* image-dired.el (image-dired-dired-toggle-marked-thumbs):
+	Only remove a `thumb-file' overlay.  (Bug#14548)
+
 2013-06-12  Grégoire Jadi  <daimrod@gmail.com>
 
 	* mail/reporter.el (reporter-submit-bug-report):
