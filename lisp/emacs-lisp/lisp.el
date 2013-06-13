@@ -59,7 +59,8 @@ Should take the same arguments and behave similarly to `forward-sexp'.")
   "Move forward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions.
-This command assumes point is not in a string or comment."
+This command assumes point is not in a string or comment.
+Calls `forward-sexp-function' to do the work, if that is non-nil."
   (interactive "^p")
   (or arg (setq arg 1))
   (if forward-sexp-function
@@ -71,7 +72,8 @@ This command assumes point is not in a string or comment."
   "Move backward across one balanced expression (sexp).
 With ARG, do it that many times.  Negative arg -N means
 move forward across N balanced expressions.
-This command assumes point is not in a string or comment."
+This command assumes point is not in a string or comment.
+Uses `forward-sexp' to do the work."
   (interactive "^p")
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
