@@ -1,3 +1,9 @@
+2013-06-14  David Edmondson  <dme@dme.org>  (tiny change)
+
+	* mml2015.el (mml2015-maximum-key-image-dimension): New user option to
+	control the maximum size of photo ID image.
+	(mml2015-epg-key-image-to-string): Respect it.
+
 2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-table-1): Mark the preliminary table renderings
