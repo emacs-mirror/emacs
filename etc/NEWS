@@ -414,6 +414,12 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** The default file coding for Emacs Lisp files is now utf-8.
+(See file-coding-system-alist.)  In most cases, this change is transparent, but
+files that contain unusual characters without specifying an explicit coding
+system may fail to load with obscure errors.
+You should either convert them to utf-8 or add an explicit coding: cookie.
+
 ** overriding-terminal-local-map does not replace the local keymaps any more.
 It used to disable the minor mode, major mode, and text-property keymaps,
 whereas now it simply has higher precedence.
@@ -454,13 +460,6 @@ file using `set-file-extended-attributes'.
 
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
-
-** The default file coding for Emacs Lisp files is now utf-8.
-(See file-coding-system-alist.)  In most cases, this change is
-totally transparent.  Files that contain unusual characters but do
-not specify an explicit coding system may fail to load with obscure
-errors.  You should either convert them to utf-8 or add an explicit
-coding: cookie.
 
 ** Obsoleted functions:
 *** `dont-compile'

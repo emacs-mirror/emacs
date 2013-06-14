@@ -1,3 +1,17 @@
+2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-force-lexical-warnings): New var.
+	(byte-compile-preprocess): Use it.
+	(byte-compile-file-form-defalias): Try a bit harder to use macros we
+	can't quite recognize.
+	(byte-compile-add-to-list): Remove.
+	* emacs-lisp/cconv.el (cconv-warnings-only): New function.
+	(cconv-closure-convert): Add assertion.
+
+	* emacs-lisp/map-ynp.el: Use lexical-binding.
+	(map-y-or-n-p): Remove unused vars `tail' and `object'.
+	Factor out some repeated code.
+
 2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-eval-after-load): New macro.

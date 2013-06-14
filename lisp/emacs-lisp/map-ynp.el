@@ -1,4 +1,4 @@
-;;; map-ynp.el --- general-purpose boolean question-asker
+;;; map-ynp.el --- general-purpose boolean question-asker  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1991-1995, 2000-2013 Free Software Foundation, Inc.
 
@@ -79,7 +79,7 @@ are meaningful here.
 
 Returns the number of actions taken."
   (let* ((actions 0)
-	 user-keys mouse-event map prompt char elt tail def
+	 user-keys mouse-event map prompt char elt def
 	 ;; Non-nil means we should use mouse menus to ask.
 	 use-menus
 	 delayed-switch-frame
@@ -89,13 +89,15 @@ Returns the number of actions taken."
 	 (next (if (functionp list)
                    (lambda () (setq elt (funcall list)))
                  (lambda () (when list
-                         (setq elt (pop list))
-                         t)))))
+			      (setq elt (pop list))
+			      t))))
+	 (try-again (lambda ()
+		      (let ((x next))
+			(setq next (lambda () (setq next x) elt))))))
     (if (and (listp last-nonmenu-event)
 	     use-dialog-box)
 	;; Make a list describing a dialog box.
-	(let ((object (if help (capitalize (nth 0 help))))
-	      (objects (if help (capitalize (nth 1 help))))
+	(let ((objects (if help (capitalize (nth 1 help))))
 	      (action (if help (capitalize (nth 2 help)))))
 	  (setq map `(("Yes" . act) ("No" . skip)
 		      ,@(mapcar (lambda (elt)
@@ -129,8 +131,8 @@ Returns the number of actions taken."
     (unwind-protect
 	(progn
 	  (if (stringp prompter)
-	      (setq prompter `(lambda (object)
-				(format ,prompter object))))
+	      (setq prompter (lambda (object)
+			       (format prompter object))))
 	  (while (funcall next)
 	    (setq prompt (funcall prompter elt))
 	    (cond ((stringp prompt)
@@ -176,9 +178,7 @@ Returns the number of actions taken."
 				next (lambda () nil)))
 			 ((eq def 'quit)
 			  (setq quit-flag t)
-			  (setq next `(lambda ()
-					(setq next ',next)
-					',elt)))
+			  (funcall try-again))
 			 ((eq def 'automatic)
 			  ;; Act on this and all following objects.
 			  (if (funcall prompter elt)
@@ -219,40 +219,30 @@ the current %s and exit."
 			    (with-current-buffer standard-output
 			      (help-mode)))
 
-			  (setq next `(lambda ()
-				       (setq next ',next)
-				       ',elt)))
-                         ((and (symbolp def) (commandp def))
-                          (call-interactively def)
-                          ;; Regurgitated; try again.
-                          (setq next `(lambda ()
-                                        (setq next ',next)
-                                        ',elt)))
+			  (funcall try-again))
+			 ((and (symbolp def) (commandp def))
+			  (call-interactively def)
+			  ;; Regurgitated; try again.
+			  (funcall try-again))
 			 ((vectorp def)
 			  ;; A user-defined key.
 			  (if (funcall (aref def 0) elt) ;Call its function.
 			      ;; The function has eaten this object.
 			      (setq actions (1+ actions))
 			    ;; Regurgitated; try again.
-			    (setq next `(lambda ()
-					 (setq next ',next)
-					 ',elt))))
+			    (funcall try-again)))
 			 ((and (consp char)
 			       (eq (car char) 'switch-frame))
 			  ;; switch-frame event.  Put it off until we're done.
 			  (setq delayed-switch-frame char)
-			  (setq next `(lambda ()
-				       (setq next ',next)
-				       ',elt)))
+			  (funcall try-again))
 			 (t
 			  ;; Random char.
 			  (message "Type %s for help."
 				   (key-description (vector help-char)))
 			  (beep)
 			  (sit-for 1)
-			  (setq next `(lambda ()
-				       (setq next ',next)
-				       ',elt)))))
+			  (funcall try-again))))
 		  (prompt
 		   (funcall actor elt)
 		   (setq actions (1+ actions))))))

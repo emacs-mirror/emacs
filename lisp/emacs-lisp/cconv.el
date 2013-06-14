@@ -143,7 +143,19 @@ Returns a form where all lambdas don't have any free variables."
     ;; Analyze form - fill these variables with new information.
     (cconv-analyse-form form '())
     (setq cconv-freevars-alist (nreverse cconv-freevars-alist))
-    (cconv-convert form nil nil))) ; Env initially empty.
+    (prog1 (cconv-convert form nil nil) ; Env initially empty.
+      (cl-assert (null cconv-freevars-alist)))))
+
+;;;###autoload
+(defun cconv-warnings-only (form)
+  "Add the warnings that closure conversion would encounter."
+  (let ((cconv-freevars-alist '())
+	(cconv-lambda-candidates '())
+	(cconv-captured+mutated '()))
+    ;; Analyze form - fill these variables with new information.
+    (cconv-analyse-form form '())
+    ;; But don't perform the closure conversion.
+    form))
 
 (defconst cconv--dummy-var (make-symbol "ignored"))
 
