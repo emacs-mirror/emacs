@@ -1,5 +1,8 @@
 2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (eval-after-load, set-temporary-overlay-map): Use indirection
+	through a symbol rather than letrec.
+
 	* emacs-lisp/package.el: Don't recompute dir.  Use pkg-descs more.
 	(package-desc): Add `dir' field.
 	(package-desc-full-name): New function.

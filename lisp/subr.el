@@ -3794,12 +3794,15 @@ This function makes or adds to an entry on `after-load-alist'."
                  (if (not load-file-name)
                      ;; Not being provided from a file, run func right now.
                      (funcall func)
-                   (let ((lfn load-file-name))
-                     (letrec ((fun (lambda (file)
-                                     (when (equal file lfn)
-                                       (remove-hook 'after-load-functions fun)
-                                       (funcall func)))))
-                       (add-hook 'after-load-functions fun))))))))
+                   (let ((lfn load-file-name)
+                         ;; Don't use letrec, because equal (in
+                         ;; add/remove-hook) would get trapped in a cycle.
+                         (fun (make-symbol "eval-after-load-helper")))
+                     (fset fun (lambda (file)
+                                 (when (equal file lfn)
+                                   (remove-hook 'after-load-functions fun)
+                                   (funcall func))))
+                     (add-hook 'after-load-functions fun)))))))
         ;; Add FORM to the element unless it's already there.
         (unless (member delayed-func (cdr elt))
           (nconc elt (list delayed-func)))))))
@@ -4282,23 +4285,26 @@ non-nil then MAP stays active.
 
 Optional ON-EXIT argument is a function that is called after the
 deactivation of MAP."
-  (letrec ((clearfun
-            (lambda ()
-              ;; FIXME: Handle the case of multiple temporary-overlay-maps
-              ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
-              ;; the lifetime of the C-u should be nested within the isearch
-              ;; overlay, so the pre-command-hook of isearch should be
-              ;; suspended during the C-u one so we don't exit isearch just
-              ;; because we hit 1 after C-u and that 1 exits isearch whereas it
-              ;; doesn't exit C-u.
-              (unless (cond ((null keep-pred) nil)
-                            ((eq t keep-pred)
-                             (eq this-command
-                                 (lookup-key map (this-command-keys-vector))))
-                            (t (funcall keep-pred)))
-                (remove-hook 'pre-command-hook clearfun)
-                (internal-pop-keymap map 'overriding-terminal-local-map)
-                (when on-exit (funcall on-exit))))))
+  (let ((clearfun (make-symbol "clear-temporary-overlay-map")))
+    ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
+    ;; in a cycle.
+    (fset clearfun
+          (lambda ()
+            ;; FIXME: Handle the case of multiple temporary-overlay-maps
+            ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
+            ;; the lifetime of the C-u should be nested within the isearch
+            ;; overlay, so the pre-command-hook of isearch should be
+            ;; suspended during the C-u one so we don't exit isearch just
+            ;; because we hit 1 after C-u and that 1 exits isearch whereas it
+            ;; doesn't exit C-u.
+            (unless (cond ((null keep-pred) nil)
+                          ((eq t keep-pred)
+                           (eq this-command
+                               (lookup-key map (this-command-keys-vector))))
+                          (t (funcall keep-pred)))
+              (remove-hook 'pre-command-hook clearfun)
+              (internal-pop-keymap map 'overriding-terminal-local-map)
+              (when on-exit (funcall on-exit)))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)))
 
