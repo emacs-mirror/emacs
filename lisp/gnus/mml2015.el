@@ -148,6 +148,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defcustom mml2015-maximum-key-image-dimension 64
   "The maximum dimension (width or height) of any key images."
+  :version "24.4"
   :group 'mime-security
   :type 'integer)
 
