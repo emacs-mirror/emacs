@@ -35,5 +35,6 @@ Appendices
     glossary/index
     copyright
     contact
+    release
 
 * :ref:`genindex`
