@@ -1,3 +1,10 @@
+2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-table-1): Mark the preliminary table renderings
+	instead of the final one so that we can more easily distinguish them.
+
+	* eww.el (eww-submit): Compute the submission URL correctly.
+
 2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sieve-manage.el (sieve-manage-open-server): Don't quote lambda.

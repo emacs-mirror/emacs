@@ -192,7 +192,9 @@
 	(start (point)))
     (shr-ensure-paragraph)
     (shr-generic cont)
-    (shr-ensure-paragraph)
+    (unless (bolp)
+      (insert "\n"))
+    (insert "\n")
     (when (> (point) start)
       (put-text-property start (1+ start)
 			 'eww-form eww-form))))
@@ -235,11 +237,9 @@
 	     :name (cdr (assq :name cont))
 	     :eww-form eww-form)))))
     (if (eq (car widget) 'hidden)
-	(when shr-final-table-render
-	  (nconc eww-form (list widget)))
-      (apply 'widget-create widget))
-    (put-text-property start (point) 'eww-widget widget)
-    (insert " ")))
+	(nconc eww-form (list widget))
+      (apply 'widget-create widget)
+      (put-text-property start (point) 'eww-widget widget))))
 
 (defun eww-tag-select (cont)
   (shr-ensure-paragraph)
@@ -331,11 +331,12 @@
 		(url-request-data (mm-url-encode-www-form-urlencoded values)))
 	    (eww-browse-url (shr-expand-url (cdr (assq :action form)))))
 	(eww-browse-url
-	 (shr-expand-url
 	  (concat
-	   (cdr (assq :action form))
+	  (if (cdr (assq :action form))
+	      (shr-expand-url (cdr (assq :action form)))
+	    eww-current-url)
 	   "?"
-	   (mm-url-encode-www-form-urlencoded values))))))))
+	  (mm-url-encode-www-form-urlencoded values)))))))
 
 (defun eww-convert-widgets ()
   (let ((start (point-min))
@@ -353,7 +354,9 @@
 		    (plist-get (overlay-properties overlay) 'field))
 	    (delete-overlay overlay)))
 	(delete-region start end))
-      (apply 'widget-create widget))
+      (when (and widget
+		 (not (eq (car widget) 'hidden)))
+	(apply 'widget-create widget)))
     (widget-setup)
     (eww-fix-widget-keymap)))
 

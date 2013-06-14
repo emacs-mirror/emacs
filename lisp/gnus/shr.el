@@ -115,7 +115,7 @@ cid: URL as the argument.")
 (defvar shr-base nil)
 (defvar shr-ignore-cache nil)
 (defvar shr-external-rendering-functions nil)
-(defvar shr-final-table-render nil)
+(defvar shr-preliminary-table-render nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -1167,6 +1167,7 @@ ones, in case fg and bg are nil."
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
   (let* ((shr-inhibit-images t)
+	 (shr-preliminary-table-render t)
 	 (shr-table-depth (1+ shr-table-depth))
 	 (shr-kinsoku-shorten t)
 	 ;; Find all suggested widths.
@@ -1188,8 +1189,8 @@ ones, in case fg and bg are nil."
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
-    (let ((shr-final-table-render t))
-      (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
+    (setq shr-preliminary-table-render nil)
+    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
   ;; Finally, insert all the images after the table.  The Emacs buffer
   ;; model isn't strong enough to allow us to put the images actually
   ;; into the tables.
