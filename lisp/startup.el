@@ -422,6 +422,13 @@ The second subexpression is the version string.
 The regexp should not contain a starting \"\\`\" or a trailing
  \"\\'\"; those are added automatically by callers.")
 
+(defun package--description-file (dir)
+  (concat (let ((subdir (file-name-nondirectory
+                         (directory-file-name dir))))
+            (if (string-match package-subdirectory-regexp subdir)
+                (match-string 1 subdir) subdir))
+          "-pkg.el"))
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -1194,10 +1201,10 @@ the `--debug-init' option to view a complete error backtrace."
 	   (dolist (dir dirs)
 	     (when (file-directory-p dir)
 	       (dolist (subdir (directory-files dir))
-		 (when (and (file-directory-p (expand-file-name subdir dir))
-			    (string-match
-			     (concat "\\`" package-subdirectory-regexp "\\'")
-			     subdir))
+		 (when (let ((subdir (expand-file-name subdir dir)))
+                         (and (file-directory-p subdir)
+                              (file-exists-p
+                               (package--description-file subdir))))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
 

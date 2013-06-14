@@ -1,5 +1,40 @@
 2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/package.el: Don't recompute dir.  Use pkg-descs more.
+	(package-desc): Add `dir' field.
+	(package-desc-full-name): New function.
+	(package-load-descriptor): Combine the two arguments.  Don't use `load'.
+	(package-maybe-load-descriptor): Remove.
+	(package-load-all-descriptors): Just call package-load-descriptor.
+	(package--disabled-p): New function.
+	(package-desc-vers, package-desc-doc): Remove aliases.
+	(package--dir): Remove function.
+	(package-activate): Check if a package is disabled.
+	(package-process-define-package): New function, extracted from
+	define-package.
+	(define-package): Turn into a place holder.
+	(package-unpack-single, package-tar-file-info):
+	Use package--description-file.
+	(package-compute-transaction): Use package--disabled-p.
+	(package-download-transaction): Don't call
+	package-maybe-load-descriptor since they're all loaded anyway.
+	(package-install): Change argument to be a pkg-desc.
+	(package-delete): Use a single pkg-desc argument.
+	(describe-package-1): Use package-desc-dir instead of package--dir.
+	Use package-desc property instead of package-symbol.
+	(package-install-button-action): Adjust accordingly.
+	(package--push): Rewrite.
+	(package-menu--print-info): Adjust accordingly.  Change the ID format
+	to be a pkg-desc.
+	(package-menu-describe-package, package-menu-get-status)
+	(package-menu--find-upgrades, package-menu-mark-upgrades)
+	(package-menu-execute, package-menu--name-predicate):
+	Adjust accordingly.
+	* startup.el (package--description-file): New function.
+	(command-line): Use it.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use package-desc-version.
+
 	* emacs-lisp/bytecomp.el (byte-compile-force-lexical-warnings): New var.
 	(byte-compile-preprocess): Use it.
 	(byte-compile-file-form-defalias): Try a bit harder to use macros we
