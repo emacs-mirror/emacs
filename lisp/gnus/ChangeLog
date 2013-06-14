@@ -1,3 +1,8 @@
+2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
+
+	* sieve.el: Rebind q to (sieve-bury-buffer), bind Q to
+	(sieve-manage-quit).
+
 2013-06-14  David Edmondson  <dme@dme.org>  (tiny change)
 
 	* mml2015.el (mml2015-maximum-key-image-dimension): New user option to

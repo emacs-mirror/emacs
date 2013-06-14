@@ -1,3 +1,10 @@
+2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
+
+	* sieve.texi: (Managing Sieve): Fix port in example, fix documentation
+	for keys q and Q.
+	(Standards): Reference RFC5804 as the defining document of the
+	managesieve protocol.
+
 2013-06-10  Aidan Gauland  <aidalgol@amuri.net>
 
 	* eshell.texi (Input/Output): Expand to cover new visual-command
