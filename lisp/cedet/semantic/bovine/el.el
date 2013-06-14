@@ -1,6 +1,6 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
-;; Copyright (C) 1999-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -940,8 +940,11 @@ ELisp variables can be pretty long, so track this one too.")
 (define-child-mode lisp-mode emacs-lisp-mode
   "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'.")
 
+;;;###autoload
 (defun semantic-default-elisp-setup ()
   "Setup hook function for Emacs Lisp files and Semantic."
+  ;; This is here mostly to get this file loaded when a .el file is
+  ;; loaded into Emacs.
   )
 
 (add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
@@ -956,10 +959,16 @@ ELisp variables can be pretty long, so track this one too.")
 ;;
 (add-hook 'lisp-mode-hook 'semantic-default-elisp-setup)
 
-(eval-after-load "semanticdb"
+(eval-after-load "semantic/db"
   '(require 'semantic/db-el)
   )
 
+
 (provide 'semantic/bovine/el)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-load-name: "semantic/bovine/el"
+;; End:
 
 ;;; semantic/bovine/el.el ends here

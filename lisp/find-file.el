@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994-1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -245,7 +245,8 @@ the preceding slash.  The star represents all the subdirectories except
     ("\\.hh\\'"  (".cc" ".C"))
 
     ("\\.c\\'"   (".h"))
-    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))
+    ("\\.m\\'"   (".h"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".m"))
 
     ("\\.C\\'"   (".H"  ".hh" ".h"))
     ("\\.H\\'"   (".C"  ".CC"))
@@ -267,6 +268,7 @@ This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each directory
 specified in `ff-search-directories'.  If a file is not found, a new one
 is created with the first matching extension (`.cc' yields `.hh')."
+  :version "24.4"                       ; add .m
   :type '(repeat (list regexp (choice (repeat string) function)))
   :group 'ff)
 

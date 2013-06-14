@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002-2003, 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2013 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -249,7 +249,8 @@ when not running under a window system."
   :tag   "init-kludge-hooks"
   :type  '(hook))
 
-(defcustom hfy-post-html-hooks nil
+(define-obsolete-variable-alias 'hfy-post-html-hooks 'hfy-post-html-hook "24.3")
+(defcustom hfy-post-html-hook nil
   "List of functions to call after creating and filling the HTML buffer.
 These functions will be called with the HTML buffer as the current buffer."
   :group   'htmlfontify
@@ -716,7 +717,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
 --> </script>
   </head>
   <body onload=\"stripe('index'); return true;\">\n"
-          file style))
+          (mapconcat 'hfy-html-quote (mapcar 'char-to-string file) "") style))
 
 (defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.
@@ -1052,8 +1053,6 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
     (hfy-face-attr-for-class fn hfy-display-class))
    ((and (symbolp fn)
          (facep (symbol-value fn)))
-    ;; Obsolete faces like `font-lock-reference-face' are defined as
-    ;; aliases for another face.
     (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
    (t nil)))
 
@@ -1788,7 +1787,7 @@ FILE, if set, is the file name."
       ;;(message "inserting footer")
       (insert (funcall hfy-page-footer file)))
     ;; call any post html-generation hooks:
-    (run-hooks 'hfy-post-html-hooks)
+    (run-hooks 'hfy-post-html-hook)
     ;; return the html buffer
     (set-buffer-modified-p nil)
     html-buffer))
@@ -2407,7 +2406,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 
 
 ;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
-;;;;;;  "hfy-cmap" "hfy-cmap.el" "ef24066922f1e27b7580d572f12fabbe")
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "3f97eeabe72027099da579f6ef9ae0bd")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\

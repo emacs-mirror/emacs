@@ -1,6 +1,6 @@
 ;;; gnus-logic.el --- advanced scoring code for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -181,17 +181,18 @@
   (with-current-buffer nntp-server-buffer
     (let* ((request-func (cond ((string= "head" header)
                                 'gnus-request-head)
-                               ;; We need to peek at the headers to detect the
-                               ;; content encoding
                                ((string= "body" header)
-                                'gnus-request-article)
+                                'gnus-request-body)
                                (t 'gnus-request-article)))
            ofunc article handles)
       ;; Not all backends support partial fetching.  In that case, we
       ;; just fetch the entire article.
-      (unless (gnus-check-backend-function
-               (intern (concat "request-" header))
-               gnus-newsgroup-name)
+      ;; When scoring by body, we need to peek at the headers to detect the
+      ;; content encoding
+      (unless (or (gnus-check-backend-function
+                   (intern (concat "request-" header))
+                   gnus-newsgroup-name)
+                  (string= "body" header))
         (setq ofunc request-func)
         (setq request-func 'gnus-request-article))
       (setq article (mail-header-number gnus-advanced-headers))

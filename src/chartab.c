@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
@@ -653,15 +653,6 @@ or a character code.  Return VALUE.  */)
     error ("Invalid RANGE argument to `set-char-table-range'");
 
   return value;
-}
-
-DEFUN ("set-char-table-default", Fset_char_table_default,
-       Sset_char_table_default, 3, 3, 0,
-       doc: /*
-This function is obsolete and has no effect.  */)
-  (Lisp_Object char_table, Lisp_Object ch, Lisp_Object value)
-{
-  return Qnil;
 }
 
 /* Look up the element in TABLE at index CH, and return it as an
@@ -1415,7 +1406,6 @@ syms_of_chartab (void)
   defsubr (&Sset_char_table_extra_slot);
   defsubr (&Schar_table_range);
   defsubr (&Sset_char_table_range);
-  defsubr (&Sset_char_table_default);
   defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
   defsubr (&Sunicode_property_table_internal);

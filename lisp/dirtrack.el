@@ -1,6 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -219,6 +219,9 @@ the mode if ARG is omitted or nil."
     (with-current-buffer (get-buffer-create dirtrack-debug-buffer)
       (goto-char (point-max))
       (insert msg1 msg2 "\n"))))
+
+(declare-function shell-prefixed-directory-name "shell" (dir))
+(declare-function shell-process-cd "shell" (arg))
 
 ;;;###autoload
 (defun dirtrack (input)

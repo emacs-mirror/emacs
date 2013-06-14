@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2012  Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2013 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -13,9 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301, USA.
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8
@@ -360,7 +358,6 @@ end
 
 define pwinx
   set $w = $arg0
-  xgetint $w->sequence_number
   if ($w->mini_p != Qnil)
     printf "Mini "
   end
@@ -495,7 +492,8 @@ define pgx
   end
   xgettype ($g.object)
   if ($type == Lisp_String)
-    printf " str=%x[%d]", $g.object, $g.charpos
+    xgetptr $g.object
+    printf " str=0x%x[%d]", ((struct Lisp_String *)$ptr)->data, $g.charpos
   else
     printf " pos=%d", $g.charpos
   end
@@ -608,7 +606,7 @@ Pretty print all glyphs in it->glyph_row.
 end
 
 define prowlims
-  printf "edges=(%d,%d),r2l=%d,cont=%d,trunc=(%d,%d),at_zv=%d\n", $arg0->minpos.charpos, $arg0->maxpos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->truncated_on_left_p, $arg0->truncated_on_right_p, $arg0->ends_at_zv_p
+  printf "edges=(%d,%d),enb=%d,r2l=%d,cont=%d,trunc=(%d,%d),at_zv=%d\n", $arg0->minpos.charpos, $arg0->maxpos.charpos, $arg0->enabled_p, $arg0->reversed_p, $arg0->continued_p, $arg0->truncated_on_left_p, $arg0->truncated_on_right_p, $arg0->ends_at_zv_p
 end
 document prowlims
 Print important attributes of a glyph_row structure.
@@ -650,19 +648,52 @@ If the first type printed is Lisp_Vector or Lisp_Misc,
 a second line gives the more precise type.
 end
 
-define xvectype
-  xgetptr $
-  set $size = ((struct Lisp_Vector *) $ptr)->header.size
+define pvectype
+  set $size = ((struct Lisp_Vector *) $arg0)->header.size
   if ($size & PSEUDOVECTOR_FLAG)
-    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+    output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
   else
-    output $size & ~ARRAY_MARK_FLAG
+    output PVEC_NORMAL_VECTOR
   end
   echo \n
 end
+document pvectype
+Print the subtype of vectorlike object.
+Takes one argument, a pointer to an object.
+end
+
+define xvectype
+  xgetptr $
+  pvectype $ptr
+end
 document xvectype
-Print the size or vector subtype of $.
-This command assumes that $ is a vector or pseudovector.
+Print the subtype of vectorlike object.
+This command assumes that $ is a Lisp_Object.
+end
+
+define pvecsize
+  set $size = ((struct Lisp_Vector *) $arg0)->header.size
+  if ($size & PSEUDOVECTOR_FLAG)
+    output ($size & PSEUDOVECTOR_SIZE_MASK)
+    echo \n
+    output (($size & PSEUDOVECTOR_REST_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+  else
+    output ($size & ~ARRAY_MARK_FLAG)
+  end
+  echo \n
+end
+document pvecsize
+Print the size of vectorlike object.
+Takes one argument, a pointer to an object.
+end
+
+define xvecsize
+  xgetptr $
+  pvecsize $ptr
+end
+document xvecsize
+Print the size of $
+This command assumes that $ is a Lisp_Object.
 end
 
 define xmisctype
@@ -996,7 +1027,7 @@ define xpr
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size
     if ($size & PSEUDOVECTOR_FLAG)
-      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+      set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
       if $vec == PVEC_NORMAL_VECTOR
 	xvector
       end
@@ -1119,20 +1150,21 @@ Print $ assuming it is a list font (font-spec, font-entity, or font-object).
 end
 
 define xbacktrace
-  set $bt = backtrace_list
-  while $bt
-    xgettype (*$bt->function)
+  set $bt = backtrace_top ()
+  while backtrace_p ($bt)
+    set $fun = backtrace_function ($bt)
+    xgettype $fun
     if $type == Lisp_Symbol
-      xprintsym (*$bt->function)
-      printf " (0x%x)\n", $bt->args
+      xprintsym $fun
+      printf " (0x%x)\n", backtrace_args ($bt)
     else
-      xgetptr *$bt->function
+      xgetptr $fun
       printf "0x%x ", $ptr
       if $type == Lisp_Vectorlike
-	xgetptr (*$bt->function)
+	xgetptr $fun
         set $size = ((struct Lisp_Vector *) $ptr)->header.size
         if ($size & PSEUDOVECTOR_FLAG)
-	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_SIZE_BITS)
+	  output (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
 	else
 	  output $size & ~ARRAY_MARK_FLAG
 	end
@@ -1141,7 +1173,7 @@ define xbacktrace
       end
       echo \n
     end
-    set $bt = $bt->next
+    set $bt = backtrace_next ($bt)
   end
 end
 document xbacktrace
@@ -1189,8 +1221,8 @@ end
 
 # Show Lisp backtrace after normal backtrace.
 define hookpost-backtrace
-  set $bt = backtrace_list
-  if $bt
+  set $bt = backtrace_top ()
+  if backtrace_p ($bt)
     echo \n
     echo Lisp Backtrace:\n
     xbacktrace
@@ -1213,19 +1245,9 @@ set print sevenbit-strings
 show environment DISPLAY
 show environment TERM
 
-# People get bothered when they see messages about non-existent functions...
-xgetptr globals.f_Vsystem_type
-# $ptr is NULL in temacs
-if ($ptr != 0)
-  set $tem = (struct Lisp_Symbol *) $ptr
-  xgetptr $tem->name
-  set $tem = (struct Lisp_String *) $ptr
-  set $tem = (char *) $tem->data
-
-  # Don't let emacs_abort actually run, as it will make stdio stop
-  # working and therefore the 'pr' command above as well.
-  break emacs_abort
-end
+# When debugging, it is handy to be able to "return" from
+# terminate_due_to_signal when an assertion failure is non-fatal.
+break terminate_due_to_signal
 
 # x_error_quitter is defined only on X.  But window-system is set up
 # only at run time, during Emacs startup, so we need to defer setting

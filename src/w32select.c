@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -73,15 +73,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
-#include <setjmp.h>
 #include "lisp.h"
+#include "w32common.h"	/* os_subtype */
 #include "w32term.h"	/* for all of the w32 includes */
-#include "w32heap.h"	/* os_subtype */
+#include "keyboard.h"
 #include "blockinput.h"
 #include "charset.h"
 #include "coding.h"
 #include "composite.h"
 
+#ifdef CYGWIN
+#include <string.h>
+#include <stdio.h>
+#define _memccpy memccpy
+#endif
 
 static HGLOBAL convert_to_handle_as_ascii (void);
 static HGLOBAL convert_to_handle_as_coded (Lisp_Object coding_system);
@@ -389,10 +394,9 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
      with global variables and calling strange looking functions.  Is
      this really the right way to run Lisp callbacks?  */
 
-  extern int waiting_for_input; /* from keyboard.c */
   int owfi;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
@@ -403,7 +407,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
 
   waiting_for_input = owfi;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static Lisp_Object
@@ -475,7 +479,10 @@ term_w32select (void)
 {
   /* This is needed to trigger WM_RENDERALLFORMATS. */
   if (clipboard_owner != NULL)
-    DestroyWindow (clipboard_owner);
+    {
+      DestroyWindow (clipboard_owner);
+      clipboard_owner = NULL;
+    }
 }
 
 static void
@@ -695,7 +702,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   current_num_nls = 0;
   current_requires_encoding = 0;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Check for non-ASCII characters.  While we are at it, count the
      number of LFs, so we know how many CRs we will have to add later
@@ -783,7 +790,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   current_coding_system = Qnil;
 
  done:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return (ok ? string : Qnil);
 }
@@ -811,7 +818,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   setup_config ();
   actual_clipboard_type = cfg_clipboard_type;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!OpenClipboard (clipboard_owner))
     goto done;
@@ -1001,7 +1008,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   CloseClipboard ();
 
  done:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   return (ret);
 }

@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -222,8 +222,7 @@
 ;; things up.
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-util))
+  (require 'cl-lib))
 (require 'esh-util)
 (require 'esh-mode)
 
@@ -243,16 +242,14 @@ shells such as bash, zsh, rc, 4dos."
 
 (defun eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (add-to-list 'same-window-buffer-names eshell-buffer-name))
-(make-obsolete 'eshell-add-to-window-buffer-names
-	       "no longer needed." "24.3")
 
 (defun eshell-remove-from-window-buffer-names ()
   "Remove `eshell-buffer-name' from `same-window-buffer-names'."
+  (declare (obsolete nil "24.3"))
   (setq same-window-buffer-names
 	(delete eshell-buffer-name same-window-buffer-names)))
-(make-obsolete 'eshell-remove-from-window-buffer-names
-	       "no longer needed." "24.3")
 
 (defcustom eshell-load-hook nil
   "A hook run once Eshell has been loaded."
@@ -320,6 +317,8 @@ buffer selected (or created)."
 Modules should use this variable so that they don't clutter
 non-interactive sessions, such as when using `eshell-command'.")
 
+(declare-function eshell-add-input-to-history "em-hist" (input))
+
 ;;;###autoload
 (defun eshell-command (&optional command arg)
   "Execute the Eshell command string COMMAND.
@@ -335,7 +334,8 @@ With prefix ARG, insert output into the current buffer at point."
                                     (eshell-return-exits-minibuffer))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
-        (eshell-add-input-to-history command))))
+	(if (eshell-using-module 'eshell-hist)
+	    (eshell-add-input-to-history command)))))
   (unless command
     (error "No command specified!"))
   ;; redirection into the current buffer is achieved by adding an

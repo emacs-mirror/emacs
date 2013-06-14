@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -263,7 +263,7 @@ interactively, this defaults to the current value of VAR."
 (defun custom-theme-add-face (face &optional spec)
   "Add a widget for FACE (a symbol) to the *New Custom Theme* buffer.
 SPEC, if non-nil, should be a face spec to which to set the widget."
-  (interactive (list (read-face-name "Face name" nil nil) nil))
+  (interactive (list (read-face-name "Face name" (face-at-point t))))
   (unless (or (facep face) spec)
     (error "`%s' has no face definition" face))
   (let ((entry (assq face custom-theme-faces)))

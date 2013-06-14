@@ -1,6 +1,7 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
-;; Copyright (C) 1988, 1994, 1997, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1997, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -446,7 +447,7 @@ in the next one.")
 					    "\"\)\n")))
 
 
-(defvar scheme-buffer nil "*The current scheme process buffer.
+(defvar scheme-buffer nil "The current scheme process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
@@ -477,8 +478,8 @@ This process selection is performed by function `scheme-proc'.
 
 Whenever \\[run-scheme] fires up a new process, it resets `scheme-buffer'
 to be the new process's buffer.  If you only run one process, this will
-do the right thing.  If you run multiple processes, you can change
-`scheme-buffer' to another process buffer with \\[set-variable].
+do the right thing.  If you run multiple processes, you might need to
+set `scheme-buffer' to whichever process buffer you want to use.
 
 More sophisticated approaches are, of course, possible.  If you find yourself
 needing to switch back and forth between multiple processes frequently,

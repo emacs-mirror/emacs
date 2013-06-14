@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javat-wy.el --- Generated parser support file
 
-;; Copyright (C) 2002, 2007, 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,9 +24,12 @@
 ;;; Code:
 
 (require 'semantic/lex)
+(eval-when-compile (require 'semantic/bovine))
 
 ;;; Prologue
 ;;
+(declare-function semantic-parse-region "semantic"
+		  (start end &optional nonterminal depth returnonerror))
 
 ;;; Declarations
 ;;
@@ -174,7 +177,7 @@
      ("continue" summary "continue [<label>] ;")
      ("const" summary "Unused reserved word")
      ("class" summary "Class declaration: class <name>")
-     ("char" summary "Integral primitive type ('\000' to '￿') (0 to 65535)")
+     ("char" summary "Integral primitive type (0 to 65535)")
      ("catch" summary "try {<stmts>} catch(<parm>) {<stmts>} ... ")
      ("case" summary "switch(<expr>) {case <const-expr>: <stmts> ... }")
      ("byte" summary "Integral primitive type (-128 to 127)")
@@ -322,7 +325,7 @@
 	((method_declaration))
 	((field_declaration)))
        (interface_declaration
-	((modifiers_opt INTERFACE IDENTIFIER extends_interfaces_opt interface_body)
+	((modifiers_opt INTERFACE qualified_name extends_interfaces_opt interface_body)
 	 (wisent-raw-tag
 	  (semantic-tag-new-type $3 $2 $5
 				 (if $4
@@ -410,7 +413,7 @@
 	((formal_parameter COMMA))
 	((formal_parameter RPAREN)))
        (formal_parameter
-	((formal_parameter_modifier_opt type variable_declarator_id)
+	((formal_parameter_modifier_opt type opt_variable_declarator_id)
 	 (wisent-raw-tag
 	  (semantic-tag-new-variable $3 $2 nil :typemodifiers $1))))
        (formal_parameter_modifier_opt
@@ -436,6 +439,11 @@
 	 (cons $1 $region))
 	((variable_declarator_id)
 	 (cons $1 $region)))
+       (opt_variable_declarator_id
+	(nil
+	 (identity ""))
+	((variable_declarator_id)
+	 (identity $1)))
        (variable_declarator_id
 	((IDENTIFIER dims_opt)
 	 (concat $1 $2)))
@@ -566,7 +574,7 @@
 
 
 ;;; Analyzers
-
+;;
 (define-lex-block-type-analyzer wisent-java-tags-wy--<block>-block-analyzer
   "block analyzer for <block> tokens."
   "\\s(\\|\\s)"

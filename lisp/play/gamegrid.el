@@ -1,6 +1,6 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs
 
-;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02
@@ -175,7 +175,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
-    (set-face-inverse-video-p face t)
+    (set-face-inverse-video face t)
     face))
 
 (defun gamegrid-make-color-tty-face (color)
@@ -505,16 +505,15 @@ FILE is created there."
 	     (make-directory gamegrid-user-score-file-directory t))
 	   (gamegrid-add-score-insecure file score
 					gamegrid-user-score-file-directory))
-	  (t (let ((f (expand-file-name
-		       gamegrid-user-score-file-directory)))
-	       (when (file-writable-p f)
-		 (unless (eq (car-safe (file-attributes f))
-			     t)
-		   (make-directory f))
-		 (setq f (expand-file-name file f))
-		 (unless (file-exists-p f)
-		   (write-region "" nil f nil 'silent nil 'excl)))
-	       (gamegrid-add-score-with-update-game-score-1 file f score))))))
+	  (t
+	   (unless (file-exists-p
+		    (directory-file-name gamegrid-user-score-file-directory))
+	     (make-directory gamegrid-user-score-file-directory t))
+	   (let ((f (expand-file-name file
+				      gamegrid-user-score-file-directory)))
+	     (unless (file-exists-p f)
+	       (write-region "" nil f nil 'silent nil 'excl))
+	     (gamegrid-add-score-with-update-game-score-1 file f score))))))
 
 (defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
@@ -560,7 +559,7 @@ FILE is created there."
         (goto-char (point-min))
         (search-forward (concat (int-to-string score)
 				" " (user-login-name) " "
-				marker-string))
+				marker-string) nil t)
         (beginning-of-line)))))
 
 (defun gamegrid-add-score-insecure (file score &optional directory)

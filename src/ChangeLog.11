@@ -5532,7 +5532,7 @@
 	(update_frame_tool_bar): Remove old_req, new_req.  Do not get tool bar
 	height, call xg_update_tool_bar_sizes instead.
 	(free_frame_tool_bar): Remove from hbox or vbox depending on
-	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
+	toolbar_in_hbox.  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
 	(xg_change_toolbar_position): New function.
 
 	* frame.h (struct frame): Add tool_bar_position.
@@ -14366,7 +14366,7 @@
 2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): When iterator stops on the last glyph
-	of a display vector, backtrack.
+	of a display vector, backtrack.  (Bug#1810)
 	(try_window_reusing_current_matrix): Check glyph type before
 	referencing charpos member.
 
@@ -31383,7 +31383,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2012  Free Software Foundation, Inc.
+  Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

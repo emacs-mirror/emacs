@@ -1,6 +1,6 @@
 ;;; info-xref.el --- check external references in an Info document
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs

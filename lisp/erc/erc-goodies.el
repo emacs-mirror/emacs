@@ -1,8 +1,9 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
+;; Maintainer: FSF
 
 ;; Most code is taken verbatim from erc.el, see there for the original
 ;; authors.

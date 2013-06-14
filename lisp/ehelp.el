@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1995, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
@@ -61,6 +61,8 @@
 
 (defvar electric-help-map
   (let ((map (make-keymap)))
+    ;; FIXME fragile.  Should derive from help-mode-map in a smarter way.
+    (set-keymap-parent map button-buffer-map)
     ;; allow all non-self-inserting keys - search, scroll, etc, but
     ;; let M-x and C-x exit ehelp mode and retain buffer:
     (suppress-keymap map)
@@ -78,6 +80,7 @@
     (define-key map (char-to-string help-char) 'electric-help-help)
     (define-key map "?" 'electric-help-help)
     (define-key map " " 'scroll-up)
+    (define-key map [?\S-\ ] 'scroll-down)
     (define-key map "\^?" 'scroll-down)
     (define-key map "." 'beginning-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
@@ -102,7 +105,7 @@
   (setq buffer-read-only t)
   (setq electric-help-orig-major-mode major-mode)
   (setq mode-name "Help")
-  (setq major-mode 'help)
+  (setq major-mode 'help-mode)
   (setq mode-line-buffer-identification '(" Help:  %b"))
   (use-local-map electric-help-map)
   (add-hook 'mouse-leave-buffer-hook 'electric-help-retain)
@@ -193,7 +196,9 @@ BUFFER is put back into its original major mode."
 	(replace-buffer-in-windows buffer)
 	;; must do this outside of save-window-excursion
 	(bury-buffer buffer))
-      (eval electric-help-form-to-execute))))
+      (if (functionp electric-help-form-to-execute)
+          (funcall electric-help-form-to-execute)
+        (eval electric-help-form-to-execute)))))
 
 (defun electric-help-command-loop ()
   (catch 'exit
@@ -349,14 +354,19 @@ will select it.)"
 ;; continues with execute-extended-command.
 (defun electric-help-execute-extended (_prefixarg)
   (interactive "p")
-  (setq electric-help-form-to-execute '(execute-extended-command nil))
+  (setq electric-help-form-to-execute
+        (lambda () (execute-extended-command nil)))
   (electric-help-retain))
 
 ;; This is to be buond to C-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with ctrl-x prefix.
 (defun electric-help-ctrl-x-prefix (_prefixarg)
   (interactive "p")
-  (setq electric-help-form-to-execute '(progn (message nil) (setq unread-command-char ?\C-x)))
+  (setq electric-help-form-to-execute
+        (lambda ()
+          (message nil)
+          (setq unread-command-events
+                (append unread-command-events '(?\C-x)))))
   (electric-help-retain))
 
 

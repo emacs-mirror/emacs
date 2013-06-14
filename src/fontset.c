@@ -1,6 +1,6 @@
 /* Fontset handler.
 
-Copyright (C) 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 2001-2013 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -43,7 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 #include "w32term.h"
 #endif
 #ifdef HAVE_NS
@@ -180,10 +179,6 @@ static int next_fontset_id;
    font for each character.  */
 static Lisp_Object Vdefault_fontset;
 
-/* Check if any window system is used now.  */
-void (*check_window_system_func) (void);
-
-
 /* Prototype declarations for static functions.  */
 static Lisp_Object make_fontset (Lisp_Object, Lisp_Object, Lisp_Object);
 
@@ -272,7 +267,8 @@ set_fontset_fallback (Lisp_Object fontset, Lisp_Object fallback)
 /* Macros for FONT-DEF and RFONT-DEF of fontset.  */
 #define FONT_DEF_NEW(font_def, font_spec, encoding, repertory)	\
   do {								\
-    (font_def) = Fmake_vector (make_number (3), (font_spec));	\
+    (font_def) = make_uninit_vector (3);			\
+    ASET ((font_def), 0, font_spec);				\
     ASET ((font_def), 1, encoding);				\
     ASET ((font_def), 2, repertory);				\
   } while (0)
@@ -1213,7 +1209,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
   Lisp_Object fontset;
   int id;
 
-  (*check_window_system_func) ();
+  check_window_system (NULL);
 
   CHECK_STRING (pattern);
 
@@ -1276,7 +1272,7 @@ free_realized_fontsets (Lisp_Object base)
      doesn't remove FACE from a cache.  Until we find a solution, we
      suppress this code, and simply use Fclear_face_cache even though
      that is not efficient.  */
-  BLOCK_INPUT;
+  block_input ();
   for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
       Lisp_Object this = AREF (Vfontset_table, id);
@@ -1297,7 +1293,7 @@ free_realized_fontsets (Lisp_Object base)
 	    }
 	}
     }
-  UNBLOCK_INPUT;
+  unblock_input ();
 #else  /* not 0 */
   /* But, we don't have to call Fclear_face_cache if no fontset has
      been realized from BASE.  */
@@ -1327,17 +1323,14 @@ static Lisp_Object
 check_fontset_name (Lisp_Object name, Lisp_Object *frame)
 {
   int id;
+  struct frame *f = decode_live_frame (*frame);
 
-  if (NILP (*frame))
-    *frame = selected_frame;
-  CHECK_LIVE_FRAME (*frame);
+  XSETFRAME (*frame, f);
 
   if (EQ (name, Qt))
     return Vdefault_fontset;
   if (NILP (name))
-    {
-      id = FRAME_FONTSET (XFRAME (*frame));
-    }
+    id = FRAME_FONTSET (f);
   else
     {
       CHECK_STRING (name);
@@ -1595,7 +1588,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     {
       Lisp_Object arg;
 
-      arg = Fmake_vector (make_number (5), Qnil);
+      arg = make_uninit_vector (5);
       ASET (arg, 0, fontset);
       ASET (arg, 1, font_def);
       ASET (arg, 2, add);
@@ -1880,6 +1873,8 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
     }
   if (! CHAR_VALID_P (c))
     return Qnil;
+  if (!FRAME_WINDOW_P (f))
+    return Qnil;
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
   if (face->font)
@@ -1920,8 +1915,7 @@ format is the same as above.  */)
   Lisp_Object val, elt;
   int c, i, j, k;
 
-  (*check_window_system_func) ();
-
+  check_window_system (NULL);
   fontset = check_fontset_name (fontset, &frame);
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET

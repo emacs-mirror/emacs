@@ -1,6 +1,6 @@
 ;;; ob-eval.el --- org-babel functions for external code evaluation
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
@@ -30,6 +30,7 @@
 (eval-when-compile (require 'cl))
 
 (defvar org-babel-error-buffer-name "*Org-Babel Error Output*")
+(declare-function org-babel-temp-file "ob-core" (prefix &optional suffix))
 
 (defun org-babel-eval-error-notify (exit-code stderr)
   "Open a buffer to display STDERR and a message with the value of EXIT-CODE."
@@ -64,8 +65,8 @@ STDERR with `org-babel-eval-error-notify'."
 		    (buffer-string)))
 
 (defun org-babel-shell-command-on-region (start end command
-				      &optional output-buffer replace
-				      error-buffer display-error-buffer)
+						&optional output-buffer replace
+						error-buffer display-error-buffer)
   "Execute COMMAND in an inferior shell with region as input.
 
 Fixes bugs in the emacs 23.1.1 version of `shell-command-on-region'
@@ -134,15 +135,25 @@ specifies the value of ERROR-BUFFER."
 		       current-prefix-arg
 		       shell-command-default-error-buffer
 		       t)))
-  (let ((error-file
-	 (if error-buffer
-	     (make-temp-file
-	      (expand-file-name "scor"
-                                (if (featurep 'xemacs)
-                                    (temp-directory)
-                                  temporary-file-directory)))
-	   nil))
+  (let ((input-file (org-babel-temp-file "input-"))
+	(error-file (if error-buffer (org-babel-temp-file "scor-") nil))
+	;; Unfortunately, `executable-find' does not support file name
+	;; handlers.  Therefore, we could use it in the local case
+	;; only.
+	(shell-file-name
+	 (cond ((and (not (file-remote-p default-directory))
+		     (executable-find shell-file-name))
+		shell-file-name)
+	       ((file-executable-p
+		 (concat (file-remote-p default-directory) shell-file-name))
+		shell-file-name)
+	       ("/bin/sh")))
 	exit-status)
+    ;; There is an error in `process-file' when `error-file' exists.
+    ;; This is fixed in Emacs trunk as of 2012-12-21; let's use this
+    ;; workaround for now.
+    (unless (file-remote-p default-directory)
+      (delete-file error-file))
     (if (or replace
 	    (and output-buffer
 		 (not (or (bufferp output-buffer) (stringp output-buffer)))))
@@ -151,12 +162,14 @@ specifies the value of ERROR-BUFFER."
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (goto-char start)
 	  (and replace (push-mark (point) 'nomsg))
+	  (write-region start end input-file)
+	  (delete-region start end)
 	  (setq exit-status
-		(call-process-region start end shell-file-name t
-				     (if error-file
-					 (list output-buffer error-file)
-				       t)
-				     nil shell-command-switch command))
+		(process-file shell-file-name input-file
+			      (if error-file
+				  (list output-buffer error-file)
+				t)
+			      nil shell-command-switch command))
 	  ;; It is rude to delete a buffer which the command is not using.
 	  ;; (let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  ;;   (and shell-buffer (not (eq shell-buffer (current-buffer)))
@@ -175,14 +188,14 @@ specifies the value of ERROR-BUFFER."
 		(progn (setq buffer-read-only nil)
 		       (delete-region (max start end) (point-max))
 		       (delete-region (point-min) (min start end))
+		       (write-region (point-min) (point-max) input-file)
+		       (delete-region (point-min) (point-max))
 		       (setq exit-status
-			     (call-process-region (point-min) (point-max)
-						  shell-file-name t
-						  (if error-file
-						      (list t error-file)
-						    t)
-						  nil shell-command-switch
-						  command)))
+			     (process-file shell-file-name input-file
+					   (if error-file
+					       (list t error-file)
+					     t)
+					   nil shell-command-switch command)))
 	      ;; Clear the output buffer, then run the command with
 	      ;; output there.
 	      (let ((directory default-directory))
@@ -192,11 +205,11 @@ specifies the value of ERROR-BUFFER."
 		      (setq default-directory directory))
 		  (erase-buffer)))
 	      (setq exit-status
-		    (call-process-region start end shell-file-name nil
-					 (if error-file
-					     (list buffer error-file)
-					   buffer)
-					 nil shell-command-switch command)))
+		    (process-file shell-file-name nil
+				  (if error-file
+				      (list buffer error-file)
+				    buffer)
+				  nil shell-command-switch command)))
 	  ;; Report the output.
 	  (with-current-buffer buffer
 	    (setq mode-line-process
@@ -229,6 +242,9 @@ specifies the value of ERROR-BUFFER."
 	    ;; Don't kill: there might be useful info in the undo-log.
 	    ;; (kill-buffer buffer)
 	    ))))
+
+    (when (and input-file (file-exists-p input-file))
+      (delete-file input-file))
 
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (nth 7 (file-attributes error-file)))

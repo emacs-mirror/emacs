@@ -1,7 +1,7 @@
 /* Caching facts about regions of the buffer, for optimization.
 
-Copyright (C) 1985-1989, 1993, 1995, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993, 1995, 2001-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -191,10 +190,9 @@ find_cache_boundary (struct region_cache *c, ptrdiff_t pos)
     }
 
   /* Some testing.  */
-  if (BOUNDARY_POS (c, low) > pos
-      || (low + 1 < c->cache_len
-          && BOUNDARY_POS (c, low + 1) <= pos))
-      emacs_abort ();
+  eassert (!(BOUNDARY_POS (c, low) > pos
+	     || (low + 1 < c->cache_len
+		 && BOUNDARY_POS (c, low + 1) <= pos)));
 
   return low;
 }
@@ -215,14 +213,9 @@ move_cache_gap (struct region_cache *c, ptrdiff_t pos, ptrdiff_t min_size)
   ptrdiff_t buffer_beg = c->buffer_beg;
   ptrdiff_t buffer_end = c->buffer_end;
 
-  if (pos < 0
-      || pos > c->cache_len)
-    emacs_abort ();
-
   /* We mustn't ever try to put the gap before the dummy start
      boundary.  That must always be start-relative.  */
-  if (pos == 0)
-    emacs_abort ();
+  eassert (0 < pos && pos <= c->cache_len);
 
   /* Need we move the gap right?  */
   while (gap_start < pos)
@@ -289,26 +282,19 @@ static void
 insert_cache_boundary (struct region_cache *c, ptrdiff_t i, ptrdiff_t pos,
 		       int value)
 {
-  /* i must be a valid cache index.  */
-  if (i < 0 || i > c->cache_len)
-    emacs_abort ();
-
-  /* We must never want to insert something before the dummy first
-     boundary.  */
-  if (i == 0)
-    emacs_abort ();
+  /* I must be a valid cache index, and we must never want
+     to insert something before the dummy first boundary.  */
+  eassert (0 < i && i <= c->cache_len);
 
   /* We must only be inserting things in order.  */
-  if (! (BOUNDARY_POS (c, i - 1) < pos
-         && (i == c->cache_len
-             || pos < BOUNDARY_POS (c, i))))
-    emacs_abort ();
+  eassert ((BOUNDARY_POS (c, i - 1) < pos
+	    && (i == c->cache_len
+		|| pos < BOUNDARY_POS (c, i))));
 
   /* The value must be different from the ones around it.  However, we
      temporarily create boundaries that establish the same value as
      the subsequent boundary, so we're not going to flag that case.  */
-  if (BOUNDARY_VALUE (c, i - 1) == value)
-    emacs_abort ();
+  eassert (BOUNDARY_VALUE (c, i - 1) != value);
 
   move_cache_gap (c, i, 1);
 
@@ -329,18 +315,13 @@ delete_cache_boundaries (struct region_cache *c,
   ptrdiff_t len = end - start;
 
   /* Gotta be in range.  */
-  if (start < 0
-      || end > c->cache_len)
-    emacs_abort ();
+  eassert (0 <= start && end <= c->cache_len);
 
   /* Gotta be in order.  */
-  if (start > end)
-    emacs_abort ();
+  eassert (start <= end);
 
   /* Can't delete the dummy entry.  */
-  if (start == 0
-      && end >= 1)
-    emacs_abort ();
+  eassert (!(start == 0 && end >= 1));
 
   /* Minimize gap motion.  If we're deleting nothing, do nothing.  */
   if (len == 0)
@@ -379,11 +360,8 @@ static void
 set_cache_region (struct region_cache *c,
 		  ptrdiff_t start, ptrdiff_t end, int value)
 {
-  if (start > end)
-    emacs_abort ();
-  if (start < c->buffer_beg
-      || end   > c->buffer_end)
-    emacs_abort ();
+  eassert (start <= end);
+  eassert (c->buffer_beg <= start && end <= c->buffer_end);
 
   /* Eliminate this case; then we can assume that start and end-1 are
      both the locations of real characters in the buffer.  */
@@ -696,8 +674,9 @@ know_region_cache (struct buffer *buf, struct region_cache *c,
 
 /* Interface: using the cache.  */
 
-/* Return true if the text immediately after POS in BUF is known, for
-   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
+/* Return the value for the text immediately after POS in BUF if the value
+   is known, for the purposes of CACHE, and return zero otherwise.
+   If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knowledge changes.  */
 int
 region_cache_forward (struct buffer *buf, struct region_cache *c,
@@ -733,8 +712,9 @@ region_cache_forward (struct buffer *buf, struct region_cache *c,
   }
 }
 
-/* Return true if the text immediately before POS in BUF is known, for
-   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
+/* Return the value for the text immediately before POS in BUF if the
+   value is known, for the purposes of CACHE, and return zero
+   otherwise.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knowledge changes.  */
 int region_cache_backward (struct buffer *buf, struct region_cache *c,
 			   ptrdiff_t pos, ptrdiff_t *next)
@@ -771,7 +751,8 @@ int region_cache_backward (struct buffer *buf, struct region_cache *c,
   }
 }
 
-
+#ifdef ENABLE_CHECKING
+
 /* Debugging: pretty-print a cache to the standard error output.  */
 
 void pp_cache (struct region_cache *) EXTERNALLY_VISIBLE;
@@ -802,3 +783,5 @@ pp_cache (struct region_cache *c)
       fprintf (stderr, "%"pD"d : %d\n", pos, BOUNDARY_VALUE (c, i));
     }
 }
+
+#endif /* ENABLE_CHECKING */

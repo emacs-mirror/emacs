@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news registry
@@ -86,6 +86,12 @@
 (require 'nnmail)
 (require 'easymenu)
 (require 'registry)
+
+;; Silence XEmacs byte compiler, which will otherwise complain about
+;; call to `eieio-persistent-read'.
+(when (featurep 'xemacs)
+   (byte-compiler-options
+     (warnings (- callargs))))
 
 (defvar gnus-adaptive-word-syntax-table)
 
@@ -296,8 +302,14 @@ This is not required after changing `gnus-registry-cache-file'."
     (condition-case nil
         (progn
           (gnus-message 5 "Reading Gnus registry from %s..." file)
-          (setq gnus-registry-db (gnus-registry-fixup-registry
-                                  (eieio-persistent-read file)))
+          (setq gnus-registry-db
+		(gnus-registry-fixup-registry
+		 (condition-case nil
+		     (with-no-warnings
+		       (eieio-persistent-read file 'registry-db))
+		   ;; Older EIEIO versions do not check the class name.
+		   ('wrong-number-of-arguments
+		    (eieio-persistent-read file)))))
           (gnus-message 5 "Reading Gnus registry from %s...done" file))
       (error
        (gnus-message
@@ -982,7 +994,7 @@ only the last one's marks are returned."
   (let* ((article (last articles))
          (id (gnus-registry-fetch-message-id-fast article))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (when (interactive-p)
+    (when (gmm-called-interactively-p 'any)
       (gnus-message 1 "Marks are %S" marks))
     marks))
 

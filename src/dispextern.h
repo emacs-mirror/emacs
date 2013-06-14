@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2012  Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -317,13 +317,18 @@ struct glyph
      Lisp string, this is a position in that string.  If it is a
      buffer, this is a position in that buffer.  A value of -1
      together with a null object means glyph is a truncation glyph at
-     the start of a row.  */
+     the start of a row.  Right truncation and continuation glyphs at
+     the right edge of a row have their position set to the next
+     buffer position that is not shown on this row.  Glyphs inserted
+     by redisplay, such as the empty space after the end of a line on
+     TTYs, or the overlay-arrow on a TTY, have this set to -1.  */
   ptrdiff_t charpos;
 
-  /* Lisp object source of this glyph.  Currently either a buffer or
-     a string, if the glyph was produced from characters which came from
+  /* Lisp object source of this glyph.  Currently either a buffer or a
+     string, if the glyph was produced from characters which came from
      a buffer or a string; or 0 if the glyph was inserted by redisplay
-     for its own purposes such as padding.  */
+     for its own purposes, such as padding or truncation/continuation
+     glyphs, or the overlay-arrow glyphs on TTYs.  */
   Lisp_Object object;
 
   /* Width in pixels.  */
@@ -597,8 +602,8 @@ struct glyph_pool
 
    2. Window glyph matrices on frames having frame glyph matrices.
    Such matrices are sub-matrices of their corresponding frame matrix,
-   i.e. frame glyph matrices and window glyph matrices share the same
-   glyph memory which is allocated in form of a glyph_pool structure.
+   i.e., frame glyph matrices and window glyph matrices share the same
+   glyph memory, which is allocated in the form of a glyph_pool structure.
    Glyph rows in such a window matrix are slices of frame matrix rows.
 
    2. Free-standing window glyph matrices managing their own glyph
@@ -1379,7 +1384,7 @@ struct glyph_string
       ? current_mode_line_height				\
       : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
 	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
-	 : estimate_mode_line_height (XFRAME (W->frame),	\
+	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
 				      CURRENT_MODE_LINE_FACE_ID (W))))
 
 /* Return the current height of the header line of window W.  If not
@@ -1392,7 +1397,7 @@ struct glyph_string
        ? current_header_line_height				\
        : (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
 	  ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
-	  : estimate_mode_line_height (XFRAME (W->frame),\
+	  : estimate_mode_line_height (XFRAME ((W)->frame),	\
 				       HEADER_LINE_FACE_ID)))
 
 /* Return the height of the desired mode line of window W.  */
@@ -1407,25 +1412,25 @@ struct glyph_string
 
 /* Value is non-zero if window W wants a mode line.  */
 
-#define WINDOW_WANTS_MODELINE_P(W)					\
-     (!MINI_WINDOW_P ((W))						\
-      && !(W)->pseudo_window_p						\
-      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-      && BUFFERP (W->buffer)					\
-      && !NILP (BVAR (XBUFFER (W->buffer), mode_line_format))	\
-      && WINDOW_TOTAL_LINES (W) > 1)
+#define WINDOW_WANTS_MODELINE_P(W)				\
+  (!MINI_WINDOW_P ((W))						\
+   && !(W)->pseudo_window_p					\
+   && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))	\
+   && BUFFERP ((W)->contents)					\
+   && !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format))	\
+   && WINDOW_TOTAL_LINES (W) > 1)
 
 /* Value is true if window W wants a header line.  */
 
 #define WINDOW_WANTS_HEADER_LINE_P(W)					\
-     (!MINI_WINDOW_P ((W))						\
+  (BUFFERP ((W)->contents)						\
+   ? (!MINI_WINDOW_P ((W))						\
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
-      && BUFFERP (W->buffer)					\
-      && !NILP (BVAR (XBUFFER (W->buffer), header_line_format))	\
-      && WINDOW_TOTAL_LINES (W) > 1					\
-      + !NILP (BVAR (XBUFFER (W->buffer), mode_line_format)))
-
+      && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
+      && WINDOW_TOTAL_LINES (W) >					\
+          (1 + !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format)))) \
+   : 0)
 
 /* Return proper value to be used as baseline offset of font that has
    ASCENT and DESCENT to draw characters by the font at the vertical
@@ -1572,12 +1577,12 @@ struct face
   /* Pixmap width and height.  */
   unsigned int pixmap_w, pixmap_h;
 
-  /* Non-zero means characters in this face have a box that thickness
-     around them.  If it is negative, the absolute value indicates the
-     thickness, and the horizontal lines of box (top and bottom) are
-     drawn inside of characters glyph area.  The vertical lines of box
-     (left and right) are drawn as the same way as the case that this
-     value is positive.  */
+  /* Non-zero means characters in this face have a box of that
+     thickness around them.  If this value is negative, its absolute
+     value indicates the thickness, and the horizontal (top and
+     bottom) borders of box are drawn inside of the character glyphs'
+     area.  The vertical (left and right) borders of the box are drawn
+     in the same way as when this value is positive.  */
   int box_line_width;
 
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn
@@ -1587,12 +1592,12 @@ struct face
      shadow colors derived from the background color of the face.  */
   enum face_box_type box;
 
+  /* Style of underlining. */
+  enum face_underline_type underline_type;
+
   /* If `box' above specifies a 3D type, 1 means use box_color for
      drawing shadows.  */
   unsigned use_box_color_for_shadows_p : 1;
-
-  /* Style of underlining. */
-  enum face_underline_type underline_type;
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
@@ -1876,6 +1881,7 @@ struct bidi_it {
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
   struct bidi_string_data string;	/* string to reorder */
+  struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   ptrdiff_t separator_limit;	/* where paragraph separator should end */
   unsigned prev_was_pdf : 1;	/* if non-zero, previous char was PDF */
@@ -2138,7 +2144,8 @@ struct it
   const unsigned char *s;
 
   /* Number of characters in the string (s, or it->string) we iterate
-     over.  */
+     over.  Used only in display_string and its subroutines; never
+     used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
   /* Start and end of a visible region; -1 if the region is not
@@ -2756,15 +2763,19 @@ struct image_type
   Lisp_Object *type;
 
   /* Check that SPEC is a valid image specification for the given
-     image type.  Value is non-zero if SPEC is valid.  */
-  int (* valid_p) (Lisp_Object spec);
+     image type.  Value is true if SPEC is valid.  */
+  bool (* valid_p) (Lisp_Object spec);
 
   /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is non-zero if successful.  */
-  int (* load) (struct frame *f, struct image *img);
+     IMG->spec.  Value is true if successful.  */
+  bool (* load) (struct frame *f, struct image *img);
 
   /* Free resources of image IMG which is used on frame F.  */
   void (* free) (struct frame *f, struct image *img);
+
+  /* Initialization function (used for dynamic loading of image
+     libraries on Windows), or NULL if none.  */
+  bool (* init) (void);
 
   /* Next in list of all supported image types.  */
   struct image_type *next;
@@ -3067,7 +3078,7 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
-					     int, int *);
+					     struct window *, int, int *);
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
@@ -3139,7 +3150,7 @@ int draw_window_fringes (struct window *, int);
 int update_window_fringes (struct window *, int);
 void compute_fringe_widths (struct frame *, int);
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
@@ -3152,7 +3163,7 @@ extern unsigned row_hash (struct glyph_row *);
 
 extern int x_bitmap_height (struct frame *, ptrdiff_t);
 extern int x_bitmap_width (struct frame *, ptrdiff_t);
-extern int x_bitmap_pixmap (struct frame *, ptrdiff_t);
+extern ptrdiff_t x_bitmap_pixmap (struct frame *, ptrdiff_t);
 extern void x_reference_bitmap (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
 					    unsigned int, unsigned int);
@@ -3164,7 +3175,7 @@ extern ptrdiff_t x_create_bitmap_from_xpm_data (struct frame *, const char **);
 extern void x_destroy_bitmap (struct frame *, ptrdiff_t);
 #endif
 extern void x_destroy_all_bitmaps (Display_Info *);
-extern int x_create_bitmap_mask (struct frame *, ptrdiff_t);
+extern void x_create_bitmap_mask (struct frame *, ptrdiff_t);
 extern Lisp_Object x_find_image_file (Lisp_Object);
 
 void x_kill_gs_process (Pixmap, struct frame *);
@@ -3172,11 +3183,19 @@ struct image_cache *make_image_cache (void);
 void free_image_cache (struct frame *);
 void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
-int valid_image_p (Lisp_Object);
+bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 
-unsigned long image_background (struct image *, struct frame *,
+#if defined (HAVE_X_WINDOWS) ||  defined (HAVE_NS)
+#define RGB_PIXEL_COLOR unsigned long
+#endif
+
+#ifdef HAVE_NTGUI
+#define RGB_PIXEL_COLOR COLORREF
+#endif
+
+RGB_PIXEL_COLOR image_background (struct image *, struct frame *,
                                 XImagePtr_or_DC ximg);
 int image_background_transparent (struct image *, struct frame *,
                                   XImagePtr_or_DC mask);
@@ -3193,6 +3212,7 @@ void unrequest_sigio (void);
 int tabs_safe_p (int);
 void init_baud_rate (int);
 void init_sigio (int);
+void ignore_sigio (void);
 
 /* Defined in xfaces.c */
 
@@ -3241,7 +3261,7 @@ extern char unspecified_fg[], unspecified_bg[];
 #ifdef HAVE_X_WINDOWS
 void gamma_correct (struct frame *, XColor *);
 #endif
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 void gamma_correct (struct frame *, COLORREF *);
 #endif
 

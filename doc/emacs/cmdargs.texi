@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
 @appendix Command Line Arguments for Emacs Invocation
@@ -251,7 +251,8 @@ terminal's standard input stream (@code{stdin}) instead.
 but @file{site-start.el} is loaded nonetheless.  It also causes Emacs
 to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which auto-saving is
-explicitly requested.
+explicitly requested, and when saving files it omits the @code{fsync}
+system call unless otherwise requested.
 
 @item --script @var{file}
 @opindex --script
@@ -437,8 +438,8 @@ when you specify a relative directory name.
 @item DBUS_SESSION_BUS_ADDRESS
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
 need to change it.  Setting it to a dummy address, like
-@samp{unix:path=/tmp/foo}, suppresses connections to the D-Bus session
-bus.
+@samp{unix:path=/dev/null}, suppresses connections to the D-Bus session
+bus as well as autolaunching the D-Bus session bus if not running yet.
 @item EMACSDATA
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the variable @code{data-directory}.
@@ -567,16 +568,15 @@ terminal specified by @env{TERM}.  This defaults to
 These environment variables are used to initialize the variable
 @code{temporary-file-directory}, which specifies a directory in which
 to put temporary files (@pxref{Backup}).  Emacs tries to use
-@env{TMPDIR} first; if that is unset, it tries @env{TMP}, then
-@env{TEMP}, and finally @file{/tmp}.  But on MS-Windows and MS-DOS,
-Emacs tries @env{TEMP}, then @env{TMPDIR}, then @env{TMP}, and finally
-@file{c:/temp}.
+@env{TMPDIR} first.  If that is unset, Emacs normally falls back on
+@file{/tmp}, but on MS-Windows and MS-DOS it instead falls back on
+@env{TMP}, then @env{TEMP}, and finally @file{c:/temp}.
 
 @item TZ
 This specifies the current time zone and possibly also daylight
 saving time information.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
-appropriate for the country code returned by DOS.  On MS-Windows, Emacs
+appropriate for the country code returned by DOS@.  On MS-Windows, Emacs
 does not use @env{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
@@ -747,7 +747,7 @@ Use @var{font} as the default font.
 
 When passing a font name to Emacs on the command line, you may need to
 ``quote'' it, by enclosing it in quotation marks, if it contains
-characters that the shell treats specially (e.g.@: spaces).  For
+characters that the shell treats specially (e.g., spaces).  For
 example:
 
 @smallexample
@@ -839,7 +839,7 @@ otherwise use an appropriate standard mode for @var{num} colors.
 Depending on your terminal's capabilities, Emacs might be able to turn
 on a color mode for 8, 16, 88, or 256 as the value of @var{num}.  If
 there is no mode that supports @var{num} colors, Emacs acts as if
-@var{num} were 0, i.e.@: it uses the terminal's default color support
+@var{num} were 0, i.e., it uses the terminal's default color support
 mode.
 @end table
 If @var{mode} is omitted, it defaults to @var{ansi8}.
@@ -1070,7 +1070,7 @@ it.
 
   By default, Emacs uses an icon containing the Emacs logo.  On
 desktop environments such as Gnome, this icon is also displayed in
-other contexts, e.g.@: when switching into an Emacs frame.  The
+other contexts, e.g., when switching into an Emacs frame.  The
 @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
 window manager choose what sort of icon to use---usually just a small
 rectangle containing the frame's title.

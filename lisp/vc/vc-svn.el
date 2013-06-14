@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -50,14 +50,21 @@
   :type 'string
   :group 'vc-svn)
 
-(defcustom vc-svn-global-switches nil
-  "Global switches to pass to any SVN command."
+;; Might be nice if svn defaulted to non-interactive if stdin not tty.
+;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
+;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
+;; Maybe newer ones do?
+(defcustom vc-svn-global-switches (unless (eq system-type 'darwin) ; bug#13513
+                                    '("--non-interactive"))
+  "Global switches to pass to any SVN command.
+The option \"--non-interactive\" is often needed to prevent SVN
+hanging while prompting for authorization."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "22.1"
+  :version "24.4"
   :group 'vc-svn)
 
 (defcustom vc-svn-register-switches nil
@@ -123,7 +130,7 @@ If you want to force an empty list of arguments, use t."
 ;;;###autoload                           "_svn")
 ;;;###autoload                          (t ".svn"))))
 ;;;###autoload     (when (vc-find-root f admin-dir)
-;;;###autoload       (load "vc-svn")
+;;;###autoload       (load "vc-svn" nil t)
 ;;;###autoload       (vc-svn-registered f))))
 
 (defun vc-svn-registered (file)
@@ -155,9 +162,24 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
       (vc-svn-parse-status file))))
 
+;; NB this does not handle svn properties, which can be changed
+;; without changing the file timestamp.
+;; Note that unlike vc-cvs-state-heuristic, this is not called from
+;; vc-svn-state.  AFAICS, it is only called from vc-state-refresh via
+;; vc-after-save (bug#7850).  Therefore the fact that it ignores
+;; properties is irrelevant.  If you want to make vc-svn-state call
+;; this, it should be extended to handle svn properties.
 (defun vc-svn-state-heuristic (file)
   "SVN-specific state heuristic."
-  (vc-svn-state file 'local))
+  ;; If the file has not changed since checkout, consider it `up-to-date'.
+  ;; Otherwise consider it `edited'.  Copied from vc-cvs-state-heuristic.
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (cond
+     ((equal checkout-time lastmod) 'up-to-date)
+     ((string= (vc-working-revision file) "0") 'added)
+     ((null checkout-time) 'unregistered)
+     (t 'edited))))
 
 ;; FIXME it would be better not to have the "remote" argument,
 ;; but to distinguish the two output formats based on content.
@@ -192,6 +214,9 @@ If you want to force an empty list of arguments, use t."
 	(when (and state (not (string= "." filename)))
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
+
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
 
 (defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
@@ -270,6 +295,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
   (vc-svn-command "*vc*" 0 "." "checkout"
                   (concat "file://" default-directory "SVN")))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-svn-register (files &optional rev comment)
   "Register FILES into the SVN version-control system.
@@ -399,7 +426,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                ;; We also used to match the filename in column 0 without any
                ;; meta-info before it, but I believe this can never happen.
                (concat "^\\(\\([ACGDU]\\)\\(.[B ]\\)?  \\)"
-                       (regexp-quote (file-name-nondirectory file)))
+		       (regexp-quote (file-relative-name file)))
                nil t)
               (cond
                ;; Merge successful, we are in sync with repository now
@@ -471,8 +498,13 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
+(autoload 'vc-setup-buffer "vc-dispatcher")
+
 (defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log(s) associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+SHORTLOG is ignored.
+If START-REVISION is non-nil, it is the newest revision to show.
+If LIMIT is non-nil, show no more than this many entries."
   (save-current-buffer
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
@@ -490,7 +522,7 @@ or svn+ssh://."
 		   (append
 		    (list
 		     (if start-revision
-			 (format "-r%s" start-revision)
+			 (format "-r%s:1" start-revision)
 		       ;; By default Subversion only shows the log up to the
 		       ;; working revision, whereas we also want the log of the
 		       ;; subsequent commits.  At least that's what the
@@ -585,19 +617,11 @@ NAME is assumed to be a URL."
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
-and that it passes \"--non-interactive\" and `vc-svn-global-switches' to
-it before FLAGS."
-  ;; Might be nice if svn defaulted to non-interactive if stdin not tty.
-  ;; http://svn.haxx.se/dev/archive-2008-05/0762.shtml
-  ;; http://svn.haxx.se/dev/archive-2009-04/0094.shtml
-  ;; Maybe newer ones do?
-  (or (member "--non-interactive"
-              (setq flags (if (stringp vc-svn-global-switches)
-             (cons vc-svn-global-switches flags)
-                            (append vc-svn-global-switches flags))))
-      (setq flags (cons "--non-interactive" flags)))
+and that it passes `vc-svn-global-switches' to it before FLAGS."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
-         flags))
+         (if (stringp vc-svn-global-switches)
+             (cons vc-svn-global-switches flags)
+           (append vc-svn-global-switches flags))))
 
 (defun vc-svn-repository-hostname (dirname)
   (with-temp-buffer

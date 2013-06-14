@@ -1,5 +1,5 @@
 ;;; netrc.el --- .netrc parsing functionality
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news

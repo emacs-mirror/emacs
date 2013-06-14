@@ -1,6 +1,6 @@
-/* MS-DOS specific C utilities.          -*- coding: raw-text -*-
+/* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2012  Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Contributed by Morten Welinder */
 /* New display, keyboard, and mouse control by Kim F. Storm */
+
+/* Note: This file MUST use a unibyte encoding, to both display the
+   keys on the non-US keyboard layout as their respective labels, and
+   provide the correct byte values for the keyboard input to inject
+   into Emacs.  See 'struct dos_keyboard_map' below.  As long as there
+   are only European keyboard layouts here, we are OK with DOS
+   codepage 850 encoding.  */
 
 /* Note: some of the stuff here was taken from end of sysdep.c in demacs. */
 
@@ -1229,7 +1236,7 @@ IT_update_begin (struct frame *f)
   if (display_info->termscript)
     fprintf (display_info->termscript, "\n\n<UPDATE_BEGIN");
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (f && f == mouse_face_frame)
     {
@@ -1254,7 +1261,7 @@ IT_update_begin (struct frame *f)
 	  /* If the mouse highlight is in the window that was deleted
 	     (e.g., if it was popped by completion), clear highlight
 	     unconditionally.  */
-	  if (NILP (w->buffer))
+	  if (NILP (w->contents))
 	    hlinfo->mouse_face_window = Qnil;
 	  else
 	    {
@@ -1264,7 +1271,7 @@ IT_update_begin (struct frame *f)
 		  break;
 	    }
 
-	  if (NILP (w->buffer) || i < w->desired_matrix->nrows)
+	  if (NILP (w->contents) || i < w->desired_matrix->nrows)
 	    clear_mouse_face (hlinfo);
 	}
     }
@@ -1275,11 +1282,10 @@ IT_update_begin (struct frame *f)
       hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
       hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
       hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_deferred_gc = 0;
       hlinfo->mouse_face_mouse_frame = NULL;
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 static void
@@ -1295,21 +1301,10 @@ IT_update_end (struct frame *f)
 static void
 IT_frame_up_to_date (struct frame *f)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   Lisp_Object new_cursor, frame_desired_cursor;
   struct window *sw;
 
-  if (hlinfo->mouse_face_deferred_gc
-      || (f && f == hlinfo->mouse_face_mouse_frame))
-    {
-      BLOCK_INPUT;
-      if (hlinfo->mouse_face_mouse_frame)
-	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-			      hlinfo->mouse_face_mouse_x,
-			      hlinfo->mouse_face_mouse_y);
-      hlinfo->mouse_face_deferred_gc = 0;
-      UNBLOCK_INPUT;
-    }
+  FRAME_MOUSE_UPDATE (f);
 
   /* Set the cursor type to whatever they wanted.  In a minibuffer
      window, we want the cursor to appear only if we are reading input
@@ -1326,7 +1321,7 @@ IT_frame_up_to_date (struct frame *f)
     new_cursor = frame_desired_cursor;
   else
     {
-      struct buffer *b = XBUFFER (sw->buffer);
+      struct buffer *b = XBUFFER (sw->contents);
 
       if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
@@ -1849,7 +1844,6 @@ internal_terminal_init (void)
 	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
 	}
       the_only_display_info.mouse_highlight.mouse_face_mouse_frame = NULL;
-      the_only_display_info.mouse_highlight.mouse_face_deferred_gc = 0;
       the_only_display_info.mouse_highlight.mouse_face_beg_row =
 	the_only_display_info.mouse_highlight.mouse_face_beg_col = -1;
       the_only_display_info.mouse_highlight.mouse_face_end_row =
@@ -1926,7 +1920,7 @@ dos_get_saved_screen (char **screen, int *rows, int *cols)
 
 /* We are not X, but we can emulate it well enough for our needs... */
 void
-check_x (void)
+check_window_system (void)
 {
   if (! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Not running under a window system");
@@ -1978,10 +1972,10 @@ struct dos_keyboard_map
 
 static struct dos_keyboard_map us_keyboard = {
 /* 0         1         2         3         4         5      */
-/* 01234567890123456789012345678901234567890 12345678901234 */
-  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\   zxcvbnm,./  ",
+/* 01234567890123456789012345678901234567890 123 45678901234 */
+  "`1234567890-=  qwertyuiop[]   asdfghjkl;'\\  \\zxcvbnm,./  ",
 /* 0123456789012345678901234567890123456789 012345678901234 */
-  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|   ZXCVBNM<>?  ",
+  "~!@#$%^&*()_+  QWERTYUIOP{}   ASDFGHJKL:\"|  |ZXCVBNM<>?  ",
   0,				/* no Alt-Gr key */
   0				/* no translate table */
 };
@@ -1989,9 +1983,9 @@ static struct dos_keyboard_map us_keyboard = {
 static struct dos_keyboard_map fr_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 012 3456789012345678901234567890123456789012345678901234 */
-  "˝&Ç\",(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*   wxcvbnm;:!  ",
+  "˝&Ç\"'(-ä_ÄÖ)=  azertyuiop^$   qsdfghjklmó*  <wxcvbn,;:!  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
-  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê   WXCVBN?./ı  ",
+  " 1234567890¯+  AZERTYUIOP˘ú   QSDFGHJKLM%Ê  >WXCVBN?./ı  ",
 /* 01234567 89012345678901234567890123456789012345678901234 */
   "  ~#{[|`\\^@]}             œ                              ",
   0				/* no translate table */
@@ -2013,9 +2007,9 @@ static struct kbd_translate it_kbd_translate_table[] = {
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
+  "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "        {}~`             []             @#               ",
   it_kbd_translate_table
@@ -2024,9 +2018,9 @@ static struct dos_keyboard_map it_keyboard = {
 static struct dos_keyboard_map dk_keyboard = {
 /* 0         1         2         3         4         5      */
 /* 0123456789012345678901234567890123456789012345678901234 */
-  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'   zxcvbnm,.-  ",
+  "´1234567890+|  qwertyuiopÜ~   asdfghjklëõ'  <zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
-  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*   ZXCVBNM;:_  ",
+  "ı!\"#$%&/()=?`  QWERTYUIOPè^   ASDFGHJKLíù*  >ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
   "  @ú$  {[]} |                                             ",
   0				/* no translate table */
@@ -2989,11 +2983,6 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 
 /* --------------------------- X Menu emulation ---------------------- */
 
-/* Report availability of menus.  */
-
-int
-have_menus_p (void) {  return 1; }
-
 /* Create a brand new menu structure.  */
 
 XMenu *
@@ -3294,10 +3283,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      erasing it works correctly...  */
   if (! NILP (saved_echo_area_message))
     message_with_string ("%s", saved_echo_area_message, 0);
-  message (0);
+  message1 (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
-  IT_display_cursor (1);	/* turn cursor back on */
+  IT_display_cursor (1);	/* Turn cursor back on.  */
   /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
@@ -3305,7 +3294,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
   mouse_clear_clicks ();
-  if (!kbd_buffer_events_waiting (1))
+  if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
@@ -3352,7 +3341,7 @@ void msdos_downcase_filename (unsigned char *);
 /* Destructively turn backslashes into slashes.  */
 
 void
-dostounix_filename (char *p)
+dostounix_filename (char *p, int ignore)
 {
   msdos_downcase_filename (p);
 
@@ -3616,7 +3605,7 @@ init_environment (int argc, char **argv, int skip_args)
   if (!s) s = "c:/command.com";
   t = alloca (strlen (s) + 1);
   strcpy (t, s);
-  dostounix_filename (t);
+  dostounix_filename (t, 0);
   setenv ("SHELL", t, 0);
 
   /* PATH is also downcased and backslashes mirrored.  */
@@ -3626,7 +3615,7 @@ init_environment (int argc, char **argv, int skip_args)
   /* Current directory is always considered part of MsDos's path but it is
      not normally mentioned.  Now it is.  */
   strcat (strcpy (t, ".;"), s);
-  dostounix_filename (t); /* Not a single file name, but this should work.  */
+  dostounix_filename (t, 0); /* Not a single file name, but this should work.  */
   setenv ("PATH", t, 1);
 
   /* In some sense all dos users have root privileges, so...  */
@@ -3927,8 +3916,10 @@ croak (char *badfunc)
 /*
  * A few unimplemented functions that we silently ignore.
  */
-int setpgrp (void) {return 0; }
+pid_t tcgetpgrp (int fd) { return 0; }
+int setpgid (int pid, int pgid) { return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+pid_t setsid (void) { return 0; }
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 ssize_t
@@ -3966,14 +3957,6 @@ careadlinkat (int fd, char const *filename,
 	buffer[len + 1] = '\0';
     }
   return buffer;
-}
-
-ssize_t
-careadlinkatcwd (int fd, char const *filename, char *buffer,
-                 size_t buffer_size)
-{
-  (void) fd;
-  return readlink (filename, buffer, buffer_size);
 }
 
 
@@ -4214,8 +4197,8 @@ init_gettimeofday (void)
 }
 #endif
 
-void
-emacs_abort (void)
+static void
+msdos_abort (void)
 {
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
@@ -4230,6 +4213,15 @@ emacs_abort (void)
   raise (SIGABRT);
 #endif /* __DJGPP_MINOR__ >= 2 */
   exit (2);
+}
+
+void
+msdos_fatal_signal (int sig)
+{
+  if (sig == SIGABRT)
+    msdos_abort ();
+  else
+    raise (sig);
 }
 
 void

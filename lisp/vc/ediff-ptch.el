@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -33,12 +33,8 @@
   :prefix "ediff-"
   :group 'ediff)
 
-;; compiler pacifier
-(eval-when-compile
-  (require 'ediff))
-;; end pacifier
-
 (require 'ediff-init)
+(require 'ediff-util)
 
 (defcustom ediff-patch-program  "patch"
   "Name of the program that applies patches.
@@ -190,15 +186,15 @@ program."
 ;; We usually come up with two candidates and ediff-file-name-sans-prefix
 ;;    resolves this later.
 ;;
-;; The marker `marker1' delimits the beginning of the corresponding patch and
-;;    `marker2' does it for the end.
+;; The marker `mark1' delimits the beginning of the corresponding patch and
+;;    `mark2' does it for the end.
 ;; The result of ediff-map-patch-buffer is a list, which is then assigned
 ;; to ediff-patch-map.
 ;; The function returns the number of elements in the list ediff-patch-map
 (defun ediff-map-patch-buffer (buf)
   (ediff-with-current-buffer buf
     (let ((count 0)
-	  (mark1 (move-marker (make-marker) (point-min)))
+	  (mark1 (point-min-marker))
 	  (mark1-end (point-min))
 	  (possible-file-names '("/dev/null" . "/dev/null"))
 	  mark2-end mark2 filenames
@@ -472,6 +468,8 @@ are two possible targets for this patch.  However, these files do not exist."
 	 (set-window-buffer ediff-window-B ediff-patch-diagnostics))
 	(t (display-buffer ediff-patch-diagnostics 'not-this-window))))
 
+(defvar ediff-use-last-dir)
+
 ;; prompt for file, get the buffer
 (defun ediff-prompt-for-patch-file ()
   (let ((dir (cond (ediff-use-last-dir ediff-last-dir-patch)
@@ -641,6 +639,11 @@ optional argument, then use it."
 ;;;  (if (eq (ediff-test-patch-utility) 'traditional)
 ;;;      (eq code 0)
 ;;;    (not (eq code 2))))
+
+(autoload 'ediff-find-file "ediff")
+(declare-function ediff-buffers-internal "ediff"
+		  (buf-a buf-b buf-c startup-hooks job-name
+			 &optional merge-buffer-file))
 
 (defun ediff-patch-file-internal (patch-buf source-filename
 					    &optional startup-hooks)

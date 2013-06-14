@@ -1,6 +1,6 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -808,5 +808,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
 ;(put 'condition-case 'common-lisp-indent-function '((1 4) (* 2 ((0 1) (1 3) (2 &body)))))
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
+
+(provide 'cl-indent)
 
 ;;; cl-indent.el ends here

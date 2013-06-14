@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <setjmp.h>
 #include <limits.h>
 
 #include "lisp.h"
@@ -2131,7 +2130,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  offset = outp - outbuf;
 	  shortfall = ccl.produced * max_expansion - (outbufsize - offset);
-	  if (0 < shortfall)
+	  if (shortfall > 0)
 	    {
 	      outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 	      outp = outbuf + offset;
@@ -2229,9 +2228,8 @@ Return index number of the registered CCL program.  */)
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
   {
-    Lisp_Object elt;
+    Lisp_Object elt = make_uninit_vector (4);
 
-    elt = Fmake_vector (make_number (4), Qnil);
     ASET (elt, 0, name);
     ASET (elt, 1, ccl_prog);
     ASET (elt, 2, resolved);

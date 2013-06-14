@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
 @chapter Searching and Matching
@@ -391,7 +391,7 @@ If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
 matches upper-case letters.  Note that a range like @samp{[a-z]} is
 not affected by the locale's collation sequence, it always represents
 a sequence in @acronym{ASCII} order.
-@c This wasn't obvious to me, since eg the grep manual "Character
+@c This wasn't obvious to me, since, e.g., the grep manual "Character
 @c Classes and Bracket Expressions" specifically notes the opposite
 @c behavior.  But by experiment Emacs seems unaffected by LC_COLLATE
 @c in this regard.
@@ -589,10 +589,8 @@ through @samp{f} and @samp{A} through @samp{F}.
 
   For the most part, @samp{\} followed by any character matches only
 that character.  However, there are several exceptions: certain
-two-character sequences starting with @samp{\} that have special
-meanings.  (The character after the @samp{\} in such a sequence is
-always ordinary when used on its own.)  Here is a table of the special
-@samp{\} constructs.
+sequences starting with @samp{\} that have special meanings.  Here is
+a table of the special @samp{\} constructs.
 
 @table @samp
 @item \|
@@ -684,8 +682,8 @@ is the @dfn{explicitly numbered group} construct.  Normal groups get
 their number implicitly, based on their position, which can be
 inconvenient.  This construct allows you to force a particular group
 number.  There is no particular restriction on the numbering,
-e.g.@: you can have several groups with the same number in which case
-the last one to match (i.e.@: the rightmost match) will win.
+e.g., you can have several groups with the same number in which case
+the last one to match (i.e., the rightmost match) will win.
 Implicitly numbered groups always get the smallest integer larger than
 the one of any previous group.
 
@@ -933,7 +931,7 @@ for Font Lock mode@footnote{Note that @code{regexp-opt} does not
 guarantee that its result is absolutely the most efficient form
 possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
-@c See eg http://debbugs.gnu.org/2816
+@c E.g., see http://debbugs.gnu.org/2816
 
 If the optional argument @var{paren} is non-@code{nil}, then the
 returned regular expression is always enclosed by at least one
@@ -1207,7 +1205,7 @@ report the first match found.
 full backtracking specified by the POSIX standard for regular expression
 matching.  They continue backtracking until they have tried all
 possibilities and found all matches, so they can report the longest
-match, as required by POSIX.  This is much slower, so use these
+match, as required by POSIX@.  This is much slower, so use these
 functions only when you really need the longest match.
 
   The POSIX search and match functions do not properly support the
@@ -1278,20 +1276,18 @@ search.  It works by means of the match data.
 
 @cindex case in replacements
 @defun replace-match replacement &optional fixedcase literal string subexp
-This function replaces the text in the buffer (or in @var{string}) that
-was matched by the last search.  It replaces that text with
-@var{replacement}.
+This function performs a replacement operation on a buffer or string.
 
-If you did the last search in a buffer, you should specify @code{nil}
-for @var{string} and make sure that the current buffer when you call
-@code{replace-match} is the one in which you did the searching or
-matching.  Then @code{replace-match} does the replacement by editing
-the buffer; it leaves point at the end of the replacement text, and
-returns @code{t}.
+If you did the last search in a buffer, you should omit the
+@var{string} argument or specify @code{nil} for it, and make sure that
+the current buffer is the one in which you performed the last search.
+Then this function edits the buffer, replacing the matched text with
+@var{replacement}.  It leaves point at the end of the replacement
+text, and returns @code{t}.
 
-If you did the search in a string, pass the same string as @var{string}.
-Then @code{replace-match} does the replacement by constructing and
-returning a new string.
+If you performed the last search on a string, pass the same string as
+@var{string}.  Then this function returns a new string, in which the
+matched text is replaced by @var{replacement}.
 
 If @var{fixedcase} is non-@code{nil}, then @code{replace-match} uses
 the replacement text without case conversion; otherwise, it converts
@@ -1312,22 +1308,31 @@ part of one of the following sequences:
 @table @asis
 @item @samp{\&}
 @cindex @samp{&} in replacement
-@samp{\&} stands for the entire text being replaced.
+This stands for the entire text being replaced.
 
-@item @samp{\@var{n}}
+@item @samp{\@var{n}}, where @var{n} is a digit
 @cindex @samp{\@var{n}} in replacement
-@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
-matched the @var{n}th subexpression in the original regexp.
-Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
-If the @var{n}th subexpression never matched, an empty string is substituted.
+This stands for the text that matched the @var{n}th subexpression in
+the original regexp.  Subexpressions are those expressions grouped
+inside @samp{\(@dots{}\)}.  If the @var{n}th subexpression never
+matched, an empty string is substituted.
 
 @item @samp{\\}
 @cindex @samp{\} in replacement
-@samp{\\} stands for a single @samp{\} in the replacement text.
+This stands for a single @samp{\} in the replacement text.
+
+@item @samp{\?}
+This stands for itself (for compatibility with @code{replace-regexp}
+and related commands; @pxref{Regexp Replace,,, emacs, The GNU
+Emacs Manual}).
 @end table
 
-These substitutions occur after case conversion, if any,
-so the strings they substitute are never case-converted.
+@noindent
+Any other character following @samp{\} signals an error.
+
+The substitutions performed by @samp{\&} and @samp{\@var{n}} occur
+after case conversion, if any.  Therefore, the strings they substitute
+are never case-converted.
 
 If @var{subexp} is non-@code{nil}, that says to replace just
 subexpression number @var{subexp} of the regexp that was matched, not
@@ -1372,7 +1377,7 @@ other function that might perform another search.  Alternatively, you
 may save and restore the match data (@pxref{Saving Match Data}) around
 the call to functions that could perform another search.  Or use the
 functions that explicitly do not modify the match data;
-e.g. @code{string-match-p}.
+e.g., @code{string-match-p}.
 
 @c This is an old comment and presumably there is no prospect of this
 @c changing now.  But still the advice stands.

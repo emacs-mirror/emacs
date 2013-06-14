@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -128,8 +128,9 @@
       (pcomplete-uniqify-list rules))))
 
 (defcustom pcmpl-gnu-tarfile-regexp
-  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
+  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\|xz\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
   "A regexp which matches any tar archive."
+  :version "24.3"                       ; added xz
   :type 'regexp
   :group 'pcmpl-gnu)
 
@@ -157,7 +158,8 @@
   "Completion for the GNU tar utility."
   ;; options that end in an equal sign will want further completion...
   (let (saw-option complete-within)
-    (let ((pcomplete-suffix-list (cons ?= pcomplete-suffix-list)))
+    (let ((pcomplete-suffix-list (if (boundp 'pcomplete-suffix-list)
+                                     (cons ?= pcomplete-suffix-list))))
       (while (pcomplete-match "^-" 0)
         (setq saw-option t)
         (if (pcomplete-match "^--" 0)

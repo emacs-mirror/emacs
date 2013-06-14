@@ -1,6 +1,6 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000-2001, 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -139,10 +139,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; One way to set variables is by calling `pr-customize', customize all
 ;; variables and save the customization by future sessions (see Options
-;; section).  Other way is by coding your settings on Emacs init file (that is,
-;; ~/.emacs file), see below for a first setting template that it should be
-;; inserted on your ~/.emacs file (or c:/_emacs, if you're using Windows 9x/NT
-;; or MS-DOS):
+;; section).  Other way is by adding code to your init file; see below
+;; for a first setting template that it should be inserted on your
+;; init file:
 ;;
 ;; * Example of setting for Windows system:
 ;;
@@ -297,8 +296,7 @@ Please send all bug fixes and enhancements to
 ;; Using `printing'
 ;; ----------------
 ;;
-;; To use `printing' insert in your ~/.emacs file (or c:/_emacs, if you're
-;; using Windows 9x/NT or MS-DOS):
+;; To use `printing' insert in your init file:
 ;;
 ;;    (require 'printing)
 ;;    ;; ...some user settings...
@@ -1344,6 +1342,10 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GNU Emacs Definitions
 
+(eval-and-compile
+  (unless (featurep 'xemacs)
+    (defvar pr-menu-bar nil
+      "Specify Printing menu-bar entry.")))
 
 (cond
  ((featurep 'xemacs)			; XEmacs
@@ -1374,9 +1376,6 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   (defun pr-menu-char-width ()
     (frame-char-width))
 
-  (defvar pr-menu-bar nil
-    "Specify Printing menu-bar entry.")
-
   ;; GNU Emacs
   ;; Menu binding
   ;; Replace existing "print" item by "Printing" item.
@@ -1384,6 +1383,10 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   ;; third... time, but "print" item exists only in the first load.
   (eval-when-compile
     (require 'easymenu))		; to avoid compilation gripes
+
+  (declare-function easy-menu-add-item "easymenu"
+                    (map path item &optional before))
+  (declare-function easy-menu-remove-item "easymenu" (map path name))
 
   (eval-and-compile
       (defun pr-global-menubar (pr-menu-spec)
@@ -1798,7 +1801,7 @@ The alist element has the form:
 Where:
 
 SYMBOL		It's a symbol to identify a text printer.  It's for
-		`pr-txt-name' variable setting and for menu selection.
+		setting option `pr-txt-name' and for menu selection.
 		Examples:
 			'prt_06a
 			'my_printer
@@ -1949,7 +1952,7 @@ The alist element has the form:
 Where:
 
 SYMBOL		It's a symbol to identify a PostScript printer.  It's for
-		`pr-ps-name' variable setting and for menu selection.
+		setting option `pr-ps-name' and for menu selection.
 		Examples:
 			'prt_06a
 			'my_printer
@@ -2933,9 +2936,9 @@ INHERITS	Specify the inheritance for SYMBOL group.  It's a symbol name
 
 		The example above has two setting groups: no-duplex and
 		no-duplex-and-landscape.  When setting no-duplex is activated
-		through `inherits-from:' (see `pr-ps-utility', `pr-mode-alist'
-		and `pr-ps-printer-alist'), the variables pr-file-duplex and
-		pr-file-tumble are both set to nil.
+		through `inherits-from:' (see option `pr-ps-utility',
+		`pr-mode-alist' and `pr-ps-printer-alist'), the variables
+		pr-file-duplex and pr-file-tumble are both set to nil.
 
 		Now when setting no-duplex-and-landscape is activated through
 		`inherits-from:', the variable pr-file-landscape is set to nil
@@ -6081,6 +6084,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (and pr-i-region			; let region activated
        (pr-keep-region-active)))
 
+(declare-function widget-field-action "wid-edit" (widget &optional _event))
+(declare-function widget-value-set "wid-edit" (widget value))
 
 (defun pr-insert-section-1 ()
   ;; 1. Print:

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
 @chapter Minibuffers
@@ -211,22 +211,25 @@ This function works by calling the
 @end smallexample
 @end defun
 
-@defun read-regexp prompt &optional default
+@defun read-regexp prompt &optional default history
 This function reads a regular expression as a string from the
 minibuffer and returns it.  The argument @var{prompt} is used as in
-@code{read-from-minibuffer}.  The keymap used is
-@code{minibuffer-local-map}, and @code{regexp-history} is used as the
-history list (@pxref{Minibuffer History, regexp-history}).
+@code{read-from-minibuffer}.
 
 The optional argument @var{default} specifies a default value to
 return if the user enters null input; it should be a string, or
 @code{nil}, which is equivalent to an empty string.
 
-In addition, @code{read-regexp} collects a few useful candidates for
-input and passes them to @code{read-from-minibuffer}, to make them
-available to the user as the ``future minibuffer history list''
-(@pxref{Minibuffer History, future list,, emacs, The GNU Emacs
-Manual}).  These candidates are:
+The optional argument @var{history}, if non-@code{nil}, is a symbol
+specifying a minibuffer history list to use (@pxref{Minibuffer
+History}).  If it is omitted or @code{nil}, the history list defaults
+to @code{regexp-history}.
+
+@code{read-regexp} also collects a few useful candidates for input and
+passes them to @code{read-from-minibuffer}, to make them available to
+the user as the ``future minibuffer history list'' (@pxref{Minibuffer
+History, future list,, emacs, The GNU Emacs Manual}).  These
+candidates are:
 
 @itemize @minus
 @item
@@ -664,25 +667,22 @@ This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.
 
 @cindex completion table
-The @var{collection} argument is called the @dfn{completion table}.
-Its value must be a list of strings, an alist whose keys are strings
-or symbols, an obarray, a hash table, or a completion function.
+@var{collection} is called the @dfn{completion table}.  Its value must
+be a list of strings or cons cells, an obarray, a hash table, or a
+completion function.
 
-Completion compares @var{string} against each of the permissible
-completions specified by @var{collection}.  If no permissible
-completions match, @code{try-completion} returns @code{nil}.  If there
-is just one matching completion, and the match is exact, it returns
+@code{try-completion} compares @var{string} against each of the
+permissible completions specified by the completion table.  If no
+permissible completions match, it returns @code{nil}.  If there is
+just one matching completion, and the match is exact, it returns
 @code{t}.  Otherwise, it returns the longest initial sequence common
 to all possible matching completions.
 
-If @var{collection} is an alist (@pxref{Association Lists}), the
-permissible completions are the elements of the alist that are either
-strings, or conses whose @sc{car} is a string or symbol.
-Symbols are converted to strings using @code{symbol-name}.  Other
-elements of the alist are ignored.  (Remember that in Emacs Lisp, the
-elements of alists do not @emph{have} to be conses.)  In particular, a
-list of strings is allowed, even though we usually do not
-think of such lists as alists.
+If @var{collection} is an list, the permissible completions are
+specified by the elements of the list, each of which should be either
+a string, or a cons cell whose @sc{car} is either a string or a symbol
+(a symbol is converted to a string using @code{symbol-name}).  If the
+list contains elements of any other type, those are ignored.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names
@@ -772,7 +772,7 @@ too short).  Both of those begin with the string @samp{foobar}.
 This function returns a list of all possible completions of
 @var{string}.  The arguments to this function
 @c (aside from @var{nospace})
-are the same as those of @code{try-completion}, and it 
+are the same as those of @code{try-completion}, and it
 uses @code{completion-regexp-list} in the same way that
 @code{try-completion} does.
 
@@ -885,6 +885,26 @@ Here is an example:
 (defvar foo (lazy-completion-table foo make-my-alist))
 @end smallexample
 @end defmac
+
+@c FIXME?  completion-table-with-context?
+@findex completion-table-case-fold
+@findex completion-table-in-turn
+@findex completion-table-subvert
+@findex completion-table-with-quoting
+@findex completion-table-with-predicate
+@findex completion-table-with-terminator
+@cindex completion table, modifying
+@cindex completion tables, combining
+There are several functions that take an existing completion table and
+return a modified version.  @code{completion-table-case-fold} returns
+a case-insensitive table.  @code{completion-table-in-turn} combines
+multiple input tables.  @code{completion-table-subvert} alters a table
+to use a different initial prefix.  @code{completion-table-with-quoting}
+returns a table suitable for operating on quoted text.
+@code{completion-table-with-predicate} filters a table with a
+predicate function.  @code{completion-table-with-terminator} adds a
+terminating string.
+
 
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
@@ -1218,11 +1238,9 @@ Buffer name (default foo): @point{}
 @end defun
 
 @defopt read-buffer-function
-This variable specifies how to read buffer names.  The function is
-called with the arguments passed to @code{read-buffer}.  For example,
-if you set this variable to @code{iswitchb-read-buffer}, all Emacs
-commands that call @code{read-buffer} to read a buffer name will
-actually use the @code{iswitchb} package to read it.
+This variable, if non-@code{nil}, specifies a function for reading
+buffer names.  @code{read-buffer} calls this function instead of doing
+its usual work, with the same arguments passed to @code{read-buffer}.
 @end defopt
 
 @defopt read-buffer-completion-ignore-case
@@ -1581,7 +1599,7 @@ and @var{predicate} arguments have the same meanings as in
 @code{try-completion} (@pxref{Basic Completion}), and the @var{point}
 argument is the position of point within @var{string}.  Each function
 should return a non-@code{nil} value if it performed its job, and
-@code{nil} if it did not (e.g.@: if there is no way to complete
+@code{nil} if it did not (e.g., if there is no way to complete
 @var{string} according to the completion style).
 
 When the user calls a completion command like
@@ -1712,8 +1730,9 @@ string, and @var{end} is the position of the end boundary in
 
 @item metadata
 This specifies a request for information about the state of the
-current completion.  The function should return an alist, as described
-below.  The alist may contain any number of elements.
+current completion.  The return value should have the form
+@code{(metadata . @var{alist})}, where @var{alist} is an alist whose
+elements are described below.
 @end table
 
 @noindent

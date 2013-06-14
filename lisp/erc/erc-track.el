@@ -1,8 +1,9 @@
 ;;; erc-track.el --- Track modified channel buffers
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm, faces
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcChannelTracking
 
@@ -24,7 +25,7 @@
 ;;; Commentary:
 
 ;; Highlights keywords and pals (friends), and hides or highlights fools
-;; (using a dark color).  Add to your ~/.emacs:
+;; (using a dark color).  Add to your init file:
 
 ;; (require 'erc-track)
 ;; (erc-track-mode 1)
@@ -33,7 +34,7 @@
 ;; * Add extensibility so that custom functions can track
 ;;   custom modification types.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'erc)
 (require 'erc-compat)
 (require 'erc-match)
@@ -483,7 +484,7 @@ START is the minimum length of the name used."
 
 ;;; Test:
 
-(assert
+(cl-assert
  (and
   ;; verify examples from the doc strings
   (equal (let ((erc-track-shorten-aggressively nil))
@@ -868,7 +869,7 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
   (setq erc-modified-channels-alist
 	(delete (assq buffer erc-modified-channels-alist)
 		erc-modified-channels-alist))
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (erc-modified-channels-display)))
 
 (defun erc-track-find-face (faces)
@@ -979,7 +980,7 @@ is in `erc-mode'."
 	(add-to-list 'faces cur)))
     faces))
 
-(assert
+(cl-assert
  (let ((str "is bold"))
    (put-text-property 3 (length str)
 		      'face '(bold erc-current-nick-face)
@@ -1029,17 +1030,17 @@ relative to `erc-track-switch-direction'"
   (let ((dir erc-track-switch-direction)
 	offset)
     (when (< arg 0)
-      (setq dir (case dir
-		  (oldest      'newest)
-		  (newest      'oldest)
-		  (mostactive  'leastactive)
-		  (leastactive 'mostactive)
-		  (importance  'oldest)))
+      (setq dir (pcase dir
+		  (`oldest      'newest)
+		  (`newest      'oldest)
+		  (`mostactive  'leastactive)
+		  (`leastactive 'mostactive)
+		  (`importance  'oldest)))
       (setq arg (- arg)))
-    (setq offset (case dir
-		   ((oldest leastactive)
+    (setq offset (pcase dir
+		   ((or `oldest `leastactive)
 		    (- (length erc-modified-channels-alist) arg))
-		   (t (1- arg))))
+		   (_ (1- arg))))
     ;; normalize out of range user input
     (cond ((>= offset (length erc-modified-channels-alist))
 	   (setq offset (1- (length erc-modified-channels-alist))))

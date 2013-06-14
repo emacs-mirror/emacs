@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -123,18 +123,19 @@
 
 (defvar data-debug-thing-alist)
 (declare-function data-debug-insert-stuff-list "data-debug")
+(declare-function data-debug-new-buffer "data-debug")
 ;;;(declare-function data-debug-insert-tag-list "adebug")
 (declare-function semantic-scope-reset-cache "semantic/scope")
 (declare-function semanticdb-typecache-notify-reset "semantic/db-typecache")
 (declare-function ede-current-project "ede")
 
 (defvar semanticdb-find-throttle-custom-list
-  '(repeat (radio (const 'local)
-		  (const 'project)
-		  (const 'unloaded)
-		  (const 'system)
-		  (const 'recursive)
-		  (const 'omniscience)))
+  '(set (const local)
+	(const project)
+	(const unloaded)
+	(const system)
+	(const recursive)
+	(const omniscience))
   "Customization values for semanticdb find throttle.
 See `semanticdb-find-throttle' for details.")
 
@@ -166,6 +167,8 @@ the following keys:
                  The Emacs Lisp system DB is an omniscience database."
   :group 'semanticdb
   :type semanticdb-find-throttle-custom-list)
+
+(make-variable-buffer-local 'semanticdb-find-default-throttle)
 
 (defun semanticdb-find-throttle-active-p (access-type)
   "Non-nil if ACCESS-TYPE is an active throttle type."
@@ -241,7 +244,7 @@ This class will cache data derived during various searches.")
 	   (let ((tab-idx (semanticdb-get-table-index tab)))
 	     ;; Not a full reset?
 	     (when (oref tab-idx type-cache)
-	       (require 'db-typecache)
+	       (require 'semantic/db-typecache)
 	       (semanticdb-typecache-notify-reset
 		(oref tab-idx type-cache)))
 	     )))
@@ -879,8 +882,9 @@ instead."
 		;; Find-file-match allows a tool to make sure the tag is
 		;; 'live', somewhere in a buffer.
 		(cond ((eq find-file-match 'name)
-		       (let ((f (semanticdb-full-filename nametable)))
-			 (semantic--tag-put-property ntag :filename f)))
+		       (or (semantic--tag-get-property ntag :filename)
+			   (let ((f (semanticdb-full-filename nametable)))
+			     (semantic--tag-put-property ntag :filename f))))
 		      ((and find-file-match ntab)
 		       (semanticdb-get-buffer ntab))
 		      )
@@ -915,7 +919,7 @@ but should be good enough for debugging assertions."
   (if (< (length result) 2)
       (concat "#<FIND RESULT "
 	      (mapconcat (lambda (a)
-			   (concat "(" (object-name (car a) ) " . "
+			   (concat "(" (eieio-object-name (car a) ) " . "
 				   "#<TAG LIST " (number-to-string (length (cdr a))) ">)"))
 			 result
 			 " ")
@@ -1281,7 +1285,7 @@ associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-find-tags-external-children-of-type-method table type tags))
-   path find-file-match))
+   path find-file-match t))
 
 (defun semanticdb-find-tags-subclasses-of-type
   (type &optional path find-file-match)
@@ -1322,7 +1326,12 @@ Returns a table of all matching tags."
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
-  (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table))))
+  ;; Delegate 'include' to the overridable
+  ;; `semantic-find-tags-included', which by default will just call
+  ;; `semantic-find-tags-by-class'.
+  (if (eq class 'include)
+      (semantic-find-tags-included (or tags (semanticdb-get-tags table)))
+    (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table)))))
 
 (defmethod semanticdb-find-tags-external-children-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.

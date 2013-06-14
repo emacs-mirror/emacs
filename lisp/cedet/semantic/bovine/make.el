@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.
 
-;; Copyright (C) 2000-2004, 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2004, 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -27,6 +27,7 @@
 (require 'make-mode)
 
 (require 'semantic)
+(require 'semantic/bovine)
 (require 'semantic/bovine/make-by)
 (require 'semantic/analyze)
 (require 'semantic/dep)

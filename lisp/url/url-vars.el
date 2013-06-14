@@ -1,6 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2013 Free Software Foundation,
+;; Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -152,7 +153,8 @@ variable."
 				    (".uue" . "x-uuencoded")
 				    (".hqx" . "x-hqx")
 				    (".Z"  . "x-compress")
-				    (".bz2"  . "x-bzip2"))
+				    (".bz2" . "x-bzip2")
+				    (".xz" . "x-xz"))
   "An alist of file extensions and appropriate content-transfer-encodings."
   :type '(repeat (cons :format "%v"
 		       (string :tag "Extension")

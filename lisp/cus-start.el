@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 
-;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -51,6 +51,19 @@
 	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
+	     (cursor-type
+	      display
+	      (choice
+	       (const :tag "Frame default" t)
+	       (const :tag "Filled box" box)
+	       (const :tag "Hollow cursor" hollow)
+	       (const :tag "Vertical bar" bar)
+	       (cons  :tag "Vertical bar with specified width"
+		      (const bar) integer)
+	       (const :tag "Horizontal bar" hbar)
+	       (cons  :tag "Horizontal bar with specified width"
+		      (const hbar) integer)
+	       (const :tag "None "nil)))
 	     (mode-line-format mode-line sexp) ;Hard to do right.
 	     (major-mode internal function)
 	     (case-fold-search matching boolean)
@@ -102,12 +115,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			    (const :tag "On the right" (down . right))))
 	       (other :tag "On left, no arrows" t)))
 	     (scroll-up-aggressively windows
-				     (choice (const :tag "off" nil) number)
+				     (choice (const :tag "off" nil) float)
 				     "21.1")
 	     (scroll-down-aggressively windows
-				       (choice (const :tag "off" nil) number)
+				       (choice (const :tag "off" nil) float)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) integer)
+	     (line-spacing display (choice (const :tag "none" nil) number)
 			   "22.1")
 	     (cursor-in-non-selected-windows
 	      cursor boolean nil
@@ -239,7 +252,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (use-file-dialog menu boolean "22.1")
 	     (focus-follows-mouse frames boolean "20.3")
 	     ;; fontset.c
-	     (vertical-centering-font-regexp display regexp)
+	     ;; FIXME nil is the initial value, fontset.el setqs it.
+	     (vertical-centering-font-regexp display
+					     (choice (const nil) regexp))
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -273,7 +288,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
-	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
@@ -288,15 +302,15 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
 
-;; This is not good news because it will use the wrong
-;; version-specific directories when you upgrade.  We need
-;; customization of the front of the list, maintaining the standard
-;; value intact at the back.
-;;; 	     (load-path environment
-;;; 			(repeat (choice :tag "[Current dir?]"
-;;; 					:format "%[Current dir?%] %v"
-;;; 					(const :tag " current dir" nil)
-;;;					(directory :format "%v"))))
+             ;; This is not good news because it will use the wrong
+             ;; version-specific directories when you upgrade.  We need
+             ;; customization of the front of the list, maintaining the
+             ;; standard value intact at the back.
+	     ;;(load-path environment
+	     ;;    	(repeat (choice :tag "[Current dir?]"
+	     ;;    			:format "%[Current dir?%] %v"
+	     ;;    			(const :tag " current dir" nil)
+	     ;;    			(directory :format "%v"))))
 	     ;; minibuf.c
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
@@ -385,6 +399,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const super)) "23.1")
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.0")
+	     (ns-use-native-fullscreen ns boolean "24.4")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
@@ -422,9 +437,20 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
 	     (window-combination-resize windows boolean "24.1")
-	     (window-combination-limit windows boolean "24.1")
+	     (window-combination-limit
+	      windows (choice
+		       (const :tag "Never (nil)" :value nil)
+		       (const :tag "For Temp Buffer Resize mode (temp-buffer-resize)"
+			      :value temp-buffer-resize)
+		       (const :tag "For temporary buffers (temp-buffer)"
+			      :value temp-buffer)
+		       (const :tag "For buffer display (display-buffer)"
+			      :value display-buffer)
+		       (other :tag "Always (t)" :value t))
+	      "24.3")
 	     ;; xdisp.c
-	     (show-trailing-whitespace whitespace-faces boolean nil
+	     ;; The whitespace group is for whitespace.el.
+	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
@@ -433,7 +459,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean "23.1")
 	     (make-cursor-line-fully-visible windows boolean)
-	     (mode-line-inverse-video mode-line boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
@@ -443,7 +468,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
 						     :format "%v")
-					    (other :tag "Unlimited" t)))
+					    (other :tag "Unlimited" t))
+			      "24.3")
 	     (unibyte-display-via-language-environment mule boolean)
 	     (blink-cursor-alist cursor alist "22.1")
 	     (overline-margin display integer "22.1")
@@ -477,7 +503,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (hourglass-delay cursor number)
 
 	     ;; xfaces.c
-	     (font-list-limit display integer)
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
@@ -491,6 +516,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")
+	     (scroll-bar-adjust-thumb-portion windows boolean "24.4")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
@@ -553,6 +579,9 @@ since it could result in memory overflow and make Emacs crash."
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
+		      ((equal "scroll-bar-adjust-thumb-portion"
+			      (symbol-name symbol))
+		       (featurep 'x))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

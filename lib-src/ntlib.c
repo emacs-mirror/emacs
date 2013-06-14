@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
 
-Copyright (C) 1994, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
 
 Author: Geoff Voelker (voelker@cs.washington.edu)
 Created: 10-8-94
@@ -29,18 +29,31 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/timeb.h>
+#include <mbstring.h>
 
 #include "ntlib.h"
+
+/* MinGW64 defines _TIMEZONE_DEFINED and defines 'struct timespec' in
+   its system headers.  */
+#ifndef _TIMEZONE_DEFINED
+struct timezone
+{
+  int		tz_minuteswest;	/* minutes west of Greenwich */
+  int		tz_dsttime;	/* type of dst correction */
+};
+#endif
 
 #define MAXPATHLEN _MAX_PATH
 
 /* Emulate sleep...we could have done this with a define, but that
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
-void
-sleep (unsigned long seconds)
+unsigned
+sleep (unsigned seconds)
 {
   Sleep (seconds * 1000);
+  return 0;
 }
 
 /* Get the current working directory.  */
@@ -126,6 +139,12 @@ getuid (void)
 }
 
 unsigned
+geteuid (void)
+{
+  return getuid ();
+}
+
+unsigned
 getgid (void)
 {
   return 0;
@@ -200,6 +219,29 @@ getpass (const char * prompt)
     }
 
   return NULL;
+}
+
+/* This is needed because lib/gettime.c calls gettimeofday, which MSVC
+   doesn't have.  Copied from w32.c.  */
+void
+gettimeofday (struct timeval *tv, struct timezone *tz)
+{
+  struct _timeb tb;
+  _ftime (&tb);
+
+  tv->tv_sec = tb.time;
+  tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     current_emacs_time).  */
+  if (tz)
+    {
+      tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
+      tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
+    }
 }
 
 int
@@ -380,4 +422,3 @@ lstat (const char * path, struct stat * buf)
 {
   return stat (path, buf);
 }
-

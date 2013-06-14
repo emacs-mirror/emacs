@@ -1,6 +1,7 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1992-1994, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This file can also be used by an independent Edebug User
@@ -150,6 +151,7 @@ display a list of all Edebug commands.
 
 @node Instrumenting
 @subsection Instrumenting for Edebug
+@cindex instrumenting for Edebug
 
   In order to use Edebug to debug Lisp code, you must first
 @dfn{instrument} the code.  Instrumenting code inserts additional code
@@ -179,9 +181,11 @@ to loading or evaluations in the minibuffer.  The command @kbd{M-x
 edebug-all-forms} toggles this option.
 
 @findex edebug-eval-top-level-form
+@findex edebug-defun
   Another command, @kbd{M-x edebug-eval-top-level-form}, is available to
 instrument any top-level form regardless of the values of
 @code{edebug-all-defs} and @code{edebug-all-forms}.
+@code{edebug-defun} is an alias for @code{edebug-eval-top-level-form}.
 
   While Edebug is active, the command @kbd{I}
 (@code{edebug-instrument-callee}) instruments the definition of the
@@ -1113,7 +1117,7 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
-@c See eg http://debbugs.gnu.org/10577
+@c See, e.g., http://debbugs.gnu.org/10577
 @c FIXME  Maybe there should be an Edebug option to get it to
 @c automatically load the entire source file containing the function
 @c being instrumented.  That would avoid this.
@@ -1208,9 +1212,7 @@ A single unevaluated Lisp object, which is not instrumented.
 A single evaluated expression, which is instrumented.
 
 @item place
-@c I can't see that this index entry is useful without any explanation.
-@c @findex edebug-unwrap
-A place to store a value, as in the Common Lisp @code{setf} construct.
+A generalized variable.  @xref{Generalized Variables}.
 
 @item body
 Short for @code{&rest form}.  See @code{&rest} below.

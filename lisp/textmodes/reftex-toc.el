@@ -1,11 +1,9 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 
-;; Copyright (C) 1997-2000, 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -372,14 +370,14 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
            (error t)))))
 
 (defun reftex-re-enlarge ()
-  ;; Enlarge window to a remembered size.
-  (if reftex-toc-split-windows-horizontally
-      (enlarge-window-horizontally
-       (max 0 (- (or reftex-last-window-width (window-width))
-                 (window-width))))
-    (enlarge-window
-     (max 0 (- (or reftex-last-window-height (window-height))
-               (window-height))))))
+  "Enlarge window to a remembered size."
+  (let ((count (if reftex-toc-split-windows-horizontally
+		   (- (or reftex-last-window-width (window-width))
+		      (window-width))
+		 (- (or reftex-last-window-height (window-height))
+		    (window-height)))))
+    (when (> count 0)
+      (enlarge-window count reftex-toc-split-windows-horizontally))))
 
 (defun reftex-toc-dframe-p (&optional frame error)
   ;; Check if FRAME is the dedicated TOC frame.
@@ -787,7 +785,7 @@ PRO-OR-DE is assumed to be dynamically scoped into this function."
          (marker (nth 4 data)))
     (with-current-buffer (marker-buffer marker)
       (goto-char (marker-position marker))
-      (if (looking-at (concat "\\([ \t]*\\\\\\)" (regexp-quote name)))
+      (if (looking-at (concat "\\([ \t]*" reftex-section-pre-regexp "\\)" (regexp-quote name)))
           (replace-match (concat "\\1" newname))
         (error "Fatal error during %smotion" pro-or-de)))))
 

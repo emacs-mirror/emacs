@@ -1,5 +1,5 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001-2012 Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -113,7 +113,7 @@ extern Lisp_Object composition_temp;
    && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
-   pointer to `struct composition'. */
+   pointer to `struct composition'.  */
 #define COMPOSITION_GLYPH(cmp, n)					\
   XINT (XVECTOR (XVECTOR (XHASH_TABLE (composition_hash_table)		\
 			  ->key_and_value)				\

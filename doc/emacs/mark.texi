@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark
 @chapter The Mark and the Region
@@ -131,7 +131,7 @@ detailed description of these mouse commands.
 @cindex shift-selection
   Finally, you can set the mark by holding down the shift key while
 typing certain cursor motion commands (such as @kbd{S-@key{right}},
-@kbd{S-C-f}, @kbd{S-C-n}, etc.)  This is called @dfn{shift-selection}.
+@kbd{S-C-f}, @kbd{S-C-n}, etc.).  This is called @dfn{shift-selection}.
 It sets the mark at point before moving point, but only if there is no
 active mark set via shift-selection.  The mark set by mouse commands
 and by shift-selection behaves slightly differently from the usual
@@ -430,10 +430,6 @@ mark is by using @kbd{C-x C-x}, which exchanges the positions of the
 point and the mark (@pxref{Setting Mark}).
 
 @item
-Many commands that move point long distances, like @kbd{M-<} and
-@kbd{C-s}, first set the mark where point was.
-
-@item
 Some commands, which ordinarily act on the region when the mark is
 active, no longer do so.  For example, normally @kbd{M-%}
 (@code{query-replace}) performs replacements within the region, if the
@@ -455,9 +451,10 @@ command twice.)
 
 @item C-u C-x C-x
 @kindex C-u C-x C-x
-Activate the mark and enable Transient Mark mode temporarily, until
-the mark is next deactivated.  (This is the @kbd{C-x C-x} command,
-@code{exchange-point-and-mark}, with a prefix argument.)
+Exchange point and mark, activate the mark and enable Transient Mark
+mode temporarily, until the mark is next deactivated.  (This is the
+@kbd{C-x C-x} command, @code{exchange-point-and-mark}, with a prefix
+argument.)
 @end table
 
   These commands set or activate the mark, and enable Transient Mark

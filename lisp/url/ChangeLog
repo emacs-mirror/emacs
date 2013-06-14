@@ -1,3 +1,93 @@
+2013-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* url.el (mm-dissect-buffer, mm-display-part): Declare.
+
+2013-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* url-handlers.el (mm-save-part-to-file, mm-destroy-parts)
+	(mm-decode-string, mail-content-type-get): Declare.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* url-dav.el (url-http): Require it.
+	(url-http-head-file-attributes): Don't autoload it.
+
+	* url-proxy.el (url-http): Autoload it.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* url-news.el (url-news): Remove empty custom group.
+
+2013-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function):
+	Avoid prematurely finding the end of headers when they arrive
+	line-by-line.  (Bug#13598)
+
+2013-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cache.el (url-cache-create-filename-using-md5): Don't waste your
+	time `requiring' a builtin feature.
+
+2012-12-22  Takafumi Arakaki  <aka.tkf@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-end-of-document-sentinel): Bind relevant
+	url-request-* variables around the call to url-http (Bug#11469).
+
+	* url-expand.el (url-default-expander): Don't calculate a default
+	url port before checking url-type (Bug#12374).
+
+2012-12-22  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-port): Doc fix.
+
+2012-12-03  Chong Yidong  <cyd@gnu.org>
+
+	* url-misc.el (url-do-terminal-emulator): Use make-term instead of
+	terminal-emulator.
+
+2012-10-13  Liam Stitt  <stittl@cuug.ab.ca>  (tiny change)
+
+	* url-vars.el (url-uncompressor-alist):
+	* url-file.el (url-file-find-possibly-compressed-file, url-file):
+	Recognize .xz compression (Bug#11839).
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* url-http.el (url-http):
+	* url.el (url-retrieve-internal): Doc fix (Bug#6407).
+
+2012-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* url-methods.el (url-scheme-get-property): url-https.el was
+	merged into url-http.el, so load the latter for https.  (Bug#12599)
+
+2012-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-user-agent-string): Leak less info.
+	(url-http, url-http-file-exists-p, url-http-file-readable-p)
+	(url-http-file-attributes, url-http-options, url-https-default-port)
+	(url-https-asynchronous-p): Don't autoload.
+
+2012-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-handler): Don't assume any url-FOO function
+	is a good handler for FOO.
+	(url-copy-file, url-file-local-copy, url-insert-file-contents)
+	(url-file-name-completion, url-file-name-all-completions)
+	(url-handlers-create-wrapper): Explicitly register as handler.
+
+2012-09-29  Bastien Guerry  <bzg@gnu.org>
+
+	* url-util.el (url-insert-entities-in-string)
+	(url-build-query-string): Fix docstrings.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* url-parse.el (url-recreate-url-attributes):
+	* url-util.el (url-generate-unique-filename): Use declare to mark
+	obsolete.
+
 2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-parse-headers): Re-enable file-name-handlers
@@ -2742,7 +2832,8 @@
 ;; coding: utf-8
 ;; End:
 
-	Copyright (C) 1999, 2001-2002, 2004-2012  Free Software Foundation, Inc.
+	Copyright (C) 1999, 2001-2002, 2004-2013 Free Software
+	Foundation, Inc.
 
   This file is part of GNU Emacs.
 

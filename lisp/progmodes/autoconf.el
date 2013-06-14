@@ -1,6 +1,6 @@
 ;;; autoconf.el --- mode for editing Autoconf configure.ac files
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -41,10 +41,10 @@
   "Hook run by `autoconf-mode'.")
 
 (defconst autoconf-definition-regexp
-  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\sw+\\)\\]*")
+  "A\\(?:H_TEMPLATE\\|C_\\(?:SUBST\\|DEFINE\\(?:_UNQUOTED\\)?\\)\\)(\\[*\\(\\(?:\\sw\\|\\s_\\)+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
-  `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
+  `(("\\_<A[CHMS]_\\(?:\\sw\\|\\s_\\)+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
      1 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.ac,
@@ -67,33 +67,27 @@
 This version looks back for an AC_DEFINE or AC_SUBST.  It will stop
 searching backwards at another AC_... command."
   (save-excursion
-    (with-syntax-table (copy-syntax-table autoconf-mode-syntax-table)
-      (modify-syntax-entry ?_ "w")
-      (skip-syntax-forward "w" (line-end-position))
-      (if (re-search-backward autoconf-definition-regexp
-			      (save-excursion (beginning-of-defun) (point))
-			      t)
-	  (match-string-no-properties 1)))))
+    (skip-syntax-forward "w_" (line-end-position))
+    (if (re-search-backward autoconf-definition-regexp
+                            (save-excursion (beginning-of-defun) (point))
+                            t)
+        (match-string-no-properties 1))))
 
 ;;;###autoload
 (define-derived-mode autoconf-mode prog-mode "Autoconf"
   "Major mode for editing Autoconf configure.ac files."
-  (set (make-local-variable 'parens-require-spaces) nil) ; for M4 arg lists
-  (set (make-local-variable 'defun-prompt-regexp)
-       "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
-  (set (make-local-variable 'comment-start) "dnl ")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
-  (set (make-local-variable 'syntax-propertize-function)
-       (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
-  (set (make-local-variable 'font-lock-defaults)
-       `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
-  (set (make-local-variable 'imenu-generic-expression)
-       autoconf-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist) '(("_" . "w")))
-  (set (make-local-variable 'indent-line-function) #'indent-relative)
-  (set (make-local-variable 'add-log-current-defun-function)
-	#'autoconf-current-defun-function))
+  (setq-local parens-require-spaces nil) ; for M4 arg lists
+  (setq-local defun-prompt-regexp "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
+  (setq-local comment-start "dnl ")
+  (setq-local comment-start-skip "\\(?:\\(\\W\\|\\`\\)dnl\\|#\\) +")
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
+  (setq-local font-lock-defaults
+	      `(autoconf-font-lock-keywords nil nil))
+  (setq-local imenu-generic-expression autoconf-imenu-generic-expression)
+  (setq-local indent-line-function #'indent-relative)
+  (setq-local add-log-current-defun-function
+	      #'autoconf-current-defun-function))
 
 (provide 'autoconf-mode)
 (provide 'autoconf)

@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -101,7 +101,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;;;###autoload (defun vc-arch-registered (file)
 ;;;###autoload   (if (vc-find-root file "{arch}/=tagging-method")
 ;;;###autoload       (progn
-;;;###autoload         (load "vc-arch")
+;;;###autoload         (load "vc-arch" nil t)
 ;;;###autoload         (vc-arch-registered file))))
 
 (defun vc-arch-add-tagline ()
@@ -311,6 +311,9 @@ Only the value `maybe' can be trusted :-(."
 		    'up-to-date
 		  'edited)))))))))
 
+;; -dir-status called from vc-dir, which loads vc, which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-arch-dir-status (dir callback)
   "Run 'tla inventory' for DIR and pass results to CALLBACK.
 CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
@@ -431,6 +434,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))

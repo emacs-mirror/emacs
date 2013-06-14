@@ -8,7 +8,7 @@
 ## regenerate configure and will fail if you do not have the required
 ## tools.  You will have to run this script again.
 
-test -d autogen && cd autogen
+test ! -d autogen || cd autogen || exit
 
 if test ! -e config.in; then
     echo "Cannot find autogen/ directory."
@@ -16,11 +16,12 @@ if test ! -e config.in; then
 fi
 
 ## Order implied by top-level Makefile's rules, for time-stamps.
-cp compile config.guess config.sub depcomp install-sh missing ../build-aux
-cp aclocal.m4 ../
-cp configure ../
-touch ../src/stamp-h.in
-cp config.in ../src/
-cp Makefile.in ../lib/
+cp -f compile config.guess config.sub depcomp install-sh missing \
+  ../build-aux &&
+cp aclocal.m4 ../ &&
+cp configure ../ &&
+touch ../src/stamp-h.in &&
+cp config.in ../src/ &&
+cp Makefile.in ../lib/ &&
 
 echo "You can now run configure"

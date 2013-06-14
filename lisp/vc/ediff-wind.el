@@ -1,6 +1,6 @@
 ;;; ediff-wind.el --- window manipulation utilities
 
-;; Copyright (C) 1994-1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -42,17 +42,16 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
-(eval-when-compile
-  (require 'ediff-util)
-  (require 'ediff-help))
+(require 'ediff-init)
+(require 'ediff-help)
 ;; end pacifier
 
-(require 'ediff-init)
 
 ;; be careful with ediff-tbar
-(if (featurep 'xemacs)
-    (require 'ediff-tbar)
-  (defun ediff-compute-toolbar-width () 0))
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (require 'ediff-tbar)
+    (defun ediff-compute-toolbar-width () 0)))
 
 (defgroup ediff-window nil
   "Ediff window manipulation."
@@ -63,12 +62,10 @@
 
 ;; Determine which window setup function to use based on current window system.
 (defun ediff-choose-window-setup-function-automatically ()
+  (declare (obsolete ediff-setup-windows-default "24.3"))
   (if (ediff-window-display-p)
       'ediff-setup-windows-multiframe
     'ediff-setup-windows-plain))
-
-(make-obsolete 'ediff-choose-window-setup-function-automatically
-	       'ediff-setup-windows-default "24.3")
 
 (defcustom ediff-window-setup-function 'ediff-setup-windows-default
   "Function called to set up windows.
@@ -359,6 +356,8 @@ into icons, regardless of the window manager."
        buffer-A buffer-B buffer-C control-buffer)
     (ediff-setup-windows-plain-compare
      buffer-A buffer-B buffer-C control-buffer)))
+
+(autoload 'ediff-setup-control-buffer "ediff-util")
 
 (defun ediff-setup-windows-plain-merge (buf-A buf-B buf-C control-buffer)
   ;; skip dedicated and unsplittable frames
@@ -909,6 +908,8 @@ into icons, regardless of the window manager."
     ;; none is dedicated (in multiframe setup)
     (not (ediff-frame-has-dedicated-windows (window-frame wind)))
     )))
+
+(declare-function ediff-make-bottom-toolbar "ediff-util" (&optional frame))
 
 ;; Prepare or refresh control frame
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)

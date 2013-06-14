@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997-1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -171,13 +171,13 @@
 All the bindings are done here instead of globally to try and be
 nice to the world.")
 
+(define-obsolete-variable-alias 'crisp-mode-modeline-string
+  'crisp-mode-mode-line-string "24.3")
+
 (defcustom crisp-mode-mode-line-string " *CRiSP*"
   "String to display in the mode line when CRiSP emulation mode is enabled."
   :type 'string
   :group 'crisp)
-
-(define-obsolete-variable-alias 'crisp-mode-modeline-string
-  'crisp-mode-mode-line-string "24.3")
 
 ;;;###autoload
 (defcustom crisp-mode nil

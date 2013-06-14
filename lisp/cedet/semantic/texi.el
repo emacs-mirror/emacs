@@ -1,6 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -26,16 +26,10 @@
 ;; parser plug-in is the function `semantic-texi-parse-region' that
 ;; overrides `semantic-parse-region'.
 
-(require 'semantic)
+(require 'semantic/db-find)
 (require 'semantic/format)
+(require 'semantic/ctxt)
 (require 'texinfo)
-
-(eval-when-compile
-  (require 'semantic/db)
-  (require 'semantic/db-find)
-  (require 'semantic/ctxt)
-  (require 'semantic/find)
-  (require 'semantic/doc))
 
 (defvar ede-minor-mode)
 (declare-function lookup-words "ispell")
@@ -451,6 +445,7 @@ that start with that symbol."
 (defvar semantic-imenu-bucketize-file)
 (defvar semantic-imenu-bucketize-type-members)
 
+;;;###autoload
 (defun semantic-default-texi-setup ()
   "Set up a buffer for parsing of Texinfo files."
   ;; This will use our parser.
@@ -686,5 +681,10 @@ If TAG is nil, it is derived from the deffn under POINT."
       )))
 
 (provide 'semantic/texi)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-load-name: "semantic/texi"
+;; End:
 
 ;;; semantic/texi.el ends here

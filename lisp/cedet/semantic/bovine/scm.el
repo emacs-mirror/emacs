@@ -1,6 +1,6 @@
 ;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)
 
-;;; Copyright (C) 2001-2004, 2008-2012  Free Software Foundation, Inc.
+;;; Copyright (C) 2001-2004, 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -24,6 +24,7 @@
 ;; Use the Semantic Bovinator for Scheme (guile)
 
 (require 'semantic)
+(require 'semantic/bovine)
 (require 'semantic/bovine/scm-by)
 (require 'semantic/format)
 (require 'semantic/dep)
@@ -37,7 +38,7 @@
 This should probably do some sort of search to see what is
 actually on the local machine.")
 
-(define-mode-local-override semantic-format-tag-prototype scheme-mode (tag)
+(define-mode-local-override semantic-format-tag-prototype scheme-mode (tag &optional parent color)
   "Return a prototype for the Emacs Lisp nonterminal TAG."
   (let* ((tok (semantic-tag-class tag))
 	 (args (semantic-tag-components tag))
@@ -46,7 +47,7 @@ actually on the local machine.")
 	(concat (semantic-tag-name tag) " ("
 		(mapconcat (lambda (a) a) args " ")
 		")")
-      (semantic-format-tag-prototype-default tag))))
+      (semantic-format-tag-prototype-default tag parent color))))
 
 (define-mode-local-override semantic-documentation-for-tag scheme-mode (tag &optional nosnarf)
   "Return the documentation string for TAG.

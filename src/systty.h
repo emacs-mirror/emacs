@@ -1,5 +1,5 @@
 /* systty.h - System-dependent definitions for terminals.
-   Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,10 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Include the proper files.  */
+
 #ifndef DOS_NT
-#ifndef NO_TERMIO
-#include <termio.h>
-#endif /* not NO_TERMIO */
 #include <termios.h>
 #include <fcntl.h>
 #endif /* not DOS_NT */
@@ -39,15 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 
-/* Special cases - inhibiting the use of certain features.  */
-
-/* Allow configure to inhibit use of FIONREAD.  */
-#ifdef BROKEN_FIONREAD
-#undef FIONREAD
-#undef ASYNC
-#endif
-
-
 /* Try to establish the correct character to disable terminal functions
    in a system-independent manner.  Note that USG (at least) define
    _POSIX_VDISABLE as 0!  */
@@ -62,27 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CDISABLE 255
 #endif /* not CDEL */
 #endif /* not _POSIX_VDISABLE */
-
-/* Get the number of characters queued for output.  */
-
-/* EMACS_OUTQSIZE(FD, int *SIZE) stores the number of characters
-   queued for output to the terminal FD in *SIZE, if FD is a tty.
-   Returns -1 if there was an error (i.e. FD is not a tty), 0
-   otherwise.  */
-#ifdef TIOCOUTQ
-#define EMACS_OUTQSIZE(fd, size) (ioctl ((fd), TIOCOUTQ, (size)))
-#endif
-
-
-/* Manipulate a terminal's current process group.  */
-
-/* EMACS_GETPGRP (arg) returns the process group of the process.  */
-
-#if defined (GETPGRP_VOID)
-#  define EMACS_GETPGRP(x) getpgrp()
-#else /* !GETPGRP_VOID */
-#  define EMACS_GETPGRP(x) getpgrp(x)
-#endif /* !GETPGRP_VOID */
 
 /* Manipulate a TTY's input/output processing parameters.  */
 

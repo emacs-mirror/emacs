@@ -1,6 +1,6 @@
 	     Emacs for Windows NT/2000 and Windows 95/98/ME
 
-  Copyright (C) 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 2001-2013 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
   This directory contains support for compiling and running GNU Emacs on
@@ -51,7 +51,12 @@
   + ebrowse.exe - A tool for generating C++ browse information.  See the
     `Ebrowse' manual.
 
-  + ddeclient.exe - A tool for interacting with DDE servers.
+  + ddeclient.exe - A tool for interacting with DDE servers.  To be
+    invoked as "ddeclient SERVER [TOPIC]", where SERVER is the DDE
+    server name, and sends each line of its standard input to the DDE
+    server using the DdeClientTransaction API.  This program is
+    supposed to be invoked via the 'call-process-region' Emacs
+    primitive.
 
   + hexl.exe - A tool for converting files to hex dumps.  See the
     `Editing Binary Files' node of the Emacs manual.

@@ -2,11 +2,7 @@
 @c %**start of header
 @setfilename ../../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
-@c FIXME
-@c Manual last updated:
-@set UPDATED Time-stamp: <Thu 24-Jun-2010 00:06:54 gm on grasmoor>
-@c Software version:
-@set VERSION 0.54 (beta)
+@include emacsver.texi
 @afourpaper
 @c With different size paper the printed page breaks will need attention!
 @c Look for @page and @need commands.
@@ -18,7 +14,7 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,8 +25,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -44,7 +39,7 @@ developing GNU and promoting software freedom.''
 @titlepage
 @title WoMan
 @subtitle Browse Unix Manual Pages ``W.O. (without) Man''
-@subtitle Software Version @value{VERSION}
+@subtitle as distributed with Emacs @value{EMACSVER}
 @author Francis J. Wright
 @sp 2
 @author School of Mathematical Sciences
@@ -54,8 +49,6 @@ developing GNU and promoting software freedom.''
 @author @email{F.J.Wright@@qmul.ac.uk}
 @author @uref{http://centaur.maths.qmw.ac.uk/}
 @c He no longer maintains this manual.
-@sp 2
-@author Manual Last Updated @value{UPDATED}
 
 @comment  The following two commands start the copyright page.
 @page
@@ -68,13 +61,11 @@ developing GNU and promoting software freedom.''
 @c ===================================================================
 
 @ifnottex
-@node Top, Introduction, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@node Top
 @top WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 
 @display
-Software Version @value{VERSION}
-Manual Last Updated @value{UPDATED}
+As distributed with Emacs @value{EMACSVER}.
 
 @email{F.J.Wright@@qmw.ac.uk, Francis J. Wright}
 @uref{http://centaur.maths.qmw.ac.uk/, School of Mathematical Sciences}
@@ -104,8 +95,7 @@ Mile End Road, London E1 4NS, UK
 
 @c ===================================================================
 
-@node Introduction, Background, Top, Top
-@comment  node-name,  next,  previous,  up
+@node Introduction
 @chapter Introduction
 @cindex introduction
 
@@ -166,8 +156,7 @@ Reporting Bugs}.
 
 @c ===================================================================
 
-@node Background, Finding, Introduction, Top
-@comment  node-name,  next,  previous,  up
+@node Background
 @chapter Background
 @cindex background
 
@@ -296,8 +285,7 @@ be possible to move WoMan from an emulation of @code{nroff} to an
 emulation of @code{troff} as GNU Emacs moves to providing bit-mapped
 display facilities.
 
-@node Finding, Browsing, Background, Top
-@comment  node-name,  next,  previous,  up
+@node Finding
 @chapter Finding and Formatting Man Pages
 @cindex using, finding man pages
 @cindex using, formatting man pages
@@ -353,8 +341,7 @@ setting WoMan file paths.
 * Automatic::           Automatic Interface
 @end menu
 
-@node Topic, Filename, Finding, Finding
-@comment  node-name,  next,  previous,  up
+@node Topic
 @section Topic Interface
 @cindex topic interface
 
@@ -385,7 +372,7 @@ configuration file named (by default) @file{man.conf} (or something very
 similar), which seems to be the standard mechanism under GNU/Linux, then
 it parses that.  To be precise, ``something very similar'' means
 starting with @samp{man} and ending with @samp{.conf} and possibly more
-lowercase letters, e.g.@: @file{manual.configuration}.
+lowercase letters, e.g., @file{manual.configuration}.
 The search path and/or precise full path name for this file are set by
 the value of the customizable user option @code{woman-man.conf-path}.
 If all else fails, WoMan uses a plausible default man search path.
@@ -414,7 +401,7 @@ files that it can access, which can be very slow, especially if a
 network is involved.  For this reason, it caches various amounts of
 information, after which retrieving it from the cache is very fast.  If
 the cache ever gets out of synchronism with reality, running the
-@code{woman} command with a prefix argument (e.g.@: @kbd{C-u M-x woman})
+@code{woman} command with a prefix argument (e.g., @kbd{C-u M-x woman})
 will force it to rebuild its cache.  This is necessary only if the names
 or locations of any man files change; it is not necessary if only their
 contents change.  It would always be necessary if such a change occurred
@@ -435,8 +422,7 @@ slow.  @xref{Cache, , The WoMan Topic Cache}, for further details.
 * Word at point::       Using the "Word at Point" as a Topic Suggestion
 @end menu
 
-@node Cache, Word at point, Topic, Topic
-@comment  node-name,  next,  previous,  up
+@node Cache
 @subsection The WoMan Topic Cache
 @cindex topic cache
 @cindex cache, topic
@@ -470,8 +456,7 @@ automatically update its cache file on disc (if one is in use) the next
 time it is run in a new Emacs session.
 
 
-@node Word at point,  , Cache, Topic
-@comment  node-name,  next,  previous,  up
+@node Word at point
 @subsection Using the "Word at Point" as a Topic Suggestion
 @cindex word at point
 @cindex point, word at
@@ -485,7 +470,7 @@ You can also bind the variable @code{woman-use-topic-at-point} locally
 to a non-@code{nil} value (using @code{let}), in which case
 @code{woman} will can use the suggested topic without confirmation if
 possible.  This may be useful to provide special private key bindings,
-e.g.@: this key binding for @kbd{C-c w} runs WoMan on the topic at
+e.g., this key binding for @kbd{C-c w} runs WoMan on the topic at
 point without seeking confirmation:
 
 @lisp
@@ -497,8 +482,7 @@ point without seeking confirmation:
 @end lisp
 
 
-@node Filename, Automatic, Topic, Finding
-@comment  node-name,  next,  previous,  up
+@node Filename
 @section Filename Interface
 @cindex filename interface
 
@@ -511,7 +495,7 @@ The filename interface is accessed principally via the extended command
 all (provided WoMan is installed and loaded or set up to autoload).
 This command can be used to browse any accessible man file, regardless
 of its filename or location.  If the file is compressed then automatic
-file decompression must already be turned on (e.g.@: see the
+file decompression must already be turned on (e.g., see the
 @samp{Help->Options} submenu)---it is turned on automatically only by
 the @code{woman} topic interface.
 
@@ -547,14 +531,13 @@ the current buffer if it is visiting a man file, although it is
 primarily used internally by WoMan.
 
 
-@node Automatic,  , Filename, Finding
-@comment  node-name,  next,  previous,  up
+@node Automatic
 @section Automatic Interface
 @cindex automatic interface
 
 Emacs provides an interface to detect automatically the format of a file
 and decode it when it is visited.  It is used primarily by the
-facilities for editing rich (i.e.@: formatted) text, as a way to store
+facilities for editing rich (i.e., formatted) text, as a way to store
 formatting information transparently as @acronym{ASCII} markup.  WoMan can in
 principle use this interface, but it must be configured explicitly.
 
@@ -585,8 +568,7 @@ by automatic major mode selection.]
 
 @c ===================================================================
 
-@node Browsing, Customization, Finding, Top
-@comment  node-name,  next,  previous,  up
+@node Browsing
 @chapter Browsing Man Pages
 @cindex using, browsing man pages
 @cindex browsing man pages
@@ -616,8 +598,7 @@ blank lines squeezed to a single blank line.
 * Imenu::               Imenu Support; Contents Menu
 @end menu
 
-@node Fonts, Navigation, Browsing, Browsing
-@comment  node-name,  next,  previous,  up
+@node Fonts
 @section Fonts and Faces
 @cindex fonts
 @cindex faces
@@ -632,8 +613,7 @@ currently means the characters ^ and _ used to indicate super- and
 sub-scripts, which are not displayed well by WoMan.
 
 
-@node Navigation, References, Fonts, Browsing
-@comment  node-name,  next,  previous,  up
+@node Navigation
 @section Navigation
 @cindex navigation
 
@@ -678,15 +658,14 @@ described by @code{Man-see-also-regexp}.
 @end table
 
 
-@node References, Changing, Navigation, Browsing
-@comment  node-name,  next,  previous,  up
+@node References
 @section Following References
 @cindex following references
 @cindex references
 
 Man pages usually contain a ``SEE ALSO'' section containing references
 to other man pages.  If these man pages are installed then WoMan can
-easily be directed to follow the reference, i.e.@: to find and format the
+easily be directed to follow the reference, i.e., to find and format the
 man page.  When the mouse is passed over a correctly formatted reference
 it is highlighted, in which case clicking the middle button
 @kbd{Mouse-2} will cause WoMan to follow the reference.  Alternatively,
@@ -722,8 +701,7 @@ default is based on word at point.
 @end table
 
 
-@node Changing, Convenience, References, Browsing
-@comment  node-name,  next,  previous,  up
+@node Changing
 @section Changing the Current Man Page
 @cindex changing current man page
 @cindex current man page, changing
@@ -763,13 +741,13 @@ item had been used.
 @kindex q
 @findex Man-quit
 Bury the buffer containing the current man page (@code{Man-quit}),
-i.e.@: move it to the bottom of the buffer stack.
+i.e., move it to the bottom of the buffer stack.
 
 @item k
 @kindex k
 @findex Man-kill
 Kill the buffer containing the current man page (@code{Man-kill}),
-i.e.@: delete it completely so that it can be retrieved only by formatting
+i.e., delete it completely so that it can be retrieved only by formatting
 the page again.
 
 @item M-p
@@ -786,12 +764,11 @@ Find the next WoMan buffer (@code{WoMan-next-manpage}).
 @kindex R
 @findex woman-reformat-last-file
 Call WoMan to reformat the last man page formatted by WoMan
-(@code{woman-reformat-last-file}), e.g.@: after changing the fill column.
+(@code{woman-reformat-last-file}), e.g., after changing the fill column.
 @end table
 
 
-@node Convenience, Imenu, Changing, Browsing
-@comment  node-name,  next,  previous,  up
+@node Convenience
 @section Convenience Key Bindings
 @cindex convenience key bindings
 @cindex key bindings, convenience
@@ -832,8 +809,7 @@ followed by the minor modes, each on a separate page.
 @end table
 
 
-@node Imenu,  , Convenience, Browsing
-@comment  node-name,  next,  previous,  up
+@node Imenu
 @section Imenu Support; Contents Menu
 @cindex imenu support
 @cindex contents menu
@@ -853,8 +829,7 @@ is distributed with GNU Emacs.
 
 @c ===================================================================
 
-@node Customization, Log, Browsing, Top
-@comment  node-name,  next,  previous,  up
+@node Customization
 @chapter Customization
 @cindex customization
 
@@ -862,7 +837,7 @@ All WoMan user options are customizable, and it is recommended to
 change them only via the standard Emacs customization facilities.
 WoMan defines a top-level customization group called @code{WoMan}
 under the parent group @code{Help}.  It can be accessed either via the
-standard Emacs facilities, e.g.@: via the @samp{Help->Customize}
+standard Emacs facilities, e.g., via the @samp{Help->Customize}
 submenu, or via the WoMan major mode menu.
 
 The top-level WoMan group contains only a few general options and three
@@ -874,7 +849,7 @@ customization should be possible via existing user options.
 @vtable @code
 @item woman-show-log
 A boolean value that defaults to @code{nil}.  If non-@code{nil} then show the
-@code{*WoMan-Log*} buffer if appropriate, i.e.@: if any warning messages
+@code{*WoMan-Log*} buffer if appropriate, i.e., if any warning messages
 are written to it.  @xref{Log, , The *WoMan-Log* Buffer}.
 
 @item woman-pre-format-hook
@@ -911,8 +886,7 @@ man page.
 * Special symbols::
 @end menu
 
-@node Interface Options, Formatting Options, Customization, Customization
-@comment  node-name,  next,  previous,  up
+@node Interface Options
 @section Interface Options
 @cindex interface options
 
@@ -930,7 +904,7 @@ for a man configuration file.  The default is
 
 @noindent
 [for GNU/Linux and Cygwin respectively.]  A trailing separator (@file{/}
-for UNIX etc.) on directories is optional and the filename matched if a
+for UNIX etc.)@: on directories is optional and the filename matched if a
 directory is specified is the first to match the regexp
 @code{man.*\.conf}.  If the environment variable @code{MANPATH} is not
 set but a configuration file is found then it is parsed instead (or as
@@ -960,13 +934,13 @@ is
 @end lisp
 
 Any environment variables (names of which must have the Unix-style form
-@code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
+@code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name.  Trailing @file{/}s are
 ignored.  (Specific directories in @code{woman-path} are also searched.)
 
 On Microsoft platforms I recommend including drive letters explicitly,
-e.g.
+e.g.:
 
 @lisp
 ("C:/Cygwin/usr/man" "C:/usr/man" "C:/usr/local/man")
@@ -1010,7 +984,7 @@ and unreadable files are ignored.  The default value on MS-DOS is
 and on other platforms is @code{nil}.
 
 Any environment variables (names of which must have the Unix-style form
-@code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
+@code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name (regexp, see above).  For
 example
@@ -1064,7 +1038,7 @@ suppresses this action.  The ``standard'' non-@code{nil} filename is
 
 @item woman-dired-keys
 A list of @code{dired} mode keys to be defined to run WoMan on the
-current file, e.g.@: @code{("w" "W")} or any non-@code{nil} atom to
+current file, e.g., @code{("w" "W")} or any non-@code{nil} atom to
 automatically define @kbd{w} and @kbd{W} if they are unbound, or
 @code{nil} to do nothing.  Default is @code{t}.
 
@@ -1138,8 +1112,7 @@ default value is non-@code{nil}.
 @end vtable
 
 
-@node Formatting Options, Faces, Interface Options, Customization
-@comment  node-name,  next,  previous,  up
+@node Formatting Options
 @section Formatting Options
 @cindex formatting options
 
@@ -1182,8 +1155,7 @@ untested.
 @end vtable
 
 
-@node Faces, Special symbols, Formatting Options, Customization
-@comment  node-name,  next,  previous,  up
+@node Faces
 @section Faces
 @cindex faces
 
@@ -1218,8 +1190,7 @@ Default: foreground orange.
 @end vtable
 
 
-@node Special symbols,  , Faces, Customization
-@comment  node-name,  next,  previous,  up
+@node Special symbols
 @section Special symbols
 @cindex special symbols
 
@@ -1229,7 +1200,7 @@ WoMan provides partial experimental support for special symbols,
 initially only for MS-Windows and only for MS-Windows fonts.  This
 includes both non-@acronym{ASCII} characters from the main text font and use
 of a separate symbol font.  Later, support will be added for other font
-types (e.g.@: @code{bdf} fonts) and for the X Window System.  In Emacs
+types (e.g., @code{bdf} fonts) and for the X Window System.  In Emacs
 20.7, the current support works partially under Windows 9x but may not
 work on any other platform.
 
@@ -1256,8 +1227,7 @@ Under MS-Windows, the default is
 
 @c ===================================================================
 
-@node Log, Technical, Customization, Top
-@comment  node-name,  next,  previous,  up
+@node Log
 @chapter The *WoMan-Log* Buffer
 @cindex log buffer
 @cindex buffer, log
@@ -1281,8 +1251,7 @@ left in the formatted buffer to indicate precisely where they occurred.
 
 @c ===================================================================
 
-@node Technical, Bugs, Log, Top
-@comment  node-name,  next,  previous,  up
+@node Technical
 @chapter Technical Details
 @cindex technical details
 @cindex horizontal spacing
@@ -1306,13 +1275,12 @@ is output.
 
 @c ===================================================================
 
-@node Bugs, Acknowledgments, Technical, Top
-@comment  node-name,  next,  previous,  up
+@node Bugs
 @chapter Reporting Bugs
 @cindex reporting bugs
 @cindex bugs, reporting
 
-If WoMan fails completely, or formats a file incorrectly (i.e.@:
+If WoMan fails completely, or formats a file incorrectly (i.e.,
 obviously wrongly or significantly differently from @code{man}) or
 inelegantly, then please
 
@@ -1331,8 +1299,7 @@ man source file from, but do not send it unless asked to send it.
 
 @c ===================================================================
 
-@node Acknowledgments, GNU Free Documentation License, Bugs, Top
-@comment  node-name,  next,  previous,  up
+@node Acknowledgments
 @chapter Acknowledgments
 @cindex acknowledgments
 
@@ -1388,18 +1355,16 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @page
 
 
-@node GNU Free Documentation License, Command Index, Acknowledgments, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Command Index, Variable Index, GNU Free Documentation License, Top
-@comment  node-name,           next,      previous,  up
+@node Command Index
 @unnumbered Command Index
 
 @printindex fn
 
-@node Variable Index, Keystroke Index, Command Index, Top
-@comment   node-name,            next,      previous, up
+@node Variable Index
 @unnumbered Variable Index
 
 @printindex vr
@@ -1410,8 +1375,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 
 @page
 
-@node Keystroke Index, Concept Index, Variable Index, Top
-@comment  node-name,            next,      previous,  up
+@node Keystroke Index
 @unnumbered Keystroke Index
 
 @printindex ky
@@ -1422,8 +1386,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 
 @page
 
-@node Concept Index,  , Keystroke Index, Top
-@comment  node-name, next,     previous, up
+@node Concept Index
 @unnumbered Concept Index
 
 @printindex cp

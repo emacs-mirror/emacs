@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -148,7 +148,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (make-local-variable 'eshell-complex-commands)
   (setq eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff" "su" "sudo")
+		  "cat" "time" "cp" "mv" "make" "du" "diff")
 		eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
@@ -306,12 +306,13 @@ Remove (unlink) the FILE(s).")
   (eshell-eval-using-options
    "mkdir" args
    '((?h "help" nil nil "show this usage screen")
+     (?p "parents" nil em-parents "make parent directories as needed")
      :external "mkdir"
      :show-usage
      :usage "[OPTION] DIRECTORY...
 Create the DIRECTORY(ies), if they do not already exist.")
    (while args
-     (eshell-funcalln 'make-directory (car args))
+     (eshell-funcalln 'make-directory (car args) em-parents)
      (setq args (cdr args)))
    nil))
 
@@ -531,8 +532,10 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 	 "don't change anything on disk")
      (?p "preserve" nil preserve
 	 "preserve file attributes if possible")
-     (?R "recursive" nil em-recursive
+     (?r "recursive" nil em-recursive
 	 "copy directories recursively")
+     (?R nil nil em-recursive
+	 "as for -r")
      (?v "verbose" nil em-verbose
 	 "explain what is being done")
      (nil "help" nil nil "show this usage screen")
@@ -1036,85 +1039,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
-
-(defun eshell/su (&rest args)
-  "Alias \"su\" to call Tramp."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "su" args
-     '((?h "help" nil nil "show this usage screen")
-       (?l "login" nil login "provide a login environment")
-       (?  nil nil login "provide a login environment")
-       :usage "[- | -l | --login] [USER]
-Become another USER during a login session.")
-     (throw 'eshell-replace-command
-	    (let ((user "root")
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      (dolist (arg args)
-		(if (string-equal arg "-") (setq login t) (setq user arg)))
-	      ;; `eshell-eval-using-options' does not handle "-".
-	      (if (member "-" orig-args) (setq login t))
-	      (if login (setq dir "~/"))
-	      (if (and prefix
-		       (or
-			(not (string-equal
-			      "su" (file-remote-p default-directory 'method)))
-			(not (string-equal
-			      user (file-remote-p default-directory 'user)))))
-		  (eshell-parse-command
-		   "cd" (list (format "%s|su:%s@%s:%s"
-				      (substring prefix 0 -1) user host dir)))
-		(eshell-parse-command
-		 "cd" (list (format "/su:%s@%s:%s" user host dir)))))))))
-
-(put 'eshell/su 'eshell-no-numeric-conversions t)
-
-(defun eshell/sudo (&rest args)
-  "Alias \"sudo\" to call Tramp."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "sudo" args
-     '((?h "help" nil nil "show this usage screen")
-       (?u "user" t user "execute a command as another USER")
-       :show-usage
-       :usage "[(-u | --user) USER] COMMAND
-Execute a COMMAND as the superuser or another USER.")
-     (throw 'eshell-external
-	    (let ((user (or user "root"))
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      ;; `eshell-eval-using-options' reads options of COMMAND.
-	      (while (and (stringp (car orig-args))
-			  (member (car orig-args) '("-u" "--user")))
-		(setq orig-args (cddr orig-args)))
-	      (let ((default-directory
-		      (if (and prefix
-			       (or
-				(not
-				 (string-equal
-				  "sudo"
-				  (file-remote-p default-directory 'method)))
-				(not
-				 (string-equal
-				  user
-				  (file-remote-p default-directory 'user)))))
-			  (format "%s|sudo:%s@%s:%s"
-				  (substring prefix 0 -1) user host dir)
-			(format "/sudo:%s@%s:%s" user host dir))))
-		;; Ensure, that Tramp has connected to that construct already.
-		(ignore (file-exists-p default-directory))
-		(eshell-named-command (car orig-args) (cdr orig-args))))))))
-
-(put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
 (provide 'em-unix)
 

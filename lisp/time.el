@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -205,12 +205,6 @@ a string to display as the label of that TIMEZONE's time."
   :group 'display-time
   :type 'integer
   :version "23.1")
-
-(defvar display-time-world-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "q" 'kill-this-buffer)
-    map)
-  "Keymap of Display Time World mode.")
 
 ;;;###autoload
 (defun display-time ()
@@ -523,7 +517,7 @@ runs the normal hook `display-time-hook' after each update."
 		 'display-time-event-handler)))
 
 
-(define-derived-mode display-time-world-mode nil "World clock"
+(define-derived-mode display-time-world-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `display-time-world'."
   (setq show-trailing-whitespace nil))
@@ -549,8 +543,8 @@ See `display-time-world'."
       (setenv "TZ" old-tz))
     (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
     (dolist (timedata (nreverse result))
-      (insert (format fmt (car timedata) (cdr timedata)))))
-  (delete-char -1))
+      (insert (format fmt (car timedata) (cdr timedata))))
+    (delete-char -1)))
 
 ;;;###autoload
 (defun display-time-world ()
@@ -562,10 +556,10 @@ To turn off the world time display, go to that window and type `q'."
              (not (get-buffer display-time-world-buffer-name)))
     (run-at-time t display-time-world-timer-second 'display-time-world-timer))
   (with-current-buffer (get-buffer-create display-time-world-buffer-name)
-    (display-time-world-display display-time-world-list))
-  (pop-to-buffer display-time-world-buffer-name)
-  (fit-window-to-buffer)
-  (display-time-world-mode))
+    (display-time-world-display display-time-world-list)
+    (display-buffer display-time-world-buffer-name
+		    (cons nil '((window-height . fit-window-to-buffer))))
+    (display-time-world-mode)))
 
 (defun display-time-world-timer ()
   (if (get-buffer display-time-world-buffer-name)
@@ -575,7 +569,8 @@ To turn off the world time display, go to that window and type `q'."
     (let ((list timer-list))
       (while list
         (let ((elt (pop list)))
-          (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
+          (when (equal (symbol-name (timer--function elt))
+		       "display-time-world-timer")
             (cancel-timer elt)))))))
 
 ;;;###autoload

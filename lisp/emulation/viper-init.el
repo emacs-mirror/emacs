@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -424,7 +424,7 @@ delete the text being replaced, as in standard Vi."
 ;; (defcustom viper-emacs-state-cursor-color "Magenta"
 (defcustom viper-emacs-state-cursor-color nil
   "Cursor color when Viper is in Emacs state."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'viper)
 
 ;; internal var, used to remember the default cursor color of emacs frames

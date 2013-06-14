@@ -1,7 +1,7 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2013 Free Software
+Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
 
@@ -1075,28 +1075,22 @@ socket_connection (char *host, int flags)
 	}
     } while (ret != 0);
 
-  if (ret == 0)
+  for (it = res; it; it = it->ai_next)
+    if (it->ai_addrlen == sizeof addr)
+      {
+	struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
+	addr.sin_addr = in_a->sin_addr;
+	if (! connect (sock, (struct sockaddr *) &addr, sizeof addr))
+	  break;
+      }
+  connect_ok = it != NULL;
+  if (connect_ok)
     {
-      it = res;
-      while (it)
-        {
-          if (it->ai_addrlen == sizeof (addr))
-            {
-              struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              memcpy (&addr.sin_addr, &in_a->sin_addr, sizeof (addr.sin_addr));
-              if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
-                break;
-            }
-          it = it->ai_next;
-        }
-      connect_ok = it != NULL;
-      if (connect_ok)
-        {
-          realhost = alloca (strlen (it->ai_canonname) + 1);
-          strcpy (realhost, it->ai_canonname);
-        }
-      freeaddrinfo (res);
+      realhost = alloca (strlen (it->ai_canonname) + 1);
+      strcpy (realhost, it->ai_canonname);
     }
+  freeaddrinfo (res);
+
 #else /* !HAVE_GETADDRINFO */
   do
     {
@@ -1198,7 +1192,7 @@ socket_connection (char *host, int flags)
 	    }
 #elif defined HAVE_KRB5_ERROR_E_TEXT
 	  if (err_ret && err_ret->e_text && **err_ret->e_text)
-	    snprintf (pop_error + pop_error_len, ERRMAX - pop_error_len,
+	    snprintf (pop_error + pop_error_len, ERROR_MAX - pop_error_len,
 		      " [server says '%s']", *err_ret->e_text);
 #endif
 	  if (err_ret)

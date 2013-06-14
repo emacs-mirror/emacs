@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
 @node Display
@@ -213,52 +213,62 @@ entire current defun onto the screen if possible.
 @node Auto Scrolling
 @section Automatic Scrolling
 
+@cindex automatic scrolling
   Emacs performs @dfn{automatic scrolling} when point moves out of the
-visible portion of the text.
+visible portion of the text.  Normally, automatic scrolling centers
+point vertically in the window, but there are several ways to alter
+this behavior.
 
 @vindex scroll-conservatively
-  Normally, this centers point vertically within the window.  However,
-if you set @code{scroll-conservatively} to a small number @var{n},
-then if you move point just a little off the screen (less than @var{n}
-lines), Emacs scrolls the text just far enough to bring point back on
-screen.  By default, @code{scroll-conservatively} is@tie{}0.  If you
-set @code{scroll-conservatively} to a large number (larger than 100),
-Emacs will never center point as result of scrolling, even if point
-moves far away from the text previously displayed in the window.  With
-such a large value, Emacs will always scroll text just enough for
-bringing point into view, so point will end up at the top or bottom of
-the window, depending on the scroll direction.
+  If you set @code{scroll-conservatively} to a small number @var{n},
+then moving point just a little off the screen (no more than @var{n}
+lines) causes Emacs to scroll just enough to bring point back on
+screen; if doing so fails to make point visible, Emacs scrolls just
+far enough to center point in the window.  If you set
+@code{scroll-conservatively} to a large number (larger than 100),
+automatic scrolling never centers point, no matter how far point
+moves; Emacs always scrolls text just enough to bring point into view,
+either at the top or bottom of the window depending on the scroll
+direction.  By default, @code{scroll-conservatively} is@tie{}0, which
+means to always center point in the window.
 
 @vindex scroll-step
-  The variable @code{scroll-step} determines how many lines to scroll
-the window when point moves off the screen.  If moving by that number
-of lines fails to bring point back into view, point is centered
-instead.  The default value is zero, which causes point to always be
-centered after scrolling.
+  Another way to control automatic scrolling is to customize the
+variable @code{scroll-step}.  Its value determines the number of lines
+by which to automatically scroll, when point moves off the screen.  If
+scrolling by that number of lines fails to bring point back into view,
+point is centered instead.  The default value is zero, which (by
+default) causes point to always be centered after scrolling.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively
-  When the window does scroll by a distance longer than
-@code{scroll-step}, you can control how aggressively it scrolls by
-setting the variables @code{scroll-up-aggressively} and
-@code{scroll-down-aggressively}.  The value of
-@code{scroll-up-aggressively} should be either @code{nil}, or a
-fraction @var{f} between 0 and 1.  A fraction specifies where on the
-screen to put point when scrolling upward, i.e.@: forward.  When point
-goes off the window end, the new start position is chosen to put point
-@var{f} parts of the window height from the bottom margin.  Thus,
-larger @var{f} means more aggressive scrolling: more new text is
-brought into view.  The default value, @code{nil}, is equivalent to
-0.5.
+  A third way to control automatic scrolling is to customize the
+variables @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}, which directly specify the vertical
+position of point after scrolling.  The value of
+@code{scroll-up-aggressively} should be either @code{nil} (the
+default), or a floating point number @var{f} between 0 and 1.  The
+latter means that when point goes below the bottom window edge (i.e.,
+scrolling forward), Emacs scrolls the window so that point is @var{f}
+parts of the window height from the bottom window edge.  Thus, larger
+@var{f} means more aggressive scrolling: more new text is brought into
+view.  The default value, @code{nil}, is equivalent to 0.5.
 
-  Likewise, @code{scroll-down-aggressively} is used for scrolling
-down, i.e.@: backward.  The value specifies how far point should be
-placed from the top margin of the window; thus, as with
-@code{scroll-up-aggressively}, a larger value is more aggressive.
+  Likewise, @code{scroll-down-aggressively} is used when point goes
+above the bottom window edge (i.e., scrolling backward).  The value
+specifies how far point should be from the top margin of the window
+after scrolling.  Thus, as with @code{scroll-up-aggressively}, a
+larger value is more aggressive.
 
-  These two variables are ignored if either @code{scroll-step} or
-@code{scroll-conservatively} are set to a non-zero value.
+  Note that the variables @code{scroll-conservatively},
+@code{scroll-step}, and @code{scroll-up-aggressively} /
+@code{scroll-down-aggressively} control automatic scrolling in
+contradictory ways.  Therefore, you should pick no more than one of
+these methods to customize automatic scrolling.  In case you customize
+multiple variables, the order of priority is:
+@code{scroll-conservatively}, then @code{scroll-step}, and finally
+@code{scroll-up-aggressively} / @code{scroll-down-aggressively}.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -288,10 +298,10 @@ the cursor is left at the edge instead.)
 
 @vindex hscroll-margin
   The variable @code{hscroll-margin} controls how close point can get
-to the window's edges before automatic scrolling occurs.  It is
-measured in columns.  For example, if the value is 5, then moving
-point within 5 columns of an edge causes horizontal scrolling away
-from that edge.
+to the window's left and right edges before automatic scrolling
+occurs.  It is measured in columns.  For example, if the value is 5,
+then moving point within 5 columns of an edge causes horizontal
+scrolling away from that edge.
 
 @vindex hscroll-step
   The variable @code{hscroll-step} determines how many columns to
@@ -893,14 +903,16 @@ that you specify explicitly the regular expressions to highlight.  You
 control them with these commands:
 
 @table @kbd
-@item C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
+@item M-s h r @var{regexp} @key{RET} @var{face} @key{RET}
+@itemx C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex M-s h r
 @kindex C-x w h
 @findex highlight-regexp
 Highlight text that matches @var{regexp} using face @var{face}
 (@code{highlight-regexp}).  The highlighting will remain as long as
 the buffer is loaded.  For example, to highlight all occurrences of
 the word ``whim'' using the default face (a yellow background)
-@kbd{C-x w h whim @key{RET} @key{RET}}.  Any face can be used for
+@kbd{M-s h r whim @key{RET} @key{RET}}.  Any face can be used for
 highlighting, Hi Lock provides several of its own and these are
 pre-loaded into a list of default values.  While being prompted
 for a face use @kbd{M-n} and @kbd{M-p} to cycle through them.
@@ -908,7 +920,9 @@ for a face use @kbd{M-n} and @kbd{M-p} to cycle through them.
 You can use this command multiple times, specifying various regular
 expressions to highlight in different ways.
 
-@item C-x w r @var{regexp} @key{RET}
+@item M-s h u @var{regexp} @key{RET}
+@itemx C-x w r @var{regexp} @key{RET}
+@kindex M-s h u
 @kindex C-x w r
 @findex unhighlight-regexp
 Unhighlight @var{regexp} (@code{unhighlight-regexp}).
@@ -916,13 +930,15 @@ Unhighlight @var{regexp} (@code{unhighlight-regexp}).
 If you invoke this from the menu, you select the expression to
 unhighlight from a list.  If you invoke this from the keyboard, you
 use the minibuffer.  It will show the most recently added regular
-expression; use @kbd{M-p} to show the next older expression and
-@kbd{M-n} to select the next newer expression.  (You can also type the
+expression; use @kbd{M-n} to show the next older expression and
+@kbd{M-p} to select the next newer expression.  (You can also type the
 expression by hand, with completion.)  When the expression you want to
 unhighlight appears in the minibuffer, press @kbd{@key{RET}} to exit
 the minibuffer and unhighlight it.
 
-@item C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
+@item M-s h l @var{regexp} @key{RET} @var{face} @key{RET}
+@itemx C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex M-s h l
 @kindex C-x w l
 @findex highlight-lines-matching-regexp
 @cindex lines, highlighting
@@ -930,7 +946,31 @@ the minibuffer and unhighlight it.
 Highlight entire lines containing a match for @var{regexp}, using face
 @var{face} (@code{highlight-lines-matching-regexp}).
 
-@item C-x w b
+@item M-s h p @var{phrase} @key{RET} @var{face} @key{RET}
+@itemx C-x w p @var{phrase} @key{RET} @var{face} @key{RET}
+@kindex M-s h p
+@kindex C-x w p
+@findex highlight-phrase
+@cindex phrase, highlighting
+@cindex highlighting phrase
+Highlight matches of @var{phrase}, using face @var{face}
+(@code{highlight-phrase}).  @var{phrase} can be any regexp,
+but spaces will be replaced by matches to whitespace and
+initial lower-case letters will become case insensitive.
+
+@item M-s h .
+@itemx C-x w .
+@kindex M-s h .
+@kindex C-x w .
+@findex highlight-symbol-at-point
+@cindex symbol, highlighting
+@cindex highlighting symbol at point
+Highlight the symbol found near point without prompting, using the next
+available face automatically (@code{highlight-symbol-at-point}).
+
+@item M-s h w
+@itemx C-x w b
+@kindex M-s h w
 @kindex C-x w b
 @findex hi-lock-write-interactive-patterns
 Insert all the current highlighting regexp/face pairs into the buffer
@@ -942,7 +982,9 @@ These patterns are extracted from the comments, if appropriate, if you
 invoke @kbd{M-x hi-lock-find-patterns}, or if you visit the file while
 Hi Lock mode is enabled (since that runs @code{hi-lock-find-patterns}).
 
-@item C-x w i
+@item M-s h f
+@itemx C-x w i
+@kindex M-s h f
 @kindex C-x w i
 @findex hi-lock-find-patterns
 Extract regexp/face pairs from comments in the current buffer
@@ -1044,9 +1086,9 @@ the left fringe, but no arrow bitmaps, use @code{((top .  left)
 @cindex whitespace, trailing
 @vindex show-trailing-whitespace
   It is easy to leave unnecessary spaces at the end of a line, or
-empty lines at the end of a file, without realizing it.  In most
-cases, this @dfn{trailing whitespace} has no effect, but there are
-special circumstances where it matters, and it can be a nuisance.
+empty lines at the end of a buffer, without realizing it.  In most
+cases, this @dfn{trailing whitespace} has no effect, but sometimes it
+can be a nuisance.
 
   You can make trailing whitespace at the end of a line visible by
 setting the buffer-local variable @code{show-trailing-whitespace} to
@@ -1061,9 +1103,13 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
+@vindex delete-trailing-lines
   Type @kbd{M-x delete-trailing-whitespace} to delete all trailing
-whitespace within the buffer.  If the region is active, it deletes all
-trailing whitespace in the region instead.
+whitespace.  This command deletes all extra spaces at the end of each
+line in the buffer, and all empty lines at the end of the buffer; to
+ignore the latter, change the variable @code{delete-trailing-lines} to
+@code{nil}.  If the region is active, the command instead deletes
+extra spaces at the end of each line in the region.
 
 @vindex indicate-empty-lines
 @cindex unused lines
@@ -1075,7 +1121,7 @@ buffer text, so blank lines at the end of the buffer stand out because
 they lack this image.  To enable this feature, set the buffer-local
 variable @code{indicate-empty-lines} to a non-@code{nil} value.  You
 can enable or disable this feature for all new buffers by setting the
-default value of this variable, e.g.@: @code{(setq-default
+default value of this variable, e.g., @code{(setq-default
 indicate-empty-lines t)}.
 
 @cindex Whitespace mode
@@ -1244,7 +1290,7 @@ line looks like this:
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
 @samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
 for the last few minutes, of processes in the whole system that were
-either running or ready to run (i.e.@: were waiting for an available
+either running or ready to run (i.e., were waiting for an available
 processor).  (Some fields may be missing if your operating system
 cannot support them.)  If you prefer time display in 24-hour format,
 set the variable @code{display-time-24hr-format} to @code{t}.
@@ -1355,7 +1401,7 @@ as octal escape sequences instead of caret escape sequences.
   Some non-@acronym{ASCII} characters have the same appearance as an
 @acronym{ASCII} space or hyphen (minus) character.  Such characters
 can cause problems if they are entered into a buffer without your
-realization, e.g.@: by yanking; for instance, source code compilers
+realization, e.g., by yanking; for instance, source code compilers
 typically do not treat non-@acronym{ASCII} spaces as whitespace
 characters.  To deal with this problem, Emacs displays such characters
 specially: it displays @code{U+00A0} (no-break space) with the
@@ -1489,6 +1535,7 @@ attempts to wrap the line at word boundaries near the right window
 edge.  This makes the text easier to read, as wrapping does not occur
 in the middle of words.
 
+@cindex mode, Visual Line
 @cindex Visual Line mode
 @findex visual-line-mode
 @findex global-visual-line-mode

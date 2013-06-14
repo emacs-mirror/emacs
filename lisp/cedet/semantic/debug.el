@@ -1,6 +1,6 @@
 ;;; semantic/debug.el --- Language Debugger framework
 
-;; Copyright (C) 2003-2005, 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -308,13 +308,13 @@ Argument ONOFF is non-nil when we are entering debug mode.
 	  ;; Install our map onto this buffer
 	  (use-local-map semantic-debug-mode-map)
 	  ;; Make the buffer read only
-	  (toggle-read-only 1)
+	  (setq buffer-read-only t)
 
 	  (set-buffer (oref iface source-buffer))
 	  ;; Use our map in the source buffer also
 	  (use-local-map semantic-debug-mode-map)
 	  ;; Make the buffer read only
-	  (toggle-read-only 1)
+	  (setq buffer-read-only t)
 	  ;; Hooks
 	  (run-hooks 'semantic-debug-mode-hook)
 	  )

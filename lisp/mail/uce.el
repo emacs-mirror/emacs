@@ -1,6 +1,6 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996, 1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
@@ -63,7 +63,7 @@
 ;; Usage:
 
 ;; Place uce.el in your load-path (and optionally byte-compile it).
-;; Add the following line to your ~/.emacs:
+;; Add the following line to your init file:
 ;; (autoload 'uce-reply-to-uce "uce" "Reply to UCEs" t nil)
 ;; If you want to use it with Gnus rather than Rmail:
 ;; (setq uce-mail-reader 'gnus)

@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2012  Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2013 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -264,6 +264,7 @@ cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
+If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h

@@ -1,6 +1,7 @@
 /* Record indices of function doc strings stored in a file.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,8 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/file.h>	/* Must be after sys/types.h for USG*/
-#include <setjmp.h>
+#include <sys/file.h>	/* Must be after sys/types.h for USG.  */
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -43,7 +43,7 @@ static ptrdiff_t get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
 
-/* readchar in lread.c calls back here to fetch the next byte.
+/* `readchar' in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
@@ -58,7 +58,7 @@ read_bytecode_char (bool unreadflag)
 }
 
 /* Extract a doc string from a file.  FILEPOS says where to get it.
-   If it is an integer, use that position in the standard DOC-... file.
+   If it is an integer, use that position in the standard DOC file.
    If it is (FILE . INTEGER), use FILE as the file name
    and INTEGER as the position in that file.
    But if INTEGER is negative, make it positive.
@@ -84,24 +84,23 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   ptrdiff_t minsize;
   int offset;
   EMACS_INT position;
-  Lisp_Object file, tem;
+  Lisp_Object file, tem, pos;
   USE_SAFE_ALLOCA;
 
   if (INTEGERP (filepos))
     {
       file = Vdoc_file_name;
-      position = XINT (filepos);
+      pos = filepos;
     }
   else if (CONSP (filepos))
     {
       file = XCAR (filepos);
-      position = XINT (XCDR (filepos));
+      pos = XCDR (filepos);
     }
   else
     return Qnil;
 
-  if (position < 0)
-    position = - position;
+  position = eabs (XINT (pos));
 
   if (!STRINGP (Vdoc_directory))
     return Qnil;
@@ -145,7 +144,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
 #endif
       if (fd < 0)
-	error ("Cannot open doc string file \"%s\"", name);
+	return concat3 (build_string ("Cannot open doc string file \""),
+			file, build_string ("\"\n"));
     }
 
   /* Seek only to beginning of disk block.  */
@@ -176,9 +176,9 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
       if (space_left <= 0)
 	{
 	  ptrdiff_t in_buffer = p - get_doc_string_buffer;
-	  get_doc_string_buffer =
-	    xpalloc (get_doc_string_buffer, &get_doc_string_buffer_size,
-		     16 * 1024, -1, 1);
+	  get_doc_string_buffer
+	    = xpalloc (get_doc_string_buffer, &get_doc_string_buffer_size,
+		       16 * 1024, -1, 1);
 	  p = get_doc_string_buffer + in_buffer;
 	  space_left = (get_doc_string_buffer_size - 1
 			- (p - get_doc_string_buffer));
@@ -215,14 +215,20 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   if (CONSP (filepos))
     {
       int test = 1;
-      if (get_doc_string_buffer[offset - test++] != ' ')
-	return Qnil;
-      while (get_doc_string_buffer[offset - test] >= '0'
-	     && get_doc_string_buffer[offset - test] <= '9')
-	test++;
-      if (get_doc_string_buffer[offset - test++] != '@'
-	  || get_doc_string_buffer[offset - test] != '#')
-	return Qnil;
+      /* A dynamic docstring should be either at the very beginning of a "#@
+	 comment" or right after a dynamic docstring delimiter (in case we
+	 pack several such docstrings within the same comment).  */
+      if (get_doc_string_buffer[offset - test] != '\037')
+	{
+	  if (get_doc_string_buffer[offset - test++] != ' ')
+	    return Qnil;
+	  while (get_doc_string_buffer[offset - test] >= '0'
+		 && get_doc_string_buffer[offset - test] <= '9')
+	    test++;
+	  if (get_doc_string_buffer[offset - test++] != '@'
+	      || get_doc_string_buffer[offset - test] != '#')
+	    return Qnil;
+	}
     }
   else
     {
@@ -279,10 +285,10 @@ Invalid data in documentation file -- %c followed by code %03o",
   else
     {
       /* The data determines whether the string is multibyte.  */
-      ptrdiff_t nchars =
-	multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
-				  + offset),
-				 to - (get_doc_string_buffer + offset));
+      ptrdiff_t nchars
+	= multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
+				    + offset),
+				   to - (get_doc_string_buffer + offset));
       return make_string_from_bytes (get_doc_string_buffer + offset,
 				     nchars,
 				     to - (get_doc_string_buffer + offset));
@@ -347,6 +353,8 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   fun = Findirect_function (function, Qnil);
+  if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
+    fun = XCDR (fun);
   if (SUBRP (fun))
     {
       if (XSUBR (fun)->doc == 0)
@@ -400,8 +408,6 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
-      else if (EQ (funcar, Qmacro))
-	return Fdocumentation (Fcdr (fun), raw);
       else
 	goto oops;
     }
@@ -411,16 +417,19 @@ string is passed through `substitute-command-keys'.  */)
       xsignal1 (Qinvalid_function, fun);
     }
 
-  /* Check for an advised function.  Its doc string
-     has an `ad-advice-info' text property.  */
+  /* Check for a dynamic docstring.  These come with
+     a dynamic-docstring-function text property.  */
   if (STRINGP (doc))
     {
-      Lisp_Object innerfunc;
-      innerfunc = Fget_text_property (make_number (0),
-				      intern ("ad-advice-info"),
+      Lisp_Object func
+	= Fget_text_property (make_number (0),
+			      intern ("dynamic-docstring-function"),
 				      doc);
-      if (! NILP (innerfunc))
-	doc = call1 (intern ("ad-make-advised-docstring"), innerfunc);
+      if (!NILP (func))
+	/* Pass both `doc' and `function' since `function' can be needed, and
+	   finding `doc' can be annoying: calling `documentation' is not an
+	   option because it would infloop.  */
+	doc = call2 (func, doc, function);
     }
 
   /* If DOC is 0, it's typically because of a dumped file missing
@@ -528,6 +537,8 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
+	    /* FIXME: This modifies typically pure hash-cons'd data, so its
+	       correctness is quite delicate.  */
 	    XSETCAR (tem, make_number (offset));
 	}
       else if (EQ (tem, Qmacro))
@@ -597,7 +608,7 @@ the same file name is found in the `doc-directory'.  */)
         while (*beg && c_isspace (*beg)) ++beg;
 
         for (end = beg; *end && ! c_isspace (*end); ++end)
-          if (*end == '/') beg = end+1;  /* skip directory part  */
+          if (*end == '/') beg = end + 1;  /* Skip directory part.  */
 
         len = end - beg;
         if (len > 4 && end[-4] == '.' && end[-3] == 'o')
@@ -625,11 +636,10 @@ the same file name is found in the `doc-directory'.  */)
 	break;
 
       buf[filled] = 0;
-      p = buf;
       end = buf + (filled < 512 ? filled : filled - 128);
-      while (p != end && *p != '\037') p++;
+      p = memchr (buf, '\037', end - buf);
       /* p points to ^_Ffunctionname\n or ^_Vvarname\n or ^_Sfilename\n.  */
-      if (p != end)
+      if (p)
 	{
 	  end = strchr (p, '\n');
 
@@ -748,9 +758,7 @@ Otherwise, return a new string, without any text properties.  */)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STRING itself..  */
-  keymap = KVAR (current_kboard, Voverriding_terminal_local_map);
-  if (NILP (keymap))
-    keymap = Voverriding_local_map;
+  keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
   bufp = buf = xmalloc (bsize);

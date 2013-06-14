@@ -1,7 +1,7 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,17 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* This silences a few compilation warnings on FreeBSD.  */
-#ifdef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM_AHB
-#undef BSD_SYSTEM
-#if __FreeBSD__ == 1
-#define BSD_SYSTEM 199103
-#elif __FreeBSD__ == 2
-#define BSD_SYSTEM 199306
-#elif __FreeBSD__ >= 3
-#define BSD_SYSTEM 199506
-#endif
+#ifndef __has_attribute
+# define __has_attribute(a) 0 /* non-clang */
 #endif
 
 #ifdef DARWIN_OS
@@ -90,7 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 char *_getpty();
 #endif
 
-#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 #endif /* IRIX6_5 */
 
 #ifdef MSDOS
@@ -111,7 +101,16 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #else
 # define lstat stat
 #endif
+/* The "portable" definition of _GL_INLINE on config.h does not work
+   with DJGPP GCC 3.4.4: it causes unresolved externals in sysdep.c,
+   although lib/execinfo.h is included and the inline functions there
+   are visible.  */
+#if __GNUC__ < 4
+# define _GL_EXECINFO_INLINE inline
+#endif
 /* End of gnulib-related stuff.  */
+
+#define emacs_raise(sig) msdos_fatal_signal (sig)
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
@@ -133,22 +132,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 #endif  /* MSDOS */
 
-#ifdef USG5_4
-/* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
-   But get <termio.h> first to make sure ttold.h doesn't interfere.  */
-#include <sys/wait.h>
-
-#ifdef emacs
-#include <sys/filio.h>
-#include <termio.h>
-#include <sys/ttold.h>
-#include <signal.h>
-#include <sys/stream.h>
-#include <sys/stropts.h>
-#include <sys/termios.h>
-#endif
-#endif  /* USG5_4 */
-
 /* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #ifdef HAVE_NS
@@ -157,6 +140,20 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #elif defined DARWIN_OS
 #  define SYSTEM_PURESIZE_EXTRA 200000
 #endif
+#endif
+
+#if defined HAVE_NTGUI && !defined DebPrint
+# ifdef EMACSDEBUG
+extern void _DebPrint (const char *fmt, ...);
+#  define DebPrint(stuff) _DebPrint stuff
+# else
+#  define DebPrint(stuff)
+# endif
+#endif
+
+#if defined CYGWIN && defined HAVE_NTGUI
+# define NTGUI_UNICODE /* Cygwin runs only on UNICODE-supporting systems */
+# define _WIN32_WINNT 0x500 /* Win2k */
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
@@ -181,7 +178,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define NO_INLINE
 #endif
 
-#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+#if (__clang__								\
+     ? __has_attribute (externally_visible)				\
+     : (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE

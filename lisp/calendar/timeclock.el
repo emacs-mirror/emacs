@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -49,7 +49,7 @@
 ;; If you want Emacs to display the amount of time "left" to your
 ;; workday in the mode-line, you can either set the value of
 ;; `timeclock-mode-line-display' to t using M-x customize, or you can
-;; add this code to your .emacs file:
+;; add this code to your init file:
 ;;
 ;;   (require 'timeclock)
 ;;   (timeclock-mode-line-display)
@@ -60,7 +60,7 @@
 ;; You may also want Emacs to ask you before exiting, if you are
 ;; currently working on a project.  This can be done either by setting
 ;; `timeclock-ask-before-exiting' to t using M-x customize (this is
-;; the default), or by adding the following to your .emacs file:
+;; the default), or by adding the following to your init file:
 ;;
 ;;   (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
 
@@ -81,7 +81,7 @@
 
 ;;; User Variables:
 
-(defcustom timeclock-file (convert-standard-filename "~/.timelog")
+(defcustom timeclock-file (locate-user-emacs-file "timelog" ".timelog")
   "The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)
@@ -320,6 +320,9 @@ display (non-nil means on)."
 	(setq timeclock-update-timer nil)))
     (force-mode-line-update)
     (setq timeclock-mode-line-display on-p)))
+
+(define-obsolete-variable-alias 'timeclock-modeline-display
+  'timeclock-mode-line-display "24.3")
 
 ;; This has to be here so that the function definition of
 ;; `timeclock-mode-line-display' is known to the "set" function.

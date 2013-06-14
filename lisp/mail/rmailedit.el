@@ -1,6 +1,6 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -111,6 +111,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	      ;; Even if the message is in `raw' state, boundaries etc
 	      ;; are still missing.  All we can do is insert the real
 	      ;; raw message.  (Bug#9840)
+	      ;; FIXME?  Since the 2012-09-17 changes to rmail-mime,
+	      ;; can we just use that function now?
 	      (when (and entity
 			 (not (equal "text/plain"
 				     (car (rmail-mime-entity-type entity)))))
@@ -165,10 +167,25 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (if (or rmail-old-mime-state
 	  (not rmail-old-pruned))
       (forward-line 1))
-  (while (re-search-forward "^>*From " nil t)
-    (beginning-of-line)
-    (insert ">")
-    (forward-line))
+  ;; When editing a non-MIME message, rmail-show-message-1 has unescaped
+  ;; ^>*From lines according to rmail-mbox-format.  We are editing
+  ;; the message as it was displayed, and need to put the escapes when done.
+  ;; When editing a MIME message, we are editing the "raw" message.
+  ;; ^>*From lines have not been escaped, but we still need to ensure
+  ;; a "^From " line is escaped so as not to break later parsing (?).
+  ;; With ^>+From lines, we have no way of knowing whether the person
+  ;; doing the editing escaped them or not, so it seems best to leave
+  ;; them alone.  (This all assumes you are using rmailmm rather than
+  ;; something else that behaves differently.)
+  (let ((fromline (if (or (eq 'mboxo rmail-mbox-format)
+			  rmail-mime-decoded)
+		      "^From "
+		    "^>*From "))
+	case-fold-search)
+    (while (re-search-forward fromline nil t)
+      (beginning-of-line)
+      (insert ">")
+      (forward-line)))
   ;; Make sure buffer ends with a blank line so as not to run this
   ;; message together with the following one.
   (goto-char (point-max))
@@ -199,6 +216,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (setq buffer-undo-list t)
       (rmail-variables))
     ;; If text has really changed, mark message as edited.
+    ;; FIXME we should do the comparison before escaping From lines.
     (unless (and (= (length old) (- (point-max) (point-min)))
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)

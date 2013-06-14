@@ -1,5 +1,6 @@
 /* Functions taken directly from X sources for use with the Microsoft Windows API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2013 Free Software
+   Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -33,7 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define myfree(lp) GlobalFreePtr (lp)
 
 CRITICAL_SECTION critsect;
+
+#ifdef WINDOWSNT
 extern HANDLE keyboard_handle;
+#endif /* WINDOWSNT */
+
 HANDLE input_available = NULL;
 HANDLE interrupt_handle = NULL;
 
@@ -44,7 +49,11 @@ init_crit (void)
 
   /* For safety, input_available should only be reset by get_next_msg
      when the input queue is empty, so make it a manual reset event. */
-  keyboard_handle = input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+  input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+
+#ifdef WINDOWSNT
+  keyboard_handle = input_available;
+#endif /* WINDOWSNT */
 
   /* interrupt_handle is signaled when quit (C-g) is detected, so that
      blocking system calls can be interrupted.  We make it a manual
@@ -241,6 +250,22 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
   return (bRet);
 }
 
+extern char * w32_strerror (int error_no);
+
+/* Tell the main thread that we have input available; if the main
+   thread is blocked in select(), we wake it up here.  */
+static void
+notify_msg_ready (void)
+{
+  SetEvent (input_available);
+
+#ifdef CYGWIN
+  /* Wakes up the main thread, which is blocked select()ing for /dev/windows,
+     among other files.  */
+  (void) PostThreadMessage (dwMainThreadId, WM_EMACS_INPUT_READY, 0, 0);
+#endif /* CYGWIN */
+}
+
 BOOL
 post_msg (W32Msg * lpmsg)
 {
@@ -264,8 +289,7 @@ post_msg (W32Msg * lpmsg)
     }
 
   lpTail = lpNew;
-  SetEvent (input_available);
-
+  notify_msg_ready ();
   leave_crit ();
 
   return (TRUE);
@@ -286,154 +310,28 @@ prepend_msg (W32Msg *lpmsg)
   nQueue++;
   lpNew->lpNext = lpHead;
   lpHead = lpNew;
-
+  notify_msg_ready ();
   leave_crit ();
 
   return (TRUE);
 }
 
-/* Process all messages in the current thread's queue.  */
-void
+/* Process all messages in the current thread's queue.  Value is 1 if
+   one of these messages was WM_EMACS_FILENOTIFY, zero otherwise.  */
+int
 drain_message_queue (void)
 {
   MSG msg;
+  int retval = 0;
+
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
     {
+      if (msg.message == WM_EMACS_FILENOTIFY)
+	retval = 1;
       TranslateMessage (&msg);
       DispatchMessage (&msg);
     }
-}
-
-
-/*
- *    XParseGeometry parses strings of the form
- *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
- *   width, height, xoffset, and yoffset are unsigned integers.
- *   Example:  "=80x24+300-49"
- *   The equal sign is optional.
- *   It returns a bitmask that indicates which of the four values
- *   were actually found in the string.  For each value found,
- *   the corresponding argument is updated;  for each value
- *   not found, the corresponding argument is left unchanged.
- */
-
-static int
-read_integer (register char *string, char **NextString)
-{
-  register int Result = 0;
-  int Sign = 1;
-
-  if (*string == '+')
-    string++;
-  else if (*string == '-')
-    {
-      string++;
-      Sign = -1;
-    }
-  for (; (*string >= '0') && (*string <= '9'); string++)
-    {
-      Result = (Result * 10) + (*string - '0');
-    }
-  *NextString = string;
-  if (Sign >= 0)
-    return (Result);
-  else
-    return (-Result);
-}
-
-int
-XParseGeometry (char *string,
-		int *x, int *y,
-		unsigned int *width, unsigned int *height)
-{
-  int mask = NoValue;
-  register char *strind;
-  unsigned int tempWidth, tempHeight;
-  int tempX, tempY;
-  char *nextCharacter;
-
-  if ((string == NULL) || (*string == '\0')) return (mask);
-  if (*string == '=')
-    string++;  /* ignore possible '=' at beg of geometry spec */
-
-  strind = (char *)string;
-  if (*strind != '+' && *strind != '-' && *strind != 'x')
-    {
-      tempWidth = read_integer (strind, &nextCharacter);
-      if (strind == nextCharacter)
-	return (0);
-      strind = nextCharacter;
-      mask |= WidthValue;
-    }
-
-  if (*strind == 'x' || *strind == 'X')
-    {
-      strind++;
-      tempHeight = read_integer (strind, &nextCharacter);
-      if (strind == nextCharacter)
-	return (0);
-      strind = nextCharacter;
-      mask |= HeightValue;
-    }
-
-  if ((*strind == '+') || (*strind == '-'))
-    {
-      if (*strind == '-')
-	{
-	  strind++;
-	  tempX = -read_integer (strind, &nextCharacter);
-	  if (strind == nextCharacter)
-	    return (0);
-	  strind = nextCharacter;
-	  mask |= XNegative;
-
-	}
-      else
-	{
-	  strind++;
-	  tempX = read_integer (strind, &nextCharacter);
-	  if (strind == nextCharacter)
-	    return (0);
-	  strind = nextCharacter;
-	}
-      mask |= XValue;
-      if ((*strind == '+') || (*strind == '-'))
-	{
-	  if (*strind == '-')
-	    {
-	      strind++;
-	      tempY = -read_integer (strind, &nextCharacter);
-	      if (strind == nextCharacter)
-		return (0);
-	      strind = nextCharacter;
-	      mask |= YNegative;
-	    }
-	  else
-	    {
-	      strind++;
-	      tempY = read_integer (strind, &nextCharacter);
-	      if (strind == nextCharacter)
-		return (0);
-	      strind = nextCharacter;
-	    }
-	  mask |= YValue;
-	}
-    }
-
-  /* If strind isn't at the end of the string then it's an invalid
-     geometry specification. */
-
-  if (*strind != '\0') return (0);
-
-  if (mask & XValue)
-    *x = tempX;
-  if (mask & YValue)
-    *y = tempY;
-  if (mask & WidthValue)
-    *width = tempWidth;
-  if (mask & HeightValue)
-    *height = tempHeight;
-  return (mask);
+  return retval;
 }
 
 /* x_sync is a no-op on W32.  */

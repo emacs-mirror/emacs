@@ -1,6 +1,6 @@
 ;;; starttls.el --- STARTTLS functions
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
@@ -149,7 +149,7 @@ These apply when the `starttls' command is used, i.e. when
   :group 'starttls)
 
 (defcustom starttls-extra-arguments nil
-  "Extra arguments to `starttls-program'.
+  "Extra arguments to `starttls-gnutls-program'.
 These apply when GnuTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
 
 For example, non-TLS compliant servers may require

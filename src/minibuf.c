@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <errno.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "commands.h"
@@ -115,7 +114,7 @@ choose_minibuf_frame (void)
       /* Under X, we come here with minibuf_window being the
 	 minibuffer window of the unused termcap window created in
 	 init_window_once.  That window doesn't have a buffer.  */
-      buffer = XWINDOW (minibuf_window)->buffer;
+      buffer = XWINDOW (minibuf_window)->contents;
       if (BUFFERP (buffer))
 	/* Use set_window_buffer instead of Fset_window_buffer (see
 	   discussion of bug#11984, bug#12025, bug#12026).  */
@@ -174,17 +173,6 @@ without invoking the usual minibuffer commands.  */)
 
 static Lisp_Object read_minibuf_unwind (Lisp_Object);
 static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
-static Lisp_Object read_minibuf (Lisp_Object, Lisp_Object,
-                                 Lisp_Object,
-                                 int, Lisp_Object,
-                                 Lisp_Object, Lisp_Object,
-                                 int, int);
-static Lisp_Object read_minibuf_noninteractive (Lisp_Object, Lisp_Object,
-                                                Lisp_Object, Lisp_Object,
-                                                int, Lisp_Object,
-                                                Lisp_Object, Lisp_Object,
-                                                int, int);
-static Lisp_Object string_to_object (Lisp_Object, Lisp_Object);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
@@ -234,10 +222,10 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
 static Lisp_Object
 read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     Lisp_Object prompt, Lisp_Object backup_n,
-			     int expflag,
+			     bool expflag,
 			     Lisp_Object histvar, Lisp_Object histpos,
 			     Lisp_Object defalt,
-			     int allow_props, int inherit_input_method)
+			     bool allow_props, bool inherit_input_method)
 {
   ptrdiff_t size, len;
   char *line;
@@ -377,23 +365,23 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
    beginning of INITIAL if N <= 0.
 
    Normally return the result as a string (the text that was read),
-   but if EXPFLAG is nonzero, read it and return the object read.
+   but if EXPFLAG, read it and return the object read.
    If HISTVAR is given, save the value read on that history only if it doesn't
    match the front of that history list exactly.  The value is pushed onto
    the list as the string that was read.
 
    DEFALT specifies the default value for the sake of history commands.
 
-   If ALLOW_PROPS is nonzero, we do not throw away text properties.
+   If ALLOW_PROPS, do not throw away text properties.
 
-   if INHERIT_INPUT_METHOD is nonzero, the minibuffer inherits the
+   if INHERIT_INPUT_METHOD, the minibuffer inherits the
    current input method.  */
 
 static Lisp_Object
 read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
-	      int expflag,
+	      bool expflag,
 	      Lisp_Object histvar, Lisp_Object histpos, Lisp_Object defalt,
-	      int allow_props, int inherit_input_method)
+	      bool allow_props, bool inherit_input_method)
 {
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -483,6 +471,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
 
   /* Choose the minibuffer window and frame, and take action on them.  */
+
+  /* Prepare for restoring the current buffer since choose_minibuf_frame
+     calling Fset_frame_selected_window may change it (Bug#12766).  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
   choose_minibuf_frame ();
 
@@ -852,7 +844,7 @@ read_minibuf_unwind (Lisp_Object data)
   window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->buffer);
+  Fset_buffer (XWINDOW (window)->contents);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   minibuf_prompt = Fcar (minibuf_save_list);
@@ -992,34 +984,6 @@ and some related functions, which use zero-indexing for POSITION.  */)
 		      !NILP (inherit_input_method));
   UNGCPRO;
   return val;
-}
-
-DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
-       doc: /* Return a Lisp object read using the minibuffer, unevaluated.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  CHECK_STRING (prompt);
-  return read_minibuf (Vminibuffer_local_map, initial_contents,
-		       prompt, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0, 0);
-}
-
-DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
-       doc: /* Return value of Lisp expression read using the minibuffer.
-Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
-is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.
-Such arguments are used as in `read-from-minibuffer'.)  */)
-  (Lisp_Object prompt, Lisp_Object initial_contents)
-{
-  return Feval (read_minibuf (Vread_expression_map, initial_contents,
-			      prompt, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0),
-		Qnil);
 }
 
 /* Functions that use the minibuffer to read various things.  */
@@ -1406,12 +1370,7 @@ is used to further constrain the set of candidates.  */)
 				      eltstring, zero,
 				      make_number (compare),
 				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
+	      matchsize = EQ (tem, Qt) ? compare : eabs (XINT (tem)) - 1;
 
 	      if (completion_ignore_case)
 		{
@@ -1448,7 +1407,7 @@ is used to further constrain the set of candidates.  */)
 	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize)
 		/* Don't count the same string multiple times.  */
-		matchcount++;
+		matchcount += matchcount <= 1;
 	      bestmatchsize = matchsize;
 	      if (matchsize <= SCHARS (string)
 		  /* If completion-ignore-case is non-nil, don't
@@ -1704,7 +1663,7 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially,
   functions, which use one-indexing for POSITION.)  This feature is
   deprecated--it is best to pass nil for INITIAL-INPUT and supply the
   default value DEF instead.  The user can yank the default value into
-  the minibuffer easily using \\[next-history-element].
+  the minibuffer easily using \\<minibuffer-local-map>\\[next-history-element].
 
 HIST, if non-nil, specifies a history list and optionally the initial
   position in the list.  It can be a symbol, which is the history list
@@ -1812,18 +1771,22 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
+      Lisp_Object key = Qnil;
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
 	tem = HASH_KEY (h, i);
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
 	  if (!NILP (HASH_HASH (h, i))
+	      && (key = HASH_KEY (h, i),
+		  SYMBOLP (key) ? key = Fsymbol_name (key) : key,
+		  STRINGP (key))
 	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
-				       HASH_KEY (h, i), make_number (0) , Qnil,
+				       key, make_number (0) , Qnil,
 				       completion_ignore_case ? Qt : Qnil),
 		     Qt))
 	    {
-	      tem = HASH_KEY (h, i);
+	      tem = key;
 	      break;
 	    }
       if (!STRINGP (tem))
@@ -1863,11 +1826,11 @@ static Lisp_Object Qmetadata;
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
        doc: /* Perform completion on buffer names.
-If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
-`all-completions', otherwise invoke `test-completion'.
+STRING and PREDICATE have the same meanings as in `try-completion',
+`all-completions', and `test-completion'.
 
-The arguments STRING and PREDICATE are as in `try-completion',
-`all-completions', and `test-completion'.  */)
+If FLAG is nil, invoke `try-completion'; if it is t, invoke
+`all-completions'; otherwise invoke `test-completion'.  */)
   (Lisp_Object string, Lisp_Object predicate, Lisp_Object flag)
 {
   if (NILP (flag))
@@ -2146,15 +2109,9 @@ properties.  */);
   Vminibuffer_prompt_properties
     = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
 
-  DEFVAR_LISP ("read-expression-map", Vread_expression_map,
-	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
-  Vread_expression_map = Qnil;
-
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
-  defsubr (&Seval_minibuffer);
-  defsubr (&Sread_minibuffer);
   defsubr (&Sread_string);
   defsubr (&Sread_command);
   defsubr (&Sread_variable);

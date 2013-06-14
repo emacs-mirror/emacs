@@ -1,5 +1,5 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
-   Copyright (C) 1994, 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,7 +16,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
 #include <pwd.h>
 #include <malloc.h>
 
@@ -29,12 +28,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef sleep
 #undef sleep
 #endif
-void sleep (unsigned long seconds);
+unsigned sleep (unsigned seconds);
 char *getwd (char *dir);
 int getppid (void);
 char * getlogin (void);
 char * cuserid (char * s);
 unsigned getuid (void);
+unsigned geteuid (void);
 unsigned getegid (void);
 unsigned getgid (void);
 int setuid (unsigned uid);

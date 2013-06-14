@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -50,7 +50,6 @@
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
 
-(eval-when-compile (require 'spam-report))
 (eval-when-compile (require 'hashcash))
 
 ;; for nnimap-split-download-body-default
@@ -60,11 +59,10 @@
 (autoload 'query-dig "dig")
 
 ;; autoload spam-report
-(eval-and-compile
-  (autoload 'spam-report-gmane "spam-report")
-  (autoload 'spam-report-gmane-spam "spam-report")
-  (autoload 'spam-report-gmane-ham "spam-report")
-  (autoload 'spam-report-resend "spam-report"))
+(autoload 'spam-report-gmane "spam-report")
+(autoload 'spam-report-gmane-spam "spam-report")
+(autoload 'spam-report-gmane-ham "spam-report")
+(autoload 'spam-report-resend "spam-report")
 
 ;; autoload gnus-registry
 (autoload 'gnus-registry-group-count "gnus-registry")
@@ -94,14 +92,14 @@ Note that setting the `spam-use-move' or `spam-use-copy' backends on
 a group through group/topic parameters overrides this mechanism."
   :type '(choice
           (const
-           'default
-           :tag "Move spam out of all groups and ham out of spam groups.")
+           :tag "Move spam out of all groups and ham out of spam groups"
+           default)
           (const
-           'move-all
-           :tag "Move spam out of all groups and ham out of all groups.")
+           :tag "Move spam out of all groups and ham out of all groups"
+           move-all)
           (const
-           'move-none
-           :tag "Never move spam or ham out of any groups."))
+           :tag "Never move spam or ham out of any groups"
+           move-none))
   :group 'spam)
 
 (defcustom spam-directory (nnheader-concat gnus-directory "spam/")
@@ -2092,22 +2090,24 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (declare-function gnus-extract-address-components "gnus-util" (from))
 
 (eval-and-compile
-  (when (condition-case nil
-            (progn
-              (require 'bbdb)
-              (require 'bbdb-com))
-          (file-error
-           ;; `bbdb-records' should not be bound as an autoload function
-           ;; before loading bbdb because of `bbdb-hashtable-size'.
-           (defalias 'bbdb-buffer 'ignore)
-           (defalias 'bbdb-create-internal 'ignore)
-           (defalias 'bbdb-records 'ignore)
-           (defalias 'spam-BBDB-register-routine 'ignore)
-           (defalias 'spam-enter-ham-BBDB 'ignore)
-           (defalias 'spam-exists-in-BBDB-p 'ignore)
-           (defalias 'bbdb-gethash 'ignore)
-           nil))
+  (condition-case nil
+      (progn
+	(require 'bbdb)
+	(require 'bbdb-com))
+    (file-error
+     ;; `bbdb-records' should not be bound as an autoload function
+     ;; before loading bbdb because of `bbdb-hashtable-size'.
+     (defalias 'bbdb-buffer 'ignore)
+     (defalias 'bbdb-create-internal 'ignore)
+     (defalias 'bbdb-records 'ignore)
+     (defalias 'spam-BBDB-register-routine 'ignore)
+     (defalias 'spam-enter-ham-BBDB 'ignore)
+     (defalias 'spam-exists-in-BBDB-p 'ignore)
+     (defalias 'bbdb-gethash 'ignore)
+     nil)))
 
+(eval-and-compile
+  (when (featurep 'bbdb-com)
     ;; when the BBDB changes, we want to clear out our cache
     (defun spam-clear-cache-BBDB (&rest immaterial)
       (spam-clear-cache 'spam-use-BBDB))
@@ -2471,7 +2471,10 @@ With a non-nil REMOVE, remove the ADDRESSES."
 (defun spam-report-resend-register-ham-routine (articles)
   (spam-report-resend-register-routine articles t))
 
+(defvar spam-report-resend-to)
+
 (defun spam-report-resend-register-routine (articles &optional ham)
+  (require 'spam-report)
   (let* ((resend-to-gp
           (if ham
               (gnus-parameter-ham-resend-to gnus-newsgroup-name)

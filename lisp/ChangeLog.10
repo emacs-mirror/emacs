@@ -5492,7 +5492,7 @@
 
 2003-02-14  Dave Love  <fx@gnu.org>
 
-	* international/code-pages.el: Undo `Trailing whitepace deleted.'
+	* international/code-pages.el: Undo `Trailing whitespace deleted.'
 	damage.
 	(cp1125, mik): Nullify mime-charset.
 
@@ -19493,7 +19493,7 @@
 	* menu-bar.el (menu-bar-showhide-scroll-bar-menu):
 	Quote `window-system'.
 
-	* tmm.el (tmm-get-keymap): Honour :visible in `menu-item'.
+	* tmm.el (tmm-get-keymap): Honor :visible in `menu-item'.
 	Add Keywords header.  Update Commentary section.
 	Update copyright notice.
 
@@ -23534,7 +23534,7 @@ See ChangeLog.9 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2001-2012  Free Software Foundation, Inc.
+    Copyright (C) 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,7 @@
-;;; type-break.el --- encourage rests from typing at appropriate intervals
+;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
@@ -69,26 +70,11 @@
   :prefix "type-break"
   :group 'keyboard)
 
-;;;###autoload
-(defcustom type-break-mode nil
-  "Toggle typing break mode.
-See the docstring for the `type-break-mode' command for more information.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `type-break-mode'."
-  :set (lambda (_symbol value)
-	 (type-break-mode (if value 1 -1)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'type-break
-  :require 'type-break)
-
-;;;###autoload
 (defcustom type-break-interval (* 60 60)
   "Number of seconds between scheduled typing breaks."
   :type 'integer
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
   "Number of seconds of idle time considered to be an adequate typing rest.
 
@@ -98,10 +84,10 @@ rest from typing, then the next typing break is simply rescheduled for later.
 
 If a break is interrupted before this much time elapses, the user will be
 asked whether or not really to interrupt the break."
+  :set-after '(type-break-interval)
   :type 'integer
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-good-break-interval nil
   "Number of seconds considered to be an adequate explicit typing rest.
 
@@ -109,10 +95,9 @@ When this variable is non-nil, its value is considered to be a \"good\"
 length (in seconds) for a break initiated by the command `type-break',
 overriding `type-break-good-rest-interval'.  This provides querying of
 break interruptions when `type-break-good-rest-interval' is nil."
-  :type 'integer
+  :type '(choice (const nil) integer)
   :group 'type-break)
 
-;;;###autoload
 (defcustom type-break-keystroke-threshold
   ;; Assuming typing speed is 35wpm (on the average, do you really
   ;; type more than that in a minute?  I spend a lot of time reading mail
@@ -147,6 +132,7 @@ keystroke even though they really require multiple keys to generate them.
 
 The command `type-break-guesstimate-keystroke-threshold' can be used to
 guess a reasonably good pair of values for this variable."
+  :set-after '(type-break-interval)
   :type 'sexp
   :group 'type-break)
 
@@ -218,11 +204,11 @@ key is pressed."
   :type 'boolean
   :group 'type-break)
 
-(defcustom type-break-file-name (convert-standard-filename "~/.type-break")
+(defcustom type-break-file-name
+  (locate-user-emacs-file "type-break" ".type-break")
   "Name of file used to save state across sessions.
 If this is nil, no data will be saved across sessions."
-  :type 'file
-  :group 'type-break)
+  :type 'file)
 
 (defvar type-break-post-command-hook '(type-break-check)
   "Hook run indirectly by `post-command-hook' for typing break functions.
@@ -288,7 +274,7 @@ It will be either \"seconds\" or \"keystrokes\".")
 
 
 ;;;###autoload
-(defun type-break-mode (&optional prefix)
+(define-minor-mode type-break-mode
   "Enable or disable typing-break mode.
 This is a minor mode, but it is global to all buffers by default.
 
@@ -361,74 +347,61 @@ Finally, a file (named `type-break-file-name') is used to store information
 across Emacs sessions.  This provides recovery of the break status between
 sessions and after a crash.  Manual changes to the file may result in
 problems."
-  (interactive "P")
+  :lighter type-break-mode-line-format
+  :global t
+
   (type-break-check-post-command-hook)
 
-  (let ((already-enabled type-break-mode))
-    (setq type-break-mode (>= (prefix-numeric-value prefix) 0))
+  (cond
+   ;; ((and already-enabled type-break-mode)
+   ;;  (and (called-interactively-p 'interactive)
+   ;;       (message "Type Break mode is already enabled")))
+   (type-break-mode
+    (when type-break-file-name
+      (with-current-buffer (find-file-noselect type-break-file-name 'nowarn)
+        (setq buffer-save-without-query t)))
 
-    (cond
-     ((and already-enabled type-break-mode)
-      (and (called-interactively-p 'interactive)
-           (message "Type Break mode is already enabled")))
-     (type-break-mode
-      (when type-break-file-name
-	(with-current-buffer (find-file-noselect type-break-file-name 'nowarn)
-	  (setq buffer-save-without-query t)))
+    (or global-mode-string (setq global-mode-string '(""))) ;FIXME: Why?
+    (type-break-keystroke-reset)
+    (type-break-mode-line-countdown-or-break nil)
 
-      (or global-mode-string
-          (setq global-mode-string '("")))
-      (or (assq 'type-break-mode-line-message-mode
-		minor-mode-alist)
-	  (setq minor-mode-alist
-		(cons type-break-mode-line-format
-		      minor-mode-alist)))
-      (type-break-keystroke-reset)
-      (type-break-mode-line-countdown-or-break nil)
+    (setq type-break-time-last-break
+          (or (type-break-get-previous-time)
+              (current-time)))
 
-      (setq type-break-time-last-break
-            (or (type-break-get-previous-time)
-                (current-time)))
-
-      ;; schedule according to break time from session file
-      (type-break-schedule
-       (let (diff)
-         (if (and type-break-time-last-break
-                  (< (setq diff (type-break-time-difference
-                                 type-break-time-last-break
-                                 (current-time)))
-                     type-break-interval))
-             ;; use the file's value
-             (progn
-               (setq type-break-keystroke-count
-                     (type-break-get-previous-count))
-               ;; file the time, in case it was read from the auto-save file
-               (type-break-file-time type-break-interval-start)
-               (setq type-break-interval-start type-break-time-last-break)
-               (- type-break-interval diff))
-           ;; schedule from now
-           (setq type-break-interval-start (current-time))
-           (type-break-file-time type-break-interval-start)
-           type-break-interval))
-       type-break-interval-start
-       type-break-interval)
-
-      (and (called-interactively-p 'interactive)
-           (message "Type Break mode is enabled and set")))
-     (t
-      (type-break-keystroke-reset)
-      (type-break-mode-line-countdown-or-break nil)
-      (type-break-cancel-schedule)
-      (do-auto-save)
-      (when type-break-file-name
-	(with-current-buffer (find-file-noselect type-break-file-name
-						 'nowarn)
-	  (set-buffer-modified-p nil)
-	  (unlock-buffer)
-	  (kill-this-buffer)))
-      (and (called-interactively-p 'interactive)
-           (message "Type Break mode is disabled")))))
-  type-break-mode)
+    ;; Schedule according to break time from session file.
+    (type-break-schedule
+     (let (diff)
+       (if (and type-break-time-last-break
+                (< (setq diff (type-break-time-difference
+                               type-break-time-last-break
+                               (current-time)))
+                   type-break-interval))
+           ;; Use the file's value.
+           (progn
+             (setq type-break-keystroke-count
+                   (type-break-get-previous-count))
+             ;; File the time, in case it was read from the auto-save file.
+             (type-break-file-time type-break-interval-start)
+             (setq type-break-interval-start type-break-time-last-break)
+             (- type-break-interval diff))
+         ;; Schedule from now.
+         (setq type-break-interval-start (current-time))
+         (type-break-file-time type-break-interval-start)
+         type-break-interval))
+     type-break-interval-start
+     type-break-interval))
+   (t
+    (type-break-keystroke-reset)
+    (type-break-mode-line-countdown-or-break nil)
+    (type-break-cancel-schedule)
+    (do-auto-save)
+    (when type-break-file-name
+      (with-current-buffer (find-file-noselect type-break-file-name
+                                               'nowarn)
+        (set-buffer-modified-p nil)
+        (unlock-buffer)
+        (kill-this-buffer))))))
 
 (define-minor-mode type-break-mode-line-message-mode
   "Toggle warnings about typing breaks in the mode line.
@@ -445,7 +418,7 @@ Variables controlling the display of messages in the mode line include:
         `global-mode-string'
         `type-break-mode-line-break-message'
         `type-break-mode-line-warning'"
-  :global t)
+  :global t :group 'type-break)
 
 (define-minor-mode type-break-query-mode
   "Toggle typing break queries.
@@ -455,7 +428,7 @@ enable them if ARG is omitted or nil.
 
 The user may also enable or disable this mode simply by setting
 the variable of the same name."
-  :global t)
+  :global t :group 'type-break)
 
 
 ;;; session file functions
@@ -997,10 +970,11 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; "low" bits and format the time incorrectly.
 (defun type-break-time-sum (&rest tmlist)
   (let ((sum '(0 0 0)))
-    (dolist (tem tmlist sum)
+    (dolist (tem tmlist)
       (setq sum (time-add sum (if (integerp tem)
 				  (list (floor tem 65536) (mod tem 65536))
-				tem))))))
+				tem))))
+    sum))
 
 (defun type-break-time-stamp (&optional when)
   (if (fboundp 'format-time-string)

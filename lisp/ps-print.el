@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-2013 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -1042,7 +1042,7 @@ Please send all bug fixes and enhancements to
 ;; variables `ps-bold-faces', `ps-italic-faces' and `ps-underlined-faces'.
 ;; These variables contain lists of faces that ps-print should consider bold,
 ;; italic or underline; to set them, put code like the following into your
-;; .emacs file:
+;; init file:
 ;;
 ;;      (setq ps-bold-faces '(my-blue-face))
 ;;      (setq ps-italic-faces '(my-red-face))
@@ -1959,13 +1959,13 @@ Valid values are:
 
 Any other value is treated as nil.
 
-If you set `ps-selected-pages' (see it for documentation), first the pages are
-filtered by `ps-selected-pages' and then by `ps-even-or-odd-pages'.  For
-example, if we have:
+If you set option `ps-selected-pages', first the pages are
+filtered by option `ps-selected-pages' and then by `ps-even-or-odd-pages'.
+For example, if we have:
 
    (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
 
-Combining with `ps-even-or-odd-pages' and `ps-n-up-printing', we have:
+Combining with `ps-even-or-odd-pages' and option `ps-n-up-printing', we have:
 
 `ps-n-up-printing' = 1:
    `ps-even-or-odd-pages'	PAGES PRINTED
@@ -3017,7 +3017,6 @@ Any other value is ignored and black color will be used.
 This variable is used only when `ps-print-color-p' (which see) is neither nil
 nor black-white."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
-		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
 		 (const :tag "Frame Foreground" frame-parameter)
 		 (number :tag "Gray Scale" :value 0.0)
@@ -3025,7 +3024,8 @@ nor black-white."
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Foreground Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -3063,7 +3063,6 @@ nor black-white.
 
 See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
-		 :tag "Default Background Gray/Color"
 		 (const :tag "Session Background" t)
 		 (const :tag "Frame Background" frame-parameter)
 		 (number :tag "Gray Scale" :value 1.0)
@@ -3071,7 +3070,8 @@ See also `ps-use-face-background'."
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
 		       (number :tag "Red")
 		       (number :tag "Green")
-		       (number :tag "Blue")))
+		       (number :tag "Blue"))
+		 (other :tag "Default Background Gray/Color" nil))
   :version "20"
   :group 'ps-print-color)
 
@@ -3566,9 +3566,9 @@ Use the command `ps-despool' to send the spooled images to the printer."
 ;;;###autoload
 (defun ps-spool-buffer-with-faces ()
   "Generate and spool a PostScript image of the buffer.
-Like `ps-spool-buffer', but includes font, color, and underline information in
-the generated image.  This command works only if you are using a window system,
-so it has a way to determine color values.
+Like the command `ps-spool-buffer', but includes font, color, and underline
+information in the generated image.  This command works only if you are using
+a window system, so it has a way to determine color values.
 
 Use the command `ps-despool' to send the spooled images to the printer."
   (interactive)
@@ -5369,7 +5369,7 @@ Each element has the following form:
    (KIND XCOL YCOL XLIN YLIN REPEAT END XSTART YSTART)
 
 Where:
-KIND is a valid value of `ps-n-up-filling'.
+KIND is a valid value of the variable `ps-n-up-filling'.
 XCOL YCOL are the relative position for the next column.
 XLIN YLIN are the relative position for the beginning of next line.
 REPEAT is the number of repetitions for external loop.
@@ -6658,7 +6658,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "86bf8e46dac41afe73df5ab098038ab0")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "b39f881d3a029049994ef6aa3de93c89")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

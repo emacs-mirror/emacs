@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -212,12 +212,13 @@ static char * stroke_xpm[] = {
   :link '(emacs-commentary-link "strokes")
   :group 'mouse)
 
+(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter
+  "24.3")
+
 (defcustom strokes-lighter " Strokes"
   "Mode line identifier for Strokes mode."
   :type 'string
   :group 'strokes)
-
-(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter "24.3")
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.
@@ -259,7 +260,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :type 'integer
   :group 'strokes)
 
-(defcustom strokes-file (convert-standard-filename "~/.strokes")
+(defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)
@@ -933,14 +934,7 @@ and then safely save them for later use, send letters to friends
 extracting the strokes for editing use once again, so the editing
 cycle can continue.
 
-Strokes are easy to program and fun to use.  To start strokes going,
-you'll want to put the following line in your .emacs file as mentioned
-in the commentary to strokes.el.
-
-This will load strokes when and only when you start Emacs on a window
-system, with a mouse or other pointer device defined.
-
-To toggle strokes-mode, you just do
+To toggle strokes-mode, invoke the command
 
 > M-x strokes-mode
 

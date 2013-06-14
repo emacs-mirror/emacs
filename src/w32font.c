@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2012 Free Software Foundation, Inc.
+   Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,10 +18,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <windows.h>
+#include <stdio.h>
 #include <math.h>
 #include <ctype.h>
 #include <commdlg.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -1435,6 +1435,9 @@ w32font_coverage_ok (FONTSIGNATURE * coverage, BYTE charset)
   return 1;
 }
 
+#ifndef WINDOWSNT
+#define _strlwr strlwr
+#endif /* !WINDOWSNT */
 
 static int
 check_face_name (LOGFONT *font, char *full_name)
@@ -1964,7 +1967,7 @@ static void
 fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
 {
   Lisp_Object tmp, extra;
-  int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
+  int dpi = FRAME_RES_Y (f);
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (INTEGERP (tmp))
@@ -2464,7 +2467,7 @@ If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
   (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
-  FRAME_PTR f = check_x_frame (frame);
+  FRAME_PTR f = decode_window_system_frame (frame);
   CHOOSEFONT cf;
   LOGFONT lf;
   TEXTMETRIC tm;

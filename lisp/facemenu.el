@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994-1996, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -329,7 +329,7 @@ This command can also add FACE to the menu of faces,
 if `facemenu-listed-faces' says to do that."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
-		       (read-face-name "Use face"))
+		       (read-face-name "Use face" (face-at-point t)))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))
@@ -464,7 +464,8 @@ These special properties include `invisible', `intangible' and `read-only'."
 `(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
 `hsv' sorts by hue, saturation, value.
 `(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
-and excludes grayscale colors."
+and excludes grayscale colors.
+`luminance' sorts by relative luminance in the CIE XYZ color space."
   :type '(choice (const :tag "Unsorted" nil)
 		 (const :tag "Color Name" name)
 		 (const :tag "Red-Green-Blue" rgb)
@@ -474,7 +475,8 @@ and excludes grayscale colors."
 		 (const :tag "Hue-Saturation-Value" hsv)
 		 (cons :tag "Distance on HSV cylinder"
 		       (const :tag "Distance from Color" hsv-dist)
-		       (color :tag "Source Color Name")))
+		       (color :tag "Source Color Name"))
+		 (const :tag "Luminance" luminance))
   :group 'facemenu
   :version "24.1")
 
@@ -504,7 +506,21 @@ filter out the color from the output."
 	(+ (expt (- 180 (abs (- 180 (abs (- (nth 0 c-hsv) ; wrap hue
 					    (nth 0 o-hsv)))))) 2)
 	   (expt (- (nth 1 c-hsv) (nth 1 o-hsv)) 2)
-	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))))
+	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))
+   ((eq list-colors-sort 'luminance)
+    (let ((c-rgb (color-name-to-rgb color)))
+      (+ (* (nth 0 c-rgb) 0.21266729)
+	 (* (nth 1 c-rgb) 0.7151522)
+	 (* (nth 2 c-rgb) 0.0721750))))))
+
+(defvar list-colors-callback nil
+  "Value of CALLBACK arg passed to `list-colors-display'; internal use.")
+
+(defun list-colors-redisplay (_ignore-auto _noconfirm)
+  "Redisplay the colors using `list-colors-sort'.
+
+This is installed as a `revert-buffer-function' in the *Colors* buffer."
+  (list-colors-display nil (buffer-name) list-colors-callback))
 
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
@@ -512,6 +528,8 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
 colors that the current display can handle.  Customize
 `list-colors-sort' to change the order in which colors are shown.
+Type `g' or \\[revert-buffer] after customizing `list-colors-sort'
+to redisplay colors in the new order.
 
 If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
 
@@ -559,7 +577,9 @@ color.  The function should accept a single argument, the color name."
       (erase-buffer)
       (list-colors-print list callback)
       (set-buffer-modified-p nil)
-      (setq truncate-lines t)))
+      (setq truncate-lines t)
+      (setq-local list-colors-callback callback)
+      (setq revert-buffer-function 'list-colors-redisplay)))
   (when callback
     (pop-to-buffer buffer-name)
     (message "Click on a color to select it.")))

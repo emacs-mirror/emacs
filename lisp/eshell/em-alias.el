@@ -1,6 +1,6 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -90,8 +90,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'esh-util))
 (require 'eshell)
 
 ;;;###autoload
@@ -133,10 +131,10 @@ Each element of this alias is a list of the form:
 Where NAME is the textual name of the alias, and DEFINITION is the
 command string to replace that command with.
 
-Note: this list should not be modified in your '.emacs' file.  Rather,
-any desired alias definitions should be declared using the `alias'
-command, which will automatically write them to the file named by
-`eshell-aliases-file'.")
+Note: this list should not be modified in your init file.
+Rather, any desired alias definitions should be declared using
+the `alias' command, which will automatically write them to the
+file named by `eshell-aliases-file'.")
 
 (put 'eshell-command-aliases-list 'risky-local-variable t)
 

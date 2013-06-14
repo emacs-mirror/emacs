@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -278,6 +278,7 @@ default printer and then modify its output.")
       ses--default-printer
       ses--deferred-narrow ses--deferred-recalc
       ses--deferred-write ses--file-format
+      ses--named-cell-hashmap
       (ses--header-hscroll . -1) ; Flag for "initial recalc needed"
       ses--header-row ses--header-string ses--linewidth
       ses--numcols ses--numrows ses--symbolic-formulas
@@ -511,9 +512,22 @@ PROPERTY-NAME."
   `(aref ses--col-printers ,col))
 
 (defmacro ses-sym-rowcol (sym)
-  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).
-Result is nil if SYM is not a symbol that names a cell."
-  `(and (symbolp ,sym) (get ,sym 'ses-cell)))
+  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
+is nil if SYM is not a symbol that names a cell."
+  `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
+     (if (eq rc :ses-named)
+	 (gethash ,sym ses--named-cell-hashmap)
+       rc)))
+
+(defun ses-is-cell-sym-p (sym)
+  "Check whether SYM point at a cell of this spread sheet."
+  (let ((rowcol (get sym 'ses-cell)))
+    (and rowcol
+	 (if (eq rowcol :ses-named)
+	     (and ses--named-cell-hashmap (gethash sym ses--named-cell-hashmap))
+	   (and (< (car rowcol) ses--numrows)
+		(< (cdr rowcol) ses--numcols)
+		(eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym))))))
 
 (defmacro ses-cell (sym value formula printer references)
   "Load a cell SYM from the spreadsheet file.  Does not recompute VALUE from
@@ -682,6 +696,28 @@ for this spreadsheet."
   "Produce a symbol that names the cell (ROW,COL).  (0,0) => 'A1."
   (intern (concat (ses-column-letter col) (number-to-string (1+ row)))))
 
+(defun ses-decode-cell-symbol (str)
+  "Decode a symbol \"A1\" => (0,0). Returns `nil' if STR is not a
+  canonical cell name. Does not save match data."
+  (let (case-fold-search)
+    (and (string-match "\\`\\([A-Z]+\\)\\([0-9]+\\)\\'" str)
+	 (let* ((col-str (match-string-no-properties 1 str))
+	       (col 0)
+	       (col-offset 0)
+	       (col-base 1)
+	       (col-idx (1- (length col-str)))
+	       (row (1- (string-to-number (match-string-no-properties 2 str)))))
+	   (and (>= row 0)
+		(progn
+		  (while
+		      (progn
+			(setq col (+ col (* (- (aref col-str col-idx) ?A) col-base))
+			      col-base (* col-base 26)
+			      col-idx (1- col-idx))
+			(and (>= col-idx 0)
+			     (setq col (+ col col-base)))))
+		  (cons row col)))))))
+
 (defun ses-create-cell-variable-range (minrow maxrow mincol maxcol)
   "Create buffer-local variables for cells.  This is undoable."
   (push `(apply ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
@@ -704,7 +740,11 @@ row and column of the cell, with numbering starting from 0.
 Return nil in case of failure."
   (unless (local-variable-p sym)
     (make-local-variable  sym)
-    (put sym 'ses-cell (cons row col))))
+    (if (let (case-fold-search) (string-match "\\`[A-Z]+[0-9]+\\'" (symbol-name sym)))
+	(put sym 'ses-cell (cons row col))
+      (put sym 'ses-cell :ses-named)
+      (setq ses--named-cell-hashmap (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
+      (puthash sym (cons row col) ses--named-cell-hashmap))))
 
 ;; We do not delete the ses-cell properties for the cell-variables, in
 ;; case a formula that refers to this cell is in the kill-ring and is
@@ -2678,8 +2718,9 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
 ;; Cut and paste, import and export
 ;;----------------------------------------------------------------------------
 
-(defadvice copy-region-as-kill (around ses-copy-region-as-kill
-				activate preactivate)
+(defun ses--advice-copy-region-as-kill (crak-fun beg end &rest args)
+  ;; FIXME: Why doesn't it make sense to copy read-only or
+  ;; intangible attributes?  They're removed upon yank!
   "It doesn't make sense to copy read-only or intangible attributes into the
 kill ring.  It probably doesn't make sense to copy keymap properties.
 We'll assume copying front-sticky properties doesn't make sense, either.
@@ -2690,14 +2731,15 @@ hard to override how mouse-1 works."
     (let ((temp beg))
       (setq beg end
 	    end temp)))
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
-      ad-do-it ; Normal copy-region-as-kill.
+      (apply crak-fun beg end args) ; Normal copy-region-as-kill.
     (kill-new (ses-copy-region beg end))
     (if transient-mark-mode
 	(setq deactivate-mark t))
     nil))
+(advice-add 'copy-region-as-kill :around #'ses--advice-copy-region-as-kill)
 
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to
@@ -2761,7 +2803,7 @@ We clear the killed cells instead of deleting them."
     (ses-clear-cell row col))
   (ses-jump (car ses--curcell)))
 
-(defadvice yank (around ses-yank activate preactivate)
+(defun ses--advice-yank (yank-fun &optional arg &rest args)
   "In SES mode, the yanked text is inserted as cells.
 
 If the text contains 'ses attributes (meaning it went to the kill-ring from a
@@ -2779,9 +2821,9 @@ When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to
 explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
 as symbols."
-  (if (not (and (eq major-mode 'ses-mode)
+  (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))
-      ad-do-it ; Normal non-SES yank.
+      (apply yank-fun arg args) ; Normal non-SES yank.
     (ses-check-curcell 'end)
     (push-mark (point))
     (let ((text (current-kill (cond
@@ -2799,6 +2841,7 @@ as symbols."
 			arg)))
     (if (consp arg)
 	(exchange-point-and-mark))))
+(advice-add 'yank :around #'ses--advice-yank)
 
 (defun ses-yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -3211,27 +3254,36 @@ highlighted range in the spreadsheet."
 (defun ses-rename-cell (new-name &optional cell)
   "Rename current cell."
   (interactive "*SEnter new name: ")
-  (and  (local-variable-p new-name)
-	(ses-sym-rowcol new-name)
-	;; this test is needed because ses-cell property of deleted cells
-	;; is not deleted in case of subsequent undo
-	(memq new-name ses--renamed-cell-symb-list)
-	(error "Already a cell name"))
-  (and (boundp new-name)
-       (null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
-				  new-name)))
-       (error "Already a bound cell name"))
-  (let* ((sym (if (ses-cell-p cell)
+  (or
+   (and  (local-variable-p new-name)
+	 (ses-is-cell-sym-p new-name)
+	 (error "Already a cell name"))
+   (and (boundp new-name)
+	(null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
+				   new-name)))
+	(error "Already a bound cell name")))
+  (let* (curcell
+	 (sym (if (ses-cell-p cell)
 		  (ses-cell-symbol cell)
-		(setq cell nil)
+		(setq cell nil
+		      curcell t)
 		(ses-check-curcell)
 		ses--curcell))
 	 (rowcol (ses-sym-rowcol sym))
 	 (row (car rowcol))
-	 (col (cdr rowcol)))
-    (setq cell (or cell (ses-get-cell row col)))
-    (push `(ses-rename-cell ,(ses-cell-symbol cell) ,cell) buffer-undo-list)
-    (put new-name 'ses-cell rowcol)
+	 (col (cdr rowcol))
+	 new-rowcol old-name)
+    (setq cell (or cell (ses-get-cell row col))
+	  old-name (ses-cell-symbol cell)
+	  new-rowcol (ses-decode-cell-symbol (symbol-name new-name)))
+    (if new-rowcol
+	(if (equal new-rowcol rowcol)
+	  (put new-name 'ses-cell rowcol)
+	  (error "Not a valid name for this cell location"))
+      (setq ses--named-cell-hashmap (or ses--named-cell-hashmap (make-hash-table :test 'eq)))
+      (put new-name 'ses-cell :ses-named)
+      (puthash new-name rowcol ses--named-cell-hashmap))
+    (push `(ses-rename-cell ,old-name ,cell) buffer-undo-list)
     ;; replace name by new name in formula of cells refering to renamed cell
     (dolist (ref (ses-cell-references cell))
       (let* ((x (ses-sym-rowcol ref))
@@ -3251,9 +3303,8 @@ highlighted range in the spreadsheet."
     (push new-name ses--renamed-cell-symb-list)
     (set new-name (symbol-value sym))
     (aset cell 0 new-name)
-    (put sym 'ses-cell nil)
     (makunbound sym)
-    (setq sym new-name)
+    (and curcell (setq ses--curcell new-name))
     (let* ((pos (point))
 	   (inhibit-read-only t)
 	   (col (current-column))
@@ -3265,7 +3316,7 @@ highlighted range in the spreadsheet."
       (put-text-property pos end 'intangible new-name))
     ;; update mode line
     (setq mode-line-process (list " cell "
-				  (symbol-name sym)))
+				  (symbol-name new-name)))
     (force-mode-line-update)))
 
 ;;----------------------------------------------------------------------------
@@ -3538,10 +3589,9 @@ current column and continues until the next nonblank column."
 
 (defun ses-unload-function ()
   "Unload the Simple Emacs Spreadsheet."
-  (dolist (fun '(copy-region-as-kill yank))
-    (ad-remove-advice fun 'around (intern (concat "ses-" (symbol-name fun))))
-    (ad-update fun))
-  ;; continue standard unloading
+  (advice-remove 'yank #'ses--advice-yank)
+  (advice-remove 'copy-region-as-kill #'ses--advice-copy-region-as-kill)
+  ;; Continue standard unloading.
   nil)
 
 (provide 'ses)

@@ -3,8 +3,7 @@
 @settitle Emacs SMTP Library
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003-2012
-Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -15,8 +14,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -26,9 +24,9 @@ developing GNU and promoting software freedom.''
 @end direntry
 
 @titlepage
-@title{Emacs SMTP Library}
-@subtitle{An Emacs package for sending mail via SMTP}
-@author{Simon Josefsson, Alex Schroeder}
+@title Emacs SMTP Library
+@subtitle An Emacs package for sending mail via SMTP
+@author Simon Josefsson, Alex Schroeder
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -72,8 +70,8 @@ not necessarily involve SMTP, however.  Here is short overview of what
 is involved.
 
 @cindex MUA
-   The mail program --- also called a mail user agent (MUA) ---
-usually sends outgoing mail to a mail host.  When your computer is
+   The mail program---also called a mail user agent (MUA)---usually
+sends outgoing mail to a mail host.  When your computer is
 permanently connected to the internet, it might even be a mail host
 itself.  In this case, the MUA will pipe mail to the
 @file{/usr/lib/sendmail} application.  It will take care of your mail
@@ -101,7 +99,7 @@ spool, then.
 @cindex IMAP
    When your computer is not always connected to the internet, you
 must get the mail from the remote mail host using a protocol such as
-POP3 or IMAP.  POP3 essentially downloads all your mail from the mail
+POP3 or IMAP@.  POP3 essentially downloads all your mail from the mail
 host to your computer.  The mail is stored in some file on your
 computer, and again, all your MUA has to do is read mail from the
 spool.
@@ -219,7 +217,7 @@ The following example illustrates what you could put in
 @cindex user name
 Most SMTP servers require clients to authenticate themselves before
 they are allowed to send mail.  Authentication usually involves
-supplying a user name and password. 
+supplying a user name and password.
 
 If you have not configured anything, then the first time you try to
 send mail via a server, Emacs (version 24.1 and later) prompts you
@@ -260,7 +258,7 @@ file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 The process by which the SMTP library authenticates you to the server
 is known as ``Simple Authentication and Security Layer'' (SASL).
 There are various SASL mechanisms, and this library supports three of
-them: CRAM-MD5, PLAIN, and LOGIN.  It tries each of them, in that order,
+them: CRAM-MD5, PLAIN, and LOGIN@.  It tries each of them, in that order,
 until one succeeds.  The first uses a form of encryption to obscure
 your password, while the other two do not.
 
@@ -285,8 +283,8 @@ The variable @code{smtpmail-stream-type} controls what form of
 connection the SMTP library uses.  The default value is @code{nil},
 which means to use a plain connection, but try to switch to a STARTTLS
 encrypted connection if the server supports it.  Other possible values
-are: @code{starttls} - insist on STARTTLS; @code{ssl} - use TLS/SSL;
-and @code{plain} - no encryption.
+are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
+and @code{plain} for encryption.
 
 Use of any form of TLS/SSL requires support in Emacs.  You can either
 use the built-in support (in Emacs 24.1 and later), or the

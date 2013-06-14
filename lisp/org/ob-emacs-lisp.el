@@ -1,6 +1,6 @@
 ;;; ob-emacs-lisp.el --- org-babel functions for emacs-lisp code evaluation
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -41,12 +41,12 @@
          (result-params (cdr (assoc :result-params params)))
          (print-level nil) (print-length nil)
          (body (if (> (length vars) 0)
-		    (concat "(let ("
-			    (mapconcat
-			     (lambda (var)
-			       (format "%S" (print `(,(car var) ',(cdr var)))))
-			     vars "\n      ")
-			    ")\n" body "\n)")
+		   (concat "(let ("
+			   (mapconcat
+			    (lambda (var)
+			      (format "%S" (print `(,(car var) ',(cdr var)))))
+			    vars "\n      ")
+			   ")\n" body "\n)")
 		 (concat body "\n"))))
     (if (or (member "code" result-params)
 	    (member "pp" result-params))

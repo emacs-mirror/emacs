@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -124,7 +124,7 @@
 ;; Adding your own checks:
 ;;
 ;;   You can experiment with adding your own checks by setting the
-;; hooks `checkdoc-style-hooks' and `checkdoc-comment-style-hooks'.
+;; hooks `checkdoc-style-functions' and `checkdoc-comment-style-functions'.
 ;; Return a string which is the error you wish to report.  The cursor
 ;; position should be preserved.
 ;;
@@ -274,17 +274,21 @@ made in the style guide relating to order."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
 
-(defvar checkdoc-style-hooks nil
-  "Hooks called after the standard style check is completed.
-All hooks must return nil or a string representing the error found.
+(define-obsolete-variable-alias 'checkdoc-style-hooks
+  'checkdoc-style-functions "24.3")
+(defvar checkdoc-style-functions nil
+  "Hook run after the standard style check is completed.
+All functions must return nil or a string representing the error found.
 Useful for adding new user implemented commands.
 
 Each hook is called with two parameters, (DEFUNINFO ENDPOINT).
 DEFUNINFO is the return value of `checkdoc-defun-info'.  ENDPOINT is the
 location of end of the documentation string.")
 
-(defvar checkdoc-comment-style-hooks nil
-  "Hooks called after the standard comment style check is completed.
+(define-obsolete-variable-alias 'checkdoc-comment-style-hooks
+  'checkdoc-comment-style-functions "24.3")
+(defvar checkdoc-comment-style-functions nil
+  "Hook run after the standard comment style check is completed.
 Must return nil if no errors are found, or a string describing the
 problem discovered.  This is useful for adding additional checks.")
 
@@ -1843,7 +1847,7 @@ Replace with \"%s\"? " original replace)
      ;; and reliance on the Ispell program.
      (checkdoc-ispell-docstring-engine e)
      ;; User supplied checks
-     (save-excursion (checkdoc-run-hooks 'checkdoc-style-hooks fp e))
+     (save-excursion (checkdoc-run-hooks 'checkdoc-style-functions fp e))
      ;; Done!
      )))
 
@@ -2062,7 +2066,8 @@ If the offending word is in a piece of quoted text, then it is skipped."
 
 ;;; Ispell engine
 ;;
-(eval-when-compile (require 'ispell))
+(defvar ispell-process)
+(declare-function ispell-buffer-local-words "ispell" ())
 
 (defun checkdoc-ispell-init ()
   "Initialize Ispell process (default version) with Lisp words.
@@ -2070,19 +2075,14 @@ The words used are from `checkdoc-ispell-lisp-words'.  If `ispell'
 cannot be loaded, then set `checkdoc-spellcheck-documentation-flag' to
 nil."
   (require 'ispell)
-  (if (not (symbol-value 'ispell-process)) ;Silence byteCompiler
-      (condition-case nil
-	  (progn
-	    (ispell-buffer-local-words)
-	    ;; This code copied in part from ispell.el Emacs 19.34
-	    (let ((w checkdoc-ispell-lisp-words))
-	      (while w
-		(process-send-string
-		 ;;  Silence byte compiler
-		 (symbol-value 'ispell-process)
-		 (concat "@" (car w) "\n"))
-		(setq w (cdr w)))))
-	(error (setq checkdoc-spellcheck-documentation-flag nil)))))
+  (unless ispell-process
+    (condition-case nil
+	(progn
+	  (ispell-buffer-local-words)
+	  ;; This code copied in part from ispell.el Emacs 19.34
+	  (dolist (w checkdoc-ispell-lisp-words)
+	    (process-send-string ispell-process (concat "@" w "\n"))))
+      (error (setq checkdoc-spellcheck-documentation-flag nil)))))
 
 (defun checkdoc-ispell-docstring-engine (end)
   "Run the Ispell tools on the doc string between point and END.
@@ -2183,13 +2183,12 @@ News agents may remove it"
 
 ;;; Comment checking engine
 ;;
-(eval-when-compile
-  ;; We must load this to:
-  ;; a) get symbols for compile and
-  ;; b) determine if we have lm-history symbol which doesn't always exist
-  (require 'lisp-mnt))
-
 (defvar generate-autoload-cookie)
+
+(eval-when-compile (require 'lisp-mnt))	; expand silly defsubsts
+(declare-function lm-summary "lisp-mnt" (&optional file))
+(declare-function lm-section-start "lisp-mnt" (header &optional after))
+(declare-function lm-section-end "lisp-mnt" (header))
 
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
@@ -2353,7 +2352,7 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; Generic Full-file checks (should be comment related)
-	(checkdoc-run-hooks 'checkdoc-comment-style-hooks)
+	(checkdoc-run-hooks 'checkdoc-comment-style-functions)
 	err))
       ;; Done with full file comment checks
       err)))

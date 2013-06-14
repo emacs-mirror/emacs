@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
 @chapter Frames
@@ -70,7 +71,7 @@ selected frame.
 
 @defun terminal-live-p object
 This predicate returns a non-@code{nil} value if @var{object} is a
-terminal that is live (i.e.@: not deleted), and @code{nil} otherwise.
+terminal that is live (i.e., not deleted), and @code{nil} otherwise.
 For live terminals, the return value indicates what kind of frames are
 displayed on that terminal; the list of possible values is the same as
 for @code{framep} above.
@@ -170,7 +171,7 @@ following attributes:
 
 @itemize @bullet
 @item
-The name of the device used by the terminal (e.g.@: @samp{:0.0} or
+The name of the device used by the terminal (e.g., @samp{:0.0} or
 @file{/dev/tty}).
 
 @item
@@ -179,7 +180,7 @@ The terminal and keyboard coding systems used on the terminal.
 
 @item
 The kind of display associated with the terminal.  This is the symbol
-returned by the function @code{terminal-live-p} (i.e.@: @code{x},
+returned by the function @code{terminal-live-p} (i.e., @code{x},
 @code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
 
 @item
@@ -276,7 +277,7 @@ the other frame parameters from the alist @var{parameters}.
 
 Before creating the frame, this function ensures that Emacs is ``set
 up'' to display graphics.  For instance, if Emacs has not processed X
-resources (e.g.@: if it was started on a text terminal), it does so at
+resources (e.g., if it was started on a text terminal), it does so at
 this time.  In all other respects, this function behaves like
 @code{make-frame} (@pxref{Creating Frames}).
 @end deffn
@@ -419,16 +420,16 @@ the initial frame, specify the same parameters in
 @code{initial-frame-alist} with values that match the X resources.
 @end defopt
 
-If these parameters specify a separate @dfn{minibuffer-only frame} with
-@code{(minibuffer . nil)}, and you have not created one, Emacs creates
-one for you.
-
 @cindex minibuffer-only frame
+If these parameters include @code{(minibuffer . nil)}, that indicates
+that the initial frame should have no minibuffer.  In this case, Emacs
+creates a separate @dfn{minibuffer-only frame} as well.
+
 @defopt minibuffer-frame-alist
 This variable's value is an alist of parameter values used when
-creating an initial minibuffer-only frame.  This is the
-minibuffer-only frame that Emacs creates if @code{initial-frame-alist}
-specifies a frame with no minibuffer.
+creating an initial minibuffer-only frame (i.e., the minibuffer-only
+frame that Emacs creates if @code{initial-frame-alist} specifies a
+frame with no minibuffer).
 @end defopt
 
 @defopt default-frame-alist
@@ -437,12 +438,10 @@ Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
 
-Setting this variable does not affect existing frames.
+Setting this variable does not affect existing frames.  Furthermore,
+functions that display a buffer in a separate frame may override the
+default parameters by supplying their own parameters.
 @end defopt
-
-Functions that display a buffer in a separate frame can override the
-default parameters by supplying their own parameters.  @xref{Definition
-of special-display-frame-alist}.
 
 If you invoke Emacs with command-line options that specify frame
 appearance, those options take effect by adding elements to either
@@ -633,8 +632,9 @@ possible.  The value @code{fullboth} specifies that both the width and
 the height shall be set to the size of the screen.  The value
 @code{maximized} specifies that the frame shall be maximized.  The
 difference between @code{maximized} and @code{fullboth} is that the
-former still has window manager decorations while the latter really
-covers the whole screen.
+former can still be resized by dragging window manager decorations
+with the mouse, while the latter really covers the whole screen and
+does not allow resizing by mouse dragging.
 @end table
 
 @node Layout Parameters
@@ -1115,6 +1115,21 @@ The argument @var{pretend} has the same meaning as in
 @code{set-frame-height}.
 @end defun
 
+@c FIXME?  Belongs more in Emacs manual than here?
+@c But, e.g., fit-window-to-buffer is in this manual.
+@deffn Command fit-frame-to-buffer &optional frame max-height min-height
+This command adjusts the height of @var{frame} (the default is the
+selected frame) to fit its contents.  The optional arguments
+@var{max-height} and @var{min-height} specify the maximum and minimum
+new frame heights, respectively.
+
+@vindex fit-frame-to-buffer-bottom-margin
+The default minimum height corresponds to @code{window-min-height}.
+The default maximum height is the screen height below the current top
+position of the frame, minus any margin specified by the option
+@code{fit-frame-to-buffer-bottom-margin}.
+@end deffn
+
 @node Geometry
 @subsection Geometry
 
@@ -1273,7 +1288,7 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @cindex frames, scanning all
 
 @defun frame-list
-This function returns a list of all the live frames, i.e.@: those that
+This function returns a list of all the live frames, i.e., those that
 have not been deleted.  It is analogous to @code{buffer-list} for
 buffers, and includes frames on all terminals.  The list that you get
 is newly created, so modifying the list doesn't have any effect on the
@@ -1495,8 +1510,9 @@ This function returns the visibility status of frame @var{frame}.  The
 value is @code{t} if @var{frame} is visible, @code{nil} if it is
 invisible, and @code{icon} if it is iconified.
 
-On a text terminal, all frames are considered visible, whether they
-are currently being displayed or not.
+On a text terminal, all frames are considered ``visible'' for the
+purposes of this function, even though only one frame is displayed.
+@xref{Raising and Lowering}.
 @end defun
 
 @deffn Command iconify-frame &optional frame
@@ -1529,24 +1545,14 @@ track of such changes.  @xref{Misc Events}.
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
-  Most window systems use a desktop metaphor.  Part of this metaphor is
-the idea that windows are stacked in a notional third dimension
-perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest''.  Where two windows overlap, the one higher up covers
-the one underneath.  Even a window at the bottom of the stack can be
-seen if no other window overlaps it.
-
-@c @cindex raising a frame  redundant with raise-frame
+@cindex raising a frame
 @cindex lowering a frame
-  A window's place in this ordering is not fixed; in fact, users tend
-to change the order frequently.  @dfn{Raising} a window means moving
-it ``up'', to the top of the stack.  @dfn{Lowering} a window means
-moving it to the bottom of the stack.  This motion is in the notional
-third dimension only, and does not change the position of the window
-on the screen.
-
-  With Emacs, frames constitute the windows in the metaphor sketched
-above. You can raise and lower frames using these functions:
+  Most window systems use a desktop metaphor.  Part of this metaphor
+is the idea that system-level windows (e.g., Emacs frames) are
+stacked in a notional third dimension perpendicular to the screen
+surface.  Where two overlap, the one higher up covers the one
+underneath.  You can @dfn{raise} or @dfn{lower} a frame using the
+functions @code{raise-frame} and @code{lower-frame}.
 
 @deffn Command raise-frame &optional frame
 This function raises frame @var{frame} (default, the selected frame).
@@ -1562,9 +1568,21 @@ If this is non-@code{nil}, activation of the minibuffer raises the frame
 that the minibuffer window is in.
 @end defopt
 
-You can also enable auto-raise (raising automatically when a frame is
-selected) or auto-lower (lowering automatically when it is deselected)
-for any frame using frame parameters.  @xref{Management Parameters}.
+  On window systems, you can also enable auto-raising (on frame
+selection) or auto-lowering (on frame deselection) using frame
+parameters.  @xref{Management Parameters}.
+
+@cindex top frame
+  The concept of raising and lowering frames also applies to text
+terminal frames.  On each text terminal, only the top frame is
+displayed at any one time.
+
+@defun tty-top-frame terminal
+This function returns the top frame on @var{terminal}.  @var{terminal}
+should be a terminal object, a frame (meaning that frame's terminal),
+or @code{nil} (meaning the selected frame's terminal).  If it does not
+refer to a text terminal, the return value is @code{nil}.
+@end defun
 
 @node Frame Configurations
 @section Frame Configurations
@@ -1773,10 +1791,12 @@ where each pane is a list of form
 (@var{title} @var{item1} @var{item2}...)
 @end example
 
-Each item should normally be a cons cell @code{(@var{line} . @var{value})},
-where @var{line} is a string, and @var{value} is the value to return if
-that @var{line} is chosen.  An item can also be a string; this makes a
-non-selectable line in the menu.
+Each @var{item} should be a cons cell, @code{(@var{line} . @var{value})},
+where @var{line} is a string and @var{value} is the value to return if
+that @var{line} is chosen.  Unlike in a menu keymap, a @code{nil}
+@var{value} does not make the menu item non-selectable.
+Alternatively, each @var{item} can be a string rather than a cons
+cell; this makes a non-selectable menu item.
 
 If the user gets rid of the menu without making a valid choice, for
 instance by clicking the mouse away from a valid choice or by typing
@@ -2000,7 +2020,7 @@ drop.
 @vindex dnd-protocol-alist
   When an URL is dropped on Emacs it may be a file, but it may also be
 another URL type (ftp, http, etc.).  Emacs first checks
-@code{dnd-protocol-alist} to determine what to do with the URL.  If
+@code{dnd-protocol-alist} to determine what to do with the URL@.  If
 there is no match there and if @code{browse-url-browser-function} is
 an alist, Emacs looks for a match there.  If no match is found the
 text for the URL is inserted.  If you want to alter Emacs behavior,

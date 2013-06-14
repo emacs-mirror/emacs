@@ -1,6 +1,10 @@
 ;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB
 
-;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+
+; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -48,7 +52,7 @@
 
 ;;; Usage:
 
-;; Put the following in your ~/.emacs file.
+;; Put the following in your init file.
 
 ;; (require 'erc-capab)
 ;; (erc-capab-identify-mode 1)
@@ -64,7 +68,6 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'cl))
 
 ;;; Customization:
 

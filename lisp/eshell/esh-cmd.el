@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -484,20 +484,22 @@ implemented via rewriting, rather than as a function."
       (let ((body (car (last terms))))
 	(setcdr (last terms 2) nil)
 	`(let ((for-items
-                (append
-                 ,@(mapcar
-                    (lambda (elem)
-                      (if (listp elem)
-                          elem
-                        `(list ,elem)))
-                    (cdr (cddr terms)))))
-               (eshell-command-body '(nil))
+		(copy-tree
+		 (append
+		  ,@(mapcar
+		     (lambda (elem)
+		       (if (listp elem)
+			   elem
+			 `(list ,elem)))
+		     (cdr (cddr terms))))))
+	       (eshell-command-body '(nil))
                (eshell-test-body '(nil)))
-           (while (consp for-items)
-             (let ((,(intern (cadr terms)) (car for-items)))
-               (eshell-protect
-                ,(eshell-invokify-arg body t)))
-             (setq for-items (cdr for-items)))
+	   (while (car for-items)
+	     (let ((,(intern (cadr terms)) (car for-items)))
+	       (eshell-protect
+	   	,(eshell-invokify-arg body t)))
+	     (setcar for-items (cadr for-items))
+	     (setcdr for-items (cddr for-items)))
            (eshell-close-handles
             eshell-last-command-status
             (list 'quote eshell-last-command-result))))))
@@ -1216,11 +1218,12 @@ COMMAND may result in an alias being executed, or a plain command."
   (let* ((sym (intern-soft (concat "eshell/" name)))
 	 (file (symbol-file sym 'defun)))
     ;; If the function exists, but is defined in an eshell module
-    ;; that's not currently enabled, don't report it as found
+    ;; that's not currently enabled, don't report it as found.
     (if (and file
-	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
+	     (setq file (file-name-base file))
+	     (string-match "\\`\\(em\\|esh\\)-\\([[:alnum:]]+\\)\\'" file))
 	(let ((module-sym
-	       (intern (file-name-base (concat "eshell-" (match-string 2 file))))))
+	       (intern (concat "eshell-" (match-string 2 file)))))
 	  (if (and (functionp sym)
 		   (or (null module-sym)
 		       (eshell-using-module module-sym)

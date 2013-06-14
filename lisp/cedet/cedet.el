@@ -1,10 +1,10 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 1.0pre7
+;; Version: 2.0
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -35,19 +35,22 @@
 
 (declare-function inversion-find-version "inversion")
 
-(defconst cedet-version "1.0"
+(defconst cedet-version "2.0"
   "Current version of CEDET.")
 
 (defconst cedet-packages
   `(
-    ;;PACKAGE   MIN-VERSION
-    (cedet         ,cedet-version)
-    (eieio         "1.3")
-    (semantic      "2.0")
-    (srecode       "1.0")
-    (ede           "1.0")
-    (speedbar      "1.0"))
-  "Table of CEDET packages installed.")
+    ;;PACKAGE   MIN-VERSION      INSTALLDIR  DOCDIR
+    (cedet         ,cedet-version "common"   "common" 	        )
+    (eieio         "1.4"           nil       "eieio"       )
+    (semantic      "2.2"           nil       "semantic/doc")
+    (srecode       "1.2"           nil       "srecode"     )
+    (ede           "1.2"           nil       "ede"         )
+    (speedbar      "1.0.4"         nil       "speedbar"    )
+    (cogre         "1.2"           nil       "cogre"       )
+    (cedet-contrib "1.2"           "contrib" nil           )
+    )
+  "Table of CEDET packages to install.")
 
 (defvar cedet-menu-map ;(make-sparse-keymap "CEDET menu")
   (let ((map (make-sparse-keymap "CEDET menu")))
@@ -56,7 +59,7 @@
     (define-key map [navigate-menu]              'undefined)
     (define-key map [semantic-options-separator] 'undefined)
     (define-key map [global-semantic-highlight-func-mode]   'undefined)
-    (define-key map [global-semantic-highlight-func-mode]   'undefined)
+    (define-key map [global-semantic-stickyfunc-mode]   'undefined)
     (define-key map [global-semantic-decoration-mode]       'undefined)
     (define-key map [global-semantic-idle-completions-mode] 'undefined)
     (define-key map [global-semantic-idle-summary-mode]     'undefined)

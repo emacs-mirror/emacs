@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -37,7 +37,7 @@
 ;; When this minor mode is on, the faces of the current line are updated with
 ;; every insertion or deletion.
 ;;
-;; To turn Font Lock mode on automatically, add this to your ~/.emacs file:
+;; To turn Font Lock mode on automatically, add this to your init file:
 ;;
 ;;  (add-hook 'emacs-lisp-mode-hook 'turn-on-font-lock)
 ;;
@@ -340,8 +340,8 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 (defvar font-lock-preprocessor-face	'font-lock-preprocessor-face
   "Face name to use for preprocessor directives.")
 
-(defvar font-lock-reference-face	'font-lock-constant-face)
-(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face "20.3")
+(define-obsolete-variable-alias
+  'font-lock-reference-face 'font-lock-constant-face "20.3")
 
 ;; Fontification variables:
 
@@ -469,7 +469,7 @@ optimized.")
   "Alist of additional `font-lock-keywords' elements for major modes.
 
 Each element has the form (MODE KEYWORDS . HOW).
-`font-lock-set-defaults' adds the elements in the list KEYWORDS to
+Function `font-lock-set-defaults' adds the elements in the list KEYWORDS to
 `font-lock-keywords' when Font Lock is turned on in major mode MODE.
 
 If HOW is nil, KEYWORDS are added at the beginning of
@@ -484,7 +484,7 @@ This is normally set via `font-lock-add-keywords' and
 (defvar font-lock-removed-keywords-alist nil
   "Alist of `font-lock-keywords' elements to be removed for major modes.
 
-Each element has the form (MODE . KEYWORDS).  `font-lock-set-defaults'
+Each element has the form (MODE . KEYWORDS).  Function `font-lock-set-defaults'
 removes the elements in the list KEYWORDS from `font-lock-keywords'
 when Font Lock is turned on in major mode MODE.
 
@@ -2256,13 +2256,13 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
 		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		;; Variable declarations.
-		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\)\\|"
+		"\\(const\\(ant\\)?\\|custom\\|varalias\\|face\\|parameter\\|var\\(?:-local\\)?\\)\\|"
 		;; Structure declarations.
 		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
-		"\\)\\)\\>"
+		"\\)\\)\\_>"
 		;; Any whitespace and defined object.
 		"[ \t'\(]*"
-		"\\(setf[ \t]+\\sw+\\|\\sw+\\)?")
+		"\\(setf[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 font-lock-keyword-face)
        (9 (cond ((match-beginning 3) font-lock-function-name-face)
 		((match-beginning 6) font-lock-variable-name-face)
@@ -2290,7 +2290,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "condition-case" "condition-case-unless-debug"
 		 "track-mouse" "eval-after-load" "eval-and-compile"
 		 "eval-when-compile" "eval-when" "eval-next-after-load"
-		 "with-case-table" "with-category-table"
+		 "with-case-table" "with-category-table" "with-coding-priority"
 		 "with-current-buffer" "with-demoted-errors"
 		 "with-electric-help"
 		 "with-local-quit" "with-no-warnings"
@@ -2298,8 +2298,8 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-selected-window" "with-selected-frame"
 		 "with-silent-modifications" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
-		 "with-timeout" "with-timeout-handler" "with-wrapper-hook") t)
-	  "\\>")
+		 "with-timeout" "with-timeout-handler") t)
+	  "\\_>")
 	  .  1)
        ;; Control structures.  Common Lisp forms.
        (,(concat
@@ -2320,23 +2320,25 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "with-open-stream" "with-output-to-string"
 		 "with-package-iterator" "with-simple-restart"
 		 "with-slots" "with-standard-io-syntax") t)
-	  "\\>")
+	  "\\_>")
 	  . 1)
        ;; Exit/Feature symbols as constants.
-       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
-		 "[ \t']*\\(\\sw+\\)?")
+       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
+		 "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
 	(1 font-lock-keyword-face)
 	(2 font-lock-constant-face nil t))
        ;; Erroneous structures.
-       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
+       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|\\(?:user-\\)?error\\|signal\\)\\_>" 1 font-lock-warning-face)
        ;; Words inside \\[] tend to be for `substitute-command-keys'.
-       ("\\\\\\\\\\[\\(\\sw+\\)\\]" 1 font-lock-constant-face prepend)
+       ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
+        (1 font-lock-constant-face prepend))
        ;; Words inside `' tend to be symbol names.
-       ("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
+       ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+        (1 font-lock-constant-face prepend))
        ;; Constant values.
-       ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
+       ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
-       ("\\<\\&\\sw+\\>" . font-lock-type-face)
+       ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
        ;; ELisp regexp grouping constructs
        ((lambda (bound)
           (catch 'found
@@ -2353,11 +2355,11 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
                     (throw 'found t)))))))
         (1 'font-lock-regexp-grouping-backslash prepend)
         (3 'font-lock-regexp-grouping-construct prepend))
-;;;  This is too general -- rms.
-;;;  A user complained that he has functions whose names start with `do'
-;;;  and that they get the wrong color.
-;;;      ;; CL `with-' and `do-' constructs
-;;;      ("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+       ;; This is too general -- rms.
+       ;; A user complained that he has functions whose names start with `do'
+       ;; and that they get the wrong color.
+       ;; ;; CL `with-' and `do-' constructs
+       ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 

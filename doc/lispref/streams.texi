@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2013 Free Software
+@c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
 @chapter Reading and Printing Lisp Objects
@@ -694,7 +695,7 @@ The default is @code{t}, meaning display in the echo area.
 
 @defvar print-quoted
 If this is non-@code{nil}, that means to print quoted forms using
-abbreviated reader syntax, e.g.@: @code{(quote foo)} prints as
+abbreviated reader syntax, e.g., @code{(quote foo)} prints as
 @code{'foo}, and @code{(function foo)} as @code{#'foo}.
 @end defvar
 

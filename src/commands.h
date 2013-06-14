@@ -1,5 +1,5 @@
 /* Definitions needed by most editing commands.
-   Copyright (C) 1985, 1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,9 +35,6 @@ extern Lisp_Object control_x_map;
    end of the key sequence; Fread_char uses it to put off switch-frame
    events until a non-ASCII event is acceptable as input.  */
 extern Lisp_Object unread_switch_frame;
-
-/* Nonzero means ^G can quit instantly */
-extern int immediate_quit;
 
 /* Nonzero if input is coming from the keyboard */
 

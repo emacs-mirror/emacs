@@ -10,7 +10,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright @copyright{} 1996-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -21,8 +21,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -163,8 +162,8 @@ header should be.  If it does not, it should just return @code{nil}, and
 the normal methods for determining the To header will be used.
 
 Each list element should be a cons, where the @sc{car} should be the
-name of a header (e.g. @code{Cc}) and the @sc{cdr} should be the header
-value (e.g. @samp{larsi@@ifi.uio.no}).  All these headers will be
+name of a header (e.g., @code{Cc}) and the @sc{cdr} should be the header
+value (e.g., @samp{larsi@@ifi.uio.no}).  All these headers will be
 inserted into the head of the outgoing mail.
 
 
@@ -407,7 +406,7 @@ and very difficult to follow.
 
 @end itemize
 
-Gnus honors the MFT header in other's messages (i.e. while following
+Gnus honors the MFT header in other's messages (i.e., while following
 up to someone else's post) and also provides support for generating
 sensible MFT headers for outgoing messages as well.
 
@@ -477,7 +476,7 @@ You can use one or more of the above variables.  All their values are
 Now you are all set.  Just start composing a message as you normally do.
 And just send it; as always.  Just before the message is sent out, Gnus'
 MFT generation thingy kicks in and checks if the message already has a
-MFT field.  If there is one, it is left alone.  (Except if it's empty -
+MFT field.  If there is one, it is left alone.  (Except if it's empty;
 in that case, the field is removed and is not replaced with an
 automatically generated one.  This lets you disable MFT generation on a
 per-message basis.)  If there is none, then the list of recipient
@@ -1041,7 +1040,7 @@ modern cryptography, @acronym{S/MIME}, various PKCS standards, OpenSSL and
 so on.
 
 The @acronym{S/MIME} support in Message (and @acronym{MML}) require
-OpenSSL.  OpenSSL performs the actual @acronym{S/MIME} sign/encrypt
+OpenSSL@.  OpenSSL performs the actual @acronym{S/MIME} sign/encrypt
 operations.  OpenSSL can be found at @uref{http://www.openssl.org/}.
 OpenSSL 0.9.6 and later should work.  Version 0.9.5a cannot extract mail
 addresses from certificates, and it insert a spurious CR character into
@@ -1054,7 +1053,7 @@ To be able to send encrypted mail, a personal certificate is not
 required.  Message (@acronym{MML}) need a certificate for the person to whom you
 wish to communicate with though.  You're asked for this when you type
 @kbd{C-c C-m c s}.  Currently there are two ways to retrieve this
-certificate, from a local file or from DNS.  If you chose a local
+certificate, from a local file or from DNS@.  If you chose a local
 file, it need to contain a X.509 certificate in @acronym{PEM} format.
 If you chose DNS, you're asked for the domain name where the
 certificate is stored, the default is a good guess.  To my belief,
@@ -1091,7 +1090,7 @@ The @file{key+cert.pem} file should be pointed to from the
 @emph{Note!}  Your private key is now stored unencrypted in the file,
 so take care in handling it.  Storing encrypted keys on the disk are
 supported, and Gnus will ask you for a passphrase before invoking
-OpenSSL.  Read the OpenSSL documentation for how to achieve this.  If
+OpenSSL@.  Read the OpenSSL documentation for how to achieve this.  If
 you use unencrypted keys (e.g., if they are on a secure storage, or if
 you are on a secure single user machine) simply press @code{RET} at
 the passphrase prompt.
@@ -1154,9 +1153,9 @@ your PGP implementation, so we refer to it.
 If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
 discover that the receiver cannot understand what you send. One
-solution is to use PGP 2.x instead (e.g.@: if you use @code{pgg}, set
+solution is to use PGP 2.x instead (e.g., if you use @code{pgg}, set
 @code{pgg-default-scheme} to @code{pgp}). You could also convince your
-fellow PGP 2.x users to convert to GnuPG.
+fellow PGP 2.x users to convert to GnuPG@.
 @vindex mml-signencrypt-style-alist
 As a final workaround, you can make the sign and encryption work in
 two steps; separately sign, then encrypt a message.  If you would like
@@ -1676,7 +1675,7 @@ installation.
 Most versions of MH doesn't like being fed messages that contain the
 headers in this variable.  If this variable is non-@code{nil} (which is
 the default), these headers will be removed before mailing when sending
-messages via MH.  Set it to @code{nil} if your MH can handle these
+messages via MH@.  Set it to @code{nil} if your MH can handle these
 headers.
 
 @item message-qmail-inject-program
@@ -1690,7 +1689,7 @@ Arguments passed to qmail-inject programs.
 This should be a list of strings, one string for each argument.  It
 may also be a function.
 
-For e.g., if you wish to set the envelope sender address so that bounces
+E.g., if you wish to set the envelope sender address so that bounces
 go to the right place or to deal with listserv's usage of that address, you
 might set this variable to @code{'("-f" "you@@some.where")}.
 
@@ -1780,7 +1779,7 @@ This required header will be generated by Message.  A unique ID will be
 created based on the date, time, user name (for the local part) and the
 domain part.  For the domain part, message will look (in this order) at
 @code{message-user-fqdn}, @code{system-name}, @code{mail-host-address}
-and @code{message-user-mail-address} (i.e. @code{user-mail-address})
+and @code{message-user-mail-address} (i.e., @code{user-mail-address})
 until a probably valid fully qualified domain name (FQDN) was found.
 
 @item User-Agent
@@ -1818,17 +1817,14 @@ a string nor @code{nil}, use the user name only.  However, it is highly
 unlikely that you should need to fiddle with this variable at all.
 @end table
 
-@findex yow
 @cindex Mime-Version
 In addition, you can enter conses into this list.  The @sc{car} of this cons
 should be a symbol.  This symbol's name is the name of the header, and
 the @sc{cdr} can either be a string to be entered verbatim as the value of
 this header, or it can be a function to be called.  This function should
-return a string to be inserted.  For instance, if you want to insert
-@code{Mime-Version: 1.0}, you should enter @code{(Mime-Version . "1.0")}
-into the list.  If you want to insert a funny quote, you could enter
-something like @code{(X-Yow . yow)} into the list.  The function
-@code{yow} will then be called without any arguments.
+take no arguments, and return a string to be inserted.  For
+instance, if you want to insert @code{Mime-Version: 1.0}, you should
+enter @code{(Mime-Version . "1.0")} into the list.
 
 If the list contains a cons where the @sc{car} of the cons is
 @code{optional}, the @sc{cdr} of this cons will only be inserted if it is
@@ -2207,12 +2203,12 @@ This function won't add the header if the header is already present.
 
 @item message-send-mail-hook
 @vindex message-send-mail-hook
-Hook run before sending mail messages.  This hook is run very late --
+Hook run before sending mail messages.  This hook is run very late:
 just before the message is actually sent as mail.
 
 @item message-send-news-hook
 @vindex message-send-news-hook
-Hook run before sending news messages.  This hook is run very late --
+Hook run before sending news messages.  This hook is run very late:
 just before the message is actually sent as news.
 
 @item message-sent-hook
@@ -2345,7 +2341,7 @@ Valid values include:
 @table @code
 @item nil
 Generate the buffer name in the Message way (e.g., *mail*, *news*, *mail
-to whom*, *news on group*, etc.) and continue editing in the existing
+to whom*, *news on group*, etc.)@: and continue editing in the existing
 buffer of that name.  If there is no such buffer, it will be newly
 created.
 

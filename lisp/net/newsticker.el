@@ -1,6 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
@@ -87,7 +87,7 @@
 ;; If you are using Newsticker as part of GNU Emacs there is no need to
 ;; perform any installation steps in order to use Newsticker.  Otherwise
 ;; place Newsticker in a directory where Emacs can find it.  Add the
-;; following line to your Emacs startup file (`~/.emacs').
+;; following line to your init file:
 ;;   (add-to-list 'load-path "/path/to/newsticker/")
 ;;   (autoload 'newsticker-start "newsticker" "Emacs Newsticker" t)
 ;;   (autoload 'newsticker-show-news "newsticker" "Emacs Newsticker" t)

@@ -1,6 +1,6 @@
 ;;; tutorial.el --- tutorial for Emacs
 
-;; Copyright (C) 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -765,14 +765,13 @@ Run the Viper tutorial? "))
 		       (funcall 'viper-tutorial 0))
 	      (message "Tutorial aborted by user"))
 	  (message prompt1)))
-    (let* ((lang (if arg
-                     (let ((minibuffer-setup-hook minibuffer-setup-hook))
-                       (add-hook 'minibuffer-setup-hook
-                                 'minibuffer-completion-help)
-                       (read-language-name 'tutorial "Language: " "English"))
-                   (if (get-language-info current-language-environment 'tutorial)
-                       current-language-environment
-                     "English")))
+    (let* ((lang (cond
+                  (arg
+                   (minibuffer-with-setup-hook #'minibuffer-completion-help
+                     (read-language-name 'tutorial "Language: " "English")))
+                  ((get-language-info current-language-environment 'tutorial)
+                   current-language-environment)
+                  (t "English")))
            (filename (get-language-info lang 'tutorial))
            (tut-buf-name filename)
            (old-tut-buf (get-buffer tut-buf-name))
@@ -830,10 +829,9 @@ Run the Viper tutorial? "))
             (progn
               (insert-file-contents (tutorial--saved-file))
 	      (let ((enable-local-variables :safe)
-                    (enable-local-eval nil))
+                    (enable-local-eval nil)
+                    (enable-dir-local-variables nil)) ; bug#11127
 		(hack-local-variables))
-              ;; FIXME?  What we actually want is to ignore dir-locals (?).
-              (setq buffer-read-only nil) ; bug#11118
               (goto-char (point-min))
               (setq old-tut-point
                     (string-to-number
@@ -850,10 +848,9 @@ Run the Viper tutorial? "))
               (setq tutorial--point-before-chkeys (point-marker)))
           (insert-file-contents (expand-file-name filename tutorial-directory))
 	  (let ((enable-local-variables :safe)
-                (enable-local-eval nil))
+                (enable-local-eval nil)
+                (enable-dir-local-variables nil)) ; bug#11127
 	    (hack-local-variables))
-          ;; FIXME?  What we actually want is to ignore dir-locals (?).
-          (setq buffer-read-only nil) ; bug#11118
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
 

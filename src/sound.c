@@ -1,6 +1,6 @@
 /* sound.c -- sound support.
 
-Copyright (C) 1998-1999, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1998-1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"
@@ -314,7 +314,7 @@ sound_perror (const char *msg)
   int saved_errno = errno;
 
   turn_on_atimers (1);
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   {
     sigset_t unblocked;
     sigemptyset (&unblocked);
@@ -334,7 +334,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message ("%s", msg);
+  message1 (msg);
 }
 
 
@@ -732,7 +732,7 @@ static void
 vox_configure (struct sound_device *sd)
 {
   int val;
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   sigset_t blocked;
 #endif
 
@@ -742,7 +742,7 @@ vox_configure (struct sound_device *sd)
      interrupted by a signal.  Block the ones we know to cause
      troubles.  */
   turn_on_atimers (0);
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   sigemptyset (&blocked);
   sigaddset (&blocked, SIGIO);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
@@ -778,7 +778,7 @@ vox_configure (struct sound_device *sd)
     }
 
   turn_on_atimers (1);
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
   pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 }
@@ -794,7 +794,7 @@ vox_close (struct sound_device *sd)
       /* On GNU/Linux, it seems that the device driver doesn't like to
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
       sigset_t blocked;
       sigemptyset (&blocked);
       sigaddset (&blocked, SIGIO);
@@ -806,7 +806,7 @@ vox_close (struct sound_device *sd)
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
 
       turn_on_atimers (1);
-#ifdef SIGIO
+#ifdef USABLE_SIGIO
       pthread_sigmask (SIG_UNBLOCK, &blocked, 0);
 #endif
 

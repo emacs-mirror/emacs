@@ -1,7 +1,8 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2012 Free Software Foundation, Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2013 Free Software Foundation,
+## Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -41,8 +42,8 @@ LC_MESSAGES=
 LANG=
 export LANGUAGE LC_ALL LC_MESSAGES LANG
 
-## Don't restrict access to any files.
-umask 0
+## Remove unnecessary restrictions on file access.
+umask 022
 
 update=yes
 check=yes
@@ -82,9 +83,12 @@ while [ $# -gt 0 ]; do
     "--bzip2")
       default_gzip="bzip2"
     ;;
-    ## Same with lzma.
-    "--lzma")
-      default_gzip="lzma"
+    ## Same with xz.
+    "--xz")
+      default_gzip="xz"
+    ;;
+    "--no-compress")
+      default_gzip="cat"
     ;;
 
     "--snapshot")
@@ -99,7 +103,8 @@ while [ $# -gt 0 ]; do
       echo ""
       echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
-      echo "  --lzma	use lzma instead of gzip"
+      echo "  --xz		use xz instead of gzip"
+      echo "  --no-compress	don't compress"
       echo "  --newer=TIME	don't include files older than TIME"
       echo "  --no-check	don't check for bad file names etc."
       echo "  --no-update	don't recompile or do analogous things"
@@ -287,10 +292,10 @@ for subdir in site-lisp \
 	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
 	      info m4 msdos \
-	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
+	      nextstep nextstep/templates \
+	      nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
-	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
 	      nextstep/GNUstep/Emacs.base/Resources
@@ -304,7 +309,7 @@ done
 
 echo "Making links to \`lisp' and its subdirectories"
 files=`find lisp \( -name '*.el' -o -name '*.elc' -o -name 'ChangeLog*' \
- -o -name 'README*' \)`
+ -o -name 'README' \)`
 
 ### Don't distribute site-init.el, site-load.el, or default.el.
 for file in lisp/Makefile.in lisp/makefile.w32-in $files; do
@@ -381,9 +386,11 @@ echo "Making links to \`m4'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
- ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln emacs-x86.manifest emacs-x64.manifest emacs.rc ../${tempdir}/nt
+ ln config.nt emacsclient.rc emacs-src.tags ../${tempdir}/nt
+ ln nmake.defs gmake.defs subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln Makefile.in gnulib.mk ../${tempdir}/nt
+ ln msysconfig.sh mingw-cfg.site epaths.nt INSTALL.MSYS ../${tempdir}/nt
  ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc' and its subdirectories"
@@ -404,23 +411,23 @@ echo "Making links to \`msdos'"
 
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln ChangeLog README INSTALL ../${tempdir}/nextstep)
+ ln ChangeLog README INSTALL Makefile.in ../${tempdir}/nextstep)
+
+echo "Making links to \`nextstep/templates'"
+(cd nextstep/templates
+ ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in ../../${tempdir}/nextstep/templates)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
- ln Info.plist PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents)
+ ln PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources'"
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources
  ln Credits.html *.icns ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources)
 
-echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj'"
-(cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
- ln InfoPlist.strings ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj)
-
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
- ln Emacs.desktop Info-gnustep.plist README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
+ ln README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
 
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
@@ -434,6 +441,9 @@ echo "Making links to \`lwlib'"
 
 echo "Making links to \`admin' and its subdirectories"
 for f in `find admin -type f`; do
+  case $f in
+    admin/unidata/Makefile) continue ;;
+  esac
   ln $f $tempdir/$f
 done
 
@@ -508,7 +518,7 @@ if [ "${make_tar}" = yes ]; then
   fi
   case "${default_gzip}" in
     bzip2) gzip_extension=.bz2 ;;
-    lzma)  gzip_extension=.lzma ;;
+    xz)  gzip_extension=.xz ;;
     gzip)  gzip_extension=.gz ; default_gzip="gzip --best";;
        *)  gzip_extension= ;;
   esac

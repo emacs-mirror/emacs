@@ -1,6 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; IDLWAVE enables feature-rich development and interaction with IDL,
-;; the Interactive Data Language. It provides a compelling,
+;; the Interactive Data Language.  It provides a compelling,
 ;; full-featured alternative to the IDLDE development environment
 ;; bundled with IDL.
 
@@ -51,7 +51,7 @@
 ;;
 ;; Follow the instructions in the INSTALL file of the distribution.
 ;; In short, put this file on your load path and add the following
-;; lines to your .emacs file:
+;; lines to your init file:
 ;;
 ;; (autoload 'idlwave-mode "idlwave" "IDLWAVE Mode" t)
 ;; (autoload 'idlwave-shell "idlw-shell" "IDLWAVE Shell" t)
@@ -447,7 +447,7 @@ value of `!DIR'.  See also `idlwave-library-path'."
 
 ;; Configuration files
 (defcustom idlwave-config-directory
-  (convert-standard-filename "~/.idlwave")
+  (locate-user-emacs-file "idlwave" ".idlwave")
   "Directory for configuration files and user-library catalog."
   :group 'idlwave-routine-info
   :type 'file)
@@ -746,7 +746,7 @@ or even '?'.  '.' is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
 Changes to this in `idlwave-mode-hook' will have no effect.  Instead a user
-must set it directly using `setq' in the .emacs file before idlwave.el
+must set it directly using `setq' in the init file before idlwave.el
 is loaded."
   :group 'idlwave-abbrev-and-indent-action
   :type 'string)
@@ -1151,7 +1151,7 @@ As a user, you should not set this to t.")
        (common-blocks
 	'("\\<\\(common\\)\\>[ \t]*\\(\\sw+\\)?[ \t]*,?"
 	  (1 font-lock-keyword-face)	          ; "common"
-	  (2 font-lock-reference-face nil t)      ; block name
+	  (2 font-lock-constant-face nil t)      ; block name
 	  ("[ \t]*\\(\\sw+\\)[ ,]*"
 	   ;; Start with point after block name and comma
 	   (goto-char (match-end 0))  ; needed for XEmacs, could be nil
@@ -1169,20 +1169,20 @@ As a user, you should not set this to t.")
 
        ;; Labels
        (label
-	'("^[ \t]*\\([a-zA-Z]\\sw*:\\)" (1 font-lock-reference-face)))
+	'("^[ \t]*\\([a-zA-Z]\\sw*:\\)" (1 font-lock-constant-face)))
 
        ;; The goto statement and its label
        (goto
 	'("\\(goto\\)[ \t]*,[ \t]*\\([a-zA-Z]\\sw*\\)"
 	  (1 font-lock-keyword-face)
-	  (2 font-lock-reference-face)))
+	  (2 font-lock-constant-face)))
 
        ;; Tags in structure definitions.  Note that this definition
        ;; actually collides with labels, so we have to use the same
        ;; face.  It also matches named subscript ranges,
        ;; e.g. vec{bottom:top].  No good way around this.
        (structtag
-	'("\\<\\([a-zA-Z][a-zA-Z0-9_]*:\\)[^:]" (1 font-lock-reference-face)))
+	'("\\<\\([a-zA-Z][a-zA-Z0-9_]*:\\)[^:]" (1 font-lock-constant-face)))
 
        ;; Structure names
        (structname
@@ -1195,7 +1195,7 @@ As a user, you should not set this to t.")
        ;; fontification.  Slow, use it only in fancy fontification.
        (keyword-parameters
 	'("\\(,\\|[a-zA-Z0-9_](\\)[ \t]*\\(\\$[ \t]*\\(;.*\\)?\n\\([ \t]*\\(;.*\\)?\n\\)*[ \t]*\\)?\\(/[a-zA-Z_]\\sw*\\|[a-zA-Z_]\\sw*[ \t]*=\\)"
-	  (6 font-lock-reference-face)))
+	  (6 font-lock-constant-face)))
 
        ;; System variables start with a bang.
        (system-variables
@@ -5078,11 +5078,14 @@ Cache to disk for quick recovery."
   ;; The sequence here is important because earlier definitions shadow
   ;; later ones.  We assume that if things in the buffers are newer
   ;; then in the shell of the system, they are meant to be different.
-  (setcdr idlwave-last-system-routine-info-cons-cell
-	  (append idlwave-buffer-routines
-		  idlwave-compiled-routines
-		  idlwave-library-catalog-routines
-		  idlwave-user-catalog-routines))
+  (let ((temp (append idlwave-buffer-routines
+		      idlwave-compiled-routines
+		      idlwave-library-catalog-routines
+		      idlwave-user-catalog-routines)))
+    ;; Not actually used for anything?
+    (if idlwave-last-system-routine-info-cons-cell
+	(setcdr idlwave-last-system-routine-info-cons-cell temp)
+      (setq idlwave-last-system-routine-info-cons-cell (cons temp nil))))
   (setq idlwave-class-alist nil)
 
   ;; Give a message with information about the number of routines we have.
@@ -5481,30 +5484,21 @@ directories and save the routine info.
     (message "Creating user catalog file...")
     (kill-buffer "*idlwave-scan.pro*")
     (kill-buffer (get-buffer-create "*IDLWAVE Widget*"))
-    (let ((font-lock-maximum-size 0)
-	  (auto-mode-alist nil))
-      (find-file idlwave-user-catalog-file))
-    (if (and (boundp 'font-lock-mode)
-	     font-lock-mode)
-	(font-lock-mode 0))
-    (erase-buffer)
-    (insert ";; IDLWAVE user catalog file\n")
-    (insert (format ";; Created %s\n\n" (current-time-string)))
+    (with-temp-buffer
+      (insert ";; IDLWAVE user catalog file\n")
+      (insert (format ";; Created %s\n\n" (current-time-string)))
 
-    ;; Define the routine info list
-    (insert "\n(setq idlwave-user-catalog-routines\n    '(")
-    (let ((standard-output (current-buffer)))
-      (mapc (lambda (x)
-	      (insert "\n    ")
-	      (prin1 x)
-	      (goto-char (point-max)))
-	    idlwave-user-catalog-routines))
-    (insert (format "))\n\n;;; %s ends here\n"
-		    (file-name-nondirectory idlwave-user-catalog-file)))
-    (goto-char (point-min))
-    ;; Save the buffer
-    (save-buffer 0)
-    (kill-buffer (current-buffer)))
+      ;; Define the routine info list
+      (insert "\n(setq idlwave-user-catalog-routines\n    '(")
+      (let ((standard-output (current-buffer)))
+	(mapc (lambda (x)
+		(insert "\n    ")
+		(prin1 x)
+		(goto-char (point-max)))
+	      idlwave-user-catalog-routines))
+      (insert (format "))\n\n;;; %s ends here\n"
+		      (file-name-nondirectory idlwave-user-catalog-file)))
+      (write-region nil nil idlwave-user-catalog-file)))
   (message "Creating user catalog file...done")
   (message "Info for %d routines saved in %s"
 	   (length idlwave-user-catalog-routines)
@@ -5522,31 +5516,23 @@ directories and save the routine info.
 (defun idlwave-write-paths ()
   (interactive)
   (when (and idlwave-path-alist idlwave-system-directory)
-    (let ((font-lock-maximum-size 0)
-	  (auto-mode-alist nil))
-      (find-file idlwave-path-file))
-    (if (and (boundp 'font-lock-mode)
-	     font-lock-mode)
-	(font-lock-mode 0))
-    (erase-buffer)
-    (insert ";; IDLWAVE paths\n")
-    (insert (format ";; Created %s\n\n" (current-time-string)))
+    (with-temp-buffer
+      (insert ";; IDLWAVE paths\n")
+      (insert (format ";; Created %s\n\n" (current-time-string)))
     ;; Define the variable which knows the value of "!DIR"
-    (insert (format "\n(setq idlwave-system-directory \"%s\")\n"
-		    idlwave-system-directory))
+      (insert (format "\n(setq idlwave-system-directory \"%s\")\n"
+		      idlwave-system-directory))
 
-    ;; Define the variable which contains a list of all scanned directories
-    (insert "\n(setq idlwave-path-alist\n    '(")
-    (let ((standard-output (current-buffer)))
-      (mapc (lambda (x)
-	      (insert "\n      ")
-	      (prin1 x)
-	      (goto-char (point-max)))
-	    idlwave-path-alist))
-    (insert "))\n")
-    (save-buffer 0)
-    (kill-buffer (current-buffer))))
-
+      ;; Define the variable which contains a list of all scanned directories
+      (insert "\n(setq idlwave-path-alist\n    '(")
+      (let ((standard-output (current-buffer)))
+	(mapc (lambda (x)
+		(insert "\n      ")
+		(prin1 x)
+		(goto-char (point-max)))
+	      idlwave-path-alist))
+      (insert "))\n")
+      (write-region nil nil idlwave-path-file))))
 
 (defun idlwave-expand-path (path &optional default-dir)
   ;; Expand parts of path starting with '+' recursively into directory list.

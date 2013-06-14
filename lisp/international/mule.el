@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -409,13 +409,13 @@ PLIST (property list) may contain any type of information a user
 
 (defun charset-id (charset)
   "Always return 0.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   0)
-(make-obsolete 'charset-id "do not use it." "23.1")
 
 (defmacro charset-bytes (charset)
   "Always return 0.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   0)
-(make-obsolete 'charset-bytes "do not use it." "23.1")
 
 (defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
@@ -464,8 +464,8 @@ Return -1 if charset isn't an ISO 2022 one."
 
 (defun charset-list ()
   "Return list of all charsets ever defined."
+  (declare (obsolete charset-list "23.1"))
   charset-list)
-(make-obsolete 'charset-list "use variable `charset-list'." "23.1")
 
 
 ;;; CHARACTER
@@ -473,8 +473,8 @@ Return -1 if charset isn't an ISO 2022 one."
 
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
+  (declare (obsolete nil "23.1"))
   nil)
-(make-obsolete 'generic-char-p "generic characters no longer exist." "23.1")
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -891,7 +891,7 @@ or one is an alias of the other."
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 (defun add-to-coding-system-list (coding-system)
-  "Add CODING-SYSTEM to `coding-system-list' while keeping it sorted."
+  "Add CODING-SYSTEM to variable `coding-system-list' while keeping it sorted."
   (if (or (null coding-system-list)
 	  (coding-system-lessp coding-system (car coding-system-list)))
       (setq coding-system-list (cons coding-system coding-system-list))
@@ -1012,6 +1012,7 @@ Value is a list of transformed arguments."
 					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
 This function is provided for backward compatibility."
+  (declare (obsolete define-coding-system "23.1"))
   ;; For compatibility with XEmacs, we check the type of TYPE.  If it
   ;; is a symbol, perhaps, this function is called with XEmacs-style
   ;; arguments.  Here, try to transform that kind of arguments to
@@ -1104,8 +1105,6 @@ This function is provided for backward compatibility."
 
   (apply 'define-coding-system coding-system doc-string properties))
 
-(make-obsolete 'make-coding-system 'define-coding-system "23.1")
-
 (defun merge-coding-systems (first second)
   "Fill in any unspecified aspects of coding system FIRST from SECOND.
 Return the resulting coding system."
@@ -1133,17 +1132,20 @@ FORM is a form to evaluate to define the coding-system."
       (put (intern name) 'coding-system-define-form form)
       (setq coding-system-alist (cons (list name) coding-system-alist)))))
 
-;; This variable is set in these three cases:
+;; This variable is set in these two cases:
 ;;   (1) A file is read by a coding system specified explicitly.
-;;       after-insert-file-set-coding sets the car of this value to
-;;       coding-system-for-read, and sets the cdr to nil.
-;;   (2) A buffer is saved.
-;;       After writing, basic-save-buffer-1 sets the car of this value
-;;       to last-coding-system-used.
-;;   (3) set-buffer-file-coding-system is called.
+;;       `after-insert-file-set-coding' sets the car of this value to
+;;       `coding-system-for-read', and sets the cdr to nil.
+;;   (2) `set-buffer-file-coding-system' is called.
 ;;       The cdr of this value is set to the specified coding system.
-;; This variable is used for decoding in revert-buffer and encoding in
-;; select-safe-coding-system.
+;; This variable is used for decoding in `revert-buffer' and encoding
+;; in `select-safe-coding-system'.
+;;
+;; When saving a buffer, if `buffer-file-coding-system-explicit' is
+;; already non-nil, `basic-save-buffer-1' sets its CAR to the value of
+;; `last-coding-system-used'.  (It used to set it unconditionally, but
+;; that seems unnecessary; see Bug#4533.)
+
 (defvar buffer-file-coding-system-explicit nil
   "The file coding system explicitly specified for the current buffer.
 The value is a cons of coding systems for reading (decoding) and
@@ -1356,19 +1358,25 @@ graphical terminals."
 		(t
 		 (error "Unsupported coding system for keyboard: %s"
 			coding-system)))
-	  (when accept-8-bit
-	    (or saved-meta-mode
-		(set-terminal-parameter terminal
-					'keyboard-coding-saved-meta-mode
-					(cons (nth 2 (current-input-mode))
-					      nil)))
-	    (set-input-meta-mode 8))
+	  (if accept-8-bit
+	      (progn
+		(or saved-meta-mode
+		    (set-terminal-parameter terminal
+					    'keyboard-coding-saved-meta-mode
+					    (cons (nth 2 (current-input-mode))
+						  nil)))
+		(set-input-meta-mode 8 terminal))
+	    (when saved-meta-mode
+	      (set-input-meta-mode (car saved-meta-mode) terminal)
+	      (set-terminal-parameter terminal
+				      'keyboard-coding-saved-meta-mode
+				      nil)))
 	  ;; Avoid end-of-line conversion.
 	  (setq coding-system
 		(coding-system-change-eol-conversion coding-system 'unix)))
 
       (when saved-meta-mode
-	(set-input-meta-mode (car saved-meta-mode))
+	(set-input-meta-mode (car saved-meta-mode) terminal)
 	(set-terminal-parameter terminal
 				'keyboard-coding-saved-meta-mode
 				nil))))
@@ -1449,9 +1457,9 @@ This setting is effective for the next communication only."
 ARG is a list of coding categories ordered by priority.
 
 This function is provided for backward compatibility."
+  (declare (obsolete set-coding-system-priority "23.1"))
   (apply 'set-coding-system-priority
 	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
-(make-obsolete 'set-coding-priority 'set-coding-system-priority "23.1")
 
 ;;; X selections
 
@@ -1836,8 +1844,11 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-              (display-warning 'mule "`unibyte: t' is obsolete; \
-use \"coding: 'raw-text\" instead." :warning)
+              (display-warning 'mule
+                               (format "\"unibyte: t\" (in %s) is obsolete; \
+use \"coding: 'raw-text\" instead."
+                                       (file-relative-name filename))
+                               :warning)
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward
@@ -2355,9 +2366,6 @@ Analogous to `define-translation-table', but updates
 (put 'ignore-relative-composition 'char-table-extra-slots 0)
 (setq ignore-relative-composition
       (make-char-table 'ignore-relative-composition))
-
-(make-obsolete 'set-char-table-default
-	       "generic characters no longer exist." "23.1")
 
 ;;; Built-in auto-coding-functions:
 

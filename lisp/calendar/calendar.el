@@ -1,6 +1,7 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988-1995, 1997, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -511,7 +512,7 @@ Must be at least one less than `calendar-column-width'."
   :version "23.1")
 
 (defcustom calendar-intermonth-header nil
-  "Header text display in the space to the left of each calendar month.
+  "Header text to display in the space to the left of each calendar month.
 See `calendar-intermonth-text'."
   :group 'calendar
   :initialize 'custom-initialize-default
@@ -593,7 +594,7 @@ You can customize `diary-date-forms' to your preferred format.
 Three default styles are provided: `diary-american-date-forms',
 `diary-european-date-forms', and `diary-iso-date-forms'.
 You can choose between these by setting `calendar-date-style' in your
-.emacs file, or by using `calendar-set-date-style' when in the calendar.
+init file, or by using `calendar-set-date-style' when in the calendar.
 
 A diary entry can be preceded by the character `diary-nonmarking-symbol'
 \(ordinarily `&') to make that entry nonmarking--that is, it will not be
@@ -921,6 +922,64 @@ styles."
                                    calendar-american-date-display-form)
   :group 'calendar)
 
+(defcustom calendar-american-month-header
+  '(propertize (format "%s %d" (calendar-month-name month) year)
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the American date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-european-month-header
+  '(propertize (format "%s %d" (calendar-month-name month) year)
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the European date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-iso-month-header
+  '(propertize (format "%d %s" year (calendar-month-name month))
+               'font-lock-face 'font-lock-function-name-face)
+  "Default format for calendar month headings with the ISO date style.
+Normally you should not customize this, but `calender-month-header'."
+  :group 'calendar
+  :risky t
+  :type 'sexp
+  :version "24.3")
+
+(defcustom calendar-month-header
+  (cond ((eq calendar-date-style 'iso)
+         calendar-iso-month-header)
+        ((eq calendar-date-style 'european)
+         calendar-european-month-header)
+        (t calendar-american-month-header))
+  "Expression to evaluate to return the calendar month headings.
+When this expression is evaluated, the variables MONTH and YEAR are
+integers appropriate to the relevant month.  The result is padded
+to the width of `calendar-month-digit-width'.
+
+For examples of three common styles, see `calendar-american-month-header',
+`calendar-european-month-header', and `calendar-iso-month-header'.
+
+Changing this variable without using customize has no effect on
+pre-existing calendar windows."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :set-after '(calendar-date-style calendar-american-month-header
+                                   calendar-european-month-header
+                                   calendar-iso-month-header)
+  :type 'sexp
+  :version "24.3")
+
 (defun calendar-set-date-style (style)
   "Set the style of calendar and diary dates to STYLE (a symbol).
 The valid styles are described in the documentation of `calendar-date-style'."
@@ -934,23 +993,24 @@ The valid styles are described in the documentation of `calendar-date-style'."
         calendar-date-display-form
         (symbol-value (intern-soft
                        (format "calendar-%s-date-display-form" style)))
+        calendar-month-header
+        (symbol-value (intern-soft (format "calendar-%s-month-header" style)))
         diary-date-forms
         (symbol-value (intern-soft (format "diary-%s-date-forms" style))))
+  (calendar-redraw)
   (calendar-update-mode-line))
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'european))
 
-(make-obsolete 'european-calendar 'calendar-set-date-style "23.1")
-
 (defun american-calendar ()
   "Set the interpretation and display of dates to the American style."
+  (declare (obsolete calendar-set-date-style "23.1"))
   (interactive)
   (calendar-set-date-style 'american))
-
-(make-obsolete 'american-calendar 'calendar-set-date-style "23.1")
 
 (define-obsolete-variable-alias 'holidays-in-diary-buffer
   'diary-show-holidays-flag "23.1")
@@ -1087,13 +1147,12 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Execute a for loop.
 Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
 inclusive.  The standard macro `dotimes' is preferable in most cases."
-  (declare (debug (symbolp "from" form "to" form "do" body))
+  (declare (obsolete "use `dotimes' or `while' instead." "23.1")
+	   (debug (symbolp "from" form "to" form "do" body))
            (indent defun))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
-
-(make-obsolete 'calendar-for-loop "use `dotimes' or `while' instead." "23.1")
 
 (defmacro calendar-sum (index initial condition expression)
   "For INDEX = INITIAL, +1, ... (as long as CONDITION holds), sum EXPRESSION."
@@ -1276,7 +1335,7 @@ Runs the following hooks:
    generating a calendar, if today's date is visible or not, respectively
 `calendar-initial-window-hook' - after first creating a calendar
 
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "P")
   ;; Avoid loading cal-x unless it will be used.
   (if (and (memq calendar-setup '(one-frame two-frames calendar-only))
@@ -1463,9 +1522,8 @@ line."
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
-    (calendar-string-spread
-     (list (format "%s %d" (calendar-month-name month) year))
-     ?\s calendar-month-digit-width))
+    (calendar-string-spread (list calendar-month-header)
+                            ?\s calendar-month-digit-width))
    (calendar-ensure-newline)
    (calendar-insert-at-column indent calendar-intermonth-header trunc)
    ;; Use the first two characters of each day to head the columns.
@@ -1504,11 +1562,13 @@ line."
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
-  (if (get-buffer calendar-buffer)
-      (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date)))
-          (calendar-generate-window displayed-month displayed-year)
-          (calendar-cursor-to-visible-date cursor-date)))))
+  (when (get-buffer calendar-buffer)
+    (with-current-buffer calendar-buffer
+      (let ((cursor-date (calendar-cursor-to-nearest-date)))
+        (calendar-generate-window displayed-month displayed-year)
+        (calendar-cursor-to-visible-date cursor-date))
+      (when (window-live-p (get-buffer-window))
+        (set-window-point (get-buffer-window) (point))))))
 
 (defvar calendar-mode-map
   (let ((map (make-keymap)))
@@ -1575,6 +1635,7 @@ line."
     (define-key map "S"   'calendar-sunrise-sunset)
     (define-key map "M"   'calendar-lunar-phases)
     (define-key map " "   'scroll-other-window)
+    (define-key map [?\S-\ ] 'scroll-other-window-down)
     (define-key map "\d"  'scroll-other-window-down)
     (define-key map "\C-c\C-l" 'calendar-redraw)
     (define-key map "."   'calendar-goto-today)
@@ -1626,8 +1687,9 @@ line."
     (define-key map "td" 'cal-tex-cursor-day)
     (define-key map "tw1" 'cal-tex-cursor-week)
     (define-key map "tw2" 'cal-tex-cursor-week2)
-    (define-key map "tw3" 'cal-tex-cursor-week-iso)
-    (define-key map "tw4" 'cal-tex-cursor-week-monday)
+    (define-key map "tw3" 'cal-tex-cursor-week-iso) ; FIXME twi ?
+    (define-key map "tw4" 'cal-tex-cursor-week-monday) ; twm ?
+    (define-key map "twW" 'cal-tex-cursor-week2-summary)
     (define-key map "tfd" 'cal-tex-cursor-filofax-daily)
     (define-key map "tfw" 'cal-tex-cursor-filofax-2week)
     (define-key map "tfW" 'cal-tex-cursor-filofax-week)
@@ -2222,9 +2284,12 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
      (- mon2 mon1)))
 
 (defvar calendar-font-lock-keywords
+  ;; Month and year.  Not really needed now that calendar-month-header
+  ;; contains propertize, and not correct for non-american forms
+  ;; of that variable.
   `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
               " -?[0-9]+")
-     . font-lock-function-name-face) ; month and year
+     . font-lock-function-name-face)
     (,(regexp-opt
        (list (substring (aref calendar-day-name-array 6)
                         0 calendar-day-header-width)
@@ -2235,7 +2300,7 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
     ;; First two chars of each day are used in the calendar.
     (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
                           calendar-day-name-array))
-     . font-lock-reference-face))
+     . font-lock-constant-face))
   "Default keywords to highlight in Calendar mode.")
 
 (defun calendar-day-name (date &optional abbrev absolute)
@@ -2592,13 +2657,7 @@ If called by a mouse-event, pops up a menu with the result."
                 "---")
             (calendar-string-spread (list str) ?- width)))))
 
-(defun calendar-version ()
-  "Display the Calendar version."
-  (interactive)
-  (message "GNU Emacs %s" emacs-version))
-
-(make-obsolete 'calendar-version 'emacs-version "23.1")
-
+(define-obsolete-function-alias 'calendar-version 'emacs-version "23.1")
 
 (run-hooks 'calendar-load-hook)
 

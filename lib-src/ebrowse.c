@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2012  Free Software Foundation, Inc.
+Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3516,8 +3516,7 @@ usage (int error)
 static _Noreturn void
 version (void)
 {
-  /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
+  char emacs_copyright[] = COPYRIGHT;
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

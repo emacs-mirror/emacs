@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -32,8 +32,11 @@
 (require 'srecode/map)
 (require 'semantic/decorate)
 (require 'semantic/wisent)
+(require 'semantic/senator)
+(require 'semantic/wisent)
 
-(eval-when-compile (require 'semantic/find))
+(eval-when-compile
+  (require 'semantic/find))
 
 ;;; Code:
 
@@ -154,13 +157,22 @@ minor mode is enabled.
   :keymap srecode-mode-map
   ;; If we are turning things on, make sure we have templates for
   ;; this mode first.
-  (when srecode-minor-mode
-    (when (not (apply
+  (if srecode-minor-mode
+      (if (not (apply
 		'append
 		(mapcar (lambda (map)
 			  (srecode-map-entries-for-mode map major-mode))
 			(srecode-get-maps))))
-      (setq srecode-minor-mode nil))))
+	  (setq srecode-minor-mode nil)
+	;; Else, we have success, do stuff
+	(add-hook 'cedet-m3-menu-do-hooks 'srecode-m3-items nil t)
+	)
+    (remove-hook 'cedet-m3-menu-do-hooks 'srecode-m3-items t)
+    )
+  ;; Run hooks if we are turning this on.
+  (when srecode-minor-mode
+    (run-hooks 'srecode-minor-mode-hook))
+  srecode-minor-mode)
 
 ;;;###autoload
 (define-minor-mode global-srecode-minor-mode
@@ -213,7 +225,7 @@ MENU-DEF is the menu to bind this into."
 		   (ctxtcons (assoc ctxt alltabs))
 		   (bind (if (slot-boundp temp 'binding)
 			     (oref temp binding)))
-		   (name (object-name-string temp)))
+		   (name (eieio-object-name-string temp)))
 
 	      (when (not ctxtcons)
 		(if (string= context ctxt)

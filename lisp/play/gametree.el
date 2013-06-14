@@ -1,6 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -435,7 +435,7 @@ only work of Black's moves are explicitly numbered, for instance
                 gametree-half-ply-regexp)) limit))
           (goto-char (match-beginning 0))))
   (gametree-transpose-following-leaves)
-  (let* ((pt (set-marker (make-marker) (point)))
+  (let* ((pt (point-marker))
          (plys (gametree-current-branch-ply))
          (depth (gametree-current-branch-depth))
          (old-depth depth))

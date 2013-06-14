@@ -1,6 +1,6 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -117,8 +117,8 @@ Makes sure that :value is compiled."
 			      (cons (car fields) newfields))))
       (setq fields (cdr (cdr fields))))
 
-    (when (not state)
-      (error "Cannot create compound variable without :state"))
+    ;;(when (not state)
+    ;;  (error "Cannot create compound variable outside of sectiondictionary"))
 
     (call-next-method this (nreverse newfields))
     (when (not (slot-boundp this 'compiled))
@@ -175,7 +175,7 @@ associated with a buffer or parent."
        ((srecode-dictionary-child-p buffer-or-parent)
 	(setq parent buffer-or-parent
 	      buffer (oref buffer-or-parent buffer)
-	      origin (concat (object-name buffer-or-parent) " in "
+	      origin (concat (eieio-object-name buffer-or-parent) " in "
 			     (if buffer (buffer-name buffer)
 			       "no buffer")))
 	(when buffer
@@ -220,7 +220,10 @@ associated with a buffer or parent."
   "Insert into DICT the variables found in table TPL.
 TPL is an object representing a compiled template file."
   (when tpl
-    (let ((tabs (oref tpl :tables)))
+    ;; Tables are sorted with highest priority first, useful for looking
+    ;; up templates, but this means we need to install the variables in
+    ;; reverse order so higher priority variables override lower ones.
+    (let ((tabs (reverse (oref tpl :tables))))
       (require 'srecode/find) ; For srecode-template-table-in-project-p
       (while tabs
 	(when (srecode-template-table-in-project-p (car tabs))
@@ -451,12 +454,12 @@ If you subclass `srecode-dictionary-compound-value' then this
 method could return nil, but if it does that, it must insert
 the value itself using `princ', or by detecting if the current
 standard out is a buffer, and using `insert'."
-  (object-name cp))
+  (eieio-object-name cp))
 
 (defmethod srecode-dump ((cp srecode-dictionary-compound-value)
 			 &optional indent)
   "Display information about this compound value."
-  (princ (object-name cp))
+  (princ (eieio-object-name cp))
   )
 
 (defmethod srecode-compound-toString ((cp srecode-dictionary-compound-variable)
@@ -546,40 +549,6 @@ inserted with a new editable field.")
 
 ;;; Higher level dictionary functions
 ;;
-(defun srecode-create-section-dictionary (sectiondicts STATE)
-  "Create a dictionary with section entries for a template.
-The format for SECTIONDICTS is what is emitted from the template parsers.
-STATE is the current compiler state."
-  (when sectiondicts
-    (let ((new (srecode-create-dictionary t)))
-      ;; Loop over each section.  The section is a macro w/in the
-      ;; template.
-      (while sectiondicts
-	(let* ((sect (car (car sectiondicts)))
-	       (entries (cdr (car sectiondicts)))
-	       (subdict (srecode-dictionary-add-section-dictionary new sect))
-	       )
-	  ;; Loop over each entry.  This is one variable in the
-	  ;; section dictionary.
-	  (while entries
-	    (let ((tname (semantic-tag-name (car entries)))
-		  (val (semantic-tag-variable-default (car entries))))
-	      (if (eq val t)
-		  (srecode-dictionary-show-section subdict tname)
-		(cond
-		 ((and (stringp (car val))
-		       (= (length val) 1))
-		  (setq val (car val)))
-		 (t
-		  (setq val (srecode-dictionary-compound-variable
-			     tname :value val :state STATE))))
-		(srecode-dictionary-set-value
-		 subdict tname val))
-	      (setq entries (cdr entries))))
-	  )
-	(setq sectiondicts (cdr sectiondicts)))
-      new)))
-
 (defun srecode-create-dictionaries-from-tags (tags state)
   "Create a dictionary with entries according to TAGS.
 
@@ -635,7 +604,6 @@ STATE is the current compiler state."
   "Run data-debug on this mode's dictionary."
   (interactive)
   (require 'eieio-datadebug)
-  (require 'semantic)
   (require 'srecode/find)
   (let* ((modesym major-mode)
 	 (start (current-time))
@@ -686,7 +654,7 @@ STATE is the current compiler state."
 				       4)))
 		      (while entry
 			(princ " --> SUBDICTIONARY ")
-			(princ (object-name dict))
+			(princ (eieio-object-name dict))
 			(princ "\n")
 			(srecode-dump (car entry) newindent)
 			(setq entry (cdr entry))

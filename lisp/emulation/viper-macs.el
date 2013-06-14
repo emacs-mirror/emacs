@@ -1,6 +1,6 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper
 
-;; Copyright (C) 1994-1997, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -31,13 +31,8 @@
 (defvar viper-custom-file-name)
 (defvar viper-current-state)
 (defvar viper-fast-keyseq-timeout)
-
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (require 'viper-cmd)
-      ))
+(require 'viper-mous)
+(require 'viper-ex)
 ;; end pacifier
 
 (require 'viper-util)
@@ -82,6 +77,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 
 
 ;;; Code
+
+(declare-function viper-change-state-to-insert "viper-cmd" ())
 
 ;; Ex map command
 (defun ex-map ()
@@ -276,6 +273,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
       (vconcat macro-name))
     ))
 
+
+(declare-function viper-change-state-to-vi "viper-cmd" ())
 
 ;; Terminate a Vi kbd macro.
 ;; optional argument IGNORE, if t, indicates that we are dealing with an

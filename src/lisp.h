@@ -1,6 +1,7 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2012 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1993-1995, 1997-2013 Free Software Foundation,
+Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,10 +21,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
 
+#include <setjmp.h>
 #include <stdalign.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
 #include <inttypes.h>
 #include <limits.h>
 
@@ -70,6 +73,7 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
+    BITS_PER_PTRDIFF_T = CHAR_BIT * sizeof (ptrdiff_t),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -158,11 +162,9 @@ enum Lisp_Bits
 #define GCTYPEBITS 3
 	GCTYPEBITS,
 
-    /* 2**GCTYPEBITS.  This must also be a macro that expands to a
-       literal integer constant, for MSVC.  */
-    GCALIGNMENT =
+    /* 2**GCTYPEBITS.  This must be a macro that expands to a literal
+       integer constant, for MSVC.  */
 #define GCALIGNMENT 8
-	GCALIGNMENT,
 
     /* Number of bits in a Lisp_Object value, not counting the tag.  */
     VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS,
@@ -220,17 +222,19 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 
 /* Define the fundamental Lisp data structures.  */
 
-/* This is the set of Lisp data types.  */
+/* This is the set of Lisp data types.  If you want to define a new
+   data type, read the comments after Lisp_Fwd_Type definition
+   below.  */
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-static EMACS_INT const INTMASK = EMACS_INT_MAX >> (INTTYPEBITS - 1);
+#define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 #define LISP_INT_TAG_P(x) (((x) & ~Lisp_Int1) == 0)
 
-/* Stolen from GDB.  The only known compiler that doesn't support
-   enums in bitfields is MSVC.  */
-#ifdef _MSC_VER
+/* Idea stolen from GDB.  MSVC doesn't support enums in bitfields,
+   and xlc complains vociferously about them.  */
+#if defined _MSC_VER || defined __IBMC__
 #define ENUM_BF(TYPE) unsigned int
 #else
 #define ENUM_BF(TYPE) enum TYPE
@@ -296,6 +300,61 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
 
+/* If you want to define a new Lisp data type, here are some
+   instructions.  See the thread at
+   http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00561.html
+   for more info.
+
+   First, there are already a couple of Lisp types that can be used if
+   your new type does not need to be exposed to Lisp programs nor
+   displayed to users.  These are Lisp_Save_Value, a Lisp_Misc
+   subtype; and PVEC_OTHER, a kind of vectorlike object.  The former
+   is suitable for temporarily stashing away pointers and integers in
+   a Lisp object (see the existing uses of make_save_value and
+   XSAVE_VALUE).  The latter is useful for vector-like Lisp objects
+   that need to be used as part of other objects, but which are never
+   shown to users or Lisp code (search for PVEC_OTHER in xterm.c for
+   an example).
+
+   These two types don't look pretty when printed, so they are
+   unsuitable for Lisp objects that can be exposed to users.
+
+   To define a new data type, add one more Lisp_Misc subtype or one
+   more pseudovector subtype.  Pseudovectors are more suitable for
+   objects with several slots that need to support fast random access,
+   while Lisp_Misc types are for everything else.  A pseudovector object
+   provides one or more slots for Lisp objects, followed by struct
+   members that are accessible only from C.  A Lisp_Misc object is a
+   wrapper for a C struct that can contain anything you like.
+
+   Explicit freeing is discouraged for Lisp objects in general.  But if
+   you really need to exploit this, use Lisp_Misc (check free_misc in
+   alloc.c to see why).  There is no way to free a vectorlike object.
+
+   To add a new pseudovector type, extend the pvec_type enumeration;
+   to add a new Lisp_Misc, extend the Lisp_Misc_Type enumeration.
+
+   For a Lisp_Misc, you will also need to add your entry to union
+   Lisp_Misc (but make sure the first word has the same structure as
+   the others, starting with a 16-bit member of the Lisp_Misc_Type
+   enumeration and a 1-bit GC markbit) and make sure the overall size
+   of the union is not increased by your addition.
+
+   For a new pseudovector, it's highly desirable to limit the size
+   of your data type by VBLOCK_BYTES_MAX bytes (defined in alloc.c).
+   Otherwise you will need to change sweep_vectors (also in alloc.c).
+
+   Then you will need to add switch branches in print.c (in
+   print_object, to print your object, and possibly also in
+   print_preprocess) and to alloc.c, to mark your object (in
+   mark_object) and to free it (in gc_sweep).  The latter is also the
+   right place to call any code specific to your data type that needs
+   to run when the object is recycled -- e.g., free any additional
+   resources allocated for it that are not Lisp objects.  You can even
+   make a pointer to the function that frees the resources a slot in
+   your object -- this way, the same object could be used to represent
+   several disparate C structures.  */
+
 #ifdef CHECK_LISP_OBJECT_TYPE
 
 typedef struct { EMACS_INT i; } Lisp_Object;
@@ -343,15 +402,11 @@ static ptrdiff_t const PSEUDOVECTOR_FLAG
       = PSEUDOVECTOR_FLAG;
 
 /* In a pseudovector, the size field actually contains a word with one
-   PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.
-   We use a bitset, even tho only one of the bits can be set at any
-   particular time just so as to be able to use micro-optimizations such as
-   testing membership of a particular subset of pseudovectors in Fequal.
-   It is not crucial, but there are plenty of bits here, so why not do it?  */
+   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
+   with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR = 0,	/* Unused!  */
+  PVEC_NORMAL_VECTOR,
   PVEC_FREE,
   PVEC_PROCESS,
   PVEC_FRAME,
@@ -363,14 +418,11 @@ enum pvec_type
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
   PVEC_OTHER,
-  /* These last 4 are special because we OR them in fns.c:internal_equal,
-     so they have to use a disjoint bit pattern:
-     if (!(size & (PVEC_COMPILED | PVEC_CHAR_TABLE
-                   | PVEC_SUB_CHAR_TABLE | PVEC_FONT))) */
-  PVEC_COMPILED			= 0x10,
-  PVEC_CHAR_TABLE		= 0x20,
-  PVEC_SUB_CHAR_TABLE		= 0x30,
-  PVEC_FONT			= 0x40
+  /* These should be last, check internal_equal to see why.  */
+  PVEC_COMPILED,
+  PVEC_CHAR_TABLE,
+  PVEC_SUB_CHAR_TABLE,
+  PVEC_FONT /* Should be last because it's used for range checking.  */
 };
 
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
@@ -390,9 +442,18 @@ enum More_Lisp_Bits
        only the number of Lisp_Object fields (that need to be traced by GC).
        The distinction is used, e.g., by Lisp_Process, which places extra
        non-Lisp_Object fields at the end of the structure.  */
-    PSEUDOVECTOR_SIZE_BITS = 16,
+    PSEUDOVECTOR_SIZE_BITS = 12,
     PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
-    PVEC_TYPE_MASK = 0x0fff << PSEUDOVECTOR_SIZE_BITS,
+
+    /* To calculate the memory footprint of the pseudovector, it's useful
+       to store the size of non-Lisp area in word_size units here.  */
+    PSEUDOVECTOR_REST_BITS = 12,
+    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1)
+			      << PSEUDOVECTOR_SIZE_BITS),
+
+    /* Used to extract pseudovector subtype information.  */
+    PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
+    PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS,
 
     /* Number of bits to put in each character in the internal representation
        of bool vectors.  This should not vary across implementations.  */
@@ -402,9 +463,6 @@ enum More_Lisp_Bits
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
-
-/* Return a perfect hash of the Lisp_Object representation.  */
-#define XHASH(a) XLI (a)
 
 #if USE_LSB_TAG
 
@@ -448,15 +506,16 @@ static EMACS_INT const VALMASK
   (XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 	+ ((intptr_t) (ptr) & VALMASK)))
 
-#if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object.  */
-#define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
-#else
-#define XPNTR(a) ((uintptr_t) (XLI (a) & VALMASK))
-#endif
+#define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK) | DATA_SEG_BITS))
 
 #endif /* not USE_LSB_TAG */
+
+/* Return a (Lisp-integer sized) hash of the Lisp_Object value.  Happens to be
+   like XUINT right now, but XUINT should only be applied to objects we know
+   are integers.  */
+#define XHASH(a) XUINT (a)
 
 /* For integers known to be positive, XFASTINT sometimes provides
    faster retrieval and XSETFASTINT provides faster storage.
@@ -473,17 +532,12 @@ static EMACS_INT const VALMASK
 # define XUNTAG(a, type) XPNTR (a)
 #endif
 
-#define EQ(x, y) (XHASH (x) == XHASH (y))
+#define EQ(x, y) (XLI (x) == XLI (y))
 
 /* Largest and smallest representable fixnum values.  These are the C
-   values.  They are macros for use in static initializers, and
-   constants for visibility to GDB.  */
-static EMACS_INT const MOST_POSITIVE_FIXNUM =
+   values.  They are macros for use in static initializers.  */
 #define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
-	MOST_POSITIVE_FIXNUM;
-static EMACS_INT const MOST_NEGATIVE_FIXNUM =
 #define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
-	MOST_NEGATIVE_FIXNUM;
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -498,6 +552,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
   return num < lower ? lower : num <= upper ? num : upper;
 }
 
+
 /* Extract a value or address from a Lisp_Object.  */
 
 #define XCONS(a)   (eassert (CONSP (a)), \
@@ -518,7 +573,6 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
 #define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC (a)->u_marker))
 #define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC (a)->u_overlay))
-#define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC (a)->u_save_value))
 
 /* Forwarding object types.  */
 
@@ -532,10 +586,12 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
   (eassert (KBOARD_OBJFWDP (a)), &((a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
-
+struct Lisp_Process;
+LISP_INLINE Lisp_Object make_lisp_proc (struct Lisp_Process *p)
+{ return make_lisp_ptr (p, Lisp_Vectorlike); }
 #define XPROCESS(a) (eassert (PROCESSP (a)), \
 		     (struct Lisp_Process *) XUNTAG (a, Lisp_Vectorlike))
-#define XWINDOW(a) (eassert (WINDOWP (a)), \
+#define XWINDOW(a) (eassert (WINDOWP (a)),				\
 		    (struct window *) XUNTAG (a, Lisp_Vectorlike))
 #define XTERMINAL(a) (eassert (TERMINALP (a)), \
 		      (struct terminal *) XUNTAG (a, Lisp_Vectorlike))
@@ -568,13 +624,13 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* Pseudovector types.  */
 
-#define XSETPVECTYPE(v, code) XSETTYPED_PVECTYPE (v, header.size, code)
-#define XSETTYPED_PVECTYPE(v, size_member, code) \
-  ((v)->size_member |= PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_SIZE_BITS))
-#define XSETPVECTYPESIZE(v, code, sizeval) \
+#define XSETPVECTYPE(v, code)						\
+  ((v)->header.size |= PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS))
+#define XSETPVECTYPESIZE(v, code, lispsize, restsize)		\
   ((v)->header.size = (PSEUDOVECTOR_FLAG			\
-		       | ((code) << PSEUDOVECTOR_SIZE_BITS)	\
-		       | (sizeval)))
+		       | ((code) << PSEUDOVECTOR_AREA_BITS)	\
+		       | ((restsize) << PSEUDOVECTOR_SIZE_BITS) \
+		       | (lispsize)))
 
 /* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
@@ -586,16 +642,14 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
    eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
-	    == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_SIZE_BITS))))
+	    == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))))
 
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
-/* XSETSUBR is special since Lisp_Subr lacks struct vectorlike_header.  */
-#define XSETSUBR(a, b) \
-  XSETTYPED_PSEUDOVECTOR (a, b, XSUBR (a)->size, PVEC_SUBR)
+#define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
@@ -730,13 +784,10 @@ extern ptrdiff_t string_bytes (struct Lisp_String *);
    would expose alloc.c internal details that we'd rather keep
    private.
 
-   This is a macro for use in static initializers, and a constant for
-   visibility to GDB.  The cast to ptrdiff_t ensures that
-   the macro is signed.  */
-static ptrdiff_t const STRING_BYTES_BOUND =
+   This is a macro for use in static initializers.  The cast to
+   ptrdiff_t ensures that the macro is signed.  */
 #define STRING_BYTES_BOUND  \
   ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1))
-	STRING_BYTES_BOUND;
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -762,7 +813,7 @@ struct Lisp_String
   };
 
 /* Header of vector-like objects.  This documents the layout constraints on
-   vectors and pseudovectors other than struct Lisp_Subr.  It also prevents
+   vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
    compilers from being fooled by Emacs's type punning: the XSETPSEUDOVECTOR
    and PSEUDOVECTORP macros cast their pointers to struct vectorlike_header *,
    because when two such pointers potentially alias, a compiler won't
@@ -770,43 +821,26 @@ struct Lisp_String
    <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
 struct vectorlike_header
   {
-    /* This field contains various pieces of information:
+    /* The only field contains various pieces of information:
        - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
        - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
          vector (0) or a pseudovector (1).
        - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
          of slots) of the vector.
-       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into
-         a "pvec type" tag held in PVEC_TYPE_MASK and a size held in the lowest
-         PSEUDOVECTOR_SIZE_BITS.  That size normally indicates the number of
-         Lisp_Object slots at the beginning of the object that need to be
-         traced by the GC, tho some types use it slightly differently.
-       - E.g. if the pvec type is PVEC_FREE it means this is an unallocated
-         vector on a free-list and PSEUDOVECTOR_SIZE_BITS indicates its size
-         in bytes.  */
+       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
+	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
+	 - b) number of Lisp_Objects slots at the beginning of the object
+	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
+	   traced by the GC;
+	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
+	   measured in word_size units.  Rest fields may also include
+	   Lisp_Objects, but these objects usually needs some special treatment
+	   during GC.
+	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
+	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
+	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
+	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
     ptrdiff_t size;
-
-    /* When the vector is allocated from a vector block, NBYTES is used
-       if the vector is not on a free list, and VECTOR is used otherwise.
-       For large vector-like objects, BUFFER or VECTOR is used as a pointer
-       to the next vector-like object.  It is generally a buffer or a
-       Lisp_Vector alias, so for convenience it is a union instead of a
-       pointer: this way, one can write P->next.vector instead of ((struct
-       Lisp_Vector *) P->next).  */
-    union {
-      /* This is only needed for small vectors that are not free because the
-	 `size' field only gives us the number of Lisp_Object slots, whereas we
-	 need to know the total size, including non-Lisp_Object data.
-	 FIXME: figure out a way to store this info elsewhere so we can
-	 finally get rid of this extra word of overhead.  */
-      ptrdiff_t nbytes;
-      struct buffer *buffer;
-      /* FIXME: This can be removed: For large vectors, this field could be
-	 placed *before* the vector itself.  And for small vectors on a free
-	 list, this field could be stored in the vector's bytes, since the
-	 empty vector is handled specially anyway.  */
-      struct Lisp_Vector *vector;
-    } next;
   };
 
 /* Regular vector is just a header plus array of Lisp_Objects.  */
@@ -980,15 +1014,11 @@ struct Lisp_Sub_Char_Table
 
 /* This structure describes a built-in function.
    It is generated by the DEFUN macro only.
-   defsubr makes it into a Lisp object.
-
-   This type is treated in most respects as a pseudovector,
-   but since we never dynamically allocate or free them,
-   we don't need a struct vectorlike_header and its 'next' field.  */
+   defsubr makes it into a Lisp object.  */
 
 struct Lisp_Subr
   {
-    ptrdiff_t size;
+    struct vectorlike_header header;
     union {
       Lisp_Object (*a0) (void);
       Lisp_Object (*a1) (Lisp_Object);
@@ -1079,7 +1109,7 @@ struct Lisp_Symbol
     union Lisp_Fwd *fwd;
   } val;
 
-  /* Function value of the symbol or Qunbound if not fboundp.  */
+  /* Function value of the symbol or Qnil if not fboundp.  */
   Lisp_Object function;
 
   /* The symbol's property list.  */
@@ -1136,13 +1166,28 @@ struct Lisp_Symbol
 
 /* The structure of a Lisp hash table.  */
 
+struct hash_table_test
+{
+  /* Name of the function used to compare keys.  */
+  Lisp_Object name;
+
+  /* User-supplied hash function, or nil.  */
+  Lisp_Object user_hash_function;
+
+  /* User-supplied key comparison function, or nil.  */
+  Lisp_Object user_cmp_function;
+
+  /* C function to compare two keys.  */
+  bool (*cmpfn) (struct hash_table_test *t, Lisp_Object, Lisp_Object);
+
+  /* C function to compute hash code.  */
+  EMACS_UINT (*hashfn) (struct hash_table_test *t, Lisp_Object);
+};
+
 struct Lisp_Hash_Table
 {
   /* This is for Lisp; the hash table code does not refer to it.  */
   struct vectorlike_header header;
-
-  /* Function used to compare keys.  */
-  Lisp_Object test;
 
   /* Nil if table is non-weak.  Otherwise a symbol describing the
      weakness of the table.  */
@@ -1174,12 +1219,6 @@ struct Lisp_Hash_Table
      hash table size to reduce collisions.  */
   Lisp_Object index;
 
-  /* User-supplied hash function, or nil.  */
-  Lisp_Object user_hash_function;
-
-  /* User-supplied key comparison function, or nil.  */
-  Lisp_Object user_cmp_function;
-
   /* Only the fields above are traced normally by the GC.  The ones below
      `count' are special and are either ignored by the GC or traced in
      a special way (e.g. because of weakness).  */
@@ -1192,17 +1231,12 @@ struct Lisp_Hash_Table
      This is gc_marked specially if the table is weak.  */
   Lisp_Object key_and_value;
 
+  /* The comparison and hash functions.  */
+  struct hash_table_test test;
+
   /* Next weak hash table if this is a weak hash table.  The head
      of the list is in weak_hash_tables.  */
   struct Lisp_Hash_Table *next_weak;
-
-  /* C function to compare two keys.  */
-  bool (*cmpfn) (struct Lisp_Hash_Table *,
-		 Lisp_Object, EMACS_UINT,
-		 Lisp_Object, EMACS_UINT);
-
-  /* C function to compute hash code.  */
-  EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
 };
 
 
@@ -1256,6 +1290,23 @@ static double const DEFAULT_REHASH_THRESHOLD = 0.8;
 /* Default factor by which to increase the size of a hash table.  */
 
 static double const DEFAULT_REHASH_SIZE = 1.5;
+
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
+
+LISP_INLINE EMACS_UINT
+sxhash_combine (EMACS_UINT x, EMACS_UINT y)
+{
+  return (x << 4) + (x >> (BITS_PER_EMACS_INT - 4)) + y;
+}
+
+/* Hash X, returning a value that fits into a fixnum.  */
+
+LISP_INLINE EMACS_UINT
+SXHASH_REDUCE (EMACS_UINT x)
+{
+  return (x ^ x >> (BITS_PER_EMACS_INT - FIXNUM_BITS)) & INTMASK;
+}
 
 /* These structures are used for various misc types.  */
 
@@ -1331,20 +1382,108 @@ struct Lisp_Overlay
     Lisp_Object plist;
   };
 
-/* Hold a C pointer for later use.
-   This type of object is used in the arg to record_unwind_protect.  */
+/* Types of data which may be saved in a Lisp_Save_Value.  */
+
+enum
+  {
+    SAVE_UNUSED,
+    SAVE_INTEGER,
+    SAVE_POINTER,
+    SAVE_OBJECT
+  };
+
+/* Number of bits needed to store one of the above values.  */
+enum { SAVE_SLOT_BITS = 2 };
+
+/* Number of slots in a save value where save_type is nonzero.  */
+enum { SAVE_VALUE_SLOTS = 4 };
+
+/* Bit-width and values for struct Lisp_Save_Value's save_type member.  */
+
+enum { SAVE_TYPE_BITS = SAVE_VALUE_SLOTS * SAVE_SLOT_BITS + 1 };
+
+enum Lisp_Save_Type
+  {
+    SAVE_TYPE_INT_INT = SAVE_INTEGER + (SAVE_INTEGER << SAVE_SLOT_BITS),
+    SAVE_TYPE_INT_INT_INT
+      = (SAVE_INTEGER + (SAVE_TYPE_INT_INT << SAVE_SLOT_BITS)),
+    SAVE_TYPE_OBJ_OBJ = SAVE_OBJECT + (SAVE_OBJECT << SAVE_SLOT_BITS),
+    SAVE_TYPE_OBJ_OBJ_OBJ = SAVE_OBJECT + (SAVE_TYPE_OBJ_OBJ << SAVE_SLOT_BITS),
+    SAVE_TYPE_OBJ_OBJ_OBJ_OBJ
+      = SAVE_OBJECT + (SAVE_TYPE_OBJ_OBJ_OBJ << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_INT = SAVE_POINTER + (SAVE_INTEGER << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_OBJ = SAVE_POINTER + (SAVE_OBJECT << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_PTR = SAVE_POINTER + (SAVE_POINTER << SAVE_SLOT_BITS),
+    SAVE_TYPE_PTR_PTR_OBJ
+      = SAVE_POINTER + (SAVE_TYPE_PTR_OBJ << SAVE_SLOT_BITS),
+
+    /* This has an extra bit indicating it's raw memory.  */
+    SAVE_TYPE_MEMORY = SAVE_TYPE_PTR_INT + (1 << (SAVE_TYPE_BITS - 1))
+  };
+
+/* Special object used to hold a different values for later use.
+
+   This is mostly used to package C integers and pointers to call
+   record_unwind_protect.  Typical task is to pass just one C pointer
+   to unwind function.  You should pack pointer with make_save_pointer
+   and then get it back with XSAVE_POINTER, e.g.:
+
+   ...
+     struct my_data *md = get_my_data ();
+     record_unwind_protect (my_unwind, make_save_pointer (md));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     ...
+   }
+
+   If yon need to pass more than just one C pointer, you should
+   use make_save_value.  This function allows you to pack up to
+   SAVE_VALUE_SLOTS integers, pointers or Lisp_Objects and
+   conveniently get them back with XSAVE_POINTER, XSAVE_INTEGER and
+   XSAVE_OBJECT macros:
+
+   ...
+     struct my_data *md = get_my_data ();
+     Lisp_Object my_object = get_my_object ();
+     record_unwind_protect
+       (my_unwind, make_save_value (SAVE_TYPE_PTR_OBJ, md, my_object));
+   ...
+
+   Lisp_Object my_unwind (Lisp_Object arg)
+   {
+     struct my_data *md = XSAVE_POINTER (arg, 0);
+     Lisp_Object my_object = XSAVE_OBJECT (arg, 1);
+     ...
+   }
+
+   If ENABLE_CHECKING is in effect, XSAVE_xxx macros do type checking of the
+   saved objects and raise eassert if type of the saved object doesn't match
+   the type which is extracted.  In the example above, XSAVE_INTEGER (arg, 2)
+   or XSAVE_OBJECT (arg, 0) are wrong because nothing was saved in slot 2 and
+   Lisp_Object was saved in slot 1 of ARG.  */
+
 struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 14;
-    /* If DOGC is set, POINTER is the address of a memory
-       area containing INTEGER potential Lisp_Objects.  */
-    unsigned int dogc : 1;
-    void *pointer;
-    ptrdiff_t integer;
-  };
+    int spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
 
+    /* DATA[N] may hold up to SAVE_VALUE_SLOTS entries.  The type of
+       V's Ith entry is given by save_type (V, I).  E.g., if save_type
+       (V, 3) == SAVE_INTEGER, V->data[3].integer is in use.
+
+       If SAVE_TYPE == SAVE_TYPE_MEMORY, DATA[0].pointer is the address of
+       a memory area containing DATA[1].integer potential Lisp_Objects.  */
+    ENUM_BF (Lisp_Save_Type) save_type : SAVE_TYPE_BITS;
+    union {
+      void *pointer;
+      ptrdiff_t integer;
+      Lisp_Object object;
+    } data[SAVE_VALUE_SLOTS];
+  };
 
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
@@ -1403,7 +1542,8 @@ struct Lisp_Buffer_Objfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Buffer_Obj */
     int offset;
-    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
+    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
+    Lisp_Object predicate;
   };
 
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
@@ -1485,6 +1625,16 @@ struct Lisp_Float
 
 #define XFLOAT_DATA(f) (0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
 #define XFLOAT_INIT(f, n) (XFLOAT (f)->u.data = (n))
+
+/* Most hosts nowadays use IEEE floating point, so they use IEC 60559
+   representations, have infinities and NaNs, and do not trap on
+   exceptions.  Define IEEE_FLOATING_POINT if this host is one of the
+   typical ones.  The C11 macro __STDC_IEC_559__ is close to what is
+   wanted here, but is not quite right because Emacs does not require
+   all the features of C11 Annex F (and does not require C11 at all,
+   for that matter).  */
+#define IEEE_FLOATING_POINT (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
+			     && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
 
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
@@ -1596,27 +1746,24 @@ typedef struct {
   int mouse_face_beg_x, mouse_face_beg_y;
   int mouse_face_end_row, mouse_face_end_col;
   int mouse_face_end_x, mouse_face_end_y;
-  int mouse_face_past_end;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
   Lisp_Object mouse_face_overlay;
-
-  /* 1 if a mouse motion event came and we didn't handle it right away because
-     gc was in progress.  */
-  int mouse_face_deferred_gc;
 
   /* FRAME and X, Y position of mouse when last checked for
      highlighting.  X and Y can be negative or out of range for the frame.  */
   struct frame *mouse_face_mouse_frame;
   int mouse_face_mouse_x, mouse_face_mouse_y;
 
+  /* Nonzero if part of the text currently shown in
+     its mouse-face is beyond the window end.  */
+  unsigned mouse_face_past_end : 1;
+
   /* Nonzero means defer mouse-motion highlighting.  */
-  int mouse_face_defer;
+  unsigned mouse_face_defer : 1;
 
   /* Nonzero means that the mouse highlight should not be shown.  */
-  int mouse_face_hidden;
-
-  int mouse_face_image_state;
+  unsigned mouse_face_hidden : 1;
 } Mouse_HLInfo;
 
 /* Data type checking.  */
@@ -1644,7 +1791,68 @@ typedef struct {
 #define VECTORP(x) (VECTORLIKEP (x) && !(ASIZE (x) & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
-#define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
+
+LISP_INLINE bool
+SAVE_VALUEP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value;
+}
+
+LISP_INLINE struct Lisp_Save_Value *
+XSAVE_VALUE (Lisp_Object a)
+{
+  eassert (SAVE_VALUEP (a));
+  return & XMISC (a)->u_save_value;
+}
+
+/* Return the type of V's Nth saved value.  */
+LISP_INLINE int
+save_type (struct Lisp_Save_Value *v, int n)
+{
+  eassert (0 <= n && n < SAVE_VALUE_SLOTS);
+  return (v->save_type >> (SAVE_SLOT_BITS * n) & ((1 << SAVE_SLOT_BITS) - 1));
+}
+
+/* Get and set the Nth saved pointer.  */
+
+LISP_INLINE void *
+XSAVE_POINTER (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
+  return XSAVE_VALUE (obj)->data[n].pointer;;
+}
+LISP_INLINE void
+set_save_pointer (Lisp_Object obj, int n, void *val)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
+  XSAVE_VALUE (obj)->data[n].pointer = val;
+}
+
+/* Likewise for the saved integer.  */
+
+LISP_INLINE ptrdiff_t
+XSAVE_INTEGER (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_INTEGER);
+  return XSAVE_VALUE (obj)->data[n].integer;
+}
+LISP_INLINE void
+set_save_integer (Lisp_Object obj, int n, ptrdiff_t val)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_INTEGER);
+  XSAVE_VALUE (obj)->data[n].integer = val;
+}
+
+/* Extract Nth saved object.  */
+
+LISP_INLINE Lisp_Object
+XSAVE_OBJECT (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_OBJECT);
+  return XSAVE_VALUE (obj)->data[n].object;
+}
+
+#define AUTOLOADP(x) (CONSP (x) && EQ (Qautoload, XCAR (x)))
 
 #define INTFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Int)
 #define BOOLFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Bool)
@@ -1659,7 +1867,7 @@ typedef struct {
 
 #define PSEUDOVECTOR_TYPEP(v, code)					\
   (((v)->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))			\
-   == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_SIZE_BITS)))
+   == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS)))
 
 /* True if object X, with internal type struct T *, is a pseudovector whose
    code is CODE.  */
@@ -1672,8 +1880,7 @@ typedef struct {
 #define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
-/* SUBRP is special since Lisp_Subr lacks struct vectorlike_header.  */
-#define SUBRP(x) TYPED_PSEUDOVECTORP (x, Lisp_Subr, PVEC_SUBR)
+#define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
@@ -1733,20 +1940,6 @@ typedef struct {
 
 #define CHECK_WINDOW_CONFIGURATION(x) \
   CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x)
-
-/* A window of any sort, leaf or interior, is "valid" if one of its
-   buffer, vchild, or hchild members is non-nil.  */
-#define CHECK_VALID_WINDOW(x)				\
-  CHECK_TYPE (WINDOWP (x)				\
-	      && (!NILP (XWINDOW (x)->buffer)		\
-		  || !NILP (XWINDOW (x)->vchild)	\
-		  || !NILP (XWINDOW (x)->hchild)),	\
-	      Qwindow_valid_p, x)
-
-/* A window is "live" if and only if it shows a buffer.  */
-#define CHECK_LIVE_WINDOW(x)						\
-  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer),		\
-	      Qwindow_live_p, x)
 
 #define CHECK_PROCESS(x) \
   CHECK_TYPE (PROCESSP (x), Qprocessp, x)
@@ -1862,8 +2055,8 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
-   { (PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS)				\
-     | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),		\
+   { { (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS)				\
+       | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)) },		\
       { (Lisp_Object (__cdecl *)(void))fnname },                        \
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
@@ -1871,8 +2064,8 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
-     { PVEC_SUBR << PSEUDOVECTOR_SIZE_BITS,				\
-      { .a ## maxargs = fnname },					\
+     { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
+       { .a ## maxargs = fnname },					\
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #endif
@@ -1963,15 +2156,45 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
     static struct Lisp_Kboard_Objfwd ko_fwd;			\
     defvar_kboard (&ko_fwd, lname, offsetof (KBOARD, vname ## _)); \
   } while (0)
+
+/* Save and restore the instruction and environment pointers,
+   without affecting the signal mask.  */
 
+#ifdef HAVE__SETJMP
+typedef jmp_buf sys_jmp_buf;
+# define sys_setjmp(j) _setjmp (j)
+# define sys_longjmp(j, v) _longjmp (j, v)
+#elif defined HAVE_SIGSETJMP
+typedef sigjmp_buf sys_jmp_buf;
+# define sys_setjmp(j) sigsetjmp (j, 0)
+# define sys_longjmp(j, v) siglongjmp (j, v)
+#else
+/* A platform that uses neither _longjmp nor siglongjmp; assume
+   longjmp does not affect the sigmask.  */
+typedef jmp_buf sys_jmp_buf;
+# define sys_setjmp(j) setjmp (j)
+# define sys_longjmp(j, v) longjmp (j, v)
+#endif
 
 
+/* Elisp uses several stacks:
+   - the C stack.
+   - the bytecode stack: used internally by the bytecode interpreter.
+     Allocated from the C stack.
+   - The specpdl stack: keeps track of active unwind-protect and
+     dynamic-let-bindings.  Allocated from the `specpdl' array, a manually
+     managed stack.
+   - The catch stack: keeps track of active catch tags.
+     Allocated on the C stack.  This is where the setmp data is kept.
+   - The handler stack: keeps track of active condition-case handlers.
+     Allocated on the C stack.  Every entry there also uses an entry in
+     the catch stack.  */
+
 /* Structure for recording Lisp call stack for backtrace purposes.  */
 
 /* The special binding stack holds the outer values of variables while
    they are bound by a function application or a let form, stores the
-   code to be executed for Lisp unwind-protect forms, and stores the C
-   functions to be called for record_unwind_protect.
+   code to be executed for unwind-protect forms.
 
    If func is non-zero, undoing this binding applies func to old_value;
       This implements record_unwind_protect.
@@ -1984,16 +2207,70 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
    which means having bound a local value while CURRENT-BUFFER was active.
    If WHERE is nil this means we saw the default value when binding SYMBOL.
    WHERE being a buffer or frame means we saw a buffer-local or frame-local
-   value.  Other values of WHERE mean an internal error.  */
+   value.  Other values of WHERE mean an internal error.
+
+   NOTE: The specbinding struct is defined here, because SPECPDL_INDEX is
+   used all over the place, needs to be fast, and needs to know the size of
+   struct specbinding.  But only eval.c should access it.  */
 
 typedef Lisp_Object (*specbinding_func) (Lisp_Object);
 
+enum specbind_tag {
+  SPECPDL_UNWIND,		/* An unwind_protect function.  */
+  SPECPDL_BACKTRACE,		/* An element of the backtrace.  */
+  SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
+  /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
+  SPECPDL_LET_LOCAL,		/* A buffer-local let-binding.  */
+  SPECPDL_LET_DEFAULT		/* A global binding for a localized var.  */
+};
+
 struct specbinding
   {
-    Lisp_Object symbol, old_value;
-    specbinding_func func;
-    Lisp_Object unused;		/* Dividing by 16 is faster than by 12.  */
+    enum specbind_tag kind;
+    union {
+      struct {
+	Lisp_Object arg;
+	specbinding_func func;
+      } unwind;
+      struct {
+	/* `where' is not used in the case of SPECPDL_LET.  */
+	Lisp_Object symbol, old_value, where;
+      } let;
+      struct {
+	Lisp_Object function;
+	Lisp_Object *args;
+	ptrdiff_t nargs : BITS_PER_PTRDIFF_T - 1;
+	bool debug_on_exit : 1;
+      } bt;
+    } v;
   };
+
+LISP_INLINE Lisp_Object specpdl_symbol (struct specbinding *pdl)
+{ eassert (pdl->kind >= SPECPDL_LET); return pdl->v.let.symbol; }
+
+LISP_INLINE Lisp_Object specpdl_old_value (struct specbinding *pdl)
+{ eassert (pdl->kind >= SPECPDL_LET); return pdl->v.let.old_value; }
+
+LISP_INLINE Lisp_Object specpdl_where (struct specbinding *pdl)
+{ eassert (pdl->kind > SPECPDL_LET); return pdl->v.let.where; }
+
+LISP_INLINE Lisp_Object specpdl_arg (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_UNWIND); return pdl->v.unwind.arg; }
+
+LISP_INLINE specbinding_func specpdl_func (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_UNWIND); return pdl->v.unwind.func; }
+
+LISP_INLINE Lisp_Object backtrace_function (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.function; }
+
+LISP_INLINE ptrdiff_t backtrace_nargs (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.nargs; }
+
+LISP_INLINE Lisp_Object *backtrace_args (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.args; }
+
+LISP_INLINE bool backtrace_debug_on_exit (struct specbinding *pdl)
+{ eassert (pdl->kind == SPECPDL_BACKTRACE); return pdl->v.bt.debug_on_exit; }
 
 extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
@@ -2001,7 +2278,10 @@ extern ptrdiff_t specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
 
-/* Everything needed to describe an active condition case.  */
+/* Everything needed to describe an active condition case.
+
+   Members are volatile if their values need to survive _longjmp when
+   a 'struct handler' is a local variable.  */
 struct handler
   {
     /* The handler clauses and variable from the condition-case form.  */
@@ -2012,10 +2292,12 @@ struct handler
        error: handle all conditions, and errors can run the debugger
               or display a backtrace.  */
     Lisp_Object handler;
-    Lisp_Object var;
+
+    Lisp_Object volatile var;
+
     /* Fsignal stores here the condition-case clause that applies,
        and Fcondition_case thus knows which clause to run.  */
-    Lisp_Object chosen_clause;
+    Lisp_Object volatile chosen_clause;
 
     /* Used to effect the longjump out to the handler.  */
     struct catchtag *tag;
@@ -2041,19 +2323,22 @@ struct handler
    of the catch form.
 
    All the other members are concerned with restoring the interpreter
-   state.  */
+   state.
 
+   Members are volatile if their values need to survive _longjmp when
+   a 'struct catchtag' is a local variable.  */
 struct catchtag
 {
   Lisp_Object tag;
-  Lisp_Object val;
-  struct catchtag *next;
+  Lisp_Object volatile val;
+  struct catchtag *volatile next;
+#if 1 /* GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS, but they're defined later.  */
   struct gcpro *gcpro;
-  jmp_buf jmp;
-  struct backtrace *backlist;
+#endif
+  sys_jmp_buf jmp;
   struct handler *handlerlist;
   EMACS_INT lisp_eval_depth;
-  ptrdiff_t pdlcount;
+  ptrdiff_t volatile pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
   struct byte_stack *byte_stack;
@@ -2081,22 +2366,16 @@ extern char *stack_bottom;
    If quit-flag is set to `kill-emacs' the SIGINT handler has received
    a request to exit Emacs when it is safe to do.  */
 
-#ifdef SYNC_INPUT
 extern void process_pending_signals (void);
-extern int pending_signals;
-#define ELSE_PENDING_SIGNALS				\
-  else if (pending_signals)				\
-    process_pending_signals ();
-#else  /* not SYNC_INPUT */
-#define ELSE_PENDING_SIGNALS
-#endif	/* not SYNC_INPUT */
+extern bool volatile pending_signals;
 
 extern void process_quit_flag (void);
 #define QUIT						\
   do {							\
     if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
       process_quit_flag ();				\
-    ELSE_PENDING_SIGNALS				\
+    else if (pending_signals)				\
+      process_pending_signals ();			\
   } while (0)
 
 
@@ -2144,8 +2423,12 @@ struct gcpro
    2    Mark the stack, and check that everything GCPRO'd is
 	marked.
    3	Mark using GCPRO's, mark stack last, and count how many
-	dead objects are kept alive.  */
+	dead objects are kept alive.
 
+   Formerly, method 0 was used.  Currently, method 1 is used unless
+   otherwise specified by hand when building, e.g.,
+   "make CPPFLAGS='-DGC_MARK_STACK=GC_USE_GCPROS_AS_BEFORE'".
+   Methods 2 and 3 are present mainly to debug the transition from 0 to 1.  */
 
 #define GC_USE_GCPROS_AS_BEFORE		0
 #define GC_MAKE_GCPROS_NOOPS		1
@@ -2570,9 +2853,6 @@ extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 EXFUN (Fbyteorder, 0) ATTRIBUTE_CONST;
 
-/* Defined in frame.c.  */
-extern Lisp_Object Qframep;
-
 /* Defined in data.c.  */
 extern Lisp_Object indirect_function (Lisp_Object);
 extern Lisp_Object find_symbol_value (Lisp_Object);
@@ -2613,7 +2893,6 @@ extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
 extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, bool);
 extern void syms_of_data (void);
-extern void init_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
 
 /* Defined in cmds.c */
@@ -2659,15 +2938,15 @@ extern Lisp_Object larger_vector (Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
-extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
+extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq;
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
-Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object);
+Lisp_Object make_hash_table (struct hash_table_test, Lisp_Object, Lisp_Object,
+                             Lisp_Object, Lisp_Object);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
+extern struct hash_table_test hashtest_eql, hashtest_equal;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
@@ -2701,14 +2980,15 @@ extern void init_fringe_once (void);
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
+extern void reset_image_types (void);
 extern void syms_of_image (void);
 
 /* Defined in insdel.c.  */
 extern Lisp_Object Qinhibit_modification_hooks;
-extern void move_gap (ptrdiff_t);
 extern void move_gap_both (ptrdiff_t, ptrdiff_t);
 extern _Noreturn void buffer_overflow (void);
 extern void make_gap (ptrdiff_t);
+extern void make_gap_1 (struct buffer *, ptrdiff_t);
 extern ptrdiff_t copy_text (const unsigned char *, unsigned char *,
 			    ptrdiff_t, bool, bool);
 extern int count_combining_before (const unsigned char *,
@@ -2717,10 +2997,9 @@ extern int count_combining_after (const unsigned char *,
 				  ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void insert (const char *, ptrdiff_t);
 extern void insert_and_inherit (const char *, ptrdiff_t);
-extern void insert_1 (const char *, ptrdiff_t, bool, bool, bool);
 extern void insert_1_both (const char *, ptrdiff_t, ptrdiff_t,
 			   bool, bool, bool);
-extern void insert_from_gap (ptrdiff_t, ptrdiff_t);
+extern void insert_from_gap (ptrdiff_t, ptrdiff_t, bool text_at_gap_tail);
 extern void insert_from_string (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, bool);
 extern void insert_from_buffer (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
@@ -2737,7 +3016,7 @@ extern void del_range_byte (ptrdiff_t, ptrdiff_t, bool);
 extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, bool);
-extern void modify_region (struct buffer *, ptrdiff_t, ptrdiff_t, bool);
+extern void modify_region_1 (ptrdiff_t, ptrdiff_t, bool);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
@@ -2791,11 +3070,9 @@ extern void clear_message (int, int);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
-extern void message2 (const char *, ptrdiff_t, int);
-extern void message2_nolog (const char *, ptrdiff_t, int);
-extern void message3 (Lisp_Object, ptrdiff_t, int);
-extern void message3_nolog (Lisp_Object, ptrdiff_t, int);
-extern void message_dolog (const char *, ptrdiff_t, int, int);
+extern void message3 (Lisp_Object);
+extern void message3_nolog (Lisp_Object);
+extern void message_dolog (const char *, ptrdiff_t, bool, bool);
 extern void message_with_string (const char *, Lisp_Object, int);
 extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
@@ -2819,9 +3096,8 @@ extern void memory_warnings (void *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c.  */
 extern void check_pure_size (void);
+extern void free_misc (Lisp_Object);
 extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
-extern void reset_malloc_hooks (void);
-extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
 extern _Noreturn void memory_full (size_t);
 extern _Noreturn void buffer_memory_full (ptrdiff_t);
@@ -2844,6 +3120,28 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
 extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
+
+/* Build a frequently used 2/3/4-integer lists.  */
+
+LISP_INLINE Lisp_Object
+list2i (EMACS_INT x, EMACS_INT y)
+{
+  return list2 (make_number (x), make_number (y));
+}
+
+LISP_INLINE Lisp_Object
+list3i (EMACS_INT x, EMACS_INT y, EMACS_INT w)
+{
+  return list3 (make_number (x), make_number (y), make_number (w));
+}
+
+LISP_INLINE Lisp_Object
+list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
+{
+  return list4 (make_number (x), make_number (y),
+		make_number (w), make_number (h));
+}
+
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
@@ -2887,9 +3185,31 @@ build_string (const char *str)
 
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern void make_byte_code (struct Lisp_Vector *);
+extern Lisp_Object Qautomatic_gc;
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector (EMACS_INT);
-extern struct Lisp_Vector *allocate_pseudovector (int memlen, int lisplen, int tag);
+
+/* Make an uninitialized vector for SIZE objects.  NOTE: you must
+   be sure that GC cannot happen until the vector is completely
+   initialized.  E.g. the following code is likely to crash:
+
+   v = make_uninit_vector (3);
+   ASET (v, 0, obj0);
+   ASET (v, 1, Ffunction_can_gc ());
+   ASET (v, 2, obj1);  */
+
+LISP_INLINE Lisp_Object
+make_uninit_vector (ptrdiff_t size)
+{
+  Lisp_Object v;
+  struct Lisp_Vector *p;
+
+  p = allocate_vector (size);
+  XSETVECTOR (v, p);
+  return v;
+}
+
+extern struct Lisp_Vector *allocate_pseudovector (int, int, enum pvec_type);
 #define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
   ((typ*)								\
    allocate_pseudovector						\
@@ -2904,7 +3224,8 @@ extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (void *, ptrdiff_t);
+extern Lisp_Object make_save_value (enum Lisp_Save_Type, ...);
+extern Lisp_Object make_save_pointer (void *);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
@@ -2961,6 +3282,7 @@ extern Lisp_Object internal_with_output_to_temp_buffer
         (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
 enum FLOAT_TO_STRING_BUFSIZE { FLOAT_TO_STRING_BUFSIZE = 350 };
 extern int float_to_string (char *, double);
+extern void init_print_once (void);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c.  */
@@ -2989,7 +3311,7 @@ extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
   } while (0)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object);
-Lisp_Object string_to_number (char const *, int, int);
+extern Lisp_Object string_to_number (char const *, int, bool);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
@@ -3017,7 +3339,6 @@ extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern Lisp_Object inhibit_lisp_code;
-extern int handling_signal;
 #if BYTE_MARK_STACK
 extern struct catchtag *catchlist;
 extern struct handler *handlerlist;
@@ -3072,10 +3393,15 @@ extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
-#if BYTE_MARK_STACK
-extern void mark_backtrace (void);
-#endif
 extern void syms_of_eval (void);
+extern void record_in_backtrace (Lisp_Object function,
+				 Lisp_Object *args, ptrdiff_t nargs);
+extern void mark_specpdl (void);
+extern void get_backtrace (Lisp_Object array);
+Lisp_Object backtrace_top_function (void);
+extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
+extern bool let_shadows_global_binding_p (Lisp_Object symbol);
+
 
 /* Defined in editfns.c.  */
 extern Lisp_Object Qfield;
@@ -3090,7 +3416,6 @@ extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
 extern void init_editfns (void);
-const char *get_system_name (void);
 extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
@@ -3118,7 +3443,6 @@ extern void keys_of_buffer (void);
 extern ptrdiff_t marker_position (Lisp_Object);
 extern ptrdiff_t marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
-extern ptrdiff_t charpos_to_bytepos (ptrdiff_t);
 extern ptrdiff_t buf_charpos_to_bytepos (struct buffer *, ptrdiff_t);
 extern ptrdiff_t buf_bytepos_to_charpos (struct buffer *, ptrdiff_t);
 extern void unchain_marker (struct Lisp_Marker *marker);
@@ -3141,10 +3465,15 @@ EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
-extern void internal_delete_file (Lisp_Object);
+extern bool internal_delete_file (Lisp_Object);
+extern Lisp_Object emacs_readlinkat (int, const char *);
+extern bool file_directory_p (const char *);
+extern bool file_accessible_directory_p (const char *);
+extern void init_fileio (void);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
+extern bool check_existing (const char *);
 
 /* Defined in search.c.  */
 extern void shrink_regexp_cache (void);
@@ -3153,20 +3482,21 @@ extern void record_unwind_save_match_data (void);
 struct re_registers;
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
-						  Lisp_Object, int, int);
+						  Lisp_Object, bool, bool);
 extern ptrdiff_t fast_string_match (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
 						  ptrdiff_t);
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
-extern ptrdiff_t scan_buffer (int, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			      ptrdiff_t *, int);
+extern ptrdiff_t find_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
+			       ptrdiff_t, ptrdiff_t *, ptrdiff_t *, bool);
 extern EMACS_INT scan_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
-			       EMACS_INT, int);
-extern ptrdiff_t find_next_newline (ptrdiff_t, int);
-extern ptrdiff_t find_next_newline_no_quit (ptrdiff_t, ptrdiff_t);
-extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t);
+			       EMACS_INT, bool);
+extern ptrdiff_t find_newline_no_quit (ptrdiff_t, ptrdiff_t,
+				       ptrdiff_t, ptrdiff_t *);
+extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t,
+					   ptrdiff_t, ptrdiff_t *);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 
@@ -3183,7 +3513,7 @@ extern void syms_of_minibuf (void);
 
 extern Lisp_Object Qminus, Qplus;
 extern Lisp_Object Qwhen;
-extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
+extern Lisp_Object Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);
 
 /* Defined in casefiddle.c.  */
@@ -3206,14 +3536,17 @@ extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown, Qbottom;
 extern Lisp_Object Qtop;
 extern Lisp_Object last_undo_boundary;
-extern int input_pending;
+extern bool input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
+#ifdef USABLE_SIGIO
+void handle_input_available_signal (int);
+#endif
 extern Lisp_Object pending_funcalls;
-extern int detect_input_pending (void);
-extern int detect_input_pending_ignore_squeezables (void);
-extern int detect_input_pending_run_timers (int);
+extern bool detect_input_pending (void);
+extern bool detect_input_pending_ignore_squeezables (void);
+extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
@@ -3227,7 +3560,7 @@ extern void keys_of_keyboard (void);
 /* Defined in indent.c.  */
 extern ptrdiff_t current_column (void);
 extern void invalidate_current_column (void);
-extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
+extern bool indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c.  */
@@ -3236,10 +3569,9 @@ extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
 extern Lisp_Object do_switch_frame (Lisp_Object, int, int, Lisp_Object);
-#if HAVE_NS
+#if HAVE_NS || defined(WINDOWSNT)
 extern Lisp_Object get_frame_param (struct frame *, Lisp_Object);
 #endif
-extern Lisp_Object frame_buffer_predicate (Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
 extern void syms_of_frame (void);
 
@@ -3252,8 +3584,11 @@ extern bool display_arg;
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
-extern _Noreturn void fatal_error_backtrace (int, int);
+extern _Noreturn void terminate_due_to_signal (int, int);
 extern Lisp_Object Qkill_emacs;
+#ifdef WINDOWSNT
+extern Lisp_Object Vlibrary_cache;
+#endif
 #if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);
@@ -3289,10 +3624,10 @@ extern bool running_asynch_code;
 extern Lisp_Object QCtype, Qlocal;
 extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
-extern int wait_reading_process_output (intmax_t, int, int, int,
-                                        Lisp_Object,
-                                        struct Lisp_Process *,
-                                        int);
+extern bool wait_reading_process_output (intmax_t, int, int, bool,
+					 Lisp_Object,
+					 struct Lisp_Process *,
+					 int);
 /* Max value for the first argument of wait_reading_process_output.  */
 #if __GNUC__ == 3 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 5)
 /* Work around a bug in GCC 3.4.2, known to be fixed in GCC 4.6.3.
@@ -3329,7 +3664,6 @@ extern void syms_of_doc (void);
 extern int read_bytecode_char (bool);
 
 /* Defined in bytecode.c.  */
-extern Lisp_Object Qbytecode;
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
 #if BYTE_MARK_STACK
@@ -3340,7 +3674,6 @@ extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 
 /* Defined in macros.c.  */
-extern Lisp_Object Qexecute_kbd_macro;
 extern void init_macros (void);
 extern void syms_of_macros (void);
 
@@ -3382,16 +3715,17 @@ struct terminal;
 extern char *get_current_dir_name (void);
 #endif
 extern void stuff_char (char c);
+extern void init_foreground_group (void);
 extern void init_sigio (int);
 extern void sys_subshell (void);
 extern void sys_suspend (void);
 extern void discard_tty_input (void);
+extern void block_tty_out_signal (void);
+extern void unblock_tty_out_signal (void);
 extern void init_sys_modes (struct tty_display_info *);
 extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
 extern void reset_all_sys_modes (void);
-extern void wait_for_termination (pid_t);
-extern void interruptible_wait_for_termination (pid_t);
 extern void flush_pending_output (int) ATTRIBUTE_CONST;
 extern void child_setup_tty (int);
 extern void setup_pty (int);
@@ -3405,8 +3739,6 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, const char *, ptrdiff_t);
-enum { READLINK_BUFSIZE = 1024 };
-extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 
 extern void unlock_all_files (void);
 extern void lock_file (Lisp_Object);
@@ -3452,6 +3784,22 @@ extern void syms_of_fontset (void);
 extern Lisp_Object Qfont_param;
 #endif
 
+/* Defined in gfilenotify.c */
+#ifdef HAVE_GFILENOTIFY
+extern void globals_of_gfilenotify (void);
+extern void syms_of_gfilenotify (void);
+#endif
+
+/* Defined in inotify.c */
+#ifdef HAVE_INOTIFY
+extern void syms_of_inotify (void);
+#endif
+
+#ifdef HAVE_W32NOTIFY
+/* Defined on w32notify.c.  */
+extern void syms_of_w32notify (void);
+#endif
+
 /* Defined in xfaces.c.  */
 extern Lisp_Object Qdefault, Qtool_bar, Qfringe;
 extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor;
@@ -3492,15 +3840,17 @@ extern void syms_of_xml (void);
 extern void xml_cleanup_parser (void);
 #endif
 
-#ifdef HAVE_MENUS
-/* Defined in (x|w32)fns.c, nsfns.m...  */
-extern int have_menus_p (void);
-#endif
-
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);
 #endif
+
+
+/* Defined in profiler.c.  */
+extern bool profiler_memory_running;
+extern void malloc_probe (size_t);
+extern void syms_of_profiler (void);
+
 
 #ifdef DOS_NT
 /* Defined in msdos.c, w32.c.  */
@@ -3511,7 +3861,8 @@ extern char *emacs_root_dir (void);
    Used during startup to detect startup of dumped Emacs.  */
 extern bool initialized;
 
-extern int immediate_quit;	    /* Nonzero means ^G can quit instantly.  */
+/* True means ^G can quit instantly.  */
+extern bool immediate_quit;
 
 extern void *xmalloc (size_t);
 extern void *xzalloc (size_t);
@@ -3522,18 +3873,18 @@ extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
 extern char *xstrdup (const char *);
+extern void xputenv (const char *);
 
 extern char *egetenv (const char *);
 
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
 
-/* We used to use `abs', but that clashes with system headers on some
-   platforms, and using a name reserved by Standard C is a bad idea
-   anyway.  */
-#if !defined (eabs)
+/* Return the absolute value of X.  X should be a signed integer
+   expression without side effects, and X's absolute value should not
+   exceed the maximum for its promoted type.  This is called 'eabs'
+   because 'abs' is reserved by the C standard.  */
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
-#endif
 
 /* Return a fixnum or float, depending on whether VAL fits in a Lisp
    fixnum.  */
@@ -3562,16 +3913,16 @@ extern void *record_xmalloc (size_t);
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
-#define SAFE_NALLOCA(buf, multiplier, nitems)			\
-  do {								\
-    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	\
-      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	\
-    else							\
+#define SAFE_NALLOCA(buf, multiplier, nitems)			 \
+  do {								 \
+    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	 \
+      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	 \
+    else							 \
       {								 \
 	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
 	sa_must_free = 1;					 \
 	record_unwind_protect (safe_alloca_unwind,		 \
-			       make_save_value (buf, 0));	 \
+			       make_save_pointer (buf));	 \
       }								 \
   } while (0)
 
@@ -3596,8 +3947,7 @@ extern void *record_xmalloc (size_t);
       {							       \
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
-	arg_ = make_save_value (buf, nelt);		       \
-	XSAVE_VALUE (arg_)->dogc = 1;			       \
+	arg_ = make_save_value (SAVE_TYPE_MEMORY, buf, nelt);  \
 	sa_must_free = 1;				       \
 	record_unwind_protect (safe_alloca_unwind, arg_);      \
       }							       \

@@ -1,10 +1,10 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
-;; Version: 2.0
+;; Version: 2.2
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 (require 'semantic/tag)
 (require 'semantic/lex)
 
-(defvar semantic-version "2.0"
+(defvar semantic-version "2.2"
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")
@@ -274,6 +274,7 @@ setup to use Semantic."
     (python-mode . wisent-python-default-setup)
     (scheme-mode . semantic-default-scheme-setup)
     (srecode-template-mode . srecode-template-setup-parser)
+    (texinfo-mode . semantic-default-texi-setup)
     (makefile-automake-mode . semantic-default-make-setup)
     (makefile-gmake-mode . semantic-default-make-setup)
     (makefile-makepp-mode . semantic-default-make-setup)
@@ -317,6 +318,11 @@ a parse of the buffer.")
 (defsubst semantic-active-p ()
   "Return non-nil if the current buffer was set up for parsing."
   semantic-new-buffer-fcn-was-run)
+
+(defsubst semantic-error-if-unparsed ()
+  "Raise an error if current buffer was not parsed by Semantic."
+  (unless semantic-new-buffer-fcn-was-run
+    (error "Buffer was not parsed by Semantic.")))
 
 (defsubst semantic--umatched-syntax-needs-refresh-p  ()
   "Return non-nil if the unmatched syntax cache needs a refresh.
@@ -376,7 +382,7 @@ to use Semantic, and `semantic-init-hook' is run."
   "When non-nil, activate the interactive parsing debugger.
 Do not set this yourself.  Call `semantic-debug'.")
 
-(defun semantic-elapsed-time (start end)
+(defsubst semantic-elapsed-time (start end)
   "Copied from elp.el.  Was `elp-elapsed-time'.
 Arguments START and END bound the time being calculated."
   (float-time (time-subtract end start)))
@@ -460,11 +466,10 @@ unterminated syntax."
     (widen)
     (when (or (< end start) (> end (point-max)))
       (error "Invalid parse region bounds %S, %S" start end))
-    (nreverse
-     (semantic-repeat-parse-whole-stream
+    (semantic-repeat-parse-whole-stream
       (or (cdr (assq start semantic-lex-block-streams))
 	  (semantic-lex start end depth))
-      nonterminal returnonerror))))
+      nonterminal returnonerror)))
 
 ;;; Parsing functions
 ;;
@@ -623,16 +628,18 @@ was marked unparseable, then do nothing, and return the cache."
 
 ;;;; Parse the whole system.
      ((semantic-parse-tree-needs-rebuild-p)
-      ;; Use Emacs's built-in progress-reporter
-      (let ((semantic--progress-reporter
-	     (and (>= (point-max) semantic-minimum-working-buffer-size)
-		  (eq semantic-working-type 'percent)
-		  (make-progress-reporter
-		   (semantic-parser-working-message (buffer-name))
-		   0 100))))
-	(setq res (semantic-parse-region (point-min) (point-max)))
-	(if semantic--progress-reporter
-	    (progress-reporter-done semantic--progress-reporter)))
+      ;; Use Emacs's built-in progress-reporter (only interactive).
+      (if noninteractive
+	  (setq res (semantic-parse-region (point-min) (point-max)))
+	(let ((semantic--progress-reporter
+	       (and (>= (point-max) semantic-minimum-working-buffer-size)
+		    (eq semantic-working-type 'percent)
+		    (make-progress-reporter
+		     (semantic-parser-working-message (buffer-name))
+		     0 100))))
+	  (setq res (semantic-parse-region (point-min) (point-max)))
+	  (if semantic--progress-reporter
+	      (progress-reporter-done semantic--progress-reporter))))
 
       ;; Clear the caches when we see there were no errors.
       ;; But preserve the unmatched syntax cache and warnings!
@@ -748,7 +755,7 @@ This function returns semantic tags without overlays."
                                   tag 'reparse-symbol nonterm))
                              tag)
                          (semantic--tag-expand tag))
-                    result (append tag result))
+                    result (append result tag))
             ;; No error in this case, a purposeful nil means don't
             ;; store anything.
             )
@@ -892,7 +899,8 @@ Throw away all the old tags, and recreate the tag database."
     ;; and Semantic are both enabled.  Is there a better way?
     (define-key map [menu-bar cedet-menu]
       (list 'menu-item "Development" cedet-menu-map
-	    :enable (quote (not (bound-and-true-p global-ede-mode)))))
+	    :enable (quote (not (and menu-bar-mode
+				     (bound-and-true-p global-ede-mode))))))
     ;; (define-key km "-"    'senator-fold-tag)
     ;; (define-key km "+"    'senator-unfold-tag)
     map))
@@ -904,75 +912,92 @@ Throw away all the old tags, and recreate the tag database."
   ;; Edit Tags submenu:
   (define-key edit-menu [semantic-analyze-possible-completions]
     '(menu-item "List Completions" semantic-analyze-possible-completions
+		:enable (semantic-active-p)
 		:help "Display a list of completions for the tag at point"))
   (define-key edit-menu [semantic-complete-analyze-inline]
     '(menu-item "Complete Tag Inline" semantic-complete-analyze-inline
+		:enable (semantic-active-p)
 		:help "Display inline completion for the tag at point"))
   (define-key edit-menu [semantic-completion-separator]
     '("--"))
   (define-key edit-menu [senator-transpose-tags-down]
     '(menu-item "Transpose Tags Down" senator-transpose-tags-down
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Transpose the current tag and the next tag"))
   (define-key edit-menu [senator-transpose-tags-up]
     '(menu-item "Transpose Tags Up" senator-transpose-tags-up
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Transpose the current tag and the previous tag"))
   (define-key edit-menu [semantic-edit-separator]
     '("--"))
   (define-key edit-menu [senator-yank-tag]
     '(menu-item "Yank Tag" senator-yank-tag
-		:active (not (ring-empty-p senator-tag-ring))
+		:enable (and (boundp 'senator-tag-ring)
+			     (not (ring-empty-p senator-tag-ring)))
 		:help "Yank the head of the tag ring into the buffer"))
   (define-key edit-menu [senator-copy-tag-to-register]
     '(menu-item "Copy Tag To Register" senator-copy-tag-to-register
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Yank the head of the tag ring into the buffer"))
   (define-key edit-menu [senator-copy-tag]
     '(menu-item "Copy Tag" senator-copy-tag
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Copy the current tag to the tag ring"))
   (define-key edit-menu [senator-kill-tag]
     '(menu-item "Kill Tag" senator-kill-tag
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Kill the current tag, and copy it to the tag ring"))
 
   ;; Navigate Tags submenu:
   (define-key navigate-menu [senator-narrow-to-defun]
     '(menu-item "Narrow to Tag" senator-narrow-to-defun
-		:active (semantic-current-tag)
+		:enable (and (semantic-active-p)
+			     (semantic-current-tag))
 		:help "Narrow the buffer to the bounds of the current tag"))
   (define-key navigate-menu [semantic-narrow-to-defun-separator]
     '("--"))
   (define-key navigate-menu [semantic-symref-symbol]
     '(menu-item "Find Tag References..." semantic-symref-symbol
+		:enable (semantic-active-p)
 		:help "Read a tag and list the references to it"))
   (define-key navigate-menu [semantic-complete-jump]
     '(menu-item "Find Tag Globally..." semantic-complete-jump
+		:enable (semantic-active-p)
 		:help "Read a tag name and find it in the current project"))
   (define-key navigate-menu [semantic-complete-jump-local-members]
     '(menu-item "Find Local Members ..." semantic-complete-jump-local-members
+		:enable (semantic-active-p)
 		:help "Read a tag name and find a local member with that name"))
   (define-key navigate-menu [semantic-complete-jump-local]
     '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
+		:enable (semantic-active-p)
 		:help "Read a tag name and find it in this buffer"))
   (define-key navigate-menu [semantic-navigation-separator]
     '("--"))
   (define-key navigate-menu [senator-go-to-up-reference]
     '(menu-item "Parent Tag" senator-go-to-up-reference
+		:enable (semantic-active-p)
 		:help "Navigate up one reference by tag"))
   (define-key navigate-menu [senator-next-tag]
     '(menu-item "Next Tag" senator-next-tag
+		:enable (semantic-active-p)
 		:help "Go to the next tag"))
   (define-key navigate-menu [senator-previous-tag]
     '(menu-item "Previous Tag" senator-previous-tag
+		:enable (semantic-active-p)
 		:help "Go to the previous tag"))
 
   ;; Top level menu items:
   (define-key cedet-menu-map [semantic-force-refresh]
     '(menu-item "Reparse Buffer" semantic-force-refresh
 		:help "Force a full reparse of the current buffer"
-		:visible semantic-mode))
+		:visible semantic-mode
+		:enable (semantic-active-p)))
   (define-key cedet-menu-map [semantic-edit-menu]
     `(menu-item "Edit Tags" ,edit-menu
 		:visible semantic-mode))
@@ -986,6 +1011,12 @@ Throw away all the old tags, and recreate the tag database."
 		:help "Highlight the tag at point"
 		:visible semantic-mode
 		:button (:toggle . global-semantic-highlight-func-mode)))
+  (define-key cedet-menu-map [global-semantic-stickyfunc-mode]
+    '(menu-item "Stick Top Tag to Headerline" global-semantic-stickyfunc-mode
+		:help "Stick the tag scrolled off the top of the buffer into the header line"
+		:visible semantic-mode
+		:button (:toggle . (bound-and-true-p
+				    global-semantic-stickyfunc-mode))))
   (define-key cedet-menu-map [global-semantic-decoration-mode]
     '(menu-item "Decorate Tags" global-semantic-decoration-mode
 		:help "Decorate tags based on tag attributes"
@@ -1031,7 +1062,12 @@ Prevent this load system from loading files in twice.")
     global-semantic-idle-scheduler-mode
     global-semanticdb-minor-mode
     global-semantic-idle-summary-mode
-    global-semantic-mru-bookmark-mode)
+    global-semantic-mru-bookmark-mode
+    global-cedet-m3-minor-mode
+    global-semantic-idle-local-symbol-highlight-mode
+    global-semantic-highlight-edits-mode
+    global-semantic-show-unmatched-syntax-mode
+    global-semantic-show-parser-state-mode)
   "List of auxiliary minor modes in the Semantic package.")
 
 ;;;###autoload
@@ -1048,7 +1084,17 @@ The possible elements of this list include the following:
  `global-semantic-highlight-func-mode' - Highlight the current tag.
  `global-semantic-stickyfunc-mode'     - Show current fun in header line.
  `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
-                                         keybinding for tag names."
+                                         keybinding for tag names.
+ `global-cedet-m3-minor-mode'          - A mouse 3 context menu.
+ `global-semantic-idle-local-symbol-highlight-mode' - Highlight references
+                                         of the symbol under point.
+The following modes are more targeted at people who want to see
+ some internal information of the semantic parser in action:
+ `global-semantic-highlight-edits-mode' - Visualize incremental parser by
+                                         highlighting not-yet parsed changes.
+ `global-semantic-show-unmatched-syntax-mode' - Highlight unmatched lexical
+                                         syntax tokens.
+ `global-semantic-show-parser-state-mode' - Display the parser cache state."
   :group 'semantic
   :type `(set ,@(mapcar (lambda (c) (list 'const c))
 			semantic-submode-list)))
@@ -1095,16 +1141,27 @@ Semantic mode.
 	(dolist (b (buffer-list))
 	  (with-current-buffer b
 	    (semantic-new-buffer-fcn))))
-    ;; Disable all Semantic features.
+    ;; Disable Semantic features.  Removing everything Semantic has
+    ;; introduced in the buffer is pretty much futile, but we have to
+    ;; clean the hooks and delete Semantic-related overlays, so that
+    ;; Semantic can be re-activated cleanly.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
     (remove-hook 'completion-at-point-functions
 		 'semantic-completion-at-point-function)
+    (remove-hook 'after-change-functions
+		 'semantic-change-function)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
     (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))
-	  (funcall mode -1)))))
+	  (funcall mode -1)))
+    ;; Unlink buffer and clear cache
+    (semantic--tag-unlink-cache-from-buffer)
+    (setq semantic--buffer-cache nil)
+    ;; Make sure we run the setup function if Semantic gets
+    ;; re-activated.
+    (setq semantic-new-buffer-fcn-was-run nil)))
 
 (defun semantic-completion-at-point-function ()
   'semantic-ia-complete-symbol)
@@ -1140,6 +1197,11 @@ With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
 the current buffer was set up for parsing.  Return non-nil if the
 minor mode is enabled." t nil)
+
+(autoload 'global-semantic-idle-local-symbol-highlight-mode "semantic/idle"
+  "Highlight the tag and symbol references of the symbol under point.
+Call `semantic-analyze-current-context' to find the reference tag.
+Call `semantic-symref-hits-in-region' to identify local references." t nil)
 
 (autoload 'srecode-template-setup-parser "srecode/srecode-template"
   "Set up buffer for parsing SRecode template files." t nil)

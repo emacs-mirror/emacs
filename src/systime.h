@@ -1,5 +1,5 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993-1994, 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -121,7 +121,7 @@ EMACS_TIME_SIGN (EMACS_TIME t)
 SYSTIME_INLINE int
 EMACS_TIME_VALID_P (EMACS_TIME t)
 {
-  return 0 <= t.tv_nsec;
+  return t.tv_nsec >= 0;
 }
 
 /* Convert the double D to the greatest EMACS_TIME not greater than D.
@@ -143,7 +143,7 @@ EMACS_TIME_TO_DOUBLE (EMACS_TIME t)
 
 /* defined in sysdep.c */
 extern int set_file_times (int, const char *, EMACS_TIME, EMACS_TIME);
-extern struct timeval make_timeval (EMACS_TIME);
+extern struct timeval make_timeval (EMACS_TIME) ATTRIBUTE_CONST;
 
 /* defined in keyboard.c */
 extern void set_waiting_for_input (EMACS_TIME *);

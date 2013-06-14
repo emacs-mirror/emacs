@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -29,8 +29,7 @@
 
 (require 'mail-parse)
 (require 'mm-bodies)
-(eval-when-compile (require 'cl)
-		   (require 'term))
+(eval-when-compile (require 'cl))
 
 (autoload 'gnus-map-function "gnus-util")
 (autoload 'gnus-replace-in-string "gnus-util")
@@ -813,6 +812,8 @@ external if displayed external."
 
 (declare-function gnus-configure-windows "gnus-win" (setting &optional force))
 (defvar mailcap-mime-extensions)	; mailcap-mime-info autoloads
+(declare-function term-mode "term" ())
+(declare-function term-char-mode "term" ())
 
 (defun mm-display-external (handle method)
   "Display HANDLE using METHOD."
@@ -1298,14 +1299,26 @@ PROMPT overrides the default one used to ask user for a file name."
     (when filename
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
-    (setq file
-          (read-file-name
-	   (or prompt
-	       (format "Save MIME part to (default %s): "
-		       (or filename "")))
-	   (or mm-default-directory default-directory)
-	   (expand-file-name (or filename "")
-			     (or mm-default-directory default-directory))))
+    (while
+	(progn
+	  (setq file
+		(read-file-name
+		 (or prompt
+		     (format "Save MIME part to (default %s): "
+			     (or filename "")))
+		 (or mm-default-directory default-directory)
+		 (expand-file-name (or filename "")
+				   (or mm-default-directory default-directory))))
+	  (cond ((or (not file) (equal file ""))
+		 (message "Please enter a file name")
+		 t)
+		((and (file-directory-p file)
+		      (not filename))
+		 (message "Please enter a non-directory file name")
+		 t)
+		(t nil)))
+      (sit-for 2)
+      (discard-input))
     (if (file-directory-p file)
 	(setq file (expand-file-name filename file))
       (setq file (expand-file-name
@@ -1791,7 +1804,7 @@ If RECURSIVE, search recursively."
 	     (replace-match (char-to-string char))))
 	 ;; Remove "soft hyphens".
 	 (goto-char (point-min))
-	 (while (search-forward "­" nil t)
+	 (while (search-forward "Â­" nil t)
 	   (replace-match "" t t))
 	 (libxml-parse-html-region (point-min) (point-max))))
       (unless (bobp)
@@ -1813,7 +1826,7 @@ If RECURSIVE, search recursively."
 (provide 'mm-decode)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; mm-decode.el ends here

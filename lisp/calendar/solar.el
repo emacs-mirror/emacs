@@ -1,7 +1,7 @@
 ;;; solar.el --- calendar functions for solar events
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Denis B. Roegel <Denis.Roegel@loria.fr>
@@ -797,7 +797,7 @@ If called with an optional prefix argument ARG, prompt for date.
 If called with an optional double prefix argument, prompt for
 longitude, latitude, time zone, and date, and always use standard time.
 
-This function is suitable for execution in a .emacs file."
+This function is suitable for execution in an init file."
   (interactive "p")
   (or arg (setq arg 1))
   (if (and (< arg 16)

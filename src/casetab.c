@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993-1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -246,7 +246,7 @@ void
 init_casetab_once (void)
 {
   register int i;
-  Lisp_Object down, up;
+  Lisp_Object down, up, eqv;
   DEFSYM (Qcase_table, "case-table");
 
   /* Intern this now in case it isn't already done.
@@ -275,13 +275,21 @@ init_casetab_once (void)
 
   for (i = 0; i < 128; i++)
     {
-      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
-	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
-		  : i));
+      int c = (i >= 'a' && i <= 'z') ? i + ('A' - 'a') : i;
       CHAR_TABLE_SET (up, i, make_number (c));
     }
 
-  set_char_table_extras (down, 2, Fcopy_sequence (up));
+  eqv = Fmake_char_table (Qcase_table, Qnil);
+
+   for (i = 0; i < 128; i++)
+     {
+      int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
+	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
+		  : i));
+      CHAR_TABLE_SET (eqv, i, make_number (c));
+    }
+
+  set_char_table_extras (down, 2, eqv);
 
   /* Fill in what isn't filled in.  */
   set_case_table (down, 1);

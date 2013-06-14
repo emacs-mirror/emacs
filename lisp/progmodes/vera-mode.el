@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -101,6 +101,8 @@ select and move operations.  All parts of an identifier separated by underscore
 are treated as single words otherwise."
   :type 'boolean
   :group 'vera)
+(make-obsolete-variable 'vera-underscore-is-part-of-word
+                        'superword-mode "24.4")
 
 (defcustom vera-intelligent-tab t
   "Non-nil means `TAB' does indentation, word completion and tab insertion.
@@ -586,12 +588,6 @@ Key bindings:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font locking
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; XEmacs compatibility
-(when (featurep 'xemacs)
-  (require 'font-lock)
-  (copy-face 'font-lock-reference-face 'font-lock-constant-face)
-  (copy-face 'font-lock-preprocessor-face 'font-lock-builtin-face))
 
 (defun vera-font-lock-match-item (limit)
   "Match, and move over, any declaration item after point.
@@ -1359,6 +1355,11 @@ If `vera-intelligent-tab' is nil, always indent line."
 (defvar vera-expand-upper-case nil)
 
 (eval-when-compile (require 'hippie-exp))
+(declare-function he-init-string "hippie-exp" (beg end))
+(declare-function he-dabbrev-beg "hippie-exp" ())
+(declare-function he-string-member "hippie-exp" (str lst &optional trans-case))
+(declare-function he-reset-string "hippie-exp" ())
+(declare-function he-substitute-string "hippie-exp" (str &optional trans-case))
 
 (defun vera-try-expand-abbrev (old)
   "Try expanding abbreviations from `vera-abbrev-list'."
@@ -1429,7 +1430,8 @@ If `vera-intelligent-tab' is nil, always indent line."
 ;;; Bug reports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst vera-mode-help-address "Reto Zimmermann <reto@gnu.org>"
+(defconst vera-mode-help-address
+  "Reto Zimmermann <reto@gnu.org>, bug-gnu-emacs@gnu.org"
   "Address for Vera Mode bug reports.")
 
 ;; get reporter-submit-bug-report when byte-compiling

@@ -9,7 +9,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -20,8 +20,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -1981,7 +1980,7 @@ usually not desired.  D-Bus errors in events can be made visible by
 setting the variable @code{dbus-debug} to @code{t}.  They can also be
 handled by a hook function.
 
-@defvar dbus-event-error-hooks
+@defvar dbus-event-error-functions
 This hook variable keeps a list of functions, which are called when a
 D-Bus error happens in the event handler.  Every function must accept
 two arguments, the event and the error variable caught in
@@ -1997,7 +1996,7 @@ Example:
     (message "my-dbus-event-error-handler: %S %S" event error)
     (signal 'file-error (cdr error))))
 
-(add-hook 'dbus-event-error-hooks 'my-dbus-event-error-handler)
+(add-hook 'dbus-event-error-functions 'my-dbus-event-error-handler)
 @end lisp
 @end defvar
 

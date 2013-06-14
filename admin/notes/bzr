@@ -182,6 +182,71 @@ where revision N+1 is the one where file was removed.
 You could also try `bzr add --file-ids-from', if you have a copy of
 another branch where file still exists.
 
+* Undoing a commit (uncommitting)
+
+It is possible to undo/remove a bzr commit (ie, to uncommit).
+Only do this if you really, really, need to.  For example, if you
+somehow made a commit that triggers a bug in bzr itself.
+Don't do it because you made a typo in a commit or the log.
+
+If you do need to do this, do it as soon as possible, because the
+longer you leave it, the more work is involved.
+
+0. First, tell emacs-devel that you are going to do this, and suggest
+people not commit anything to the affected branch for the duration.
+
+In the following, replace USER with your Savannah username, and
+BRANCH with the name of the branch.
+Let's assume that revno 100 is the bad commit, and that there have
+been two more commits after that (because nothing is ever easy).
+
+1. Ensure your copy of the branch is up-to-date (for a bound
+branch, bzr up; for an unbound branch, bzr pull) and has no local
+changes (bzr st).
+
+2. Make a record of the commits you are going to undo:
+bzr diff -c 102 > /tmp/102.diff
+etc
+
+Also record the commit message, author, and any --fixes information.
+
+3. Most Emacs branches are set up to prevent just this kind of thing.
+So we need to disable that protection:
+
+bzr config append_revisions_only=False \
+  -d bzr+ssh://USER@bzr.savannah.gnu.org/emacs/BRANCH/
+
+4. Undo the commits:
+bzr uncommit -r -4
+
+This will show the commits it is going to undo, and prompt you to confirm.
+
+5. If using an unbound branch:
+bzr push --overwrite
+
+6. Now, replay the commits you just undid (obviously, fix whatever it
+was in the bad commit that caused the problem):
+
+patch -p0 < /tmp/100.diff
+bzr commit --author ... --fixes ... -F /tmp/100.log
+etc
+
+7. If using an unbound branch:
+bzr push
+
+8. Finally, re-enable the branch protection:
+bzr config append_revisions_only=True \
+  -d bzr+ssh://USER@bzr.savannah.gnu.org/emacs/BRANCH/
+
+9. Tell emacs-devel that it is ok to use the branch again.
+Anyone with local changes should back them up before doing anything.
+
+For a bound branch, bzr up will convert any of the undone commits to a
+pending merge. Just bzr revert these away.
+
+For an unbound branch, bzr pull will complain about diverged branches
+and refuse to do anything.  Use bzr pull --overwrite.
+
 * Loggerhead
 
 Loggerhead is the bzr tool for viewing a repository over http (similar
@@ -202,3 +267,97 @@ For example, on RHEL6 I needed:
   yum --enablerepo=epel install python-simpletal
 
 Then point your web-browser to http://127.0.0.1:8080/ .
+
+* Bisecting
+
+This is a semi-automated way to find the revision that introduced a bug.
+
+First, get the bzr bisect plugin if you do not have it already:
+
+  cd ~/.bazaar/plugins
+  bzr branch lp:bzr-bisect bisect
+
+`bzr help bisect' should work now.
+
+It's probably simplest to make a new copy of the branch to work in
+from this point onwards.
+
+Identify the last known "good" revision where the relevant issue is
+NOT present (e.g. maybe Emacs 24.1).  Let's say this is revision 1000.
+
+  bzr bisect start
+  bzr bisect no -r 1000
+
+At this point, bzr will switch to the mid-point of revision 1000 and
+the current revision.  If you know that the issue was definitely
+present in some specific revision (say 2000), you can use:
+
+  bzr bisect yes -r 2000
+
+Now bzr switches to revision 1500.
+
+Now test whether the issue is present.  You might need to rebuild
+Emacs to do this, or if you know the problem is in a specific Lisp
+file, you might be able to get away with just loading that one file in
+current Emacs.
+
+If the issue is present, use
+
+  bzr bisect yes
+
+If it is not, use
+
+  bzr bisect no
+
+Repeat until you zero-in on the specific revision.
+
+When finished, use
+
+  bzr bisect reset
+
+or simply delete the entire branch if you created it just for this.
+
+* Commit emails
+
+** Old method: bzr-hookless-email
+https://launchpad.net/bzr-hookless-email
+
+Runs hourly via cron.  Must ask Savannah admins to enable/disable it
+for each branch.  Stores the last revision that it mailed as
+last_revision_mailed in branch.conf on the server.  Breaks with bzr 2.6:
+
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-05/msg00000.html
+
+Fix from https://bugs.launchpad.net/bzr-hookless-email/+bug/988195
+only partially works.  Breaks again on every merge commit:
+
+https://lists.ubuntu.com/archives/bazaar/2013q2/075520.html
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-05/msg00024.html
+
+You can force it to skip the merge commit by changing the value for
+last_revision_mailed, eg:
+
+bzr config last_revision_mailed=xfq.free@gmail.com-20130603233720-u1aumaxvf3o0rlai -d bzr+ssh://USERNAME@bzr.savannah.gnu.org/emacs/trunk/
+
+** New method: bzr-email plugin
+https://launchpad.net/bzr-email
+http://lists.gnu.org/archive/html/savannah-hackers-public/2013-06/msg00007.html
+
+Runs on commit.  Projects can enable it themselves by using `bzr
+config' to set post_commit_to option for a branch.  See `bzr help email'
+(if you have the plugin installed) for other options.
+
+Note: if you have the bzr-email plugin installed locally, then when
+you commit to the Emacs repository it will also try to send a commit
+email from your local machine.  If your machine is not configured to
+send external mail, this will just fail.  In any case, you may prefer
+to either remove the plugin from your machine, or disable it for Emacs
+branches.  You can do this either by editing branch.conf in your Emacs
+branches, to override the server setting (untested; not sure this
+works), or by adding an entry to ~/.bazaar/locations.conf:
+
+  [bzr+ssh://USERNAME@bzr.savannah.gnu.org/emacs/*/]
+  post_commit_to = ""
+
+You have to use locations.conf rather than bazaar.conf because the
+latter has a lower priority than branch.conf.

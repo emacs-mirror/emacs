@@ -1,6 +1,6 @@
 ;;; ede/files.el --- Associate projects with files and directories.
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -50,12 +50,13 @@
 There is no completion at the prompt.  FILE is searched for within
 the current EDE project."
   (interactive "sFile: ")
-  (let ((fname (ede-expand-filename (ede-current-project) file))
+  (let* ((proj (ede-current-project))
+	 (fname (ede-expand-filename proj file))
 	)
     (unless fname
       (error "Could not find %s in %s"
 	     file
-	     (ede-project-root-directory (ede-current-project))))
+	     (ede-project-root-directory proj)))
     (find-file fname)))
 
 (defun ede-flush-project-hash ()
@@ -63,7 +64,8 @@ the current EDE project."
   (interactive)
   (require 'ede/locate)
   (let* ((loc (ede-get-locator-object (ede-current-project))))
-    (ede-locate-flush-hash loc)))
+    (when loc
+      (ede-locate-flush-hash loc))))
 
 ;;; Placeholders for ROOT directory scanning on base objects
 ;;
@@ -110,7 +112,7 @@ of the anchor file for the project."
 	 (when (not ans)
 	   (if (equal (ede--project-inode SP) inode)
 	       (setq ans SP)
-	     (ede-find-subproject-for-directory SP dir)))))
+	     (setq ans (ede-find-subproject-for-directory SP dir))))))
       ans)))
 
 ;;; DIRECTORY IN OPEN PROJECT
@@ -218,6 +220,18 @@ Does not check subprojects."
 				    ;; Note on test.  Can we compare inodes or something?
 				    :test 'equal)
   "A hash of directory names and associated EDE objects.")
+
+(defun ede-flush-directory-hash ()
+  "Flush the project directory hash.
+Do this only when developing new projects that are incorrectly putting
+'nomatch tokens into the hash."
+  (interactive)
+  (setq ede-project-directory-hash (make-hash-table :test 'equal))
+  ;; Also slush the current project's locator hash.
+  (let ((loc (ede-get-locator-object ede-object)))
+    (when loc
+      (ede-locate-flush-hash loc)))
+  )
 
 (defun ede-project-directory-remove-hash (dir)
   "Reset the directory hash for DIR.
@@ -368,10 +382,11 @@ Get it from the toplevel project.  If it doesn't have one, make one."
   ;; Make sure we have a location object available for
   ;; caching values, and for locating things more robustly.
   (let ((top (ede-toplevel proj)))
-    (when (not (slot-boundp top 'locate-obj))
-      (ede-enable-locate-on-project top))
-    (oref top locate-obj)
-    ))
+    (when top
+      (when (not (slot-boundp top 'locate-obj))
+	(ede-enable-locate-on-project top))
+      (oref top locate-obj)
+      )))
 
 (defmethod ede-expand-filename ((this ede-project) filename &optional force)
   "Return a fully qualified file name based on project THIS.
@@ -493,6 +508,26 @@ Argument DIR is the directory to trim upwards."
 			  ; c:/ for DOS like systems.
 	nil
       fnd)))
+
+(defun ede-find-project-root (prj-file-name &optional dir)
+  "Tries to find directory with given project file"
+  (let ((prj-dir (locate-dominating-file (or dir default-directory)
+					 prj-file-name)))
+    (when prj-dir
+      (expand-file-name prj-dir))))
+
+(defun ede-files-find-existing (dir prj-list)
+  "Find a project in the list of projects stored in given variable.
+DIR is the directory to search from."
+  (let ((projs prj-list)
+        (ans nil))
+    (while (and projs (not ans))
+      (let ((root (ede-project-root-directory (car projs))))
+        (when (string-match (concat "^" (regexp-quote root)) dir)
+          (setq ans (car projs))))
+      (setq projs (cdr projs)))
+    ans))
+
 
 (provide 'ede/files)
 

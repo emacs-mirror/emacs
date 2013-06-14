@@ -1,16 +1,17 @@
 ;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -379,7 +380,9 @@ Return the column number after insertion."
         (setq width (- width shift))
         (setq x (+ x shift))))
     (if (stringp col-desc)
-	(insert (propertize label 'help-echo help-echo))
+	(insert (if (get-text-property 0 'help-echo label)
+		    label
+		  (propertize label 'help-echo help-echo)))
       (apply 'insert-text-button label (cdr col-desc)))
     (let ((next-x (+ x pad-right width)))
       ;; No need to append any spaces if this is the last column.
@@ -517,12 +520,11 @@ printer is `tabulated-list-print-entry', but a mode that keeps
 data in an ewoc may instead specify a printer function (e.g., one
 that calls `ewoc-enter-last'), with `tabulated-list-print-entry'
 as the ewoc pretty-printer."
-  (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (set (make-local-variable 'revert-buffer-function)
-       'tabulated-list-revert)
-  (set (make-local-variable 'glyphless-char-display)
-       tabulated-list-glyphless-char-display))
+  (setq-local truncate-lines t)
+  (setq-local buffer-read-only t)
+  (setq-local buffer-undo-list t)
+  (setq-local revert-buffer-function #'tabulated-list-revert)
+  (setq-local glyphless-char-display tabulated-list-glyphless-char-display))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 

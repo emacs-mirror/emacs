@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t; coding: utf-8 -*-
 ;;
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -100,16 +100,49 @@ each clause."
     (error (message "Compiler-macro error for %S: %S" (car form) err)
            form)))
 
-(defun macroexp--eval-if-compile (&rest _forms)
+(defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
 The purpose is to delay warnings to bytecomp.el, so they can use things
 like `byte-compile-log-warning' to get better file-and-line-number data
 and also to avoid outputting the warning during normal execution."
   nil)
-(put 'macroexp--eval-if-compile 'byte-compile
+(put 'macroexp--funcall-if-compiled 'byte-compile
      (lambda (form)
-       (mapc (lambda (x) (funcall (eval x))) (cdr form))
+       (funcall (eval (cadr form)))
        (byte-compile-constant nil)))
+
+(defun macroexp--compiling-p ()
+  "Return non-nil if we're macroexpanding for the compiler."
+  ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
+  ;; macro-expansion will be processed by the byte-compiler, we check
+  ;; circumstantial evidence.
+  (member '(declare-function . byte-compile-macroexpand-declare-function)
+          macroexpand-all-environment))
+
+
+(defun macroexp--warn-and-return (msg form)
+  (let ((when-compiled (lambda () (byte-compile-log-warning msg t))))
+    (cond
+     ((null msg) form)
+     ((macroexp--compiling-p)
+      `(progn
+         (macroexp--funcall-if-compiled ',when-compiled)
+         ,form))
+     (t
+      (message "%s%s" (if (stringp load-file-name)
+                          (concat (file-relative-name load-file-name) ": ")
+                        "")
+               msg)
+      form))))
+
+(defun macroexp--obsolete-warning (fun obsolescence-data type)
+  (let ((instead (car obsolescence-data))
+        (asof (nth 2 obsolescence-data)))
+    (format "`%s' is an obsolete %s%s%s" fun type
+            (if asof (concat " (as of " asof ")") "")
+            (cond ((stringp instead) (concat "; " instead))
+                  (instead (format "; use `%s' instead." instead))
+                  (t ".")))))
 
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
@@ -129,10 +162,17 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (if (and (not (eq form new-form)) ;It was a macro call.
                      (car-safe form)
                      (symbolp (car form))
-                     (get (car form) 'byte-obsolete-info))
-                `(progn (macroexp--eval-if-compile
-                         (lambda () (byte-compile-warn-obsolete ',(car form))))
-                        ,new-form)
+                     (get (car form) 'byte-obsolete-info)
+                     (or (not (fboundp 'byte-compile-warning-enabled-p))
+                         (byte-compile-warning-enabled-p 'obsolete)))
+                (let* ((fun (car form))
+                       (obsolete (get fun 'byte-obsolete-info)))
+                  (macroexp--warn-and-return
+                   (macroexp--obsolete-warning
+                    fun obsolete
+                    (if (symbolp (symbol-function fun))
+                        "alias" "macro"))
+                   new-form))
               new-form)))
     (pcase form
       (`(cond . ,clauses)
@@ -175,26 +215,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; First arg is a function:
       (`(,(and fun (or `funcall `apply `mapcar `mapatoms `mapconcat `mapc))
          ',(and f `(lambda . ,_)) . ,args)
-       (byte-compile-log-warning
+       (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        t)
-       ;; We don't use `macroexp--cons' since there's clearly a change.
-       (cons fun
-             (cons (macroexp--expand-all (list 'function f))
-                   (macroexp--all-forms args))))
+        (macroexp--expand-all `(,fun ,f . ,args))))
       ;; Second arg is a function:
       (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
-       (byte-compile-log-warning
+       (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        t)
-       ;; We don't use `macroexp--cons' since there's clearly a change.
-       (cons fun
-             (cons (macroexp--expand-all arg1)
-                   (cons (macroexp--expand-all
-                          (list 'function f))
-                         (macroexp--all-forms args)))))
+        (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))
       (`(,func . ,_)
        ;; Macro expand compiler macros.  This cannot be delayed to
        ;; byte-optimize-form because the output of the compiler-macro can

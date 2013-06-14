@@ -17,6 +17,8 @@
 #ifndef _XMenuInternal_h_
 #define _XMenuInternal_h_
 
+#include <config.h>
+
 /* Avoid warnings about redefining NULL by including <stdio.h> first;
    the other file which wants to define it (<stddef.h> on Ultrix
    systems) can deal if NULL is already defined, but <stdio.h> can't.  */

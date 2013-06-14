@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Defines most of Emacs'ss file- and directory-handling functions,
+;; Defines most of Emacs's file- and directory-handling functions,
 ;; including basic file visiting, backup generation, link handling,
 ;; ITS-id version control, load- and write-hook handling, and the like.
 
@@ -206,10 +206,9 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function msdos-long-file-names "msdos.c")
 (declare-function w32-long-file-name "w32proc.c")
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
-(declare-function dired-unmark "dired" (arg))
+(declare-function dired-unmark "dired" (arg &optional interactive))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
-(declare-function view-mode-disable "view" ())
 (declare-function dosified-file-name "dos-fns" (file-name))
 
 (defvar file-name-invalid-regexp
@@ -508,6 +507,11 @@ and ignores this variable."
 		 (other :tag "Query" other))
   :group 'find-file)
 
+(defvar enable-dir-local-variables t
+  "Non-nil means enable use of directory-local variables.
+Some modes may wish to set this to nil to prevent directory-local
+settings being applied, but still respect file-local ones.")
+
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
 ;; (set (make-local-variable 'enable-local-variables) nil)
@@ -658,22 +662,16 @@ Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (search-path)
   "Explode a search path into a list of directory names.
-Directories are separated by occurrences of `path-separator'
-\(which is colon in GNU and GNU-like systems)."
-  ;; We could use split-string here.
-  (and search-path
-       (let (cd-list (cd-start 0) cd-colon)
-	 (setq search-path (concat search-path path-separator))
-	 (while (setq cd-colon (string-match path-separator search-path cd-start))
-	   (setq cd-list
-		 (nconc cd-list
-			(list (if (= cd-start cd-colon)
-				   nil
-				(substitute-in-file-name
-				 (file-name-as-directory
-				  (substring search-path cd-start cd-colon)))))))
-	   (setq cd-start (+ cd-colon 1)))
-	 cd-list)))
+Directories are separated by `path-separator' (which is colon in
+GNU and Unix systems).  Substitute environment variables into the
+resulting list of directory names.  For an empty path element (i.e.,
+a leading or trailing separator, or two adjacent separators), return
+nil (meaning `default-directory') as the associated list element."
+  (when (stringp search-path)
+    (mapcar (lambda (f)
+	      (if (equal "" f) nil
+		(substitute-in-file-name (file-name-as-directory f))))
+	    (split-string search-path path-separator))))
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."
@@ -739,7 +737,7 @@ The path separator is colon in GNU and GNU-like systems."
   ;; This is a case where .elc makes a lot of sense.
   (interactive (list (let ((completion-ignored-extensions
 			    (remove ".elc" completion-ignored-extensions)))
-		       (read-file-name "Load file: "))))
+		       (read-file-name "Load file: " nil nil 'lambda))))
   (load (expand-file-name file) nil nil t))
 
 (defun locate-file (filename path &optional suffixes predicate)
@@ -830,10 +828,10 @@ one or more of those symbols."
 (defun locate-file-completion (string path-and-suffixes action)
   "Do completion for file names passed to `locate-file'.
 PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+  (declare (obsolete locate-file-completion-table "23.1"))
   (locate-file-completion-table (car path-and-suffixes)
                                 (cdr path-and-suffixes)
                                 string nil action))
-(make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
 (defvar locate-dominating-stop-dir-regexp
   (purecopy "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'")
@@ -1518,7 +1516,10 @@ expand wildcards (if any) and replace the file with multiple files."
 (defvar kill-buffer-hook nil
   "Hook run when a buffer is killed.
 The buffer being killed is current while the hook is running.
-See `kill-buffer'.")
+See `kill-buffer'.
+
+Note: Be careful with let-binding this hook considering it is
+frequently used for cleanup.")
 
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
@@ -1546,12 +1547,9 @@ killed."
 	   t)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (error "Aborted"))
-  (when (and (buffer-modified-p) buffer-file-name)
-    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
-			     (buffer-name)))
-        (save-buffer)
-      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
-        (error "Aborted"))))
+  (and (buffer-modified-p) buffer-file-name
+       (not (yes-or-no-p "Kill and replace the buffer without saving it? "))
+       (error "Aborted"))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
@@ -1988,13 +1986,10 @@ Do you want to revisit the file normally now? ")
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
 	    (set-buffer-major-mode buf)
-	    (make-local-variable 'find-file-literally)
-	    (setq find-file-literally t))
+	    (setq-local find-file-literally t))
 	(after-find-file error (not nowarn)))
       (current-buffer))))
 
-(defvar file-name-buffer-file-type-alist) ;From dos-w32.el.
-
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
@@ -2006,7 +2001,6 @@ This function ensures that none of these modifications will take place."
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
-	(file-name-buffer-file-type-alist '(("" . t)))
         (inhibit-file-name-handlers
          ;; FIXME: Yuck!!  We should turn insert-file-contents-literally
          ;; into a file operation instead!
@@ -2134,7 +2128,7 @@ unless NOMODES is non-nil."
     (setq buffer-read-only t))
   (unless nomodes
     (when (and view-read-only view-mode)
-      (view-mode-disable))
+      (view-mode -1))
     (normal-mode t)
     ;; If requested, add a newline at the end of the file.
     (and (memq require-final-newline '(visit visit-save))
@@ -2180,7 +2174,7 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (funcall (or (default-value 'major-mode) 'fundamental-mode))
+  (fundamental-mode)
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
@@ -2318,7 +2312,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
-     ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
+     ("\\.oxt\\'" . archive-mode) ;(Open|Libre)Office extensions.
      ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -2335,6 +2329,8 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.js\\'" . javascript-mode)
      ("\\.json\\'" . javascript-mode)
      ("\\.[ds]?vh?\\'" . verilog-mode)
+     ("\\.by\\'" . bovine-grammar-mode)
+     ("\\.wy\\'" . wisent-grammar-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -2365,7 +2361,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("\\.\\(?:PDF\\|DVI\\|OD[FGPST]\\|DOCX?\\|XLSX?\\|PPTX?\\|pdf\\|dvi\\|od[fgpst]\\|docx?\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
+     ("\\.\\(?:PDF\\|DVI\\|OD[FGPST]\\|DOCX?\\|XLSX?\\|PPTX?\\|pdf\\|djvu\\|dvi\\|od[fgpst]\\|docx?\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
@@ -2504,6 +2500,7 @@ See also `auto-mode-alist'.")
 		      "\\.zoo\\'" "\\.[jew]ar\\'" "\\.xpi\\'" "\\.rar\\'"
 		      "\\.7z\\'"
 		      "\\.sx[dmicw]\\'" "\\.odt\\'"
+		      "\\.diff\\'" "\\.patch\\'"
 		      "\\.tiff?\\'" "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
   "List of regexps matching file names in which to ignore local variables.
 This includes `-*-' lines as well as trailing \"Local Variables\" sections.
@@ -2512,25 +2509,31 @@ They may happen to contain sequences that look like local variable
 specifications, but are not really, or they may be containers for
 member files with their own local variable sections, which are
 not appropriate for the containing file.
-See also `inhibit-local-variables-suffixes'.")
+The function `inhibit-local-variables-p' uses this.")
 
 (define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
   'inhibit-local-variables-suffixes "24.1")
 
 (defvar inhibit-local-variables-suffixes nil
   "List of regexps matching suffixes to remove from file names.
-When checking `inhibit-local-variables-regexps', we first discard
-from the end of the file name anything that matches one of these regexps.")
+The function `inhibit-local-variables-p' uses this: when checking
+a file name, it first discards from the end of the name anything that
+matches one of these regexps.")
 
-;; TODO explicitly add case-fold-search t?
+;; Can't think of any situation in which you'd want this to be nil...
+(defvar inhibit-local-variables-ignore-case t
+  "Non-nil means `inhibit-local-variables-p' ignores case.")
+
 (defun inhibit-local-variables-p ()
   "Return non-nil if file local variables should be ignored.
 This checks the file (or buffer) name against `inhibit-local-variables-regexps'
-and `inhibit-local-variables-suffixes'."
+and `inhibit-local-variables-suffixes'.  If
+`inhibit-local-variables-ignore-case' is non-nil, this ignores case."
   (let ((temp inhibit-local-variables-regexps)
 	(name (if buffer-file-name
 		  (file-name-sans-versions buffer-file-name)
-		(buffer-name))))
+		(buffer-name)))
+	(case-fold-search inhibit-local-variables-ignore-case))
     (while (let ((sufs inhibit-local-variables-suffixes))
 	     (while (and sufs (not (string-match (car sufs) name)))
 	       (setq sufs (cdr sufs)))
@@ -2755,7 +2758,9 @@ we don't actually set it to the same mode the buffer already has."
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
-	  (set-auto-mode-0 done keep-mode-if-same)))))
+	  (set-auto-mode-0 done keep-mode-if-same)))
+    (unless done
+      (set-buffer-major-mode (current-buffer)))))
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -3025,6 +3030,9 @@ n  -- to ignore the local variables list.")
 	  (prog1 (memq char '(?! ?\s ?y))
 	    (quit-window t)))))))
 
+(defconst hack-local-variable-regexp
+  "[ \t]*\\([^][;\"'?()\\ \t\n]+\\)[ \t]*:[ \t]*")
+
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
 Returns an alist of elements (VAR . VAL), where VAR is a variable
@@ -3051,11 +3059,11 @@ mode, if there is one, otherwise nil."
 	       ;; (last ";" is optional).
 	       ;; If MODE-ONLY, just check for `mode'.
 	       ;; Otherwise, parse the -*- line into the RESULT alist.
-	       (while (and (or (not mode-only)
-			       (not result))
-			   (< (point) end))
-		 (unless (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
-		   (message "Malformed mode-line")
+	       (while (not (or (and mode-only result)
+                               (>= (point) end)))
+		 (unless (looking-at hack-local-variable-regexp)
+		   (message "Malformed mode-line: %S"
+                            (buffer-substring-no-properties (point) end))
 		   (throw 'malformed-line nil))
 		 (goto-char (match-end 0))
 		 ;; There used to be a downcase here,
@@ -3207,8 +3215,7 @@ local variables, but directory-local variables may still be applied."
 		  (prefix
 		   (concat "^" (regexp-quote
 				(buffer-substring (line-beginning-position)
-						  (match-beginning 0)))))
-		  beg)
+						  (match-beginning 0))))))
 
 	      (forward-line 1)
 	      (let ((startpos (point))
@@ -3243,18 +3250,16 @@ local variables, but directory-local variables may still be applied."
 		    (forward-line 1))
 		  (goto-char (point-min))
 
-		  (while (and (not (eobp))
-			      (or (not mode-only)
-				  (not result)))
-		    ;; Find the variable name; strip whitespace.
-		    (skip-chars-forward " \t")
-		    (setq beg (point))
-		    (skip-chars-forward "^:\n")
-		    (if (eolp) (error "Missing colon in local variables entry"))
-		    (skip-chars-backward " \t")
-		    (let* ((str (buffer-substring beg (point)))
-			   (var (let ((read-circle nil))
-				  (read str)))
+		  (while (not (or (eobp)
+                                  (and mode-only result)))
+		    ;; Find the variable name;
+		    (unless (looking-at hack-local-variable-regexp)
+                      (error "Malformed local variable line: %S"
+                             (buffer-substring-no-properties
+                              (point) (line-end-position))))
+                    (goto-char (match-end 1))
+		    (let* ((str (match-string 1))
+			   (var (intern str))
 			   val val2)
 		      (and (equal (downcase (symbol-name var)) "mode")
 			   (setq var 'mode))
@@ -3397,30 +3402,39 @@ It is dangerous if either of these conditions are met:
 				(setq ok t)))
 			  ok))))))))
 
+(defun hack-one-local-variable--obsolete (var)
+  (let ((o (get var 'byte-obsolete-variable)))
+    (when o
+      (let ((instead (nth 0 o))
+            (since (nth 2 o)))
+        (message "%s is obsolete%s; %s"
+                 var (if since (format " (since %s)" since))
+                 (if (stringp instead) instead
+                   (format "use `%s' instead" instead)))))))
+
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
 If VAR is `mode', call `VAL-mode' as a function unless it's
 already the major mode."
-  (cond ((eq var 'mode)
-	 (let ((mode (intern (concat (downcase (symbol-name val))
-				     "-mode"))))
-	   (unless (eq (indirect-function mode)
-		       (indirect-function major-mode))
-	     (if (memq mode minor-mode-list)
-		 ;; A minor mode must be passed an argument.
-		 ;; Otherwise, if the user enables the minor mode in a
-		 ;; major mode hook, this would toggle it off.
-		 (funcall mode 1)
-	       (funcall mode)))))
-	((eq var 'eval)
-	 (save-excursion (eval val)))
-	(t
-         ;; Make sure the string has no text properties.
-         ;; Some text properties can get evaluated in various ways,
-         ;; so it is risky to put them on with a local variable list.
-         (if (stringp val)
-             (set-text-properties 0 (length val) nil val))
-         (set (make-local-variable var) val))))
+  (pcase var
+    (`mode
+     (let ((mode (intern (concat (downcase (symbol-name val))
+                                 "-mode"))))
+       (unless (eq (indirect-function mode)
+                   (indirect-function major-mode))
+         (funcall mode))))
+    (`eval
+     (pcase val
+       (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
+     (save-excursion (eval val)))
+    (_
+     (hack-one-local-variable--obsolete var)
+     ;; Make sure the string has no text properties.
+     ;; Some text properties can get evaluated in various ways,
+     ;; so it is risky to put them on with a local variable list.
+     (if (stringp val)
+         (set-text-properties 0 (length val) nil val))
+     (set (make-local-variable var) val))))
 
 ;;; Handling directory-local variables, aka project settings.
 
@@ -3434,7 +3448,7 @@ DIR is the name of the directory.
 CLASS is the name of a variable class (a symbol).
 MTIME is the recorded modification time of the directory-local
 variables file associated with this entry.  This time is a list
-of two integers (the same format as `file-attributes'), and is
+of integers (the same format as `file-attributes'), and is
 used to test whether the cache entry is still valid.
 Alternatively, MTIME can be nil, which means the entry is always
 considered valid.")
@@ -3635,14 +3649,15 @@ is found.  Returns the new class name."
       (condition-case err
 	  (progn
 	    (insert-file-contents file)
-	    (let* ((dir-name (file-name-directory file))
-		   (class-name (intern dir-name))
-		   (variables (let ((read-circle nil))
-				(read (current-buffer)))))
-	      (dir-locals-set-class-variables class-name variables)
-	      (dir-locals-set-directory-class dir-name class-name
-					      (nth 5 (file-attributes file)))
-	      class-name))
+	    (unless (zerop (buffer-size))
+	      (let* ((dir-name (file-name-directory file))
+		     (class-name (intern dir-name))
+		     (variables (let ((read-circle nil))
+				  (read (current-buffer)))))
+		(dir-locals-set-class-variables class-name variables)
+		(dir-locals-set-directory-class dir-name class-name
+						(nth 5 (file-attributes file)))
+		class-name)))
 	(error (message "Error reading dir-locals: %S" err) nil)))))
 
 (defcustom enable-remote-dir-locals nil
@@ -3654,8 +3669,12 @@ is found.  Returns the new class name."
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
 Store the directory-local variables in `dir-local-variables-alist'
-and `file-local-variables-alist', without applying them."
+and `file-local-variables-alist', without applying them.
+
+This does nothing if either `enable-local-variables' or
+`enable-dir-local-variables' are nil."
   (when (and enable-local-variables
+	     enable-dir-local-variables
 	     (or enable-remote-dir-locals
 		 (not (file-remote-p (or (buffer-file-name)
 					 default-directory)))))
@@ -3677,10 +3696,13 @@ and `file-local-variables-alist', without applying them."
 		(dir-locals-get-class-variables class) dir-name nil)))
 	  (when variables
 	    (dolist (elt variables)
-	      (unless (memq (car elt) '(eval mode))
-		(setq dir-local-variables-alist
-		      (assq-delete-all (car elt) dir-local-variables-alist)))
-	      (push elt dir-local-variables-alist))
+	      (if (eq (car elt) 'coding)
+		  (display-warning :warning
+				   "Coding cannot be specified by dir-locals")
+		(unless (memq (car elt) '(eval mode))
+		  (setq dir-local-variables-alist
+			(assq-delete-all (car elt) dir-local-variables-alist)))
+		(push elt dir-local-variables-alist)))
 	    (hack-local-variables-filter variables dir-name)))))))
 
 (defun hack-dir-local-variables-non-file-buffer ()
@@ -3870,6 +3892,27 @@ Interactively, confirmation is required unless you supply a prefix argument."
   ;; the one at the old location.
   (vc-find-file-hook))
 
+(defun file-extended-attributes (filename)
+  "Return an alist of extended attributes of file FILENAME.
+
+Extended attributes are platform-specific metadata about the file,
+such as SELinux context, list of ACL entries, etc."
+  `((acl . ,(file-acl filename))
+    (selinux-context . ,(file-selinux-context filename))))
+
+(defun set-file-extended-attributes (filename attributes)
+  "Set extended attributes of file FILENAME to ATTRIBUTES.
+
+ATTRIBUTES must be an alist of file attributes as returned by
+`file-extended-attributes'."
+  (dolist (elt attributes)
+    (let ((attr (car elt))
+	  (val (cdr elt)))
+      (cond ((eq attr 'acl)
+	     (set-file-acl filename val))
+	    ((eq attr 'selinux-context)
+	     (set-file-selinux-context filename val))))))
+
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
 This is normally done before saving the buffer the first time.
@@ -3879,13 +3922,14 @@ variable `make-backup-files'.  If it's done by renaming, then the file is
 no longer accessible under its old name.
 
 The value is non-nil after a backup was made by renaming.
-It has the form (MODES SELINUXCONTEXT BACKUPNAME).
+It has the form (MODES EXTENDED-ATTRIBUTES BACKUPNAME).
 MODES is the result of `file-modes' on the original
 file; this means that the caller, after saving the buffer, should change
 the modes of the new file to agree with the old modes.
-SELINUXCONTEXT is the result of `file-selinux-context' on the original
-file; this means that the caller, after saving the buffer, should change
-the SELinux context of the new file to agree with the old context.
+EXTENDED-ATTRIBUTES is the result of `file-extended-attributes'
+on the original file; this means that the caller, after saving
+the buffer, should change the extended attributes of the new file
+to agree with the old attributes.
 BACKUPNAME is the backup file name, which is the old file renamed."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
@@ -3914,7 +3958,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 				(y-or-n-p (format "Delete excess backup versions of %s? "
 						  real-file-name)))))
 		      (modes (file-modes buffer-file-name))
-		      (context (file-selinux-context buffer-file-name)))
+		      (extended-attributes
+		       (file-extended-attributes buffer-file-name)))
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
@@ -3932,12 +3977,15 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 					      (and (integerp (nth 2 attr))
 						   (integerp backup-by-copying-when-privileged-mismatch)
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
-					  (or (nth 9 attr)
-					      (not (file-ownership-preserved-p real-file-name)))))))
-			  (backup-buffer-copy real-file-name backupname modes context)
+					  (not (file-ownership-preserved-p
+						real-file-name t))))))
+			  (backup-buffer-copy real-file-name
+					      backupname modes
+					      extended-attributes)
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes (list modes context backupname)))
+			(setq setmodes (list modes extended-attributes
+					     backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in
 		     ;; .emacs.d/%backup%.
@@ -3945,7 +3993,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)
-		     (backup-buffer-copy real-file-name backupname modes context)))
+		     (backup-buffer-copy real-file-name backupname
+					 modes extended-attributes)))
 		  (setq buffer-backed-up t)
 		  ;; Now delete the old versions, if desired.
 		  (if delete-old-versions
@@ -3957,7 +4006,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		  setmodes)
 	    (file-error nil))))))
 
-(defun backup-buffer-copy (from-name to-name modes context)
+(defun backup-buffer-copy (from-name to-name modes extended-attributes)
   (let ((umask (default-file-modes)))
     (unwind-protect
 	(progn
@@ -3983,10 +4032,12 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	      nil)))
       ;; Reset the umask.
       (set-default-file-modes umask)))
-  (and modes
-       (set-file-modes to-name (logand modes #o1777)))
-  (and context
-       (set-file-selinux-context to-name context)))
+  ;; If set-file-extended-attributes fails, fall back on set-file-modes.
+  (unless (and extended-attributes
+	       (with-demoted-errors
+		 (set-file-extended-attributes to-name extended-attributes)))
+    (and modes
+	 (set-file-modes to-name (logand modes #o1777)))))
 
 (defvar file-name-version-regexp
   "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
@@ -4010,22 +4061,44 @@ See also `file-name-version-regexp'."
                    (string-match (concat file-name-version-regexp "\\'")
                                  name))))))
 
-(defun file-ownership-preserved-p (file)
-  "Return t if deleting FILE and rewriting it would preserve the owner."
+(defun file-ownership-preserved-p (file &optional group)
+  "Return t if deleting FILE and rewriting it would preserve the owner.
+Return nil if FILE does not exist, or if deleting and recreating it
+might not preserve the owner.  If GROUP is non-nil, check whether
+the group would be preserved too."
   (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
     (if handler
-	(funcall handler 'file-ownership-preserved-p file)
+	(funcall handler 'file-ownership-preserved-p file group)
       (let ((attributes (file-attributes file 'integer)))
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
-	    (= (nth 2 attributes) (user-uid))
-	    ;; Files created on Windows by Administrator (RID=500)
-	    ;; have the Administrators group (RID=544) recorded as
-	    ;; their owner.  Rewriting them will still preserve the
-	    ;; owner.
-	    (and (eq system-type 'windows-nt)
-		 (= (user-uid) 500) (= (nth 2 attributes) 544)))))))
+	    (and (or (= (nth 2 attributes) (user-uid))
+		     ;; Files created on Windows by Administrator (RID=500)
+		     ;; have the Administrators group (RID=544) recorded as
+		     ;; their owner.  Rewriting them will still preserve the
+		     ;; owner.
+		     (and (eq system-type 'windows-nt)
+			  (= (user-uid) 500) (= (nth 2 attributes) 544)))
+		 (or (not group)
+		     ;; On BSD-derived systems files always inherit the parent
+		     ;; directory's group, so skip the group-gid test.
+		     (memq system-type '(berkeley-unix darwin gnu/kfreebsd))
+		     (= (nth 3 attributes) (group-gid)))
+		 (let* ((parent (or (file-name-directory file) "."))
+			(parent-attributes (file-attributes parent 'integer)))
+		   (and parent-attributes
+			;; On some systems, a file created in a setuid directory
+			;; inherits that directory's owner.
+			(or
+			 (= (nth 2 parent-attributes) (user-uid))
+			 (string-match "^...[^sS]" (nth 8 parent-attributes)))
+			;; On many systems, a file created in a setgid directory
+			;; inherits that directory's group.  On some systems
+			;; this happens even if the setgid bit is not set.
+			(or (not group)
+			    (= (nth 3 parent-attributes)
+			       (nth 3 attributes)))))))))))
 
 (defun file-name-sans-extension (filename)
   "Return FILENAME sans final \"extension\".
@@ -4108,23 +4181,31 @@ ignored."
   "Default `backup-enable-predicate' function.
 Checks for files in `temporary-file-directory',
 `small-temporary-file-directory', and /tmp."
-  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
-					name 0 nil)))
-	     ;; Directory is under temporary-file-directory.
-	     (and (not (eq comp t))
-		  (< comp (- (length temporary-file-directory)))))
-	   (let ((comp (compare-strings "/tmp" 0 nil
-					name 0 nil)))
-	     ;; Directory is under /tmp.
-	     (and (not (eq comp t))
-		  (< comp (- (length "/tmp")))))
-	   (if small-temporary-file-directory
-	       (let ((comp (compare-strings small-temporary-file-directory
-					    0 nil
-					    name 0 nil)))
-		 ;; Directory is under small-temporary-file-directory.
-		 (and (not (eq comp t))
-		      (< comp (- (length small-temporary-file-directory)))))))))
+  (let ((temporary-file-directory temporary-file-directory)
+	caseless)
+    ;; On MS-Windows, file-truename will convert short 8+3 aliases to
+    ;; their long file-name equivalents, so compare-strings does TRT.
+    (if (memq system-type '(ms-dos windows-nt))
+	(setq temporary-file-directory (file-truename temporary-file-directory)
+	      name (file-truename name)
+	      caseless t))
+    (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+					  name 0 nil caseless)))
+	       ;; Directory is under temporary-file-directory.
+	       (and (not (eq comp t))
+		    (< comp (- (length temporary-file-directory)))))
+	     (let ((comp (compare-strings "/tmp" 0 nil
+					  name 0 nil)))
+	       ;; Directory is under /tmp.
+	       (and (not (eq comp t))
+		    (< comp (- (length "/tmp")))))
+	     (if small-temporary-file-directory
+		 (let ((comp (compare-strings small-temporary-file-directory
+					      0 nil
+					      name 0 nil caseless)))
+		   ;; Directory is under small-temporary-file-directory.
+		   (and (not (eq comp t))
+			(< comp (- (length small-temporary-file-directory))))))))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
@@ -4495,28 +4576,21 @@ Before and after saving the buffer, this function runs
 		 (not (file-exists-p buffer-file-name))))
 	(let ((recent-save (recent-auto-save-p))
 	      setmodes)
-	  ;; If buffer has no file name, ask user for one.
+          ;; If buffer has no file name, ask user for one.
 	  (or buffer-file-name
-	      (let ((filename
-		     (expand-file-name
-		      (read-file-name "File to save in: "
-				      nil (expand-file-name (buffer-name))))))
-		(if (file-exists-p filename)
-		    (if (file-directory-p filename)
-			;; Signal an error if the user specified the name of an
-			;; existing directory.
-			(error "%s is a directory" filename)
-		      (unless (y-or-n-p (format "File `%s' exists; overwrite? "
-						filename))
-			(error "Canceled")))
-		  ;; Signal an error if the specified name refers to a
-		  ;; non-existing directory.
-		  (let ((dir (file-name-directory filename)))
-		    (unless (file-directory-p dir)
-		      (if (file-exists-p dir)
-			  (error "%s is not a directory" dir)
-			(error "%s: no such directory" dir)))))
-		(set-visited-file-name filename)))
+              (let ((filename
+                     (expand-file-name
+                      (read-file-name "File to save in: "
+                                      nil (expand-file-name (buffer-name))))))
+                (if (file-exists-p filename)
+                    (if (file-directory-p filename)
+                        ;; Signal an error if the user specified the name of an
+                        ;; existing directory.
+                        (error "%s is a directory" filename)
+                      (unless (y-or-n-p (format "File `%s' exists; overwrite? "
+                                                filename))
+                        (error "Canceled"))))
+                (set-visited-file-name filename)))
 	  (or (verify-visited-file-modtime (current-buffer))
 	      (not (file-exists-p buffer-file-name))
 	      (yes-or-no-p
@@ -4543,13 +4617,21 @@ Before and after saving the buffer, this function runs
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
-	    (run-hooks 'before-save-hook)
+	    ;; Don't let errors prevent saving the buffer.
+	    (with-demoted-errors (run-hooks 'before-save-hook))
 	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-functions)
 		;; If a hook returned t, file is already "written".
 		;; Otherwise, write it the usual way now.
-		(setq setmodes (basic-save-buffer-1)))
+		(let ((dir (file-name-directory
+			    (expand-file-name buffer-file-name))))
+		  (unless (file-exists-p dir)
+		    (if (y-or-n-p
+			 (format "Directory `%s' does not exist; create? " dir))
+			(make-directory dir t)
+		      (error "Canceled")))
+		  (setq setmodes (basic-save-buffer-1))))
 	    ;; Now we have saved the current buffer.  Let's make sure
 	    ;; that buffer-file-coding-system is fixed to what
 	    ;; actually used for saving by binding it locally.
@@ -4561,8 +4643,11 @@ Before and after saving the buffer, this function runs
 	    (if setmodes
 		(condition-case ()
 		    (progn
-		      (set-file-modes buffer-file-name (car setmodes))
-		      (set-file-selinux-context buffer-file-name (nth 1 setmodes)))
+		      (unless
+			  (with-demoted-errors
+			    (set-file-modes buffer-file-name (car setmodes)))
+			(set-file-extended-attributes buffer-file-name
+						      (nth 1 setmodes))))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
@@ -4575,7 +4660,8 @@ Before and after saving the buffer, this function runs
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
 ;; but inhibited if one of write-file-functions returns non-nil.
-;; It returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
+;; It returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
+;; backup-buffer.
 (defun basic-save-buffer-1 ()
   (prog1
       (if save-buffer-coding-system
@@ -4583,13 +4669,12 @@ Before and after saving the buffer, this function runs
 	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
     (if buffer-file-coding-system-explicit
-	(setcar buffer-file-coding-system-explicit last-coding-system-used)
-      (setq buffer-file-coding-system-explicit
-	    (cons last-coding-system-used nil)))))
+	(setcar buffer-file-coding-system-explicit last-coding-system-used))))
 
-;; This returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
+;; This returns a value (MODES EXTENDED-ATTRIBUTES BACKUPNAME), like
+;; backup-buffer.
 (defun basic-save-buffer-2 ()
-  (let (tempsetmodes setmodes)
+  (let (tempsetmodes setmodes writecoding)
     (if (not (file-writable-p buffer-file-name))
 	(let ((dir (file-name-directory buffer-file-name)))
 	  (if (not (file-directory-p dir))
@@ -4605,6 +4690,14 @@ Before and after saving the buffer, this function runs
 		     buffer-file-name)))
 		  (setq tempsetmodes t)
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
+    ;; This may involve prompting, so do it now before backing up the file.
+    ;; Otherwise there can be a delay while the user answers the
+    ;; prompt during which the original file has been renamed.  (Bug#13522)
+    (setq writecoding
+	  ;; Args here should match write-region call below around
+	  ;; which we use writecoding.
+	  (choose-write-coding-system nil nil buffer-file-name nil t
+				      buffer-file-truename))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
     (let* ((dir (file-name-directory buffer-file-name))
@@ -4662,7 +4755,7 @@ Before and after saving the buffer, this function runs
 	    (setq setmodes (or setmodes
  			       (list (or (file-modes buffer-file-name)
 					 (logand ?\666 umask))
-				     (file-selinux-context buffer-file-name)
+				     (file-extended-attributes buffer-file-name)
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
@@ -4674,16 +4767,23 @@ Before and after saving the buffer, this function runs
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes (list (file-modes buffer-file-name)
-				    (file-selinux-context buffer-file-name)
+				    (file-extended-attributes buffer-file-name)
 				    buffer-file-name))
-	       (set-file-modes buffer-file-name (logior (car setmodes) 128))
-	       (set-file-selinux-context buffer-file-name (nth 1 setmodes)))))
+	       ;; If set-file-extended-attributes fails, fall back on
+	       ;; set-file-modes.
+	       (unless
+		   (with-demoted-errors
+		     (set-file-extended-attributes buffer-file-name
+						   (nth 1 setmodes)))
+		 (set-file-modes buffer-file-name
+				 (logior (car setmodes) 128))))))
 	(let (success)
 	  (unwind-protect
-	      (progn
                 ;; Pass in nil&nil rather than point-min&max to indicate
                 ;; we're saving the buffer rather than just a region.
                 ;; write-region-annotate-functions may make us of it.
+	      (let ((coding-system-for-write writecoding)
+		    (coding-system-require-warning nil))
 		(write-region nil nil
 			      buffer-file-name nil t buffer-file-truename)
 		(setq success t))
@@ -5409,18 +5509,20 @@ Then you'll be asked about a number of files to recover."
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
 	   (concat dired-listing-switches " -t")))
+  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
+  (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish)
   (save-excursion
     (goto-char (point-min))
     (or (looking-at " Move to the session you want to recover,")
 	(let ((inhibit-read-only t))
 	  ;; Each line starts with a space
 	  ;; so that Font Lock mode won't highlight the first character.
-	  (insert " Move to the session you want to recover,\n"
-		  " then type C-c C-c to select it.\n\n"
-		  " You can also delete some of these files;\n"
-		  " type d on a line to mark that file for deletion.\n\n"))))
-  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-  (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish))
+	  (insert " To recover a session, move to it and type C-c C-c.\n"
+		  (substitute-command-keys
+		   " To delete a session file, type \
+\\[dired-flag-file-deletion] on its line to flag
+ the file for deletion, then \\[dired-do-flagged-delete] to \
+delete flagged files.\n\n"))))))
 
 (defun recover-session-finish ()
   "Choose one saved session to recover auto-save files from.
@@ -5654,7 +5756,7 @@ See also `auto-save-file-name-p'."
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
 FILENAME should lack slashes.  You can redefine this for customization."
-  (string-match "^#.*#$" filename))
+  (string-match "\\`#.*#\\'" filename))
 
 (defun wildcard-to-regexp (wildcard)
   "Given a shell file name pattern WILDCARD, return an equivalent regexp.
@@ -6723,7 +6825,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
 (define-key ctl-x-map "\C-c" 'save-buffers-kill-terminal)
-(define-key ctl-x-map "\C-q" 'toggle-read-only)
+(define-key ctl-x-map "\C-q" 'read-only-mode)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)
 (define-key ctl-x-4-map "r" 'find-file-read-only-other-window)

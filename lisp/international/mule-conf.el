@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -1458,7 +1458,8 @@ for decoding and encoding files, process I/O, etc."
   :flags '(ascii-at-eol ascii-at-cntl long-form
 			designation locking-shift single-shift)
   :post-read-conversion 'ctext-post-read-conversion
-  :pre-write-conversion 'ctext-pre-write-conversion)
+  :pre-write-conversion 'ctext-pre-write-conversion
+  :mime-charset 'x-ctext)
 
 (define-coding-system-alias
   'x-ctext-with-extensions 'compound-text-with-extensions)
@@ -1507,6 +1508,7 @@ for decoding and encoding files, process I/O, etc."
 (setq file-coding-system-alist
       (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
       '(("\\.elc\\'" . utf-8-emacs)
+	("\\.el\\'" . utf-8)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	("\\.xml\\'" . xml-find-file-coding-system)
 	;; We use raw-text for reading loaddefs.el so that if it

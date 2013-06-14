@@ -1,13 +1,14 @@
 # Enable large files on systems where this is not the default.
 
-# Copyright 1992-1996, 1998-2012 Free Software Foundation, Inc.
+# Copyright 1992-1996, 1998-2013 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# The following implementation works around a problem in autoconf <= 2.68;
-# AC_SYS_LARGEFILE does not configure for large inodes on Mac OS X 10.5.
-m4_version_prereq([2.69], [] ,[
+# The following implementation works around a problem in autoconf <= 2.69;
+# AC_SYS_LARGEFILE does not configure for large inodes on Mac OS X 10.5,
+# or configures them incorrectly in some cases.
+m4_version_prereq([2.70], [] ,[
 
 # _AC_SYS_LARGEFILE_TEST_INCLUDES
 # -------------------------------
@@ -25,9 +26,9 @@ m4_define([_AC_SYS_LARGEFILE_TEST_INCLUDES],
 
 
 # _AC_SYS_LARGEFILE_MACRO_VALUE(C-MACRO, VALUE,
-#				CACHE-VAR,
-#				DESCRIPTION,
-#				PROLOGUE, [FUNCTION-BODY])
+#                               CACHE-VAR,
+#                               DESCRIPTION,
+#                               PROLOGUE, [FUNCTION-BODY])
 # --------------------------------------------------------
 m4_define([_AC_SYS_LARGEFILE_MACRO_VALUE],
 [AC_CACHE_CHECK([for $1 value needed for large files], [$3],
@@ -93,15 +94,11 @@ if test "$enable_largefile" != no; then
       [_AC_SYS_LARGEFILE_TEST_INCLUDES])
   fi
 
-  AH_VERBATIM([_DARWIN_USE_64_BIT_INODE],
-[/* Enable large inode numbers on Mac OS X.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif])
+  AC_DEFINE([_DARWIN_USE_64_BIT_INODE], [1],
+    [Enable large inode numbers on Mac OS X 10.5.])
 fi
 ])# AC_SYS_LARGEFILE
-
-])# m4_version_prereq 2.69
+])# m4_version_prereq 2.70
 
 # Enable large files on systems where this is implemented by Gnulib, not by the
 # system headers.

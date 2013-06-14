@@ -1,8 +1,8 @@
 /* Definitions for data structures and routines for the regular
    expression library, version 0.12.
 
-   Copyright (C) 1985, 1989-1993, 1995, 2000-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989-1993, 1995, 2000-2013 Free Software
+   Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,9 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-   USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef _REGEX_H
 #define _REGEX_H 1
@@ -532,7 +530,7 @@ extern int re_exec (const char *);
 /* GCC 2.95 and later have "__restrict"; C99 compilers have
    "restrict", and "configure" may have defined "restrict".  */
 #ifndef __restrict
-# if ! (2 < __GNUC__ || (2 == __GNUC__ && 95 <= __GNUC_MINOR__))
+# if ! (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95))
 #  if defined restrict || 199901L <= __STDC_VERSION__
 #   define __restrict restrict
 #  else

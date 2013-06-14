@@ -20,7 +20,7 @@
 % Typical command to format:  tex calccard.tex
 % Typical command to print (3 cols):  dvips -t landscape calccard.dvi
 
-% Copyright (C) 1987, 1992, 2001-2012  Free Software Foundation, Inc.
+% Copyright (C) 1987, 1992, 2001-2013 Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
 
@@ -63,8 +63,7 @@
 %  UUCP: mit-erl!gildea
 %  Internet: gildea@stop.mail-abuse.org
 
-\def\emacsversionnumber{24}
-\def\year{2012}                 % latest copyright year
+\input emacsver.tex
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
@@ -276,7 +275,7 @@ are preserved on all copies.
 
 \title{GNU Calc Reference Card}
 
-\centerline{(for GNU Emacs version \emacsversionnumber)}
+\centerline{(for GNU Emacs version \versionemacs)}
 
 \section{Starting and Stopping}
 
@@ -555,7 +554,6 @@ Variable names are single digits or whole words.
 \key{symbolic (vs.\ numeric) mode}{m s}
 \key{fractions (vs.\ float) mode}{m f}
 \key{suppress evaluation of formulas}{m O}
-\key{simplify formulas automatically}{m S}
 \key{return to default evaluation rules}{m D}
 
 \key{``Big'' display mode}{d B}

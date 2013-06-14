@@ -1,6 +1,6 @@
 ;;;; testcover.el -- Visual code-coverage tool
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -100,14 +100,14 @@ current global map.  The macro `lambda' is self-evaluating, hence always
 returns the same value (the function it defines may return varying values
 when called)."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-noreturn-functions
   '(error noreturn throw signal)
   "Subset of `testcover-1value-functions' -- these never return.  We mark
 them as having returned nil just before calling them."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-compose-functions
   '(+ - * / = append length list make-keymap make-sparse-keymap
@@ -118,7 +118,7 @@ calls to one of the `testcover-1value-functions', so if that's true then no
 brown splotch is shown for these.  This list is quite incomplete!  Most
 side-effect-free functions should be here."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-progn-functions
   '(define-key fset function goto-char mapc overlay-put progn
@@ -132,7 +132,7 @@ brown splotch is shown for these if the last argument is a constant or a
 call to one of the `testcover-1value-functions'.  This list is probably
 incomplete!"
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-prog1-functions
   '(prog1 unwind-protect)
@@ -140,7 +140,7 @@ incomplete!"
 brown splotch is shown for these if the first argument is a constant or a
 call to one of the `testcover-1value-functions'."
   :group 'testcover
-  :type 'hook)
+  :type '(repeat symbol))
 
 (defcustom testcover-potentially-1value-functions
   '(add-hook and beep or remove-hook unless when)
@@ -270,9 +270,9 @@ value, 'maybe if either is acceptable."
       (setq id (nth 2 form))
       (setcdr form (nthcdr 2 form))
       (setq val (testcover-reinstrument (nth 2 form)))
-      (if (eq val t)
-	  (setcar form 'testcover-1value)
-	(setcar form 'testcover-after))
+      (setcar form (if (eq val t)
+                       'testcover-1value
+                     'testcover-after))
       (when val
 	;;1-valued or potentially 1-valued
 	(aset testcover-vector id '1value))
@@ -359,9 +359,9 @@ value, 'maybe if either is acceptable."
 					      ,(nth 3 (cadr form))))
 	t)
        (t
-	(if (eq (car (cadr form)) 'edebug-after)
-	    (setq id (car (nth 3 (cadr form))))
-	  (setq id (car (cadr form))))
+	(setq id (car (if (eq (car (cadr form)) 'edebug-after)
+                          (nth 3 (cadr form))
+                        (cadr form))))
 	(let ((testcover-1value-functions
 	       (cons id testcover-1value-functions)))
 	  (testcover-reinstrument (cadr form))))))
@@ -379,9 +379,9 @@ value, 'maybe if either is acceptable."
 				   ,(nth 3 (cadr form))))
 	'maybe)
        (t
-	(if (eq (car (cadr form)) 'edebug-after)
-	    (setq id (car (nth 3 (cadr form))))
-	  (setq id (car (cadr form))))
+	(setq id (car (if (eq (car (cadr form)) 'edebug-after)
+                          (nth 3 (cadr form))
+                        (cadr form))))
 	(let ((testcover-noreturn-functions
 	       (cons id testcover-noreturn-functions)))
 	  (testcover-reinstrument (cadr form))))))
@@ -447,6 +447,12 @@ binding `testcover-vector' to the code-coverage vector for TESTCOVER-SYM
 (defun testcover-after (idx val)
   "Internal function for coverage testing.  Returns VAL after installing it in
 `testcover-vector' at offset IDX."
+  (declare (gv-expander (lambda (do)
+                          (gv-letplace (getter setter) val
+                            (funcall do getter
+                                     (lambda (store)
+                                       `(progn (testcover-after ,idx ,getter)
+                                               ,(funcall setter store))))))))
   (cond
    ((eq (aref testcover-vector idx) 'unknown)
     (aset testcover-vector idx val))

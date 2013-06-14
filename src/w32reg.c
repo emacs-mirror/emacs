@@ -1,5 +1,6 @@
 /* Emulate the X Resource Manager through the registry.
-   Copyright (C) 1990, 1993-1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2001-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Written by Kevin Gallo */
 
 #include <config.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "w32term.h"
 #include "blockinput.h"
@@ -85,7 +85,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 
  trykey:
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Check both the current user and the local machine to see if we have
      any resources */
@@ -116,7 +116,7 @@ w32_get_string_resource (char *name, char *class, DWORD dwexptype)
       RegCloseKey (hrootkey);
     }
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   if (!ok)
     {

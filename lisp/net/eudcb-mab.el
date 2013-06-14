@@ -1,6 +1,6 @@
 ;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend
 
-;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: FSF

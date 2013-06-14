@@ -1,6 +1,6 @@
 ;;; ob-org.el --- org-babel functions for org code block evaluation
 
-;; Copyright (C) 2010-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -32,7 +32,7 @@
 (declare-function org-export-string "org-exp" (string fmt &optional dir))
 
 (defvar org-babel-default-header-args:org
-  '((:results . "raw silent") (:exports . "results"))
+  '((:results . "raw silent") (:exports . "code"))
   "Default arguments for evaluating a org source block.")
 
 (defvar org-babel-org-default-header

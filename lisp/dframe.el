@@ -1,6 +1,6 @@
 ;;; dframe --- dedicate frame support modes
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -242,9 +242,6 @@ Local to those buffers, as a function called that created it.")
 (defun dframe-live-p (frame)
   "Return non-nil if FRAME is currently available."
   (and frame (frame-live-p frame) (frame-visible-p frame)))
-
-(defvar x-sensitive-text-pointer-shape)
-(defvar x-pointer-shape)
 
 (defun dframe-frame-mode (arg frame-var cache-var buffer-var frame-name
 			      local-mode-fn
@@ -681,7 +678,7 @@ Optionally select that frame if necessary."
   "Non-nil means that `dframe-message' should just return a string.")
 
 (defun dframe-message (fmt &rest args)
-  "Like message, but for use in a dedicated frame.
+  "Like `message', but for use in a dedicated frame.
 Argument FMT is the format string, and ARGS are the arguments for message."
   (save-selected-window
     (if dframe-suppress-message-flag

@@ -56,7 +56,7 @@
 @c (See comments for EDITION in emacs.texi)
 @set VERSION  3.1
 @include emacsver.texi
-@set DATE May 2012
+@set DATE January 2013
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -97,8 +97,18 @@ This is edition @value{VERSION} of the @cite{GNU Emacs Lisp Reference Manual},@*
 This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
+@ifset WWW_GNU_ORG
+@html
+<p>The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+For information on using Emacs, refer to
+the <a href="/software/emacs/manual/html_node/emacs/index.html">Emacs
+Manual</a>.<br>  To view this manual in other formats,
+click <a href="/software/emacs/manual/elisp.html">here</a>.
+@end html
+@end ifset
 
-Copyright @copyright{} 1990-1996, 1998-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -115,7 +125,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@documentencoding ISO-8859-1
+@documentencoding UTF-8
 
 @dircategory GNU Emacs Lisp
 @direntry
@@ -378,6 +388,7 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
+* Property Lists::          A list of paired elements.
 
 Modifying Existing List Structure
 
@@ -385,6 +396,12 @@ Modifying Existing List Structure
 * Setcdr::                  Replacing part of the list backbone.
                               This can be used to remove or add elements.
 * Rearrangement::           Reordering the elements in a list; combining lists.
+
+Property Lists
+
+* Plists and Alists::       Comparison of the advantages of property
+                              lists and association lists.
+* Plist Access::            Accessing property lists stored elsewhere.
 
 Sequences, Arrays, and Vectors
 
@@ -410,15 +427,13 @@ Symbols
                               and property lists.
 * Definitions::             A definition says how a symbol will be used.
 * Creating Symbols::        How symbols are kept unique.
-* Property Lists::          Each symbol has a property list
+* Symbol Properties::       Each symbol has a property list
                               for recording miscellaneous information.
 
-Property Lists
+Symbol Properties
 
-* Plists and Alists::       Comparison of the advantages of property
-                              lists and association lists.
-* Symbol Plists::           Functions to access symbols' property lists.
-* Other Plists::            Accessing property lists stored elsewhere.
+* Symbol Plists::           Accessing symbol properties.
+* Standard Properties::     Standard meanings of symbol properties.
 
 Evaluation
 
@@ -486,6 +501,7 @@ Variables
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
+* Generalized Variables::   Extending the concept of variables.
 
 Scoping Rules for Variable Bindings
 
@@ -500,6 +516,11 @@ Buffer-Local Variables
 * Creating Buffer-Local::   Creating and destroying buffer-local bindings.
 * Default Value::           The default value is seen in buffers
                               that don't have their own buffer-local values.
+
+Generalized Variables
+
+* Setting Generalized Variables::   The @code{setf} macro.
+* Adding Generalized Variables::    Defining new @code{setf} forms.
 
 Functions
 
@@ -516,6 +537,7 @@ Functions
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will expand inline.
+* Declare Form::          Adding additional information about a function.
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
@@ -610,6 +632,7 @@ Debugging Lisp Programs
 * Edebug::                  A source-level Emacs Lisp debugger.
 * Syntax Errors::           How to find syntax errors.
 * Test Coverage::           Ensuring you have tested all branches in your code.
+* Profiling::               Measuring the resources that your code uses.
 
 The Lisp Debugger
 
@@ -799,17 +822,14 @@ Menu Keymaps
 * Menu Bar::                How to customize the menu bar.
 * Tool Bar::                A tool bar is a row of images.
 * Modifying Menus::         How to add new items to a menu.
+* Easy Menu::               A convenience macro for defining menus.
 
 Defining Menus
 
-* Simple Menu Items::       A simple kind of menu key binding,
-                              limited in capabilities.
-* Extended Menu Items::     More powerful menu item definitions
-                              let you specify keywords to enable
-                              various features.
+* Simple Menu Items::       A simple kind of menu key binding.
+* Extended Menu Items::     More complex menu item definitions.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
-* Toolkit Differences::     Not all toolkits provide the same features.
 
 Major and Minor Modes
 
@@ -997,6 +1017,8 @@ Windows
 * Resizing Windows::        Changing the sizes of windows.
 * Splitting Windows::       Splitting one window into two windows.
 * Deleting Windows::        Deleting a window gives its space to other windows.
+* Recombining Windows::     Preserving the frame layout when splitting and
+                              deleting windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
@@ -1197,8 +1219,6 @@ Coding Systems
                                     for a single file operation.
 * Explicit Encoding::       Encoding or decoding text without doing I/O.
 * Terminal I/O Encoding::   Use of encoding for terminal I/O.
-* MS-DOS File Types::       How DOS "text" and "binary" files
-                                relate to coding systems.
 
 Searching and Matching
 
@@ -1366,8 +1386,8 @@ Overlays
 
 Faces
 
-* Defining Faces::          How to define a face.
 * Face Attributes::         What is in a face?
+* Defining Faces::          How to define a face.
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
@@ -1407,15 +1427,13 @@ Images
 * Image Descriptors::       How to specify an image for use in @code{:display}.
 * XBM Images::              Special features for XBM format.
 * XPM Images::              Special features for XPM format.
-* GIF Images::              Special features for GIF format.
-* TIFF Images::             Special features for TIFF format.
 * PostScript Images::       Special features for PostScript format.
 * ImageMagick Images::      Special features available through ImageMagick.
 * Other Image Types::       Various other formats are supported.
 * Defining Images::         Convenient ways to define an image for later use.
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
-* Animated Images::         Some image formats can be animated.
+* Multi-Frame Images::      Some images contain more than one frame.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons
@@ -1581,7 +1599,11 @@ Object Internals
 @c appendices
 
 @include anti.texi
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
 @include doclicense.texi
+@node GPL
+@appendix GNU General Public License
 @include gpl.texi
 @include tips.texi
 @include internals.texi

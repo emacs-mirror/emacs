@@ -1,6 +1,8 @@
 ;; erc-page.el - CTCP PAGE support for ERC
 
-;; Copyright (C) 2002, 2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2013 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +47,7 @@ If nil, this prints the page message in the minibuffer and calls
 `beep'.  If non-nil, it must be a function that takes two arguments:
 SENDER and MSG, both strings.
 
-Example for your ~/.emacs file:
+Example for your init file:
 
 \(setq erc-page-function
       (lambda (sender msg)

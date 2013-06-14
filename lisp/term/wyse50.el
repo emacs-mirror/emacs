@@ -1,6 +1,7 @@
 ;;; wyse50.el --- terminal support code for Wyse 50
 
-;; Copyright (C) 1989, 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993-1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>,
 ;;	Jim Blandy <jimb@occs.cs.oberlin.edu>
@@ -109,7 +110,7 @@
   "Terminal initialization function for wyse50."
   ;; Use inheritance to let the main keymap override these defaults.
   ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
+  ;; made in the init file.
   (let ((m (copy-keymap wyse50-terminal-map)))
     (set-keymap-parent m (keymap-parent input-decode-map))
     (set-keymap-parent input-decode-map m))

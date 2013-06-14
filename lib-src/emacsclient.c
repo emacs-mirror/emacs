@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2012 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -44,6 +44,10 @@ char *w32_getenv (char *);
 
 #else /* !WINDOWSNT */
 
+# ifdef HAVE_NTGUI
+# include <windows.h>
+# endif /* HAVE_NTGUI */
+
 # include "syswait.h"
 
 # ifdef HAVE_INET_SOCKETS
@@ -84,10 +88,7 @@ char *w32_getenv (char *);
 
 
 
-char *getenv (const char *), *getwd (char *);
-#ifdef HAVE_GETCWD
-char *(getcwd) (char *, size_t);
-#endif
+char *getenv (const char *);
 
 #ifndef VERSION
 #define VERSION "unspecified"
@@ -140,6 +141,9 @@ int current_frame = 1;
 /* The display on which Emacs should work.  --display.  */
 const char *display = NULL;
 
+/* The alternate display we should try if Emacs does not support display.  */
+const char *alt_display = NULL;
+
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
 
@@ -182,9 +186,7 @@ struct option longopts[] =
   { "socket-name",	required_argument, NULL, 's' },
 #endif
   { "server-file",	required_argument, NULL, 'f' },
-#ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
-#endif
   { "parent-id", required_argument, NULL, 'p' },
   { 0, 0, 0, 0 }
 };
@@ -218,7 +220,7 @@ get_current_dir_name (void)
   char *buf;
   const char *pwd;
   struct stat dotstat, pwdstat;
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+  /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
     if ((pwd = egetenv ("PWD")) != 0
@@ -235,7 +237,6 @@ get_current_dir_name (void)
       buf = (char *) xmalloc (strlen (pwd) + 1);
       strcpy (buf, pwd);
     }
-#ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
@@ -262,20 +263,6 @@ get_current_dir_name (void)
 	    }
         }
     }
-#else
-  else
-    {
-      /* We need MAXPATHLEN here.  */
-      buf = (char *) xmalloc (MAXPATHLEN + 1);
-      if (getwd (buf) == NULL)
-        {
-          int tmp_errno = errno;
-          free (buf);
-          errno = tmp_errno;
-          return NULL;
-        }
-    }
-#endif
   return buf;
 }
 #endif
@@ -385,32 +372,6 @@ w32_getenv (char *envvar)
   return NULL;
 }
 
-void
-w32_set_user_model_id (void)
-{
-  HMODULE shell;
-  HRESULT (WINAPI * set_user_model) (wchar_t * id);
-
-  /* On Windows 7 and later, we need to set the user model ID
-     to associate emacsclient launched files with Emacs frames
-     in the UI.  */
-  shell = LoadLibrary ("shell32.dll");
-  if (shell)
-    {
-      set_user_model
-	= (void *) GetProcAddress (shell,
-				   "SetCurrentProcessExplicitAppUserModelID");
-      /* If the function is defined, then we are running on Windows 7
-	 or newer, and the UI uses this to group related windows
-	 together.  Since emacs, runemacs, emacsclient are related, we
-	 want them grouped even though the executables are different,
-	 so we need to set a consistent ID between them.  */
-      if (set_user_model)
-	set_user_model (L"GNU.Emacs");
-
-      FreeLibrary (shell);
-    }
-}
 
 int
 w32_window_app (void)
@@ -605,16 +566,29 @@ decode_options (int argc, char **argv)
      Without the -c option, we used to set `display' to $DISPLAY by
      default, but this changed the default behavior and is sometimes
      inconvenient.  So we force users to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.  */
+     they want Emacs to connect to their current display.
+
+     Some window systems have a notion of default display not
+     reflected in the DISPLAY variable.  If the user didn't give us an
+     explicit display, try this platform-specific after trying the
+     display in DISPLAY (if any).  */
   if (!current_frame && !tty && !display)
     {
-      display = egetenv ("DISPLAY");
-#ifdef NS_IMPL_COCOA
-      /* Under Cocoa, we don't really use displays the same way as in X,
-         so provide a dummy. */
-      if (!display || strlen (display) == 0)
-        display = "ns";
+      /* Set these here so we use a default_display only when the user
+         didn't give us an explicit display.  */
+#if defined (NS_IMPL_COCOA)
+      alt_display = "ns";
+#elif defined (HAVE_NTGUI)
+      alt_display = "w32";
 #endif
+
+      display = egetenv ("DISPLAY");
+    }
+
+  if (!display)
+    {
+      display = alt_display;
+      alt_display = NULL;
     }
 
   /* A null-string display is invalid.  */
@@ -1146,7 +1120,7 @@ handle_sigcont (int signalnum)
   else
     {
       /* We are in the background; cancel the continue. */
-      kill (getpid (), SIGSTOP);
+      raise (SIGSTOP);
     }
 
   signal (signalnum, handle_sigcont);
@@ -1173,7 +1147,7 @@ handle_sigtstp (int signalnum)
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
   signal (signalnum, SIG_DFL);
-  kill (getpid (), signalnum);
+  raise (signalnum);
   sigprocmask (SIG_SETMASK, &set, NULL); /* Let's the above signal through. */
   signal (signalnum, handle_sigtstp);
 
@@ -1415,9 +1389,36 @@ set_socket (int no_exit_if_error)
   exit (EXIT_FAILURE);
 }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 FARPROC set_fg;  /* Pointer to AllowSetForegroundWindow.  */
 FARPROC get_wc;  /* Pointer to RealGetWindowClassA.  */
+
+void
+w32_set_user_model_id (void)
+{
+  HMODULE shell;
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = LoadLibrary ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+
+      FreeLibrary (shell);
+    }
+}
 
 BOOL CALLBACK
 w32_find_emacs_process (HWND hWnd, LPARAM lParam)
@@ -1467,7 +1468,7 @@ w32_give_focus (void)
       && (get_wc = GetProcAddress (user32, "RealGetWindowClassA")))
     EnumWindows (w32_find_emacs_process, (LPARAM) 0);
 }
-#endif
+#endif /* HAVE_NTGUI */
 
 /* Start the emacs daemon and try to connect to it.  */
 
@@ -1537,11 +1538,13 @@ main (int argc, char **argv)
   main_argv = argv;
   progname = argv[0];
 
-#ifdef WINDOWSNT
-  /* On Windows 7 and later, we need to explicitly associate emacsclient
-     with emacs so the UI behaves sensibly.  */
+#ifdef HAVE_NTGUI
+  /* On Windows 7 and later, we need to explicitly associate
+     emacsclient with emacs so the UI behaves sensibly.  This
+     association does no harm if we're not actually connecting to an
+     Emacs using a window display.  */
   w32_set_user_model_id ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Process options.  */
   decode_options (argc, argv);
@@ -1571,15 +1574,15 @@ main (int argc, char **argv)
   cwd = get_current_dir_name ();
   if (cwd == 0)
     {
-      /* getwd puts message in STRING if it fails.  */
       message (TRUE, "%s: %s\n", progname,
 	       "Cannot get current working directory");
       fail ();
     }
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
+  if (display && !strcmp (display, "w32"))
   w32_give_focus ();
-#endif
+#endif /* HAVE_NTGUI */
 
   /* Send over our environment and current directory. */
   if (!current_frame)
@@ -1721,7 +1724,8 @@ main (int argc, char **argv)
       needlf = 2;
     }
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
@@ -1748,46 +1752,56 @@ main (int argc, char **argv)
 	  if (end_p != NULL)
 	    *end_p++ = '\0';
 
-	  if (strprefix ("-emacs-pid ", p))
-	    {
-	      /* -emacs-pid PID: The process id of the Emacs process. */
-	      emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
-	    }
-	  else if (strprefix ("-window-system-unsupported ", p))
-	    {
-	      /* -window-system-unsupported: Emacs was compiled without X
-		 support.  Try again on the terminal. */
-	      nowait = 0;
-	      tty = 1;
-	      goto retry;
-	    }
-	  else if (strprefix ("-print ", p))
-	    {
-	      /* -print STRING: Print STRING on the terminal. */
-	      str = unquote_argument (p + strlen ("-print "));
-	      if (needlf)
-		printf ("\n");
-	      printf ("%s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	    }
-	  else if (strprefix ("-print-nonl ", p))
-	    {
-	      /* -print-nonl STRING: Print STRING on the terminal.
-	         Used to continue a preceding -print command.  */
-	      str = unquote_argument (p + strlen ("-print-nonl "));
-	      printf ("%s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	    }
-	  else if (strprefix ("-error ", p))
-	    {
-	      /* -error DESCRIPTION: Signal an error on the terminal. */
-	      str = unquote_argument (p + strlen ("-error "));
-	      if (needlf)
-		printf ("\n");
-	      fprintf (stderr, "*ERROR*: %s", str);
-	      needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
-	      exit_status = EXIT_FAILURE;
-	    }
+          if (strprefix ("-emacs-pid ", p))
+            {
+              /* -emacs-pid PID: The process id of the Emacs process. */
+              emacs_pid = strtol (p + strlen ("-emacs-pid"), NULL, 10);
+            }
+          else if (strprefix ("-window-system-unsupported ", p))
+            {
+              /* -window-system-unsupported: Emacs was compiled without support
+                 for whatever window system we tried.  Try the alternate
+                 display, or, failing that, try the terminal.  */
+              if (alt_display)
+                {
+                  display = alt_display;
+                  alt_display = NULL;
+                }
+              else
+                {
+                  nowait = 0;
+                  tty = 1;
+                }
+
+              goto retry;
+            }
+          else if (strprefix ("-print ", p))
+            {
+              /* -print STRING: Print STRING on the terminal. */
+              str = unquote_argument (p + strlen ("-print "));
+              if (needlf)
+                printf ("\n");
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-print-nonl ", p))
+            {
+              /* -print-nonl STRING: Print STRING on the terminal.
+                 Used to continue a preceding -print command.  */
+              str = unquote_argument (p + strlen ("-print-nonl "));
+              printf ("%s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+            }
+          else if (strprefix ("-error ", p))
+            {
+              /* -error DESCRIPTION: Signal an error on the terminal. */
+              str = unquote_argument (p + strlen ("-error "));
+              if (needlf)
+                printf ("\n");
+              fprintf (stderr, "*ERROR*: %s", str);
+              needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+              exit_status = EXIT_FAILURE;
+            }
 #ifdef SIGSTOP
 	  else if (strprefix ("-suspend ", p))
 	    {
@@ -1812,7 +1826,8 @@ main (int argc, char **argv)
   if (needlf)
     printf ("\n");
   fflush (stdout);
-  fsync (1);
+  while (fdatasync (1) != 0 && errno == EINTR)
+    continue;
 
   if (rl < 0)
     exit_status = EXIT_FAILURE;

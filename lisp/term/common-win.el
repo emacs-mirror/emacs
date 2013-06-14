@@ -1,6 +1,6 @@
 ;;; common-win.el --- common part of handling window systems
 
-;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: terminals
@@ -57,7 +57,7 @@ clipboard as well.
 
 On Nextstep, put TEXT in the pasteboard (`x-select-enable-clipboard'
 is not used)."
-  (cond ((eq system-type 'windows-nt)
+  (cond ((eq (framep (selected-frame)) 'w32)
 	 (if x-select-enable-clipboard
 	     (w32-set-clipboard-data text))
 	 (setq x-last-selected-text text))

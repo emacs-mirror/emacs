@@ -28,7 +28,7 @@
 ;;                               (if (not (or (eq major-mode 'Info-mode)
 ;; 	                                     (eq major-mode 'vi-mode)))
 ;;                                   (vi-mode))))))
-;; 3) In your .emacs file you can define the command "vi-mode" to be "autoload"
+;; 3) In your init file you can define the command "vi-mode" to be "autoload"
 ;;    or you can execute the "load" command to load "vi" directly.
 ;; 4) Read the comments for command "vi-mode" before you start using it.
 

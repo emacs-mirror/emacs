@@ -1,7 +1,7 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -2342,6 +2342,7 @@ With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil."
   :global t
+  :group 'completion
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])
 

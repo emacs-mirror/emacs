@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -1508,8 +1508,8 @@ To make this function work with XEmacs, the APEL package is required."
 		      (fboundp 'coding-system-to-mime-charset)))
 	     (coding-system-to-mime-charset coding-system)))))
 
-(eval-when-compile
-  (require 'jka-compr))
+(defvar jka-compr-acceptable-retval-list)
+(declare-function jka-compr-make-temp-name "jka-compr" (&optional local))
 
 (defun mm-decompress-buffer (filename &optional inplace force)
   "Decompress buffer's contents, depending on jka-compr.

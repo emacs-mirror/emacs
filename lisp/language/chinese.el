@@ -1,6 +1,6 @@
-;;; chinese.el --- support for Chinese -*- coding: iso-2022-7bit; -*-
+;;; chinese.el --- support for Chinese -*- coding: utf-8; -*-
 
-;; Copyright (C) 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -110,10 +110,11 @@
 				    (use-cjk-char-width-table 'zh_CN)))
 		(exit-function . use-default-char-width-table)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
-		(coding-priority chinese-iso-8bit chinese-big5 iso-2022-cn)
+		(coding-priority chinese-iso-8bit chinese-gbk chinese-big5
+				 iso-2022-cn)
 		(input-method . "chinese-py-punct")
 		(features china-util)
-		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
+		(sample-text . "Chinese (中文,普通话,汉语)	你好")
 		(documentation . "Support for Chinese GB2312 character set.")
 		(tutorial . "TUTORIAL.cn"))
  '("Chinese"))
@@ -140,11 +141,12 @@
 				      (use-cjk-char-width-table 'zh_HK)))
 		  (exit-function . use-default-char-width-table)
 		  (coding-system chinese-big5 chinese-iso-7bit)
-		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
+		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit
+				   chinese-gbk)
 		  (input-method . "chinese-py-punct-b5")
 		  (ctext-non-standard-encodings "big5-0")
 		  (features china-util)
-		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
+		  (sample-text . "Cantonese (粵語,廣東話)	早晨, 你好")
 		  (documentation . "Support for Chinese Big5 character set.")
 		  (tutorial . "TUTORIAL.zh"))
  '("Chinese"))
@@ -196,7 +198,7 @@
 		 (exit-function . use-default-char-width-table)
 		 (coding-system iso-2022-cn euc-tw)
 		 (coding-priority iso-2022-cn euc-tw chinese-big5
-				  chinese-iso-8bit)
+				  chinese-iso-8bit chinese-gbk)
 		 (features china-util)
 		 (input-method . "chinese-cns-quick")
 		 ;; Fixme: presumably it won't accept big5 now.
@@ -216,7 +218,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 		    (exit-function . use-default-char-width-table)
 		    (coding-system euc-tw iso-2022-cn)
 		    (coding-priority euc-tw chinese-big5 iso-2022-cn
-				     chinese-iso-8bit)
+				     chinese-iso-8bit chinese-gbk)
 		    (features china-util)
 		    (input-method . "chinese-cns-quick")
 		    (documentation . "\
@@ -249,7 +251,7 @@ converted to CNS)."))
 				  chinese-iso-8bit) ; fixme?
 		 (ctext-non-standard-encodings "gbk-0")
 		 (input-method . "chinese-py-punct") ; fixme?
-		 (sample-text . "Chinese ($BCfJ8(B,$BIaDL$A;0(B,$A::So(B) $(D95$B9%(B")
+		 (sample-text . "Chinese (中文,普通话,汉语) 妳好")
 		 (features china-util)
 		 (documentation . "Support for Chinese GBK character set.")
 		 (tutorial . "TUTORIAL.cn"))
@@ -275,7 +277,7 @@ converted to CNS)."))
 		     (coding-priority gb18030 gbk iso-2022-cn chinese-big5
 				      chinese-iso-8bit) ; fixme?
 		     (input-method . "chinese-py-punct") ; fixme?
-		     (sample-text . "Chinese ($BCfJ8(B,$BIaDL$A;0(B,$A::So(B) $(D0_$B9%(B")
+		     (sample-text . "Chinese (中文,普通话,汉语) 你好")
 		     (features china-util)
 		     (documentation
 		      . "Support for Chinese GB18030 character set.")

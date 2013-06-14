@@ -1,7 +1,7 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2013 Free
+;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -67,11 +67,8 @@ Use the `etags' program to make a tags table file."
 ;;;###autoload
 (defcustom tags-compression-info-list
   (purecopy '("" ".Z" ".bz2" ".gz" ".xz" ".tgz"))
-  "List of extensions tried by etags when jka-compr is used.
-An empty string means search the non-compressed file.
-These extensions will be tried only if jka-compr was activated
-\(i.e. via customize of `auto-compression-mode' or by calling the function
-`auto-compression-mode')."
+  "List of extensions tried by etags when `auto-compression-mode' is on.
+An empty string means search the non-compressed file."
   :version "24.1"			; added xz
   :type  '(repeat string)
   :group 'etags)
@@ -202,7 +199,8 @@ Pop back to the last location with \\[negative-argument] \\[find-tag].")
 
 (defvar tags-table-files nil
   "List of file names covered by current tags table.
-nil means it has not yet been computed; use `tags-table-files' to do so.")
+nil means it has not yet been computed;
+use function `tags-table-files' to do so.")
 
 (defvar tags-completion-table nil
   "Obarray of tag names defined in current tags table.")
@@ -227,7 +225,7 @@ of the format-parsing tags function variables if successful.")
 One optional argument, a boolean specifying to return complete path (nil) or
 relative path (non-nil).")
 (defvar tags-table-files-function nil
-  "Function to do the work of `tags-table-files' (which see).")
+  "Function to do the work of function `tags-table-files' (which see).")
 (defvar tags-completion-table-function nil
   "Function to build the `tags-completion-table'.")
 (defvar snarf-tag-function nil
@@ -254,7 +252,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar tags-apropos-function nil
   "Function to do the work of `tags-apropos' (which see).")
 (defvar tags-included-tables-function nil
-  "Function to do the work of `tags-included-tables' (which see).")
+  "Function to do the work of function `tags-included-tables' (which see).")
 (defvar verify-tags-table-function nil
   "Function to return t if current buffer contains valid tags file.")
 
@@ -338,12 +336,15 @@ file the tag was in."
 		     (save-excursion
 		       (tags-verify-table (buffer-file-name table-buffer))))
 		(with-current-buffer table-buffer
-		  (if (tags-included-tables)
-		      ;; Insert the included tables into the list we
-		      ;; are processing.
-		      (setcdr tables (nconc (mapcar 'tags-expand-table-name
-						    (tags-included-tables))
-					    (cdr tables)))))
+                  ;; Needed so long as etags-tags-included-tables
+                  ;; does not save-excursion.
+                  (save-excursion
+                    (if (tags-included-tables)
+                        ;; Insert the included tables into the list we
+                        ;; are processing.
+                        (setcdr tables (nconc (mapcar 'tags-expand-table-name
+                                                      (tags-included-tables))
+                                              (cdr tables))))))
 	      ;; This table is not in core yet.  Insert a placeholder
 	      ;; saying we must read it into core to check for included
 	      ;; tables before searching the next table in the list.
@@ -702,7 +703,9 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 	(kill-local-variable 'tags-file-name)
 	(if (eq local-tags-file-name tags-file-name)
 	    (setq tags-file-name nil))
-	(user-error "File %s is not a valid tags table"
+	(user-error (if (file-exists-p local-tags-file-name)
+                        "File %s is not a valid tags table"
+                      "File %s does not exist")
                     local-tags-file-name)))))
 
 (defun tags-reset-tags-tables ()
@@ -1180,7 +1183,7 @@ error message."
   "Find the right line in the specified FILE."
   ;; If interested in compressed-files, search files with extensions.
   ;; Otherwise, search only the real file.
-  (let* ((buffer-search-extensions (if (featurep 'jka-compr)
+  (let* ((buffer-search-extensions (if auto-compression-mode
 				       tags-compression-info-list
 				     '("")))
 	 the-buffer
@@ -1204,7 +1207,7 @@ error message."
 	  (setq file-search-extensions (cdr file-search-extensions))
 	(setq the-buffer (find-file-noselect (concat file (car file-search-extensions))))))
     (if (not the-buffer)
-	(if (featurep 'jka-compr)
+	(if auto-compression-mode
 	    (error "File %s (with or without extensions %s) not found" file tags-compression-info-list)
 	  (error "File %s not found" file))
       (set-buffer the-buffer))))
@@ -1550,6 +1553,7 @@ hits the start of file."
                 files)))
     (nreverse files)))
 
+;; FIXME?  Should this save-excursion?
 (defun etags-tags-included-tables () ; Doc string?
   (let ((files nil)
 	beg)
@@ -1867,7 +1871,7 @@ If FILE-LIST-FORM is non-nil, it should be a form that, when
 evaluated, will return a list of file names.  The search will be
 restricted to these files.
 
-Aleso see the documentation of the `tags-file-name' variable."
+Also see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")
   (if (and (equal regexp "")
 	   (eq (car tags-loop-scan) 're-search-forward)

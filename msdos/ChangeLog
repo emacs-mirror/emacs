@@ -1,3 +1,50 @@
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sed1x.inp: Don't rewrite DOC any more.
+
+2013-02-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_SECURE_GETENV, GNULIB_SECURE_GETENV): Edit to appropriate values.
+
+2012-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (TEMACS_LDFLAGS2): Remove editing.
+	(LIBS_GNUSTEP): Edit to empty.
+
+2012-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Dump emacs.exe and copy to b-emacs.exe before
+	generating leim-list.el.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* sed2v2.inp (HAVE_MOUSE): Remove.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Sync with changes in lib/Makefile.in.
+	(HAVE_DECL_ENVIRON, GNULIB_ENVIRON): Edit to require declaration
+	through lib/unistd.h.
+
+	* sed1v2.inp: Sync with changes in src/Makefile.in.
+
+	* sed2v2.inp: Sync with changes in src/config.in.
+
+2012-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (W32_LIBS, W32_OBJ): Edit to empty.
+
+2012-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* msdos/sedlibmk.inp (REPLACE_PTSNAME): Edit to appropriate value.
+
+2012-09-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check more robustly for timer_settime.
+	* sed1v2.inp, sed3v2.inp (LIB_TIMER_TIME): New macro.
+
 2012-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (allocator.$(OBJEXT), careadlinkat.$(OBJEXT)): Fix
@@ -1447,7 +1494,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1994-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

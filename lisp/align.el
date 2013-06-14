@@ -1,6 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -74,7 +74,7 @@
 ;; align-?-modes variables (for example, `align-dq-string-modes'), use
 ;; `add-to-list', or some similar function which checks first to see
 ;; if the value is already there.  Since the user may customize that
-;; mode list, and then write your mode name into their .emacs file,
+;; mode list, and then write your mode name into their init file,
 ;; causing the symbol already to be present the next time they load
 ;; your package.
 
@@ -1201,7 +1201,10 @@ have been aligned.  No changes will be made to the buffer."
 	      (gocol col) cur)
 	  (when area
 	    (if func
-		(funcall func (car area) (cdr area) change)
+		(funcall func
+			 (marker-position (car area))
+			 (marker-position (cdr area))
+			 change)
 	      (if (not (and justify
 			    (consp (cdr area))))
 		  (goto-char (cdr area))

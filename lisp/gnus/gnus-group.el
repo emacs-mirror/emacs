@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1667,7 +1667,7 @@ and ends at END."
   (let ((face (cdar (gnus-group-update-eval-form
                       group
                       gnus-group-highlight))))
-    (unless (eq face (get-text-property beg 'face))
+    (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
       (let ((inhibit-read-only t))
         (gnus-put-text-property-excluding-characters-with-faces
          beg end 'face
@@ -2310,6 +2310,7 @@ Return the name of the group if selection was successful."
   (let ((group (if (gnus-group-foreign-p group) group
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))
+    (gnus-set-active group nil)
     (gnus-sethash
      group
      `(-1 nil (,group
@@ -2441,7 +2442,7 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mboxmaint=yes;mboxstat=yes")
+  '((emacs . "http://debbugs.gnu.org/cgi/bugreport.cgi?bug=%s;mboxmaint=yes;mboxstat=yes")
     (debian
      . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
@@ -3590,6 +3591,8 @@ Cross references (Xref: header) of articles are ignored."
   (interactive "P")
   (gnus-group-catchup-current n 'all))
 
+(declare-function gnus-sequence-of-unread-articles "gnus-sum" (group))
+
 (defun gnus-group-catchup (group &optional all)
   "Mark all articles in GROUP as read.
 If ALL is non-nil, all articles are marked as read.
@@ -4376,7 +4379,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 (defun gnus-group-browse-foreign-server (method)
   "Browse a foreign news server.
 If called interactively, this function will ask for a select method
- (nntp, nnspool, etc.) and a server address (eg. nntp.some.where).
+ (nntp, nnspool, etc.) and a server address (e.g., nntp.some.where).
 If not, METHOD should be a list where the first element is the method
 and the second element is the address."
   (interactive
@@ -4491,6 +4494,8 @@ and the second element is the address."
 	  (setcdr m (gnus-compress-sequence
 		     (sort (nconc (gnus-uncompress-range (cdr m))
 				  (copy-sequence articles)) '<) t))))))
+
+(declare-function gnus-summary-add-mark "gnus-sum" (article type))
 
 (defun gnus-add-mark (group mark article)
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
@@ -4655,6 +4660,9 @@ you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))
+
+(declare-function gnus-mark-article-as-read "gnu-sum" (article &optional mark))
+(declare-function gnus-group-make-articles-read "gnus-sum" (group articles))
 
 (defun gnus-group-mark-article-read (group article)
   "Mark ARTICLE read."

@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -104,7 +104,6 @@
 
 (eval-when-compile
   (require 'imenu)
-  (require 'outline)
   (require 'dabbrev)
   (require 'add-log))
 
@@ -267,7 +266,7 @@ quoted for Tcl."
   ;; Maybe someone has a better set?
   (let ((map (make-sparse-keymap)))
     ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\177" 'backward-delete-char-untabify)
     (define-key map "\M-\C-x" 'tcl-eval-defun)
@@ -333,8 +332,8 @@ This process selection is performed by function `inferior-tcl-proc'.
 Whenever \\[inferior-tcl] fires up a new process, it resets
 `inferior-tcl-buffer' to be the new process's buffer.  If you only run
 one process, this does the right thing.  If you run multiple
-processes, you can change `inferior-tcl-buffer' to another process
-buffer with \\[set-variable].")
+processes, you might need to set `inferior-tcl-buffer' to
+whichever process buffer you want to use.")
 
 ;;
 ;; Hooks and other customization.
@@ -543,6 +542,9 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;;
 ;; The mode itself.
 ;;
+
+(defvar outline-regexp)
+(defvar outline-level)
 
 ;;;###autoload
 (define-derived-mode tcl-mode prog-mode "Tcl"

@@ -1,6 +1,6 @@
 ;;;; soap-client.el -- Access SOAP web services from Emacs
 
-;; Copyright (C) 2009-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: December, 2009
@@ -1768,7 +1768,11 @@ operations in a WSDL document."
             (url-package-name "soap-client.el")
             (url-package-version "1.0")
             (url-http-version "1.0")
-            (url-request-data (soap-create-envelope operation parameters wsdl))
+	    (url-request-data
+	     ;; url-request-data expects a unibyte string already encoded...
+	     (encode-coding-string
+	      (soap-create-envelope operation parameters wsdl)
+	      'utf-8))
             (url-mime-charset-string "utf-8;q=1, iso-8859-1;q=0.5")
             (url-request-coding-system 'utf-8)
             (url-http-attempt-keepalives t)

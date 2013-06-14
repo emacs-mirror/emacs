@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support
 
-;; Copyright (C) 1997-1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
 ;; Maintainer: FSF

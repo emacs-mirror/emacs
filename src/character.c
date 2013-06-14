@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 2001-2013 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 
 #include <sys/types.h>
-#include <setjmp.h>
 #include <intprops.h>
 #include "lisp.h"
 #include "character.h"
@@ -127,8 +126,6 @@ char_string (unsigned int c, unsigned char *p)
       c &= ~CHAR_MODIFIER_MASK;
     }
 
-  MAYBE_UNIFY_CHAR (c);
-
   if (c <= MAX_3_BYTE_CHAR)
     {
       bytes = CHAR_STRING (c, p);
@@ -195,8 +192,6 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 	   | ((p)[4] & 0x3F));
       p += 5;
     }
-
-  MAYBE_UNIFY_CHAR (c);
 
   if (len)
     *len = p - saved_p;

@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985-1987, 1991-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2013 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -565,6 +565,7 @@ If nil, the value of `cperl-indent-level' will be used."
   "*Non-nil means that the _ (underline) should be treated as word char."
   :type 'boolean
   :group 'cperl)
+(make-obsolete-variable 'cperl-under-as-char 'superword-mode "24.4")
 
 (defcustom cperl-extra-perl-args ""
   "*Extra arguments to use when starting Perl.
@@ -1551,7 +1552,7 @@ and POD directives (Disabled by default, see `cperl-electric-keywords'.)
 
 The user types the keyword immediately followed by a space, which
 causes the construct to be expanded, and the point is positioned where
-she is most likely to want to be.  eg. when the user types a space
+she is most likely to want to be.  E.g., when the user types a space
 following \"if\" the following appears in the buffer: if () { or if ()
 } { } and the cursor is between the parentheses.  The user can then
 type some boolean expression within the parens.  Having done that,
@@ -1742,6 +1743,13 @@ or as help on variables `cperl-tips', `cperl-problems',
   (setq outline-regexp cperl-outline-regexp)
   (make-local-variable 'outline-level)
   (setq outline-level 'cperl-outline-level)
+  (make-local-variable 'add-log-current-defun-function)
+  (setq add-log-current-defun-function
+	(lambda ()
+	  (save-excursion
+	    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+		(match-string-no-properties 1)))))
+
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
@@ -1832,7 +1840,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'cperl-syntax-state)
   (setq cperl-syntax-state nil)		; reset syntaxification cache
   (if cperl-use-syntax-table-text-property
-      (if (boundp 'syntax-propertize-function)
+      (if (eval-when-compile (fboundp 'syntax-propertize-rules))
           (progn
             ;; Reset syntaxification cache.
             (set (make-local-variable 'cperl-syntax-done-to) nil)
@@ -1898,7 +1906,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (and (boundp 'msb-menu-cond)
        (not cperl-msb-fixed)
        (cperl-msb-fix))
-  (if (featurep 'easymenu)
+  (if (fboundp 'easy-menu-add)
       (easy-menu-add cperl-menu))	; A NOP in Emacs.
   (run-mode-hooks 'cperl-mode-hook)
   (if cperl-hook-after-change
@@ -3113,8 +3121,10 @@ and closing parentheses and brackets."
 	 ((eq 'continuation (elt i 0))
 	  ;; [continuation statement-start char-after is-block is-brace]
 	  (goto-char (elt i 1))		; statement-start
-	  (+ (if (memq (elt i 2) (append "}])" nil)) ; char-after
-		 0			; Closing parenth
+	  (+ (if (or (memq (elt i 2) (append "}])" nil)) ; char-after
+                     (eq 'continuation ; do not stagger continuations
+                         (elt (cperl-sniff-for-indent parse-data) 0)))
+		 0 ; Closing parenth or continuation of a continuation
 	       cperl-continued-statement-offset)
 	     (if (or (elt i 3)		; is-block
 		     (not (elt i 4))		; is-brace
@@ -6520,6 +6530,9 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
   (let ((perl-dbg-flags (concat cperl-extra-perl-args " -wc")))
     (eval '(mode-compile))))		; Avoid a warning
 
+(declare-function Info-find-node "info"
+		  (filename nodename &optional no-going-back))
+
 (defun cperl-info-buffer (type)
   ;; Returns buffer with documentation.  Creates if missing.
   ;; If TYPE, this vars buffer.
@@ -6658,10 +6671,13 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
   (buffer-substring
    (match-beginning 1) (match-end 1)))
 
+(declare-function imenu-choose-buffer-index "imenu" (&optional prompt alist))
+
 (defun cperl-imenu-on-info ()
   "Shows imenu for Perl Info Buffer.
 Opens Perl Info buffer if needed."
   (interactive)
+  (require 'imenu)
   (let* ((buffer (current-buffer))
 	 imenu-create-index-function
 	 imenu-prev-index-position-function
@@ -7121,6 +7137,10 @@ Use as
 (defvar cperl-hierarchy '(() ())
   "Global hierarchy of classes.")
 
+;; Follows call to (autoloaded) visit-tags-table.
+(declare-function file-of-tag "etags" (&optional relative))
+(declare-function etags-snarf-tag "etags" (&optional use-explicit))
+
 (defun cperl-tags-hier-fill ()
   ;; Suppose we are in a tag table cooked by cperl.
   (goto-char 1)
@@ -7164,6 +7184,7 @@ Use as
       (end-of-line))))
 
 (declare-function x-popup-menu "menu.c" (position menu))
+(declare-function etags-goto-tag-location "etags" (tag-info))
 
 (defun cperl-tags-hier-init (&optional update)
   "Show hierarchical menu of classes and methods.
@@ -8506,6 +8527,8 @@ the appropriate statement modifier."
 	  (cperl-invert-if-unless-modifiers)))
     ;;(error "Not at `if', `unless', `while', `until', `for' or `foreach'")
     (cperl-invert-if-unless-modifiers)))
+
+(declare-function Man-getpage-in-background "man" (topic))
 
 ;;; By Anthony Foiani <afoiani@uswest.com>
 ;;; Getting help on modules in C-h f ?

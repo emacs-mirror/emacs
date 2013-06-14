@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -39,8 +39,6 @@
 (if (not (fboundp 'msdos-remember-default-colors))
     (error "%s: Loading pc-win.el but not compiled for MS-DOS"
 	   (invocation-name)))
-
-(load "term/internal" nil t)
 
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
@@ -405,7 +403,7 @@ Errors out because it is not supposed to be called, ever."
   (error "terminal-init-internal called for window-system `%s'"
 	 (window-system)))
 
-(defun msdos-initialize-window-system ()
+(defun msdos-initialize-window-system (&optional display)
   "Initialization function for the `pc' \"window system\"."
   (or (eq (window-system) 'pc)
       (error

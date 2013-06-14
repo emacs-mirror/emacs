@@ -1,6 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
 
-Copyright (C) 1993, 1999, 2001-2012 Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
+#include <stdbool.h>
 
-extern void init_signals (void);
+extern void init_signals (bool);
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -28,65 +29,37 @@ extern void init_signals (void);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
+#if defined HAVE_TIMER_SETTIME && defined SIGEV_SIGNAL
+# define HAVE_ITIMERSPEC
+#endif
+
+#if (defined SIGPROF && !defined PROFILING \
+     && (defined HAVE_SETITIMER || defined HAVE_ITIMERSPEC))
+# define PROFILER_CPU_SUPPORT
+#endif
+
 extern sigset_t empty_mask;
 
 typedef void (*signal_handler_t) (int);
 
 extern void emacs_sigaction_init (struct sigaction *, signal_handler_t);
-
-#if ! (defined TIOCNOTTY || defined USG5 || defined CYGWIN)
-_Noreturn void croak (char *);
-#endif
-
-/* Interrupt input is not used if there is no FIONREAD.  */
-#include <sys/ioctl.h>
-#if defined BROKEN_SIGIO || ! defined FIONREAD || defined BROKEN_FIONREAD
-# undef SIGIO
-#endif
-
-/* These are only used by AIX  */
-#if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
-#undef SIGPOLL
-#endif
-#if defined (SIGAIO) && defined (BROKEN_SIGAIO)
-#undef SIGAIO
-#endif
-#if defined (SIGPTY) && defined (BROKEN_SIGPTY)
-#undef SIGPTY
-#endif
+char const *safe_strsignal (int) ATTRIBUTE_CONST;
 
 #if NSIG < NSIG_MINIMUM
 # undef NSIG
 # define NSIG NSIG_MINIMUM
 #endif
 
-/* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
-   Must do that using the killpg call.  */
-#ifdef BSD_SYSTEM
-#define EMACS_KILLPG(gid, signo) (killpg ( (gid), (signo)))
-#else
-#ifdef WINDOWSNT
-#define EMACS_KILLPG(gid, signo) (kill (gid, signo))
-#else
-#define EMACS_KILLPG(gid, signo) (kill   (-(gid), (signo)))
-#endif
+#ifndef SA_SIGINFO
+# define SA_SIGINFO 0
 #endif
 
-/* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
-   testing SIGCHLD.  */
-#ifdef SIGCLD
-#ifndef SIGCHLD
-#define SIGCHLD SIGCLD
-#endif /* SIGCHLD */
-#endif /* ! defined (SIGCLD) */
+#ifndef emacs_raise
+# define emacs_raise(sig) raise (sig)
+#endif
 
 #ifndef HAVE_STRSIGNAL
-/* strsignal is in sysdep.c */
-char *strsignal (int);
+# define strsignal(sig) safe_strsignal (sig)
 #endif
 
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-extern pthread_t main_thread;
-#endif
-
-void handle_on_main_thread (int, signal_handler_t);
+void deliver_process_signal (int, signal_handler_t);

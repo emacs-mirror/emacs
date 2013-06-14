@@ -1,6 +1,7 @@
 ;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
 
-;; Copyright (C) 1990-1991, 1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1994, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Kevin Gallagher
 ;; Maintainer: FSF
@@ -31,7 +32,7 @@
 ;;
 ;; To invoke these adjustments, a user need only invoke the function
 ;; enable-flow-control-on with a list of terminal types in his/her own
-;; .emacs file.  As arguments, give it the names of one or more terminal
+;; init file.  As arguments, give it the names of one or more terminal
 ;; types in use by that user which require flow control adjustments.
 ;; Here's an example:
 ;;

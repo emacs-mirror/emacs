@@ -1,6 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
@@ -188,7 +188,32 @@ See also the variable `ps-font-info-database'.")
 (defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
   "The default setting to use when `ps-multibyte-buffer' is nil."
-  :type '(symbol :tag "Multi-Byte Buffer Database Font Default")
+  :type '(alist :key-type symbol :tag "Charset"
+		:value-type
+		(list (list
+		       (choice :tag "Font type"
+			       (const normal)
+			       (const bold)
+			       (const italic)
+			       (const bold-italic))
+		       (choice :tag "Font source"
+			       (const builtin)
+			       (const bdf)
+			       (const vflib)
+			       (const nil))
+		       ;; My guess as to what the doc is trying to say...
+		       (choice :tag "Font name"
+			       (const nil)
+			       string
+			       (repeat :tag "List" string))
+		       (choice :tag "Encoding"
+			       (const nil)
+			       coding-system
+			       function)
+		       (choice :tag "Bytes"
+			       (const nil)
+			       (const 1)
+			       (const 2)))))
   :group 'ps-print-font)
 
 (defconst ps-mule-font-info-database-ps

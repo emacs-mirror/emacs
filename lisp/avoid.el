@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;; Copyright (C) 1993-1994, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -128,6 +128,7 @@ SIDE-POS: Distance from right or left edge of frame or window.
 TOP-OR-BOTTOM: banish the mouse to top or bottom of frame or window.
 TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
   :group   'avoid
+  :version "24.3"
   :type    '(alist :key-type symbol :value-type symbol)
   :options '(frame-or-window side (side-pos integer)
              top-or-bottom (top-or-bottom-pos integer)))

@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -31,8 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cua-base))
+(require 'cua-base)
 
 ;;; Rectangle support
 

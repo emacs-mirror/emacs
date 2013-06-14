@@ -1,6 +1,6 @@
 ;;; semantic/analyze/fcn.el --- Analyzer support functions.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -37,24 +37,6 @@
 ;;
 ;; These queries allow a major mode to help the analyzer make decisions.
 ;;
-(define-overloadable-function semantic-analyze-tag-prototype-p (tag)
-  "Non-nil if TAG is a prototype."
-  )
-
-(defun semantic-analyze-tag-prototype-p-default (tag)
-  "Non-nil if TAG is a prototype."
-  (let ((p (semantic-tag-get-attribute tag :prototype-flag)))
-    (cond
-     ;; Trust the parser author.
-     (p p)
-     ;; Empty types might be a prototype.
-     ((eq (semantic-tag-class tag) 'type)
-      (not (semantic-tag-type-members tag)))
-     ;; No other heuristics.
-     (t nil))
-    ))
-
-;;------------------------------------------------------------
 
 (define-overloadable-function semantic-analyze-split-name (name)
   "Split a tag NAME into a sequence.
@@ -219,7 +201,7 @@ used by the analyzer debugger."
     (if (and type-declaration
 	     (semantic-tag-p type-declaration)
 	     (semantic-tag-of-class-p type-declaration 'type)
-	     (not (semantic-analyze-tag-prototype-p type-declaration))
+	     (not (semantic-tag-prototype-p type-declaration))
 	     )
 	;; We have an anonymous type for TAG with children.
 	;; Use this type directly.
@@ -263,6 +245,8 @@ used by the analyzer debugger."
 	  (semantic-scope-set-typecache scope nil)
 	  )))))
 
+(autoload 'semantic-tag-similar-p "semantic/tag-ls")
+
 (defun semantic-analyze-dereference-metatype-stack (type scope &optional type-declaration)
   "Dereference metatypes repeatedly until we hit a real TYPE.
 Uses `semantic-analyze-dereference-metatype'.
@@ -273,7 +257,7 @@ Optional argument TYPE-DECLARATION is how TYPE was found referenced."
 	(nexttype (semantic-analyze-dereference-metatype type scope type-declaration))
 	(idx 0))
     (catch 'metatype-recursion
-      (while (and nexttype (not (eq (car nexttype) lasttype)))
+      (while (and nexttype (not (semantic-tag-similar-p (car nexttype) lasttype)))
 	(setq lasttype (car nexttype)
 	      lasttypedeclaration (cadr nexttype))
 	(setq nexttype (semantic-analyze-dereference-metatype lasttype scope lasttypedeclaration))
@@ -312,7 +296,7 @@ SCOPE is the current scope."
     (when (and (semantic-tag-p ans)
 	       (eq (semantic-tag-class ans) 'type))
       ;; We have a tag.
-      (if (semantic-analyze-tag-prototype-p ans)
+      (if (semantic-tag-prototype-p ans)
 	  ;; It is a prototype.. find the real one.
 	  (or (and scope
 		   (car-safe

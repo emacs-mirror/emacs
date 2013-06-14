@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
 @chapter Help
@@ -243,7 +243,7 @@ by the innermost Lisp expression in the buffer around point,
 (That name appears as the default while you enter the argument.)  For
 example, if point is located following the text @samp{(make-vector
 (car x)}, the innermost list containing point is the one that starts
-with @samp{(make-vector}, so @kbd{C-h f @key{RET}} will describe the
+with @samp{(make-vector}, so @kbd{C-h f @key{RET}} describes the
 function @code{make-vector}.
 
   @kbd{C-h f} is also useful just to verify that you spelled a
@@ -295,10 +295,15 @@ search for noninteractive functions too.
 Search for functions and variables.  Both interactive functions
 (commands) and noninteractive functions can be found by this.
 
-@item M-x apropos-variable
-@findex apropos-variable
+@item M-x apropos-user-option
+@findex apropos-user-option
 Search for user-customizable variables.  With a prefix argument,
 search for non-customizable variables too.
+
+@item M-x apropos-variable
+@findex apropos-variable
+Search for variables.  With a prefix argument, search for
+customizable variables only.
 
 @item M-x apropos-value
 @findex apropos-value

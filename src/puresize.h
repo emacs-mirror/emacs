@@ -1,5 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#define BASE_PURESIZE (1620000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
+#define BASE_PURESIZE (1700000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
@@ -73,9 +73,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Signal an error if OBJ is pure.  */
 #define CHECK_IMPURE(obj) \
   { if (PURE_P (obj))	  \
-      pure_write_error (); }
+      pure_write_error (obj); }
 
-extern _Noreturn void pure_write_error (void);
+extern _Noreturn void pure_write_error (Lisp_Object);
 
 /* Define PURE_P.  */
 

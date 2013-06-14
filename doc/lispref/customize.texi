@@ -1,18 +1,35 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2012 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2013 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
 
 @cindex customization item
-  This chapter describes how to declare customizable variables and
-customization groups for classifying them.  We use the term
-@dfn{customization item} to include customizable variables,
-customization groups, as well as faces.
+  Users of Emacs can customize variables and faces without writing
+Lisp code, by using the Customize interface.  @xref{Easy
+Customization,,, emacs, The GNU Emacs Manual}.  This chapter describes
+how to define @dfn{customization items} that users can interact with
+through the Customize interface.
 
-  @xref{Defining Faces}, for the @code{defface} macro, which is used
-for declaring customizable faces.
+  Customization items include customizable variables, which are
+defined with the
+@ifinfo
+@code{defcustom} macro (@pxref{Variable Definitions});
+@end ifinfo
+@ifnotinfo
+@code{defcustom} macro;
+@end ifnotinfo
+customizable faces, which are defined with @code{defface} (described
+separately in @ref{Defining Faces}); and @dfn{customization groups},
+defined with
+@ifinfo
+@code{defgroup} (@pxref{Group Definitions}),
+@end ifinfo
+@ifnotinfo
+@code{defgroup},
+@end ifnotinfo
+which act as containers for groups of related customization items.
 
 @menu
 * Common Keywords::         Common keyword arguments for all kinds of
@@ -29,9 +46,10 @@ for declaring customizable faces.
 
 @cindex customization keywords
   The customization declarations that we will describe in the next few
-sections (@code{defcustom}, @code{defgroup}, etc.) all accept keyword
-arguments for specifying various information.  This section describes
-keywords that apply to all types of customization declarations.
+sections---@code{defcustom}, @code{defgroup}, etc.---all accept
+keyword arguments (@pxref{Constant Variables}) for specifying various
+information.  This section describes keywords that apply to all types
+of customization declarations.
 
   All of these keywords, except @code{:tag}, can be used more than once
 in a given item.  Each use of the keyword has an independent effect.
@@ -59,7 +77,7 @@ item.  Please don't overdo this, since the result would be annoying.
 @item :link @var{link-data}
 @kindex link@r{, customization keyword}
 Include an external link after the documentation string for this item.
-This is a sentence containing an active field which references some
+This is a sentence containing a button that references some
 other documentation.
 
 There are several alternatives you can use for @var{link-data}:
@@ -83,7 +101,7 @@ Link to a web page; @var{url} is a string which specifies the
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
-which specifies the library name.
+which specifies the library name.  @xref{Library Headers}.
 
 @item (emacs-library-link @var{library})
 Link to an Emacs Lisp library file; @var{library} is a string which
@@ -144,7 +162,7 @@ value was changed in that version.  This keyword takes priority over
 @code{:version}.
 
 @var{package} should be the official name of the package, as a symbol
-(e.g.@: @code{MH-E}).  @var{version} should be a string.  If the
+(e.g., @code{MH-E}).  @var{version} should be a string.  If the
 package @var{package} is released as part of Emacs, @var{package} and
 @var{version} should appear in the value of
 @code{customize-package-emacs-version-alist}.
@@ -188,14 +206,14 @@ choice is the official name of the package, such as MH-E or Gnus.
 @cindex define customization group
 @cindex customization groups, defining
 
-  Each Emacs Lisp package should have one main customization group which
-contains all the options, faces and other groups in the package.  If the
-package has a small number of options and faces, use just one group and
-put everything in it.  When there are more than twelve or so options and
-faces, then you should structure them into subgroups, and put the
-subgroups under the package's main customization group.  It is OK to
-put some of the options and faces in the package's main group alongside
-the subgroups.
+  Each Emacs Lisp package should have one main customization group
+which contains all the options, faces and other groups in the package.
+If the package has a small number of options and faces, use just one
+group and put everything in it.  When there are more than twenty or so
+options and faces, then you should structure them into subgroups, and
+put the subgroups under the package's main customization group.  It is
+OK to put some of the options and faces in the package's main group
+alongside the subgroups.
 
   The package's main or only group should be a member of one or more of
 the standard customization groups.  (To display the full list of them,
@@ -243,7 +261,7 @@ If this variable is non-@code{nil}, the prefixes specified by a
 group's @code{:prefix} keyword are omitted from tag names, whenever
 the user customizes the group.
 
-The default value is @code{nil}, i.e.@: the prefix-discarding feature
+The default value is @code{nil}, i.e., the prefix-discarding feature
 is disabled.  This is because discarding prefixes often leads to
 confusing names for options and faces.
 @end defopt
@@ -251,10 +269,20 @@ confusing names for options and faces.
 @node Variable Definitions
 @section Defining Customization Variables
 @cindex define customization options
-@cindex customization variables, how to define
+@cindex customizable variables, how to define
+@cindex user options, how to define
+
+  @dfn{Customizable variables}, also called @dfn{user options}, are
+global Lisp variables whose values can be set through the Customize
+interface.  Unlike other global variables, which are defined with
+@code{defvar} (@pxref{Defining Variables}), customizable variables are
+defined using the @code{defcustom} macro.  In addition to calling
+@code{defvar} as a subroutine, @code{defcustom} states how the
+variable should be displayed in the Customize interface, the values it
+is allowed to take, etc.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
-This macro declares @var{option} as a user option (i.e.@: a
+This macro declares @var{option} as a user option (i.e., a
 customizable variable).  You should not quote @var{option}.
 
 The argument @var{standard} is an expression that specifies the
@@ -275,29 +303,34 @@ evaluate at any time.
 The argument @var{doc} specifies the documentation string for the
 variable.
 
-Every @code{defcustom} should specify @code{:group} at least once.
+If a @code{defcustom} does not specify any @code{:group}, the last group
+defined with @code{defgroup} in the same file will be used.  This way, most
+@code{defcustom} do not need an explicit @code{:group}.
 
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
 arranges to set the variable unconditionally, without testing whether
-its value is void.  (The same feature applies to @code{defvar}.)
-@xref{Defining Variables}.
+its value is void.  (The same feature applies to @code{defvar},
+@pxref{Defining Variables}.)  Using @code{eval-defun} on a defcustom
+that is already defined calls the @code{:set} function (see below),
+if there is one.
 
 If you put a @code{defcustom} in a pre-loaded Emacs Lisp file
 (@pxref{Building Emacs}), the standard value installed at dump time
-might be incorrect, e.g.@: because another variable that it depends on
+might be incorrect, e.g., because another variable that it depends on
 has not been assigned the right value yet.  In that case, use
 @code{custom-reevaluate-setting}, described below, to re-evaluate the
 standard value after Emacs starts up.
 @end defmac
 
-  @code{defcustom} accepts the following additional keywords:
+  In addition to the keywords listed in @ref{Common Keywords}, this
+macro accepts the following keywords:
 
 @table @code
 @item :type @var{type}
 Use @var{type} as the data type for this option.  It specifies which
-values are legitimate, and how to display the value.
-@xref{Customization Types}, for more information.
+values are legitimate, and how to display the value
+(@pxref{Customization Types}).
 
 @item :options @var{value-list}
 @kindex options@r{, @code{defcustom} keyword}
@@ -443,8 +476,8 @@ Internally, @code{defcustom} uses the symbol property
 @code{saved-value} to record the value saved by the user with the
 customization buffer, and @code{customized-value} to record the value
 set by the user with the customization buffer, but not saved.
-@xref{Property Lists}.  These properties are lists, the car of which
-is an expression that evaluates to the value.
+@xref{Symbol Properties}.  These properties are lists, the car of
+which is an expression that evaluates to the value.
 
 @defun custom-reevaluate-setting symbol
 This function re-evaluates the standard value of @var{symbol}, which
@@ -586,6 +619,11 @@ using @code{choice} and @code{const} together (see the next section),
 you can specify that the value must be @code{nil} or @code{t}, but also
 specify the text to describe each value in a way that fits the specific
 meaning of the alternative.
+
+@item key-sequence
+The value is a key sequence.  The customization buffer shows the key
+sequence using the same syntax as the @kbd{kbd} function.  @xref{Key
+Sequences}.
 
 @item coding-system
 The value must be a coding-system name, and you can do completion with
@@ -1044,8 +1082,7 @@ Substitute the item's documentation string.
 
 @item %h
 Like @samp{%d}, but if the documentation string is more than one line,
-add an active field to control whether to show all of it or just the
-first line.
+add a button to control whether to show all of it or just the first line.
 
 @item %t
 Substitute the tag here.  You specify the tag with the @code{:tag}
@@ -1386,7 +1423,7 @@ disabling themes:
 
 @defun custom-theme-p theme
 This function return a non-@code{nil} value if @var{theme} (a symbol)
-is the name of a Custom theme (i.e.@: a Custom theme which has been
+is the name of a Custom theme (i.e., a Custom theme which has been
 loaded into Emacs, whether or not the theme is enabled).  Otherwise,
 it returns @code{nil}.
 @end defun

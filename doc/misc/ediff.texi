@@ -25,7 +25,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -36,8 +36,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -62,7 +61,7 @@ developing GNU and promoting software freedom.''
 
 @contents
 
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Ediff
 
 @insertcopying
@@ -80,7 +79,7 @@ developing GNU and promoting software freedom.''
 * Index::
 @end menu
 
-@node Introduction, Major Entry Points, Top, Top
+@node Introduction
 @chapter Introduction
 
 @cindex Comparing files and buffers
@@ -128,7 +127,7 @@ functions are adaptations from Emerge.  Although Ediff subsumes and greatly
 extends Emerge, much of the functionality in Ediff is influenced by Emerge.
 The architecture and the interface are, of course, drastically different.
 
-@node Major Entry Points, Session Commands, Introduction, Top
+@node Major Entry Points
 @chapter Major Entry Points
 
 When Ediff starts up, it displays a small control window, which accepts the
@@ -398,7 +397,7 @@ Moreover, the functions @code{ediff-directory-revisions},
 related Ediff sessions by taking a directory and comparing (or merging)
 versions of files in that directory.
 
-@node Session Commands, Registry of Ediff Sessions, Major Entry Points, Top
+@node Session Commands
 @chapter Session Commands
 
 All Ediff commands are displayed in a Quick Help window, unless you type
@@ -409,7 +408,7 @@ Many Ediff commands take numeric prefix arguments.  For instance, if you
 type a number, say 3, and then @kbd{j} (@code{ediff-jump-to-difference}),
 Ediff moves to the third difference region.  Typing 3 and then @kbd{a}
 (@code{ediff-diff-to-diff}) copies the 3rd difference region from variant A
-to variant B.  Likewise, 4 followed by @kbd{ra} restores the 4th difference
+to variant B@.  Likewise, 4 followed by @kbd{ra} restores the 4th difference
 region in buffer A (if it was previously written over via the command
 @kbd{a}).
 
@@ -431,7 +430,7 @@ command (see @kbd{ga}, @kbd{gb}, and @kbd{gc}).
 * Other Session Commands::          Commands that are not bound to keys.
 @end menu
 
-@node Quick Help Commands,Other Session Commands,,Session Commands
+@node Quick Help Commands
 @section Quick Help Commands
 @cindex command help
 @cindex important commands
@@ -490,7 +489,7 @@ compares three files simultaneously).
 @kindex a
 @emph{In comparison sessions:}
 Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B.
+to this command) from buffer A to buffer B@.
 Ediff saves the old contents of buffer B's region; it can
 be restored via the command @kbd{rb}, which see.
 
@@ -512,31 +511,31 @@ be reinstated via the command @kbd{ra} in comparison sessions and
 @item ab
 @kindex ab
 Copies the current difference region (or the region specified as the prefix
-to this command) from buffer A to buffer B.  This (and the next five)
+to this command) from buffer A to buffer B@.  This (and the next five)
 command is enabled only in sessions that compare three files
 simultaneously.  The old region in buffer B is saved and can be restored
 via the command @kbd{rb}.
 @item ac
 @kindex ac
-Copies the difference region from buffer A to buffer C.
+Copies the difference region from buffer A to buffer C@.
 The old region in buffer C is saved and can be restored via the command
 @kbd{rc}.
 @item ba
 @kindex ba
-Copies the difference region from buffer B to buffer A.
+Copies the difference region from buffer B to buffer A@.
 The old region in buffer A is saved and can be restored via the command
 @kbd{ra}.
 @item bc
 @kindex bc
-Copies the difference region from buffer B to buffer C.
+Copies the difference region from buffer B to buffer C@.
 The command @kbd{rc} undoes this.
 @item ca
 @kindex ca
-Copies the difference region from buffer C to buffer A.
+Copies the difference region from buffer C to buffer A@.
 The command @kbd{ra} undoes this.
 @item cb
 @kindex cb
-Copies the difference region from buffer C to buffer B.
+Copies the difference region from buffer C to buffer B@.
 The command @kbd{rb} undoes this.
 
 @item p
@@ -557,8 +556,8 @@ Makes the next difference region current.
 Makes the very first difference region current.
 
 @kbd{-j} makes the last region current.  Typing a number, N, and then `j'
-makes the difference region N current.  Typing -N (a negative number) then
-`j' makes current the region Last - N.
+makes the difference region N current.  Typing @minus{}N (a negative number) then
+`j' makes current the region Last @minus{} N.
 
 @item ga
 @kindex ga
@@ -713,12 +712,12 @@ over.  @xref{Selective Browsing}, for more.
 
 @item A
 @kindex A
-Toggles the read-only property in buffer A.
+Toggles the read-only property in buffer A@.
 If file A is under version control and is checked in, it is checked out
 (with your permission).
 @item B
 @kindex B
-Toggles the read-only property in buffer B.
+Toggles the read-only property in buffer B@.
 If file B is under version control and is checked in, it is checked out.
 @item C
 @kindex C
@@ -795,7 +794,7 @@ While merging with an ancestor file, Ediff is determined to reduce user's
 wear and tear by saving him and her much of unproductive, repetitive
 typing.  If it notices that, say, file A's difference region is identical to
 the same difference region in the ancestor file, then the merge buffer will
-automatically get the difference region taken from buffer B.  The rationale
+automatically get the difference region taken from buffer B@.  The rationale
 is that this difference region in buffer A is as old as that in the
 ancestor buffer, so the contents of that region in buffer B represents real
 change.
@@ -820,7 +819,7 @@ To be more precise, this toggles the check for whether the current merge is
 identical to its default setting, as originally decided by Ediff.  For
 instance, if Ediff is merging according to the `combined' policy, then the
 merge region is skipped over if it is different from the combination of the
-regions in buffers A and B.  (Warning: swapping buffers A and B will confuse
+regions in buffers A and B@.  (Warning: swapping buffers A and B will confuse
 things in this respect.)  If the merge region is marked as `prefer-A' then
 this region will be skipped if it differs from the current difference
 region in buffer A, etc.
@@ -912,7 +911,7 @@ merge buffer and then select regions in those buffers.
 
 @end table
 
-@node Other Session Commands,,Quick Help Commands,Session Commands
+@node Other Session Commands
 @section Other Session Commands
 
 The following commands can be invoked from within any Ediff session,
@@ -955,7 +954,7 @@ difference.
 @vindex ediff-use-toolbar-p
 The use of the toolbar can also be specified via the variable
 @code{ediff-use-toolbar-p} (default is @code{t}).  This variable can be set
-only in @file{.emacs} --- do @strong{not} change it interactively.  Use the
+only in @file{.emacs}: do @strong{not} change it interactively.  Use the
 function @code{ediff-toggle-use-toolbar} instead.
 
 @item ediff-revert-buffers-then-recompute-diffs
@@ -978,7 +977,7 @@ making it run faster.  The function @code{ediff-profile} toggles
 profiling of ediff commands.
 @end table
 
-@node Registry of Ediff Sessions, Session Groups, Session Commands, Top
+@node Registry of Ediff Sessions
 @chapter Registry of Ediff Sessions
 
 Ediff maintains a registry of all its invocations that are
@@ -1009,7 +1008,7 @@ and @kbd{DEL} (previous registry record).  There are other commands as well,
 but you don't need to memorize them, since they are listed at the top of
 the registry buffer.
 
-@node Session Groups, Remote and Compressed Files, Registry of Ediff Sessions, Top
+@node Session Groups
 @chapter Session Groups
 
 Several major entries of Ediff perform comparison and merging on
@@ -1128,7 +1127,7 @@ user whether or not to do a recursive descent.
 
 
 
-@node Remote and Compressed Files, Customization, Session Groups, Top
+@node Remote and Compressed Files
 @chapter Remote and Compressed Files
 
 Ediff works with remote, compressed, and encrypted files.  Ediff
@@ -1149,9 +1148,9 @@ packages also use this method).
 Regular files are treated by the @code{patch} utility in the usual manner,
 i.e., the original is renamed into @file{source-name.orig} and the result
 of the patch is placed into the file source-name (@file{_orig} is used
-on systems like DOS, etc.)
+on systems like DOS, etc.).
 
-@node Customization, Credits, Remote and Compressed Files, Top
+@node Customization
 @chapter Customization
 
 Ediff has a rather self-explanatory interface, and in most cases you
@@ -1187,7 +1186,7 @@ refer to Emacs manual for the information on how to set Emacs X resources.
 * Notes on Heavy-duty Customization::  Customization for the gurus.
 @end menu
 
-@node Hooks, Quick Help Customization, Customization, Customization
+@node Hooks
 @section Hooks
 
 The bulk of customization can be done via the following hooks:
@@ -1238,7 +1237,7 @@ Keep in mind that hooks executing before @code{ediff-cleanup-mess} start
 in @code{ediff-control-buffer;} they should also leave
 @code{ediff-control-buffer} as the current buffer when they finish.
 Hooks that are executed after @code{ediff-cleanup-mess} should expect
-the current buffer be either buffer A or buffer B.
+the current buffer be either buffer A or buffer B@.
 @code{ediff-cleanup-mess} doesn't kill the buffers being compared or
 merged (see @code{ediff-cleanup-hook}, below).
 
@@ -1248,7 +1247,7 @@ This hook is run just before @code{ediff-quit-hook}.  This is a good
 place to do various cleanups, such as deleting the variant buffers.
 Ediff provides a function, @code{ediff-janitor}, as one such possible
 hook, which you can add to @code{ediff-cleanup-hook} with
-@code{add-hooks}.
+@code{add-hook}.
 
 @findex ediff-janitor
 This function kills buffers A, B, and, possibly, C, if these buffers aren't
@@ -1327,13 +1326,13 @@ Hooks run just before exiting a session group.
 @item ediff-meta-buffer-keymap-setup-hook
 @vindex ediff-meta-buffer-keymap-setup-hook
 @vindex ediff-meta-buffer-map
-Hooks run just after setting up the @code{ediff-meta-buffer-map} --- the
+Hooks run just after setting up the @code{ediff-meta-buffer-map}, the
 map that controls key bindings in the meta buffer.  Since
 @code{ediff-meta-buffer-map} is a local variable, you can set different
 bindings for different kinds of meta buffers.
 @end table
 
-@node Quick Help Customization, Window and Frame Configuration, Hooks, Customization
+@node Quick Help Customization
 @section Quick Help Customization
 @vindex ediff-use-long-help-message
 @vindex ediff-control-buffer
@@ -1357,11 +1356,11 @@ basis, you must use @code{ediff-startup-hook} to change the value of
 the variable @code{ediff-help-message}, which is local to
 @code{ediff-control-buffer}.
 
-@node Window and Frame Configuration, Selective Browsing, Quick Help Customization, Customization
+@node Window and Frame Configuration
 @section Window and Frame Configuration
 
 On a non-windowing display, Ediff sets things up in one frame, splitting
-it between a small control window and the windows for buffers A, B, and C.
+it between a small control window and the windows for buffers A, B, and C@.
 The split between these windows can be horizontal or
 vertical, which can be changed interactively by typing @kbd{|} while the
 cursor is in the control window.
@@ -1494,7 +1493,7 @@ can switch between sessions by suspending one session and then switching
 to another control panel.  (Different control panel buffers are
 distinguished by a numerical suffix, e.g., @samp{Ediff Control Panel<3>}.)
 
-@node Selective Browsing, Highlighting Difference Regions, Window and Frame Configuration, Customization
+@node Selective Browsing
 @section Selective Browsing
 
 Sometimes it is convenient to be able to step through only some difference
@@ -1609,7 +1608,7 @@ ignoring letter case or not. It can be set in @file{.emacs} using
 When case sensitivity is toggled, all difference
 regions are recomputed.
 
-@node Highlighting Difference Regions, Narrowing, Selective Browsing, Customization
+@node Highlighting Difference Regions
 @section Highlighting Difference Regions
 
 The following variables control the way Ediff highlights difference
@@ -1736,7 +1735,7 @@ faces, you can modify them when Ediff is being loaded using
 or @code{set/make-face-@dots{}} as shown above. Emacs's low-level
 face-manipulation functions should be avoided.
 
-@node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization
+@node Narrowing
 @section Narrowing
 
 If buffers being compared are narrowed at the time of invocation of
@@ -1768,7 +1767,7 @@ Controls whether on quitting Ediff should restore the accessible range
 that existed before the current invocation.
 @end table
 
-@node Refinement of Difference Regions, Patch and Diff Programs, Narrowing, Customization
+@node Refinement of Difference Regions
 @section Refinement of Difference Regions
 
 Ediff has variables to control the way fine differences are
@@ -1840,7 +1839,7 @@ command @kbd{@@}.  Repeated typing of this key cycles through three
 different states: auto-refining, no-auto-refining, and no-highlighting
 of fine differences.
 
-@node Patch and Diff Programs, Merging and diff3, Refinement of Difference Regions, Customization
+@node Patch and Diff Programs
 @section Patch and Diff Programs
 
 This section describes variables that specify the programs to be used for
@@ -1949,7 +1948,7 @@ Specifies the default directory to look for patches.
 @code{diff}.  Instead, make sure you are using some implementation of POSIX
 @code{diff}, such as @code{gnudiff}.
 
-@node Merging and diff3, Support for Version Control, Patch and Diff Programs, Customization
+@node Merging and diff3
 @section Merging and diff3
 
 Ediff supports three-way comparison via the functions @code{ediff-files3} and
@@ -1999,7 +1998,7 @@ represented as a list of the form @code{(STRING1 Symbol1 STRING2 Symbol2
 STRING3 Symbol3 STRING4)}. The symbols here must be atoms of the form
 @code{A}, @code{B}, or @code{Ancestor}. They determine the order in which
 the corresponding difference regions (from buffers A, B, and the ancestor
-buffer) are displayed in the merged region of buffer C.  The strings in the
+buffer) are displayed in the merged region of buffer C@.  The strings in the
 template determine the text that separates the aforesaid regions. The
 default template is
 
@@ -2062,7 +2061,7 @@ you copy a difference region from buffer A to buffer C then
 @samp{=diff(B)} will change to @samp{diff-A} and the mode line will
 display @samp{=diff(A) prefer-B}.  This indicates that the difference
 region in buffer C is identical to that in buffer A, but originally
-buffer C's region came from buffer B.  This is useful to know because
+buffer C's region came from buffer B@.  This is useful to know because
 you can recover the original difference region in buffer C by typing
 @kbd{r}.
 
@@ -2090,7 +2089,7 @@ buffer A consists of the white space only (or if it is empty), Ediff will
 not take it into account for the purpose of computing fine differences.  The
 result is that Ediff can provide a better visual information regarding the
 actual fine differences in the non-white regions in buffers B and
-C.  Moreover, if the regions in buffers B and C differ in the white space
+C@.  Moreover, if the regions in buffers B and C differ in the white space
 only, then a message to this effect will be displayed.
 
 @vindex ediff-merge-window-share
@@ -2153,7 +2152,7 @@ When merge buffers are saved automatically as directed by
 specified by the variable @code{ediff-merge-filename-prefix}. The default
 is @code{merge_}, but this can be changed by the user.
 
-@node Support for Version Control, Customizing the Mode Line, Merging and diff3, Customization
+@node Support for Version Control
 @section Support for Version Control
 
 
@@ -2198,7 +2197,7 @@ In case of @file{pcl-cvs.el}, Ediff can also be invoked via the function
 @code{run-ediff-from-cvs-buffer}---see the documentation string for this
 function.
 
-@node Customizing the Mode Line, Miscellaneous, Support for Version Control, Customization
+@node Customizing the Mode Line
 @section Customizing the Mode Line
 
 When Ediff is running, the mode line of @samp{Ediff Control Panel}
@@ -2217,7 +2216,7 @@ don't like the way Ediff changes the mode line, you can use
 @pindex @file{uniquify.el}
 @pindex @file{mode-line.el}
 
-@node Miscellaneous, Notes on Heavy-duty Customization, Customizing the Mode Line, Customization
+@node Miscellaneous
 @section Miscellaneous
 
 Here are a few other variables for customizing Ediff:
@@ -2334,7 +2333,7 @@ Try different settings and see which one is for you.
 @end table
 
 
-@node Notes on Heavy-duty Customization, , Miscellaneous, Customization
+@node Notes on Heavy-duty Customization
 @section Notes on Heavy-duty Customization
 
 Some users need to customize Ediff in rather sophisticated ways, which
@@ -2388,7 +2387,7 @@ In merging, this is the merge buffer.
 In two-way comparison, this variable is @code{nil}.
 
 @item ediff-window-A
-The window displaying buffer A.  If buffer A is not visible, this variable
+The window displaying buffer A@.  If buffer A is not visible, this variable
 is @code{nil} or it may be a dead window.
 
 @item ediff-window-B
@@ -2403,11 +2402,11 @@ non-@code{nil} only if Ediff uses the multiframe display, i.e., when
 the control buffer is in its own frame.
 @end table
 
-@node Credits, GNU Free Documentation License, Customization, Top
+@node Credits
 @chapter Credits
 
 Ediff was written by Michael Kifer <kifer@@cs.stonybrook.edu>.  It was inspired
-by emerge.el written by Dale R.@: Worley <drw@@math.mit.edu>.  An idea due to
+by emerge.el written by Dale R. Worley <drw@@math.mit.edu>.  An idea due to
 Boris Goldowsky <boris@@cs.rochester.edu> made it possible to highlight
 fine differences in Ediff buffers.  Alastair Burt <burt@@dfki.uni-kl.de>
 ported Ediff to XEmacs, Eric Freudenthal <freudent@@jan.ultra.nyu.edu>
@@ -2424,15 +2423,15 @@ Adrian Aichner (aichner at ecf.teradyne.com),
 Drew Adams (drew.adams at oracle.com),
 Steve Baur (steve at xemacs.org),
 Neal Becker (neal at ctd.comsat.com),
-E.@: Jay Berkenbilt (ejb at ql.org),
+E. Jay Berkenbilt (ejb at ql.org),
 Lennart Borgman (ennart.borgman at gmail.com)
 Alastair Burt (burt at dfki.uni-kl.de),
 Paul Bibilo (peb at delcam.co.uk),
 Kevin Broadey (KevinB at bartley.demon.co.uk),
 Harald Boegeholz (hwb at machnix.mathematik.uni-stuttgart.de),
-Bradley A.@: Bosch (brad at lachman.com),
-Michael D.@: Carney (carney at ltx-tr.com),
-Jin S.@: Choi (jin at atype.com),
+Bradley A. Bosch (brad at lachman.com),
+Michael D. Carney (carney at ltx-tr.com),
+Jin S. Choi (jin at atype.com),
 Scott Cummings (cummings at adc.com),
 Albert Dvornik (bert at mit.edu),
 Eric Eide (eeide at asylum.cs.utah.edu),
@@ -2491,7 +2490,7 @@ Paul Raines (raines at slac.stanford.edu),
 Stefan Reicher (xsteve at riic.at),
 Charles Rich (rich at merl.com),
 Bill Richter (richter at math.nwu.edu),
-C.S.@: Roberson (roberson at aur.alcatel.com),
+C.S. Roberson (roberson at aur.alcatel.com),
 Kevin Rodgers (kevin.rodgers at ihs.com),
 Sandy Rutherford (sandy at ibm550.sissa.it),
 Heribert Schuetz (schuetz at ecrc.de),
@@ -2521,12 +2520,12 @@ Ilya Zakharevich (ilya at math.ohio-state.edu),
 Eli Zaretskii (eliz at is.elta.co.il)
 @end example
 
-@node GNU Free Documentation License, Index, Credits, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
 
-@node Index, , GNU Free Documentation License, Top
+@node Index
 @unnumbered Index
 @printindex cp
 

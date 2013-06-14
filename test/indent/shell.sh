@@ -5,6 +5,27 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
 # adsgsdg
 
+case $X in
+    foo)
+        do_something
+        ;;
+    arg=*)			# bug#12953
+        do_something_else_based_on_arg
+        ;;
+    *)
+        default
+        ;;
+esac
+
+echo -n $(( 5 << 2 ))
+# This should not be treated as a heredoc (bug#12770).
+2
+
+foo='bar<<'                     # bug#11263
+echo ${foo%<<aa}                # bug#11263
+echo $((1<<8))                  # bug#11263
+echo $[1<<8]                    # bug#11263
+
 declare -a VERSION
 for i in $(ls "$PREFIX/sbin") ; do
     echo -e $N')' $i
@@ -26,7 +47,10 @@ foo () {
 
     case $toto in
         a) echo 1;; b) echo 2;;
-        c) echo 3;;
+        (c)
+            echo 3;;
+        d)
+            echo 3;;
     esac
     
     case $as_nl`(ac_space=' '; set) 2>&1` in #(

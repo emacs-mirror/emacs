@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
 
-Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
+Copyright (C) 1996-1997, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 #include <go32.h>
 #include <sys/farptr.h>
-#include <setjmp.h>
 #include "lisp.h"
 #include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
@@ -460,7 +459,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto error;
@@ -521,7 +520,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
  unblock:
   xfree (dst);
-  UNBLOCK_INPUT;
+  unblock_input ();
 
   /* Notify user if the text is too large to fit into DOS memory.
      (This will happen somewhere after 600K bytes (470K in DJGPP v1.x),
@@ -533,13 +532,13 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
       switch (put_status)
 	{
 	  case 1:
-	    message2 (no_mem_msg, sizeof (no_mem_msg) - 1, 0);
+	    message3 (make_unibyte_string (no_mem_msg, sizeof (no_mem_msg) - 1));
 	    break;
 	  case 2:
-	    message2 (binary_msg, sizeof (binary_msg) - 1, 0);
+	    message3 (make_unibyte_string (binary_msg, sizeof (binary_msg) - 1));
 	    break;
 	  case 3:
-	    message2 (system_error_msg, sizeof (system_error_msg) - 1, 0);
+	    message3 (make_unibyte_string (system_error_msg, sizeof (system_error_msg) - 1));
 	    break;
 	}
       sit_for (make_number (2), 0, 2);
@@ -566,7 +565,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
 
-  BLOCK_INPUT;
+  block_input ();
 
   if (!open_clipboard ())
     goto unblock;
@@ -627,7 +626,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   close_clipboard ();
 
  unblock:
-  UNBLOCK_INPUT;
+  unblock_input ();
 
  done:
 

@@ -1,5 +1,6 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1997-1998, 2001-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -29,7 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static ptrdiff_t cached_charpos;
 static ptrdiff_t cached_bytepos;
 static struct buffer *cached_buffer;
-static int cached_modiff;
+static EMACS_INT cached_modiff;
 
 /* Juanma Barranquero <lekktu@gmail.com> reported ~3x increased
    bootstrap time when byte_char_debug_check is enabled; so this
@@ -82,16 +83,14 @@ clear_charpos_cache (struct buffer *b)
    and everywhere there is a marker.  So we find the one of these places
    that is closest to the specified position, and scan from there.  */
 
-/* charpos_to_bytepos returns the byte position corresponding to CHARPOS.  */
-
-/* This macro is a subroutine of charpos_to_bytepos.
+/* This macro is a subroutine of buf_charpos_to_bytepos.
    Note that it is desirable that BYTEPOS is not evaluated
    except when we really want its value.  */
 
 #define CONSIDER(CHARPOS, BYTEPOS)					\
 {									\
   ptrdiff_t this_charpos = (CHARPOS);					\
-  int changed = 0;							\
+  bool changed = 0;							\
 									\
   if (this_charpos == charpos)						\
     {									\
@@ -128,11 +127,7 @@ clear_charpos_cache (struct buffer *b)
     }									\
 }
 
-ptrdiff_t
-charpos_to_bytepos (ptrdiff_t charpos)
-{
-  return buf_charpos_to_bytepos (current_buffer, charpos);
-}
+/* Return the byte position corresponding to CHARPOS in B.  */
 
 ptrdiff_t
 buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
@@ -141,8 +136,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
 
-  if (charpos < BUF_BEG (b) || charpos > BUF_Z (b))
-    emacs_abort ();
+  eassert (BUF_BEG (b) <= charpos && charpos <= BUF_Z (b));
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -190,7 +184,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 
   if (charpos - best_below < best_above - charpos)
     {
-      int record = charpos - best_below > 5000;
+      bool record = charpos - best_below > 5000;
 
       while (best_below != charpos)
 	{
@@ -215,7 +209,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     }
   else
     {
-      int record = best_above - charpos > 5000;
+      bool record = best_above - charpos > 5000;
 
       while (best_above != charpos)
 	{
@@ -241,9 +235,6 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
 }
 
 #undef CONSIDER
-
-/* buf_bytepos_to_charpos returns the char position corresponding to
-   BYTEPOS.  */
 
 /* This macro is a subroutine of buf_bytepos_to_charpos.
    It is used when BYTEPOS is actually the byte position.  */
@@ -288,6 +279,8 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     }									\
 }
 
+/* Return the character position corresponding to BYTEPOS in B.  */
+
 ptrdiff_t
 buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 {
@@ -295,8 +288,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
   ptrdiff_t best_above, best_above_byte;
   ptrdiff_t best_below, best_below_byte;
 
-  if (bytepos < BUF_BEG_BYTE (b) || bytepos > BUF_Z_BYTE (b))
-    emacs_abort ();
+  eassert (BUF_BEG_BYTE (b) <= bytepos && bytepos <= BUF_Z_BYTE (b));
 
   best_above = BUF_Z (b);
   best_above_byte = BUF_Z_BYTE (b);
@@ -335,7 +327,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 
   if (bytepos - best_below_byte < best_above_byte - bytepos)
     {
-      int record = bytepos - best_below_byte > 5000;
+      bool record = bytepos - best_below_byte > 5000;
 
       while (best_below_byte < bytepos)
 	{
@@ -362,7 +354,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
     }
   else
     {
-      int record = best_above_byte - bytepos > 5000;
+      bool record = best_above_byte - bytepos > 5000;
 
       while (best_above_byte > bytepos)
 	{
@@ -427,7 +419,7 @@ Returns nil if MARKER points nowhere.  */)
 
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */
 
-static inline void
+static void
 attach_marker (struct Lisp_Marker *m, struct buffer *b,
 	       ptrdiff_t charpos, ptrdiff_t bytepos)
 {
@@ -454,7 +446,7 @@ attach_marker (struct Lisp_Marker *m, struct buffer *b,
    whether BUFFER is a buffer object and return buffer pointer
    corresponding to BUFFER if BUFFER is live, or NULL otherwise.  */
 
-static inline struct buffer *
+static struct buffer *
 live_buffer (Lisp_Object buffer)
 {
   struct buffer *b;
@@ -477,12 +469,12 @@ live_buffer (Lisp_Object buffer)
 /* Internal function to set MARKER in BUFFER at POSITION.  Non-zero
    RESTRICTED means limit the POSITION by the visible part of BUFFER.  */
 
-static inline Lisp_Object
+static Lisp_Object
 set_marker_internal (Lisp_Object marker, Lisp_Object position,
-		     Lisp_Object buffer, int restricted)
+		     Lisp_Object buffer, bool restricted)
 {
-  register struct Lisp_Marker *m;
-  register struct buffer *b = live_buffer (buffer);
+  struct Lisp_Marker *m;
+  struct buffer *b = live_buffer (buffer);
 
   CHECK_MARKER (marker);
   m = XMARKER (marker);
@@ -507,11 +499,29 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
     {
       register ptrdiff_t charpos, bytepos;
 
-      CHECK_NUMBER_COERCE_MARKER (position);
-      charpos = clip_to_bounds (restricted ? BUF_BEGV (b) : BUF_BEG (b),
-                               XINT (position),
-                               restricted ? BUF_ZV (b) : BUF_Z (b));
-      bytepos = buf_charpos_to_bytepos (b, charpos);
+      /* Do not use CHECK_NUMBER_COERCE_MARKER because we
+	 don't want to call buf_charpos_to_bytepos if POSITION
+	 is a marker and so we know the bytepos already.  */
+      if (INTEGERP (position))
+	charpos = XINT (position), bytepos = -1;
+      else if (MARKERP (position))
+	{
+	  charpos = XMARKER (position)->charpos;
+	  bytepos = XMARKER (position)->bytepos;
+	}
+      else
+	wrong_type_argument (Qinteger_or_marker_p, position);
+
+      charpos = clip_to_bounds
+	(restricted ? BUF_BEGV (b) : BUF_BEG (b), charpos,
+	 restricted ? BUF_ZV (b) : BUF_Z (b));
+      if (bytepos == -1)
+	bytepos = buf_charpos_to_bytepos (b, charpos);
+      else
+	bytepos = clip_to_bounds
+	  (restricted ? BUF_BEGV_BYTE (b) : BUF_BEG_BYTE (b),
+	   bytepos, restricted ? BUF_ZV_BYTE (b) : BUF_Z_BYTE (b));
+
       attach_marker (m, b, charpos, bytepos);
     }
   return marker;

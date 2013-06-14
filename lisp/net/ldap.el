@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: FSF
@@ -604,6 +604,7 @@ an alist of attribute/value pairs."
 	;; Skip error message when retrieving attribute list
 	(if (looking-at "Size limit exceeded")
 	    (forward-line 1))
+        (if (looking-at "version:") (forward-line 1)) ;bug#12724.
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))

@@ -1,6 +1,6 @@
 ;;; semantic/decorate/mode.el --- Minor mode for decorating tags
 
-;; Copyright (C) 2000-2005, 2007-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -63,6 +63,14 @@ add items to this list."
 (defsubst semantic-decorate-style-highlighter (style)
   "Return the STYLE's highlighter function."
   (intern (format "%s-highlight" style)))
+
+(defsubst semantic-decorate-style-predicate-default (style)
+  "Return the STYLE's predicate function."
+  (intern (format "%s-p-default" style)))
+
+(defsubst semantic-decorate-style-highlighter-default (style)
+  "Return the STYLE's highlighter function."
+  (intern (format "%s-highlight-default" style)))
 
 ;;; Base decoration API
 ;;
@@ -323,6 +331,8 @@ Return non-nil if the decoration style is enabled."
            (flag  (if arg
                       (> (prefix-numeric-value arg) 0)
                     (not (cdr style)))))
+      (when (null style)
+	(error "Unknown decoration style %s" name))
       (unless (eq (cdr style) flag)
         ;; Store the new flag.
         (setcdr style flag)
@@ -366,7 +376,8 @@ DOC is a documentation string describing the decoration style NAME.
 It is appended to auto-generated doc strings.
 An Optional list of FLAGS can also be specified.  Flags are:
   :enabled <value>  - specify the default enabled value for NAME.
-
+  :load <value>     - specify a feature (as a string) with the rest of
+                      the definition for decoration mode NAME.
 
 This defines two new overload functions respectively called `NAME-p'
 and `NAME-highlight', for which you must provide a default
@@ -384,9 +395,14 @@ To add other kind of decorations on a tag, `NAME-highlight' must use
 decoration API found in this library."
   (let ((predicate   (semantic-decorate-style-predicate   name))
         (highlighter (semantic-decorate-style-highlighter name))
+	(predicatedef   (semantic-decorate-style-predicate-default   name))
+	(highlighterdef (semantic-decorate-style-highlighter-default name))
 	(defaultenable (if (plist-member flags :enabled)
 			   (plist-get flags :enabled)
 			 t))
+	(loadfile (if (plist-member flags :load)
+		      (plist-get flags :load)
+		    nil))
 	)
     `(progn
        ;; Clear the menu cache so that new items are added when
@@ -406,7 +422,19 @@ decoration API found in this library."
        (add-to-list 'semantic-decoration-styles
                     (cons ',(symbol-name name)
 			  ,defaultenable))
-       )))
+       ;; If there is a load file, then create the autoload tokens for
+       ;; those functions to load the token, but only if the fsym
+       ;; doesn't exist yet.
+       (when (stringp ,loadfile)
+	 (unless (fboundp ',predicatedef)
+	   (autoload ',predicatedef ',loadfile "Return non-nil to decorate TAG."
+	     nil 'function))
+
+	 (unless (fboundp ',highlighterdef)
+	   (autoload ',highlighterdef ',loadfile "Decorate TAG."
+	     nil 'function))
+	 ))
+    ))
 
 ;;; Predefined decoration styles
 ;;
@@ -511,6 +539,16 @@ Used by the decoration style: `semantic-decoration-on-protected-members'."
 Use a primary decoration."
   (semantic-set-tag-face
    tag 'semantic-decoration-on-protected-members-face))
+
+;;; Decoration Modes in other files
+;;
+(define-semantic-decoration-style semantic-decoration-on-includes
+  "Highlight class members that are includes.
+This mode provides a nice context menu on the include statements."
+  :enabled t
+  :load "semantic/decorate/include")
+
+
 
 (provide 'semantic/decorate/mode)
 

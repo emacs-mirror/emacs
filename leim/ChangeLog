@@ -1,3 +1,63 @@
+2013-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare): Replace
+	reveal-filename with unmsys--file-name.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (leim-list.el, check-declare): Use reveal-filename.
+
+2013-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use UTF-8 for most files with non-ASCII characters (Bug#13936).
+	* quail/cyrillic.el, quail/czech.el, quail/ethiopic.el:
+	* quail/greek.el, quail/hanja.el, quail/hanja3.el, quail/hebrew.el:
+	* quail/lao.el, quail/lrt.el, quail/slovak.el, quail/symbol-ksc.el:
+	* quail/thai.el, quail/tibetan.el, quail/viqr.el, quail/vntelex.el:
+	* quail/vnvni.el, quail/welsh.el:
+	Switch from iso-2022-7bit to utf-8 or (if needed) utf-8-emacs.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): Use batch-skkdic-convert.
+
+2013-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(srcdir)/ja-dic/ja-dic.el): New target.
+
+2013-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Automate the build of ja-dic.el (Bug#13984).
+	ja-dic.el no longer needs to be in the repository: it's now
+	generated as part of the build from bzr.  Also, update SKK-JISYO.L to
+	match the upstream source exactly.
+	* ja-dic/ja-dic.el: Remove from repository.  It is still distributed
+	as part of the Emacs tarball.
+	* Makefile.in ($(srcdir)/ja-dic/ja-dic.el): New rule.
+	(compile-main): Depend on it.
+	* SKK-DIC/README: Update to reflect new build procedure.
+	* SKK-DIC/SKK-JISYO.L: Update to match source exactly.
+	This is now the annotated version, to match the upstream file name;
+	the unannotated one is built from it automatically.
+
+2013-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Resolve conflicts (bug#13950).
+	(latin-ltx--mark-map, latin-ltx--mark-re): New constants.
+	(latin-ltx--define-rules): Check for conflicts.  Eval `re's.
+	(rules): Use tighter regexps to avoid conflicts.
+	Consolidate the various rules for combining marks.
+
+2013-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Add greek superscripts.
+
+2012-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Avoid deprecated chars for \langle and \rangle.
+	Remove \rightparengtr and \leftparengtr for lack of consensus.
+	Suggested by Mattias Engdegård <mattiase@bredband.net> (bug#12948).
+
 2012-09-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* quail/hebrew.el ("yiddish-royal"): Fix several bogus entries.
@@ -2366,7 +2426,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1997-1999, 2001-2012 Free Software Foundation, Inc.
+  Copyright (C) 1997-1999, 2001-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+# Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -23,6 +23,10 @@ top_srcdir = @top_srcdir@
 abs_top_builddir = @abs_top_builddir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
+
+# Empty for all systems except MinGW, where xargs needs an explicit
+# limitation.
+XARGS_LIMIT = @XARGS_LIMIT@
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -160,21 +164,21 @@ $(lisp)/cus-load.el:
 custom-deps: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(lisp)/cus-load.el"))' -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
+	$(emacs) -l finder --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(lisp)/finder-inf.el"))' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.
 autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload --eval '(setq generated-autoload-file (unmsys--file-name "$(lisp)/loaddefs.el"))' -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -205,8 +209,9 @@ update-authors:
 	$(emacs) -l authors -f batch-update-authors $(top_srcdir)/etc/AUTHORS $(top_srcdir)
 
 TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
-	${ETAGS} -o $@ $$els
+	rm -f $@; touch $@; \
+	 echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,," | \
+	xargs $(XARGS_LIMIT) ${ETAGS} -a -o $@
 
 # The src/Makefile.in has its own set of dependencies and when they decide
 # that one Lisp file needs to be re-compiled, we had better recompile it as
@@ -274,7 +279,7 @@ compile-main: compile-clean
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
-	done | xargs echo) | \
+	done | xargs $(XARGS_LIMIT) echo) | \
 	while read chunk; do \
 	  $(MAKE) $(MFLAGS) compile-targets EMACS="$(EMACS)" TARGETS="$$chunk"; \
 	done
@@ -369,7 +374,7 @@ mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
 $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
@@ -377,17 +382,17 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 # an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
 TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(TRAMP_DIR)/tramp.el  $(TRAMP_DIR)/tramp-cache.el  \
-	$(TRAMP_DIR)/tramp-cmds.el $(TRAMP_DIR)/tramp-compat.el \
-	$(TRAMP_DIR)/tramp-ftp.el  $(TRAMP_DIR)/tramp-gvfs.el   \
-	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-sh.el	\
-	$(TRAMP_DIR)/tramp-smb.el  $(TRAMP_DIR)/tramp-uu.el     \
-	$(TRAMP_DIR)/trampver.el
+TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
+	$(TRAMP_DIR)/tramp-cache.el  $(TRAMP_DIR)/tramp-cmds.el	\
+	$(TRAMP_DIR)/tramp-compat.el $(TRAMP_DIR)/tramp-ftp.el	\
+	$(TRAMP_DIR)/tramp-gvfs.el   $(TRAMP_DIR)/tramp-gw.el	\
+	$(TRAMP_DIR)/tramp-sh.el     $(TRAMP_DIR)/tramp-smb.el	\
+	$(TRAMP_DIR)/tramp-uu.el     $(TRAMP_DIR)/trampver.el
 
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(TRAMP_DIR)
 
@@ -409,21 +414,21 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
 $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq generated-autoload-file (unmsys--file-name \"$@\"))" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
@@ -433,7 +438,7 @@ bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
 
 distclean:
-	-rm -f ./Makefile
+	-rm -f ./Makefile $(lisp)/loaddefs.el~
 
 maintainer-clean: distclean bootstrap-clean
 

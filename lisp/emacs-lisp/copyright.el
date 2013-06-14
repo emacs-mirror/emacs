@@ -1,6 +1,7 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools

@@ -1,6 +1,6 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993-1995, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1518,7 +1518,7 @@ mail status in mode line"))
                   :button (:toggle . (bound-and-true-p semantic-mode))))
 
     (bindings--define-key menu [ede]
-      '(menu-item "Project support (EDE)"
+      '(menu-item "Project Support (EDE)"
                   global-ede-mode
                   :help "Toggle the Emacs Development Environment (Global EDE mode)"
                   :button (:toggle . (bound-and-true-p global-ede-mode))))
@@ -1637,8 +1637,8 @@ key, a click, or a menu-item"))
       '(menu-item "Find Options by Value..." apropos-value
                   :help "Find variables whose values match a regexp"))
     (bindings--define-key menu [find-options-by-name]
-      '(menu-item "Find Options by Name..." apropos-variable
-                  :help "Find variables whose names match a regexp"))
+      '(menu-item "Find Options by Name..." apropos-user-option
+                  :help "Find user options whose names match a regexp"))
     (bindings--define-key menu [find-commands-by-name]
       '(menu-item "Find Commands by Name..." apropos-command
                   :help "Find commands whose names match a regexp"))
@@ -1812,9 +1812,14 @@ for the definition of the menu frame."
 When called in the minibuffer, get out of the minibuffer
 using `abort-recursive-edit'."
   (interactive)
-  (if (menu-bar-non-minibuffer-window-p)
-      (kill-buffer (current-buffer))
-    (abort-recursive-edit)))
+  (cond
+   ;; Don't do anything when `menu-frame' is not alive or visible
+   ;; (Bug#8184).
+   ((not (menu-bar-menu-frame-live-and-visible-p)))
+   ((menu-bar-non-minibuffer-window-p)
+    (kill-buffer (current-buffer)))
+   (t
+    (abort-recursive-edit))))
 
 (defun kill-this-buffer-enabled-p ()
   "Return non-nil if the `kill-this-buffer' menu item should be enabled."

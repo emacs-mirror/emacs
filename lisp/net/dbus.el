@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -152,7 +152,9 @@ Otherwise, return result of last form in BODY, or all other errors."
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
 
-(defvar dbus-event-error-hooks nil
+(define-obsolete-variable-alias 'dbus-event-error-hooks
+  'dbus-event-error-functions "24.3")
+(defvar dbus-event-error-functions nil
   "Functions to be called when a D-Bus error happens in the event handler.
 Every function must accept two arguments, the event and the error variable
 caught in `condition-case' by `dbus-error'.")
@@ -266,9 +268,12 @@ object is returned instead of a list containing this single Lisp object.
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
     ;; default 25".  Events which are not from D-Bus must be restored.
+    ;; `read-event' performs a redisplay.  This must be suppressed; it
+    ;; hurts when reading D-Bus events asynchronously.
     (with-timeout ((if timeout (/ timeout 1000.0) 25))
       (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
-	(let ((event (let (unread-command-events) (read-event nil nil 0.1))))
+	(let ((event (let ((inhibit-redisplay t) unread-command-events)
+		       (read-event nil nil 0.1))))
 	  (when (and event (not (ignore-errors (dbus-check-event event))))
 	    (setq unread-command-events
 		  (append unread-command-events (list event)))))))
@@ -947,7 +952,7 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
 	 (dbus-method-error-internal
 	  (nth 1 event) (nth 4 event) (nth 3 event) (cadr err))))
      ;; Propagate D-Bus error messages.
-     (run-hook-with-args 'dbus-event-error-hooks event err)
+     (run-hook-with-args 'dbus-event-error-functions event err)
      (when (or dbus-debug (= dbus-message-type-error (nth 2 event)))
        (signal (car err) (cdr err))))))
 

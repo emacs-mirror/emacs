@@ -1,6 +1,6 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996-1997, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -46,7 +46,7 @@
 ;; If you like mouse-drag, you should also check out mouse-copy
 ;; for ``one-click text copy and move''.
 ;;
-;; To use mouse-drag, place the following in your .emacs file:
+;; To use mouse-drag, place the following in your init file:
 ;; -either-
 ;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
 ;; -or-

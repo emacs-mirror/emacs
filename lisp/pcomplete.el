@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -28,7 +28,7 @@
 ;; argument position.
 ;;
 ;; To use pcomplete with shell-mode, for example, you will need the
-;; following in your .emacs file:
+;; following in your init file:
 ;;
 ;;   (add-hook 'shell-mode-hook 'pcomplete-shell-setup)
 ;;
@@ -451,9 +451,12 @@ Same as `pcomplete' but using the standard completion UI."
           (list beg (point) table
                 :predicate pred
                 :exit-function
+		;; If completion is finished, add a terminating space.
+		;; We used to also do this if STATUS is `sole', but
+		;; that does not work right when completion cycling.
                 (unless (zerop (length pcomplete-termination-string))
-                  (lambda (_s finished)
-                    (when (memq finished '(sole finished))
+                  (lambda (_s status)
+                    (when (eq status 'finished)
                       (if (looking-at
                            (regexp-quote pcomplete-termination-string))
                           (goto-char (match-end 0))
@@ -721,6 +724,7 @@ this is `comint-dynamic-complete-functions'."
 
 (defun pcomplete-parse-comint-arguments ()
   "Parse whitespace separated arguments in the current region."
+  (declare (obsolete comint-parse-pcomplete-arguments "24.1"))
   (let ((begin (save-excursion (comint-bol nil) (point)))
 	(end (point))
 	begins args)
@@ -740,8 +744,6 @@ this is `comint-dynamic-complete-functions'."
 	(push (buffer-substring-no-properties (car begins) (point))
               args))
       (cons (nreverse args) (nreverse begins)))))
-(make-obsolete 'pcomplete-parse-comint-arguments
-               'comint-parse-pcomplete-arguments "24.1")
 
 (defun pcomplete-parse-arguments (&optional expand-p)
   "Parse the command line arguments.  Most completions need this info."
@@ -831,7 +833,8 @@ this is `comint-dynamic-complete-functions'."
                       . ,(lambda (comps)
                            (sort comps pcomplete-compare-entry-function)))
                      ,@(cdr (completion-file-name-table s p a)))
-        (let ((completion-ignored-extensions nil))
+        (let ((completion-ignored-extensions nil)
+	      (completion-ignore-case pcomplete-ignore-case))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 
@@ -1087,7 +1090,7 @@ Typing SPC flushes the help buffer."
     (setq pcomplete-last-window-config (current-window-configuration)))
   (with-output-to-temp-buffer "*Completions*"
     (display-completion-list completions))
-  (message "Hit space to flush")
+  (minibuffer-message "Hit space to flush")
   (let (event)
     (prog1
         (catch 'done

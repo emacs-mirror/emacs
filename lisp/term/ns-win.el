@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2013 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -39,7 +39,7 @@
 ;; this file, which works in close coordination with src/nsfns.m.
 
 ;;; Code:
-
+(eval-when-compile (require 'cl-lib))
 (or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/MacOS"
            (invocation-name)))
@@ -448,9 +448,20 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir isLoad init))
+		  (prompt &optional dir mustmatch init dir_only_p))
 
 ;;;; File handling.
+
+(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+"Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is only defined on NS, MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
+  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
@@ -547,6 +558,11 @@ unless the current buffer is a scratch buffer."
   (other-frame -1))
 
 ;; If no position specified, make new frame offset by 25 from current.
+;; You'd think this was a window manager's job, but apparently without
+;; this, new frames open exactly on top of old ones (?).
+;; http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg00988.html
+;; Note that AFAICS it is not documented that functions on
+;; before-make-frame-hook can access PARAMETERS.
 (defvar parameters)		     ; dynamically bound in make-frame
 (add-hook 'before-make-frame-hook
           (lambda ()
@@ -622,8 +638,9 @@ This function has been overloaded in Nextstep.")
 `ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)
-                                 (cons 'fontsize ns-input-fontsize)))
+                           (list (cons 'fontsize ns-input-fontsize)))
+  (modify-frame-parameters (selected-frame)
+                           (list (cons 'font ns-input-font)))
   (set-frame-font ns-input-font))
 
 
@@ -643,18 +660,6 @@ This function has been overloaded in Nextstep.")
 This defines a fontset consisting of the Courier and other fonts that
 come with OS X.
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
-
-;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
-(when (fboundp 'new-fontset)
-  ;; Setup the default fontset.
-  (create-default-fontset)
-  ;; Create the standard fontset.
-  (condition-case err
-      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-    (error (display-warning
-            'initialization
-            (format "Creation of the standard fontset failed: %s" err)
-            :error))))
 
 (defvar ns-reg-to-script)               ; nsfont.m
 
@@ -895,11 +900,22 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.
-(defun ns-initialize-window-system ()
+(defun ns-initialize-window-system (&optional _display)
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
+  (cl-assert (not ns-initialized))
 
   ;; PENDING: not needed?
   (setq command-line-args (x-handle-args command-line-args))
+
+  ;; Setup the default fontset.
+  (create-default-fontset)
+  ;; Create the standard fontset.
+  (condition-case err
+      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
+    (error (display-warning
+            'initialization
+            (format "Creation of the standard fontset failed: %s" err)
+            :error)))
 
   (x-open-connection (system-name) nil t)
 
@@ -924,6 +940,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-apply-session-resources)
   (setq ns-initialized t))
 
+(add-to-list 'display-format-alist '("\\`ns\\'" . ns))
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))

@@ -1,6 +1,6 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)
 
-;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -32,39 +32,6 @@
 
 ;;; String manipulations while paying attention to multibyte
 ;;; characters.
-
-;;;###autoload
-(defun string-to-sequence (string type)
-  "Convert STRING to a sequence of TYPE which contains characters in STRING.
-TYPE should be `list' or `vector'."
-;;;  (let ((len (length string))
-;;;	   (i 0)
-;;;	   val)
-    (cond ((eq type 'list)
-	   ;; Applicable post-Emacs 20.2 and asymptotically ~10 times
-	   ;; faster than the code below:
-	   (append string nil))
-;;; 	   (setq val (make-list len 0))
-;;; 	   (let ((l val))
-;;; 	     (while (< i len)
-;;; 	       (setcar l (aref string i))
-;;; 	       (setq l (cdr l) i (1+ i))))))
-	  ((eq type 'vector)
-	   ;; As above.
-	   (vconcat string))
-;;; 	   (setq val (make-vector len 0))
-;;; 	   (while (< i len)
-;;; 	     (aset val i (aref string i))
-;;; 	     (setq i (1+ i))))
-	  (t
-	   (error "Invalid type: %s" type)))
-;;;    val)
-)
-
-;;;###autoload
-(make-obsolete 'string-to-sequence
-	       "use `string-to-list' or `string-to-vector'."
-	       "22.1")
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -165,38 +132,38 @@ defaults to \"...\"."
 ;; 		(("xy" 2 1) . "y")
 ;; 		(("xy" 0) . "")
 ;; 		(("xy" 3) . "xy")
-;; 		(("$AVP(B" 0) . "")
-;; 		(("$AVP(B" 1) . "")
-;; 		(("$AVP(B" 2) . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ? ) . " ")
-;; 		(("$AVPND(B" 3 1 ? ) . "  ")
-;; 		(("x$AVP(Bx" 2) . "x")
-;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
-;; 		(("x$AVP(Bx" 3) . "x$AVP(B")
-;; 		(("x$AVP(Bx" 4 1) . "$AVP(Bx")
-;; 		(("kor$(CGQ(Be$(C1[(Ban" 8 1 ? ) . "or$(CGQ(Be$(C1[(B")
-;; 		(("kor$(CGQ(Be$(C1[(Ban" 7 2 ? ) . "r$(CGQ(Be ")
+;; 		(("中" 0) . "")
+;; 		(("中" 1) . "")
+;; 		(("中" 2) . "中")
+;; 		(("中" 1 nil ? ) . " ")
+;; 		(("中文" 3 1 ? ) . "  ")
+;; 		(("x中x" 2) . "x")
+;; 		(("x中x" 3) . "x中")
+;; 		(("x中x" 3) . "x中")
+;; 		(("x中x" 4 1) . "中x")
+;; 		(("kor한e글an" 8 1 ? ) . "or한e글")
+;; 		(("kor한e글an" 7 2 ? ) . "r한e ")
 ;; 		(("" 0 nil nil "...") . "")
 ;; 		(("x" 3 nil nil "...") . "x")
-;; 		(("$AVP(B" 3 nil nil "...") . "$AVP(B")
+;; 		(("中" 3 nil nil "...") . "中")
 ;; 		(("foo" 3 nil nil "...") . "foo")
 ;; 		(("foo" 2 nil nil "...") . "fo") ;; XEmacs failure?
 ;; 		(("foobar" 6 0 nil "...") . "foobar")
 ;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
 ;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
 ;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 15 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(B...")
-;; 		(("x" 3 nil nil "$(Gemk#(B") . "x")
-;; 		(("$AVP(B" 2 nil nil "$(Gemk#(B") . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ?x "$(Gemk#(B") . "x") ;; XEmacs error
-;; 		(("$AVPND(B" 3 nil ?  "$(Gemk#(B") . "$AVP(B ") ;; XEmacs error
-;; 		(("foobarbaz" 4 nil nil  "$(Gemk#(B") . "$(Gemk#(B")
-;; 		(("foobarbaz" 5 nil nil  "$(Gemk#(B") . "f$(Gemk#(B")
-;; 		(("foobarbaz" 6 nil nil  "$(Gemk#(B") . "fo$(Gemk#(B")
-;; 		(("foobarbaz" 8 3 nil "$(Gemk#(B") . "b$(Gemk#(B")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 4 ?x "$AHU1>$(Gk#(B") . "xe$A$KHU1>$(Gk#(B")
-;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 13 4 ?x "$AHU1>$(Gk#(B") . "xex$AHU1>$(Gk#(B")
+;; 		(("こhんeにlちlはo" 15 1 ?  t) . " hんeにlちlはo")
+;; 		(("こhんeにlちlはo" 14 1 ?  t) . " hんeにlち...")
+;; 		(("x" 3 nil nil "粵語") . "x")
+;; 		(("中" 2 nil nil "粵語") . "中")
+;; 		(("中" 1 nil ?x "粵語") . "x") ;; XEmacs error
+;; 		(("中文" 3 nil ?  "粵語") . "中 ") ;; XEmacs error
+;; 		(("foobarbaz" 4 nil nil  "粵語") . "粵語")
+;; 		(("foobarbaz" 5 nil nil  "粵語") . "f粵語")
+;; 		(("foobarbaz" 6 nil nil  "粵語") . "fo粵語")
+;; 		(("foobarbaz" 8 3 nil "粵語") . "b粵語")
+;; 		(("こhんeにlちlはo" 14 4 ?x "日本語") . "xeに日本語")
+;; 		(("こhんeにlちlはo" 13 4 ?x "日本語") . "xex日本語")
 ;; 		))
 ;;   (let (ret)
 ;;     (condition-case e
@@ -330,10 +297,9 @@ operations such as `find-coding-systems-region'."
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
+  (declare (obsolete with-coding-priority "23.1"))
   `(with-coding-priority (mapcar #'cdr ,priority-list)
      (detect-coding-region ,from ,to)))
-(make-obsolete 'detect-coding-with-priority
-	       "use `with-coding-priority' and `detect-coding-region'." "23.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
@@ -401,7 +367,7 @@ per-character basis, this may not be accurate."
 (provide 'mule-util)
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; End:
 
 ;;; mule-util.el ends here

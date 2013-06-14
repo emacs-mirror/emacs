@@ -1,8 +1,9 @@
 ;;; erc-list.el --- /list support for ERC
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
+;; Maintainer: FSF
 ;; Version: 0.1
 ;; Keywords: comm
 
@@ -28,6 +29,10 @@
 ;;; Code:
 
 (require 'erc)
+
+(defgroup erc-list nil
+  "Support for the /list command."
+  :group 'erc)
 
 ;; This is implicitly the width of the channel name column.  Pick
 ;; something small enough that the topic has a chance of being
@@ -212,6 +217,8 @@ to RFC and send the LIST header (#321) at start of list transmission."
   (erc-server-send (concat "LIST :" (or (and line (substring line 1))
 					""))))
 (put 'erc-cmd-LIST 'do-not-parse-args t)
+
+(provide 'erc-list)
 
 ;;; erc-list.el ends here
 ;;

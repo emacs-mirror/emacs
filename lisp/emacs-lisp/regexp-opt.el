@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2013 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF

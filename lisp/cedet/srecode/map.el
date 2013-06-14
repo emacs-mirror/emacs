@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -215,7 +215,8 @@ Optional argument RESET forces a reset of the current map."
     ;; Eventually, I want to return many maps to search through.
     (list srecode-current-map)))
 
-(eval-when-compile (require 'data-debug))
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-stuff-list "data-debug")
 
 (defun srecode-adebug-maps ()
   "Run ADEBUG on the output of `srecode-get-maps'."
@@ -297,7 +298,7 @@ if that file is NEW, otherwise assume the mode has not changed."
     (when (not srecode-current-map)
       (condition-case nil
 	  (setq srecode-current-map
-		(eieio-persistent-read srecode-map-save-file))
+		(eieio-persistent-read srecode-map-save-file srecode-map))
 	(error
 	 ;; There was an error loading the old map.  Create a new one.
 	 (setq srecode-current-map
@@ -362,6 +363,9 @@ Return non-nil if the map changed."
 	  (let ((semantic-init-hook nil))
 	    (semantic-new-buffer-fcn))
 	  )
+	;; Force semantic to be enabled in this buffer.
+	(unless (semantic-active-p)
+	  (semantic-new-buffer-fcn))
 
 	(semantic-fetch-tags)
 	(let* ((mode-tag

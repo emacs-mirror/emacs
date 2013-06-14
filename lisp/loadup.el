@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -38,7 +38,8 @@
 ;; doc strings in the dumped Emacs.)  Because of this:
 
 ;; ii) If the file is loaded uncompiled, it should (where possible)
-;; obey the doc-string conventions expected by make-docfile.
+;; obey the doc-string conventions expected by make-docfile.  It
+;; should also be added to the uncompiled[] list in make-docfile.c.
 
 ;;; Code:
 
@@ -209,6 +210,7 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
+(load "progmodes/prog-mode")
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
@@ -237,15 +239,18 @@
       (load "term/common-win")
       (load "term/x-win")))
 
-(if (eq system-type 'windows-nt)
+(if (or (eq system-type 'windows-nt)
+        (featurep 'w32))
     (progn
-      (load "w32-vars")
       (load "term/common-win")
+      (load "w32-vars")
       (load "term/w32-win")
-      (load "ls-lisp")
       (load "disp-table")
-      (load "dos-w32")
-      (load "w32-fns")))
+      (load "w32-common-fns")
+      (when (eq system-type 'windows-nt)
+        (load "w32-fns")
+        (load "ls-lisp")
+        (load "dos-w32"))))
 (if (eq system-type 'ms-dos)
     (progn
       (load "dos-w32")
@@ -253,6 +258,7 @@
       (load "dos-vars")
       ;; Don't load term/common-win: it isn't appropriate for the `pc'
       ;; ``window system'', which generally behaves like a terminal.
+      (load "term/internal")
       (load "term/pc-win")
       (load "ls-lisp")
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
@@ -285,9 +291,12 @@
 	     (equal (nth 4 command-line-args) "dump"))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
+	   (exelen (if (eq system-type 'windows-nt) -4))
 	   (files (file-name-all-completions base default-directory))
-	   (versions (mapcar (function (lambda (name)
-					 (string-to-number (substring name (length base)))))
+	   (versions (mapcar (function
+			      (lambda (name)
+				(string-to-number
+				 (substring name (length base) exelen))))
 			     files)))
       (setq emacs-bzr-version (condition-case nil (emacs-bzr-get-version)
                               (error nil)))
@@ -300,22 +309,10 @@
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
-    (let ((name emacs-version))
-      (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			   "-"
-			   (substring name (match-end 0)))))
-      (if (memq system-type '(ms-dos windows-nt))
-	  (setq name (expand-file-name
-		      (if (fboundp 'x-create-frame) "DOC-X" "DOC") "../etc"))
-	(setq name (concat (expand-file-name "../etc/DOC-") name))
-	(if (file-exists-p name)
-	    (delete-file name))
-	(copy-file (expand-file-name "../etc/DOC") name t))
-      (Snarf-documentation (file-name-nondirectory name)))
-    (condition-case nil
-	(Snarf-documentation "DOC")
-      (error nil)))
+    (Snarf-documentation "DOC")
+  (condition-case nil
+      (Snarf-documentation "DOC")
+    (error nil)))
 (message "Finding pointers to doc strings...done")
 
 ;; Note: You can cause additional libraries to be preloaded
@@ -383,18 +380,25 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (or (memq system-type '(ms-dos windows-nt))
+      (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (nth 3 command-line-args) "bootstrap")
                    (equal (nth 4 command-line-args) "bootstrap")))
-	  (let ((name (concat "emacs-" emacs-version)))
+	  (let ((name (concat "emacs-" emacs-version))
+		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+	    (setq name (concat name exe))
             (message "Adding name %s" name)
-	    (add-name-to-file "emacs" name t)))
+	    ;; When this runs on Windows, invocation-directory is not
+	    ;; necessarily the current directory.
+	    (add-name-to-file (expand-file-name (concat "emacs" exe)
+						invocation-directory)
+			      (expand-file-name name invocation-directory)
+			      t)))
       (kill-emacs)))
 
 ;; For machines with CANNOT_DUMP defined in config.h,

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
 @chapter Maintaining Large Programs
@@ -31,7 +31,7 @@ versions of a source file, storing information such as the creation
 time of each version, who made it, and a description of what was
 changed.
 
-  The Emacs version control interface is called @dfn{VC}.  VC commands
+  The Emacs version control interface is called @dfn{VC}@.  VC commands
 work with several different version control systems; currently, it
 supports GNU Arch, Bazaar, CVS, Git, Mercurial, Monotone, RCS,
 SCCS/CSSC, and Subversion.  Of these, the GNU project distributes CVS,
@@ -73,8 +73,8 @@ provides a uniform interface for common operations in many version
 control operations.
 
   Some uncommon or intricate version control operations, such as
-altering repository settings, are not supported in VC.  You should
-perform such tasks outside Emacs, e.g.@: via the command line.
+altering repository settings, are not supported in VC@.  You should
+perform such tasks outside Emacs, e.g., via the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -128,13 +128,13 @@ which it refers to as @dfn{back ends}:
 @item
 SCCS was the first version control system ever built, and was long ago
 superseded by more advanced ones.  VC compensates for certain features
-missing in SCCS (e.g.@: tag names for releases) by implementing them
+missing in SCCS (e.g., tag names for releases) by implementing them
 itself.  Other VC features, such as multiple branches, are simply
 unavailable.  Since SCCS is non-free, we recommend avoiding it.
 
 @cindex CSSC
 @item
-CSSC is a free replacement for SCCS.  You should use CSSC only if, for
+CSSC is a free replacement for SCCS@.  You should use CSSC only if, for
 some reason, you cannot use a more recent and better-designed version
 control system.
 
@@ -342,7 +342,9 @@ before version control systems.
 modification log for the entire system, which makes change log files
 somewhat redundant.  One advantage that they retain is that it is
 sometimes useful to be able to view the transaction history of a
-single directory separately from those of other directories.
+single directory separately from those of other directories.  Another
+advantage is that commit logs can't be fixed in many version control
+systems.
 
   A project maintained with version control can use just the version
 control log, or it can use both kinds of logs.  It can handle some
@@ -377,7 +379,7 @@ merge-based version control system, a @samp{-} character indicates
 that the work file is unmodified, and @samp{:} indicates that it has
 been modified.  @samp{!} indicates that the file contains conflicts as
 result of a recent merge operation (@pxref{Merging}), or that the file
-was removed from the version control.  Finally, @samp{?}  means that
+was removed from the version control.  Finally, @samp{?} means that
 the file is under version control, but is missing from the working
 tree.
 
@@ -455,7 +457,7 @@ and don't persist across sessions.
 @node VC With A Merging VCS
 @subsubsection Basic Version Control with Merging
 
-  On a merging-based version control system (i.e.@: most modern ones;
+  On a merging-based version control system (i.e., most modern ones;
 @pxref{VCS Merging}), @kbd{C-x v v} does the following:
 
 @itemize @bullet
@@ -467,7 +469,7 @@ files and ``modified'' files; @pxref{Registering}.)
 
 @item
 If none of the files in the VC fileset are registered with a version
-control system, register the VC fileset, i.e.@: place it under version
+control system, register the VC fileset, i.e., place it under version
 control.  @xref{Registering}.  If Emacs cannot find a system to
 register under, it prompts for a repository type, creates a new
 repository, and registers the VC fileset with it.
@@ -568,13 +570,13 @@ and Emacs fails to detect the correct one.
 Otherwise, if using CVS or RCS, you can specify a revision ID.
 
 If the fileset is modified (or locked), this makes Emacs commit with
-that revision ID.  You can create a new branch by supplying an
+that revision ID@.  You can create a new branch by supplying an
 appropriate revision ID (@pxref{Branches}).
 
 If the fileset is unmodified (and unlocked), this checks the specified
 revision into the working tree.  You can also specify a revision on
 another branch by giving its revision or branch ID (@pxref{Switching
-Branches}).  An empty argument (i.e.@: @kbd{C-u C-x v v @key{RET}})
+Branches}).  An empty argument (i.e., @kbd{C-u C-x v v @key{RET}})
 checks out the latest (``head'') revision on the current branch.
 
 This signals an error on a decentralized version control system.
@@ -759,7 +761,7 @@ comparison again, generating a new diff.
 prompts for two revision IDs (@pxref{VCS Concepts}), and displays a
 diff between those versions of the fileset.  This will not work
 reliably for multi-file VC filesets, if the version control system is
-file-based rather than changeset-based (e.g.@: CVS), since then
+file-based rather than changeset-based (e.g., CVS), since then
 revision IDs for different files would not be related in any
 meaningful way.
 
@@ -783,7 +785,7 @@ Ediff session.  @xref{Top,, Ediff, ediff, The Ediff Manual}.
 @findex vc-root-diff
 @kindex C-x v D
   @kbd{C-x v D} (@code{vc-root-diff}) is similar to @kbd{C-x v =}, but
-it displays the changes in the entire current working tree (i.e.@: the
+it displays the changes in the entire current working tree (i.e., the
 working tree containing the current VC fileset).  If you invoke this
 command from a Dired buffer, it applies to the working tree containing
 the directory.
@@ -795,7 +797,7 @@ from the first non-@code{nil} value amongst the variables
 @code{vc-@var{backend}-diff-switches}, @code{vc-diff-switches}, and
 @code{diff-switches} (@pxref{Comparing Files}), in that order.  Here,
 @var{backend} stands for the relevant version control system,
-e.g.@: @code{bzr} for Bazaar.  Since @code{nil} means to check the
+e.g., @code{bzr} for Bazaar.  Since @code{nil} means to check the
 next variable in the sequence, either of the first two may use the
 value @code{t} to mean no switches at all.  Most of the
 @code{vc-@var{backend}-diff-switches} variables default to @code{nil},
@@ -835,12 +837,12 @@ view diffs, or view log entries:
 
 @table @kbd
 @item p
-Annotate the previous revision, i.e.@: the revision before the one
+Annotate the previous revision, i.e., the revision before the one
 currently annotated.  A numeric prefix argument is a repeat count, so
 @kbd{C-u 10 p} would take you back 10 revisions.
 
 @item n
-Annotate the next revision, i.e.@: the revision after the one
+Annotate the next revision, i.e., the revision after the one
 currently annotated.  A numeric prefix argument is a repeat count.
 
 @item j
@@ -986,7 +988,7 @@ earlier revision.  This shows the changes to all files made in that
 revision.
 
 @item @key{RET}
-In a compact-style log buffer (e.g.@: the one created by @kbd{C-x v
+In a compact-style log buffer (e.g., the one created by @kbd{C-x v
 L}), toggle between showing and hiding the full log entry for the
 revision at point.
 @end table
@@ -1064,8 +1066,8 @@ the version control system which the VC Directory buffer should use.
 @pindex cvs
 @cindex CVS directory mode
   In addition to the VC Directory buffer, Emacs has a similar facility
-called PCL-CVS which is specialized for CVS.  @xref{Top, , About
-PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
+called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
+PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
 @end ifnottex
 
 @menu
@@ -1080,7 +1082,7 @@ PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
 and their version control statuses.  It lists files in the current
 directory (the one specified when you called @kbd{C-x v d}) and its
 subdirectories, but only those with a ``noteworthy'' status.  Files
-that are up-to-date (i.e.@: the same as in the repository) are
+that are up-to-date (i.e., the same as in the repository) are
 omitted.  If all the files in a subdirectory are up-to-date, the
 subdirectory is not listed either.  As an exception, if a file has
 become up-to-date as a direct result of a VC command, it is listed.
@@ -1131,7 +1133,7 @@ updates.  If you change the variable @code{vc-stay-local} or
 @code{vc-cvs-stay-local} (for CVS) to @code{nil} (@pxref{CVS
 Options}), then Emacs avoids contacting a remote repository when
 generating the VC Directory buffer (it will still contact it when
-necessary, e.g.@: when doing a commit).  This may be desirable if you
+necessary, e.g., when doing a commit).  This may be desirable if you
 are working offline or the network is slow.
 @end ifnottex
 
@@ -1186,11 +1188,8 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
-@kindex q @r{(VC Directory)}
-@findex quit-window
 @item q
-Bury the VC Directory buffer, and delete its window if the window was
-created just for that buffer.
+Quit the VC Directory buffer, and bury it (@code{quit-window}).
 
 @item u
 Unmark the file or directory on the current line.  If the region is
@@ -1204,10 +1203,8 @@ files and directories.
 
 @item x
 Hide files with @samp{up-to-date} status
-(@code{vc-dir-hide-up-to-date}).
-
-@item q
-Quit the VC Directory buffer, and bury it (@code{quit-window}).
+(@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
+whose state is that of the item at point.
 @end table
 
 @findex vc-dir-mark
@@ -1270,10 +1267,10 @@ bring them back at a later time).
 @cindex branch (version control)
 
   One use of version control is to support multiple independent lines
-of development, which are called @dfn{branches}.  Branches are used
-for maintaining separate ``stable'' and ``development'' versions of a
-program, and for developing unrelated features in isolation from one
-another.
+of development, which are called @dfn{branches}.  Amongst other
+things, branches can be used for maintaining separate ``stable'' and
+``development'' versions of a program, and for developing unrelated
+features in isolation from one another.
 
   VC's support for branch operations is currently fairly limited.  For
 decentralized version control systems, it provides commands for
@@ -1313,7 +1310,7 @@ revision 1.2 has revision IDs 1.2.1.1, 1.2.1.2, @dots{}, the second
 branch created from revision 1.2 has revision IDs 1.2.2.1, 1.2.2.2,
 @dots{}, and so forth.  You can also specify the @dfn{branch ID},
 which is a branch revision ID omitting its final component
-(e.g.@: 1.2.1), to switch to the latest revision on that branch.
+(e.g., 1.2.1), to switch to the latest revision on that branch.
 
   On a locking-based system, switching to a different branch also
 unlocks (write-protects) the working tree.
@@ -1595,7 +1592,7 @@ source files.
   To produce a tags table, you run the @command{etags} shell command
 on a document or the source code file.  The @samp{etags} program
 writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
-short.  The conventional name for a tags file is @file{TAGS}.
+short.  The conventional name for a tags file is @file{TAGS}@.
 @xref{Create Tags Table}.
 
   Emacs provides many commands for searching and replacing using the
@@ -1682,9 +1679,11 @@ specifies (using Bourne shell syntax) that the commands
 
 @item
 In Lisp code, any function defined with @code{defun}, any variable
-defined with @code{defvar} or @code{defconst}, and in general the first
-argument of any expression that starts with @samp{(def} in column zero is
-a tag.
+defined with @code{defvar} or @code{defconst}, and in general the
+first argument of any expression that starts with @samp{(def} in
+column zero is a tag.  As an exception, expressions of the form
+@code{(defvar @var{foo})} are treated as declarations, and are only
+tagged if the @samp{--declarations} option is given.
 
 @item
 In Scheme code, tags include anything defined with @code{def} or with a
@@ -1702,9 +1701,9 @@ tags.  Use the @samp{--packages-only} option to create tags for
 packages only.
 
 In Ada, the same name can be used for different kinds of entity
-(e.g.@:, for a procedure and for a function).  Also, for things like
-packages, procedures and functions, there is the spec (i.e.@: the
-interface) and the body (i.e.@: the implementation).  To make it
+(e.g., for a procedure and for a function).  Also, for things like
+packages, procedures and functions, there is the spec (i.e., the
+interface) and the body (i.e., the implementation).  To make it
 easier to pick the definition you want, Ada tag name have suffixes
 indicating the type of entity:
 
@@ -1772,11 +1771,11 @@ the file.
 
 @item
 In Perl code, the tags are the packages, subroutines and variables
-defined by the @code{package}, @code{sub}, @code{my} and @code{local}
-keywords.  Use @samp{--globals} if you want to tag global variables.
-Tags for subroutines are named @samp{@var{package}::@var{sub}}.  The
-name for subroutines defined in the default package is
-@samp{main::@var{sub}}.
+defined by the @code{package}, @code{sub}, @code{use constant},
+@code{my}, and @code{local} keywords.  Use @samp{--globals} if you
+want to tag global variables.  Tags for subroutines are named
+@samp{@var{package}::@var{sub}}.  The name for subroutines defined in
+the default package is @samp{main::@var{sub}}.
 
 @item
 In PHP code, tags are functions, classes and defines.  Vars are tags
@@ -2227,7 +2226,7 @@ the current buffer, followed by the remaining files of the tags table.
 reads a regexp to search for and a string to replace with, just like
 ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
 tags-search}, but repeatedly, processing matches according to your
-input.  @xref{Replace}, for more information on query replace.
+input.  @xref{Query Replace}, for more information on query replace.
 
 @vindex tags-case-fold-search
 @cindex case-sensitivity and tags search

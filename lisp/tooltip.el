@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -151,7 +151,7 @@ This variable is obsolete; instead of setting it to t, disable
   :group 'tooltip)
 
 (make-obsolete-variable 'tooltip-use-echo-area
-			"disable Tooltip mode instead" "24.1")
+			"disable Tooltip mode instead" "24.1" 'set)
 
 
 ;;; Variables that are not customizable.

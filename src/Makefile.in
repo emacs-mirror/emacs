@@ -1,7 +1,7 @@
 # src/Makefile for GNU Emacs.
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2012
-#   Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
+# Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,13 +28,14 @@ SHELL = /bin/sh
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
+ntsource = $(srcdir)/../nt
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
+WINDRES = @WINDRES@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -100,17 +101,12 @@ LD_SWITCH_X_SITE_RPATH=@LD_SWITCH_X_SITE_RPATH@
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 
-## This holds any special options for linking temacs only (ie, not
-## used by configure).  Not used elsewhere because it sometimes
-## contains options that have to do with using Emacs's crt0,
-## which are only good with temacs.
+## This holds any special options for linking temacs only (i.e., not
+## used by configure).
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
-
-## $LDFLAGS or empty if NS_IMPL_GNUSTEP (for some reason).
-TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
 
 ## If available, the full path to the paxctl program.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
@@ -121,27 +117,16 @@ PAXCTL = @PAXCTL@
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
 
-## Where to find libgcc.a, if using gcc and necessary.
-LIB_GCC=@LIB_GCC@
-
-CRT_DIR=@CRT_DIR@
-## May use $CRT_DIR.
-LIB_STANDARD=@LIB_STANDARD@
-START_FILES = @START_FILES@
-
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
 
 ## -lpthreads, or empty.
 LIB_PTHREAD=@LIB_PTHREAD@
 
-LIBTIFF=@LIBTIFF@
-LIBJPEG=@LIBJPEG@
-LIBPNG=@LIBPNG@
-LIBGIF=@LIBGIF@
-LIBXPM=@LIBXPM@
+LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
+
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=$(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
+LIBX_EXTRA=-lX11 $(XFT_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
@@ -152,7 +137,11 @@ LIBOTF_LIBS = @LIBOTF_LIBS@
 M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
 M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
+LIB_ACL=@LIB_ACL@
 LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
+LIB_EACCESS=@LIB_EACCESS@
+LIB_FDATASYNC=@LIB_FDATASYNC@
+LIB_TIMER_TIME=@LIB_TIMER_TIME@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
@@ -166,6 +155,13 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 
 ## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
+
+## gfilenotify.o if HAVE_GFILENOTIFY.
+## inotify.o if HAVE_INOTIFY.
+## w32notify.o if HAVE_W32NOTIFY.
+NOTIFY_OBJ = @NOTIFY_OBJ@
+GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
+GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
@@ -211,9 +207,12 @@ LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
-## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o if
+## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o if
 ## HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
+
+# xgselect.o if linking with GLib, else empty
+XGSELOBJ=@XGSELOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
 
@@ -229,6 +228,9 @@ LIBX_OTHER=@LIBX_OTHER@
 ## configure, which should set it to nil in non-X builds.
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 
+## Only used for GNUstep
+LIBS_GNUSTEP=@LIBS_GNUSTEP@
+
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
@@ -240,6 +242,12 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
+
+XRANDR_LIBS = @XRANDR_LIBS@
+XRANDR_CFLAGS = @XRANDR_CFLAGS@
+
+XINERAMA_LIBS = @XINERAMA_LIBS@
+XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
@@ -255,20 +263,37 @@ MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
 
-ns_appdir=@ns_appdir@
-ns_appbindir=@ns_appbindir@
-ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 ## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
+## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
+## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
+## empty.
+W32_OBJ=@W32_OBJ@
+## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
+## --lwinspool if HAVE_W32, else empty.
+W32_LIBS=@W32_LIBS@
+
+## emacs.res if HAVE_W32
+EMACSRES = @EMACSRES@
+## emacs-*.manifest if HAVE_W32
+EMACS_MANIFEST = @EMACS_MANIFEST@
+## If HAVE_W32, compiler arguments for including
+## the resource file in the binary.
+## Cygwin: -Wl,emacs.res
+## MinGW: emacs.res
+W32_RES_LINK=@W32_RES_LINK@
 
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
 ## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
 ## else xfont.o
 FONT_OBJ=@FONT_OBJ@
+
+## Empty for MinGW, cm.o for the rest.
+CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
 
@@ -287,6 +312,14 @@ INTERVALS_H = dispextern.h intervals.h composite.h
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = `/bin/pwd`/temacs
+
+## Invoke ../nt/addsection for MinGW, ":" elsewhere.
+TEMACS_POST_LINK = @TEMACS_POST_LINK@
+ADDSECTION = @ADDSECTION@
+EMACS_HEAPSIZE = @EMACS_HEAPSIZE@
+MINGW_TEMACS_POST_LINK = \
+ mv temacs$(EXEEXT) temacs.tmp; \
+ ../nt/addsection temacs.tmp temacs$(EXEEXT) EMHEAP $(EMACS_HEAPSIZE)
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
@@ -311,27 +344,26 @@ ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
-  $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
+  $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
-  $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) $(PROFILING_CFLAGS) \
-  $(LIBGNUTLS_CFLAGS) \
+  $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
+  $(LIBGNUTLS_CFLAGS) $(GFILENOTIFY_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
 .c.o:
 	@$(MKDEPDIR)
-	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:
 	@$(MKDEPDIR)
-	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
-
+	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
-	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
+	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o \
@@ -341,9 +373,10 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
+	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(WINDOW_SYSTEM_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -352,9 +385,9 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 ## in the list, in case they ever add any such entries.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  fontset.o dbusbind.o \
+  fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
-  w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
+  w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o
@@ -368,32 +401,35 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 ## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
 RALLOC_OBJ=@RALLOC_OBJ@
 
-## Empty on Cygwin, lastfile.o elsewhere.
+## Empty on Cygwin and MinGW, lastfile.o elsewhere.
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-## lastfile.o on Cygwin, empty elsewhere.
+## lastfile.o on Cygwin and MinGW, empty elsewhere.
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 ## List of object files that make-docfile should not be told about.
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
+## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
+## (On MinGW, firstfile.o should be before vm-limit.o.)
+FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
+ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 ## Configure inserts the file lisp.mk at this point, defining $lisp.
 @lisp_frag@
 
 
 ## Construct full set of libraries to be linked.
-## Note that SunOS needs -lm to come before -lc; otherwise, you get
-## duplicated symbols.  If the standard libraries were compiled
-## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_CLOCK_GETTIME) $(DBUS_LIBS) \
-   $(LIB_EXECINFO) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
+   $(LIBX_OTHER) $(LIBSOUND) \
+   $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
+   $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
+   $(GFILENOTIFY_LIBS) $(LIB_MATH)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
@@ -406,7 +442,8 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 ## Strictly speaking, emacs does not depend directly on all of $lisp,
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
-emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
+emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
+                $(etc)/DOC $(lisp) $(leimdir)/leim-list.el
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  rm -f emacs$(EXEEXT); \
 	  ln temacs$(EXEEXT) emacs$(EXEEXT); \
@@ -440,7 +477,7 @@ $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
+	echo "#define BUILDOBJ \"$(ALLOBJS) " "\"" >$@
 
 globals.h: gl-stamp; @true
 
@@ -452,14 +489,16 @@ gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
 	echo timestamp > $@
 
-$(obj) $(otherobj): globals.h
+$(ALLOBJS): globals.h
 
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
-	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
+temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
+	         $(lib)/libgnu.a $(EMACSRES)
+	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
 
@@ -500,9 +539,14 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 
 doc.o: buildobj.h
 
+emacs.res: $(ntsource)/emacs.rc \
+	   $(ntsource)/icons/emacs.ico \
+	   $(ntsource)/$(EMACS_MANIFEST)
+	$(WINDRES) -O COFF --include-dir=$(srcdir)/../nt \
+	  -o $@ $(ntsource)/emacs.rc
 
-## If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.
-@ns_frag@
+ns-app: emacs$(EXEEXT)
+	cd ../nextstep && $(MAKE) $(MFLAGS) all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 .PHONY: versionclean extraclean frc
@@ -513,16 +557,16 @@ mostlyclean:
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
+	rm -f *.res
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
-	test "X$(ns_appdir)" = "X" || rm -rf $(ns_appdir)
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
 ## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h config.stamp stamp-oldxmenu ../etc/DOC-*
+	rm -f epaths.h config.h config.stamp stamp-h1 stamp-oldxmenu
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \
@@ -544,13 +588,16 @@ extraclean: distclean
 ## Arrange to make a tags table TAGS-LISP for ../lisp,
 ## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
 
-ctagsfiles1 = [xyzXYZ]*.[hcm]
-ctagsfiles2 = [a-wA-W]*.[hcm]
+ctagsfiles1 = [xyzXYZ]*.[hc]
+ctagsfiles2 = [a-wA-W]*.[hc]
+ctagsfiles3 = [a-zA-Z]*.m
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
-	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
+	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE) \
+	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles3)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags

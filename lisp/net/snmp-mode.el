@@ -1,6 +1,6 @@
 ;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
 
-;; Copyright (C) 1995, 1998, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Paul D. Smith <psmith@BayNetworks.com>
 ;; Keywords: data
@@ -85,8 +85,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
-  (require 'tempo))
+  (require 'imenu))   ; Need this stuff when compiling for imenu macros, etc.
+
+(require 'tempo)
 
 ;;;----------------------------------------------------------------------------
 ;;
@@ -175,9 +176,9 @@ This is used during Tempo template completion."
 (defvar snmp-font-lock-keywords-3
   (append
    '(("\\([^\n]+\\)[ \t]+::=[ \t]+\\(SEQUENCE\\)[ \t]+{"
-      (1 font-lock-reference-face) (2 font-lock-keyword-face))
+      (1 font-lock-constant-face) (2 font-lock-keyword-face))
      ("::=[ \t]*{[ \t]*\\([a-z0-9].*[ \t]+\\)?\\([0-9]+\\)[ \t]*}"
-      (1 font-lock-reference-face nil t) (2 font-lock-variable-name-face)))
+      (1 font-lock-constant-face nil t) (2 font-lock-variable-name-face)))
    snmp-font-lock-keywords-2)
   "Gaudy SNMP MIB mode expression highlighting.")
 
@@ -539,8 +540,6 @@ lines for the purposes of this function."
 ;;                              Tempo Setup
 ;;
 ;;;----------------------------------------------------------------------------
-
-(require 'tempo)
 
 ;; Perform a completing-read with info given
 ;;

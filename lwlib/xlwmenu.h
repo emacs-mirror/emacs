@@ -1,6 +1,6 @@
 /* Interface of a lightweight menubar widget.
 
-Copyright (C) 2002-2012  Free Software Foundation, Inc.
+Copyright (C) 2002-2013 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to the
-Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef _XlwMenu_h
 #define _XlwMenu_h
@@ -81,4 +79,3 @@ extern int xlwmenu_window_p (Widget w, Window window);
 extern void xlwmenu_redisplay (Widget);
 
 #endif /* _XlwMenu_h */
-

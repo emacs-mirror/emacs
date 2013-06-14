@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -132,7 +132,7 @@ Used in `smerge-diff-base-mine' and related functions."
   '((default
      :inherit smerge-refined-change)
     (((class color) (min-colors 88) (background light))
-     :background "#ffaaaa")
+     :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
      :background "#aa2222")
     (t :inverse-video t))

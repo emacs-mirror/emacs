@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 2006-2013 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_FONT_H
 
 #include "ccl.h"
+#include "frame.h"
 
 /* We have three types of Lisp objects related to font.
 
@@ -780,7 +781,7 @@ extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
 extern void register_font_driver (struct font_driver *driver, FRAME_PTR f);
 extern void free_font_driver_list (FRAME_PTR f);
 extern Lisp_Object font_update_drivers (FRAME_PTR f, Lisp_Object list);
-extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t *,
+extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
 			       struct window *, struct face *,
 			       Lisp_Object);
 extern void font_fill_lglyph_metrics (Lisp_Object, Lisp_Object);
@@ -818,11 +819,11 @@ extern struct font_driver ftxfont_driver;
 extern void syms_of_bdffont (void);
 #endif	/* HAVE_BDFFONT */
 #endif	/* HAVE_X_WINDOWS */
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
 extern struct font_driver w32font_driver;
 extern struct font_driver uniscribe_font_driver;
 extern void syms_of_w32font (void);
-#endif	/* WINDOWSNT */
+#endif	/* HAVE_NTGUI */
 #ifdef HAVE_NS
 extern Lisp_Object Qfontsize;
 extern struct font_driver nsfont_driver;

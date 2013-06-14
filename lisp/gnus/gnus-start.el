@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -110,7 +110,7 @@ ask the servers (primary, secondary, and archive servers) to list new
 groups since the last time it checked:
   1. This variable is `ask-server'.
   2. This variable is a list of select methods (see below).
-  3. `gnus-read-active-file' is nil or `some'.
+  3. Option `gnus-read-active-file' is nil or `some'.
   4. A prefix argument is given to `gnus-find-new-newsgroups' interactively.
 
 Thus, if this variable is `ask-server' or a list of select methods or
@@ -121,7 +121,7 @@ This variable can be a list of select methods which Gnus will query with
 the `ask-server' method in addition to the primary, secondary, and archive
 servers.
 
-Eg.
+E.g.:
   (setq gnus-check-new-newsgroups
 	'((nntp \"some.server\") (nntp \"other.server\")))
 
@@ -291,7 +291,9 @@ claim them."
 		function
 		(repeat function)))
 
-(defcustom gnus-subscribe-newsgroup-hooks nil
+(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
+  'gnus-subscribe-newsgroup-functions "24.3")
+(defcustom gnus-subscribe-newsgroup-functions nil
   "*Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
   :version "22.1"
@@ -393,7 +395,16 @@ This hook is called after Gnus is connected to the NNTP server."
 
 (defcustom gnus-before-startup-hook nil
   "A hook called before startup.
-This hook is called as the first thing when Gnus is started."
+This hook is called as the first thing when Gnus is started.
+See also `gnus-before-resume-hook'."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-before-resume-hook nil
+  "A hook called before resuming Gnus after suspend.
+This hook is called as the first thing when Gnus is resumed after a suspend.
+See also `gnus-before-startup-hook'."
+  :version "24.4"
   :group 'gnus-start
   :type 'hook)
 
@@ -639,7 +650,7 @@ the first newsgroup."
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
-    (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
+    (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
     t))
 
 (defun gnus-read-active-file-p ()
@@ -747,6 +758,7 @@ prompt the user for the name of an NNTP server to use."
 
   (if (gnus-alive-p)
       (progn
+	(gnus-run-hooks 'gnus-before-resume-hook)
 	(switch-to-buffer gnus-group-buffer)
 	(gnus-group-get-new-news
 	 (and (numberp arg)

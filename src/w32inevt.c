@@ -1,5 +1,6 @@
 /* Input event support for Emacs on the Microsoft Windows API.
-   Copyright (C) 1992-1993, 1995, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 1995, 2001-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <windows.h>
-#include <setjmp.h>
 
 #ifndef MOUSE_MOVED
 #define MOUSE_MOVED   1
@@ -71,6 +71,9 @@ w32_read_console_input (HANDLE h, INPUT_RECORD *rec, DWORD recsize,
 	  : ReadConsoleInputA (h, rec, recsize, waiting));
 }
 
+/* Set by w32_console_toggle_lock_key.  */
+int faked_key;
+
 static int
 fill_queue (BOOL block)
 {
@@ -111,67 +114,7 @@ get_frame (void)
 
 /* Translate console modifiers to emacs modifiers.
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
-int
-w32_kbd_mods_to_emacs (DWORD mods, WORD key)
-{
-  int retval = 0;
 
-  /* If we recognize right-alt and left-ctrl as AltGr, and it has been
-     pressed, first remove those modifiers.  */
-  if (!NILP (Vw32_recognize_altgr)
-      && (mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
-      == (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
-    mods &= ~ (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED);
-
-  if (mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
-    retval = ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier);
-
-  if (mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
-    {
-      retval |= ctrl_modifier;
-      if ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
-	  == (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
-	retval |= meta_modifier;
-    }
-
-  if (mods & LEFT_WIN_PRESSED)
-    retval |= w32_key_to_modifier (VK_LWIN);
-  if (mods & RIGHT_WIN_PRESSED)
-    retval |= w32_key_to_modifier (VK_RWIN);
-  if (mods & APPS_PRESSED)
-    retval |= w32_key_to_modifier (VK_APPS);
-  if (mods & SCROLLLOCK_ON)
-    retval |= w32_key_to_modifier (VK_SCROLL);
-
-  /* Just in case someone wanted the original behavior, make it
-     optional by setting w32-capslock-is-shiftlock to t.  */
-  if (NILP (Vw32_capslock_is_shiftlock)
-      /* Keys that should _not_ be affected by CapsLock.  */
-      && (    (key == VK_BACK)
-	   || (key == VK_TAB)
-	   || (key == VK_CLEAR)
-	   || (key == VK_RETURN)
-	   || (key == VK_ESCAPE)
-	   || ((key >= VK_SPACE) && (key <= VK_HELP))
-	   || ((key >= VK_NUMPAD0) && (key <= VK_F24))
-	   || ((key >= VK_NUMPAD_CLEAR) && (key <= VK_NUMPAD_DELETE))
-	 ))
-    {
-      /* Only consider shift state.  */
-      if ((mods & SHIFT_PRESSED) != 0)
-	retval |= shift_modifier;
-    }
-  else
-    {
-      /* Ignore CapsLock state if not enabled.  */
-      if (NILP (Vw32_enable_caps_lock))
-	mods &= ~CAPSLOCK_ON;
-      if ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) != 0)
-	retval |= shift_modifier;
-    }
-
-  return retval;
-}
 
 #if 0
 /* Return nonzero if the virtual key is a dead key.  */
@@ -188,90 +131,7 @@ is_dead_key (int wparam)
 /* The return code indicates key code size.  cpID is the codepage to
    use for translation to Unicode; -1 means use the current console
    input codepage.  */
-int
-w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId)
-{
-  unsigned int key_code = event->wVirtualKeyCode;
-  unsigned int mods = event->dwControlKeyState;
-  BYTE keystate[256];
-  static BYTE ansi_code[4];
-  static int isdead = 0;
 
-  if (isdead == 2)
-    {
-      event->uChar.AsciiChar = ansi_code[2];
-      isdead = 0;
-      return 1;
-    }
-  if (event->uChar.AsciiChar != 0)
-    return 1;
-
-  memset (keystate, 0, sizeof (keystate));
-  keystate[key_code] = 0x80;
-  if (mods & SHIFT_PRESSED)
-    keystate[VK_SHIFT] = 0x80;
-  if (mods & CAPSLOCK_ON)
-    keystate[VK_CAPITAL] = 1;
-  /* If we recognize right-alt and left-ctrl as AltGr, set the key
-     states accordingly before invoking ToAscii.  */
-  if (!NILP (Vw32_recognize_altgr)
-      && (mods & LEFT_CTRL_PRESSED) && (mods & RIGHT_ALT_PRESSED))
-    {
-      keystate[VK_CONTROL] = 0x80;
-      keystate[VK_LCONTROL] = 0x80;
-      keystate[VK_MENU] = 0x80;
-      keystate[VK_RMENU] = 0x80;
-    }
-
-#if 0
-  /* Because of an OS bug, ToAscii corrupts the stack when called to
-     convert a dead key in console mode on NT4.  Unfortunately, trying
-     to check for dead keys using MapVirtualKey doesn't work either -
-     these functions apparently use internal information about keyboard
-     layout which doesn't get properly updated in console programs when
-     changing layout (though apparently it gets partly updated,
-     otherwise ToAscii wouldn't crash).  */
-  if (is_dead_key (event->wVirtualKeyCode))
-    return 0;
-#endif
-
-  /* On NT, call ToUnicode instead and then convert to the current
-     console input codepage.  */
-  if (os_subtype == OS_NT)
-    {
-      WCHAR buf[128];
-
-      isdead = ToUnicode (event->wVirtualKeyCode, event->wVirtualScanCode,
-			  keystate, buf, 128, 0);
-      if (isdead > 0)
-	{
-	  /* When we are called from the GUI message processing code,
-	     we are passed the current keyboard codepage, a positive
-	     number, to use below.  */
-	  if (cpId == -1)
-	    cpId = GetConsoleCP ();
-
-	  event->uChar.UnicodeChar = buf[isdead - 1];
-	  isdead = WideCharToMultiByte (cpId, 0, buf, isdead,
-					ansi_code, 4, NULL, NULL);
-	}
-      else
-	isdead = 0;
-    }
-  else
-    {
-      isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
-                        keystate, (LPWORD) ansi_code, 0);
-    }
-
-  if (isdead == 0)
-    return 0;
-  event->uChar.AsciiChar = ansi_code[0];
-  return isdead;
-}
-
-
-static int faked_key = 0;
 
 /* return code -1 means that event_queue_ptr won't be incremented.
    In other word, this event makes two key codes.   (by himi)       */
@@ -532,32 +392,6 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
   return 1;
 }
 
-int
-w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
-{
-  int cur_state = (GetKeyState (vk_code) & 1);
-
-  if (NILP (new_state)
-      || (NUMBERP (new_state)
-	  && ((XUINT (new_state)) & 1) != cur_state))
-    {
-      faked_key = vk_code;
-
-      keybd_event ((BYTE) vk_code,
-		   (BYTE) MapVirtualKey (vk_code, 0),
-		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-      keybd_event ((BYTE) vk_code,
-		   (BYTE) MapVirtualKey (vk_code, 0),
-		   KEYEVENTF_EXTENDEDKEY | 0, 0);
-      keybd_event ((BYTE) vk_code,
-		   (BYTE) MapVirtualKey (vk_code, 0),
-		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-      cur_state = !cur_state;
-    }
-
-  return cur_state;
-}
-
 /* Mouse position hook.  */
 void
 w32_console_mouse_position (FRAME_PTR *f,
@@ -568,7 +402,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 			    Lisp_Object *y,
 			    Time *time)
 {
-  BLOCK_INPUT;
+  block_input ();
 
   insist = insist;
 
@@ -581,7 +415,7 @@ w32_console_mouse_position (FRAME_PTR *f,
   XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 /* Remember mouse motion and notify emacs.  */
@@ -743,33 +577,136 @@ maybe_generate_resize_event (void)
 		     0, 0, 0);
 }
 
-int
-w32_console_read_socket (struct terminal *terminal,
-                         int expected,
-                         struct input_event *hold_quit)
+#if HAVE_W32NOTIFY
+static int
+handle_file_notifications (struct input_event *hold_quit)
 {
-  int nev, ret = 0, add;
-  int isdead;
+  BYTE *p = file_notifications;
+  FILE_NOTIFY_INFORMATION *fni = (PFILE_NOTIFY_INFORMATION)p;
+  const DWORD min_size
+    = offsetof (FILE_NOTIFY_INFORMATION, FileName) + sizeof(wchar_t);
+  struct input_event inev;
+  int nevents = 0;
 
-  if (interrupt_input_blocked)
+  /* We cannot process notification before Emacs is fully initialized,
+     since we need the UTF-16LE coding-system to be set up.  */
+  if (!initialized)
     {
-      interrupt_input_pending = 1;
-      return -1;
+      notification_buffer_in_use = 0;
+      return nevents;
     }
 
-  interrupt_input_pending = 0;
-  BLOCK_INPUT;
+  enter_crit ();
+  if (notification_buffer_in_use)
+    {
+      DWORD info_size = notifications_size;
+      Lisp_Object cs = intern ("utf-16le");
+      Lisp_Object obj = w32_get_watch_object (notifications_desc);
+
+      /* notifications_size could be zero when the buffer of
+	 notifications overflowed on the OS level, or when the
+	 directory being watched was itself deleted.  Do nothing in
+	 that case.  */
+      if (info_size
+	  && !NILP (obj) && CONSP (obj))
+	{
+	  Lisp_Object callback = XCDR (obj);
+
+	  EVENT_INIT (inev);
+
+	  while (info_size >= min_size)
+	    {
+	      Lisp_Object utf_16_fn
+		= make_unibyte_string ((char *)fni->FileName,
+				       fni->FileNameLength);
+	      /* Note: mule-conf is preloaded, so utf-16le must
+		 already be defined at this point.  */
+	      Lisp_Object fname
+		= code_convert_string_norecord (utf_16_fn, cs, 0);
+	      Lisp_Object action = lispy_file_action (fni->Action);
+
+	      inev.kind = FILE_NOTIFY_EVENT;
+	      inev.code = (ptrdiff_t)XINT (XIL ((EMACS_INT)notifications_desc));
+	      inev.timestamp = GetTickCount ();
+	      inev.modifiers = 0;
+	      inev.frame_or_window = callback;
+	      inev.arg = Fcons (action, fname);
+	      kbd_buffer_store_event_hold (&inev, hold_quit);
+
+	      if (!fni->NextEntryOffset)
+		break;
+	      p += fni->NextEntryOffset;
+	      fni = (PFILE_NOTIFY_INFORMATION)p;
+	      info_size -= fni->NextEntryOffset;
+	    }
+	}
+      notification_buffer_in_use = 0;
+    }
+  leave_crit ();
+  return nevents;
+}
+#else  /* !HAVE_W32NOTIFY */
+static int
+handle_file_notifications (struct input_event *hold_quit)
+{
+  return 0;
+}
+#endif	/* !HAVE_W32NOTIFY */
+
+/* Here's an overview of how Emacs input works in non-GUI sessions on
+   MS-Windows.  (For description of the GUI input, see the commentary
+   before w32_msg_pump in w32fns.c.)
+
+   When Emacs is idle, it loops inside wait_reading_process_output,
+   calling pselect periodically to check whether any input is
+   available.  On Windows, pselect is redirected to sys_select, which
+   uses MsgWaitForMultipleObjects to wait for input, either from the
+   keyboard or from any of the Emacs subprocesses.  In addition,
+   MsgWaitForMultipleObjects wakes up when some Windows message is
+   posted to the input queue of the Emacs's main thread (which is the
+   thread in which sys_select runs).
+
+   When the Emacs's console window has focus, Windows sends input
+   events that originate from the keyboard or the mouse; these events
+   wake up MsgWaitForMultipleObjects, which reports that input is
+   available.  Emacs then calls w32_console_read_socket, below, to
+   read the input.  w32_console_read_socket uses
+   GetNumberOfConsoleInputEvents and ReadConsoleInput to peek at and
+   read the console input events.
+
+   One type of non-keyboard input event that gets reported as input
+   available is due to the Emacs's console window receiving focus.
+   When that happens, Emacs gets the FOCUS_EVENT event and sys_select
+   reports some input; however, w32_console_read_socket ignores such
+   events when called to read them.
+
+   Note that any other Windows message sent to the main thread will
+   also wake up MsgWaitForMultipleObjects.  These messages get
+   immediately dispatched to their destinations by calling
+   drain_message_queue.  */
+
+int
+w32_console_read_socket (struct terminal *terminal,
+                         struct input_event *hold_quit)
+{
+  int nev, add;
+  int isdead;
+
+  block_input ();
 
   for (;;)
     {
+      int nfnotify = handle_file_notifications (hold_quit);
+
       nev = fill_queue (0);
       if (nev <= 0)
         {
 	  /* If nev == -1, there was some kind of error
-	     If nev == 0 then waitp must be zero and no events were available
+	     If nev == 0 then no events were available
 	     so return.  */
-	  UNBLOCK_INPUT;
-	  return nev;
+	  if (nfnotify)
+	    nev = 0;
+	  break;
         }
 
       while (nev > 0)
@@ -813,9 +750,6 @@ w32_console_read_socket (struct terminal *terminal,
 	  queue_ptr++;
 	  nev--;
         }
-
-      if (ret > 0 || expected == 0)
-	break;
     }
 
   /* We don't get told about changes in the window size (only the buffer
@@ -824,6 +758,6 @@ w32_console_read_socket (struct terminal *terminal,
   if (!w32_use_full_screen_buffer)
     maybe_generate_resize_event ();
 
-  UNBLOCK_INPUT;
-  return ret;
+  unblock_input ();
+  return nev;
 }

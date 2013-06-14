@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -122,8 +122,7 @@
 ;; the buffer, use:
 ;; M-x browse-url
 
-;; To display a URL by shift-clicking on it, put this in your ~/.emacs
-;; file:
+;; To display a URL by shift-clicking on it, put this in your init file:
 ;;      (global-set-key [S-mouse-2] 'browse-url-at-mouse)
 ;; (Note that using Shift-mouse-1 is not desirable because
 ;; that event has a standard meaning in Emacs.)
@@ -659,9 +658,10 @@ regarding its parameter treatment."
 ;; URL input
 
 (defun browse-url-url-at-point ()
-  (let ((url (thing-at-point 'url)))
-    (set-text-properties 0 (length url) nil url)
-    url))
+  (or (thing-at-point 'url t)
+      ;; assume that the user is pointing at something like gnu.org/gnu
+      (let ((f (thing-at-point 'filename t)))
+        (and f (concat "http://" f)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier

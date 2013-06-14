@@ -1,6 +1,6 @@
 ;;; sregex.el --- symbolic regular expressions
 
-;; Copyright (C) 1997-1998, 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
 ;; Maintainer: Bob Glickstein <bobg+sregex@zanshin.com>

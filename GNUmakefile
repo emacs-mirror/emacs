@@ -1,6 +1,6 @@
 # Build Emacs from a fresh tarball or version-control checkout.
 
-# Copyright (C) 2011-2012  Free Software Foundation, Inc.
+# Copyright (C) 2011-2013 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -32,6 +32,11 @@
 # run "configure" by hand.  But run autogen.sh first, if the source
 # was checked out directly from the repository.
 
+ifneq ($(MSYSTEM),)
+CFG = CONFIG_SITE=$(CURDIR)/nt/mingw-cfg.site
+else
+CFG =
+endif
 
 # If a Makefile already exists, just use it.
 
@@ -70,7 +75,7 @@ configure:
 Makefile: configure
 	@echo >&2 'There seems to be no Makefile in this directory.'
 	@echo >&2 'Running ./configure ...'
-	./configure
+	$(CFG) ./configure
 	@echo >&2 'Makefile built.'
 
 endif

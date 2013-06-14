@@ -1,7 +1,7 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1282,7 +1282,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
-		     :capability-command "CAPABILITIES\r\n"
+		     :capability-command "HELP\r\n"
 		     :success "^3"
 		     :starttls-function
 		     (lambda (capabilities)

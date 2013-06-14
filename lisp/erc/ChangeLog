@@ -1,11 +1,154 @@
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el: Require erc at run-time too.
+
+2013-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* erc-log.el (erc-network-name): Declare.
+
+	* erc-notify.el (pcomplete--here): Declare.
+	(pcomplete/erc-mode/NOTIFY): Require pcomplete.
+
+	* erc.el (erc-quit-reason-various-alist)
+	(erc-part-reason-various-alist): Don't mention zippy.
+	(erc-quit-reason, erc-part-reason): Remove zippy options.
+	(erc-quit-reason-zippy, erc-part-reason-zippy): Make obsolete.
+	If yow is not defined, fall back to -normal versions.
+
+2013-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* erc-list.el (erc-list):
+	* erc-menu.el (erc-menu):
+	* erc-ring.el (erc-ring): Define custom groups, for define-erc-module.
+
+	* erc-list.el: Provide a feature.
+
+2013-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* erc-desktop-notifications.el (erc-notifications-icon):
+	Fix custom type.
+
+2013-02-13  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* erc-match.el (erc-match-message): Fix last commit.
+
+2013-02-12  Aidan Gauland  <aidalgol@no8wireless.co.nz>
+
+	* erc-match.el (erc-match-message):
+	Don't truncate action messages.  (Bug#13689)
+
+2013-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* erc-dcc.el (erc-dcc-get-file): Don't reference buffer-file-type.
+
+2013-01-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* erc-dcc.el (erc-dcc-send-file): Use point-min-marker.
+	(erc-dcc-chat-setup): Use point-max-marker.
+
+2013-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (312): Fix typo.  (Bug#13235)
+
+2012-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-accidental-paste-threshold-seconds): Add :version.
+
+2012-11-30  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* erc.el (erc-last-input-time): New variable.
+	(erc-accidental-paste-threshold-seconds): New option to avoid
+	sending accidentally-pasted text to the server (Bug#11592).
+	(erc-send-current-line): Use it.
+
+2012-11-30  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-lurker-cleanup, erc-lurker-p): Use float-time.
+
+2012-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Fix last change that missed calls to `second'
+	(bug#12970).
+
+2012-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use cl-lib instead of cl, and interactive-p => called-interactively-p.
+	* erc-track.el, erc-networks.el, erc-netsplit.el, erc-dcc.el:
+	* erc-backend.el: Use cl-lib, nth, pcase, and called-interactively-p
+	instead of cl.
+	* erc-speedbar.el, erc-services.el, erc-pcomplete.el, erc-notify.el:
+	* erc-match.el, erc-log.el, erc-join.el, erc-ezbounce.el:
+	* erc-capab.el: Don't require cl since we don't use it.
+	* erc.el: Use cl-lib, nth, pcase, and called-interactively-p i.s.o cl.
+	(erc-lurker-ignore-chars, erc-common-server-suffixes):
+	Move before first use.
+
+2012-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-modules): Add "notifications".  Tweak "hecomplete" doc.
+
+2012-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Only require `erc' during compilation (bug#12740).
+
+2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-backend.el: Require `erc' instead of autoloading its macros
+	(bug#12669).
+
+2012-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-log): Make it into a defsubst.
+	(erc-with-server-buffer, define-erc-module, erc-with-buffer)
+	(erc-with-all-buffers-of-server): Use `declare'.
+	* erc-backend.el (erc-log): Adjust autoload accordingly.
+
+2012-10-07  Deniz Dogan  <deniz@dogan.se>
+
+	* erc-log.el (erc-generate-log-file-name-function):
+	Clarify tags for various choices.  (Bug#11186)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-button.el (erc-button-alist): Remove "finger".  (Bug#4443)
+
+2012-10-07  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* erc-stamp.el (erc-format-timestamp): Don't apply intangible
+	property to invisible stamps.  (Bug#11706)
+
+2012-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (NICK): Handle pre-existing buffers.  (Bug#12002)
+
+2012-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-lurker):
+	* erc-desktop-notifications.el (erc-notifications):
+	Add missing group :version tags.
+
+2012-10-04  Julien Danjou  <julien@danjou.info>
+
+	* erc-desktop-notifications.el: Rename from erc-notifications to
+	avoid clash with 8+3 filename format and erc-notify.el.
+
+2012-09-25  Chong Yidong  <cyd@gnu.org>
+
+	* erc.el (erc-send-command): Use define-obsolete-function-alias.
+
+2012-09-17  Chong Yidong  <cyd@gnu.org>
+
+	* erc-page.el (erc-page-function):
+	* erc-stamp.el (erc-stamp): Doc fix.
+
 2012-08-21  Josh Feinstein <jlf@foxtail.org>
 
 	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
 
 2012-08-21  Julien Danjou  <julien@danjou.info>
 
-	* erc-match.el (erc-match-message): Use
-	`erc-match-exclude-server-buffer' not
+	* erc-match.el (erc-match-message):
+	Use `erc-match-exclude-server-buffer' not
 	`erc-track-exclude-server-buffer'.
 
 2012-08-20  Josh Feinstein <jlf@foxtail.org>
@@ -18,8 +161,8 @@
 	(erc-lurker-threshold-time): New variables.
 	(erc-lurker-maybe-trim, erc-lurker-initialize, erc-lurker-cleanup)
 	(erc-hide-current-message-p, erc-canonicalize-server-name)
-	(erc-lurker-update-status, erc-lurker-p): New functions.  Together
-	they maintain state about which users have spoken in the last
+	(erc-lurker-update-status, erc-lurker-p): New functions.
+	Together they maintain state about which users have spoken in the last
 	erc-lurker-threshold-time, with all other users being considered
 	lurkers whose messages of types in erc-lurker-hide-list will not
 	be displayed by erc-display-message.
@@ -88,7 +231,7 @@
 	(erc-autojoin-after-ident): Ditto.
 	(erc-autojoin-channels-alist): Mention auth-source.
 
-2012-04-10  Deniz Dogan  <deniz@dogan.se>  (tiny change)
+2012-04-10  Deniz Dogan  <deniz@dogan.se>
 
 	* erc.el (erc-display-prompt): Adds the field text property to the
 	ERC prompt.  This allows users to use `kill-whole-line' to kill
@@ -154,7 +297,7 @@
 
 	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
 	provides a superset of the same functionality.
-	(erc-open-ssl-stream): Removed.
+	(erc-open-ssl-stream): Remove.
 	(erc-open-tls-stream): Use `open-network-stream' instead of
 	`open-tls-stream' directly to be able to use the built-in TLS
 	support.
@@ -358,7 +501,7 @@
 
 See ChangeLog.08 for earlier changes.
 
-	Copyright (C) 2009-2012 Free Software Foundation, Inc.
+	Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

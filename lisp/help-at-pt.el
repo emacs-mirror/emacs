@@ -1,6 +1,6 @@
 ;;; help-at-pt.el --- local help through the keyboard
 
-;; Copyright (C) 2003-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: Luc Teirlinck <teirllm@auburn.edu>
 ;; Keywords: help

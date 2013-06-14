@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -755,10 +755,16 @@ They are removed from `ibuffer-saved-filter-groups'."
 The value from `ibuffer-saved-filter-groups' is used."
   (interactive
    (list
-    (if (null ibuffer-saved-filter-groups)
-	(error "No saved filters")
-      (completing-read "Switch to saved filter group: "
-		       ibuffer-saved-filter-groups nil t))))
+    (cond ((null ibuffer-saved-filter-groups)
+           (error "No saved filters"))
+          ;; `ibuffer-saved-filter-groups' is a user variable that defaults
+          ;; to nil.  We assume that with one element in this list the user
+          ;; knows what she wants.  See bug#12331.
+          ((null (cdr ibuffer-saved-filter-groups))
+           (caar ibuffer-saved-filter-groups))
+          (t
+           (completing-read "Switch to saved filter group: "
+                            ibuffer-saved-filter-groups nil t)))))
   (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups))
 	ibuffer-hidden-filter-groups nil)
   (ibuffer-update nil t))

@@ -1,6 +1,7 @@
 ;;; dired-x.el --- extra Dired functionality
 
-;; Copyright (C) 1993-1994, 1997, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1997, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -723,14 +724,12 @@ determine a default directory.")
 (defun dired-default-directory ()
   "Return the `dired-default-directory-alist' entry for the current major-mode.
 If none, return `default-directory'."
+  ;; It looks like this was intended to be something of a "general"
+  ;; feature, but it only ever seems to have been used in
+  ;; dired-smart-shell-command, and doesn't seem worth keeping around.
+  (declare (obsolete nil "24.1"))
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
-
-;; It looks like this was intended to be something of a "general" feature,
-;; but it only ever seems to have been used in dired-smart-shell-command,
-;; and does not seem worth keeping around (?).
-(make-obsolete 'dired-default-directory
-               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -782,6 +781,7 @@ See also `dired-enable-local-variables'."
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
+  (declare (obsolete hack-dir-local-variables-non-file-buffer "24.1"))
   (and (stringp dired-local-variables-file)
        (file-exists-p dired-local-variables-file)
        (let ((opoint (point-max))
@@ -803,14 +803,12 @@ See also `dired-enable-local-variables'."
          ;; Make sure that the mode line shows the proper information.
          (dired-sort-set-mode-line))))
 
-(make-obsolete 'dired-hack-local-variables
-               'hack-dir-local-variables-non-file-buffer "24.1")
-
 ;; Does not seem worth a dedicated command.
 ;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
 If in a Dired buffer, reverts it."
+  (declare (obsolete add-dir-local-variable "24.1"))
   (interactive)
   (if (file-exists-p dired-local-variables-file)
       (error "Old-style dired-local-variables-file `./%s' found;
@@ -829,8 +827,6 @@ replace it with a dir-locals-file `./%s'"
       (hack-dir-local-variables-non-file-buffer)
       (dired-extra-startup)
       (dired-revert))))
-
-(make-obsolete 'dired-omit-here-always 'add-dir-local-variable "24.1")
 
 
 ;;; GUESS SHELL COMMAND.
@@ -1119,6 +1115,7 @@ See `dired-guess-shell-alist-user'."
     (if (null default)
         ;; Nothing to guess
         (read-shell-command prompt nil 'dired-shell-command-history)
+      (setq prompt (replace-regexp-in-string ": $" " " prompt))
       (if (listp default)
           ;; More than one guess
           (setq default-list default
@@ -1129,7 +1126,7 @@ See `dired-guess-shell-alist-user'."
         ;; Just one guess
         (setq default-list (list default)))
       ;; Put the first guess in the prompt but not in the initial value.
-      (setq prompt (concat prompt (format "[%s] " default)))
+      (setq prompt (concat prompt (format "[%s]: " default)))
       ;; All guesses can be retrieved with M-n
       (setq val (read-shell-command prompt nil
                                     'dired-shell-command-history
@@ -1347,13 +1344,20 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
   (rmail (dired-get-filename)))
 
 (defun dired-do-run-mail ()
-  "If `dired-bind-vm' is non-nil, call `dired-vm', else call `dired-rmail'."
+  "Visit the current file as a mailbox, using VM or RMAIL.
+Prompt for confirmation first; if the user says yes, call
+`dired-vm' if `dired-bind-vm' is non-nil, `dired-rmail'
+otherwise."
   (interactive)
-  (if dired-bind-vm
-      ;; Read mail folder using vm.
-      (dired-vm)
-    ;; Read mail folder using rmail.
-    (dired-rmail)))
+  (let ((file (dired-get-filename t)))
+    (if dired-bind-vm
+	(if (y-or-n-p (concat "Visit `" file
+			      "' as a mail folder with VM?"))
+	    (dired-vm))
+      ;; Read mail folder using rmail.
+      (if (y-or-n-p (concat "Visit `" file
+			    "' as a mailbox with RMAIL?"))
+	  (dired-rmail)))))
 
 
 ;;; MISCELLANEOUS INTERNAL FUNCTIONS.

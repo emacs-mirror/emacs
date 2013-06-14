@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -74,6 +74,7 @@ so that it is considered safe, see `enable-local-variables'.")
 The second subexpression should match the bug reference (usually a number)."
   :type 'string
   :safe 'stringp
+  :version "24.3"			; previously defconst
   :group 'bug-reference)
 
 (defun bug-reference-set-overlay-properties ()

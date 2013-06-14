@@ -1,7 +1,7 @@
 /* A Gtk Widget that inherits GtkFixed, but can be shrunk.
 This file is only use when compiling with Gtk+ 3.
 
-Copyright (C) 2011-2012  Free Software Foundation, Inc.
+Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,10 +22,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "emacsgtkfixed.h"
 #include <stdio.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "frame.h"
 #include "xterm.h"
+
+/* Silence a bogus diagnostic; see GNOME bug 683906.  */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#endif
 
 #define EMACS_TYPE_FIXED emacs_fixed_get_type ()
 #define EMACS_FIXED(obj) \

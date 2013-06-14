@@ -1,18 +1,19 @@
 ;;; package.el --- Simple package system for Emacs
 
-;; Copyright (C) 2007-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
-;; Version: 1.0
+;; Version: 1.0.1
 ;; Keywords: tools
+;; Package-Requires: ((tabulated-list "1.0"))
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Change Log:
 
@@ -236,11 +235,28 @@ a package can run arbitrary code."
   :group 'package
   :version "24.1")
 
+(defcustom package-pinned-packages nil
+  "An alist of packages that are pinned to a specific archive
+
+Each element has the form (SYM . ID).
+ SYM is a package, as a symbol.
+ ID is an archive name, as a string. This should correspond to an
+ entry in `package-archives'.
+
+If the archive of name ID does not contain the package SYM, no
+other location will be considered, which will make the
+package unavailable."
+  :type '(alist :key-type (symbol :tag "Package")
+                :value-type (string :tag "Archive name"))
+  :risky t
+  :group 'package
+  :version "24.4")
+
 (defconst package-archive-version 1
   "Version number of the package archive understood by this file.
 Lower version numbers than this will probably be understood as well.")
 
-(defconst package-el-version "1.0"
+(defconst package-el-version "1.0.1"
   "Version of package.el.")
 
 ;; We don't prime the cache since it tends to get out of date.
@@ -573,7 +589,8 @@ EXTRA-PROPERTIES is currently unused."
      (concat ";;; " (file-name-nondirectory file)
 	     " --- automatically extracted autoloads\n"
 	     ";;\n"
-	     ";;; Code:\n\n"
+	     ";;; Code:\n"
+             "(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))\n"
 	     "\n;; Local Variables:\n"
 	     ";; version-control: never\n"
 	     ";; no-byte-compile: t\n"
@@ -590,12 +607,15 @@ EXTRA-PROPERTIES is currently unused."
 	 ;;(ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
 	 (version-control 'never))
-    (unless (fboundp 'autoload-ensure-default-file)
-      (package-autoload-ensure-default-file generated-autoload-file))
-    (update-directory-autoloads pkg-dir)))
+    (package-autoload-ensure-default-file generated-autoload-file)
+    (update-directory-autoloads pkg-dir)
+    (let ((buf (find-buffer-visiting generated-autoload-file)))
+      (when buf (kill-buffer buf)))))
 
 (defvar tar-parse-info)
 (declare-function tar-untar-buffer "tar-mode" ())
+(declare-function tar-header-name "tar-mode" (tar-header) t)
+(declare-function tar-header-link-type "tar-mode" (tar-header) t)
 
 (defun package-untar-buffer (dir)
   "Untar the current buffer.
@@ -604,10 +624,16 @@ untar into a directory named DIR; otherwise, signal an error."
   (require 'tar-mode)
   (tar-mode)
   ;; Make sure everything extracts into DIR.
-  (let ((regexp (concat "\\`" (regexp-quote dir) "/")))
+  (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))
+	(case-fold-search (memq system-type '(windows-nt ms-dos cygwin))))
     (dolist (tar-data tar-parse-info)
-      (unless (string-match regexp (aref tar-data 2))
-	(error "Package does not untar cleanly into directory %s/" dir))))
+      (let ((name (expand-file-name (tar-header-name tar-data))))
+	(or (string-match regexp name)
+	    ;; Tarballs created by some utilities don't list
+	    ;; directories with a trailing slash (Bug#13136).
+	    (and (string-equal dir name)
+		 (eq (tar-header-link-type tar-data) 5))
+	    (error "Package does not untar cleanly into directory %s/" dir)))))
   (tar-untar-buffer))
 
 (defun package-unpack (package version)
@@ -727,9 +753,12 @@ It will move point to somewhere in the headers."
     (package--with-work-buffer location file
       (package-unpack name version))))
 
+(defvar package--initialized nil)
+
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
+  (unless package--initialized (error "package.el is not yet initialized!"))
   (let ((pkg-desc (assq package package-alist)))
     (if pkg-desc
 	(version-list-<= min-version
@@ -781,9 +810,8 @@ but version %s required"
 	     "Need package `%s-%s', but only %s is available"
 	     (symbol-name next-pkg) (package-version-join next-version)
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
-	  ;; Only add to the transaction if we don't already have it.
-	  (unless (memq next-pkg package-list)
-	    (push next-pkg package-list))
+          ;; Move to front, so it gets installed early enough (bug#14082).
+          (setq package-list (cons next-pkg (delq next-pkg package-list)))
 	  (setq package-list
 		(package-compute-transaction package-list
 					     (package-desc-reqs
@@ -846,8 +874,13 @@ Also, add the originating archive to the end of the package vector."
          (version (package-desc-vers (cdr package)))
          (entry   (cons name
 			(vconcat (cdr package) (vector archive))))
-         (existing-package (assq name package-archive-contents)))
-    (cond ((not existing-package)
+         (existing-package (assq name package-archive-contents))
+         (pinned-to-archive (assoc name package-pinned-packages)))
+    (cond ((and pinned-to-archive
+                ;; If pinned to another archive, skip entirely.
+                (not (equal (cdr pinned-to-archive) archive)))
+           nil)
+          ((not existing-package)
 	   (add-to-list 'package-archive-contents entry))
 	  ((version-list-< (package-desc-vers (cdr existing-package))
 			   version)
@@ -886,8 +919,6 @@ using `package-compute-transaction'."
       (package-maybe-load-descriptor (symbol-name elt) v-string
 				     package-user-dir)
       (package-activate elt (version-to-list v-string)))))
-
-(defvar package--initialized nil)
 
 ;;;###autoload
 (defun package-install (name)
@@ -1173,7 +1204,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (require 'lisp-mnt)
   (let ((package-name (symbol-name package))
 	(built-in (assq package package--builtins))
-	desc pkg-dir reqs version installable)
+	desc pkg-dir reqs version installable archive)
     (prin1 package)
     (princ " is ")
     (cond
@@ -1187,6 +1218,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
      ;; Available packages are in `package-archive-contents'.
      ((setq desc (cdr (assq package package-archive-contents)))
       (setq version (package-version-join (package-desc-vers desc))
+	    archive (aref desc (- (length desc) 1))
 	    installable t)
       (if built-in
 	  (insert "a built-in package.\n\n")
@@ -1215,8 +1247,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	  (installable
 	   (if built-in
 	       (insert (propertize "Built-in." 'font-lock-face 'font-lock-builtin-face)
-		       "  Alternate version available -- ")
-	     (insert "Available -- "))
+		       "  Alternate version available")
+	     (insert "Available"))
+	   (insert " from " archive)
+	   (insert " -- ")
 	   (let ((button-text (if (display-graphic-p) "Install" "[Install]"))
 		 (button-face (if (display-graphic-p)
 				  '(:box (:line-width 2 :color "dark grey")
@@ -1579,10 +1613,11 @@ call will upgrade the package."
 	       (length upgrades)
 	       (if (= (length upgrades) 1) "" "s")))))
 
-(defun package-menu-execute ()
+(defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed;
-packages marked for deletion are removed."
+packages marked for deletion are removed.
+Optional argument NOQUERY non-nil means do not ask the user to confirm."
   (interactive)
   (unless (derived-mode-p 'package-menu-mode)
     (error "The current buffer is not in Package Menu mode"))
@@ -1602,16 +1637,20 @@ packages marked for deletion are removed."
 		 (push (car id) install-list))))
 	(forward-line)))
     (when install-list
-      (if (yes-or-no-p
+      (if (or
+           noquery
+           (yes-or-no-p
 	   (if (= (length install-list) 1)
 	       (format "Install package `%s'? " (car install-list))
 	     (format "Install these %d packages (%s)? "
 		     (length install-list)
-		     (mapconcat 'symbol-name install-list ", "))))
+                      (mapconcat 'symbol-name install-list ", ")))))
 	  (mapc 'package-install install-list)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
-      (if (yes-or-no-p
+      (if (or
+           noquery
+           (yes-or-no-p
 	   (if (= (length delete-list) 1)
 	       (format "Delete package `%s-%s'? "
 		       (caar delete-list)
@@ -1621,7 +1660,7 @@ packages marked for deletion are removed."
 		     (mapconcat (lambda (elt)
 				  (concat (car elt) "-" (cdr elt)))
 				delete-list
-				", "))))
+                                 ", ")))))
 	  (dolist (elt delete-list)
 	    (condition-case-unless-debug err
 		(package-delete (car elt) (cdr elt))

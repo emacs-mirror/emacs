@@ -1,11 +1,9 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
-;; Version: 4.31
-;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +25,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(provide 'reftex-parse)
+
 (require 'reftex)
 
 (defmacro reftex-with-special-syntax (&rest body)
@@ -236,15 +234,35 @@ of master file."
 
                 ((match-end 1)
                  ;; It is a label
-                 (push (reftex-label-info (reftex-match-string 1) file bound)
-                       docstruct))
+		 (when (or (null reftex-label-ignored-macros-and-environments)
+			   ;; \label{} defs should always be honored,
+			   ;; just no keyval style [label=foo] defs.
+			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
+                           (if (and (fboundp 'TeX-current-macro)
+                                    (fboundp 'LaTeX-current-environment))
+                               (not (or (member (save-match-data (TeX-current-macro))
+                                                reftex-label-ignored-macros-and-environments)
+                                        (member (save-match-data (LaTeX-current-environment))
+                                                reftex-label-ignored-macros-and-environments)))
+                             t))
+		   (push (reftex-label-info (reftex-match-string 1) file bound)
+			 docstruct)))
 
                 ((match-end 3)
                  ;; It is a section
-                 (setq bound (point))
 
+		 ;; Use the beginning as bound and not the end
+		 ;; (i.e. (point)) because the section command might
+		 ;; be the start of the current environment to be
+		 ;; found by `reftex-label-info'.
+                 (setq bound (match-beginning 0))
+		 ;; The section regexp matches a character at the end
+		 ;; we are not interested in.  Especially if it is the
+		 ;; backslash of a following macro we want to find in
+		 ;; the next parsing iteration.
+		 (when (eq (char-before) ?\\) (backward-char))
                  ;; Insert in List
-                 (setq toc-entry (reftex-section-info file))
+                 (setq toc-entry (funcall reftex-section-info-function file))
                  (when toc-entry
                    ;; It can happen that section info returns nil
                    (setq level (nth 5 toc-entry))
@@ -342,9 +360,9 @@ of master file."
 ;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
             "\\(^\\)[^%\n\r]*\\\\\\("
             (mapconcat 'identity reftex-bibliography-commands "\\|")
-            "\\){[ \t]*\\([^}]+\\)") nil t)
+            "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t)
           (setq files
-                (split-string (reftex-match-string 3)
+                (split-string (reftex-match-string 4)
                               "[ \t\n\r]*,[ \t\n\r]*")))))
   (when files
     (setq files
@@ -1071,5 +1089,7 @@ of master file."
         (setq string (concat string s)
               nrest (- nrest i))))
     string))
+
+(provide 'reftex-parse)
 
 ;;; reftex-parse.el ends here

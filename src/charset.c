@@ -1,5 +1,5 @@
 /* Basic character set support.
-   Copyright (C) 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 2001-2013 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <setjmp.h>
 #include <c-ctype.h>
 #include "lisp.h"
 #include "character.h"
@@ -422,7 +421,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
    paying attention to comment character '#'.  */
 
-static inline unsigned
+static unsigned
 read_hex (FILE *fp, bool *eof, bool *overflow)
 {
   int c;
@@ -1054,7 +1053,7 @@ usage: (define-charset-internal ...)  */)
       CHECK_NATNUM (parent_max_code);
       parent_code_offset = Fnth (make_number (3), val);
       CHECK_NUMBER (parent_code_offset);
-      val = Fmake_vector (make_number (4), Qnil);
+      val = make_uninit_vector (4);
       ASET (val, 0, make_number (parent_charset->id));
       ASET (val, 1, parent_min_code);
       ASET (val, 2, parent_max_code);
@@ -1143,12 +1142,14 @@ usage: (define-charset-internal ...)  */)
 	     example, the IDs are stuffed into struct
 	     coding_system.charbuf[i] entries, which are 'int'.  */
 	  int old_size = charset_table_size;
+	  ptrdiff_t new_size = old_size;
 	  struct charset *new_table =
-	    xpalloc (0, &charset_table_size, 1,
+	    xpalloc (0, &new_size, 1,
 		     min (INT_MAX, MOST_POSITIVE_FIXNUM),
 		     sizeof *charset_table);
 	  memcpy (new_table, charset_table, old_size * sizeof *new_table);
 	  charset_table = new_table;
+	  charset_table_size = new_size;
 	  /* FIXME: This leaks memory, as the old charset_table becomes
 	     unreachable.  If the old charset table is charset_table_init
 	     then this leak is intentional; otherwise, it's unclear.
@@ -1258,7 +1259,7 @@ define_charset_internal (Lisp_Object name,
 
   args[charset_arg_name] = name;
   args[charset_arg_dimension] = make_number (dimension);
-  val = Fmake_vector (make_number (8), make_number (0));
+  val = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
     ASET (val, i, make_number (code_space[i]));
   args[charset_arg_code_space] = val;
@@ -1618,7 +1619,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
 /* Return a unified character code for C (>= 0x110000).  VAL is a
    value of Vchar_unify_table for C; i.e. it is nil, an integer, or a
    charset symbol.  */
-int
+static int
 maybe_unify_char (int c, Lisp_Object val)
 {
   struct charset *charset;
@@ -1724,8 +1725,12 @@ decode_char (struct charset *charset, unsigned int code)
 	{
 	  c = char_index + CHARSET_CODE_OFFSET (charset);
 	  if (CHARSET_UNIFIED_P (charset)
-	      && c > MAX_UNICODE_CHAR)
-	    MAYBE_UNIFY_CHAR (c);
+	      && MAX_UNICODE_CHAR < c && c <= MAX_5_BYTE_CHAR)
+	    {
+	      /* Unify C with a Unicode character if possible.  */
+	      Lisp_Object val = CHAR_TABLE_REF (Vchar_unify_table, c);
+	      c = maybe_unify_char (c, val);
+	    }
 	}
     }
 
@@ -2290,7 +2295,7 @@ init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (access (SSDATA (tempdir), 0) < 0)
+  if (! file_accessible_directory_p (SSDATA (tempdir)))
     {
       /* This used to be non-fatal (dir_warning), but it should not
          happen, and if it does sooner or later it will cause some

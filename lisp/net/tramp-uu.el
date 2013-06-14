@@ -1,6 +1,6 @@
 ;;; tramp-uu.el --- uuencode in Lisp
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals

@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -176,7 +176,6 @@
       'font-lock-negation-char-face))
 
 (cc-bytecomp-defun face-inverse-video-p) ; Only in Emacs.
-(cc-bytecomp-defun face-property-instance) ; Only in XEmacs.
 
 (defun c-make-inverse-face (oldface newface)
   ;; Emacs and XEmacs have completely different face manipulation
@@ -1591,6 +1590,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
   (let* ((paren-state (c-parse-state))
+	 (decl-search-lim (c-determine-limit 1000))
 	 decl-context in-typedef ps-elt)
     ;; Are we in any nested struct/union/class/etc. braces?
     (while paren-state
@@ -1599,7 +1599,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (when (and (atom ps-elt)
 		 (eq (char-after ps-elt) ?\{))
 	(goto-char ps-elt)
-	(setq decl-context (c-beginning-of-decl-1)
+	(setq decl-context (c-beginning-of-decl-1 decl-search-lim)
 	      in-typedef (looking-at c-typedef-key))
 	(if in-typedef (c-forward-token-2))
 	(when (and c-opt-block-decls-with-vars-key
@@ -2048,7 +2048,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst c-font-lock-keywords-3 (c-lang-const c-matchers-3 c)
   "Accurate normal font locking for C mode.
-Like `c-font-lock-keywords-2' but detects declarations in a more
+Like the variable `c-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `c-font-lock-extra-types'.")
 
@@ -2206,7 +2206,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst c++-font-lock-keywords-3 (c-lang-const c-matchers-3 c++)
   "Accurate normal font locking for C++ mode.
-Like `c++-font-lock-keywords-2' but detects declarations in a more
+Like the variable `c++-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `c++-font-lock-extra-types'.")
 
@@ -2312,7 +2312,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst objc-font-lock-keywords-3 (c-lang-const c-matchers-3 objc)
   "Accurate normal font locking for Objective-C mode.
-Like `objc-font-lock-keywords-2' but detects declarations in a more
+Like the variable `objc-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `objc-font-lock-extra-types'.")
 
@@ -2355,7 +2355,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst java-font-lock-keywords-3 (c-lang-const c-matchers-3 java)
   "Accurate normal font locking for Java mode.
-Like `java-font-lock-keywords-2' but detects declarations in a more
+Like variable `java-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `java-font-lock-extra-types'.")
 
@@ -2388,7 +2388,7 @@ styles specified by `c-doc-comment-style'.")
 
 (defconst idl-font-lock-keywords-3 (c-lang-const c-matchers-3 idl)
   "Accurate normal font locking for CORBA IDL mode.
-Like `idl-font-lock-keywords-2' but detects declarations in a more
+Like the variable `idl-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `idl-font-lock-extra-types'.")
 
@@ -2421,7 +2421,7 @@ comment styles specified by `c-doc-comment-style'.")
 
 (defconst pike-font-lock-keywords-3 (c-lang-const c-matchers-3 pike)
   "Accurate normal font locking for Pike mode.
-Like `pike-font-lock-keywords-2' but detects declarations in a more
+Like the variable `pike-font-lock-keywords-2' but detects declarations in a more
 accurate way that works in most cases for arbitrary types without the
 need for `pike-font-lock-extra-types'.")
 
@@ -2485,7 +2485,7 @@ need for `pike-font-lock-extra-types'.")
 	      (setq comment-beg nil))
 	    (setq region-beg comment-beg))
 
-      (if (eq (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7) t)
+      (if (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7)
 	  ;; Collect a sequence of doc style line comments.
 	  (progn
 	    (goto-char comment-beg)

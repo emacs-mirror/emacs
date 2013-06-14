@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2013 Free Software
+;; Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -76,7 +76,7 @@ DEF is the function whose usage we're looking for in DOCSTRING."
   (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
     (cons (format "(%s%s"
 		  ;; Replace `fn' with the actual function name.
-		  (if (consp def) "anonymous" def)
+		  (if (symbolp def) def "anonymous")
 		  (match-string 1 docstring))
 	  (unless (zerop (match-beginning 0))
             (substring docstring 0 (match-beginning 0))))))
@@ -336,11 +336,15 @@ suitable file is found, return nil."
       ;; If we don't have a file-name string by now, we lost.
       nil)
      ;; Now, `file-name' should have become an absolute file name.
-     ;; For files loaded from ~/.emacs.elc, try ~/.emacs.
+     ;; For files loaded from ~/.foo.elc, try ~/.foo.
+     ;; This applies to config files like ~/.emacs,
+     ;; which people sometimes compile.
      ((let (fn)
-	(and (string-equal file-name
-			   (expand-file-name ".emacs.elc" "~"))
-	     (file-readable-p (setq fn (expand-file-name ".emacs" "~")))
+	(and (string-match "\\`\\..*\\.elc\\'"
+			   (file-name-nondirectory file-name))
+	     (string-equal (file-name-directory file-name)
+			   (file-name-as-directory (expand-file-name "~")))
+	     (file-readable-p (setq fn (file-name-sans-extension file-name)))
 	     fn)))
      ;; When the Elisp source file can be found in the install
      ;; directory, return the name of that file.
@@ -488,13 +492,16 @@ suitable file is found, return nil."
       (insert "'.\n"))))
 
 (defun help-fns--obsolete (function)
-  (let* ((obsolete (and
-                    ;; `function' might be a lambda construct.
-                    (symbolp function)
-                    (get function 'byte-obsolete-info)))
+  ;; Ignore lambda constructs, keyboard macros, etc.
+  (let* ((obsolete (and (symbolp function)
+			(get function 'byte-obsolete-info)))
          (use (car obsolete)))
     (when obsolete
-      (insert "\nThis function is obsolete")
+      (insert "\nThis "
+	      (if (eq (car-safe (symbol-function function)) 'macro)
+		  "macro"
+		"function")
+	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
       (insert (cond ((stringp use) (concat ";\n" use))
@@ -611,14 +618,12 @@ FILE is the file where FUNCTION was probably defined."
 	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
 				  (point)))
       (terpri)(terpri)
-      
-      (let* ((doc-raw (condition-case err
-			  (documentation function t)
-			(error (format "No Doc! %S" err))))
+
+      (let* ((doc-raw (documentation function t))
 	     ;; If the function is autoloaded, and its docstring has
 	     ;; key substitution constructs, load the library.
 	     (doc (progn
-		    (and (autoloadp real-def)
+		    (and (autoloadp real-def) doc-raw
 			 help-enable-auto-load
 			 (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]"
 				       doc-raw)
@@ -788,7 +793,7 @@ it is displayed along with the global value."
 	      (cond
                ((bufferp locus)
                 (princ (format "Local in buffer %s; "
-                               (buffer-name))))
+                               (buffer-name buffer))))
                ((framep locus)
                 (princ (format "It is a frame-local variable; ")))
                ((terminal-live-p locus)
@@ -846,12 +851,10 @@ it is displayed along with the global value."
                    (obsolete (get variable 'byte-obsolete-variable))
 		   (use (car obsolete))
 		   (safe-var (get variable 'safe-local-variable))
-                   (doc (condition-case err
-                            (or (documentation-property
-                                 variable 'variable-documentation)
-                                (documentation-property
-                                 alias 'variable-documentation))
-                          (error (format "Doc not found: %S" err))))
+                   (doc (or (documentation-property
+                             variable 'variable-documentation)
+                            (documentation-property
+                             alias 'variable-documentation)))
                    (extra-line nil))
 
 	      ;; Mention if it's a local variable.

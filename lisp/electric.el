@@ -1,6 +1,7 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -301,14 +302,38 @@ This can be convenient for people who find it easier to hit ) than C-f."
   :version "24.1"
   :type 'boolean)
 
+(defcustom electric-pair-inhibit-predicate
+  #'electric-pair-default-inhibit
+  "Predicate to prevent insertion of a matching pair.
+The function is called with a single char (the opening char just inserted).
+If it returns non-nil, then `electric-pair-mode' will not insert a matching
+closer."
+  :version "24.4"
+  :type '(choice
+          (const :tag "Default" electric-pair-default-inhibit)
+          (const :tag "Always pair" ignore)
+          function))
+
+(defun electric-pair-default-inhibit (char)
+  (or
+   ;; I find it more often preferable not to pair when the
+   ;; same char is next.
+   (eq char (char-after))
+   (eq char (char-before (1- (point))))
+   ;; I also find it often preferable not to pair next to a word.
+   (eq (char-syntax (following-char)) ?w)))
+
+(defun electric-pair-syntax (command-event)
+  (and electric-pair-mode
+       (let ((x (assq command-event electric-pair-pairs)))
+	 (cond
+	  (x (if (eq (car x) (cdr x)) ?\" ?\())
+	  ((rassq command-event electric-pair-pairs) ?\))
+	  (t (char-syntax command-event))))))
+
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-                      electric-pair-mode
-                      (let ((x (assq last-command-event electric-pair-pairs)))
-                        (cond
-                         (x (if (eq (car x) (cdr x)) ?\" ?\())
-                         ((rassq last-command-event electric-pair-pairs) ?\))
-                         (t (char-syntax last-command-event))))))
+		      (electric-pair-syntax last-command-event)))
          ;; FIXME: when inserting the closer, we should maybe use
          ;; self-insert-command, although it may prove tricky running
          ;; post-self-insert-hook recursively, and we wouldn't want to trigger
@@ -347,13 +372,12 @@ This can be convenient for people who find it easier to hit ) than C-f."
      ;; Insert matching pair.
      ((not (or (not (memq syntax `(?\( ?\" ?\$)))
                overwrite-mode
-               ;; I find it more often preferable not to pair when the
-               ;; same char is next.
-               (eq last-command-event (char-after))
-               (eq last-command-event (char-before (1- (point))))
-               ;; I also find it often preferable not to pair next to a word.
-               (eq (char-syntax (following-char)) ?w)))
+               (funcall electric-pair-inhibit-predicate last-command-event)))
       (save-excursion (insert closer))))))
+
+(defun electric-pair-will-use-region ()
+  (and (use-region-p)
+       (memq (electric-pair-syntax last-command-event) '(?\( ?\" ?\$))))
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
@@ -370,10 +394,15 @@ See options `electric-pair-pairs' and `electric-pair-skip-self'."
   :global t
   :group 'electricity
   (if electric-pair-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-pair-post-self-insert-function)
+      (progn
+	(add-hook 'post-self-insert-hook
+		  #'electric-pair-post-self-insert-function)
+	(add-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
-                 #'electric-pair-post-self-insert-function)))
+                 #'electric-pair-post-self-insert-function)
+    (remove-hook 'self-insert-uses-region-functions
+		  #'electric-pair-will-use-region)))
 
 ;; Automatically add newlines after/before/around some chars.
 

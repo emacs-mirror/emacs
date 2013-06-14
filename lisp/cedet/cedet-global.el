@@ -1,6 +1,6 @@
 ;;; cedet-global.el --- GNU Global support for CEDET.
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Package: cedet
@@ -147,7 +147,7 @@ return nil."
 	  nil)
       (with-current-buffer b
 	(goto-char (point-min))
-	(re-search-forward "GNU GLOBAL \\([0-9.]+\\)" nil t)
+	(re-search-forward "(?GNU GLOBAL)? \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
 	(if (inversion-check-version rev nil cedet-global-min-version)
 	    (if noerror

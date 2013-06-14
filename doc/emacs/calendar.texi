@@ -1,6 +1,6 @@
-@c This is part of the Emacs manual.  -*- coding: iso-latin-1 -*-
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c This is part of the Emacs manual.  -*- coding: utf-8 -*-
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
 @chapter The Calendar and the Diary
@@ -349,11 +349,12 @@ calendar deletes or iconifies that frame depending on the value of
 
 @cindex calendar and HTML
   The Calendar HTML commands produce files of HTML code that contain
-calendar and diary entries.  Each file applies to one month, and has a
-name of the format @file{@var{yyyy}-@var{mm}.html}, where @var{yyyy} and
-@var{mm} are the four-digit year and two-digit month, respectively.  The
-variable @code{cal-html-directory} specifies the default output
-directory for the HTML files.
+calendar, holiday, and diary entries.  Each file applies to one month,
+and has a name of the format @file{@var{yyyy}-@var{mm}.html}, where
+@var{yyyy} and @var{mm} are the four-digit year and two-digit month,
+respectively.  The variable @code{cal-html-directory} specifies the
+default output directory for the HTML files.  To prevent holidays
+from being shown, customize @code{cal-html-holidays}.
 
 @vindex cal-html-css-default
   Diary entries enclosed by @code{<} and @code{>} are interpreted as
@@ -371,7 +372,7 @@ Generate a one-month calendar (@code{cal-html-cursor-month}).
 @item H y
 Generate a calendar file for each month of a year, as well as an index
 page (@code{cal-html-cursor-year}).  By default, this command writes
-files to a @var{yyyy} subdirectory - if this is altered some hyperlinks
+files to a @var{yyyy} subdirectory---if this is altered some hyperlinks
 between years will not work.
 @end table
 
@@ -396,17 +397,20 @@ Generate a sideways-printing one-month calendar
 Generate a one-day calendar
 (@code{cal-tex-cursor-day}).
 @item t w 1
-Generate a one-page calendar for one week
+Generate a one-page calendar for one week, with hours
 (@code{cal-tex-cursor-week}).
 @item t w 2
-Generate a two-page calendar for one week
+Generate a two-page calendar for one week, with hours
 (@code{cal-tex-cursor-week2}).
 @item t w 3
-Generate an ISO-style calendar for one week
+Generate an ISO-style calendar for one week, without hours
 (@code{cal-tex-cursor-week-iso}).
 @item t w 4
-Generate a calendar for one Monday-starting week
+Generate a calendar for one Monday-starting week, with hours
 (@code{cal-tex-cursor-week-monday}).
+@item t w W
+Generate a two-page calendar for one week, without hours
+(@code{cal-tex-cursor-week2-summary}).
 @item t f w
 Generate a Filofax-style two-weeks-at-a-glance calendar
 (@code{cal-tex-cursor-filofax-2week}).
@@ -518,7 +522,7 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bah·'Ì, Chinese, Christian, Islamic, and Jewish holidays; also the
+major Bah√°'√≠, Chinese, Christian, Islamic, and Jewish holidays; also the
 solstices and equinoxes.
 
 @findex list-holidays
@@ -756,8 +760,8 @@ days are named by combining one of ten ``celestial stems'' with one of
 twelve ``terrestrial branches'' for a total of sixty names that are
 repeated in a cycle of sixty.
 
-@cindex Bah·'Ì calendar
-  The Bah·'Ì calendar system is based on a solar cycle of 19 months with
+@cindex Bah√°'√≠ calendar
+  The Bah√°'√≠ calendar system is based on a solar cycle of 19 months with
 19 days each.  The four remaining ``intercalary'' days are placed
 between the 18th and 19th months.
 
@@ -797,7 +801,7 @@ Display French Revolutionary date for selected day
 (@code{calendar-french-print-date}).
 @findex calendar-bahai-print-date
 @item p b
-Display Bah·'Ì date for selected day
+Display Bah√°'√≠ date for selected day
 (@code{calendar-bahai-print-date}).
 @findex calendar-chinese-print-date
 @item p C
@@ -865,7 +869,7 @@ Move to a date specified in the Julian calendar
 Move to a date specified with an astronomical (Julian) day number
 (@code{calendar-astro-goto-day-number}).
 @item g b
-Move to a date specified in the Bah·'Ì calendar
+Move to a date specified in the Bah√°'√≠ calendar
 (@code{calendar-bahai-goto-date}).
 @item g h
 Move to a date specified in the Hebrew calendar
@@ -1538,7 +1542,8 @@ variety of other formats.
 messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
 diary-from-outlook} to import the entry.  You can make this command
 recognize additional appointment message formats by customizing the
-variable @code{diary-outlook-formats}.
+variable @code{diary-outlook-formats}.  Other mail clients can set
+@code{diary-from-outlook-function} to an appropriate value.
 
 @c FIXME the name of the RFC is hardly very relevant.
 @cindex iCalendar support
@@ -1547,7 +1552,7 @@ diary file and iCalendar files, which are defined in ``RFC
 2445---Internet Calendaring and Scheduling Core Object Specification
 (iCalendar)'' (as well as the earlier vCalendar format).
 
-@c  Importing works for ``ordinary'' (i.e. non-recurring) events, but
+@c  Importing works for ``ordinary'' (i.e., non-recurring) events, but
 @c (at present) may not work correctly (if at all) for recurring events.
 @c Exporting of diary files into iCalendar files should work correctly
 @c for most diary entries.  This feature is a work in progress, so the

@@ -1,6 +1,6 @@
-;;; filesets.el --- handle group of files
+;;; filesets.el --- handle group of files -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: FSF
@@ -35,7 +35,7 @@
 ;; inclusion group (i.e. a base file including other files).
 
 ;; Usage:
-;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 1. Put (require 'filesets) and (filesets-init) in your init file.
 ;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
 ;; 3. Save your customizations.
 
@@ -403,8 +403,10 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
 		  (sexp :tag "Other" :value nil)))
   :group 'filesets)
 
-(defcustom filesets-cache-fill-content-hooks nil
-  "Hooks to run when writing the contents of filesets' cache file.
+(define-obsolete-variable-alias 'filesets-cache-fill-content-hooks
+  'filesets-cache-fill-content-hook "24.3")
+(defcustom filesets-cache-fill-content-hook nil
+  "Hook run when writing the contents of filesets' cache file.
 
 The hook is called with the cache file as current buffer and the cursor
 at the last position.  I.e. each hook has to make sure that the cursor is
@@ -803,8 +805,8 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:match-number 2)
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master file load-path))))))
-    ("^\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)$" t
-     (((:pattern "\\<\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\([A-Zƒ÷‹][a-z‰ˆ¸ﬂ]+\\)+\\)\\>")
+    ("^\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)$" t
+     (((:pattern "\\<\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\([A-Z√Ñ√ñ√ú][a-z√§√∂√º√ü]+\\)+\\)\\>")
        (:scan-depth 5)
        (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
        (:case-sensitive t)
@@ -2414,7 +2416,7 @@ fileset thinks this is necessary or not."
       (when filesets-cache-hostname-flag
 	(insert (format "(setq filesets-cache-hostname %S)" (system-name)))
 	(newline 2))
-      (run-hooks 'filesets-cache-fill-content-hooks)
+      (run-hooks 'filesets-cache-fill-content-hook)
       (write-file filesets-menu-cache-file))
     (setq filesets-has-changed-flag nil)
     (setq filesets-update-cache-file-flag nil)))

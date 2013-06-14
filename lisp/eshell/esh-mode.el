@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -60,7 +60,7 @@
 
 (provide 'esh-mode)
 
-(eval-when-compile (require 'esh-util))
+(require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
@@ -193,13 +193,13 @@ This is used by `eshell-watch-for-password-prompt'."
   :type '(choice (const nil) function)
   :group 'eshell-mode)
 
+(define-obsolete-variable-alias 'eshell-status-in-modeline
+  'eshell-status-in-mode-line "24.3")
+
 (defcustom eshell-status-in-mode-line t
   "If non-nil, let the user know a command is running in the mode line."
   :type 'boolean
   :group 'eshell-mode)
-
-(define-obsolete-variable-alias 'eshell-status-in-modeline
-  'eshell-status-in-mode-line "24.3")
 
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
@@ -326,11 +326,8 @@ and the hook `eshell-exit-hook'."
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 
-  (define-key eshell-mode-map [return] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?m)] 'eshell-send-input)
-  (define-key eshell-mode-map [(control ?j)] 'eshell-send-input)
-  (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
-  (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
+  (define-key eshell-mode-map "\r" 'eshell-send-input)
+  (define-key eshell-mode-map "\M-\r" 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
   (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 

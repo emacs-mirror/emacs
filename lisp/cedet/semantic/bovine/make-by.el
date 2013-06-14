@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make-by.el --- Generated parser support file
 
-;; Copyright (C) 1999-2004, 2008-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2008-2013 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,13 +19,12 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from etc/grammars/make.by.
+;; This file was generated from admin/grammars/make.by.
 
 ;;; Code:
 
 (require 'semantic/lex)
 (eval-when-compile (require 'semantic/bovine))
-
 
 ;;; Prologue
 ;;
@@ -379,6 +378,13 @@
 	semantic-debug-parser-class 'semantic-bovine-debug-parser
 	semantic-flex-keywords-obarray semantic-make-by--keyword-table
 	))
+
+
+;;; Analyzers
+;;
+
+;;; Epilogue
+;;
 
 (provide 'semantic/bovine/make-by)
 

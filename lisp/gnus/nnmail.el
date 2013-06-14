@@ -1,6 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
-;; Copyright (C) 1995-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -179,7 +179,7 @@ is to be performed in, and it should return an integer that says how
 many days an article can be stored before it is considered \"old\".
 It can also return the values `never' and `immediate'.
 
-Eg.:
+E.g.:
 
 \(setq nnmail-expiry-wait-function
       (lambda (newsgroup)
@@ -291,7 +291,7 @@ directory.  This hook is called after the incoming mail box has been
 emptied, and can be used to call any mail box programs you have
 running (\"xwatch\", etc.)
 
-Eg.
+E.g.:
 
 \(add-hook 'nnmail-read-incoming-hook
 	  (lambda ()
@@ -1952,9 +1952,13 @@ If TIME is nil, then return the cutoff time for oldness instead."
        ((and (equal header 'to-from)
 	     (or (string-match (cadr regexp-target-pair) from)
 		 (and (string-match (cadr regexp-target-pair) to)
-		      (let ((rmail-dont-reply-to-names
-			     (message-dont-reply-to-names)))
-			(equal (rmail-dont-reply-to from) "")))))
+		      (let* ((mail-dont-reply-to-names
+			      (message-dont-reply-to-names))
+			     (rmail-dont-reply-to-names ; obsolete since 24.1
+			      mail-dont-reply-to-names))
+			(equal (if (fboundp 'rmail-dont-reply-to)
+				   (rmail-dont-reply-to from)
+				 (mail-dont-reply-to from)) "")))))
 	(setq target (format-time-string (caddr regexp-target-pair) date)))
        ((and (not (equal header 'to-from))
 	     (string-match (cadr regexp-target-pair)

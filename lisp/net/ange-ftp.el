@@ -1,6 +1,7 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989-1996, 1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -79,7 +80,7 @@
 ;; that this change will take effect for the current GNU Emacs session only.
 ;; See below for a discussion of non-UNIX hosts.  If a large number of
 ;; machines with similar hostnames have this problem then it is easier to set
-;; the value of ange-ftp-dumb-unix-host-regexp in your .emacs file. ange-ftp
+;; the value of ange-ftp-dumb-unix-host-regexp in your init file.  ange-ftp
 ;; is unable to automatically recognize dumb unix hosts.
 
 ;; File name completion:
@@ -275,10 +276,10 @@
 
 ;; VMS support:
 ;;
-;; Ange-ftp has full support for VMS hosts.  It
-;; should be able to automatically recognize any VMS machine. However, if it
-;; fails to do this, you can use the command ange-ftp-add-vms-host.  As well,
-;; you can set the variable ange-ftp-vms-host-regexp in your .emacs file. We
+;; Ange-ftp has full support for VMS hosts.  It should be able to
+;; automatically recognize any VMS machine. However, if it fails to do
+;; this, you can use the command ange-ftp-add-vms-host.  Also, you can
+;; set the variable ange-ftp-vms-host-regexp in your init file.  We
 ;; would be grateful if you would report any failures to automatically
 ;; recognize a VMS host as a bug.
 ;;
@@ -332,7 +333,7 @@
 ;; the Michigan terminal system.  It should be able to automatically
 ;; recognize any MTS machine. However, if it fails to do this, you can use
 ;; the command ange-ftp-add-mts-host.  As well, you can set the variable
-;; ange-ftp-mts-host-regexp in your .emacs file. We would be grateful if you
+;; ange-ftp-mts-host-regexp in your init file. We would be grateful if you
 ;; would report any failures to automatically recognize a MTS host as a bug.
 ;;
 ;; Filename syntax:
@@ -358,7 +359,7 @@
 ;; CMS.  It should be able to automatically recognize any CMS machine.
 ;; However, if it fails to do this, you can use the command
 ;; ange-ftp-add-cms-host.  As well, you can set the variable
-;; ange-ftp-cms-host-regexp in your .emacs file. We would be grateful if you
+;; ange-ftp-cms-host-regexp in your init file. We would be grateful if you
 ;; would report any failures to automatically recognize a CMS host as a bug.
 ;;
 ;; Filename syntax:
@@ -719,6 +720,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
+          "^500 This security scheme is not implemented\\|"
           "^504 Unknown security mechanism\\|"
 	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
@@ -3295,7 +3297,6 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (ange-ftp-binary-file filename))
-		     (buffer-file-type buffer-file-type)
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3320,10 +3321,7 @@ system TYPE.")
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents
 				   temp visit beg end replace))
-			   coding-system-used last-coding-system-used
-			   ;; override autodetection of buffer file type
-			   ;; to ensure buffer is saved in DOS format
-			   buffer-file-type binary)
+			   coding-system-used last-coding-system-used)
 			(signal 'ftp-error
 				(list
 				 "Opening input file:"
@@ -4086,7 +4084,8 @@ directory, so that Emacs will know its current contents."
 	(or (file-exists-p parent)
 	    (ange-ftp-make-directory parent parents))))
   (if (file-exists-p dir)
-      (error "Cannot make directory %s: file already exists" dir)
+      (unless parents
+	(error "Cannot make directory %s: file already exists" dir))
     (let ((parsed (ange-ftp-ftp-name dir)))
       (if parsed
 	  (let* ((host (nth 0 parsed))
@@ -4438,16 +4437,18 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
 
-;(defun ange-ftp-run-real-handler (operation args)
-;  (let ((inhibit-file-name-handlers
-;	 (cons 'ange-ftp-hook-function
-;	       (cons 'ange-ftp-completion-hook-function
-;		     (and (eq inhibit-file-name-operation operation)
-;			  inhibit-file-name-handlers))))
-;	(inhibit-file-name-operation operation))
-;    (apply operation args)))
+(defun ange-ftp-run-real-handler-orig (operation args)
+  (let ((inhibit-file-name-handlers
+	 (cons 'ange-ftp-hook-function
+	       (cons 'ange-ftp-completion-hook-function
+		     (and (eq inhibit-file-name-operation operation)
+			  inhibit-file-name-handlers))))
+	(inhibit-file-name-operation operation))
+    (apply operation args)))
 
-(defalias 'ange-ftp-run-real-handler 'tramp-run-real-handler)
+(defalias 'ange-ftp-run-real-handler
+  (if (fboundp 'tramp-run-real-handler)
+      'tramp-run-real-handler 'ange-ftp-run-real-handler-orig))
 
 (defun ange-ftp-real-file-name-directory (&rest args)
   (ange-ftp-run-real-handler 'file-name-directory args))
@@ -5135,7 +5136,7 @@ Other orders of $ and _ seem to all work just fine.")
 	(forward-line 1))
       ;; Would like to look for a "Total" line, or a "Directory" line to
       ;; make sure that the listing isn't complete garbage before putting
-      ;; in "." and "..", but we can't even count on all VAX's giving us
+      ;; in "." and "..", but we can't count on VMS giving us
       ;; either of these.
       (puthash "." t tbl)
       (puthash ".." t tbl))

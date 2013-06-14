@@ -1,7 +1,7 @@
 /* paths.h file for MS Windows
 
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2013 Free Software
+Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    variable exec-directory.  exec-directory is used for finding
    executables and other architecture-dependent files.  */
 /* #define PATH_EXEC "/usr/local/lib/emacs/etc" */
-#define PATH_EXEC "%emacs_dir%/bin;%emacs_dir%/lib-src/oo-spd/i386;%emacs_dir%/lib-src/oo/i386"
+#define PATH_EXEC "%emacs_dir%/bin;%emacs_dir%/lib-src/oo-spd/i386;%emacs_dir%/lib-src/oo/i386;%emacs_dir%/nt/oo-spd/i386;%emacs_dir%/nt/oo/i386"
 
 /* Where Emacs should look for its architecture-independent data
    files, like the NEWS file.  The lisp variable data-directory

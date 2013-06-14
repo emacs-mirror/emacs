@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2012  Free Software Foundation, Inc.
+Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <float.h>
 #include <limits.h>
-#include <setjmp.h>
 #include <fcntl.h>
 #include "lisp.h"
 #include "xterm.h"
@@ -30,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
-#include "termopts.h"
 
 #include <X11/Xproto.h>
 
@@ -675,19 +673,14 @@ apply_xft_settings (struct x_display_info *dpyinfo,
   if ((settings->seen & SEEN_DPI) != 0 && oldsettings.dpi != settings->dpi
       && settings->dpi > 0)
     {
-      Lisp_Object frame, tail;
-
       FcPatternDel (pat, FC_DPI);
       FcPatternAddDouble (pat, FC_DPI, settings->dpi);
       ++changed;
       oldsettings.dpi = settings->dpi;
 
-      /* Change the DPI on this display and all frames on the display.  */
+      /* Changing the DPI on this display affects all frames on it.
+	 Check FRAME_RES_X and FRAME_RES_Y in frame.h to see how.  */
       dpyinfo->resy = dpyinfo->resx = settings->dpi;
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_X_P (XFRAME (frame))
-            && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
-          XFRAME (frame)->resy = XFRAME (frame)->resx = settings->dpi;
     }
 
   if (changed)
@@ -711,12 +704,12 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       if (send_event_p)
         store_config_changed_event (Qfont_render,
                                     XCAR (dpyinfo->name_list_element));
-      Vxft_settings 
+      Vxft_settings
 	= make_formatted_string (buf, format,
 				 oldsettings.aa, oldsettings.hinting,
 				 oldsettings.rgba, oldsettings.lcdfilter,
 				 oldsettings.hintstyle, oldsettings.dpi);
-      
+
     }
   else
     FcPatternDestroy (pat);
@@ -930,7 +923,7 @@ init_xsettings (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
-  BLOCK_INPUT;
+  block_input ();
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */
@@ -940,7 +933,7 @@ init_xsettings (struct x_display_info *dpyinfo)
   if (dpyinfo->xsettings_window != None)
     read_and_apply_settings (dpyinfo, False);
 
-  UNBLOCK_INPUT;
+  unblock_input ();
 }
 
 void

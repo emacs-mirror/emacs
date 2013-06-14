@@ -1,6 +1,6 @@
 ;;; emacs-lock.el --- protect buffers against killing or exiting -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Inspired by emacs-lock.el by Tom Wurgler <twurgler@goodyear.com>
@@ -249,9 +249,9 @@ Other values are interpreted as usual."
 
 (defun toggle-emacs-lock ()
   "Toggle `emacs-lock-from-exiting' for the current buffer."
+  (declare (obsolete emacs-lock-mode "24.1"))
   (interactive)
   (call-interactively 'emacs-lock-mode))
-(make-obsolete 'toggle-emacs-lock 'emacs-lock-mode "24.1")
 
 (provide 'emacs-lock)
 

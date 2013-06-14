@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -215,17 +215,11 @@ request.")
 	  (and (listp url-privacy-level)
 	       (memq 'agent url-privacy-level)))
       ""
-    (format "User-Agent: %sURL/%s%s\r\n"
+    (format "User-Agent: %sURL/%s\r\n"
 	    (if url-package-name
 		(concat url-package-name "/" url-package-version " ")
 	      "")
-	    url-version
-	    (cond
-	     ((and url-os-type url-system-type)
-	      (concat " (" url-os-type "; " url-system-type ")"))
-	     ((or url-os-type url-system-type)
-	      (concat " (" (or url-system-type url-os-type) ")"))
-	     (t "")))))
+	    url-version)))
 
 (defun url-http-create-request (&optional ref-url)
   "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
@@ -896,8 +890,11 @@ should be shown to the user."
 		 (url-http-activate-callback)
 	       ;; Call `url-http' again if our connection expired.
 	       (erase-buffer)
-	       (url-http url-current-object url-callback-function
-			 url-callback-arguments (current-buffer))))
+               (let ((url-request-method url-http-method)
+                     (url-request-extra-headers url-http-extra-headers)
+                     (url-request-data url-http-data))
+                 (url-http url-current-object url-callback-function
+                           url-callback-arguments (current-buffer)))))
 	    ((url-http-parse-headers)
 	     (url-http-activate-callback))))))
 
@@ -1043,7 +1040,9 @@ the end of the document."
 	  (setq end-of-headers t
 		url-http-end-of-headers 0
 		old-http t)
-	(when (re-search-forward "^\r*$" nil t)
+	;; Blank line at end of headers.
+	(when (re-search-forward "^\r?\n" nil t)
+	  (backward-char 1)
 	  ;; Saw the end of the headers
 	  (url-http-debug "Saw end of headers... (%s)" (buffer-name))
 	  (setq url-http-end-of-headers (set-marker (make-marker)
@@ -1153,12 +1152,15 @@ the end of the document."
     (when (eq process-buffer (current-buffer))
       (goto-char (point-max)))))
 
-;;;###autoload
 (defun url-http (url callback cbargs &optional retry-buffer)
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
-When retrieval is completed, the function CALLBACK is executed with
-CBARGS as the arguments.
+
+When retrieval is completed, execute the function CALLBACK, using
+the arguments listed in CBARGS.  The first element in CBARGS
+should be a plist describing what has happened so far during the
+request, as described in the docstring of `url-retrieve' (if in
+doubt, specify nil).
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted."
@@ -1299,7 +1301,6 @@ previous `url-http' call, which is being re-attempted."
 	(url-request-data nil))
     (url-retrieve-synchronously url)))
 
-;;;###autoload
 (defun url-http-file-exists-p (url)
   (let ((status nil)
 	(exists nil)
@@ -1313,7 +1314,6 @@ previous `url-http' call, which is being re-attempted."
       (kill-buffer buffer))
     exists))
 
-;;;###autoload
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
 (defun url-http-head-file-attributes (url &optional id-format)
@@ -1333,13 +1333,11 @@ previous `url-http' call, which is being re-attempted."
 
 (declare-function url-dav-file-attributes "url-dav" (url &optional id-format))
 
-;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
   (if (url-dav-supported-p url)
       (url-dav-file-attributes url id-format)
     (url-http-head-file-attributes url id-format)))
 
-;;;###autoload
 (defun url-http-options (url)
   "Return a property list describing options available for URL.
 This list is retrieved using the `OPTIONS' HTTP method.
@@ -1417,9 +1415,7 @@ p3p
 ;; with url-http.el on systems with 8-character file names.
 (require 'tls)
 
-;;;###autoload
 (defconst url-https-default-port 443 "Default HTTPS port.")
-;;;###autoload
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
 
 ;; FIXME what is the point of this alias being an autoload?

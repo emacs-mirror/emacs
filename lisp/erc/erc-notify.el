@@ -1,8 +1,9 @@
 ;;; erc-notify.el --- Online status change notification
 
-;; Copyright (C) 2002-2004, 2006-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
+;; Maintainer: FSF
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -29,9 +30,7 @@
 
 (require 'erc)
 (require 'erc-networks)
-(eval-when-compile
- (require 'cl)
- (require 'pcomplete))
+(eval-when-compile (require 'pcomplete))
 
 ;;;; Customizable variables
 
@@ -236,8 +235,13 @@ with args, toggle notify status of people."
 
 (autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
 
+;; "--" is not a typo.
+(declare-function pcomplete--here "pcomplete"
+		  (&optional form stub paring form-only))
+
 ;;;###autoload
 (defun pcomplete/erc-mode/NOTIFY ()
+  (require 'pcomplete)
   (pcomplete-here (pcomplete-erc-all-nicks)))
 
 (erc-notify-install-message-catalogs)

@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -195,6 +195,7 @@ See `tramp-actions-before-shell' for more info.")
     (dired-uncache . tramp-handle-dired-uncache)
     (expand-file-name . tramp-smb-handle-expand-file-name)
     (file-accessible-directory-p . tramp-smb-handle-file-directory-p)
+    (file-acl . tramp-smb-handle-file-acl)
     (file-attributes . tramp-smb-handle-file-attributes)
     (file-directory-p .  tramp-smb-handle-file-directory-p)
     (file-executable-p . tramp-handle-file-exists-p)
@@ -227,8 +228,9 @@ See `tramp-actions-before-shell' for more info.")
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
     (process-file . tramp-smb-handle-process-file)
     (rename-file . tramp-smb-handle-rename-file)
+    (set-file-acl . ignore)
     (set-file-modes . tramp-smb-handle-set-file-modes)
-    ;; `set-file-selinux-context' performed by default handler.
+    (set-file-selinux-context . ignore)
     (set-file-times . ignore)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
@@ -265,6 +267,8 @@ This can be used to disable echo etc."
   :type 'string
   :version "24.3")
 
+;; It must be a `defsubst' in order to push the whole code into
+;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (filename)
   "Check if it's a filename for SMB servers."
@@ -355,7 +359,7 @@ pass to the OPERATION."
   (let ((t1 (tramp-tramp-file-p dirname))
 	(t2 (tramp-tramp-file-p newname)))
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 0 (format "Copying %s to %s" dirname newname)
       (cond
        ;; We must use a local temporary directory.
@@ -485,13 +489,13 @@ pass to the OPERATION."
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-selinux-context)
+	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
-PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
+PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (tramp-with-progress-reporter
+  (with-tramp-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Copying %s to %s" filename newname)
 
@@ -637,12 +641,30 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
        method user host
        (tramp-run-real-handler 'expand-file-name (list localname))))))
 
+(defun tramp-smb-handle-file-acl (filename)
+  "Like `file-acl' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "file-acl"
+      (when (tramp-smb-send-command
+	     v (format "getfacl \"%s\"" (tramp-smb-get-localname v)))
+	(with-current-buffer (tramp-get-connection-buffer v)
+	  (goto-char (point-min))
+	  (while (looking-at "^#")
+	    (forward-line)
+	    (delete-region (point-min) (point)))
+	  (goto-char (point-max))
+	  (delete-blank-lines)
+	  (when (> (point-max) (point-min))
+	    (tramp-compat-funcall
+	     'substring-no-properties (buffer-string))))))))
+
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (ignore-errors
     (with-parsed-tramp-file-name filename nil
-      (with-file-property v localname (format "file-attributes-%s" id-format)
+      (with-tramp-file-property
+	  v localname (format "file-attributes-%s" id-format)
 	(if (and (tramp-smb-get-share v) (tramp-smb-get-stat-capability v))
 	    (tramp-smb-do-file-attributes-with-stat v id-format)
 	  ;; Reading just the filename entry via "dir localname" is not
@@ -753,7 +775,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	(unless (tramp-smb-send-command
 		 v (format "get \"%s\" \"%s\""
@@ -771,7 +793,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (all-completions
    filename
    (with-parsed-tramp-file-name directory nil
-     (with-file-property v localname "file-name-all-completions"
+     (with-tramp-file-property v localname "file-name-all-completions"
        (save-match-data
 	 (let ((entries (tramp-smb-get-file-entries directory)))
 	   (mapcar
@@ -1119,7 +1141,7 @@ target of the symlink differ."
       (if (file-remote-p filename) filename newname))
      'file-already-exists newname))
 
-  (tramp-with-progress-reporter
+  (with-tramp-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
@@ -1253,7 +1275,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	   (list start end tmpfile append 'no-message lockname confirm)
 	 (list start end tmpfile append 'no-message lockname)))
 
-      (tramp-with-progress-reporter
+      (with-tramp-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
 	(unwind-protect
 	    (unless (tramp-smb-send-command
@@ -1312,7 +1334,7 @@ Either the shares are listed, or the `dir' command is executed.
 Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
   (with-parsed-tramp-file-name (file-name-as-directory directory) nil
     (setq localname (or localname "/"))
-    (with-file-property v localname "file-entries"
+    (with-tramp-file-property v localname "file-entries"
       (with-current-buffer (tramp-get-connection-buffer v)
 	(let* ((share (tramp-smb-get-share v))
 	       (cache (tramp-get-connection-property v "share-cache" nil))
@@ -1497,7 +1519,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (let ((p (tramp-get-connection-process vec)))
 	(and p (processp p) (memq (process-status p) '(run open))))
-      (with-connection-property
+      (with-tramp-connection-property
 	  (tramp-get-connection-process vec) "cifs-capabilities"
 	(save-match-data
 	  (when (tramp-smb-send-command vec "posix")
@@ -1515,7 +1537,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
   ;; When we are not logged in yet, we return nil.
   (if (let ((p (tramp-get-connection-process vec)))
 	(and p (processp p) (memq (process-status p) '(run open))))
-      (with-connection-property
+      (with-tramp-connection-property
 	  (tramp-get-connection-process vec) "stat-capability"
 	(tramp-smb-send-command vec "stat ."))))
 
@@ -1625,7 +1647,7 @@ If ARGUMENT is non-nil, use it as argument for
 	    (setq args (append args (list argument))))
 
 	  ;; OK, let's go.
-	  (tramp-with-progress-reporter
+	  (with-tramp-progress-reporter
 	      vec 3
 	      (format "Opening connection for //%s%s/%s"
 		      (if (not (zerop (length user))) (concat user "@") "")
@@ -1676,11 +1698,11 @@ If ARGUMENT is non-nil, use it as argument for
 			  (tramp-set-connection-property
 			   vec "smbserver-version" smbserver-version))))
 
-		    ;; Set chunksize.  Otherwise, `tramp-send-string' might
-		    ;; try it itself.
+		    ;; Set chunksize to 1.  smbclient reads its input
+		    ;; character by character; if we send the string
+		    ;; at once, it is read painfully slow.
 		    (tramp-set-connection-property p "smb-share" share)
-		    (tramp-set-connection-property
-		     p "chunksize" tramp-chunksize))
+		    (tramp-set-connection-property p "chunksize" 1))
 
 		;; Check for the error reason.  If it was due to wrong
 		;; password, reestablish the connection.  We cannot
@@ -1716,7 +1738,7 @@ Returns nil if an error message has appeared."
       (while (and (not found) (not err) (memq (process-status p) '(run open)))
 
 	;; Accept pending output.
-	(tramp-accept-process-output p)
+	(tramp-accept-process-output p 0.1)
 
 	;; Search for prompt.
 	(goto-char (point-min))
@@ -1730,7 +1752,7 @@ Returns nil if an error message has appeared."
       (while (and (not found) (memq (process-status p) '(run open)))
 
 	;; Accept pending output.
-	(tramp-accept-process-output p)
+	(tramp-accept-process-output p 0.1)
 
 	;; Search for prompt.
 	(goto-char (point-min))

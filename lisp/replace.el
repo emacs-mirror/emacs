@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2013 Free
+;; Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -62,6 +62,10 @@ no default value.")
 (defvar query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
 That becomes the \"string to replace\".")
+(make-obsolete-variable 'query-replace-interactive
+			"use `M-n' to pull the last incremental search string
+to the minibuffer that reads the string to replace, or invoke replacements
+from Isearch by using a key sequence like `C-s C-s M-%'." "24.3")
 
 (defcustom query-replace-from-history-variable 'query-replace-history
   "History list to use for the FROM argument of `query-replace' commands.
@@ -128,20 +132,22 @@ wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
     (let* ((history-add-new-input nil)
+	   (prompt
+	    (if query-replace-defaults
+		(format "%s (default %s -> %s): " prompt
+			(query-replace-descr (car query-replace-defaults))
+			(query-replace-descr (cdr query-replace-defaults)))
+	      (format "%s: " prompt)))
 	   (from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
 	    ;; That should not clobber the region for the query-replace itself.
 	    (save-excursion
-	      (read-from-minibuffer
-	       (if query-replace-defaults
-		   (format "%s (default %s -> %s): " prompt
-			   (query-replace-descr (car query-replace-defaults))
-			   (query-replace-descr (cdr query-replace-defaults)))
-		 (format "%s: " prompt))
-	       nil nil nil
-	       query-replace-from-history-variable
-	       nil t))))
+	      (if regexp-flag
+		  (read-regexp prompt nil query-replace-from-history-variable)
+		(read-from-minibuffer
+		 prompt nil nil nil query-replace-from-history-variable
+		 (car (if regexp-flag regexp-search-ring search-ring)) t)))))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (car query-replace-defaults)
 		(query-replace-compile-replacement
@@ -230,17 +236,23 @@ what to do with it.  For directions, type \\[help-command] at that time.
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-string is used as FROM-STRING--you don't have to specify it with the
-minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search string to the minibuffer
+that reads FROM-STRING, or invoke replacements from
+incremental search with a key sequence like `C-s C-s M-%'
+to use its current search string as the string to replace.
 
 Matching is independent of case if `case-fold-search' is non-nil and
 FROM-STRING has no uppercase letters.  Replacement transfers the case
 pattern of the old text to the new text, if `case-replace' and
 `case-fold-search' are non-nil and FROM-STRING has no uppercase
-letters.  \(Transferring the case pattern means that if the old text
+letters.  (Transferring the case pattern means that if the old text
 matched is all caps, or capitalized, then its replacement is upcased
 or capitalized.)
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
@@ -278,9 +290,11 @@ what to do with it.  For directions, type \\[help-command] at that time.
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-regexp is used as REGEXP--you don't have to specify it with the
-minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search regexp to the minibuffer
+that reads REGEXP, or invoke replacements from
+incremental search with a key sequence like `C-M-s C-M-s C-M-%'
+to use its current search regexp as the regexp to replace.
 
 Matching is independent of case if `case-fold-search' is non-nil and
 REGEXP has no uppercase letters.  Replacement transfers the case
@@ -289,6 +303,10 @@ pattern of the old text to the new text, if `case-replace' and
 \(Transferring the case pattern means that if the old text matched is
 all caps, or capitalized, then its replacement is upcased or
 capitalized.)
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -363,12 +381,16 @@ In interactive use, `\\#' in itself stands for `replace-count'.
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-regexp is used as REGEXP--you don't have to specify it with the
-minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search regexp to the minibuffer
+that reads REGEXP.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -377,34 +399,32 @@ regexp in `search-whitespace-regexp'.
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
+  (declare (obsolete "use the `\\,' feature of `query-replace-regexp'
+for interactive calls, and `search-forward-regexp'/`replace-match'
+for Lisp calls." "22.1"))
   (interactive
    (progn
-   (barf-if-buffer-read-only)
-   (let* ((from
-	   ;; Let-bind the history var to disable the "foo -> bar" default.
-	   ;; Maybe we shouldn't disable this default, but for now I'll
-	   ;; leave it off.  --Stef
-	   (let ((query-replace-to-history-variable nil))
-	     (query-replace-read-from "Query replace regexp" t)))
-	  (to (list (read-from-minibuffer
-		     (format "Query replace regexp %s with eval: "
-			     (query-replace-descr from))
-		     nil nil t query-replace-to-history-variable from t))))
-     ;; We make TO a list because replace-match-string-symbols requires one,
-     ;; and the user might enter a single token.
-     (replace-match-string-symbols to)
-     (list from (car to) current-prefix-arg
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))))))
+     (barf-if-buffer-read-only)
+     (let* ((from
+	     ;; Let-bind the history var to disable the "foo -> bar"
+	     ;; default.  Maybe we shouldn't disable this default, but
+	     ;; for now I'll leave it off.  --Stef
+	     (let ((query-replace-to-history-variable nil))
+	       (query-replace-read-from "Query replace regexp" t)))
+	    (to (list (read-from-minibuffer
+		       (format "Query replace regexp %s with eval: "
+			       (query-replace-descr from))
+		       nil nil t query-replace-to-history-variable from t))))
+       ;; We make TO a list because replace-match-string-symbols requires one,
+       ;; and the user might enter a single token.
+       (replace-match-string-symbols to)
+       (list from (car to) current-prefix-arg
+	     (if (and transient-mark-mode mark-active)
+		 (region-beginning))
+	     (if (and transient-mark-mode mark-active)
+		 (region-end))))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end))
-
-(make-obsolete 'query-replace-regexp-eval
-  "for interactive use, use the special `\\,' feature of
-`query-replace-regexp' instead.  Non-interactively, a loop
-using `search-forward-regexp' and `replace-match' is preferred." "22.1")
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -418,19 +438,16 @@ of the region.  Otherwise, operate from point to the end of the buffer.
 
 Non-interactively, TO-STRINGS may be a list of replacement strings.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-regexp is used as REGEXP--you don't have to specify it with the minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search regexp to the minibuffer
+that reads REGEXP.
 
 A prefix argument N says to use each replacement string N times
 before rotating to the next.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let* ((from (if query-replace-interactive
-		    (car regexp-search-ring)
-		  (read-from-minibuffer "Map query replace (regexp): "
-					nil nil nil
-					query-replace-from-history-variable
-					nil t)))
+   (let* ((from (read-regexp "Map query replace (regexp): " nil
+			     query-replace-from-history-variable))
 	  (to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
 		       (query-replace-descr from))
@@ -465,6 +482,10 @@ are non-nil and FROM-STRING has no uppercase letters.
 \(Preserving case means that if the string matched is all caps, or capitalized,
 then its replacement is upcased or capitalized.)
 
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
+
 If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
@@ -476,9 +497,9 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-string is used as FROM-STRING--you don't have to specify it with the
-minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search string to the minibuffer
+that reads FROM-STRING.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
@@ -506,6 +527,10 @@ and TO-STRING is also null.)"
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
+Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
+ignore hidden matches if `search-invisible' is nil, and ignore more
+matches using a non-nil `isearch-filter-predicates'.
 
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
@@ -541,8 +566,9 @@ When using those Lisp features interactively in the replacement
 text, TO-STRING is actually made a list instead of a string.
 Use \\[repeat-complex-command] after this command for details.
 
-If `query-replace-interactive' is non-nil, the last incremental search
-regexp is used as REGEXP--you don't have to specify it with the minibuffer.
+Use \\<minibuffer-local-map>\\[next-history-element] \
+to pull the last incremental search regexp to the minibuffer
+that reads REGEXP.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
@@ -574,38 +600,51 @@ of `history-length', which see.")
 (defvar occur-collect-regexp-history '("\\1")
   "History of regexp for occur's collect operation")
 
-(defun read-regexp (prompt &optional default-value)
-  "Read regexp as a string using the regexp history and some useful defaults.
-Prompt for a regular expression with PROMPT (without a colon and
-space) in the minibuffer.  The optional argument DEFAULT-VALUE
-provides the value to display in the minibuffer prompt that is
-returned if the user just types RET.
-Values available via M-n are the string at point, the last isearch
-regexp, the last isearch string, and the last replacement regexp."
-  (let* ((defaults
-	   (list (regexp-quote
-		  (or (funcall (or find-tag-default-function
-				   (get major-mode 'find-tag-default-function)
-				   'find-tag-default))
-		      ""))
-		 (car regexp-search-ring)
-		 (regexp-quote (or (car search-ring) ""))
-		 (car (symbol-value
-		       query-replace-from-history-variable))))
-	 (defaults (delete-dups (delq nil (delete "" defaults))))
-	 ;; Don't add automatically the car of defaults for empty input
+(defun read-regexp (prompt &optional defaults history)
+  "Read and return a regular expression as a string.
+When PROMPT doesn't end with a colon and space, it adds a final \": \".
+If the first element of DEFAULTS is non-nil, it's added to the prompt.
+
+Optional arg DEFAULTS has the form (DEFAULT . SUGGESTIONS)
+or simply DEFAULT where DEFAULT, if non-nil, should be a string that
+is returned as the default value when the user enters empty input.
+SUGGESTIONS is a list of strings that can be inserted into
+the minibuffer using \\<minibuffer-local-map>\\[next-history-element].  \
+The values supplied in SUGGESTIONS
+are prepended to the list of standard suggestions that include
+the tag at point, the last isearch regexp, the last isearch string,
+and the last replacement regexp.
+
+Optional arg HISTORY is a symbol to use for the history list.
+If HISTORY is nil, `regexp-history' is used."
+  (let* ((default     (if (consp defaults) (car defaults) defaults))
+	 (suggestions (if (listp defaults) defaults (list defaults)))
+	 (suggestions
+	  (append
+	   suggestions
+	   (list
+	    (find-tag-default-as-regexp)
+	    (car regexp-search-ring)
+	    (regexp-quote (or (car search-ring) ""))
+	    (car (symbol-value query-replace-from-history-variable)))))
+	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
+	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
-	 (input
-	  (read-from-minibuffer
-	   (if default-value
-	       (format "%s (default %s): " prompt
-		       (query-replace-descr default-value))
-	     (format "%s: " prompt))
-	   nil nil nil 'regexp-history defaults t)))
+	 (input (read-from-minibuffer
+		 (cond ((string-match-p ":[ \t]*\\'" prompt)
+			prompt)
+		       (default
+			 (format "%s (default %s): " prompt
+				 (query-replace-descr default)))
+		       (t
+			(format "%s: " prompt)))
+		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
-	(or default-value input)
+	;; Return the default value when the user enters empty input.
+	(or default input)
+      ;; Otherwise, add non-empty input to the history and return input.
       (prog1 input
-	(add-to-history 'regexp-history input)))))
+	(add-to-history (or history 'regexp-history) input)))))
 
 
 (defalias 'delete-non-matching-lines 'keep-lines)
@@ -1106,6 +1145,14 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom list-matching-lines-prefix-face 'shadow
+  "Face used by \\[list-matching-lines] to show the prefix column.
+If the face doesn't differ from the default face,
+don't highlight the prefix with line numbers specially."
+  :type 'face
+  :group 'matching
+  :version "24.4")
+
 (defcustom occur-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link)
@@ -1116,12 +1163,32 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
+(defvar occur-read-regexp-defaults-function
+  'occur-read-regexp-defaults
+  "Function that provides default regexp(s) for occur commands.
+This function should take no arguments and return one of nil, a
+regexp or a list of regexps for use with occur commands -
+`occur', `multi-occur' and `multi-occur-in-matching-buffers'.
+The return value of this function is used as DEFAULTS param of
+`read-regexp' while executing the occur command.  This function
+is called only during interactive use.
+
+For example, to check for occurrence of symbol at point use
+
+    (setq occur-read-regexp-defaults-function
+	  'find-tag-default-as-regexp).")
+
+(defun occur-read-regexp-defaults ()
+  "Return the latest regexp from `regexp-history'.
+See `occur-read-regexp-defaults-function' for details."
+  (car regexp-history))
+
 (defun occur-read-primary-args ()
   (let* ((perform-collect (consp current-prefix-arg))
          (regexp (read-regexp (if perform-collect
                                   "Collect strings matching regexp"
                                 "List lines matching regexp")
-                              (car regexp-history))))
+                              (funcall occur-read-regexp-defaults-function))))
     (list regexp
 	  (if perform-collect
 	      ;; Perform collect operation
@@ -1130,9 +1197,9 @@ which means to discard all text properties."
 		  "\\&"
 		;; Get the regexp for collection pattern.
 		(let ((default (car occur-collect-regexp-history)))
-		  (read-string
+		  (read-regexp
 		   (format "Regexp to collect (default %s): " default)
-		   nil 'occur-collect-regexp-history default)))
+		   default 'occur-collect-regexp-history)))
 	    ;; Otherwise normal occur takes numerical prefix argument.
 	    (when current-prefix-arg
 	      (prefix-numeric-value current-prefix-arg))))))
@@ -1219,14 +1286,10 @@ See also `multi-occur'."
    (cons
     (let* ((default (car regexp-history))
 	   (input
-	    (read-from-minibuffer
+	    (read-regexp
 	     (if current-prefix-arg
 		 "List lines in buffers whose names match regexp: "
-	       "List lines in buffers whose filenames match regexp: ")
-	     nil
-	     nil
-	     nil
-	     'regexp-history)))
+	       "List lines in buffers whose filenames match regexp: "))))
       (if (equal input "")
 	  default
 	input))
@@ -1299,7 +1362,9 @@ See also `multi-occur'."
 		      (isearch-no-upper-case-p regexp t)
 		    case-fold-search)
 		  list-matching-lines-buffer-name-face
-		  nil list-matching-lines-face
+		  (if (face-differs-from-default-p list-matching-lines-prefix-face)
+		      list-matching-lines-prefix-face)
+		  list-matching-lines-face
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
@@ -1324,16 +1389,18 @@ See also `multi-occur'."
 (defun occur-engine (regexp buffers out-buf nlines case-fold
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
-    (let ((globalcount 0)
+    (let ((global-lines 0)    ;; total count of matching lines
+	  (global-matches 0)  ;; total count of matches
 	  (coding nil)
 	  (case-fold-search case-fold))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
-	  (let ((matches 0)	;; count of matched lines
-		(lines 1)	;; line count
-		(prev-after-lines nil)	;; context lines of prev match
-		(prev-lines nil)        ;; line number of prev match endpt
+	  (let ((lines 0)               ;; count of matching lines
+		(matches 0)             ;; count of matches
+		(curr-line 1)           ;; line count
+		(prev-line nil)         ;; line number of prev match endpt
+		(prev-after-lines nil)  ;; context lines of prev match
 		(matchbeg 0)
 		(origpt nil)
 		(begpt nil)
@@ -1354,7 +1421,7 @@ See also `multi-occur'."
 		(while (not (eobp))
 		  (setq origpt (point))
 		  (when (setq endpt (re-search-forward regexp nil t))
-		    (setq matches (1+ matches)) ;; increment match count
+		    (setq lines (1+ lines)) ;; increment matching lines count
 		    (setq matchbeg (match-beginning 0))
 		    ;; Get beginning of first match line and end of the last.
 		    (save-excursion
@@ -1363,7 +1430,7 @@ See also `multi-occur'."
 		      (goto-char endpt)
 		      (setq endpt (line-end-position)))
 		    ;; Sum line numbers up to the first match line.
-		    (setq lines (+ lines (count-lines origpt begpt)))
+		    (setq curr-line (+ curr-line (count-lines origpt begpt)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
 		    (setq curstring (occur-engine-line begpt endpt keep-props))
@@ -1372,6 +1439,7 @@ See also `multi-occur'."
 			  (start 0))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
+			(setq matches (1+ matches))
 			(add-text-properties
 			 (match-beginning 0) (match-end 0)
 			 (append
@@ -1385,10 +1453,10 @@ See also `multi-occur'."
 		    ;; Generate the string to insert for this match
 		    (let* ((match-prefix
 			    ;; Using 7 digits aligns tabs properly.
-			    (apply #'propertize (format "%7d:" lines)
+			    (apply #'propertize (format "%7d:" curr-line)
 				   (append
 				    (when prefix-face
-				      `(font-lock-face prefix-face))
+				      `(font-lock-face ,prefix-face))
 				    `(occur-prefix t mouse-face (highlight)
 				      ;; Allow insertion of text at
 				      ;; the end of the prefix (for
@@ -1412,7 +1480,9 @@ See also `multi-occur'."
 			     ;; of multi-line matches.
 			     (replace-regexp-in-string
 			      "\n"
-			      "\n       :"
+			      (if prefix-face
+				  (propertize "\n       :" 'font-lock-face prefix-face)
+				"\n       :")
 			      match-str)
 			     ;; Add marker at eol, but no mouse props.
 			     (propertize "\n" 'occur-target marker)))
@@ -1423,7 +1493,8 @@ See also `multi-occur'."
 			      ;; The complex multi-line display style.
 			      (setq ret (occur-context-lines
 					 out-line nlines keep-props begpt endpt
-					 lines prev-lines prev-after-lines))
+					 curr-line prev-line prev-after-lines
+					 prefix-face))
 			      ;; Set first elem of the returned list to `data',
 			      ;; and the second elem to `prev-after-lines'.
 			      (setq prev-after-lines (nth 1 ret))
@@ -1435,28 +1506,34 @@ See also `multi-occur'."
 		  (if endpt
 		      (progn
 			;; Sum line numbers between first and last match lines.
-			(setq lines (+ lines (count-lines begpt endpt)
-				       ;; Add 1 for empty last match line since
-				       ;; count-lines returns 1 line less.
-				       (if (and (bolp) (eolp)) 1 0)))
+			(setq curr-line (+ curr-line (count-lines begpt endpt)
+					   ;; Add 1 for empty last match line since
+					   ;; count-lines returns 1 line less.
+					   (if (and (bolp) (eolp)) 1 0)))
 			;; On to the next match...
 			(forward-line 1))
 		    (goto-char (point-max)))
-		  (setq prev-lines (1- lines)))
+		  (setq prev-line (1- curr-line)))
 		;; Flush remaining context after-lines.
 		(when prev-after-lines
 		  (with-current-buffer out-buf
 		    (insert (apply #'concat (occur-engine-add-prefix
-					     prev-after-lines)))))))
-	    (when (not (zerop matches)) ;; is the count zero?
-	      (setq globalcount (+ globalcount matches))
+					     prev-after-lines prefix-face)))))))
+	    (when (not (zerop lines)) ;; is the count zero?
+	      (setq global-lines (+ global-lines lines)
+		    global-matches (+ global-matches matches))
 	      (with-current-buffer out-buf
 		(goto-char headerpt)
 		(let ((beg (point))
 		      end)
 		  (insert (propertize
-			   (format "%d match%s%s in buffer: %s\n"
+			   (format "%d match%s%s%s in buffer: %s\n"
 				   matches (if (= matches 1) "" "es")
+				   ;; Don't display the same number of lines
+				   ;; and matches in case of 1 match per line.
+				   (if (= lines matches)
+				       "" (format " in %d line%s"
+						  lines (if (= lines 1) "" "s")))
 				   ;; Don't display regexp for multi-buffer.
 				   (if (> (length buffers) 1)
 				       "" (format " for \"%s\""
@@ -1471,12 +1548,17 @@ See also `multi-occur'."
 					`(occur-title ,buf))))
 		(goto-char (point-min)))))))
       ;; Display total match count and regexp for multi-buffer.
-      (when (and (not (zerop globalcount)) (> (length buffers) 1))
+      (when (and (not (zerop global-lines)) (> (length buffers) 1))
 	(goto-char (point-min))
 	(let ((beg (point))
 	      end)
-	  (insert (format "%d match%s total for \"%s\":\n"
-			  globalcount (if (= globalcount 1) "" "es")
+	  (insert (format "%d match%s%s total for \"%s\":\n"
+			  global-matches (if (= global-matches 1) "" "es")
+			  ;; Don't display the same number of lines
+			  ;; and matches in case of 1 match per line.
+			  (if (= global-lines global-matches)
+			      "" (format " in %d line%s"
+					 global-lines (if (= global-lines 1) "" "s")))
 			  (query-replace-descr regexp)))
 	  (setq end (point))
 	  (add-text-properties beg end (when title-face
@@ -1488,7 +1570,7 @@ See also `multi-occur'."
 	  ;; buffer.
 	  (set-buffer-file-coding-system coding))
       ;; Return the number of matches
-      globalcount)))
+      global-matches)))
 
 (defun occur-engine-line (beg end &optional keep-props)
   (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
@@ -1502,10 +1584,13 @@ See also `multi-occur'."
 	str)
     (buffer-substring-no-properties beg end)))
 
-(defun occur-engine-add-prefix (lines)
+(defun occur-engine-add-prefix (lines &optional prefix-face)
   (mapcar
    #'(lambda (line)
-       (concat "       :" line "\n"))
+       (concat (if prefix-face
+		   (propertize "       :" 'font-lock-face prefix-face)
+		 "       :")
+	       line "\n"))
    lines))
 
 (defun occur-accumulate-lines (count &optional keep-props pt)
@@ -1528,13 +1613,14 @@ See also `multi-occur'."
 ;; Generate context display for occur.
 ;; OUT-LINE is the line where the match is.
 ;; NLINES and KEEP-PROPS are args to occur-engine.
-;; LINES is line count of the current match,
-;; PREV-LINES is line count of the previous match,
+;; CURR-LINE is line count of the current match,
+;; PREV-LINE is line count of the previous match,
 ;; PREV-AFTER-LINES is a list of after-context lines of the previous match.
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
-				     lines prev-lines prev-after-lines)
+				     curr-line prev-line prev-after-lines
+				     &optional prefix-face)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
 	 (nreverse (cdr (occur-accumulate-lines
@@ -1549,22 +1635,22 @@ See also `multi-occur'."
 
     (when prev-after-lines
       ;; Don't overlap prev after-lines with current before-lines.
-      (if (>= (+ prev-lines (length prev-after-lines))
-	      (- lines      (length before-lines)))
+      (if (>= (+ prev-line (length prev-after-lines))
+	      (- curr-line      (length before-lines)))
 	  (setq prev-after-lines
 		(butlast prev-after-lines
 			 (- (length prev-after-lines)
-			    (- lines prev-lines (length before-lines) 1))))
+			    (- curr-line prev-line (length before-lines) 1))))
 	;; Separate non-overlapping context lines with a dashed line.
 	(setq separator "-------\n")))
 
-    (when prev-lines
+    (when prev-line
       ;; Don't overlap current before-lines with previous match line.
-      (if (<= (- lines (length before-lines))
-	      prev-lines)
+      (if (<= (- curr-line (length before-lines))
+	      prev-line)
 	  (setq before-lines
 		(nthcdr (- (length before-lines)
-			   (- lines prev-lines 1))
+			   (- curr-line prev-line 1))
 			before-lines))
 	;; Separate non-overlapping before-context lines.
 	(unless (> nlines 0)
@@ -1574,10 +1660,13 @@ See also `multi-occur'."
      ;; Return a list where the first element is the output line.
      (apply #'concat
 	    (append
-	     (and prev-after-lines
-		  (occur-engine-add-prefix prev-after-lines))
-	     (and separator (list separator))
-	     (occur-engine-add-prefix before-lines)
+	     (if prev-after-lines
+		 (occur-engine-add-prefix prev-after-lines prefix-face))
+	     (if separator
+		 (list (if prefix-face
+			   (propertize separator 'font-lock-face prefix-face)
+			 separator)))
+	     (occur-engine-add-prefix before-lines prefix-face)
 	     (list out-line)))
      ;; And the second element is the list of context after-lines.
      (if (> nlines 0) after-lines))))
@@ -1592,9 +1681,13 @@ Comma to replace but not move point immediately,
 C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
 C-w to delete match and recursive edit,
 C-l to clear the screen, redisplay, and offer same replacement again,
-! to replace all remaining matches with no more questions,
+! to replace all remaining matches in this buffer with no more questions,
 ^ to move point back to previous match,
-E to edit the replacement string"
+E to edit the replacement string.
+In multi-buffer replacements type `Y' to replace all remaining
+matches in all remaining buffers with no more questions,
+`N' to skip to the next buffer without replacing remaining matches
+in the current buffer."
   "Help message while in `query-replace'.")
 
 (defvar query-replace-map
@@ -1779,6 +1872,68 @@ It is used by `query-replace-regexp', `replace-regexp',
 It is called with three arguments, as if it were
 `re-search-forward'.")
 
+(defun replace-search (search-string limit regexp-flag delimited-flag
+				     case-fold-search)
+  "Search for the next occurrence of SEARCH-STRING to replace."
+  ;; Let-bind global isearch-* variables to values used
+  ;; to search the next replacement.  These let-bindings
+  ;; should be effective both at the time of calling
+  ;; `isearch-search-fun-default' and also at the
+  ;; time of funcalling `search-function'.
+  ;; These isearch-* bindings can't be placed higher
+  ;; outside of this function because then another I-search
+  ;; used after `recursive-edit' might override them.
+  (let* ((isearch-regexp regexp-flag)
+	 (isearch-word delimited-flag)
+	 (isearch-lax-whitespace
+	  replace-lax-whitespace)
+	 (isearch-regexp-lax-whitespace
+	  replace-regexp-lax-whitespace)
+	 (isearch-case-fold-search case-fold-search)
+	 (isearch-adjusted nil)
+	 (isearch-nonincremental t)	; don't use lax word mode
+	 (isearch-forward t)
+	 (search-function
+	  (or (if regexp-flag
+		  replace-re-search-function
+		replace-search-function)
+	      (isearch-search-fun-default))))
+    (funcall search-function search-string limit t)))
+
+(defvar replace-overlay nil)
+
+(defun replace-highlight (match-beg match-end range-beg range-end
+			  search-string regexp-flag delimited-flag
+			  case-fold-search)
+  (if query-replace-highlight
+      (if replace-overlay
+	  (move-overlay replace-overlay match-beg match-end (current-buffer))
+	(setq replace-overlay (make-overlay match-beg match-end))
+	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
+	(overlay-put replace-overlay 'face 'query-replace)))
+  (if query-replace-lazy-highlight
+      (let ((isearch-string search-string)
+	    (isearch-regexp regexp-flag)
+	    (isearch-word delimited-flag)
+	    (isearch-lax-whitespace
+	     replace-lax-whitespace)
+	    (isearch-regexp-lax-whitespace
+	     replace-regexp-lax-whitespace)
+	    (isearch-case-fold-search case-fold-search)
+	    (isearch-forward t)
+	    (isearch-other-end match-beg)
+	    (isearch-error nil))
+	(isearch-lazy-highlight-new-loop range-beg range-end))))
+
+(defun replace-dehighlight ()
+  (when replace-overlay
+    (delete-overlay replace-overlay))
+  (when query-replace-lazy-highlight
+    (lazy-highlight-cleanup lazy-highlight-cleanup)
+    (setq isearch-lazy-highlight-last-string nil))
+  ;; Close overlays opened by `isearch-range-invisible' in `perform-replace'.
+  (isearch-clean-overlays))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
@@ -1804,19 +1959,6 @@ make, or the user didn't cancel the call."
 	    case-fold-search))
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-         (search-function
-	  (or (if regexp-flag
-		  replace-re-search-function
-		replace-search-function)
-	      (let ((isearch-regexp regexp-flag)
-		    (isearch-word delimited-flag)
-		    (isearch-lax-whitespace
-		     replace-lax-whitespace)
-		    (isearch-regexp-lax-whitespace
-		     replace-regexp-lax-whitespace)
-		    (isearch-case-fold-search case-fold-search)
-		    (isearch-forward t))
-		(isearch-search-fun))))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)
@@ -1826,6 +1968,9 @@ make, or the user didn't cancel the call."
          (keep-going t)
          (stack nil)
          (replace-count 0)
+         (skip-read-only-count 0)
+         (skip-filtered-count 0)
+         (skip-invisible-count 0)
          (nonempty-match nil)
 	 (multi-buffer nil)
 	 (recenter-last-op nil)	; Start cycling order with initial position.
@@ -1891,8 +2036,9 @@ make, or the user didn't cancel the call."
 				;; adjacent match.
 				(match-again
 				 (and
-				  (funcall search-function search-string
-					   limit t)
+				  (replace-search search-string limit
+						  regexp-flag delimited-flag
+						  case-fold-search)
 				  ;; For speed, use only integers and
 				  ;; reuse the list used last time.
 				  (replace-match-data t real-match-data)))
@@ -1905,9 +2051,9 @@ make, or the user didn't cancel the call."
 				 ;; if the search fails.
 				 (let ((opoint (point)))
 				   (forward-char 1)
-				   (if (funcall
-					search-function search-string
-					limit t)
+				   (if (replace-search search-string limit
+						       regexp-flag delimited-flag
+						       case-fold-search)
 				       (replace-match-data
 					t real-match-data)
 				     (goto-char opoint)
@@ -1933,12 +2079,27 @@ make, or the user didn't cancel the call."
 				(and (/= (nth 0 match) (nth 1 match))
 				     match))))))
 
-	  ;; Optionally ignore matches that have a read-only property.
-	  (unless (and query-replace-skip-read-only
-		       (text-property-not-all
-			(nth 0 real-match-data) (nth 1 real-match-data)
-			'read-only nil))
-
+	  (cond
+	   ;; Optionally ignore matches that have a read-only property.
+	   ((not (or (not query-replace-skip-read-only)
+		     (not (text-property-not-all
+			   (nth 0 real-match-data) (nth 1 real-match-data)
+			   'read-only nil))))
+	    (setq skip-read-only-count (1+ skip-read-only-count)))
+	   ;; Optionally filter out matches.
+	   ((not (run-hook-with-args-until-failure
+		  'isearch-filter-predicates
+		  (nth 0 real-match-data) (nth 1 real-match-data)))
+	    (setq skip-filtered-count (1+ skip-filtered-count)))
+	   ;; Optionally ignore invisible matches.
+	   ((not (or (eq search-invisible t)
+		     ;; Don't open overlays for automatic replacements.
+		     (and (not query-flag) search-invisible)
+		     ;; Open hidden overlays for interactive replacements.
+		     (not (isearch-range-invisible
+			   (nth 0 real-match-data) (nth 1 real-match-data)))))
+	    (setq skip-invisible-count (1+ skip-invisible-count)))
+	   (t
 	    ;; Calculate the replacement string, if necessary.
 	    (when replacements
 	      (set-match-data real-match-data)
@@ -2143,44 +2304,31 @@ make, or the user didn't cancel the call."
 				 (match-end 0)
 				 (current-buffer))
 			      (match-data t)))
-		      stack)))))
+		      stack))))))
 
       (replace-dehighlight))
     (or unread-command-events
-	(message "Replaced %d occurrence%s"
+	(message "Replaced %d occurrence%s%s"
 		 replace-count
-		 (if (= replace-count 1) "" "s")))
+		 (if (= replace-count 1) "" "s")
+		 (if (> (+ skip-read-only-count
+			   skip-filtered-count
+			   skip-invisible-count) 0)
+		     (format " (skipped %s)"
+			     (mapconcat
+			      'identity
+			      (delq nil (list
+					 (if (> skip-read-only-count 0)
+					     (format "%s read-only"
+						     skip-read-only-count))
+					 (if (> skip-invisible-count 0)
+					     (format "%s invisible"
+						     skip-invisible-count))
+					 (if (> skip-filtered-count 0)
+					     (format "%s filtered out"
+						     skip-filtered-count))))
+			      ", "))
+		   "")))
     (or (and keep-going stack) multi-buffer)))
-
-(defvar replace-overlay nil)
-
-(defun replace-highlight (match-beg match-end range-beg range-end
-			  search-string regexp-flag delimited-flag
-			  case-fold-search)
-  (if query-replace-highlight
-      (if replace-overlay
-	  (move-overlay replace-overlay match-beg match-end (current-buffer))
-	(setq replace-overlay (make-overlay match-beg match-end))
-	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
-	(overlay-put replace-overlay 'face 'query-replace)))
-  (if query-replace-lazy-highlight
-      (let ((isearch-string search-string)
-	    (isearch-regexp regexp-flag)
-	    (isearch-word delimited-flag)
-	    (isearch-lax-whitespace
-	     replace-lax-whitespace)
-	    (isearch-regexp-lax-whitespace
-	     replace-regexp-lax-whitespace)
-	    (isearch-case-fold-search case-fold-search)
-	    (isearch-forward t)
-	    (isearch-error nil))
-	(isearch-lazy-highlight-new-loop range-beg range-end))))
-
-(defun replace-dehighlight ()
-  (when replace-overlay
-    (delete-overlay replace-overlay))
-  (when query-replace-lazy-highlight
-    (lazy-highlight-cleanup lazy-highlight-cleanup)
-    (setq isearch-lazy-highlight-last-string nil)))
 
 ;;; replace.el ends here

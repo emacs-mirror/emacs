@@ -1,19 +1,19 @@
-# BidiMirroring-6.1.0.txt
-# Date: 2011-12-20, 19:31:00 GMT [KW, LI]
+# BidiMirroring-6.2.0.txt
+# Date: 2012-05-15, 24:19:00 GMT [KW, LI]
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2011 Unicode, Inc.
+# Copyright (c) 1991-2012 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # This data file lists characters that have the Bidi_Mirrored=Yes property
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 6.1.0.
+# The repertoire covered by the file is Unicode 6.2.0.
 # 
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.
@@ -30,16 +30,8 @@
 # characters exist with mirrored glyphs, are
 # listed as comments at the end of the file.
 #
-#   Note: (2011-12-19) There is an inconsistency between the 
-#   following statement about the default value
-#   of the Bidi_Mirroring_Glyph property and the
-#   value of the @missing line for Bidi_Mirroring_Glyph in
-#   PropertyValueAliases.txt. This inconsistency was discovered too
-#   late in the release process to be resolved by
-#   the UTC. The inconsistency will be resolved in a future revision.
-#
 # Formally, the default value of the Bidi_Mirroring_Glyph property
-# for each code point is the code point itself, unless a mapping to
+# for each code point is <none>, unless a mapping to
 # some other character is specified in this data file. When a code
 # point has the default value for the Bidi_Mirroring_Glyph property,
 # that means that no other character exists whose glyph is suitable
@@ -50,12 +42,13 @@
 # 
 # This file was originally created by Markus Scherer.
 # Extended for Unicode 3.2, 4.0, 4.1, 5.0, 5.1, 5.2, and 6.0 by Ken Whistler,
-# and for Unicode 6.1 by Ken Whistler and Laurentiu Iancu.
+# and for Unicode 6.1 and 6.2 by Ken Whistler and Laurentiu Iancu.
 # 
 # ############################################################
 #
 # Property:	Bidi_Mirroring_Glyph
 #
+# @missing: 0000..10FFFF; <none>
 
 0028; 0029 # LEFT PARENTHESIS
 0029; 0028 # RIGHT PARENTHESIS

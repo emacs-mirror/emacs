@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005-2012 Free Software Foundation, Inc.
+   Copyright (C) 2005-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TERMHOOKS_INLINE EXTERN_INLINE
 
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "frame.h"
@@ -43,7 +42,7 @@ struct terminal *initial_terminal;
 static void delete_initial_terminal (struct terminal *);
 
 /* This setter is used only in this file, so it can be private.  */
-static inline void
+static void
 tset_param_alist (struct terminal *t, Lisp_Object val)
 {
   t->param_alist = val;
@@ -281,7 +280,7 @@ delete_terminal (struct terminal *terminal)
   xfree (terminal->name);
   terminal->name = NULL;
 
-  /* Check for live frames that are still on this terminal. */
+  /* Check for live frames that are still on this terminal.  */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
@@ -361,14 +360,7 @@ If FRAME is nil, the selected frame is used.
 The terminal device is represented by its integer identifier.  */)
   (Lisp_Object frame)
 {
-  struct terminal *t;
-
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-
-  t = FRAME_TERMINAL (XFRAME (frame));
+  struct terminal *t = FRAME_TERMINAL (decode_live_frame (frame));
 
   if (!t)
     return Qnil;
@@ -406,8 +398,6 @@ possible return values.  */)
       return Qw32;
     case output_msdos_raw:
       return Qpc;
-    case output_mac:
-      return Qmac;
     case output_ns:
       return Qns;
     default:

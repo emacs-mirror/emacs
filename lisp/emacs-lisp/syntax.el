@@ -1,6 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -55,12 +55,19 @@
   ;; have to flush that cache between each function, and we couldn't use
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
-  "Mode-specific function to apply the syntax-table properties.
-Called with two arguments: START and END.
-This function can call `syntax-ppss' on any position before END, but it
-should not call `syntax-ppss-flush-cache', which means that it should not
-call `syntax-ppss' on some position and later modify the buffer on some
-earlier position.")
+  "Mode-specific function to apply `syntax-table' text properties.
+It is the work horse of `syntax-propertize', which is called by things like
+Font-Lock and indentation.
+
+It is given two arguments, START and END: the start and end of the text to
+which `syntax-table' might need to be applied.  Major modes can use this to
+override the buffer's syntax table for special syntactic constructs that
+cannot be handled just by the buffer's syntax-table.
+
+The specified function may call `syntax-ppss' on any position
+before END, but it should not call `syntax-ppss-flush-cache',
+which means that it should not call `syntax-ppss' on some
+position and later modify the buffer on some earlier position.")
 
 (defvar syntax-propertize-chunk-size 500)
 
@@ -93,7 +100,7 @@ Put first the functions more likely to cause a change and cheaper to compute.")
     (setq beg (or (previous-single-property-change beg 'syntax-multiline)
 		  (point-min))))
   ;;
-  (when (get-text-property end 'font-lock-multiline)
+  (when (get-text-property end 'syntax-multiline)
     (setq end (or (text-property-any end (point-max)
 				     'syntax-multiline nil)
 		  (point-max))))
@@ -118,7 +125,7 @@ The arg RULES can be of the same form as in `syntax-propertize-rules'.
 The return value is an object that can be passed as a rule to
 `syntax-propertize-rules'.
 I.e. this is useful only when you want to share rules among several
-syntax-propertize-functions."
+`syntax-propertize-function's."
   (declare (debug syntax-propertize-rules))
   ;; Precompile?  Yeah, right!
   ;; Seriously, tho, this is a macro for 2 reasons:

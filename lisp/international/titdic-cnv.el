@@ -1,6 +1,6 @@
 ;;; titdic-cnv.el --- convert cxterm dictionary (TIT format) to Quail package -*- coding:iso-2022-7bit; -*-
 
-;; Copyright (C) 1997-1998, 2000-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2013 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -645,8 +645,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; details.
 ;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
+;; CCE.  If not, see <http://www.gnu.org/licenses/>.")
 
     ("chinese-ziranma" "$AWTH;(B"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
@@ -674,8 +673,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; details.
 ;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
+;; CCE.  If not, see <http://www.gnu.org/licenses/>.")
 
     ("chinese-ctlau" "$AAuTA(B"
      "CTLau.html" cn-gb-2312 "CTLau.el"
@@ -700,8 +698,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # GNU General Public License for more details.
 ;; #
 ;; # You should have received a copy of the GNU General Public License
-;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
+;; # along with this program.  If not, see <http://www.gnu.org/licenses/>.")
 
     ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
@@ -726,8 +723,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # GNU General Public License for more details.
 ;; #
 ;; # You should have received a copy of the GNU General Public License
-;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
+;; # along with this program.  If not, see <http://www.gnu.org/licenses/>.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang

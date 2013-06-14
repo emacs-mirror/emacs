@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "macros.h"
 #include "commands.h"
@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keyboard.h"
 
-Lisp_Object Qexecute_kbd_macro;
+static Lisp_Object Qexecute_kbd_macro;
 static Lisp_Object Qkbd_macro_termination_hook;
 
 /* Number of successful iterations so far
@@ -78,13 +78,13 @@ macro before appending to it. */)
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
-      message ("Defining kbd macro...");
+      message1 ("Defining kbd macro...");
     }
   else
     {
       ptrdiff_t i;
       EMACS_INT len;
-      int cvt;
+      bool cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
       CHECK_VECTOR_OR_STRING (KVAR (current_kboard, Vlast_kbd_macro));
@@ -125,7 +125,7 @@ macro before appending to it. */)
 	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			    make_number (1), Qnil);
 
-      message ("Appending to kbd macro...");
+      message1 ("Appending to kbd macro...");
     }
   kset_defining_kbd_macro (current_kboard, Qt);
 
@@ -172,21 +172,21 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
     {
       end_kbd_macro ();
-      message ("Keyboard macro defined");
+      message1 ("Keyboard macro defined");
     }
 
   if (XFASTINT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
   else if (XINT (repeat) > 1)
     {
-      XSETINT (repeat, XINT (repeat)-1);
+      XSETINT (repeat, XINT (repeat) - 1);
       Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			  repeat, loopfunc);
     }
   return Qnil;
 }
 
-/* Store character c into kbd macro being defined */
+/* Store character c into kbd macro being defined.  */
 
 void
 store_kbd_macro_char (Lisp_Object c)

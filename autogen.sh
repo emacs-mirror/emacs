@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a bzr checkout
 
-## Copyright (C) 2011-2012  Free Software Foundation, Inc.
+## Copyright (C) 2011-2013 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -201,7 +201,7 @@ This is not recommended - see the comments in \`copy_autogen'.
 Please report any problems with this script to bug-gnu-emacs@gnu.org .
 EOF
 
-    exit 101 # Exit status 101 means tools were missing.
+    exit 1
 fi
 
 echo "Your system has the required tools, running autoreconf..."

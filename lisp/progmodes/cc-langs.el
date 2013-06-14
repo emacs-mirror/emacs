@@ -1,6 +1,6 @@
-;;; cc-langs.el --- language specific settings for CC Mode
+;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -208,9 +208,10 @@ the evaluated constant value at compile time."
 
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
-(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys))
-(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest))
-(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
+;; These are defined in cl as aliases to the cl- versions.
+(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys) t)
+(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest) t)
+(declare-function cl-macroexpand-all "cl" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.
@@ -811,8 +812,8 @@ Assumed to not contain any submatches or \\| operators."
 (c-lang-defconst c-anchored-cpp-prefix
   "Regexp matching the prefix of a cpp directive anchored to BOL,
 in the languages that have a macro preprocessor."
-  t (if (c-lang-const c-opt-cpp-prefix)
-	(concat "^" (c-lang-const c-opt-cpp-prefix))))
+  t "^\\s *\\(#\\)\\s *"
+  (java awk) nil)
 (c-lang-defvar c-anchored-cpp-prefix (c-lang-const c-anchored-cpp-prefix))
 
 (c-lang-defconst c-opt-cpp-start
@@ -2818,7 +2819,7 @@ undefined whether identifier syntax (see `c-identifier-syntax-table')
 is in effect or not.
 
 Note that it's used in cases like after \"foo (bar)\" so it should
-only match when it's certain that it's a declaration, e.g \"{\" but
+only match when it's certain that it's a declaration, e.g., \"{\" but
 not \",\" or \";\"."
   t "{"
   ;; If K&R style declarations should be recognized then one could
@@ -2906,7 +2907,7 @@ is in effect or not."
 
 (c-lang-defconst c-special-brace-lists
 "List of open- and close-chars that makes up a pike-style brace list,
-i.e. for a ([ ]) list there should be a cons (?\\[ . ?\\]) in this
+i.e. for a ([Â ]) list there should be a cons (?\\[ . ?\\]) in this
 list."
   t    nil
   pike '((?{ . ?}) (?\[ . ?\]) (?< . ?>)))

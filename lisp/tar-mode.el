@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2013 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -133,8 +133,10 @@ This information is useful, but it takes screen space away from file names."
   :group 'tar)
 
 (defvar tar-parse-info nil)
-(defvar tar-superior-buffer nil)
-(defvar tar-superior-descriptor nil)
+(defvar tar-superior-buffer nil
+  "Buffer containing the tar archive from which a member was extracted.")
+(defvar tar-superior-descriptor nil
+  "Tar descriptor for a member extracted from an archive.")
 (defvar tar-file-name-coding-system nil)
 
 (put 'tar-superior-buffer 'permanent-local t)
@@ -518,12 +520,13 @@ MODE should be an integer which is a file mode value."
         (progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
-    (let ((inhibit-read-only t)
+    (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+	  (inhibit-read-only t)
           (total-summaries
            (mapconcat 'tar-header-block-summarize tar-parse-info "\n")))
-      (insert total-summaries "\n"))
-    (goto-char (point-min))
-    (restore-buffer-modified-p modified)))
+      (insert total-summaries "\n")
+      (goto-char (point-min))
+      (restore-buffer-modified-p modified))))
 
 (defvar tar-mode-map
   (let ((map (make-keymap)))

@@ -1,6 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2013 Free Software Foundation,
+;; Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -41,15 +42,20 @@
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
-startup screen.  If the value is a string, visit the specified file
-or directory using `find-file'.  If t, open the `*scratch*'
-buffer."
+startup screen.  If the value is a string, switch to a buffer
+visiting the file or directory specified by that string.  If the
+value is a function, switch to the buffer returned by that
+function.  If t, open the `*scratch*' buffer.
+
+A string value also causes emacsclient to open the specified file
+or directory when no target file is specified."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
+          (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
-  :version "23.1"
+  :version "24.4"
   :group 'initialization)
 
 (defcustom inhibit-startup-screen nil
@@ -71,12 +77,13 @@ once you are familiar with the contents of the startup screen."
   "Non-nil inhibits the initial startup echo area message.
 Setting this variable takes effect
 only if you do it with the customization buffer
-or if your `.emacs' file contains a line of this form:
+or if your init file contains a line of this form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
-If your `.emacs' file is byte-compiled, use the following form instead:
+If your init file is byte-compiled, use the following form
+instead:
  (eval '(setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\"))
-Thus, someone else using a copy of your `.emacs' file will see
-the startup message unless he personally acts to inhibit it."
+Thus, someone else using a copy of your init file will see the
+startup message unless he personally acts to inhibit it."
   :type '(choice (const :tag "Don't inhibit")
 		 (string :tag "Enter your user name, to inhibit"))
   :group 'initialization)
@@ -215,8 +222,8 @@ and VALUE is the value which is given to that frame parameter
     ("-fn" 1 x-handle-switch font)
     ("-font" 1 x-handle-switch font)
     ("-ib" 1 x-handle-numeric-switch internal-border-width)
-    ;;("-g" .               x-handle-geometry)
-    ;;("-geometry" .        x-handle-geometry)
+    ("-g" 1 x-handle-geometry)
+    ("-geometry" 1 x-handle-geometry)
     ("-fg" 1 x-handle-switch foreground-color)
     ("-foreground" 1 x-handle-switch foreground-color)
     ("-bg" 1 x-handle-switch background-color)
@@ -261,10 +268,14 @@ and VALUE is the value which is given to that frame parameter
   "Normal hook run after handling urgent options but before loading init files.")
 
 (defvar after-init-hook nil
-  "Normal hook run after loading the init files, `~/.emacs' and `default.el'.
-There is no `condition-case' around the running of these functions;
-therefore, if you set `debug-on-error' non-nil in `.emacs',
-an error in one of these functions will invoke the debugger.")
+  "Normal hook run after initializing the Emacs session.
+It is run after Emacs loads the init file, `default' library, the
+abbrevs file, and additional Lisp packages (if any), and setting
+the value of `after-init-time'.
+
+There is no `condition-case' around the running of this hook;
+therefore, if `debug-on-error' is non-nil, an error in one of
+these functions will invoke the debugger.")
 
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
@@ -296,7 +307,7 @@ the user's init file.")
   :group 'initialization)
 
 (defvar init-file-user nil
-  "Identity of user whose `.emacs' file is or was read.
+  "Identity of user whose init file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
 
@@ -306,7 +317,7 @@ or it may be a string containing a user's name meaning
 use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
-evaluates to the name of the directory where the `.emacs' file was
+evaluates to the name of the directory where the init file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
@@ -365,7 +376,7 @@ init file is read, in case it sets `mail-host-address'."
 	(t
 	 (concat user-emacs-directory "auto-save-list/.saves-")))
   "Prefix for generating `auto-save-list-file-name'.
-This is used after reading your `.emacs' file to initialize
+This is used after reading your init file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,
 if you have not already set `auto-save-list-file-name' yourself.
 Directories in the prefix will be created if necessary.
@@ -759,11 +770,20 @@ Amongst another things, it parses the command-line arguments."
 	 (locate-file "simple" load-path (get-load-suffixes)))
 	lisp-dir)
     ;; Don't abort if simple.el cannot be found, but print a warning.
+    ;; Although in most usage we are going to cryptically abort a moment
+    ;; later anyway, due to missing required bidi data files (eg bug#13430).
     (if (null simple-file-name)
-	(progn
-	  (princ "Warning: Could not find simple.el nor simple.elc"
-		 'external-debugging-output)
-	  (terpri 'external-debugging-output))
+	(let ((standard-output 'external-debugging-output)
+	      (lispdir (expand-file-name "../lisp" data-directory)))
+	  (princ "Warning: Could not find simple.el or simple.elc")
+	  (terpri)
+	  (when (getenv "EMACSLOADPATH")
+	    (princ "The EMACSLOADPATH environment variable is set, \
+please check its value")
+	    (terpri))
+	  (unless (file-readable-p lispdir)
+	    (princ (format "Lisp directory %s not readable?" lispdir))
+	    (terpri)))
       (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
       (setq load-history
 	    (mapcar (lambda (elt)
@@ -882,7 +902,8 @@ Amongst another things, it parses the command-line arguments."
       ;; Initialize the window system. (Open connection, etc.)
       (funcall
        (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system))))
+	   (error "Unsupported window system `%s'" initial-window-system)))
+      (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error
      (princ
@@ -962,7 +983,6 @@ Amongst another things, it parses the command-line arguments."
                  (not (eq 0 (cdr tool-bar-lines)))))))
 
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
-	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
     ;; Run the site-start library if it exists.  The point of this file is
@@ -1153,7 +1173,6 @@ the `--debug-init' option to view a complete error backtrace."
     ;; face realization, clear the face cache so that new faces will
     ;; be realized.
     (unless (and (eq scalable-fonts-allowed old-scalable-fonts-allowed)
-		 (eq font-list-limit old-font-list-limit)
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
@@ -1447,6 +1466,7 @@ Each element in the list should be a list of strings or pairs
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
     (define-key map "\C-?" 'scroll-down-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "q" 'exit-splash-screen)
     map)
@@ -1562,27 +1582,24 @@ a face or button specification."
 		       :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
-  (and auto-save-list-file-prefix
-       ;; Don't signal an error if the
-       ;; directory for auto-save-list files
-       ;; does not yet exist.
-       (file-directory-p (file-name-directory
-			  auto-save-list-file-prefix))
-       (directory-files
-	(file-name-directory auto-save-list-file-prefix)
-	nil
-	(concat "\\`"
-		(regexp-quote (file-name-nondirectory
-			       auto-save-list-file-prefix)))
-	t)
-       (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
-			    "\nIf an Emacs session crashed recently, "
-			    "type "
-			    :face '(fixed-pitch font-lock-comment-face)
-			    "Meta-x recover-session RET"
-			    :face '(variable-pitch font-lock-comment-face)
-			    "\nto recover"
-			    " the files you were editing."))
+  (when auto-save-list-file-prefix
+    (let ((dir  (file-name-directory auto-save-list-file-prefix))
+	  (name (file-name-nondirectory auto-save-list-file-prefix))
+	  files)
+      ;; Don't warn if the directory for auto-save-list files does not
+      ;; yet exist.
+      (and (file-directory-p dir)
+	   (setq files (directory-files dir nil (concat "\\`" name) t))
+	   (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
+				(if (= (length files) 1)
+				    "\nAn auto-save file list was found.  "
+				  "\nAuto-save file lists were found.  ")
+				"If an Emacs session crashed recently,\ntype "
+				:link `("M-x recover-session RET"
+					,(lambda (_button)
+					   (call-interactively
+					    'recover-session)))
+				" to recover the files you were editing."))))
 
   (when concise
     (fancy-splash-insert
@@ -1686,7 +1703,6 @@ splash screen in another window."
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
       (setq tab-width 22)
-      (message "%s" (startup-echo-area-message))
       (setq buffer-read-only t)
       (goto-char (point-min))
       (forward-line 3))))
@@ -1840,11 +1856,8 @@ To quit a partially entered command, type Control-g.\n")
   (insert "\n" (emacs-version)
 	  "\n" emacs-copyright))
 
-;; No mouse menus, so give help using kbd commands.
 (defun normal-no-mouse-startup-screen ()
-
-  ;; If keys have their default meanings,
-  ;; use precomputed string to save lots of time.
+  "Show a splash screen suitable for displays without mouse support."
   (let* ((c-h-accessible
           ;; If normal-erase-is-backspace is used on a tty, there's
           ;; no way to invoke C-h and you have to use F1 instead.
@@ -1922,47 +1935,24 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 		 'follow-link t)
   (insert "\n")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
-
-  (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-	   (eq (key-binding "\C-h\C-d") 'describe-distribution)
-	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-      (progn
-	(insert
-	 "
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
-	(insert-button "full details"
-		       'action (lambda (_button) (describe-no-warranty))
-		       'follow-link t)
-	(insert ".
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see ")
-	(insert-button "the conditions"
-		       'action (lambda (_button) (describe-copying))
-		       'follow-link t)
-	(insert ".
-Type C-h C-d for information on ")
-	(insert-button "getting the latest version"
-		       'action (lambda (_button) (describe-distribution))
-		       'follow-link t)
-	(insert "."))
-    (insert (substitute-command-keys
-	     "
+  (insert (substitute-command-keys
+	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
-    (insert-button "full details"
-		   'action (lambda (_button) (describe-no-warranty))
-		   'follow-link t)
-    (insert (substitute-command-keys ".
+  (insert-button "full details"
+		 'action (lambda (_button) (describe-no-warranty))
+		 'follow-link t)
+  (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
-    (insert-button "the conditions"
-		   'action (lambda (_button) (describe-copying))
-		   'follow-link t)
-    (insert (substitute-command-keys".
+  (insert-button "the conditions"
+		 'action (lambda (_button) (describe-copying))
+		 'follow-link t)
+  (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
-    (insert-button "getting the latest version"
-		   'action (lambda (_button) (describe-distribution))
-		   'follow-link t)
-    (insert ".")))
+  (insert-button "getting the latest version"
+		 'action (lambda (_button) (describe-distribution))
+		 'follow-link t)
+  (insert "."))
 
 (defun normal-about-screen ()
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
@@ -2011,14 +2001,11 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (cond ((daemonp)
-	 "Starting Emacs daemon.")
-	((eq (key-binding "\C-h\C-a") 'about-emacs)
-	 "For information about GNU Emacs and the GNU system, type C-h C-a.")
-	(t
-	 (substitute-command-keys
-	  "For information about GNU Emacs and the GNU system, type \
-\\[about-emacs]."))))
+  (if (daemonp)
+      "Starting Emacs daemon."
+    (substitute-command-keys
+     "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs].")))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
@@ -2320,10 +2307,14 @@ A fancy display is used on graphic displays, normal otherwise."
 	     (set-buffer-modified-p nil))))
 
     (when initial-buffer-choice
-      (cond ((eq initial-buffer-choice t)
-	     (switch-to-buffer (get-buffer-create "*scratch*")))
-	    ((stringp initial-buffer-choice)
-	     (find-file initial-buffer-choice))))
+      (let ((buf
+             (cond ((stringp initial-buffer-choice)
+		    (find-file-noselect initial-buffer-choice))
+		   ((functionp initial-buffer-choice)
+		    (funcall initial-buffer-choice)))))
+	(switch-to-buffer
+	 (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	 'norecord)))
 
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
@@ -2379,13 +2370,17 @@ A fancy display is used on graphic displays, normal otherwise."
     ;; Use arg 1 so that we don't collapse // at the start of the file name.
     ;; That is significant on some systems.
     ;; However, /// at the beginning is supposed to mean just /, not //.
-    (if (string-match "^///+" file)
+    (if (string-match
+	 (if (memq system-type '(ms-dos windows-nt))
+	     "^\\([\\/][\\/][\\/]\\)+"
+	   "^///+")
+	 file)
 	(setq file (replace-match "/" t t file)))
-    (and (memq system-type '(ms-dos windows-nt))
-	 (string-match "^[A-Za-z]:\\(\\\\[\\\\/]\\)" file) ; C:\/ or C:\\
-	 (setq file (replace-match "/" t t file 1)))
-    (while (string-match "//+" file 1)
-      (setq file (replace-match "/" t t file)))
+    (if (memq system-type '(ms-dos windows-nt))
+	(while (string-match "\\([\\/][\\/]\\)+" file 1)
+	  (setq file (replace-match "/" t t file)))
+      (while (string-match "//+" file 1)
+	(setq file (replace-match "/" t t file))))
     file))
 
 ;;; startup.el ends here

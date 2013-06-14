@@ -18,7 +18,7 @@
 @copying
 This file documents Forms mode, a form-editing major mode for GNU Emacs.
 
-Copyright @copyright{} 1989, 1997, 2001-2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1997, 2001--2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,8 +29,7 @@ and with the Back-Cover Texts as in (a) below.  A copy of the license
 is included in the section entitled ``GNU Free Documentation License''.
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual.  Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 @end quotation
 @end copying
 
@@ -74,7 +73,7 @@ job: a control file and a data file.  The data file holds the
 actual data to be presented.  The control file describes
 how to present it.
 
-@insertcopying 
+@insertcopying
 
 @menu
 * Forms Example::               An example: editing the password data base.
@@ -88,8 +87,8 @@ how to present it.
 * Miscellaneous::               Forms mode messages and other remarks.
 * Error Messages::              List of error messages forms mode can produce.
 * Long Example::                A more complex control file example.
-* GNU Free Documentation License:: The license for this documentation.
 * Credits::                     Thanks everyone.
+* GNU Free Documentation License:: The license for this documentation.
 * Index::                       Index to this manual.
 @end menu
 @end ifnottex
@@ -117,8 +116,8 @@ are all there, but instead of being colon-separated on one single line,
 they make up a forms.
 
 The contents of the forms consist of the contents of the fields of the
-record (e.g. @samp{root}, @samp{0}, @samp{1}, @samp{Super User})
-interspersed with normal text (e.g @samp{User : }, @samp{Uid: }).
+record (e.g., @samp{root}, @samp{0}, @samp{1}, @samp{Super User})
+interspersed with normal text (e.g., @samp{User : }, @samp{Uid: }).
 
 If you modify the contents of the fields, Forms mode will analyze your
 changes and update the file appropriately.  You cannot modify the
@@ -170,8 +169,8 @@ of the buffer are parsed using the specifications in
 @code{forms-format-list}, and the data file is updated.  If the record
 has fields that aren't included in the display, they are not changed.
 
-@vindex forms-mode-hooks
-Entering Forms mode runs the normal hook @code{forms-mode-hooks} to
+@vindex forms-mode-hook
+Entering Forms mode runs the normal hook @code{forms-mode-hook} to
 perform user-defined customization.
 
 To save any modified data, you can use @kbd{C-x C-s}
@@ -467,7 +466,7 @@ appears that way when displayed in Forms mode.  If the value is
 @code{nil}, multi-line text fields are prohibited.  The pseudo newline
 must not be a character contained in @code{forms-field-sep}.
 
-The default value is @code{"\^k"}, the character Control-K.  Example:
+The default value is @code{"\^k"}, the character Control-K@.  Example:
 
 @example
 (setq forms-multi-line "\^k")
@@ -739,7 +738,7 @@ so you'd better think twice before using this.
 
 The default format for the data file, using @code{"\t"} to separate
 fields and @code{"\^k"} to separate lines within a field, matches the
-file format of some popular database programs, e.g. FileMaker.  So
+file format of some popular database programs, e.g., FileMaker.  So
 @code{forms-mode} can decrease the need to use proprietary software.
 
 @node Error Messages

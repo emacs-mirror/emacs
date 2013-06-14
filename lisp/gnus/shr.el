@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -52,7 +52,7 @@ fit these criteria."
   "Images that have URLs matching this regexp will be blocked."
   :version "24.1"
   :group 'shr
-  :type 'regexp)
+  :type '(choice (const nil) regexp))
 
 (defcustom shr-table-horizontal-line ?\s
   "Character used to draw horizontal table lines."
@@ -114,6 +114,8 @@ cid: URL as the argument.")
 (defvar shr-stylesheet nil)
 (defvar shr-base nil)
 (defvar shr-ignore-cache nil)
+(defvar shr-external-rendering-functions nil)
+(defvar shr-final-table-render nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -291,7 +293,12 @@ size, and full-buffer size."
     (nreverse result)))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray))
+  (let ((function
+	 (or
+	  ;; Allow other packages to override (or provide) rendering
+	  ;; of elements.
+	  (cdr (assq (car dom) shr-external-rendering-functions))
+	  (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
 	(style (cdr (assq :style (cdr dom))))
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
@@ -347,11 +354,11 @@ size, and full-buffer size."
    ((eq shr-folding-mode 'none)
     (insert text))
    (t
-    (when (and (string-match "\\`[ \t\n ]" text)
+    (when (and (string-match "\\`[ \t\nÂ ]" text)
 	       (not (bolp))
 	       (not (eq (char-after (1- (point))) ? )))
       (insert " "))
-    (dolist (elem (split-string text "[ \f\t\n\r\v ]+" t))
+    (dolist (elem (split-string text "[ \f\t\n\r\vÂ ]+" t))
       (when (and (bolp)
 		 (> shr-indentation 0))
 	(shr-indent))
@@ -391,7 +398,7 @@ size, and full-buffer size."
 	    (shr-indent))
 	  (end-of-line))
 	(insert " ")))
-    (unless (string-match "[ \t\n ]\\'" text)
+    (unless (string-match "[ \t\r\nÂ ]\\'" text)
       (delete-char -1)))))
 
 (defun shr-find-fill-point ()
@@ -478,20 +485,27 @@ size, and full-buffer size."
     (not failed)))
 
 (defun shr-expand-url (url)
-  (cond
-   ;; Absolute URL.
-   ((or (not url)
-	(string-match "\\`[a-z]*:" url)
-	(not shr-base))
-    url)
-   ((and (string-match "\\`//" url)
-	 (string-match "\\`[a-z]*:" shr-base))
-    (concat (match-string 0 shr-base) url))
-   ((and (not (string-match "/\\'" shr-base))
-	 (not (string-match "\\`/" url)))
-    (concat shr-base "/" url))
-   (t
-    (concat shr-base url))))
+  (if (or (not url)
+	  (string-match "\\`[a-z]*:" url)
+	  (not shr-base))
+      ;; Absolute URL.
+      url
+    (let ((base shr-base))
+      ;; Chop off query string.
+      (when (string-match "^\\([^?]+\\)[?]" base)
+	(setq base (match-string 1 base)))
+      (cond
+       ((and (string-match "\\`//" url)
+	     (string-match "\\`[a-z]*:" base))
+	(concat (match-string 0 base) url))
+       ((and (not (string-match "/\\'" base))
+	     (not (string-match "\\`/" url)))
+	(concat base "/" url))
+       ((and (string-match "\\`/" url)
+	     (string-match "\\(\\`[^:]*://[^/]+\\)/" base))
+	(concat (match-string 1 base) url))
+       (t
+	(concat base url))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -520,6 +534,11 @@ size, and full-buffer size."
     (dolist (type types)
       (shr-add-font (or shr-start (point)) (point) type))))
 
+(defun shr-make-overlay (beg end &optional buffer front-advance rear-advance)
+  (let ((overlay (make-overlay beg end buffer front-advance rear-advance)))
+    (overlay-put overlay 'evaporate t)
+    overlay))
+
 ;; Add an overlay in the region, but avoid putting the font properties
 ;; on blank text at the start of the line, and the newline at the end,
 ;; to avoid ugliness.
@@ -529,7 +548,7 @@ size, and full-buffer size."
     (while (< (point) end)
       (when (bolp)
 	(skip-chars-forward " "))
-      (let ((overlay (make-overlay (point) (min (line-end-position) end))))
+      (let ((overlay (shr-make-overlay (point) (min (line-end-position) end))))
 	(overlay-put overlay 'face type))
       (if (< (line-end-position) end)
 	  (forward-line 1)
@@ -588,6 +607,17 @@ size, and full-buffer size."
 		      (put-text-property start (point) type value))))))))))
     (kill-buffer image-buffer)))
 
+(defun shr-image-from-data (data)
+  "Return an image from the data: URI content DATA."
+  (when (string-match
+	 "\\(\\([^/;,]+\\(/[^;,]+\\)?\\)\\(;[^;,]+\\)*\\)?,\\(.*\\)"
+	 data)
+    (let ((param (match-string 4 data))
+	  (payload (url-unhex-string (match-string 5 data))))
+      (when (string-match "^.*\\(;[ \t]*base64\\)$" param)
+	(setq payload (base64-decode-string payload)))
+      payload)))
+
 (defun shr-put-image (data alt &optional flags)
   "Put image DATA with a string ALT.  Return image."
   (if (display-graphic-p)
@@ -615,7 +645,13 @@ size, and full-buffer size."
 		  (overlay-put overlay 'face 'default)))
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
-	  (when (image-animated-p image)
+	  (when (cond ((fboundp 'image-multi-frame-p)
+		       ;; Only animate multi-frame things that specify a
+		       ;; delay; eg animated gifs as opposed to
+		       ;; multi-page tiffs.  FIXME?
+		       (cdr (image-multi-frame-p image)))
+		      ((fboundp 'image-animated-p)
+		       (image-animated-p image)))
 	    (image-animate image nil 60)))
 	image)
     (insert alt)))
@@ -785,7 +821,7 @@ ones, in case fg and bg are nil."
 	(when (and (< (setq column (current-column)) width)
 		   (< (setq column (shr-previous-newline-padding-width column))
 		      width))
-	  (let ((overlay (make-overlay (point) (1+ (point)))))
+	  (let ((overlay (shr-make-overlay (point) (1+ (point)))))
 	    (overlay-put overlay 'before-string
 			 (concat
 			  (mapconcat
@@ -894,7 +930,7 @@ ones, in case fg and bg are nil."
   (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-em (cont)
-  (shr-fontize-cont cont 'bold))
+  (shr-fontize-cont cont 'italic))
 
 (defun shr-tag-strong (cont)
   (shr-fontize-cont cont 'bold))
@@ -923,7 +959,8 @@ ones, in case fg and bg are nil."
       plist)))
 
 (defun shr-tag-base (cont)
-  (setq shr-base (cdr (assq :href cont))))
+  (setq shr-base (cdr (assq :href cont)))
+  (shr-generic cont))
 
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
@@ -931,7 +968,8 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (shr-urlify (or shr-start start) (shr-expand-url url) title)))
+    (when url
+      (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-object (cont)
   (let ((start (point))
@@ -971,6 +1009,12 @@ ones, in case fg and bg are nil."
 	      (member (cdr (assq :width cont)) '("0" "1")))
 	  ;; Ignore zero-sized or single-pixel images.
 	  )
+	 ((and (not shr-inhibit-images)
+	       (string-match "\\`data:" url))
+	  (let ((image (shr-image-from-data (substring url (match-end 0)))))
+	    (if image
+		(funcall shr-put-image-function image alt)
+	      (insert alt))))
 	 ((and (not shr-inhibit-images)
 	       (string-match "\\`cid:" url))
 	  (let ((url (substring url (match-end 0)))
@@ -1060,6 +1104,14 @@ ones, in case fg and bg are nil."
     (shr-indent))
   (shr-generic cont))
 
+(defun shr-tag-span (cont)
+  (let ((title (cdr (assq :title cont))))
+    (shr-generic cont)
+    (when title
+      (when shr-start
+        (let ((overlay (shr-make-overlay shr-start (point))))
+          (overlay-put overlay 'help-echo title))))))
+
 (defun shr-tag-h1 (cont)
   (shr-heading cont 'bold 'underline))
 
@@ -1130,7 +1182,8 @@ ones, in case fg and bg are nil."
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
-    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
+    (let ((shr-final-table-render t))
+      (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
   ;; Finally, insert all the images after the table.  The Emacs buffer
   ;; model isn't strong enough to allow us to put the images actually
   ;; into the tables.
@@ -1232,8 +1285,8 @@ ones, in case fg and bg are nil."
 	    (end-of-line)
 	    (insert line shr-table-vertical-line)
 	    (dolist (overlay overlay-line)
-	      (let ((o (make-overlay (- (point) (nth 0 overlay) 1)
-				     (- (point) (nth 1 overlay) 1)))
+	      (let ((o (shr-make-overlay (- (point) (nth 0 overlay) 1)
+					 (- (point) (nth 1 overlay) 1)))
 		    (properties (nth 2 overlay)))
 		(while properties
 		  (overlay-put o (pop properties) (pop properties)))))
@@ -1334,8 +1387,8 @@ ones, in case fg and bg are nil."
 	      (let ((end (length (car cache))))
 		(dolist (overlay (cadr cache))
 		  (let ((new-overlay
-			 (make-overlay (1+ (- end (nth 0 overlay)))
-				       (1+ (- end (nth 1 overlay)))))
+			 (shr-make-overlay (1+ (- end (nth 0 overlay)))
+					   (1+ (- end (nth 1 overlay)))))
 			(properties (nth 2 overlay)))
 		    (while properties
 		      (overlay-put new-overlay
@@ -1465,7 +1518,7 @@ ones, in case fg and bg are nil."
 (provide 'shr)
 
 ;; Local Variables:
-;; coding: iso-8859-1
+;; coding: utf-8
 ;; End:
 
 ;;; shr.el ends here

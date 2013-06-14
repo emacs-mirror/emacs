@@ -1,6 +1,6 @@
-;;; perl-mode.el --- Perl code editing commands for GNU Emacs
+;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- coding: utf-8 -*-
 
-;; Copyright (C) 1990, 1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -28,14 +28,14 @@
 ;;; Commentary:
 
 ;; To enter perl-mode automatically, add (autoload 'perl-mode "perl-mode")
-;; to your .emacs file and change the first line of your perl script to:
+;; to your init file and change the first line of your perl script to:
 ;; #!/usr/bin/perl --	 # -*-Perl-*-
 ;; With arguments to perl:
 ;; #!/usr/bin/perl -P-	 # -*-Perl-*-
 ;; To handle files included with do 'filename.pl';, add something like
 ;; (setq auto-mode-alist (append (list (cons "\\.pl\\'" 'perl-mode))
 ;;                               auto-mode-alist))
-;; to your .emacs file; otherwise the .pl suffix defaults to prolog-mode.
+;; to your init file; otherwise the .pl suffix defaults to prolog-mode.
 
 ;; This code is based on the 18.53 version c-mode.el, with extensive
 ;; rewriting.  Most of the features of c-mode survived intact.
@@ -102,11 +102,6 @@
 
 ;;; Code:
 
-
-(defvar font-lock-comment-face)
-(defvar font-lock-doc-face)
-(defvar font-lock-string-face)
-
 (defgroup perl nil
   "Major mode for editing Perl code."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -119,16 +114,11 @@
 
 (defvar perl-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "{" 'perl-electric-terminator)
-    (define-key map "}" 'perl-electric-terminator)
-    (define-key map ";" 'perl-electric-terminator)
-    (define-key map ":" 'perl-electric-terminator)
     (define-key map "\e\C-a" 'perl-beginning-of-function)
     (define-key map "\e\C-e" 'perl-end-of-function)
     (define-key map "\e\C-h" 'perl-mark-function)
     (define-key map "\e\C-q" 'perl-indent-exp)
     (define-key map "\177" 'backward-delete-char-untabify)
-    (define-key map "\t" 'perl-indent-command)
     map)
   "Keymap used in Perl mode.")
 
@@ -158,15 +148,20 @@
 
 (defvar perl-imenu-generic-expression
   '(;; Functions
-    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
+    (nil "^[ \t]*sub\\s-+\\([-[:alnum:]+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
-    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
+    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
+    ("Packages" "^[ \t]*package\\s-+\\([-[:alnum:]+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
 ;; Jim Campbell <jec@murzim.ca.boeing.com>.
+
+(defconst perl--prettify-symbols-alist
+  '(("->"  . ?→)
+    ("=>"  . ?⇒)
+    ("::" . ?∷)))
 
 (defconst perl-font-lock-keywords-1
   '(;; What is this for?
@@ -190,32 +185,31 @@
   "Subdued level highlighting for Perl mode.")
 
 (defconst perl-font-lock-keywords-2
-  (append perl-font-lock-keywords-1
-   (list
-    ;;
-    ;; Fontify keywords, except those fontified otherwise.
-    (concat "\\<"
-	    (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
-			  "do" "dump" "for" "foreach" "exit" "die"
-			  "BEGIN" "END" "return" "exec" "eval") t)
-	    "\\>")
-    ;;
-    ;; Fontify local and my keywords as types.
-    '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
-    ;;
-    ;; Fontify function, variable and file name references.
-    '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-    ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
-    ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-    '("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+  (append
+   perl-font-lock-keywords-1
+   `( ;; Fontify keywords, except those fontified otherwise.
+     ,(concat "\\<"
+              (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
+                            "do" "dump" "for" "foreach" "exit" "die"
+                            "BEGIN" "END" "return" "exec" "eval") t)
+              "\\>")
+     ;;
+     ;; Fontify local and my keywords as types.
+     ("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
+     ;;
+     ;; Fontify function, variable and file name references.
+     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
+     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
+     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
+     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
-    '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
-    ;;
-    ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
-    '("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
+     ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
+     ;;
+     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
+     ("\\<\\(continue\\|goto\\|last\\|next\\|redo\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
-    '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
+     ("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-constant-face)))
   "Gaudy level highlighting for Perl mode.")
 
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
@@ -247,7 +241,6 @@
   (let ((case-fold-search nil))
     (goto-char start)
     (perl-syntax-propertize-special-constructs end)
-    ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
     (funcall
      (syntax-propertize-rules
       ;; Turn POD into b-style comments.  Place the cut rule first since it's
@@ -259,7 +252,7 @@
       ;; check that it occurs inside a '..' string.
       ("\\(\\$\\)[{']" (1 ". p"))
       ;; Handle funny names like $DB'stop.
-      ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
+      ("\\$ ?{?^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
       ("^[ \t]*format.*=[ \t]*\\(\n\\)"
        (1 (prog1 "\"" (perl-syntax-propertize-special-constructs end))))
@@ -317,7 +310,29 @@
                                            perl-quote-like-pairs)
                                     (string-to-syntax "|")
                                   (string-to-syntax "\"")))
-             (perl-syntax-propertize-special-constructs end))))))
+             (perl-syntax-propertize-special-constructs end)))))
+      ;; Here documents.
+      ;; TODO: Handle <<WORD.  These are trickier because you need to
+      ;; disambiguate with the shift operator.
+      ("<<[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\).*\\(\n\\)"
+       (2 (let* ((st (get-text-property (match-beginning 2) 'syntax-table))
+                 (name (match-string 1)))
+            (goto-char (match-end 1))
+            (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+                ;; Leave the property of the newline unchanged.
+                st
+              (cons (car (string-to-syntax "< c"))
+                    ;; Remember the names of heredocs found on this line.
+                    (cons (pcase (aref name 0)
+                            (`?\\ (substring name 1))
+                            (_ (substring name 1 -1)))
+                          (cdr st)))))))
+      ;; We don't call perl-syntax-propertize-special-constructs directly
+      ;; from the << rule, because there might be other elements (between
+      ;; the << and the \n) that need to be propertized.
+      ("\\(?:$\\)\\s<"
+       (0 (ignore (perl-syntax-propertize-special-constructs end))))
+      )
      (point) end)))
 
 (defvar perl-empty-syntax-table
@@ -342,6 +357,22 @@
   (let ((state (syntax-ppss))
         char)
     (cond
+     ((eq 2 (nth 7 state))
+      ;; A Here document.
+      (let ((names (cdr (get-text-property (nth 8 state) 'syntax-table))))
+        (when (cdr names)
+          (setq names (reverse names))
+          ;; Multiple heredocs on a single line, we have to search from the
+          ;; beginning, since we don't know which names might be
+          ;; before point.
+          (goto-char (nth 8 state)))
+        (while (and names
+                    (re-search-forward
+                     (concat "^" (regexp-quote (pop names)) "\n")
+                     limit 'move))
+          (unless names
+            (put-text-property (1- (point)) (point) 'syntax-table
+                               (string-to-syntax "> c"))))))
      ((or (null (setq char (nth 3 state)))
           (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
       ;; Normal text, or comment, or docstring, or normal string.
@@ -543,11 +574,20 @@ create a new comment."
 
 (defun perl-outline-level ()
   (cond
-   ((looking-at "package\\s-") 0)
-   ((looking-at "sub\\s-") 1)
+   ((looking-at "[ \t]*\\(package\\)\\s-")
+    (- (match-beginning 1) (match-beginning 0)))
+   ((looking-at "[ \t]*s\\(ub\\)\\s-")
+    (- (match-beginning 1) (match-beginning 0)))
    ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
    ((looking-at "=cut") 1)
    (t 3)))
+
+(defun perl-current-defun-name ()
+  "The `add-log-current-defun' function in Perl mode."
+  (save-excursion
+    (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
+	(match-string-no-properties 1))))
+
 
 (defvar perl-mode-hook nil
   "Normal hook to run when entering Perl mode.")
@@ -601,33 +641,39 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
 
 Turning on Perl mode runs the normal hook `perl-mode-hook'."
   :abbrev-table perl-mode-abbrev-table
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'indent-line-function) #'perl-indent-line)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "\\(^\\|\\s-\\);?#+ *")
-  (set (make-local-variable 'comment-indent-function) #'perl-comment-indent)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local indent-line-function #'perl-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip "\\(^\\|\\s-\\);?#+ *")
+  (setq-local comment-indent-function #'perl-comment-indent)
+  (setq-local parse-sexp-ignore-comments t)
+
   ;; Tell font-lock.el how to handle Perl.
   (setq font-lock-defaults '((perl-font-lock-keywords
-			      perl-font-lock-keywords-1
-			      perl-font-lock-keywords-2)
-			     nil nil ((?\_ . "w")) nil
+                              perl-font-lock-keywords-1
+                              perl-font-lock-keywords-2)
+                             nil nil ((?\_ . "w")) nil
                              (font-lock-syntactic-face-function
                               . perl-font-lock-syntactic-face-function)))
-  (set (make-local-variable 'syntax-propertize-function)
-       #'perl-syntax-propertize-function)
+  (prog-prettify-install perl--prettify-symbols-alist)
+  (setq-local syntax-propertize-function #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
+  ;; Electricity.
+  ;; FIXME: setup electric-layout-rules.
+  (setq-local electric-indent-chars
+	      (append '(?\{ ?\} ?\; ?\:) electric-indent-chars))
+  (add-hook 'electric-indent-functions #'perl-electric-noindent-p nil t)
   ;; Tell imenu how to handle Perl.
-  (set (make-local-variable 'imenu-generic-expression)
-       perl-imenu-generic-expression)
+  (setq-local imenu-generic-expression perl-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
   ;; Setup outline-minor-mode.
-  (set (make-local-variable 'outline-regexp) perl-outline-regexp)
-  (set (make-local-variable 'outline-level) 'perl-outline-level))
+  (setq-local outline-regexp perl-outline-regexp)
+  (setq-local outline-level 'perl-outline-level)
+  (setq-local add-log-current-defun-function #'perl-current-defun-name))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code
@@ -637,7 +683,11 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
       0					;Existing comment at bol stays there.
     comment-column))
 
-(defalias 'electric-perl-terminator 'perl-electric-terminator)
+(define-obsolete-function-alias 'electric-perl-terminator
+  'perl-electric-terminator "22.1")
+(defun perl-electric-noindent-p (char)
+  (unless (eolp) 'no-indent))
+
 (defun perl-electric-terminator (arg)
   "Insert character and maybe adjust indentation.
 If at end-of-line, and not in a comment or a quote, correct the indentation."
@@ -661,6 +711,7 @@ If at end-of-line, and not in a comment or a quote, correct the indentation."
 	   (perl-indent-line)
 	   (delete-char -1))))
   (self-insert-command (prefix-numeric-value arg)))
+(make-obsolete 'perl-electric-terminator 'electric-indent-mode "24.4")
 
 ;; not used anymore, but may be useful someday:
 ;;(defun perl-inside-parens-p ()
@@ -744,6 +795,7 @@ following list:
 			(t
 			 (message "Use backslash to quote # characters.")
 			 (ding t)))))))))
+(make-obsolete 'perl-indent-command 'indent-according-to-mode "24.4")
 
 (defun perl-indent-line (&optional nochange parse-start)
   "Indent current line as Perl code.

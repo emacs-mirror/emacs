@@ -1,6 +1,6 @@
 ;;; org-habit.el --- The habit tracking code for Org-mode
 
-;; Copyright (C) 2009-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -64,6 +64,12 @@ Note that consistency graphs will overwrite anything else in the buffer."
   "If non-nil, only show habits on today's agenda, and not for future days.
 Note that even when shown for future days, the graph is always
 relative to the current effective date."
+  :group 'org-habit
+  :type 'boolean)
+
+(defcustom org-habit-show-all-today nil
+  "If non-nil, will show the consistency graph of all habits on
+today's agenda, even if they are not scheduled."
   :group 'org-habit
   :type 'boolean)
 

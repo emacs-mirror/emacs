@@ -1,5 +1,6 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2012 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993-1994, 1998-2013 Free Software Foundation,
+   Inc.
 
 This file is part of GNU Emacs.
 
@@ -52,13 +53,25 @@ typedef GtkWidget *xt_or_gtk_widget;
 #undef XSync
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
+#endif /* USE_GTK */
 
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
-#define USE_GTK_TOOLTIP
+/* True iff GTK's version is at least I.J.K.  */
+#ifndef GTK_CHECK_VERSION
+# ifdef USE_GTK
+#  define GTK_CHECK_VERSION(i, j, k) \
+     ((i) \
+      < GTK_MAJOR_VERSION + ((j) \
+			     < GTK_MINOR_VERSION + ((k) \
+						    <= GTK_MICRO_VERSION)))
+# else
+#  define GTK_CHECK_VERSION(i, j, k) 0
+# endif
 #endif
 
-#endif /* USE_GTK */
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_CHECK_VERSION (2, 14, 0)
+#define USE_GTK_TOOLTIP
+#endif
 
 
 /* Bookkeeping to distinguish X versions.  */
@@ -345,7 +358,8 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents;
+    Xatom_net_frame_extents,
+    Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -364,10 +378,6 @@ struct x_display_info
 /* Whether or not to use XIM if we have it.  */
 extern int use_xim;
 #endif
-
-/* This checks to make sure we have a display.  */
-
-extern void check_x (void);
 
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
@@ -473,12 +483,13 @@ struct x_output
   GtkWidget *menubar_widget;
   /* The tool bar in this frame  */
   GtkWidget *toolbar_widget;
-  /* The handle box that makes the tool bar detachable.  */
+#ifdef HAVE_GTK_HANDLE_BOX_NEW
+/* The handle box that makes the tool bar detachable.  */
   GtkWidget *handlebox_widget;
-  /* Non-zero if the tool bar is detached.  */
-  int toolbar_detached;
+#endif
   /* Non-zero if tool bar is packed into the hbox widget (i.e. vertical).  */
-  int toolbar_in_hbox;
+  bool toolbar_in_hbox;
+  bool toolbar_is_packed;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;
@@ -506,12 +517,6 @@ struct x_output
      value contains an ID of the fontset, else -1.  */
   int fontset;
 
-  /* Pixel values used for various purposes.
-     border_pixel may be -1 meaning use a gray tile.  */
-#if 0 /* These are also defined in struct frame.  Use that instead.  */
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
-#endif
   unsigned long cursor_pixel;
   unsigned long border_pixel;
   unsigned long mouse_pixel;
@@ -574,13 +579,13 @@ struct x_output
 
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
-  char explicit_parent;
+  unsigned explicit_parent : 1;
 
   /* Nonzero means tried already to make this frame visible.  */
-  char asked_for_visible;
+  unsigned asked_for_visible : 1;
 
   /* Nonzero if this frame was ever previously visible.  */
-  char has_been_visible;
+  unsigned has_been_visible : 1;
 
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
@@ -634,7 +639,7 @@ struct x_output
   int top_before_move;
 
   /* Non-zero if _NET_WM_STATE_HIDDEN is set for this frame.  */
-  int net_wm_state_hidden_seen;
+  unsigned net_wm_state_hidden_seen : 1;
 };
 
 #define No_Cursor (None)
@@ -890,10 +895,8 @@ struct scroll_bar
    by this structure.  */
 
 /* For an event of kind SELECTION_REQUEST_EVENT,
-   this structure really describes the contents.
-   **Don't make this struct longer!**
-   If it overlaps the frame_or_window field of struct input_event,
-   that will cause GC to crash.  */
+   this structure really describes the contents.  */
+
 struct selection_input_event
 {
   int kind;
@@ -933,7 +936,6 @@ void x_handle_property_notify (XPropertyEvent *);
 
 /* From xfns.c.  */
 
-struct frame *check_x_frame (Lisp_Object);
 extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */
@@ -962,11 +964,11 @@ extern XtAppContext Xt_app_con;
 extern void x_activate_timeout_atimer (void);
 #endif
 #ifdef USE_LUCID
-extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
-                                             unsigned long *,
-                                             double, int);
+extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
+					      unsigned long *,
+					      double, int);
 #endif
-extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
+extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
 #if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
@@ -1018,7 +1020,6 @@ extern void x_clipboard_manager_save_all (void);
 
 extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
-extern int x_in_use;
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
@@ -1034,7 +1035,7 @@ extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
 extern int x_pixel_width (struct frame *);
 extern int x_pixel_height (struct frame *);
-extern int x_defined_color (struct frame *, const char *, XColor *, int);
+extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 # if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT

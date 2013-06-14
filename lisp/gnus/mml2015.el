@@ -1,6 +1,6 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -47,6 +47,9 @@
                   (config &optional minimum-version))
 (declare-function epg-configuration "ext:epg-config" ())
 
+;; Maybe this should be in eg mml-sec.el (and have a different name).
+;; Then mml1991 would not need to require mml2015, and mml1991-use
+;; could be removed.
 (defvar mml2015-use (or
 		     (condition-case nil
 			 (progn
@@ -735,6 +738,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 
 (defvar epg-user-id-alist)
 (defvar epg-digest-algorithm-alist)
+(defvar epg-gpg-program)
 (defvar inhibit-redisplay)
 
 (autoload 'epg-make-context "epg")
@@ -743,7 +747,6 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-context-set-signers "epg")
 (autoload 'epg-context-result-for "epg")
 (autoload 'epg-new-signature-digest-algorithm "epg")
-(autoload 'epg-verify-result-to-string "epg")
 (autoload 'epg-list-keys "epg")
 (autoload 'epg-decrypt-string "epg")
 (autoload 'epg-verify-string "epg")
@@ -755,6 +758,11 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 (autoload 'epg-sub-key-capability "epg")
 (autoload 'epg-sub-key-validity "epg")
 (autoload 'epg-sub-key-fingerprint "epg")
+(autoload 'epg-signature-key-id "epg")
+(autoload 'epg-signature-to-string "epg")
+(autoload 'epg-key-user-id-list "epg")
+(autoload 'epg-user-id-string "epg")
+(autoload 'epg-user-id-validity "epg")
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
@@ -784,21 +792,53 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	      (cons password-cache-key-id mml2015-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
-(defun mml2015-epg-find-usable-key (keys usage)
-  (catch 'found
+(defun mml2015-epg-check-user-id (key recipient)
+  (let ((pointer (epg-key-user-id-list key))
+	result)
+    (while pointer
+      (if (and (equal (car (mail-header-parse-address
+			    (epg-user-id-string (car pointer))))
+		      (car (mail-header-parse-address
+			    recipient)))
+	       (not (memq (epg-user-id-validity (car pointer))
+			  '(revoked expired))))
+	  (setq result t
+		pointer nil)
+	(setq pointer (cdr pointer))))
+    result))
+
+(defun mml2015-epg-check-sub-key (key usage)
+  (let ((pointer (epg-key-sub-key-list key))
+	result)
+    ;; The primary key will be marked as disabled, when the entire
+    ;; key is disabled (see 12 Field, Format of colon listings, in
+    ;; gnupg/doc/DETAILS)
+    (unless (memq 'disabled (epg-sub-key-capability (car pointer)))
+      (while pointer
+	(if (and (memq usage (epg-sub-key-capability (car pointer)))
+		 (not (memq (epg-sub-key-validity (car pointer))
+			    '(revoked expired))))
+	    (setq result t
+		  pointer nil)
+	  (setq pointer (cdr pointer)))))
+    result))
+
+(defun mml2015-epg-find-usable-key (context name usage
+					    &optional name-is-key-id)
+  (let ((keys (epg-list-keys context name))
+	key)
     (while keys
-      (let ((pointer (epg-key-sub-key-list (car keys))))
-	;; The primary key will be marked as disabled, when the entire
-	;; key is disabled (see 12 Field, Format of colon listings, in
-	;; gnupg/doc/DETAILS)
-	(unless (memq 'disabled (epg-sub-key-capability (car pointer)))
-	  (while pointer
-	    (if (and (memq usage (epg-sub-key-capability (car pointer)))
-		     (not (memq (epg-sub-key-validity (car pointer))
-				'(revoked expired))))
-		(throw 'found (car keys)))
-	    (setq pointer (cdr pointer)))))
-      (setq keys (cdr keys)))))
+      (if (and (or name-is-key-id
+		   ;; Non email user-id can be supplied through
+		   ;; mml2015-signers if mml2015-encrypt-to-self is set.
+		   ;; Treat it as valid, as it is user's intention.
+		   (not (string-match "\\`<" name))
+		   (mml2015-epg-check-user-id (car keys) name))
+	       (mml2015-epg-check-sub-key (car keys) usage))
+	  (setq key (car keys)
+		keys nil)
+	(setq keys (cdr keys))))
+    key))
 
 ;; XXX: since gpg --list-secret-keys does not return validity of each
 ;; key, `mml2015-epg-find-usable-key' defined above is not enough for
@@ -809,14 +849,45 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	secret-key)
     (while (and (not secret-key) secret-keys)
       (if (mml2015-epg-find-usable-key
-	   (epg-list-keys context (epg-sub-key-fingerprint
-				   (car (epg-key-sub-key-list
-					 (car secret-keys)))))
-	   usage)
+	   context
+	   (epg-sub-key-fingerprint
+	    (car (epg-key-sub-key-list
+		  (car secret-keys))))
+	   usage
+	   t)
 	  (setq secret-key (car secret-keys)
 		secret-keys nil)
 	(setq secret-keys (cdr secret-keys))))
     secret-key))
+
+(defun mml2015-epg-key-image (key-id)
+  "Return the image of a key, if any"
+  (with-temp-buffer
+    (mm-set-buffer-multibyte nil)
+    (let* ((coding-system-for-write 'binary)
+           (coding-system-for-read 'binary)
+           (data (shell-command-to-string
+                  (format "%s --list-options no-show-photos --attribute-fd 3 --list-keys %s 3>&1 >/dev/null 2>&1"
+                          (shell-quote-argument epg-gpg-program) key-id))))
+      (when (> (length data) 0)
+        (insert (substring data 16))
+        (create-image (buffer-string) nil t)))))
+
+(defun mml2015-epg-key-image-to-string (key-id)
+  "Return a string with the image of a key, if any"
+  (let* ((result "")
+         (key-image (mml2015-epg-key-image key-id)))
+    (when key-image
+      (setq result "  ")
+      (put-text-property 1 2 'display key-image result))
+    result))
+
+(defun mml2015-epg-signature-to-string (signature)
+  (concat (epg-signature-to-string signature)
+	  (mml2015-epg-key-image-to-string (epg-signature-key-id signature))))
+
+(defun mml2015-epg-verify-result-to-string (verify-result)
+  (mapconcat #'mml2015-epg-signature-to-string verify-result "\n"))
 
 (defun mml2015-epg-decrypt (handle ctl)
   (catch 'error
@@ -860,7 +931,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	    (mm-set-handle-multipart-parameter
 	     mm-security-handle 'gnus-info
 	     (concat "OK\n"
-		     (epg-verify-result-to-string
+		     (mml2015-epg-verify-result-to-string
 		      (epg-context-result-for context 'verify))))
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-info "OK"))
@@ -908,7 +979,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
       (if (epg-context-result-for context 'verify)
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-details
-	   (epg-verify-result-to-string
+	   (mml2015-epg-verify-result-to-string
 	    (epg-context-result-for context 'verify)))))))
 
 (defun mml2015-epg-verify (handle ctl)
@@ -942,7 +1013,8 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	 (throw 'error handle)))
       (mm-set-handle-multipart-parameter
        mm-security-handle 'gnus-info
-       (epg-verify-result-to-string (epg-context-result-for context 'verify)))
+       (mml2015-epg-verify-result-to-string
+	(epg-context-result-for context 'verify)))
       handle)))
 
 (defun mml2015-epg-clear-verify ()
@@ -965,7 +1037,7 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	(progn
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-info
-	   (epg-verify-result-to-string
+	   (mml2015-epg-verify-result-to-string
 	    (epg-context-result-for context 'verify)))
 	  (delete-region (point-min) (point-max))
 	  (insert (mm-decode-coding-string plain coding-system-for-read)))
@@ -1013,6 +1085,10 @@ If no one is selected, default secret key is used.  "
 	(epg-context-set-passphrase-callback
 	 context
 	 #'mml2015-epg-passphrase-callback))
+    ;; Signed data must end with a newline (RFC 3156, 5).
+    (goto-char (point-max))
+    (unless (bolp)
+      (insert "\n"))
     (condition-case error
 	(setq signature (epg-sign-string context (buffer-string) t)
 	      mml2015-epg-secret-key-id-list nil)
@@ -1037,7 +1113,7 @@ If no one is selected, default secret key is used.  "
     (insert (format "\n--%s\n" boundary))
     (goto-char (point-max))
     (insert (format "\n--%s\n" boundary))
-    (insert "Content-Type: application/pgp-signature\n\n")
+    (insert "Content-Type: application/pgp-signature; name=\"signature.asc\"\n\n")
     (insert signature)
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
@@ -1083,8 +1159,7 @@ If no one is selected, symmetric encryption will be performed.  "
 		    (mapcar
 		     (lambda (recipient)
 		       (setq recipient-key (mml2015-epg-find-usable-key
-					    (epg-list-keys context recipient)
-					    'encrypt))
+					    context recipient 'encrypt))
 		       (unless (or recipient-key
 				   (y-or-n-p
 				    (format "No public key for %s; skip it? "

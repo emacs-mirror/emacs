@@ -1,6 +1,7 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2013 Free Software Foundation,
+;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -96,7 +97,7 @@
 ;;
 ;; archive-mode-hook
 ;; archive-foo-mode-hook
-;; archive-extract-hooks
+;; archive-extract-hook
 
 ;;; Code:
 
@@ -140,8 +141,10 @@ A local copy of the archive will be used when updating."
   :type 'regexp
   :group 'archive)
 
-(defcustom archive-extract-hooks nil
-  "Hooks to run when an archive member has been extracted."
+(define-obsolete-variable-alias 'archive-extract-hooks
+  'archive-extract-hook "24.3")
+(defcustom archive-extract-hook nil
+  "Hook run when an archive member has been extracted."
   :type 'hook
   :group 'archive)
 ;; ------------------------------
@@ -787,7 +790,8 @@ is visible (and the real data of the buffer is hidden).
 Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
-  (let ((inhibit-read-only t))
+  (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+	(inhibit-read-only t))
     (setq archive-proper-file-start (copy-marker (point-min) t))
     (set (make-local-variable 'change-major-mode-hook) 'archive-desummarize)
     (or shut-up
@@ -971,11 +975,6 @@ using `make-temp-file', and the generated name is returned."
 		    (save-excursion
 		      (funcall set-auto-coding-function
 			       filename (- (point-max) (point-min)))))
-	       ;; dos-w32.el defines the function
-	       ;; find-buffer-file-type-coding-system for DOS/Windows
-	       ;; systems which preserves the coding-system of existing files.
-	       ;; (That function is called via file-coding-system-alist.)
-	       ;; Here, we want it to act as if the extracted file existed.
 	       ;; The following let-binding of file-name-handler-alist forces
 	       ;; find-file-not-found-set-buffer-file-coding-system to ignore
 	       ;; the file's name (see dos-w32.el).
@@ -1077,7 +1076,7 @@ using `make-temp-file', and the generated name is returned."
               ;; We will write out the archive ourselves if it is
               ;; part of another archive.
               (remove-hook 'write-contents-functions 'archive-write-file t))
-            (run-hooks 'archive-extract-hooks)
+            (run-hooks 'archive-extract-hook)
 	    (if archive-read-only
 		(message "Note: altering this archive is not implemented."))))
 	(archive-maybe-update t))
@@ -1117,13 +1116,54 @@ using `make-temp-file', and the generated name is returned."
     (archive-delete-local tmpfile)
     success))
 
-(defun archive-extract-by-stdout (archive name command &optional stderr-file)
-  (apply 'call-process
-	 (car command)
-	 nil
-	 (if stderr-file (list t stderr-file) t)
-	 nil
-	 (append (cdr command) (list archive name))))
+(defun archive-extract-by-stdout (archive name command &optional stderr-test)
+  (let ((stderr-file (make-temp-file "arc-stderr")))
+    (unwind-protect
+	(prog1
+	    (apply 'call-process
+		   (car command)
+		   nil
+		   (if stderr-file (list t stderr-file) t)
+		   nil
+		   (append (cdr command) (list archive name)))
+	  (with-temp-buffer
+	    (insert-file-contents stderr-file)
+	    (goto-char (point-min))
+	    (when (if (stringp stderr-test)
+		      (not (re-search-forward stderr-test nil t))
+		    (> (buffer-size) 0))
+	      (message "%s" (buffer-string)))))
+      (if (file-exists-p stderr-file)
+	  (delete-file stderr-file)))))
+
+(defun archive-extract-by-file (archive name command &optional stdout-test)
+  (let ((dest (make-temp-file "arc-dir" 'dir))
+	(stdout-file (make-temp-file "arc-stdout")))
+    (unwind-protect
+	(prog1
+	    (apply 'call-process
+		   (car command)
+		   nil
+		   `(:file ,stdout-file)
+		   nil
+		   (append (cdr command) (list archive name dest)))
+	  (with-temp-buffer
+	    (insert-file-contents stdout-file)
+	    (goto-char (point-min))
+	    (when (if (stringp stdout-test)
+		      (not (re-search-forward stdout-test nil t))
+		    (> (buffer-size) 0))
+	      (message "%s" (buffer-string))))
+	  (if (file-exists-p (expand-file-name name dest))
+	      (insert-file-contents-literally (expand-file-name name dest))))
+      (if (file-exists-p stdout-file)
+	  (delete-file stdout-file))
+      (if (file-exists-p (expand-file-name name dest))
+	  (delete-file (expand-file-name name dest)))
+      (while (file-name-directory name)
+	(setq name (directory-file-name (file-name-directory name)))
+	(delete-directory (expand-file-name name dest)))
+      (delete-directory dest))))
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."
@@ -2006,17 +2046,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       ;; The code below assumes the name is relative and may do undesirable
       ;; things otherwise.
       (error "Can't extract files with non-relative names")
-    (let ((dest (make-temp-file "arc-rar" 'dir)))
-      (unwind-protect
-          (progn
-            (call-process "unrar-free" nil nil nil
-                          "--extract" archive name dest)
-            (insert-file-contents-literally (expand-file-name name dest)))
-        (delete-file (expand-file-name name dest))
-        (while (file-name-directory name)
-          (setq name (directory-file-name (file-name-directory name)))
-          (delete-directory (expand-file-name name dest)))
-        (delete-directory dest)))))
+    (archive-extract-by-file archive name '("unrar-free" "--extract") "All OK")))
 
 ;;; Section: Rar self-extracting .exe archives.
 
@@ -2099,17 +2129,11 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (apply 'vector files))))
 
 (defun archive-7z-extract (archive name)
-  (let ((tmpfile (make-temp-file "7z-stderr")))
-    ;; 7z doesn't provide a `quiet' option to suppress non-essential
-    ;; stderr messages.  So redirect stderr to a temp file and display it
-    ;; in the echo area when it contains error messages.
-    (prog1 (archive-extract-by-stdout
-	    archive name archive-7z-extract tmpfile)
-      (with-temp-buffer
-	(insert-file-contents tmpfile)
-	(unless (search-forward "Everything is Ok" nil t)
-	  (message "%s" (buffer-string)))
-	(delete-file tmpfile)))))
+  ;; 7z doesn't provide a `quiet' option to suppress non-essential
+  ;; stderr messages.  So redirect stderr to a temp file and display it
+  ;; in the echo area when it contains no message indicating success.
+  (archive-extract-by-stdout
+   archive name archive-7z-extract "Everything is Ok"))
 
 (defun archive-7z-write-file-member (archive descr)
   (archive-*-write-file-member

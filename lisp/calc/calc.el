@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990-1993, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -199,7 +199,7 @@
 (declare-function calc-div-fractions "calc-frac" (a b))
 (declare-function math-div-objects-fancy "calc-arith" (a b))
 (declare-function math-div-symb-fancy "calc-arith" (a b))
-(declare-function math-compose-expr "calccomp" (a prec))
+(declare-function math-compose-expr "calccomp" (a prec &optional div))
 (declare-function math-comp-width "calccomp" (c))
 (declare-function math-composition-to-string "calccomp" (c &optional width))
 (declare-function math-stack-value-offset-fancy "calccomp" ())
@@ -423,6 +423,7 @@ in normal mode."
   "If non-nil, make sure new units are consistent with current units
 when converting units."
   :group 'calc
+  :version "24.3"
   :type 'boolean)
 
 (defcustom calc-undo-length
@@ -434,9 +435,9 @@ when converting units."
 (defcustom calc-highlight-selections-with-faces
   nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
-If `calc-show-selections' is non-nil, then selected sub-formulas are shown
-by displaying the rest of the formula in `calc-nonselected-face'.
-If `calc-show-selections' is nil, then selected sub-formulas are shown
+If option `calc-show-selections' is non-nil, then selected sub-formulas are
+shown by displaying the rest of the formula in `calc-nonselected-face'.
+If option `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :version "24.1"
   :group 'calc
@@ -462,6 +463,8 @@ to be identified as that note."
   :version "24.1"
   :type 'string
   :group 'calc)
+
+(defvar math-format-date-cache) ; calc-forms.el
 
 (defface calc-nonselected-face
   '((t :inherit shadow
@@ -784,7 +787,9 @@ If nil, selections displayed but ignored.")
     "M-D-Y< H:mm:SSpp>"
     "D-M-Y< h:mm:SS>"
     "j<, h:mm:SS>"
-    "YYddd< hh:mm:ss>"))
+    "YYddd< hh:mm:ss>"
+    "ZYYY-MM-DD Www< hh:mm>"
+    "IYYY-Iww-w<Thh:mm:ss>"))
 
 (defcalcmodevar calc-autorange-units nil
   "If non-nil, automatically set unit prefixes to keep units in a reasonable range.")
@@ -911,35 +916,6 @@ Used by `calc-user-invocation'.")
 
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
-
-;; Set up the autoloading linkage.
-(let ((name (and (fboundp 'calc-dispatch)
-                 (autoloadp (symbol-function 'calc-dispatch))
-                 (nth 1 (symbol-function 'calc-dispatch))))
-      (p load-path))
-
-  ;; If Calc files exist on the load-path, we're all set.
-  (while (and p (not (file-exists-p
-                      (expand-file-name "calc-misc.elc" (car p)))))
-    (setq p (cdr p)))
-  (or p
-
-      ;; If Calc is autoloaded using a path name, look there for Calc files.
-      ;; This works for both relative ("calc/calc.elc") and absolute paths.
-      (and name (file-name-directory name)
-           (let ((p2 load-path)
-                 (name2 (concat (file-name-directory name)
-                                "calc-misc.elc")))
-             (while (and p2 (not (file-exists-p
-                                  (expand-file-name name2 (car p2)))))
-               (setq p2 (cdr p2)))
-             (when p2
-               (setq load-path (nconc load-path
-                                      (list
-                                       (directory-file-name
-                                        (file-name-directory
-                                         (expand-file-name
-                                          name (car p2))))))))))))
 
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
@@ -1207,7 +1183,7 @@ Used by `calc-user-invocation'.")
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
-  "Invoke the GNU Emacs Calculator.  See `calc-dispatch-help' for details."
+  "Invoke the GNU Emacs Calculator.  See \\[calc-dispatch-help] for details."
   (interactive "P")
 ;  (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch
@@ -1353,12 +1329,12 @@ Notations:  3.14e6     3.14 * 10^6
 \\{calc-mode-map}
 "
   (interactive)
-  (mapc (function
+  (mapc (function           ;FIXME: Why (set-default v (symbol-value v)) ?!?!?
 	 (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
 		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
-  (mapc (function (lambda (v) (make-local-variable v))) calc-local-var-list)
+  (mapc #'make-local-variable calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -1395,7 +1371,7 @@ Notations:  3.14e6     3.14 * 10^6
   (if calc-buffer-list (setq calc-stack (copy-sequence calc-stack)))
   (add-to-list 'calc-buffer-list (current-buffer) t))
 
-(defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
+(defvar calc-check-defines 'calc-check-defines)  ; Suitable for run-hooks.
 (defun calc-check-defines ()
   (if (symbol-plist 'calc-define)
       (let ((plist (copy-sequence (symbol-plist 'calc-define))))
@@ -1943,8 +1919,7 @@ See calc-keypad for details."
 		(delete-region (point) (point-max))))
 	    (calc-set-command-flag 'renum-stack))))))
 
-(defvar sel-mode)
-(defun calc-get-stack-element (x)
+(defun calc-get-stack-element (x &optional sel-mode)
   (cond ((eq sel-mode 'entry)
 	 x)
 	((eq sel-mode 'sel)
@@ -1961,9 +1936,9 @@ See calc-keypad for details."
 (defun calc-top (&optional n sel-mode)
   (or n (setq n 1))
   (calc-check-stack n)
-  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack)))
+  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack) sel-mode))
 
-(defun calc-top-n (&optional n sel-mode)    ; in case precision has changed
+(defun calc-top-n (&optional n sel-mode)    ; In case precision has changed.
   (math-check-complete (calc-normalize (calc-top n sel-mode))))
 
 (defun calc-top-list (&optional n m sel-mode)
@@ -1974,7 +1949,8 @@ See calc-keypad for details."
        (let ((top (copy-sequence (nthcdr (+ m calc-stack-top -1)
 					 calc-stack))))
 	 (setcdr (nthcdr (1- n) top) nil)
-	 (nreverse (mapcar 'calc-get-stack-element top)))))
+	 (nreverse
+          (mapcar (lambda (x) (calc-get-stack-element x sel-mode)) top)))))
 
 (defun calc-top-list-n (&optional n m sel-mode)
   (mapcar 'math-check-complete
@@ -2047,6 +2023,50 @@ See calc-keypad for details."
        (with-current-buffer (aref calc-embedded-info 1)
 	 (calc-refresh align)))
   (setq calc-refresh-count (1+ calc-refresh-count)))
+
+;; Dates that are built-in options for `calc-gregorian-switch' should be
+;; (YEAR MONTH DAY math-date-from-gregorian-dt(YEAR MONTH DAY)) for speed.
+(defcustom calc-gregorian-switch nil
+  "The first day the Gregorian calendar is used by Calc's date forms.
+This is `nil' (the default) if the Gregorian calendar is the only one used.
+Otherwise, it should be a list `(YEAR MONTH DAY)' when Calc begins to use
+the Gregorian calendar; Calc will use the Julian calendar for earlier dates.
+The dates in which different regions of the world began to use the
+Gregorian calendar vary quite a bit, even within a single country.
+If you want Calc's date forms to switch between the Julian and
+Gregorian calendar, you can specify the date or choose from several
+common choices.  Some of these choices should be taken with a grain
+of salt; for example different parts of France changed calendars at
+different times, and Sweden's change to the Gregorian calendar was
+complicated.  Also, the boundaries of the countries were different at
+the times of the calendar changes than they are now.
+The Vatican decided that the Gregorian calendar should take effect
+on 15 October 1582 (Gregorian), and many Catholic countries made
+the change then.  Great Britain and its colonies had the Gregorian
+calendar take effect on 14 September 1752 (Gregorian); this includes
+the United States."
+  :group 'calc
+  :version "24.4"
+  :type '(choice (const :tag "Always use the Gregorian calendar" nil)
+                 (const :tag "1582-10-15 - Italy, Poland, Portugal, Spain" (1582 10 15 577736))
+                 (const :tag "1582-12-20 - France" (1582 12 20 577802))
+                 (const :tag "1582-12-25 - Luxemburg" (1582 12 25 577807))
+                 (const :tag "1584-01-17 - Bohemia and Moravia" (1584 1 17 578195))
+                 (const :tag "1587-11-01 - Hungary" (1587 11 1 579579))
+                 (const :tag "1700-03-01 - Denmark" (1700 3 1 620607))
+                 (const :tag "1701-01-12 - Protestant Switzerland" (1701 1 12 620924))
+                 (const :tag "1752-09-14 - Great Britain and dominions" (1752 9 14 639797))
+                 (const :tag "1753-03-01 - Sweden" (1753 3 1 639965))
+                 (const :tag "1918-02-14 - Russia" (1918 2 14 700214))
+                 (const :tag "1919-04-14 - Romania" (1919 4 14 700638))
+                 (list :tag "(YEAR MONTH DAY)"
+                       (integer :tag "Year")
+                       (integer :tag "Month (integer)")
+                       (integer :tag "Day")))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (setq math-format-date-cache nil)
+         (calc-refresh)))
 
 ;;;; The Calc Trail buffer.
 
@@ -2681,7 +2701,6 @@ largest Emacs integer.")
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-                 (setq math-normalize-error t)
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
@@ -2692,7 +2711,6 @@ largest Emacs integer.")
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
-                 (setq math-normalize-error t)
 		 (calc-record-why "No exact representation for result"
 				  (cons (car math-normalize-a) args))
 		 nil)

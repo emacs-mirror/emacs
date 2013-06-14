@@ -1,5 +1,5 @@
 /* Interface from Emacs to terminfo.
-   Copyright (C) 1985-1986, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "tparam.h"
 
-#include <setjmp.h>
 #include "lisp.h"
 
 /* Define these variables that serve as global parameters to termcap,

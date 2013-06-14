@@ -1,6 +1,6 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2012
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2013 Free
+   Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <sys/types.h>
-#include <setjmp.h>
+
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
@@ -121,6 +121,7 @@ struct lisp_parse_state
     /* Char number of start of containing expression */
     ptrdiff_t prevlevelstart;
     ptrdiff_t location;	     /* Char number at which parsing stopped.  */
+    ptrdiff_t location_byte; /* Corresponding byte position.  */
     ptrdiff_t comstr_start;  /* Position of last comment/string starter.  */
     Lisp_Object levelstarts; /* Char numbers of starts-of-expression
 				of levels (starting from outermost).  */
@@ -151,7 +152,7 @@ static void scan_sexps_forward (struct lisp_parse_state *,
 static int in_classes (int, Lisp_Object);
 
 /* This setter is used only in this file, so it can be private.  */
-static inline void
+static void
 bset_syntax_table (struct buffer *b, Lisp_Object val)
 {
   b->INTERNAL_FIELD (syntax_table) = val;
@@ -372,7 +373,7 @@ char_quoted (ptrdiff_t charpos, ptrdiff_t bytepos)
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-static inline ptrdiff_t
+static ptrdiff_t
 dec_bytepos (ptrdiff_t bytepos)
 {
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -3277,6 +3278,7 @@ do { prev_from = from;				\
 
  stop:   /* Here if stopping before start of sexp. */
   from = prev_from;    /* We have just fetched the char that starts it; */
+  from_byte = prev_from_byte;
   goto done; /* but return the position before it. */
 
  endquoted:
@@ -3288,6 +3290,7 @@ do { prev_from = from;				\
   state.prevlevelstart
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
+  state.location_byte = from_byte;
   state.levelstarts = Qnil;
   while (curlevel > levelstart)
     state.levelstarts = Fcons (make_number ((--curlevel)->last),
@@ -3327,7 +3330,8 @@ Fifth arg OLDSTATE is a list like what this function returns.
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
  If it is symbol `syntax-table', stop after the start of a comment or a
  string, or after end of a comment or a string.  */)
-  (Lisp_Object from, Lisp_Object to, Lisp_Object targetdepth, Lisp_Object stopbefore, Lisp_Object oldstate, Lisp_Object commentstop)
+  (Lisp_Object from, Lisp_Object to, Lisp_Object targetdepth,
+   Lisp_Object stopbefore, Lisp_Object oldstate, Lisp_Object commentstop)
 {
   struct lisp_parse_state state;
   EMACS_INT target;
@@ -3347,7 +3351,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
 		      (NILP (commentstop)
 		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)));
 
-  SET_PT (state.location);
+  SET_PT_BOTH (state.location, state.location_byte);
 
   return Fcons (make_number (state.depth),
 	   Fcons (state.prevlevelstart < 0
@@ -3389,8 +3393,8 @@ init_syntax_once (void)
   Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Create objects which can be shared among syntax tables.  */
-  Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
-  for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
+  Vsyntax_code_object = make_uninit_vector (Smax);
+  for (i = 0; i < Smax; i++)
     ASET (Vsyntax_code_object, i, Fcons (make_number (i), Qnil));
 
   /* Now we are ready to set up this property, so we can

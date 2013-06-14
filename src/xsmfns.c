@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2012  Free Software Foundation, Inc.
+Copyright (C) 2002-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,14 +29,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/param.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "systime.h"
 #include "sysselect.h"
 #include "frame.h"
 #include "termhooks.h"
-#include "termopts.h"
 #include "xterm.h"
 #include "process.h"
 #include "keyboard.h"
@@ -516,9 +514,11 @@ Do not call this function yourself. */)
          prevent.  Fix this in next version.  */
       Fkill_emacs (Qnil);
 
+#if 0
       /* This will not be reached, but we want kill-emacs-hook to be run.  */
       SmcCloseConnection (smc_conn, 0, 0);
       ice_connection_closed ();
+#endif
     }
 
   return Qnil;

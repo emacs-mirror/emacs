@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010-2012 Free Software Foundation, Inc.
+   Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_LIBXML2
 
-#include <setjmp.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <libxml/HTMLparser.h>
@@ -74,7 +73,7 @@ libxml2_loaded_p (void)
 #define fn_xmlCleanupParser     xmlCleanupParser
 #define fn_xmlCheckVersion      xmlCheckVersion
 
-static inline int
+static int
 libxml2_loaded_p (void)
 {
   return 1;
@@ -83,7 +82,7 @@ libxml2_loaded_p (void)
 #endif	/* !WINDOWSNT */
 
 static int
-init_libxml2_functions (Lisp_Object libraries)
+init_libxml2_functions (void)
 {
 #ifdef WINDOWSNT
   if (libxml2_loaded_p ())
@@ -92,9 +91,9 @@ init_libxml2_functions (Lisp_Object libraries)
     {
       HMODULE library;
 
-      if (!(library = w32_delayed_load (libraries, Qlibxml2_dll)))
+      if (!(library = w32_delayed_load (Qlibxml2_dll)))
 	{
-	  message ("%s", "libxml2 library not found");
+	  message1 ("libxml2 library not found");
 	  return 0;
 	}
 
@@ -181,8 +180,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   xmlDoc *doc;
   Lisp_Object result = Qnil;
   const char *burl = "";
-  ptrdiff_t bytes;
-  ptrdiff_t istart, iend;
+  ptrdiff_t istart, iend, istart_byte, iend_byte;
 
   fn_xmlCheckVersion (LIBXML_VERSION);
 
@@ -190,9 +188,11 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 
   istart = XINT (start);
   iend = XINT (end);
+  istart_byte = CHAR_TO_BYTE (istart);
+  iend_byte = CHAR_TO_BYTE (iend);
 
   if (istart < GPT && GPT < iend)
-    move_gap (iend);
+    move_gap_both (iend, iend_byte);
 
   if (! NILP (base_url))
     {
@@ -200,17 +200,15 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
       burl = SSDATA (base_url);
     }
 
-  bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
-
   if (htmlp)
-    doc = fn_htmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
-			     bytes, burl, "utf-8",
+    doc = fn_htmlReadMemory ((char *) BYTE_POS_ADDR (istart_byte),
+			     iend_byte - istart_byte, burl, "utf-8",
 			     HTML_PARSE_RECOVER|HTML_PARSE_NONET|
 			     HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR|
 			     HTML_PARSE_NOBLANKS);
   else
-    doc = fn_xmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
-			    bytes, burl, "utf-8",
+    doc = fn_xmlReadMemory ((char *) BYTE_POS_ADDR (istart_byte),
+			    iend_byte - istart_byte, burl, "utf-8",
 			    XML_PARSE_NONET|XML_PARSE_NOWARNING|
 			    XML_PARSE_NOBLANKS |XML_PARSE_NOERROR);
 
@@ -258,7 +256,7 @@ DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  if (init_libxml2_functions (Vdynamic_library_alist))
+  if (init_libxml2_functions ())
     return parse_region (start, end, base_url, 1);
   return Qnil;
 }
@@ -270,7 +268,7 @@ DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  if (init_libxml2_functions (Vdynamic_library_alist))
+  if (init_libxml2_functions ())
     return parse_region (start, end, base_url, 0);
   return Qnil;
 }

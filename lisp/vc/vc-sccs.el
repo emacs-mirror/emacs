@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -74,6 +74,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :group 'vc-sccs)
 
+;; This needs to be autoloaded because vc-sccs-registered uses it (via
+;; vc-default-registered), and vc-hooks needs to be able to check
+;; for a registered backend without loading every backend.
 ;;;###autoload
 (defcustom vc-sccs-master-templates
   (purecopy '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))
@@ -106,11 +109,10 @@ For a description of possible values, see `vc-check-master-templates'."
 
 ;; The autoload cookie below places vc-sccs-registered directly into
 ;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
-;; every file that is visited.  The definition is repeated below
-;; so that Help and etags can find it.
-
-;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
-(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
+;; every file that is visited.
+;;;###autoload
+(progn
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
@@ -152,6 +154,8 @@ For a description of possible values, see `vc-check-master-templates'."
             ;; Fall through to real state computation.
             (vc-sccs-state file))))
     (vc-sccs-state file)))
+
+(autoload 'vc-expand-dirs "vc")
 
 (defun vc-sccs-dir-status (dir update-function)
   ;; FIXME: this function should be rewritten, using `vc-expand-dirs'
@@ -213,6 +217,8 @@ Optional string REV is a revision."
   "Create a new SCCS repository."
   ;; SCCS is totally file-oriented, so all we have to do is make the directory
   (make-directory "SCCS"))
+
+(autoload 'vc-switches "vc")
 
 (defun vc-sccs-register (files &optional rev comment)
   "Register FILES into the SCCS version-control system.
@@ -348,10 +354,14 @@ revert all subfiles."
 ;;;
 
 (defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
-  "Get change log associated with FILES."
+  "Print commit log associated with FILES into specified BUFFER.
+Remaining arguments are ignored."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
   (when limit 'limit-unsupported))
+
+(autoload 'vc-setup-buffer "vc-dispatcher")
+(autoload 'vc-delistify "vc-dispatcher")
 
 ;; FIXME use sccsdiff if present?
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
@@ -429,6 +439,9 @@ revert all subfiles."
 ;;; our own set of name-to-revision mappings.
 ;;;
 
+(autoload 'vc-tag-precondition "vc")
+(declare-function vc-file-tree-walk "vc" (dirname func &rest args))
+
 (defun vc-sccs-create-tag (dir name branchp)
   (when branchp
     (error "SCCS backend does not support module branches"))
@@ -456,6 +469,8 @@ revert all subfiles."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward  "%[A-Z]%" nil t)))
+
+(autoload 'vc-rename-master "vc")
 
 (defun vc-sccs-rename-file (old new)
   ;; Move the master file (using vc-rcs-master-templates).

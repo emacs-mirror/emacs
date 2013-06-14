@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
 @chapter Searching and Replacement
@@ -17,11 +17,11 @@ thing, but search for patterns instead of fixed strings.
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
 
-
 @menu
 * Incremental Search::        Search happens as you type the string.
 * Nonincremental Search::     Specify entire string and then search.
 * Word Search::               Search for sequence of words.
+* Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
 * Regexp Backslash::          Regular expression constructs starting with `\'.
@@ -52,14 +52,14 @@ Incremental search backward (@code{isearch-backward}).
 @end table
 
 @menu
-* Basic Isearch::       Basic incremental search commands.
-* Repeat Isearch::      Searching for the same string again.
-* Error in Isearch::    When your string is not found.
-* Special Isearch::     Special input in incremental search.
-* Isearch Yank::        Commands that grab text into the search string
-                          or else edit the search string.
-* Isearch Scroll::      Scrolling during an incremental search.
-* Isearch Minibuffer::  Incremental search of the minibuffer history.
+* Basic Isearch::        Basic incremental search commands.
+* Repeat Isearch::       Searching for the same string again.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
+* Isearch Yank::         Commands that grab text into the search string
+                           or else edit the search string.
+* Not Exiting Isearch::  Prefix argument and scrolling commands.
+* Isearch Minibuffer::   Incremental search of the minibuffer history.
 @end menu
 
 @node Basic Isearch
@@ -175,7 +175,7 @@ element in the minibuffer, where you can edit it.
 
 @kindex M-e @r{(Incremental search)}
   To edit the current search string in the minibuffer without
-replacing it with items from the search ring, type @kbd{M-e}.  Type
+replacing it with items from the search ring, type @kbd{M-e}.  Type @key{RET},
 @kbd{C-s} or @kbd{C-r} to finish editing the string and search for it.
 
 @node Error in Isearch
@@ -217,6 +217,24 @@ search.
 
   Some of the characters you type during incremental search have
 special effects.
+
+@cindex lax space matching
+@kindex M-s SPC @r{(Incremental search)}
+@kindex SPC @r{(Incremental search)}
+@findex isearch-toggle-lax-whitespace
+@vindex search-whitespace-regexp
+  By default, incremental search performs @dfn{lax space matching}:
+each space, or sequence of spaces, matches any sequence of one or more
+spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
+@samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
+More precisely, Emacs matches each sequence of space characters in the
+search string to a regular expression specified by the variable
+@code{search-whitespace-regexp}.  For example, set it to
+@samp{"[[:space:]\n]+"} to make spaces match sequences of newlines as
+well as spaces.  To toggle lax space matching, type @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}).  To disable this feature
+entirely, change @code{search-whitespace-regexp} to @code{nil}; then
+each space in the search string matches exactly one space
 
   If the search string you entered contains only lower-case letters,
 the search is case-insensitive; as long as an upper-case letter exists
@@ -314,9 +332,28 @@ alternative method to add the character after point is to enter the
 minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
 at the end of the search string in the minibuffer.
 
-@node Isearch Scroll
-@subsection Scrolling During Incremental Search
+@node Not Exiting Isearch
+@subsection Not Exiting Incremental Search
 
+This subsection describes two categories of commands which you can
+type without exiting the current incremental search, even though they
+are not themselves part of incremental search.
+
+@table @asis
+@item Prefix Arguments
+@vindex isearch-allow-prefix
+  In incremental search, when you enter a prefix argument
+(@pxref{Arguments}), by default it will apply either to the next
+action in the search or to the command that exits the search.
+
+  In previous versions of Emacs, entering a prefix argument always
+terminated the search.  You can revert to this behavior by setting the
+variable @code{isearch-allow-prefix} to @code{nil}.
+
+  When @code{isearch-allow-scroll} is non-@code{nil} (see below),
+prefix arguments always have the default behavior described above.
+
+@item Scrolling Commands
 @vindex isearch-allow-scroll
   Normally, scrolling commands exit incremental search.  If you change
 the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
@@ -348,6 +385,7 @@ This feature can be applied to any command that doesn't permanently
 change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.
+@end table
 
 @node Isearch Minibuffer
 @subsection Searching the Minibuffer
@@ -369,7 +407,7 @@ wrap around, going from the last page to the first page or vice versa.
 
 When the current match is on a history element, that history element
 is pulled into the minibuffer.  If you exit the incremental search
-normally (e.g. by typing @key{RET}), it remains in the minibuffer
+normally (e.g., by typing @key{RET}), it remains in the minibuffer
 afterwards.  Canceling the search, with @kbd{C-g}, restores the
 contents of the minibuffer when you began the search.
 
@@ -450,6 +488,47 @@ the search string can match part of a word, so that the matching
 proceeds incrementally as you type.  This additional laxity does not
 apply to the lazy highlight, which always matches whole words.
 
+@node Symbol Search
+@section Symbol Search
+@cindex symbol search
+
+  A @dfn{symbol search} is much like an ordinary search, except that
+the boundaries of the search must match the boundaries of a symbol.
+The meaning of @dfn{symbol} in this context depends on the major mode,
+and usually refers to a source code token, such as a Lisp symbol in
+Emacs Lisp mode.  For instance, if you perform an incremental symbol
+search for the Lisp symbol @code{forward-word}, it would not match
+@code{isearch-forward-word}.  This feature is thus mainly useful for
+searching source code.
+
+@table @kbd
+@item M-s _
+If incremental search is active, toggle symbol search mode
+(@code{isearch-toggle-symbol}); otherwise, begin an incremental
+forward symbol search (@code{isearch-forward-symbol}).
+@item M-s _ @key{RET} @var{symbol} @key{RET}
+Search forward for @var{symbol}, nonincrementally.
+@item M-s _ C-r @key{RET} @var{symbol} @key{RET}
+Search backward for @var{symbol}, nonincrementally.
+@end table
+
+@kindex M-s _
+@findex isearch-forward-symbol
+  To begin a forward incremental symbol search, type @kbd{M-s _}.  If
+incremental search is not already active, this runs the command
+@code{isearch-forward-symbol}.  If incremental search is already
+active, @kbd{M-s _} switches to a symbol search, preserving the
+direction of the search and the current search string; you can disable
+symbol search by typing @kbd{M-s _} again.  In incremental symbol
+search, only the beginning of the search string is required to match
+the beginning of a symbol.
+
+  To begin a nonincremental symbol search, type @kbd{M-s _ @key{RET}}
+for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
+search.  In nonincremental symbol searches, the beginning and end of
+the search string are required to match the beginning and end of a
+symbol, respectively.
+
 @node Regexp Search
 @section Regular Expression Search
 @cindex regexp search
@@ -492,12 +571,12 @@ Incremental regexp and non-regexp searches have independent defaults.
 They also have separate search rings, which you can access with
 @kbd{M-p} and @kbd{M-n}.
 
-@vindex search-whitespace-regexp
-  If you type @key{SPC} in incremental regexp search, it matches any
-sequence of whitespace characters, including newlines.  If you want to
-match just a space, type @kbd{C-q @key{SPC}}.  You can control what a
-bare space matches by setting the variable
-@code{search-whitespace-regexp} to the desired regexp.
+  Just as in ordinary incremental search, any @key{SPC} typed in
+incremental regexp search matches any sequence of one or more
+whitespace characters.  The variable @code{search-whitespace-regexp}
+specifies the regexp for the lax space matching, and @kbd{M-s SPC}
+(@code{isearch-toggle-lax-whitespace}) toggles the feature.
+@xref{Special Isearch}.
 
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
@@ -974,6 +1053,13 @@ instead (@pxref{Mark}).  The basic replace commands replace one
 is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
+@vindex replace-lax-whitespace
+  Unlike incremental search, the replacement commands do not use lax
+space matching (@pxref{Special Isearch}) by default.  To enable lax
+space matching for replacement, change the variable
+@code{replace-lax-whitespace} to @code{t}.  (This only affects how
+Emacs finds the text to replace, not the replacement text.)
+
 @menu
 * Unconditional Replace::   Replacing all matches for a string.
 * Regexp Replace::          Replacing all matches for a regexp.
@@ -1214,6 +1300,19 @@ occurrences.
 
 @item !
 to replace all remaining occurrences without asking again.
+
+@item Y @r{(Upper-case)}
+to replace all remaining occurrences in all remaining buffers in
+multi-buffer replacements (like the Dired `Q' command which performs
+query replace on selected files).  It answers this question and all
+subsequent questions in the series with "yes", without further
+user interaction.
+
+@item N @r{(Upper-case)}
+to skip to the next buffer in multi-buffer replacements without
+replacing remaining occurrences in the current buffer.  It answers
+this question "no", gives up on the questions for the current buffer,
+and continues to the next buffer in the sequence.
 
 @item ^
 to go back to the position of the previous occurrence (or what used to

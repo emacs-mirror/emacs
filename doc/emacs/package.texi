@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2012
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2013 Free Software
+@c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
 @chapter Emacs Lisp Packages
@@ -52,18 +52,22 @@ on each line, with the following information:
 
 @itemize @bullet
 @item
-The package name (e.g. @samp{auctex}).
+The package name (e.g., @samp{auctex}).
 
 @item
-The package's version number (e.g. @samp{11.86}).
+The package's version number (e.g., @samp{11.86}).
 
 @item
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed}, or
 @samp{built-in} (included in Emacs by default).
 
-In some instances, the status can be @samp{held}, @samp{disabled}, or
-@samp{obsolete}.  @xref{Package Installation}.
+The status can also be @samp{new}.  This is equivalent to
+@samp{available}, except that it means the package became newly
+available on the package archive after your last invocation of
+@kbd{M-x list-packages}.  In other instances, a package may have the
+status @samp{held}, @samp{disabled}, or @samp{obsolete}.
+@xref{Package Installation}.
 
 @item
 A short description of the package.

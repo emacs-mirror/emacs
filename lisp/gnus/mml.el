@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1212,8 +1212,8 @@ If not set, `default-directory' will be used."
 	string
       default)))
 
-(defun mml-minibuffer-read-description ()
-  (let ((description (read-string "One line description: ")))
+(defun mml-minibuffer-read-description (&optional default)
+  (let ((description (read-string "One line description: " default)))
     (when (string-match "\\`[ \t]*\\'" description)
       (setq description nil))
     description))
@@ -1305,7 +1305,8 @@ to specify options."
 (defun mml-attach-file (file &optional type description disposition)
   "Attach a file to the outgoing MIME message.
 The file is not inserted or encoded until you send the message with
-`\\[message-send-and-exit]' or `\\[message-send]'.
+`\\[message-send-and-exit]' or `\\[message-send]' in Message mode,
+or `\\[mail-send-and-exit]' or `\\[mail-send]' in Mail mode.
 
 FILE is the name of the file to attach.  TYPE is its
 content-type, a string of the form \"type/subtype\".  DESCRIPTION
@@ -1319,11 +1320,9 @@ body) or \"attachment\" (separate from the body)."
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil file)))
      (list file type description disposition)))
-  ;; Don't move point if this command is invoked inside the message header.
-  (let ((head (unless (message-in-body-p)
-		(prog1
-		    (point)
-		  (goto-char (point-max))))))
+  ;; If in the message header, attach at the end and leave point unchanged.
+  (let ((head (unless (message-in-body-p) (point))))
+    (if head (goto-char (point-max)))
     (mml-insert-empty-tag 'part
 			  'type type
 			  ;; icicles redefines read-file-name and returns a
@@ -1331,12 +1330,15 @@ body) or \"attachment\" (separate from the body)."
 			  'filename (mm-substring-no-properties file)
 			  'disposition (or disposition "attachment")
 			  'description description)
+    ;; When using Mail mode, make sure it does the mime encoding
+    ;; when you send the message.
+    (or (eq mail-user-agent 'message-user-agent)
+	(setq mail-encode-mml t))
     (when head
-      (unless (prog1
-		  (pos-visible-in-window-p)
-		(goto-char head))
+      (unless (pos-visible-in-window-p)
 	(message "The file \"%s\" has been attached at the end of the message"
-		 (file-name-nondirectory file))))))
+		 (file-name-nondirectory file)))
+      (goto-char head))))
 
 (defun mml-dnd-attach-file (uri action)
   "Attach a drag and drop file.
@@ -1372,21 +1374,22 @@ BUFFER is the name of the buffer to attach.  See
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil)))
      (list buffer type description disposition)))
-  ;; Don't move point if this command is invoked inside the message header.
-  (let ((head (unless (message-in-body-p)
-		(prog1
-		    (point)
-		  (goto-char (point-max))))))
+  ;; If in the message header, attach at the end and leave point unchanged.
+  (let ((head (unless (message-in-body-p) (point))))
+    (if head (goto-char (point-max)))
     (mml-insert-empty-tag 'part 'type type 'buffer buffer
 			  'disposition disposition
 			  'description description)
+    ;; When using Mail mode, make sure it does the mime encoding
+    ;; when you send the message.
+    (or (eq mail-user-agent 'message-user-agent)
+	(setq mail-encode-mml t))
     (when head
-      (unless (prog1
-		  (pos-visible-in-window-p)
-		(goto-char head))
+      (unless (pos-visible-in-window-p)
 	(message
 	 "The buffer \"%s\" has been attached at the end of the message"
-	 buffer)))))
+	 buffer))
+      (goto-char head))))
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
@@ -1397,19 +1400,20 @@ TYPE is the MIME type to use."
 	  (type (mml-minibuffer-read-type file))
 	  (description (mml-minibuffer-read-description)))
      (list file type description)))
-  ;; Don't move point if this command is invoked inside the message header.
-  (let ((head (unless (message-in-body-p)
-		(prog1
-		    (point)
-		  (goto-char (point-max))))))
+  ;; If in the message header, attach at the end and leave point unchanged.
+  (let ((head (unless (message-in-body-p) (point))))
+    (if head (goto-char (point-max)))
     (mml-insert-empty-tag 'external 'type type 'name file
 			  'disposition "attachment" 'description description)
+    ;; When using Mail mode, make sure it does the mime encoding
+    ;; when you send the message.
+    (or (eq mail-user-agent 'message-user-agent)
+	(setq mail-encode-mml t))
     (when head
-      (unless (prog1
-		  (pos-visible-in-window-p)
-		(goto-char head))
+      (unless (pos-visible-in-window-p)
 	(message "The file \"%s\" has been attached at the end of the message"
-		 (file-name-nondirectory file))))))
+		 (file-name-nondirectory file)))
+      (goto-char head))))
 
 (defun mml-insert-multipart (&optional type)
   (interactive (if (message-in-body-p)
@@ -1422,13 +1426,23 @@ TYPE is the MIME type to use."
   (or type
       (setq type "mixed"))
   (mml-insert-empty-tag "multipart" 'type type)
+  ;; When using Mail mode, make sure it does the mime encoding
+  ;; when you send the message.
+  (or (eq mail-user-agent 'message-user-agent)
+      (setq mail-encode-mml t))
   (forward-line -1))
 
 (defun mml-insert-part (&optional type)
   (interactive (if (message-in-body-p)
 		   (list (mml-minibuffer-read-type ""))
 		 (error "Use this command in the message body")))
-  (mml-insert-tag 'part 'type type 'disposition "inline"))
+  ;; When using Mail mode, make sure it does the mime encoding
+  ;; when you send the message.
+  (or (eq mail-user-agent 'message-user-agent)
+      (setq mail-encode-mml t))
+  (mml-insert-tag 'part 'type type 'disposition "inline")
+  (save-excursion
+    (mml-insert-tag '/part)))
 
 (declare-function message-subscribed-p "message" ())
 (declare-function message-make-mail-followup-to "message"

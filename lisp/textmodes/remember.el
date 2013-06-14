@@ -1,6 +1,6 @@
 ;;; remember --- a mode for quickly jotting down things to remember
 
-;; Copyright (C) 1999-2001, 2003-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 29 Mar 1999
@@ -216,10 +216,11 @@ All functions are run in the remember buffer."
 Each function is called with the current buffer narrowed to what the
 user wants remembered.
 If any function returns non-nil, the data is assumed to have been
-recorded somewhere by that function. "
+recorded somewhere by that function."
   :type 'hook
   :options '(remember-store-in-mailbox
              remember-append-to-file
+             remember-store-in-files
              remember-diary-extract-entries
              org-remember-handler)
   :group 'remember)
@@ -380,7 +381,7 @@ Subject: %s\n\n"
 
 ;; Remembering to plain files
 
-(defcustom remember-data-file (convert-standard-filename "~/.notes")
+(defcustom remember-data-file (locate-user-emacs-file "notes" ".notes")
   "The file in which to store unprocessed data."
   :type 'file
   :group 'remember)
@@ -429,11 +430,34 @@ If you want to remember a region, supply a universal prefix to
         (run-hook-with-args-until-success 'remember-handler-functions))
       (remember-destroy))))
 
+(defcustom remember-data-directory "~/remember"
+  "The directory in which to store remember data as files."
+  :type 'directory
+  :version "24.4"
+  :group 'remember)
+
+(defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
+  "Format string for the file name in which to store unprocessed data."
+  :type 'string
+  :version "24.4"
+  :group 'remember)
+
+(defun remember-store-in-files ()
+  "Store remember data in a file in `remember-data-directory'.
+The file is named after `remember-directory-file-name-format' fed through
+`format-time-string'."
+  (let ((name (format-time-string
+	       remember-directory-file-name-format (current-time)))
+        (text (buffer-string)))
+    (with-temp-buffer
+      (insert text)
+      (write-file (convert-standard-filename
+                   (format "%s/%s" remember-data-directory name))))))
+
 ;;;###autoload
 (defun remember-clipboard ()
   "Remember the contents of the current clipboard.
-Most useful for remembering things from Netscape or other X Windows
-application."
+Most useful for remembering things from other applications."
   (interactive)
   (remember (current-kill 0)))
 
@@ -457,7 +481,7 @@ application."
 (defcustom remember-diary-file nil
   "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
-  :type 'file
+  :type '(choice (const :tag "diary-file" nil) file)
   :group 'remember)
 
 (defun remember-diary-convert-entry (entry)

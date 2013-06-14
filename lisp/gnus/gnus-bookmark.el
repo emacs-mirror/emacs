@@ -1,6 +1,6 @@
 ;;; gnus-bookmark.el --- Bookmarks in Gnus
 
-;; Copyright (C) 2006-2012  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2013 Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news
@@ -367,7 +367,7 @@ The leftmost column displays a D if the bookmark is flagged for
 deletion, or > if it is flagged for displaying."
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
-  (if (interactive-p)
+  (if (gmm-called-interactively-p 'any)
       (switch-to-buffer (get-buffer-create "*Gnus Bookmark List*"))
     (set-buffer (get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)

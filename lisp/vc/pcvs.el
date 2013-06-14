@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2013 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -60,8 +60,6 @@
 ;; - rework the displaying of error messages.
 ;; - allow to flush messages only
 ;; - allow to protect files like ChangeLog from flushing
-;; - automatically cvs-mode-insert files from find-file-hook
-;;   (and don't flush them as long as they are visited)
 ;; - query the user for cvs-get-marked (for some cmds or if nothing's selected)
 ;; - don't return the first (resp last) FI if the cursor is before
 ;;   (resp after) it.
@@ -858,7 +856,8 @@ the problem."
 (defun cvs-cleanup-collection (c rm-handled rm-dirs rm-msgs)
   "Remove undesired entries.
 C is the collection
-RM-HANDLED if non-nil means remove handled entries.
+RM-HANDLED if non-nil means remove handled entries (if file is currently
+  visited, only remove if value is `all').
 RM-DIRS behaves like `cvs-auto-remove-directories'.
 RM-MSGS if non-nil means remove messages."
   (let (last-fi first-dir (rerun t))
@@ -872,13 +871,17 @@ RM-MSGS if non-nil means remove messages."
 		  (subtype (cvs-fileinfo->subtype fi))
 		  (keep
 		   (pcase type
-		     ;; remove temp messages and keep the others
+		     ;; Remove temp messages and keep the others.
 		     (`MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
-		     ;; remove entries
+		     ;; Remove dead entries.
 		     (`DEAD nil)
-		     ;; handled also?
-		     (`UP-TO-DATE (not rm-handled))
-		     ;; keep the rest
+		     ;; Handled also?
+		     (`UP-TO-DATE
+                      (not
+                       (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
+                           (eq rm-handled 'all)
+                         rm-handled)))
+		     ;; Keep the rest.
 		     (_ (not (run-hook-with-args-until-success
 			      'cvs-cleanup-functions fi))))))
 
@@ -1617,7 +1620,8 @@ With prefix argument, prompt for cvs flags."
 (defun-cvs-mode (cvs-mode-diff . DOUBLE) (flags)
   "Diff the selected files against the repository.
 This command compares the files in your working area against the
-revision which they are based upon."
+revision which they are based upon.
+See also `cvs-diff-ignore-marks'."
   (interactive
    (list (cvs-add-branch-prefix
 	  (cvs-add-secondary-branch-prefix
@@ -2119,7 +2123,7 @@ if you are convinced that the process that created the lock is dead."
 Empty directories are removed."
   (interactive)
   (cvs-cleanup-collection cvs-cookies
-			  t (or cvs-auto-remove-directories 'handled) t))
+			  'all (or cvs-auto-remove-directories 'handled) t))
 
 
 (defun-cvs-mode cvs-mode-acknowledge ()
@@ -2435,6 +2439,21 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (add-hook 'after-save-hook 'cvs-mark-buffer-changed)
 
+(defun cvs-insert-visited-file ()
+  (let* ((file (expand-file-name buffer-file-name))
+	 (version (and (fboundp 'vc-backend)
+		       (eq (vc-backend file) 'CVS)
+		       (vc-working-revision file))))
+    (when version
+      (save-current-buffer
+	(dolist (cvs-buf (buffer-list))
+	  (set-buffer cvs-buf)
+	  ;; look for a corresponding pcl-cvs buffer
+	  (when (and (eq major-mode 'cvs-mode)
+		     (string-prefix-p default-directory file))
+            (cvs-insert-file file)))))))
+
+(add-hook 'find-file-hook 'cvs-insert-visited-file 'append)
 
 (provide 'pcvs)
 

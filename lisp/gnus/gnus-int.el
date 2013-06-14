@@ -1,6 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -248,17 +248,26 @@ If it is down, start it up (again)."
       'denied))
 
 (defvar gnus-backend-trace nil)
+(defvar gnus-backend-trace-elapsed nil)
 
-(defun gnus-open-server (gnus-command-method)
-  "Open a connection to GNUS-COMMAND-METHOD."
-  (when (stringp gnus-command-method)
-    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+(defun gnus-backend-trace (type form)
   (when gnus-backend-trace
     (with-current-buffer (get-buffer-create "*gnus trace*")
       (buffer-disable-undo)
       (goto-char (point-max))
       (insert (format-time-string "%H:%M:%S")
-	      (format " %S\n" gnus-command-method))))
+	      (format " %.2fs %s %S\n"
+		      (if (numberp gnus-backend-trace-elapsed)
+			  (- (float-time) gnus-backend-trace-elapsed)
+			0)
+		      type form))
+      (setq gnus-backend-trace-elapsed (float-time)))))
+
+(defun gnus-open-server (gnus-command-method)
+  "Open a connection to GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (gnus-backend-trace :opening gnus-command-method)
   (let ((elem (assoc gnus-command-method gnus-opened-servers))
 	(server (gnus-method-to-server-name gnus-command-method)))
     ;; If this method was previously denied, we just return nil.
@@ -333,6 +342,7 @@ If it is down, start it up (again)."
 	    (save-excursion
 	      (gnus-agent-possibly-synchronize-flags-server
 	       gnus-command-method)))
+	  (gnus-backend-trace :opened gnus-command-method)
           result)))))
 
 (defun gnus-close-server (gnus-command-method)
@@ -353,9 +363,13 @@ If it is down, start it up (again)."
   "Read and update infos from GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
-  (funcall (gnus-get-function gnus-command-method 'finish-retrieve-group-infos)
-	   (nth 1 gnus-command-method)
-	   infos data))
+  (gnus-backend-trace :finishing gnus-command-method)
+  (prog1
+      (funcall (gnus-get-function gnus-command-method
+				  'finish-retrieve-group-infos)
+	       (nth 1 gnus-command-method)
+	       infos data)
+    (gnus-backend-trace :finished gnus-command-method)))
 
 (defun gnus-retrieve-group-data-early (gnus-command-method infos)
   "Start early async retrieval of data from GNUS-COMMAND-METHOD."

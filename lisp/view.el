@@ -1,7 +1,7 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: Inge Frick <inge@nada.kth.se>
@@ -199,6 +199,7 @@ This is local in each buffer, once it is used.")
     (define-key map "\C-?" 'View-scroll-page-backward)
     ;; (define-key map "f" 'View-scroll-page-forward)
     (define-key map " " 'View-scroll-page-forward)
+    (define-key map [?\S-\ ]  'View-scroll-page-backward)
     (define-key map "o" 'View-scroll-to-buffer-end)
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
@@ -407,8 +408,8 @@ Digits	provide prefix arguments.
 \\[View-scroll-to-buffer-end]	scroll so that buffer end is at last line of window.
 SPC	scroll forward \"page size\" lines.
 	  With prefix scroll forward prefix lines.
-DEL	scroll backward \"page size\" lines.
-	  With prefix scroll backward prefix lines.
+DEL, S-SPC  scroll backward \"page size\" lines.
+	      With prefix scroll backward prefix lines.
 \\[View-scroll-page-forward-set-page-size]	like  \\[View-scroll-page-forward]  but with prefix sets \"page size\" to prefix.
 \\[View-scroll-page-backward-set-page-size]	like  \\[View-scroll-page-backward]  but with prefix sets \"page size\" to prefix.
 \\[View-scroll-half-page-forward]	scroll forward \"half page size\" lines.  With prefix, sets
@@ -461,15 +462,13 @@ then \\[View-leave], \\[View-quit] and \\[View-kill-and-leave] will return to th
 
 Entry to view-mode runs the normal hook `view-mode-hook'."
   :lighter " View" :keymap view-mode-map
-  (if view-mode (view-mode-enable) (view-mode-disable)))
+  (if view-mode (view--enable) (view--disable)))
 
-(defun view-mode-enable ()
-  "Turn on View mode."
+(defun view--enable ()
   ;; Always leave view mode before changing major mode.
   ;; This is to guarantee that the buffer-read-only variable is restored.
-  (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
-  (setq view-mode t
-	view-page-size nil
+  (add-hook 'change-major-mode-hook 'view--disable nil t)
+  (setq view-page-size nil
 	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
 	buffer-read-only t)
@@ -480,15 +479,18 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 	    (format "continue viewing %s"
 		    (if (buffer-file-name)
 			(file-name-nondirectory (buffer-file-name))
-		      (buffer-name)))))
-  (force-mode-line-update)
-  (run-hooks 'view-mode-hook))
+		      (buffer-name))))))
 
+
+(define-obsolete-function-alias 'view-mode-enable 'view-mode "24.4")
 (defun view-mode-disable ()
   "Turn off View mode."
-  (remove-hook 'change-major-mode-hook 'view-mode-disable t)
+  (declare (obsolete view-mode "24.4"))
+  (view-mode -1))
+
+(defun view--disable ()
+  (remove-hook 'change-major-mode-hook 'view--disable t)
   (and view-overlay (delete-overlay view-overlay))
-  (force-mode-line-update)
   ;; Calling toggle-read-only while View mode is enabled
   ;; sets view-read-only to t as a buffer-local variable
   ;; after exiting View mode.  That arranges that the next toggle-read-only
@@ -497,7 +499,6 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; so that View mode stays off if toggle-read-only is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
-  (setq view-mode nil)
   (if (boundp 'Helper-return-blurb)
       (setq Helper-return-blurb view-old-Helper-return-blurb))
   (if buffer-read-only
@@ -513,6 +514,7 @@ that can be added see the RETURN-TO-ALIST argument of the
 function `view-mode-exit'.  If `view-return-to-alist' contains an
 entry for the selected window, purge that entry from
 `view-return-to-alist' before adding ITEM."
+  (declare (obsolete "this function has no effect." "24.1"))
   (with-current-buffer buffer
     (when view-return-to-alist
       (let* ((list view-return-to-alist)
@@ -535,7 +537,6 @@ entry for the selected window, purge that entry from
     (when item
       (setq view-return-to-alist
 	    (cons item view-return-to-alist)))))
-(make-obsolete 'view-return-to-alist-update "this function has no effect." "24.1")
 
 ;;;###autoload
 (defun view-mode-enter (&optional quit-restore exit-action)
@@ -560,8 +561,7 @@ This function runs the normal hook `view-mode-hook'."
     (setq view-exit-action exit-action))
 
   (unless view-mode
-    (view-mode-enable)
-    (force-mode-line-update)
+    (view-mode 1)
     (unless view-inhibit-help-message
       (message "%s"
 	       (substitute-command-keys "\
@@ -588,7 +588,7 @@ current buffer. "
   (when view-mode
     (let ((buffer (window-buffer)))
       (unless view-no-disable-on-exit
-	(view-mode-disable))
+	(view-mode -1))
 
       (unless exit-only
 	(cond
@@ -599,8 +599,7 @@ current buffer. "
 	  (quit-window)))
 
 	(when exit-action
-	  (funcall exit-action buffer))
-	(force-mode-line-update)))))
+	  (funcall exit-action buffer))))))
 
 (defun View-exit ()
   "Exit View mode but stay in current buffer."

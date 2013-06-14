@@ -1,6 +1,6 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1991-2013 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -57,11 +57,7 @@ versions, such as the one in SunOS-4.")
 ;;;;	     END OF THINGS TO CHECK WHEN INSTALLING
 ;;;; --------------------------------------------------------
 
-;;;;
 ;;;;	User configuration variables:
-;;;;
-;;;; NOTE: these should be set in your ~/.emacs (or site-lisp/default.el) file.
-;;;;
 
 (defgroup pcl-cvs nil
   "Special support for the CVS versioning system."
@@ -137,14 +133,9 @@ current line.  See also `cvs-invert-ignore-marks'"
   :group 'pcl-cvs
   :type '(boolean))
 
-(defvar cvs-diff-ignore-marks t)
-(make-obsolete-variable 'cvs-diff-ignore-marks
-                        'cvs-invert-ignore-marks
-			"21.1")
-
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
-    (unless (equal cvs-diff-ignore-marks cvs-default-ignore-marks)
+    (unless (equal cvs-default-ignore-marks t)
       (push "diff" l))
     (when (and cvs-force-dir-tag (not cvs-default-ignore-marks))
       (push "tag" l))
@@ -175,11 +166,6 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
-(defvar cvs-diff-buffer-name "*cvs-diff*")
-(make-obsolete-variable 'cvs-diff-buffer-name
-                        'cvs-buffer-name-alist
-			"21.1")
-
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
 If non-nil, `cvs-mode-find-file' will place the cursor at the beginning of
@@ -189,7 +175,7 @@ have no effect."
   :type '(boolean))
 
 (defcustom cvs-buffer-name-alist
-  '(("diff" cvs-diff-buffer-name diff-mode)
+  '(("diff" "*cvs-diff*" diff-mode)
     ("status" "*cvs-info*" cvs-status-mode)
     ("tree" "*cvs-info*" cvs-status-mode)
     ("message" "*cvs-commit*" nil log-edit)

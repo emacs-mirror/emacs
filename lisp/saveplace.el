@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993-1994, 2001-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -56,20 +56,19 @@ This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 This variable is automatically buffer-local.
 
-If you wish your place in any file to always be automatically saved,
-simply put this in your `~/.emacs' file:
+If you wish your place in any file to always be automatically
+saved, set this to t using the Customize facility, or put the
+following code in your init file:
 
 \(setq-default save-place t)
-\(require 'saveplace)
-
-or else use the Custom facility to set this option."
+\(require 'saveplace)"
   :type 'boolean
   :require 'saveplace
   :group 'save-place)
 
 (make-variable-buffer-local 'save-place)
 
-(defcustom save-place-file (convert-standard-filename "~/.emacs-places")
+(defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
   "Name of the file that records `save-place-alist' value."
   :type 'file
   :group 'save-place)
@@ -148,7 +147,8 @@ even in a later Emacs session.
 If called with a prefix arg, the mode is enabled if and only if
 the argument is positive.
 
-To save places automatically in all files, put this in your `.emacs' file:
+To save places automatically in all files, put this in your init
+file:
 
 \(setq-default save-place t\)"
   (interactive "P")
@@ -224,9 +224,7 @@ may have changed\) back to `save-place-alist'."
                       (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
-        (pp (sort save-place-alist
-                  (lambda (a b) (string< (car a) (car b))))
-            (current-buffer)))
+        (pp save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)

@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -26,6 +26,7 @@
 
 ;;; Code:
 
+(require 'esh-mode)
 (eval-when-compile (require 'eshell))
 
 ;;;###autoload
@@ -122,6 +123,7 @@ arriving, or after."
 	   (add-text-properties 0 (length prompt)
 				'(read-only t
 				  face eshell-prompt
+				  front-sticky (face read-only)
 				  rear-nonsticky (face read-only))
 				prompt))
       (eshell-interactive-print prompt)))

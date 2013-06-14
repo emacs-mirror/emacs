@@ -1,6 +1,6 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2013 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -189,22 +189,22 @@ calendar           |  %:type %:date"
 		(character :tag "Selection Key")
 		(string :tag "Template")
 		(choice :tag "Destination file"
-		 (file :tag "Specify")
-		 (function :tag "Function")
-		 (const :tag "Use `org-default-notes-file'" nil))
+			(file :tag "Specify")
+			(function :tag "Function")
+			(const :tag "Use `org-default-notes-file'" nil))
 		(choice :tag "Destin. headline"
-		 (string :tag "Specify")
-		 (function :tag "Function")
-		 (const :tag "Use `org-remember-default-headline'" nil)
-		 (const :tag "At beginning of file" top)
-		 (const :tag "At end of file" bottom)
-		 (const :tag "In a date tree" date-tree))
+			(string :tag "Specify")
+			(function :tag "Function")
+			(const :tag "Use `org-remember-default-headline'" nil)
+			(const :tag "At beginning of file" top)
+			(const :tag "At end of file" bottom)
+			(const :tag "In a date tree" date-tree))
 		(choice :tag "Context"
-		 (const :tag "Use in all contexts" nil)
-		 (const :tag "Use in all contexts" t)
-		 (repeat :tag "Use only if in major mode"
-			 (symbol :tag "Major mode"))
-		 (function :tag "Perform a check against function")))))
+			(const :tag "Use in all contexts" nil)
+			(const :tag "Use in all contexts" t)
+			(repeat :tag "Use only if in major mode"
+				(symbol :tag "Major mode"))
+			(function :tag "Perform a check against function")))))
 
 (defcustom org-remember-delete-empty-lines-at-end t
   "Non-nil means clean up final empty lines in remember buffer."
@@ -277,9 +277,6 @@ opposite case, the default, t, is more useful."
   :group 'org-remember
   :type 'boolean)
 
-(defvar annotation) ; from remember.el, dynamically scoped in `remember-mode'
-(defvar initial)    ; from remember.el, dynamically scoped in `remember-mode'
-
 ;;;###autoload
 (defun org-remember-insinuate ()
   "Setup remember.el for use with Org-mode."
@@ -297,7 +294,7 @@ conventions in Org-mode.  This function returns such a link."
   (org-store-link nil))
 
 (defconst org-remember-help
-"Select a destination location for the note.
+  "Select a destination location for the note.
 UP/DOWN=headline   TAB=cycle visibility  [Q]uit   RET/<left>/<right>=Store
 RET on headline   -> Store as sublevel entry to current headline
 RET at beg-of-buf -> Append to file as level 2 headline
@@ -401,8 +398,7 @@ RET at beg-of-buf -> Append to file as level 2 headline
 This function should be placed into `remember-mode-hook' and in fact requires
 to be run from that hook to function properly."
   (when (and (boundp 'initial) (stringp initial))
-    (setq initial (org-no-properties initial))
-    (remove-text-properties 0 (length initial) '(read-only t) initial))
+    (setq initial (org-no-properties initial)))
   (if org-remember-templates
       (let* ((entry (org-select-remember-template use-char))
 	     (ct (or org-overriding-default-time (org-current-time)))
@@ -431,10 +427,10 @@ to be run from that hook to function properly."
 	     ;; `initial' and `annotation' are bound in `remember'.
 	     ;; But if the property list has them, we prefer those values
 	     (v-i (or (plist-get org-store-link-plist :initial)
-		      (and (boundp 'initial) initial)
+		      (and (boundp 'initial) (symbol-value 'initial))
 		      ""))
 	     (v-a (or (plist-get org-store-link-plist :annotation)
-		      (and (boundp 'annotation) annotation)
+		      (and (boundp 'annotation) (symbol-value 'annotation))
 		      ""))
 	     ;; Is the link empty?  Then we do not want it...
 	     (v-a (if (equal v-a "[[]]") "" v-a))
@@ -449,7 +445,7 @@ to be run from that hook to function properly."
 		    v-a))
 	     (v-n user-full-name)
 	     (v-k (if (marker-buffer org-clock-marker)
-		      (org-substring-no-properties org-clock-heading)))
+		      (org-no-properties org-clock-heading)))
 	     (v-K (if (marker-buffer org-clock-marker)
 		      (org-make-link-string
 		       (buffer-file-name (marker-buffer org-clock-marker))
@@ -476,12 +472,12 @@ to be run from that hook to function properly."
 	(erase-buffer)
 	(insert (substitute-command-keys
 		 (format
-"## %s  \"%s\" -> \"* %s\"
-## C-u C-c C-c  like C-c C-c, and immediately visit note at target location
-## C-0 C-c C-c  \"%s\" -> \"* %s\"
-## %s  to select file and header location interactively.
-## C-2 C-c C-c  as child (C-3: as sibling) of the currently clocked item
-## To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
+		  "# %s  \"%s\" -> \"* %s\"
+# C-u C-c C-c  like C-c C-c, and immediately visit note at target location
+# C-0 C-c C-c  \"%s\" -> \"* %s\"
+# %s  to select file and header location interactively.
+# C-2 C-c C-c  as child (C-3: as sibling) of the currently clocked item
+# To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
 		  (if org-remember-store-without-prompt "    C-c C-c" "    C-1 C-c C-c")
 		  (abbreviate-file-name (or file org-default-notes-file))
 		  (or headline "")
@@ -505,18 +501,20 @@ to be run from that hook to function properly."
 				       filename error)))))))
 	;; Simple %-escapes
 	(goto-char (point-min))
-	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
-	  (unless (org-remember-escaped-%)
-	    (when (and initial (equal (match-string 0) "%i"))
-	      (save-match-data
-		(let* ((lead (buffer-substring
-			      (point-at-bol) (match-beginning 0))))
-		  (setq v-i (mapconcat 'identity
-				       (org-split-string initial "\n")
-				       (concat "\n" lead))))))
-	    (replace-match
-	     (or (eval (intern (concat "v-" (match-string 1)))) "")
-	     t t)))
+	(let ((init (and (boundp 'initial)
+			 (symbol-value 'initial))))
+	  (while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
+	    (unless (org-remember-escaped-%)
+	      (when (and init (equal (match-string 0) "%i"))
+		(save-match-data
+		  (let* ((lead (buffer-substring
+				(point-at-bol) (match-beginning 0))))
+		    (setq v-i (mapconcat 'identity
+					 (org-split-string init "\n")
+					 (concat "\n" lead))))))
+	      (replace-match
+	       (or (eval (intern (concat "v-" (match-string 1)))) "")
+	       t t))))
 
 	;; %() embedded elisp
 	(goto-char (point-min))
@@ -536,10 +534,10 @@ to be run from that hook to function properly."
 	(when plist-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "%\\(:[-a-zA-Z]+\\)" nil t)
-	  (unless (org-remember-escaped-%)
-	    (and (setq x (or (plist-get org-store-link-plist
-					(intern (match-string 1))) ""))
-		 (replace-match x t t)))))
+	    (unless (org-remember-escaped-%)
+	      (and (setq x (or (plist-get org-store-link-plist
+					  (intern (match-string 1))) ""))
+		   (replace-match x t t)))))
 
 	;; Turn on org-mode in the remember buffer, set local variables
 	(let ((org-inhibit-startup t)) (org-mode) (org-remember-mode 1))
@@ -599,7 +597,7 @@ to be run from that hook to function properly."
 						     (car clipboards))))))
 	     ((equal char "p")
 	      (let*
-		  ((prop (org-substring-no-properties prompt))
+		  ((prop (org-no-properties prompt))
 		   (pall (concat prop "_ALL"))
 		   (allowed
 		    (with-current-buffer
@@ -842,12 +840,12 @@ See also the variable `org-reverse-note-order'."
       (if (= end beg) (setq beg (1- beg)))
       (put-text-property beg end 'org-position-cursor t)))
   (goto-char (point-min))
-  (while (looking-at "^[ \t]*\n\\|^##.*\n")
+  (while (looking-at "^[ \t]*\n\\|^# .*\n")
     (replace-match ""))
   (when org-remember-delete-empty-lines-at-end
     (goto-char (point-max))
     (beginning-of-line 1)
-    (while (and (looking-at "[ \t]*$\\|##.*") (> (point) 1))
+    (while (and (looking-at "[ \t]*$\\|[ \t]*# .*") (> (point) 1))
       (delete-region (1- (point)) (point-max))
       (beginning-of-line 1)))
   (catch 'quit
@@ -943,7 +941,7 @@ See also the variable `org-reverse-note-order'."
 	(throw 'quit t))
       ;; Find the file
       (with-current-buffer (or visiting (find-file-noselect file))
-	(unless (or (eq major-mode 'org-mode) (member heading '(top bottom)))
+	(unless (or (derived-mode-p 'org-mode) (member heading '(top bottom)))
 	  (error "Target files for notes must be in Org-mode if not filing to top/bottom"))
 	(save-excursion
 	  (save-restriction
@@ -953,7 +951,7 @@ See also the variable `org-reverse-note-order'."
 	    ;; Find the default location
 	    (when heading
 	      (cond
-	       ((not (eq major-mode 'org-mode))
+	       ((not (derived-mode-p 'org-mode))
 		(if (eq heading 'top)
 		    (goto-char (point-min))
 		  (goto-char (point-max))
@@ -995,7 +993,7 @@ See also the variable `org-reverse-note-order'."
 	    (cond
 	     ((and fastp (memq heading '(top bottom)))
 	      (setq spos org-goto-start-pos
-			  exitcmd (if (eq heading 'top) 'left nil)))
+		    exitcmd (if (eq heading 'top) 'left nil)))
 	     (fastp (setq spos org-goto-start-pos
 			  exitcmd 'return))
 	     ((eq org-remember-interactive-interface 'outline)
@@ -1150,5 +1148,9 @@ See also the variable `org-reverse-note-order'."
 						     (point-at-eol)))))))
 
 (provide 'org-remember)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-remember.el ends here

@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -86,8 +86,8 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
-(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
+(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-engine)
 (cc-require 'cc-styles)
 (cc-require 'cc-cmds)
@@ -97,7 +97,6 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
-(cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
 
 ;; We set these variables during mode init, yet we don't require
@@ -212,7 +211,7 @@ control).  See \"cc-mode.el\" for more info."
      ((cc-bytecomp-fboundp 'set-keymap-parent)
       (set-keymap-parent map c-mode-base-map))
      ;; XEmacs
-     ((cc-bytecomp-fboundp 'set-keymap-parents)
+     ((fboundp 'set-keymap-parents)
       (set-keymap-parents map c-mode-base-map))
      ;; incompatible
      (t (error "CC Mode is incompatible with this version of Emacs")))
@@ -647,7 +646,9 @@ compatible with old code; callers should always specify it."
 
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
   (set (make-local-variable 'outline-level) 'c-outline-level)
-
+  (set (make-local-variable 'add-log-current-defun-function)
+       (lambda ()
+	 (or (c-cpp-define-name) (c-defun-name))))
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
       (and (cdr rfn)
@@ -934,7 +935,8 @@ Note that the style variables are always made local to the buffer."
 
     ;; Add needed properties to each CPP construct in the region.
     (goto-char c-new-BEG)
-    (let ((pps-position c-new-BEG)  pps-state mbeg)
+    (skip-chars-backward " \t")
+    (let ((pps-position (point))  pps-state mbeg)
       (while (and (< (point) c-new-END)
 		  (search-forward-regexp c-anchored-cpp-prefix c-new-END t))
 	;; If we've found a "#" inside a string/comment, ignore it.
@@ -943,14 +945,12 @@ Note that the style variables are always made local to the buffer."
 	      pps-position (point))
 	(unless (or (nth 3 pps-state)	; in a string?
 		    (nth 4 pps-state))	; in a comment?
-	  (goto-char (match-beginning 0))
+	  (goto-char (match-beginning 1))
 	  (setq mbeg (point))
 	  (if (> (c-syntactic-end-of-macro) mbeg)
 	      (progn
 		(c-neutralize-CPP-line mbeg (point))
-		(c-set-cpp-delimiters mbeg (point))
-		;(setq pps-position (point))
-		)
+		(c-set-cpp-delimiters mbeg (point)))
 	    (forward-line))	      ; no infinite loop with, e.g., "#//"
 	  )))))
 
@@ -1034,7 +1034,10 @@ Note that the style variables are always made local to the buffer."
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
 		  c-get-state-before-change-functions))
-	))))
+	)))
+  ;; The following must be done here rather than in `c-after-change' because
+  ;; newly inserted parens would foul up the invalidation algorithm.
+  (c-invalidate-state-cache beg))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -1055,7 +1058,7 @@ Note that the style variables are always made local to the buffer."
   ;; This calls the language variable c-before-font-lock-functions, if non nil.
   ;; This typically sets `syntax-table' properties.
 
-  (c-save-buffer-state ()
+  (c-save-buffer-state (case-fold-search)
     ;; When `combine-after-change-calls' is used we might get calls
     ;; with regions outside the current narrowing.  This has been
     ;; observed in Emacs 20.7.
@@ -1073,16 +1076,17 @@ Note that the style variables are always made local to the buffer."
 	    (setq beg end)))
 
 	;; C-y is capable of spuriously converting category properties
-	;; c-</>-as-paren-syntax into hard syntax-table properties.  Remove
-	;; these when it happens.
+	;; c-</>-as-paren-syntax and c-cpp-delimiter into hard syntax-table
+	;; properties.  Remove these when it happens.
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c-<-as-paren-syntax)
 	(c-clear-char-property-with-value beg end 'syntax-table
 					  c->-as-paren-syntax)
+	(c-clear-char-property-with-value beg end 'syntax-table nil)
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)
-	(c-invalidate-state-cache beg)
+	;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
 	(c-invalidate-find-decl-cache beg)
 
 	(when c-recognize-<>-arglists
@@ -1156,9 +1160,6 @@ Note that the style variables are always made local to the buffer."
   ;; `c-set-fl-decl-start' for the detailed functionality.
   (cons (c-set-fl-decl-start beg) end))
 
-(defvar c-standard-font-lock-fontify-region-function nil
-  "Standard value of `font-lock-fontify-region-function'")
-
 (defun c-font-lock-fontify-region (beg end &optional verbose)
   ;; Effectively advice around `font-lock-fontify-region' which extends the
   ;; region (BEG END), for example, to avoid context fontification chopping
@@ -1183,17 +1184,14 @@ Note that the style variables are always made local to the buffer."
 		  (setq new-region (funcall fn new-beg new-end))
 		  (setq new-beg (car new-region)  new-end (cdr new-region)))
 		c-before-context-fontification-functions))))
-    (funcall c-standard-font-lock-fontify-region-function
+    (funcall (default-value 'font-lock-fontify-region-function)
 	     new-beg new-end verbose)))
 
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
-  ;; function will get executed before the font-lock one.  Amongst other
-  ;; things.
+  ;; function will get executed before the font-lock one.
   (remove-hook 'after-change-functions 'c-after-change t)
-  (add-hook 'after-change-functions 'c-after-change nil t)
-  (setq c-standard-font-lock-fontify-region-function
-	(default-value 'font-lock-fontify-region-function)))
+  (add-hook 'after-change-functions 'c-after-change nil t))
 
 (defun c-font-lock-init ()
   "Set up the font-lock variables for using the font-lock support in CC Mode.
@@ -1703,7 +1701,9 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(defvar c-prepare-bug-report-hooks nil)
+(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
+  'c-prepare-bug-report-hook "24.3")
+(defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.
 (defvar reporter-prompt-for-summary-p)
@@ -1770,7 +1770,7 @@ Key bindings:
 		lookup-syntax-properties))
 	vars)
       (lambda ()
-	(run-hooks 'c-prepare-bug-report-hooks)
+	(run-hooks 'c-prepare-bug-report-hook)
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
 

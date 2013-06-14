@@ -1,7 +1,7 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2013 Free
+;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
@@ -470,7 +470,7 @@ See `chart-sort-matchlist' for more details."
 	  (progn
 	    (chart-sort-matchlist s2 s1 pred)
 	    (setq s (oref s2 data)))
-	(error "Sorting of chart %s not supported" (object-name c))))
+	(error "Sorting of chart %s not supported" (eieio-object-name c))))
     (if (eq (oref c direction) 'horizontal)
 	(oset (oref c y-axis) items s)
       (oset (oref c x-axis) items s)

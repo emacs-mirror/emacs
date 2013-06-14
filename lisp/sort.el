@@ -1,7 +1,7 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986-1987, 1994-1995, 2001-2012
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2013 Free Software
+;; Foundation, Inc.
 
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
@@ -77,8 +77,13 @@ ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
 same as ENDRECFUN.
 
-PREDICATE is the function to use to compare keys.  If keys are numbers,
-it defaults to `<', otherwise it defaults to `string<'."
+PREDICATE, if non-nil, is the predicate function for comparing
+keys; it is called with two arguments, the keys to compare, and
+should return non-nil if the first key should sort before the
+second key.  If PREDICATE is nil, comparison is done with `<' if
+the keys are numbers, with `compare-buffer-substrings' if the
+keys are cons cells (the car and cdr of each cons cell are taken
+as start and end positions), and with `string<' otherwise."
   ;; Heuristically try to avoid messages if sorting a small amt of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
@@ -561,6 +566,69 @@ From a program takes two point or marker arguments, BEG and END."
 	(insert (car ll) "\n")
 	(setq ll (cdr ll)))
       (insert (car ll)))))
+
+;;;###autoload
+(defun delete-duplicate-lines (beg end &optional reverse adjacent keep-blanks
+                               interactive)
+  "Delete duplicate lines in the region between BEG and END.
+
+If REVERSE is nil, search and delete duplicates forward keeping the first
+occurrence of duplicate lines.  If REVERSE is non-nil (when called
+interactively with C-u prefix), search and delete duplicates backward
+keeping the last occurrence of duplicate lines.
+
+If ADJACENT is non-nil (when called interactively with two C-u prefixes),
+delete repeated lines only if they are adjacent.  It works like the utility
+`uniq' and is useful when lines are already sorted in a large file since
+this is more efficient in performance and memory usage than when ADJACENT
+is nil that uses additional memory to remember previous lines.
+
+If KEEP-BLANKS is non-nil (when called interactively with three C-u prefixes),
+duplicate blank lines are preserved.
+
+When called from Lisp and INTERACTIVE is omitted or nil, return the number
+of deleted duplicate lines, do not print it; if INTERACTIVE is t, the
+function behaves in all respects as if it had been called interactively."
+  (interactive
+   (progn
+     (barf-if-buffer-read-only)
+     (list (region-beginning) (region-end)
+	   (equal current-prefix-arg '(4))
+	   (equal current-prefix-arg '(16))
+	   (equal current-prefix-arg '(64))
+	   t)))
+  (let ((lines (unless adjacent (make-hash-table :weakness 'key :test 'equal)))
+	line prev-line
+	(count 0)
+	(beg (copy-marker beg))
+	(end (copy-marker end)))
+    (save-excursion
+      (goto-char (if reverse end beg))
+      (if (and reverse (bolp)) (forward-char -1))
+      (while (if reverse
+		 (and (> (point) beg) (not (bobp)))
+	       (and (< (point) end) (not (eobp))))
+	(setq line (buffer-substring-no-properties
+		    (line-beginning-position) (line-end-position)))
+        (if (and keep-blanks (string= "" line))
+            (forward-line 1)
+          (if (if adjacent (equal line prev-line) (gethash line lines))
+              (progn
+                (delete-region (progn (forward-line 0) (point))
+                               (progn (forward-line 1) (point)))
+                (if reverse (forward-line -1))
+                (setq count (1+ count)))
+            (if adjacent (setq prev-line line) (puthash line t lines))
+            (forward-line (if reverse -1 1))))))
+    (set-marker beg nil)
+    (set-marker end nil)
+    (when interactive
+      (message "Deleted %d %sduplicate line%s%s"
+	       count
+	       (if adjacent "adjacent " "")
+	       (if (= count 1) "" "s")
+	       (if reverse " backward" "")))
+    count))
 
 (provide 'sort)
 

@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8; -*-
 @c
 @c Note: This document requires makeinfo version 4.6 or greater to build.
 @c
@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.3
+@set VERSION 8.5
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2011-09-20
-@set UPDATE-MONTH September, 2011
+@set UPDATED 2013-03-02
+@set UPDATE-MONTH March, 2013
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -24,7 +24,8 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001-2003, 2005-2012  Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001--2003, 2005--2013 Free Software
+Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -41,8 +42,7 @@ Back-Cover Texts as in (a) below. A copy of the license is included in
 the section entitled ``GNU Free Documentation License.''
 
 (a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
-modify this GNU manual. Buying copies from the FSF supports it in
-developing GNU and promoting software freedom.''
+modify this GNU manual.''
 
 @item
 the GNU General Public License as published by the Free Software
@@ -206,16 +206,16 @@ History of MH-E
 This manual introduces another interface to the MH mail system that is
 accessible through the GNU Emacs editor, namely, @emph{MH-E}. MH-E is
 easy to use. I don't assume that you know GNU Emacs or even MH at this
-point, since I didn't know either of them when I discovered MH-E.
+point, since I didn't know either of them when I discovered MH-E@.
 However, MH-E was the tip of the iceberg, and I discovered more and
 more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 24.1. It is supported in GNU
+@value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
 Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
 known not to work with GNU Emacs versions 20 and below, and XEmacs
-version 21.5.9 - 21.5.16. It is compatible with MH versions 6.8.4 and
+version 21.5.9--21.5.16. It is compatible with MH versions 6.8.4 and
 higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
 shouldn't have to do anything special to use it. Gnus is also
 required; version 5.10 or higher is recommended. This manual covers
@@ -236,7 +236,7 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @ref{top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
-@uref{http://www.gnu.org/software/emacs/manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
 @cite{GNU Emacs Manual}},
 @end ifhtml
 from the Free Software Foundation.
@@ -255,9 +255,9 @@ version is distributed with Emacs and can be accessed with the
 @command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
 m mh-e @key{RET}}). The online version is available at
 @uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
-online resource is the book @uref{http://www.ics.uci.edu/~mh/book/,
-@cite{MH & nmh: Email for Users & Programmers}} (also known as
-@dfn{the MH book}).
+online resource is the book
+@uref{http://rand-mh.sourceforge.net/book/, @cite{MH & nmh: Email for
+Users & Programmers}} (also known as @dfn{the MH book}).
 
 I hope you enjoy this manual! If you have any comments, or suggestions
 for this document, please let me know.
@@ -384,7 +384,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Easy-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
 Easy Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 @xref{Options}.
@@ -404,7 +404,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Face-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -422,14 +422,14 @@ Emacs Manual}
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Hooks.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
 Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
 MH-E uses normal hooks in nearly all cases, so you can assume that we
 are talking about normal hooks unless we explicitly mention that a
 hook is abnormal. We also follow the conventions described in that
-section: the name of the abnormal hooks end in @code{-hooks} and all
+section: the name of the abnormal hooks end in @code{-functions} and all
 the rest of the MH-E hooks end in @code{-hook}. You can add hooks with
 either @code{customize-option} or @code{add-hook}.
 
@@ -473,7 +473,7 @@ point.
 @end ifnothtml
 @ifhtml
 See the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
@@ -540,7 +540,7 @@ installing MH-E.
 If the @code{mh-version} command displays @samp{No MH variant
 detected}@footnote{In very old versions of MH-E, you may get the error
 message, @samp{Cannot find the commands `inc' and `mhl' and the file
-`components'} if MH-E can't find MH. In this case, you need to update
+`components'} if MH-E can't find MH@. In this case, you need to update
 MH-E, and you may need to install MH too. However, newer versions of
 MH-E are better at finding MH if it is on your system.}, then you need
 to install MH or tell MH-E where to find MH.
@@ -550,12 +550,12 @@ to install MH or tell MH-E where to find MH.
 @cindex GNU mailutils MH
 
 If you don't have MH on your system already, you must install a
-variant of MH. The Debian mh-e package does this for you automatically
-(@pxref{Getting MH-E}). Most people use
+variant of MH@. The Debian mh-e package does this for you
+automatically (@pxref{Getting MH-E}). Most people use
 @uref{http://www.nongnu.org/nmh/, nmh}, but you may be interested in
-trying out @uref{http://www.gnu.org/software/mailutils/, GNU mailutils
-MH}, which supports IMAP. Your GNU/Linux distribution probably has
-packages for both of these.
+trying out @uref{http://mailutils.org/, GNU mailutils MH}, which
+supports IMAP@. Your GNU/Linux distribution probably has packages for
+both of these.
 
 @cindex @command{install-mh}
 @cindex MH commands, @command{install-mh}
@@ -671,7 +671,7 @@ chapter for a mapping between default key bindings and function
 names.}. When you're done, you'll be able to send, read, and file
 mail, which is all that a lot of people ever do. But if you're the
 curious or adventurous type, read the rest of the manual to be able to
-use all the features of MH-E. I suggest you read this chapter first to
+use all the features of MH-E@. I suggest you read this chapter first to
 get the big picture, and then you can read the manual as you wish.
 
 @menu
@@ -1121,27 +1121,27 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
+You can also order a printed manual, which has the desirable
+side-effect of helping to support the Free Software Foundation which
+made all this great software available. You can find an order form by
+running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
 gnu.org}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
-can also order a printed manual, which has the desirable side-effect
-of helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
+You can also order a printed manual, which has the desirable
+side-effect of helping to support the Free Software Foundation which
+made all this great software available. You can find an order form by
+running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
 gnu.org}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/,
+@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/,
 The GNU Emacs Lisp Reference Manual} may also be available online in
 the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}. You can
 also order a printed manual, which has the desirable side-effect of
@@ -1311,7 +1311,7 @@ When you choose a folder in MH-E via a command such as @kbd{o}
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}).
 @end ifhtml
 In addition, MH-E has several ways of choosing a suitable default so
@@ -1572,7 +1572,7 @@ command incorporates your mail and creates a buffer called
 @samp{+inbox} in MH-Folder mode. The command @kbd{M-x mh-rmail} shows
 you only new mail, not mail you have already read@footnote{If you want
 to see your old mail as well, use @kbd{F r} to pull all your messages
-into MH-E. Or, give a prefix argument to @code{mh-rmail} so it will
+into MH-E@. Or, give a prefix argument to @code{mh-rmail} so it will
 prompt you for folder to visit like @kbd{F v} (for example, @kbd{C-u
 M-x mh-rmail @key{RET} bob @key{RET}}). @xref{Folders}.}.
 
@@ -2089,8 +2089,7 @@ expressions are not allowed. Unique fields should have a @samp{:}
 suffix; otherwise, the element can be used to render invisible an
 entire class of fields that start with the same prefix. If you think a
 header field should be generally ignored, please update
-@uref{https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357,
-SF #1916032}.
+@uref{https://sourceforge.net/p/mh-e/bugs/245/, SF #245}.
 
 @cindex header field, @samp{Face:}
 @cindex header field, @samp{X-Face:}
@@ -2142,12 +2141,12 @@ Finally, MH-E will display images referenced by the
 @samp{X-Face:} fields are present@footnote{The display of the images
 requires the @uref{http://www.gnu.org/software/wget/wget.html,
 @command{wget} program} to fetch the image and the @command{convert}
-program from the @uref{http://www.imagemagick.org/, ImageMagick
-suite}.}. Of the three header fields this is the most efficient in
-terms of network usage since the image doesn't need to be transmitted
-with every single mail. The option @code{mh-fetch-x-image-url}
-controls the fetching of the @samp{X-Image-URL:} header field image
-with the following values:
+program from the @uref{http://www.imagemagick.org/script/index.php,
+ImageMagick suite}.}. Of the three header fields this is the most
+efficient in terms of network usage since the image doesn't need to be
+transmitted with every single mail. The option
+@code{mh-fetch-x-image-url} controls the fetching of the
+@samp{X-Image-URL:} header field image with the following values:
 
 @table @samp
 @item Ask Before Fetching
@@ -2456,7 +2455,7 @@ that they do not really appear like an attachment at all to the
 reader. Most of the time, this is desirable, so by default MH-E
 suppresses the buttons for inline attachments. On the other hand, you
 may receive code or HTML which the sender has added to his message as
-inline attachments so that you can read them in MH-E. In this case, it
+inline attachments so that you can read them in MH-E@. In this case, it
 is useful to see the buttons so that you know you don't have to cut
 and paste the code into a file; you can simply save the attachment. If
 you want to make the buttons visible for inline attachments, you can
@@ -3222,7 +3221,7 @@ original configuration is displayed.
 @cindex menu, @samp{Message}
 @cindex using folders
 
-This chapter discusses the things you can do with folders within MH-E.
+This chapter discusses the things you can do with folders within MH-E@.
 The commands in this chapter are also found in the @samp{Folder} and
 @samp{Message} menus.
 
@@ -3749,9 +3748,9 @@ when you press @key{TAB} when prompted for a folder name.
 
 @findex mh-search-p
 @kindex k
-@vindex mh-kill-folder-suppress-prompt-hooks
+@vindex mh-kill-folder-suppress-prompt-functions
 
-The hook @code{mh-kill-folder-suppress-prompt-hooks} is an abnormal
+The hook @code{mh-kill-folder-suppress-prompt-functions} is an abnormal
 hook run at the beginning of the command @kbd{k}. The hook functions
 are called with no arguments and should return a non-nil value to
 suppress the normal prompt when you remove a folder. This is useful
@@ -4969,7 +4968,7 @@ Michael W Thelen <thelenm@@stop.mail-abuse.org> wrote:
 The attribution consists of the sender's name and email address
 followed by the content of the option
 @code{mh-extract-from-attribution-verb}. This option can be set to
-@samp{wrote:}, @samp{a écrit:}, and @samp{schrieb:}. You can also use
+@samp{wrote:}, @samp{a Ã©crit:}, and @samp{schrieb:}. You can also use
 the @samp{Custom String} menu item to enter your own verb.
 
 @vindex mail-citation-hook
@@ -5645,7 +5644,7 @@ The command @kbd{C-c C-w} (@code{mh-check-whom}) expands aliases so
 you can check the actual address(es) in the alias. A new buffer named
 @samp{*MH-E Recipients*} is created with the output of @command{whom}
 (@pxref{Miscellaneous})@footnote{See the section
-@uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now? -- and the
+@uref{@value{MH-BOOK-HOME}/senove.html#WhaPro, What now?---and the
 whatnow Program} in the MH book.}.
 
 @node Sending Message, Killing Draft, Checking Recipients, Editing Drafts
@@ -5705,7 +5704,7 @@ buffer and delete the draft message. Use the command @kbd{C-x k}
 
 @cindex aliases
 
-MH aliases are used in the same way in MH-E as they are in MH. Any
+MH aliases are used in the same way in MH-E as they are in MH@. Any
 alias listed as a recipient will be expanded when the message is sent.
 This chapter discusses other things you can do with aliases in MH-E.
 
@@ -5816,7 +5815,7 @@ Otherwise, you can complete aliases in the header of the draft with
 
 @vindex mh-alias-completion-ignore-case-flag
 
-As MH ignores case in the aliases, so too does MH-E. However, you may
+As MH ignores case in the aliases, so too does MH-E@. However, you may
 turn off the option @code{mh-alias-completion-ignore-case-flag} to
 make case significant which can be used to segregate completion of
 your aliases. You might use uppercase for mailing lists and lowercase
@@ -6025,7 +6024,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6175,7 +6174,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6283,7 +6282,7 @@ You can also use the speedbar
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Speedbar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
 Speedbar Frames} in @cite{The GNU Emacs Manual})
 @end ifhtml
 to view your folders. To bring up the speedbar, run @kbd{M-x speedbar
@@ -6415,7 +6414,7 @@ For a description of the menu bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Menu-Bar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6437,7 +6436,7 @@ tool bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Tool-Bars.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6966,23 +6965,22 @@ swish-e -c /home/user/Mail/.swish/config
 @cindex @command{mairix}
 @cindex Unix commands, @command{mairix}
 
-In the examples below, replace @file{/home/user/Mail} with the path to
-your MH directory.
+In the examples below, replace @file{~/Mail} with the path to your MH
+directory.
 
-First create the directory @file{/home/user/Mail/.mairix}. Then create
-the file @file{/home/user/Mail/.mairix/config} with the following
-contents:
+First create the directory @file{~/Mail/.mairix}. Then create the file
+@file{~/Mail/.mairix/config} with the following contents:
 
 @smallexample
 @group
-base=/home/user/Mail
+base=~/Mail
 
 # List of folders that should be indexed. 3 dots at the end means there
 # are subfolders within the folder
 mh=archive...:inbox:drafts:news:sent:trash
 
-vfolder_format=mh
-database=/home/user/Mail/.mairix/database
+mformat=mh
+database=~/Mail/.mairix/database
 @end group
 @end smallexample
 
@@ -6990,7 +6988,7 @@ Use the following command line to generate the mairix index. Run this daily
 from cron:
 
 @smallexample
-mairix -f /home/user/Mail/.mairix/config
+mairix -f ~/Mail/.mairix/config
 @end smallexample
 
 @subsection namazu
@@ -7395,6 +7393,9 @@ The name of the MH sequence for ticked messages (default: @samp{'tick}).
 @item mh-update-sequences-after-mh-show-flag
 On means flush MH sequences to disk after message is shown (default:
 @samp{on}).
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
 @end vtable
 
 The following hook is available.
@@ -7600,6 +7601,40 @@ Disposition of junk mail (default: @samp{Delete Spam}).
 Spam program that MH-E should use (default: @samp{Auto-detect}).
 @end vtable
 
+@cindex @samp{mh-sequences} customization group
+@cindex customization group, @samp{mh-sequences}
+
+The following option in the @samp{mh-sequences} customization group is
+also available.
+
+@vtable @code
+@item mh-whitelist-preserves-sequences-flag
+On means that sequences are preserved when messages are whitelisted
+(default: @samp{on}).
+@end vtable
+
+The following hooks are available.
+
+@vtable @code
+@item mh-blacklist-msg-hook
+Hook run by @kbd{J b} (@code{mh-junk-blacklist}) after marking each
+message for blacklisting (default: @code{nil}).
+@c -------------------------
+@item mh-whitelist-msg-hook
+Hook run by @kbd{J w} (@code{mh-junk-whitelist}) after marking each
+message for whitelisting (default @samp{nil}).
+@end vtable
+
+The following faces are available.
+
+@vtable @code
+@item mh-folder-blacklisted
+Blacklisted message face.
+@c -------------------------
+@item mh-folder-whitelisted
+Whitelisted message face
+@end vtable
+
 @cindex SpamProbe
 @cindex Spamassassin
 @cindex bogofilter
@@ -7641,6 +7676,18 @@ In contrast, the command @kbd{J w} (@code{mh-junk-whitelist})
 reclassifies a range of messages (@pxref{Ranges}) as ham if it were
 incorrectly classified as spam. It then refiles the message into the
 @file{+inbox} folder.
+
+@cindex MH profile component, @samp{Previous-Sequence:}
+@cindex @samp{cur} sequence
+@cindex @samp{Previous-Sequence:} MH profile component
+@cindex sequence, @samp{cur}
+@cindex sequence, @samp{Previous-Sequence}
+@vindex mh-whitelist-preserves-sequences-flag
+
+If a message is in any sequence (except @samp{Previous-Sequence:} and
+@samp{cur}) when it is whitelisted, then it will still be in those
+sequences in the destination folder. If this behavior is not desired,
+then turn off the option @code{mh-whitelist-preserves-sequences-flag}.
 
 @cindex @samp{*MH-E Log*}
 @cindex buffers, @samp{*MH-E Log*}
@@ -7715,7 +7762,7 @@ all of your interesting messages and add a couple of points to be
 conservative. Add that many dots to the @samp{X-Spam-Level:} header
 field above to send messages with that score down the drain.
 
-In the example above, messages with a score of 5-9 are set aside in
+In the example above, messages with a score of 5--9 are set aside in
 the @samp{+spam} folder for later review. The major weakness of
 rules-based filters is a plethora of false positives so it is
 worthwhile to check.
@@ -8171,7 +8218,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8526,7 +8573,7 @@ necessary, they are extremely useful.
 [12]
 [13] # Place mail sent to any MH-E mailing list in +mh-e.
 [14] :0 w: mh-e$LOCKEXT
-[15] * ^TO.*mh-e-.*@.*sourceforge.net
+[15] * ^TO.*mh-e-.*@@.*sourceforge.net
 [16] | myrcvstore -create +mh-e
 @end smallexample
 
@@ -8599,7 +8646,7 @@ modify. Note that for them to become accessible, you'll have to load
 @vtable @code
 @item gnus-secondary-select-methods
 Select the @samp{nnml} value. This select method uses directories for
-folders and individual files for messages, just like MH. You do not
+folders and individual files for messages, just like MH@. You do not
 have to set an address.
 @c -------------------------
 @item mail-sources
@@ -8617,7 +8664,7 @@ In order to send mail within Gnus using MH-E, set this option to
 Since Gnus keeps track of which messages you have read, it would be
 bad if Gnus expired the last message, for example, message 100, and
 @command{rcvstore} gave the next new message number 1. Gnus would then
-ignore it since it thinks that you've read messages 1-100. Turning on
+ignore it since it thinks that you've read messages 1--100. Turning on
 this option ensures that the last message is never removed thereby
 eliminating this problem.
 @end vtable
@@ -8632,7 +8679,7 @@ MAILDIR=$HOME/`mhparam Path`
 # Place mail sent to the GnuCash mailing list in gnucash.spool, where
 # Gnus will pick it up.
 :0:
-* ^TO.*gnucash.*@.*gnucash.org
+* ^TO.*gnucash.*@@.*gnucash.org
 gnucash.spool
 @end smallexample
 
@@ -8664,12 +8711,11 @@ I also point out some additional sources of information.
 @kindex M-x mh-version
 
 Bug reports should be filed at
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=113357,
-SourceForge}. You need to be a SourceForge user to submit bug reports,
-but this is easy enough to do that it shouldn't be a restriction for
-you. Please include the output of @kbd{M-x mh-version}
-(@pxref{Miscellaneous}) in any bug report you send unless you're 110%
-positive we won't ask for it.
+@uref{https://sourceforge.net/p/mh-e/bugs/, SourceForge}. You need to
+be a SourceForge user to submit bug reports, but this is easy enough
+to do that it shouldn't be a restriction for you. Please include the
+output of @kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug
+report you send unless you're 110% positive we won't ask for it.
 
 @node Mailing Lists, MH FAQ and Support, Bug Reports, Odds and Ends
 @appendixsec MH-E Mailing Lists
@@ -8677,10 +8723,10 @@ positive we won't ask for it.
 @cindex SourceForge
 @cindex mailing lists
 
-There are several mailing lists for MH-E. They are @i{mh-e-users at
+There are several mailing lists for MH-E@. They are @i{mh-e-users at
 lists.sourceforge.net}, @i{mh-e-announce at lists.sourceforge.net},
 and @i{mh-e-devel at lists.sourceforge.net}. You can subscribe or view
-the archives at @uref{https://sourceforge.net/mail/?group_id=13357,
+the archives at @uref{https://sourceforge.net/p/mh-e/mailman/,
 SourceForge}. Do not report bugs on these lists; please submit them
 via SourceForge (@pxref{Bug Reports}).
 
@@ -8698,11 +8744,10 @@ itself which you will find useful.
 
 @cindex support
 
-You can find FAQs on MH-E at the
-@uref{https://sourceforge.net/tracker/?group_id=13357&atid=213357,
-Support Requests} page on SourceForge. If you don't find the answer to
-your question, file a support request and your question will become a
-new FAQ!
+You can find FAQs on MH-E by searching for @i{labels:support} on the
+@uref{https://sourceforge.net/p/mh-e/bugs/search/?q=labels%3Asupport,
+Tickets} page on SourceForge. If you don't find the answer to your
+question, file a ticket and your question will become a new FAQ!
 
 @node Getting MH-E,  , MH FAQ and Support, Odds and Ends
 @appendixsec Getting MH-E
@@ -8720,13 +8765,13 @@ distribution in @file{miscellany/mh-e}.
 @cindex release notes
 
 New MH-E releases are always available for downloading at
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} before they appear in an Emacs release. You can read the
-release notes on that page to determine if the given release of MH-E
-is already installed in your version of Emacs. You can also read the
-change log to see if you are interested in what the given release of
-MH-E has to offer (although we have no doubt that you will be
-extremely interested in all new releases).
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge}
+before they appear in an Emacs release. You can read the release notes
+on that page to determine if the given release of MH-E is already
+installed in your version of Emacs. You can also read the change log
+to see if you are interested in what the given release of MH-E has to
+offer (although we have no doubt that you will be extremely interested
+in all new releases).
 
 @cindex Debian
 
@@ -8744,9 +8789,9 @@ instead.
 After you download and extract the MH-E tarball, read the
 @file{README} file and @file{MH-E-NEWS}. These correspond to the
 release notes and change log mentioned above. The file @file{README}
-contains instructions on installing MH-E. If you're already running
+contains instructions on installing MH-E@. If you're already running
 Emacs, please quit that session and start again to load in the new
-MH-E. Check that you're running the new version with the command
+MH-E@. Check that you're running the new version with the command
 @kbd{M-x mh-version}.
 
 @cindex contributed software
@@ -8754,10 +8799,10 @@ MH-E. Check that you're running the new version with the command
 @cindex documentation
 
 In addition to the mh-e package, the
-@uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
-SourceForge} site also contains doc and contrib packages. The former
-is the latest release of this manual, and the latter contains a few
-contributed packages you might find useful.
+@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge} site
+also contains doc and contrib packages. The former is the latest
+release of this manual, and the latter contains a few contributed
+packages you might find useful.
 
 @node History, GFDL, Odds and Ends, Top
 @appendix History of MH-E
@@ -8834,7 +8879,7 @@ same structure as MH-E (i.e., invoked MH programs), though it was
 simpler and the commands were slightly different. Unfortunately, I no
 longer have a copy so the differences are lost in the mists of time.
 
-In '82-83, I was working at BBN and wrote a lot of mlisp code in
+In '82--83, I was working at BBN and wrote a lot of mlisp code in
 Gosling Emacs to make it look more like Tennex Emacs. One of the
 packages that I picked up and improved was Reid's mail system. In '83,
 I went back to Berkeley. About that time, Stallman's first version of
@@ -8856,13 +8901,13 @@ limited the use and appeal of the package.
 @cindex @command{xmh}, in MH-E history
 
 In '89, I came to Wisconsin as a professor and decided not to work on
-MH-E. It was stable, except for minor bugs, and had enough
+MH-E@. It was stable, except for minor bugs, and had enough
 functionality, so I let it be for a few years. Stephen Gildea of BBN
 began to pester me about the bugs, but I ignored them. In 1990, he
 went off to the X Consortium, said good bye, and said that he would
 now be using @command{xmh}. A few months later, he came back and said
 that he couldn't stand @command{xmh} and could I put a few more bug fixes
-into MH-E. At that point, I had no interest in fixing MH-E, so I gave
+into MH-E@. At that point, I had no interest in fixing MH-E, so I gave
 the responsibility of maintenance to him and he has done a fine job
 since then.
 
@@ -8883,7 +8928,7 @@ modifications of my own) and dislike having to use applications with
 embedded editors; they never live up to Emacs.
 
 MH is the mail reader of choice at BBN, so I converted to it. Since I
-didn't want to give up using an Emacs interface, I started using MH-E.
+didn't want to give up using an Emacs interface, I started using MH-E@.
 As is my wont, I started hacking on it almost immediately. I first
 used version 3.4m. One of the first features I added was to treat the
 folder buffer as a file-visiting buffer: you could lock it, save it,
@@ -8895,7 +8940,7 @@ MH-E was too slow and optimized it a lot. Version, 3.7, distributed
 with Emacs 18.56 in 1990, was noticeably faster.
 
 When I moved to the X Consortium I became the first person there to
-not use xmh. (There is now one other engineer there using MH-E.) About
+not use xmh. (There is now one other engineer there using MH-E@.) About
 this point I took over maintenance of MH-E from Jim and was finally
 able to add some features Jim hadn't accepted, such as the backward
 searching undo. My first release was 3.8 (Emacs 18.58) in 1992.

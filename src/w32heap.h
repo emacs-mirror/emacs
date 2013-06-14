@@ -1,5 +1,5 @@
 /* Heap management routines (including unexec) for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,9 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <windows.h>
 
-#define ROUND_UP(p, align)   (((DWORD)(p) + (align)-1) & ~((align)-1))
-#define ROUND_DOWN(p, align) ((DWORD)(p) & ~((align)-1))
-
 /*
  * Heap related stuff.
  */
@@ -34,40 +31,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 #define get_committed_heap_size()	(get_data_end () - get_data_start ())
 #define get_heap_start()		get_data_start ()
 #define get_heap_end()			get_data_end ()
-#define get_page_size()			sysinfo_cache.dwPageSize
-#define get_allocation_unit()		sysinfo_cache.dwAllocationGranularity
-#define get_processor_type()		sysinfo_cache.dwProcessorType
-#define get_w32_major_version()  	w32_major_version
-#define get_w32_minor_version()  	w32_minor_version
 
 extern unsigned char *get_data_start (void);
 extern unsigned char *get_data_end (void);
-extern unsigned long  reserved_heap_size;
-extern SYSTEM_INFO    sysinfo_cache;
-extern OSVERSIONINFO  osinfo_cache;
+extern size_t         reserved_heap_size;
 extern BOOL   	      using_dynamic_heap;
-extern int    	      w32_major_version;
-extern int    	      w32_minor_version;
-extern int    	      w32_build_number;
-
-enum {
-  OS_9X = 1,
-  OS_NT
-};
-
-extern int os_subtype;
 
 /* Emulation of Unix sbrk().  */
-extern void *sbrk (unsigned long size);
+extern void *sbrk (ptrdiff_t size);
 
 /* Initialize heap structures for sbrk on startup.  */
 extern void init_heap (void);
 
 /* Round the heap to this size.  */
-extern void round_heap (unsigned long size);
-
-/* Cache system info, e.g., the NT page size.  */
-extern void cache_system_info (void);
+extern void round_heap (size_t size);
 
 /* ----------------------------------------------------------------- */
 /* Useful routines for manipulating memory-mapped files. */
@@ -89,6 +66,6 @@ IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
 
 /* Return pointer to section header for section containing the given
    relative virtual address. */
-IMAGE_SECTION_HEADER * rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header);
+IMAGE_SECTION_HEADER * rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */

@@ -1,6 +1,6 @@
 ;;; url-expand.el --- expand-file-name for URLs
 
-;; Copyright (C) 1999, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -112,7 +112,7 @@ path components followed by `..' are removed, along with the `..' itself."
       ;; Well, they told us the scheme, let's just go with it.
       nil
     (setf (url-type urlobj) (or (url-type urlobj) (url-type defobj)))
-    (setf (url-port urlobj) (or (url-port urlobj)
+    (setf (url-port urlobj) (or (url-portspec urlobj)
                                 (and (string= (url-type urlobj)
                                               (url-type defobj))
 				     (url-port defobj))))

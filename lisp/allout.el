@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -77,11 +77,6 @@
 ;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
-  ;; Most of the requires here are for stuff covered by autoloads, which
-  ;; byte-compiling doesn't trigger.
-  (require 'epg)
-  (require 'epa)
-  (require 'overlay)
   ;; `cl' is required for `assert'.  `assert' is not covered by a standard
   ;; autoload, but it is a macro, so that eval-when-compile is sufficient
   ;; to byte-compile it in, or to do the require when the buffer evalled.
@@ -1522,8 +1517,8 @@ The verifier string is retained as an Emacs file variable, as well as in
 the Emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
-(make-obsolete 'allout-passphrase-verifier-string
-               'allout-passphrase-verifier-string "23.3")
+(make-obsolete-variable 'allout-passphrase-verifier-string
+			'allout-passphrase-verifier-string "23.3")
 ;;;###autoload
 (put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
 ;;;_   = allout-passphrase-hint-string
@@ -1538,8 +1533,8 @@ state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
 (setq-default allout-passphrase-hint-string "")
-(make-obsolete 'allout-passphrase-hint-string
-               'allout-passphrase-hint-string "23.3")
+(make-obsolete-variable 'allout-passphrase-hint-string
+			'allout-passphrase-hint-string "23.3")
 ;;;###autoload
 (put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
@@ -1566,7 +1561,7 @@ Each value can be a regexp or a list with a regexp followed by a
 substitution string.  If it's just a regexp, all its matches are removed
 before the text is encrypted.  If it's a regexp and a substitution, the
 substitution is used against the regexp matches, a la `replace-match'.")
-(make-variable-buffer-local 'allout-encryption-text-removal-regexps)
+(make-variable-buffer-local 'allout-encryption-plaintext-sanitization-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-regexps
 (defvar allout-encryption-ciphertext-rejection-regexps nil
   "Variable for regexps matching plaintext to remove before encryption.
@@ -1657,10 +1652,9 @@ and the place for the cursor after the decryption is done."
 (defmacro allout-called-interactively-p ()
   "A version of `called-interactively-p' independent of Emacs version."
   ;; ... to ease maintenance of allout without betraying deprecation.
-  (if (equal (subr-arity (symbol-function 'called-interactively-p))
-             '(0 . 0))
-      '(called-interactively-p)
-    '(called-interactively-p 'interactive)))
+  (if (ignore-errors (called-interactively-p 'interactive) t)
+      '(called-interactively-p 'interactive)
+    '(called-interactively-p)))
 ;;;_   = allout-inhibit-aberrance-doublecheck nil
 ;; In some exceptional moments, disparate topic depths need to be allowed
 ;; momentarily, eg when one topic is being yanked into another and they're
@@ -1688,11 +1682,10 @@ from what it did before, for backwards compatibility.
 
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."
-
+  (declare (obsolete allout-auto-activation "23.3"))
   (custom-set-variables (list 'allout-auto-activation (format "%s" mode)))
   (format "%s" mode))
-(make-obsolete 'allout-init
-               "customize 'allout-auto-activation' instead." "23.3")
+
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -6048,6 +6041,16 @@ See `allout-toggle-current-subtree-encryption' for more details."
 
       (run-hook-with-args 'allout-structure-added-functions
                           bullet-pos subtree-end))))
+
+(declare-function epg-context-set-passphrase-callback "epg"
+                  (context passphrase-callback))
+(declare-function epg-list-keys "epg" (context &optional name mode))
+(declare-function epg-decrypt-string "epg" (context cipher))
+(declare-function epg-encrypt-string "epg"
+                  (context plain recipients &optional sign always-trust))
+(declare-function epg-user-id-string "epg" (user-id))
+(declare-function epg-key-user-id-list "epg" (key))
+
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)
 (defun allout-encrypt-string (text decrypt allout-buffer keymode-cue

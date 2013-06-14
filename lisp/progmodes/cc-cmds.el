@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2013 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -45,7 +45,6 @@
 (cc-require 'cc-engine)
 
 ;; Silence the compiler.
-(cc-bytecomp-defun delete-forward-p)	; XEmacs
 (cc-bytecomp-defvar filladapt-mode)	; c-fill-paragraph contains a kludge
 					; which looks at this.
 
@@ -475,7 +474,7 @@ inside a literal or a macro, nothing special happens."
 	  (bolp (bolp)))
       (beginning-of-line)
       (delete-horizontal-space)
-      (insert last-command-event)
+      (insert (c-last-command-char))
       (and (not bolp)
 	   (goto-char (- (point-max) pos)))
       )))
@@ -737,7 +736,7 @@ settings of `c-cleanup-list' are done."
 	      ;; `}': clean up empty defun braces
 	      (when (c-save-buffer-state ()
 		      (and (memq 'empty-defun-braces c-cleanup-list)
-			   (eq last-command-event ?\})
+			   (eq (c-last-command-char) ?\})
 			   (c-intersect-lists '(defun-close class-close inline-close)
 					      syntax)
 			   (progn
@@ -753,14 +752,14 @@ settings of `c-cleanup-list' are done."
 	      ;; `}': compact to a one-liner defun?
 	      (save-match-data
 		(when
-		    (and (eq last-command-event ?\})
+		    (and (eq (c-last-command-char) ?\})
 			 (memq 'one-liner-defun c-cleanup-list)
 			 (c-intersect-lists '(defun-close) syntax)
 			 (c-try-one-liner))
 		  (setq here (- (point-max) pos))))
 
 	      ;; `{': clean up brace-else-brace and brace-elseif-brace
-	      (when (eq last-command-event ?\{)
+	      (when (eq (c-last-command-char) ?\{)
 		(cond
 		 ((and (memq 'brace-else-brace c-cleanup-list)
 		       (re-search-backward
@@ -814,7 +813,7 @@ settings of `c-cleanup-list' are done."
 	    ))))
 
     ;; blink the paren
-    (and (eq last-command-event ?\})
+    (and (eq (c-last-command-char) ?\})
 	 (not executing-kbd-macro)
 	 old-blink-paren
 	 (save-excursion
@@ -851,7 +850,7 @@ is inhibited."
     (when (and (not arg)
 	       (eq literal 'c)
 	       (memq 'comment-close-slash c-cleanup-list)
-	       (eq last-command-event ?/)
+	       (eq (c-last-command-char) ?/)
 	       (looking-at (concat "[ \t]*\\("
 				   (regexp-quote comment-end) "\\)?$"))
 	; (eq c-block-comment-ender "*/") ; C-style comments ALWAYS end in */
@@ -867,7 +866,7 @@ is inhibited."
     (setq indentp (and (not arg)
 		       c-syntactic-indentation
 		       c-electric-flag
-		       (eq last-command-event ?/)
+		       (eq (c-last-command-char) ?/)
 		       (eq (char-before) (if literal ?* ?/))))
     (self-insert-command (prefix-numeric-value arg))
     (if indentp
@@ -941,10 +940,10 @@ settings of `c-cleanup-list'."
 	  (let ((pos (- (point-max) (point))))
 	    (if (c-save-buffer-state ()
 		  (and (or (and
-			    (eq last-command-event ?,)
+			    (eq (c-last-command-char) ?,)
 			    (memq 'list-close-comma c-cleanup-list))
 			   (and
-			    (eq last-command-event ?\;)
+			    (eq (c-last-command-char) ?\;)
 			    (memq 'defun-close-semi c-cleanup-list)))
 		       (progn
 			 (forward-char -1)
@@ -1101,7 +1100,7 @@ numeric argument is supplied, or the point is inside a literal."
     ;; Indent the line if appropriate.
     (when (and c-electric-flag c-syntactic-indentation c-recognize-<>-arglists)
       (setq found-delim
-	    (if (eq last-command-event ?<)
+	    (if (eq (c-last-command-char) ?<)
 		;; If a <, basically see if it's got "template" before it .....
 		(or (and (progn
 			   (backward-char)
@@ -1195,7 +1194,7 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 	    ;; clean up brace-elseif-brace
 	    (when
 		(and (memq 'brace-elseif-brace c-cleanup-list)
-		     (eq last-command-event ?\()
+		     (eq (c-last-command-char) ?\()
 		     (re-search-backward
 		      (concat "}"
 			      "\\([ \t\n]\\|\\\\\n\\)*"
@@ -1213,7 +1212,7 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 	    ;; clean up brace-catch-brace
 	    (when
 		(and (memq 'brace-catch-brace c-cleanup-list)
-		     (eq last-command-event ?\()
+		     (eq (c-last-command-char) ?\()
 		     (re-search-backward
 		      (concat "}"
 			      "\\([ \t\n]\\|\\\\\n\\)*"
@@ -1234,7 +1233,7 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 
 	     ;; space-before-funcall clean-up?
 	     ((and (memq 'space-before-funcall c-cleanup-list)
-		   (eq last-command-event ?\()
+		   (eq (c-last-command-char) ?\()
 		   (save-excursion
 		     (backward-char)
 		     (skip-chars-backward " \t")
@@ -1252,7 +1251,7 @@ newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
 	     ;; compact-empty-funcall clean-up?
 		  ((c-save-buffer-state ()
 		     (and (memq 'compact-empty-funcall c-cleanup-list)
-			  (eq last-command-event ?\))
+			  (eq (c-last-command-char) ?\))
 			  (save-excursion
 			    (c-safe (backward-char 2))
 			    (when (looking-at "()")
@@ -1281,7 +1280,7 @@ keyword on the line, the keyword is not inserted inside a literal, and
     (when (c-save-buffer-state ()
 	    (and c-electric-flag
 		 c-syntactic-indentation
-		 (not (eq last-command-event ?_))
+		 (not (eq (c-last-command-char) ?_))
 		 (= (save-excursion
 		      (skip-syntax-backward "w")
 		      (point))

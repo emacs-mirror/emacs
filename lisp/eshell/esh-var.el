@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables
 
-;; Copyright (C) 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -107,11 +107,11 @@
 
 (provide 'esh-var)
 
-(eval-when-compile
-  (require 'pcomplete)
-  (require 'esh-util)
-  (require 'esh-mode))
+(require 'esh-util)
+(require 'esh-cmd)
 (require 'esh-opt)
+
+(require 'pcomplete)
 (require 'env)
 (require 'ring)
 

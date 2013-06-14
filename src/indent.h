@@ -1,5 +1,5 @@
 /* Definitions for interface to indent.c
-   Copyright (C) 1985-1986, 2001-2012  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2013 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,14 +26,14 @@ struct position
     int contin;
   };
 
-struct position *compute_motion (ptrdiff_t from, EMACS_INT fromvpos,
-                                 EMACS_INT fromhpos, int did_motion,
-                                 ptrdiff_t to, EMACS_INT tovpos,
-                                 EMACS_INT tohpos,
+struct position *compute_motion (ptrdiff_t from, ptrdiff_t frombyte,
+				 EMACS_INT fromvpos, EMACS_INT fromhpos,
+				 bool did_motion, ptrdiff_t to,
+				 EMACS_INT tovpos, EMACS_INT tohpos,
                                  EMACS_INT width, ptrdiff_t hscroll,
                                  int tab_offset, struct window *);
-struct position *vmotion (ptrdiff_t from, EMACS_INT vtarget,
-                          struct window *);
+struct position *vmotion (ptrdiff_t from, ptrdiff_t from_byte,
+			  EMACS_INT vtarget, struct window *);
 ptrdiff_t skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p,
                           ptrdiff_t to, Lisp_Object window);
 
@@ -45,8 +45,8 @@ extern ptrdiff_t last_known_column_point;
 /* Return true if the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's column_cache.  */
-int disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
-                              struct Lisp_Vector *widthtab);
+bool disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
+			       struct Lisp_Vector *widthtab);
 
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 void recompute_width_table (struct buffer *buf,

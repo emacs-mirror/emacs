@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs
 
-;; Copyright (C) 2008-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2013 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -913,7 +913,7 @@ while \(:host t) would find all host entries."
       (when (and c v)
         (setq prompt (replace-regexp-in-string (format "%%%c" c)
                                                (format "%s" v)
-                                               prompt)))))
+                                               prompt nil t)))))
   prompt)
 
 (defun auth-source-ensure-strings (values)
@@ -1008,7 +1008,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                     (while (and (zerop (forward-line 1))
                                 (looking-at "$")))
                     (narrow-to-region (point) (point)))
-                   ((member elem tokens)
+                   ((and (member elem tokens) (null pair))
                     ;; Tokens that don't have a following value are ignored,
                     ;; except "default".
                     (when (and pair (or (cdr pair)

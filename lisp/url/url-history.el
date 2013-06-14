@@ -1,6 +1,6 @@
 ;;; url-history.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996-1999, 2004-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2013 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

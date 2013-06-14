@@ -1,6 +1,6 @@
 ;;; make.by -- BY notation for Makefiles.
 
-;; Copyright (C) 1999-2012 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         David Ponce <david@dponce.com>
@@ -22,6 +22,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 %package semantic-make-by
+%provide semantic/bovine/make-by
 
 %languagemode  makefile-mode
 %start         Makefile

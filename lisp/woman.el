@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -949,6 +949,7 @@ or different fonts."
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."
+  (declare (obsolete choose-completion-guess-base-position "23.2"))
   (interactive)
   (face-spec-set 'woman-italic (face-user-default-spec 'woman-italic))
   (face-spec-set 'woman-bold (face-user-default-spec 'woman-bold)))
@@ -956,6 +957,7 @@ or different fonts."
 (defun woman-monochrome-faces ()
   "Set foreground colors of italic and bold faces to that of the default face.
 This is usually either black or white."
+  (declare (obsolete choose-completion-guess-base-position "23.2"))
   (interactive)
   (set-face-foreground 'woman-italic 'unspecified)
   (set-face-foreground 'woman-bold 'unspecified))
@@ -1303,12 +1305,12 @@ cache to be re-read."
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.
        (t
 	;; Multiple files for topic, so must select 1.
-	;; Unread the command event (TAB = ?\t = 9) that runs the command
-	;; `minibuffer-complete' in order to automatically complete the
-	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9)) ; and delete any type-ahead!
-	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history))))))
+	;; Run the command `minibuffer-complete' in order to automatically
+	;; complete the minibuffer contents as far as possible.
+        (minibuffer-with-setup-hook
+            (lambda () (let ((this-command this-command)) (minibuffer-complete)))
+          (completing-read "Manual file: " files nil 1
+                           (try-completion "" files) 'woman-file-history)))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.
@@ -1550,11 +1552,13 @@ Also make each path-info component into a list.
     (woman-dired-define-keys)
   (add-hook 'dired-mode-hook 'woman-dired-define-keys))
 
+(declare-function dired-get-filename "dired"
+                  (&optional localp no-error-if-not-filep))
+
 ;;;###autoload
 (defun woman-dired-find-file ()
   "In dired, run the WoMan man-page browser on this file."
   (interactive)
-  ;; dired-get-filename is defined in dired.el
   (woman-find-file (dired-get-filename)))
 
 
@@ -1826,8 +1830,6 @@ Argument EVENT is the invoking mouse event."
    ["Use Full Frame Width" woman-toggle-fill-frame
     :active t :style toggle :selected woman-fill-frame]
    ["Reformat Last Man Page" woman-reformat-last-file t]
-   ["Use Monochrome Main Faces" woman-monochrome-faces t]
-   ["Use Default Main Faces" woman-default-faces t]
    ["Make Contents Menu" (woman-imenu t) (not woman-imenu-done)]
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
@@ -1946,6 +1948,9 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (setq woman-fill-frame (not woman-fill-frame))
   (message "Woman fill column set to %s."
 	   (if woman-fill-frame "frame width" woman-fill-column)))
+
+(declare-function apropos-print "apropos"
+                  (do-keys spacing &optional text nosubst))
 
 (defun woman-mini-help ()
   "Display WoMan commands and user options in an `apropos' buffer."
@@ -2191,7 +2196,7 @@ To be called on original buffer and any .so insertions."
 		 (face-underline-p face))
 	    (let ((face-no-ul (intern (concat face-name "-no-ul"))))
 	      (copy-face face face-no-ul)
-	      (set-face-underline-p face-no-ul nil)))))))
+	      (set-face-underline face-no-ul nil)))))))
 
 ;; Preprocessors
 ;; =============
@@ -2253,7 +2258,9 @@ Currently set only from '\" t in the first line of the source file.")
 	 (set-face-font 'woman-symbol woman-symbol-font
 			(and (frame-live-p woman-frame) woman-frame)))
 
-    ;; Set syntax and display tables:
+    (setq-local adaptive-fill-mode nil) ; No special "%" "#" etc filling.
+
+        ;; Set syntax and display tables:
     (set-syntax-table woman-syntax-table)
     (woman-set-buffer-display-table)
 
@@ -3632,7 +3639,9 @@ expression in parentheses.  Leaves point after the value."
 	     ((looking-at "[mnuv]"))	; ignore for now
 	     ((looking-at "i") (setq n (* n 10))) ; inch
 	     ((looking-at "c") (setq n (* n 3.9))) ; cm
-	     ((looking-at "P") (setq n (* n 1.7))) ; Pica
+	     ((let ((case-fold-search nil))
+		(looking-at "P"))
+	      (setq n (* n 1.7))) ; Pica
 	     ((looking-at "p") (setq n (* n 0.14))) ; point
 	     ;; NB: May be immediately followed by + or -, etc.,
 	     ;; in which case do nothing and return nil.
