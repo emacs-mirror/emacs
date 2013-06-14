@@ -185,7 +185,7 @@ Message types
 
     ``arena`` is an arena.
 
-    ``message_type`` is the message type to be disabled.
+    ``message_type`` is the message type to be enabled.
 
     This function tells the MPS that ``arena`` may post messages of
     ``message_type`` to its :term:`message queue`. By default, the MPS

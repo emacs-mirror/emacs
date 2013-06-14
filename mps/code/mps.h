@@ -111,6 +111,8 @@ typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 
 /* Keyword argument lists */
 
+typedef void (*mps_fun_t)(void);
+
 typedef struct mps_arg_s {
   mps_key_t key;
   union {
@@ -124,6 +126,7 @@ typedef struct mps_arg_s {
     float f;
     double d;
     size_t size;
+    mps_fun_t fun;
     mps_addr_t addr;
     mps_fmt_t format;
     mps_chain_t chain;
