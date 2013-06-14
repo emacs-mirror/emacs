@@ -1,4 +1,4 @@
-2013-06-99 Ivan Kanis <ivan@kanis.fr>
+2013-06-14 Ivan Kanis <ivan@kanis.fr>
 
 	Add support for dired in saveplace.
 	* dired.el (dired-initial-position-hook): New variable.
