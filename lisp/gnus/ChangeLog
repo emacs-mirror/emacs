@@ -1,3 +1,11 @@
+2013-06-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-submit): Get submit button logic right when hitting RET
+	on non-submit buttons.
+
+	* shr.el: Remove shr-preliminary-table-render, since that can't really
+	be used for anything in practice.
+
 2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
 
 	* sieve.el: Rebind q to (sieve-bury-buffer), bind Q to

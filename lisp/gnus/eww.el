@@ -206,12 +206,12 @@
 	 (widget
 	  (cond
 	   ((equal type "submit")
-	    (list
-	     'push-button
-	     :notify 'eww-submit
-	     :name (cdr (assq :name cont))
-	     :eww-form eww-form
-	     (or (cdr (assq :value cont)) "Submit")))
+	    (list 'push-button
+		  :notify 'eww-submit
+		  :name (cdr (assq :name cont))
+		  :value (cdr (assq :value cont))
+		  :eww-form eww-form
+		  (or (cdr (assq :value cont)) "Submit")))
 	   ((or (equal type "radio")
 		(equal type "checkbox"))
 	    (list 'checkbox
@@ -226,18 +226,17 @@
 		  :name (cdr (assq :name cont))
 		  :value (cdr (assq :value cont))))
 	   (t
-	    (list
-	     'editable-field
-	     :size (string-to-number
-		    (or (cdr (assq :size cont))
-			"40"))
-	     :value (or (cdr (assq :value cont)) "")
-	     :secret (and (equal type "password") ?*)
-	     :action 'eww-submit
-	     :name (cdr (assq :name cont))
-	     :eww-form eww-form)))))
-    (if (eq (car widget) 'hidden)
-	(nconc eww-form (list widget))
+	    (list 'editable-field
+		  :size (string-to-number
+			 (or (cdr (assq :size cont))
+			     "40"))
+		  :value (or (cdr (assq :value cont)) "")
+		  :secret (and (equal type "password") ?*)
+		  :action 'eww-submit
+		  :name (cdr (assq :name cont))
+		  :eww-form eww-form)))))
+    (nconc eww-form (list widget))
+    (unless (eq (car widget) 'hidden)
       (apply 'widget-create widget)
       (put-text-property start (point) 'eww-widget widget))))
 
@@ -282,14 +281,12 @@
 
 (defun eww-submit (widget &rest ignore)
   (let ((form (plist-get (cdr widget) :eww-form))
-	(first-button t)
 	values)
     (dolist (overlay (sort (overlays-in (point-min) (point-max))
 			   (lambda (o1 o2)
 			     (< (overlay-start o1) (overlay-start o2)))))
       (let ((field (or (plist-get (overlay-properties overlay) 'field)
-		       (plist-get (overlay-properties overlay) 'button)
-		       (plist-get (overlay-properties overlay) 'eww-hidden))))
+		       (plist-get (overlay-properties overlay) 'button))))
 	(when (eq (plist-get (cdr field) :eww-form) form)
 	  (let ((name (plist-get (cdr field) :name)))
 	    (when name
@@ -298,19 +295,12 @@
 		(when (widget-value field)
 		  (push (cons name (plist-get (cdr field) :checkbox-value))
 			values)))
-	       ((eq (car field) 'eww-hidden)
-		(push (cons name (plist-get (cdr field) :value))
-		      values))
 	       ((eq (car field) 'push-button)
 		;; We want the values from buttons if we hit a button,
-		;; or we're submitting something and this is the first
-		;; button displayed.
-		(when (or (and (eq (car widget) 'push-button)
-			       (eq widget field))
-			  (and (not (eq (car widget) 'push-button))
-			       (eq (car field) 'push-button)
-			       first-button))
-		  (setq first-button nil)
+		;; if it's the first button in the DOM after the field
+		;; hit ENTER on.
+		(when (and (eq (car widget) 'push-button)
+			   (eq widget field))
 		  (push (cons name (widget-value field))
 			values)))
 	       (t
@@ -322,6 +312,25 @@
 	(push (cons (plist-get (cdr elem) :name)
 		    (plist-get (cdr elem) :value))
 	      values)))
+    ;; If we hit ENTER in a non-button field, include the value of the
+    ;; first submit button after it.
+    (unless (eq (car widget) 'push-button)
+      (let ((rest form)
+	    (name (plist-get (cdr widget) :name)))
+	(when rest
+	  (while (and rest
+		      (or (not (consp (car rest)))
+			  (not (equal name (plist-get (cdar rest) :name)))))
+	    (pop rest)))
+	(while rest
+	  (let ((elem (pop rest)))
+	    (when (and (consp (car rest))
+		       (eq (car elem) 'push-button))
+	      (push (cons (plist-get (cdr elem) :name)
+			  (plist-get (cdr elem) :value))
+		    values)
+	      (setq rest nil))))))
+    (debug values)
     (let ((shr-base eww-current-url))
       (if (and (stringp (cdr (assq :method form)))
 	       (equal (downcase (cdr (assq :method form))) "post"))
