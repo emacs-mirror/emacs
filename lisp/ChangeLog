@@ -1,3 +1,11 @@
+2013-06-99 Ivan Kanis <ivan@kanis.fr>
+
+	Add support for dired in saveplace.
+	* dired.el (dired-initial-position-hook): New variable.
+	(dired-initial-position): Call hook to place cursor position.
+	* saveplace.el (save-place-to-alist): Add dired position.
+	(save-place-dired-hook): New function.
+
 2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (eval-after-load, set-temporary-overlay-map): Use indirection
