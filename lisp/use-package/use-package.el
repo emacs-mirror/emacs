@@ -399,6 +399,44 @@
   (when (not (package-installed-p package))
     (package-install package)))
 
+(defvar use-package-keywords
+  '(
+     :bind
+     :commands
+     :config
+     :defer
+     :defines
+     :diminish
+     :disabled
+     :ensure
+     :idle
+     :if
+     :init
+     :interpreter
+     :load-path
+     :mode
+     :pre-init
+     :requires
+  )
+  "Keywords recognized by `use-package'.")
+
+(defun plist-keys (plist)
+  "Return a list containing all the keys in PLIST."
+  (when plist
+    (cons
+      (car plist)
+      (plist-keys
+        (cddr plist)))))
+
+(defun use-package-validate-keywords (args)
+  "Error if any keyword given in ARGS is not recognized.
+Return the list of recognized keywords."
+  (mapc
+    (function
+      (lambda (keyword)
+        (unless (memq keyword use-package-keywords)
+          (error "Unrecognized keyword: %s" keyword))))
+    (plist-keys args)))
 
 (defmacro use-package (name &rest args)
 "Use a package with configuration options.
@@ -424,6 +462,7 @@ For full documentation. please see commentary.
 :diminish Support for diminish package (if it's installed).
 :idle adds a form to run on an idle timer
 :ensure loads package using package.el if necessary."
+  (use-package-validate-keywords args) ; error if any bad keyword, ignore result
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
