@@ -331,11 +331,11 @@
 		(url-request-data (mm-url-encode-www-form-urlencoded values)))
 	    (eww-browse-url (shr-expand-url (cdr (assq :action form)))))
 	(eww-browse-url
-	  (concat
+	 (concat
 	  (if (cdr (assq :action form))
 	      (shr-expand-url (cdr (assq :action form)))
 	    eww-current-url)
-	   "?"
+	  "?"
 	  (mm-url-encode-www-form-urlencoded values)))))))
 
 (defun eww-convert-widgets ()
