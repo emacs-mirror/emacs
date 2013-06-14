@@ -1,3 +1,8 @@
+2013-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* term/xterm.el (xterm--query):
+	Stop after first matching handler.  (Bug#14615)
+
 2013-06-14 Ivan Kanis <ivan@kanis.fr>
 
 	Add support for dired in saveplace.
