@@ -1,4 +1,4 @@
-;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
+;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985-1986, 1999-2013 Free Software Foundation, Inc.
 
