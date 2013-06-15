@@ -1,3 +1,12 @@
+2013-06-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-search-collection): Fix docstring.
+	(auth-source-netrc-parse): Refactor and improve netrc parser to support
+	single-quoted strings and multiline entries.
+	(auth-source-netrc-parse-next-interesting)
+	(auth-source-netrc-parse-one, auth-source-netrc-parse-entries): New
+	functions to support parser.
+
 2013-06-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-submit): Get submit button logic right when hitting RET
