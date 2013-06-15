@@ -182,7 +182,6 @@
 		3114A6C1156E97B8001E0AA3 /* fmtno.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CACC156BE4C200753214 /* fmtno.c */; };
 		3114A6D1156E9829001E0AA3 /* eventcnv.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A6D0156E9829001E0AA3 /* eventcnv.c */; };
 		3114A6D7156E9923001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
-		3114A6DA156E9950001E0AA3 /* eventpro.c in Sources */ = {isa = PBXBuildFile; fileRef = 3114A6D9156E9950001E0AA3 /* eventpro.c */; };
 		3114A6DD156E9A0F001E0AA3 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3124CAC3156BE40100753214 /* awlut.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CAC2156BE40100753214 /* awlut.c */; };
 		3124CAC4156BE40D00753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -1178,7 +1177,6 @@
 		3114A6BA156E9768001E0AA3 /* walkt0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = walkt0.c; sourceTree = "<group>"; };
 		3114A6C6156E9815001E0AA3 /* mpseventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
-		3114A6D9156E9950001E0AA3 /* eventpro.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventpro.c; sourceTree = "<group>"; };
 		311F2F5017398AD500C15B6A /* boot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = boot.h; sourceTree = "<group>"; };
 		311F2F5117398AE900C15B6A /* bt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bt.h; sourceTree = "<group>"; };
 		311F2F5217398AE900C15B6A /* cbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cbs.h; sourceTree = "<group>"; };
@@ -1190,7 +1188,6 @@
 		311F2F5817398AE900C15B6A /* event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = event.h; sourceTree = "<group>"; };
 		311F2F5917398AE900C15B6A /* eventcom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventcom.h; sourceTree = "<group>"; };
 		311F2F5A17398AE900C15B6A /* eventdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventdef.h; sourceTree = "<group>"; };
-		311F2F5B17398AE900C15B6A /* eventpro.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventpro.h; sourceTree = "<group>"; };
 		311F2F5C17398AE900C15B6A /* eventrep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventrep.h; sourceTree = "<group>"; };
 		311F2F5D17398B0400C15B6A /* lo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lo.h; sourceTree = "<group>"; };
 		311F2F5E17398B0E00C15B6A /* lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lock.h; sourceTree = "<group>"; };
@@ -1661,7 +1658,6 @@
 		3114A6D8156E9942001E0AA3 /* mpseventcnv */ = {
 			isa = PBXGroup;
 			children = (
-				3114A6D9156E9950001E0AA3 /* eventpro.c */,
 				3114A6D0156E9829001E0AA3 /* eventcnv.c */,
 			);
 			name = mpseventcnv;
@@ -1828,7 +1824,6 @@
 				311F2F5817398AE900C15B6A /* event.h */,
 				311F2F5917398AE900C15B6A /* eventcom.h */,
 				311F2F5A17398AE900C15B6A /* eventdef.h */,
-				311F2F5B17398AE900C15B6A /* eventpro.h */,
 				311F2F5C17398AE900C15B6A /* eventrep.h */,
 				31EEAC1A156AB2B200714D05 /* format.c */,
 				2291A5EE175CB768001D4920 /* freelist.c */,
@@ -3020,7 +3015,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3114A6D1156E9829001E0AA3 /* eventcnv.c in Sources */,
-				3114A6DA156E9950001E0AA3 /* eventpro.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5208,6 +5202,7 @@
 				31FCAE1217692403008C034C /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

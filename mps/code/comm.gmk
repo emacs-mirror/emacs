@@ -160,7 +160,7 @@ FMTDY = fmtdy.c fmtno.c
 FMTDYTST = fmtdy.c fmtno.c fmtdytst.c
 FMTHETST = fmthe.c fmtdy.c fmtno.c fmtdytst.c
 PLINTH = mpsliban.c mpsioan.c
-EVENTPROC = eventcnv.c eventpro.c table.c
+EVENTPROC = eventcnv.c table.c
 MPMCOMMON = abq.c arena.c arenacl.c arenavm.c arg.c boot.c bt.c         \
     buffer.c cbs.c dbgpool.c dbgpooli.c event.c format.c         \
     freelist.c global.c ld.c locus.c message.c meter.c mpm.c mpsi.c     \
@@ -439,7 +439,7 @@ $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/mps.a
+  $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventtxt: $(PFM)/$(VARIETY)/eventtxt.o \
   $(PFM)/$(VARIETY)/mps.a
@@ -449,7 +449,7 @@ $(PFM)/$(VARIETY)/mpseventsql: $(PFM)/$(VARIETY)/eventsql.o \
 
 $(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
   $(PFM)/$(VARIETY)/eventrep.o \
-  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
+  $(PFM)/$(VARIETY)/table.o \
   $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
