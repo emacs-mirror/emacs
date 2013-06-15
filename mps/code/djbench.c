@@ -114,7 +114,7 @@ static struct {
   {"mvt",   arena_wrap, dj_reserve, mps_class_mvt},
   {"mvff",  arena_wrap, dj_reserve, mps_class_mvff},
   {"mv",    arena_wrap, dj_alloc,   mps_class_mv},
-  {"mvb",   arena_wrap, dj_reserve, mps_class_mv},
+  {"mvb",   arena_wrap, dj_reserve, mps_class_mv}, /* mv with buffers */
   {"an",    wrap,       dj_malloc,  dummy_class},
 };
   
@@ -143,9 +143,30 @@ int main(int argc, char *argv[]) {
       break;
     default:
       fprintf(stderr,
-              "Usage: %s [option...]\n"
-              "Options: UTSL!\n",
-              argv[0]);
+              "Usage: %s [option...] [test...]\n"
+              "Options:\n"
+              "  -i n, --niter=n\n"
+              "    Iterate each test n times (default %u).\n"
+              "  -p n, --npass=n\n"
+              "    Pass over the block array n times (default %u).\n"
+              "  -b n, --nblocks=n\n"
+              "    Length of the block array (default %u).\n"
+              "  -s n, --sshift=n\n"
+              "    Log2 max block size in words (default %u).\n"
+              "  -r p, --prob=p\n"
+              "    Probability of acting on a block (default %g).\n"
+              "Tests:\n"
+              "  mvt   pool class MVT\n"
+              "  mvff  pool class MVFF\n"
+              "  mv    pool class MV\n"
+              "  mvb   pool class MV with buffers\n"
+              "  an    malloc\n",
+              argv[0],
+              niter,
+              npass,
+              nblocks,
+              sshift,
+              prob);
       return EXIT_FAILURE;
     }
   argc -= optind;
