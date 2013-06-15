@@ -20,6 +20,14 @@ interior of a block is being freed) and the call to allocate the block
 fails.
 
 
+References
+----------
+
+.. [Pugh_1990] William Pugh. 1990. Skip lists: a probabilistic
+   alternative to balanced trees. Commun. ACM 33, 6 (June 1990), 668-676.
+   DOI=10.1145/78973.78977 http://doi.acm.org/10.1145/78973.78977 
+
+
 Document History
 ----------------
 
