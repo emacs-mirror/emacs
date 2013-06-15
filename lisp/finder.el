@@ -232,6 +232,9 @@ from; the default is `load-path'."
     (insert (autoload-rubric generated-finder-keywords-file
                              "keyword-to-package mapping" t))
     (search-backward "")
+    ;; FIXME: Now that we have package--builtin-versions, package--builtins is
+    ;; only needed to get the list of unversioned packages and to get the
+    ;; summary description of each package.
     (insert "(setq package--builtins '(\n")
     (dolist (package package--builtins)
       (insert "  ")

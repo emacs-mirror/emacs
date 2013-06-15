@@ -1,3 +1,35 @@
+2013-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (package--builtin-versions): New var.
+	(package-subdirectory-regexp): Remove.
+	(package--description-file): Hard code its value instead.
+
+	* emacs-lisp/package.el: Don't activate packages older than builtin.
+	(package-obsolete-list): Rename from package-obsolete-alist, and make
+	it into a simple list of package-desc.
+	(package-strip-version): Remove.
+	(package-built-in-p): Use package--builtin-versions.
+	(package-mark-obsolete): Simplify.
+	(package-process-define-package): Mark it obsolete if older than the
+	builtin version.
+	(package-handle-response): Use line-end-position.
+	(package-read-archive-contents, package--download-one-archive):
+	Simplify.
+	(package--add-to-archive-contents): Skip if older than the builtin or
+	installed version.
+	(package-menu-describe-package): Fix last change.
+	(package-list-unversioned): New var.
+	(package-menu--generate): Use it.
+
+	* emacs-lisp/autoload.el: Manage package--builtin-versions.
+	(autoload--insert-text, autoload--insert-cookie-text): New functions.
+	(autoload-builtin-package-versions): New variable.
+	(autoload-generate-file-autoloads): Use them.
+	Remove the list of autoloaded functions/macros from the
+	(autoload...) comments.
+
+	* Makefile.in (autoloads): Set autoload-builtin-package-versions.
+
 2013-06-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move-partial): Don't jump to the next screen
