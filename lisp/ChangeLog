@@ -1,5 +1,8 @@
 2013-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-dispatcher.el (vc-compilation-mode): Avoid making
+	compilation-error-regexp-alist void, or local while let-bound.
+
 	* progmodes/make-mode.el (makefile-mode-syntax-table):
 	Treat "=" as punctuation.  (Bug#14614)
 
