@@ -226,7 +226,7 @@ static void readLog(FILE *stream)
     Event event = &eventUnion;
     EventCode code;
     Res res;
-    Bool eof;
+    Bool eof = FALSE; /* suppress warnings about uninitialized use */
 
     /* Read and parse event. */
     res = eventRead(&eof, event, stream);
