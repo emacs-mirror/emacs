@@ -1,3 +1,11 @@
+2013-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial): Don't jump to the next screen
+	line as soon as it becomes visible.  Instead, continue enlarging
+	the vscroll until the portion of a tall screen line that's left on
+	display is about the height of the frame's default font.
+	(Bug#14567)
+
 2013-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-dispatcher.el (vc-compilation-mode): Avoid making

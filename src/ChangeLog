@@ -1,3 +1,8 @@
+2013-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fline_pixel_height): New function, required for solving
+	bug #14567.
+
 2013-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (Fcopy_sequence): Simplify XTYPE calculation.
