@@ -875,8 +875,10 @@ it is displayed along with the global value."
 		(princ "buffer-local when set.\n"))
 	       ((not permanent-local))
 	       ((bufferp locus)
+		(setq extra-line t)
 		(princ "  This variable's buffer-local value is permanent.\n"))
 	       (t
+		(setq extra-line t)
                 (princ "  This variable's value is permanent \
 if it is given a local binding.\n")))
 
