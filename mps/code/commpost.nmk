@@ -227,7 +227,7 @@ $(PFM)\$(VARIETY)\zmess.exe: $(PFM)\$(VARIETY)\zmess.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpseventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
-	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\mps.lib
+	$(PFM)\$(VARIETY)\mps.lib
 
 $(PFM)\$(VARIETY)\mpseventtxt.exe: $(PFM)\$(VARIETY)\eventtxt.obj \
 	$(PFM)\$(VARIETY)\mps.lib
@@ -237,7 +237,7 @@ $(PFM)\$(VARIETY)\mpseventsql.exe: $(PFM)\$(VARIETY)\eventsql.obj \
 
 $(PFM)\$(VARIETY)\replay.exe: $(PFM)\$(VARIETY)\replay.obj \
   $(PFM)\$(VARIETY)\eventrep.obj \
-  $(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj \
+  $(PFM)\$(VARIETY)\table.obj \
   $(PFM)\$(VARIETY)\mps.lib
 
 # Have to rename the object file, because the names must match, or
