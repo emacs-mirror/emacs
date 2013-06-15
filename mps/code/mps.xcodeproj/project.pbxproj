@@ -206,7 +206,7 @@
 		3124CAFA156BE82000753214 /* fmtno.c in Sources */ = {isa = PBXBuildFile; fileRef = 3124CACC156BE4C200753214 /* fmtno.c */; };
 		3124CAFB156BE82000753214 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3124CAFC156BE82900753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
-		3137949E176CC3B100BCFAEC /* djban.c in Sources */ = {isa = PBXBuildFile; fileRef = 3137949D176CC3B100BCFAEC /* djban.c */; };
+		3137949E176CC3B100BCFAEC /* djbench.c in Sources */ = {isa = PBXBuildFile; fileRef = 3137949D176CC3B100BCFAEC /* djbench.c */; };
 		3137949F176CD02700BCFAEC /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3150AE53156ABA2500A6E22A /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		317B3C2B1731830100F9A469 /* arg.c in Sources */ = {isa = PBXBuildFile; fileRef = 317B3C2A1731830100F9A469 /* arg.c */; };
@@ -247,6 +247,7 @@
 		31D600A1156D406400337B26 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		31EEAC75156AB58E00714D05 /* mpmss.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC74156AB58E00714D05 /* mpmss.c */; };
 		31EEAC9F156AB73400714D05 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
+		31F45FD7176D192800BEAAA8 /* getoptl.c in Sources */ = {isa = PBXBuildFile; fileRef = 31F45FD6176D192800BEAAA8 /* getoptl.c */; };
 		31FCAE161769244F008C034C /* mps.c in Sources */ = {isa = PBXBuildFile; fileRef = 31A47BA3156C1E130039B1C2 /* mps.c */; };
 		31FCAE19176924D4008C034C /* scheme.c in Sources */ = {isa = PBXBuildFile; fileRef = 31FCAE18176924D4008C034C /* scheme.c */; };
 /* End PBXBuildFile section */
@@ -1264,8 +1265,8 @@
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
 		31379493176CC34D00BCFAEC /* djban */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = djban; sourceTree = BUILT_PRODUCTS_DIR; };
-		3137949D176CC3B100BCFAEC /* djban.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = djban.c; sourceTree = "<group>"; };
-		313794A0176CD21F00BCFAEC /* djb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = djb.c; sourceTree = "<group>"; };
+		3137949D176CC3B100BCFAEC /* djbench.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = djbench.c; sourceTree = "<group>"; };
+		313794A0176CD21F00BCFAEC /* djrun.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = djrun.c; sourceTree = "<group>"; };
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
@@ -1339,6 +1340,8 @@
 		31EEAC74156AB58E00714D05 /* mpmss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpmss.c; sourceTree = SOURCE_ROOT; };
 		31EEAC9E156AB73400714D05 /* testlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = testlib.c; sourceTree = "<group>"; };
 		31EEACA7156AB79800714D05 /* span.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = span.c; sourceTree = "<group>"; };
+		31F45FD6176D192800BEAAA8 /* getoptl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getoptl.c; sourceTree = "<group>"; };
+		31F45FD8176D19B800BEAAA8 /* getopt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = getopt.h; sourceTree = "<group>"; };
 		31F6CCA91739B0CF00C48748 /* mpscamc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscamc.h; sourceTree = "<group>"; };
 		31F6CCAA1739B0CF00C48748 /* mpscawl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscawl.h; sourceTree = "<group>"; };
 		31F6CCAB1739B0CF00C48748 /* mpsclo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpsclo.h; sourceTree = "<group>"; };
@@ -1754,8 +1757,10 @@
 		3137948E176CC0F800BCFAEC /* Benchmarks */ = {
 			isa = PBXGroup;
 			children = (
-				3137949D176CC3B100BCFAEC /* djban.c */,
-				313794A0176CD21F00BCFAEC /* djb.c */,
+				31F45FD8176D19B800BEAAA8 /* getopt.h */,
+				31F45FD6176D192800BEAAA8 /* getoptl.c */,
+				3137949D176CC3B100BCFAEC /* djbench.c */,
+				313794A0176CD21F00BCFAEC /* djrun.c */,
 			);
 			name = Benchmarks;
 			sourceTree = "<group>";
@@ -2551,9 +2556,9 @@
 			productReference = 3124CAEB156BE7F300753214 /* amcss */;
 			productType = "com.apple.product-type.tool";
 		};
-		31379492176CC34D00BCFAEC /* djban */ = {
+		31379492176CC34D00BCFAEC /* djbench */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 31379499176CC34D00BCFAEC /* Build configuration list for PBXNativeTarget "djban" */;
+			buildConfigurationList = 31379499176CC34D00BCFAEC /* Build configuration list for PBXNativeTarget "djbench" */;
 			buildPhases = (
 				3137948F176CC34D00BCFAEC /* Sources */,
 				31379490176CC34D00BCFAEC /* Frameworks */,
@@ -2563,7 +2568,7 @@
 			);
 			dependencies = (
 			);
-			name = djban;
+			name = djbench;
 			productName = djban;
 			productReference = 31379493176CC34D00BCFAEC /* djban */;
 			productType = "com.apple.product-type.tool";
@@ -2789,7 +2794,7 @@
 				2D604B9B16514B1A003AAF46 /* mpseventtxt */,
 				22CDE8EF16E9E97D00366D0A /* testrun */,
 				31FCAE0917692403008C034C /* scheme */,
-				31379492176CC34D00BCFAEC /* djban */,
+				31379492176CC34D00BCFAEC /* djbench */,
 			);
 		};
 /* End PBXProject section */
@@ -3132,8 +3137,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3137949E176CC3B100BCFAEC /* djban.c in Sources */,
+				3137949E176CC3B100BCFAEC /* djbench.c in Sources */,
 				3137949F176CD02700BCFAEC /* testlib.c in Sources */,
+				31F45FD7176D192800BEAAA8 /* getoptl.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3532,7 +3538,7 @@
 		};
 		313794A4176CDD7D00BCFAEC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 31379492176CC34D00BCFAEC /* djban */;
+			target = 31379492176CC34D00BCFAEC /* djbench */;
 			targetProxy = 313794A3176CDD7D00BCFAEC /* PBXContainerItemProxy */;
 		};
 		31A47BAA156C210D0039B1C2 /* PBXTargetDependency */ = {
@@ -5217,7 +5223,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		31379499176CC34D00BCFAEC /* Build configuration list for PBXNativeTarget "djban" */ = {
+		31379499176CC34D00BCFAEC /* Build configuration list for PBXNativeTarget "djbench" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3137949A176CC34D00BCFAEC /* Debug */,
@@ -5225,6 +5231,7 @@
 				3137949C176CC34D00BCFAEC /* WE */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		31D60014156D3CB200337B26 /* Build configuration list for PBXNativeTarget "awluthe" */ = {
 			isa = XCConfigurationList;

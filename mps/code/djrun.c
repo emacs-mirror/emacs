@@ -11,11 +11,7 @@
 #include <alloca.h>
 #include "testlib.h"
 
-static void DJRUN(unsigned niter,   /* iterations */
-                  unsigned npass,   /* passes over blocks */
-                  unsigned nblocks, /* number of blocks */
-                  unsigned sshift,  /* log2 max block size in words */
-                  double prob)      /* probability per pass of acting */
+static void DJRUN(void)
 {
   struct {void *p; size_t s;} *blocks = alloca(sizeof(*blocks) * nblocks);
   unsigned i, j, k;
