@@ -445,7 +445,7 @@ with the original.  */)
   if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
     wrong_type_argument (Qsequencep, arg);
 
-  return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
+  return concat (1, &arg, XTYPE (arg), 0);
 }
 
 /* This structure holds information of an argument of `concat' that is
