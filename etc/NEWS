@@ -418,7 +418,7 @@ It is layered as:
 (See file-coding-system-alist.)  In most cases, this change is transparent, but
 files that contain unusual characters without specifying an explicit coding
 system may fail to load with obscure errors.
-You should either convert them to utf-8 or add an explicit coding: cookie.
+You should either convert them to utf-8 or add an explicit `coding:' cookie.
 
 ** overriding-terminal-local-map does not replace the local keymaps any more.
 It used to disable the minor mode, major mode, and text-property keymaps,
