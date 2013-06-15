@@ -1,3 +1,9 @@
+2013-06-15  Simen Heggestøyl  <simenheg@ifi.uio.no>  (tiny change)
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2):
+	Add export, import, library.  (Bug#9164)
+	(library): Set indent function.
+
 2013-06-14  Glenn Morris  <rgm@gnu.org>
 
 	* term/xterm.el (xterm--query):
