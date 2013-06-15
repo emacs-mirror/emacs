@@ -114,6 +114,7 @@ static struct {
   {"mvt",   arena_wrap, dj_reserve, mps_class_mvt},
   {"mvff",  arena_wrap, dj_reserve, mps_class_mvff},
   {"mv",    arena_wrap, dj_alloc,   mps_class_mv},
+  {"mvb",   arena_wrap, dj_reserve, mps_class_mv},
   {"an",    wrap,       dj_malloc,  dummy_class},
 };
   
@@ -135,10 +136,10 @@ int main(int argc, char *argv[]) {
       nblocks = (unsigned)strtoul(optarg, NULL, 10);
       break;
     case 's':
-      nblocks = (unsigned)strtoul(optarg, NULL, 10);
+      sshift = (unsigned)strtoul(optarg, NULL, 10);
       break;
     case 'r':
-      sshift = (unsigned)strtoul(optarg, NULL, 10);
+      prob = strtod(optarg, NULL);
       break;
     default:
       fprintf(stderr,
