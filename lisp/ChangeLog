@@ -1,3 +1,10 @@
+2013-06-15  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el (modify-file-local-variable-prop-line): Add local
+	variables to the end of the existing comment on the first line.
+	Use `file-auto-mode-skip' to skip interpreter magic line,
+	and also skip XML declaration.
+
 2013-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (package--builtin-versions): New var.
