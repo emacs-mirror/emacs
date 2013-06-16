@@ -1,3 +1,7 @@
+2013-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Report ACL usage at the end (Bug#14612).
+
 2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--without-all should imply --with-file-notification=no.  (Bug#14569)

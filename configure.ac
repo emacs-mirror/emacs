@@ -4725,6 +4725,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
+if test $USE_ACL -ne 0; then
+  acl_summary="yes $LIB_ACL"
+else
+  acl_summary=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -4761,6 +4767,7 @@ echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
+echo "  Does Emacs use access control lists?                    ${acl_summary}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
