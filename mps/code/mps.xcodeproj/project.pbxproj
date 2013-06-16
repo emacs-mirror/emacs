@@ -1266,7 +1266,6 @@
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
 		31379493176CC34D00BCFAEC /* djbench */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = djbench; sourceTree = BUILT_PRODUCTS_DIR; };
 		3137949D176CC3B100BCFAEC /* djbench.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = djbench.c; sourceTree = "<group>"; };
-		313794A0176CD21F00BCFAEC /* djrun.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = djrun.c; sourceTree = "<group>"; };
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
@@ -1760,7 +1759,6 @@
 				31F45FD8176D19B800BEAAA8 /* getopt.h */,
 				31F45FD6176D192800BEAAA8 /* getoptl.c */,
 				3137949D176CC3B100BCFAEC /* djbench.c */,
-				313794A0176CD21F00BCFAEC /* djrun.c */,
 			);
 			name = Benchmarks;
 			sourceTree = "<group>";
