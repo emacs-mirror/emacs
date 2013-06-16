@@ -1,3 +1,241 @@
+2013-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prog-mode.el (prog--prettify-font-lock-compose-symbol):
+	Save relevant match data before calling `syntax-ppss' (bug#14595).
+
+2013-06-15  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el (modify-file-local-variable-prop-line): Add local
+	variables to the end of the existing comment on the first line.
+	Use `file-auto-mode-skip' to skip interpreter magic line,
+	and also skip XML declaration.
+
+2013-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (package--builtin-versions): New var.
+	(package-subdirectory-regexp): Remove.
+	(package--description-file): Hard code its value instead.
+
+	* emacs-lisp/package.el: Don't activate packages older than builtin.
+	(package-obsolete-list): Rename from package-obsolete-alist, and make
+	it into a simple list of package-desc.
+	(package-strip-version): Remove.
+	(package-built-in-p): Use package--builtin-versions.
+	(package-mark-obsolete): Simplify.
+	(package-process-define-package): Mark it obsolete if older than the
+	builtin version.
+	(package-handle-response): Use line-end-position.
+	(package-read-archive-contents, package--download-one-archive):
+	Simplify.
+	(package--add-to-archive-contents): Skip if older than the builtin or
+	installed version.
+	(package-menu-describe-package): Fix last change.
+	(package-list-unversioned): New var.
+	(package-menu--generate): Use it.
+
+	* emacs-lisp/autoload.el: Manage package--builtin-versions.
+	(autoload--insert-text, autoload--insert-cookie-text): New functions.
+	(autoload-builtin-package-versions): New variable.
+	(autoload-generate-file-autoloads): Use them.
+	Remove the list of autoloaded functions/macros from the
+	(autoload...) comments.
+
+	* Makefile.in (autoloads): Set autoload-builtin-package-versions.
+
+2013-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial): Don't jump to the next screen
+	line as soon as it becomes visible.  Instead, continue enlarging
+	the vscroll until the portion of a tall screen line that's left on
+	display is about the height of the frame's default font.
+	(Bug#14567)
+
+2013-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-compilation-mode): Avoid making
+	compilation-error-regexp-alist void, or local while let-bound.
+
+	* progmodes/make-mode.el (makefile-mode-syntax-table):
+	Treat "=" as punctuation.  (Bug#14614)
+
+2013-06-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-variable):
+	Add extra line for permanent-local variables.
+
+2013-06-15  Simen Heggestøyl  <simenheg@ifi.uio.no>  (tiny change)
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2):
+	Add export, import, library.  (Bug#9164)
+	(library): Set indent function.
+
+2013-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* term/xterm.el (xterm--query):
+	Stop after first matching handler.  (Bug#14615)
+
+2013-06-14 Ivan Kanis <ivan@kanis.fr>
+
+	Add support for dired in saveplace.
+	* dired.el (dired-initial-position-hook): New variable.
+	(dired-initial-position): Call hook to place cursor position.
+	* saveplace.el (save-place-to-alist): Add dired position.
+	(save-place-dired-hook): New function.
+
+2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eval-after-load, set-temporary-overlay-map): Use indirection
+	through a symbol rather than letrec.
+
+	* emacs-lisp/package.el: Don't recompute dir.  Use pkg-descs more.
+	(package-desc): Add `dir' field.
+	(package-desc-full-name): New function.
+	(package-load-descriptor): Combine the two arguments.  Don't use `load'.
+	(package-maybe-load-descriptor): Remove.
+	(package-load-all-descriptors): Just call package-load-descriptor.
+	(package--disabled-p): New function.
+	(package-desc-vers, package-desc-doc): Remove aliases.
+	(package--dir): Remove function.
+	(package-activate): Check if a package is disabled.
+	(package-process-define-package): New function, extracted from
+	define-package.
+	(define-package): Turn into a place holder.
+	(package-unpack-single, package-tar-file-info):
+	Use package--description-file.
+	(package-compute-transaction): Use package--disabled-p.
+	(package-download-transaction): Don't call
+	package-maybe-load-descriptor since they're all loaded anyway.
+	(package-install): Change argument to be a pkg-desc.
+	(package-delete): Use a single pkg-desc argument.
+	(describe-package-1): Use package-desc-dir instead of package--dir.
+	Use package-desc property instead of package-symbol.
+	(package-install-button-action): Adjust accordingly.
+	(package--push): Rewrite.
+	(package-menu--print-info): Adjust accordingly.  Change the ID format
+	to be a pkg-desc.
+	(package-menu-describe-package, package-menu-get-status)
+	(package-menu--find-upgrades, package-menu-mark-upgrades)
+	(package-menu-execute, package-menu--name-predicate):
+	Adjust accordingly.
+	* startup.el (package--description-file): New function.
+	(command-line): Use it.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use package-desc-version.
+
+	* emacs-lisp/bytecomp.el (byte-compile-force-lexical-warnings): New var.
+	(byte-compile-preprocess): Use it.
+	(byte-compile-file-form-defalias): Try a bit harder to use macros we
+	can't quite recognize.
+	(byte-compile-add-to-list): Remove.
+	* emacs-lisp/cconv.el (cconv-warnings-only): New function.
+	(cconv-closure-convert): Add assertion.
+
+	* emacs-lisp/map-ynp.el: Use lexical-binding.
+	(map-y-or-n-p): Remove unused vars `tail' and `object'.
+	Factor out some repeated code.
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-eval-after-load): New macro.
+	(eval-after-load): Allow form to be a function.
+	take advantage of lexical-binding.
+	(do-after-load-evaluation): Use dolist and adjust to new format.
+	* simple.el (bad-packages-alist): Use dolist and with-eval-after-load.
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Display "symbol " and other search
+	modes from `isearch-message-prefix' in the *Help* buffer.
+
+	* isearch.el (isearch-query-replace): Add " symbol" and other
+	possible search modes from `isearch-message-prefix' to the prompt.
+	(isearch-occur): Use `with-isearch-suspended' to not exit Isearch
+	when reading a regexp to collect.
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (word-search-regexp): Match whitespace if the search
+	string begins or ends in whitespace.  The LAX arg is applied to
+	both ends of the search string.  Use `regexp-quote' and explicit
+	\< and \> instead of \b.  Use \` and \' instead of ^ and $.
+	(isearch-symbol-regexp): Sync with `word-search-regexp' where word
+	boundaries are replaced with symbol boundaries, and characters
+	between symbols match non-word non-symbol syntax.  (Bug#14602)
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-del-char): Don't exceed the length of
+	`isearch-string' by the prefix arg.  (Bug#14563)
+
+2013-06-13  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-yank-word, isearch-yank-line)
+	(isearch-char-by-name, isearch-quote-char)
+	(isearch-printing-char, isearch-process-search-char):
+	Add optional count prefix arg.  (Bug#14563)
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters):
+	Add optional count prefix arg.
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (internal-push-keymap, internal-pop-keymap): New functions.
+	(set-temporary-overlay-map): Use them (bug#14095); and take advantage of
+	lexical-binding.
+
+2013-06-13  Vitalie Spinu  <spinuvit@gmail.com>
+
+	* subr.el (set-temporary-overlay-map): Add on-exit argument.
+
+2013-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (tty-handle-args):
+	Don't just discard "--" and anything after.  (Bug#14608)
+
+	* emacs-lisp/lisp.el (forward-sexp, backward-sexp): Doc fixes.
+
+2013-06-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement changes in Secret Service API.  Make it backward compatible.
+	* net/secrets.el (secrets-struct-secret-content-type): New defonst.
+	(secrets-create-item): Use it.  Prefix properties with interface.
+
+2013-06-13  Michael Hoffman  <9qobl2n02@sneakemail.com>  (tiny change)
+
+	* term.el (term-suppress-hard-newline): New option.  (Bug#12017)
+	(term-emulate-terminal): Respect term-suppress-hard-newline.
+
+2013-06-13  E Sabof  <esabof@gmail.com>  (tiny change)
+
+	* image-dired.el (image-dired-dired-toggle-marked-thumbs):
+	Only remove a `thumb-file' overlay.  (Bug#14548)
+
+2013-06-12  Grégoire Jadi  <daimrod@gmail.com>
+
+	* mail/reporter.el (reporter-submit-bug-report):
+	Handle missing package-name.  (Bug#14600)
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* textmodes/reftex-cite.el (reftex-cite-regexp-hist)
+	(reftex-citation-prompt, reftex-default-bibliography)
+	(reftex-bib-or-thebib, reftex-get-bibfile-list)
+	(reftex-pop-to-bibtex-entry, reftex-extract-bib-entries)
+	(reftex-bib-sort-author, reftex-bib-sort-year)
+	(reftex-bib-sort-year-reverse, reftex-get-crossref-alist)
+	(reftex-extract-bib-entries-from-thebibliography)
+	(reftex-get-bibkey-default, reftex-get-bib-names)
+	(reftex-parse-bibtex-entry, reftex-get-bib-field)
+	(reftex-format-bib-entry, reftex-parse-bibitem)
+	(reftex-format-bibitem, reftex-do-citation)
+	(reftex-figure-out-cite-format, reftex-offer-bib-menu)
+	(reftex-restrict-bib-matches, reftex-extract-bib-file)
+	(reftex-insert-bib-matches, reftex-format-citation)
+	(reftex-make-cite-echo-string, reftex-bibtex-selection-callback)
+	(reftex-create-bibtex-file): Add docstrings, mostly by converting
+	existing comments into docstrings.
+
 2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ibuf-ext.el (ibuffer-mark-help-buffers): Doc fix.
@@ -48,6 +286,11 @@
 	(cl-eval-when): Simplify debug spec.
 	(cl-define-compiler-macro): Use eval-and-compile.  Give a name to the
 	compiler-macro function instead of setting `compiler-macro-file'.
+
+2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-cvs.el (vc-cvs-stay-local): Doc fix.
+	* vc/vc-hooks.el (vc-stay-local): Doc fix.
 
 2013-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 	    Daniel Hackney  <dan@haxney.org>
@@ -4604,7 +4847,7 @@
 	* progmodes/grep.el (grep-regexp-alist): Use variable grep-match-face
 	instead of hard-coded default face `match'.  (Bug#9438)
 
-2012-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
+2013-02-01  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* vc/vc-arch.el (vc-arch-registered):
 	* vc/vc-bzr.el (vc-bzr-registered):

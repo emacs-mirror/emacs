@@ -24,12 +24,14 @@ There are several ways to overcome that difficulty, they are all
 described in the node "Auto-loading safe path" in the GDB user manual.
 
 ** When you are trying to analyze failed assertions or backtraces, it
-will be essential to compile Emacs either completely without
-optimizations (set CFLAGS to "-O0 -g3") or at least (when using GCC)
-with the -fno-crossjumping option in CFLAGS.  Failure to do so may
-make the compiler recycle the same abort call for all assertions in a
-given function, rendering the stack backtrace useless for identifying
-the specific failed assertion.
+is essential to compile Emacs with flags suitable for debugging.
+With GCC 4.8 or later, you can invoke 'make' with CFLAGS="-Og -g3".
+With older GCC or non-GCC commpilers, you can use CFLAGS="-O0 -g3".
+With GCC and higher optimization levels such as -O2, the
+-fno-omit-frame-pointer and -fno-crossjumping options are often
+essential.  The latter prevents GCC from using the same abort call for
+all assertions in a given function, rendering the stack backtrace
+useless for identifying the specific failed assertion.
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
@@ -769,4 +771,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

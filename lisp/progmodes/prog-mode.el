@@ -74,15 +74,17 @@ Regexp match data 0 points to the chars."
   (let* ((start (match-beginning 0))
 	 (end (match-end 0))
 	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
-		       '(?w) '(?. ?\\))))
+		       '(?w) '(?. ?\\)))
+	 match)
     (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
 	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
-            (nth 8 (syntax-ppss)))
+            ;; syntax-ppss could modify the match data (bug#14595)
+            (progn (setq match (match-string 0)) (nth 8 (syntax-ppss))))
 	;; No composition for you.  Let's actually remove any composition
 	;; we may have added earlier and which is now incorrect.
 	(remove-text-properties start end '(composition))
       ;; That's a symbol alright, so add the composition.
-      (compose-region start end (cdr (assoc (match-string 0) alist)))))
+      (compose-region start end (cdr (assoc match alist)))))
   ;; Return nil because we're not adding any face property.
   nil)
 

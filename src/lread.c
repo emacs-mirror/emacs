@@ -4485,15 +4485,15 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
   DEFSYM (Qload_in_progress, "load-in-progress");
 
   DEFVAR_LISP ("after-load-alist", Vafter_load_alist,
-	       doc: /* An alist of expressions to be evalled when particular files are loaded.
-Each element looks like (REGEXP-OR-FEATURE FORMS...).
+	       doc: /* An alist of functions to be evalled when particular files are loaded.
+Each element looks like (REGEXP-OR-FEATURE FUNCS...).
 
 REGEXP-OR-FEATURE is either a regular expression to match file names, or
 a symbol \(a feature name).
 
 When `load' is run and the file-name argument matches an element's
 REGEXP-OR-FEATURE, or when `provide' is run and provides the symbol
-REGEXP-OR-FEATURE, the FORMS in the element are executed.
+REGEXP-OR-FEATURE, the FUNCS in the element are called.
 
 An error in FORMS does not undo the load, but does prevent execution of
 the rest of the FORMS.  */);

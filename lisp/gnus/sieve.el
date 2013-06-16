@@ -125,7 +125,8 @@ require \"fileinto\";
     (define-key map "f" 'sieve-edit-script)
     (define-key map "o" 'sieve-edit-script-other-window)
     (define-key map "r" 'sieve-remove)
-    (define-key map "q" 'sieve-manage-quit)
+    (define-key map "q" 'sieve-bury-buffer)
+    (define-key map "Q" 'sieve-manage-quit)
     (define-key map [(down-mouse-2)] 'sieve-edit-script)
     (define-key map [(down-mouse-3)] 'sieve-manage-mode-menu)
     map)
@@ -149,11 +150,16 @@ require \"fileinto\";
 ;; Commands used in sieve-manage mode:
 
 (defun sieve-manage-quit ()
-  "Quit."
+  "Quit Manage Sieve and close the connection."
   (interactive)
   (sieve-manage-close sieve-manage-buffer)
   (kill-buffer sieve-manage-buffer)
   (kill-buffer (current-buffer)))
+
+(defun sieve-bury-buffer ()
+  "Bury the Manage Sieve buffer without closing the connection."
+  (interactive)
+  (bury-buffer))
 
 (defun sieve-activate (&optional pos)
   (interactive "d")

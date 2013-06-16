@@ -36,7 +36,21 @@
 (defun eww (url)
   "Fetch URL and render the page."
   (interactive "sUrl: ")
+  (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
+    (setq url (concat "http://" url)))
   (url-retrieve url 'eww-render (list url)))
+
+(defun eww-detect-charset (html-p)
+  (let ((case-fold-search t)
+	(pt (point)))
+    (or (and html-p
+	     (re-search-forward
+	      "<meta[\t\n\r ]+[^>]*charset=\\([^\t\n\r \"/>]+\\)" nil t)
+	     (goto-char pt)
+	     (match-string 1))
+	(and (looking-at
+	      "[\t\n\r ]*<\\?xml[\t\n\r ]+[^>]*encoding=\"\\([^\"]+\\)")
+	     (match-string 1)))))
 
 (defun eww-render (status url &optional point)
   (let* ((headers (eww-parse-headers))
@@ -47,6 +61,8 @@
 	 (charset (intern
 		   (downcase
 		    (or (cdr (assq 'charset (cdr content-type)))
+			(eww-detect-charset (equal (car content-type)
+						   "text/html"))
 			"utf8"))))
 	 (data-buffer (current-buffer)))
     (unwind-protect
@@ -64,6 +80,7 @@
 
 (defun eww-parse-headers ()
   (let ((headers nil))
+    (goto-char (point-min))
     (while (and (not (eobp))
 		(not (eolp)))
       (when (looking-at "\\([^:]+\\): *\\(.*\\)")
@@ -129,22 +146,20 @@
     ;;(define-key map "n" 'eww-next-url)
     map))
 
-(defun eww-mode ()
+(define-derived-mode eww-mode nil "eww"
   "Mode for browsing the web.
 
 \\{eww-mode-map}"
-  (interactive)
-  (setq major-mode 'eww-mode
-	mode-name "eww")
   (set (make-local-variable 'eww-current-url) 'author)
-  (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
-  ;;(setq buffer-read-only t)
-  (use-local-map eww-mode-map))
+  (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url))
 
 (defun eww-browse-url (url &optional new-window)
-  (push (list eww-current-url (point))
-	eww-history)
-  (eww url))
+  (let ((url-request-extra-headers
+	 (append '(("User-Agent" . "eww/1.0"))
+		 url-request-extra-headers)))
+    (push (list eww-current-url (point))
+	  eww-history)
+    (eww url)))
 
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
@@ -177,7 +192,9 @@
 	(start (point)))
     (shr-ensure-paragraph)
     (shr-generic cont)
-    (shr-ensure-paragraph)
+    (unless (bolp)
+      (insert "\n"))
+    (insert "\n")
     (when (> (point) start)
       (put-text-property start (1+ start)
 			 'eww-form eww-form))))
@@ -189,12 +206,12 @@
 	 (widget
 	  (cond
 	   ((equal type "submit")
-	    (list
-	     'push-button
-	     :notify 'eww-submit
-	     :name (cdr (assq :name cont))
-	     :eww-form eww-form
-	     (or (cdr (assq :value cont)) "Submit")))
+	    (list 'push-button
+		  :notify 'eww-submit
+		  :name (cdr (assq :name cont))
+		  :value (cdr (assq :value cont))
+		  :eww-form eww-form
+		  (or (cdr (assq :value cont)) "Submit")))
 	   ((or (equal type "radio")
 		(equal type "checkbox"))
 	    (list 'checkbox
@@ -209,22 +226,19 @@
 		  :name (cdr (assq :name cont))
 		  :value (cdr (assq :value cont))))
 	   (t
-	    (list
-	     'editable-field
-	     :size (string-to-number
-		    (or (cdr (assq :size cont))
-			"40"))
-	     :value (or (cdr (assq :value cont)) "")
-	     :secret (and (equal type "password") ?*)
-	     :action 'eww-submit
-	     :name (cdr (assq :name cont))
-	     :eww-form eww-form)))))
-    (if (eq (car widget) 'hidden)
-	(when shr-final-table-render
-	  (nconc eww-form (list widget)))
-      (apply 'widget-create widget))
-    (put-text-property start (point) 'eww-widget widget)
-    (insert " ")))
+	    (list 'editable-field
+		  :size (string-to-number
+			 (or (cdr (assq :size cont))
+			     "40"))
+		  :value (or (cdr (assq :value cont)) "")
+		  :secret (and (equal type "password") ?*)
+		  :action 'eww-submit
+		  :name (cdr (assq :name cont))
+		  :eww-form eww-form)))))
+    (nconc eww-form (list widget))
+    (unless (eq (car widget) 'hidden)
+      (apply 'widget-create widget)
+      (put-text-property start (point) 'eww-widget widget))))
 
 (defun eww-tag-select (cont)
   (shr-ensure-paragraph)
@@ -242,6 +256,9 @@
 		    :value (cdr (assq :value (cdr elem)))
 		    :tag (cdr (assq 'text (cdr elem))))
 	      options)))
+    ;; If we have no selected values, default to the first value.
+    (unless (plist-get (cdr menu) :value)
+      (nconc menu (list :value (nth 2 (car options)))))
     (nconc menu options)
     (apply 'widget-create menu)
     (put-text-property start (point) 'eww-widget menu)
@@ -264,14 +281,12 @@
 
 (defun eww-submit (widget &rest ignore)
   (let ((form (plist-get (cdr widget) :eww-form))
-	(first-button t)
 	values)
     (dolist (overlay (sort (overlays-in (point-min) (point-max))
 			   (lambda (o1 o2)
 			     (< (overlay-start o1) (overlay-start o2)))))
       (let ((field (or (plist-get (overlay-properties overlay) 'field)
-		       (plist-get (overlay-properties overlay) 'button)
-		       (plist-get (overlay-properties overlay) 'eww-hidden))))
+		       (plist-get (overlay-properties overlay) 'button))))
 	(when (eq (plist-get (cdr field) :eww-form) form)
 	  (let ((name (plist-get (cdr field) :name)))
 	    (when name
@@ -280,19 +295,12 @@
 		(when (widget-value field)
 		  (push (cons name (plist-get (cdr field) :checkbox-value))
 			values)))
-	       ((eq (car field) 'eww-hidden)
-		(push (cons name (plist-get (cdr field) :value))
-		      values))
 	       ((eq (car field) 'push-button)
 		;; We want the values from buttons if we hit a button,
-		;; or we're submitting something and this is the first
-		;; button displayed.
-		(when (or (and (eq (car widget) 'push-button)
-			       (eq widget field))
-			  (and (not (eq (car widget) 'push-button))
-			       (eq (car field) 'push-button)
-			       first-button))
-		  (setq first-button nil)
+		;; if it's the first button in the DOM after the field
+		;; hit ENTER on.
+		(when (and (eq (car widget) 'push-button)
+			   (eq widget field))
 		  (push (cons name (widget-value field))
 			values)))
 	       (t
@@ -304,6 +312,25 @@
 	(push (cons (plist-get (cdr elem) :name)
 		    (plist-get (cdr elem) :value))
 	      values)))
+    ;; If we hit ENTER in a non-button field, include the value of the
+    ;; first submit button after it.
+    (unless (eq (car widget) 'push-button)
+      (let ((rest form)
+	    (name (plist-get (cdr widget) :name)))
+	(when rest
+	  (while (and rest
+		      (or (not (consp (car rest)))
+			  (not (equal name (plist-get (cdar rest) :name)))))
+	    (pop rest)))
+	(while rest
+	  (let ((elem (pop rest)))
+	    (when (and (consp (car rest))
+		       (eq (car elem) 'push-button))
+	      (push (cons (plist-get (cdr elem) :name)
+			  (plist-get (cdr elem) :value))
+		    values)
+	      (setq rest nil))))))
+    (debug values)
     (let ((shr-base eww-current-url))
       (if (and (stringp (cdr (assq :method form)))
 	       (equal (downcase (cdr (assq :method form))) "post"))
@@ -313,11 +340,12 @@
 		(url-request-data (mm-url-encode-www-form-urlencoded values)))
 	    (eww-browse-url (shr-expand-url (cdr (assq :action form)))))
 	(eww-browse-url
-	 (shr-expand-url
-	  (concat
-	   (cdr (assq :action form))
-	   "?"
-	   (mm-url-encode-www-form-urlencoded values))))))))
+	 (concat
+	  (if (cdr (assq :action form))
+	      (shr-expand-url (cdr (assq :action form)))
+	    eww-current-url)
+	  "?"
+	  (mm-url-encode-www-form-urlencoded values)))))))
 
 (defun eww-convert-widgets ()
   (let ((start (point-min))
@@ -335,7 +363,9 @@
 		    (plist-get (overlay-properties overlay) 'field))
 	    (delete-overlay overlay)))
 	(delete-region start end))
-      (apply 'widget-create widget))
+      (when (and widget
+		 (not (eq (car widget) 'hidden)))
+	(apply 'widget-create widget)))
     (widget-setup)
     (eww-fix-widget-keymap)))
 

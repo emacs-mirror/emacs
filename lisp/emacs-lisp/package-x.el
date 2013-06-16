@@ -224,7 +224,7 @@ if it exists."
 	    (let ((elt (assq pkg-name (cdr contents))))
 	      (if elt
 		  (if (version-list-<= split-version
-				       (package-desc-vers (cdr elt)))
+				       (package-desc-version (cdr elt)))
 		      (error "New package has smaller version: %s" pkg-version)
 		    (setcdr elt new-desc))
 		(setq contents (cons (car contents)

@@ -36,13 +36,6 @@
 ;; package which should always be present.
 
 
-;;; Future notes:
-
-;; Once Emacs 19 becomes standard, many things in this package which are
-;; messy for reasons of compatibility can be greatly simplified.  For now,
-;; I prefer to maintain one unified version.
-
-
 ;;; Change Log:
 
 ;; Version 2.02 (30 Jul 93):

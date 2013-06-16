@@ -208,9 +208,9 @@ It returns t if not."
 ;;     <arg name="Prompt"  type="o"  direction="out"/>
 ;;   </method>
 ;;   <method name="GetSecrets">
-;;     <arg name="items"   type="ao"          direction="in"/>
-;;     <arg name="session" type="o"           direction="in"/>
-;;     <arg name="secrets" type="a{o(oayay)}" direction="out"/>
+;;     <arg name="items"   type="ao"           direction="in"/>
+;;     <arg name="session" type="o"            direction="in"/>
+;;     <arg name="secrets" type="a{o(oayays)}" direction="out"/>
 ;;   </method>
 ;;   <method name="ReadAlias">
 ;;     <arg name="name"       type="s" direction="in"/>
@@ -234,7 +234,7 @@ It returns t if not."
 ;; <interface name="org.freedesktop.Secret.Collection">
 ;;   <property name="Items"    type="ao" access="read"/>
 ;;   <property name="Label"    type="s"  access="readwrite"/>
-;;   <property name="Locked"   type="s"  access="read"/>
+;;   <property name="Locked"   type="b"  access="read"/>
 ;;   <property name="Created"  type="t"  access="read"/>
 ;;   <property name="Modified" type="t"  access="read"/>
 ;;   <method name="Delete">
@@ -245,11 +245,11 @@ It returns t if not."
 ;;     <arg name="results"    type="ao"    direction="out"/>
 ;;   </method>
 ;;   <method name="CreateItem">
-;;     <arg name="props"   type="a{sv}"   direction="in"/>
-;;     <arg name="secret"  type="(oayay)" direction="in"/>
-;;     <arg name="replace" type="b"       direction="in"/>
-;;     <arg name="item"    type="o"       direction="out"/>
-;;     <arg name="prompt"  type="o"       direction="out"/>
+;;     <arg name="props"   type="a{sv}"    direction="in"/>
+;;     <arg name="secret"  type="(oayays)" direction="in"/>
+;;     <arg name="replace" type="b"        direction="in"/>
+;;     <arg name="item"    type="o"        direction="out"/>
+;;     <arg name="prompt"  type="o"        direction="out"/>
 ;;   </method>
 ;;   <signal name="ItemCreated">
 ;;     <arg name="item" type="o"/>
@@ -293,11 +293,11 @@ It returns t if not."
 ;;     <arg name="prompt" type="o" direction="out"/>
 ;;   </method>
 ;;   <method name="GetSecret">
-;;     <arg name="session" type="o"       direction="in"/>
-;;     <arg name="secret"  type="(oayay)" direction="out"/>
+;;     <arg name="session" type="o"        direction="in"/>
+;;     <arg name="secret"  type="(oayays)" direction="out"/>
 ;;   </method>
 ;;   <method name="SetSecret">
-;;     <arg name="secret" type="(oayay)" direction="in"/>
+;;     <arg name="secret" type="(oayays)" direction="in"/>
 ;;   </method>
 ;; </interface>
 ;;
@@ -305,9 +305,21 @@ It returns t if not."
 ;;   OBJECT PATH  session
 ;;   ARRAY BYTE	  parameters
 ;;   ARRAY BYTE	  value
+;;   STRING	  content_type     ;; Added 2011/2/9
 
 (defconst secrets-interface-item-type-generic "org.freedesktop.Secret.Generic"
   "The default item type we are using.")
+
+(defconst secrets-struct-secret-content-type
+  (when (string-equal
+	 (dbus-introspect-get-signature
+	  :session secrets-service secrets-path secrets-interface-service
+	  "GetSecrets" "out")
+	 "a{o(oayays)}")
+    '("text/plain"))
+  "The content_type of a secret struct.
+It must be wrapped as list, because we add it via `append'.  This
+is an interface introduced in 2011.")
 
 (defconst secrets-interface-session "org.freedesktop.Secret.Session"
   "A session tracks state between the service and a client application.")
@@ -616,16 +628,21 @@ The object path of the created item is returned."
 	       ;; Properties.
 	       (append
 		`(:array
-		  (:dict-entry "Label" (:variant ,item))
-		  (:dict-entry
-		   "Type" (:variant ,secrets-interface-item-type-generic)))
+		  (:dict-entry ,(concat secrets-interface-item ".Label")
+			       (:variant ,item))
+		  (:dict-entry ,(concat secrets-interface-item ".Type")
+			       (:variant ,secrets-interface-item-type-generic)))
 		(when props
-		  `((:dict-entry
-		     "Attributes" (:variant ,(append '(:array) props))))))
+		  `((:dict-entry ,(concat secrets-interface-item ".Attributes")
+				 (:variant ,(append '(:array) props))))))
 	       ;; Secret.
-	       `(:struct :object-path ,secrets-session-path
-			 (:array :signature "y") ;; no parameters.
-			 ,(dbus-string-to-byte-array password))
+	       (append
+		`(:struct :object-path ,secrets-session-path
+			  (:array :signature "y") ;; No parameters.
+			  ,(dbus-string-to-byte-array password))
+		;; We add the content_type.  In backward compatibility
+		;; mode, nil is appended, which means nothing.
+		secrets-struct-secret-content-type)
 	       ;; Do not replace. Replace does not seem to work.
 	       nil))
 	(secrets-prompt (cadr result))

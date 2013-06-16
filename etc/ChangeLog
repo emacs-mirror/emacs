@@ -1,3 +1,11 @@
+2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS (utf-8 for el): Move to the incompatible section.
+
+2013-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* DEBUG: Document -Og and -fno-omit-frame-pointer.
+
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Document new prog-mode symbol prettify support.

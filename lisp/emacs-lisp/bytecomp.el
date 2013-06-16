@@ -2174,6 +2174,8 @@ list that represents a doc string reference.
 	      byte-compile-maxdepth 0
 	      byte-compile-output nil))))
 
+(defvar byte-compile-force-lexical-warnings nil)
+
 (defun byte-compile-preprocess (form &optional _for-effect)
   (setq form (macroexpand-all form byte-compile-macro-environment))
   ;; FIXME: We should run byte-optimize-form here, but it currently does not
@@ -2182,9 +2184,10 @@ list that represents a doc string reference.
   ;; macroexpand-all.
   ;; (if (memq byte-optimize '(t source))
   ;;     (setq form (byte-optimize-form form for-effect)))
-  (if lexical-binding
-      (cconv-closure-convert form)
-    form))
+  (cond
+   (lexical-binding (cconv-closure-convert form))
+   (byte-compile-force-lexical-warnings (cconv-warnings-only form))
+   (t form)))
 
 ;; byte-hunk-handlers cannot call this!
 (defun byte-compile-toplevel-file-form (form)
@@ -4240,6 +4243,12 @@ binding slots have been popped."
              lam))
          (unless (byte-compile-file-form-defmumble
                   name macro arglist body rest)
+           (when macro
+             (if (null fun)
+                 (message "Macro %s unrecognized, won't work in file" name)
+               (message "Macro %s partly recognized, trying our luck" name)
+               (push (cons name (eval fun))
+                     byte-compile-macro-environment)))
            (byte-compile-keep-pending form))))
 
       ;; We used to just do: (byte-compile-normal-call form)
@@ -4268,26 +4277,6 @@ binding slots have been popped."
      'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)
 (defun byte-compile-form-make-variable-buffer-local (form)
   (byte-compile-keep-pending form 'byte-compile-normal-call))
-
-(byte-defop-compiler-1 add-to-list byte-compile-add-to-list)
-(defun byte-compile-add-to-list (form)
-  ;; FIXME: This could be used for `set' as well, except that it's got
-  ;; its own opcode, so the final `byte-compile-normal-call' needs to
-  ;; be replaced with something else.
-  (pcase form
-    (`(,fun ',var . ,_)
-     (byte-compile-check-variable var 'assign)
-     (if (assq var byte-compile--lexical-environment)
-         (byte-compile-log-warning
-          (format "%s cannot use lexical var `%s'" fun var)
-          nil :error)
-       (unless (or (not (byte-compile-warning-enabled-p 'free-vars))
-                   (boundp var)
-                   (memq var byte-compile-bound-variables)
-                   (memq var byte-compile-free-references))
-         (byte-compile-warn "assignment to free variable `%S'" var)
-         (push var byte-compile-free-references)))))
-  (byte-compile-normal-call form))
 
 ;;; tags
 

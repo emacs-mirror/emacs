@@ -1217,6 +1217,24 @@ line_bottom_y (struct it *it)
   return line_top_y + line_height;
 }
 
+DEFUN ("line-pixel-height", Fline_pixel_height,
+       Sline_pixel_height, 0, 0, 0,
+       doc: /* Return height in pixels of text line in the selected window.
+
+Value is the height in pixels of the line at point.  */)
+  (void)
+{
+  struct it it;
+  struct text_pos pt;
+  struct window *w = XWINDOW (selected_window);
+
+  SET_TEXT_POS (pt, PT, PT_BYTE);
+  start_display (&it, w, pt);
+  it.vpos = it.current_y = 0;
+  last_height = 0;
+  return make_number (line_bottom_y (&it));
+}
+
 /* Subroutine of pos_visible_p below.  Extracts a display string, if
    any, from the display spec given as its argument.  */
 static Lisp_Object
@@ -28691,6 +28709,7 @@ syms_of_xdisp (void)
   defsubr (&Stool_bar_lines_needed);
   defsubr (&Slookup_image_map);
 #endif
+  defsubr (&Sline_pixel_height);
   defsubr (&Sformat_mode_line);
   defsubr (&Sinvisible_p);
   defsubr (&Scurrent_bidi_paragraph_direction);

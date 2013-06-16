@@ -217,6 +217,13 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
+(defcustom dired-initial-point-hook nil
+  "This hook is used to position the point.
+It is run the function `dired-initial-position'."
+  :group 'dired
+  :type 'hook
+  :version "24.4")
+
 (defcustom dired-dnd-protocol-alist
   '(("^file:///" . dired-dnd-handle-local-file)
     ("^file://"  . dired-dnd-handle-file)
@@ -2758,11 +2765,13 @@ as returned by `dired-get-filename'.  LIMIT is the search limit."
 ;; FIXME document whatever dired-x is doing.
 (defun dired-initial-position (dirname)
   "Where point should go in a new listing of DIRNAME.
-Point assumed at beginning of new subdir line."
+Point assumed at beginning of new subdir line.
+It runs the hook `dired-initial-position-hook'."
   (end-of-line)
   (and (featurep 'dired-x) dired-find-subdir
        (dired-goto-subdir dirname))
-  (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
+  (if dired-trivial-filenames (dired-goto-next-nontrivial-file))
+  (run-hooks 'dired-initial-point-hook))
 
 ;; These are hooks which make tree dired work.
 ;; They are in this file because other parts of dired need to call them.

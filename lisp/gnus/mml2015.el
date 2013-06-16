@@ -146,6 +146,12 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
   :group 'mime-security
   :type 'boolean)
 
+(defcustom mml2015-maximum-key-image-dimension 64
+  "The maximum dimension (width or height) of any key images."
+  :version "24.4"
+  :group 'mime-security
+  :type 'integer)
+
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
 ;; (such as Mailcrypt, and PGG) discard the output from GnuPG.
@@ -873,13 +879,20 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
         (insert (substring data 16))
         (create-image (buffer-string) nil t)))))
 
+(autoload 'gnus-rescale-image "gnus-util")
+
 (defun mml2015-epg-key-image-to-string (key-id)
   "Return a string with the image of a key, if any"
   (let* ((result "")
          (key-image (mml2015-epg-key-image key-id)))
     (when key-image
       (setq result "  ")
-      (put-text-property 1 2 'display key-image result))
+      (put-text-property
+       1 2 'display
+       (gnus-rescale-image key-image
+			   (cons mml2015-maximum-key-image-dimension
+				 mml2015-maximum-key-image-dimension))
+       result))
     result))
 
 (defun mml2015-epg-signature-to-string (signature)

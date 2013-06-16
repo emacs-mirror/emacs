@@ -341,10 +341,10 @@ mail-sending package is used for editing and sending the message."
     (mail-position-on-field "to")
     (insert address)
     ;; insert problem summary if available
-    (if (and reporter-prompt-for-summary-p problem pkgname)
-	(progn
-	  (mail-position-on-field "subject")
-	  (insert pkgname "; " problem)))
+    (when (and reporter-prompt-for-summary-p problem)
+      (mail-position-on-field "subject")
+      (if pkgname (insert pkgname "; "))
+      (insert problem))
     ;; move point to the body of the message
     (mail-text)
     (forward-line 1)

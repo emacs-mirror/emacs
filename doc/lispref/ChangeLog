@@ -1,3 +1,8 @@
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Hooks for Loading): Don't document after-load-alist.
+	Document with-eval-after-load instead of eval-after-load.
+
 2013-06-11  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* files.texi (File Name Expansion): Make the example more

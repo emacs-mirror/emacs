@@ -256,19 +256,40 @@ from the -*- line ignoring the input argument VALUE."
 
 	(goto-char (point-min))
 
-	;; Skip interpreter magic line "#!"
-	(when (looking-at "^\\(#!\\|'\\\\\"\\)")
+	;; Skip interpreter magic line "#!" or XML declaration.
+	(when (or (looking-at file-auto-mode-skip)
+		  (looking-at "<\\?xml[^>\n]*>$"))
 	  (forward-line 1))
 
+	(comment-normalize-vars)
 	(let ((comment-style 'plain)
-	      (comment-start (or comment-start ";;; ")))
-	  (comment-region
-	   (prog1 (point)
-	     (insert "-*-")
-	     (setq beg (point-marker))
-	     (setq end (point-marker))
-	     (insert "-*-\n"))
-	   (point))))
+	      (comment-start (or comment-start ";;; "))
+	      (line-beg (line-beginning-position))
+	      (ce nil))
+	  ;; If the first line contains a comment.
+	  (if (save-excursion
+		(and (looking-at comment-start-skip)
+		     (goto-char (match-end 0))
+		     (re-search-forward comment-end-skip)
+		     (goto-char (match-beginning 0))
+		     ;; Still on the same line?
+		     (equal line-beg (line-beginning-position))
+		     (setq ce (point))))
+	      ;; Add local variables to the end of the existing comment.
+	      (progn
+		(goto-char ce)
+		(insert "  -*-")
+		(setq beg (point-marker))
+		(setq end (point-marker))
+		(insert "-*-"))
+	    ;; Otherwise, add a new comment before the first line.
+	    (comment-region
+	     (prog1 (point)
+	       (insert "-*-")
+	       (setq beg (point-marker))
+	       (setq end (point-marker))
+	       (insert "-*-\n"))
+	     (point)))))
 
       (cond
        ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")

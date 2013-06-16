@@ -1,3 +1,21 @@
+2013-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fline_pixel_height): New function, required for solving
+	bug #14567.
+
+2013-06-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (Fcopy_sequence): Simplify XTYPE calculation.
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (syms_of_lread):
+	* fns.c (Fprovide): Adjust to new format of after-load-alist.
+
+2013-06-13  Kelly Dean  <kellydeanch@yahoo.com>  (tiny change)
+
+	* fileio.c (Fdo_auto_save): Trap errors in auto-save-hook.  (Bug#14479)
+
 2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* fileio.c (expand_file_name): Doc fix.

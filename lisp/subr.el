@@ -3729,6 +3729,8 @@ Return nil if there isn't one."
 (defun eval-after-load (file form)
   "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
+FORM can be an Elisp expression (in which case it's passed to `eval'),
+or a function (in which case it's passed to `funcall' with no argument).
 
 If a matching file is loaded again, FORM will be evaluated again.
 
@@ -3756,43 +3758,61 @@ Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
 
 This function makes or adds to an entry on `after-load-alist'."
+  (declare (compiler-macro
+            (lambda (whole)
+              (if (eq 'quote (car-safe form))
+                  ;; Quote with lambda so the compiler can look inside.
+                  `(eval-after-load ,file (lambda () ,(nth 1 form)))
+                whole))))
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
 	  (if (stringp file)
               (setq file (purecopy (load-history-regexp file)))
             file))
-	 (elt (assoc regexp-or-feature after-load-alist)))
+	 (elt (assoc regexp-or-feature after-load-alist))
+         (func
+          (if (functionp form) form
+            ;; Try to use the "current" lexical/dynamic mode for `form'.
+            (eval `(lambda () ,form) lexical-binding))))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
-    ;; Make sure `form' is evalled in the current lexical/dynamic code.
-    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
     (prog1 (if (if (stringp file)
 		   (load-history-filename-element regexp-or-feature)
 		 (featurep file))
-	       (eval form))
-      (when (symbolp regexp-or-feature)
-	;; For features, the after-load-alist elements get run when `provide' is
-	;; called rather than at the end of the file.  So add an indirection to
-	;; make sure that `form' is really run "after-load" in case the provide
-	;; call happens early.
-	(setq form
-	      `(if load-file-name
-		   (let ((fun (make-symbol "eval-after-load-helper")))
-		     (fset fun `(lambda (file)
-				  (if (not (equal file ',load-file-name))
-				      nil
-				    (remove-hook 'after-load-functions ',fun)
-				    ,',form)))
-		     (add-hook 'after-load-functions fun))
-		 ;; Not being provided from a file, run form right now.
-		 ,form)))
-      ;; Add FORM to the element unless it's already there.
-      (unless (member form (cdr elt))
-	(nconc elt (list form))))))
+	       (funcall func))
+      (let ((delayed-func
+             (if (not (symbolp regexp-or-feature)) func
+               ;; For features, the after-load-alist elements get run when
+               ;; `provide' is called rather than at the end of the file.
+               ;; So add an indirection to make sure that `func' is really run
+               ;; "after-load" in case the provide call happens early.
+               (lambda ()
+                 (if (not load-file-name)
+                     ;; Not being provided from a file, run func right now.
+                     (funcall func)
+                   (let ((lfn load-file-name)
+                         ;; Don't use letrec, because equal (in
+                         ;; add/remove-hook) would get trapped in a cycle.
+                         (fun (make-symbol "eval-after-load-helper")))
+                     (fset fun (lambda (file)
+                                 (when (equal file lfn)
+                                   (remove-hook 'after-load-functions fun)
+                                   (funcall func))))
+                     (add-hook 'after-load-functions fun)))))))
+        ;; Add FORM to the element unless it's already there.
+        (unless (member delayed-func (cdr elt))
+          (nconc elt (list delayed-func)))))))
+
+(defmacro with-eval-after-load (file &rest body)
+  "Execute BODY after FILE is loaded.
+FILE is normally a feature name, but it can also be a file name,
+in case that file does not provide any feature."
+  (declare (indent 1) (debug t))
+  `(eval-after-load ,file (lambda () ,@body)))
 
 (defvar after-load-functions nil
   "Special hook run after loading a file.
@@ -3804,12 +3824,11 @@ name of the file just loaded.")
 ABS-FILE, a string, should be the absolute true name of a file just loaded.
 This function is called directly from the C code."
   ;; Run the relevant eval-after-load forms.
-  (mapc #'(lambda (a-l-element)
-	    (when (and (stringp (car a-l-element))
-		       (string-match-p (car a-l-element) abs-file))
-	      ;; discard the file name regexp
-	      (mapc #'eval (cdr a-l-element))))
-	after-load-alist)
+  (dolist (a-l-element after-load-alist)
+    (when (and (stringp (car a-l-element))
+               (string-match-p (car a-l-element) abs-file))
+      ;; discard the file name regexp
+      (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
   (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
     (run-with-timer 0 nil
@@ -4234,7 +4253,25 @@ use `called-interactively-p'."
   (declare (obsolete called-interactively-p "23.2"))
   (called-interactively-p 'interactive))
 
-(defun set-temporary-overlay-map (map &optional keep-pred)
+(defun internal-push-keymap (keymap symbol)
+  (let ((map (symbol-value symbol)))
+    (unless (memq keymap map)
+      (unless (memq 'add-keymap-witness (symbol-value symbol))
+        (setq map (make-composed-keymap nil (symbol-value symbol)))
+        (push 'add-keymap-witness (cdr map))
+        (set symbol map))
+      (push keymap (cdr map)))))
+
+(defun internal-pop-keymap (keymap symbol)
+  (let ((map (symbol-value symbol)))
+    (when (memq keymap map)
+      (setf (cdr map) (delq keymap (cdr map))))
+    (let ((tail (cddr map)))
+      (and (or (null tail) (keymapp tail))
+           (eq 'add-keymap-witness (nth 1 map))
+           (set symbol tail)))))
+
+(defun set-temporary-overlay-map (map &optional keep-pred on-exit)
   "Set MAP as a temporary keymap taking precedence over most other keymaps.
 Note that this does NOT take precedence over the \"overriding\" maps
 `overriding-terminal-local-map' and `overriding-local-map' (or the
@@ -4244,29 +4281,32 @@ found in MAP, the normal key lookup sequence then continues.
 Normally, MAP is used only once.  If the optional argument
 KEEP-PRED is t, MAP stays active if a key from MAP is used.
 KEEP-PRED can also be a function of no arguments: if it returns
-non-nil then MAP stays active."
-  (let* ((clearfunsym (make-symbol "clear-temporary-overlay-map"))
-         (overlaysym (make-symbol "t"))
-         (alist (list (cons overlaysym map)))
-         (clearfun
-          ;; FIXME: Use lexical-binding.
-          `(lambda ()
-             (unless ,(cond ((null keep-pred) nil)
-                            ((eq t keep-pred)
-                             `(eq this-command
-                                  (lookup-key ',map
-                                              (this-command-keys-vector))))
-                            (t `(funcall ',keep-pred)))
-               (set ',overlaysym nil)   ;Just in case.
-               (remove-hook 'pre-command-hook ',clearfunsym)
-               (setq emulation-mode-map-alists
-                     (delq ',alist emulation-mode-map-alists))))))
-    (set overlaysym overlaysym)
-    (fset clearfunsym clearfun)
-    (add-hook 'pre-command-hook clearfunsym)
-    ;; FIXME: That's the keymaps with highest precedence, except for
-    ;; the `keymap' text-property ;-(
-    (push alist emulation-mode-map-alists)))
+non-nil then MAP stays active.
+
+Optional ON-EXIT argument is a function that is called after the
+deactivation of MAP."
+  (let ((clearfun (make-symbol "clear-temporary-overlay-map")))
+    ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
+    ;; in a cycle.
+    (fset clearfun
+          (lambda ()
+            ;; FIXME: Handle the case of multiple temporary-overlay-maps
+            ;; E.g. if isearch and C-u both use temporary-overlay-maps, Then
+            ;; the lifetime of the C-u should be nested within the isearch
+            ;; overlay, so the pre-command-hook of isearch should be
+            ;; suspended during the C-u one so we don't exit isearch just
+            ;; because we hit 1 after C-u and that 1 exits isearch whereas it
+            ;; doesn't exit C-u.
+            (unless (cond ((null keep-pred) nil)
+                          ((eq t keep-pred)
+                           (eq this-command
+                               (lookup-key map (this-command-keys-vector))))
+                          (t (funcall keep-pred)))
+              (remove-hook 'pre-command-hook clearfun)
+              (internal-pop-keymap map 'overriding-terminal-local-map)
+              (when on-exit (funcall on-exit)))))
+    (add-hook 'pre-command-hook clearfun)
+    (internal-push-keymap map 'overriding-terminal-local-map)))
 
 ;;;; Progress reporters.
 

@@ -1,3 +1,12 @@
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el (reftex-parse-from-file-test): Fix
+	test.
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el: New test suite for reftex.
+
 2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/ruby-mode-tests.el: New tests, for percent literals
