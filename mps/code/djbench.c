@@ -15,15 +15,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <alloca.h>
+#include <pthread.h>
 #include "getopt.h"
 #include "testlib.h"
 
 #include "mps.c"
 
 
+#define MUST(expr) \
+  do { \
+    mps_res_t res = (expr); \
+    if (res != MPS_RES_OK) { \
+      fprintf(stderr, #expr " returned %d\n", res); \
+      exit(EXIT_FAILURE); \
+    } \
+  } while(0)
+
 static mps_arena_t arena;
 static mps_pool_t pool;
-static mps_ap_t ap;
 
 
 /* The benchmark behaviour is defined as a macro in order to give realistic
@@ -31,6 +40,7 @@ static mps_ap_t ap;
    MPS functions. */
 
 static rnd_state_t seed = 0;      /* random number seed */
+static unsigned nthreads = 1;     /* threads */
 static unsigned niter = 50;       /* iterations */
 static unsigned npass = 100;      /* passes over blocks */
 static unsigned nblocks = 64;     /* number of blocks */
@@ -40,8 +50,8 @@ static unsigned rinter = 75;      /* pass interval for recursion */
 static unsigned rmax = 10;        /* maximum recursion depth */
 
 #define DJRUN(fname, alloc, free) \
-  static unsigned fname##_inner(unsigned depth, unsigned r) { \
-    struct {void *p; size_t s;} *blocks = alloca(sizeof(*blocks) * nblocks); \
+  static unsigned fname##_inner(mps_ap_t ap, unsigned depth, unsigned r) { \
+    struct {void *p; size_t s;} *blocks = alloca(sizeof(blocks[0]) * nblocks); \
     unsigned j, k; \
     \
     for (k = 0; k < nblocks; ++k) { \
@@ -65,7 +75,7 @@ static unsigned rmax = 10;        /* maximum recursion depth */
       } \
       if (rinter > 0 && depth > 0 && ++r % rinter == 0) { \
         /* putchar('>'); fflush(stdout); */ \
-        r = fname##_inner(depth - 1, r); \
+        r = fname##_inner(ap, depth - 1, r); \
         /* putchar('<'); fflush(stdout); */ \
       } \
     } \
@@ -79,10 +89,16 @@ static unsigned rmax = 10;        /* maximum recursion depth */
     return r; \
   } \
   \
-  static void fname(void) { \
+  static void *fname(void *p) { \
     unsigned i; \
+    mps_ap_t ap = NULL; \
+    if (pool != NULL) \
+      MUST(mps_ap_create_k(&ap, pool, mps_args_none)); \
     for (i = 0; i < niter; ++i) \
-      (void)fname##_inner(rmax, 0); \
+      (void)fname##_inner(ap, rmax, 0); \
+    if (ap != NULL) \
+      mps_ap_destroy(ap); \
+    return p; \
   }
 
 
@@ -115,34 +131,59 @@ DJRUN(dj_alloc, MPS_ALLOC, MPS_FREE)
 
 DJRUN(dj_reserve, RESERVE_ALLOC, RESERVE_FREE)
 
+typedef void *(*dj_t)(void *);
 
-/* Wrap a call to dj benchmark that doesn't require MPS setup */
+static void weave(dj_t dj)
+{
+  pthread_t *threads = alloca(sizeof(threads[0]) * nthreads);
+  unsigned t;
+  
+  for (t = 0; t < nthreads; ++t) {
+    int err = pthread_create(&threads[t], NULL, dj, NULL);
+    if (err != 0) {
+      fprintf(stderr, "Unable to create thread: %d\n", err);
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  for (t = 0; t < nthreads; ++t) {
+    int err = pthread_join(threads[t], NULL);
+    if (err != 0) {
+      fprintf(stderr, "Unable to join thread: %d\n", err);
+      exit(EXIT_FAILURE);
+    }
+  }
+}
 
-static void wrap(void (*dj)(void), mps_class_t dummy, const char *name)
+
+static void watch(dj_t dj, const char *name)
 {
   clock_t start, finish;
-  (void)dummy;
   
   start = clock();
-  dj();
+  if (nthreads == 1)
+    dj(NULL);
+  else
+    weave(dj);
   finish = clock();
   
   printf("%s: %g\n", name, (double)(finish - start) / CLOCKS_PER_SEC);
 }
 
 
+/* Wrap a call to dj benchmark that doesn't require MPS setup */
+
+static void wrap(dj_t dj, mps_class_t dummy, const char *name)
+{
+  (void)dummy;
+  pool = NULL;
+  watch(dj, name);
+}
+
+
 /* Wrap a call to a dj benchmark that requires MPS setup */
 
-#define MUST(expr) \
-  do { \
-    mps_res_t res = (expr); \
-    if (res != MPS_RES_OK) { \
-      fprintf(stderr, #expr " returned %d\n", res); \
-      exit(EXIT_FAILURE); \
-    } \
-  } while(0)
-
-static void arena_wrap(void (*dj)(void), mps_class_t pool_class, const char *name)
+static void arena_wrap(dj_t dj, mps_class_t pool_class, const char *name)
 {
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 256ul * 1024 * 1024); /* FIXME: Why is there no default? */
@@ -150,9 +191,7 @@ static void arena_wrap(void (*dj)(void), mps_class_t pool_class, const char *nam
     MUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   MUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));
-  MUST(mps_ap_create_k(&ap, pool, mps_args_none));
-  wrap(dj, NULL, name);
-  mps_ap_destroy(ap);
+  watch(dj, name);
   mps_pool_destroy(pool);
   mps_arena_destroy(arena);
 }
@@ -162,6 +201,7 @@ static void arena_wrap(void (*dj)(void), mps_class_t pool_class, const char *nam
 
 static struct option longopts[] = {
   {"help",    no_argument,        NULL,   'h'},
+  {"nthreads",required_argument,  NULL,   't'},
   {"niter",   required_argument,  NULL,   'i'},
   {"npass",   required_argument,  NULL,   'p'},
   {"nblocks", required_argument,  NULL,   'b'},
@@ -183,8 +223,8 @@ static mps_class_t dummy_class(void)
 
 static struct {
   const char *name;
-  void (*wrap)(void (*)(void), mps_class_t, const char *name);
-  void (*dj)(void);
+  void (*wrap)(dj_t, mps_class_t, const char *name);
+  dj_t dj;
   mps_class_t (*pool_class)(void);
 } pools[] = {
   {"mvt",   arena_wrap, dj_reserve, mps_class_mvt},
@@ -203,8 +243,11 @@ int main(int argc, char *argv[]) {
 
   seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "hi:p:b:s:a:r:d:x:", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:a:r:d:x:", longopts, NULL)) != -1)
     switch (ch) {
+    case 't':
+      nthreads = (unsigned)strtoul(optarg, NULL, 10);
+      break;
     case 'i':
       niter = (unsigned)strtoul(optarg, NULL, 10);
       break;
@@ -233,6 +276,8 @@ int main(int argc, char *argv[]) {
       fprintf(stderr,
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
+              "  -t n, --nthreads=n\n"
+              "    Launch n threads each running the test\n"
               "  -i n, --niter=n\n"
               "    Iterate each test n times (default %u).\n"
               "  -p n, --npass=n\n"
