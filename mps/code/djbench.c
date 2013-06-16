@@ -30,47 +30,60 @@ static mps_ap_t ap;
    opportunities for compiler optimisation and the intended inlining of the
    MPS functions. */
 
-static unsigned niter = 100;      /* iterations */
-static unsigned npass = 1000;     /* passes over blocks */
-static unsigned nblocks = 1000;   /* number of blocks */
+static rnd_state_t seed = 0;      /* random number seed */
+static unsigned niter = 50;       /* iterations */
+static unsigned npass = 100;      /* passes over blocks */
+static unsigned nblocks = 64;     /* number of blocks */
 static unsigned sshift = 18;      /* log2 max block size in words */
-static double prob = 0.2;         /* probability per pass of acting */
+static double pact = 0.2;         /* probability per pass of acting */
+static unsigned rinter = 75;      /* pass interval for recursion */
+static unsigned rmax = 10;        /* maximum recursion depth */
 
-#define DJRUN(alloc, free) \
-  do { \
+#define DJRUN(fname, alloc, free) \
+  static unsigned fname##_inner(unsigned depth, unsigned r) { \
     struct {void *p; size_t s;} *blocks = alloca(sizeof(*blocks) * nblocks); \
-    unsigned i, j, k; \
+    unsigned j, k; \
     \
     for (k = 0; k < nblocks; ++k) { \
       blocks[k].p = NULL; \
     } \
     \
-    for (i = 0; i < niter; ++i) { \
-      for (j = 0; j < npass; ++j) { \
-        for (k = 0; k < nblocks; ++k) { \
-          if (rnd() % 16384 < prob * 16384) { \
-            if (blocks[k].p == NULL) { \
-              size_t s = rnd() % ((sizeof(void *) << (rnd() % sshift)) - 1); \
-              void *p = NULL; \
-              if (s > 0) alloc(p, s); \
-              blocks[k].p = p; \
-              blocks[k].s = s; \
-            } else { \
-              free(blocks[k].p, blocks[k].s); \
-              blocks[k].p = NULL; \
-            } \
+    for (j = 0; j < npass; ++j) { \
+      for (k = 0; k < nblocks; ++k) { \
+        if (rnd() % 16384 < pact * 16384) { \
+          if (blocks[k].p == NULL) { \
+            size_t s = rnd() % ((sizeof(void *) << (rnd() % sshift)) - 1); \
+            void *p = NULL; \
+            if (s > 0) alloc(p, s); \
+            blocks[k].p = p; \
+            blocks[k].s = s; \
+          } else { \
+            free(blocks[k].p, blocks[k].s); \
+            blocks[k].p = NULL; \
           } \
         } \
       } \
-      \
-      for (k = 0; k < nblocks; ++k) { \
-        if (blocks[k].p) { \
-          free(blocks[k].p, blocks[k].s); \
-          blocks[k].p = NULL; \
-        } \
+      if (rinter > 0 && depth > 0 && ++r % rinter == 0) { \
+        /* putchar('>'); fflush(stdout); */ \
+        r = fname##_inner(depth - 1, r); \
+        /* putchar('<'); fflush(stdout); */ \
       } \
     } \
-  } while(0)
+    \
+    for (k = 0; k < nblocks; ++k) { \
+      if (blocks[k].p) { \
+        free(blocks[k].p, blocks[k].s); \
+        blocks[k].p = NULL; \
+      } \
+    } \
+    return r; \
+  } \
+  \
+  static void fname(void) { \
+    unsigned i; \
+    for (i = 0; i < niter; ++i) \
+      (void)fname##_inner(rmax, 0); \
+  }
 
 
 /* malloc/free benchmark */
@@ -78,18 +91,16 @@ static double prob = 0.2;         /* probability per pass of acting */
 #define MALLOC_ALLOC(p, s) do { p = malloc(s); } while(0)
 #define MALLOC_FREE(p, s)  do { free(p); } while(0)
 
-static void dj_malloc(void) {
-  DJRUN(MALLOC_ALLOC, MALLOC_FREE);
-}
+DJRUN(dj_malloc, MALLOC_ALLOC, MALLOC_FREE)
+
 
 /* mps_alloc/mps_free benchmark */
 
 #define MPS_ALLOC(p, s) do { mps_alloc(&p, pool, s); } while(0)
 #define MPS_FREE(p, s)  do { mps_free(pool, p, s); } while(0)
 
-static void dj_alloc(void) {
-  DJRUN(MPS_ALLOC, MPS_FREE);
-}
+DJRUN(dj_alloc, MPS_ALLOC, MPS_FREE)
+
 
 /* reserve/free benchmark */
 
@@ -102,9 +113,7 @@ static void dj_alloc(void) {
   } while(0)
 #define RESERVE_FREE(p, s)  do { mps_free(pool, p, s); } while(0)
 
-static void dj_reserve(void) {
-  DJRUN(RESERVE_ALLOC, RESERVE_FREE);
-}
+DJRUN(dj_reserve, RESERVE_ALLOC, RESERVE_FREE)
 
 
 /* Wrap a call to dj benchmark that doesn't require MPS setup */
@@ -152,11 +161,15 @@ static void arena_wrap(void (*dj)(void), mps_class_t pool_class, const char *nam
 /* Command-line options definitions.  See getopt_long(3). */
 
 static struct option longopts[] = {
+  {"help",    no_argument,        NULL,   'h'},
   {"niter",   required_argument,  NULL,   'i'},
   {"npass",   required_argument,  NULL,   'p'},
   {"nblocks", required_argument,  NULL,   'b'},
   {"sshift",  required_argument,  NULL,   's'},
-  {"prob",    required_argument,  NULL,   'r'},
+  {"pact",    required_argument,  NULL,   'a'},
+  {"rinter",  required_argument,  NULL,   'r'},
+  {"rmax",    required_argument,  NULL,   'd'},
+  {"seed",    required_argument,  NULL,   'x'},
   {NULL,      0,                  NULL,   0}
 };
 
@@ -187,8 +200,10 @@ static struct {
 int main(int argc, char *argv[]) {
   int ch;
   unsigned i;
+
+  seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "i:p:b:s:r:", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "hi:p:b:s:a:r:d:x:", longopts, NULL)) != -1)
     switch (ch) {
     case 'i':
       niter = (unsigned)strtoul(optarg, NULL, 10);
@@ -202,8 +217,17 @@ int main(int argc, char *argv[]) {
     case 's':
       sshift = (unsigned)strtoul(optarg, NULL, 10);
       break;
+    case 'a':
+      pact = strtod(optarg, NULL);
+      break;
     case 'r':
-      prob = strtod(optarg, NULL);
+      rinter = (unsigned)strtoul(optarg, NULL, 10);
+      break;
+    case 'd':
+      rmax = (unsigned)strtoul(optarg, NULL, 10);
+      break;
+    case 'x':
+      seed = strtoul(optarg, NULL, 10);
       break;
     default:
       fprintf(stderr,
@@ -217,34 +241,45 @@ int main(int argc, char *argv[]) {
               "    Length of the block array (default %u).\n"
               "  -s n, --sshift=n\n"
               "    Log2 max block size in words (default %u).\n"
-              "  -r p, --prob=p\n"
-              "    Probability of acting on a block (default %g).\n"
+              "  -a p, --pact=p\n"
+              "    Probability of acting on a block (default %g).\n",
+              argv[0],
+              niter,
+              npass,
+              nblocks,
+              sshift,
+              pact);
+      fprintf(stderr,
+              "  -r n, --rinter=n\n"
+              "    Recurse every n passes if n > 0 (default %u).\n"
+              "  -d n, --rmax=n\n"
+              "    Maximum recursion depth (default %u).\n"
+              "  -x n, --seed=n\n"
+              "    Random number seed (default from entropy).\n"
               "Tests:\n"
               "  mvt   pool class MVT\n"
               "  mvff  pool class MVFF\n"
               "  mv    pool class MV\n"
               "  mvb   pool class MV with buffers\n"
               "  an    malloc\n",
-              argv[0],
-              niter,
-              npass,
-              nblocks,
-              sshift,
-              prob);
+              rinter,
+              rmax);
       return EXIT_FAILURE;
     }
   argc -= optind;
   argv += optind;
   
+  printf("seed: %lu\n", seed);
+  
   while (argc > 0) {
     for (i = 0; i < sizeof(pools) / sizeof(pools[0]); ++i)
-      if (strcmp(argv[0], pools[i].name) == 0) {
-        pools[i].wrap(pools[i].dj, pools[i].pool_class(), pools[i].name);
+      if (strcmp(argv[0], pools[i].name) == 0)
         goto found;
-      }
     fprintf(stderr, "unknown pool test \"%s\"\n", argv[0]);
     return EXIT_FAILURE;
   found:
+    rnd_state_set(seed);
+    pools[i].wrap(pools[i].dj, pools[i].pool_class(), pools[i].name);
     --argc;
     ++argv;
   }

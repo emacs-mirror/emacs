@@ -59,7 +59,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "mv"
+            argument = "--seed=1857658610"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -68,6 +68,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "mvff"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "mv"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "mvb"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
