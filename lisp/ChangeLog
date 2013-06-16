@@ -1,3 +1,8 @@
+2013-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prog-mode.el (prog--prettify-font-lock-compose-symbol):
+	Save relevant match data before calling `syntax-ppss' (bug#14595).
+
 2013-06-15  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (modify-file-local-variable-prop-line): Add local
