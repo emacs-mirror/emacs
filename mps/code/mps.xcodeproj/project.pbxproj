@@ -1264,7 +1264,7 @@
 		3124CAE4156BE6D500753214 /* fmthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmthe.c; sourceTree = "<group>"; };
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
-		31379493176CC34D00BCFAEC /* djban */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = djban; sourceTree = BUILT_PRODUCTS_DIR; };
+		31379493176CC34D00BCFAEC /* djbench */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = djbench; sourceTree = BUILT_PRODUCTS_DIR; };
 		3137949D176CC3B100BCFAEC /* djbench.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = djbench.c; sourceTree = "<group>"; };
 		313794A0176CD21F00BCFAEC /* djrun.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = djrun.c; sourceTree = "<group>"; };
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
@@ -1848,7 +1848,7 @@
 				2291A5E3175CB05F001D4920 /* exposet0 */,
 				224CC799175E1821002FF81B /* fotest */,
 				31FCAE0A17692403008C034C /* scheme */,
-				31379493176CC34D00BCFAEC /* djban */,
+				31379493176CC34D00BCFAEC /* djbench */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2570,7 +2570,7 @@
 			);
 			name = djbench;
 			productName = djban;
-			productReference = 31379493176CC34D00BCFAEC /* djban */;
+			productReference = 31379493176CC34D00BCFAEC /* djbench */;
 			productType = "com.apple.product-type.tool";
 		};
 		31D6000C156D3CB200337B26 /* awluthe */ = {
@@ -4260,6 +4260,10 @@
 		3137949A176CC34D00BCFAEC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CONFIG_VAR_COOL,
+					CONFIG_PROD_EPCORE,
+				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -4268,6 +4272,10 @@
 		3137949B176CC34D00BCFAEC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CONFIG_VAR_HOT,
+					MPS_PROD_EPCORE,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -4275,6 +4283,10 @@
 		3137949C176CC34D00BCFAEC /* WE */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CONFIG_VAR_WE,
+					MPS_PROD_EPCORE,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = WE;
