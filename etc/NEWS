@@ -30,7 +30,7 @@ configure option `--disable-acl'.
 
 ** Emacs can be compiled with file notification support.
 The configure option `--with-file-notification=LIB' enables file
-notification support in Emacs. This option's value should be `yes',
+notification support in Emacs.  This option's value should be `yes',
 `no', `gfile', `inotify' or `w32'.  `yes' is a synonym for `w32' on
 MS-Windows, and for `gfile' otherwise.  The default value is `yes'.
 
@@ -177,8 +177,8 @@ Affected files:
 
 ** Delphi mode is now called OPascal mode.
 *** All delphi-* variables and functions have been renamed to opascal-*.
-*** `delphi-newline-always-indents' is not supported any more
-use `electric-indent-mode' instead.
+*** `delphi-newline-always-indents' is not supported any more.
+Use `electric-indent-mode' instead.
 *** `delphi-tab' is gone, replaced by `indent-for-tab-command'.
 
 ** Eldoc Mode works properly in the minibuffer.
@@ -239,7 +239,7 @@ amounts of data into the ERC input.
 ---
 ** New F90 mode option `f90-smart-end-names'.
 
-** Icomplete is a bit more like IDO.
+** Icomplete is a bit more like Ido.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
@@ -335,8 +335,8 @@ New features include:
 When its arg ADJACENT is non-nil (when called interactively with C-u C-u)
 it works like the utility `uniq'.  Otherwise by default it deletes
 duplicate lines everywhere in the region without regard to adjacency.
-When it arg KEEP-BLANKS is non-nil (when called interactively with C-u C-u C-u),
-duplicate blank lines are preserved.
+When its arg KEEP-BLANKS is non-nil (when called interactively with
+C-u C-u C-u), duplicate blank lines are preserved.
 
 ** New `cycle-spacing' command allows cycling between having just one
 space, no spaces, or reverting to the original spacing.  Like
@@ -399,6 +399,7 @@ has not been relevant for some time.
 
 
 * New Modes and Packages in Emacs 24.4
+
 ** New `superword-mode' in subword.el
 `superword-mode' overrides the default word motion commands to treat
 symbol_words as a single word, similar to what `subword-mode' does and
@@ -502,7 +503,7 @@ of remote files when set to non-nil.
 
 ** Face changes
 
-*** The `face-spec-set' is now analogous to `setq' for face specs.
+*** The function `face-spec-set' is now analogous to `setq' for face specs.
 Its third arg now accepts values specifying exactly which face spec to
 set (defface, custom, or user spec), and it directly sets the relevant
 property using the supplied face spec.
@@ -2868,7 +2869,7 @@ on-the-fly spell checking for comments and strings.
 
 **** New option, `prog-prettify-symbols' lets the user control symbol
 prettify (replacing a string like "lambda" with the Greek lambda
-character.  The mode derived from `prog-mode' must call
+character).  The mode derived from `prog-mode' must call
 `prog-prettify-install' with its own custom alist, which can be empty.
 
 *** New hook `change-major-mode-after-body-hook', run by
