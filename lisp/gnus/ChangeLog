@@ -1,6 +1,8 @@
 2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-display-html): Default to using the entire window width.
+	(eww-browse-url): Don't add a User-Agent header (twice), because that
+	makes Bing refuse connection.
 
 	* shr.el (shr-make-table): Cache the table rendering at the table
 	level, and not the <td> level.  This is a bit faster.

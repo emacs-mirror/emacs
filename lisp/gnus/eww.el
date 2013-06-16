@@ -222,12 +222,9 @@
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url))
 
 (defun eww-browse-url (url &optional new-window)
-  (let ((url-request-extra-headers
-	 (append '(("User-Agent" . "eww/1.0"))
-		 url-request-extra-headers)))
-    (push (list eww-current-url (point))
-	  eww-history)
-    (eww url)))
+  (push (list eww-current-url (point))
+	eww-history)
+  (eww url))
 
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
