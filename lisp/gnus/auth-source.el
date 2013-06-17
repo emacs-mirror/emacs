@@ -1055,6 +1055,13 @@ Note that the MAX parameter is used so we can exit the parse early."
     (auth-source-netrc-parse-next-interesting)
     (match-string-no-properties 1)))
 
+;; with thanks to org-mode
+(defsubst auth-source-current-line (&optional pos)
+  (save-excursion
+    (and pos (goto-char pos))
+    ;; works also in narrowed buffer, because we start at 1, not point-min
+    (+ (if (bolp) 1 0) (count-lines 1 (point)))))
+
 (defun auth-source-netrc-parse-entries(check max)
   "Parse up to MAX netrc entries, passed by CHECK, from the current buffer."
   (let ((adder (lambda(check alist all)
@@ -1071,6 +1078,8 @@ Note that the MAX parameter is used so we can exit the parse early."
       (when (and alist
                  (or default
                      (equal item "machine")))
+        (auth-source-do-trivia
+         "auth-source-netrc-parse-entries: got entry %S" alist)
         (setq all (funcall adder check alist all)
               alist nil))
       ;; In default entries, we don't have a next token.
@@ -1079,11 +1088,21 @@ Note that the MAX parameter is used so we can exit the parse early."
           (push (cons "machine" t) alist)
         ;; Not a default entry.  Grab the next item.
         (when (setq item2 (auth-source-netrc-parse-one))
-          (push (cons item item2) alist))))
+          ;; Did we get a "machine" value?
+          (if (equal item2 "machine")
+              (progn
+                (gnus-error 1
+                 "%s: Unexpected 'machine' token at line %d"
+                 "auth-source-netrc-parse-entries"
+                 (auth-source-current-line))
+                (forward-line 1))
+            (push (cons item item2) alist)))))
 
     ;; Clean up: if there's an entry left over, use it.
     (when alist
-      (setq all (funcall adder check alist all)))
+      (setq all (funcall adder check alist all))
+      (auth-source-do-trivia
+       "auth-source-netrc-parse-entries: got2 entry %S" alist))
     (nreverse all)))
 
 (defvar auth-source-passphrase-alist nil)

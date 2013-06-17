@@ -1,3 +1,9 @@
+2013-06-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-current-line): New function.
+	(auth-source-netrc-parse-entries): When a data token is "machine",
+	assume we're in the wrong place and abort parsing the current line.
+
 2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-tag-select): Don't render totally empty <select> forms.
