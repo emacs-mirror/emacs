@@ -1817,6 +1817,8 @@ If RECURSIVE, search recursively."
 	    (delete-region ,(point-min-marker)
 			   ,(point-max-marker))))))))
 
+(defvar shr-map)
+
 (defun mm-convert-shr-links ()
   (let ((start (point-min))
 	end)
