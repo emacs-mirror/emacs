@@ -1,5 +1,8 @@
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c (x_report_frame_params): Cast parent_desc to uintptr_t.
+	Needed if HAVE_NTGUI.  Reported by Juanma Barranquero.
+
 	* nsfont.m (ns_registry_to_script): Parenthesize while expression.
 
 2013-06-17  Eli Zaretskii  <eliz@gnu.org>
