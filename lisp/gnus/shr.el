@@ -31,6 +31,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'url))      ;For url-filename's setf handler.
 (require 'browse-url)
 
 (defgroup shr nil
@@ -83,6 +84,14 @@ used."
 		 (const   :tag "Use the width of the window" nil))
   :group 'shr)
 
+(defcustom shr-bullet "* "
+  "Bullet used for unordered lists.
+Alternative suggestions are:
+- \"  \"
+- \"  \""
+  :type 'string
+  :group 'shr)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -115,12 +124,15 @@ cid: URL as the argument.")
 (defvar shr-base nil)
 (defvar shr-ignore-cache nil)
 (defvar shr-external-rendering-functions nil)
+(defvar shr-target-id nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'shr-show-alt-text)
     (define-key map "i" 'shr-browse-image)
     (define-key map "z" 'shr-zoom-image)
+    (define-key map [tab] 'shr-next-link)
+    (define-key map [backtab] 'shr-previous-link)
     (define-key map "I" 'shr-insert-image)
     (define-key map "u" 'shr-copy-url)
     (define-key map "v" 'shr-browse-url)
@@ -206,6 +218,40 @@ redirects somewhere else."
 	(insert url)
 	(copy-region-as-kill (point-min) (point-max))
 	(message "Copied %s" url))))))
+
+(defun shr-next-link ()
+  "Skip to the next link."
+  (interactive)
+  (let ((skip (text-property-any (point) (point-max) 'shr-url nil)))
+    (if (not (setq skip (text-property-not-all skip (point-max)
+					       'shr-url nil)))
+	(message "No next link")
+      (goto-char skip)
+      (message "%s" (get-text-property (point) 'help-echo)))))
+
+(defun shr-previous-link ()
+  "Skip to the previous link."
+  (interactive)
+  (let ((start (point))
+	(found nil))
+    ;; Skip past the current link.
+    (while (and (not (bobp))
+		(get-text-property (point) 'shr-url))
+      (forward-char -1))
+    ;; Find the previous link.
+    (while (and (not (bobp))
+		(not (setq found (get-text-property (point) 'shr-url))))
+      (forward-char -1))
+    (if (not found)
+	(progn
+	  (message "No previous link")
+	  (goto-char start))
+      ;; Put point at the start of the link.
+      (while (and (not (bobp))
+		  (get-text-property (point) 'shr-url))
+	(forward-char -1))
+      (forward-char 1)
+      (message "%s" (get-text-property (point) 'help-echo)))))
 
 (defun shr-show-alt-text ()
   "Show the ALT text of the image under point."
@@ -303,18 +349,24 @@ size, and full-buffer size."
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
     (when style
-      (if (string-match "color" style)
+      (if (string-match "color\\|display" style)
 	  (setq shr-stylesheet (nconc (shr-parse-style style)
 				      shr-stylesheet))
 	(setq style nil)))
-    (if (fboundp function)
-	(funcall function (cdr dom))
-      (shr-generic (cdr dom)))
-    ;; If style is set, then this node has set the color.
-    (when style
-      (shr-colorize-region start (point)
-			   (cdr (assq 'color shr-stylesheet))
-			   (cdr (assq 'background-color shr-stylesheet))))))
+    ;; If we have a display:none, then just ignore this part of the
+    ;; DOM.
+    (unless (equal (cdr (assq 'display shr-stylesheet)) "none")
+      (if (fboundp function)
+	  (funcall function (cdr dom))
+	(shr-generic (cdr dom)))
+      (when (and shr-target-id
+		 (equal (cdr (assq :id (cdr dom))) shr-target-id))
+	(put-text-property start (1+ start) 'shr-target-id shr-target-id))
+      ;; If style is set, then this node has set the color.
+      (when style
+	(shr-colorize-region start (point)
+			     (cdr (assq 'color shr-stylesheet))
+			     (cdr (assq 'background-color shr-stylesheet)))))))
 
 (defun shr-generic (cont)
   (dolist (sub cont)
@@ -484,31 +536,51 @@ size, and full-buffer size."
 	 (forward-char 1))))
     (not failed)))
 
-(defun shr-expand-url (url)
-  (if (or (not url)
-	  (string-match "\\`[a-z]*:" url)
-	  (not shr-base))
-      ;; Absolute URL.
-      url
-    (let ((base shr-base))
-      ;; Chop off query string.
-      (when (string-match "\\`\\([^?]+\\)[?]" base)
-	(setq base (match-string 1 base)))
-      ;; Chop off the bit after the last slash.
-      (when (string-match "\\`\\(.*\\)[/][^/]+" base)
-	(setq base (match-string 1 base)))
-      (cond
-       ((and (string-match "\\`//" url)
-	     (string-match "\\`[a-z]*:" base))
-	(concat (match-string 0 base) url))
-       ((and (not (string-match "/\\'" base))
-	     (not (string-match "\\`/" url)))
-	(concat base "/" url))
-       ((and (string-match "\\`/" url)
-	     (string-match "\\(\\`[^:]*://[^/]+\\)/" base))
-	(concat (match-string 1 base) url))
-       (t
-	(concat base url))))))
+(defun shr-parse-base (url)
+  ;; Always chop off anchors.
+  (when (string-match "#.*" url)
+    (setq url (substring url 0 (match-beginning 0))))
+  (let* ((parsed (url-generic-parse-url url))
+	 (local (url-filename parsed)))
+    (setf (url-filename parsed) "")
+    ;; Chop off the bit after the last slash.
+    (when (string-match "\\`\\(.*/\\)[^/]+\\'" local)
+      (setq local (match-string 1 local)))
+    ;; Always make the local bit end with a slash.
+    (when (and (not (zerop (length local)))
+	       (not (eq (aref local (1- (length local))) ?/)))
+      (setq local (concat local "/")))
+    (list (url-recreate-url parsed)
+	  local
+	  (url-type parsed)
+	  url)))
+
+(defun shr-expand-url (url &optional base)
+  (setq base
+	(if base
+	    (shr-parse-base base)
+	  ;; Bound by the parser.
+	  shr-base))
+  (when (zerop (length url))
+    (setq url nil))
+  (cond ((or (not url)
+	     (not base)
+	     (string-match "\\`[a-z]*:" url))
+	 ;; Absolute URL.
+	 (or url (car base)))
+	((eq (aref url 0) ?/)
+	 (if (and (> (length url) 1)
+		  (eq (aref url 1) ?/))
+	     ;; //host...; just use the protocol
+	     (concat (nth 2 base) ":" url)
+	   ;; Just use the host name part.
+	   (concat (car base) url)))
+	((eq (aref url 0) ?#)
+	 ;; A link to an anchor.
+	 (concat (nth 3 base) url))
+	(t
+	 ;; Totally relative.
+	 (concat (car base) (cadr base) url))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -537,22 +609,16 @@ size, and full-buffer size."
     (dolist (type types)
       (shr-add-font (or shr-start (point)) (point) type))))
 
-(defun shr-make-overlay (beg end &optional buffer front-advance rear-advance)
-  (let ((overlay (make-overlay beg end buffer front-advance rear-advance)))
-    (overlay-put overlay 'evaporate t)
-    overlay))
-
-;; Add an overlay in the region, but avoid putting the font properties
-;; on blank text at the start of the line, and the newline at the end,
-;; to avoid ugliness.
+;; Add face to the region, but avoid putting the font properties on
+;; blank text at the start of the line, and the newline at the end, to
+;; avoid ugliness.
 (defun shr-add-font (start end type)
   (save-excursion
     (goto-char start)
     (while (< (point) end)
       (when (bolp)
 	(skip-chars-forward " "))
-      (let ((overlay (shr-make-overlay (point) (min (line-end-position) end))))
-	(overlay-put overlay 'face type))
+      (add-face-text-property (point) (min (line-end-position) end) type t)
       (if (< (line-end-position) end)
 	  (forward-line 1)
 	(goto-char end)))))
@@ -642,10 +708,7 @@ size, and full-buffer size."
 		     (> (car (image-size image t)) 400))
 	    (insert "\n"))
 	  (if (eq size 'original)
-	      (let ((overlays (overlays-at (point))))
-		(insert-sliced-image image (or alt "*") nil 20 1)
-		(dolist (overlay overlays)
-		  (overlay-put overlay 'face 'default)))
+	      (insert-sliced-image image (or alt "*") nil 20 1)
 	    (insert-image image (or alt "*")))
 	  (put-text-property start (point) 'image-size size)
 	  (when (cond ((fboundp 'image-multi-frame-p)
@@ -733,16 +796,13 @@ START, and END.  Note that START and END should be markers."
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
 
-(autoload 'widget-convert-button "wid-edit")
-
 (defun shr-urlify (start url &optional title)
-  (widget-convert-button
-   'url-link start (point)
-   :help-echo (if title (format "%s (%s)" url title) url)
-   :keymap shr-map
-   url)
   (shr-add-font start (point) 'shr-link)
-  (put-text-property start (point) 'shr-url url))
+  (add-text-properties
+   start (point)
+   (list 'shr-url url
+	 'local-map shr-map
+	 'help-echo (if title (format "%s (%s)" url title) url))))
 
 (defun shr-encode-url (url)
   "Encode URL."
@@ -778,31 +838,10 @@ ones, in case fg and bg are nil."
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
-	  (shr-put-color start end :foreground (cadr new-colors)))
+	  (shr-add-font start end (list :foreground (cadr new-colors))))
 	(when bg
-	  (shr-put-color start end :background (car new-colors))))
+	  (shr-add-font start end (list :background (car new-colors)))))
       new-colors)))
-
-;; Put a color in the region, but avoid putting colors on blank
-;; text at the start of the line, and the newline at the end, to avoid
-;; ugliness.  Also, don't overwrite any existing color information,
-;; since this can be called recursively, and we want the "inner" color
-;; to win.
-(defun shr-put-color (start end type color)
-  (save-excursion
-    (goto-char start)
-    (while (< (point) end)
-      (when (and (bolp)
-		 (not (eq type :background)))
-	(skip-chars-forward " "))
-      (when (> (line-end-position) (point))
-	(shr-put-color-1 (point) (min (line-end-position) end) type color))
-      (if (< (line-end-position) end)
-	  (forward-line 1)
-	(goto-char end)))
-    (when (and (eq type :background)
-	       (= shr-table-depth 0))
-      (shr-expand-newlines start end color))))
 
 (defun shr-expand-newlines (start end color)
   (save-restriction
@@ -824,7 +863,7 @@ ones, in case fg and bg are nil."
 	(when (and (< (setq column (current-column)) width)
 		   (< (setq column (shr-previous-newline-padding-width column))
 		      width))
-	  (let ((overlay (shr-make-overlay (point) (1+ (point)))))
+	  (let ((overlay (make-overlay (point) (1+ (point)))))
 	    (overlay-put overlay 'before-string
 			 (concat
 			  (mapconcat
@@ -854,25 +893,6 @@ ones, in case fg and bg are nil."
 				    'before-string)))))
       (+ width previous-width))))
 
-(defun shr-put-color-1 (start end type color)
-  (let* ((old-props (get-text-property start 'face))
-	 (do-put (and (listp old-props)
-                      (not (memq type old-props))))
-	 change)
-    (while (< start end)
-      (setq change (next-single-property-change start 'face nil end))
-      (when do-put
-	(put-text-property start change 'face
-			   (nconc (list type color) old-props)))
-      (setq old-props (get-text-property change 'face))
-      (setq do-put (and (listp old-props)
-                        (not (memq type old-props))))
-      (setq start change))
-    (when (and do-put
-	       (> end start))
-      (put-text-property start end 'face
-			 (nconc (list type color old-props))))))
-
 ;;; Tag-specific rendering rules.
 
 (defun shr-tag-body (cont)
@@ -894,8 +914,31 @@ ones, in case fg and bg are nil."
 (defun shr-tag-comment (cont)
   )
 
+(defun shr-dom-to-xml (dom)
+  "Convert DOM into a string containing the xml representation."
+  (let ((arg " ")
+        (text ""))
+    (dolist (sub (cdr dom))
+      (cond
+       ((listp (cdr sub))
+        (setq text (concat text (shr-dom-to-xml sub))))
+       ((eq (car sub) 'text)
+        (setq text (concat text (cdr sub))))
+       (t
+        (setq arg (concat arg (format "%s=\"%s\" "
+                                      (substring (symbol-name (car sub)) 1)
+                                      (cdr sub)))))))
+    (format "<%s%s>%s</%s>"
+            (car dom)
+            (substring arg 0 (1- (length arg)))
+            text
+            (car dom))))
+
 (defun shr-tag-svg (cont)
-  )
+  (when (image-type-available-p 'svg)
+    (funcall shr-put-image-function
+             (shr-dom-to-xml (cons 'svg cont))
+             "SVG Image")))
 
 (defun shr-tag-sup (cont)
   (let ((start (point)))
@@ -965,7 +1008,7 @@ ones, in case fg and bg are nil."
       plist)))
 
 (defun shr-tag-base (cont)
-  (setq shr-base (cdr (assq :href cont)))
+  (setq shr-base (shr-parse-base (cdr (assq :href cont))))
   (shr-generic cont))
 
 (defun shr-tag-a (cont)
@@ -1087,14 +1130,14 @@ ones, in case fg and bg are nil."
   (shr-ensure-paragraph))
 
 (defun shr-tag-li (cont)
-  (shr-ensure-paragraph)
+  (shr-ensure-newline)
   (shr-indent)
   (let* ((bullet
 	  (if (numberp shr-list-mode)
 	      (prog1
 		  (format "%d " shr-list-mode)
 		(setq shr-list-mode (1+ shr-list-mode)))
-	    "* "))
+	    shr-bullet))
 	 (shr-indentation (+ shr-indentation (length bullet))))
     (insert bullet)
     (shr-generic cont)))
@@ -1113,10 +1156,9 @@ ones, in case fg and bg are nil."
 (defun shr-tag-span (cont)
   (let ((title (cdr (assq :title cont))))
     (shr-generic cont)
-    (when title
-      (when shr-start
-        (let ((overlay (shr-make-overlay shr-start (point))))
-          (overlay-put overlay 'help-echo title))))))
+    (when (and title
+	       shr-start)
+      (put-text-property shr-start (point) 'help-echo title))))
 
 (defun shr-tag-h1 (cont)
   (shr-heading cont 'bold 'underline))
@@ -1282,19 +1324,10 @@ ones, in case fg and bg are nil."
 	(insert shr-table-vertical-line "\n"))
       (dolist (column row)
 	(goto-char start)
-	(let ((lines (nth 2 column))
-	      (overlay-lines (nth 3 column))
-	      overlay overlay-line)
+	(let ((lines (nth 2 column)))
 	  (dolist (line lines)
-	    (setq overlay-line (pop overlay-lines))
 	    (end-of-line)
 	    (insert line shr-table-vertical-line)
-	    (dolist (overlay overlay-line)
-	      (let ((o (shr-make-overlay (- (point) (nth 0 overlay) 1)
-					 (- (point) (nth 1 overlay) 1)))
-		    (properties (nth 2 overlay)))
-		(while properties
-		  (overlay-put o (pop properties) (pop properties)))))
 	    (forward-line 1))
 	  ;; Add blank lines at padding at the bottom of the TD,
 	  ;; possibly.
@@ -1304,7 +1337,8 @@ ones, in case fg and bg are nil."
 	      (insert (make-string (string-width (car lines)) ? )
 		      shr-table-vertical-line)
 	      (when (nth 4 column)
-		(shr-put-color start (1- (point)) :background (nth 4 column))))
+		(shr-add-font start (1- (point))
+			      (list :background (nth 4 column)))))
 	    (forward-line 1)))))
     (shr-insert-table-ruler widths)))
 
@@ -1352,6 +1386,13 @@ ones, in case fg and bg are nil."
     widths))
 
 (defun shr-make-table (cont widths &optional fill)
+  (or (cadr (assoc (list cont widths fill) shr-content-cache))
+      (let ((data (shr-make-table-1 cont widths fill)))
+	(push (list (list cont widths fill) data)
+	      shr-content-cache)
+	data)))
+
+(defun shr-make-table-1 (cont widths &optional fill)
   (let ((trs nil))
     (dolist (row cont)
       (when (eq (car row) 'tr)
@@ -1375,7 +1416,7 @@ ones, in case fg and bg are nil."
 	  (fgcolor (cdr (assq :fgcolor cont)))
 	  (style (cdr (assq :style cont)))
 	  (shr-stylesheet shr-stylesheet)
-	  overlays actual-colors)
+	  actual-colors)
       (when style
 	(setq style (and (string-match "color" style)
 			 (shr-parse-style style))))
@@ -1385,32 +1426,16 @@ ones, in case fg and bg are nil."
 	(setq style (nconc (list (cons 'color fgcolor)) style)))
       (when style
 	(setq shr-stylesheet (append style shr-stylesheet)))
-      (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
-	(if cache
-	    (progn
-	      (insert (car cache))
-	      (let ((end (length (car cache))))
-		(dolist (overlay (cadr cache))
-		  (let ((new-overlay
-			 (shr-make-overlay (1+ (- end (nth 0 overlay)))
-					   (1+ (- end (nth 1 overlay)))))
-			(properties (nth 2 overlay)))
-		    (while properties
-		      (overlay-put new-overlay
-				   (pop properties) (pop properties)))))))
-	  (let ((shr-width width)
-		(shr-indentation 0))
-	    (shr-descend (cons 'td cont)))
-	  ;; Delete padding at the bottom of the TDs.
-	  (delete-region
-	   (point)
-	   (progn
-	     (skip-chars-backward " \t\n")
-	     (end-of-line)
-	     (point)))
-	  (push (list (cons width cont) (buffer-string)
-		      (shr-overlays-in-region (point-min) (point-max)))
-		shr-content-cache)))
+      (let ((shr-width width)
+	    (shr-indentation 0))
+	(shr-descend (cons 'td cont)))
+      ;; Delete padding at the bottom of the TDs.
+      (delete-region
+       (point)
+       (progn
+	 (skip-chars-backward " \t\n")
+	 (end-of-line)
+	 (point)))
       (goto-char (point-min))
       (let ((max 0))
 	(while (not (eobp))
@@ -1424,11 +1449,23 @@ ones, in case fg and bg are nil."
 	  (if (zerop (buffer-size))
 	      (insert (make-string width ? ))
 	    ;; Otherwise, fill the buffer.
-	    (while (not (eobp))
-	      (end-of-line)
-	      (when (> (- width (current-column)) 0)
-		(insert (make-string (- width (current-column)) ? )))
-	      (forward-line 1)))
+	    (let ((align (cdr (assq :align cont)))
+		  length)
+	      (while (not (eobp))
+		(end-of-line)
+		(setq length (- width (current-column)))
+		(when (> length 0)
+		  (cond
+		   ((equal align "right")
+		    (beginning-of-line)
+		    (insert (make-string length ? )))
+		   ((equal align "center")
+		    (insert (make-string (/ length 2) ? ))
+		    (beginning-of-line)
+		    (insert (make-string (- length (/ length 2)) ? )))
+		   (t
+		    (insert (make-string length ? )))))
+		(forward-line 1))))
 	  (when style
 	    (setq actual-colors
 		  (shr-colorize-region
@@ -1439,7 +1476,7 @@ ones, in case fg and bg are nil."
 	    (list max
 		  (count-lines (point-min) (point-max))
 		  (split-string (buffer-string) "\n")
-		  (shr-collect-overlays)
+		  nil
 		  (car actual-colors))
 	  max)))))
 
@@ -1451,29 +1488,6 @@ ones, in case fg and bg are nil."
       (setq max (max max (current-column)))
       (forward-line 1))
     max))
-
-(defun shr-collect-overlays ()
-  (save-excursion
-    (goto-char (point-min))
-    (let ((overlays nil))
-      (while (not (eobp))
-	(push (shr-overlays-in-region (point) (line-end-position))
-	      overlays)
-	(forward-line 1))
-      (nreverse overlays))))
-
-(defun shr-overlays-in-region (start end)
-  (let (result)
-    (dolist (overlay (overlays-in start end))
-      (push (list (if (> start (overlay-start overlay))
-		      (- end start)
-		    (- end (overlay-start overlay)))
-		  (if (< end (overlay-end overlay))
-		      0
-		    (- end (overlay-end overlay)))
-		  (overlay-properties overlay))
-	    result))
-    (nreverse result)))
 
 (defun shr-pro-rate-columns (columns)
   (let ((total-percentage 0)
@@ -1519,6 +1533,27 @@ ones, in case fg and bg are nil."
 	(setq max (max max (+ (shr-count (cdr row) 'td)
 			      (shr-count (cdr row) 'th))))))
     max))
+
+;; Emacs less than 24.3
+(unless (fboundp 'add-face-text-property)
+  (defun add-face-text-property (beg end face &optional appendp object)
+    "Combine FACE BEG and END."
+    (let ((b beg))
+      (while (< b end)
+	(let ((oldval (get-text-property b 'face)))
+	  (put-text-property
+	   b (setq b (next-single-property-change b 'face nil end))
+	   'face (cond ((null oldval)
+			face)
+		       ((and (consp oldval)
+			     (not (keywordp (car oldval))))
+			(if appendp
+			    (nconc oldval (list face))
+			  (cons face oldval)))
+		       (t
+			(if appendp
+			    (list oldval face)
+			  (list face oldval))))))))))
 
 (provide 'shr)
 

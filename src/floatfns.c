@@ -41,6 +41,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define isnan(x) ((x) != (x))
 #endif
 
+/* Check that X is a floating point number.  */
+
+static void
+CHECK_FLOAT (Lisp_Object x)
+{
+  CHECK_TYPE (FLOATP (x), Qfloatp, x);
+}
+
 /* Extract a Lisp number as a `double', or signal an error.  */
 
 double

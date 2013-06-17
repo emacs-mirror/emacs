@@ -76,7 +76,8 @@ static Lisp_Object Qprocess, Qmarker;
 static Lisp_Object Qcompiled_function, Qframe;
 Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
-static Lisp_Object Qsubrp, Qmany, Qunevalled;
+static Lisp_Object Qsubrp;
+static Lisp_Object Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 static Lisp_Object Qdefun;
 
@@ -85,6 +86,94 @@ static Lisp_Object Qdefalias_fset_function;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
+static bool
+BOOLFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Bool;
+}
+static bool
+INTFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Int;
+}
+static bool
+KBOARD_OBJFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Kboard_Obj;
+}
+static bool
+OBJFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Obj;
+}
+
+static struct Lisp_Boolfwd *
+XBOOLFWD (union Lisp_Fwd *a)
+{
+  eassert (BOOLFWDP (a));
+  return &a->u_boolfwd;
+}
+static struct Lisp_Kboard_Objfwd *
+XKBOARD_OBJFWD (union Lisp_Fwd *a)
+{
+  eassert (KBOARD_OBJFWDP (a));
+  return &a->u_kboard_objfwd;
+}
+static struct Lisp_Intfwd *
+XINTFWD (union Lisp_Fwd *a)
+{
+  eassert (INTFWDP (a));
+  return &a->u_intfwd;
+}
+static struct Lisp_Objfwd *
+XOBJFWD (union Lisp_Fwd *a)
+{
+  eassert (OBJFWDP (a));
+  return &a->u_objfwd;
+}
+
+static void
+CHECK_SUBR (Lisp_Object x)
+{
+  CHECK_TYPE (SUBRP (x), Qsubrp, x);
+}
+
+static void
+set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
+{
+  eassert (found == !EQ (blv->defcell, blv->valcell));
+  blv->found = found;
+}
+
+static Lisp_Object
+blv_value (struct Lisp_Buffer_Local_Value *blv)
+{
+  return XCDR (blv->valcell);
+}
+
+static void
+set_blv_value (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  XSETCDR (blv->valcell, val);
+}
+
+static void
+set_blv_where (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->where = val;
+}
+
+static void
+set_blv_defcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->defcell = val;
+}
+
+static void
+set_blv_valcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->valcell = val;
+}
 
 Lisp_Object
 wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)

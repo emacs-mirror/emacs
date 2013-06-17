@@ -1,3 +1,9 @@
+2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use functions, not macros, for XINT etc. (Bug#11935).
+	* configure.ac (WARN_CFLAGS): Remove -Wbad-function-cast,
+	as it generates bogus warnings about reasonable casts of calls.
+
 2013-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Report ACL usage at the end (Bug#14612).

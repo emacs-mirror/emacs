@@ -655,6 +655,22 @@ static struct coding_system coding_categories[coding_category_max];
     (charset_list) = CODING_ATTR_CHARSET_LIST (attrs);	\
   } while (0)
 
+static void
+CHECK_NATNUM_CAR (Lisp_Object x)
+{
+  Lisp_Object tmp = XCAR (x);
+  CHECK_NATNUM (tmp);
+  XSETCAR (x, tmp);
+}
+
+static void
+CHECK_NATNUM_CDR (Lisp_Object x)
+{
+  Lisp_Object tmp = XCDR (x);
+  CHECK_NATNUM (tmp);
+  XSETCDR (x, tmp);
+}
+
 
 /* Safely get one byte from the source text pointed by SRC which ends
    at SRC_END, and set C to that byte.  If there are not enough bytes

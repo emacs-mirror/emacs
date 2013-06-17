@@ -1,3 +1,95 @@
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-convert-shr-links): Override the shr local map, so
+	that Gnus commands work.
+
+	* shr.el (shr-render-td): Support horizontal alignment.
+
+	* eww.el (eww-put-color): Removed.
+	(eww-colorize-region): Use `add-face-text-property'.
+
+	* shr.el (shr-add-font): Append face data, so that we get the correct
+	presedence: The innermost value (which is applied first) wins.
+	(shr-make-overlay): Obsolete function.
+
+	* mm-decode.el (mm-convert-shr-links): New function to convert
+	new-style shr URL links into widgets.
+	(mm-shr): Use it.
+
+	* eww.el (eww-mode-map): Use `shr-next-link' (etc) instead of the
+	widget commands, since we're no longer using widgets for links.
+
+	* shr.el (shr-next-link): New command.
+	(shr-previous-link): New command.
+	(shr-urlify): Don't use `widget-convert', because that's slow.
+	(shr-put-color-1): Use `add-face-text-property' instead of overlays,
+	because collecting the overlays and reapplying them when generating
+	tables is slow.
+	(shr-insert-table): Ditto.
+
+2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve.el (sieve-edit-script): Avoid beginning-of-buffer.
+	* shr.el (browse-url): Require `url'.
+	* eww.el (url): Require format-spec.
+
+2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-display-html): Default to using the entire window width.
+	(eww-browse-url): Don't add a User-Agent header (twice), because that
+	makes Bing refuse connection.
+
+	* shr.el (shr-make-table): Cache the table rendering at the table
+	level, and not the <td> level.  This is a bit faster.
+
+	* eww.el (eww-render): Go to the correct ID when given URLs ending with
+	#id.
+
+	* shr.el (shr-tag-li): Don't require a new paragraph, since other
+	browsers don't.
+	(shr-expand-url): Respect #anchor links.
+	(shr-parse-base): Chop off the anchor before using.
+	(shr-descend): Respect display: none.
+	(shr-descend): Allow marking elements that have certain IDs.
+
+	* eww.el (eww-tag-textarea): Use `text' instead of `editable-field'.
+
+	* shr.el (shr-expand-url): Don't bug out on zero-length links.
+
+	* eww.el (eww-tag-textarea): Support <textarea>.
+
+2013-06-16  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* shr.el (shr-dom-to-xml): Fixed function call.
+
+	* eww.el (eww): New group.
+	(eww-header-line-format): New custom variable.
+	(eww-current-title): New variable.
+	(eww-display-html): Update header and handle title tag.
+	(eww-update-header-line-format): New function.
+	(eww-tag-title): New function.
+
+	* shr.el (shr-dom-to-xml): (shr-dom-to-xml): New function.
+	(shr-tag-svg): Add support for the SVG tag.
+	(shr-bullet): New custom variable.
+	(shr-tag-li): Support custom bullet in unordered lists.
+
+2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Respect // URLs.
+
+	* eww.el (eww-tag-body): Override the shr body rendering so that we can
+	put a background colour onto the entire buffer.
+	(eww-render): When being redirected, use the redirect URL as the new
+	base URL.
+
+	* shr.el (shr-parse-base): Fix parsing error.
+
+	* eww.el (eww-submit): Pass the base in to `shr-expand-url'.
+
+	* shr.el (shr-parse-base): New function.
+	(shr-expand-url): Use it to expand relative URLs reliably.
+
 2013-06-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-search-collection): Fix docstring.

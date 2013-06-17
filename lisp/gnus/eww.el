@@ -25,11 +25,27 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'format-spec)
 (require 'shr)
 (require 'url)
 (require 'mm-url)
 
+(defgroup eww nil
+  "Emacs Web Wowser"
+  :version "24.4"
+  :group 'hypermedia
+  :prefix "eww-")
+
+(defcustom eww-header-line-format "%t: %u"
+  "Header line format.
+- %t is replaced by the title.
+- %u is replaced by the URL."
+  :group 'eww
+  :type 'string)
+
 (defvar eww-current-url nil)
+(defvar eww-current-title ""
+  "Title of current page.")
 (defvar eww-history nil)
 
 ;;;###autoload
@@ -53,7 +69,13 @@
 	     (match-string 1)))))
 
 (defun eww-render (status url &optional point)
+  (let ((redirect (plist-get status :redirect)))
+    (when redirect
+      (setq url redirect)))
   (let* ((headers (eww-parse-headers))
+	 (shr-target-id
+	  (and (string-match "#\\(.*\\)" url)
+	       (match-string 1 url)))
 	 (content-type
 	  (mail-header-parse-content-type
 	   (or (cdr (assoc "content-type" headers))
@@ -74,8 +96,14 @@
 	    (eww-display-image))
 	   (t
 	    (eww-display-raw charset)))
-	  (when point
-	    (goto-char point)))
+	  (cond
+	   (point
+	    (goto-char point))
+	   (shr-target-id
+	    (let ((point (next-single-property-change
+			  (point-min) 'shr-target-id)))
+	      (when point
+		(goto-char (1+ point)))))))
       (kill-buffer data-buffer))))
 
 (defun eww-parse-headers ()
@@ -101,14 +129,54 @@
 	  (libxml-parse-html-region (point) (point-max)))))
     (eww-setup-buffer)
     (setq eww-current-url url)
+    (eww-update-header-line-format)
     (let ((inhibit-read-only t)
+	  (shr-width nil)
 	  (shr-external-rendering-functions
-	   '((form . eww-tag-form)
+	   '((title . eww-tag-title)
+	     (form . eww-tag-form)
 	     (input . eww-tag-input)
+	     (textarea . eww-tag-textarea)
+	     (body . eww-tag-body)
 	     (select . eww-tag-select))))
       (shr-insert-document document)
       (eww-convert-widgets))
     (goto-char (point-min))))
+
+(defun eww-update-header-line-format ()
+  (if eww-header-line-format
+      (setq header-line-format (format-spec eww-header-line-format
+                                            `((?u . ,eww-current-url)
+                                              (?t . ,eww-current-title))))
+    (setq header-line-format nil)))
+
+(defun eww-tag-title (cont)
+  (setq eww-current-title "")
+  (dolist (sub cont)
+    (when (eq (car sub) 'text)
+      (setq eww-current-title (concat eww-current-title (cdr sub)))))
+  (eww-update-header-line-format))
+
+(defun eww-tag-body (cont)
+  (let* ((start (point))
+	 (fgcolor (cdr (or (assq :fgcolor cont)
+                           (assq :text cont))))
+	 (bgcolor (cdr (assq :bgcolor cont)))
+	 (shr-stylesheet (list (cons 'color fgcolor)
+			       (cons 'background-color bgcolor))))
+    (shr-generic cont)
+    (eww-colorize-region start (point) fgcolor bgcolor)))
+
+(defun eww-colorize-region (start end fg &optional bg)
+  (when (or fg bg)
+    (let ((new-colors (shr-color-check fg bg)))
+      (when new-colors
+	(when fg
+	  (add-face-text-property start end
+				  (list :foreground (cadr new-colors))))
+	(when bg
+	  (add-face-text-property start end
+				  (list :background (car new-colors))))))))
 
 (defun eww-display-raw (charset)
   (let ((data (buffer-substring (point) (point-max))))
@@ -137,8 +205,8 @@
     (suppress-keymap map)
     (define-key map "q" 'eww-quit)
     (define-key map "g" 'eww-reload)
-    (define-key map [tab] 'widget-forward)
-    (define-key map [backtab] 'widget-backward)
+    (define-key map [tab] 'shr-next-link)
+    (define-key map [backtab] 'shr-previous-link)
     (define-key map [delete] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
@@ -154,12 +222,9 @@
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url))
 
 (defun eww-browse-url (url &optional new-window)
-  (let ((url-request-extra-headers
-	 (append '(("User-Agent" . "eww/1.0"))
-		 url-request-extra-headers)))
-    (push (list eww-current-url (point))
-	  eww-history)
-    (eww url)))
+  (push (list eww-current-url (point))
+	eww-history)
+  (eww url))
 
 (defun eww-quit ()
   "Exit the Emacs Web Wowser."
@@ -239,6 +304,21 @@
     (unless (eq (car widget) 'hidden)
       (apply 'widget-create widget)
       (put-text-property start (point) 'eww-widget widget))))
+
+(defun eww-tag-textarea (cont)
+  (let* ((start (point))
+	 (widget
+	  (list 'text
+		:size (string-to-number
+		       (or (cdr (assq :cols cont))
+			   "40"))
+		:value (or (cdr (assq 'text cont)) "")
+		:action 'eww-submit
+		:name (cdr (assq :name cont))
+		:eww-form eww-form)))
+    (nconc eww-form (list widget))
+    (apply 'widget-create widget)
+    (put-text-property start (point) 'eww-widget widget)))
 
 (defun eww-tag-select (cont)
   (shr-ensure-paragraph)
@@ -330,22 +410,22 @@
 			  (plist-get (cdr elem) :value))
 		    values)
 	      (setq rest nil))))))
-    (debug values)
-    (let ((shr-base eww-current-url))
-      (if (and (stringp (cdr (assq :method form)))
-	       (equal (downcase (cdr (assq :method form))) "post"))
-	  (let ((url-request-method "POST")
-		(url-request-extra-headers
-		 '(("Content-Type" . "application/x-www-form-urlencoded")))
-		(url-request-data (mm-url-encode-www-form-urlencoded values)))
-	    (eww-browse-url (shr-expand-url (cdr (assq :action form)))))
-	(eww-browse-url
-	 (concat
-	  (if (cdr (assq :action form))
-	      (shr-expand-url (cdr (assq :action form)))
-	    eww-current-url)
-	  "?"
-	  (mm-url-encode-www-form-urlencoded values)))))))
+    (if (and (stringp (cdr (assq :method form)))
+	     (equal (downcase (cdr (assq :method form))) "post"))
+	(let ((url-request-method "POST")
+	      (url-request-extra-headers
+	       '(("Content-Type" . "application/x-www-form-urlencoded")))
+	      (url-request-data (mm-url-encode-www-form-urlencoded values)))
+	  (eww-browse-url (shr-expand-url (cdr (assq :action form))
+					  eww-current-url)))
+      (eww-browse-url
+       (concat
+	(if (cdr (assq :action form))
+	    (shr-expand-url (cdr (assq :action form))
+			    eww-current-url)
+	  eww-current-url)
+	"?"
+	(mm-url-encode-www-form-urlencoded values))))))
 
 (defun eww-convert-widgets ()
   (let ((start (point-min))

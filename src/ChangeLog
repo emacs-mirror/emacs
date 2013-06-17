@@ -1,3 +1,164 @@
+2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Move functions from lisp.h to individual modules when possible.
+	From a suggestion by Andreas Schwab in <http://bugs.gnu.org/11935#68>.
+	* alloc.c (XFLOAT_INIT, set_symbol_name):
+	* buffer.c (CHECK_OVERLAY):
+	* chartab.c (CHECK_CHAR_TABLE, set_char_table_ascii)
+	(set_char_table_parent):
+	* coding.c (CHECK_NATNUM_CAR, CHECK_NATNUM_CDR):
+	* data.c (BOOLFWDP, INTFWDP, KBOARD_OBJFWDP, OBJFWDP, XBOOLFWD)
+	(XKBOARD_OBJFWD, XINTFWD, XOBJFWD, CHECK_SUBR, set_blv_found)
+	(blv_value, set_blv_value, set_blv_where, set_blv_defcell)
+	(set_blv_valcell):
+	* emacs.c (setlocale) [!HAVE_SETLOCALE]:
+	* eval.c (specpdl_symbol, specpdl_old_value, specpdl_where)
+	(specpdl_arg, specpdl_func, backtrace_function, backtrace_nargs)
+	(backtrace_args, backtrace_debug_on_exit):
+	* floatfns.c (CHECK_FLOAT):
+	* fns.c (CHECK_HASH_TABLE, CHECK_LIST_END)
+	(set_hash_key_and_value, set_hash_next, set_hash_next_slot)
+	(set_hash_hash, set_hash_hash_slot, set_hash_index)
+	(set_hash_index_slot):
+	* keymap.c (CHECK_VECTOR_OR_CHAR_TABLE):
+	* marker.c (CHECK_MARKER):
+	* textprop.c (CHECK_STRING_OR_BUFFER):
+	* window.c (CHECK_WINDOW_CONFIGURATION):
+	Move here from lisp.h, and make these functions static rather than
+	extern inline.
+	* buffer.c (Qoverlayp):
+	* data.c (Qsubrp):
+	* fns.c (Qhash_table_p):
+	* window.c (Qwindow_configuration_p):
+	Now static.
+	* lisp.h: Remove the abovementioned defns and decls.
+
+	Use functions, not macros, for XINT etc. (Bug#11935).
+	In lisp.h, prefer functions to function-like macros, and
+	constants to object-like macros, when either will do.  This:
+	 . simplifies use, as there's no more need to worry about
+	   arguments' side effects being evaluated multiple times.
+	 . makes the code easier to debug on some platforms.
+	However, when using gcc -O0, keep using function-like macros
+	for a few critical operations, for performance reasons.
+	This sort of thing isn't needed with gcc -Og, but -Og
+	is a GCC 4.8 feature and isn't widely-enough available yet.
+	* alloc.c (gdb_make_enums_visible) [USE_LSB_TAG]:
+	Remove enum lsb_bits; no longer needed.
+	(allocate_misc, free_misc): Don't use XMISCTYPE as an lvalue.
+	* buffer.c (Qoverlap):
+	* data.c (Qsubrp):
+	* fns.c (Qhash_table_p):
+	Now extern, so lisp.h can use these symbols.
+	* dispextern.h: Include character.h, for MAX_CHAR etc.
+	(GLYPH, GLYPH_CHAR, GLYPH_FACE, SET_GLYPH_CHAR, SET_GLYPH_FACE)
+	(SET_GLYPH, GLYPH_CODE_CHAR, GLYPH_CODE_FACE)
+	(SET_GLYPH_FROM_GLYPH_CODE, GLYPH_MODE_LINE_FACE, GLYPH_CHAR_VALID_P)
+	(GLYPH_CODE_P): Move here from lisp.h.
+	(GLYPH_CHAR, GLYPH_FACE, GLYPH_CODE_CHAR, GLYPH_CODE_FACE)
+	(GLYPH_CHAR_VALID_P, GLYPH_CODE_P): Now functions, not macros.
+	(GLYPH_MODE_LINE_FACE): Now enums, not macros.
+	* eval.c (Fautoload): Cast XUNTAG output to intptr_t, since
+	XUNTAG now returns void *.
+	* lisp.h (lisp_h_XLI, lisp_h_XIL, lisp_h_CHECK_LIST_CONS)
+	(lisp_h_CHECK_NUMBER CHECK_SYMBOL, lisp_h_CHECK_TYPE)
+	(lisp_h_CONSP, lisp_h_EQ, lisp_h_FLOATP, lisp_h_INTEGERP)
+	(lisp_h_MARKERP, lisp_h_MISCP, lisp_h_NILP)
+	(lisp_h_SET_SYMBOL_VAL, lisp_h_SYMBOL_CONSTANT_P)
+	(lisp_h_SYMBOL_VAL, lisp_h_SYMBOLP, lisp_h_VECTORLIKEP)
+	(lisp_h_XCAR, lisp_h_XCDR, lisp_h_XCONS, lisp_h_XHASH)
+	(lisp_h_XPNTR, lisp_h_XSYMBOL):
+	New macros, renamed from their sans-lisp_h_ counterparts.
+	(XLI, XIL, CHECK_LIST_CONS, CHECK_NUMBER CHECK_SYMBOL)
+	(CHECK_TYPE, CONSP, EQ, FLOATP, INTEGERP, MARKERP)
+	(MISCP, NILP, SET_SYMBOL_VAL, SYMBOL_CONSTANT_P, SYMBOL_VAL, SYMBOLP)
+	(VECTORLIKEP, XCAR, XCDR, XCONS, XHASH, XPNTR, XSYMBOL):
+	If compiling via GCC without optimization, define these as macros
+	in addition to inline functions.
+	To disable this, compile with -DINLINING=0.
+	(LISP_MACRO_DEFUN, LISP_MACRO_DEFUN_VOID): New macros.
+	(check_cons_list) [!GC_CHECK_CONS_LIST]: Likewise.
+	(make_number, XFASTINT, XINT, XTYPE, XUNTAG): Likewise, but
+	hand-optimize only in the USE_LSB_TAG case, as GNUish hosts do that.
+	(INTMASK, VALMASK): Now macros, since static values cannot be
+	accessed from extern inline functions.
+	(VALMASK): Also a constant, for benefit of old GDB.
+	(LISP_INT_TAG_P): Remove; no longer needed as the only caller
+	is INTEGERP, which can fold it in.
+	(XLI, XIL, XHASH, XTYPE,XINT, XFASTINT, XUINT)
+	(make_number, XPNTR, XUNTAG, EQ, XCONS, XVECTOR, XSTRING, XSYMBOL)
+	(XFLOAT, XPROCESS, XWINDOW, XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE)
+	(XSUB_CHAR_TABLE, XBOOL_VECTOR, make_lisp_ptr, CHECK_TYPE)
+	(CHECK_STRING_OR_BUFFER, XCAR, XCDR, XSETCAR, XSETCDR, CAR, CDR)
+	(CAR_SAFE, CDR_SAFE, STRING_MULTIBYTE, SDATA, SSDATA, SREF, SSET)
+	(SCHARS, STRING_BYTES, SBYTES, STRING_SET_CHARS, STRING_COPYIN, AREF)
+	(ASIZE, ASET, CHAR_TABLE_REF_ASCII, CHAR_TABLE_REF)
+	(CHAR_TABLE_SET, CHAR_TABLE_EXTRA_SLOTS, SYMBOL_VAL, SYMBOL_ALIAS)
+	(SYMBOL_BLV, SYMBOL_FWD, SET_SYMBOL_VAL, SET_SYMBOL_ALIAS)
+	(SET_SYMBOL_BLV, SET_SYMBOL_FWD, SYMBOL_NAME, SYMBOL_INTERNED_P)
+	(SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P, SYMBOL_CONSTANT_P)
+	(XHASH_TABLE, HASH_TABLE_P, CHECK_HASH_TABLE, HASH_KEY, HASH_VALUE)
+	(HASH_NEXT, HASH_HASH, HASH_INDEX, HASH_TABLE_SIZE)
+	(XMISC, XMISCANY, XMARKER, XOVERLAY, XSAVE_VALUE, XFWDTYPE)
+	(XINTFWD, XBOOLFWD, XOBJFWD, XBUFFER_OBJFWD, XKBOARD_OBJFWD)
+	(XFLOAT_DATA, XFLOAT_INIT, NILP, NUMBERP, NATNUMP)
+	(RANGED_INTEGERP, CONSP, FLOATP, MISCP, STRINGP, SYMBOLP)
+	(INTEGERP, VECTORLIKEP, VECTORP, OVERLAYP)
+	(MARKERP, SAVE_VALUEP, AUTOLOADP, INTFWDP, BOOLFWDP, OBJFWDP)
+	(BUFFER_OBJFWDP, KBOARD_OBJFWDP, PSEUDOVECTOR_TYPEP)
+	(PSEUDOVECTORP, WINDOW_CONFIGURATIONP, PROCESSP, WINDOWP)
+	(TERMINALP, SUBRP, COMPILEDP, BUFFERP, CHAR_TABLE_P)
+	(SUB_CHAR_TABLE_P, BOOL_VECTOR_P, FRAMEP, IMAGEP, ARRAYP)
+	(CHECK_LIST, CHECK_LIST_CONS, CHECK_LIST_END, CHECK_STRING)
+	(CHECK_STRING_CAR, CHECK_CONS, CHECK_SYMBOL, CHECK_CHAR_TABLE)
+	(CHECK_VECTOR, CHECK_VECTOR_OR_STRING, CHECK_ARRAY)
+	(CHECK_VECTOR_OR_CHAR_TABLE, CHECK_BUFFER, CHECK_WINDOW)
+	(CHECK_WINDOW_CONFIGURATION, CHECK_PROCESS, CHECK_SUBR)
+	(CHECK_NUMBER, CHECK_NATNUM, CHECK_MARKER, XFLOATINT)
+	(CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT, CHECK_OVERLAY)
+	(CHECK_NUMBER_CAR, CHECK_NUMBER_CDR, CHECK_NATNUM_CAR)
+	(CHECK_NATNUM_CDR, FUNCTIONP, SPECPDL_INDEX, LOADHIST_ATTACH)
+	Now functions.
+	(check_cons_list) [!GC_CHECK_CONS_LIST]: New empty function.
+	(LISP_MAKE_RVALUE, TYPEMASK): Remove; no longer needed.
+	(VALMASK): Define in one place rather than in two, merging the
+	USE_LSB_TAG parts; this is simpler.
+	(aref_addr, gc_aset, MOST_POSITIVE_FIXNUM, MOST_NEGATIVE_FIXNUM)
+	(max, min, struct Lisp_String, UNSIGNED_CMP, ASCII_CHAR_P):
+	Move up, to avoid use before definition.
+	Also include "globals.h" earlier, for the same reason.
+	(make_natnum): New function.
+	(XUNTAG): Now returns void *, not intptr_t, as this means fewer casts.
+	(union Lisp_Fwd, BOOLFWDP, BOOL_VECTOR_P, BUFFER_OBJFWDP, BUFFERP)
+	(CHAR_TABLE_P, CHAR_TABLE_REF_ASCII, CONSP, FLOATP, INTEGERP, INTFWDP)
+	(KBOARD_OBJFWDP, MARKERP, MISCP, NILP, OBJFWDP, OVERLAYP, PROCESSP)
+	(PSEUDOVECTORP, SAVE_VALUEP, STRINGP, SUB_CHAR_TABLE_P, SUBRP, SYMBOLP)
+	(VECTORLIKEP, WINDOWP, Qoverlayp, char_table_ref, char_table_set)
+	(char_table_translate, Qarrayp, Qbufferp, Qbuffer_or_string_p)
+	(Qchar_table_p, Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp)
+	(Qnil, Qnumberp, Qsubrp, Qstringp, Qsymbolp, Qvectorp)
+	(Qvector_or_char_table_p, Qwholenump, Ffboundp, wrong_type_argument)
+	(initialized, Qhash_table_p, extract_float, Qprocessp, Qwindowp)
+	(Qwindow_configuration_p, Qimage): New forward declarations.
+	(XSETFASTINT): Simplify by rewriting in terms of make_natnum.
+	(STRING_COPYIN): Remove; unused.
+	(XCAR_AS_LVALUE, XCDR_AS_LVALUE): Remove these macros, replacing with ...
+	(xcar_addr, xcdr_addr): New functions.  All uses changed.
+	(IEEE_FLOATING_POINT): Now a constant, not a macro.
+	(GLYPH, GLYPH_CHAR, GLYPH_FACE, SET_GLYPH_CHAR, SET_GLYPH_FACE)
+	(SET_GLYPH, GLYPH_CODE_CHAR, GLYPH_CODE_FACE)
+	(SET_GLYPH_FROM_GLYPH_CODE, GLYPH_MODE_LINE_FACE, GLYPH_CHAR_VALID_P)
+	(GLYPH_CODE_P): Move to dispextern.h, to avoid define-before-use.
+	(TYPE_RANGED_INTEGERP): Simplify.
+	(Qsubrp, Qhash_table_p, Qoverlayp): New extern decls.
+	(setlocale, fixup_locale, synchronize_system_messages_locale)
+	(synchronize_system_time_locale) [!HAVE_SETLOCALE]:
+	Now empty functions, not macros.
+	(functionp): Return bool, not int.
+	* window.c (Qwindow_configuration_p): Now extern,
+	so window.h can use it.
+	* window.h (Qwindowp): Move decl back to lisp.h.
+
 2013-06-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fline_pixel_height): New function, required for solving

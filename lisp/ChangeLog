@@ -1,3 +1,20 @@
+2013-06-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-load-descriptor): Do not call
+	`emacs-lisp-mode', just use its syntax table.
+
+2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prog-mode.el (prog-prettify-install): Add `composition' to
+	`font-lock-extra-managed-props' if any prettifying keyword is added.
+	(prog--prettify-font-lock-compose-symbol): Use ?\s instead of ?\ .
+	(prog-mode): Use `setq-local'.
+
+2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/characters.el (standard-case-table): Set syntax of ?»
+	and ?« to punctuation.
+
 2013-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/prog-mode.el (prog--prettify-font-lock-compose-symbol):

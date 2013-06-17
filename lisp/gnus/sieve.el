@@ -213,7 +213,7 @@ require \"fileinto\";
       (insert sieve-template))
     (sieve-mode)
     (setq sieve-buffer-script-name name)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (message
      (substitute-command-keys
       "Press \\[sieve-upload] to upload script to server."))))
