@@ -43,6 +43,14 @@
   :group 'eww
   :type 'string)
 
+(defface eww-button
+  '((((type x w32 ns) (class color))	; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "lightgrey" :foreground "black"))
+  "Face for eww buffer buttons."
+  :version "24.4"
+  :group 'eww)
+
 (defvar eww-current-url nil)
 (defvar eww-current-title ""
   "Title of current page.")
@@ -268,34 +276,39 @@
   (let* ((start (point))
 	 (type (downcase (or (cdr (assq :type cont))
 			     "text")))
+	 (value (cdr (assq :value cont)))
 	 (widget
 	  (cond
 	   ((equal type "submit")
 	    (list 'push-button
 		  :notify 'eww-submit
 		  :name (cdr (assq :name cont))
-		  :value (cdr (assq :value cont))
+		  :value (if (zerop (length value))
+			     "Submit"
+			   value)
 		  :eww-form eww-form
-		  (or (cdr (assq :value cont)) "Submit")))
+		  (or (if (zerop (length value))
+			  "Submit"
+			value))))
 	   ((or (equal type "radio")
 		(equal type "checkbox"))
 	    (list 'checkbox
 		  :notify 'eww-click-radio
 		  :name (cdr (assq :name cont))
-		  :checkbox-value (cdr (assq :value cont))
+		  :checkbox-value value
 		  :checkbox-type type
 		  :eww-form eww-form
 		  (cdr (assq :checked cont))))
 	   ((equal type "hidden")
 	    (list 'hidden
 		  :name (cdr (assq :name cont))
-		  :value (cdr (assq :value cont))))
+		  :value value))
 	   (t
 	    (list 'editable-field
 		  :size (string-to-number
 			 (or (cdr (assq :size cont))
 			     "40"))
-		  :value (or (cdr (assq :value cont)) "")
+		  :value (or value "")
 		  :secret (and (equal type "password") ?*)
 		  :action 'eww-submit
 		  :name (cdr (assq :name cont))
@@ -303,7 +316,8 @@
     (nconc eww-form (list widget))
     (unless (eq (car widget) 'hidden)
       (apply 'widget-create widget)
-      (put-text-property start (point) 'eww-widget widget))))
+      (put-text-property start (point) 'eww-widget widget)
+      (insert " "))))
 
 (defun eww-tag-textarea (cont)
   (let* ((start (point))
@@ -336,13 +350,14 @@
 		    :value (cdr (assq :value (cdr elem)))
 		    :tag (cdr (assq 'text (cdr elem))))
 	      options)))
-    ;; If we have no selected values, default to the first value.
-    (unless (plist-get (cdr menu) :value)
-      (nconc menu (list :value (nth 2 (car options)))))
-    (nconc menu options)
-    (apply 'widget-create menu)
-    (put-text-property start (point) 'eww-widget menu)
-    (shr-ensure-paragraph)))
+    (when options
+      ;; If we have no selected values, default to the first value.
+      (unless (plist-get (cdr menu) :value)
+	(nconc menu (list :value (nth 2 (car options)))))
+      (nconc menu options)
+      (apply 'widget-create menu)
+      (put-text-property start (point) 'eww-widget menu)
+      (shr-ensure-paragraph))))
 
 (defun eww-click-radio (widget &rest ignore)
   (let ((form (plist-get (cdr widget) :eww-form))
@@ -434,7 +449,9 @@
     ;; so we need to nix out the list of widgets and recreate them.
     (setq widget-field-list nil
 	  widget-field-new nil)
-    (while (setq start (next-single-property-change start 'eww-widget))
+    (while (setq start (if (get-text-property start 'eww-widget)
+			   start
+			 (next-single-property-change start 'eww-widget)))
       (setq widget (get-text-property start 'eww-widget))
       (goto-char start)
       (let ((end (next-single-property-change start 'eww-widget)))
@@ -445,7 +462,13 @@
 	(delete-region start end))
       (when (and widget
 		 (not (eq (car widget) 'hidden)))
-	(apply 'widget-create widget)))
+	(apply 'widget-create widget)
+	(put-text-property start (point) 'help-echo
+			   (if (memq (car widget) '(text editable-field))
+			       "Input field"
+			     "Button"))
+	(when (eq (car widget) 'push-button)
+	  (add-face-text-property start (point) 'eww-button t))))
     (widget-setup)
     (eww-fix-widget-keymap)))
 
