@@ -419,11 +419,11 @@ This is, approximately, the inverse of `version-to-list'.
     (when (file-exists-p pkg-file)
       (with-temp-buffer
         (insert-file-contents pkg-file)
-        (emacs-lisp-mode)
         (goto-char (point-min))
-        (let ((pkg-desc (package-process-define-package
-                         (read (current-buffer)) pkg-file)))
-          (setf (package-desc-dir pkg-desc) pkg-dir))))))
+        (with-syntax-table emacs-lisp-mode-syntax-table
+          (let ((pkg-desc (package-process-define-package
+                           (read (current-buffer)) pkg-file)))
+            (setf (package-desc-dir pkg-desc) pkg-dir)))))))
 
 (defun package-load-all-descriptors ()
   "Load descriptors for installed Emacs Lisp packages.

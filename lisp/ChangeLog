@@ -1,3 +1,8 @@
+2013-06-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-load-descriptor): Do not call
+	`emacs-lisp-mode', just use its syntax table.
+
 2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/prog-mode.el (prog-prettify-install): Add `composition' to
