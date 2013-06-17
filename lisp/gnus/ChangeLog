@@ -1,3 +1,20 @@
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-convert-shr-links): New function to convert
+	new-style shr URL links into widgets.
+	(mm-shr): Use it.
+
+	* eww.el (eww-mode-map): Use `shr-next-link' (etc) instead of the
+	widget commands, since we're no longer using widgets for links.
+
+	* shr.el (shr-next-link): New command.
+	(shr-previous-link): New command.
+	(shr-urlify): Don't use `widget-convert', because that's slow.
+	(shr-put-color-1): Use `add-face-text-property' instead of overlays,
+	because collecting the overlays and reapplying them when generating
+	tables is slow.
+	(shr-insert-table): Ditto.
+
 2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sieve.el (sieve-edit-script): Avoid beginning-of-buffer.
