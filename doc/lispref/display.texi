@@ -2126,7 +2126,8 @@ used automatically to handle certain shades of gray.
 
 @item :font
 The font used to display the face.  Its value should be a font object.
-@xref{Font Selection}, for information about font objects.
+@xref{Low-Level Font}, for information about font objects, font specs,
+and font entities.
 
 When specifying this attribute using @code{set-face-attribute}
 (@pxref{Attribute Functions}), you may also supply a font spec, a font
@@ -3260,7 +3261,9 @@ to @var{value}.
 properties are intermediate between a font object and a font spec:
 like a font object, and unlike a font spec, it refers to a single,
 specific font.  Unlike a font object, creating a font entity does not
-load the contents of that font into computer memory.
+load the contents of that font into computer memory.  Emacs may open
+multiple font objects of different sizes from a single font entity
+referring to a scalable font.
 
 @defun find-font font-spec &optional frame
 This function returns a font entity that best matches the font spec
