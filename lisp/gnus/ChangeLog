@@ -4,6 +4,7 @@
 	(eww-convert-widgets): Don't bug out if the first widget starts at the
 	beginning of the buffer.
 	(eww-convert-widgets): Fix last patch.
+	(eww-tag-input): Support <input type=image>.
 
 	* shr.el (shr-insert-table): Respect border-collapse: collapse.
 	(shr-tag-base): Protect against base specs that are degenerate.

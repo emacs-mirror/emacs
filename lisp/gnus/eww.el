@@ -279,7 +279,8 @@
 	 (value (cdr (assq :value cont)))
 	 (widget
 	  (cond
-	   ((equal type "submit")
+	   ((or (equal type "submit")
+		(equal type "image"))
 	    (list 'push-button
 		  :notify 'eww-submit
 		  :name (cdr (assq :name cont))
