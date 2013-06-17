@@ -91,6 +91,12 @@ enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
 
 /* Random data-structure functions.  */
 
+static void
+CHECK_LIST_END (Lisp_Object x, Lisp_Object y)
+{
+  CHECK_TYPE (NILP (x), Qlistp, y);
+}
+
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
@@ -3337,7 +3343,8 @@ static struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
-static Lisp_Object Qhash_table_p, Qkey, Qvalue, Qeql;
+static Lisp_Object Qhash_table_p;
+static Lisp_Object Qkey, Qvalue, Qeql;
 Lisp_Object Qeq, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
@@ -3346,6 +3353,48 @@ static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 /***********************************************************************
 			       Utilities
  ***********************************************************************/
+
+static void
+CHECK_HASH_TABLE (Lisp_Object x)
+{
+  CHECK_TYPE (HASH_TABLE_P (x), Qhash_table_p, x);
+}
+
+static void
+set_hash_key_and_value (struct Lisp_Hash_Table *h, Lisp_Object key_and_value)
+{
+  h->key_and_value = key_and_value;
+}
+static void
+set_hash_next (struct Lisp_Hash_Table *h, Lisp_Object next)
+{
+  h->next = next;
+}
+static void
+set_hash_next_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->next, idx, val);
+}
+static void
+set_hash_hash (struct Lisp_Hash_Table *h, Lisp_Object hash)
+{
+  h->hash = hash;
+}
+static void
+set_hash_hash_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->hash, idx, val);
+}
+static void
+set_hash_index (struct Lisp_Hash_Table *h, Lisp_Object index)
+{
+  h->index = index;
+}
+static void
+set_hash_index_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->index, idx, val);
+}
 
 /* If OBJ is a Lisp hash table, return a pointer to its struct
    Lisp_Hash_Table.  Otherwise, signal an error.  */

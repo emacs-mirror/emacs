@@ -115,6 +115,69 @@ Lisp_Object inhibit_lisp_code;
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
+static Lisp_Object
+specpdl_symbol (struct specbinding *pdl)
+{
+  eassert (pdl->kind >= SPECPDL_LET);
+  return pdl->v.let.symbol;
+}
+
+static Lisp_Object
+specpdl_old_value (struct specbinding *pdl)
+{
+  eassert (pdl->kind >= SPECPDL_LET);
+  return pdl->v.let.old_value;
+}
+
+static Lisp_Object
+specpdl_where (struct specbinding *pdl)
+{
+  eassert (pdl->kind > SPECPDL_LET);
+  return pdl->v.let.where;
+}
+
+static Lisp_Object
+specpdl_arg (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_UNWIND);
+  return pdl->v.unwind.arg;
+}
+
+static specbinding_func
+specpdl_func (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_UNWIND);
+  return pdl->v.unwind.func;
+}
+
+static Lisp_Object
+backtrace_function (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->v.bt.function;
+}
+
+static ptrdiff_t
+backtrace_nargs (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->v.bt.nargs;
+}
+
+static Lisp_Object *
+backtrace_args (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->v.bt.args;
+}
+
+static bool
+backtrace_debug_on_exit (struct specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->v.bt.debug_on_exit;
+}
+
 /* Functions to modify slots of backtrace records.  */
 
 static void

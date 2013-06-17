@@ -150,6 +150,12 @@ static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay
 static void modify_overlay (struct buffer *, ptrdiff_t, ptrdiff_t);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *, bool);
 
+static void
+CHECK_OVERLAY (Lisp_Object x)
+{
+  CHECK_TYPE (OVERLAYP (x), Qoverlayp, x);
+}
+
 /* These setters are used only in this file, so they can be private.  */
 static void
 bset_abbrev_mode (struct buffer *b, Lisp_Object val)
@@ -1539,7 +1545,7 @@ candidate_buffer (Lisp_Object b, Lisp_Object buffer)
 	  && BUFFER_LIVE_P (XBUFFER (b))
 	  && !BUFFER_HIDDEN_P (XBUFFER (b)));
 }
-	  
+
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
        doc: /* Return most recently selected buffer other than BUFFER.
 Buffers not visible in windows are preferred to visible buffers, unless

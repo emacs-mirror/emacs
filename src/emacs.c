@@ -306,6 +306,13 @@ bool fatal_error_in_progress;
 static void *ns_pool;
 #endif
 
+#if !HAVE_SETLOCALE
+static char *
+setlocale (int cat, char const *locale)
+{
+  return 0;
+}
+#endif
 
 
 /* Report a fatal error due to signal SIG, output a backtrace of at

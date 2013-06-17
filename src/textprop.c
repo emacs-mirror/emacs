@@ -98,6 +98,14 @@ modify_region (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   set_buffer_internal (old);
 }
 
+/* Complain if object is not string or buffer type.  */
+
+static void
+CHECK_STRING_OR_BUFFER (Lisp_Object x)
+{
+  CHECK_TYPE (STRINGP (x) || BUFFERP (x), Qbuffer_or_string_p, x);
+}
+
 /* Extract the interval at the position pointed to by BEGIN from
    OBJECT, a string or buffer.  Additionally, check that the positions
    pointed to by BEGIN and END are within the bounds of OBJECT, and

@@ -22,6 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef DISPEXTERN_H_INCLUDED
 #define DISPEXTERN_H_INCLUDED
 
+#include "character.h"
+
 #ifdef HAVE_X_WINDOWS
 
 #include <X11/Xlib.h>
@@ -269,6 +271,55 @@ struct display_pos
 /***********************************************************************
 				Glyphs
  ***********************************************************************/
+
+/* The glyph datatype, used to represent characters on the display.
+   It consists of a char code and a face id.  */
+
+typedef struct {
+  int ch;
+  int face_id;
+} GLYPH;
+
+/* Return a glyph's character code.  */
+DISPEXTERN_INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
+
+/* Return a glyph's face ID.  */
+DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
+
+#define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
+#define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
+#define SET_GLYPH(glyph, char, face) \
+  ((glyph).ch = (char), (glyph).face_id = (face))
+
+/* The following are valid only if GLYPH_CODE_P (gc).  */
+
+DISPEXTERN_INLINE int
+GLYPH_CODE_CHAR (Lisp_Object gc)
+{
+  return (CONSP (gc)
+	  ? XINT (XCAR (gc))
+	  : XINT (gc) & MAX_CHAR);
+}
+
+DISPEXTERN_INLINE int
+GLYPH_CODE_FACE (Lisp_Object gc)
+{
+  return CONSP (gc) ? XINT (XCDR (gc)) : XINT (gc) >> CHARACTERBITS;
+}
+
+#define SET_GLYPH_FROM_GLYPH_CODE(glyph, gc)				\
+  do									\
+    {									\
+      if (CONSP (gc))							\
+	SET_GLYPH (glyph, XINT (XCAR (gc)), XINT (XCDR (gc)));		\
+      else								\
+	SET_GLYPH (glyph, (XINT (gc) & ((1 << CHARACTERBITS)-1)),	\
+		   (XINT (gc) >> CHARACTERBITS));			\
+    }									\
+  while (0)
+
+/* The ID of the mode line highlighting face.  */
+enum { GLYPH_MODE_LINE_FACE = 1 };
 
 /* Enumeration of glyph types.  Glyph structures contain a type field
    containing one of the enumerators defined here.  */
@@ -1773,6 +1824,30 @@ struct face_cache
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
 
 #endif /* not HAVE_WINDOW_SYSTEM */
+
+/* Return true if G contains a valid character code.  */
+DISPEXTERN_INLINE bool
+GLYPH_CHAR_VALID_P (GLYPH g)
+{
+  return CHAR_VALID_P (GLYPH_CHAR (g));
+}
+
+/* The glyph code from a display vector may either be an integer which
+   encodes a char code in the lower CHARACTERBITS bits and a (very small)
+   face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
+
+DISPEXTERN_INLINE bool
+GLYPH_CODE_P (Lisp_Object gc)
+{
+  return (CONSP (gc)
+	  ? (CHARACTERP (XCAR (gc))
+	     && RANGED_INTEGERP (0, XCDR (gc), MAX_FACE_ID))
+	  : (RANGED_INTEGERP
+	     (0, gc,
+	      (MAX_FACE_ID < TYPE_MAXIMUM (EMACS_INT) >> CHARACTERBITS
+	       ? ((EMACS_INT) MAX_FACE_ID << CHARACTERBITS) | MAX_CHAR
+	       : TYPE_MAXIMUM (EMACS_INT)))));
+}
 
 /* Non-zero means face attributes have been changed since the last
    redisplay.  Used in redisplay_internal.  */
