@@ -415,6 +415,9 @@ It is layered as:
 
 * Incompatible Lisp Changes in Emacs 24.4
 
+** The syntax of ?» and ?« is now punctuation instead of matched parens.
+Some languages match those as »...« and others as «...» so better stay neutral.
+
 ** The default file coding for Emacs Lisp files is now utf-8.
 (See file-coding-system-alist.)  In most cases, this change is transparent, but
 files that contain unusual characters without specifying an explicit coding

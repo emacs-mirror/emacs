@@ -1,3 +1,8 @@
+2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/characters.el (standard-case-table): Set syntax of ?»
+	and ?« to punctuation.
+
 2013-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/prog-mode.el (prog--prettify-font-lock-compose-symbol):
