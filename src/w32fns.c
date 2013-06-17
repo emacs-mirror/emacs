@@ -3184,7 +3184,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	  form.rcArea.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, 0);
 	  form.rcArea.top = WINDOW_TOP_EDGE_Y (w);
-	  if (BUFFERP (w->contents))
+	  if (BUFFERP (w->contents)
+	      && FRAMEP (WINDOW_FRAME (w)))
 	    form.rcArea.top += WINDOW_HEADER_LINE_HEIGHT (w);
 	  form.rcArea.right = (WINDOW_BOX_RIGHT_EDGE_X (w)
 			       - WINDOW_RIGHT_MARGIN_WIDTH (w)

@@ -8,6 +8,12 @@
 	(Fadd_face_text_property): New function that calls
 	add_text_properties_1.
 
+2013-06-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't call WINDOW_HEADER_LINE_HEIGHT
+	unless we know that the window w's frame is a frame object.
+	Another attempt at solving bug#14062 and bug#14630.
+
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Move functions from lisp.h to individual modules when possible.
