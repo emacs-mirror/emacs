@@ -76,8 +76,8 @@ Regexp match data 0 points to the chars."
 	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
 		       '(?w) '(?. ?\\)))
 	 match)
-    (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
-	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
+    (if (or (memq (char-syntax (or (char-before start) ?\s)) syntaxes)
+	    (memq (char-syntax (or (char-after end) ?\s)) syntaxes)
             ;; syntax-ppss could modify the match data (bug#14595)
             (progn (setq match (match-string 0)) (nth 8 (syntax-ppss))))
 	;; No composition for you.  Let's actually remove any composition
@@ -106,13 +106,16 @@ ALIST is in the format `((STRING . CHARACTER)...)' like
 Internally, `font-lock-add-keywords' is called."
   (setq-local prog-prettify-symbols-alist alist)
   (let ((keywords (prog-prettify-font-lock-symbols-keywords)))
-    (if keywords (font-lock-add-keywords nil keywords))))
+    (when keywords
+      (font-lock-add-keywords nil keywords)
+      (setq-local font-lock-extra-managed-props
+                  (cons 'composition font-lock-extra-managed-props)))))
 
 ;;;###autoload
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local require-final-newline mode-require-final-newline)
+  (setq-local parse-sexp-ignore-comments t)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
 
