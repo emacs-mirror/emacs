@@ -1,3 +1,8 @@
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/browse-url.el (browse-url-browser-function): Add `eww' as a
+	possible choice.
+
 2013-06-17  Juri Linkov  <juri@jurta.org>
 
 	* net/webjump.el (webjump-sample-sites): Add DuckDuckGo.
