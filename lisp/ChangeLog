@@ -1,3 +1,8 @@
+2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (command-line): Expand package name returned by
+	`package--description-file' (bug#14639).
+
 2013-06-17  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package.el (package-load-descriptor): Do not call

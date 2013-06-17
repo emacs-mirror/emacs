@@ -1203,7 +1203,9 @@ the `--debug-init' option to view a complete error backtrace."
 		 (when (let ((subdir (expand-file-name subdir dir)))
                          (and (file-directory-p subdir)
                               (file-exists-p
-                               (package--description-file subdir))))
+                               (expand-file-name
+                                (package--description-file subdir)
+                                subdir))))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
 
