@@ -1,3 +1,13 @@
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* textprop.c (property_set_type): New enum.
+	(add_properties): Allow appending/prepending text properties.
+	(add_text_properties_1): Factored out of Fadd_text_properties.
+	(Fadd_text_properties): Moved all the code into
+	add_text_properties_1.
+	(Fadd_face_text_property): New function that calls
+	add_text_properties_1.
+
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Move functions from lisp.h to individual modules when possible.
