@@ -1226,7 +1226,7 @@ list, which is in the variable @code{buffer-undo-list}.
 
 @defvar buffer-undo-list
 This buffer-local variable's value is the undo list of the current
-buffer. A value of @code{t} disables the recording of undo information.
+buffer.  A value of @code{t} disables the recording of undo information.
 @end defvar
 
 Here are the kinds of elements an undo list can have:
@@ -2818,7 +2818,7 @@ to text:
 
 The attribute is (by default) prepended to the list of face
 attributes, and the first attribute of the same type takes
-presedence.  So if you have two @code{:foreground} specifications, the
+precedence.  So if you have two @code{:foreground} specifications, the
 first one will take effect.
 
 If you pass in @var{appendp}, the attribute will be appended instead
