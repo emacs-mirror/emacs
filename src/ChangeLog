@@ -1,3 +1,7 @@
+2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsfont.m (ns_registry_to_script): Parenthesize while expression.
+
 2013-06-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Don't call WINDOW_HEADER_LINE_HEIGHT
