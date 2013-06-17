@@ -31,6 +31,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'url))      ;For url-filename's setf handler.
 (require 'browse-url)
 
 (defgroup shr nil

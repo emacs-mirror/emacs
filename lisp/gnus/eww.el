@@ -25,6 +25,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'format-spec)
 (require 'shr)
 (require 'url)
 (require 'mm-url)

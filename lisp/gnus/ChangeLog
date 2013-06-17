@@ -1,3 +1,9 @@
+2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve.el (sieve-edit-script): Avoid beginning-of-buffer.
+	* shr.el (browse-url): Require `url'.
+	* eww.el (url): Require format-spec.
+
 2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eww.el (eww-display-html): Default to using the entire window width.
