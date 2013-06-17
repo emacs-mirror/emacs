@@ -172,12 +172,11 @@
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
-	  (eww-put-color start end :foreground (cadr new-colors)))
+	  (add-face-text-property start end
+				  (list :foreground (cadr new-colors))))
 	(when bg
-	  (eww-put-color start end :background (car new-colors)))))))
-
-(defun eww-put-color (start end type color)
-  (shr-put-color-1 start end type color))
+	  (add-face-text-property start end
+				  (list :background (car new-colors))))))))
 
 (defun eww-display-raw (charset)
   (let ((data (buffer-substring (point) (point-max))))

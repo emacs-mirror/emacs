@@ -1831,6 +1831,7 @@ If RECURSIVE, search recursively."
 	 :help-echo (get-text-property start 'help-echo)
 	 :keymap shr-map
 	 (get-text-property start 'shr-url))
+	(put-text-property start end 'local-map nil)
 	(setq start end)))))
 
 (defun mm-handle-filename (handle)
