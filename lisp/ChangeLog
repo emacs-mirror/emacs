@@ -1,3 +1,9 @@
+2013-06-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package.el (package-load-descriptor): Remove
+	`with-syntax-table' call, `read' doesn't need it.
+	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00539.html
+
 2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* startup.el (command-line): Expand package name returned by
