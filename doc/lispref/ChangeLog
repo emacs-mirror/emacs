@@ -1,7 +1,7 @@
 2013-06-17  Kenichi Handa  <handa@gnu.org>
 
 	* display.texi (Face Attributes): Refer to "Low-Level font" (not
-	"Font Selection") in the explanation of :font attribute.
+	"Font Selection") in the explanation of :font attribute (bug#14629).
 
 2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
