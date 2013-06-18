@@ -1819,6 +1819,8 @@ If RECURSIVE, search recursively."
 
 (defvar shr-map)
 
+(autoload 'widget-convert-button "wid-edit")
+
 (defun mm-convert-shr-links ()
   (let ((start (point-min))
 	end)

@@ -1,5 +1,7 @@
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
+	* mm-decode.el (widget-convert-button): Autoload.
+
 	* sieve-manage.el (mm-enable-multibyte): Autoload.
 
 	* shr.el (libxml-parse-html-region): Declare.
