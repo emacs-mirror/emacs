@@ -1,3 +1,7 @@
+2013-06-18  Kenichi Handa  <handa@gnu.org>
+
+	* font.c (Ffont_spec): Signal an error for an invalid font name.
+
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Move functions from lisp.h to individual modules when possible.
