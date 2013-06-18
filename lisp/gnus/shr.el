@@ -1248,13 +1248,7 @@ ones, in case fg and bg are nil."
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
-    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
-  ;; Finally, insert all the images after the table.  The Emacs buffer
-  ;; model isn't strong enough to allow us to put the images actually
-  ;; into the tables.
-  (when (zerop shr-table-depth)
-    (dolist (elem (shr-find-elements cont 'img))
-      (shr-tag-img (cdr elem)))))
+    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
 
 (defun shr-tag-table (cont)
   (shr-ensure-paragraph)
@@ -1318,7 +1312,13 @@ ones, in case fg and bg are nil."
 	      body))))))
     (when bgcolor
       (shr-colorize-region start (point) (cdr (assq 'color shr-stylesheet))
-			   bgcolor))))
+			   bgcolor))
+    ;; Finally, insert all the images after the table.  The Emacs buffer
+    ;; model isn't strong enough to allow us to put the images actually
+    ;; into the tables.
+    (when (zerop shr-table-depth)
+      (dolist (elem (shr-find-elements cont 'img))
+	(shr-tag-img (cdr elem))))))
 
 (defun shr-find-elements (cont type)
   (let (result)
