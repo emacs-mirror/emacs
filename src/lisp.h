@@ -226,7 +226,7 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
    would otherwise cause a serious performance problem.
 
    For each such operation OP, define a macro lisp_h_OP that contains
-   the operation's implementation.  That way, OP can be implementated
+   the operation's implementation.  That way, OP can be implemented
    via a macro definition like this:
 
      #define OP(x) lisp_h_OP (x)
