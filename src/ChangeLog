@@ -1,3 +1,8 @@
+2013-06-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c: Include xgselect.h if HAVE_GLIB.  Include glib.h
+	if HAVE_GLIB && ! WINDOWSNT (Bug#14654).
+
 2013-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* conf_post.h: Add comments for INLINE, EXTERN_INLINE, etc.
