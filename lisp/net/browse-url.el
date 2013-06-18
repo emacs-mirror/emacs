@@ -234,6 +234,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
+	  (function-item :tag "eww" :value  eww)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
 	  (function-item :tag "Text browser in an xterm window"
 			 :value browse-url-text-xterm)

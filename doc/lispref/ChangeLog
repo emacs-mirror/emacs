@@ -1,3 +1,11 @@
+2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* text.texi (Undo, Changing Properties): Fix typos.
+
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Changing Properties): Document `add-face-text-property'.
+
 2013-06-17  Kenichi Handa  <handa@gnu.org>
 
 	* display.texi (Face Attributes): Refer to "Low-Level font" (not

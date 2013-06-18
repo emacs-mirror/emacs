@@ -2881,6 +2881,8 @@ The skeleton will be bound to python-skeleton-NAME."
         (when module-file
           (substring-no-properties module-file 1 -1))))))
 
+(defvar ffap-alist)
+
 (eval-after-load "ffap"
   '(progn
      (push '(python-mode . python-ffap-module-path) ffap-alist)

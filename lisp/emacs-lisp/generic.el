@@ -44,11 +44,8 @@
 ;;   end at the end of the line.)  Emacs does not support comment
 ;;   strings of more than two characters in length.
 ;;
-;; * List of keywords to font-lock.  Each keyword should be a string.
-;;   If you have additional keywords which should be highlighted in a
-;;   face different from `font-lock-keyword-face', you can use the
-;;   convenience function `generic-make-keywords-list' (which see),
-;;   and add the result to the following list:
+;; * List of keywords to font-lock in `font-lock-keyword-face'.
+;;   Each keyword should be a string.
 ;;
 ;; * Additional expressions to font-lock.  This should be a list of
 ;;   expressions, each of which should be of the same form as those in

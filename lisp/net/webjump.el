@@ -217,6 +217,9 @@
 		   "www.emacswiki.org/cgi-bin/wiki/" ""])
 
     ;; Internet search engines.
+    ("DuckDuckGo" .
+     [simple-query "duckduckgo.com"
+		   "duckduckgo.com/?q=" ""])
     ("Google" .
      [simple-query "www.google.com"
 		   "www.google.com/search?q=" ""])

@@ -1226,7 +1226,7 @@ list, which is in the variable @code{buffer-undo-list}.
 
 @defvar buffer-undo-list
 This buffer-local variable's value is the undo list of the current
-buffer. A value of @code{t} disables the recording of undo information.
+buffer.  A value of @code{t} disables the recording of undo information.
 @end defvar
 
 Here are the kinds of elements an undo list can have:
@@ -2803,6 +2803,28 @@ from the specified range of text.  Here's an example:
 @end example
 
 Do not rely on the return value of this function.
+@end defun
+
+@defun add-face-text-property start end face &optional appendp object
+@code{face} text attributes can be combined.  If you want to make a
+section both italic and green, you can either define a new face that
+have those attributes, or you can add both these attributes separately
+to text:
+
+@example
+(add-face-text-property @var{start} @var{end} 'italic)
+(add-face-text-property @var{start} @var{end} '(:foreground "#00ff00"))
+@end example
+
+The attribute is (by default) prepended to the list of face
+attributes, and the first attribute of the same type takes
+precedence.  So if you have two @code{:foreground} specifications, the
+first one will take effect.
+
+If you pass in @var{appendp}, the attribute will be appended instead
+of prepended, which means that it will have no effect if there is
+already an attribute of the same type.
+
 @end defun
 
   The easiest way to make a string with text properties

@@ -125,6 +125,7 @@ cid: URL as the argument.")
 (defvar shr-ignore-cache nil)
 (defvar shr-external-rendering-functions nil)
 (defvar shr-target-id nil)
+(defvar shr-inhibit-decoration nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -141,10 +142,14 @@ cid: URL as the argument.")
     map))
 
 ;; Public functions and commands.
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
 
 (defun shr-render-buffer (buffer)
   "Display the HTML rendering of the current buffer."
   (interactive (list (current-buffer)))
+  (or (fboundp 'libxml-parse-html-region)
+      (error "This function requires Emacs to be compiled with libxml2"))
   (pop-to-buffer "*html*")
   (erase-buffer)
   (shr-insert-document
@@ -222,9 +227,9 @@ redirects somewhere else."
 (defun shr-next-link ()
   "Skip to the next link."
   (interactive)
-  (let ((skip (text-property-any (point) (point-max) 'shr-url nil)))
+  (let ((skip (text-property-any (point) (point-max) 'help-echo nil)))
     (if (not (setq skip (text-property-not-all skip (point-max)
-					       'shr-url nil)))
+					       'help-echo nil)))
 	(message "No next link")
       (goto-char skip)
       (message "%s" (get-text-property (point) 'help-echo)))))
@@ -236,11 +241,11 @@ redirects somewhere else."
 	(found nil))
     ;; Skip past the current link.
     (while (and (not (bobp))
-		(get-text-property (point) 'shr-url))
+		(get-text-property (point) 'help-echo))
       (forward-char -1))
     ;; Find the previous link.
     (while (and (not (bobp))
-		(not (setq found (get-text-property (point) 'shr-url))))
+		(not (setq found (get-text-property (point) 'help-echo))))
       (forward-char -1))
     (if (not found)
 	(progn
@@ -248,7 +253,7 @@ redirects somewhere else."
 	  (goto-char start))
       ;; Put point at the start of the link.
       (while (and (not (bobp))
-		  (get-text-property (point) 'shr-url))
+		  (get-text-property (point) 'help-echo))
 	(forward-char -1))
       (forward-char 1)
       (message "%s" (get-text-property (point) 'help-echo)))))
@@ -349,7 +354,7 @@ size, and full-buffer size."
 	(shr-stylesheet shr-stylesheet)
 	(start (point)))
     (when style
-      (if (string-match "color\\|display" style)
+      (if (string-match "color\\|display\\|border-collapse" style)
 	  (setq shr-stylesheet (nconc (shr-parse-style style)
 				      shr-stylesheet))
 	(setq style nil)))
@@ -595,7 +600,14 @@ size, and full-buffer size."
 	  (insert "\n"))
       (if (save-excursion
 	    (beginning-of-line)
-	    (looking-at " *$"))
+	    ;; If the current line is totally blank, and doesn't even
+	    ;; have any face properties set, then delete the blank
+	    ;; space.
+	    (and (looking-at " *$")
+		 (not (get-text-property (point) 'face))
+		 (not (= (next-single-property-change (point) 'face nil
+						      (line-end-position))
+			 (line-end-position)))))
 	  (delete-region (match-beginning 0) (match-end 0))
 	(insert "\n\n")))))
 
@@ -613,15 +625,16 @@ size, and full-buffer size."
 ;; blank text at the start of the line, and the newline at the end, to
 ;; avoid ugliness.
 (defun shr-add-font (start end type)
-  (save-excursion
-    (goto-char start)
-    (while (< (point) end)
-      (when (bolp)
-	(skip-chars-forward " "))
-      (add-face-text-property (point) (min (line-end-position) end) type t)
-      (if (< (line-end-position) end)
-	  (forward-line 1)
-	(goto-char end)))))
+  (unless shr-inhibit-decoration
+    (save-excursion
+      (goto-char start)
+      (while (< (point) end)
+	(when (bolp)
+	  (skip-chars-forward " "))
+	(add-face-text-property (point) (min (line-end-position) end) type t)
+	(if (< (line-end-position) end)
+	    (forward-line 1)
+	  (goto-char end))))))
 
 (defun shr-browse-url ()
   "Browse the URL under point."
@@ -797,12 +810,13 @@ START, and END.  Note that START and END should be markers."
   (shr-ensure-paragraph))
 
 (defun shr-urlify (start url &optional title)
+  (when (and title (string-match "ctx" title)) (debug))
   (shr-add-font start (point) 'shr-link)
   (add-text-properties
    start (point)
    (list 'shr-url url
-	 'local-map shr-map
-	 'help-echo (if title (format "%s (%s)" url title) url))))
+	 'help-echo (if title (format "%s (%s)" url title) url)
+	 'local-map shr-map)))
 
 (defun shr-encode-url (url)
   "Encode URL."
@@ -834,13 +848,18 @@ ones, in case fg and bg are nil."
                (shr-color-visible bg fg)))))))
 
 (defun shr-colorize-region (start end fg &optional bg)
-  (when (or fg bg)
+  (when (and (not shr-inhibit-decoration)
+	     (or fg bg))
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
-	  (shr-add-font start end (list :foreground (cadr new-colors))))
+	  (add-face-text-property start end
+				  (list :foreground (cadr new-colors))
+				  t))
 	(when bg
-	  (shr-add-font start end (list :background (car new-colors)))))
+	  (add-face-text-property start end
+				  (list :background (car new-colors))
+				  t)))
       new-colors)))
 
 (defun shr-expand-newlines (start end color)
@@ -1008,7 +1027,9 @@ ones, in case fg and bg are nil."
       plist)))
 
 (defun shr-tag-base (cont)
-  (setq shr-base (shr-parse-base (cdr (assq :href cont))))
+  (let ((base (cdr (assq :href cont))))
+    (when base
+      (setq shr-base (shr-parse-base base))))
   (shr-generic cont))
 
 (defun shr-tag-a (cont)
@@ -1017,7 +1038,8 @@ ones, in case fg and bg are nil."
 	(start (point))
 	shr-start)
     (shr-generic cont)
-    (when url
+    (when (and url
+	       (not shr-inhibit-decoration))
       (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-object (cont)
@@ -1117,6 +1139,21 @@ ones, in case fg and bg are nil."
     (shr-generic cont))
   (shr-ensure-paragraph))
 
+(defun shr-tag-dl (cont)
+  (shr-ensure-paragraph)
+  (shr-generic cont)
+  (shr-ensure-paragraph))
+
+(defun shr-tag-dt (cont)
+  (shr-ensure-newline)
+  (shr-generic cont)
+  (shr-ensure-newline))
+
+(defun shr-tag-dd (cont)
+  (shr-ensure-newline)
+  (let ((shr-indentation (+ shr-indentation 4)))
+    (shr-generic cont)))
+
 (defun shr-tag-ul (cont)
   (shr-ensure-paragraph)
   (let ((shr-list-mode 'ul))
@@ -1154,11 +1191,7 @@ ones, in case fg and bg are nil."
   (shr-generic cont))
 
 (defun shr-tag-span (cont)
-  (let ((title (cdr (assq :title cont))))
-    (shr-generic cont)
-    (when (and title
-	       shr-start)
-      (put-text-property shr-start (point) 'help-echo title))))
+  (shr-generic cont))
 
 (defun shr-tag-h1 (cont)
   (shr-heading cont 'bold 'underline))
@@ -1230,13 +1263,7 @@ ones, in case fg and bg are nil."
 	     (frame-width))
       (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
-    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
-  ;; Finally, insert all the images after the table.  The Emacs buffer
-  ;; model isn't strong enough to allow us to put the images actually
-  ;; into the tables.
-  (when (zerop shr-table-depth)
-    (dolist (elem (shr-find-elements cont 'img))
-      (shr-tag-img (cdr elem)))))
+    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
 
 (defun shr-tag-table (cont)
   (shr-ensure-paragraph)
@@ -1300,7 +1327,13 @@ ones, in case fg and bg are nil."
 	      body))))))
     (when bgcolor
       (shr-colorize-region start (point) (cdr (assq 'color shr-stylesheet))
-			   bgcolor))))
+			   bgcolor))
+    ;; Finally, insert all the images after the table.  The Emacs buffer
+    ;; model isn't strong enough to allow us to put the images actually
+    ;; into the tables.
+    (when (zerop shr-table-depth)
+      (dolist (elem (shr-find-elements cont 'img))
+	(shr-tag-img (cdr elem))))))
 
 (defun shr-find-elements (cont type)
   (let (result)
@@ -1312,35 +1345,40 @@ ones, in case fg and bg are nil."
     (nreverse result)))
 
 (defun shr-insert-table (table widths)
-  (shr-insert-table-ruler widths)
-  (dolist (row table)
-    (let ((start (point))
-	  (height (let ((max 0))
-		    (dolist (column row)
-		      (setq max (max max (cadr column))))
-		    max)))
-      (dotimes (i height)
-	(shr-indent)
-	(insert shr-table-vertical-line "\n"))
-      (dolist (column row)
-	(goto-char start)
-	(let ((lines (nth 2 column)))
-	  (dolist (line lines)
-	    (end-of-line)
-	    (insert line shr-table-vertical-line)
-	    (forward-line 1))
-	  ;; Add blank lines at padding at the bottom of the TD,
-	  ;; possibly.
-	  (dotimes (i (- height (length lines)))
-	    (end-of-line)
-	    (let ((start (point)))
-	      (insert (make-string (string-width (car lines)) ? )
-		      shr-table-vertical-line)
-	      (when (nth 4 column)
-		(shr-add-font start (1- (point))
-			      (list :background (nth 4 column)))))
-	    (forward-line 1)))))
-    (shr-insert-table-ruler widths)))
+  (let* ((collapse (equal (cdr (assq 'border-collapse shr-stylesheet))
+			  "collapse"))
+	 (shr-table-vertical-line (if collapse "" shr-table-vertical-line)))
+    (unless collapse
+      (shr-insert-table-ruler widths))
+    (dolist (row table)
+      (let ((start (point))
+	    (height (let ((max 0))
+		      (dolist (column row)
+			(setq max (max max (cadr column))))
+		      max)))
+	(dotimes (i height)
+	  (shr-indent)
+	  (insert shr-table-vertical-line "\n"))
+	(dolist (column row)
+	  (goto-char start)
+	  (let ((lines (nth 2 column)))
+	    (dolist (line lines)
+	      (end-of-line)
+	      (insert line shr-table-vertical-line)
+	      (forward-line 1))
+	    ;; Add blank lines at padding at the bottom of the TD,
+	    ;; possibly.
+	    (dotimes (i (- height (length lines)))
+	      (end-of-line)
+	      (let ((start (point)))
+		(insert (make-string (string-width (car lines)) ? )
+			shr-table-vertical-line)
+		(when (nth 4 column)
+		  (shr-add-font start (1- (point))
+				(list :background (nth 4 column)))))
+	      (forward-line 1)))))
+      (unless collapse
+	(shr-insert-table-ruler widths)))))
 
 (defun shr-insert-table-ruler (widths)
   (when (and (bolp)
@@ -1393,7 +1431,8 @@ ones, in case fg and bg are nil."
 	data)))
 
 (defun shr-make-table-1 (cont widths &optional fill)
-  (let ((trs nil))
+  (let ((trs nil)
+	(shr-inhibit-decoration (not fill)))
     (dolist (row cont)
       (when (eq (car row) 'tr)
 	(let ((tds nil)

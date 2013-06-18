@@ -1,4 +1,58 @@
+2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-table): Insert the images after the table, so that
+	they're not covered by the table colourisation, which often looked
+	awkward.
+	(shr-tag-dl, shr-tag-dt, shr-tag-dd): Add support for <dl>, <dt> and
+	<dd>.
+
+2013-06-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* eww.el (eww-detect-charset): Improve regexp; move backward.
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* mm-decode.el (widget-convert-button): Autoload.
+
+	* sieve-manage.el (mm-enable-multibyte): Autoload.
+
+	* shr.el (libxml-parse-html-region): Declare.
+	(shr-render-buffer): Explicit error if no libxml2 support.
+
+2013-06-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-current-line): New function.
+	(auth-source-netrc-parse-entries): When a data token is "machine",
+	assume we're in the wrong place and abort parsing the current line.
+
 2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-tag-select): Don't render totally empty <select> forms.
+	(eww-convert-widgets): Don't bug out if the first widget starts at the
+	beginning of the buffer.
+	(eww-convert-widgets): Fix last patch.
+	(eww-tag-input): Support <input type=image>.
+
+	* shr.el (shr-insert-table): Respect border-collapse: collapse.
+	(shr-tag-base): Protect against base specs that are degenerate.
+	(shr-ensure-paragraph): Don't delete empty lines that have text
+	properties, because these may be input fields.
+
+	* eww.el (eww-convert-widgets): Put `help-echo' on input fields so that
+	we can navigate to them.
+
+	* shr.el (shr-colorize-region): Put the colours over the entire region.
+	(shr-inhibit-decoration): New variable.
+	(shr-add-font): Use it to inhibit text property decorations while doing
+	preliminary table renderings.  This speeds up typical Wikipedia page
+	renderings by 15%.
+	(shr-tag-span): Don't respect the <title>, because that overwrites the
+	help-echo from links inside the spans.
+	(shr-next-link): Use `help-echo' for navigation, so that we can
+	navigate to form elements, too.
+
+	* eww.el (eww-button): New face.
+	(eww-convert-widgets): Use it to make submit buttons more button-like.
 
 	* mm-decode.el (mm-convert-shr-links): Override the shr local map, so
 	that Gnus commands work.

@@ -2524,7 +2524,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   struct gcpro gcpro1;
   Lisp_Object name, buffer;
   Lisp_Object tem, val;
-  ptrdiff_t specpdl_count = -1;
+  ptrdiff_t specpdl_count;
 
   if (nargs == 0)
     return Qnil;

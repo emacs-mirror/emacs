@@ -4764,7 +4764,7 @@ This calls `write-region-annotate-functions' at the start, and
   struct stat st;
   EMACS_TIME modtime;
   ptrdiff_t count = SPECPDL_INDEX ();
-  int count1;
+  ptrdiff_t count1;
   Lisp_Object handler;
   Lisp_Object visit_file;
   Lisp_Object annotations;
