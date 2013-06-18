@@ -3,6 +3,8 @@
 	* shr.el (shr-tag-table): Insert the images after the table, so that
 	they're not covered by the table colourisation, which often looked
 	awkward.
+	(shr-tag-dl, shr-tag-dt, shr-tag-dd): Add support for <dl>, <dt> and
+	<dd>.
 
 2013-06-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 

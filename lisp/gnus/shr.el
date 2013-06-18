@@ -1139,6 +1139,21 @@ ones, in case fg and bg are nil."
     (shr-generic cont))
   (shr-ensure-paragraph))
 
+(defun shr-tag-dl (cont)
+  (shr-ensure-paragraph)
+  (shr-generic cont)
+  (shr-ensure-paragraph))
+
+(defun shr-tag-dt (cont)
+  (shr-ensure-newline)
+  (shr-generic cont)
+  (shr-ensure-newline))
+
+(defun shr-tag-dd (cont)
+  (shr-ensure-newline)
+  (let ((shr-indentation (+ shr-indentation 4)))
+    (shr-generic cont)))
+
 (defun shr-tag-ul (cont)
   (shr-ensure-paragraph)
   (let ((shr-list-mode 'ul))
