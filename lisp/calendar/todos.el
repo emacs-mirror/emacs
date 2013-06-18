@@ -5005,16 +5005,39 @@ empty line above the done items separator."
       (todos-item-start)
       (not (looking-at (regexp-quote todos-nondiary-start))))))
 
-(defun todos-diary-goto-entry ()
-  "Jump to todo item included in Fancy Diary display.
-Helper function for `diary-goto-entry'."
-  (when (eq major-mode 'todos-mode)
-    (let ((opoint (point)))
-      (re-search-backward (concat "^" (regexp-quote todos-category-beg)
-				  "\\(.*\\)\n") nil t)
-      (todos-category-number (match-string 1))
-      (todos-category-select)
-      (goto-char opoint))))
+;; This duplicates the item locating code from diary-goto-entry, but
+;; without the marker code, to test whether the latter is dispensible.
+;; If it is, diary-goto-entry can be simplified.  The code duplication
+;; here can also be eliminated, leaving only the widening and category
+;; selection, and instead of :override advice :around can be used.
+
+(defun todos-diary-goto-entry (button)
+  "Jump to the diary entry for the BUTTON at point.
+If the entry is a todo item, display its category properly.
+Overrides `diary-goto-entry'."
+  ;; Locate the diary item in its source file.
+  (let* ((locator (button-get button 'locator))
+	 (file (cadr locator))
+	 (date (regexp-quote (nth 2 locator)))
+	 (content (regexp-quote (nth 3 locator))))
+    (if (not (and (file-exists-p file)
+		  (find-file-other-window file)))
+	(message "Unable to locate this diary entry")
+      (when (eq major-mode 'todos-mode) (widen))
+      (goto-char (point-min))
+      (when (re-search-forward (format "%s.*\\(%s\\)" date content) nil t)
+	(goto-char (match-beginning 1)))
+      ;; If it's a todo item, determine its category and display the
+      ;; category properly.
+      (when (eq major-mode 'todos-mode)
+	(let ((opoint (point)))
+	  (re-search-backward (concat "^" (regexp-quote todos-category-beg)
+				      "\\(.*\\)\n") nil t)
+	  (todos-category-number (match-string 1))
+	  (todos-category-select)
+	  (goto-char opoint))))))
+
+(add-function :override diary-goto-entry-function #'todos-diary-goto-entry)
 
 (defun todos-done-item-p ()
   "Return non-nil if item at point is a done item."
@@ -5146,41 +5169,15 @@ of each other."
 ;;; Utilities for generating item insertion commands and key bindings
 ;; -----------------------------------------------------------------------------
 
-;; These two powerset definitions are adaptations of code published at
-;; http://rosettacode.org, whose content is licensed under GFDL 1.2.
-;; The recursive definition is a slight reformulation of
-;; http://rosettacode.org/wiki/Power_set#Common_Lisp.  The iterative
-;; definition is my Elisp implementation of
-;; http://rosettacode.org/wiki/Power_set#C.  Can either of these be
-;; included in Emacs, or is there no need to concerned about copyright
-;; here?
-
-;; (defun todos-powerset (list)
-;;   "Return the powerset of LIST."
-;;   (cond ((null list)
-;; 	 (list nil))
-;; 	(t
-;; 	 (let ((recur (todos-powerset-recursive (cdr list)))
-;; 	       pset)
-;; 	   (dolist (elt recur pset)
-;; 	     (push (cons (car list) elt) pset))
-;; 	   (append pset recur)))))
+;; Wolfgang Jenkner posted this powerset definition to emacs-devel
+;; (http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00423.html)
+;; and kindly gave me permission to use it.
 
 (defun todos-powerset (list)
   "Return the powerset of LIST."
-  (let ((card (expt 2 (length list)))
-	 pset elt)
-    (dotimes (n card)
-      (let ((i n)
-	    (l list))
-	(while (not (zerop i))
-	  (let ((arg (pop l)))
-	    (when (cl-oddp i)
-	      (setq elt (append elt (list arg))))
-	    (setq i (/ i 2))))
-	(setq pset (append pset (list elt)))
-	(setq elt nil)))
-    pset))
+  (let ((powerset (list nil)))
+    (dolist (elt list (mapcar 'reverse powerset))
+      (nconc powerset (mapcar (apply-partially 'cons elt) powerset)))))
 
 (defun todos-gen-arglists (arglist)
   "Return list of lists of non-nil atoms produced from ARGLIST.

@@ -1,3 +1,15 @@
+2013-06-18  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-diary-goto-entry): Add item locating code from
+	diary-goto-entry.  Add it at the top-level to override the latter
+	function.
+	(todos-powerset): Use definition by Wolfgang Jenkner, posted at
+	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00423.html.
+
+	* diary-lib.el (diary-goto-entry-function): New variable.
+	(diary-entry): Use it in the action of this button type instead of
+	diary-goto-entry.
+
 2013-06-09  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el (todos-edit-done-item-comment): Rename from
