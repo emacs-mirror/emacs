@@ -640,7 +640,8 @@ untar into a directory named DIR; otherwise, signal an error."
     ;; FIXME: should we delete PKG-DIR if it exists?
     (let* ((default-directory (file-name-as-directory package-user-dir)))
       (package-untar-buffer dirname)
-      (package--make-autoloads-and-compile package pkg-dir))))
+      (package--make-autoloads-and-compile package pkg-dir)
+      pkg-dir)))
 
 (defun package--make-autoloads-and-compile (name pkg-dir)
   "Generate autoloads and do byte-compilation for package named NAME.
@@ -696,7 +697,8 @@ PKG-DIR is the name of the package directory."
 	 nil
 	 pkg-file
 	 nil nil nil 'excl))
-      (package--make-autoloads-and-compile name pkg-dir))))
+      (package--make-autoloads-and-compile name pkg-dir)
+      pkg-dir)))
 
 (defmacro package--with-work-buffer (location file &rest body)
   "Run BODY in a buffer containing the contents of FILE at LOCATION.
@@ -922,16 +924,20 @@ using `package-compute-transaction'."
 	   (hold (cadr (assq elt package-load-list)))
 	   (v-string (or (and (stringp hold) hold)
 			 (package-version-join (package-desc-version desc))))
-	   (kind (package-desc-kind desc)))
-      (cond
-       ((eq kind 'tar)
-	(package-download-tar elt v-string))
-       ((eq kind 'single)
-	(package-download-single elt v-string
-				 (package-desc-summary desc)
-				 (package-desc-reqs desc)))
-       (t
-	(error "Unknown package kind: %s" (symbol-name kind))))
+	   (kind (package-desc-kind desc))
+           (pkg-dir
+            (cond
+             ((eq kind 'tar)
+              (package-download-tar elt v-string))
+             ((eq kind 'single)
+              (package-download-single elt v-string
+                                       (package-desc-summary desc)
+                                       (package-desc-reqs desc)))
+             (t
+              (error "Unknown package kind: %s" (symbol-name kind))))))
+      ;; Update package-alist.
+      ;; FIXME: Check that the installed package's descriptor matches `desc'!
+      (package-load-descriptor pkg-dir)
       ;; If package A depends on package B, then A may `require' B
       ;; during byte compilation.  So we need to activate B before
       ;; unpacking A.

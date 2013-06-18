@@ -1,3 +1,9 @@
+2013-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el: Update package-alist after install (bug#14632).
+	(package-unpack, package-unpack-single): Return the pkg-dir.
+	(package-download-transaction): Use it to update package-alist.
+
 2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/browse-url.el (browse-url-browser-function): Add `eww' as a
