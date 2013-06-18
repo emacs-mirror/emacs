@@ -168,6 +168,8 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 (defvar sieve-manage-capability nil)
 
 ;; Internal utility functions
+(autoload 'mm-enable-multibyte "mm-util")
+
 (defun sieve-manage-make-process-buffer ()
   (with-current-buffer
       (generate-new-buffer (format " *sieve %s:%s*"

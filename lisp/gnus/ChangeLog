@@ -1,5 +1,7 @@
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
+	* sieve-manage.el (mm-enable-multibyte): Autoload.
+
 	* shr.el (libxml-parse-html-region): Declare.
 	(shr-render-buffer): Explicit error if no libxml2 support.
 
