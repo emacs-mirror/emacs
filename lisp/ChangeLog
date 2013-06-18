@@ -1,3 +1,9 @@
+2013-06-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Distinguish ternary operator tokens from slash symbol and slash
+	char literal.
+
 2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	Convert symbol prettification into minor mode and global minor mode.
