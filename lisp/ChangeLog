@@ -1,3 +1,8 @@
+2013-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-custom.el: Remove misleading Version: header
+	(bug#14633).
+
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
 	* net/eww.el, net/shr.el, net/shr-color.el: Move here from gnus/.
