@@ -1,3 +1,8 @@
+2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* face-remap.el (buffer-face-toggle): Fix typo in docstring.
+	(buffer-face-mode-invoke): Doc fix.
+
 2013-06-18  Matthias Meulien  <orontee@gmail.com>
 
 	* tabify.el (untabify, tabify): With prefix, apply to entire buffer.
