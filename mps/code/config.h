@@ -361,6 +361,24 @@
 #endif
 
 
+/* .feature.xc: Mac OS X feature specification
+ *
+ * The MPS needs the following symbols which are not defined by default
+ *
+ * Source      Symbols                   Header        Feature
+ * =========== ========================= ============= ====================
+ * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
+ *
+ * I don't know whether it is possible to localize these feature
+ * specifications around the individual headers.
+ */
+
+#if defined(MPS_OS_XC)
+#define _XOPEN_SOURCE
+#endif
+
+
 /* Protection Configuration see <code/prot*.c>
 
    For each architecture/OS that uses protix.c or protsgix.c, we need to
