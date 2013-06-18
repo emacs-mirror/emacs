@@ -1,5 +1,16 @@
 2013-06-18  Juri Linkov  <juri@jurta.org>
 
+	* files-x.el (modify-file-local-variable-message): New function.
+	(modify-file-local-variable)
+	(modify-file-local-variable-prop-line): Add arg INTERACTIVE
+	and call `modify-file-local-variable-message' when it's non-nil.
+	(add-file-local-variable, delete-file-local-variable)
+	(add-file-local-variable-prop-line)
+	(delete-file-local-variable-prop-line): Add arg INTERACTIVE
+	and use it.  (Bug#9820)
+
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
 	* emulation/vi.el (vi-shell-op):
 	* emulation/vip.el (vip-execute-com, ex-command):
 	* emulation/viper-cmd.el (viper-exec-bang):
