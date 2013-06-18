@@ -1,5 +1,7 @@
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/python.el (ffap-alist): Declare.
+
 	* textmodes/reftex.el (bibtex-mode-map): Declare.
 
 2013-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
