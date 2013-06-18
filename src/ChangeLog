@@ -1,3 +1,7 @@
+2013-06-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h: Add comments for INLINE, EXTERN_INLINE, etc.
+
 2013-06-18  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_spec): Signal an error for an invalid font name
