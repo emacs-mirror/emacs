@@ -1,3 +1,13 @@
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* emulation/vi.el (vi-shell-op):
+	* emulation/vip.el (vip-execute-com, ex-command):
+	* emulation/viper-cmd.el (viper-exec-bang):
+	* emulation/viper-ex.el (ex-command): Add non-nil arg REPLACE to
+	the call of `shell-command-on-region'.  (Bug#14637)
+
+	* simple.el (shell-command-on-region): Doc fix.
+
 2013-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio-custom.el: Remove misleading Version: header

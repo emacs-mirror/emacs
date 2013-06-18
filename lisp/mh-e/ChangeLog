@@ -1,3 +1,8 @@
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* mh-alias.el (mh-alias-local-users): Add non-nil arg REPLACE to
+	the call of `shell-command-on-region'.  (Bug#14637)
+
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* mh-speed.el (mh-speed-view):
