@@ -1,5 +1,13 @@
 2013-06-18  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todos.el: Reinstate current copyright dates and original
+	todo-mode.el author.  Add reference in commentary to legacy file
+	format conversion command.
+	(todos-legacy-date-time-regexp): Rename from
+	todos-todo-mode-date-time-regexp and adjust uses.
+
+2013-06-18  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-diary-goto-entry): Add item locating code from
 	diary-goto-entry.  Add it at the top-level to override the latter
 	function.

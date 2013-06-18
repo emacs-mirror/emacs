@@ -1,11 +1,13 @@
 ;;; todos.el --- facilities for making and maintaining todo lists
 
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2013  Free Software Foundation, Inc.
 
-;; Author: Stephen Berman <stephen.berman@gmx.net>
+;; Author: Oliver Seidel <privat@os10000.net>
+;;	Stephen Berman <stephen.berman@gmx.net>
+;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
 ;; Keywords: calendar, todo
 
-;; This file is [not yet] part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -61,9 +63,10 @@
 
 ;; This package is a new version of Oliver Seidel's todo-mode.el.
 ;; While it retains the same basic organization and handling of todo
-;; lists and the basic UI, it significantly extends these, adds many
-;; features, changes much of the internals and reimplements almost all
-;; of the code.
+;; lists and the basic UI, it significantly extends these and adds
+;; many features.  This also required making changes to the internals,
+;; including the file format.  To convert files in the old format to
+;; the new format, use the command `todos-convert-legacy-files'.
 
 ;;; Code:
 
@@ -4446,7 +4449,7 @@ otherwise, send it to the default printer."
 ;;; Legacy Todo mode files
 ;; -----------------------------------------------------------------------------
 
-(defcustom todos-todo-mode-date-time-regexp
+(defcustom todos-legacy-date-time-regexp
   (concat "\\(?1:[0-9]\\{4\\}\\)-\\(?2:[0-9]\\{2\\}\\)-"
 	  "\\(?3:[0-9]\\{2\\}\\) \\(?4:[0-9]\\{2\\}:[0-9]\\{2\\}\\)")
   "Regexp matching legacy todo-mode.el item date-time strings.
@@ -4479,7 +4482,7 @@ Helper function for `todos-convert-legacy-files'."
 The files `todo-file-do' and `todo-file-done' are converted and
 saved (the latter as a Todos Archive file) with a new name in
 `todos-directory'.  See also the documentation string of
-`todos-todo-mode-date-time-regexp' for further details."
+`todos-legacy-date-time-regexp' for further details."
   (interactive)
   (eval-when-compile (require 'todo-mode))
   ;; Convert `todo-file-do'.
@@ -4504,7 +4507,7 @@ saved (the latter as a Todos Archive file) with a new name in
 						todo-category-sep)))
 	      (replace-match todos-category-done))
 	     ((looking-at (concat (regexp-quote todo-prefix) " "
-				  todos-todo-mode-date-time-regexp " "
+				  todos-legacy-date-time-regexp " "
 				  (regexp-quote todo-initials) ":"))
 	      (todos-convert-legacy-date-time)))
 	    (forward-line))
@@ -4527,7 +4530,7 @@ saved (the latter as a Todos Archive file) with a new name in
 		  (end (make-marker))
 		  cat cats comment item)
 	      (while (not (eobp))
-		(when (looking-at todos-todo-mode-date-time-regexp)
+		(when (looking-at todos-legacy-date-time-regexp)
 		  (set-marker beg (point))
 		  (todos-convert-legacy-date-time)
 		  (set-marker end (point))
@@ -4536,13 +4539,13 @@ saved (the latter as a Todos Archive file) with a new name in
 		  (goto-char end)
 		  (insert "]")
 		  (forward-char)
-		  (when (looking-at todos-todo-mode-date-time-regexp)
+		  (when (looking-at todos-legacy-date-time-regexp)
 		    (todos-convert-legacy-date-time))
 		  (when (looking-at (concat " "
 					    (regexp-quote todo-initials) ":"))
 		    (replace-match "")))
 		(if (re-search-forward
-		     (concat "^" todos-todo-mode-date-time-regexp) nil t)
+		     (concat "^" todos-legacy-date-time-regexp) nil t)
 		    (goto-char (match-beginning 0))
 		  (goto-char (point-max)))
 		(backward-char)
