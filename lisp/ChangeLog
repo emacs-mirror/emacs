@@ -1,5 +1,8 @@
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
+	* generic-x.el (bat-generic-mode, rc-generic-mode, rul-generic-mode):
+	Replace obsolete function generic-make-keywords with its expansion.
+
 	* progmodes/python.el (ffap-alist): Declare.
 
 	* textmodes/reftex.el (bibtex-mode-map): Declare.
