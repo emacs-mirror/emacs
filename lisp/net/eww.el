@@ -56,6 +56,11 @@
   "Title of current page.")
 (defvar eww-history nil)
 
+(defvar eww-next-url nil)
+(defvar eww-previous-url nil)
+(defvar eww-up-url nil)
+(defvar eww-top-url nil)
+
 ;;;###autoload
 (defun eww (url)
   "Fetch URL and render the page."
@@ -64,10 +69,20 @@
     (setq url (concat "http://" url)))
   (url-retrieve url 'eww-render (list url)))
 
+;;;###autoload
+(defun eww-open-file (file)
+  "Render a file using EWW."
+  (interactive "fFile: ")
+  (eww (concat "file://" (expand-file-name file))))
+
 (defun eww-render (status url &optional point)
   (let ((redirect (plist-get status :redirect)))
     (when redirect
       (setq url redirect)))
+  (set (make-local-variable 'eww-next-url) nil)
+  (set (make-local-variable 'eww-previous-url) nil)
+  (set (make-local-variable 'eww-up-url) nil)
+  (set (make-local-variable 'eww-top-url) nil)
   (let* ((headers (eww-parse-headers))
 	 (shr-target-id
 	  (and (string-match "#\\(.*\\)" url)
@@ -146,10 +161,32 @@
 	     (input . eww-tag-input)
 	     (textarea . eww-tag-textarea)
 	     (body . eww-tag-body)
-	     (select . eww-tag-select))))
+	     (select . eww-tag-select)
+	     (link . eww-tag-link)
+	     (a . eww-tag-a))))
       (shr-insert-document document)
       (eww-convert-widgets))
     (goto-char (point-min))))
+
+(defun eww-handle-link (cont)
+  (let* ((rel (assq :rel cont))
+  	(href (assq :href cont))
+	(where (assoc (cdr rel)
+		      '(("next" . eww-next-url)
+			("previous" . eww-previous-url)
+			("start" . eww-top-url)
+			("up" . eww-up-url)))))
+    (and href
+	 where
+	 (set (cdr where) (cdr href)))))
+
+(defun eww-tag-link (cont)
+  (eww-handle-link cont)
+  (shr-generic cont))
+
+(defun eww-tag-a (cont)
+  (eww-handle-link cont)
+  (shr-tag-a cont))
 
 (defun eww-update-header-line-format ()
   (if eww-header-line-format
@@ -218,8 +255,11 @@
     (define-key map [delete] 'scroll-down-command)
     (define-key map "\177" 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
+    (define-key map "l" 'eww-back-url)
+    (define-key map "n" 'eww-next-url)
     (define-key map "p" 'eww-previous-url)
-    ;;(define-key map "n" 'eww-next-url)
+    (define-key map "u" 'eww-up-url)
+    (define-key map "t" 'eww-top-url)
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -240,13 +280,49 @@
   (setq eww-history nil)
   (kill-buffer (current-buffer)))
 
-(defun eww-previous-url ()
+(defun eww-back-url ()
   "Go to the previously displayed page."
   (interactive)
   (when (zerop (length eww-history))
     (error "No previous page"))
   (let ((prev (pop eww-history)))
     (url-retrieve (car prev) 'eww-render (list (car prev) (cadr prev)))))
+
+(defun eww-next-url ()
+  "Go to the page marked `next'.
+A page is marked `next' if rel=\"next\" appears in a <link>
+or <a> tag."
+  (interactive)
+  (if eww-next-url
+      (eww-browse-url (shr-expand-url eww-next-url eww-current-url))
+    (error "No `next' on this page")))
+
+(defun eww-previous-url ()
+  "Go to the page marked `previous'.
+A page is marked `previous' if rel=\"previous\" appears in a <link>
+or <a> tag."
+  (interactive)
+  (if eww-previous-url
+      (eww-browse-url (shr-expand-url eww-previous-url eww-current-url))
+    (error "No `previous' on this page")))
+
+(defun eww-up-url ()
+  "Go to the page marked `up'.
+A page is marked `up' if rel=\"up\" appears in a <link>
+or <a> tag."
+  (interactive)
+  (if eww-up-url
+      (eww-browse-url (shr-expand-url eww-up-url eww-current-url))
+    (error "No `up' on this page")))
+
+(defun eww-top-url ()
+  "Go to the page marked `top'.
+A page is marked `top' if rel=\"start\" appears in a <link>
+or <a> tag."
+  (interactive)
+  (if eww-top-url
+      (eww-browse-url (shr-expand-url eww-top-url eww-current-url))
+    (error "No `top' on this page")))
 
 (defun eww-reload ()
   "Reload the current page."

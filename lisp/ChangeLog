@@ -1,3 +1,23 @@
+2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-make-table-1): Implement <td rowspan>.
+	(shr-table-horizontal-line): Allow nil as a value, and change the
+	default.
+	(shr-insert-table-ruler): Respect the nil value.
+
+2013-06-18  Tom Tromey  <tromey@barimba>
+
+	* net/eww.el (eww-next-url, eww-previous-url, eww-up-url, eww-top-url):
+	New defvars.
+	(eww-open-file): New defun.
+	(eww-render): Initialize new variables.
+	(eww-display-html): Handle "link" and "a".
+	(eww-handle-link, eww-tag-link, eww-tag-a): New defuns.
+	(eww-mode-map): Move "p" to "l".  Bind "p", "n", "t", and "u".
+	(eww-back-url): Rename from eww-previous-url.
+	(eww-next-url, eww-previous-url, eww-up-url, eww-top-url): New
+	defuns.
+
 2013-06-18  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):

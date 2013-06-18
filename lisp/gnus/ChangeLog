@@ -1,3 +1,7 @@
+2013-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-parse-entries): Remove debugging.
+
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
 	* eww.el, shr.el, shr-color.el: Move to ../net.
