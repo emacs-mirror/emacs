@@ -142,10 +142,14 @@ cid: URL as the argument.")
     map))
 
 ;; Public functions and commands.
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
 
 (defun shr-render-buffer (buffer)
   "Display the HTML rendering of the current buffer."
   (interactive (list (current-buffer)))
+  (or (fboundp 'libxml-parse-html-region)
+      (error "This function requires Emacs to be compiled with libxml2"))
   (pop-to-buffer "*html*")
   (erase-buffer)
   (shr-insert-document

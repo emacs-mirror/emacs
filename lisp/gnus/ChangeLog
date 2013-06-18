@@ -1,3 +1,8 @@
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* shr.el (libxml-parse-html-region): Declare.
+	(shr-render-buffer): Explicit error if no libxml2 support.
+
 2013-06-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-current-line): New function.
