@@ -1,3 +1,26 @@
+2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	Convert symbol prettification into minor mode and global minor mode.
+
+	* progmodes/prog-mode.el (prettify-symbols-alist): Rename from
+	`prog-prettify-symbols', and make a local defvar instead of defcustom.
+	(prettify-symbols--keywords): Rename from
+	`prog-prettify-symbols-alist' and make a local defvar.
+	(prettify-symbols--compose-symbol): Rename from
+	`prog--prettify-font-lock-compose-symbol'.
+	(prettify-symbols--make-keywords): Rename from
+	`prog-prettify-font-lock-symbols-keywords' and simplify.
+	(prog-prettify-install): Remove.
+	(prettify-symbols-mode): New minor mode, based on
+	`prog-prettify-install'.
+	(turn-on-prettify-symbols-mode): New function.
+	(global-prettify-symbols-mode): New globalized minor mode.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	* progmodes/cfengine.el (cfengine3-mode):
+	* progmodes/perl-mode.el (perl-mode): Don't call
+	`prog-prettify-install'; set `prettify-symbols-alist' instead.
+
 2013-06-18  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (modify-file-local-variable-message): New function.

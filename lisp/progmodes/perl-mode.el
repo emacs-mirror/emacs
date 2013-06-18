@@ -658,7 +658,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
                              nil nil ((?\_ . "w")) nil
                              (font-lock-syntactic-face-function
                               . perl-font-lock-syntactic-face-function)))
-  (prog-prettify-install perl--prettify-symbols-alist)
+  (setq-local prettify-symbols-alist perl--prettify-symbols-alist)
   (setq-local syntax-propertize-function #'perl-syntax-propertize-function)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
