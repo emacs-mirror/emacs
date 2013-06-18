@@ -1,5 +1,7 @@
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
+	* net/eww.el, net/shr.el, net/shr-color.el: Move here from gnus/.
+
 	* newcomment.el (comment-search-forward, comment-search-backward):
 	Doc fix.  (Bug#14376)
 
