@@ -1,7 +1,12 @@
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/ctxt.el (semantic-ctxt-end-of-symbol-default):
+	Remove unused free variable `symlist'.
+
 2013-06-02  Eric Ludlam <zappo@gnu.org>
 
-	* semantic/edit.el (semantic-change-function): Use
-	`save-match-data' around running hooks.
+	* semantic/edit.el (semantic-change-function):
+	Use `save-match-data' around running hooks.
 
 	* semantic/decorate/mode.el
 	(semantic-decorate-style-predicate-default)
