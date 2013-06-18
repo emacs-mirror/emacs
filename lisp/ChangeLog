@@ -1,3 +1,8 @@
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* newcomment.el (comment-search-forward, comment-search-backward):
+	Doc fix.  (Bug#14376)
+
 2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* face-remap.el (buffer-face-toggle): Fix typo in docstring.
