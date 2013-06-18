@@ -73,7 +73,6 @@ enum
     BITS_PER_SHORT     = CHAR_BIT * sizeof (short),
     BITS_PER_INT       = CHAR_BIT * sizeof (int),
     BITS_PER_LONG      = CHAR_BIT * sizeof (long int),
-    BITS_PER_PTRDIFF_T = CHAR_BIT * sizeof (ptrdiff_t),
     BITS_PER_EMACS_INT = CHAR_BIT * sizeof (EMACS_INT)
   };
 
@@ -2679,9 +2678,9 @@ typedef jmp_buf sys_jmp_buf;
    WHERE being a buffer or frame means we saw a buffer-local or frame-local
    value.  Other values of WHERE mean an internal error.
 
-   NOTE: The specbinding struct is defined here, because SPECPDL_INDEX is
+   NOTE: The specbinding union is defined here, because SPECPDL_INDEX is
    used all over the place, needs to be fast, and needs to know the size of
-   struct specbinding.  But only eval.c should access it.  */
+   union specbinding.  But only eval.c should access it.  */
 
 typedef Lisp_Object (*specbinding_func) (Lisp_Object);
 
@@ -2694,29 +2693,30 @@ enum specbind_tag {
   SPECPDL_LET_DEFAULT		/* A global binding for a localized var.  */
 };
 
-struct specbinding
+union specbinding
   {
-    enum specbind_tag kind;
-    union {
-      struct {
-	Lisp_Object arg;
-	specbinding_func func;
-      } unwind;
-      struct {
-	/* `where' is not used in the case of SPECPDL_LET.  */
-	Lisp_Object symbol, old_value, where;
-      } let;
-      struct {
-	Lisp_Object function;
-	Lisp_Object *args;
-	ptrdiff_t nargs : BITS_PER_PTRDIFF_T - 1;
-	bool debug_on_exit : 1;
-      } bt;
-    } v;
+    ENUM_BF (specbind_tag) kind : CHAR_BIT;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      Lisp_Object arg;
+      specbinding_func func;
+    } unwind;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      /* `where' is not used in the case of SPECPDL_LET.  */
+      Lisp_Object symbol, old_value, where;
+    } let;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      bool debug_on_exit : 1;
+      Lisp_Object function;
+      Lisp_Object *args;
+      ptrdiff_t nargs;
+    } bt;
   };
 
-extern struct specbinding *specpdl;
-extern struct specbinding *specpdl_ptr;
+extern union specbinding *specpdl;
+extern union specbinding *specpdl_ptr;
 extern ptrdiff_t specpdl_size;
 
 LISP_INLINE ptrdiff_t

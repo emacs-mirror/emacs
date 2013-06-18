@@ -1,3 +1,24 @@
+2013-06-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Porting fixes for merged specpdl and backtrace stacks (Bug#14643).
+	In particular this ports to 32-bit sparc Sun cc.
+	* eval.c (init_eval_once, grow_specpdl): Allocate a specbinding
+	array with a dummy element at specpdl[-1], so that its address can
+	be taken portably.
+	(unbind_to): Do not copy the binding; not needed, now that we
+	copy old_value in the one place where the copy is needed.
+	* fileio.c (Fwrite_region): Use ptrdiff_t, not int, for specpdl count.
+	* lisp.h (BITS_PER_PTRDIFF_T): Remove; no longer needed.
+	(union specbinding): Rename from struct specbinding.  Redo layout
+	to avoid the need for 'ptrdiff_t nargs : BITS_PER_PTRDIFF_T - 1;',
+	which is not portable.  With Sun C 5.12 32-bit sparc, the
+	declaration causes nargs to be an unsigned bitfield, a behavior
+	that the C standard allows; but Emacs wants nargs to be signed.
+	The overall type is now a union of structures rather than a
+	structure of union of structures, and the 'kind' member is now a
+	bitfield, so that the overall type doesn't grow.  All uses changed.
+	* process.c (Fmake_serial_process): Remove unnecessary initialization.
+
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_report_frame_params): Cast parent_desc to uintptr_t.
