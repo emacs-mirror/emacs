@@ -1,3 +1,7 @@
+2013-06-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* eww.el (eww-detect-charset): Improve regexp; move backward.
+
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
 	* mm-decode.el (widget-convert-button): Autoload.
