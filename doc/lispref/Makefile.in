@@ -19,6 +19,9 @@
 
 SHELL = /bin/sh
 
+# NB If you add any more configure variables,
+# update the sed rules in the dist target below.
+
 # Standard configure variables.
 srcdir = @srcdir@
 
@@ -163,8 +166,12 @@ dist:
 	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
+	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
+	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
 	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
+	@grep '@[A-Z]*@' emacs-lispref-${version}/Makefile && \
+	  echo "WARNING: Unexpanded configure variables in Makefile?" || true
 	rm -rf emacs-lispref-${version}
 
 ### Makefile ends here

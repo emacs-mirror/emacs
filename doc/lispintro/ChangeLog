@@ -1,3 +1,8 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Edit more configure variables.  (Bug#14660)
+	Try to check that we do not miss any in future.
+
 2013-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (INFO_OPTS): Add "-I$(emacsdir)" to fix last
