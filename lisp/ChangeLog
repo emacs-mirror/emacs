@@ -1,3 +1,9 @@
+2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (secrets-struct-secret-content-type): Replace
+	check of introspection data by a test call of "CreateItem".  Some
+	servers do not offer introspection.
+
 2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-pair-mode): Improve interaction with
