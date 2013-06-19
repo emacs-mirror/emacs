@@ -461,7 +461,7 @@ and calls @code{define-key}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
-if @var{function} already has non-void function definition that is not
+If @var{function} already has a non-void function definition that is not
 an autoload object, this function does nothing and returns @code{nil}.
 Otherwise, it constructs an autoload object (@pxref{Autoload Type}),
 and stores it as the function definition for @var{function}.  The

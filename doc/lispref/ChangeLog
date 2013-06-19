@@ -1,3 +1,7 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Autoload): Fix typo.
+
 2013-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Lexical Binding): Fix typo.
