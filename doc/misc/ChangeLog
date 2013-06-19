@@ -1,3 +1,11 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New, set by configure.
+	(clean): Delete dist tar file.
+	(infoclean): New, split from maintainer-clean.
+	(maintainer-clean): Run infoclean.
+	(dist): New rule, to make tarfile for www.gnu.org.
+
 2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
 
 	* sieve.texi: (Managing Sieve): Fix port in example, fix documentation
