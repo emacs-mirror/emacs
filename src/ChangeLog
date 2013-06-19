@@ -1,3 +1,9 @@
+2013-06-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syntax.c (skip_chars): Don't use uninitialized storage
+	when searching a multibyte buffer for characters that are not in a
+	unibyte string that contains non-ASCII characters.
+
 2013-06-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c: Include xgselect.h if HAVE_GLIB.  Include glib.h

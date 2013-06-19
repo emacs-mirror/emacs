@@ -1577,34 +1577,31 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	 the corresponding multibyte chars.  */
       if (multibyte && string_has_eight_bit)
 	{
-	  unsigned char fastmap2[0400];
-	  int range_start_byte, range_start_char;
-
-	  memcpy (fastmap + 0200, fastmap2 + 0200, 0200);
+	  char *p1;
+	  char himap[0200 + 1];
+	  memcpy (himap, fastmap + 0200, 0200);
+	  himap[0200] = 0;
 	  memset (fastmap + 0200, 0, 0200);
-	  /* We are sure that this loop stops.  */
-	  for (i = 0200; ! fastmap2[i]; i++);
-	  c = BYTE8_TO_CHAR (i);
-	  fastmap[CHAR_LEADING_CODE (c)] = 1;
-	  range_start_byte = i;
-	  range_start_char = c;
 	  char_ranges = alloca (sizeof *char_ranges * 128 * 2);
-	  for (i = 129; i < 0400; i++)
+	  i = 0;
+
+	  while ((p1 = memchr (himap + i, 1, 0200 - i)))
 	    {
-	      c = BYTE8_TO_CHAR (i);
-	      fastmap[CHAR_LEADING_CODE (c)] = 1;
-	      if (i - range_start_byte != c - range_start_char)
-		{
-		  char_ranges[n_char_ranges++] = range_start_char;
-		  char_ranges[n_char_ranges++] = ((i - 1 - range_start_byte)
-						  + range_start_char);
-		  range_start_byte = i;
-		  range_start_char = c;
-		}
+	      /* Deduce the next range C..C2 from the next clump of 1s
+		 in HIMAP starting with &HIMAP[I].  HIMAP is the high
+		 order half of the old FASTMAP.  */
+	      int c2, leading_code;
+	      i = p1 - himap;
+	      c = BYTE8_TO_CHAR (i + 0200);
+	      i += strlen (p1);
+	      c2 = BYTE8_TO_CHAR (i + 0200 - 1);
+
+	      char_ranges[n_char_ranges++] = c;
+	      char_ranges[n_char_ranges++] = c2;
+	      leading_code = CHAR_LEADING_CODE (c);
+	      memset (fastmap + leading_code, 1,
+		      CHAR_LEADING_CODE (c2) - leading_code + 1);
 	    }
-	  char_ranges[n_char_ranges++] = range_start_char;
-	  char_ranges[n_char_ranges++] = ((i - 1 - range_start_byte)
-					  + range_start_char);
 	}
     }
   else				/* STRING is multibyte */
