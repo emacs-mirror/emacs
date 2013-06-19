@@ -325,15 +325,6 @@ sound_warning (const char *msg)
 }
 
 
-/* Return S's value as a string if S is a string, otherwise DEFAULT_VALUE.  */
-
-static char const *
-string_default (Lisp_Object s, char const *default_value)
-{
-  return STRINGP (s) ? SSDATA (s) : default_value;
-}
-
-
 /* Parse sound specification SOUND, and fill ATTRS with what is
    found.  Value is non-zero if SOUND Is a valid sound specification.
    A valid sound specification is a list starting with the symbol
@@ -425,6 +416,15 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
 
 /* BEGIN: Non Windows functions */
 #ifndef WINDOWSNT
+
+/* Return S's value as a string if S is a string, otherwise DEFAULT_VALUE.  */
+
+static char const *
+string_default (Lisp_Object s, char const *default_value)
+{
+  return STRINGP (s) ? SSDATA (s) : default_value;
+}
+
 
 /* Find out the type of the sound file whose file descriptor is FD.
    S is the sound file structure to fill in.  */
@@ -1335,7 +1335,6 @@ Internal use only, use `play-sound' instead.  */)
   char * psz_file = NULL;
   unsigned long ui_volume_tmp = UINT_MAX;
   unsigned long ui_volume = UINT_MAX;
-  int i_result = 0;
 #endif /* WINDOWSNT */
 
   /* Parse the sound specification.  Give up if it is invalid.  */
@@ -1430,7 +1429,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       ui_volume = ui_volume_tmp * (UINT_MAX / 100);
     }
-  i_result = do_play_sound (psz_file, ui_volume);
+  do_play_sound (psz_file, ui_volume);
 
 #endif /* WINDOWSNT */
 

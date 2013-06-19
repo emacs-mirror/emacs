@@ -1,3 +1,8 @@
+2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (string_default): Move to !WINDOWSNT section.
+	(Fplay_sound_internal) [WINDOWSNT]: Remove i_result to avoid warning.
+
 2013-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sound.c: Integer cleanups.
