@@ -1,3 +1,9 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* international/titdic-cnv.el (tit-process-header, miscdic-convert):
+	Don't include a date stamp in the header of the generated file;
+	it leads to needless differences between output files.
+
 2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (secrets-struct-secret-content-type): Replace
