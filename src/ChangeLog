@@ -1,5 +1,16 @@
 2013-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sound.c: Integer cleanups.
+	Remove unnecessary forward decls.
+	(struct sound_device): The 'file' member is now a Lisp_Object, not
+	a char *, so that we needn't invoke alloca on a huge size.
+	(Fplay_sound_internal): Adjust to this.
+	(string_default): New function.
+	(vox_open, vox_init, alsa_open, alsa_configure, alsa_init):
+	Use it to adjust to the struct sound_device change.
+	(parse_sound, wav_init, au_init, alsa_init): Use bool for booleans.
+	(be2hs) [0]: Remove.
+
 	* syntax.c (skip_chars): Don't use uninitialized storage
 	when searching a multibyte buffer for characters that are not in a
 	unibyte string that contains non-ASCII characters.
