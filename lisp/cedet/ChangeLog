@@ -1,4 +1,7 @@
-2013-06-19  Glenn Morris  <rgm@gnu.org>
+2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* semantic/idle.el (define-semantic-idle-service):
+	No need to use eval-and-compile, progn will do.
 
 	* semantic/decorate/mode.el (define-semantic-decoration-style):
 	Doc fix.
