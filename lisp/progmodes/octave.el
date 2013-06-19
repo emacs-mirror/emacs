@@ -1666,9 +1666,7 @@ code line."
           (when (re-search-forward "^\\s-*See also:" nil t)
             (let ((end (save-excursion (re-search-forward "^\\s-*$" nil t))))
               (while (re-search-forward
-                      ;; Match operators and symbols.
-                      "\\(?1:\\s.+?\\)\\(?:$\\|[,;]\\|\\s-\\)\\|\\_<\\(?1:\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-                      end t)
+                      "\\s-*\\([^,\n]+?\\)\\s-*\\(?:[,]\\|[.]?$\\)" end t)
                 (make-text-button (match-beginning 1) (match-end 1)
                                   :type 'octave-help-function)))))
         (octave-help-mode)))))
