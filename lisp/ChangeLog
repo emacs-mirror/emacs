@@ -1,3 +1,7 @@
+2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* emacs-lisp/eieio.el (defclass): Make it eval-and-compile once more.
+
 2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-adb.el (tramp-adb-get-toolbox): Remove function, it is
