@@ -1,5 +1,8 @@
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlwave.el (func-menu): Only set it up on XEmacs.
+	(speedbar-add-supported-extension): Declare.
+
 	* international/titdic-cnv.el (tit-process-header, miscdic-convert):
 	Don't include a date stamp in the header of the generated file;
 	it leads to needless differences between output files.

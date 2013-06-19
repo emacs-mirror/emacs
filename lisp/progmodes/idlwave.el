@@ -9041,7 +9041,7 @@ Assumes that point is at the beginning of the unit as found by
 ;; Here we hack func-menu.el in order to support this new mode.
 ;; The latest versions of func-menu.el already have this stuff in, so
 ;; we hack only if it is not already there.
-(when (fboundp 'eval-after-load)
+(when (featurep 'xemacs)
   (eval-after-load "func-menu"
     '(progn
        (or (assq 'idlwave-mode fume-function-name-regexp-alist)
@@ -9294,6 +9294,8 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
   ;; Make sure each abbreviation uses only one display line
   (with-current-buffer "*Help*"
     (setq truncate-lines t)))
+
+(declare-function speedbar-add-supported-extension "speedbar" (extension))
 
 ;; Add .pro files to speedbar for support, if it's loaded
 (eval-after-load "speedbar" '(speedbar-add-supported-extension ".pro"))
