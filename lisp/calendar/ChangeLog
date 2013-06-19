@@ -1,5 +1,9 @@
 2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todo-mode.el: Rename to otodo-mode.el and move to obsolete/.
+
+2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todos.el (todos-convert-legacy-files): Add code to make it work
 	after the new version is renamed and has the same namespace as the
 	old version.  This also requires there to be no live todo buffers
