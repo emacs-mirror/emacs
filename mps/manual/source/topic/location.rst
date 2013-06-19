@@ -124,32 +124,32 @@ done in the function that hashes an address:
 Testing dependencies for staleness
 ----------------------------------
 
-When the locations of blocks are used (during a hash table lookup for
-example), the computation should be carried out and the result used in
-the usual way (for example, the pointer is hashed and the has used to
-index into the table). At this point one of three situations can
-occur:
+When the locations of blocks are used, first carry out the computation
+in the normal way. For example, when looking up a key in an
+address-based hash table, start by hashing the pointer and looking up
+the corresponding index in the table.
 
-1. success (for example, the key was found in the table at the place
-   indicated by the hash of its address);
+If this succeeds (for example, the key was found in the table at the
+place indicated by the hash of its address), then no further test is
+required: the operation can proceed as usual.
 
-2. failure: the location of these blocks has not been depended on
-   before (for example, the key has never been added to the hash
-   table);
+But if the operation fails, you might be in one of two cases:
 
-3. failure: the location of these blocks has been depended on before,
-   but the one or more of the blocks has moved and the dependency has
-   been made stale (in this case the table would need to be rehashed
-   and the lookup repeated).
+1. the location of these blocks has not been depended on before (for
+   example, the key has never been added to the hash table);
 
-Success requires no further test: the operation can proceed. In case
-of failure, you should call :c:func:`mps_ld_isstale`. If it returns
-false, then no blocks have moved, so you must be in case (2).
+2. the location of these blocks has been depended on before (for
+   example, the key was added to the hash table), but one or more of
+   the blocks has moved and the dependency has become stale.
+
+At this point you should call :c:func:`mps_ld_isstale`. If it returns
+false, then you know that no blocks have moved, so you must be in case
+(1).
 
 But if :c:func:`mps_ld_isstale` returns true, you could still be in
-either case (2) or case (3). All :c:func:`mps_ld_isstale` tells you is
-that some blocks that have been depended on might have moved. At this
-point you need to:
+either case (1) or case (2). All :c:func:`mps_ld_isstale` tells you is
+that *some* blocks that have been depended on *might* have moved, not
+whether a *particular* block *has* moved. At this point you must:
 
 1. reset the location dependency;
 
