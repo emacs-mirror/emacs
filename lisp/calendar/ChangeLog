@@ -1,5 +1,11 @@
 2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todo-mode.el: Rename from todos.el, change all occurrences of
+	"todos-" prefix to "todo-" and references to "Todos" to "Todo" or
+	"Todo mode".
+
+2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todo-mode.el: Rename to otodo-mode.el and move to obsolete/.
 
 2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
