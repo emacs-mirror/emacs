@@ -1,7 +1,6 @@
 2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* automated/reftex-tests.el (reftex-parse-from-file-test): Fix
-	test.
+	* automated/reftex-tests.el (reftex-parse-from-file-test): Fix test.
 
 2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 

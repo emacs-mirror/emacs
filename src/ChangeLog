@@ -612,7 +612,7 @@
 	(update_frame_tool_bar): Update code for GNUStep.
 	(clearAll): New method.
 	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
-	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
+	argument.  Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
 	Move identifierToItem setObject and activeIdentifiers addObject before
 	call to insertItemWithItemIdentifier.
 	(validateVisibleItems): Fix indentation.

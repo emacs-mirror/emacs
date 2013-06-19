@@ -890,7 +890,7 @@
 	(eieiomt-optimizing-obarray, eieiomt-install)
 	(eieiomt-add, eieiomt-next, eieiomt-sym-optimize)
 	(eieio-generic-form, eieio-defmethod, make-obsolete)
-	(eieio-defgeneric, make-obsolete): Move to eieio-core.el
+	(eieio-defgeneric, make-obsolete): Move to eieio-core.el.
 	(defclass): Remove `eval-and-compile' from macro.
 	(call-next-method, shared-initialize): Instead of using
 	`scoped-class' variable, use new eieio--scoped-class, and
@@ -900,8 +900,8 @@
 
 	* emacs-lisp/eieio-core.el: New file.  Derived from key parts of
 	eieio.el.
-	(eieio--scoped-class-stack): New variable
-	(eieio--scoped-class): New fcn
+	(eieio--scoped-class-stack): New variable.
+	(eieio--scoped-class): New fcn.
 	(eieio--with-scoped-class): New scoping macro.
 	(eieio-defclass): Use pushnew instead of add-to-list.
 	(eieio-defgeneric-form-primary-only-one, eieio-oset-default)
@@ -1614,9 +1614,9 @@
 	* progmodes/octave.el (octave-auto-fill): Remove.
 	(octave-indent-new-comment-line): Improve.
 	(octave-mode): Use auto fill mode through
-	comment-line-break-function and fill-nobreak-predicate
+	comment-line-break-function and fill-nobreak-predicate.
 	(octave-goto-function-definition): Support DEFUN_DLD.
-	(octave-beginning-of-defun): Small Tweak
+	(octave-beginning-of-defun): Small tweak.
 	(octave-help): Show parent directory.
 
 2013-05-21  Glenn Morris  <rgm@gnu.org>
@@ -2801,7 +2801,7 @@
 	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
 
 	* net/tramp-compat.el (tramp-compat-call-process): Move function ...
-	* net/tramp.el (tramp-call-process): ... here
+	* net/tramp.el (tramp-call-process): ... here.
 	(tramp-set-completion-function, tramp-parse-putty):
 	* net/tramp-adb.el (tramp-adb-execute-adb-command):
 	* net/tramp-gvfs.el (tramp-gvfs-send-command):

@@ -16,7 +16,7 @@
 
 2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
 
-	* sieve.texi: (Managing Sieve): Fix port in example, fix documentation
+	* sieve.texi (Managing Sieve): Fix port in example, fix documentation
 	for keys q and Q.
 	(Standards): Reference RFC5804 as the defining document of the
 	managesieve protocol.
@@ -62,7 +62,7 @@
 
 2013-03-31  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi: (Basic Operations on Units): Streamline some
+	* calc.texi (Basic Operations on Units): Streamline some
 	descriptions.
 
 2013-03-27  Aidan Gauland  <aidalgol@no8wireless.co.nz>
@@ -517,7 +517,7 @@
 
 	Release MH-E manual version 8.4.
 
-	* mh-e.texi: (VERSION, EDITION, UPDATED, UPDATE-MONTH, Preface):
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH, Preface):
 	Update for release 8.4.
 
 	* mh-e.texi (Sequences): Add mh-whitelist-preserves-sequences-flag.
@@ -579,8 +579,8 @@
 	* ses.texi: Doc for ses-rename-cell, ses-repair-cell-reference-all & ses-range.
 	In all file place SES into @acronym{...}.
 	(Advanced Features): Add key index and function index for
-	ses-set-header-row. Add description for function
-	ses-rename-cell. Add description for function
+	ses-set-header-row.  Add description for function
+	ses-rename-cell.  Add description for function
 	ses-repair-cell-reference-all.
 	(Ranges in formulas): Add description for ses-range flags.
 
@@ -973,7 +973,7 @@
 
 	* org.texi: The sections in the Exporting section of the manual
 	left out articles in the description of the org-export-as-*
-	commands, among other places. This patch adds them, adds a few
+	commands, among other places.  This patch adds them, adds a few
 	missing prepositions, and switches instances of "an HTML" to "a
 	html" for internal consistency.
 
@@ -1021,7 +1021,7 @@
 2012-09-30  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.texi (Literal examples): Remove reference to unknown
-	`org-export-latex-minted' variable. Also simplify footnote since
+	`org-export-latex-minted' variable.  Also simplify footnote since
 	`org-export-latex-listings' documentation is exhaustive already.
 
 	* org.texi (Plain lists): Remove reference to now hard-coded
@@ -1062,12 +1062,12 @@
 	simplifications.
 	(Basic Simplifications): Rename from "Limited Simplifications"
 	Replace "limited" by "basic" throughout.
-	(Algebraic Simplifications):  Indicate that the algebraic
+	(Algebraic Simplifications): Indicate that the algebraic
 	simplifications are done by default.
-	(Unsafe Simplifications):  Mention `m E'.
+	(Unsafe Simplifications): Mention `m E'.
 	(Simplification of Units): Mention `m U'.
 	(Trigonometric/Hyperbolic Functions, Reducing and Mapping)
-	(Kinds of Declarations, Functions for Declarations):  Mention
+	(Kinds of Declarations, Functions for Declarations): Mention
 	"algebraic simplifications" instead of `a s'.
 	(Algebraic Entry): Remove mention of default simplifications.
 

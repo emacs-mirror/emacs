@@ -33,7 +33,7 @@
 	* emacs-lisp-intro.texi (defcustom, defun)
 	(simplified-beginning-of-buffer, defvar, Building Robots, Review)
 	(save-excursion): `defun' and `defcustom' are now macros rather
-	than special forms. (Bug#13853)
+	than special forms.  (Bug#13853)
 
 2013-03-16  Glenn Morris  <rgm@gnu.org>
 
@@ -53,7 +53,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* emacs-lisp-intro.texi (Files List):
 	directory-files-and-attributes now outputs t for attribute that's
 	now a placeholder.

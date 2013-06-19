@@ -4,7 +4,7 @@
 
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use functions, not macros, for XINT etc. (Bug#11935).
+	Use functions, not macros, for XINT etc.  (Bug#11935).
 	* configure.ac (WARN_CFLAGS): Remove -Wbad-function-cast,
 	as it generates bogus warnings about reasonable casts of calls.
 
@@ -397,7 +397,7 @@
 
 2013-01-23  Giorgos Keramidas  <gkeramidas@gmail.com>  (tiny change)
 
-	* .bzrignore: add lib-src/blessmail.
+	* .bzrignore: Add lib-src/blessmail.
 
 2013-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -546,7 +546,7 @@
 
 2012-12-10  Daniel Colascione  <dancol@dancol.org>
 
-	* .bzrignore: add src/emacs.res.
+	* .bzrignore: Add src/emacs.res.
 
 	* configure.ac (W32_RES, W32_RES_LINK, WINDRES): Teach the cygw32
 	build how to compile Windows resource files; use these variables

@@ -986,7 +986,7 @@
 2012-09-30  Achim Gratz  <Stromeko@Stromeko.DE>
 
 	* ob-R.el (org-babel-R-initiate-session): Protect against use of
-	unbound variable `ess-ask-for-ess-directory´. The default for this
+	unbound variable `ess-ask-for-ess-directory´.  The default for this
 	variable is true, so act accordingly if it is found unbound.
 
 	* ob-R.el: Remove initialization with `nil´ from
@@ -1031,7 +1031,7 @@
 	* org-version.el: New file.
 
 	* org-compat.el (org-check-version): New macro.  Check if
-	org-version.el exists and provide autoloads to that. Otherwise
+	org-version.el exists and provide autoloads to that.  Otherwise
 	check if org-fixup.el exists and use it to provide definitions.
 	Finally if nothing worked, complain about a botched installation
 	and provide fallback definitions.
@@ -3482,7 +3482,7 @@
 	org-footnote-unique-label if org-footnote-auto-label is set to
 	random.
 
-	* org-gnus.el: (org-gnus-follow-link): Fix argument to
+	* org-gnus.el (org-gnus-follow-link): Fix argument to
 	gnus-group-read-group so that following a link does not result in
 	unread article being selected.
 
@@ -3572,7 +3572,7 @@
 	* org-clock.el (org-clock-idle-time): Org-mode assumed that
 	x11idle was an available command, and returned an idle time of 0
 	if it was not
-	(never idle). Added checks so that org-idle-time will come from
+	(never idle): Added checks so that org-idle-time will come from
 	emacs' own current-idle-time if x11idle cannot be found or if it
 	cannot retrieve the idle time from X11
 
@@ -3628,7 +3628,7 @@
 	(org-comment-or-uncomment-region): Rewrite function.  Now comment
 	region at a fixed column: the minimal indentation of the region.
 	(org-fill-context-prefix): Rename function into
-	`org-adaptive-fill-function'. Also, In a paragraph, choose the
+	`org-adaptive-fill-function'.  Also, In a paragraph, choose the
 	same prefix as the current line.
 
 	* org-exp.el (org-export-handle-comments): Also remove comments at
@@ -3761,7 +3761,7 @@
 	point on an inlinetask.  Refactor code.
 
 	* org.el (org-mark-subtree): Do not make a special case for
-	inlinetasks when marking a subtree. These are handled by
+	inlinetasks when marking a subtree.  These are handled by
 	`org-element-mark-element'.
 
 	* org-element.el (org-element-comment-parser): Consider first "+"
@@ -4881,7 +4881,7 @@
 
 	* org-clock.el (org-in-clocktable-p): Move to org.el.
 
-	* org.el (org-in-clocktable-p): New function. Moved from
+	* org.el (org-in-clocktable-p): New function.  Moved from
 	org-clock.el.
 
 2012-04-01  David Maus  <dmaus@ictsoc.de>
