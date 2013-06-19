@@ -1,5 +1,9 @@
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
+	Only eval autoloaded macros.
+	(byte-compile-autoload): Only give the macro warning for macros.
+
 	* progmodes/cperl-mode.el (ps-bold-faces, ps-italic-faces)
 	(ps-underlined-faces): Declare.
 
