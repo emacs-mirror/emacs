@@ -1,3 +1,14 @@
+2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-mode): Improve interaction with
+	electric-layout-mode.
+	(electric-pair-default-inhibit): Don't assume (eq char (char-before)).
+	(electric-pair-syntax): Use text-mode-syntax-table in comments
+	and strings.
+	(electric-pair--insert): New function.
+	(electric-pair-post-self-insert-function): Use it and
+	electric--after-char-pos.
+
 2013-06-19  Leo Liu  <sdl.web@gmail.com>
 
 	* progmodes/octave.el (octave-help): Fix regexp.
@@ -19,8 +30,8 @@
 	(eww-handle-link, eww-tag-link, eww-tag-a): New defuns.
 	(eww-mode-map): Move "p" to "l".  Bind "p", "n", "t", and "u".
 	(eww-back-url): Rename from eww-previous-url.
-	(eww-next-url, eww-previous-url, eww-up-url, eww-top-url): New
-	defuns.
+	(eww-next-url, eww-previous-url, eww-up-url, eww-top-url):
+	New defuns.
 
 2013-06-18  Dmitry Gutov  <dgutov@yandex.ru>
 
