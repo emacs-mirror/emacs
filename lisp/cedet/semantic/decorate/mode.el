@@ -374,7 +374,7 @@ IGNORE any input arguments."
   "Define a new decoration style with NAME.
 DOC is a documentation string describing the decoration style NAME.
 It is appended to auto-generated doc strings.
-An Optional list of FLAGS can also be specified.  Flags are:
+An optional list of FLAGS can also be specified.  Flags are:
   :enabled <value>  - specify the default enabled value for NAME.
   :load <value>     - specify a feature (as a string) with the rest of
                       the definition for decoration mode NAME.
@@ -428,11 +428,10 @@ decoration API found in this library."
        (when (stringp ,loadfile)
 	 (unless (fboundp ',predicatedef)
 	   (autoload ',predicatedef ',loadfile "Return non-nil to decorate TAG."
-	     nil 'function))
+	     ))
 
 	 (unless (fboundp ',highlighterdef)
-	   (autoload ',highlighterdef ',loadfile "Decorate TAG."
-	     nil 'function))
+	   (autoload ',highlighterdef ',loadfile "Decorate TAG."))
 	 ))
     ))
 

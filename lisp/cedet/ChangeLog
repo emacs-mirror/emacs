@@ -1,3 +1,10 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/decorate/mode.el (define-semantic-decoration-style):
+	Doc fix.
+	(define-semantic-decoration-style): 'function is not an accepted
+	value for autoload's "type" argument.  Might as well use the default.
+
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/ctxt.el (semantic-ctxt-end-of-symbol-default):
