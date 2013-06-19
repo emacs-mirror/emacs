@@ -1,3 +1,7 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-mark-article-as-read): Fix declaration.
+
 2013-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-netrc-parse-entries): Remove debugging.
