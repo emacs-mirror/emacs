@@ -4254,20 +4254,20 @@ static int start(int argc, char *argv[])
   if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
   error_handler = &jb;
-
-  /* By contrast with the symbol table, we *must* register the globals as
-     roots before we start making things to put into them, because making
-     stuff might cause a garbage collection and throw away their contents
-     if they're not registered.  Since they're static variables they'll
-     contain NULL pointers, and are scannable from the start. See
-     topic/root. */
-  res = mps_root_create(&globals_root, arena, mps_rank_exact(), 0,
-                        globals_scan, NULL, 0);
-  if (res != MPS_RES_OK) error("Couldn't register globals root");
-
   if(!setjmp(*error_handler)) {
     for(i = 0; i < LENGTH(sptab); ++i)
       *sptab[i].varp = make_special(sptab[i].name);
+
+    /* By contrast with the symbol table, we *must* register the globals as
+       roots before we start making things to put into them, because making
+       stuff might cause a garbage collection and throw away their contents
+       if they're not registered.  Since they're static variables they'll
+       contain NULL pointers, and are scannable from the start. See
+       topic/root. */
+    res = mps_root_create(&globals_root, arena, mps_rank_exact(), 0,
+                          globals_scan, NULL, 0);
+    if (res != MPS_RES_OK) error("Couldn't register globals root");
+
     for(i = 0; i < LENGTH(isymtab); ++i)
       *isymtab[i].varp = intern(isymtab[i].name);
     env = make_pair(obj_empty, obj_empty);
