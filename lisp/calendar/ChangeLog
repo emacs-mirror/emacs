@@ -1,5 +1,12 @@
 2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todo-mode.el (todo-convert-legacy-files): Eliminate last change,
+	since it couldn't avoid namespace clashes, and instead let local
+	variables hold the legacy values used for conversion.  This also
+	does not interfere with live todo buffers.
+
+2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todo-mode.el: Rename from todos.el, change all occurrences of
 	"todos-" prefix to "todo-" and references to "Todos" to "Todo" or
 	"Todo mode".
