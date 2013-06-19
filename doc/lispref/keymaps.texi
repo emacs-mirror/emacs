@@ -663,17 +663,16 @@ additional active keymaps through the variable
 
   The highest precedence normal keymap comes from the @code{keymap}
 text or overlay property.  If that is non-@code{nil}, it is the first
-keymap to be processed, in normal circumstances.  Next comes
-any keymap added by the function @code{set-temporary-overlay-map}.
-@xref{Controlling Active Maps}.
+keymap to be processed, in normal circumstances.
 
   However, there are also special ways for programs to substitute
 other keymaps for some of those.  The variable
 @code{overriding-local-map}, if non-@code{nil}, specifies a keymap
 that replaces all the usual active keymaps except the global keymap.
-Another way to do this is with @code{overriding-terminal-local-map};
-it operates on a per-terminal basis.  These variables are documented
-below.
+
+The very highest precedence keymap comes from
+@code{overriding-terminal-local-map}; it operates on a per-terminal basis and
+is normally used for modal/transient keybindings.
 
 @cindex major mode keymap
   Since every buffer that uses the same major mode normally uses the
