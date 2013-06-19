@@ -1,5 +1,8 @@
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cperl-mode.el (ps-bold-faces, ps-italic-faces)
+	(ps-underlined-faces): Declare.
+
 	* progmodes/idlwave.el (func-menu): Only set it up on XEmacs.
 	(speedbar-add-supported-extension): Declare.
 

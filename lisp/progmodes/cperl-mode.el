@@ -6217,6 +6217,10 @@ indentation and initial hashes.  Behaves usually outside of comment."
     (error (message "cperl-init-faces (ignored): %s" errs))))
 
 
+(defvar ps-bold-faces)
+(defvar ps-italic-faces)
+(defvar ps-underlined-faces)
+
 (defun cperl-ps-print-init ()
   "Initialization of `ps-print' components for faces used in CPerl."
   (eval-after-load "ps-print"
