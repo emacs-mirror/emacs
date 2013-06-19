@@ -4479,148 +4479,181 @@ Helper function for `todos-convert-legacy-files'."
 
 (defun todos-convert-legacy-files ()
   "Convert legacy Todo files to the current Todos format.
-The files `todo-file-do' and `todo-file-done' are converted and
-saved (the latter as a Todos Archive file) with a new name in
-`todos-directory'.  See also the documentation string of
+The old-style files named by the variables `todo-file-do' and
+`todo-file-done' from the old package are converted to the new
+format and saved (the latter as a Todos Archive file) with a new
+name in `todos-directory'.  See also the documentation string of
 `todos-legacy-date-time-regexp' for further details."
   (interactive)
-  (eval-when-compile (require 'todo-mode))
-  ;; Convert `todo-file-do'.
-  (if (file-exists-p todo-file-do)
-      (let ((default "todo-do-conv")
-	    file archive-sexp)
-	(with-temp-buffer
-	  (insert-file-contents todo-file-do)
-	  (let ((end (search-forward ")" (line-end-position) t))
-		(beg (search-backward "(" (line-beginning-position) t)))
-	    (setq todo-categories
-		  (read (buffer-substring-no-properties beg end))))
-	  (todo-mode)
-	  (delete-region (line-beginning-position) (1+ (line-end-position)))
-	  (while (not (eobp))
-	    (cond
-	     ((looking-at (regexp-quote (concat todo-prefix todo-category-beg)))
-	      (replace-match todos-category-beg))
-	     ((looking-at (regexp-quote todo-category-end))
-	      (replace-match ""))
-	     ((looking-at (regexp-quote (concat todo-prefix " "
-						todo-category-sep)))
-	      (replace-match todos-category-done))
-	     ((looking-at (concat (regexp-quote todo-prefix) " "
-				  todos-legacy-date-time-regexp " "
-				  (regexp-quote todo-initials) ":"))
-	      (todos-convert-legacy-date-time)))
-	    (forward-line))
-	  (setq file (concat todos-directory
-			     (read-string
-			      (format "Save file as (default \"%s\"): " default)
-			      nil nil default)
-			     ".todo"))
-	  (write-region (point-min) (point-max) file nil 'nomessage nil t))
-	(with-temp-buffer
-	  (insert-file-contents file)
-	  (let ((todos-categories (todos-make-categories-list t)))
-	    (todos-update-categories-sexp))
-	  (write-region (point-min) (point-max) file nil 'nomessage))
-	;; Convert `todo-file-done'.
-	(when (file-exists-p todo-file-done)
-	  (with-temp-buffer
-	    (insert-file-contents todo-file-done)
-	    (let ((beg (make-marker))
-		  (end (make-marker))
-		  cat cats comment item)
+  (if todos-file-buffers
+      (message "Before converting you must kill all todo file buffers")
+    ;; Before loading legacy code we have to void symbols whose names
+    ;; are the same in the old and new versions, so use placeholders
+    ;; during conversion and restore them afterwards.
+    (let ((todos-categories-tem todos-categories)
+	  (todos-prefix-tem todos-prefix)
+	  (todos-category-beg-tem todos-category-beg))
+      (fset 'todos-mode-tem 'todos-mode)
+      (makunbound 'todos-categories)
+      (makunbound 'todos-prefix)
+      (makunbound 'todos-category-beg)
+      (fmakunbound 'todos-mode)
+      (when (eq this-command 'todos-convert-legacy-files)
+	;; We can't use require because the feature provided by the
+	;; old version is the same as the new version's.
+	(load "todo-mode"))
+      ;; Convert `todo-file-do'.
+      (if (file-exists-p todo-file-do)
+	  (let ((default "todo-do-conv")
+		file archive-sexp)
+	    (with-temp-buffer
+	      (insert-file-contents todo-file-do)
+	      (let ((end (search-forward ")" (line-end-position) t))
+		    (beg (search-backward "(" (line-beginning-position) t)))
+		(setq todo-categories
+		      (read (buffer-substring-no-properties beg end))))
+	      (todo-mode)
+	      (delete-region (line-beginning-position) (1+ (line-end-position)))
 	      (while (not (eobp))
-		(when (looking-at todos-legacy-date-time-regexp)
-		  (set-marker beg (point))
-		  (todos-convert-legacy-date-time)
-		  (set-marker end (point))
-		  (goto-char beg)
-		  (insert "[" todos-done-string)
-		  (goto-char end)
-		  (insert "]")
-		  (forward-char)
-		  (when (looking-at todos-legacy-date-time-regexp)
-		    (todos-convert-legacy-date-time))
-		  (when (looking-at (concat " "
-					    (regexp-quote todo-initials) ":"))
-		    (replace-match "")))
-		(if (re-search-forward
-		     (concat "^" todos-legacy-date-time-regexp) nil t)
-		    (goto-char (match-beginning 0))
-		  (goto-char (point-max)))
-		(backward-char)
-		(when (looking-back "\\[\\([^][]+\\)\\]")
-		  (setq cat (match-string 1))
-		  (goto-char (match-beginning 0))
+		(cond
+		 ((looking-at (regexp-quote (concat todo-prefix todo-category-beg)))
+		  (replace-match todos-category-beg-tem))
+		 ((looking-at (regexp-quote todo-category-end))
 		  (replace-match ""))
-		;; If the item ends with a non-comment parenthesis not
-		;; followed by a period, we lose (but we inherit that problem
-		;; from todo-mode.el).
-		(when (looking-back "(\\(.*\\)) ")
-		  (setq comment (match-string 1))
-		  (replace-match "")
-		  (insert "[" todos-comment-string ": " comment "]"))
-		(set-marker end (point))
-		(if (member cat cats)
-		    ;; If item is already in its category, leave it there.
-		    (unless (save-excursion
-			      (re-search-backward
-			       (concat "^" (regexp-quote todos-category-beg)
-				       "\\(.*\\)$") nil t)
-			      (string= (match-string 1) cat))
-		      ;; Else move it to its category.
-		      (setq item (buffer-substring-no-properties beg end))
-		      (delete-region beg (1+ end))
-		      (set-marker beg (point))
-		      (re-search-backward
-		       (concat "^"
-			       (regexp-quote (concat todos-category-beg cat))
-			       "$")
-		       nil t)
-		      (forward-line)
-		      (if (re-search-forward
-			   (concat "^" (regexp-quote todos-category-beg)
-				   "\\(.*\\)$") nil t)
-			  (progn (goto-char (match-beginning 0))
-				 (newline)
-				 (forward-line -1))
-			(goto-char (point-max)))
-		      (insert item "\n")
-		      (goto-char beg))
-		  (push cat cats)
-		  (goto-char beg)
-		  (insert todos-category-beg cat "\n\n" todos-category-done "\n"))
+		 ((looking-at (regexp-quote (concat todo-prefix " "
+						    todo-category-sep)))
+		  (replace-match todos-category-done))
+		 ((looking-at (concat (regexp-quote todo-prefix) " "
+				      todos-legacy-date-time-regexp " "
+				      (regexp-quote todo-initials) ":"))
+		  ;; FIXME: Should todo-initials be converted?  That
+		  ;; would require changes to item insertion and editing.
+		  (todos-convert-legacy-date-time)))
 		(forward-line))
-	      (set-marker beg nil)
-	      (set-marker end nil))
-	    (setq file (concat (file-name-sans-extension file) ".toda"))
-	    (write-region (point-min) (point-max) file nil 'nomessage nil t))
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (let ((todos-categories (todos-make-categories-list t)))
-	      (todos-update-categories-sexp))
-	    (write-region (point-min) (point-max) file nil 'nomessage)
-	    (setq archive-sexp (read (buffer-substring-no-properties
-				      (line-beginning-position)
-				      (line-end-position)))))
-	  (setq file (concat (file-name-sans-extension file) ".todo"))
-	  ;; Update categories sexp of converted Todos file again, adding
-	  ;; counts of archived items.
-	  (with-temp-buffer
-	    (insert-file-contents file)
-	    (let ((sexp (read (buffer-substring-no-properties
-			       (line-beginning-position)
-			       (line-end-position)))))
-	      (dolist (cat sexp)
-		(let ((archive-cat (assoc (car cat) archive-sexp)))
-		  (if archive-cat
-		      (aset (cdr cat) 3 (aref (cdr archive-cat) 2)))))
-	      (delete-region (line-beginning-position) (line-end-position))
-	      (prin1 sexp (current-buffer)))
-	    (write-region (point-min) (point-max) file nil 'nomessage)))
-	(todos-reevaluate-filelist-defcustoms)
-	(message "Format conversion done."))
-    (user-error "No legacy Todo file exists")))
+	      (setq file (concat todos-directory
+				 (read-string
+				  (format "Save file as (default \"%s\"): " default)
+				  nil nil default)
+				 ".todo"))
+	      (write-region (point-min) (point-max) file nil 'nomessage nil t))
+	    (with-temp-buffer
+	      (insert-file-contents file)
+	      (let* ((todos-category-beg todos-category-beg-tem) ; Used by t-m-c-l.
+		     (todos-categories (todos-make-categories-list t)))
+		(todos-update-categories-sexp))
+	      (write-region (point-min) (point-max) file nil 'nomessage))
+	    ;; Convert `todo-file-done'.
+	    (when (file-exists-p todo-file-done)
+	      (with-temp-buffer
+		(insert-file-contents todo-file-done)
+		(let ((beg (make-marker))
+		      (end (make-marker))
+		      cat cats comment item)
+		  (while (not (eobp))
+		    (when (looking-at todos-legacy-date-time-regexp)
+		      (set-marker beg (point))
+		      (todos-convert-legacy-date-time)
+		      (set-marker end (point))
+		      (goto-char beg)
+		      (insert "[" todos-done-string)
+		      (goto-char end)
+		      (insert "]")
+		      (forward-char)
+		      (when (looking-at todos-legacy-date-time-regexp)
+			(todos-convert-legacy-date-time))
+		      (when (looking-at (concat " "
+						(regexp-quote todo-initials) ":"))
+			;; FIXME: Should todo-initials be converted?
+			(replace-match "")))
+		    (if (re-search-forward
+			 (concat "^" todos-legacy-date-time-regexp) nil t)
+			(goto-char (match-beginning 0))
+		      (goto-char (point-max)))
+		    (backward-char)
+		    (when (looking-back "\\[\\([^][]+\\)\\]")
+		      (setq cat (match-string 1))
+		      (goto-char (match-beginning 0))
+		      (replace-match ""))
+		    ;; If the item ends with a non-comment parenthesis not
+		    ;; followed by a period, we lose (but we inherit that problem
+		    ;; from todo-mode.el).
+		    (when (looking-back "(\\(.*\\)) ")
+		      (setq comment (match-string 1))
+		      (replace-match "")
+		      (insert "[" todos-comment-string ": " comment "]"))
+		    (set-marker end (point))
+		    (if (member cat cats)
+			;; If item is already in its category, leave it there.
+			(unless (save-excursion
+				  (re-search-backward
+				   (concat "^" (regexp-quote todos-category-beg-tem)
+					   "\\(.*\\)$") nil t)
+				  (string= (match-string 1) cat))
+			  ;; Else move it to its category.
+			  (setq item (buffer-substring-no-properties beg end))
+			  (delete-region beg (1+ end))
+			  (set-marker beg (point))
+			  (re-search-backward
+			   (concat "^"
+				   (regexp-quote (concat todos-category-beg-tem cat))
+				   "$")
+			   nil t)
+			  (forward-line)
+			  (if (re-search-forward
+			       (concat "^" (regexp-quote todos-category-beg-tem)
+				       "\\(.*\\)$") nil t)
+			      (progn (goto-char (match-beginning 0))
+				     (newline)
+				     (forward-line -1))
+			    (goto-char (point-max)))
+			  (insert item "\n")
+			  (goto-char beg))
+		      (push cat cats)
+		      (goto-char beg)
+		      (insert todos-category-beg-tem cat "\n\n"
+			      todos-category-done "\n"))
+		    (forward-line))
+		  (set-marker beg nil)
+		  (set-marker end nil))
+		(setq file (concat (file-name-sans-extension file) ".toda"))
+		(write-region (point-min) (point-max) file nil 'nomessage nil t))
+	      (with-temp-buffer
+		(insert-file-contents file)
+		(let* ((todos-category-beg todos-category-beg-tem) ; Used by t-m-c-l.
+		       (todos-categories (todos-make-categories-list t)))
+		  (todos-update-categories-sexp))
+		(write-region (point-min) (point-max) file nil 'nomessage)
+		(setq archive-sexp (read (buffer-substring-no-properties
+					  (line-beginning-position)
+					  (line-end-position)))))
+	      (setq file (concat (file-name-sans-extension file) ".todo"))
+	      ;; Update categories sexp of converted Todos file again, adding
+	      ;; counts of archived items.
+	      (with-temp-buffer
+		(insert-file-contents file)
+		(let ((sexp (read (buffer-substring-no-properties
+				   (line-beginning-position)
+				   (line-end-position)))))
+		  (dolist (cat sexp)
+		    (let ((archive-cat (assoc (car cat) archive-sexp)))
+		      (if archive-cat
+			  (aset (cdr cat) 3 (aref (cdr archive-cat) 2)))))
+		  (delete-region (line-beginning-position) (line-end-position))
+		  (prin1 sexp (current-buffer)))
+		(write-region (point-min) (point-max) file nil 'nomessage)))
+	    (todos-reevaluate-filelist-defcustoms)
+	    (message "Format conversion done."))
+	(message "No legacy Todo file exists"))
+      ;; (setq todos-categories todos-categories-tem
+      ;; 	  todos-prefix todos-prefix-tem
+      ;; 	  todos-category-beg todos-category-beg-tem)
+      ;; (fset 'todos-mode 'todos-mode-tem)
+      ;; (makunbound 'todos-categories-tem)
+      ;; (makunbound 'todos-prefix-tem)
+      ;; (makunbound 'todos-category-beg-tem)
+      ;; (fmakunbound 'todos-mode-tem)
+      (unload-feature 'todos)
+      (require 'todos))))
 
 ;; -----------------------------------------------------------------------------
 ;;; Utility functions for Todos files, categories and items

@@ -1,3 +1,10 @@
+2013-06-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* todos.el (todos-convert-legacy-files): Add code to make it work
+	after the new version is renamed and has the same namespace as the
+	old version.  This also requires there to be no live todo buffers
+	when this command is called.
+
 2013-06-18  Stephen Berman  <stephen.berman@gmx.net>
 
 	* todos.el: Reinstate current copyright dates and original
