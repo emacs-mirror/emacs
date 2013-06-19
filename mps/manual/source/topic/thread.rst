@@ -184,8 +184,8 @@ Thread interface
     managed by the MPS, each thread must execute such code inside a
     call to :c:func:`mps_tramp`.
     
-    Since version 1.111, this is not required on any of operating
-    systems supported by the MPS.
+    Starting with version 1.111, this is not required on any operating
+    system supported by the MPS.
 
 
 .. index::
