@@ -43,11 +43,35 @@
   :group 'eww
   :type 'string)
 
-(defface eww-button
+(defface eww-form-submit
+  '((((type x w32 ns) (class color))	; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "#808080" :foreground "black"))
+  "Face for eww buffer buttons."
+  :version "24.4"
+  :group 'eww)
+
+(defface eww-form-checkbox
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
+  :version "24.4"
+  :group 'eww)
+
+(defface eww-form-select
+  '((((type x w32 ns) (class color))	; Like default mode line
+     :box (:line-width 2 :style released-button)
+     :background "lightgrey" :foreground "black"))
+  "Face for eww buffer buttons."
+  :version "24.4"
+  :group 'eww)
+
+(defface eww-form-text
+  '((t (:background "#505050"
+		    :foreground "white"
+		    :box (:line-width 1))))
+  "Face for eww text inputs."
   :version "24.4"
   :group 'eww)
 
@@ -59,7 +83,9 @@
 (defvar eww-next-url nil)
 (defvar eww-previous-url nil)
 (defvar eww-up-url nil)
-(defvar eww-top-url nil)
+(defvar eww-home-url nil)
+(defvar eww-start-url nil)
+(defvar eww-contents-url nil)
 
 ;;;###autoload
 (defun eww (url)
@@ -82,7 +108,9 @@
   (set (make-local-variable 'eww-next-url) nil)
   (set (make-local-variable 'eww-previous-url) nil)
   (set (make-local-variable 'eww-up-url) nil)
-  (set (make-local-variable 'eww-top-url) nil)
+  (set (make-local-variable 'eww-home-url) nil)
+  (set (make-local-variable 'eww-start-url) nil)
+  (set (make-local-variable 'eww-contents-url) nil)
   (let* ((headers (eww-parse-headers))
 	 (shr-target-id
 	  (and (string-match "#\\(.*\\)" url)
@@ -154,6 +182,7 @@
     (setq eww-current-url url)
     (eww-update-header-line-format)
     (let ((inhibit-read-only t)
+	  (after-change-functions nil)
 	  (shr-width nil)
 	  (shr-external-rendering-functions
 	   '((title . eww-tag-title)
@@ -164,17 +193,28 @@
 	     (select . eww-tag-select)
 	     (link . eww-tag-link)
 	     (a . eww-tag-a))))
-      (shr-insert-document document)
-      (eww-convert-widgets))
+      (shr-insert-document document))
     (goto-char (point-min))))
 
 (defun eww-handle-link (cont)
   (let* ((rel (assq :rel cont))
   	(href (assq :href cont))
-	(where (assoc (cdr rel)
+	(where (assoc
+		;; The text associated with :rel is case-insensitive.
+		(if rel (downcase (cdr rel)))
 		      '(("next" . eww-next-url)
+			;; Texinfo uses "previous", but HTML specifies
+			;; "prev", so recognize both.
 			("previous" . eww-previous-url)
-			("start" . eww-top-url)
+			("prev" . eww-previous-url)
+			;; HTML specifies "start" but also "contents",
+			;; and Gtk seems to use "home".  Recognize
+			;; them all; but store them in different
+			;; variables so that we can readily choose the
+			;; "best" one.
+			("start" . eww-start-url)
+			("home" . eww-home-url)
+			("contents" . eww-contents-url)
 			("up" . eww-up-url)))))
     (and href
 	 where
@@ -218,10 +258,12 @@
       (when new-colors
 	(when fg
 	  (add-face-text-property start end
-				  (list :foreground (cadr new-colors))))
+				  (list :foreground (cadr new-colors))
+				  t))
 	(when bg
 	  (add-face-text-property start end
-				  (list :background (car new-colors))))))))
+				  (list :background (car new-colors))
+				  t))))))
 
 (defun eww-display-raw (charset)
   (let ((data (buffer-substring (point) (point-max))))
@@ -240,7 +282,6 @@
 (defun eww-setup-buffer ()
   (pop-to-buffer (get-buffer-create "*eww*"))
   (remove-overlays)
-  (setq widget-field-list nil)
   (let ((inhibit-read-only t))
     (erase-buffer))
   (eww-mode))
@@ -267,11 +308,16 @@
 
 \\{eww-mode-map}"
   (set (make-local-variable 'eww-current-url) 'author)
-  (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url))
+  (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
+  (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
+  ;;(setq buffer-read-only t)
+  )
 
 (defun eww-browse-url (url &optional new-window)
-  (push (list eww-current-url (point))
-	eww-history)
+  (when (and (equal major-mode 'eww-mode)
+	     eww-current-url)
+    (push (list eww-current-url (point))
+	  eww-history))
   (eww url))
 
 (defun eww-quit ()
@@ -317,12 +363,15 @@ or <a> tag."
 
 (defun eww-top-url ()
   "Go to the page marked `top'.
-A page is marked `top' if rel=\"start\" appears in a <link>
-or <a> tag."
+A page is marked `top' if rel=\"start\", rel=\"home\", or rel=\"contents\"
+appears in a <link> or <a> tag."
   (interactive)
-  (if eww-top-url
-      (eww-browse-url (shr-expand-url eww-top-url eww-current-url))
-    (error "No `top' on this page")))
+  (let ((best-url (or eww-start-url
+		      eww-contents-url
+		      eww-home-url)))
+    (if best-url
+	(eww-browse-url (shr-expand-url best-url eww-current-url))
+      (error "No `top' for this page"))))
 
 (defun eww-reload ()
   "Reload the current page."
@@ -333,6 +382,71 @@ or <a> tag."
 ;; Form support.
 
 (defvar eww-form nil)
+
+(defvar eww-submit-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'eww-submit)
+    map))
+
+(defvar eww-checkbox-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [space] 'eww-toggle-checkbox)
+    (define-key map "\r" 'eww-toggle-checkbox)
+    map))
+
+(defvar eww-text-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\r" 'eww-submit)
+    (define-key map [(control a)] 'eww-beginning-of-text)
+    (define-key map [(control e)] 'eww-end-of-text)
+    (define-key map [tab] 'shr-next-link)
+    (define-key map [backtab] 'shr-previous-link)
+    map))
+
+(defvar eww-textarea-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\r" 'forward-line)
+    (define-key map [tab] 'shr-next-link)
+    (define-key map [backtab] 'shr-previous-link)
+    map))
+
+(defvar eww-select-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'eww-change-select)
+    map))
+
+(defun eww-beginning-of-text ()
+  "Move to the start of the input field."
+  (interactive)
+  (goto-char (eww-beginning-of-field)))
+
+(defun eww-end-of-text ()
+  "Move to the end of the text in the input field."
+  (interactive)
+  (goto-char (eww-end-of-field))
+  (let ((start (eww-beginning-of-field)))
+    (while (and (equal (following-char) ? )
+		(> (point) start))
+      (forward-char -1))
+    (when (> (point) start)
+      (forward-char 1))))
+
+(defun eww-beginning-of-field ()
+  (cond
+   ((bobp)
+    (point))
+   ((not (eq (get-text-property (point) 'eww-form)
+	     (get-text-property (1- (point)) 'eww-form)))
+    (point))
+   (t
+    (previous-single-property-change
+     (point) 'eww-form nil (point-min)))))
+
+(defun eww-end-of-field ()
+  (1- (next-single-property-change
+       (point) 'eww-form nil (point-max))))
 
 (defun eww-tag-form (cont)
   (let ((eww-form
@@ -348,160 +462,334 @@ or <a> tag."
       (put-text-property start (1+ start)
 			 'eww-form eww-form))))
 
-(defun eww-tag-input (cont)
-  (let* ((start (point))
-	 (type (downcase (or (cdr (assq :type cont))
-			     "text")))
-	 (value (cdr (assq :value cont)))
-	 (widget
-	  (cond
-	   ((or (equal type "submit")
-		(equal type "image"))
-	    (list 'push-button
-		  :notify 'eww-submit
-		  :name (cdr (assq :name cont))
-		  :value (if (zerop (length value))
-			     "Submit"
-			   value)
-		  :eww-form eww-form
-		  (or (if (zerop (length value))
-			  "Submit"
-			value))))
-	   ((or (equal type "radio")
-		(equal type "checkbox"))
-	    (list 'checkbox
-		  :notify 'eww-click-radio
-		  :name (cdr (assq :name cont))
-		  :checkbox-value value
-		  :checkbox-type type
-		  :eww-form eww-form
-		  (cdr (assq :checked cont))))
-	   ((equal type "hidden")
-	    (list 'hidden
-		  :name (cdr (assq :name cont))
-		  :value value))
-	   (t
-	    (list 'editable-field
-		  :size (string-to-number
-			 (or (cdr (assq :size cont))
-			     "40"))
-		  :value (or value "")
-		  :secret (and (equal type "password") ?*)
-		  :action 'eww-submit
-		  :name (cdr (assq :name cont))
-		  :eww-form eww-form)))))
-    (nconc eww-form (list widget))
-    (unless (eq (car widget) 'hidden)
-      (apply 'widget-create widget)
-      (put-text-property start (point) 'eww-widget widget)
-      (insert " "))))
+(defun eww-form-submit (cont)
+  (let ((start (point))
+	(value (cdr (assq :value cont))))
+    (setq value
+	  (if (zerop (length value))
+	      "Submit"
+	    value))
+    (insert value)
+    (add-face-text-property start (point) 'eww-form-submit)
+    (put-text-property start (point) 'eww-form
+		       (list :eww-form eww-form
+			     :value value
+			     :type "submit"
+			     :name (cdr (assq :name cont))))
+    (put-text-property start (point) 'keymap eww-submit-map)
+    (insert " ")))
+
+(defun eww-form-checkbox (cont)
+  (let ((start (point)))
+    (if (cdr (assq :checked cont))
+	(insert "[X]")
+      (insert "[ ]"))
+    (add-face-text-property start (point) 'eww-form-checkbox)
+    (put-text-property start (point) 'eww-form
+		       (list :eww-form eww-form
+			     :value (cdr (assq :value cont))
+			     :type (downcase (cdr (assq :type cont)))
+			     :checked (cdr (assq :checked cont))
+			     :name (cdr (assq :name cont))))
+    (put-text-property start (point) 'keymap eww-checkbox-map)
+    (insert " ")))
+
+(defun eww-form-text (cont)
+  (let ((start (point))
+	(type (downcase (or (cdr (assq :type cont))
+			    "text")))
+	(value (or (cdr (assq :value cont)) ""))
+	(width (string-to-number
+		(or (cdr (assq :size cont))
+		    "40"))))
+    (insert value)
+    (when (< (length value) width)
+      (insert (make-string (- width (length value)) ? )))
+    (put-text-property start (point) 'face 'eww-form-text)
+    (put-text-property start (point) 'local-map eww-text-map)
+    (put-text-property start (point) 'inhibit-read-only t)
+    (put-text-property start (point) 'eww-form
+		       (list :eww-form eww-form
+			     :value value
+			     :type type
+			     :name (cdr (assq :name cont))))
+    (insert " ")))
+
+(defun eww-process-text-input (beg end length)
+  (let* ((form (get-text-property end 'eww-form))
+	 (properties (text-properties-at end))
+	 (type (plist-get form :type)))
+    (when (and form
+	       (member type '("text" "password" "textarea")))
+      (cond
+       ((zerop length)
+	;; Delete some space at the end.
+	(save-excursion
+	  (goto-char
+	   (if (equal type "textarea")
+	       (1- (line-end-position))
+	     (eww-end-of-field)))
+	  (let ((new (- end beg)))
+	    (while (and (> new 0)
+			(eql (following-char) ? ))
+	      (delete-region (point) (1+ (point)))
+	      (setq new (1- new))))
+	  (set-text-properties beg end properties)))
+       ((> length 0)
+	;; Add padding.
+	(save-excursion
+	  (goto-char
+	   (if (equal type "textarea")
+	       (1- (line-end-position))
+	     (eww-end-of-field)))
+	  (let ((start (point)))
+	    (insert (make-string length ? ))
+	    (set-text-properties start (point) properties)))))
+      (let ((value (buffer-substring-no-properties
+		    (eww-beginning-of-field)
+		    (eww-end-of-field))))
+	(when (string-match " +\\'" value)
+	  (setq value (substring value 0 (match-beginning 0))))
+	(plist-put form :value value)
+	(when (equal type "password")
+	  ;; Display passwords as asterisks.
+	  (let ((start (eww-beginning-of-field)))
+	    (put-text-property start (+ start (length value))
+			       'display (make-string (length value) ?*))))))))
 
 (defun eww-tag-textarea (cont)
-  (let* ((start (point))
-	 (widget
-	  (list 'text
-		:size (string-to-number
-		       (or (cdr (assq :cols cont))
-			   "40"))
-		:value (or (cdr (assq 'text cont)) "")
-		:action 'eww-submit
-		:name (cdr (assq :name cont))
-		:eww-form eww-form)))
-    (nconc eww-form (list widget))
-    (apply 'widget-create widget)
-    (put-text-property start (point) 'eww-widget widget)))
+  (let ((start (point))
+	(value (or (cdr (assq :value cont)) ""))
+	(lines (string-to-number
+		(or (cdr (assq :rows cont))
+		    "10")))
+	(width (string-to-number
+		(or (cdr (assq :cols cont))
+		    "10")))
+	end)
+    (shr-ensure-newline)
+    (insert value)
+    (shr-ensure-newline)
+    (when (< (count-lines start (point)) lines)
+      (dotimes (i (- lines (count-lines start (point))))
+	(insert "\n")))
+    (setq end (point-marker))
+    (goto-char start)
+    (while (< (point) end)
+      (end-of-line)
+      (let ((pad (- width (- (point) (line-beginning-position)))))
+	(when (> pad 0)
+	  (insert (make-string pad ? ))))
+      (add-face-text-property (line-beginning-position)
+			      (point) 'eww-form-text)
+      (put-text-property (line-beginning-position) (point)
+			 'local-map eww-textarea-map)
+      (forward-line 1))
+    (put-text-property start (point) 'eww-form
+		       (list :eww-form eww-form
+			     :value value
+			     :type "textarea"
+			     :name (cdr (assq :name cont))))))
+
+(defun eww-tag-input (cont)
+  (let ((type (downcase (or (cdr (assq :type cont))
+			     "text")))
+	(start (point)))
+    (cond
+     ((or (equal type "checkbox")
+	  (equal type "radio"))
+      (eww-form-checkbox cont))
+     ((equal type "submit")
+      (eww-form-submit cont))
+     ((equal type "hidden")
+      (let ((form eww-form)
+	    (name (cdr (assq :name cont))))
+	;; Don't add <input type=hidden> elements repeatedly.
+	(while (and form
+		    (or (not (consp (car form)))
+			(not (eq (caar form) 'hidden))
+			(not (equal (plist-get (cdr (car form)) :name)
+				    name))))
+	  (setq form (cdr form)))
+	(unless form
+	  (nconc eww-form (list
+			   (list 'hidden
+				 :name name
+				 :value (cdr (assq :value cont))))))))
+     (t
+      (eww-form-text cont)))
+    (unless (= start (point))
+      (put-text-property start (1+ start) 'help-echo "Input field"))))
 
 (defun eww-tag-select (cont)
   (shr-ensure-paragraph)
-  (let ((menu (list 'menu-choice
-		    :name (cdr (assq :name cont))
+  (let ((menu (list :name (cdr (assq :name cont))
 		    :eww-form eww-form))
 	(options nil)
-	(start (point)))
+	(start (point))
+	(max 0))
     (dolist (elem cont)
       (when (eq (car elem) 'option)
 	(when (cdr (assq :selected (cdr elem)))
 	  (nconc menu (list :value
 			    (cdr (assq :value (cdr elem))))))
-	(push (list 'item
-		    :value (cdr (assq :value (cdr elem)))
-		    :tag (cdr (assq 'text (cdr elem))))
-	      options)))
+	(let ((display (or (cdr (assq 'text (cdr elem))) "")))
+	  (setq max (max max (length display)))
+	  (push (list 'item
+		      :value (cdr (assq :value (cdr elem)))
+		      :display display)
+		options))))
     (when options
+      (setq options (nreverse options))
       ;; If we have no selected values, default to the first value.
-      (unless (plist-get (cdr menu) :value)
+      (unless (plist-get menu :value)
 	(nconc menu (list :value (nth 2 (car options)))))
       (nconc menu options)
-      (apply 'widget-create menu)
-      (put-text-property start (point) 'eww-widget menu)
+      (let ((selected (eww-select-display menu)))
+	(insert selected
+		(make-string (- max (length selected)) ? )))
+      (put-text-property start (point) 'eww-form menu)
+      (add-face-text-property start (point) 'eww-form-select)
+      (put-text-property start (point) 'keymap eww-select-map)
       (shr-ensure-paragraph))))
 
-(defun eww-click-radio (widget &rest ignore)
-  (let ((form (plist-get (cdr widget) :eww-form))
-	(name (plist-get (cdr widget) :name)))
-    (when (equal (plist-get (cdr widget) :type) "radio")
-      (if (widget-value widget)
-	  ;; Switch all the other radio buttons off.
-	  (dolist (overlay (overlays-in (point-min) (point-max)))
-	    (let ((field (plist-get (overlay-properties overlay) 'button)))
-	      (when (and (eq (plist-get (cdr field) :eww-form) form)
-			 (equal name (plist-get (cdr field) :name)))
-		(unless (eq field widget)
-		  (widget-value-set field nil)))))
-	(widget-value-set widget t)))
-    (eww-fix-widget-keymap)))
+(defun eww-select-display (select)
+  (let ((value (plist-get select :value))
+	display)
+    (dolist (elem select)
+      (when (and (consp elem)
+		 (eq (car elem) 'item)
+		 (equal value (plist-get (cdr elem) :value)))
+	(setq display (plist-get (cdr elem) :display))))
+    display))
 
-(defun eww-submit (widget &rest ignore)
-  (let ((form (plist-get (cdr widget) :eww-form))
-	values)
-    (dolist (overlay (sort (overlays-in (point-min) (point-max))
-			   (lambda (o1 o2)
-			     (< (overlay-start o1) (overlay-start o2)))))
-      (let ((field (or (plist-get (overlay-properties overlay) 'field)
-		       (plist-get (overlay-properties overlay) 'button))))
-	(when (eq (plist-get (cdr field) :eww-form) form)
-	  (let ((name (plist-get (cdr field) :name)))
-	    (when name
-	      (cond
-	       ((eq (car field) 'checkbox)
-		(when (widget-value field)
-		  (push (cons name (plist-get (cdr field) :checkbox-value))
-			values)))
-	       ((eq (car field) 'push-button)
-		;; We want the values from buttons if we hit a button,
-		;; if it's the first button in the DOM after the field
-		;; hit ENTER on.
-		(when (and (eq (car widget) 'push-button)
-			   (eq widget field))
-		  (push (cons name (widget-value field))
-			values)))
-	       (t
-		(push (cons name (widget-value field))
-		      values))))))))
+(defun eww-change-select ()
+  "Change the value of the select drop-down menu under point."
+  (interactive)
+  (let* ((input (get-text-property (point) 'eww-form))
+	 (properties (text-properties-at (point)))
+	 (completion-ignore-case t)
+	 (options
+	  (delq nil
+		(mapcar (lambda (elem)
+			  (and (consp elem)
+			       (eq (car elem) 'item)
+			       (cons (plist-get (cdr elem) :display)
+				     (plist-get (cdr elem) :value))))
+			input)))
+	 (display
+	  (completing-read "Change value: " options nil 'require-match))
+	 (inhibit-read-only t))
+    (plist-put input :value (cdr (assoc-string display options t)))
+    (goto-char
+     (eww-update-field display))))
+
+(defun eww-update-field (string)
+  (let ((properties (text-properties-at (point)))
+	(start (eww-beginning-of-field))
+	(end (1+ (eww-end-of-field))))
+    (delete-region start end)
+    (insert string
+	    (make-string (- (- end start) (length string)) ? ))
+    (set-text-properties start end properties)
+    start))
+
+(defun eww-toggle-checkbox ()
+  "Toggle the value of the checkbox under point."
+  (interactive)
+  (let* ((input (get-text-property (point) 'eww-form))
+	 (type (plist-get input :type)))
+    (if (equal type "checkbox")
+	(goto-char
+	 (1+
+	  (if (plist-get input :checked)
+	      (progn
+		(plist-put input :checked nil)
+		(eww-update-field "[ ]"))
+	    (plist-put input :checked t)
+	    (eww-update-field "[X]"))))
+      ;; Radio button.  Switch all other buttons off.
+      (let ((name (plist-get input :name)))
+	(save-excursion
+	  (dolist (elem (eww-inputs (plist-get input :eww-form)))
+	    (when (equal (plist-get (cdr elem) :name) name)
+	      (goto-char (car elem))
+	      (if (not (eq (cdr elem) input))
+		  (progn
+		    (plist-put input :checked nil)
+		    (eww-update-field "[ ]"))
+		(plist-put input :checked t)
+		(eww-update-field "[X]")))))
+	(forward-char 1)))))
+
+(defun eww-inputs (form)
+  (let ((start (point-min))
+	(inputs nil))
+    (while (and start
+		(< start (point-max)))
+      (when (or (get-text-property start 'eww-form)
+		(setq start (next-single-property-change start 'eww-form)))
+	(when (eq (plist-get (get-text-property start 'eww-form) :eww-form)
+		  form)
+	  (push (cons start (get-text-property start 'eww-form))
+		inputs))
+	(setq start (next-single-property-change start 'eww-form))))
+    (nreverse inputs)))
+
+(defun eww-input-value (input)
+  (let ((type (plist-get input :type))
+	(value (plist-get input :value)))
+    (cond
+     ((equal type "textarea")
+      (with-temp-buffer
+	(insert value)
+	(goto-char (point-min))
+	(while (re-search-forward "^ +\n\\| +$" nil t)
+	  (replace-match "" t t))
+	(buffer-string)))
+     (t
+      (if (string-match " +\\'" value)
+	  (substring value 0 (match-beginning 0))
+	value)))))
+
+(defun eww-submit ()
+  "Submit the current form."
+  (interactive)
+  (let* ((this-input (get-text-property (point) 'eww-form))
+	 (form (plist-get this-input :eww-form))
+	 values next-submit)
+    (dolist (elem (sort (eww-inputs form)
+			 (lambda (o1 o2)
+			   (< (car o1) (car o2)))))
+      (let* ((input (cdr elem))
+	     (input-start (car elem))
+	     (name (plist-get input :name)))
+	(when name
+	  (cond
+	   ((member (plist-get input :type) '("checkbox" "radio"))
+	    (when (plist-get input :checked)
+	      (push (cons name (plist-get input :value))
+		    values)))
+	   ((equal (plist-get input :type) "submit")
+	    ;; We want the values from buttons if we hit a button if
+	    ;; we hit enter on it, or if it's the first button after
+	    ;; the field we did hit return on.
+	    (when (or (eq input this-input)
+		      (and (not (eq input this-input))
+			   (null next-submit)
+			   (> input-start (point))))
+	      (setq next-submit t)
+	      (push (cons name (plist-get input :value))
+		    values)))
+	   (t
+	    (push (cons name (eww-input-value input))
+		  values))))))
     (dolist (elem form)
       (when (and (consp elem)
 		 (eq (car elem) 'hidden))
 	(push (cons (plist-get (cdr elem) :name)
 		    (plist-get (cdr elem) :value))
 	      values)))
-    ;; If we hit ENTER in a non-button field, include the value of the
-    ;; first submit button after it.
-    (unless (eq (car widget) 'push-button)
-      (let ((rest form)
-	    (name (plist-get (cdr widget) :name)))
-	(when rest
-	  (while (and rest
-		      (or (not (consp (car rest)))
-			  (not (equal name (plist-get (cdar rest) :name)))))
-	    (pop rest)))
-	(while rest
-	  (let ((elem (pop rest)))
-	    (when (and (consp (car rest))
-		       (eq (car elem) 'push-button))
-	      (push (cons (plist-get (cdr elem) :name)
-			  (plist-get (cdr elem) :value))
-		    values)
-	      (setq rest nil))))))
     (if (and (stringp (cdr (assq :method form)))
 	     (equal (downcase (cdr (assq :method form))) "post"))
 	(let ((url-request-method "POST")
@@ -518,41 +806,6 @@ or <a> tag."
 	  eww-current-url)
 	"?"
 	(mm-url-encode-www-form-urlencoded values))))))
-
-(defun eww-convert-widgets ()
-  (let ((start (point-min))
-	widget)
-    ;; Some widgets come from different buffers (rendered for tables),
-    ;; so we need to nix out the list of widgets and recreate them.
-    (setq widget-field-list nil
-	  widget-field-new nil)
-    (while (setq start (if (get-text-property start 'eww-widget)
-			   start
-			 (next-single-property-change start 'eww-widget)))
-      (setq widget (get-text-property start 'eww-widget))
-      (goto-char start)
-      (let ((end (next-single-property-change start 'eww-widget)))
-	(dolist (overlay (overlays-in start end))
-	  (when (or (plist-get (overlay-properties overlay) 'button)
-		    (plist-get (overlay-properties overlay) 'field))
-	    (delete-overlay overlay)))
-	(delete-region start end))
-      (when (and widget
-		 (not (eq (car widget) 'hidden)))
-	(apply 'widget-create widget)
-	(put-text-property start (point) 'help-echo
-			   (if (memq (car widget) '(text editable-field))
-			       "Input field"
-			     "Button"))
-	(when (eq (car widget) 'push-button)
-	  (add-face-text-property start (point) 'eww-button t))))
-    (widget-setup)
-    (eww-fix-widget-keymap)))
-
-(defun eww-fix-widget-keymap ()
-  (dolist (overlay (overlays-in (point-min) (point-max)))
-    (when (plist-get (overlay-properties overlay) 'button)
-      (overlay-put overlay 'local-map widget-keymap))))
 
 (provide 'eww)
 

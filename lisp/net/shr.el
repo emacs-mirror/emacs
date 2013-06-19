@@ -136,6 +136,7 @@ cid: URL as the argument.")
     (define-key map "z" 'shr-zoom-image)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "I" 'shr-insert-image)
     (define-key map "u" 'shr-copy-url)
     (define-key map "v" 'shr-browse-url)
@@ -818,7 +819,7 @@ START, and END.  Note that START and END should be markers."
    start (point)
    (list 'shr-url url
 	 'help-echo (if title (format "%s (%s)" url title) url)
-	 'local-map shr-map)))
+	 'keymap shr-map)))
 
 (defun shr-encode-url (url)
   "Encode URL."
@@ -1462,6 +1463,9 @@ ones, in case fg and bg are nil."
 		(aset rowspans i (+ (aref rowspans i)
 				    (1- (string-to-number
 					 (cdr (assq :rowspan (cdr column))))))))
+	      ;; Sanity check for invalid column-spans.
+	      (when (>= width-column (length widths))
+		(setq width-column 0))
 	      (setq width
 		    (if column
 			(aref widths width-column)

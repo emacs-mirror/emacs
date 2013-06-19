@@ -1,3 +1,41 @@
+2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-process-text-input): Display passwords as asterisks.
+
+	* net/shr.el (shr-make-table-1): Protect against invalid column-spans.
+
+2013-06-19  Tom Tromey  <tromey@redhat.com>
+
+	* net/eww.el (eww-top-url): Remove.
+	(eww-home-url, eww-start-url, eww-contents-url): New defvars.
+	(eww-render): Set new variables.  Don't set eww-top-url.
+	(eww-handle-link): Handle "prev", "home", and "contents".
+	Downcase the rel text.
+	(eww-top-url): Choose best top URL.
+
+2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el: Rewrite to implement form elements "by hand" instead of
+	relying in widget.el.  Using widget.el leads to too many
+	user interface inconsistencies.
+	(eww-self-insert): Implement entering commands in text fields.
+	(eww-process-text-input): New function to make text input field editing
+	work.
+	(eww-submit): Rewrite to use the new-style form methods.
+	(eww-select-display): Display the correct selected item.
+	(eww-change-select): Implement changing the select value.
+	(eww-toggle-checkbox): Implement radio/checkboxes.
+	(eww-update-field): Fix compilation error.
+	(eww-tag-textarea): Implement <textarea>.
+
+	* net/shr.el (shr-urlify): Use `keymap' instead of `local-map' so that
+	we don't shadow mode-specific bindings.
+
+	* net/eww.el (eww-browse-url): Don't push stuff onto history if there's
+	nothing to push.
+
+	* net/shr.el (shr-map): Bind [down-mouse-1] to browse URLs.
+
 2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* emacs-lisp/eieio.el (defclass): Make it eval-and-compile once more.
