@@ -1,3 +1,7 @@
+2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Add GNU GLOBAL files.
+
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use functions, not macros, for XINT etc. (Bug#11935).

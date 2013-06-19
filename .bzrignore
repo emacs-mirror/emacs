@@ -30,6 +30,9 @@ conftest*
 core
 DOC
 emacs-*/
+GPATH
+GRTAGS
+GTAGS
 makefile
 Makefile
 Makefile.c
