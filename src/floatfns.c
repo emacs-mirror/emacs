@@ -26,6 +26,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    the starred functions since we haven't found a use for them:
    acos, asin, atan, atan2, ceil, cos, *cosh, exp, fabs, floor, fmod,
    frexp, ldexp, log, log10, *modf, pow, sin, *sinh, sqrt, tan, *tanh.
+
+   C99 and C11 require the following math.h functions in addition to
+   the C89 functions.  Of these, Emacs currently exports only the
+   starred ones to Lisp, since we haven't found a use for the others:
+   acosh, atanh, cbrt, *copysign, erf, erfc, exp2, expm1, fdim, fma,
+   fmax, fmin, fpclassify, hypot, ilogb, isfinite, isgreater,
+   isgreaterequal, isinf, isless, islessequal, islessgreater, *isnan,
+   isnormal, isunordered, lgamma, log1p, log2, *logb (approximately),
+   lrint/llrint, lround/llround, nan, nearbyint, nextafter,
+   nexttoward, remainder, remquo, *rint, round, scalbln, scalbn,
+   signbit, tgamma, trunc.
  */
 
 #include <config.h>
