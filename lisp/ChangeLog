@@ -1,5 +1,11 @@
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ansi-color.el: Convert to lexical binding.
+	(ansi-colors): Fix URL.
+	(ansi-color-context, ansi-color-context-region): Use defvar-local.
+	(ansi-color-apply-sequence, ansi-color-map): Fix typos in docstrings.
+	(ansi-color-make-color-map): Rename local var ansi-color-map to map.
+
 	* progmodes/prog-mode.el (prettify-symbols-mode)
 	(global-prettify-symbols-mode, prog-mode): Remove autoload cookies.
 
