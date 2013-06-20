@@ -1,7 +1,17 @@
+2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-format): Fix typo.
+	Declare with `defvar-local'.
+	(tabulated-list-use-header-line, tabulated-list-entries)
+	(tabulated-list-padding, tabulated-list-printer)
+	(tabulated-list-sort-key): Declare with `defvar-local'.
+	(tabulated-list-init-header, tabulated-list-print-fake-header):
+	Use `setq-local'.
+
 2013-06-20  Michael Albinus  <michael.albinus@gmx.de>
 
-	* arc-mode.el (archive-mode): Add `archive-write-file'
-	`write-contents-functions' to also for remote files.  (Bug#14652)
+	* arc-mode.el (archive-mode): Add `archive-write-file' to
+	`write-contents-functions' also for remote files.  (Bug#14652)
 
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
