@@ -6,9 +6,6 @@
 	(ansi-color-apply-sequence, ansi-color-map): Fix typos in docstrings.
 	(ansi-color-make-color-map): Rename local var ansi-color-map to map.
 
-	* progmodes/prog-mode.el (prettify-symbols-mode)
-	(global-prettify-symbols-mode, prog-mode): Remove autoload cookies.
-
 2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-process-text-input): Display passwords as asterisks.
