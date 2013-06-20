@@ -130,9 +130,9 @@ extern _Noreturn void die (const char *, const char *, int);
 extern bool suppress_checking EXTERNALLY_VISIBLE;
 
 # define eassert(cond)						\
-   ((cond) || suppress_checking					\
+   (suppress_checking || (cond) 				\
     ? (void) 0							\
-    : die ("assertion failed: " # cond, __FILE__, __LINE__))
+    : die (# cond, __FILE__, __LINE__))
 #endif /* ENABLE_CHECKING */
 
 /* Use the configure flag --enable-check-lisp-object-type to make

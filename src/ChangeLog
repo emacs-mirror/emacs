@@ -1,5 +1,11 @@
 2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (die): Move "assertion failed" string here ...
+	* lisp.h (eassert): ... from here.  Also, suppress evaluation of
+	COND when SUPPRESS_CHECKING.  This shrinks the executable text
+	size by 0.8% to 2.2% when configured with --enable-checking,
+	depending on optimization flags (GCC 4.8.1 x86-64).
+
 	* floatfns.c (Flog10): Move to Lisp (marked obsolete there).
 
 2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>

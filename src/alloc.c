@@ -6515,7 +6515,7 @@ bool suppress_checking;
 void
 die (const char *msg, const char *file, int line)
 {
-  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
+  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
