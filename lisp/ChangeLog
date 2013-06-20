@@ -1,5 +1,18 @@
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* cus-edit.el (custom-commands): Fix typos.
+	(custom-display): Fix tooltip text.
+	(custom-magic-alist, custom-filter-face-spec, custom-group-members):
+	Fix typos in docstrings.
+	(custom--initialize-widget-variables, Custom-mode): Use `setq-local'.
+	(custom-unlispify-menu-entry, custom-magic-value-create)
+	(custom-add-see-also, custom-group-value-create): Use ?\s.
+	(custom-guess-type, customize-apropos, editable-field)
+	(custom-face-value-create): Use `string-match-p'.
+	(custom-save-variables, custom-save-faces): Use `looking-at-p'.
+
+	* custom.el (custom-load-symbol): Use `string-match-p'.
+
 	* ansi-color.el: Convert to lexical binding.
 	(ansi-colors): Fix URL.
 	(ansi-color-context, ansi-color-context-region): Use defvar-local.
