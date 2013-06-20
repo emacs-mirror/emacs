@@ -907,6 +907,7 @@ extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
 
 extern void LDReset(mps_ld_t ld, Arena arena);
 extern void LDAdd(mps_ld_t ld, Arena arena, Addr addr);
+extern Bool LDIsStaleAny(mps_ld_t ld, Arena arena);
 extern Bool LDIsStale(mps_ld_t ld, Arena arena, Addr addr);
 extern void LDAge(Arena arena, RefSet moved);
 extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
