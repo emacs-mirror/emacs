@@ -335,7 +335,7 @@ any of its keys.
 If you look up a key in an address-based hash table and fail to find it
 there, that might be because the table's dependency on the location of
 the key is stale: that is, if the garbage collector moved the key. The
-function :c:func:`mps_ld_isstale` tells you if any of the blocks whose
+function :c:func:`mps_ld_isstale` tells you if a block whose
 locations you depended upon since the last call to
 :c:func:`mps_ld_reset` might have moved.
 
@@ -354,24 +354,16 @@ locations you depended upon since the last call to
         return NULL;
     }
 
-It's important to test :c:func:`mps_ld_isstale` only in case of failure.
-The function tells you whether *any* of the dependencies is stale, not
-whether a particular dependency is stale. So if ``key`` has not moved,
-but some other keys have moved, then if you tested
-:c:func:`mps_ld_isstale` first, it would return true and so you'd end up
-unnecessarily rehashing the whole table. (It's crucial, however, to
-actually test that ``key`` appears in the table, not just that some key
-with the same hash does.)
+It's important to test :c:func:`mps_ld_isstale` only in case of
+failure. The function may report a false positive (returning true
+despite the block not having moved). So if ``key`` has not moved, then
+if you tested :c:func:`mps_ld_isstale` first, it might return true and
+so you'd end up unnecessarily rehashing the whole table. (It's
+crucial, however, to actually test that ``key`` appears in the table,
+not just that some key with the same hash does.)
 
 When a table is rehashed, call :c:func:`mps_ld_reset` to clear the
 location dependency, and then :c:func:`mps_ld_add` for each key before it is added back to the table.
-
-.. note::
-
-    Somewhat misleadingly, :c:func:`mps_ld_isstale` takes an address as
-    its third argument. This address is not tested for staleness: it
-    appears in the :term:`telemetry stream`, however, where it might be
-    useful for debugging.
 
 .. note::
 
