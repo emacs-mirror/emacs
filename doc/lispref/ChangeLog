@@ -1,3 +1,7 @@
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Math Functions): Remove obsolete function log10.
+
 2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Mode Line Data, Properties in Mode): Advertise `keymap'

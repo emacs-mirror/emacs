@@ -1,3 +1,7 @@
+2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* configure.ac (log2): Check for this function.
+
 2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .bzrignore: Add GNU GLOBAL files.

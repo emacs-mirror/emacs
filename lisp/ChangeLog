@@ -1,3 +1,8 @@
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* subr.el (log10): Move here from C code, and declare as obsolete.
+	All uses of (log10 X) replaced with (log X 10).
+
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-format): Fix typo.

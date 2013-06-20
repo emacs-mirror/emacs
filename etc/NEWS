@@ -469,6 +469,7 @@ file using `set-file-extended-attributes'.
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
 
 ** Obsoleted functions:
+*** `log10'
 *** `dont-compile'
 *** `lisp-complete-symbol'
 *** `field-complete'

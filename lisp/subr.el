@@ -1206,6 +1206,11 @@ is converted into a string by expressing it in decimal."
   (declare (obsolete make-hash-table "22.1"))
   (make-hash-table :test (or test 'eql)))
 
+(defun log10 (x)
+  "Return (log X 10), the log base 10 of X."
+  (declare (obsolete log "24.4"))
+  (log x 10))
+
 ;; These are used by VM and some old programs
 (defalias 'focus-frame 'ignore "")
 (make-obsolete 'focus-frame "it does nothing." "22.1")

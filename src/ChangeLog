@@ -1,3 +1,12 @@
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* floatfns.c (Flog10): Move to Lisp (marked obsolete there).
+
+2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* floatfns.c (Flog) [HAVE_LOG2]: Use log2 if available and if the
+	base is 2; this is more accurate.
+
 2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sound.c (string_default): Move to !WINDOWSNT section.
