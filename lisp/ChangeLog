@@ -1,3 +1,8 @@
+2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prog-mode.el (prettify-symbols-mode)
+	(global-prettify-symbols-mode, prog-mode): Remove autoload cookies.
+
 2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-process-text-input): Display passwords as asterisks.

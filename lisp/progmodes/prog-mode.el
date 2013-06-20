@@ -89,7 +89,6 @@ Regexp match data 0 points to the chars."
 
 (defvar-local prettify-symbols--keywords nil)
 
-;;;###autoload
 (define-minor-mode prettify-symbols-mode
   "Toggle Prettify Symbols mode.
 With a prefix argument ARG, enable Prettify Symbols mode if ARG is
@@ -132,11 +131,9 @@ support it."
              (local-variable-p 'prettify-symbols-alist))
     (prettify-symbols-mode 1)))
 
-;;;###autoload
 (define-globalized-minor-mode global-prettify-symbols-mode
   prettify-symbols-mode turn-on-prettify-symbols-mode)
 
-;;;###autoload
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
   (setq-local require-final-newline mode-require-final-newline)
