@@ -345,6 +345,10 @@ Location dependency interface
     block was added to the location dependency and subsquently moved,
     and false otherwise, but cannot ensure this.)
 
+    .. note::
+
+        :c:func:`mps_ld_isstale_any` has the same thread-safety
+        properties as :c:func:`mps_ld_isstale`.
 
 
 .. c:function:: void mps_ld_merge(mps_ld_t dest_ld, mps_arena_t arena, mps_ld_t src_ld)
