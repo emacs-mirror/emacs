@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-extern void update_syntax_table (ptrdiff_t, EMACS_INT, int, Lisp_Object);
+extern void update_syntax_table (ptrdiff_t, EMACS_INT, bool, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -99,7 +99,7 @@ enum syntaxcode
      _syntax_temp = SYNTAX_ENTRY (c);					\
      (CONSP (_syntax_temp)						\
       ? XINT (XCAR (_syntax_temp))					\
-      : (int) Swhitespace); })
+      : Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
   ({ Lisp_Object _syntax_temp;						\
@@ -112,14 +112,14 @@ extern Lisp_Object syntax_temp;
 #define SYNTAX(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? (enum syntaxcode) (XINT (XCAR (syntax_temp)) & 0xff)	\
+    ? (enum syntaxcode) (XINT (XCAR (syntax_temp)) & 0xff)		\
     : Swhitespace))
 
 #define SYNTAX_WITH_FLAGS(c)						\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? XINT (XCAR (syntax_temp))					\
-    : (int) Swhitespace))
+    ? XINT (XCAR (syntax_temp))						\
+    : Swhitespace))
 
 #define SYNTAX_MATCH(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
@@ -130,17 +130,17 @@ extern Lisp_Object syntax_temp;
 
 
 /* Whether the syntax of the character C has the prefix flag set.  */
-extern int syntax_prefix_flag_p (int c);
+extern bool syntax_prefix_flag_p (int c);
 
-/* This array, indexed by a character, contains the syntax code which that
- character signifies (as a char).  For example,
- (enum syntaxcode) syntax_spec_code['w'] is Sword.  */
+/* This array, indexed by a character less than 256, contains the
+   syntax code which that character signifies (as an unsigned char).
+   For example, syntax_spec_code['w'] == Sword.  */
 
-extern unsigned char syntax_spec_code[0400];
+extern unsigned char const syntax_spec_code[0400];
 
 /* Indexed by syntax code, give the letter that describes it.  */
 
-extern char syntax_code_spec[16];
+extern char const syntax_code_spec[16];
 
 /* Convert the byte offset BYTEPOS into a character position,
    for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.

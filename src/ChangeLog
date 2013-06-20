@@ -1,3 +1,37 @@
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syntax.c: Integer cleanups.
+	(SYNTAX_FLAGS_COMMENT_STYLEC): Return a boolean, not 0-or-2.
+	All uses that need 0-or-2 changed to:
+	(SYNTAX_FLAGS_COMMENT_STYLEC2): New macro, with the same semantics
+	as the old SYNTAX_FLAGS_COMMENT_STYLEC.
+	(struct lisp_parse_state, syntax_prefix_flag_p, update_syntax_table)
+	(char_quoted, prev_char_comend_first, back_comment)
+	(Finternal_describe_syntax_value, skip_chars, skip_syntaxes)
+	(in_classes, forw_comment, scan_lists, scan_sexps_forward):
+	Use bool for boolean.
+	(update_syntax_table, skip_chars, skip_syntaxes):
+	Prefer int to unsigned when either will do.
+	(back_comment): Return boolean success flag, like forw_comment,
+	instead of positive-or-minus-1 (which might have overflowed int anyway).
+	Don't stuff ptrdiff_t into int.
+	(syntax_spec_code, syntax_code_spec): Now const.
+	(Fmatching_paren, scan_lists, scan_sexps_forward):
+	Use enum syntaxcode for syntax code.
+	(Fmatching_paren): Check that arg is a character, not just an integer.
+	(Fstring_to_syntax): Don't assume 0377 fits in enum syntaxcode.
+	(Finternal_describe_syntax_value): Omit no-longer-needed
+	comparison to 0.
+	(skip_chars): Use char, not unsigned char, when the distinction
+	doesn't matter.
+	(forw_comment, scan_lists): Prefer A |= B to A = A || B when B's cheap.
+	* bytecode.c (exec_byte_code):
+	* syntax.c (syntax_spec_code, Fchar_syntax)
+	(Finternal_describe_syntax_value, skip_chars, skip_syntaxes)
+	(init_syntax_once):
+	* syntax.h (SYNTAX_WITH_FLAGS):
+	Omit unnecessary casts.
+
 2013-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Don't compute the header line and mode
