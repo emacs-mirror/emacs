@@ -1,7 +1,7 @@
 2013-06-20  Michael Albinus  <michael.albinus@gmx.de>
 
-	* arc-mode.el (archive-mode): Add `archive-write-file' also for
-	remote files.  (Bug#14652)
+	* arc-mode.el (archive-mode): Add `archive-write-file'
+	`write-contents-functions' to also for remote files.  (Bug#14652)
 
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
