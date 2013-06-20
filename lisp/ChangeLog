@@ -1,3 +1,13 @@
+2013-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-loaddefs.el: Don't version-control any more.
+	* emacs-lisp/cl-lib.el: Load cl-macs when cl-loaddefs is not
+	yet available.
+	* Makefile.in (AUTOGEN_VCS): Move cl-loaddefs.el...
+	(AUTOGENEL): ... here.
+	* emacs-lisp/cl-macs.el (cl--sublis): New function.
+	(cl--defsubst-expand): Use it.
+
 2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* subr.el (log10): Move here from C code, and declare as obsolete.

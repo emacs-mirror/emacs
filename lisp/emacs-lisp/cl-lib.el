@@ -725,9 +725,10 @@ If ALIST is non-nil, the new pairs are prepended to it."
   (put 'cl-defsubst 'doc-string-elt 3)
   (put 'cl-defstruct 'doc-string-elt 2))
 
-(load "cl-loaddefs" nil 'quiet)
-
 (provide 'cl-lib)
+(or (load "cl-loaddefs" 'noerror 'quiet)
+    ;; When bootstrapping, cl-loaddefs hasn't been built yet!
+    (require 'cl-macs))
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

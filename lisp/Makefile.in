@@ -68,6 +68,7 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	emacs-lisp/cl-loaddefs.el \
 	calc/calc-loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
@@ -79,7 +80,6 @@ AUTOGENEL = loaddefs.el \
 AUTOGEN_VCS = \
 	ps-print.el \
 	emulation/tpu-edt.el \
-	emacs-lisp/cl-loaddefs.el \
 	mail/rmail.el \
 	dired.el \
 	ibuffer.el \
