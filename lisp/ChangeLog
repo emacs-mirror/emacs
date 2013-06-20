@@ -1,3 +1,8 @@
+2013-06-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* arc-mode.el (archive-mode): Add `archive-write-file' also for
+	remote files.  (Bug#14652)
+
 2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cus-edit.el (custom-commands): Fix typos.
