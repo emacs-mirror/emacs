@@ -124,7 +124,7 @@ done in the function that hashes an address:
 Testing dependencies for staleness
 ----------------------------------
 
-When the locations of blocks are used, first carry out the computation
+When the location of a block is used, first carry out the computation
 in the normal way. For example, when looking up a key in an
 address-based hash table, start by hashing the pointer and looking up
 the corresponding index in the table.
@@ -135,26 +135,26 @@ required: the operation can proceed as usual.
 
 But if the operation fails, you might be in one of two cases:
 
-1. the location of these blocks has not been depended on before (for
+1. the location of the block has not been depended on before (for
    example, the key has never been added to the hash table);
 
-2. the location of these blocks has been depended on before (for
-   example, the key was added to the hash table), but one or more of
-   the blocks has moved and the dependency has become stale.
+2. the location of the block has been depended on before (for example,
+   the key was added to the hash table), but the block has moved and
+   the dependency has become stale.
 
 At this point you should call :c:func:`mps_ld_isstale`. If it returns
-false, then you know that no blocks have moved, so you must be in case
+false, then you know that the block has not moved, so you must be in case
 (1).
 
 But if :c:func:`mps_ld_isstale` returns true, you could still be in
 either case (1) or case (2). All :c:func:`mps_ld_isstale` tells you is
-that *some* blocks that have been depended on *might* have moved, not
-whether a *particular* block *has* moved. At this point you must:
+that the block *might* have moved, not whether the block *has* moved.
+At this point you must:
 
 1. reset the location dependency;
 
-2. repeat the computation in some way that doesn't depend on the
-   old locations of the blocks; and
+2. repeat the computation in some way that doesn't depend on the old
+   locations of all the blocks that were added to that dependency; and
 
 3. re-add a dependency on each block.
 
@@ -285,8 +285,9 @@ Location dependency interface
 
 .. c:function:: mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 
-    Determine if any of the dependencies in a :term:`location
-    dependency` are stale with respect to an :term:`arena`.
+    Determine if a dependency on the location of a block in a
+    :term:`location dependency` might be stale with respect to an
+    :term:`arena`.
 
     ``ld`` is the location dependency.
 
@@ -294,32 +295,56 @@ Location dependency interface
     the same arena that was passed to all calls to
     :c:func:`mps_ld_add` on ``ld``.
 
-    ``addr`` is an address that may appear in :term:`telemetry
-    <telemetry stream>` events related to this call (it will *not* be
-    tested for staleness).
+    ``addr`` is the address of the block that is to be tested for
+    staleness.
 
-    The location dependency is examined to determine whether any of
-    the dependencies encapsulated in it have been made stale with
-    respect to ``arena``. If any of the dependencies encapsulated in
-    the location dependency are stale (that is, the blocks whose
-    location has been depended on have been moved by ``arena``) then
-    :c:func:`mps_ld_isstale` will return true. If there have been no
-    calls to :c:func:`mps_ld_add` on ``ld`` since the last call to
-    :c:func:`mps_ld_reset`, then :c:func:`mps_ld_isstale` will return
-    false. :c:func:`mps_ld_isstale` may return any value in other
-    circumstances (but will strive to return false if the blocks
-    encapsulated in the location dependency have not moved).
+    If there have been no calls to :c:func:`mps_ld_add` on ``ld``
+    since the last call to :c:func:`mps_ld_reset`, then return false.
+
+    If the block at ``addr`` was formerly added to the location
+    dependency ``ld`` and subsequently moved by ``arena``, then return
+    true.
+
+    Otherwise, :c:func:`mps_ld_isstale` may return either true or
+    false. (The function strives to return true in the case where
+    ``addr`` was added to the location dependency and subsquently
+    moved, and false otherwise, but cannot ensure this.)
 
     .. note::
 
-        :c:func:`mps_ld_isstale` may report a false positive
-        (returning true despite none of the added addresses having
-        being moved by the arena) but never a false negative
-        (returning false when an added address has been moved).
+        :c:func:`mps_ld_isstale` may report a false positive: it may
+        return true in the case where ``addr`` was not added to the
+        location dependency, or in the case where it was added but not
+        moved. It never reports a false negative.
 
         :c:func:`mps_ld_isstale` is thread-safe with respect to itself
         and with respect to :c:func:`mps_ld_add`, but not with respect
         to :c:func:`mps_ld_reset`.
+
+
+.. c:function:: mps_bool_t mps_ld_isstale_any(mps_ld_t ld, mps_arena_t arena)
+
+    Determine if a dependency on the location of *any* block in a
+    :term:`location dependency` might be stale with respect to an
+    :term:`arena`.
+
+    ``ld`` is the location dependency.
+
+    ``arena`` is the arena to test for staleness against. It must be
+    the same arena that was passed to all calls to
+    :c:func:`mps_ld_add` on ``ld``.
+
+    If there have been no calls to :c:func:`mps_ld_add` on ``ld``
+    since the last call to :c:func:`mps_ld_reset`, then return false.
+
+    If any block added to the location dependency ``ld`` has been
+    moved by ``arena``, then return true.
+
+    Otherwise, :c:func:`mps_ld_isstale_any` may return either true or
+    false. (The function strives to return true in the case where a
+    block was added to the location dependency and subsquently moved,
+    and false otherwise, but cannot ensure this.)
+
 
 
 .. c:function:: void mps_ld_merge(mps_ld_t dest_ld, mps_arena_t arena, mps_ld_t src_ld)
