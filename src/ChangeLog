@@ -1,3 +1,16 @@
+2013-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't compute the header line and mode
+	line dimensions here, to avoid race conditions with the main
+	thread.  (Bug#14062, bug#14630, bug#14669)
+
+	* w32term.c (w32_draw_window_cursor): Compute the header line and
+	mode line dimensions here.
+	<w32_system_caret_window, w32_system_caret_hdr_height>:
+	<w32_system_caret_mode_height>: New variables.
+
+	* w32term.h: Declare them.
+
 2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (die): Move "assertion failed" string here ...
