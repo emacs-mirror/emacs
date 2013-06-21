@@ -98,8 +98,7 @@
 #if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thix.c"       /* Posix threading */
-#include "pthrdext.c"   /* Posix thread extensions */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
@@ -113,8 +112,7 @@
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thix.c"       /* Posix threading */
-#include "pthrdext.c"   /* Posix thread extensions */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
