@@ -10,49 +10,10 @@
 
 @include emacsver.texi
 
-@c ---------
-@c <<<< For hard copy printing, this file is now
-@c      set for smallbook, which works for all sizes
-@c      of paper, and with PostScript figures >>>>
-@set smallbook
-@ifset smallbook
-@smallbook
-@clear  largebook
-@end ifset
-@set print-postscript-figures
-@c set largebook
-@c clear print-postscript-figures
-@c ---------
-
-@comment %**end of header
-
-@c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.
-@c Do this inside @tex for now, so current makeinfo does not complain.
-@tex
-@ifset smallbook
-@fonttextsize 10
-
-@end ifset
-\global\hbadness=6666 % don't worry about not-too-underfull boxes
-@end tex
-
-@c These refer to the printed book sold by the FSF.
-@set edition-number 3.10
-@set update-date 28 October 2009
-
-@c ================ Included Figures ================
-
-@c Set  print-postscript-figures  if you print PostScript figures.
-@c If you clear this, the ten figures will be printed as ASCII diagrams.
-@c (This is not relevant to Info, since Info only handles ASCII.)
-@c Your site may require editing changes to print PostScript; in this
-@c case, search for `print-postscript-figures' and make appropriate changes.
-
 @c ================ How to Print a Book in Various Sizes ================
 
 @c This book can be printed in any of three different sizes.
-@c In the above header, set @-commands appropriately.
+@c Set the following @-commands appropriately.
 
 @c     7 by 9.25 inches:
 @c              @smallbook
@@ -70,7 +31,40 @@
 @c (Note: if you edit the book so as to change the length of the
 @c table of contents, you may have to change the value of `pageno' below.)
 
-@c ================ End of Formatting Sections ================
+@c <<<< For hard copy printing, this file is now
+@c      set for smallbook, which works for all sizes
+@c      of paper, and with PostScript figures >>>>
+
+@set smallbook
+@ifset smallbook
+@smallbook
+@clear  largebook
+@end ifset
+
+@c ================ Included Figures ================
+
+@c If you clear this, the figures will be printed as ASCII diagrams
+@c rather than PostScript/PDF.
+@c (This is not relevant to Info, since Info only handles ASCII.)
+@set print-postscript-figures
+@c clear print-postscript-figures
+
+@comment %**end of header
+
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.
+@c Do this inside @tex for now, so current makeinfo does not complain.
+@tex
+@ifset smallbook
+@fonttextsize 10
+
+@end ifset
+\global\hbadness=6666 % don't worry about not-too-underfull boxes
+@end tex
+
+@c These refer to the printed book sold by the FSF.
+@set edition-number 3.10
+@set update-date 28 October 2009
 
 @c For next or subsequent edition:
 @c   create function using with-output-to-temp-buffer
@@ -9523,10 +9517,6 @@ This sounds more complicated than it is and is easier seen in a diagram:
 @sp 1
 @tex
 @center @image{cons-1}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-1.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9586,10 +9576,6 @@ bouquet
 @sp 1
 @tex
 @center @image{cons-2}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-2.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9635,10 +9621,6 @@ bouquet
 @sp 1
 @tex
 @center @image{cons-2a}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-2a.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9702,10 +9684,6 @@ bouquet        flowers
 @sp 1
 @tex
 @center @image{cons-3}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-3.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9774,10 +9752,6 @@ bouquet                       flowers
 @sp 1
 @tex
 @center @image{cons-4}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-4.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -9891,10 +9865,6 @@ Here is a fanciful representation:
 @sp 1
 @tex
 @center @image{drawers}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/drawers.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -10067,10 +10037,6 @@ kill-ring     kill-ring-yank-pointer
 @sp 1
 @tex
 @center @image{cons-5}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/cons-5.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -20878,10 +20844,7 @@ equivalent of @code{multiply-by-seven} is:
 @noindent
 If we want to multiply 3 by 7, we can write:
 
-@c !!! Clear print-postscript-figures if the computer formatting this
-@c     document is too small and cannot handle all the diagrams and figures.
 @c clear print-postscript-figures
-@c set print-postscript-figures
 @c lambda example diagram #1
 @ifnottex
 @smallexample
@@ -20897,10 +20860,6 @@ If we want to multiply 3 by 7, we can write:
 @sp 1
 @tex
 @center @image{lambda-1}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-1.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -20939,10 +20898,6 @@ Similarly, we can write:
 @sp 1
 @tex
 @center @image{lambda-2}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-2.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
@@ -20978,10 +20933,6 @@ If we want to divide 100 by 50, we can write:
 @sp 1
 @tex
 @center @image{lambda-3}
-%%%% old method of including an image
-% \input /usr/local/lib/tex/inputs/psfig.tex
-% \centerline{\psfig{figure=/usr/local/lib/emacs/man/lambda-3.eps}}
-% \catcode`\@=0 %
 @end tex
 @sp 1
 @end ifset
