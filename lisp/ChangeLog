@@ -1,3 +1,9 @@
+2013-06-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	keyword-like methods on Kernel and Module with
+	font-lock-builtin-face.
+
 2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
 
 	* obsolete/otodo-mode.el: Move and rename from calendar/todo-mode.el.

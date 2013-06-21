@@ -1726,12 +1726,11 @@ See `font-lock-syntax-table'.")
    ;; functions
    '("^\\s *def\\s +\\([^( \t\n]+\\)"
      1 font-lock-function-name-face)
-   ;; keywords
-   (cons (concat
-          "\\(^\\|[^.@$]\\|\\.\\.\\)\\_<\\(defined\\?\\|"
+   (list (concat
+          "\\(^\\|[^.@$]\\|\\.\\.\\)\\("
+          ;; keywords
           (regexp-opt
-           '("alias_method"
-             "alias"
+           '("alias"
              "and"
              "begin"
              "break"
@@ -1739,6 +1738,7 @@ See `font-lock-syntax-table'.")
              "catch"
              "class"
              "def"
+             "defined?"
              "do"
              "elsif"
              "else"
@@ -1748,21 +1748,15 @@ See `font-lock-syntax-table'.")
              "end"
              "if"
              "in"
-             "module_function"
              "module"
              "next"
              "not"
              "or"
-             "public"
-             "private"
-             "protected"
-             "raise"
              "redo"
              "rescue"
              "retry"
              "return"
              "then"
-             "throw"
              "super"
              "unless"
              "undef"
@@ -1770,10 +1764,26 @@ See `font-lock-syntax-table'.")
              "when"
              "while"
              "yield")
-           t)
-          "\\)"
-          ruby-keyword-end-re)
-         2)
+           'symbols)
+          "\\|"
+          ;; keyword-like methods on Kernel and Module
+          (regexp-opt
+           '("alias_method"
+             "autoload"
+             "module_function"
+             "private"
+             "protected"
+             "public"
+             "raise"
+             "require"
+             "require_relative"
+             "throw")
+           'symbols)
+          "\\)")
+         2
+         '(if (match-beginning 4)
+              font-lock-builtin-face
+            font-lock-keyword-face))
    ;; here-doc beginnings
    `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
                                'font-lock-string-face))
