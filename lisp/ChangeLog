@@ -1,7 +1,45 @@
+2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el: Use tar-mode rather than tar executable.
+	Consolidate the single-file vs tarball code.
+	(package-desc-suffix): New function.
+	(package-desc-full-name): Don't bother inlining it.
+	(package-load-descriptor): Return the new package-desc.
+	(package-mark-obsolete): Remove unused arg `package'.
+	(package-unpack): Make it work for single files as well.
+	Make it update package-alist.
+	(package--make-autoloads-and-stuff): Rename from
+	package--make-autoloads-and-compile.  Don't compile any more.
+	(package--compile): New function.
+	(package-generate-description-file): New function, extracted from
+	package-unpack-single.
+	(package-unpack-single): Remove.
+	(package--with-work-buffer): Add indentation and debugging info.
+	(package-download-single): Remove.
+	(package-install-from-archive): Rename from package-download-tar, make
+	it take a pkg-desc, and make it work for single files as well.
+	(package-download-transaction): Simplify.
+	(package-tar-file-info): Remove `file' arg.  Rewrite not to use an
+	external tar program.
+	(package-install-from-buffer): Remove `pkg-desc' argument.
+	Use package-tar-file-info for tar-mode buffers.
+	(package-install-file): Simplify accordingly.
+	(package-archive-base): Change to take a pkg-desc.
+	* tar-mode.el (tar--check-descriptor): New function, extracted from
+	tar-get-descriptor.
+	(tar-get-descriptor): Use it.
+	(tar-get-file-descriptor): New function.
+	(tar--extract): New function, extracted from tar-extract.
+	(tar--extract): Use it.
+	* emacs-lisp/package-x.el (package-upload-file): Decode the file, in
+	case the summary uses non-ascii.  Adjust to new calling convention of
+	package-tar-file-info.
+
 2013-06-21  Leo Liu  <sdl.web@gmail.com>
 
-	* comint.el (comint-redirect-results-list-from-process): Fix
-	random delay.  (Bug#14681)
+	* comint.el (comint-redirect-results-list-from-process):
+	Fix random delay.  (Bug#14681)
 
 2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -135,8 +173,8 @@
 2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (secrets-struct-secret-content-type): Replace
-	check of introspection data by a test call of "CreateItem".  Some
-	servers do not offer introspection.
+	check of introspection data by a test call of "CreateItem".
+	Some servers do not offer introspection.
 
 2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 

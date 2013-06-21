@@ -340,10 +340,16 @@ package came.
   dir)
 
 ;; Pseudo fields.
-(defsubst package-desc-full-name (pkg-desc)
+(defun package-desc-full-name (pkg-desc)
   (format "%s-%s"
           (package-desc-name pkg-desc)
           (package-version-join (package-desc-version pkg-desc))))
+
+(defun package-desc-suffix (pkg-desc)
+  (pcase (package-desc-kind pkg-desc)
+    (`single ".el")
+    (`tar ".tar")
+    (kind (error "Unknown package kind: %s" kind))))
 
 ;; Package descriptor format used in finder-inf.el and package--builtins.
 (cl-defstruct (package--bi-desc
@@ -422,7 +428,8 @@ This is, approximately, the inverse of `version-to-list'.
         (goto-char (point-min))
         (let ((pkg-desc (package-process-define-package
                          (read (current-buffer)) pkg-file)))
-          (setf (package-desc-dir pkg-desc) pkg-dir))))))
+          (setf (package-desc-dir pkg-desc) pkg-dir)
+          pkg-desc)))))
 
 (defun package-load-all-descriptors ()
   "Load descriptors for installed Emacs Lisp packages.
@@ -529,13 +536,13 @@ Required package `%s-%s' is unavailable"
 	  ;; If all goes well, activate the package itself.
 	  (package-activate-1 pkg-vec)))))))
 
-(defun package-mark-obsolete (package pkg-vec)
-  "Put package on the obsolete list, if not already there."
-  (push pkg-vec package-obsolete-list))
+(defun package-mark-obsolete (pkg-desc)
+  "Put PKG-DESC on the obsolete list, if not already there."
+  (push pkg-desc package-obsolete-list))
 
-(defun define-package (name-string version-string
-				&optional docstring requirements
-				&rest _extra-properties)
+(defun define-package (_name-string _version-string
+                                    &optional _docstring _requirements
+                                    &rest _extra-properties)
   "Define a new package.
 NAME-STRING is the name of the package, as a string.
 VERSION-STRING is the version of the package, as a string.
@@ -559,13 +566,13 @@ EXTRA-PROPERTIES is currently unused."
      ;; If it's not newer than a builtin version, mark it obsolete.
      ((let ((bi (assq name package--builtin-versions)))
         (and bi (version-list-<= version (cdr bi))))
-      (package-mark-obsolete name new-pkg-desc))
+      (package-mark-obsolete new-pkg-desc))
      ;; If there's no old package, just add this to `package-alist'.
      ((null old-pkg)
       (push (cons name new-pkg-desc) package-alist))
      ((version-list-< (package-desc-version (cdr old-pkg)) version)
       ;; Remove the old package and declare it obsolete.
-      (package-mark-obsolete name (cdr old-pkg))
+      (package-mark-obsolete (cdr old-pkg))
       (setq package-alist (cons (cons name new-pkg-desc)
 				(delq old-pkg package-alist))))
      ;; You can have two packages with the same version, e.g. one in
@@ -573,10 +580,10 @@ EXTRA-PROPERTIES is currently unused."
      ;; directory.  We just let the first one win.
      ((not (version-list-= (package-desc-version (cdr old-pkg)) version))
       ;; The package is born obsolete.
-      (package-mark-obsolete name new-pkg-desc)))
+      (package-mark-obsolete new-pkg-desc)))
     new-pkg-desc))
 
-;; From Emacs 22.
+;; From Emacs 22, but changed so it adds to load-path.
 (defun package-autoload-ensure-default-file (file)
   "Make sure that the autoload file FILE exists and if not create it."
   (unless (file-exists-p file)
@@ -632,73 +639,78 @@ untar into a directory named DIR; otherwise, signal an error."
 	    (error "Package does not untar cleanly into directory %s/" dir)))))
   (tar-untar-buffer))
 
-(defun package-unpack (package version)
-  (let* ((name (symbol-name package))
-	 (dirname (concat name "-" version))
-	 (pkg-dir (expand-file-name dirname package-user-dir)))
-    (make-directory package-user-dir t)
-    ;; FIXME: should we delete PKG-DIR if it exists?
-    (let* ((default-directory (file-name-as-directory package-user-dir)))
-      (package-untar-buffer dirname)
-      (package--make-autoloads-and-compile package pkg-dir)
-      pkg-dir)))
+(defun package-generate-description-file (pkg-desc pkg-dir)
+  "Create the foo-pkg.el file for single-file packages."
+  (let* ((name (package-desc-name pkg-desc))
+         (pkg-file (expand-file-name (package--description-file pkg-dir)
+                                     pkg-dir)))
+    (let ((print-level nil)
+          (print-quoted t)
+          (print-length nil))
+      (write-region
+       (concat
+        (prin1-to-string
+         (list 'define-package
+               (symbol-name name)
+               (package-version-join (package-desc-version pkg-desc))
+               (package-desc-summary pkg-desc)
+               (let ((requires (package-desc-reqs pkg-desc)))
+                 (list 'quote
+                       ;; Turn version lists into string form.
+                       (mapcar
+                        (lambda (elt)
+                          (list (car elt)
+                                (package-version-join (cadr elt))))
+                        requires)))))
+        "\n")
+       nil
+       pkg-file))))
 
-(defun package--make-autoloads-and-compile (name pkg-dir)
-  "Generate autoloads and do byte-compilation for package named NAME.
-PKG-DIR is the name of the package directory."
-  (let ((auto-name (package-generate-autoloads name pkg-dir))
-        (load-path (cons pkg-dir load-path)))
-    ;; We must load the autoloads file before byte compiling, in
-    ;; case there are magic cookies to set up non-trivial paths.
-    (load auto-name nil t)
-    ;; FIXME: Compilation should be done as a separate, optional, step.
-    ;; E.g. for multi-package installs, we should first install all packages
-    ;; and then compile them.
-    (byte-recompile-directory pkg-dir 0 t)))
+(defun package-unpack (pkg-desc)
+  "Install the contents of the current buffer as a package."
+  (let* ((name (package-desc-name pkg-desc))
+         (dirname (package-desc-full-name pkg-desc))
+	 (pkg-dir (expand-file-name dirname package-user-dir)))
+    (pcase (package-desc-kind pkg-desc)
+      (`tar
+       (make-directory package-user-dir t)
+       ;; FIXME: should we delete PKG-DIR if it exists?
+       (let* ((default-directory (file-name-as-directory package-user-dir)))
+         (package-untar-buffer dirname)))
+      (`single
+       (let ((el-file (expand-file-name (format "%s.el" name) pkg-dir)))
+         (make-directory pkg-dir t)
+         (package--write-file-no-coding el-file)))
+      (kind (error "Unknown package kind: %S" kind)))
+    (package--make-autoloads-and-stuff pkg-desc pkg-dir)
+    ;; Update package-alist.
+    (let ((new-desc (package-load-descriptor pkg-dir)))
+      ;; FIXME: Check that `new-desc' matches `desc'!
+      ;; FIXME: Compilation should be done as a separate, optional, step.
+      ;; E.g. for multi-package installs, we should first install all packages
+      ;; and then compile them.
+      (package--compile new-desc))
+    ;; Try to activate it.
+    (package-activate name (package-desc-version pkg-desc))
+    pkg-dir))
+
+(defun package--make-autoloads-and-stuff (pkg-desc pkg-dir)
+  "Generate autoloads, description file, etc.. for PKG-DESC installed at PKG-DIR."
+  (package-generate-autoloads (package-desc-name pkg-desc) pkg-dir)
+  (let ((desc-file (package--description-file pkg-dir)))
+    (unless (file-exists-p desc-file)
+      (package-generate-description-file pkg-desc pkg-dir)))
+  ;; FIXME: Create foo.info and dir file from foo.texi?
+  )
+
+(defun package--compile (pkg-desc)
+  "Byte-compile installed package PKG-DESC."
+  (package-activate-1 pkg-desc)
+  (byte-recompile-directory (package-desc-dir pkg-desc) 0 t))
 
 (defun package--write-file-no-coding (file-name)
   (let ((buffer-file-coding-system 'no-conversion))
     (write-region (point-min) (point-max) file-name)))
-
-(defun package-unpack-single (name version desc requires)
-  "Install the contents of the current buffer as a package."
-  ;; Special case "package".  FIXME: Should this still be supported?
-  (if (eq name 'package)
-      (package--write-file-no-coding
-       (expand-file-name (format "%s.el" name) package-user-dir))
-    (let* ((pkg-dir  (expand-file-name (format "%s-%s" name
-					       (package-version-join
-						(version-to-list version)))
-				       package-user-dir))
-	   (el-file  (expand-file-name (format "%s.el" name) pkg-dir))
-	   (pkg-file (expand-file-name (package--description-file pkg-dir)
-                                       pkg-dir)))
-      (make-directory pkg-dir t)
-      (package--write-file-no-coding el-file)
-      (let ((print-level nil)
-            (print-quoted t)
-	    (print-length nil))
-	(write-region
-	 (concat
-	  (prin1-to-string
-	   (list 'define-package
-		 (symbol-name name)
-		 version
-		 desc
-                 (when requires         ;Don't bother quoting nil.
-                   (list 'quote
-                         ;; Turn version lists into string form.
-                         (mapcar
-                          (lambda (elt)
-                            (list (car elt)
-                                  (package-version-join (cadr elt))))
-                          requires)))))
-	  "\n")
-	 nil
-	 pkg-file
-	 nil nil nil 'excl))
-      (package--make-autoloads-and-compile name pkg-dir)
-      pkg-dir)))
 
 (defmacro package--with-work-buffer (location file &rest body)
   "Run BODY in a buffer containing the contents of FILE at LOCATION.
@@ -709,6 +721,7 @@ FILE is the name of a file relative to that base location.
 This macro retrieves FILE from LOCATION into a temporary buffer,
 and evaluates BODY while that buffer is current.  This work
 buffer is killed afterwards.  Return the last value in BODY."
+  (declare (indent 2) (debug t))
   `(let* ((http (string-match "\\`https?:" ,location))
 	  (buffer
 	   (if http
@@ -741,19 +754,13 @@ It will move point to somewhere in the headers."
       (error "Error during download request:%s"
 	     (buffer-substring-no-properties (point) (line-end-position))))))
 
-(defun package-download-single (name version desc requires)
-  "Download and install a single-file package."
-  (let ((location (package-archive-base name))
-	(file (concat (symbol-name name) "-" version ".el")))
-    (package--with-work-buffer location file
-      (package-unpack-single name version desc requires))))
-
-(defun package-download-tar (name version)
+(defun package-install-from-archive (pkg-desc)
   "Download and install a tar package."
-  (let ((location (package-archive-base name))
-	(file (concat (symbol-name name) "-" version ".tar")))
+  (let ((location (package-archive-base pkg-desc))
+	(file (concat (package-desc-full-name pkg-desc)
+                      (package-desc-suffix pkg-desc))))
     (package--with-work-buffer location file
-      (package-unpack name version))))
+      (package-unpack pkg-desc))))
 
 (defvar package--initialized nil)
 
@@ -918,30 +925,8 @@ PACKAGE-LIST are satisfied, i.e. that PACKAGE-LIST is computed
 using `package-compute-transaction'."
   ;; FIXME: make package-list a list of pkg-desc.
   (dolist (elt package-list)
-    (let* ((desc (cdr (assq elt package-archive-contents)))
-	   ;; As an exception, if package is "held" in
-	   ;; `package-load-list', download the held version.
-	   (hold (cadr (assq elt package-load-list)))
-	   (v-string (or (and (stringp hold) hold)
-			 (package-version-join (package-desc-version desc))))
-	   (kind (package-desc-kind desc))
-           (pkg-dir
-            (cond
-             ((eq kind 'tar)
-              (package-download-tar elt v-string))
-             ((eq kind 'single)
-              (package-download-single elt v-string
-                                       (package-desc-summary desc)
-                                       (package-desc-reqs desc)))
-             (t
-              (error "Unknown package kind: %s" (symbol-name kind))))))
-      ;; Update package-alist.
-      ;; FIXME: Check that the installed package's descriptor matches `desc'!
-      (package-load-descriptor pkg-dir)
-      ;; If package A depends on package B, then A may `require' B
-      ;; during byte compilation.  So we need to activate B before
-      ;; unpacking A.
-      (package-activate elt (version-to-list v-string)))))
+    (let ((desc (cdr (assq elt package-archive-contents))))
+      (package-install-from-archive desc))))
 
 ;;;###autoload
 (defun package-install (pkg-desc)
@@ -1018,60 +1003,48 @@ boundaries."
        (if requires-str (package-read-from-string requires-str))
        :kind 'single))))
 
-(defun package-tar-file-info (file)
+(defun package-tar-file-info ()
   "Find package information for a tar file.
-FILE is the name of the tar file to examine.
-The return result is a vector like `package-buffer-info'."
-  (let* ((default-directory (file-name-directory file))
-         (file (file-name-nondirectory file))
-         (dir-name
-          (if (string-match "\\.tar\\'" file)
-              (substring file 0 (match-beginning 0))
-            (error "Invalid package name `%s'" file)))
+The return result is a `package-desc'."
+  (cl-assert (derived-mode-p 'tar-mode))
+  (let* ((dir-name (file-name-directory
+                    (tar-header-name (car tar-parse-info))))
          (desc-file (package--description-file dir-name))
-         ;; Extract the package descriptor.
-         (pkg-def-contents (shell-command-to-string
-                            ;; Requires GNU tar.
-                            (concat "tar -xOf " file " "
-                                    dir-name "/" desc-file)))
-         (pkg-def-parsed (package-read-from-string pkg-def-contents)))
-    (unless (eq (car pkg-def-parsed) 'define-package)
-      (error "Can't find define-package in %s" desc-file))
-    (let ((pkg-desc
-           (apply #'package-desc-from-define (append (cdr pkg-def-parsed)
-                                                     '(:kind tar)))))
-      (unless (equal dir-name (package-desc-full-name pkg-desc))
-        ;; FIXME: Shouldn't this just be a message/warning?
-        (error "Package has inconsistent name"))
-      pkg-desc)))
+         (tar-desc (tar-get-file-descriptor (concat dir-name desc-file))))
+    (unless tar-desc
+      (error "No package descriptor file found"))
+    (with-current-buffer (tar--extract tar-desc)
+      (goto-char (point-min))
+      (unwind-protect
+          (let* ((pkg-def-parsed (read (current-buffer)))
+                 (pkg-desc
+                  (if (not (eq (car pkg-def-parsed) 'define-package))
+                      (error "Can't find define-package in %s"
+                             (tar-header-name tar-desc))
+                    (apply #'package-desc-from-define
+                           (append (cdr pkg-def-parsed))))))
+            (setf (package-desc-kind pkg-desc) 'tar)
+            pkg-desc)
+        (kill-buffer (current-buffer))))))
 
 
 ;;;###autoload
-(defun package-install-from-buffer (pkg-desc)
+(defun package-install-from-buffer ()
   "Install a package from the current buffer.
-When called interactively, the current buffer is assumed to be a
-single .el file that follows the packaging guidelines; see info
-node `(elisp)Packaging'.
-
-When called from Lisp, PKG-DESC is a `package-desc' describing the
-information)."
-  (interactive (list (package-buffer-info)))
-  (save-excursion
-    (save-restriction
-      (let* ((name      (package-desc-name pkg-desc))
-	     (requires  (package-desc-reqs pkg-desc))
-	     (desc      (package-desc-summary pkg-desc))
-	     (pkg-version (package-desc-version pkg-desc)))
-	;; Download and install the dependencies.
-	(let ((transaction (package-compute-transaction nil requires)))
-	  (package-download-transaction transaction))
-	;; Install the package itself.
-	(pcase (package-desc-kind pkg-desc)
-	 (`single (package-unpack-single name pkg-version desc requires))
-	 (`tar    (package-unpack name pkg-version))
-	 (type    (error "Unknown type: %S" type)))
-	;; Try to activate it.
-	(package-initialize)))))
+The current buffer is assumed to be a single .el or .tar file that follows the
+packaging guidelines; see info node `(elisp)Packaging'.
+Downloads and installs required packages as needed."
+  (interactive)
+  (let ((pkg-desc (if (derived-mode-p 'tar-mode)
+                      (package-tar-file-info)
+                    (package-buffer-info))))
+    ;; Download and install the dependencies.
+    (let* ((requires (package-desc-reqs pkg-desc))
+           (transaction (package-compute-transaction nil requires)))
+      (package-download-transaction transaction))
+    ;; Install the package itself.
+    (package-unpack pkg-desc)
+    pkg-desc))
 
 ;;;###autoload
 (defun package-install-file (file)
@@ -1080,12 +1053,8 @@ The file can either be a tar file or an Emacs Lisp file."
   (interactive "fPackage file name: ")
   (with-temp-buffer
     (insert-file-contents-literally file)
-    (cond
-     ((string-match "\\.el\\'" file)
-      (package-install-from-buffer (package-buffer-info)))
-     ((string-match "\\.tar\\'" file)
-      (package-install-from-buffer (package-tar-file-info file)))
-     (t (error "Unrecognized extension `%s'" (file-name-extension file))))))
+    (when (string-match "\\.tar\\'" file) (tar-mode))
+    (package-install-from-buffer)))
 
 (defun package-delete (pkg-desc)
   (let ((dir (package-desc-dir pkg-desc)))
@@ -1099,10 +1068,9 @@ The file can either be a tar file or an Emacs Lisp file."
       (error "Package `%s' is a system package, not deleting"
 	     (package-desc-full-name pkg-desc)))))
 
-(defun package-archive-base (name)
+(defun package-archive-base (desc)
   "Return the archive containing the package NAME."
-  (let ((desc (cdr (assq (intern-soft name) package-archive-contents))))
-    (cdr (assoc (package-desc-archive desc) package-archives))))
+  (cdr (assoc (package-desc-archive desc) package-archives)))
 
 (defun package--download-one-archive (archive file)
   "Retrieve an archive file FILE from ARCHIVE, and cache it.
@@ -1292,7 +1260,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	;; For elpa packages, try downloading the commentary.  If that
 	;; fails, try an existing readme file in `package-user-dir'.
 	(cond ((condition-case nil
-		   (package--with-work-buffer (package-archive-base package)
+		   (package--with-work-buffer (package-archive-base desc)
 					      (concat package-name "-readme.txt")
 		     (setq buffer-file-name
 			   (expand-file-name readme package-user-dir))

@@ -291,10 +291,11 @@ If `package-archive-upload-base' does not specify a valid upload
 destination, prompt for one."
   (interactive "fPackage file name: ")
   (with-temp-buffer
-    (insert-file-contents-literally file)
+    (insert-file-contents file)
     (let ((pkg-desc
            (cond
-            ((string-match "\\.tar\\'" file) (package-tar-file-info file))
+            ((string-match "\\.tar\\'" file)
+             (tar-mode) (package-tar-file-info))
             ((string-match "\\.el\\'" file) (package-buffer-info))
             (t (error "Unrecognized extension `%s'"
                       (file-name-extension file))))))
