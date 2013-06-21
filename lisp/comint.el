@@ -3733,12 +3733,13 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       ;; Skip past the command, if it was echoed
       (and (looking-at command)
 	   (forward-line))
-      (while (re-search-forward regexp nil t)
+      (while (and (not (eobp))
+		  (re-search-forward regexp nil t))
 	(push (buffer-substring-no-properties
                (match-beginning regexp-group)
                (match-end regexp-group))
               results))
-      results)))
+      (nreverse results))))
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================
