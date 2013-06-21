@@ -3057,7 +3057,7 @@ struct xpm_cached_color
   XColor color;
 
   /* Color name.  */
-  char name[1];
+  char name[FLEXIBLE_ARRAY_MEMBER];
 };
 
 /* The hash table used for the color cache, and its bucket vector

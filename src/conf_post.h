@@ -243,6 +243,17 @@ extern void _DebPrint (const char *fmt, ...);
 #define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
 #define INLINE_HEADER_END _GL_INLINE_HEADER_END
 
+/* To use the struct hack with N elements, declare the struct like this:
+     struct s { ...; t name[FLEXIBLE_ARRAY_MEMBER]; };
+   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.  */
+#if 199901 <= __STDC_VERSION__
+# define FLEXIBLE_ARRAY_MEMBER
+#elif __GNUC__ && !defined __STRICT_ANSI__
+# define FLEXIBLE_ARRAY_MEMBER 0
+#else
+# define FLEXIBLE_ARRAY_MEMBER 1
+#endif
+
 /* Use this to suppress gcc's `...may be used before initialized' warnings. */
 #ifdef lint
 /* Use CODE only if lint checking is in effect.  */

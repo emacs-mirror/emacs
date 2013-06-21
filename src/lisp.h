@@ -1073,16 +1073,20 @@ SCHARS (Lisp_Object string)
 {
   return XSTRING (string)->size;
 }
+
+#ifdef GC_CHECK_STRING_BYTES
+extern ptrdiff_t string_bytes (struct Lisp_String *);
+#endif
 LISP_INLINE ptrdiff_t
 STRING_BYTES (struct Lisp_String *s)
 {
 #ifdef GC_CHECK_STRING_BYTES
-  extern ptrdiff_t string_bytes (struct Lisp_String *);
   return string_bytes (s);
 #else
   return s->size_byte < 0 ? s->size : s->size_byte;
 #endif
 }
+
 LISP_INLINE ptrdiff_t
 SBYTES (Lisp_Object string)
 {
@@ -1136,7 +1140,7 @@ struct vectorlike_header
 struct Lisp_Vector
   {
     struct vectorlike_header header;
-    Lisp_Object contents[1];
+    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
 
 /* A boolvector is a kind of vectorlike, with contents are like a string.  */
@@ -1149,7 +1153,7 @@ struct Lisp_Bool_Vector
     /* This is the size in bits.  */
     EMACS_INT size;
     /* This contains the actual bits, packed into bytes.  */
-    unsigned char data[1];
+    unsigned char data[FLEXIBLE_ARRAY_MEMBER];
   };
 
 /* Some handy constants for calculating sizes
@@ -1272,7 +1276,7 @@ struct Lisp_Char_Table
     Lisp_Object contents[(1 << CHARTAB_SIZE_BITS_0)];
 
     /* These hold additional data.  It is a vector.  */
-    Lisp_Object extras[1];
+    Lisp_Object extras[FLEXIBLE_ARRAY_MEMBER];
   };
 
 struct Lisp_Sub_Char_Table
@@ -1293,7 +1297,7 @@ struct Lisp_Sub_Char_Table
     Lisp_Object min_char;
 
     /* Use set_sub_char_table_contents to set this.  */
-    Lisp_Object contents[1];
+    Lisp_Object contents[FLEXIBLE_ARRAY_MEMBER];
   };
 
 LISP_INLINE Lisp_Object
@@ -1366,7 +1370,7 @@ struct Lisp_Subr
    slots.  */
 enum CHAR_TABLE_STANDARD_SLOTS
   {
-    CHAR_TABLE_STANDARD_SLOTS = VECSIZE (struct Lisp_Char_Table) - 1
+    CHAR_TABLE_STANDARD_SLOTS = PSEUDOVECSIZE (struct Lisp_Char_Table, extras)
   };
 
 /* Return the number of "extra" slots in the char table CT.  */

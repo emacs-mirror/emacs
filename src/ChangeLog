@@ -1,3 +1,31 @@
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	This avoids some subtle aliasing issues, which typically
+	aren't a problem with GCC but may be a problem elsewhere.
+	* alloc.c (sdata): New typedef, replacing the old struct sdata.
+	It is a struct if GC_CHECK_STRING_BYTES, a union otherwise.
+	In either case, it uses a flexible array member rather than
+	the old struct hack.  All uses changed.
+	(SDATA_NBYTES, sweep_strings) [!GC_CHECK_STRING_BYTES]:
+	Adjust to sdata reorganization.
+	* alloc.c (VBLOCK_BYTES_MIN, allocate_vectorlike, Fgarbage_collect):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+	* chartab.c (Fmake_char_table, make_sub_char_table, copy_char_table):
+	Use CHAR_TABLE_STANDARD_SLOTS rather than its definition,
+	as the latter has changed.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER): Move here from w32.c,
+	and port better to pre-C99 GCC.
+	* image.c (struct xpm_cached_color):
+	* lisp.h (struct Lisp_Vector, struct Lisp_Bool_Vector)
+	(struct Lisp_Char_Table, struct Lisp_Sub_Char_Table):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	* lisp.h (string_bytes) [GC_CHECK_STRING_BYTES]:
+	Move decl to top level so it gets checked against implementation.
+	(CHAR_TABLE_STANDARD_SLOTS): Adjust to struct Lisp_Char_Table change.
+	* w32.c (FLEXIBLE_ARRAY_MEMBER): Move to conf_post.h.
+
 2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* syntax.c: Integer cleanups.
