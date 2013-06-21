@@ -1,3 +1,18 @@
+2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-alist): Include obsolete packages.
+	(package-obsolete-list): Remove.
+	(package-activate): Remove min-version argument.  Add `force' argument.
+	Adjust to new package-alist format.
+	(package-mark-obsolete): Remove.
+	(package-unpack): Force reload of the package's autoloads.
+	(package-installed-p): Check builtins if the installed package is not
+	recent enough.
+	(package-initialize): Don't reset package-obsolete-list.
+	Don't specify which package version to activate.
+	(package-process-define-package, describe-package-1)
+	(package-menu--generate): Adjust to new package-alist format.
+
 2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout-widgets.el (allout-widgets-mode-off)

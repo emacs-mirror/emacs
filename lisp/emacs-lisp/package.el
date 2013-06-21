@@ -192,8 +192,7 @@ versions of all packages not specified by other elements.
 
 For an element (NAME VERSION), NAME is a package name (a symbol).
 VERSION should be t, a string, or nil.
-If VERSION is t, all versions are loaded, though obsolete ones
- will be put in `package-obsolete-list' and not activated.
+If VERSION is t, the most recent version is activated.
 If VERSION is a string, only that version is ever loaded.
  Any other version, even if newer, is silently ignored.
  Hence, the package is \"held\" at that version.
@@ -371,8 +370,9 @@ name (a symbol) and DESC is a `package--bi-desc' structure.")
 
 (defvar package-alist nil
   "Alist of all packages available for activation.
-Each element has the form (PKG . DESC), where PKG is a package
-name (a symbol) and DESC is a `package-desc' structure.
+Each element has the form (PKG . DESCS), where PKG is a package
+name (a symbol) and DESCS is a non-empty list of `package-desc' structure,
+sorted by decreasing versions.
 
 This variable is set automatically by `package-load-descriptor',
 called via `package-initialize'.  To change which packages are
@@ -383,11 +383,6 @@ loaded and/or activated, customize `package-load-list'.")
   ;; FIXME: This should implicitly include all builtin packages.
   "List of the names of currently activated packages.")
 (put 'package-activated-list 'risky-local-variable t)
-
-(defvar package-obsolete-list nil
-  "List of obsolete packages.
-Each element of the list is a `package-desc'.")
-(put 'package-obsolete-list 'risky-local-variable t)
 
 (defun package-version-join (vlist)
   "Return the version string corresponding to the list VLIST.
@@ -439,7 +434,7 @@ controls which package subdirectories may be loaded.
 
 In each valid package subdirectory, this function loads the
 description file containing a call to `define-package', which
-updates `package-alist' and `package-obsolete-list'."
+updates `package-alist'."
   (dolist (dir (cons package-user-dir package-directory-list))
     (when (file-directory-p dir)
       (dolist (subdir (directory-files dir))
@@ -502,43 +497,39 @@ specifying the minimum acceptable version."
 ;; if an older one was already activated.  This is not ideal; we'd at
 ;; least need to check to see if the package has actually been loaded,
 ;; and not merely activated.
-(defun package-activate (package min-version)
-  "Activate package PACKAGE, of version MIN-VERSION or newer.
-MIN-VERSION should be a version list.
-If PACKAGE has any dependencies, recursively activate them.
-Return nil if the package could not be activated."
-  (let ((pkg-vec (cdr (assq package package-alist)))
-	available-version found)
+(defun package-activate (package &optional force)
+  "Activate package PACKAGE.
+If FORCE is true, (re-)activate it if it's already activated."
+  (let ((pkg-descs (cdr (assq package package-alist))))
     ;; Check if PACKAGE is available in `package-alist'.
-    (when pkg-vec
-      (setq available-version (package-desc-version pkg-vec)
-	    found (version-list-<= min-version available-version)))
+    (while
+        (when pkg-descs
+          (let ((available-version (package-desc-version (car pkg-descs))))
+            (or (package-disabled-p package available-version)
+                ;; Prefer a builtin package.
+                (package-built-in-p package available-version))))
+      (setq pkg-descs (cdr pkg-descs)))
     (cond
      ;; If no such package is found, maybe it's built-in.
-     ((null found)
-      (package-built-in-p package min-version))
+     ((null pkg-descs)
+      (package-built-in-p package))
      ;; If the package is already activated, just return t.
-     ((memq package package-activated-list)
+     ((and (memq package package-activated-list) (not force))
       t)
-     ;; If it's disabled, then just skip it.
-     ((package-disabled-p package available-version) nil)
      ;; Otherwise, proceed with activation.
      (t
-      (let ((fail (catch 'dep-failure
-		    ;; Activate its dependencies recursively.
-		    (dolist (req (package-desc-reqs pkg-vec))
-		      (unless (package-activate (car req) (cadr req))
-			(throw 'dep-failure req))))))
+      (let* ((pkg-vec (car pkg-descs))
+             (fail (catch 'dep-failure
+                     ;; Activate its dependencies recursively.
+                     (dolist (req (package-desc-reqs pkg-vec))
+                       (unless (package-activate (car req) (cadr req))
+                         (throw 'dep-failure req))))))
 	(if fail
 	    (warn "Unable to activate package `%s'.
 Required package `%s-%s' is unavailable"
 		  package (car fail) (package-version-join (cadr fail)))
 	  ;; If all goes well, activate the package itself.
 	  (package-activate-1 pkg-vec)))))))
-
-(defun package-mark-obsolete (pkg-desc)
-  "Put PKG-DESC on the obsolete list, if not already there."
-  (push pkg-desc package-obsolete-list))
 
 (defun define-package (_name-string _version-string
                                     &optional _docstring _requirements
@@ -561,26 +552,18 @@ EXTRA-PROPERTIES is currently unused."
   (let* ((new-pkg-desc (apply #'package-desc-from-define (cdr exp)))
          (name (package-desc-name new-pkg-desc))
          (version (package-desc-version new-pkg-desc))
-         (old-pkg (assq name package-alist)))
-    (cond
-     ;; If it's not newer than a builtin version, mark it obsolete.
-     ((let ((bi (assq name package--builtin-versions)))
-        (and bi (version-list-<= version (cdr bi))))
-      (package-mark-obsolete new-pkg-desc))
-     ;; If there's no old package, just add this to `package-alist'.
-     ((null old-pkg)
-      (push (cons name new-pkg-desc) package-alist))
-     ((version-list-< (package-desc-version (cdr old-pkg)) version)
-      ;; Remove the old package and declare it obsolete.
-      (package-mark-obsolete (cdr old-pkg))
-      (setq package-alist (cons (cons name new-pkg-desc)
-				(delq old-pkg package-alist))))
-     ;; You can have two packages with the same version, e.g. one in
-     ;; the system package directory and one in your private
-     ;; directory.  We just let the first one win.
-     ((not (version-list-= (package-desc-version (cdr old-pkg)) version))
-      ;; The package is born obsolete.
-      (package-mark-obsolete new-pkg-desc)))
+         (old-pkgs (assq name package-alist)))
+    (if (null old-pkgs)
+        ;; If there's no old package, just add this to `package-alist'.
+        (push (list name new-pkg-desc) package-alist)
+      ;; If there is, insert the new package at the right place in the list.
+      (while old-pkgs
+        (cond
+         ((null (cdr old-pkgs)) (push new-pkg-desc (cdr old-pkgs)))
+         ((version-list-< (package-desc-version (cadr old-pkgs)) version)
+          (push new-pkg-desc (cdr old-pkgs))
+          (setq old-pkgs nil)))
+        (setq old-pkgs (cdr old-pkgs))))
     new-pkg-desc))
 
 ;; From Emacs 22, but changed so it adds to load-path.
@@ -691,7 +674,7 @@ untar into a directory named DIR; otherwise, signal an error."
       ;; and then compile them.
       (package--compile new-desc))
     ;; Try to activate it.
-    (package-activate name (package-desc-version pkg-desc))
+    (package-activate name 'force)
     pkg-dir))
 
 (defun package--make-autoloads-and-stuff (pkg-desc pkg-dir)
@@ -768,12 +751,13 @@ It will move point to somewhere in the headers."
   "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
 MIN-VERSION should be a version list."
   (unless package--initialized (error "package.el is not yet initialized!"))
-  (let ((pkg-desc (assq package package-alist)))
-    (if pkg-desc
-	(version-list-<= min-version
-			 (package-desc-version (cdr pkg-desc)))
-      ;; Also check built-in packages.
-      (package-built-in-p package min-version))))
+    (or
+     (let ((pkg-descs (cdr (assq package package-alist))))
+       (and pkg-descs
+            (version-list-<= min-version
+                             (package-desc-version (car pkg-descs)))))
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))
 
 (defun package-compute-transaction (package-list requirements)
   "Return a list of packages to be installed, including PACKAGE-LIST.
@@ -905,7 +889,8 @@ Also, add the originating archive to the `package-desc' structure."
           (let ((bi (assq name package--builtin-versions)))
             (and bi (version-list-<= version (cdr bi))))
           (let ((ins (cdr (assq name package-alist))))
-            (and ins (version-list-<= version (package-desc-version ins)))))
+            (and ins (version-list-<= version
+                                      (package-desc-version (car ins))))))
       nil)
      ((not existing-package)
       (push entry package-archive-contents))
@@ -1109,13 +1094,12 @@ makes them available for download."
 The variable `package-load-list' controls which packages to load.
 If optional arg NO-ACTIVATE is non-nil, don't activate packages."
   (interactive)
-  (setq package-alist nil
-	package-obsolete-list nil)
+  (setq package-alist nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
   (unless no-activate
     (dolist (elt package-alist)
-      (package-activate (car elt) (package-desc-version (cdr elt)))))
+      (package-activate (car elt))))
   (setq package--initialized t))
 
 
@@ -1161,7 +1145,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (princ " is ")
     (cond
      ;; Loaded packages are in `package-alist'.
-     ((setq desc (cdr (assq package package-alist)))
+     ((setq desc (cadr (assq package package-alist)))
       (setq version (package-version-join (package-desc-version desc)))
       (if (setq pkg-dir (package-desc-dir desc))
 	  (insert "an installed package.\n\n")
@@ -1389,10 +1373,23 @@ or a list of package names (symbols) to display."
     (dolist (elt package-alist)
       (setq name (car elt))
       (when (or (eq packages t) (memq name packages))
-	(package--push (cdr elt)
-		       (if (stringp (cadr (assq name package-load-list)))
-			   "held" "installed")
-		       info-list)))
+        (let* ((lle (assq name package-load-list))
+               (held (cadr lle))
+               (hv (if (stringp held) (version-to-list held))))
+          (dolist (pkg (cdr elt))
+            (let ((version (package-desc-version pkg)))
+              (package--push pkg
+                             (cond
+                              ((and lle (null held)) "disabled")
+                              (hv
+                               (cond
+                                ((version-list-= version hv) "held")
+                                ((version-list-< version hv) "obsolete")
+                                (t "disabled")))
+                              ((package-built-in-p name version) "obsolete")
+                              ((eq pkg (cadr elt)) "installed")
+                              (t "obsolete"))
+                             info-list))))))
 
     ;; Built-in packages:
     (dolist (elt package--builtins)
@@ -1414,11 +1411,6 @@ or a list of package names (symbols) to display."
 			  ((memq name package-menu--new-package-list) "new")
 			  (t "available"))
 			 info-list))))
-
-    ;; Obsolete packages:
-    (dolist (elt package-obsolete-list)
-      (when (or (eq packages t) (memq (package-desc-full-name elt) packages))
-        (package--push elt "obsolete" info-list)))
 
     ;; Print the result.
     (setq tabulated-list-entries (mapcar 'package-menu--print-info info-list))
