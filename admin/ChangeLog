@@ -1,9 +1,16 @@
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-06-15  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* notes/changelogs: Mention trivial changes in Change Log.
+
+2013-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-style-string): Use new file manual.css.
+
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
 
 	* grammars/srecode-template.wy (variable): Accept a single number
 	as a variable value.  Allows the 'priority' to be set to a number.
-	(wisent-srecode-template-lexer): Move number up so it can be
-	created.
+	(wisent-srecode-template-lexer): Move number up so it can be created.
 
 2013-05-16  Glenn Morris  <rgm@gnu.org>
 
@@ -151,7 +158,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* CPP-DEFINES (BSD4_2): Remove.
 
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
@@ -283,7 +290,7 @@
 
 	* grammars/grammar.wy (semantic-grammar-lexer): Remove, since it
 	was copied to grammar.el.  New %provide token to generate prefix
-	which conforms with Emacs conventions.	Remove lexer definition,
+	which conforms with Emacs conventions.  Remove lexer definition,
 	which is now in grammar.el.
 
 2012-09-27  Glenn Morris  <rgm@gnu.org>

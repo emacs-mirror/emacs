@@ -446,7 +446,9 @@ in strings will not confuse Emacs.")
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil if NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil.
+
+Ensure that `comment-normalize-vars' has been called before you use this."
   (if (not comment-use-syntax)
       (if (re-search-forward comment-start-skip limit noerror)
 	  (or (match-end 1) (match-beginning 0))
@@ -484,7 +486,9 @@ and raises an error or returns nil if NOERROR is non-nil."
   "Find a comment start between LIMIT and point.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil if NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil.
+
+Ensure that `comment-normalize-vars' has been called before you use this."
   ;; FIXME: If a comment-start appears inside a comment, we may erroneously
   ;; stop there.  This can be rather bad in general, but since
   ;; comment-search-backward is only used to find the comment-column (in

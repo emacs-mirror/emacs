@@ -35,7 +35,7 @@
 
 (quail-define-package
  "czech" "Czech" "CZ" t
- "\"Standard\" Czech keyboard in the Windoze NT 105 keys version."
+ "\"Standard\" Czech keyboard in the Windows NT 105 keys version."
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
@@ -157,7 +157,7 @@
 
 (quail-define-package
  "czech-qwerty" "Czech" "CZ" t
- "\"Standard\" Czech keyboard in the Windoze NT 105 keys version, QWERTY layout."
+ "\"Standard\" Czech keyboard in the Windows NT 105 keys version, QWERTY layout."
  nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules

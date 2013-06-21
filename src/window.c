@@ -55,7 +55,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_valid_p;
-static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
+static Lisp_Object Qwindow_configuration_p;
+static Lisp_Object Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
@@ -130,6 +131,12 @@ static int window_scroll_pixel_based_preserve_y;
 static EMACS_INT window_scroll_preserve_hpos;
 static EMACS_INT window_scroll_preserve_vpos;
 
+static void
+CHECK_WINDOW_CONFIGURATION (Lisp_Object x)
+{
+  CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x);
+}
+
 /* These setters are used only in this file, so they can be private.  */
 static void
 wset_combination_limit (struct window *w, Lisp_Object val)

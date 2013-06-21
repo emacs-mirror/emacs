@@ -397,7 +397,6 @@ work on C like languages."
 				 t)
 			(error nil))
 		      (looking-at fieldsep1)))
-	       (setq symlist (list ""))
 	       (forward-sexp -1)
 	       ;; Skip array expressions.
 	       (while (looking-at "\\s(") (forward-sexp -1))

@@ -24,7 +24,7 @@
 
 ;; This is a new input method for IPA characters and diacritics, which follows
 ;; the conventions of Praat, a GPLed program for phonetical analysis.
-;; 
+;;
 ;; This input method is much more complete than the current ipa.el.
 
 ;;; Code:
@@ -65,10 +65,10 @@ open         | ɶ \\Oe |        | ɒ  \\ab
 
 
 For most of the codes, the first letter tells you the most
-similar letter of the English alphabet. The second letter can be
+similar letter of the English alphabet.  The second letter can be
 t (turned), c (capital), s (script), r (reversed), - (barred or
-retracted), or / (slashed). One symbol (ɛ) is a phonetic version
-of a Greek letter. The codes for ə, ɤ, ʊ and ɞ are abbreviations
+retracted), or / (slashed).  One symbol (ɛ) is a phonetic version
+of a Greek letter.  The codes for ə, ɤ, ʊ and ɞ are abbreviations
 for schwa, ram's horn, horseshoe, and kidney bean.
 
 
@@ -96,7 +96,7 @@ alv.-pala. |       |       | ɕ \\cc |         |       |          |
            |       |       | ʑ \\zc |         |       |          |
 palatal    | c c   | ɲ \\nj | ç \\c, |         |       |          |
            | ɟ \\j. |       | ʝ \\jc | j j     |       |          | ʎ \\yt
-lab-pal.   |       |       |       |         |       |          |
+lab.-pal.  |       |       |       |         |       |          |
            |       |       |       | ɥ \\ht   |       |          |
 lab.-vela. |       |       | ʍ \\wt |         |       |          |
            |       |       |       | w w     |       |          |
@@ -126,16 +126,16 @@ velar     | ɠ \\g^     |
 uvular    | ʛ \\G^     |
 
 For most of the codes, the first letter tells you the most
-similar letter of the English alphabet. The second letter can be
-t (turned), c (capital or curled), s (script), - (barred),
-l (with leg), i (inverted), or j (left tail). Some phonetic
+similar letter of the English alphabet.  The second letter can
+be t (turned), c (capital or curled), s (script), - (barred),
+l (with leg), i (inverted), or j (left tail).  Some phonetic
 symbols are similar to Greek letters but have special
 phonetic (f) versions with serifs (ɸ, β, ɣ) or are otherwise
-slightly different (θ, χ). The codes for ŋ (engma), ð (eth),
-ʃ (esh), and ʒ (yogh) are traditional alternative spellings. The
-retroflexes have a period in the second place, because an
+slightly different (θ, χ).  The codes for ŋ (engma), ð (eth),
+ʃ (esh), and ʒ (yogh) are traditional alternative spellings.
+The retroflexes have a period in the second place, because an
 alternative traditional spelling is to write a dot under
-them. The code for ɾ is an abbreviation for fishhook.
+them.  The code for ɾ is an abbreviation for fishhook.
 
 
 * Diacritics
@@ -197,7 +197,7 @@ input | example | description
  ("\\gc" ?ɢ) ; voiced uvular
  ("\\?-" ?ʡ) ; epiglottal
  ("\\?g" ?ʔ) ; glottal
- 
+
  ;; nasals
  ("\\mj" ?ɱ) ; labiodental
  ("\\n." ?ɳ) ; retroflex
@@ -236,7 +236,7 @@ input | example | description
  ("\\r." ?ɻ) ; retroflex
  ("\\ht" ?ɥ) ; labial-palatal
  ("\\ml" ?ɰ) ; velar
- 
+
  ;; trills
  ("\\bc" ?ʙ) ; bilabial
  ("\\rc" ?ʀ) ; uvular
@@ -246,7 +246,7 @@ input | example | description
  ("\\fh" ?ɾ) ; alveolar
  ("\\rl" ?ɺ) ; alv.-lateral
  ("\\f." ?ɽ) ; retroflex
- 
+
  ;; lateral approx.
  ("\\l." ?ɭ) ; retroflex
  ("\\yt" ?ʎ) ; palatal
@@ -272,12 +272,12 @@ input | example | description
  ;; vowels
  ("\\i-" ?ɨ)
  ("\\u-" ?ʉ)
- 
+
  ("\\mt" ?ɯ)
 
  ("\\ic" ?ɪ)
  ("\\yc" ?ʏ)
- 
+
  ("\\hs" ?ʊ)
 
  ("\\o/" ?ø)

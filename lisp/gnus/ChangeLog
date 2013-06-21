@@ -1,8 +1,236 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-mark-article-as-read): Fix declaration.
+
+2013-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-parse-entries): Remove debugging.
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* eww.el, shr.el, shr-color.el: Move to ../net.
+
+2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-table): Insert the images after the table, so that
+	they're not covered by the table colourisation, which often looked
+	awkward.
+	(shr-tag-dl, shr-tag-dt, shr-tag-dd): Add support for <dl>, <dt> and
+	<dd>.
+
+2013-06-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* eww.el (eww-detect-charset): Improve regexp; move backward.
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* mm-decode.el (widget-convert-button): Autoload.
+
+	* sieve-manage.el (mm-enable-multibyte): Autoload.
+
+	* shr.el (libxml-parse-html-region): Declare.
+	(shr-render-buffer): Explicit error if no libxml2 support.
+
+2013-06-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-current-line): New function.
+	(auth-source-netrc-parse-entries): When a data token is "machine",
+	assume we're in the wrong place and abort parsing the current line.
+
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-tag-select): Don't render totally empty <select> forms.
+	(eww-convert-widgets): Don't bug out if the first widget starts at the
+	beginning of the buffer.
+	(eww-convert-widgets): Fix last patch.
+	(eww-tag-input): Support <input type=image>.
+
+	* shr.el (shr-insert-table): Respect border-collapse: collapse.
+	(shr-tag-base): Protect against base specs that are degenerate.
+	(shr-ensure-paragraph): Don't delete empty lines that have text
+	properties, because these may be input fields.
+
+	* eww.el (eww-convert-widgets): Put `help-echo' on input fields so that
+	we can navigate to them.
+
+	* shr.el (shr-colorize-region): Put the colours over the entire region.
+	(shr-inhibit-decoration): New variable.
+	(shr-add-font): Use it to inhibit text property decorations while doing
+	preliminary table renderings.  This speeds up typical Wikipedia page
+	renderings by 15%.
+	(shr-tag-span): Don't respect the <title>, because that overwrites the
+	help-echo from links inside the spans.
+	(shr-next-link): Use `help-echo' for navigation, so that we can
+	navigate to form elements, too.
+
+	* eww.el (eww-button): New face.
+	(eww-convert-widgets): Use it to make submit buttons more button-like.
+
+	* mm-decode.el (mm-convert-shr-links): Override the shr local map, so
+	that Gnus commands work.
+
+	* shr.el (shr-render-td): Support horizontal alignment.
+
+	* eww.el (eww-put-color): Removed.
+	(eww-colorize-region): Use `add-face-text-property'.
+
+	* shr.el (shr-add-font): Append face data, so that we get the correct
+	presedence: The innermost value (which is applied first) wins.
+	(shr-make-overlay): Obsolete function.
+
+	* mm-decode.el (mm-convert-shr-links): New function to convert
+	new-style shr URL links into widgets.
+	(mm-shr): Use it.
+
+	* eww.el (eww-mode-map): Use `shr-next-link' (etc) instead of the
+	widget commands, since we're no longer using widgets for links.
+
+	* shr.el (shr-next-link): New command.
+	(shr-previous-link): New command.
+	(shr-urlify): Don't use `widget-convert', because that's slow.
+	(shr-put-color-1): Use `add-face-text-property' instead of overlays,
+	because collecting the overlays and reapplying them when generating
+	tables is slow.
+	(shr-insert-table): Ditto.
+
+2013-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve.el (sieve-edit-script): Avoid beginning-of-buffer.
+	* shr.el (browse-url): Require `url'.
+	* eww.el (url): Require format-spec.
+
+2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-display-html): Default to using the entire window width.
+	(eww-browse-url): Don't add a User-Agent header (twice), because that
+	makes Bing refuse connection.
+
+	* shr.el (shr-make-table): Cache the table rendering at the table
+	level, and not the <td> level.  This is a bit faster.
+
+	* eww.el (eww-render): Go to the correct ID when given URLs ending with
+	#id.
+
+	* shr.el (shr-tag-li): Don't require a new paragraph, since other
+	browsers don't.
+	(shr-expand-url): Respect #anchor links.
+	(shr-parse-base): Chop off the anchor before using.
+	(shr-descend): Respect display: none.
+	(shr-descend): Allow marking elements that have certain IDs.
+
+	* eww.el (eww-tag-textarea): Use `text' instead of `editable-field'.
+
+	* shr.el (shr-expand-url): Don't bug out on zero-length links.
+
+	* eww.el (eww-tag-textarea): Support <textarea>.
+
+2013-06-16  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* shr.el (shr-dom-to-xml): Fixed function call.
+
+	* eww.el (eww): New group.
+	(eww-header-line-format): New custom variable.
+	(eww-current-title): New variable.
+	(eww-display-html): Update header and handle title tag.
+	(eww-update-header-line-format): New function.
+	(eww-tag-title): New function.
+
+	* shr.el (shr-dom-to-xml): New function.
+	(shr-tag-svg): Add support for the SVG tag.
+	(shr-bullet): New custom variable.
+	(shr-tag-li): Support custom bullet in unordered lists.
+
+2013-06-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Respect // URLs.
+
+	* eww.el (eww-tag-body): Override the shr body rendering so that we can
+	put a background colour onto the entire buffer.
+	(eww-render): When being redirected, use the redirect URL as the new
+	base URL.
+
+	* shr.el (shr-parse-base): Fix parsing error.
+
+	* eww.el (eww-submit): Pass the base in to `shr-expand-url'.
+
+	* shr.el (shr-parse-base): New function.
+	(shr-expand-url): Use it to expand relative URLs reliably.
+
+2013-06-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-search-collection): Fix docstring.
+	(auth-source-netrc-parse): Refactor and improve netrc parser to support
+	single-quoted strings and multiline entries.
+	(auth-source-netrc-parse-next-interesting)
+	(auth-source-netrc-parse-one, auth-source-netrc-parse-entries): New
+	functions to support parser.
+
+2013-06-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-submit): Get submit button logic right when hitting RET
+	on non-submit buttons.
+
+	* shr.el: Remove shr-preliminary-table-render, since that can't really
+	be used for anything in practice.
+
+2013-06-13  Albert Krewinkel  <tarleb@moltkeplatz.de>
+
+	* sieve.el: Rebind q to (sieve-bury-buffer), bind Q to
+	(sieve-manage-quit).
+
+2013-06-14  David Edmondson  <dme@dme.org>  (tiny change)
+
+	* mml2015.el (mml2015-maximum-key-image-dimension): New user option to
+	control the maximum size of photo ID image.
+	(mml2015-epg-key-image-to-string): Respect it.
+
+2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-table-1): Mark the preliminary table renderings
+	instead of the final one so that we can more easily distinguish them.
+
+	* eww.el (eww-submit): Compute the submission URL correctly.
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve-manage.el (sieve-manage-open-server): Don't quote lambda.
+	Use plist-get rather than CL's getf.
+	(sieve-manage-parse-capability): Avoid CL's remove-if.
+
+2013-06-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Expansion should chop off the bits after the
+	last slash.
+
+	* eww.el (eww-tag-select): Use the first value as the default value.
+
+2013-06-13  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* eww.el (eww): Prepend urls with http:// if scheme is missing.
+	(eww-mode): Use `define-derived-mode'.
+	(eww-parse-headers): Parse headers from beginning of buffer so that
+	file:// links work.
+
+2013-06-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* eww.el (eww-detect-charset): Detect charset from the <meta> tag.
+
+2013-06-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-svg): Ignore SVG elements, because we don't know how
+	to handle them at all.
+
+2013-06-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-convert-widgets): Make widgets from non-tabular layouts
+	work, too.
+	(eww-tag-select): Implement <select>.
+
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
-	* sieve-manage.el (sieve-manage-open): work with STARTTLS: shorten
+	* sieve-manage.el (sieve-manage-open): Work with STARTTLS: shorten
 	stream managing functions by using open-protocol-stream to do most of
-	the work. Has the nice benefit of enabling STARTTLS.
+	the work.  Has the nice benefit of enabling STARTTLS.
 	Wait for capabilities after STARTTLS: following RFC5804, the server
 	sends new capabilities after successfully establishing a TLS connection
 	with the client. The client should update the cached list of
@@ -53,10 +281,10 @@
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
 	* sieve.el: Put point at beginning of buffer when viewing a script.
-	(sieve-open-server): respect the PORT parameter. Show the correct port
-	number in sieve-buffer's header. Fixed code to also work with a string
-	as port specifier. Properly close the connection on pressing 'q'. Make
-	sieve-manage-quit close the connection and process buffer. Also, remove
+	(sieve-open-server): Respect the PORT parameter.  Show the correct port
+	number in sieve-buffer's header.  Fixed code to also work with a string
+	as port specifier. Properly close the connection on pressing 'q'.  Make
+	sieve-manage-quit close the connection and process buffer.  Also, remove
 	duplicate keybinding for 'q'.
 
 2013-06-10  Roy Hashimoto  <roy.hashimoto@gmail.com>  (tiny change)
@@ -300,7 +528,7 @@
 	(nnir-request-update-info): Improve marks updating.
 	(nnir-request-scan): Don't duplicate marks updating.
 	(gnus-group-make-nnir-group, nnir-run-imap, nnir-request-create-group):
-	Use 'assq rather than 'assoc. Quote anonymous function.
+	Use 'assq rather than 'assoc.  Quote anonymous function.
 	(nnir-request-group, nnir-close-group, gnus-summary-create-nnir-group):
 	Use 'gnus-group-prefixed-p.
 	(gnus-summary-create-nnir-group): Make sure server for method is open.
@@ -358,13 +586,13 @@
 	buffer use the posting-style and gcc of the original article group.
 	(gnus-inews-insert-gcc): Don't set gcc-self for virtual groups.
 
-	* nnir.el: Fix byte-compile warning. nnoo-define-skeleton should come
+	* nnir.el: Fix byte-compile warning.  nnoo-define-skeleton should come
 	after other deffoos.
 
 2013-03-26  Andrew Cohen  <cohen@bu.edu>
 
-	* nnir.el: Major rewrite. Cleaner separation between searches and group
-	management. Marks are now shown in nnir summary buffers. Rudimentary
+	* nnir.el: Major rewrite.  Cleaner separation between searches and group
+	management.  Marks are now shown in nnir summary buffers.  Rudimentary
 	support for real (i.e. not ephemeral) nnir groups.
 	(gnus-summary-make-nnir-group): New function for initiating searches
 	from a summary buffer.
@@ -570,9 +798,9 @@
 
 2012-12-25  Adam Sjøgren  <asjo@koldfront.dk>
 
-	* mml2015.el (mml2015-epg-key-image): use --attribute-fd rather than
-	temporary file to get PGP key image. Pass no-show-photos when extracting
-	image to avoid having it pop up twice.
+	* mml2015.el (mml2015-epg-key-image): Use --attribute-fd rather than
+	temporary file to get PGP key image.  Pass no-show-photos when
+	extracting image to avoid having it pop up twice.
 
 2012-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -1096,7 +1324,7 @@
 
 2012-08-10  Daiki Ueno  <ueno@unixuser.org>
 
-	* auth-source.el: (auth-source-plstore-search)
+	* auth-source.el (auth-source-plstore-search)
 	(auth-source-secrets-search): Ignore :require and :type in search spec.
 
 2012-08-06  Julien Danjou  <julien@danjou.info>
@@ -9793,7 +10021,7 @@
 
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-html.el: require mm-url.
+	* gnus-html.el: Require mm-url.
 	(gnus-html-wash-tags): Clarify the code a bit by renaming the variable
 	with the url to `url'.
 	(gnus-html-wash-tags): Support cid: URLs/images.

@@ -86,7 +86,7 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to $enable_features.
+dnl Create a new --with option that defaults to $with_features.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set either to 'no' (for a plain --without-NAME) or to
 dnl   'yes' (if the option is not specified).  Note that the shell
@@ -776,6 +776,7 @@ else
                                     # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
+  nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -3105,6 +3106,19 @@ HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+  # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
+  if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    AC_CHECK_HEADER(libxml/HTMLparser.h,
+      [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
+      		     [#include <libxml/HTMLparser.h>])])
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_LIBS="-lxml2"
+      LIBXML2_CFLAGS="-I/usr/include/libxml2"
+    fi
+  fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
@@ -3234,7 +3248,7 @@ gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-cfmakeraw cfsetspeed copysign __executable_start)
+cfmakeraw cfsetspeed copysign __executable_start log2)
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
@@ -4725,6 +4739,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
+if test $USE_ACL -ne 0; then
+  acl_summary="yes $LIB_ACL"
+else
+  acl_summary=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -4761,6 +4781,7 @@ echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
+echo "  Does Emacs use access control lists?                    ${acl_summary}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

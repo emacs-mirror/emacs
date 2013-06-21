@@ -156,8 +156,9 @@
 (require 'format-spec)
 (require 'widget)
 
+(require 'cl-lib)
+
 (eval-when-compile
-  (require 'cl-lib)
   (require 'wid-edit))
 
 (defgroup image-dired nil
@@ -657,9 +658,12 @@ previous -ARG, if ARG<0) files."
                 (string-match-p (image-file-name-regexp) image-file))
        (setq thumb-file (image-dired-get-thumbnail-image image-file))
        ;; If image is not already added, then add it.
-       (let ((cur-ov (overlays-in (point) (1+ (point)))))
-         (if cur-ov
-             (delete-overlay (car cur-ov))
+       (let* ((cur-ovs (overlays-in (point) (1+ (point))))
+              (thumb-ov (car (cl-remove-if-not
+                              (lambda (ov) (overlay-get ov 'thumb-file))
+                              cur-ovs))))
+         (if thumb-ov
+             (delete-overlay thumb-ov)
 	   (put-image thumb-file image-pos)
 	   (setq overlay
                  (cl-loop for o in (overlays-in (point) (1+ (point)))

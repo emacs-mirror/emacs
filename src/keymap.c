@@ -106,6 +106,12 @@ static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, bool, bool);
 static void silly_event_symbol_error (Lisp_Object);
 static Lisp_Object get_keyelt (Lisp_Object, bool);
+
+static void
+CHECK_VECTOR_OR_CHAR_TABLE (Lisp_Object x)
+{
+  CHECK_TYPE (VECTORP (x) || CHAR_TABLE_P (x), Qvector_or_char_table_p, x);
+}
 
 /* Keymap object support - constructors and predicates.			*/
 

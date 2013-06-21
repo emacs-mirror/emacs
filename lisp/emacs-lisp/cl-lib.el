@@ -36,13 +36,6 @@
 ;; package which should always be present.
 
 
-;;; Future notes:
-
-;; Once Emacs 19 becomes standard, many things in this package which are
-;; messy for reasons of compatibility can be greatly simplified.  For now,
-;; I prefer to maintain one unified version.
-
-
 ;;; Change Log:
 
 ;; Version 2.02 (30 Jul 93):
@@ -732,9 +725,10 @@ If ALIST is non-nil, the new pairs are prepended to it."
   (put 'cl-defsubst 'doc-string-elt 3)
   (put 'cl-defstruct 'doc-string-elt 2))
 
-(load "cl-loaddefs" nil 'quiet)
-
 (provide 'cl-lib)
+(or (load "cl-loaddefs" 'noerror 'quiet)
+    ;; When bootstrapping, cl-loaddefs hasn't been built yet!
+    (require 'cl-macs))
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

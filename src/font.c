@@ -3863,7 +3863,8 @@ usage: (font-spec ARGS...)  */)
       if (EQ (key, QCname))
 	{
 	  CHECK_STRING (val);
-	  font_parse_name (SSDATA (val), SBYTES (val), spec);
+	  if (font_parse_name (SSDATA (val), SBYTES (val), spec) < 0)
+	    error ("Invalid font name: %s", SSDATA (val));
 	  font_put_extra (spec, key, val);
 	}
       else

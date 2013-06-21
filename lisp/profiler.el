@@ -60,7 +60,7 @@
 (defun profiler-format-number (number)
   "Format NUMBER in human readable string."
   (if (and (integerp number) (> number 0))
-      (cl-loop with i = (% (1+ (floor (log10 number))) 3)
+      (cl-loop with i = (% (1+ (floor (log number 10))) 3)
 	       for c in (append (number-to-string number) nil)
 	       if (= i 0)
 	       collect ?, into s

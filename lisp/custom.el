@@ -77,7 +77,7 @@ if any, or VALUE."
   "Initialize SYMBOL based on VALUE.
 Set the symbol, using its `:set' function (or `set-default' if it has none).
 The value is either the symbol's current value
- \(as obtained using the `:get' function), if any,
+ (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) VALUE."
   (funcall (or (get symbol 'custom-set) 'set-default)
@@ -319,7 +319,7 @@ If SYMBOL has a local binding, then this form affects the local
 binding.  This is normally not what you want.  Thus, if you need
 to load a file defining variables with this form, or with
 `defvar' or `defconst', you should always load that file
-_outside_ any bindings for these variables.  \(`defvar' and
+_outside_ any bindings for these variables.  (`defvar' and
 `defconst' behave similarly in this respect.)
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
@@ -541,8 +541,8 @@ Fourth argument TYPE is the custom option type."
 (defun custom-add-dependencies (symbol value)
   "To the custom option SYMBOL, add dependencies specified by VALUE.
 VALUE should be a list of symbols.  For each symbol in that list,
-this specifies that SYMBOL should be set after the specified symbol, if
-both appear in constructs like `custom-set-variables'."
+this specifies that SYMBOL should be set after the specified symbol,
+if both appear in constructs like `custom-set-variables'."
   (unless (listp value)
     (error "Invalid custom dependency `%s'" value))
   (let* ((deps (get symbol 'custom-dependencies))
@@ -647,7 +647,7 @@ The result is that the change is treated as having been made through Custom."
 		     (found nil))
 		 (dolist (loaded load-history)
 		   (and (stringp (car loaded))
-			(string-match regexp (car loaded))
+			(string-match-p regexp (car loaded))
 			(setq found t)))
 		 found))
 	      ;; Without this, we would load cus-edit recursively.
@@ -937,7 +937,7 @@ SYMBOL is the variable name, and EXP is an expression which
 evaluates to the customized value.  EXP will also be stored,
 without evaluating it, in SYMBOL's `saved-value' property, so
 that it can be restored via the Customize interface.  It is also
-added to the alist in SYMBOL's `theme-value' property \(by
+added to the alist in SYMBOL's `theme-value' property (by
 calling `custom-push-theme').
 
 NOW, if present and non-nil, means to install the variable's

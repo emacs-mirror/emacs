@@ -1,3 +1,30 @@
+2013-06-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.ac (HAVE_LIBXML2): Try built-in libxml2 on OS X 10.8
+	as a fallback.
+
+2013-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Don't unignore cl-loaddefs.el.
+
+2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* configure.ac (log2): Check for this function.
+
+2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Add GNU GLOBAL files.
+
+2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use functions, not macros, for XINT etc.  (Bug#11935).
+	* configure.ac (WARN_CFLAGS): Remove -Wbad-function-cast,
+	as it generates bogus warnings about reasonable casts of calls.
+
+2013-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Report ACL usage at the end (Bug#14612).
+
 2013-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	--without-all should imply --with-file-notification=no.  (Bug#14569)
@@ -383,7 +410,7 @@
 
 2013-01-23  Giorgos Keramidas  <gkeramidas@gmail.com>  (tiny change)
 
-	* .bzrignore: add lib-src/blessmail.
+	* .bzrignore: Add lib-src/blessmail.
 
 2013-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -532,7 +559,7 @@
 
 2012-12-10  Daniel Colascione  <dancol@dancol.org>
 
-	* .bzrignore: add src/emacs.res.
+	* .bzrignore: Add src/emacs.res.
 
 	* configure.ac (W32_RES, W32_RES_LINK, WINDRES): Teach the cygw32
 	build how to compile Windows resource files; use these variables

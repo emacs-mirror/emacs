@@ -5342,7 +5342,7 @@ Optional arg CONTEXT indicates interior levels to include."
 			(cons (make-string
 			       (1+ (truncate (if (zerop (car flat-index))
 						 1
-					       (log10 (car flat-index)))))
+					       (log (car flat-index) 10))))
 			       ? )
 			      result)))
 	    (setq flat-index (cdr flat-index)))
@@ -5382,7 +5382,7 @@ Optional arg CONTEXT indicates interior levels to include."
 			(cons (make-string
 			       (1+ (truncate (if (zerop (car flat-index))
 						 1
-					       (log10 (car flat-index)))))
+					       (log (car flat-index) 10))))
 			       ? )
 			      result)))
 	    (setq flat-index (cdr flat-index)))

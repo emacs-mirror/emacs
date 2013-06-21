@@ -958,7 +958,7 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* These used to be in lisp.h.  */
 
-extern Lisp_Object Qwindowp, Qwindow_live_p;
+extern Lisp_Object Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 extern struct window *decode_live_window (Lisp_Object);

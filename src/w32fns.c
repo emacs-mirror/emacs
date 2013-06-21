@@ -3175,22 +3175,39 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  HIMC context;
 	  struct window *w;
 
+	  /* Implementation note: The code below does something that
+	     one shouldn't do: it accesses the window object from a
+	     separate thread, while the main (a.k.a. "Lisp") thread
+	     runs and can legitimately delete and even GC it.  That is
+	     why we are extra careful not to futz with a window that
+	     is different from the one recorded when the system caret
+	     coordinates were last modified.  That is also why we are
+	     careful not to move the IME window if the window
+	     described by W was deleted, as indicated by its buffer
+	     field being reset to nil.  */
 	  f = x_window_to_frame (dpyinfo, hwnd);
 	  w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+	  /* Punt if someone changed the frame's selected window
+	     behind our back. */
+	  if (w != w32_system_caret_window)
+	    break;
 
 	  form.dwStyle = CFS_RECT;
 	  form.ptCurrentPos.x = w32_system_caret_x;
 	  form.ptCurrentPos.y = w32_system_caret_y;
 
 	  form.rcArea.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, 0);
-	  form.rcArea.top = WINDOW_TOP_EDGE_Y (w);
-	  if (BUFFERP (w->contents))
-	    form.rcArea.top += WINDOW_HEADER_LINE_HEIGHT (w);
+	  form.rcArea.top = (WINDOW_TOP_EDGE_Y (w)
+			     + w32_system_caret_hdr_height);
 	  form.rcArea.right = (WINDOW_BOX_RIGHT_EDGE_X (w)
 			       - WINDOW_RIGHT_MARGIN_WIDTH (w)
 			       - WINDOW_RIGHT_FRINGE_WIDTH (w));
 	  form.rcArea.bottom = (WINDOW_BOTTOM_EDGE_Y (w)
-				- WINDOW_MODE_LINE_HEIGHT (w));
+				- w32_system_caret_mode_height);
+
+	  /* Punt if the window was deleted behind our back.  */
+	  if (!BUFFERP (w->contents))
+	    break;
 
 	  context = get_ime_context_fn (hwnd);
 

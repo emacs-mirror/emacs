@@ -363,6 +363,11 @@ static void *pure_alloc (size_t, int);
   ((void *) (((uintptr_t) (ptr) + (ALIGNMENT) - 1) \
 	     & ~ ((ALIGNMENT) - 1)))
 
+static void
+XFLOAT_INIT (Lisp_Object f, double n)
+{
+  XFLOAT (f)->u.data = n;
+}
 
 
 /************************************************************************
@@ -3189,6 +3194,12 @@ static int symbol_block_index = SYMBOL_BLOCK_SIZE;
 
 static struct Lisp_Symbol *symbol_free_list;
 
+static void
+set_symbol_name (Lisp_Object sym, Lisp_Object name)
+{
+  XSYMBOL (sym)->name = name;
+}
+
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
 Its value is void, and its function definition and property list are nil.  */)
@@ -3309,7 +3320,7 @@ allocate_misc (enum Lisp_Misc_Type type)
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
-  XMISCTYPE (val) = type;
+  XMISCANY (val)->type = type;
   XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
@@ -3319,7 +3330,7 @@ allocate_misc (enum Lisp_Misc_Type type)
 void
 free_misc (Lisp_Object misc)
 {
-  XMISCTYPE (misc) = Lisp_Misc_Free;
+  XMISCANY (misc)->type = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
   consing_since_gc -= sizeof (union Lisp_Misc);
@@ -5647,7 +5658,7 @@ mark_discard_killed_buffers (Lisp_Object list)
 	{
 	  CONS_MARK (XCONS (tail));
 	  mark_object (XCAR (tail));
-	  prev = &XCDR_AS_LVALUE (tail);
+	  prev = xcdr_addr (tail);
 	}
     }
   mark_object (tail);
@@ -6504,7 +6515,7 @@ bool suppress_checking;
 void
 die (const char *msg, const char *file, int line)
 {
-  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
+  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
@@ -6689,8 +6700,5 @@ union
   enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
-#if USE_LSB_TAG
-  enum lsb_bits lsb_bits;
-#endif
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

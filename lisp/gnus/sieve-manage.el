@@ -168,6 +168,8 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 (defvar sieve-manage-capability nil)
 
 ;; Internal utility functions
+(autoload 'mm-enable-multibyte "mm-util")
+
 (defun sieve-manage-make-process-buffer ()
   (with-current-buffer
       (generate-new-buffer (format " *sieve %s:%s*"
@@ -206,15 +208,15 @@ Return the buffer associated with the connection."
          :success "^OK.*\n"
          :return-list t
          :starttls-function
-         '(lambda (capabilities)
-            (when (string-match "\\bSTARTTLS\\b" capabilities)
-              "STARTTLS\r\n")))
+         (lambda (capabilities)
+           (when (string-match "\\bSTARTTLS\\b" capabilities)
+             "STARTTLS\r\n")))
       (setq sieve-manage-process proc)
       (setq sieve-manage-capability
-            (sieve-manage-parse-capability (getf props :capabilities)))
+            (sieve-manage-parse-capability (plist-get props :capabilities)))
       ;; Ignore new capabilities issues after successful STARTTLS
       (when (and (memq stream '(nil network starttls))
-                 (eq (getf props :type) 'tls))
+                 (eq (plist-get props :type) 'tls))
         (sieve-manage-drop-next-answer))
       (current-buffer))))
 
@@ -502,9 +504,9 @@ If NAME is nil, return the full server list of capabilities."
 (defun sieve-manage-parse-capability (str)
   "Parse managesieve capability string `STR'.
 Set variable `sieve-manage-capability' to "
-  (let ((capas (remove-if #'null
-                          (mapcar #'split-string-and-unquote
-                                  (split-string str "\n")))))
+  (let ((capas (delq nil
+                     (mapcar #'split-string-and-unquote
+                             (split-string str "\n")))))
     (when (string= "OK" (caar (last capas)))
       (setq sieve-manage-state 'nonauth))
     capas))

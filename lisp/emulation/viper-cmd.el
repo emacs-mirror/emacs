@@ -1548,7 +1548,7 @@ as a Meta key and any number of multiple escapes are allowed."
 		(car viper-shell-history)
 		))
        viper-last-shell-com)
-     t)))
+     t t)))
 
 (defun viper-exec-equals (m-com com)
   (save-excursion

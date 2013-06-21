@@ -512,7 +512,13 @@ with L, LRE, or LRO Unicode bidi character type.")
   (set-case-syntax ?¦ "_" tbl)
   (set-case-syntax ?§ "." tbl)
   (set-case-syntax ?© "_" tbl)
-  (set-case-syntax-delims 171 187 tbl)	; « »
+  ;; French wants
+  ;;   (set-case-syntax-delims ?« ?» tbl)
+  ;; And German wants
+  ;;   (set-case-syntax-delims ?» ?« tbl)
+  ;; So let's stay neutral and let users set these up if/when they want to.
+  (set-case-syntax ?« "." tbl)
+  (set-case-syntax ?» "." tbl)
   (set-case-syntax ?¬ "_" tbl)
   (set-case-syntax ?­ "_" tbl)
   (set-case-syntax ?® "_" tbl)

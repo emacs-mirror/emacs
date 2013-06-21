@@ -1,3 +1,38 @@
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Math Functions): Remove obsolete function log10.
+
+2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Mode Line Data, Properties in Mode): Advertise `keymap'
+	rather than `local-map'.
+
+	* keymaps.texi (Active Keymaps): Fix documentation of
+	set-temporary-overlay-map and overriding-terminal-local-map.
+
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Edit more configure variables.
+	Try to check that we do not miss any in future.
+
+2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* text.texi (Undo, Changing Properties): Fix typos.
+
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Changing Properties): Document `add-face-text-property'.
+
+2013-06-17  Kenichi Handa  <handa@gnu.org>
+
+	* display.texi (Face Attributes): Refer to "Low-Level font" (not
+	"Font Selection") in the explanation of :font attribute (bug#14629).
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Hooks for Loading): Don't document after-load-alist.
+	Document with-eval-after-load instead of eval-after-load.
+
 2013-06-11  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* files.texi (File Name Expansion): Make the example more

@@ -124,8 +124,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 #include "xgselect.h"
+#ifndef WINDOWSNT
+#include <glib.h>
+#endif
 #endif
 
 #ifdef WINDOWSNT
@@ -2524,7 +2527,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   struct gcpro gcpro1;
   Lisp_Object name, buffer;
   Lisp_Object tem, val;
-  ptrdiff_t specpdl_count = -1;
+  ptrdiff_t specpdl_count;
 
   if (nargs == 0)
     return Qnil;

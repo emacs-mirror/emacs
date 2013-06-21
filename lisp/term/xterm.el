@@ -516,6 +516,9 @@ The relevant features are:
           (terminal-init-xterm-modify-other-keys))))))
 
 (defun xterm--query (query handlers)
+  "Send QUERY string to the terminal and watch for a response.
+HANDLERS is an alist with elements of the form (STRING . FUNCTION).
+We run the first FUNCTION whose STRING matches the input events."
   ;; We used to query synchronously, but the need to use `discard-input' is
   ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
   ;; approach, but it's less tested.
@@ -544,7 +547,8 @@ The relevant features are:
                                  nil))))
           (setq i (1+ i)))
         (if (= i (length (car handler)))
-            (funcall (cdr handler))
+            (progn (setq handlers nil)
+                   (funcall (cdr handler)))
           (while (> i 0)
             (push (aref (car handler) (setq i (1- i)))
                   unread-command-events)))))))

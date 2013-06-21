@@ -84,6 +84,22 @@ static uniprop_decoder_t uniprop_get_decoder (Lisp_Object);
   (STRINGP (OBJ) && SCHARS (OBJ) > 0	\
    && ((SREF (OBJ, 0) == 1 || (SREF (OBJ, 0) == 2))))
 
+static void
+CHECK_CHAR_TABLE (Lisp_Object x)
+{
+  CHECK_TYPE (CHAR_TABLE_P (x), Qchar_table_p, x);
+}
+
+static void
+set_char_table_ascii (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->ascii = val;
+}
+static void
+set_char_table_parent (Lisp_Object table, Lisp_Object val)
+{
+  XCHAR_TABLE (table)->parent = val;
+}
 
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
        doc: /* Return a newly created char-table, with purpose PURPOSE.

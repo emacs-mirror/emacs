@@ -19,6 +19,9 @@
 
 SHELL = /bin/sh
 
+# NB If you add any more configure variables,
+# update the sed rules in the dist target below.
+
 # Where to find the source code.  $(srcdir) will be the doc/emacs subdirectory
 # of the source tree.  This is set by configure's `--srcdir' option.
 srcdir=@srcdir@
@@ -195,7 +198,12 @@ dist:
 	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
+	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
+	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
 	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
+	@if grep '@[a-zA-Z_]*@' emacs-manual-${version}/Makefile; then \
+	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
+	fi
 	tar -cf emacs-manual-${version}.tar emacs-manual-${version}
 	rm -rf emacs-manual-${version}
 

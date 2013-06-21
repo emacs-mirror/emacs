@@ -54,63 +54,93 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
-(defvar prog-prettify-symbols-alist nil)
+(defvar-local prettify-symbols-alist nil
+  "Alist of symbol prettifications.
+Each element looks like (SYMBOL . CHARACTER), where the symbol
+matching SYMBOL (a string, not a regexp) will be shown as
+CHARACTER instead.")
 
-(defcustom prog-prettify-symbols nil
-  "Whether symbols should be prettified.
-When set to an alist in the form `((STRING . CHARACTER)...)' it
-will augment the mode's native prettify alist."
-  :type '(choice
-          (const :tag "No thanks" nil)
-          (const :tag "Mode defaults" t)
-          (alist :tag "Mode defaults augmented with your own list"
-                 :key-type string :value-type character))
-  :version "24.4")
-
-(defun prog--prettify-font-lock-compose-symbol (alist)
-  "Compose a sequence of ascii chars into a symbol.
+(defun prettify-symbols--compose-symbol (alist)
+  "Compose a sequence of characters into a symbol.
 Regexp match data 0 points to the chars."
   ;; Check that the chars should really be composed into a symbol.
   (let* ((start (match-beginning 0))
 	 (end (match-end 0))
 	 (syntaxes (if (eq (char-syntax (char-after start)) ?w)
-		       '(?w) '(?. ?\\))))
-    (if (or (memq (char-syntax (or (char-before start) ?\ )) syntaxes)
-	    (memq (char-syntax (or (char-after end) ?\ )) syntaxes)
-            (nth 8 (syntax-ppss)))
+		       '(?w) '(?. ?\\)))
+	 match)
+    (if (or (memq (char-syntax (or (char-before start) ?\s)) syntaxes)
+	    (memq (char-syntax (or (char-after end) ?\s)) syntaxes)
+            ;; syntax-ppss could modify the match data (bug#14595)
+            (progn (setq match (match-string 0)) (nth 8 (syntax-ppss))))
 	;; No composition for you.  Let's actually remove any composition
 	;; we may have added earlier and which is now incorrect.
 	(remove-text-properties start end '(composition))
       ;; That's a symbol alright, so add the composition.
-      (compose-region start end (cdr (assoc (match-string 0) alist)))))
+      (compose-region start end (cdr (assoc match alist)))))
   ;; Return nil because we're not adding any face property.
   nil)
 
-(defun prog-prettify-font-lock-symbols-keywords ()
-  (when prog-prettify-symbols
-    (let ((alist (append prog-prettify-symbols-alist
-                         (if (listp prog-prettify-symbols)
-                             prog-prettify-symbols
-                           nil))))
-      `((,(regexp-opt (mapcar 'car alist) t)
-         (0 (prog--prettify-font-lock-compose-symbol ',alist)))))))
+(defun prettify-symbols--make-keywords ()
+  (if prettify-symbols-alist
+      `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
+         (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
+    nil))
 
-(defun prog-prettify-install (alist)
-"Install prog-mode support to prettify symbols according to ALIST.
+(defvar-local prettify-symbols--keywords nil)
 
-ALIST is in the format `((STRING . CHARACTER)...)' like
-`prog-prettify-symbols'.
+;;;###autoload
+(define-minor-mode prettify-symbols-mode
+  "Toggle Prettify Symbols mode.
+With a prefix argument ARG, enable Prettify Symbols mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
-Internally, `font-lock-add-keywords' is called."
-  (setq-local prog-prettify-symbols-alist alist)
-  (let ((keywords (prog-prettify-font-lock-symbols-keywords)))
-    (if keywords (font-lock-add-keywords nil keywords))))
+When Prettify Symbols mode and font-locking are enabled, symbols are
+prettified (displayed as composed characters) according to the rules
+in `prettify-symbols-alist' (which see), which are locally defined
+by major modes supporting prettifying.  To add further customizations
+for a given major mode, you can modify `prettify-symbols-alist' thus:
+
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              (push '(\"<=\" . ?≤) prettify-symbols-alist)))
+
+You can enable this mode locally in desired buffers, or use
+`global-prettify-symbols-mode' to enable it for all modes that
+support it."
+  :init-value nil
+  (if prettify-symbols-mode
+      ;; Turn on
+      (when (setq prettify-symbols--keywords (prettify-symbols--make-keywords))
+        (font-lock-add-keywords nil prettify-symbols--keywords)
+        (setq-local font-lock-extra-managed-props
+                    (cons 'composition font-lock-extra-managed-props))
+        (font-lock-fontify-buffer))
+    ;; Turn off
+    (when prettify-symbols--keywords
+      (font-lock-remove-keywords nil prettify-symbols--keywords)
+      (setq prettify-symbols--keywords nil))
+    (when (memq 'composition font-lock-extra-managed-props)
+      (setq font-lock-extra-managed-props (delq 'composition
+                                                font-lock-extra-managed-props))
+      (with-silent-modifications
+        (remove-text-properties (point-min) (point-max) '(composition nil))))))
+
+(defun turn-on-prettify-symbols-mode ()
+  (when (and (not prettify-symbols-mode)
+             (local-variable-p 'prettify-symbols-alist))
+    (prettify-symbols-mode 1)))
+
+;;;###autoload
+(define-globalized-minor-mode global-prettify-symbols-mode
+  prettify-symbols-mode turn-on-prettify-symbols-mode)
 
 ;;;###autoload
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local require-final-newline mode-require-final-newline)
+  (setq-local parse-sexp-ignore-comments t)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
 

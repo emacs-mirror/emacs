@@ -990,19 +990,18 @@ file that was just loaded.
 @end defvar
 
 If you want code to be executed when a @emph{particular} library is
-loaded, use the function @code{eval-after-load}:
+loaded, use the macro @code{with-eval-after-load}:
 
-@defun eval-after-load library form
-This function arranges to evaluate @var{form} at the end of loading
+@defmac with-eval-after-load library body@dots{}
+This macro arranges to evaluate @var{body} at the end of loading
 the file @var{library}, each time @var{library} is loaded.  If
-@var{library} is already loaded, it evaluates @var{form} right away.
-Don't forget to quote @var{form}!
+@var{library} is already loaded, it evaluates @var{body} right away.
 
 You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(eval-after-load "edebug" '(def-edebug-spec c-point t))
+(with-eval-after-load "edebug" (def-edebug-spec c-point t))
 @end example
 
 To restrict which files can trigger the evaluation, include a
@@ -1014,16 +1013,16 @@ example, @file{my_inst.elc} or @file{my_inst.elc.gz} in some directory
 @file{my_inst.el}:
 
 @example
-(eval-after-load "foo/bar/my_inst.elc" @dots{})
+(with-eval-after-load "foo/bar/my_inst.elc" @dots{})
 @end example
 
 @var{library} can also be a feature (i.e., a symbol), in which case
-@var{form} is evaluated at the end of any file where
+@var{body} is evaluated at the end of any file where
 @code{(provide @var{library})} is called.
 
-An error in @var{form} does not undo the load, but does prevent
-execution of the rest of @var{form}.
-@end defun
+An error in @var{body} does not undo the load, but does prevent
+execution of the rest of @var{body}.
+@end defmac
 
 Normally, well-designed Lisp programs should not use
 @code{eval-after-load}.  If you need to examine and set the variables
@@ -1031,18 +1030,3 @@ defined in another library (those meant for outside use), you can do
 it immediately---there is no need to wait until the library is loaded.
 If you need to call functions defined by that library, you should load
 the library, preferably with @code{require} (@pxref{Named Features}).
-
-@defvar after-load-alist
-This variable stores an alist built by @code{eval-after-load},
-containing the expressions to evaluate when certain libraries are
-loaded.  Each element looks like this:
-
-@example
-(@var{regexp-or-feature} @var{forms}@dots{})
-@end example
-
-The key @var{regexp-or-feature} is either a regular expression or a
-symbol, and the value is a list of forms.  The forms are evaluated
-when the key matches the absolute true name or feature name of the
-library being loaded.
-@end defvar

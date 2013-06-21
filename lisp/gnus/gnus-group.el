@@ -4661,7 +4661,7 @@ you the groups that have both dormant articles and cached articles."
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))
 
-(declare-function gnus-mark-article-as-read "gnu-sum" (article &optional mark))
+(declare-function gnus-mark-article-as-read "gnus-sum" (article &optional mark))
 (declare-function gnus-group-make-articles-read "gnus-sum" (group articles))
 
 (defun gnus-group-mark-article-read (group article)

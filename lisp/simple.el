@@ -2849,10 +2849,11 @@ output is inserted in the current buffer, the buffer `*Shell
 Command Output*' is deleted.
 
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
-command's output.  If the value is a buffer or buffer name, put
-the output there.  Any other value, excluding nil, means to
-insert the output in the current buffer.  In either case, the
-output is inserted after point (leaving mark after it).
+command's output.  If the value is a buffer or buffer name,
+put the output there.  If the value is nil, use the buffer
+`*Shell Command Output*'.  Any other value, excluding nil,
+means to insert the output in the current buffer.  In either case,
+the output is inserted after point (leaving mark after it).
 
 Optional fifth arg REPLACE, if non-nil, means to insert the
 output in place of text from START to END, putting point and mark
@@ -4738,42 +4739,62 @@ lines."
 	   (vpos (nth 1 lh))
 	   (ypos (nth 2 lh))
 	   (rbot (nth 3 lh))
+	   (this-lh (window-line-height))
+	   (this-height (nth 0 this-lh))
+	   (this-ypos (nth 2 this-lh))
+	   (fch (frame-char-height))
 	   py vs)
       (when (or (null lh)
-		(>= rbot (frame-char-height))
-		(<= ypos (- (frame-char-height))))
+		(>= rbot fch)
+		(<= ypos (- fch))
+		(null this-lh)
+		(<= this-ypos (- fch)))
 	(unless lh
 	  (let ((wend (pos-visible-in-window-p t nil t)))
 	    (setq rbot (nth 3 wend)
 		  vpos (nth 5 wend))))
+	(unless this-lh
+	  (let ((wstart (pos-visible-in-window-p nil nil t)))
+	    (setq this-ypos (nth 2 wstart)
+		  this-height (nth 4 wstart))))
+	(setq py
+	      (or (nth 1 this-lh)
+		  (let ((ppos (posn-at-point)))
+		    (cdr (or (posn-actual-col-row ppos)
+			     (posn-col-row ppos))))))
 	(cond
-	 ;; If last line of window is fully visible, move forward.
-	 ((or (null rbot) (= rbot 0))
+	 ;; If last line of window is fully visible, and vscrolling
+	 ;; more would make this line invisible, move forward.
+	 ((and (or (< (setq vs (window-vscroll nil t)) fch)
+		   (null this-height)
+		   (<= this-height fch))
+	       (or (null rbot) (= rbot 0)))
 	  nil)
-	 ;; If cursor is not in the bottom scroll margin, move forward.
-	 ((and (> vpos 0)
-	       (< (setq py
-			(or (nth 1 (window-line-height))
-			    (let ((ppos (posn-at-point)))
-			      (cdr (or (posn-actual-col-row ppos)
-				       (posn-col-row ppos))))))
+	 ;; If cursor is not in the bottom scroll margin, and the
+	 ;; current line is is not too tall, move forward.
+	 ((and (or (null this-height) (<= this-height fch))
+	       vpos
+	       (> vpos 0)
+	       (< py
 		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
-	 ((> (setq vs (window-vscroll nil t)) 0)
-	  (when (> rbot 0)
-	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
+	 ((> vs 0)
+	  (when (or (and rbot (> rbot 0))
+		    (and this-height (> this-height fch)))
+	    (set-window-vscroll nil (+ vs fch) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
 	 ;; but also vscroll one line so redisplay won't recenter.
-	 ((and (> vpos 0)
+	 ((and vpos
+	       (> vpos 0)
 	       (= py (min (- (window-text-height) scroll-margin 1)
 			  (1- vpos))))
 	  (set-window-vscroll nil (frame-char-height) t)
 	  (line-move-1 arg noerror to-end)
 	  t)
 	 ;; If there are lines above the last line, scroll-up one line.
-	 ((> vpos 0)
+	 ((and vpos (> vpos 0))
 	  (scroll-up 1)
 	  t)
 	 ;; Finally, start vscroll.
@@ -4808,7 +4829,14 @@ lines."
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
 	       (not (> (window-hscroll) 0)))
-	  (line-move-visual arg noerror)
+	  (prog1 (line-move-visual arg noerror)
+	    ;; If we moved into a tall line, set vscroll to make
+	    ;; scrolling through tall images more smooth.
+	    (let ((lh (line-pixel-height)))
+	      (if (and (< arg 0)
+		       (< (point) (window-start))
+		       (> lh (frame-char-height)))
+		  (set-window-vscroll nil (- lh (frame-char-height)) t))))
 	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.
@@ -7295,8 +7323,7 @@ version and use the one distributed with Emacs."))
   "Alist of packages known to cause problems in this version of Emacs.
 Each element has the form (PACKAGE SYMBOL REGEXP STRING).
 PACKAGE is either a regular expression to match file names, or a
-symbol (a feature name); see the documentation of
-`after-load-alist', to which this variable adds functions.
+symbol (a feature name), like for `with-eval-after-load'.
 SYMBOL is either the name of a string variable, or `t'.  Upon
 loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
 warning using STRING as the message.")
@@ -7314,10 +7341,10 @@ warning using STRING as the message.")
              (display-warning package (nth 3 list) :warning)))
     (error nil)))
 
-(mapc (lambda (elem)
-        (eval-after-load (car elem) `(bad-package-check ',(car elem))))
-      bad-packages-alist)
-
+(dolist (elem bad-packages-alist)
+  (let ((pkg (car elem)))
+    (with-eval-after-load pkg
+      (bad-package-check pkg))))
 
 (provide 'simple)
 

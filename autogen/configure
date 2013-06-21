@@ -4355,7 +4355,7 @@ this option's value should be \`yes', \`no', \`gfile', \`inotify' or \`w32'.
    with_file_notification=$val
 
 else
-  with_file_notification=yes
+  with_file_notification=$with_features
 fi
 
 
@@ -7585,6 +7585,7 @@ fi
                                     # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
+  nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -14313,6 +14314,27 @@ $as_echo "no" >&6; }
      HAVE_LIBXML2=no
   fi
 
+  # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
+  if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    ac_fn_c_check_header_mongrel "$LINENO" "libxml/HTMLparser.h" "ac_cv_header_libxml_HTMLparser_h" "$ac_includes_default"
+if test "x$ac_cv_header_libxml_HTMLparser_h" = x""yes; then :
+  ac_fn_c_check_decl "$LINENO" "HTML_PARSE_RECOVER" "ac_cv_have_decl_HTML_PARSE_RECOVER" "#include <libxml/HTMLparser.h>
+"
+if test "x$ac_cv_have_decl_HTML_PARSE_RECOVER" = x""yes; then :
+  HAVE_LIBXML2=yes
+fi
+
+fi
+
+
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_LIBS="-lxml2"
+      LIBXML2_CFLAGS="-I/usr/include/libxml2"
+    fi
+  fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
@@ -14678,7 +14700,7 @@ gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-cfmakeraw cfsetspeed copysign __executable_start
+cfmakeraw cfsetspeed copysign __executable_start log2
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -28522,6 +28544,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
+if test $USE_ACL -ne 0; then
+  acl_summary="yes $LIB_ACL"
+else
+  acl_summary=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -28558,6 +28586,7 @@ echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
+echo "  Does Emacs use access control lists?                    ${acl_summary}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

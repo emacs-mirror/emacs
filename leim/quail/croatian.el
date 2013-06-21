@@ -1,4 +1,4 @@
-;;; quail/croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8;-*-
+;;; croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8;-*-
 
 ;; Copyright (C) 2003-2013 Free Software Foundation, Inc.
 
@@ -96,7 +96,7 @@
 
 (quail-define-package
  "croatian-prefix" "Croatian" "HR" nil
- "Croatian input method, postfix.
+ "Croatian input method, prefix.
 
 \"c -> č
 'c -> ć

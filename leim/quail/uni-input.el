@@ -87,7 +87,7 @@
 
 (defun ucs-input-activate (&optional arg)
   "Activate UCS input method.
-With arg, activate UCS input method if and only if arg is positive.
+With ARG, activate UCS input method if and only if ARG is positive.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `ucs-input-method'."

@@ -547,7 +547,7 @@ to the action header."
   (setq font-lock-defaults
         '(cfengine3-font-lock-keywords
           nil nil nil beginning-of-defun))
-  (prog-prettify-install cfengine3--prettify-symbols-alist)
+  (setq-local prettify-symbols-alist cfengine3--prettify-symbols-alist)
 
   ;; Use defuns as the essential syntax block.
   (set (make-local-variable 'beginning-of-defun-function)

@@ -801,7 +801,7 @@ Returns the deleted entries."
   (auth-source-search (plist-put spec :delete t)))
 
 (defun auth-source-search-collection (collection value)
-  "Returns t is VALUE is t or COLLECTION is t or contains VALUE."
+  "Returns t is VALUE is t or COLLECTION is t or COLLECTION contains VALUE."
   (when (and (atom collection) (not (eq t collection)))
     (setq collection (list collection)))
 
@@ -942,7 +942,7 @@ while \(:host t) would find all host entries."
 (defun auth-source--aget (alist key)
   (cdr (assoc key alist)))
 
-;; (auth-source-netrc-parse "~/.authinfo.gpg")
+;; (auth-source-netrc-parse :file "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
                                  spec
                                  &key file max host user port delete require
@@ -955,15 +955,41 @@ Note that the MAX parameter is used so we can exit the parse early."
     (when (file-exists-p file)
       (setq port (auth-source-ensure-strings port))
       (with-temp-buffer
-        (let* ((tokens '("machine" "host" "default" "login" "user"
-                         "password" "account" "macdef" "force"
-                         "port" "protocol"))
-               (max (or max 5000))       ; sanity check: default to stop at 5K
+        (let* ((max (or max 5000))       ; sanity check: default to stop at 5K
                (modified 0)
                (cached (cdr-safe (assoc file auth-source-netrc-cache)))
                (cached-mtime (plist-get cached :mtime))
                (cached-secrets (plist-get cached :secret))
-               alist elem result pair)
+               (check (lambda(alist)
+                        (and alist
+                             (auth-source-search-collection
+                              host
+                              (or
+                               (auth-source--aget alist "machine")
+                               (auth-source--aget alist "host")
+                               t))
+                             (auth-source-search-collection
+                              user
+                              (or
+                               (auth-source--aget alist "login")
+                               (auth-source--aget alist "account")
+                               (auth-source--aget alist "user")
+                               t))
+                             (auth-source-search-collection
+                              port
+                              (or
+                               (auth-source--aget alist "port")
+                               (auth-source--aget alist "protocol")
+                               t))
+                             (or
+                              ;; the required list of keys is nil, or
+                              (null require)
+                              ;; every element of require is in n(ormalized)
+                              (let ((n (nth 0 (auth-source-netrc-normalize
+                                               (list alist) file))))
+                                (loop for req in require
+                                      always (plist-get n req)))))))
+               result)
 
           (if (and (functionp cached-secrets)
                    (equal cached-mtime
@@ -983,85 +1009,10 @@ Note that the MAX parameter is used so we can exit the parse early."
                    :secret (lexical-let ((v (mapcar '1+ (buffer-string))))
                              (lambda () (apply 'string (mapcar '1- v)))))))
           (goto-char (point-min))
-          ;; Go through the file, line by line.
-          (while (and (not (eobp))
-                      (> max 0))
-
-            (narrow-to-region (point) (point-at-eol))
-            ;; For each line, get the tokens and values.
-            (while (not (eobp))
-              (skip-chars-forward "\t ")
-              ;; Skip lines that begin with a "#".
-              (if (eq (char-after) ?#)
-                  (goto-char (point-max))
-                (unless (eobp)
-                  (setq elem
-                        (if (= (following-char) ?\")
-                            (read (current-buffer))
-                          (buffer-substring
-                           (point) (progn (skip-chars-forward "^\t ")
-                                          (point)))))
-                  (cond
-                   ((equal elem "macdef")
-                    ;; We skip past the macro definition.
-                    (widen)
-                    (while (and (zerop (forward-line 1))
-                                (looking-at "$")))
-                    (narrow-to-region (point) (point)))
-                   ((and (member elem tokens) (null pair))
-                    ;; Tokens that don't have a following value are ignored,
-                    ;; except "default".
-                    (when (and pair (or (cdr pair)
-                                        (equal (car pair) "default")))
-                      (push pair alist))
-                    (setq pair (list elem)))
-                   (t
-                    ;; Values that haven't got a preceding token are ignored.
-                    (when pair
-                      (setcdr pair elem)
-                      (push pair alist)
-                      (setq pair nil)))))))
-
-            (when (and alist
-                       (> max 0)
-                       (auth-source-search-collection
-                        host
-                        (or
-                         (auth-source--aget alist "machine")
-                         (auth-source--aget alist "host")
-                         t))
-                       (auth-source-search-collection
-                        user
-                        (or
-                         (auth-source--aget alist "login")
-                         (auth-source--aget alist "account")
-                         (auth-source--aget alist "user")
-                         t))
-                       (auth-source-search-collection
-                        port
-                        (or
-                         (auth-source--aget alist "port")
-                         (auth-source--aget alist "protocol")
-                         t))
-                       (or
-                        ;; the required list of keys is nil, or
-                        (null require)
-                        ;; every element of require is in the normalized list
-                        (let ((normalized (nth 0 (auth-source-netrc-normalize
-                                                  (list alist) file))))
-                          (loop for req in require
-                                always (plist-get normalized req)))))
-              (decf max)
-              (push (nreverse alist) result)
-              ;; to delete a line, we just comment it out
-              (when delete
-                (goto-char (point-min))
-                (insert "#")
-                (incf modified)))
-            (setq alist nil
-                  pair nil)
-            (widen)
-            (forward-line 1))
+          (let ((entries (auth-source-netrc-parse-entries check max))
+                alist)
+            (while (setq alist (pop entries))
+                (push (nreverse alist) result)))
 
           (when (< 0 modified)
             (when auth-source-gpg-encrypt-to
@@ -1083,6 +1034,77 @@ Note that the MAX parameter is used so we can exit the parse early."
                modified file)))
 
           (nreverse result))))))
+
+(defun auth-source-netrc-parse-next-interesting ()
+  "Advance to the next interesting position in the current buffer."
+  ;; If we're looking at a comment or are at the end of the line, move forward
+  (while (or (looking-at "#")
+             (and (eolp)
+                  (not (eobp))))
+    (forward-line 1))
+  (skip-chars-forward "\t "))
+
+(defun auth-source-netrc-parse-one ()
+  "Read one thing from the current buffer."
+  (auth-source-netrc-parse-next-interesting)
+
+  (when (or (looking-at "'\\([^']+\\)'")
+            (looking-at "\"\\([^\"]+\\)\"")
+            (looking-at "\\([^ \t\n]+\\)"))
+    (forward-char (length (match-string 0)))
+    (auth-source-netrc-parse-next-interesting)
+    (match-string-no-properties 1)))
+
+;; with thanks to org-mode
+(defsubst auth-source-current-line (&optional pos)
+  (save-excursion
+    (and pos (goto-char pos))
+    ;; works also in narrowed buffer, because we start at 1, not point-min
+    (+ (if (bolp) 1 0) (count-lines 1 (point)))))
+
+(defun auth-source-netrc-parse-entries(check max)
+  "Parse up to MAX netrc entries, passed by CHECK, from the current buffer."
+  (let ((adder (lambda(check alist all)
+                 (when (and
+                        alist
+                        (> max (length all))
+                        (funcall check alist))
+                   (push alist all))
+                 all))
+        item item2 all alist default)
+    (while (setq item (auth-source-netrc-parse-one))
+      (setq default (equal item "default"))
+      ;; We're starting a new machine.  Save the old one.
+      (when (and alist
+                 (or default
+                     (equal item "machine")))
+        ;; (auth-source-do-trivia
+        ;;  "auth-source-netrc-parse-entries: got entry %S" alist)
+        (setq all (funcall adder check alist all)
+              alist nil))
+      ;; In default entries, we don't have a next token.
+      ;; We store them as ("machine" . t)
+      (if default
+          (push (cons "machine" t) alist)
+        ;; Not a default entry.  Grab the next item.
+        (when (setq item2 (auth-source-netrc-parse-one))
+          ;; Did we get a "machine" value?
+          (if (equal item2 "machine")
+              (progn
+                (gnus-error 1
+                 "%s: Unexpected 'machine' token at line %d"
+                 "auth-source-netrc-parse-entries"
+                 (auth-source-current-line))
+                (forward-line 1))
+            (push (cons item item2) alist)))))
+
+    ;; Clean up: if there's an entry left over, use it.
+    (when alist
+      (setq all (funcall adder check alist all))
+      ;; (auth-source-do-trivia
+      ;;  "auth-source-netrc-parse-entries: got2 entry %S" alist)
+      )
+    (nreverse all)))
 
 (defvar auth-source-passphrase-alist nil)
 

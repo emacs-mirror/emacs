@@ -1540,17 +1540,22 @@ nil and a non-nil value of the option `search-invisible'
   "Return a regexp which matches words, ignoring punctuation.
 Given STRING, a string of words separated by word delimiters,
 compute a regexp that matches those exact words separated by
-arbitrary punctuation.  If LAX is non-nil, the end of the string
-need not match a word boundary unless it ends in whitespace.
+arbitrary punctuation.  If the string begins or ends in whitespace,
+the beginning or the end of the string matches arbitrary whitespace.
+Otherwise if LAX is non-nil, the beginning or the end of the string
+need not match a word boundary.
 
 Used in `word-search-forward', `word-search-backward',
 `word-search-forward-lax', `word-search-backward-lax'."
-  (if (string-match-p "^\\W*$" string)
-      ""
-    (concat
-     "\\b"
-     (mapconcat 'identity (split-string string "\\W+" t) "\\W+")
-     (if (or (not lax) (string-match-p "\\W$" string)) "\\b"))))
+  (cond
+   ((equal string "") "")
+   ((string-match-p "\\`\\W+\\'" string) "\\W+")
+   (t (concat
+       (if (string-match-p "\\`\\W" string) "\\W+"
+	 (unless lax "\\<"))
+       (mapconcat 'regexp-quote (split-string string "\\W+" t) "\\W+")
+       (if (string-match-p "\\W\\'" string) "\\W+"
+	 (unless lax "\\>"))))))
 
 (defun word-search-backward (string &optional bound noerror count)
   "Search backward from point for STRING, ignoring differences in punctuation.
@@ -1625,8 +1630,24 @@ to punctuation."
 (defun isearch-symbol-regexp (string &optional lax)
   "Return a regexp which matches STRING as a symbol.
 Creates a regexp where STRING is surrounded by symbol delimiters \\_< and \\_>.
-If LAX is non-nil, the end of the string need not match a symbol boundary."
-  (concat "\\_<" (regexp-quote string) (unless lax "\\_>")))
+If there are more than one symbol, then compute a regexp that matches
+those exact symbols separated by non-symbol characters.  If the string
+begins or ends in whitespace, the beginning or the end of the string
+matches arbitrary non-symbol whitespace.  Otherwise if LAX is non-nil,
+the beginning or the end of the string need not match a symbol boundary."
+  (let ((not-word-symbol-re
+	 ;; This regexp matches all syntaxes except word and symbol syntax.
+	 ;; FIXME: Replace it with something shorter if possible (bug#14602).
+	 "\\(?:\\s-\\|\\s.\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s/\\|\\s$\\|\\s'\\|\\s<\\|\\s>\\|\\s@\\|\\s!\\|\\s|\\)+"))
+    (cond
+     ((equal string "") "")
+     ((string-match-p (format "\\`%s\\'" not-word-symbol-re) string) not-word-symbol-re)
+     (t (concat
+	 (if (string-match-p (format "\\`%s" not-word-symbol-re) string) not-word-symbol-re
+	   (unless lax "\\_<"))
+	 (mapconcat 'regexp-quote (split-string string not-word-symbol-re t) not-word-symbol-re)
+	 (if (string-match-p (format "%s\\'" not-word-symbol-re) string) not-word-symbol-re
+	   (unless lax "\\_>")))))))
 
 (put 'isearch-symbol-regexp 'isearch-message-prefix "symbol ")
 
@@ -1657,9 +1678,10 @@ If LAX is non-nil, the end of the string need not match a symbol boundary."
   "Start `query-replace' with string to replace from last search string.
 The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  Note that using the prefix arg
-is possible only when `isearch-allow-scroll' is non-nil, and it doesn't
-always provide the correct matches for `query-replace', so the preferred
-way to run word replacements from Isearch is `M-s w ... M-%'."
+is possible only when `isearch-allow-scroll' is non-nil or
+`isearch-allow-prefix' is non-nil, and it doesn't always provide the
+correct matches for `query-replace', so the preferred way to run word
+replacements from Isearch is `M-s w ... M-%'."
   (interactive
    (list current-prefix-arg))
   (barf-if-buffer-read-only)
@@ -1693,7 +1715,15 @@ way to run word replacements from Isearch is `M-s w ... M-%'."
      (query-replace-read-to
       isearch-string
       (concat "Query replace"
-	      (if (or delimited isearch-word) " word" "")
+	      (if (or delimited isearch-word)
+		  (let* ((symbol (or delimited isearch-word))
+			 (string (and symbol (symbolp symbol)
+				      (get symbol 'isearch-message-prefix))))
+		    (if (stringp string)
+			;; Move space from the end to the beginning.
+			(replace-regexp-in-string "\\(.*\\) \\'" " \\1" string)
+		      " word"))
+		"")
 	      (if isearch-regexp " regexp" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
@@ -1735,12 +1765,14 @@ characters in that string."
 		   ;; No subexpression so collect the entire match.
 		   "\\&"
 		 ;; Get the regexp for collection pattern.
-		 (isearch-done nil t)
-		 (isearch-clean-overlays)
-		 (let ((default (car occur-collect-regexp-history)))
-		   (read-regexp
-		    (format "Regexp to collect (default %s): " default)
-		    default 'occur-collect-regexp-history)))
+		 (let ((default (car occur-collect-regexp-history))
+		       regexp-collect)
+		   (with-isearch-suspended
+		    (setq regexp-collect
+			  (read-regexp
+			   (format "Regexp to collect (default %s): " default)
+			   default 'occur-collect-regexp-history)))
+		   regexp-collect))
 	     ;; Otherwise normal occur takes numerical prefix argument.
 	     (when current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg))))))
@@ -1815,11 +1847,17 @@ If search string is empty, just beep."
   (interactive "p")
   (if (= 0 (length isearch-string))
       (ding)
-    (setq isearch-string (substring isearch-string 0 (- (or arg 1)))
+    (setq isearch-string (substring isearch-string 0
+				    (- (min (or arg 1)
+					    (length isearch-string))))
           isearch-message (mapconcat 'isearch-text-char-description
                                      isearch-string "")))
   ;; Use the isearch-other-end as new starting point to be able
   ;; to find the remaining part of the search string again.
+  ;; This is like what `isearch-search-and-update' does,
+  ;; but currently it doesn't support deletion of characters
+  ;; for the case where unsuccessful search may become successful
+  ;; by deletion of characters.
   (if isearch-other-end (goto-char isearch-other-end))
   (isearch-search)
   (isearch-push-state)
@@ -1919,29 +1957,33 @@ Subword is used when `subword-mode' is activated. "
 	   (forward-word 1))
        (forward-char 1)) (point))))
 
-(defun isearch-yank-word ()
+(defun isearch-yank-word (&optional arg)
   "Pull next word from buffer into search string."
-  (interactive)
-  (isearch-yank-internal (lambda () (forward-word 1) (point))))
+  (interactive "p")
+  (isearch-yank-internal (lambda () (forward-word arg) (point))))
 
-(defun isearch-yank-line ()
+(defun isearch-yank-line (&optional arg)
   "Pull rest of line from buffer into search string."
-  (interactive)
+  (interactive "p")
   (isearch-yank-internal
    (lambda () (let ((inhibit-field-text-motion t))
-		(line-end-position (if (eolp) 2 1))))))
+		(line-end-position (if (eolp) (1+ arg) arg))))))
 
-(defun isearch-char-by-name ()
+(defun isearch-char-by-name (&optional count)
   "Read a character by its Unicode name and add it to the search string.
-Completion is available like in `read-char-by-name' used by `insert-char'."
-  (interactive)
+Completion is available like in `read-char-by-name' used by `insert-char'.
+With argument, add COUNT copies of the character."
+  (interactive "p")
   (with-isearch-suspended
    (let ((char (read-char-by-name "Add character to search (Unicode name or hex): ")))
      (when char
-       (setq isearch-new-string (concat isearch-string (string char))
-	     isearch-new-message (concat isearch-message
-					 (mapconcat 'isearch-text-char-description
-						    (string char) "")))))))
+       (let ((string (if (and (integerp count) (> count 1))
+			 (make-string count char)
+		       (char-to-string char))))
+	 (setq isearch-new-string (concat isearch-string string)
+	       isearch-new-message (concat isearch-message
+					   (mapconcat 'isearch-text-char-description
+						      string ""))))))))
 
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.
@@ -2382,9 +2424,10 @@ Isearch mode."
           (t;; otherwise nil
 	   (isearch-process-search-string key key)))))
 
-(defun isearch-quote-char ()
-  "Quote special characters for incremental search."
-  (interactive)
+(defun isearch-quote-char (&optional count)
+  "Quote special characters for incremental search.
+With argument, add COUNT copies of the character."
+  (interactive "p")
   (let ((char (read-quoted-char (isearch-message t))))
     ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
@@ -2392,24 +2435,26 @@ Isearch mode."
     (if (and isearch-regexp isearch-regexp-lax-whitespace (= char ?\s))
 	(if (subregexp-context-p isearch-string (length isearch-string))
 	    (isearch-process-search-string "[ ]" " ")
-	  (isearch-process-search-char char))
+	  (isearch-process-search-char char count))
       (and enable-multibyte-characters
 	   (>= char ?\200)
 	   (<= char ?\377)
 	   (setq char (unibyte-char-to-multibyte char)))
-      (isearch-process-search-char char))))
+      (isearch-process-search-char char count))))
 
-(defun isearch-printing-char ()
-  "Add this ordinary printing character to the search string and search."
-  (interactive)
-  (let ((char last-command-event))
+(defun isearch-printing-char (&optional char count)
+  "Add this ordinary printing CHAR to the search string and search.
+With argument, add COUNT copies of the character."
+  (interactive (list last-command-event
+		     (prefix-numeric-value current-prefix-arg)))
+  (let ((char (or char last-command-event)))
     (if (= char ?\S-\ )
 	(setq char ?\s))
     (if current-input-method
-	(isearch-process-search-multibyte-characters char)
-      (isearch-process-search-char char))))
+	(isearch-process-search-multibyte-characters char count)
+      (isearch-process-search-char char count))))
 
-(defun isearch-process-search-char (char)
+(defun isearch-process-search-char (char &optional count)
   ;; * and ? are special in regexps when not preceded by \.
   ;; } and | are special in regexps when preceded by \.
   ;; Nothing special for + because it matches at least once.
@@ -2418,12 +2463,15 @@ Isearch mode."
    ((eq   char ?\})      (isearch-fallback t t))
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
-  ;; Append the char to the search string, update the message and re-search.
-  (isearch-process-search-string
-   (char-to-string char)
-   (if (>= char ?\200)
-       (char-to-string char)
-     (isearch-text-char-description char))))
+  ;; Append the char(s) to the search string,
+  ;; update the message and re-search.
+  (let* ((string (if (and (integerp count) (> count 1))
+		     (make-string count char)
+		   (char-to-string char)))
+	 (message (if (>= char ?\200)
+		      string
+		    (mapconcat 'isearch-text-char-description string ""))))
+    (isearch-process-search-string string message)))
 
 (defun isearch-process-search-string (string message)
   (setq isearch-string (concat isearch-string string)

@@ -271,7 +271,7 @@ Root must be the root of an Emacs source tree."
 <meta name=\"DC.title\" content=\"gnu.org\">\n\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
-@import url('/style.css');\n</style>\n")
+@import url('/s/emacs/manual.css');\n</style>\n")
 
 (defun manual-misc-html (name root html-node-dir html-mono-dir)
   (let ((texi (expand-file-name (format "doc/misc/%s.texi" name) root)))

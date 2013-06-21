@@ -84,7 +84,9 @@
             (setf (url-future-value url-future)
                   (funcall ff))
           (error (url-future-errored url-future catcher)))
-        (url-future-value url-future)))
+        ;; Unused return value.
+;;;        (url-future-value url-future)
+        ))
     (if (url-future-errored-p url-future)
         url-future
       (url-future-finish url-future))))

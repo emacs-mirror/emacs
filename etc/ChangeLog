@@ -1,3 +1,15 @@
+2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new Prettify Symbols mode.
+
+2013-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS (utf-8 for el): Move to the incompatible section.
+
+2013-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* DEBUG: Document -Og and -fno-omit-frame-pointer.
+
 2013-06-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Document new prog-mode symbol prettify support.
@@ -6,10 +18,10 @@
 
 	* NEWS: Document eshell visual subcommands and options.
 
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
 
 	* srecode/c.srt (header_guard): Add :c parameter so it works
-	standalone
+	standalone.
 
 2013-06-01  Alex Ott  <alexott@gmail.com>
 
@@ -23,7 +35,7 @@
 
 	* refcards/refcard.tex: Refine some entries.  (Bug#14087)
 
-	* refcards/dired-ref.tex: Refine some entries. (Bug#14072)
+	* refcards/dired-ref.tex: Refine some entries.  (Bug#14072)
 
 2013-05-24  Fabrice Niessen  <fni@missioncriticalit.com>
 
@@ -39,7 +51,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* NEWS: Emacs is no longer limited to POSIX ACLs.  --disable-acl,
 	not --without-acl, since we're now using Gnulib's implementation.
 
@@ -111,7 +123,7 @@
 
 	* srecode/c.srt (header_guard): Upcase the filename symbol.
 
-2013-03-21  Vladimir Kazanov <vkazanov@inbox.ru>
+2013-03-21  Vladimir Kazanov  <vkazanov@inbox.ru>
 
 	* srecode/java.srt (empty-main): New.
 	(class-tag): Decapitalize class.
@@ -201,7 +213,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* NEWS: Document changes to file-attributes,
 	file-ownership-preserved-p.
 	Mention new functions group-gid, group-real-gid.
@@ -507,7 +519,7 @@
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org/OrgOdtContentTemplate.xml (OrgIndentedSection-Level-*):
-	New section styles. These sections are indented to the same
+	New section styles.  These sections are indented to the same
 	level as the corresponding list entries.  These sections hold
 	tables that occur within a list.  (OrgTable):
 	Increased relative width from 90% to 96% for aesthetic reasons.
@@ -673,7 +685,7 @@
 
 2011-08-24  Steve Chapel  <schapel@laptop.stevechapel.com>  (tiny change)
 
-	* refcards/refcard.tex: Add a few more commands. (Bug#9343)
+	* refcards/refcard.tex: Add a few more commands.  (Bug#9343)
 
 2011-08-22  Juri Linkov  <juri@jurta.org>
 
@@ -3873,7 +3885,7 @@
 
 2005-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* NEWS: -nb => -nbi
+	* NEWS: -nb => -nbi.
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 

@@ -2485,7 +2485,7 @@ the United States."
 
 
 (defconst math-bignum-digit-length
-  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
+  (truncate (/ (log (/ most-positive-fixnum 2) 10) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
 length of the allowable Emacs integers N0, N1,...

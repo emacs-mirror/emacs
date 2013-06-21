@@ -181,8 +181,8 @@ struct au_header
 
 struct sound_device
 {
-  /* The name of the device or null meaning use a default device name.  */
-  char *file;
+  /* If a string, the name of the device; otherwise use a default.  */
+  Lisp_Object file;
 
   /* File descriptor of the device.  */
   int fd;
@@ -271,24 +271,11 @@ static struct sound *current_sound;
 
 /* Function prototypes.  */
 
-static void vox_open (struct sound_device *);
-static void vox_configure (struct sound_device *);
-static void vox_close (struct sound_device *sd);
-static void vox_choose_format (struct sound_device *, struct sound *);
-static int vox_init (struct sound_device *);
 static void vox_write (struct sound_device *, const char *, ptrdiff_t);
-static void find_sound_type (struct sound *);
-static u_int32_t le2hl (u_int32_t);
-static u_int16_t le2hs (u_int16_t);
-static u_int32_t be2hl (u_int32_t);
-static int wav_init (struct sound *);
+static bool wav_init (struct sound *);
 static void wav_play (struct sound *, struct sound_device *);
-static int au_init (struct sound *);
+static bool au_init (struct sound *);
 static void au_play (struct sound *, struct sound_device *);
-
-#if 0 /* Currently not used.  */
-static u_int16_t be2hs (u_int16_t);
-#endif
 
 /* END: Non Windows Definitions */
 #else /* WINDOWSNT */
@@ -364,7 +351,7 @@ sound_warning (const char *msg)
    VOL must be an integer in the range [0, 100], or a float in the
    range [0, 1].  */
 
-static int
+static bool
 parse_sound (Lisp_Object sound, Lisp_Object *attrs)
 {
   /* SOUND must be a list starting with the symbol `sound'.  */
@@ -429,6 +416,15 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
 
 /* BEGIN: Non Windows functions */
 #ifndef WINDOWSNT
+
+/* Return S's value as a string if S is a string, otherwise DEFAULT_VALUE.  */
+
+static char const *
+string_default (Lisp_Object s, char const *default_value)
+{
+  return STRINGP (s) ? SSDATA (s) : default_value;
+}
+
 
 /* Find out the type of the sound file whose file descriptor is FD.
    S is the sound file structure to fill in.  */
@@ -527,9 +523,9 @@ be2hs (u_int16_t value)
    contains the first MAX_SOUND_HEADER_BYTES number of bytes from the
    sound file.  If the file is a WAV-format file, set up interface
    functions in S and convert header fields to host byte-order.
-   Value is non-zero if the file is a WAV file.  */
+   Value is true if the file is a WAV file.  */
 
-static int
+static bool
 wav_init (struct sound *s)
 {
   struct wav_header *header = (struct wav_header *) s->header;
@@ -635,9 +631,9 @@ enum au_encoding
    contains the first MAX_SOUND_HEADER_BYTES number of bytes from the
    sound file.  If the file is a AU-format file, set up interface
    functions in S and convert header fields to host byte-order.
-   Value is non-zero if the file is an AU file.  */
+   Value is true if the file is an AU file.  */
 
-static int
+static bool
 au_init (struct sound *s)
 {
   struct au_header *header = (struct au_header *) s->header;
@@ -706,20 +702,14 @@ au_play (struct sound *s, struct sound_device *sd)
    has a compatible own driver aka Luigi's driver.  */
 
 
-/* Open device SD.  If SD->file is non-null, open that device,
+/* Open device SD.  If SD->file is a string, open that device,
    otherwise use a default device name.  */
 
 static void
 vox_open (struct sound_device *sd)
 {
-  const char *file;
-
   /* Open the sound device (eg /dev/dsp).  */
-  if (sd->file)
-    file = sd->file;
-  else
-    file = DEFAULT_SOUND_DEVICE;
-
+  char const *file = string_default (sd->file, DEFAULT_SOUND_DEVICE);
   sd->fd = emacs_open (file, O_WRONLY, 0);
   if (sd->fd < 0)
     sound_perror (file);
@@ -862,18 +852,12 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 /* Initialize device SD.  Set up the interface functions in the device
    structure.  */
 
-static int
+static bool
 vox_init (struct sound_device *sd)
 {
-  const char *file;
-  int fd;
-
   /* Open the sound device (eg /dev/dsp).  */
-  if (sd->file)
-    file = sd->file;
-  else
-    file = DEFAULT_SOUND_DEVICE;
-  fd = emacs_open (file, O_WRONLY, 0);
+  char const *file = string_default (sd->file, DEFAULT_SOUND_DEVICE);
+  int fd = emacs_open (file, O_WRONLY, 0);
   if (fd >= 0)
     emacs_close (fd);
   else
@@ -924,23 +908,17 @@ struct alsa_params
   snd_pcm_uframes_t period_size;
 };
 
-/* Open device SD.  If SD->file is non-null, open that device,
+/* Open device SD.  If SD->file is a string, open that device,
    otherwise use a default device name.  */
 
 static void
 alsa_open (struct sound_device *sd)
 {
-  const char *file;
-  struct alsa_params *p;
+  /* Open the sound device.  Default is "default".  */
+  struct alsa_params *p = xmalloc (sizeof *p);
+  char const *file = string_default (sd->file, DEFAULT_ALSA_SOUND_DEVICE);
   int err;
 
-  /* Open the sound device.  Default is "default".  */
-  if (sd->file)
-    file = sd->file;
-  else
-    file = DEFAULT_ALSA_SOUND_DEVICE;
-
-  p = xmalloc (sizeof *p);
   p->handle = NULL;
   p->hwparams = NULL;
   p->swparams = NULL;
@@ -1052,10 +1030,10 @@ alsa_configure (struct sound_device *sd)
       int chn;
       snd_mixer_t *handle;
       snd_mixer_elem_t *e;
-      const char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
-
       if (snd_mixer_open (&handle, 0) >= 0)
         {
+	  char const *file = string_default (sd->file,
+					     DEFAULT_ALSA_SOUND_DEVICE);
           if (snd_mixer_attach (handle, file) >= 0
               && snd_mixer_load (handle) >= 0
               && snd_mixer_selem_register (handle, NULL, NULL) >= 0)
@@ -1212,18 +1190,13 @@ snd_error_quiet (const char *file, int line, const char *function, int err,
 /* Initialize device SD.  Set up the interface functions in the device
    structure.  */
 
-static int
+static bool
 alsa_init (struct sound_device *sd)
 {
-  const char *file;
+  /* Open the sound device.  Default is "default".  */
+  char const *file = string_default (sd->file, DEFAULT_ALSA_SOUND_DEVICE);
   snd_pcm_t *handle;
   int err;
-
-  /* Open the sound device.  Default is "default".  */
-  if (sd->file)
-    file = sd->file;
-  else
-    file = DEFAULT_ALSA_SOUND_DEVICE;
 
   snd_lib_error_set_handler ((snd_lib_error_handler_t) snd_error_quiet);
   err = snd_pcm_open (&handle, file, SND_PCM_STREAM_PLAYBACK, 0);
@@ -1362,7 +1335,6 @@ Internal use only, use `play-sound' instead.  */)
   char * psz_file = NULL;
   unsigned long ui_volume_tmp = UINT_MAX;
   unsigned long ui_volume = UINT_MAX;
-  int i_result = 0;
 #endif /* WINDOWSNT */
 
   /* Parse the sound specification.  Give up if it is invalid.  */
@@ -1404,12 +1376,7 @@ Internal use only, use `play-sound' instead.  */)
   find_sound_type (current_sound);
 
   /* Set up a device.  */
-  if (STRINGP (attrs[SOUND_DEVICE]))
-    {
-      int len = SCHARS (attrs[SOUND_DEVICE]);
-      current_sound_device->file = alloca (len + 1);
-      strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
-    }
+  current_sound_device->file = attrs[SOUND_DEVICE];
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
     current_sound_device->volume = XFASTINT (attrs[SOUND_VOLUME]);
@@ -1462,7 +1429,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       ui_volume = ui_volume_tmp * (UINT_MAX / 100);
     }
-  i_result = do_play_sound (psz_file, ui_volume);
+  do_play_sound (psz_file, ui_volume);
 
 #endif /* WINDOWSNT */
 

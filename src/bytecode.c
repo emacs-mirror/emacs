@@ -1636,7 +1636,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    c = XFASTINT (TOP);
 	    if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	      MAKE_CHAR_MULTIBYTE (c);
-	    XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (c)]);
+	    XSETFASTINT (TOP, syntax_code_spec[SYNTAX (c)]);
 	  }
 	  NEXT;
 

@@ -362,7 +362,7 @@ static NSString
 *ns_registry_to_script (char *reg)
 {
     Lisp_Object script, r, rts = Vns_reg_to_script;
-    while CONSP (rts)
+    while (CONSP (rts))
       {
         r = XCAR (XCAR (rts));
         if (!strncmp (SSDATA (r), reg, SBYTES (r)))

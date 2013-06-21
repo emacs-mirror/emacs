@@ -68,6 +68,7 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	emacs-lisp/cl-loaddefs.el \
 	calc/calc-loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
@@ -79,7 +80,6 @@ AUTOGENEL = loaddefs.el \
 AUTOGEN_VCS = \
 	ps-print.el \
 	emulation/tpu-edt.el \
-	emacs-lisp/cl-loaddefs.el \
 	mail/rmail.el \
 	dired.el \
 	ibuffer.el \
@@ -178,7 +178,10 @@ autoloads: $(LOADDEFS) doit
 	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file (unmsys--file-name "$(lisp)/loaddefs.el"))' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload \
+	    --eval '(setq autoload-builtin-package-versions t)' \
+	    --eval '(setq generated-autoload-file (unmsys--file-name "$(lisp)/loaddefs.el"))' \
+	    -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.

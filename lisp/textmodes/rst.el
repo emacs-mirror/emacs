@@ -2419,8 +2419,8 @@ level to align."
                 ;; for the numbers.
                 (if (cdr node)
                     (setq fmt (format "%%-%dd"
-                                      (1+ (floor (log10 (length
-							 (cdr node))))))))))
+                                      (1+ (floor (log (length (cdr node))
+						      10))))))))
 
           (dolist (child (cdr node))
             (rst-toc-insert-node child

@@ -2156,7 +2156,10 @@ make, or the user didn't cancel the call."
 			 (with-output-to-temp-buffer "*Help*"
 			   (princ
 			    (concat "Query replacing "
-				    (if delimited-flag "word " "")
+				    (if delimited-flag
+					(or (and (symbolp delimited-flag)
+						 (get delimited-flag 'isearch-message-prefix))
+					    "word ") "")
 				    (if regexp-flag "regexp " "")
 				    from-string " with "
 				    next-replacement ".\n\n"

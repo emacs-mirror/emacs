@@ -3725,20 +3725,21 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 					       output-buffer process nil t)
       ;; Wait for the process to complete
       (set-buffer (process-buffer process))
-      (while (null comint-redirect-completed)
-	(accept-process-output nil 1))
+      (while (and (null comint-redirect-completed)
+		  (accept-process-output process)))
       ;; Collect the output
       (set-buffer output-buffer)
       (goto-char (point-min))
       ;; Skip past the command, if it was echoed
       (and (looking-at command)
 	   (forward-line))
-      (while (re-search-forward regexp nil t)
+      (while (and (not (eobp))
+		  (re-search-forward regexp nil t))
 	(push (buffer-substring-no-properties
                (match-beginning regexp-group)
                (match-end regexp-group))
               results))
-      results)))
+      (nreverse results))))
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================
