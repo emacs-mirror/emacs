@@ -1,3 +1,8 @@
+2013-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* comint.el (comint-redirect-results-list-from-process): Fix
+	random delay.  (Bug#14681)
+
 2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* profiler.el (profiler-format-number): Use log, not log10.

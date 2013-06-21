@@ -3725,8 +3725,8 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 					       output-buffer process nil t)
       ;; Wait for the process to complete
       (set-buffer (process-buffer process))
-      (while (null comint-redirect-completed)
-	(accept-process-output nil 1))
+      (while (and (null comint-redirect-completed)
+		  (accept-process-output process)))
       ;; Collect the output
       (set-buffer output-buffer)
       (goto-char (point-min))
