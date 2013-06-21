@@ -1,3 +1,8 @@
+2013-06-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.ac (HAVE_LIBXML2): Try built-in libxml2 on OS X 10.8
+	as a fallback.
+
 2013-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .bzrignore: Don't unignore cl-loaddefs.el.
