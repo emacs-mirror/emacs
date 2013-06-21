@@ -3,6 +3,8 @@
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
 	keyword-like methods on Kernel and Module with
 	font-lock-builtin-face.
+	(auto-mode-alist): Consolidate different entries into one regexp
+	and add more *file-s.
 
 2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
 
