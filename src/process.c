@@ -1582,7 +1582,8 @@ create_process_1 (struct atimer *timer)
 
 
 static void
-create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
+create_process (volatile Lisp_Object process, char **new_argv,
+		Lisp_Object current_dir)
 {
   int inchannel, outchannel;
   pid_t pid;

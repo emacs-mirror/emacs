@@ -1,3 +1,13 @@
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	* ebrowse.c: Include <stddef.h>, for offsetof.
+	(struct member, struct alias, struct sym):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	(add_sym, add_member, make_namespace, register_namespace_alias):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+
 2013-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove *.res files.

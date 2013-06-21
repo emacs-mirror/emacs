@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -237,7 +238,7 @@ struct member
   char *def_regexp;		/* Regular expression matching definition.  */
   const char *def_filename;	/* File name of definition.  */
   int def_pos;			/* Buffer position of definition.  */
-  char name[1];			/* Member name.  */
+  char name[FLEXIBLE_ARRAY_MEMBER]; /* Member name.  */
 };
 
 /* Structures of this type are used to connect class structures with
@@ -256,7 +257,7 @@ struct alias
   struct alias *next;		/* Next in list.  */
   struct sym *namesp;		/* Namespace in which defined.  */
   struct link *aliasee;		/* List of aliased namespaces (A::B::C...).  */
-  char name[1];			/* Alias name.  */
+  char name[FLEXIBLE_ARRAY_MEMBER]; /* Alias name.  */
 };
 
 /* The structure used to describe a class in the symbol table,
@@ -280,7 +281,7 @@ struct sym
   const char *filename;		/* File in which it can be found.  */
   const char *sfilename; 	/* File in which members can be found.  */
   struct sym *namesp;		/* Namespace in which defined. .  */
-  char name[1];                 /* Name of the class.  */
+  char name[FLEXIBLE_ARRAY_MEMBER]; /* Name of the class.  */
 };
 
 /* Experimental: Print info for `--position-info'.  We print
@@ -567,8 +568,8 @@ add_sym (const char *name, struct sym *nested_in_class)
 	  puts (name);
 	}
 
-      sym = (struct sym *) xmalloc (sizeof *sym + strlen (name));
-      memset (sym, 0, sizeof *sym);
+      sym = xmalloc (offsetof (struct sym, name) + strlen (name) + 1);
+      memset (sym, 0, offsetof (struct sym, name));
       strcpy (sym->name, name);
       sym->namesp = scope;
       sym->next = class_table[h];
@@ -852,7 +853,8 @@ add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, 
 static struct member *
 add_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
-  struct member *m = (struct member *) xmalloc (sizeof *m + strlen (name));
+  struct member *m = xmalloc (offsetof (struct member, name)
+			      + strlen (name) + 1);
   struct member **list;
   struct member *p;
   struct member *prev;
@@ -962,8 +964,8 @@ mark_inherited_virtual (void)
 static struct sym *
 make_namespace (char *name, struct sym *context)
 {
-  struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
-  memset (s, 0, sizeof *s);
+  struct sym *s = xmalloc (offsetof (struct sym, name) + strlen (name) + 1);
+  memset (s, 0, offsetof (struct sym, name));
   strcpy (s->name, name);
   s->next = all_namespaces;
   s->namesp = context;
@@ -1046,7 +1048,7 @@ register_namespace_alias (char *new_name, struct link *old_name)
     if (streq (new_name, al->name) && (al->namesp == current_namespace))
       return;
 
-  al = (struct alias *) xmalloc (sizeof *al + strlen (new_name));
+  al = xmalloc (offsetof (struct alias, name) + strlen (new_name) + 1);
   strcpy (al->name, new_name);
   al->next = namespace_alias_table[h];
   al->namesp = current_namespace;
