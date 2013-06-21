@@ -230,9 +230,12 @@
 
 (defun eww-update-header-line-format ()
   (if eww-header-line-format
-      (setq header-line-format (format-spec eww-header-line-format
-                                            `((?u . ,eww-current-url)
-                                              (?t . ,eww-current-title))))
+      (setq header-line-format
+	    (replace-regexp-in-string
+	     "%" "%%"
+	     (format-spec eww-header-line-format
+			  `((?u . ,eww-current-url)
+			    (?t . ,eww-current-title)))))
     (setq header-line-format nil)))
 
 (defun eww-tag-title (cont)

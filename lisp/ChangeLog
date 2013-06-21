@@ -1,3 +1,7 @@
+2013-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-update-header-line-format): Quote % characters.
+
 2013-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* play/cookie1.el (cookie): New custom group.
