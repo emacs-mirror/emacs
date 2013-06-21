@@ -64,9 +64,13 @@
 ;; This package is a new version of Oliver Seidel's todo-mode.el.
 ;; While it retains the same basic organization and handling of todo
 ;; lists and the basic UI, it significantly extends these and adds
-;; many features.  This also required making changes to the internals,
-;; including the file format.  To convert files in the old format to
-;; the new format, use the command `todo-convert-legacy-files'.
+;; many features.  This required also making changes to the internals,
+;; including the file format.  If you have a todo file in old format,
+;; then the first time you invoke `todo-show' (i.e., before you have
+;; created any todo file in the current format), it will ask you
+;; whether to convert that file and show it.  If you choose not to
+;; convert the old-style file at this time, you can do so later by
+;; calling the command `todo-convert-legacy-files'.
 
 ;;; Code:
 
@@ -556,7 +560,7 @@ less than or equal the category's top priority setting."
   :group 'todo-faces)
 
 ;; -----------------------------------------------------------------------------
-;;; Entering and exiting Todo
+;;; Entering and exiting
 ;; -----------------------------------------------------------------------------
 
 (defcustom todo-visit-files-commands (list 'find-file 'dired-find-file)
@@ -625,23 +629,27 @@ Otherwise, `todo-show' always visits `todo-default-todo-file'."
   :type 'boolean
   :group 'todo)
 
+;;;###autoload
 (defun todo-show (&optional solicit-file)
-  "Visit a Todo file and display one of its categories.
+  "Visit a todo file and display one of its categories.
 
 When invoked in Todo mode, prompt for which todo file to visit.
 When invoked outside of Todo mode with non-nil prefix argument
 SOLICIT-FILE prompt for which todo file to visit; otherwise visit
 `todo-default-todo-file'.  Subsequent invocations from outside
 of Todo mode revisit this file or, with option
-`todo-show-current-file' non-nil (the default), whichever Todo
+`todo-show-current-file' non-nil (the default), whichever todo
 file was last visited.
 
-Calling this command before any Todo file exists prompts for a
-file name and an initial category (defaulting to
-`todo-initial-file' and `todo-initial-category'), creates both
-of these, visits the file and displays the category, and if
-option `todo-add-item-if-new-category' is non-nil (the default),
-prompts for the first item.
+If you call this command before you have created any todo file in
+the current format, and you have an todo file in old format, it
+will ask you whether to convert that file and show it.
+Otherwise, calling this command before any Todo file exists
+prompts for a file name and an initial category (defaulting to
+`todo-initial-file' and `todo-initial-category'), creates both of
+these, visits the file and displays the category, and if option
+`todo-add-item-if-new-category' is non-nil (the default), prompts
+for the first item.
 
 The first invocation of this command on an existing Todo file
 interacts with the option `todo-show-first': if its value is
@@ -661,104 +669,116 @@ and done items are always shown on visiting a category.
 Invoking this command in Todo Archive mode visits the
 corresponding Todo file, displaying the corresponding category."
   (interactive "P")
-  (let* ((cat)
-	 (show-first todo-show-first)
-	 (file (cond ((or solicit-file
-			  (and (called-interactively-p 'any)
-			       (memq major-mode '(todo-mode
-						  todo-archive-mode
-						  todo-filtered-items-mode))))
-		      (if (funcall todo-files-function)
-			  (todo-read-file-name "Choose a Todo file to visit: "
-						nil t)
-			(user-error "There are no Todo files")))
-		     ((and (eq major-mode 'todo-archive-mode)
-		     	   ;; Called noninteractively via todo-quit
-		     	   ;; to jump to corresponding category in
-		     	   ;; todo file.
-		     	   (not (called-interactively-p 'any)))
-		      (setq cat (todo-current-category))
-		      (concat (file-name-sans-extension
-			       todo-current-todo-file) ".todo"))
-		     (t
-		      (or todo-current-todo-file
-			  (and todo-show-current-file
-			       todo-global-current-todo-file)
-			  (todo-absolute-file-name todo-default-todo-file)
-			  (todo-add-file)))))
-	 add-item first-file)
+  (catch 'shown
+    ;; If there is a legacy todo file but no todo file in the current
+    ;; format, offer to convert the legacy file and show it.
     (unless todo-default-todo-file
-      ;; We just initialized the first todo file, so make it the default.
-      (setq todo-default-todo-file (todo-short-file-name file)
-	    first-file t)
-      (todo-reevaluate-default-file-defcustom))
-    (unless (member file todo-visited)
-      ;; Can't setq t-c-t-f here, otherwise wrong file shown when
-      ;; todo-show is called from todo-show-categories-table.
-      (let ((todo-current-todo-file file))
-	(cond ((eq todo-show-first 'table)
-	       (todo-show-categories-table))
-	      ((memq todo-show-first '(top diary regexp))
-	       (let* ((shortf (todo-short-file-name file))
-		      (fi-file (todo-absolute-file-name
-				shortf todo-show-first)))
-		 (when (eq todo-show-first 'regexp)
-		   (let ((rxfiles (directory-files todo-directory t
-						   ".*\\.todr$" t)))
-		     (when (and rxfiles (> (length rxfiles) 1))
-		       (let ((rxf (mapcar 'todo-short-file-name rxfiles)))
-			 (setq fi-file (todo-absolute-file-name
-					(completing-read
-					 "Choose a regexp items file: "
-					 rxf) 'regexp))))))
-		 (if (file-exists-p fi-file)
-		     (set-window-buffer
-		      (selected-window)
-		      (set-buffer (find-file-noselect fi-file 'nowarn)))
-		   (message "There is no %s file for %s"
-			    (cond ((eq todo-show-first 'top)
-				   "top priorities")
-				  ((eq todo-show-first 'diary)
-				   "diary items")
-				  ((eq todo-show-first 'regexp)
-				   "regexp items"))
-			    shortf)
-		   (setq todo-show-first 'first)))))))
-    (when (or (member file todo-visited)
-	      (eq todo-show-first 'first))
-      (set-window-buffer (selected-window)
-			 (set-buffer (find-file-noselect file 'nowarn)))
-      ;; When quitting archive file, show corresponding category in
-      ;; Todo file, if it exists.
-      (when (assoc cat todo-categories)
-      	(setq todo-category-number (todo-category-number cat)))
-      ;; If this is a new Todo file, add its first category.
-      (when (zerop (buffer-size))
-	(let (cat-added)
-	  (unwind-protect
-	      (setq todo-category-number
-		    (todo-add-category todo-current-todo-file "")
-		    add-item todo-add-item-if-new-category
-		    cat-added t)
-	    (if cat-added
-		;; If the category was added, save the file now, so we
-		;; don't risk having an empty todo file, which would
-		;; signal an error if we tried to visit it later,
-		;; since doing that looks for category boundaries.
-		(save-buffer 0)
-	      ;; If user cancels before adding the category, clean up
-	      ;; and exit, so we have a fresh slate the next time.
-	      (delete-file file)
-	      (setq todo-files (delete file todo-files))
-	      (when first-file
-		(setq todo-default-todo-file nil
-		      todo-current-todo-file nil))
-	      (kill-buffer)
-	      (keyboard-quit)))))
-      (save-excursion (todo-category-select))
-      (when add-item (todo-basic-insert-item)))
-    (setq todo-show-first show-first)
-    (add-to-list 'todo-visited file)))
+      (let ((legacy-todo-file (if (boundp 'todo-file-do)
+				  todo-file-do
+				(locate-user-emacs-file "todo-do" ".todo-do"))))
+	(when (and (file-exists-p legacy-todo-file)
+		   (y-or-n-p (concat "Do you want to convert a copy of your "
+				     "old todo file to the new format? ")))
+	  (when (todo-convert-legacy-files)
+	    (throw 'shown nil)))))
+    (let* ((cat)
+	   (show-first todo-show-first)
+	   (file (cond ((or solicit-file
+			    (and (called-interactively-p 'any)
+				 (memq major-mode '(todo-mode
+						    todo-archive-mode
+						    todo-filtered-items-mode))))
+			(if (funcall todo-files-function)
+			    (todo-read-file-name "Choose a Todo file to visit: "
+						  nil t)
+			  (user-error "There are no Todo files")))
+		       ((and (eq major-mode 'todo-archive-mode)
+			     ;; Called noninteractively via todo-quit
+			     ;; to jump to corresponding category in
+			     ;; todo file.
+			     (not (called-interactively-p 'any)))
+			(setq cat (todo-current-category))
+			(concat (file-name-sans-extension
+				 todo-current-todo-file) ".todo"))
+		       (t
+			(or todo-current-todo-file
+			    (and todo-show-current-file
+				 todo-global-current-todo-file)
+			    (todo-absolute-file-name todo-default-todo-file)
+			    (todo-add-file)))))
+	   add-item first-file)
+      (unless todo-default-todo-file
+	;; We just initialized the first todo file, so make it the default.
+	(setq todo-default-todo-file (todo-short-file-name file)
+	      first-file t)
+	(todo-reevaluate-default-file-defcustom))
+      (unless (member file todo-visited)
+	;; Can't setq t-c-t-f here, otherwise wrong file shown when
+	;; todo-show is called from todo-show-categories-table.
+	(let ((todo-current-todo-file file))
+	  (cond ((eq todo-show-first 'table)
+		 (todo-show-categories-table))
+		((memq todo-show-first '(top diary regexp))
+		 (let* ((shortf (todo-short-file-name file))
+			(fi-file (todo-absolute-file-name
+				  shortf todo-show-first)))
+		   (when (eq todo-show-first 'regexp)
+		     (let ((rxfiles (directory-files todo-directory t
+						     ".*\\.todr$" t)))
+		       (when (and rxfiles (> (length rxfiles) 1))
+			 (let ((rxf (mapcar 'todo-short-file-name rxfiles)))
+			   (setq fi-file (todo-absolute-file-name
+					  (completing-read
+					   "Choose a regexp items file: "
+					   rxf) 'regexp))))))
+		   (if (file-exists-p fi-file)
+		       (set-window-buffer
+			(selected-window)
+			(set-buffer (find-file-noselect fi-file 'nowarn)))
+		     (message "There is no %s file for %s"
+			      (cond ((eq todo-show-first 'top)
+				     "top priorities")
+				    ((eq todo-show-first 'diary)
+				     "diary items")
+				    ((eq todo-show-first 'regexp)
+				     "regexp items"))
+			      shortf)
+		     (setq todo-show-first 'first)))))))
+      (when (or (member file todo-visited)
+		(eq todo-show-first 'first))
+	(set-window-buffer (selected-window)
+			   (set-buffer (find-file-noselect file 'nowarn)))
+	;; When quitting archive file, show corresponding category in
+	;; Todo file, if it exists.
+	(when (assoc cat todo-categories)
+	  (setq todo-category-number (todo-category-number cat)))
+	;; If this is a new Todo file, add its first category.
+	(when (zerop (buffer-size))
+	  (let (cat-added)
+	    (unwind-protect
+		(setq todo-category-number
+		      (todo-add-category todo-current-todo-file "")
+		      add-item todo-add-item-if-new-category
+		      cat-added t)
+	      (if cat-added
+		  ;; If the category was added, save the file now, so we
+		  ;; don't risk having an empty todo file, which would
+		  ;; signal an error if we tried to visit it later,
+		  ;; since doing that looks for category boundaries.
+		  (save-buffer 0)
+		;; If user cancels before adding the category, clean up
+		;; and exit, so we have a fresh slate the next time.
+		(delete-file file)
+		(setq todo-files (delete file todo-files))
+		(when first-file
+		  (setq todo-default-todo-file nil
+			todo-current-todo-file nil))
+		(kill-buffer)
+		(keyboard-quit)))))
+	(save-excursion (todo-category-select))
+	(when add-item (todo-basic-insert-item)))
+      (setq todo-show-first show-first)
+      (add-to-list 'todo-visited file))))
 
 (defun todo-save ()
   "Save the current Todo file."
@@ -4496,7 +4516,7 @@ name in `todo-directory'.  See also the documentation string of
 	(todo-initials-tem (and (boundp 'todo-initials) todo-initials))
 	(todo-entry-prefix-function-tem (and (boundp 'todo-entry-prefix-function)
 					     todo-entry-prefix-function))
-	todo-categories-tem todo-prefix-tem)
+	todo-prefix-tem)
     ;; Convert `todo-file-do'.
     (if (not (file-exists-p todo-file-do-tem))
 	(message "No legacy Todo file exists")
@@ -4539,11 +4559,14 @@ name in `todo-directory'.  See also the documentation string of
 			      (format "Save file as (default \"%s\"): " default)
 			      nil nil default)
 			     ".todo"))
+	  (unless (file-exists-p todo-directory)
+	    (make-directory todo-directory))
 	  (write-region (point-min) (point-max) file nil 'nomessage nil t))
 	(with-temp-buffer
 	  (insert-file-contents file)
 	  (let ((todo-categories (todo-make-categories-list t)))
-	    (todo-update-categories-sexp))
+	    (todo-update-categories-sexp)
+	    (todo-check-format))
 	  (write-region (point-min) (point-max) file nil 'nomessage))
 	(setq todo-files (funcall todo-files-function))
 	;; Convert `todo-file-done'.
@@ -4626,7 +4649,8 @@ name in `todo-directory'.  See also the documentation string of
 	  (with-temp-buffer
 	    (insert-file-contents file)
 	    (let* ((todo-categories (todo-make-categories-list t)))
-	      (todo-update-categories-sexp))
+	      (todo-update-categories-sexp)
+	      (todo-check-format))
 	    (write-region (point-min) (point-max) file nil 'nomessage)
 	    (setq archive-sexp (read (buffer-substring-no-properties
 				      (line-beginning-position)
@@ -4648,7 +4672,14 @@ name in `todo-directory'.  See also the documentation string of
 	    (write-region (point-min) (point-max) file nil 'nomessage))
 	  (setq todo-archives (funcall todo-files-function t)))
 	(todo-reevaluate-filelist-defcustoms)
-	(message "Format conversion done.")))))
+	(when (y-or-n-p (concat "Format conversion done; do you want to "
+				"visit the converted file now? "))
+	  (setq todo-current-todo-file file)
+	  (unless todo-default-todo-file
+	    ;; We just initialized the first todo file, so make it the
+	    ;; default now to avoid an infinite recursion with todo-show.
+	    (setq todo-default-todo-file (todo-short-file-name file)))
+	  (todo-show))))))
 
 ;; -----------------------------------------------------------------------------
 ;;; Utility functions for Todo files, categories and items
