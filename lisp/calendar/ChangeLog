@@ -1,5 +1,11 @@
 2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todo-mode.el: Clean up doc strings, comments and prompt strings,
+	mainly by changing "Todo" to "todo" when it is not part of a mode
+	name or does not begin a sentence.
+
+2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todo-mode.el: Offer to convert legacy file.  Update commentary.
 	(todo-show): If a legacy file is found and no new todo file
 	exists, offer to convert it and show it.  Restore autoload cookie.

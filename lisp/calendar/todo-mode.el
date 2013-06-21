@@ -80,11 +80,11 @@
 (require 'cl-lib)
 
 ;; -----------------------------------------------------------------------------
-;;; Setting up Todo files, categories, and items
+;;; Setting up todo files, categories, and items
 ;; -----------------------------------------------------------------------------
 
 (defcustom todo-directory (locate-user-emacs-file "todo/")
-  "Directory where user's Todo files are saved."
+  "Directory where user's todo files are saved."
   :type 'directory
   :group 'todo)
 
@@ -110,13 +110,13 @@ makes it return the value of the variable `todo-archives'."
   :group 'todo)
 
 (defvar todo-files (funcall todo-files-function)
-  "List of truenames of user's Todo files.")
+  "List of truenames of user's todo files.")
 
 (defvar todo-archives (funcall todo-files-function t)
-  "List of truenames of user's Todo archives.")
+  "List of truenames of user's todo archives.")
 
 (defvar todo-visited nil
-  "List of Todo files visited in this session by `todo-show'.
+  "List of todo files visited in this session by `todo-show'.
 Used to determine initial display according to the value of
 `todo-show-first'.")
 
@@ -124,23 +124,23 @@ Used to determine initial display according to the value of
   "List of file names of live Todo mode buffers.")
 
 (defvar todo-global-current-todo-file nil
-  "Variable holding name of current Todo file.
+  "Variable holding name of current todo file.
 Used by functions called from outside of Todo mode to visit the
-current Todo file rather than the default Todo file (i.e. when
+current todo file rather than the default todo file (i.e. when
 users option `todo-show-current-file' is non-nil).")
 
 (defvar todo-current-todo-file nil
-  "Variable holding the name of the currently active Todo file.")
+  "Variable holding the name of the currently active todo file.")
 
 (defvar todo-categories nil
-  "Alist of categories in the current Todo file.
+  "Alist of categories in the current todo file.
 The elements are cons cells whose car is a category name and
 whose cdr is a vector of the category's item counts.  These are,
 in order, the numbers of todo items, of todo items included in
 the Diary, of done items and of archived items.")
 
 (defvar todo-category-number 1
-  "Variable holding the number of the current Todo category.
+  "Variable holding the number of the current todo category.
 Todo categories are numbered starting from 1.")
 
 (defvar todo-categories-with-marks nil
@@ -228,7 +228,7 @@ The final element is \"*\", indicating an unspecified month.")
 		  (year "-?\\(?9:[0-9]+\\|\\*\\)"))
 	      (mapconcat 'eval calendar-date-display-form ""))
 	    "\\)"))
-  "Regular expression matching a Todo date header.")
+  "Regular expression matching a todo item date header.")
 
 ;; By itself this matches anything, because of the `?'; however, it's only
 ;; used in the context of `todo-date-pattern' (but Emacs Lisp lacks
@@ -252,7 +252,7 @@ The final element is \"*\", indicating an unspecified month.")
 (defconst todo-item-start (concat "\\(" todo-date-string-start "\\|"
 				 todo-done-string-start "\\)"
 				 todo-date-pattern)
-  "String identifying start of a Todo item.")
+  "String identifying start of a todo item.")
 
 ;; -----------------------------------------------------------------------------
 ;;; Todo mode display options
@@ -281,17 +281,17 @@ These reflect the priorities of the items in each category."
 
 (defun todo-mode-line-control (cat)
   "Return a mode line control for todo or archive file buffers.
-Argument CAT is the name of the current Todo category.
+Argument CAT is the name of the current todo category.
 This function is the value of the user variable
 `todo-mode-line-function'."
   (let ((file (todo-short-file-name todo-current-todo-file)))
     (format "%s category %d: %s" file todo-category-number cat)))
 
 (defcustom todo-mode-line-function 'todo-mode-line-control
-  "Function that returns a mode line control for Todo buffers.
+  "Function that returns a mode line control for Todo mode buffers.
 The function expects one argument holding the name of the current
-Todo category.  The resulting control becomes the local value of
-`mode-line-buffer-identification' in each Todo buffer."
+todo category.  The resulting control becomes the local value of
+`mode-line-buffer-identification' in each Todo mode buffer."
   :type 'function
   :group 'todo-display)
 
@@ -370,7 +370,7 @@ shown in the Fancy Diary display."
     (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
     (((class color) (min-colors 8)) (:foreground "magenta"))
     (t (:weight bold :underline t)))
-  "Face for Todo prefix or numerical priority string."
+  "Face for todo item prefix or numerical priority string."
   :group 'todo-faces)
 
 (defface todo-top-priority
@@ -385,7 +385,7 @@ shown in the Fancy Diary display."
     (((class color) (min-colors 8) (background light)) :foreground "red")
     (((class color) (min-colors 8) (background dark)) :foreground "yellow")
     (t :slant italic))
-  "Face for top priority Todo item numerical priority string.
+  "Face for top priority todo item numerical priority string.
 The item's priority number string has this face if the number is
 less than or equal the category's top priority setting."
   :group 'todo-faces)
@@ -405,12 +405,12 @@ less than or equal the category's top priority setting."
 
 (defface todo-date
   '((t :inherit diary))
-  "Face for the date string of a Todo item."
+  "Face for the date string of a todo item."
   :group 'todo-faces)
 
 (defface todo-time
   '((t :inherit diary-time))
-  "Face for the time string of a Todo item."
+  "Face for the time string of a todo item."
   :group 'todo-faces)
 
 (defface todo-diary-expired
@@ -440,7 +440,7 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 16) (background dark)) :foreground "LightSteelBlue")
     (((class color) (min-colors 8)) :foreground "blue" :weight bold)
     (t :weight bold))
-  "Face for separator string bewteen done and not done Todo items."
+  "Face for separator string bewteen done and not done todo items."
   :group 'todo-faces)
 
 (defface todo-done
@@ -453,7 +453,7 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 16) (background dark))  :foreground "Cyan")
     (((class color) (min-colors 8)) :foreground "cyan" :weight bold)
     (t :weight bold))
-  "Face for done Todo item header string."
+  "Face for done todo item header string."
   :group 'todo-faces)
 
 (defface todo-comment
@@ -475,7 +475,7 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 8) (background dark))
      :foreground "yellow")
     (t :weight bold :slant italic))
-  "Face for comments appended to done Todo items."
+  "Face for comments appended to done todo items."
   :group 'todo-faces)
 
 (defface todo-search
@@ -565,14 +565,14 @@ less than or equal the category's top priority setting."
 
 (defcustom todo-visit-files-commands (list 'find-file 'dired-find-file)
   "List of file finding commands for `todo-display-as-todo-file'.
-Invoking these commands to visit a Todo or Todo Archive file
+Invoking these commands to visit a todo file or todo archive file
 calls `todo-show' or `todo-find-archive', so that the file is
 displayed correctly."
   :type '(repeat function)
   :group 'todo)
 
 (defun todo-short-file-name (file)
-  "Return short form of Todo FILE.
+  "Return the short form of todo file FILE's name.
 This lacks the extension and directory components."
   (when (stringp file)
     (file-name-sans-extension (file-name-nondirectory file))))
@@ -586,7 +586,7 @@ This lacks the extension and directory components."
   :group 'todo)
 
 (defcustom todo-show-current-file t
-  "Non-nil to make `todo-show' visit the current Todo file.
+  "Non-nil to make `todo-show' visit the current todo file.
 Otherwise, `todo-show' always visits `todo-default-todo-file'."
   :type 'boolean
   :initialize 'custom-initialize-default
@@ -608,12 +608,12 @@ Otherwise, `todo-show' always visits `todo-default-todo-file'."
   :group 'todo-edit)
 
 (defcustom todo-initial-file "Todo"
-  "Default file name offered on adding first Todo file."
+  "Default file name offered on adding first todo file."
   :type 'string
   :group 'todo)
 
 (defcustom todo-initial-category "Todo"
-  "Default category name offered on initializing a new Todo file."
+  "Default category name offered on initializing a new todo file."
   :type 'string
   :group 'todo)
 
@@ -644,14 +644,14 @@ file was last visited.
 If you call this command before you have created any todo file in
 the current format, and you have an todo file in old format, it
 will ask you whether to convert that file and show it.
-Otherwise, calling this command before any Todo file exists
+Otherwise, calling this command before any todo file exists
 prompts for a file name and an initial category (defaulting to
 `todo-initial-file' and `todo-initial-category'), creates both of
 these, visits the file and displays the category, and if option
 `todo-add-item-if-new-category' is non-nil (the default), prompts
 for the first item.
 
-The first invocation of this command on an existing Todo file
+The first invocation of this command on an existing todo file
 interacts with the option `todo-show-first': if its value is
 `first' (the default), show the first category in the file; if
 its value is `table', show the table of categories in the file;
@@ -667,7 +667,7 @@ items.  With non-nil user option `todo-show-with-done' both todo
 and done items are always shown on visiting a category.
 
 Invoking this command in Todo Archive mode visits the
-corresponding Todo file, displaying the corresponding category."
+corresponding todo file, displaying the corresponding category."
   (interactive "P")
   (catch 'shown
     ;; If there is a legacy todo file but no todo file in the current
@@ -689,9 +689,9 @@ corresponding Todo file, displaying the corresponding category."
 						    todo-archive-mode
 						    todo-filtered-items-mode))))
 			(if (funcall todo-files-function)
-			    (todo-read-file-name "Choose a Todo file to visit: "
+			    (todo-read-file-name "Choose a todo file to visit: "
 						  nil t)
-			  (user-error "There are no Todo files")))
+			  (user-error "There are no todo files")))
 		       ((and (eq major-mode 'todo-archive-mode)
 			     ;; Called noninteractively via todo-quit
 			     ;; to jump to corresponding category in
@@ -748,11 +748,11 @@ corresponding Todo file, displaying the corresponding category."
 		(eq todo-show-first 'first))
 	(set-window-buffer (selected-window)
 			   (set-buffer (find-file-noselect file 'nowarn)))
-	;; When quitting archive file, show corresponding category in
-	;; Todo file, if it exists.
+	;; When quitting an archive file, show the corresponding
+	;; category in the corresponding todo file, if it exists.
 	(when (assoc cat todo-categories)
 	  (setq todo-category-number (todo-category-number cat)))
-	;; If this is a new Todo file, add its first category.
+	;; If this is a new todo file, add its first category.
 	(when (zerop (buffer-size))
 	  (let (cat-added)
 	    (unwind-protect
@@ -781,7 +781,7 @@ corresponding Todo file, displaying the corresponding category."
       (add-to-list 'todo-visited file))))
 
 (defun todo-save ()
-  "Save the current Todo file."
+  "Save the current todo file."
   (interactive)
   (cond ((eq major-mode 'todo-filtered-items-mode)
 	 (todo-check-filtered-items-file)
@@ -842,7 +842,7 @@ todo file."
   :group 'todo-display)
 
 (defun todo-forward-category (&optional back)
-  "Visit the numerically next category in this Todo file.
+  "Visit the numerically next category in this todo file.
 If the current category is the highest numbered, visit the first
 category.  With non-nil argument BACK, visit the numerically
 previous category (the highest numbered one, if the current
@@ -861,7 +861,7 @@ category is the first)."
   (goto-char (point-min)))
 
 (defun todo-backward-category ()
-  "Visit the numerically previous category in this Todo file.
+  "Visit the numerically previous category in this todo file.
 If the current category is the highest numbered, visit the first
 category."
   (interactive)
@@ -870,12 +870,12 @@ category."
 (defvar todo-categories-buffer)
 
 (defun todo-jump-to-category (&optional file where)
-  "Prompt for a category in a Todo file and jump to it.
+  "Prompt for a category in a todo file and jump to it.
 
 With non-nil FILE (interactively a prefix argument), prompt for a
-specific Todo file and choose (with TAB completion) a category
+specific todo file and choose (with TAB completion) a category
 in it to jump to; otherwise, choose and jump to any category in
-either the current Todo file or a file in
+either the current todo file or a file in
 `todo-category-completions-files'.
 
 Also accept a non-existing category name and ask whether to add a
@@ -946,8 +946,8 @@ it moves point to the first done item; but if called with point
 on the last todo item without a prefix argument, it moves point
 the the empty line above the done items separator."
   (interactive "p")
-  ;; It's not worth the trouble to allow prefix arg value < 1, since we have
-  ;; the corresponding command.
+  ;; It's not worth the trouble to allow prefix arg value < 1, since
+  ;; we have the corresponding command.
   (cond ((and current-prefix-arg (< count 1))
 	 (user-error "The prefix argument must be a positive number"))
 	(current-prefix-arg
@@ -969,8 +969,8 @@ empty line above the done items separator."
   (interactive "p")
   ;; Avoid moving to bob if on the first item but not at bob.
   (when (> (line-number-at-pos) 1)
-    ;; It's not worth the trouble to allow prefix arg value < 1, since we have
-    ;; the corresponding command.
+    ;; It's not worth the trouble to allow prefix arg value < 1, since
+    ;; we have the corresponding command.
     (cond ((and current-prefix-arg (< count 1))
 	   (user-error "The prefix argument must be a positive number"))
 	  (current-prefix-arg
@@ -1063,13 +1063,13 @@ the the original date-time string."
 ;; -----------------------------------------------------------------------------
 
 (defun todo-add-file ()
-  "Name and initialize a new Todo file.
+  "Name and initialize a new todo file.
 Interactively, prompt for a category and display it, and if
 option `todo-add-item-if-new-category' is non-nil (the default),
 prompt for the first item.
 Noninteractively, return the name of the new file."
   (interactive)
-  (let ((prompt (concat "Enter name of new Todo file "
+  (let ((prompt (concat "Enter name of new todo file "
 			"(TAB or SPC to see current names): "))
 	file)
     (setq file (todo-read-file-name prompt))
@@ -1109,17 +1109,17 @@ this command should be used with caution."
 			 "validity and return to Todo mode.\n"))))
 
 (defun todo-add-category (&optional file cat)
-  "Add a new category to a Todo file.
+  "Add a new category to a todo file.
 
 Called interactively with prefix argument FILE, prompt for a file
 and then for a new category to add to that file, otherwise prompt
-just for a category to add to the current Todo file.  After
+just for a category to add to the current todo file.  After
 adding the category, visit it in Todo mode and if option
 `todo-add-item-if-new-category' is non-nil (the default), prompt
 for the first item.
 
 Non-interactively, add category CAT to file FILE; if FILE is nil,
-add CAT to the current Todo file.  After adding the category,
+add CAT to the current todo file.  After adding the category,
 return the new category number."
   (interactive "P")
   (let (catfil file0)
@@ -1159,7 +1159,7 @@ return the new category number."
 	num))))
 
 (defun todo-rename-category ()
-  "Rename current Todo category.
+  "Rename current todo category.
 If this file has an archive containing this category, rename the
 category there as well."
   (interactive)
@@ -1190,7 +1190,7 @@ category there as well."
   (save-excursion (todo-category-select)))
 
 (defun todo-delete-category (&optional arg)
-  "Delete current Todo category provided it is empty.
+  "Delete current todo category provided it is empty.
 With ARG non-nil delete the category unconditionally,
 i.e. including all existing todo and done items."
   (interactive "P")
@@ -1241,7 +1241,7 @@ i.e. including all existing todo and done items."
 		(set-buffer-modified-p nil)
 		(delete-file file)
 		(kill-buffer)
-		(message "Deleted Todo file %s." file))
+		(message "Deleted todo file %s." file))
 	    (setq todo-categories (delete (assoc cat todo-categories)
 					       todo-categories))
 	    (todo-update-categories-sexp)
@@ -1252,7 +1252,7 @@ i.e. including all existing todo and done items."
 	    (message "Deleted category %s." cat)))))))
 
 (defun todo-move-category ()
-  "Move current category to a different Todo file.
+  "Move current category to a different todo file.
 If current category has archived items, also move those to the
 archive of the file moved to, creating it if it does not exist."
   (interactive)
@@ -1263,7 +1263,7 @@ archive of the file moved to, creating it if it does not exist."
     (let* ((ofile todo-current-todo-file)
 	   (cat (todo-current-category))
 	   (nfile (todo-read-file-name
-		   "Choose a Todo file to move this category to: " nil t))
+		   "Choose a todo file to move this category to: " nil t))
 	   (archive (concat (file-name-sans-extension ofile) ".toda"))
 	   (buffers (append (list ofile)
 			    (unless (zerop (todo-get-count 'archived cat))
@@ -1315,7 +1315,7 @@ archive of the file moved to, creating it if it does not exist."
 				  (funcall todo-files-function t))
 		    (setq new (read-from-minibuffer prompt))
 		    (setq new (todo-validate-name new 'category))))
-		;; Replace old with new name in Todo and archive files.
+		;; Replace old with new name in todo and archive files.
 		(when new
 		  (goto-char (point-max))
 		  (re-search-backward
@@ -1360,10 +1360,10 @@ archive of the file moved to, creating it if it does not exist."
 (defun todo-merge-category (&optional file)
   "Merge current category into another existing category.
 
-With prefix argument FILE, prompt for a specific Todo file and
+With prefix argument FILE, prompt for a specific todo file and
 choose (with TAB completion) a category in it to merge into;
 otherwise, choose and merge into a category in either the
-current Todo file or a file in `todo-category-completions-files'.
+current todo file or a file in `todo-category-completions-files'.
 
 After merging, the current category's todo and done items are
 appended to the chosen goal category's todo and done items,
@@ -1501,12 +1501,12 @@ category."
 ;; -----------------------------------------------------------------------------
 
 (defcustom todo-include-in-diary nil
-  "Non-nil to allow new Todo items to be included in the diary."
+  "Non-nil to allow new todo items to be included in the diary."
   :type 'boolean
   :group 'todo-edit)
 
 (defcustom todo-diary-nonmarking nil
-  "Non-nil to insert new Todo diary items as nonmarking by default.
+  "Non-nil to insert new todo diary items as nonmarking by default.
 This appends `diary-nonmarking-symbol' to the front of an item on
 insertion provided it doesn't begin with `todo-nondiary-marker'."
   :type 'boolean
@@ -1514,7 +1514,7 @@ insertion provided it doesn't begin with `todo-nondiary-marker'."
 
 (defcustom todo-always-add-time-string nil
   "Non-nil adds current time to a new item's date header by default.
-When the Todo insertion commands have a non-nil \"maybe-notime\"
+When the todo insertion commands have a non-nil \"maybe-notime\"
 argument, this reverses the effect of
 `todo-always-add-time-string': if t, these commands omit the
 current time, if nil, they include it."
@@ -1624,8 +1624,8 @@ marking of the next N items."
 
 (defun todo-basic-insert-item (&optional arg diary nonmarking date-type time
 				    region-or-here)
-  "Insert a new Todo item into a category.
-This is the function from which the generated Todo item
+  "Insert a new todo item into a category.
+This is the function from which the generated Todo mode item
 insertion commands derive.
 
 The generated commands have mnenomic key bindings based on the
@@ -1645,10 +1645,10 @@ is not given by HERE but by prompting.
 In command invocations, ARG is passed as a prefix argument as
 follows.  With no prefix argument, add the item to the current
 category; with one prefix argument (`C-u'), prompt for a category
-from the current Todo file; with two prefix arguments (`C-u C-u'),
-first prompt for a Todo file, then a category in that file.  If
+from the current todo file; with two prefix arguments (`C-u C-u'),
+first prompt for a todo file, then a category in that file.  If
 a non-existing category is entered, ask whether to add it to the
-Todo file; if answered affirmatively, add the category and
+todo file; if answered affirmatively, add the category and
 insert the item there.
 
 The remaining arguments are set or left nil by the generated item
@@ -1778,11 +1778,11 @@ the new item:
 	(find-file-noselect file 'nowarn)
 	(set-window-buffer (selected-window)
 			   (set-buffer (find-buffer-visiting file)))
-	;; If this command was invoked outside of a Todo buffer, the
-	;; call to todo-current-category above returned nil.  If we
-	;; just entered Todo mode now, then cat was set to the file's
-	;; first category, but if todo-mode was already enabled, cat
-	;; did not get set, so we have to set it explicitly.
+	;; If this command was invoked outside of a Todo mode buffer,
+	;; the call to todo-current-category above returned nil.  If
+	;; we just entered Todo mode now, then cat was set to the
+	;; file's first category, but if todo-mode was already
+	;; enabled, cat did not get set, so we have to do that.
 	(unless cat
 	  (setq cat (todo-current-category)))
 	(setq todo-current-todo-file file)
@@ -1966,7 +1966,7 @@ the item at point."
       (if ov (delete-overlay ov)))))
 
 (defun todo-edit-item (&optional arg)
-  "Edit the Todo item at point.
+  "Edit the todo item at point.
 With non-nil prefix argument ARG, include the item's date/time
 header, making it also editable; otherwise, include only the item
 content.
@@ -2010,7 +2010,7 @@ minibuffer; otherwise, edit it in Todo Edit mode."
 	  (move-to-column item-beg))))))
 
 (defun todo-edit-multiline-item ()
-  "Edit current Todo item in Todo Edit mode.
+  "Edit current todo item in Todo Edit mode.
 Use of newlines invokes `todo-indent' to insure compliance with
 the format of Diary entries."
   (interactive)
@@ -2031,9 +2031,9 @@ lines are indented by `todo-indent-to-here' to conform to diary
 format.
 
 If the whole file was in Todo Edit mode, check before returning
-whether the file is still a valid Todo file and if so, also
-recalculate the Todo categories sexp, in case changes were made
-in the number or names of categories."
+whether the file is still a valid todo file and if so, also
+recalculate the todo file's categories sexp, in case changes were
+made in the number or names of categories."
   (interactive)
   (if (> (buffer-size) (- (point-max) (point-min)))
       ;; We got here via `e m'.
@@ -2578,15 +2578,15 @@ meaning to raise or lower the item's priority by one."
 If there are marked items, move all of these; otherwise, move
 the item at point.
 
-With prefix argument FILE, prompt for a specific Todo file and
+With prefix argument FILE, prompt for a specific todo file and
 choose (with TAB completion) a category in it to move the item or
 items to; otherwise, choose and move to any category in either
-the current Todo file or one of the files in
+the current todo file or one of the files in
 `todo-category-completions-files'.  If the chosen category is
 not an existing categories, then it is created and the item(s)
 become(s) the first entry/entries in that category.
 
-With moved Todo items, prompt to set the priority in the category
+With moved todo items, prompt to set the priority in the category
 moved to (with multiple todo items, the one that had the highest
 priority in the category moved from gets the new priority and the
 rest of the moved todo items are inserted in sequence below it).
@@ -2948,7 +2948,7 @@ comments without asking."
 ;; -----------------------------------------------------------------------------
 
 (defun todo-find-archive (&optional ask)
-  "Visit the archive of the current Todo category, if it exists.
+  "Visit the archive of the current todo category, if it exists.
 If the category has no archived items, prompt to visit the
 archive anyway.  If there is no archive for this file or with
 non-nil argument ASK, prompt to visit another archive.
@@ -2970,7 +2970,7 @@ displayed."
 					"visit another archive? "))
 			   'other-archive))))
     (when (eq place 'other-archive)
-      (setq archive (todo-read-file-name "Choose a Todo archive: " t t)))
+      (setq archive (todo-read-file-name "Choose a todo archive: " t t)))
     (when (and (eq place 'this-archive) (zerop count))
       (setq place (when (todo-y-or-n-p
 			  (concat "This category has no archived items;"
@@ -3134,7 +3134,7 @@ If there are marked items, unarchive all of these; otherwise,
 unarchive the item at point.
 
 Unarchived items are restored as done items to the corresponding
-category in the Todo file, inserted at the top of done items
+category in the todo file, inserted at the top of done items
 section.  If all items in the archive category have been
 restored, the category is deleted from the archive.  If this was
 the only category in the archive, the archive file is deleted."
@@ -3220,7 +3220,7 @@ the only category in the archive, the archive file is deleted."
 	    (setq todo-categories (delete (assoc cat todo-categories)
 					   todo-categories))
 	    (todo-update-categories-sexp))))
-      ;; Visit category in Todo file and show restored done items.
+      ;; Visit category in todo file and show restored done items.
       (let ((tfile (buffer-file-name tbuf))
 	    (todo-show-with-done t))
 	(set-window-buffer (selected-window)
@@ -3230,7 +3230,7 @@ the only category in the archive, the archive file is deleted."
 	(message "Items unarchived.")))))
 
 (defun todo-jump-to-archive-category (&optional file)
-  "Prompt for a category in a Todo archive and jump to it.
+  "Prompt for a category in a todo archive and jump to it.
 With prefix argument FILE, prompt for an archive and choose (with
 TAB completion) a category in it to jump to; otherwise, choose
 and jump to any category in the current archive."
@@ -3384,12 +3384,12 @@ decreasing or increasing its number."
 	  (forward-char col))))))
 
 (defun todo-raise-category ()
-  "Raise priority of category at point in Todo Categories buffer."
+  "Raise priority of category at point in the table of categories."
   (interactive)
   (todo-set-category-number 'raise))
 
 (defun todo-lower-category ()
-  "Lower priority of category at point in Todo Categories buffer."
+  "Lower priority of category at point in the table of categories."
   (interactive)
   (todo-set-category-number 'lower))
 
@@ -3638,7 +3638,7 @@ which is the value of the user option
     (let ((archive (member todo-current-todo-file todo-archives))
 	  buffer-read-only)
       (erase-buffer)
-      (insert (format (concat "Category counts for Todo "
+      (insert (format (concat "Category counts for todo "
 			      (if archive "archive" "file")
 			      " \"%s\".")
 		      (todo-short-file-name todo-current-todo-file)))
@@ -3709,7 +3709,7 @@ which is the value of the user option
 ;; -----------------------------------------------------------------------------
 
 (defun todo-search ()
-  "Search for a regular expression in this Todo file.
+  "Search for a regular expression in this todo file.
 The search runs through the whole file and encompasses all and
 only todo and done items; it excludes category names.  Multiple
 matches are shown sequentially, highlighted in `todo-search'
@@ -3824,7 +3824,7 @@ See `todo-set-top-priorities' for more details."
 
 (defun todo-filter-top-priorities (&optional arg)
   "Display a list of top priority items from different categories.
-The categories can be any of those in the current Todo file.
+The categories can be any of those in the current todo file.
 
 With numerical prefix ARG show at most ARG top priority items
 from each category.  With `C-u' as prefix argument show the
@@ -3832,7 +3832,7 @@ numbers of top priority items specified by category in
 `todo-top-priorities-overrides', if this has an entry for the file(s);
 otherwise show `todo-top-priorities' items per category in the
 file(s).  With no prefix argument, if a top priorities file for
-the current Todo file has previously been saved (see
+the current todo file has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list as with prefix argument `C-u'.
 
@@ -3852,7 +3852,7 @@ from each category in each file.  With `C-u' as prefix argument
 show the numbers of top priority items specified in
 `todo-top-priorities-overrides', if this is non-nil; otherwise show
 `todo-top-priorities' items per category.  With no prefix
-argument, if a top priorities file for the chosen Todo files
+argument, if a top priorities file for the chosen todo files
 exists (see `todo-save-filtered-items-buffer'), visit this file;
 if there is no such file, do the same as with prefix argument
 `C-u'."
@@ -3861,10 +3861,10 @@ if there is no such file, do the same as with prefix argument
 
 (defun todo-filter-diary-items (&optional arg)
   "Display a list of todo diary items from different categories.
-The categories can be any of those in the current Todo file.
+The categories can be any of those in the current todo file.
 
 Called with no prefix ARG, if a diary items file for the current
-Todo file has previously been saved (see
+todo file has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of diary items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3879,7 +3879,7 @@ in `todo-filter-files', or if this nil, in the files chosen from
 a file selection dialog that pops up in this case.
 
 Called with no prefix ARG, if a diary items file for the chosen
-Todo files has previously been saved (see
+todo files has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of diary items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3889,13 +3889,13 @@ diary items."
 
 (defun todo-filter-regexp-items (&optional arg)
   "Prompt for a regular expression and display items that match it.
-The matches can be from any categories in the current Todo file
+The matches can be from any categories in the current todo file
 and with non-nil option `todo-filter-done-items', can include
 not only todo items but also done items, including those in
 Archive files.
 
 Called with no prefix ARG, if a regexp items file for the current
-Todo file has previously been saved (see
+todo file has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of regexp items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -3913,7 +3913,7 @@ only todo items but also done items, including those in Archive
 files.
 
 Called with no prefix ARG, if a regexp items file for the current
-Todo file has previously been saved (see
+todo file has previously been saved (see
 `todo-save-filtered-items-buffer'), visit this file; if there is
 no such file, build the list of regexp items.  Called with a
 prefix argument, build the list even if there is a saved file of
@@ -4101,12 +4101,12 @@ the values of FILTER and FILE-LIST."
 	  (with-temp-buffer
 	    (when (and todo-filter-done-items (eq filter 'regexp))
 	      ;; If there is a corresponding archive file for the
-	      ;; Todo file, insert it first and add identifiers for
+	      ;; todo file, insert it first and add identifiers for
 	      ;; todo-go-to-source-item.
 	      (let ((arch (concat (file-name-sans-extension f) ".toda")))
 		(when (file-exists-p arch)
 		  (insert-file-contents arch)
-		  ;; Delete Todo archive file categories sexp.
+		  ;; Delete todo archive file's categories sexp.
 		  (delete-region (line-beginning-position)
 				 (1+ (line-end-position)))
 		  (save-excursion
@@ -4126,7 +4126,7 @@ the values of FILTER and FILE-LIST."
 			(insert "(archive) "))
 		      (forward-line))))))
 	    (insert-file-contents f)
-	    ;; Delete Todo file categories sexp.
+	    ;; Delete todo file's categories sexp.
 	    (delete-region (line-beginning-position) (1+ (line-end-position)))
 	    (let (fnum)
 	      ;; Unless the number of top priorities to show was
@@ -4238,7 +4238,7 @@ the values of FILTER and FILE-LIST."
   "Set number of top priorities shown by `todo-filter-top-priorities'.
 With non-nil ARG, set the number only for the current Todo
 category; otherwise, set the number for all categories in the
-current Todo file.
+current todo file.
 
 Calling this function via either of the commands
 `todo-set-top-priorities-in-file' or
@@ -4274,7 +4274,7 @@ set the user customizable option `todo-top-priorities-overrides'."
     (todo-prefix-overlays)))
 
 (defun todo-find-item (str)
-  "Search for filtered item STR in its saved Todo file.
+  "Search for filtered item STR in its saved todo file.
 Return the list (FOUND FILE CAT), where CAT and FILE are the
 item's category and file, and FOUND is a cons cell if the search
 succeeds, whose car is the start of the item in FILE and whose
@@ -4399,7 +4399,7 @@ If the file already exists, overwrite it only on confirmation."
     (write-file filename t)))
 
 ;; -----------------------------------------------------------------------------
-;;; Printing Todo buffers
+;;; Printing Todo mode buffers
 ;; -----------------------------------------------------------------------------
 
 (defcustom todo-print-buffer-function 'ps-print-buffer-with-faces
@@ -4408,10 +4408,10 @@ If the file already exists, overwrite it only on confirmation."
   :group 'todo)
 
 (defvar todo-print-buffer "*Todo Print*"
-  "Name of buffer containing printable Todo text.")
+  "Name of buffer with printable version of Todo mode buffer.")
 
 (defun todo-print-buffer (&optional to-file)
-  "Produce a printable version of the current Todo buffer.
+  "Produce a printable version of the current Todo mode buffer.
 This converts overlays and soft line wrapping and, depending on
 the value of `todo-print-buffer-function', includes faces.  With
 non-nil argument TO-FILE write the printable version to a file;
@@ -4461,7 +4461,7 @@ otherwise, send it to the default printer."
     (kill-buffer buf)))
 
 (defun todo-print-buffer-to-file ()
-  "Save printable version of this Todo buffer to a file."
+  "Save printable version of this Todo mode buffer to a file."
   (interactive)
   (todo-print-buffer t))
 
@@ -4473,14 +4473,14 @@ otherwise, send it to the default printer."
   (concat "\\(?1:[0-9]\\{4\\}\\)-\\(?2:[0-9]\\{2\\}\\)-"
 	  "\\(?3:[0-9]\\{2\\}\\) \\(?4:[0-9]\\{2\\}:[0-9]\\{2\\}\\)")
   "Regexp matching legacy todo-mode.el item date-time strings.
-In order for `todo-convert-legacy-files' to correctly convert this
-string to the current Todo format, the regexp must contain four
-explicitly numbered groups (see `(elisp) Regexp Backslash'),
-where group 1 matches a string for the year, group 2 a string for
-the month, group 3 a string for the day and group 4 a string for
-the time.  The default value converts date-time strings built
-using the default value of `todo-time-string-format' from
-todo-mode.el."
+In order for `todo-convert-legacy-files' to correctly convert
+this string to the current Todo mode format, the regexp must
+contain four explicitly numbered groups (see `(elisp) Regexp
+Backslash'), where group 1 matches a string for the year, group 2
+a string for the month, group 3 a string for the day and group 4
+a string for the time.  The default value converts date-time
+strings built using the default value of
+`todo-time-string-format' from todo-mode.el."
   :type 'regexp
   :group 'todo)
 
@@ -4498,10 +4498,10 @@ Helper function for `todo-convert-legacy-files'."
 	    (when time (concat " " time)))))
 
 (defun todo-convert-legacy-files ()
-  "Convert legacy Todo files to the current Todo format.
+  "Convert legacy todo files to the current Todo mode format.
 The old-style files named by the variables `todo-file-do' and
 `todo-file-done' from the old package are converted to the new
-format and saved (the latter as a Todo Archive file) with a new
+format and saved (the latter as a todo archive file) with a new
 name in `todo-directory'.  See also the documentation string of
 `todo-legacy-date-time-regexp' for further details."
   (interactive)
@@ -4519,7 +4519,7 @@ name in `todo-directory'.  See also the documentation string of
 	todo-prefix-tem)
     ;; Convert `todo-file-do'.
     (if (not (file-exists-p todo-file-do-tem))
-	(message "No legacy Todo file exists")
+	(message "No legacy todo file exists")
       (let ((default "todo-do-conv")
 	    file archive-sexp)
 	(with-temp-buffer
@@ -4656,7 +4656,7 @@ name in `todo-directory'.  See also the documentation string of
 				      (line-beginning-position)
 				      (line-end-position)))))
 	  (setq file (concat (file-name-sans-extension file) ".todo"))
-	  ;; Update categories sexp of converted Todo file again, adding
+	  ;; Update categories sexp of converted todo file again, adding
 	  ;; counts of archived items.
 	  (with-temp-buffer
 	    (insert-file-contents file)
@@ -4682,14 +4682,14 @@ name in `todo-directory'.  See also the documentation string of
 	  (todo-show))))))
 
 ;; -----------------------------------------------------------------------------
-;;; Utility functions for Todo files, categories and items
+;;; Utility functions for todo files, categories and items
 ;; -----------------------------------------------------------------------------
 
 (defun todo-absolute-file-name (name &optional type)
-  "Return the absolute file name of short Todo file NAME.
+  "Return the absolute file name of short todo file NAME.
 With TYPE `archive' or `top' return the absolute file name of the
-short Todo Archive or Top Priorities file name, respectively."
-  ;; NOP if there is no Todo file yet (i.e. don't concatenate nil).
+short todo archive or top priorities file name, respectively."
+  ;; No-op if there is no todo file yet (i.e. don't concatenate nil).
   (when name
     (file-truename
      (concat todo-directory name
@@ -4700,7 +4700,7 @@ short Todo Archive or Top Priorities file name, respectively."
 		   (t ".todo"))))))
 
 (defun todo-category-number (cat)
-  "Return the number of category CAT in this Todo file.
+  "Return the number of category CAT in this todo file.
 The buffer-local variable `todo-category-number' holds this
 number as its value."
   (let ((categories (mapcar 'car todo-categories)))
@@ -4814,7 +4814,7 @@ With nil or omitted CATEGORY, default to the current category."
 	(prin1 todo-categories (current-buffer))))))
 
 (defun todo-make-categories-list (&optional force)
-  "Return an alist of Todo categories and their item counts.
+  "Return an alist of todo categories and their item counts.
 With non-nil argument FORCE parse the entire file to build the
 list; otherwise, get the value by reading the sexp at the top of
 the file."
@@ -4885,19 +4885,20 @@ the file."
   todo-categories)
 
 (defun todo-repair-categories-sexp ()
-  "Repair corrupt Todo categories sexp.
+  "Repair corrupt todo file categories sexp.
 This should only be needed as a consequence of careless manual
 editing or a bug in todo.el.
 
 *Warning*: Calling this command restores the category order to
-the list element order in the Todo categories sexp, so any order
-changes made in Todo Categories mode will have to be made again."
+the list element order in the todo file categories sexp, so any
+order changes made in Todo Categories mode will have to be made
+again."
   (interactive)
   (let ((todo-categories (todo-make-categories-list t)))
     (todo-update-categories-sexp)))
 
 (defun todo-check-format ()
-  "Signal an error if the current Todo file is ill-formatted.
+  "Signal an error if the current todo file is ill-formatted.
 Otherwise return t.  Display a message if the file is well-formed
 but the categories sexp differs from the current value of
 `todo-categories'."
@@ -4927,7 +4928,7 @@ but the categories sexp differs from the current value of
 		      "\\|\\(" todo-done-string-start "\\)")))
 	  (while (not (eobp))
 	    (unless (looking-at legit)
-	      (user-error "Illegitimate Todo file format at line %d"
+	      (user-error "Illegitimate todo file format at line %d"
 		     (line-number-at-pos (point))))
 	    (forward-line)))
 	;; Warn user if categories sexp has changed.
@@ -4941,7 +4942,7 @@ but the categories sexp differs from the current value of
   t)
 
 (defun todo-item-start ()
-  "Move to start of current Todo item and return its position."
+  "Move to start of current todo item and return its position."
   (unless (or
 	   ;; Buffer is empty (invocation possible e.g. via todo-forward-item
 	   ;; from todo-filter-items when processing category with no todo
@@ -4962,7 +4963,7 @@ but the categories sexp differs from the current value of
     (point)))
 
 (defun todo-item-end ()
-  "Move to end of current Todo item and return its position."
+  "Move to end of current todo item and return its position."
   ;; Items cannot end with a blank line.
   (unless (looking-at "^$")
     (let* ((done (todo-done-item-p))
@@ -5152,7 +5153,7 @@ Overrides `diary-goto-entry'."
   "Non-nil if this item begins with `todo-item-mark'.
 In that case, return the item's prefix overlay."
   (let* ((ov (todo-get-overlay 'prefix))
-	 ;; If an item insertion command is called on a Todo file
+	 ;; If an item insertion command is called on a todo file
 	 ;; before it is visited, it has no prefix overlays yet, so
 	 ;; check for this.
 	 (pref (when ov (overlay-get ov 'before-string)))
@@ -5290,15 +5291,14 @@ The elements of ARGLIST may be atoms or lists."
 	  (setq l (append v nil))))
       (setq new (append new (list l))))
     new)
-  "List of all argument lists for Todo item insertion commands.")
+  "List of all argument lists for Todo mode item insertion commands.")
 
 (defun todo-insertion-command-name (arglist)
-  "Generate Todo item insertion command name from ARGLIST."
+  "Generate Todo mode item insertion command name from ARGLIST."
   (replace-regexp-in-string
    "-\\_>" ""
    (replace-regexp-in-string
     "-+" "-"
-    ;; (concat "todo-item-insert-"
     (concat "todo-insert-item-"
 	    (mapconcat (lambda (e) (if e (symbol-name e))) arglist "-")))))
 
@@ -5306,10 +5306,10 @@ The elements of ARGLIST may be atoms or lists."
   (mapcar (lambda (l)
 	   (todo-insertion-command-name l))
 	  todo-insertion-commands-args)
-  "List of names of Todo item insertion commands.")
+  "List of names of Todo mode item insertion commands.")
 
 (defmacro todo-define-insertion-command (&rest args)
-  "Generate item insertion command definitions from ARGS."
+  "Generate Todo mode item insertion command definitions from ARGS."
   (let ((name (intern (todo-insertion-command-name args)))
 	(arg0 (nth 0 args))
 	(arg1 (nth 1 args))
@@ -5317,7 +5317,7 @@ The elements of ARGLIST may be atoms or lists."
 	(arg3 (nth 3 args))
 	(arg4 (nth 4 args)))
     `(defun ,name (&optional arg &rest args)
-       "Todo item insertion command generated from ARGS.
+       "Todo mode item insertion command generated from ARGS.
 For descriptions of the individual arguments, their values, and
 their relation to key bindings, see `todo-basic-insert-item'."
        (interactive (list current-prefix-arg))
@@ -5327,7 +5327,7 @@ their relation to key bindings, see `todo-basic-insert-item'."
   (mapcar (lambda (c)
 	    (eval `(todo-define-insertion-command ,@c)))
 	  todo-insertion-commands-args)
-  "List of Todo item insertion commands.")
+  "List of Todo mode item insertion commands.")
 
 (defvar todo-insertion-commands-arg-key-list
   '(("diary" "y" "yy")
@@ -5338,7 +5338,7 @@ their relation to key bindings, see `todo-basic-insert-item'."
     ("time" "t" "tt")
     ("here" "h" "h")
     ("region" "r" "r"))
-  "List of mappings of insertion command arguments to key sequences.")
+  "List of mappings of item insertion command arguments to key sequences.")
 
 (defun todo-insertion-key-bindings (map)
   "Generate key binding definitions for item insertion keymap MAP."
@@ -5401,8 +5401,8 @@ or, with non-nil ARCHIVE, the current archive file."
       (dolist (f files listall)
 	(with-current-buffer (find-file-noselect f 'nowarn)
 	  ;; Ensure category is properly displayed in case user
-	  ;; switches to file via a non-Todo command.  And if done
-	  ;; items in category are visible, keep them visible.
+	  ;; switches to file via a non-Todo mode command.  And if
+	  ;; done items in category are visible, keep them visible.
 	  (let ((done todo-show-with-done))
 	    (when (> (buffer-size) (- (point-max) (point-min)))
 	      (save-excursion
@@ -5426,11 +5426,11 @@ or, with non-nil ARCHIVE, the current archive file."
 	      listf)))))
 
 (defun todo-read-file-name (prompt &optional archive mustmatch)
-  "Choose and return the name of a Todo file, prompting with PROMPT.
+  "Choose and return the name of a todo file, prompting with PROMPT.
 
 Show completions with TAB or SPC; the names are shown in short
 form but the absolute truename is returned.  With non-nil ARCHIVE
-return the absolute truename of a Todo archive file.  With non-nil
+return the absolute truename of a todo archive file.  With non-nil
 MUSTMATCH the name of an existing file must be chosen;
 otherwise, a new file name is allowed."
   (let* ((completion-ignore-case todo-completion-ignore-case)
@@ -5563,7 +5563,7 @@ TYPE can be either of the symbols `file' or `category'."
 			     (if files
 				 "Enter a non-empty file name: "
 			       ;; Empty string passed by todo-show to
-			       ;; prompt for initial Todo file.
+			       ;; prompt for initial todo file.
 			       (concat "Initial file name ["
 				       todo-initial-file "]: ")))
 			    ((eq type 'category)
@@ -5571,7 +5571,7 @@ TYPE can be either of the symbols `file' or `category'."
 				 "Enter a non-empty category name: "
 			       ;; Empty string passed by todo-show to
 			       ;; prompt for initial category of a new
-			       ;; Todo file.
+			       ;; todo file.
 			       (concat "Initial category name ["
 				       todo-initial-category "]: "))))))
 	       ((string-match "\\`\\s-+\\'" name)
@@ -5626,13 +5626,9 @@ number of the last the day of the month."
 	     (completion-ignore-case todo-completion-ignore-case))
 	(setq monthname (completing-read
 			 "Month name (RET for current month, * for any month): "
-	      		 ;; (mapcar 'list (append marray nil))
 			 mlist nil t nil nil
 	      		 (calendar-month-name (calendar-extract-month
 	      				       (calendar-current-date)) t))
-	      ;; month (cdr (assoc-string
-	      ;; 		  monthname (calendar-make-alist marray nil nil
-	      ;; 						 abbrevs))))))
 	      month (1+ (- (length mlist)
 			   (length (or (member monthname mlist)
 				       (member monthname mablist))))))
@@ -5859,7 +5855,7 @@ the empty string (i.e., no time string)."
 		(hl-line-mode -1)))))))))
 
 (defun todo-reevaluate-filelist-defcustoms ()
-  "Reevaluate defcustoms that provide choice list of Todo files."
+  "Reevaluate defcustoms that provide choice list of todo files."
   (custom-set-default 'todo-default-todo-file
 		      (symbol-value 'todo-default-todo-file))
   (todo-reevaluate-default-file-defcustom)
@@ -5871,7 +5867,7 @@ the empty string (i.e., no time string)."
 
 (defun todo-reevaluate-default-file-defcustom ()
   "Reevaluate defcustom of `todo-default-todo-file'.
-Called after adding or deleting a Todo file."
+Called after adding or deleting a todo file."
   (eval (defcustom todo-default-todo-file (car (funcall todo-files-function))
 	  "Todo file visited by first session invocation of `todo-show'."
 	  :type `(radio ,@(mapcar (lambda (f) (list 'const f))
@@ -5881,7 +5877,7 @@ Called after adding or deleting a Todo file."
 
 (defun todo-reevaluate-category-completions-files-defcustom ()
   "Reevaluate defcustom of `todo-category-completions-files'.
-Called after adding or deleting a Todo file."
+Called after adding or deleting a todo file."
   (eval (defcustom todo-category-completions-files nil
   "List of files for building `todo-read-category' completions."
 	  :type `(set ,@(mapcar (lambda (f) (list 'const f))
@@ -5891,7 +5887,7 @@ Called after adding or deleting a Todo file."
 
 (defun todo-reevaluate-filter-files-defcustom ()
   "Reevaluate defcustom of `todo-filter-files'.
-Called after adding or deleting a Todo file."
+Called after adding or deleting a todo file."
   (eval (defcustom todo-filter-files nil
 	  "List of files for multifile item filtering."
 	  :type `(set ,@(mapcar (lambda (f) (list 'const f))
@@ -5904,7 +5900,7 @@ Called after adding or deleting a Todo file."
 ;; -----------------------------------------------------------------------------
 
 (defun todo-nondiary-marker-matcher (lim)
-  "Search for Todo nondiary markers within LIM for font-locking."
+  "Search for todo item nondiary markers within LIM for font-locking."
   (re-search-forward (concat "^\\(?1:" (regexp-quote todo-nondiary-start) "\\)"
 			     todo-date-pattern "\\(?: " diary-time-regexp
 			     "\\)?\\(?2:" (regexp-quote todo-nondiary-end) "\\)")
@@ -5916,12 +5912,12 @@ Called after adding or deleting a Todo file."
 			     "\\)" todo-date-pattern) lim t))
 
 (defun todo-date-string-matcher (lim)
-  "Search for Todo date string within LIM for font-locking."
+  "Search for todo item date string within LIM for font-locking."
   (re-search-forward
    (concat todo-date-string-start "\\(?1:" todo-date-pattern "\\)") lim t))
 
 (defun todo-time-string-matcher (lim)
-  "Search for Todo time string within LIM for font-locking."
+  "Search for todo item time string within LIM for font-locking."
   (re-search-forward (concat todo-date-string-start todo-date-pattern
 			     " \\(?1:" diary-time-regexp "\\)") lim t))
 
@@ -5940,18 +5936,18 @@ Called after adding or deleting a Todo file."
 	  (todo-diary-expired-matcher lim)))))
 
 (defun todo-done-string-matcher (lim)
-  "Search for Todo done header within LIM for font-locking."
+  "Search for done todo item header within LIM for font-locking."
   (re-search-forward (concat todo-done-string-start
 		      "[^][]+]")
 		     lim t))
 
 (defun todo-comment-string-matcher (lim)
-  "Search for Todo done comment within LIM for font-locking."
+  "Search for done todo item comment within LIM for font-locking."
   (re-search-forward (concat "\\[\\(?1:" todo-comment-string "\\):")
 		     lim t))
 
 (defun todo-category-string-matcher-1 (lim)
-  "Search for Todo category name within LIM for font-locking.
+  "Search for todo category name within LIM for font-locking.
 This is for fontifying category and file names appearing in Todo
 Filtered Items mode following done items."
   (if (eq major-mode 'todo-filtered-items-mode)
@@ -5964,7 +5960,7 @@ Filtered Items mode following done items."
 			 lim t)))
 
 (defun todo-category-string-matcher-2 (lim)
-  "Search for Todo category name within LIM for font-locking.
+  "Search for todo category name within LIM for font-locking.
 This is for fontifying category and file names appearing in Todo
 Filtered Items mode following todo (not done) items."
   (if (eq major-mode 'todo-filtered-items-mode)
@@ -6229,20 +6225,20 @@ Filtered Items mode following todo (not done) items."
 ;; -----------------------------------------------------------------------------
 
 (defun todo-show-current-file ()
-  "Visit current instead of default Todo file with `todo-show'.
+  "Visit current instead of default todo file with `todo-show'.
 This function is added to `pre-command-hook' when user option
 `todo-show-current-file' is set to non-nil."
   (setq todo-global-current-todo-file todo-current-todo-file))
 
 (defun todo-display-as-todo-file ()
-  "Show Todo files correctly when visited from outside of Todo mode."
+  "Show todo files correctly when visited from outside of Todo mode."
   (and (member this-command todo-visit-files-commands)
        (= (- (point-max) (point-min)) (buffer-size))
        (member major-mode '(todo-mode todo-archive-mode))
        (todo-category-select)))
 
 (defun todo-add-to-buffer-list ()
-  "Add name of just visited Todo file to `todo-file-buffers'.
+  "Add name of just visited todo file to `todo-file-buffers'.
 This function is added to `find-file-hook' in Todo mode."
   (let ((filename (file-truename (buffer-file-name))))
     (when (member filename todo-files)
@@ -6258,7 +6254,7 @@ This function is added to `post-command-hook' in Todo mode."
 
 (defun todo-reset-global-current-todo-file ()
   "Update the value of `todo-global-current-todo-file'.
-This becomes the latest existing Todo file or, if there is none,
+This becomes the latest existing todo file or, if there is none,
 the value of `todo-default-todo-file'.
 This function is added to `kill-buffer-hook' in Todo mode."
   (let ((filename (file-truename (buffer-file-name))))
@@ -6304,7 +6300,7 @@ Added to `window-configuration-change-hook' in `todo-mode'."
 (put 'todo-mode 'mode-class 'special)
 
 (define-derived-mode todo-mode special-mode "Todo"
-  "Major mode for displaying, navigating and editing Todo lists.
+  "Major mode for displaying, navigating and editing todo lists.
 
 \\{todo-mode-map}"
   ;; (easy-menu-add todo-menu)
@@ -6330,7 +6326,7 @@ Added to `window-configuration-change-hook' in `todo-mode'."
 ;; If todo-mode is parent, all todo-mode key bindings appear to be
 ;; available in todo-archive-mode (e.g. shown by C-h m).
 (define-derived-mode todo-archive-mode special-mode "Todo-Arch"
-  "Major mode for archived Todo categories.
+  "Major mode for archived todo categories.
 
 \\{todo-archive-mode-map}"
   (todo-modes-set-1)
@@ -6360,7 +6356,7 @@ Added to `window-configuration-change-hook' in `todo-mode'."
     (setq-local todo-categories cats)))
 
 (define-derived-mode todo-edit-mode text-mode "Todo-Ed"
-  "Major mode for editing multiline Todo items.
+  "Major mode for editing multiline todo items.
 
 \\{todo-edit-mode-map}"
   (todo-modes-set-1)
@@ -6370,7 +6366,7 @@ Added to `window-configuration-change-hook' in `todo-mode'."
 (put 'todo-categories-mode 'mode-class 'special)
 
 (define-derived-mode todo-categories-mode special-mode "Todo-Cats"
-  "Major mode for displaying and editing Todo categories.
+  "Major mode for displaying and editing todo categories.
 
 \\{todo-categories-mode-map}"
   (todo-mode-external-set))
