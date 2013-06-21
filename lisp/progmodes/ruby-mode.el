@@ -1874,7 +1874,7 @@ The variable `ruby-indent-level' controls the amount of indentation.
                                      "\\|/"
                                      (regexp-opt '("Gemfile" "Rakefile"
                                                    "Capfile" "Thorfile"
-                                                   "Vagrantfile"))
+                                                   "Vagrantfile" "Guardfile"))
                                      "\\)\\'")) 'ruby-mode))
 
 ;;;###autoload
