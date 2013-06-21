@@ -11,6 +11,7 @@
 	(cookie-read): Rename from read-cookie.
 	Make start and end messages optional.  Default to cookie-file.
 	(cookie-shuffle-vector): Rename from shuffle-vector.  Use dotimes.
+	Do not autoload it.
 	(cookie-apropos, cookie-doctor): New functions, copied from yow.el
 	* obsolete/yow.el (read-zippyism): Use new name for read-cookie.
 
