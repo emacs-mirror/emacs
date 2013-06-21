@@ -293,8 +293,8 @@ The number varies according to the evanescence of objects on a
   "If non-nil, show cursor position of each item decoration.
 
 This is for debugging purposes, and generally set at need in a
-buffer rather than as a prevailing configuration \(but it's handy
-to publicize it by making it a customization variable\)."
+buffer rather than as a prevailing configuration (but it's handy
+to publicize it by making it a customization variable)."
   :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
@@ -346,7 +346,7 @@ to `allout-body-modification-handler', and is always reset by
   "Cache allout icon images, as an association list.
 
 `allout-fetch-icon-image' uses this cache transparently, keying
-images with lists containing the name of the icon directory \(as
+images with lists containing the name of the icon directory (as
 found on the `load-path') and the icon name.
 
 Set this variable to `nil' to empty the cache, and have it replenish from the
@@ -485,7 +485,7 @@ including things like:
  - encryption '~'
  - numbering '#'
  - indirect reference '@'
- - distinctive bullets - see `allout-distinctive-bullets-string'.\)")
+ - distinctive bullets - see `allout-distinctive-bullets-string'.)")
 ;;;_    = allout-span-to-category
 (defvar allout-span-to-category
   '((:guides-span . allout-guides-span-category)
@@ -534,7 +534,7 @@ The graphics include:
 
 The bullet-icon and guide line graphics provide keybindings and mouse
 bindings for easy outline navigation and exposure control, extending
-outline hot-spot navigation \(see `allout-mode')."
+outline hot-spot navigation (see `allout-mode')."
 
   :lighter nil
   :keymap nil
@@ -646,11 +646,11 @@ outline hot-spot navigation \(see `allout-mode')."
       (set-buffer-modified-p was-modified))))
 ;;;_   > allout-widgets-mode-off
 (defun allout-widgets-mode-off ()
-  "Explicitly disable allout-widgets-mode."
+  "Explicitly disable `allout-widgets-mode'."
   (allout-widgets-mode -1))
 ;;;_   > allout-widgets-mode-off
 (defun allout-widgets-mode-on ()
-  "Explicitly disable allout-widgets-mode."
+  "Explicitly enable `allout-widgets-mode'."
   (allout-widgets-mode 1))
 ;;;_   > allout-setup-text-properties ()
 (defun allout-setup-text-properties ()
@@ -714,18 +714,18 @@ outline hot-spot navigation \(see `allout-mode')."
 (defvar allout-container-item-widget nil
   "A widget for the current outline's overarching container as an item.
 
-The item has settings \(of the file/connection\) and maybe a body, but no
+The item has settings (of the file/connection) and maybe a body, but no
 icon/bullet.")
 (make-variable-buffer-local 'allout-container-item-widget)
 ;;;_  . Hooks and hook helpers
 ;;;_   , major command-loop business:
 ;;;_    > allout-widgets-pre-command-business (&optional recursing)
 (defun allout-widgets-pre-command-business (&optional recursing)
-  "Handle actions pending before allout-mode activity."
+  "Handle actions pending before `allout-mode' activity."
 )
 ;;;_    > allout-widgets-post-command-business (&optional recursing)
 (defun allout-widgets-post-command-business (&optional recursing)
-  "Handle actions pending after any allout-mode commands.
+  "Handle actions pending after any `allout-mode' commands.
 
 Optional RECURSING is for internal use, to limit recursion."
   ;; - check changed text for nesting discontinuities and escape anything
@@ -1155,14 +1155,14 @@ Dispatched by `allout-widgets-post-command-business' in response to
 (defun allout-widgets-after-copy-or-kill-function ()
   "Do allout-widgets processing of text just placed in the kill ring.
 
-Intended for use on allout-after-copy-or-kill-hook."
+Intended for use on `allout-after-copy-or-kill-hook'."
   (if (car kill-ring)
       (setcar kill-ring (allout-widgets-undecorate-text (car kill-ring)))))
 ;;;_   > allout-widgets-after-undo-function ()
 (defun allout-widgets-after-undo-function ()
   "Do allout-widgets processing of text after an undo.
 
-Intended for use on allout-post-undo-hook."
+Intended for use on `allout-post-undo-hook'."
   (save-excursion
     (if (allout-goto-prefix)
         (allout-redecorate-item (allout-get-or-create-item-widget)))))
@@ -1359,7 +1359,7 @@ FROM and TO must be in increasing order, as must be the pairs in RANGES."
     (list (if included-from t) new-ranges)))
 ;;;_   > allout-test-range-overlaps ()
 (defun allout-test-range-overlaps ()
-  "allout-range-overlaps unit tests."
+  "`allout-range-overlaps' unit tests."
   (let* (ranges
          got
          (try (lambda (from to)
@@ -1557,7 +1557,7 @@ recursive operation."
 
 The neighbors include its siblings and parent.
 
-ITEM-WIDGET can be a created or converted allout-item-widget.
+ITEM-WIDGET can be a created or converted `allout-item-widget'.
 
 If you're only trying to get or create a widget for an item, use
 `allout-get-or-create-item-widget'.  If you have the item-widget, applying
@@ -1565,7 +1565,7 @@ If you're only trying to get or create a widget for an item, use
 
 Optional BLANK-CONTAINER is for internal use.  It is used to fabricate a
 container widget for an empty-bodied container, in the course of decorating
-a proper \(non-container\) item which starts at the beginning of the file.
+a proper (non-container) item which starts at the beginning of the file.
 
 Optional REDECORATE causes redecoration of the item-widget and
 its siblings, even if already decorated in this cycle of the command loop.
@@ -1737,8 +1737,8 @@ If optional AT-BEGINNING is t, then point is assumed to be at the start of
 the item prefix.
 
 If optional BLANK-CONTAINER is true, then the parameters of a container
-which has an empty body are set.  \(Though the body is blank, the object
-may have subitems.\)"
+which has an empty body are set.  (Though the body is blank, the object
+may have subitems.)"
 
   ;; Uncomment this sit-for to notice where decoration is happening:
 ;;  (sit-for .1)
@@ -1857,8 +1857,8 @@ the various element spans."
                                     &optional parent-widget has-successor)
   "Add ITEM-WIDGET guide icon-prefix descender and connector text properties.
 
-Optional arguments provide context for deriving the guides.  In
-their absence, the current guide column flags are used.
+Optional arguments provide context for deriving the guides.
+In their absence, the current guide column flags are used.
 
 Optional PARENT-WIDGET is the widget for the item's parent item.
 
@@ -2222,7 +2222,7 @@ and decorate its siblings and parent, as well.
 
 Optional BLANK-CONTAINER is for internal use, to fabricate a
 meta-container item with an empty body when the first proper
-\(non-container\) item starts at the beginning of the file.
+\(non-container) item starts at the beginning of the file.
 
 Optional REDECORATE, if non-nil, means to redecorate the widget
 if it already exists."
@@ -2254,7 +2254,7 @@ Point will wind up positioned on the beginning of the parent or beginning
 of the buffer."
   ;; use existing widget, if there, else establish it
   (if (or (bobp) (and (not (allout-ascend))
-                      (looking-at allout-regexp)))
+                      (looking-at-p allout-regexp)))
       (allout-get-or-create-item-widget redecorate 'blank-container)
     (allout-get-or-create-item-widget redecorate)))
 ;;;_  : X- Item ancillaries
@@ -2270,7 +2270,7 @@ Operation is inhibited by `allout-inhibit-body-modification-handler'."
 ;; - removal and replacement of the settings
 ;; - maintenance of beginning-of-line guide lines
 ;;
-;; ?? Escapes removal \(before changes\) is not done when edits span multiple
+;; ?? Escapes removal (before changes) is not done when edits span multiple
 ;; items, recognizing that item structure is being preserved, including
 ;; escaping of item-prefix-like text within bodies.  See
 ;; `allout-before-modification-handler' and
@@ -2284,7 +2284,7 @@ Operation is inhibited by `allout-inhibit-body-modification-handler'."
 (defun allout-graphics-modification-handler (beg end)
   "Protect against incoherent deletion of decoration graphics.
 
-Deletes allowed only when inhibit-read-only is t."
+Deletes allowed only when `inhibit-read-only' is t."
   (cond
    (undo-in-progress (when (eq (get-text-property beg 'category)
                                'allout-icon-span-category)

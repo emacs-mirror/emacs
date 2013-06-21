@@ -1,7 +1,46 @@
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout-widgets.el (allout-widgets-mode-off)
+	(allout-widgets-mode-on, allout-widgets-pre-command-business)
+	(allout-widgets-post-command-business)
+	(allout-widgets-after-copy-or-kill-function)
+	(allout-widgets-after-undo-function, allout-test-range-overlaps)
+	(allout-decorate-item-and-context)
+	(allout-graphics-modification-handler): Fix typos in docstrings.
+	(allout-get-or-create-parent-widget): Use `looking-at-p'.
+
+	* cmuscheme.el (scheme-start-file): Doc fix.
+	(inferior-scheme-mode, switch-to-scheme): Fix typos in docstrings.
+	(scheme-input-filter): Use `string-match-p'.
+
+	* composite.el (compose-gstring-for-terminal): Fix typo in docstring.
+
+	* dired-x.el: Use Dired consistently in docstrings.
+
+	* dired.el: Use Dired consistently in docstrings.
+	(dired-readin, dired-mode): Use `setq-local'.
+	(dired-switches-alist): Make defvar-local.
+	(dired-buffers-for-dir): Use `zerop'.
+	(dired-safe-switches-p, dired-switches-escape-p)
+	(dired-insert-old-subdirs, dired-move-to-end-of-filename)
+	(dired-glob-regexp, dired-in-this-tree, dired-goto-file-1)
+	(dired-sort-set-mode-line, dired-sort-toggle, dired-sort-R-check):
+	(dired-goto-next-nontrivial-file): Use `string-match-p'.
+	(dired-align-file, dired-insert-directory, dired-mark-files-in-region)
+	(dired-toggle-marks, dired-mark-files-containing-regexp)
+	(dired-mark-symlinks, dired-mark-directories, dired-mark-executables)
+	(dired-flag-auto-save-files, dired-flag-backup-files):
+	Use `looking-at-p'.
+	(dired-mark-files-regexp, dired-build-subdir-alist):
+	Use `string-match-p', `looking-at-p'.
+
+	* dos-w32.el (untranslated-canonical-name, untranslated-file-p)
+	(direct-print-region-helper): Use `string-match-p'.
+
 2013-06-21  Leo Liu  <sdl.web@gmail.com>
 
-	* comint.el (comint-redirect-results-list-from-process): Fix
-	infinite loop.
+	* comint.el (comint-redirect-results-list-from-process):
+	Fix infinite loop.
 
 2013-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
