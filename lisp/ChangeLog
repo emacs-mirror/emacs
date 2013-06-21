@@ -1,3 +1,11 @@
+2013-06-21  Eduard Wiebe  <usenet@pusto.de>
+
+	Extend flymake's warning predicate to be a function (bug#14217).
+	* progmodes/flymake.el (flymake-warning-predicate): New.
+	(flymake-parse-line): Use it.
+	(flymake-warning-re): Make obsolete alias to
+	`flymake-warning-predicate'.
+
 2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-alist): Include obsolete packages.
