@@ -1,3 +1,203 @@
+2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* obsolete/otodo-mode.el: Move and rename from calendar/todo-mode.el.
+
+	* calendar/diary-lib.el (diary-goto-entry-function): New variable.
+	(diary-entry): Use it in the action of this button type instead of
+	diary-goto-entry.
+
+	* calendar/todo-mode.el: New version.
+	(todo-add-category): Append new category to end of file and give
+	it the highest number, instead of putting it at the beginning and
+	giving it 0.  Incorporate noninteractive functionality.
+	(todo-forward-category): Adapt to 1-based category numbering.
+	Allow skipping over archived categories.
+	(todo-backward-category): Derive from todo-forward-category.
+	(todo-backward-item, todo-forward-item): Make noninteractive and
+	delegate interactive part to new commands.  Make sensitive to done items.
+	(todo-categories): Make value an alist of category names and
+	vectors of item counts.
+	(todo-category-beg): Make a defconst.
+	(todo-category-number): Use 1 instead of 0 as initial value.
+	(todo-category-select): Make sensitive to overlays, optional item
+	highlighting and done items.
+	(todo-delete-item): Make sensitive to overlays and marked and done items.
+	(todo-edit-item): Make sensitive to overlays and editing of
+	date/time header optional.  Add format checks.
+	(todo-edit-multiline): Rename to todo-edit-multiline-item.  Make a
+	no-op if point is not on an item.  Advertise using todo-edit-quit.
+	(todo-edit-mode): Make sensitive to new format, font-locking, and
+	multiple todo files.
+	(todo-insert-item, todo-insert-item-here): Derive from
+	todo-basic-insert-item and extend functionality.
+	(todo-item-end, todo-item-start): Make sensitive to done items.
+	(todo-item-string): Don't return text properties.  Restore point.
+	(todo-jump-to-category): Make sensitive to multiple todo files and
+	todo archives.  Use extended category completion.
+	(todo-lower-item, todo-raise-item): Rename to *-priority and
+	derive from todo-set-item-priority.
+	(todo-mode): Derive from special-mode.  Make sensitive to new
+	format, font-locking and multiple todo files.  Make read-only.
+	(todo-mode-map): Don't suppress digit keys, so they can supply
+	prefix arguments.  Add many new key bindings.
+	(todo-prefix): Insert as an overlay instead of file text.
+	Change semantics from diary date expression to purely visual mark.
+	(todo-print): Rename to todo-print-buffer.  Make buffer display
+	features printable.  Remove option to restrict number of items
+	printed.  Add option to print to file.
+	(todo-print-function): Rename to todo-print-buffer-function.
+	(todo-quit): Extend to handle exiting new todo modes.
+	(todo-remove-item): Make sensitive to overlays.
+	(todo-save): Extend to buffers of filtered items.
+	(todo-show): Make sensitive to done items, multiple todo files and
+	new todo modes.  Offer to convert legacy todo file before creating
+	first new todo file.
+	(todo-show-priorities): Rename to todo-top-priorities.
+	Change semantics of value 0.
+	(todo-top-priorities): Rename to todo-filter-top-priorities,
+	derive from todo-filter-items and extend functionality.
+	(todo-save-top-priorities): Rename to todo-save-filtered-items-buffer
+	and extend functionality to other types of filtered items.
+	(todo-add-item-non-interactively, todo-ask-p, todo-cat-slct)
+	(todo-category-end, todo-category-sep, todo-cats, todo-cmd-back)
+	(todo-cmd-done, todo-cmd-edit, todo-cmd-forw, todo-cmd-inst)
+	(todo-cmd-kill, todo-cmd-lowr, todo-cmd-next, todo-cmd-prev)
+	(todo-cmd-rais, todo-cmd-save, todo-completing-read, todo-cp)
+	(todo-edit-mode-hook, todo-entry-prefix-function)
+	(todo-entry-timestamp-initials, todo-file-do, todo-file-done)
+	(todo-file-item, todo-file-top, todo-header, todo-initial-setup)
+	(todo-initials, todo-insert-threshold, todo-item-string-start)
+	(todo-line-string, todo-menu, todo-mode-hook)
+	(todo-more-important-p, todo-previous-answer, todo-previous-line)
+	(todo-print-priorities, todo-remove-separator)
+	(todo-save-top-priorities-too, todo-string-count-lines)
+	(todo-string-multiline-p, todo-time-string-format)
+	(todo-tmp-buffer-name): Remove.
+	(todo-add-file, todo-archive-done-item, todo-choose-archive)
+	(todo-convert-legacy-files, todo-copy-item, todo-delete-category)
+	(todo-edit-category-diary-inclusion)
+	(todo-edit-category-diary-nonmarking, todo-edit-done-item-comment)
+	(todo-edit-file, todo-edit-item-date-day)
+	(todo-edit-item-date-day-name, todo-edit-item-date-from-calendar)
+	(todo-edit-item-date-month, todo-edit-item-date-to-today)
+	(todo-edit-item-date-year, todo-edit-item-diary-inclusion)
+	(todo-edit-item-diary-nonmarking, todo-edit-item-header)
+	(todo-edit-item-time, todo-edit-quit, todo-filter-diary-items)
+	(todo-filter-diary-items-multifile, todo-filter-regexp-items)
+	(todo-filter-regexp-items-multifile, todo-filter-top-priorities)
+	(todo-filter-top-priorities-multifile, todo-find-archive)
+	(todo-find-filtered-items-file, todo-go-to-source-item)
+	(todo-insert-item-from-calendar, todo-item-done, todo-item-undone)
+	(todo-jump-to-archive-category, todo-lower-category)
+	(todo-mark-category, todo-marked-item-p, todo-merge-category)
+	(todo-move-category, todo-move-item, todo-next-button)
+	(todo-next-item, todo-padded-string, todo-powerset)
+	(todo-previous-button, todo-previous-item)
+	(todo-print-buffer-to-file, todo-raise-category)
+	(todo-rename-category, todo-repair-categories-sexp, todo-search)
+	(todo-set-category-number, todo-set-item-priority)
+	(todo-set-top-priorities-in-category)
+	(todo-set-top-priorities-in-file, todo-show-categories-table)
+	(todo-sort-categories-alphabetically-or-numerically)
+	(todo-sort-categories-by-archived, todo-sort-categories-by-diary)
+	(todo-sort-categories-by-done, todo-sort-categories-by-todo)
+	(todo-toggle-item-header, todo-toggle-item-highlighting)
+	(todo-toggle-mark-item, todo-toggle-prefix-numbers)
+	(todo-toggle-view-done-items, todo-toggle-view-done-only)
+	(todo-unarchive-items, todo-unmark-category): New commands.
+	(todo-absolute-file-name, todo-add-to-buffer-list)
+	(todo-adjusted-category-label-length, todo-basic-edit-item-header)
+	(todo-basic-insert-item, todo-category-completions)
+	(todo-category-number, todo-category-string-matcher-1)
+	(todo-category-string-matcher-2, todo-check-filtered-items-file)
+	(todo-check-format, todo-clear-matches)
+	(todo-comment-string-matcher, todo-convert-legacy-date-time)
+	(todo-current-category, todo-date-string-matcher)
+	(todo-define-insertion-command, todo-diary-expired-matcher)
+	(todo-diary-goto-entry, todo-diary-item-p)
+	(todo-diary-nonmarking-matcher, todo-display-as-todo-file)
+	(todo-display-categories, todo-display-sorted, todo-done-item-p)
+	(todo-done-item-section-p, todo-done-separator)
+	(todo-done-string-matcher, todo-files, todo-filter-items)
+	(todo-filter-items-1, todo-filter-items-filename, todo-find-item)
+	(todo-gen-arglists, todo-get-count, todo-get-overlay, todo-indent)
+	(todo-insert-category-line, todo-insert-item-from-calendar)
+	(todo-insert-sort-button, todo-insert-with-overlays)
+	(todo-insertion-command-name, todo-insertion-key-bindings)
+	(todo-label-to-key, todo-longest-category-name-length)
+	(todo-make-categories-list, todo-mode-external-set)
+	(todo-mode-line-control, todo-modes-set-1, todo-modes-set-2)
+	(todo-modes-set-3, todo-multiple-filter-files)
+	(todo-nondiary-marker-matcher, todo-prefix-overlays)
+	(todo-read-category, todo-read-date, todo-read-dayname)
+	(todo-read-file-name, todo-read-time)
+	(todo-reevaluate-category-completions-files-defcustom)
+	(todo-reevaluate-default-file-defcustom)
+	(todo-reevaluate-filelist-defcustoms)
+	(todo-reevaluate-filter-files-defcustom)
+	(todo-reset-and-enable-done-separator, todo-reset-comment-string)
+	(todo-reset-done-separator, todo-reset-done-separator-string)
+	(todo-reset-done-string, todo-reset-global-current-todo-file)
+	(todo-reset-highlight-item, todo-reset-nondiary-marker)
+	(todo-reset-prefix, todo-set-categories)
+	(todo-set-date-from-calendar, todo-set-show-current-file)
+	(todo-set-top-priorities, todo-short-file-name)
+	(todo-show-current-file, todo-sort, todo-time-string-matcher)
+	(todo-total-item-counts, todo-update-buffer-list)
+	(todo-update-categories-display, todo-update-categories-sexp)
+	(todo-update-count, todo-validate-name, todo-y-or-n-p):
+	New functions.
+	(todo-archive-mode, todo-categories-mode, todo-filtered-items-mode):
+	New major modes.
+	(todo-categories, todo-display, todo-edit, todo-faces)
+	(todo-filtered): New defgroups.
+	(todo-archived-only, todo-button, todo-category-string, todo-date)
+	(todo-diary-expired, todo-done, todo-done-sep, todo-comment)
+	(todo-mark, todo-nondiary, todo-prefix-string, todo-search)
+	(todo-sorted-column, todo-time, todo-top-priority): New deffaces.
+	(todo-add-item-if-new-category, todo-always-add-time-string)
+	(todo-categories-align, todo-categories-archived-label)
+	(todo-categories-category-label, todo-categories-diary-label)
+	(todo-categories-done-label, todo-categories-number-separator)
+	(todo-categories-todo-label, todo-categories-totals-label)
+	(todo-category-completions-files, todo-completion-ignore-case)
+	(todo-default-todo-file, todo-diary-nonmarking, todo-directory)
+	(todo-done-separator-string, todo-done-string)
+	(todo-files-function, todo-filter-done-items, todo-filter-files)
+	(todo-highlight-item, todo-include-in-diary, todo-indent-to-here)
+	(todo-initial-category, todo-initial-file, todo-item-mark)
+	(todo-legacy-date-time-regexp, todo-mode-line-function)
+	(todo-nondiary-marker, todo-number-prefix)
+	(todo-print-buffer-function, todo-show-current-file)
+	(todo-show-done-only, todo-show-first, todo-show-with-done)
+	(todo-skip-archived-categories, todo-top-priorities-overrides)
+	(todo-undo-item-omit-comment, todo-use-only-highlighted-region)
+	(todo-visit-files-commands, todo-wrap-lines, todo-y-with-space):
+	New defcustoms.
+	(todo-category-done, todo-date-pattern, todo-date-string-start)
+	(todo-diary-items-buffer, todo-done-string-start)
+	(todo-filtered-items-buffer, todo-item-start)
+	(todo-month-abbrev-array, todo-month-name-array)
+	(todo-nondiary-end, todo-nondiary-start, todo-regexp-items-buffer)
+	(todo-top-priorities-buffer): New defconsts.
+	(todo-archive-mode-map, todo-archives, todo-categories-mode-map)
+	(todo-categories-with-marks, todo-category-string-face)
+	(todo-comment-face, todo-comment-string, todo-current-todo-file)
+	(todo-date-face, todo-date-from-calendar, todo-descending-counts)
+	(todo-diary-expired-face, todo-done-face, todo-done-sep-face)
+	(todo-done-separator, todo-edit-buffer, todo-edit-mode-map)
+	(todo-file-buffers, todo-files, todo-filtered-items-mode-map)
+	(todo-font-lock-keywords, todo-global-current-todo-file)
+	(todo-insertion-commands, todo-insertion-commands-arg-key-list)
+	(todo-insertion-commands-args)
+	(todo-insertion-commands-args-genlist)
+	(todo-insertion-commands-names, todo-insertion-map)
+	(todo-key-bindings-t, todo-key-bindings-t+a)
+	(todo-key-bindings-t+a+f, todo-key-bindings-t+f, todo-mode-map)
+	(todo-multiple-filter-files, todo-multiple-filter-files-widget)
+	(todo-nondiary-face, todo-print-buffer, todo-time-face)
+	(todo-visited): New variables.
+
 2013-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* play/cookie1.el (cookie-apropos): Add optional display argument.
