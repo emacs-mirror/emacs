@@ -1,3 +1,12 @@
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/croatian.el ("croatian-prefix"):
+	* quail/czech.el ("czech", "czech-qwerty"):
+	* quail/ipa-praat.el ("ipa-praat"):
+	* quail/ipa.el ("ipa-x-sampa"):
+	* quail/tibetan.el ("tibetan-wylie", "tibetan-tibkey"):
+	* quail/uni-input.el (ucs-input-activate): Fix typos in docstrings.
+
 2013-05-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (leim-list.el, check-declare):
