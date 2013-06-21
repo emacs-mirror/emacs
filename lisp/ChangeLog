@@ -1,3 +1,8 @@
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el (tar-get-file-descriptor)
+	(tar--extract): Declare.
+
 2013-06-21  Eduard Wiebe  <usenet@pusto.de>
 
 	Extend flymake's warning predicate to be a function (bug#14217).

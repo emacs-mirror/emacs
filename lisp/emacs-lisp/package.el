@@ -988,6 +988,9 @@ boundaries."
        (if requires-str (package-read-from-string requires-str))
        :kind 'single))))
 
+(declare-function tar-get-file-descriptor "tar-mode" (file))
+(declare-function tar--extract "tar-mode" (descriptor))
+
 (defun package-tar-file-info ()
   "Find package information for a tar file.
 The return result is a `package-desc'."
