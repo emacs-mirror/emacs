@@ -24,7 +24,7 @@
  * storing into an MRef pointer.
  */
 
-#include "prmcix.h"
+#include "prmci3xc.h"
 #include "prmci3.h"
 
 SRCID(prmci3li, "$Id$");
