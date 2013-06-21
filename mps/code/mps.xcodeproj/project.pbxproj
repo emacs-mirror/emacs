@@ -1178,6 +1178,10 @@
 		3114A6C6156E9815001E0AA3 /* mpseventcnv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mpseventcnv; sourceTree = BUILT_PRODUCTS_DIR; };
 		3114A6D0156E9829001E0AA3 /* eventcnv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = eventcnv.c; sourceTree = "<group>"; };
 		31172ABA17750F9D009488E5 /* thxc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = thxc.c; sourceTree = "<group>"; };
+		31172ABB177512F6009488E5 /* prmci3xc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prmci3xc.c; sourceTree = "<group>"; };
+		31172ABC1775131C009488E5 /* prmci6xc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prmci6xc.c; sourceTree = "<group>"; };
+		31172ABE1775164F009488E5 /* prmci6xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6xc.h; sourceTree = "<group>"; };
+		31172ABF17751663009488E5 /* prmci3xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3xc.h; sourceTree = "<group>"; };
 		311F2F5017398AD500C15B6A /* boot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = boot.h; sourceTree = "<group>"; };
 		311F2F5117398AE900C15B6A /* bt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bt.h; sourceTree = "<group>"; };
 		311F2F5217398AE900C15B6A /* cbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cbs.h; sourceTree = "<group>"; };
@@ -1293,7 +1297,6 @@
 		31EEAC43156AB32500714D05 /* splay.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = splay.c; sourceTree = "<group>"; };
 		31EEAC44156AB32500714D05 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = version.c; sourceTree = "<group>"; };
 		31EEAC4C156AB3B000714D05 /* lockix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lockix.c; sourceTree = "<group>"; };
-		31EEAC4E156AB3E300714D05 /* prmcan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = prmcan.c; sourceTree = "<group>"; };
 		31EEAC4F156AB3E300714D05 /* protix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protix.c; sourceTree = "<group>"; };
 		31EEAC50156AB3E300714D05 /* protsgix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protsgix.c; sourceTree = "<group>"; };
 		31EEAC53156AB3E300714D05 /* vmix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmix.c; sourceTree = "<group>"; };
@@ -1713,6 +1716,8 @@
 		31A47BA6156C1E620039B1C2 /* I3 */ = {
 			isa = PBXGroup;
 			children = (
+				31172ABF17751663009488E5 /* prmci3xc.h */,
+				31172ABB177512F6009488E5 /* prmci3xc.c */,
 				31A47BA5156C1E5E0039B1C2 /* ssixi3.c */,
 			);
 			name = I3;
@@ -1721,6 +1726,8 @@
 		31A47BA7156C1E6E0039B1C2 /* I6 */ = {
 			isa = PBXGroup;
 			children = (
+				31172ABE1775164F009488E5 /* prmci6xc.h */,
+				31172ABC1775131C009488E5 /* prmci6xc.c */,
 				3104AFA5156D27E7000A585A /* ssixi6.c */,
 			);
 			name = I6;
@@ -1897,7 +1904,6 @@
 				31A47BA7156C1E6E0039B1C2 /* I6 */,
 				31A47BA6156C1E620039B1C2 /* I3 */,
 				31EEAC4C156AB3B000714D05 /* lockix.c */,
-				31EEAC4E156AB3E300714D05 /* prmcan.c */,
 				31EEAC4F156AB3E300714D05 /* protix.c */,
 				31EEAC50156AB3E300714D05 /* protsgix.c */,
 				31EEACA7156AB79800714D05 /* span.c */,
