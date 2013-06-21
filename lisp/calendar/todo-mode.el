@@ -56,10 +56,10 @@
 
 ;; To see a list of all Todo mode commands and their key bindings,
 ;; including other entry points, type `C-h m' in Todo mode.  Consult
-;; the document strings of the commands for details of their use.  The
-;; `todo' customization group and its subgroups list the options you
-;; can set to alter the behavior of many commands and various aspects
-;; of the display.
+;; the documentation strings of the commands for details of their use.
+;; The `todo' customization group and its subgroups list the options
+;; you can set to alter the behavior of many commands and various
+;; aspects of the display.
 
 ;; This package is a new version of Oliver Seidel's todo-mode.el.
 ;; While it retains the same basic organization and handling of todo
@@ -4029,7 +4029,7 @@ is nil, visit an appropriate file containing the list of filtered
 items; if there is no such file, or with non-nil NEW, build the
 list and display it.
 
-See the document strings of the commands
+See the documentation strings of the commands
 `todo-filter-top-priorities', `todo-filter-diary-items',
 `todo-filter-regexp-items', and those of the corresponding
 multifile commands for further details."

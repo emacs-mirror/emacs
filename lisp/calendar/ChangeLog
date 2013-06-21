@@ -1,5 +1,10 @@
 2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
 
+	* todo-mode.el: Change two occurrences of "document string" to
+	"documentation string".
+
+2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
+
 	* todo-mode.el: Clean up doc strings, comments and prompt strings,
 	mainly by changing "Todo" to "todo" when it is not part of a mode
 	name or does not begin a sentence.
