@@ -1032,7 +1032,14 @@ in the mode line.  This is an option for `diary-display-function'."
 (define-obsolete-function-alias 'simple-diary-display
   'diary-simple-display "23.1")
 
-(define-button-type 'diary-entry 'action #'diary-goto-entry
+(defvar diary-goto-entry-function 'diary-goto-entry
+  "Function called to jump to a diary entry.
+Modes that require special handling of the included file
+containing the diary entry can assign a suitable function to this
+variable.")
+
+(define-button-type 'diary-entry
+  'action (lambda (button) (funcall diary-goto-entry-function button))
   'face 'diary-button 'help-echo "Find this diary entry"
   'follow-link t)
 
