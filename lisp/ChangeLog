@@ -1,3 +1,7 @@
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add with-eval-after-load.
+
 2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 	    Daniel Hackney  <dan@haxney.org>
 
