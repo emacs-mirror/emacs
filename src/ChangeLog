@@ -1,3 +1,9 @@
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (create_process): Handle a couple more cases,
+	i.e., work even if new_argv and wait_child_setup[i] are cached.
+	Use Fcall_process's style for volatile vars.
+
 2013-06-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (create_process): Mark PROCESS volatile.

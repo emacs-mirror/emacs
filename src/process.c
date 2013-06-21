@@ -1582,8 +1582,7 @@ create_process_1 (struct atimer *timer)
 
 
 static void
-create_process (volatile Lisp_Object process, char **new_argv,
-		Lisp_Object current_dir)
+create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   int inchannel, outchannel;
   pid_t pid;
@@ -1592,11 +1591,10 @@ create_process (volatile Lisp_Object process, char **new_argv,
   int wait_child_setup[2];
 #endif
   sigset_t blocked;
-  /* Use volatile to protect variables from being clobbered by vfork.  */
-  volatile int forkin, forkout;
-  volatile bool pty_flag = 0;
-  volatile Lisp_Object lisp_pty_name = Qnil;
-  volatile Lisp_Object encoded_current_dir;
+  int forkin, forkout;
+  bool pty_flag = 0;
+  Lisp_Object lisp_pty_name = Qnil;
+  Lisp_Object encoded_current_dir;
 
   inchannel = outchannel = -1;
 
@@ -1695,7 +1693,31 @@ create_process (volatile Lisp_Object process, char **new_argv,
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
 
 #ifndef WINDOWSNT
-  pid = vfork ();
+  /* vfork, and prevent local vars from being clobbered by the vfork.  */
+  {
+    Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
+    Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
+    Lisp_Object volatile process_volatile = process;
+    bool volatile pty_flag_volatile = pty_flag;
+    char **volatile new_argv_volatile = new_argv;
+    int volatile forkin_volatile = forkin;
+    int volatile forkout_volatile = forkout;
+    int volatile wait_child_setup_0_volatile = wait_child_setup[0];
+    int volatile wait_child_setup_1_volatile = wait_child_setup[1];
+
+    pid = vfork ();
+
+    encoded_current_dir = encoded_current_dir_volatile;
+    lisp_pty_name = lisp_pty_name_volatile;
+    process = process_volatile;
+    pty_flag = pty_flag_volatile;
+    new_argv = new_argv_volatile;
+    forkin = forkin_volatile;
+    forkout = forkout_volatile;
+    wait_child_setup[0] = wait_child_setup_0_volatile;
+    wait_child_setup[1] = wait_child_setup_1_volatile;
+  }
+
   if (pid == 0)
 #endif /* not WINDOWSNT */
     {
