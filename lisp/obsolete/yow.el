@@ -60,7 +60,7 @@
 (defsubst read-zippyism (prompt &optional require-match)
   "Read a Zippyism from the minibuffer with completion, prompting with PROMPT.
 If optional second arg is non-nil, require input to match a completion."
-  (read-cookie prompt yow-file yow-load-message yow-after-load-message
+  (cookie-read prompt yow-file yow-load-message yow-after-load-message
 	       require-match))
 
 ;;;###autoload
