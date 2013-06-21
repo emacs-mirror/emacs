@@ -1,3 +1,9 @@
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* play/cookie1.el (cookie-apropos): Add optional display argument.
+	* obsolete/yow.el (apropos-zippy): Use cookie-apropos.
+	(psychoanalyze-pinhead): Use cookie-doctor.
+
 2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/package.el (tar-get-file-descriptor)

@@ -185,11 +185,11 @@ Argument REQUIRE-MATCH non-nil forces a matching cookie."
 (define-obsolete-function-alias 'shuffle-vector 'cookie-shuffle-vector "24.4")
 
 
-(defun cookie-apropos (regexp phrase-file)
+(defun cookie-apropos (regexp phrase-file &optional display)
   "Return a list of all entries matching REGEXP from PHRASE-FILE.
 Interactively, PHRASE-FILE defaults to `cookie-file', unless that
 is nil or a prefix argument is used.
-If called interactively, display a list of matches."
+If called interactively, or if DISPLAY is non-nil, display a list of matches."
   (interactive (list (read-regexp "Apropos phrase (regexp): ")
 		     (if (or current-prefix-arg (not cookie-file))
 			 (read-file-name "Cookie file: " nil
@@ -211,7 +211,7 @@ If called interactively, display a list of matches."
         (setq i (1+ i))))
     (and matches
          (setq matches (sort matches 'string-lessp)))
-    (and (called-interactively-p 'interactive)
+    (and (or display (called-interactively-p 'interactive))
          (cond ((null matches)
                 (message "No matches found."))
                (t
