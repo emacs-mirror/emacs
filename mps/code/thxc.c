@@ -15,6 +15,7 @@
 #include <mach/mach_init.h>
 #include <mach/task.h>
 #include <mach/thread_act.h>
+#include <mach/thread_status.h>
 
 
 SRCID(thxc, "$Id$");
@@ -161,13 +162,6 @@ Arena ThreadArena(Thread thread)
   /* Can't AVER thread as that would not be thread-safe */
   /* AVERT(Thread, thread); */
   return thread->arena;
-}
-
-
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
-{
-  UNUSED(thread);
-  return StackScan(ss, stackBot);
 }
 
 
