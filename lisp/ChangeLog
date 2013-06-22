@@ -1,3 +1,8 @@
+2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (auto-mode-alist): Do not use
+	`regexp-opt', it breaks the build during dumping.
+
 2013-06-21  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight

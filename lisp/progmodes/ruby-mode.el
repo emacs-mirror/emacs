@@ -1869,12 +1869,11 @@ The variable `ruby-indent-level' controls the amount of indentation.
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              (cons (purecopy (concat "\\(?:\\."
-                                     (regexp-opt '("rb" "ru" "rake" "thor"
-                                                   "jbuilder" "gemspec"))
+                                     "rb\\|ru\\|rake\\|thor"
+                                     "\\|jbuilder\\|gemspec"
                                      "\\|/"
-                                     (regexp-opt '("Gemfile" "Rakefile"
-                                                   "Capfile" "Thorfile"
-                                                   "Vagrantfile" "Guardfile"))
+                                     "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+                                     "Vagrant\\|Guard\\)file"
                                      "\\)\\'")) 'ruby-mode))
 
 ;;;###autoload
