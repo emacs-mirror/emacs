@@ -33,6 +33,7 @@ emacs-*/
 GPATH
 GRTAGS
 GTAGS
+ID
 makefile
 Makefile
 Makefile.c

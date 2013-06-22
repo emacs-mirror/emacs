@@ -1,3 +1,7 @@
+2013-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Add GNU idutils ID database file.
+
 2013-06-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.ac (HAVE_LIBXML2): Try built-in libxml2 on OS X 10.8
@@ -7,7 +11,7 @@
 
 	* .bzrignore: Don't unignore cl-loaddefs.el.
 
-2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+2013-06-20  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* configure.ac (log2): Check for this function.
 
