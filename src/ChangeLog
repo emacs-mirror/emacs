@@ -1,5 +1,16 @@
 2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Clean up SIGCHLD handling a bit (Bug#14569).
+	* process.c, process.h (catch_child_signal):
+	Now always extern, even if !NS_IMPL_GNUSTEP.
+	* process.c (catch_child_signal): Move glib tickler here from
+	init_process_emacs, so that it's done earlier in Emacs
+	initialization.  Also move the noninteractive && !initialized
+	check here from init_process_emacs.  This is all a bit cleaner for
+	GNUish platforms, and I hope it works around the Cygwin bug.
+	* sysdep.c (init_signals): Invoke catch_child_signal here, so
+	that glib signal handling is tickled before glib creates threads.
+
 	* process.c (wait_reading_process_output): Avoid int overflow
 	when reading more than 2 GiB total from a process.
 

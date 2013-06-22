@@ -7060,13 +7060,29 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
-#ifndef NS_IMPL_GNUSTEP
-static
-#endif
+/* Arrange to catch SIGCHLD if needed.  */
+
 void
 catch_child_signal (void)
 {
   struct sigaction action, old_action;
+
+#if !defined CANNOT_DUMP
+  if (noninteractive && !initialized)
+    return;
+#endif
+
+#if defined HAVE_GLIB && !defined WINDOWSNT
+  /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+     this should always fail, but is enough to initialize glib's
+     private SIGCHLD handler, allowing the code below to copy it into
+     LIB_CHILD_HANDLER.
+
+     Do this early in Emacs initialization, before glib creates
+     threads, to avoid race condition bugs in Cygwin glib.  */
+  g_source_unref (g_child_watch_source_new (getpid ()));
+#endif
+
   emacs_sigaction_init (&action, deliver_child_signal);
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
@@ -7085,19 +7101,6 @@ init_process_emacs (void)
   register int i;
 
   inhibit_sentinels = 0;
-
-#ifndef CANNOT_DUMP
-  if (! noninteractive || initialized)
-#endif
-    {
-#if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
-	 this should always fail, but is enough to initialize glib's
-	 private SIGCHLD handler.  */
-      g_source_unref (g_child_watch_source_new (getpid ()));
-#endif
-      catch_child_signal ();
-    }
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
