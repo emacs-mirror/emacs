@@ -1,3 +1,9 @@
+2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move `catch',
+	add some more keyword-like methods.
+	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00911.html
+
 2013-06-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-buffer-show-mark): Make defvar-local.

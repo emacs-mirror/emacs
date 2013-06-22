@@ -1735,7 +1735,6 @@ See `font-lock-syntax-table'.")
              "begin"
              "break"
              "case"
-             "catch"
              "class"
              "def"
              "defined?"
@@ -1770,14 +1769,28 @@ See `font-lock-syntax-table'.")
           (regexp-opt
            '("alias_method"
              "autoload"
+             "attr"
+             "attr_accessor"
+             "attr_reader"
+             "attr_writer"
+             "catch"
+             "define_method"
+             "extend"
+             "fail"
+             "include"
+             "lambda"
+             "loop"
              "module_function"
              "private"
+             "proc"
              "protected"
              "public"
              "raise"
+             "refine"
              "require"
              "require_relative"
-             "throw")
+             "throw"
+             "using")
            'symbols)
           "\\)")
          2
