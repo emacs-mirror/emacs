@@ -233,7 +233,7 @@ a package can run arbitrary code."
 
 Each element has the form (SYM . ID).
  SYM is a package, as a symbol.
- ID is an archive name, as a string. This should correspond to an
+ ID is an archive name. This should correspond to an
  entry in `package-archives'.
 
 If the archive of name ID does not contain the package SYM, no
@@ -248,9 +248,6 @@ package unavailable."
 (defconst package-archive-version 1
   "Version number of the package archive understood by this file.
 Lower version numbers than this will probably be understood as well.")
-
-(defconst package-el-version "1.0.1"
-  "Version of package.el.")
 
 ;; We don't prime the cache since it tends to get out of date.
 (defvar package-archive-contents nil
@@ -557,13 +554,13 @@ EXTRA-PROPERTIES is currently unused."
         ;; If there's no old package, just add this to `package-alist'.
         (push (list name new-pkg-desc) package-alist)
       ;; If there is, insert the new package at the right place in the list.
-      (while old-pkgs
-        (cond
-         ((null (cdr old-pkgs)) (push new-pkg-desc (cdr old-pkgs)))
-         ((version-list-< (package-desc-version (cadr old-pkgs)) version)
-          (push new-pkg-desc (cdr old-pkgs))
-          (setq old-pkgs nil)))
-        (setq old-pkgs (cdr old-pkgs))))
+      (while
+          (if (and (cdr old-pkgs)
+                   (version-list-< version
+                                   (package-desc-version (cadr old-pkgs))))
+              (setq old-pkgs (cdr old-pkgs))
+            (push new-pkg-desc (cdr old-pkgs))
+            nil)))
     new-pkg-desc))
 
 ;; From Emacs 22, but changed so it adds to load-path.
@@ -914,10 +911,10 @@ using `package-compute-transaction'."
       (package-install-from-archive desc))))
 
 ;;;###autoload
-(defun package-install (pkg-desc)
-  "Install the package PKG-DESC.
-PKG-DESC should be one of the available packages in an
-archive in `package-archives'.  Interactively, prompt for its name."
+(defun package-install (pkg)
+  "Install the package PKG.
+PKG can be a package-desc or the package name of one the available packages
+in an archive in `package-archives'.  Interactively, prompt for its name."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -926,22 +923,22 @@ archive in `package-archives'.  Interactively, prompt for its name."
        (package-initialize t))
      (unless package-archive-contents
        (package-refresh-contents))
-     (let* ((name (intern (completing-read
+     (list (intern (completing-read
                            "Install package: "
                            (mapcar (lambda (elt)
                                      (cons (symbol-name (car elt))
                                            nil))
                                    package-archive-contents)
-                           nil t)))
-            (pkg-desc (cdr (assq name package-archive-contents))))
+                    nil t)))))
+  (let ((pkg-desc
+         (if (package-desc-p pkg) pkg
+           (cdr (assq pkg package-archive-contents)))))
        (unless pkg-desc
-         (error "Package `%s' is not available for installation"
-                name))
-       (list pkg-desc))))
+      (error "Package `%s' is not available for installation" pkg))
   (package-download-transaction
    ;; FIXME: Use (list pkg-desc) instead of just the name.
    (package-compute-transaction (list (package-desc-name pkg-desc))
-                                (package-desc-reqs pkg-desc))))
+                                  (package-desc-reqs pkg-desc)))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -1082,6 +1079,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
 This informs Emacs about the latest versions of all packages, and
 makes them available for download."
   (interactive)
+  ;; FIXME: Do it asynchronously.
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (dolist (archive package-archives)

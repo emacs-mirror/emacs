@@ -1,3 +1,9 @@
+2013-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-el-version): Remove.
+	(package-process-define-package): Fix inf-loop.
+	(package-install): Allow symbols as arguments again.
+
 2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move `catch',
