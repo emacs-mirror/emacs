@@ -107,6 +107,131 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
 }
 
 
+/* ThreadScan -- scan the state of a thread (stack and regs) */
+
+Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+{
+  mach_port_t self;
+  Res res;
+
+  AVERT(Thread, thread);
+  self = mach_thread_self();
+  if (thread->port == self) {
+    /* scan this thread's stack */
+    res = StackScan(ss, stackBot);
+    if(res != ResOK)
+      return res;
+  } else {
+    struct MutatorFaultContextStruct mfcStruct;
+    Addr *stackBase, *stackLimit, stackPtr;
+    mach_msg_type_number_t count;
+    kern_return_t kern_return;
+
+#if 0
+    count = x86_EXCEPTION_STATE64_COUNT;
+    kern_return = thread_get_state(thread->port,
+                                   x86_EXCEPTION_STATE64,
+                                   (thread_state_t)&mfcStruct.exception_state,
+                                   &count);
+    /* FIXME: error checking */
+#endif
+
+    count = x86_THREAD_STATE64_COUNT;
+    kern_return = thread_get_state(thread->port,
+                                   x86_THREAD_STATE64,
+                                   (thread_state_t)&mfcStruct.thread_state,
+                                   &count);
+    /* FIXME: error checking */
+    AVER(kern_return == KERN_SUCCESS);
+    
+    stackPtr = MutatorFaultContextSP(&mfcStruct);
+    /* .stack.align */
+    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackLimit = (Addr *)stackBot;
+    if (stackBase >= stackLimit)
+      return ResOK;    /* .stack.below-bottom */
+
+    /* scan stack inclusive of current sp and exclusive of
+     * stackBot (.stack.full-descend)
+     */
+    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
+    if(res != ResOK)
+      return res;
+
+    /* scan the registers in the mutator fault context */
+    res = MutatorFaultContextScan(ss, &mfcStruct);
+    if(res != ResOK)
+      return res;
+  }
+
+  return ResOK;
+}
+
+extern kern_return_t catch_exception_raise(mach_port_t exception_port,
+                                           mach_port_t thread,
+                                           mach_port_t task,
+                                           exception_type_t exception,
+                                           exception_data_t code,
+                                           mach_msg_type_number_t code_count);
+
+kern_return_t catch_exception_raise(mach_port_t exception_port,
+                                    mach_port_t thread,
+                                    mach_port_t task,
+                                    exception_type_t exception,
+                                    exception_data_t code,
+                                    mach_msg_type_number_t code_count)
+{
+  MutatorFaultContextStruct mfcStruct;
+  mach_msg_type_number_t count;
+  kern_return_t kern_return;
+  AccessSet mode;
+  Addr base;
+  
+  UNUSED(exception_port);
+  UNUSED(task);
+  UNUSED(code_count);
+
+  if (exception != EXC_BAD_ACCESS || code[0] != KERN_PROTECTION_FAILURE) {
+    /* FIXME: forward this somehow */
+    NOTREACHED;
+  }
+  
+  count = x86_EXCEPTION_STATE64_COUNT;
+  kern_return = thread_get_state(thread,
+                                 x86_EXCEPTION_STATE64,
+                                 (thread_state_t)&mfcStruct.exception_state,
+                                 &count);
+  /* FIXME: error checking */
+  AVER(kern_return == KERN_SUCCESS);
+
+  count = x86_THREAD_STATE64_COUNT;
+  kern_return = thread_get_state(thread,
+                                 x86_THREAD_STATE64,
+                                 (thread_state_t)&mfcStruct.thread_state,
+                                 &count);
+  /* FIXME: error checking */
+  AVER(kern_return == KERN_SUCCESS);
+
+  mode = AccessREAD | AccessWRITE; /* FIXME: Can refine? */
+  base = (Addr)mfcStruct.exception_state.__faultvaddr;
+  
+  if (ArenaAccess(base, mode, &mfcStruct))
+    return KERN_SUCCESS;
+
+  /* FIXME: Forward the exception somehow. */
+  NOTREACHED;
+  return KERN_SUCCESS;
+}
+
+
+/*  ProtSetup -- global protection setup */
+
+void ProtSetup(void)
+{
+  NOOP;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.

@@ -1182,6 +1182,7 @@
 		31172ABC1775131C009488E5 /* prmci6xc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prmci6xc.c; sourceTree = "<group>"; };
 		31172ABE1775164F009488E5 /* prmci6xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6xc.h; sourceTree = "<group>"; };
 		31172ABF17751663009488E5 /* prmci3xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3xc.h; sourceTree = "<group>"; };
+		31172AC017752253009488E5 /* protxc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = protxc.c; sourceTree = "<group>"; };
 		311F2F5017398AD500C15B6A /* boot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = boot.h; sourceTree = "<group>"; };
 		311F2F5117398AE900C15B6A /* bt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bt.h; sourceTree = "<group>"; };
 		311F2F5217398AE900C15B6A /* cbs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cbs.h; sourceTree = "<group>"; };
@@ -1298,7 +1299,6 @@
 		31EEAC44156AB32500714D05 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = version.c; sourceTree = "<group>"; };
 		31EEAC4C156AB3B000714D05 /* lockix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lockix.c; sourceTree = "<group>"; };
 		31EEAC4F156AB3E300714D05 /* protix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protix.c; sourceTree = "<group>"; };
-		31EEAC50156AB3E300714D05 /* protsgix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = protsgix.c; sourceTree = "<group>"; };
 		31EEAC53156AB3E300714D05 /* vmix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmix.c; sourceTree = "<group>"; };
 		31EEAC5B156AB41900714D05 /* poolamc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolamc.c; sourceTree = "<group>"; };
 		31EEAC5D156AB43F00714D05 /* poolsnc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolsnc.c; sourceTree = "<group>"; };
@@ -1905,7 +1905,7 @@
 				31A47BA6156C1E620039B1C2 /* I3 */,
 				31EEAC4C156AB3B000714D05 /* lockix.c */,
 				31EEAC4F156AB3E300714D05 /* protix.c */,
-				31EEAC50156AB3E300714D05 /* protsgix.c */,
+				31172AC017752253009488E5 /* protxc.c */,
 				31EEACA7156AB79800714D05 /* span.c */,
 				31172ABA17750F9D009488E5 /* thxc.c */,
 				31EEAC53156AB3E300714D05 /* vmix.c */,
