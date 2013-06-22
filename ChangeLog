@@ -1,3 +1,7 @@
+2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* configure.ac: Include X11/X.h when testing for Xft.h.  (Bug#14684)
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
