@@ -1,3 +1,11 @@
+2013-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-buffer-show-mark): Make defvar-local.
+	(bs-mode): Use setq-local.
+
+	* emacs-lock.el (emacs-lock-mode, emacs-lock--old-mode)
+	(emacs-lock--try-unlocking): Make defvar-local.
+
 2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* play/cookie1.el (cookie-apropos): Minor simplification.
