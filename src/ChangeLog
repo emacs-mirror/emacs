@@ -1,3 +1,8 @@
+2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (wait_reading_process_output): Avoid int overflow
+	when reading more than 2 GiB total from a process.
+
 2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (create_process): Handle a couple more cases,
