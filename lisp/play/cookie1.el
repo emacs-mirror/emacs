@@ -194,34 +194,28 @@ If called interactively, or if DISPLAY is non-nil, display a list of matches."
 		     (if (or current-prefix-arg (not cookie-file))
 			 (read-file-name "Cookie file: " nil
 					 cookie-file t cookie-file)
-		       cookie-file)))
+		       cookie-file) t))
   (setq phrase-file (cookie-check-file phrase-file))
   ;; Make sure phrases are loaded.
   (cookie phrase-file)
   (let* ((case-fold-search t)
          (cookie-table-symbol (intern phrase-file cookie-cache))
          (string-table (symbol-value cookie-table-symbol))
-         (matches nil)
-         (len (length string-table))
-         (i 0))
-    (save-match-data
-      (while (< i len)
-        (and (string-match regexp (aref string-table i))
-             (setq matches (cons (aref string-table i) matches)))
-        (setq i (1+ i))))
-    (and matches
+         (matches nil))
+    (and (dotimes (i (length string-table) matches)
+           (and (string-match-p regexp (aref string-table i))
+                (setq matches (cons (aref string-table i) matches))))
          (setq matches (sort matches 'string-lessp)))
-    (and (or display (called-interactively-p 'interactive))
-         (cond ((null matches)
-                (message "No matches found."))
-               (t
-                (let ((l matches))
-                  (with-output-to-temp-buffer "*Cookie Apropos*"
-                    (while l
-                      (princ (car l))
-                      (setq l (cdr l))
-                      (and l (princ "\n\n")))
-		    (help-print-return-message))))))
+    (and display
+         (if matches
+             (let ((l matches))
+               (with-output-to-temp-buffer "*Cookie Apropos*"
+                 (while l
+                   (princ (car l))
+                   (setq l (cdr l))
+                   (and l (princ "\n\n")))
+                 (help-print-return-message)))
+           (message "No matches found.")))
     matches))
 
 

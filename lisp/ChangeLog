@@ -1,5 +1,7 @@
 2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
 
+	* play/cookie1.el (cookie-apropos): Minor simplification.
+
 	* progmodes/gdb-mi.el (gdb-mapcar*): Remove, replace with cl-mapcar.
 
 2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
