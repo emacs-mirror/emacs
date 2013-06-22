@@ -11993,7 +11993,8 @@ fi
 	CFLAGS="$CFLAGS $XFT_CFLAGS"
 	XFT_LIBS="-lXrender $XFT_LIBS"
 	LIBS="$XFT_LIBS $LIBS"
-	ac_fn_c_check_header_mongrel "$LINENO" "X11/Xft/Xft.h" "ac_cv_header_X11_Xft_Xft_h" "$ac_includes_default"
+	ac_fn_c_check_header_compile "$LINENO" "X11/Xft/Xft.h" "ac_cv_header_X11_Xft_Xft_h" "#include <X11/X.h>
+"
 if test "x$ac_cv_header_X11_Xft_Xft_h" = x""yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XftFontOpen in -lXft" >&5
 $as_echo_n "checking for XftFontOpen in -lXft... " >&6; }
