@@ -1,3 +1,12 @@
+2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-documentation): Simplify.
+	(read-face-attribute, tty-find-type, x-resolve-font-name):
+	Use `string-match-p'.
+	(list-faces-display): Use `string-match-p'.  Simplify.
+	(face-spec-recalc): Check face to avoid face alias loops.
+	(read-color): Use `string-match-p' and non-capturing parenthesis.
+
 2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-rescale-image): Use the new
