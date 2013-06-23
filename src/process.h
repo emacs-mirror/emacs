@@ -200,6 +200,8 @@ extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
 /* Defined in callproc.c.  */
 
+extern void block_child_signal (void);
+extern void unblock_child_signal (void);
 extern void record_kill_process (struct Lisp_Process *);
 
 /* Defined in process.c.  */

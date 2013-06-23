@@ -1,3 +1,15 @@
+2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to avoid malloc SEGVs on Cygwin (Bug#14569).
+	* callproc.c, process.h (block_child_signal, unblock_child_signal):
+	Now extern.
+	* emacs.c (main): Catch SIGCHLD just before initializing gfilenotify.
+	* process.c (catch_child_signal): Block SIGCHLD while futzing with
+	the SIGCHLD handler, since the code is not atomic and (due to glib)
+	signals may be arriving now.
+	* sysdep.c (init_signals): Do not catch child signals here;
+	'main' now does that later, at a safer time.
+
 2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean up SIGCHLD handling a bit (Bug#14569).

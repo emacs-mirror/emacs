@@ -84,7 +84,7 @@ static int synch_process_fd;
 
 /* Block SIGCHLD.  */
 
-static void
+void
 block_child_signal (void)
 {
   sigset_t blocked;
@@ -95,7 +95,7 @@ block_child_signal (void)
 
 /* Unblock SIGCHLD.  */
 
-static void
+void
 unblock_child_signal (void)
 {
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);

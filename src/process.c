@@ -7084,11 +7084,13 @@ catch_child_signal (void)
 #endif
 
   emacs_sigaction_init (&action, deliver_child_signal);
+  block_child_signal ();
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
   if (old_action.sa_handler != SIG_DFL && old_action.sa_handler != SIG_IGN
       && old_action.sa_handler != deliver_child_signal)
     lib_child_handler = old_action.sa_handler;
+  unblock_child_signal ();
 }
 
 
