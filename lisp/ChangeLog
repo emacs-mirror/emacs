@@ -1,3 +1,8 @@
+2013-06-23  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/eww.el (eww-search-prefix): New variable.
+	(eww): Use it.
+
 2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-init-header):

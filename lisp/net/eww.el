@@ -40,6 +40,13 @@
   "Header line format.
 - %t is replaced by the title.
 - %u is replaced by the URL."
+  :version "24.4"
+  :group 'eww
+  :type 'string)
+
+(defcustom eww-search-prefix "https://duckduckgo.com/html/?q="
+  "Prefix URL to search engine"
+  :version "24.4"
   :group 'eww
   :type 'string)
 
@@ -89,10 +96,16 @@
 
 ;;;###autoload
 (defun eww (url)
-  "Fetch URL and render the page."
-  (interactive "sUrl: ")
-  (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
-    (setq url (concat "http://" url)))
+  "Fetch URL and render the page.
+If the input doesn't look like an URL or a domain name, the
+word(s) will be searched for via `eww-search-prefix'."
+  (interactive "sEnter URL or keywords: ")
+  (if (and (= (length (split-string url)) 1)
+           (> (length (split-string url "\\.")) 1))
+      (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
+        (setq url (concat "http://" url)))
+    (setq url (concat eww-search-prefix
+                      (replace-regexp-in-string " " "+" url))))
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
