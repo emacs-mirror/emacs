@@ -30,6 +30,10 @@ conftest*
 core
 DOC
 emacs-*/
+GPATH
+GRTAGS
+GTAGS
+ID
 makefile
 Makefile
 Makefile.c
@@ -141,7 +145,6 @@ lib-src/profile
 lib-src/test-distrib
 lib-src/update-game-score
 lisp/**/*-loaddefs.el
-!lisp/emacs-lisp/cl-loaddefs.el
 lisp/**/loaddefs.el
 lisp/cus-load.el
 lisp/eshell/esh-groups.el

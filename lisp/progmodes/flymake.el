@@ -1049,8 +1049,12 @@ from compile.el")
 ;;   :type '(repeat (string number number number))
 ;;)
 
-(defvar flymake-warning-re "^[wW]arning"
-  "Regexp matching against err-text to detect a warning.")
+(define-obsolete-variable-alias 'flymake-warning-re 'flymake-warning-predicate "24.4")
+(defvar flymake-warning-predicate "^[wW]arning"
+  "Predicate matching against error text to detect a warning.
+Takes a single argument, the error's text and should return non-nil
+if it's a warning.
+Instead of a function, it can also be a regular expression.")
 
 (defun flymake-parse-line (line)
   "Parse LINE to see if it is an error or warning.
@@ -1067,16 +1071,22 @@ Return its components if so, nil otherwise."
 	       (line-idx (nth 2 (car patterns))))
 
 	  (setq raw-file-name (if file-idx (match-string file-idx line) nil))
-	  (setq line-no       (if line-idx (string-to-number (match-string line-idx line)) 0))
+	  (setq line-no       (if line-idx (string-to-number
+                                            (match-string line-idx line)) 0))
 	  (setq err-text      (if (> (length (car patterns)) 4)
 				  (match-string (nth 4 (car patterns)) line)
-				(flymake-patch-err-text (substring line (match-end 0)))))
-	  (or err-text (setq err-text "<no error text>"))
-	  (if (and err-text (string-match flymake-warning-re err-text))
-	      (setq err-type "w")
-	    )
-	  (flymake-log 3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s" file-idx line-idx
-		       raw-file-name line-no err-text)
+				(flymake-patch-err-text
+                                 (substring line (match-end 0)))))
+	  (if (null err-text)
+              (setq err-text "<no error text>")
+            (when (cond ((stringp flymake-warning-predicate)
+                         (string-match flymake-warning-predicate err-text))
+                        ((functionp flymake-warning-predicate)
+                         (funcall flymake-warning-predicate err-text)))
+              (setq err-type "w")))
+	  (flymake-log
+           3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s"
+           file-idx line-idx raw-file-name line-no err-text)
 	  (setq matched t)))
       (setq patterns (cdr patterns)))
     (if matched

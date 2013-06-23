@@ -1,3 +1,624 @@
+2013-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-el-version): Remove.
+	(package-process-define-package): Fix inf-loop.
+	(package-install): Allow symbols as arguments again.
+
+2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move `catch',
+	add some more keyword-like methods.
+	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00911.html
+
+2013-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-buffer-show-mark): Make defvar-local.
+	(bs-mode): Use setq-local.
+
+	* emacs-lock.el (emacs-lock-mode, emacs-lock--old-mode)
+	(emacs-lock--try-unlocking): Make defvar-local.
+
+2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* play/cookie1.el (cookie-apropos): Minor simplification.
+
+	* progmodes/gdb-mi.el (gdb-mapcar*): Remove, replace with cl-mapcar.
+
+2013-06-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (auto-mode-alist): Do not use
+	`regexp-opt', it breaks the build during dumping.
+
+2013-06-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	keyword-like methods on Kernel and Module with
+	font-lock-builtin-face.
+	(auto-mode-alist): Consolidate different entries into one regexp
+	and add more *file-s.
+
+2013-06-21  Stephen Berman  <stephen.berman@gmx.net>
+
+	* obsolete/otodo-mode.el: Move and rename from calendar/todo-mode.el.
+
+	* calendar/diary-lib.el (diary-goto-entry-function): New variable.
+	(diary-entry): Use it in the action of this button type instead of
+	diary-goto-entry.
+
+	* calendar/todo-mode.el: New version.
+	(todo-add-category): Append new category to end of file and give
+	it the highest number, instead of putting it at the beginning and
+	giving it 0.  Incorporate noninteractive functionality.
+	(todo-forward-category): Adapt to 1-based category numbering.
+	Allow skipping over archived categories.
+	(todo-backward-category): Derive from todo-forward-category.
+	(todo-backward-item, todo-forward-item): Make noninteractive and
+	delegate interactive part to new commands.  Make sensitive to done items.
+	(todo-categories): Make value an alist of category names and
+	vectors of item counts.
+	(todo-category-beg): Make a defconst.
+	(todo-category-number): Use 1 instead of 0 as initial value.
+	(todo-category-select): Make sensitive to overlays, optional item
+	highlighting and done items.
+	(todo-delete-item): Make sensitive to overlays and marked and done items.
+	(todo-edit-item): Make sensitive to overlays and editing of
+	date/time header optional.  Add format checks.
+	(todo-edit-multiline): Rename to todo-edit-multiline-item.  Make a
+	no-op if point is not on an item.  Advertise using todo-edit-quit.
+	(todo-edit-mode): Make sensitive to new format, font-locking, and
+	multiple todo files.
+	(todo-insert-item, todo-insert-item-here): Derive from
+	todo-basic-insert-item and extend functionality.
+	(todo-item-end, todo-item-start): Make sensitive to done items.
+	(todo-item-string): Don't return text properties.  Restore point.
+	(todo-jump-to-category): Make sensitive to multiple todo files and
+	todo archives.  Use extended category completion.
+	(todo-lower-item, todo-raise-item): Rename to *-priority and
+	derive from todo-set-item-priority.
+	(todo-mode): Derive from special-mode.  Make sensitive to new
+	format, font-locking and multiple todo files.  Make read-only.
+	(todo-mode-map): Don't suppress digit keys, so they can supply
+	prefix arguments.  Add many new key bindings.
+	(todo-prefix): Insert as an overlay instead of file text.
+	Change semantics from diary date expression to purely visual mark.
+	(todo-print): Rename to todo-print-buffer.  Make buffer display
+	features printable.  Remove option to restrict number of items
+	printed.  Add option to print to file.
+	(todo-print-function): Rename to todo-print-buffer-function.
+	(todo-quit): Extend to handle exiting new todo modes.
+	(todo-remove-item): Make sensitive to overlays.
+	(todo-save): Extend to buffers of filtered items.
+	(todo-show): Make sensitive to done items, multiple todo files and
+	new todo modes.  Offer to convert legacy todo file before creating
+	first new todo file.
+	(todo-show-priorities): Rename to todo-top-priorities.
+	Change semantics of value 0.
+	(todo-top-priorities): Rename to todo-filter-top-priorities,
+	derive from todo-filter-items and extend functionality.
+	(todo-save-top-priorities): Rename to todo-save-filtered-items-buffer
+	and extend functionality to other types of filtered items.
+	(todo-add-item-non-interactively, todo-ask-p, todo-cat-slct)
+	(todo-category-end, todo-category-sep, todo-cats, todo-cmd-back)
+	(todo-cmd-done, todo-cmd-edit, todo-cmd-forw, todo-cmd-inst)
+	(todo-cmd-kill, todo-cmd-lowr, todo-cmd-next, todo-cmd-prev)
+	(todo-cmd-rais, todo-cmd-save, todo-completing-read, todo-cp)
+	(todo-edit-mode-hook, todo-entry-prefix-function)
+	(todo-entry-timestamp-initials, todo-file-do, todo-file-done)
+	(todo-file-item, todo-file-top, todo-header, todo-initial-setup)
+	(todo-initials, todo-insert-threshold, todo-item-string-start)
+	(todo-line-string, todo-menu, todo-mode-hook)
+	(todo-more-important-p, todo-previous-answer, todo-previous-line)
+	(todo-print-priorities, todo-remove-separator)
+	(todo-save-top-priorities-too, todo-string-count-lines)
+	(todo-string-multiline-p, todo-time-string-format)
+	(todo-tmp-buffer-name): Remove.
+	(todo-add-file, todo-archive-done-item, todo-choose-archive)
+	(todo-convert-legacy-files, todo-copy-item, todo-delete-category)
+	(todo-edit-category-diary-inclusion)
+	(todo-edit-category-diary-nonmarking, todo-edit-done-item-comment)
+	(todo-edit-file, todo-edit-item-date-day)
+	(todo-edit-item-date-day-name, todo-edit-item-date-from-calendar)
+	(todo-edit-item-date-month, todo-edit-item-date-to-today)
+	(todo-edit-item-date-year, todo-edit-item-diary-inclusion)
+	(todo-edit-item-diary-nonmarking, todo-edit-item-header)
+	(todo-edit-item-time, todo-edit-quit, todo-filter-diary-items)
+	(todo-filter-diary-items-multifile, todo-filter-regexp-items)
+	(todo-filter-regexp-items-multifile, todo-filter-top-priorities)
+	(todo-filter-top-priorities-multifile, todo-find-archive)
+	(todo-find-filtered-items-file, todo-go-to-source-item)
+	(todo-insert-item-from-calendar, todo-item-done, todo-item-undone)
+	(todo-jump-to-archive-category, todo-lower-category)
+	(todo-mark-category, todo-marked-item-p, todo-merge-category)
+	(todo-move-category, todo-move-item, todo-next-button)
+	(todo-next-item, todo-padded-string, todo-powerset)
+	(todo-previous-button, todo-previous-item)
+	(todo-print-buffer-to-file, todo-raise-category)
+	(todo-rename-category, todo-repair-categories-sexp, todo-search)
+	(todo-set-category-number, todo-set-item-priority)
+	(todo-set-top-priorities-in-category)
+	(todo-set-top-priorities-in-file, todo-show-categories-table)
+	(todo-sort-categories-alphabetically-or-numerically)
+	(todo-sort-categories-by-archived, todo-sort-categories-by-diary)
+	(todo-sort-categories-by-done, todo-sort-categories-by-todo)
+	(todo-toggle-item-header, todo-toggle-item-highlighting)
+	(todo-toggle-mark-item, todo-toggle-prefix-numbers)
+	(todo-toggle-view-done-items, todo-toggle-view-done-only)
+	(todo-unarchive-items, todo-unmark-category): New commands.
+	(todo-absolute-file-name, todo-add-to-buffer-list)
+	(todo-adjusted-category-label-length, todo-basic-edit-item-header)
+	(todo-basic-insert-item, todo-category-completions)
+	(todo-category-number, todo-category-string-matcher-1)
+	(todo-category-string-matcher-2, todo-check-filtered-items-file)
+	(todo-check-format, todo-clear-matches)
+	(todo-comment-string-matcher, todo-convert-legacy-date-time)
+	(todo-current-category, todo-date-string-matcher)
+	(todo-define-insertion-command, todo-diary-expired-matcher)
+	(todo-diary-goto-entry, todo-diary-item-p)
+	(todo-diary-nonmarking-matcher, todo-display-as-todo-file)
+	(todo-display-categories, todo-display-sorted, todo-done-item-p)
+	(todo-done-item-section-p, todo-done-separator)
+	(todo-done-string-matcher, todo-files, todo-filter-items)
+	(todo-filter-items-1, todo-filter-items-filename, todo-find-item)
+	(todo-gen-arglists, todo-get-count, todo-get-overlay, todo-indent)
+	(todo-insert-category-line, todo-insert-item-from-calendar)
+	(todo-insert-sort-button, todo-insert-with-overlays)
+	(todo-insertion-command-name, todo-insertion-key-bindings)
+	(todo-label-to-key, todo-longest-category-name-length)
+	(todo-make-categories-list, todo-mode-external-set)
+	(todo-mode-line-control, todo-modes-set-1, todo-modes-set-2)
+	(todo-modes-set-3, todo-multiple-filter-files)
+	(todo-nondiary-marker-matcher, todo-prefix-overlays)
+	(todo-read-category, todo-read-date, todo-read-dayname)
+	(todo-read-file-name, todo-read-time)
+	(todo-reevaluate-category-completions-files-defcustom)
+	(todo-reevaluate-default-file-defcustom)
+	(todo-reevaluate-filelist-defcustoms)
+	(todo-reevaluate-filter-files-defcustom)
+	(todo-reset-and-enable-done-separator, todo-reset-comment-string)
+	(todo-reset-done-separator, todo-reset-done-separator-string)
+	(todo-reset-done-string, todo-reset-global-current-todo-file)
+	(todo-reset-highlight-item, todo-reset-nondiary-marker)
+	(todo-reset-prefix, todo-set-categories)
+	(todo-set-date-from-calendar, todo-set-show-current-file)
+	(todo-set-top-priorities, todo-short-file-name)
+	(todo-show-current-file, todo-sort, todo-time-string-matcher)
+	(todo-total-item-counts, todo-update-buffer-list)
+	(todo-update-categories-display, todo-update-categories-sexp)
+	(todo-update-count, todo-validate-name, todo-y-or-n-p):
+	New functions.
+	(todo-archive-mode, todo-categories-mode, todo-filtered-items-mode):
+	New major modes.
+	(todo-categories, todo-display, todo-edit, todo-faces)
+	(todo-filtered): New defgroups.
+	(todo-archived-only, todo-button, todo-category-string, todo-date)
+	(todo-diary-expired, todo-done, todo-done-sep, todo-comment)
+	(todo-mark, todo-nondiary, todo-prefix-string, todo-search)
+	(todo-sorted-column, todo-time, todo-top-priority): New deffaces.
+	(todo-add-item-if-new-category, todo-always-add-time-string)
+	(todo-categories-align, todo-categories-archived-label)
+	(todo-categories-category-label, todo-categories-diary-label)
+	(todo-categories-done-label, todo-categories-number-separator)
+	(todo-categories-todo-label, todo-categories-totals-label)
+	(todo-category-completions-files, todo-completion-ignore-case)
+	(todo-default-todo-file, todo-diary-nonmarking, todo-directory)
+	(todo-done-separator-string, todo-done-string)
+	(todo-files-function, todo-filter-done-items, todo-filter-files)
+	(todo-highlight-item, todo-include-in-diary, todo-indent-to-here)
+	(todo-initial-category, todo-initial-file, todo-item-mark)
+	(todo-legacy-date-time-regexp, todo-mode-line-function)
+	(todo-nondiary-marker, todo-number-prefix)
+	(todo-print-buffer-function, todo-show-current-file)
+	(todo-show-done-only, todo-show-first, todo-show-with-done)
+	(todo-skip-archived-categories, todo-top-priorities-overrides)
+	(todo-undo-item-omit-comment, todo-use-only-highlighted-region)
+	(todo-visit-files-commands, todo-wrap-lines, todo-y-with-space):
+	New defcustoms.
+	(todo-category-done, todo-date-pattern, todo-date-string-start)
+	(todo-diary-items-buffer, todo-done-string-start)
+	(todo-filtered-items-buffer, todo-item-start)
+	(todo-month-abbrev-array, todo-month-name-array)
+	(todo-nondiary-end, todo-nondiary-start, todo-regexp-items-buffer)
+	(todo-top-priorities-buffer): New defconsts.
+	(todo-archive-mode-map, todo-archives, todo-categories-mode-map)
+	(todo-categories-with-marks, todo-category-string-face)
+	(todo-comment-face, todo-comment-string, todo-current-todo-file)
+	(todo-date-face, todo-date-from-calendar, todo-descending-counts)
+	(todo-diary-expired-face, todo-done-face, todo-done-sep-face)
+	(todo-done-separator, todo-edit-buffer, todo-edit-mode-map)
+	(todo-file-buffers, todo-files, todo-filtered-items-mode-map)
+	(todo-font-lock-keywords, todo-global-current-todo-file)
+	(todo-insertion-commands, todo-insertion-commands-arg-key-list)
+	(todo-insertion-commands-args)
+	(todo-insertion-commands-args-genlist)
+	(todo-insertion-commands-names, todo-insertion-map)
+	(todo-key-bindings-t, todo-key-bindings-t+a)
+	(todo-key-bindings-t+a+f, todo-key-bindings-t+f, todo-mode-map)
+	(todo-multiple-filter-files, todo-multiple-filter-files-widget)
+	(todo-nondiary-face, todo-print-buffer, todo-time-face)
+	(todo-visited): New variables.
+
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* play/cookie1.el (cookie-apropos): Add optional display argument.
+	* obsolete/yow.el (apropos-zippy): Use cookie-apropos.
+	(psychoanalyze-pinhead): Use cookie-doctor.
+
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el (tar-get-file-descriptor)
+	(tar--extract): Declare.
+
+2013-06-21  Eduard Wiebe  <usenet@pusto.de>
+
+	Extend flymake's warning predicate to be a function (bug#14217).
+	* progmodes/flymake.el (flymake-warning-predicate): New.
+	(flymake-parse-line): Use it.
+	(flymake-warning-re): Make obsolete alias to
+	`flymake-warning-predicate'.
+
+2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-alist): Include obsolete packages.
+	(package-obsolete-list): Remove.
+	(package-activate): Remove min-version argument.  Add `force' argument.
+	Adjust to new package-alist format.
+	(package-mark-obsolete): Remove.
+	(package-unpack): Force reload of the package's autoloads.
+	(package-installed-p): Check builtins if the installed package is not
+	recent enough.
+	(package-initialize): Don't reset package-obsolete-list.
+	Don't specify which package version to activate.
+	(package-process-define-package, describe-package-1)
+	(package-menu--generate): Adjust to new package-alist format.
+
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout-widgets.el (allout-widgets-mode-off)
+	(allout-widgets-mode-on, allout-widgets-pre-command-business)
+	(allout-widgets-post-command-business)
+	(allout-widgets-after-copy-or-kill-function)
+	(allout-widgets-after-undo-function, allout-test-range-overlaps)
+	(allout-decorate-item-and-context)
+	(allout-graphics-modification-handler): Fix typos in docstrings.
+	(allout-get-or-create-parent-widget): Use `looking-at-p'.
+
+	* cmuscheme.el (scheme-start-file): Doc fix.
+	(inferior-scheme-mode, switch-to-scheme): Fix typos in docstrings.
+	(scheme-input-filter): Use `string-match-p'.
+
+	* composite.el (compose-gstring-for-terminal): Fix typo in docstring.
+
+	* dired-x.el: Use Dired consistently in docstrings.
+
+	* dired.el: Use Dired consistently in docstrings.
+	(dired-readin, dired-mode): Use `setq-local'.
+	(dired-switches-alist): Make defvar-local.
+	(dired-buffers-for-dir): Use `zerop'.
+	(dired-safe-switches-p, dired-switches-escape-p)
+	(dired-insert-old-subdirs, dired-move-to-end-of-filename)
+	(dired-glob-regexp, dired-in-this-tree, dired-goto-file-1)
+	(dired-sort-set-mode-line, dired-sort-toggle, dired-sort-R-check):
+	(dired-goto-next-nontrivial-file): Use `string-match-p'.
+	(dired-align-file, dired-insert-directory, dired-mark-files-in-region)
+	(dired-toggle-marks, dired-mark-files-containing-regexp)
+	(dired-mark-symlinks, dired-mark-directories, dired-mark-executables)
+	(dired-flag-auto-save-files, dired-flag-backup-files):
+	Use `looking-at-p'.
+	(dired-mark-files-regexp, dired-build-subdir-alist):
+	Use `string-match-p', `looking-at-p'.
+
+	* dos-w32.el (untranslated-canonical-name, untranslated-file-p)
+	(direct-print-region-helper): Use `string-match-p'.
+
+2013-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* comint.el (comint-redirect-results-list-from-process):
+	Fix infinite loop.
+
+2013-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-update-header-line-format): Quote % characters.
+
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* play/cookie1.el (cookie): New custom group.
+	(cookie-file): New option.
+	(cookie-check-file): New function.
+	(cookie): Make it interactive.  Make start and end messages optional.
+	Interactively, display the result.  Default to cookie-file.
+	(cookie-insert): Default to cookie-file.
+	(cookie-snarf): Make start and end messages optional.
+	Default to cookie-file.  Use with-temp-buffer.
+	(cookie-read): Rename from read-cookie.
+	Make start and end messages optional.  Default to cookie-file.
+	(cookie-shuffle-vector): Rename from shuffle-vector.  Use dotimes.
+	Do not autoload it.
+	(cookie-apropos, cookie-doctor): New functions, copied from yow.el
+	* obsolete/yow.el (read-zippyism): Use new name for read-cookie.
+
+2013-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-mode): Backward compatibility fix.
+
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add with-eval-after-load.
+
+2013-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el: Use tar-mode rather than tar executable.
+	Consolidate the single-file vs tarball code.
+	(package-desc-suffix): New function.
+	(package-desc-full-name): Don't bother inlining it.
+	(package-load-descriptor): Return the new package-desc.
+	(package-mark-obsolete): Remove unused arg `package'.
+	(package-unpack): Make it work for single files as well.
+	Make it update package-alist.
+	(package--make-autoloads-and-stuff): Rename from
+	package--make-autoloads-and-compile.  Don't compile any more.
+	(package--compile): New function.
+	(package-generate-description-file): New function, extracted from
+	package-unpack-single.
+	(package-unpack-single): Remove.
+	(package--with-work-buffer): Add indentation and debugging info.
+	(package-download-single): Remove.
+	(package-install-from-archive): Rename from package-download-tar, make
+	it take a pkg-desc, and make it work for single files as well.
+	(package-download-transaction): Simplify.
+	(package-tar-file-info): Remove `file' arg.  Rewrite not to use an
+	external tar program.
+	(package-install-from-buffer): Remove `pkg-desc' argument.
+	Use package-tar-file-info for tar-mode buffers.
+	(package-install-file): Simplify accordingly.
+	(package-archive-base): Change to take a pkg-desc.
+	* tar-mode.el (tar--check-descriptor): New function, extracted from
+	tar-get-descriptor.
+	(tar-get-descriptor): Use it.
+	(tar-get-file-descriptor): New function.
+	(tar--extract): New function, extracted from tar-extract.
+	(tar--extract): Use it.
+	* emacs-lisp/package-x.el (package-upload-file): Decode the file, in
+	case the summary uses non-ascii.  Adjust to new calling convention of
+	package-tar-file-info.
+
+2013-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* comint.el (comint-redirect-results-list-from-process):
+	Fix random delay.  (Bug#14681)
+
+2013-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* profiler.el (profiler-format-number): Use log, not log10.
+
+2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/x-win.el (emacs-session-filename): Use `locate-user-emacs-file'.
+
+2013-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-loaddefs.el: Don't version-control any more.
+	* emacs-lisp/cl-lib.el: Load cl-macs when cl-loaddefs is not
+	yet available.
+	* Makefile.in (AUTOGEN_VCS): Move cl-loaddefs.el...
+	(AUTOGENEL): ... here.
+	* emacs-lisp/cl-macs.el (cl--sublis): New function.
+	(cl--defsubst-expand): Use it.
+
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* subr.el (log10): Move here from C code, and declare as obsolete.
+	All uses of (log10 X) replaced with (log X 10).
+
+2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-format): Fix typo.
+	Declare with `defvar-local'.
+	(tabulated-list-use-header-line, tabulated-list-entries)
+	(tabulated-list-padding, tabulated-list-printer)
+	(tabulated-list-sort-key): Declare with `defvar-local'.
+	(tabulated-list-init-header, tabulated-list-print-fake-header):
+	Use `setq-local'.
+
+2013-06-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* arc-mode.el (archive-mode): Add `archive-write-file' to
+	`write-contents-functions' also for remote files.  (Bug#14652)
+
+2013-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (custom-commands): Fix typos.
+	(custom-display): Fix tooltip text.
+	(custom-magic-alist, custom-filter-face-spec, custom-group-members):
+	Fix typos in docstrings.
+	(custom--initialize-widget-variables, Custom-mode): Use `setq-local'.
+	(custom-unlispify-menu-entry, custom-magic-value-create)
+	(custom-add-see-also, custom-group-value-create): Use ?\s.
+	(custom-guess-type, customize-apropos, editable-field)
+	(custom-face-value-create): Use `string-match-p'.
+	(custom-save-variables, custom-save-faces): Use `looking-at-p'.
+
+	* custom.el (custom-load-symbol): Use `string-match-p'.
+
+	* ansi-color.el: Convert to lexical binding.
+	(ansi-colors): Fix URL.
+	(ansi-color-context, ansi-color-context-region): Use defvar-local.
+	(ansi-color-apply-sequence, ansi-color-map): Fix typos in docstrings.
+	(ansi-color-make-color-map): Rename local var ansi-color-map to map.
+
+2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-process-text-input): Display passwords as asterisks.
+
+	* net/shr.el (shr-make-table-1): Protect against invalid column-spans.
+
+2013-06-19  Tom Tromey  <tromey@redhat.com>
+
+	* net/eww.el (eww-top-url): Remove.
+	(eww-home-url, eww-start-url, eww-contents-url): New defvars.
+	(eww-render): Set new variables.  Don't set eww-top-url.
+	(eww-handle-link): Handle "prev", "home", and "contents".
+	Downcase the rel text.
+	(eww-top-url): Choose best top URL.
+
+2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el: Rewrite to implement form elements "by hand" instead of
+	relying in widget.el.  Using widget.el leads to too many
+	user interface inconsistencies.
+	(eww-self-insert): Implement entering commands in text fields.
+	(eww-process-text-input): New function to make text input field editing
+	work.
+	(eww-submit): Rewrite to use the new-style form methods.
+	(eww-select-display): Display the correct selected item.
+	(eww-change-select): Implement changing the select value.
+	(eww-toggle-checkbox): Implement radio/checkboxes.
+	(eww-update-field): Fix compilation error.
+	(eww-tag-textarea): Implement <textarea>.
+
+	* net/shr.el (shr-urlify): Use `keymap' instead of `local-map' so that
+	we don't shadow mode-specific bindings.
+
+	* net/eww.el (eww-browse-url): Don't push stuff onto history if there's
+	nothing to push.
+
+	* net/shr.el (shr-map): Bind [down-mouse-1] to browse URLs.
+
+2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* emacs-lisp/eieio.el (defclass): Make it eval-and-compile once more.
+
+2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el (tramp-adb-get-toolbox): Remove function, it is
+	not needed.
+
+	* net/tramp-sh.el (tramp-find-shell): Don't set "busybox" property.
+
+2013-06-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/browse-url.el (browse-url-browser-function):
+	`eww-browse-url' has the right calling signature, `eww' does not.
+
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-autoload):
+	Only eval autoloaded macros.
+	(byte-compile-autoload): Only give the macro warning for macros.
+
+	* progmodes/cperl-mode.el (ps-bold-faces, ps-italic-faces)
+	(ps-underlined-faces): Declare.
+
+	* progmodes/idlwave.el (func-menu): Only set it up on XEmacs.
+	(speedbar-add-supported-extension): Declare.
+
+	* international/titdic-cnv.el (tit-process-header, miscdic-convert):
+	Don't include a date stamp in the header of the generated file;
+	it leads to needless differences between output files.
+
+2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (secrets-struct-secret-content-type): Replace
+	check of introspection data by a test call of "CreateItem".
+	Some servers do not offer introspection.
+
+2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-pair-mode): Improve interaction with
+	electric-layout-mode.
+	(electric-pair-default-inhibit): Don't assume (eq char (char-before)).
+	(electric-pair-syntax): Use text-mode-syntax-table in comments
+	and strings.
+	(electric-pair--insert): New function.
+	(electric-pair-post-self-insert-function): Use it and
+	electric--after-char-pos.
+
+2013-06-19  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/octave.el (octave-help): Fix regexp.
+
+2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-make-table-1): Implement <td rowspan>.
+	(shr-table-horizontal-line): Allow nil as a value, and change the
+	default.
+	(shr-insert-table-ruler): Respect the nil value.
+
+2013-06-18  Tom Tromey  <tromey@barimba>
+
+	* net/eww.el (eww-next-url, eww-previous-url, eww-up-url, eww-top-url):
+	New defvars.
+	(eww-open-file): New defun.
+	(eww-render): Initialize new variables.
+	(eww-display-html): Handle "link" and "a".
+	(eww-handle-link, eww-tag-link, eww-tag-a): New defuns.
+	(eww-mode-map): Move "p" to "l".  Bind "p", "n", "t", and "u".
+	(eww-back-url): Rename from eww-previous-url.
+	(eww-next-url, eww-previous-url, eww-up-url, eww-top-url):
+	New defuns.
+
+2013-06-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Distinguish ternary operator tokens from slash symbol and slash
+	char literal.
+
+2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	Convert symbol prettification into minor mode and global minor mode.
+
+	* progmodes/prog-mode.el (prettify-symbols-alist): Rename from
+	`prog-prettify-symbols', and make a local defvar instead of defcustom.
+	(prettify-symbols--keywords): Rename from
+	`prog-prettify-symbols-alist' and make a local defvar.
+	(prettify-symbols--compose-symbol): Rename from
+	`prog--prettify-font-lock-compose-symbol'.
+	(prettify-symbols--make-keywords): Rename from
+	`prog-prettify-font-lock-symbols-keywords' and simplify.
+	(prog-prettify-install): Remove.
+	(prettify-symbols-mode): New minor mode, based on
+	`prog-prettify-install'.
+	(turn-on-prettify-symbols-mode): New function.
+	(global-prettify-symbols-mode): New globalized minor mode.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	* progmodes/cfengine.el (cfengine3-mode):
+	* progmodes/perl-mode.el (perl-mode): Don't call
+	`prog-prettify-install'; set `prettify-symbols-alist' instead.
+
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el (modify-file-local-variable-message): New function.
+	(modify-file-local-variable)
+	(modify-file-local-variable-prop-line): Add arg INTERACTIVE
+	and call `modify-file-local-variable-message' when it's non-nil.
+	(add-file-local-variable, delete-file-local-variable)
+	(add-file-local-variable-prop-line)
+	(delete-file-local-variable-prop-line): Add arg INTERACTIVE
+	and use it.  (Bug#9820)
+
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* emulation/vi.el (vi-shell-op):
+	* emulation/vip.el (vip-execute-com, ex-command):
+	* emulation/viper-cmd.el (viper-exec-bang):
+	* emulation/viper-ex.el (ex-command): Add non-nil arg REPLACE to
+	the call of `shell-command-on-region'.  (Bug#14637)
+
+	* simple.el (shell-command-on-region): Doc fix.
+
+2013-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-custom.el: Remove misleading Version: header
+	(bug#14633).
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* net/eww.el, net/shr.el, net/shr-color.el: Move here from gnus/.
+
+	* newcomment.el (comment-search-forward, comment-search-backward):
+	Doc fix.  (Bug#14376)
+
 2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* face-remap.el (buffer-face-toggle): Fix typo in docstring.
@@ -759,7 +1380,7 @@
 	(eieiomt-optimizing-obarray, eieiomt-install)
 	(eieiomt-add, eieiomt-next, eieiomt-sym-optimize)
 	(eieio-generic-form, eieio-defmethod, make-obsolete)
-	(eieio-defgeneric, make-obsolete): Move to eieio-core.el
+	(eieio-defgeneric, make-obsolete): Move to eieio-core.el.
 	(defclass): Remove `eval-and-compile' from macro.
 	(call-next-method, shared-initialize): Instead of using
 	`scoped-class' variable, use new eieio--scoped-class, and
@@ -769,8 +1390,8 @@
 
 	* emacs-lisp/eieio-core.el: New file.  Derived from key parts of
 	eieio.el.
-	(eieio--scoped-class-stack): New variable
-	(eieio--scoped-class): New fcn
+	(eieio--scoped-class-stack): New variable.
+	(eieio--scoped-class): New fcn.
 	(eieio--with-scoped-class): New scoping macro.
 	(eieio-defclass): Use pushnew instead of add-to-list.
 	(eieio-defgeneric-form-primary-only-one, eieio-oset-default)
@@ -1483,9 +2104,9 @@
 	* progmodes/octave.el (octave-auto-fill): Remove.
 	(octave-indent-new-comment-line): Improve.
 	(octave-mode): Use auto fill mode through
-	comment-line-break-function and fill-nobreak-predicate
+	comment-line-break-function and fill-nobreak-predicate.
 	(octave-goto-function-definition): Support DEFUN_DLD.
-	(octave-beginning-of-defun): Small Tweak
+	(octave-beginning-of-defun): Small tweak.
 	(octave-help): Show parent directory.
 
 2013-05-21  Glenn Morris  <rgm@gnu.org>
@@ -2670,7 +3291,7 @@
 	Fix pack/unpack coding.  Reported by David Smith <davidsmith@acm.org>.
 
 	* net/tramp-compat.el (tramp-compat-call-process): Move function ...
-	* net/tramp.el (tramp-call-process): ... here
+	* net/tramp.el (tramp-call-process): ... here.
 	(tramp-set-completion-function, tramp-parse-putty):
 	* net/tramp-adb.el (tramp-adb-execute-adb-command):
 	* net/tramp-gvfs.el (tramp-gvfs-send-command):

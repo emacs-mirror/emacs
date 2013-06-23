@@ -1,4 +1,4 @@
-;;; ansi-color.el --- translate ANSI escape sequences into faces
+;;; ansi-color.el --- translate ANSI escape sequences into faces -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -84,8 +84,9 @@
 This translation effectively colorizes strings and regions based upon
 SGR control sequences embedded in the text.  SGR (Select Graphic
 Rendition) control sequences are defined in section 8.3.117 of the
-ECMA-48 standard \(identical to ISO/IEC 6429), which is freely available
-as a PDF file <URL:http://www.ecma.ch/ecma1/STAND/ECMA-048.HTM>."
+ECMA-48 standard (identical to ISO/IEC 6429), which is freely available
+at <URL:http://www.ecma-international.org/publications/standards/Ecma-048.htm>
+as a PDF file."
   :version "21.1"
   :group 'processes)
 
@@ -119,7 +120,7 @@ map.  This color map is stored in the variable `ansi-color-map'."
   ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"]
   "Colors used for SGR control sequences determining a color.
 This vector holds the colors used for SGR control sequences parameters
-30 to 37 \(foreground colors) and 40 to 47 (background colors).
+30 to 37 (foreground colors) and 40 to 47 (background colors).
 
 Parameter  Color
   30  40   black
@@ -234,14 +235,13 @@ This is a good function to put in `comint-output-filter-functions'."
   'font-lock-default-unfontify-region "24.1")
 
 ;; Working with strings
-(defvar ansi-color-context nil
+(defvar-local ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.
 This is a list of the form (CODES FRAGMENT) or nil.  CODES
 represents the state the last call to `ansi-color-apply' ended
 with, currently a list of ansi codes, and FRAGMENT is a string
 starting with an escape sequence, possibly the start of a new
 escape sequence.")
-(make-variable-buffer-local 'ansi-color-context)
 
 (defun ansi-color-filter-apply (string)
   "Filter out all ANSI control sequences from STRING.
@@ -324,7 +324,8 @@ This function can be added to `comint-preoutput-filter-functions'."
       (setq codes (ansi-color-apply-sequence escape-sequence codes)))
     ;; if the rest of the string should have a face, put it there
     (when codes
-      (put-text-property start (length string) 'font-lock-face (ansi-color--find-face codes) string))
+      (put-text-property start (length string)
+                         'font-lock-face (ansi-color--find-face codes) string))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
@@ -337,14 +338,13 @@ This function can be added to `comint-preoutput-filter-functions'."
 
 ;; Working with regions
 
-(defvar ansi-color-context-region nil
+(defvar-local ansi-color-context-region nil
   "Context saved between two calls to `ansi-color-apply-on-region'.
 This is a list of the form (CODES MARKER) or nil.  CODES
 represents the state the last call to `ansi-color-apply-on-region'
 ended with, currently a list of ansi codes, and MARKER is a
 buffer position within an escape sequence or the last position
 processed.")
-(make-variable-buffer-local 'ansi-color-context-region)
 
 (defun ansi-color-filter-region (begin end)
   "Filter out all ANSI control sequences from region BEGIN to END.
@@ -461,7 +461,7 @@ If FACE is nil, do nothing."
   "Return a face with PROPERTY set to COLOR.
 PROPERTY can be either symbol `foreground' or symbol `background'.
 
-For Emacs, we just return the cons cell \(PROPERTY . COLOR).
+For Emacs, we just return the cons cell (PROPERTY . COLOR).
 For XEmacs, we create a temporary face and return it."
   (if (featurep 'xemacs)
       (let ((face (make-face (intern (concat color "-" (symbol-name property)))
@@ -530,9 +530,10 @@ Returns nil only if there's no match for `ansi-color-parameter-regexp'."
     (nreverse codes)))
 
 (defun ansi-color-apply-sequence (escape-sequence codes)
-  "Apply ESCAPE-SEQ to CODES and return the new list of codes.
+  "Apply ESCAPE-SEQUENCE to CODES and return the new list of codes.
 
-ESCAPE-SEQ is an escape sequence parsed by `ansi-color-parse-sequence'.
+ESCAPE-SEQUENCE is an escape sequence parsed by
+`ansi-color-parse-sequence'.
 
 For each new code, the following happens: if it is 1-7, add it to
 the list of codes; if it is 21-25 or 27, delete appropriate
@@ -577,19 +578,19 @@ The index into the vector is an ANSI code.  See the documentation of
 
 The face definitions are based upon the variables
 `ansi-color-faces-vector' and `ansi-color-names-vector'."
-  (let ((ansi-color-map (make-vector 50 nil))
+  (let ((map (make-vector 50 nil))
         (index 0))
     ;; miscellaneous attributes
     (mapc
      (function (lambda (e)
-                 (aset ansi-color-map index e)
+                 (aset map index e)
                  (setq index (1+ index)) ))
      ansi-color-faces-vector)
     ;; foreground attributes
     (setq index 30)
     (mapc
      (function (lambda (e)
-                 (aset ansi-color-map index
+                 (aset map index
 		       (ansi-color-make-face 'foreground
                                              (if (consp e) (car e) e)))
                  (setq index (1+ index)) ))
@@ -598,12 +599,12 @@ The face definitions are based upon the variables
     (setq index 40)
     (mapc
      (function (lambda (e)
-                 (aset ansi-color-map index
+                 (aset map index
 		       (ansi-color-make-face 'background
                                              (if (consp e) (cdr e) e)))
                  (setq index (1+ index)) ))
      ansi-color-names-vector)
-    ansi-color-map))
+    map))
 
 (defvar ansi-color-map (ansi-color-make-color-map)
   "A brand new color map suitable for `ansi-color-get-face'.
@@ -613,9 +614,9 @@ The value of this variable is usually constructed by
 numbers included in an SGR control sequences point to the correct
 foreground or background colors.
 
-Example: The sequence \033[34m specifies a blue foreground.  Therefore:
+Example: The sequence \\033[34m specifies a blue foreground.  Therefore:
      (aref ansi-color-map 34)
-          => \(foreground-color . \"blue\")")
+          => (foreground-color . \"blue\")")
 
 (defun ansi-color-map-update (symbol value)
   "Update `ansi-color-map'.

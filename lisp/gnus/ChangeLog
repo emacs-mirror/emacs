@@ -1,3 +1,15 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-mark-article-as-read): Fix declaration.
+
+2013-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-parse-entries): Remove debugging.
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* eww.el, shr.el, shr-color.el: Move to ../net.
+
 2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-table): Insert the images after the table, so that
@@ -123,7 +135,7 @@
 	(eww-update-header-line-format): New function.
 	(eww-tag-title): New function.
 
-	* shr.el (shr-dom-to-xml): (shr-dom-to-xml): New function.
+	* shr.el (shr-dom-to-xml): New function.
 	(shr-tag-svg): Add support for the SVG tag.
 	(shr-bullet): New custom variable.
 	(shr-tag-li): Support custom bullet in unordered lists.
@@ -218,7 +230,7 @@
 
 	* sieve-manage.el (sieve-manage-open): Work with STARTTLS: shorten
 	stream managing functions by using open-protocol-stream to do most of
-	the work. Has the nice benefit of enabling STARTTLS.
+	the work.  Has the nice benefit of enabling STARTTLS.
 	Wait for capabilities after STARTTLS: following RFC5804, the server
 	sends new capabilities after successfully establishing a TLS connection
 	with the client. The client should update the cached list of
@@ -269,10 +281,10 @@
 2013-06-10  Albert Krewinkel  <krewinkel@moltkeplatz.de>
 
 	* sieve.el: Put point at beginning of buffer when viewing a script.
-	(sieve-open-server): respect the PORT parameter. Show the correct port
-	number in sieve-buffer's header. Fixed code to also work with a string
-	as port specifier. Properly close the connection on pressing 'q'. Make
-	sieve-manage-quit close the connection and process buffer. Also, remove
+	(sieve-open-server): Respect the PORT parameter.  Show the correct port
+	number in sieve-buffer's header.  Fixed code to also work with a string
+	as port specifier. Properly close the connection on pressing 'q'.  Make
+	sieve-manage-quit close the connection and process buffer.  Also, remove
 	duplicate keybinding for 'q'.
 
 2013-06-10  Roy Hashimoto  <roy.hashimoto@gmail.com>  (tiny change)
@@ -516,7 +528,7 @@
 	(nnir-request-update-info): Improve marks updating.
 	(nnir-request-scan): Don't duplicate marks updating.
 	(gnus-group-make-nnir-group, nnir-run-imap, nnir-request-create-group):
-	Use 'assq rather than 'assoc. Quote anonymous function.
+	Use 'assq rather than 'assoc.  Quote anonymous function.
 	(nnir-request-group, nnir-close-group, gnus-summary-create-nnir-group):
 	Use 'gnus-group-prefixed-p.
 	(gnus-summary-create-nnir-group): Make sure server for method is open.
@@ -574,13 +586,13 @@
 	buffer use the posting-style and gcc of the original article group.
 	(gnus-inews-insert-gcc): Don't set gcc-self for virtual groups.
 
-	* nnir.el: Fix byte-compile warning. nnoo-define-skeleton should come
+	* nnir.el: Fix byte-compile warning.  nnoo-define-skeleton should come
 	after other deffoos.
 
 2013-03-26  Andrew Cohen  <cohen@bu.edu>
 
-	* nnir.el: Major rewrite. Cleaner separation between searches and group
-	management. Marks are now shown in nnir summary buffers. Rudimentary
+	* nnir.el: Major rewrite.  Cleaner separation between searches and group
+	management.  Marks are now shown in nnir summary buffers.  Rudimentary
 	support for real (i.e. not ephemeral) nnir groups.
 	(gnus-summary-make-nnir-group): New function for initiating searches
 	from a summary buffer.
@@ -786,9 +798,9 @@
 
 2012-12-25  Adam Sjøgren  <asjo@koldfront.dk>
 
-	* mml2015.el (mml2015-epg-key-image): use --attribute-fd rather than
-	temporary file to get PGP key image. Pass no-show-photos when extracting
-	image to avoid having it pop up twice.
+	* mml2015.el (mml2015-epg-key-image): Use --attribute-fd rather than
+	temporary file to get PGP key image.  Pass no-show-photos when
+	extracting image to avoid having it pop up twice.
 
 2012-12-26  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -1312,7 +1324,7 @@
 
 2012-08-10  Daiki Ueno  <ueno@unixuser.org>
 
-	* auth-source.el: (auth-source-plstore-search)
+	* auth-source.el (auth-source-plstore-search)
 	(auth-source-secrets-search): Ignore :require and :type in search spec.
 
 2012-08-06  Julien Danjou  <julien@danjou.info>
@@ -10009,7 +10021,7 @@
 
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-html.el: require mm-url.
+	* gnus-html.el: Require mm-url.
 	(gnus-html-wash-tags): Clarify the code a bit by renaming the variable
 	with the url to `url'.
 	(gnus-html-wash-tags): Support cid: URLs/images.

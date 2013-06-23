@@ -217,8 +217,6 @@ extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
-#ifdef NS_IMPL_GNUSTEP
 extern void catch_child_signal (void);
-#endif
 
 INLINE_HEADER_END

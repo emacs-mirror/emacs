@@ -311,6 +311,9 @@ Used when looking for a master file.  @xref{Locating a master file}.
 Patterns for error/warning messages in the form @code{(regexp file-idx
 line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 
+@item flymake-warning-predicate
+Predicate to classify error text as warning. @xref{Parsing the output}.
+
 @item flymake-compilation-prevents-syntax-check
 A flag indicating whether compilation and syntax check of the same
 file cannot be run simultaneously.

@@ -1,3 +1,8 @@
+2013-06-18  Juri Linkov  <juri@jurta.org>
+
+	* mh-alias.el (mh-alias-local-users): Add non-nil arg REPLACE to
+	the call of `shell-command-on-region'.  (Bug#14637)
+
 2013-05-22  Glenn Morris  <rgm@gnu.org>
 
 	* mh-speed.el (mh-speed-view):
@@ -98,7 +103,7 @@
 
 2012-11-25  Ted Phelps  <phelps@gnusto.com>
 
-	Postpone junk processing (closes SF #2945712). Patch submitted by
+	Postpone junk processing (closes SF #2945712).  Patch submitted by
 	Ted Phelps and refined by Bill Wohler.
 
 	* mh-e.el (mh-blacklist, mh-whitelist): New variables.
@@ -106,7 +111,7 @@
 	(mh-before-commands-processed-hook): Update documentation.
 	(mh-blacklist-msg-hook, mh-whitelist-msg-hook): New hooks.
 	(mh-folder-blacklisted, mh-folder-whitelisted): New faces.
-	* mh-folder.el (mh-folder-message-menu):  Add "Junk" to "Undo."
+	* mh-folder.el (mh-folder-message-menu): Add "Junk" to "Undo."
 	(mh-folder-font-lock-keywords): Add regexps for blacklisted and
 	whitelisted messages.
 	(mh-folder-mode): Add mh-blacklist and mh-whitelist variables.
@@ -144,8 +149,8 @@
 	X-MaxCode-Template:, X-ME-Bayesian:, X-Sendergroup:, X-SFDC-,
 	X-SMFBL:, X-SMHeaderMap:, X-VGI-OESCD:, X-VirtualServer:,
 	X-VirtualServerGroup:, X-XPT-XSL-Name:, X-Y-GMX-Trusted:,
-	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-. Updated
-	the comment. (addresses SF #1916032).
+	X-XWALL-, X-ZixNet:. Changed X-Habeas-SWE- to X-Habeas-.  Updated
+	the comment.  (addresses SF #1916032).
 
 2012-11-25  Bill Wohler  <wohler@newt.com>
 
@@ -154,7 +159,7 @@
 	X-Bayes-Prob, X-Cam-, X-CanIt-Geo, X-Completed, X-Facebook,
 	X-Forwarded-, X-Generated-By, X-Headers-End, X-IEEE-UCE,
 	X-Jira-Fingerprint, X-Junkmail-, X-Launchpad-, X-MXL-Hash,
-	X-Notification-, X-Notifications, X-Oracle-Calendar. Replace
+	X-Notification-, X-Notifications, X-Oracle-Calendar.  Replace
 	X-DCC-Usenix-Metrics with X-DCC- (addresses SF #1916032).
 
 2012-11-25  Jeffrey C Honig  <jch@honig.net>

@@ -14314,6 +14314,27 @@ $as_echo "no" >&6; }
      HAVE_LIBXML2=no
   fi
 
+  # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
+  if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    ac_fn_c_check_header_mongrel "$LINENO" "libxml/HTMLparser.h" "ac_cv_header_libxml_HTMLparser_h" "$ac_includes_default"
+if test "x$ac_cv_header_libxml_HTMLparser_h" = x""yes; then :
+  ac_fn_c_check_decl "$LINENO" "HTML_PARSE_RECOVER" "ac_cv_have_decl_HTML_PARSE_RECOVER" "#include <libxml/HTMLparser.h>
+"
+if test "x$ac_cv_have_decl_HTML_PARSE_RECOVER" = x""yes; then :
+  HAVE_LIBXML2=yes
+fi
+
+fi
+
+
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_LIBS="-lxml2"
+      LIBXML2_CFLAGS="-I/usr/include/libxml2"
+    fi
+  fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
@@ -14679,7 +14700,7 @@ gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-cfmakeraw cfsetspeed copysign __executable_start
+cfmakeraw cfsetspeed copysign __executable_start log2
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"

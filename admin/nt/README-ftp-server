@@ -1,12 +1,12 @@
-Copyright (C) 2001-2013 Free Software Foundation, Inc.
+Copyright (C) 2001-2013  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 		      Precompiled Distributions of
 			   Emacs for Windows
 
-			    Version 24.1
+			    Version 24.3
 
-			      January 1, 2011
+                           March 18, 2013
 
   This directory contains precompiled distributions for GNU Emacs on
   Windows (versions before Windows 95 and NT4 are not supported).
@@ -14,7 +14,7 @@ See the end of the file for license conditions.
   Free Software Foundation; the precompiled distributions are provided
   here for convenience since the majority of Windows users are not
   accustomed to compiling programs themselves.  Corresponding source
-  can be found in the parent directory in emacs-24.1.tar.gz.
+  can be found in the parent directory in emacs-24.3.tar.gz.
 
   If you have access to the World Wide Web, I would recommend pointing
   your favorite web browser to the following document (if you haven't
@@ -26,9 +26,9 @@ See the end of the file for license conditions.
 
   If you want to redistribute any of the precompiled distributions of
   Emacs, be careful to check the implications of the GPL.  For instance,
-  if you put the emacs-24.1-bin-i386.tar.gz file from this directory on
+  if you put the emacs-24.3-bin-i386.zip file from this directory on
   an Internet site, you must arrange to distribute the source files of
-  the SAME version (i.e. ../emacs-24.1.tar.gz).
+  the SAME version (i.e. ../emacs-24.3.tar.gz).
 
   Making a link to our copy of the source is NOT sufficient, since we
   might upgrade to a new version while you are still distributing the
@@ -37,8 +37,8 @@ See the end of the file for license conditions.
 
 * Files in this directory
 
-  + emacs-24.1-bin-i386.zip
-    Windows binaries of Emacs-24.1, with all lisp code and documentation
+  + emacs-24.3-bin-i386.zip
+    Windows binaries of Emacs-24.3, with all lisp code and documentation
     included.
 
     Download this file if you want a single installation package, and
@@ -49,21 +49,12 @@ See the end of the file for license conditions.
     If you need the C source code at a later date, it will be safe to
     unpack the source distribution on top of this installation.
 
-  + emacs-24.1-barebin-i386.zip
-    Windows binaries of Emacs-24.1, without lisp code or documentation.
-
-    Download this file if you already have the source distribution.
-
-    Unpack this over the top of the source distribution. It contains the
-    bin subdirectory and etc/DOC file.
-
-  + libxpm-3.5.7-w32-src.zip
-    Source code required to compile libXpm-3.5.7 on Windows. Contains
+  + libXpm-3.5.8-w32-src.zip
+    Source code required to compile libXpm-3.5.8 on Windows. Contains
     a basic Makefile for compiling with mingw32 and a .def file for
     generating a DLL with the appropriate exports in addition to the
     source code to provide the subset of functionality Emacs uses from
-    libXpm. This corresponds to the libXpm.dll in emacs-24.1-bin-i386.zip
-    and emacs-24.1-barebin-i386.zip.
+    libXpm. This corresponds to the libXpm.dll in emacs-24.3-bin-i386.zip.
 
 * Prerequisites for running Emacs on Windows 9X
 
@@ -73,7 +64,7 @@ See the end of the file for license conditions.
 
 * Image support
 
-  Emacs 24.1 contains support for images, however for most image
+  Emacs 24.3 contains support for images, however for most image
   formats supporting libraries are required.  This distribution has
   been tested with the libraries that are distributed with GTK for
   Windows (http://www.gtk.org/download/win32.php), and the libraries
@@ -111,6 +102,16 @@ See the end of the file for license conditions.
       dependencies. Requires many libraries from GTK and Gnome
       as well as the base librsvg library. Known to crash Emacs on many
       sample images.
+
+* XML support
+
+  In order to support XML via libxml2 at runtime, a libxml2-enabled
+  Emacs must be able to find the relevant DLLs during startup; failure
+  to do so is not an error, but libxml2 features won't be available to
+  the running session.
+
+  You can get pre-built binaries (including any required DLL and the
+  header files) at http://sourceforge.net/projects/ezwinports/files/.
 
 * Distributions in .tar.gz and .zip format
 
@@ -238,7 +239,7 @@ See the end of the file for license conditions.
   This document serves as an FAQ and a source for further information
   about the Windows port and related software packages. Note that as
   most of the information in that FAQ is for earlier versions, so some
-  information may not be relevant to Emacs-24.1.
+  information may not be relevant to Emacs-24.3.
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the
@@ -268,11 +269,8 @@ See the end of the file for license conditions.
 
   Enjoy!
 
-  Jason Rumney
-  (jasonr@gnu.org)
-
-  Most of this README was contributed by former maintainer Andrew Innes
-  (andrewi@gnu.org)
+  Most of this README was contributed by former maintainers Andrew Innes
+  (andrewi@gnu.org) and Jason Rumney (jasonr@gnu.org).
 
 
 This file is part of GNU Emacs.

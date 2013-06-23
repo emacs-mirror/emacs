@@ -26,7 +26,7 @@ described in the node "Auto-loading safe path" in the GDB user manual.
 ** When you are trying to analyze failed assertions or backtraces, it
 is essential to compile Emacs with flags suitable for debugging.
 With GCC 4.8 or later, you can invoke 'make' with CFLAGS="-Og -g3".
-With older GCC or non-GCC commpilers, you can use CFLAGS="-O0 -g3".
+With older GCC or non-GCC compilers, you can use CFLAGS="-O0 -g3".
 With GCC and higher optimization levels such as -O2, the
 -fno-omit-frame-pointer and -fno-crossjumping options are often
 essential.  The latter prevents GCC from using the same abort call for

@@ -2739,9 +2739,17 @@ surrounded by (cl-block NAME ...).
       (setq body (cond ((null substs) body)
                        ((null (cdr substs))
                         (cl-subst (cdar substs) (caar substs) body))
-                       (t (cl-sublis substs body))))
+                       (t (cl--sublis substs body))))
       (if lets `(let ,lets ,body) body))))
 
+(defun cl--sublis (alist tree)
+  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
+  (let ((x (assq tree alist)))
+    (cond
+     (x (cdr x))
+     ((consp tree)
+      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
+     (t tree))))
 
 ;; Compile-time optimizations for some functions defined in this package.
 

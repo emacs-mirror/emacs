@@ -3106,6 +3106,19 @@ HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+  # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
+  if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    AC_CHECK_HEADER(libxml/HTMLparser.h,
+      [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
+      		     [#include <libxml/HTMLparser.h>])])
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_LIBS="-lxml2"
+      LIBXML2_CFLAGS="-I/usr/include/libxml2"
+    fi
+  fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
@@ -3235,7 +3248,7 @@ gai_strerror mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-cfmakeraw cfsetspeed copysign __executable_start)
+cfmakeraw cfsetspeed copysign __executable_start log2)
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library

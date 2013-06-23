@@ -1148,7 +1148,8 @@ If char argument is given, it directs the output to a *temp* buffer."
       (cond ((null shell-command)
 	     (setq shell-command (read-string "!" nil))
 	     (setq vi-last-shell-command shell-command)))
-      (shell-command-on-region begin end shell-command (not (vi-prefix-char-value arg)))
+      (shell-command-on-region begin end shell-command (not (vi-prefix-char-value arg))
+			                               (not (vi-prefix-char-value arg)))
       t)))
 
 (defun vi-shift-op (motion-command arg amount)

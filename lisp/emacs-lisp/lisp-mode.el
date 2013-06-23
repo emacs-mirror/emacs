@@ -231,7 +231,7 @@ font-lock keywords will not be case sensitive."
 	  (font-lock-mark-block-function . mark-defun)
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
-  (prog-prettify-install lisp--prettify-symbols-alist))
+  (setq-local prettify-symbols-alist lisp--prettify-symbols-alist))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."

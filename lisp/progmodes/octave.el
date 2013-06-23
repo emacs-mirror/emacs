@@ -554,8 +554,13 @@ definitions can also be stored in files and used in batch mode."
 
   (setq-local fill-nobreak-predicate
               (lambda () (eq (octave-in-string-p) ?')))
-  (add-function :around (local 'comment-line-break-function)
-                #'octave--indent-new-comment-line)
+  (with-no-warnings
+    (if (fboundp 'add-function)         ; new in 24.4
+        (add-function :around (local 'comment-line-break-function)
+                      #'octave--indent-new-comment-line)
+      (setq-local comment-line-break-function
+                  (apply-partially #'octave--indent-new-comment-line
+                                   #'comment-indent-new-line))))
 
   (setq font-lock-defaults '(octave-font-lock-keywords))
 
@@ -1151,8 +1156,6 @@ q: Don't fix\n" func file))
 ;;; Indentation
 
 (defun octave-indent-new-comment-line (&optional soft)
-  ;; FIXME: C-M-j should probably be bound globally to a function like
-  ;; this one.
   "Break Octave line at point, continuing comment if within one.
 Insert `octave-continuation-string' before breaking the line
 unless inside a list.  Signal an error if within a single-quoted
@@ -1666,9 +1669,7 @@ code line."
           (when (re-search-forward "^\\s-*See also:" nil t)
             (let ((end (save-excursion (re-search-forward "^\\s-*$" nil t))))
               (while (re-search-forward
-                      ;; Match operators and symbols.
-                      "\\(?1:\\s.+?\\)\\(?:$\\|[,;]\\|\\s-\\)\\|\\_<\\(?1:\\(?:\\sw\\|\\s_\\)+\\)\\_>"
-                      end t)
+                      "\\s-*\\([^,\n]+?\\)\\s-*\\(?:[,]\\|[.]?$\\)" end t)
                 (make-text-button (match-beginning 1) (match-end 1)
                                   :type 'octave-help-function)))))
         (octave-help-mode)))))

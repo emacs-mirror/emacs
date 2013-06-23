@@ -3785,12 +3785,6 @@ get_rid (PSID sid)
 
 /* Caching SID and account values for faster lokup.  */
 
-#ifdef __GNUC__
-# define FLEXIBLE_ARRAY_MEMBER
-#else
-# define FLEXIBLE_ARRAY_MEMBER 1
-#endif
-
 struct w32_id {
   unsigned rid;
   struct w32_id *next;

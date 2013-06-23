@@ -57,8 +57,8 @@ The meaning of glyph reference point codes is as follows:
     |         |			7:bc or bottom-center
     6----7----8 <---- descent	8:br or bottom-right
 
-Glyph reference point symbols are to be used to specify composition
-rule of the form \(GLOBAL-REF-POINT . NEW-REF-POINT), where
+Glyph reference point symbols are to be used to specify a composition
+rule of the form (GLOBAL-REF-POINT . NEW-REF-POINT), where
 GLOBAL-REF-POINT is a reference point in the overall glyphs already
 composed, and NEW-REF-POINT is a reference point in the new glyph to
 be added.
@@ -71,13 +71,13 @@ follows (the point `*' corresponds to both reference points):
     |       |  |
     | global|  |
     | glyph |  |
- -- |       |  |-- <--- baseline \(doesn't change)
+ -- |       |  |-- <--- baseline (doesn't change)
     +----+--*--+
     |    | new |
     |    |glyph|
     +----+-----+ <--- new descent
 
-A composition rule may have the form \(GLOBAL-REF-POINT
+A composition rule may have the form (GLOBAL-REF-POINT
 NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specify how much
 to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
 and YOFF are integers in the range -100..100 representing the
@@ -279,8 +279,8 @@ text in the composition."
 (defun compose-chars (&rest args)
   "Return a string from arguments in which all characters are composed.
 For relative composition, arguments are characters.
-For rule-based composition, Mth \(where M is odd) arguments are
-characters, and Nth \(where N is even) arguments are composition rules.
+For rule-based composition, Mth (where M is odd) arguments are
+characters, and Nth (where N is even) arguments are composition rules.
 A composition rule is a cons of glyph reference points of the form
 \(GLOBAL-REF-POINT . NEW-REF-POINT).  See the documentation of
 `reference-point-alist' for more detail."
@@ -387,7 +387,7 @@ This function is the default value of `compose-chars-after-function'."
 (defun compose-last-chars (args)
   "Compose last characters.
 The argument is a parameterized event of the form
-	\(compose-last-chars N COMPONENTS),
+	(compose-last-chars N COMPONENTS),
 where N is the number of characters before point to compose,
 COMPONENTS, if non-nil, is the same as the argument to `compose-region'
 \(which see).  If it is nil, `compose-chars-after' is called,
@@ -640,7 +640,7 @@ All non-spacing characters have this function in
    unicode-category-table))
 
 (defun compose-gstring-for-terminal (gstring)
-  "Compose glyph string GSTRING for terminal display.
+  "Compose glyph-string GSTRING for terminal display.
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each non-spacing character is composed as a spacing character by

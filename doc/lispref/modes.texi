@@ -1800,7 +1800,7 @@ display of the text just as they would text in the buffer.  Any
 characters which have no @code{face} properties are displayed, by
 default, in the face @code{mode-line} or @code{mode-line-inactive}
 (@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).  The
-@code{help-echo} and @code{local-map} properties in @var{string} have
+@code{help-echo} and @code{keymap} properties in @var{string} have
 special meanings.  @xref{Properties in Mode}.
 
 @item @var{symbol}
@@ -2205,7 +2205,7 @@ The value of @code{global-mode-string}.
   Certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associates help strings with the text, and
-@code{local-map} can make the text mouse-sensitive.
+@code{keymap} can make the text mouse-sensitive.
 
   There are four ways to specify text properties for text in the mode
 line:
@@ -2229,7 +2229,7 @@ structure, and make @var{form} evaluate to a string that has a text
 property.
 @end enumerate
 
-  You can use the @code{local-map} property to specify a keymap.  This
+  You can use the @code{keymap} property to specify a keymap.  This
 keymap only takes real effect for mouse clicks; binding character keys
 and function keys to it has no effect, since it is impossible to move
 point into the mode line.

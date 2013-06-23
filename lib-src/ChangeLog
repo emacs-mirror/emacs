@@ -1,3 +1,13 @@
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	* ebrowse.c: Include <stddef.h>, for offsetof.
+	(struct member, struct alias, struct sym):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	(add_sym, add_member, make_namespace, register_namespace_alias):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+
 2013-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove *.res files.
@@ -717,7 +727,7 @@
 	to avoid potential buffer overflow issues on typical 64-bit hosts.
 	(whatlen_max): New static var.
 	(main): Avoid buffer overflow if subsidiary command length is
-	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
+	greater than BUFSIZ or 2*BUFSIZ + 20.  Do not use sprintf when its
 	result might not fit in 'int'.
 
 	* movemail.c (main): Do not use sprintf when its result might not fit
@@ -8408,7 +8418,7 @@
 
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
-	* env.c: Add decl for my-index
+	* env.c: Add decl for my-index.
 	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)

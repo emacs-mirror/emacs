@@ -2292,7 +2292,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "eval-when-compile" "eval-when" "eval-next-after-load"
 		 "with-case-table" "with-category-table" "with-coding-priority"
 		 "with-current-buffer" "with-demoted-errors"
-		 "with-electric-help"
+		 "with-electric-help" "with-eval-after-load"
 		 "with-local-quit" "with-no-warnings"
 		 "with-output-to-string" "with-output-to-temp-buffer"
 		 "with-selected-window" "with-selected-frame"

@@ -2215,7 +2215,7 @@ list that represents a doc string reference.
   (and (let ((form form))
 	 (while (if (setq form (cdr form)) (macroexp-const-p (car form))))
 	 (null form))			;Constants only
-       (eval (nth 5 form))		;Macro
+       (memq (eval (nth 5 form)) '(t macro)) ;Macro
        (eval form))			;Define the autoload.
   ;; Avoid undefined function warnings for the autoload.
   (when (and (consp (nth 1 form))
@@ -4187,7 +4187,7 @@ binding slots have been popped."
   (byte-compile-set-symbol-position 'autoload)
   (and (macroexp-const-p (nth 1 form))
        (macroexp-const-p (nth 5 form))
-       (eval (nth 5 form))  ; macro-p
+       (memq (eval (nth 5 form)) '(t macro))  ; macro-p
        (not (fboundp (eval (nth 1 form))))
        (byte-compile-warn
 	"The compiler ignores `autoload' except at top level.  You should

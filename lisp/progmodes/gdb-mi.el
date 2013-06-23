@@ -2642,20 +2642,6 @@ Return position where LINE begins."
   (row-properties nil)
   (right-align nil))
 
-(defun gdb-mapcar* (function &rest seqs)
-  "Apply FUNCTION to each element of SEQS, and make a list of the results.
-If there are several SEQS, FUNCTION is called with that many
-arguments, and mapping stops as soon as the shortest list runs
-out."
-  (let ((shortest (apply #'min (mapcar #'length seqs))))
-    (mapcar (lambda (i)
-              (apply function
-                     (mapcar
-                      (lambda (seq)
-                        (nth i seq))
-                      seqs)))
-            (number-sequence 0 (1- shortest)))))
-
 (defun gdb-table-add-row (table row &optional properties)
   "Add ROW of string to TABLE and recalculate column sizes.
 
@@ -2673,7 +2659,7 @@ calling `gdb-table-string'."
     (setf (gdb-table-row-properties table)
           (append row-properties (list properties)))
     (setf (gdb-table-column-sizes table)
-          (gdb-mapcar* (lambda (x s)
+          (cl-mapcar (lambda (x s)
                          (let ((new-x
                                 (max (abs x) (string-width (or s "")))))
                            (if right-align new-x (- new-x))))
@@ -2688,11 +2674,11 @@ calling `gdb-table-string'."
   (let ((column-sizes (gdb-table-column-sizes table)))
     (mapconcat
      'identity
-     (gdb-mapcar*
+     (cl-mapcar
       (lambda (row properties)
         (apply 'propertize
                (mapconcat 'identity
-                          (gdb-mapcar* (lambda (s x) (gdb-pad-string s x))
+                          (cl-mapcar (lambda (s x) (gdb-pad-string s x))
                                        row column-sizes)
                           sep)
                properties))

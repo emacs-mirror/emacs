@@ -1,3 +1,8 @@
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Edit more configure variables.
+	Try to check that we do not miss any in future.
+
 2013-06-12  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc1-xtra.texi (Revision Tags): Add a cross reference.

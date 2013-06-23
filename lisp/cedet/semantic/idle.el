@@ -578,7 +578,7 @@ This routine creates the following functions and variables:"
 	(setup	(intern (concat (symbol-name name) "-mode-setup")))
 	(func	(intern (concat (symbol-name name) "-idle-function"))))
 
-    `(eval-and-compile
+    `(progn
        (define-minor-mode ,global
 	 ,(concat "Toggle " (symbol-name global) ".
 With ARG, turn the minor mode on if ARG is positive, off otherwise.

@@ -27,7 +27,7 @@
 ;; This package defines a minor mode Emacs Lock to mark a buffer as
 ;; protected against accidental killing, or exiting Emacs, or both.
 ;; Buffers associated with inferior modes, like shell or telnet, can
-;; be treated specially, by auto-unlocking them if their interior
+;; be treated specially, by auto-unlocking them if their inferior
 ;; processes are dead.
 
 ;;; Code:
@@ -88,26 +88,23 @@ The functions get one argument, the first locked buffer found."
   :group 'emacs-lock
   :version "24.3")
 
-(defvar emacs-lock-mode nil
+(defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
 It can be one of the following values:
  exit   -- Emacs cannot exit while the buffer is locked
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
  nil    -- the buffer is not locked")
-(make-variable-buffer-local 'emacs-lock-mode)
 (put 'emacs-lock-mode 'permanent-local t)
 
-(defvar emacs-lock--old-mode nil
+(defvar-local emacs-lock--old-mode nil
   "Most recent locking mode set on the buffer.
 Internal use only.")
-(make-variable-buffer-local 'emacs-lock--old-mode)
 (put 'emacs-lock--old-mode 'permanent-local t)
 
-(defvar emacs-lock--try-unlocking nil
+(defvar-local emacs-lock--try-unlocking nil
   "Non-nil if current buffer should be checked for auto-unlocking.
 Internal use only.")
-(make-variable-buffer-local 'emacs-lock--try-unlocking)
 (put 'emacs-lock--try-unlocking 'permanent-local t)
 
 (defun emacs-lock-live-process-p (buffer-or-name)
@@ -188,6 +185,7 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
 
 (define-obsolete-variable-alias 'emacs-lock-from-exiting
   'emacs-lock-mode "24.1")
+
 ;;;###autoload
 (define-minor-mode emacs-lock-mode
   "Toggle Emacs Lock mode in the current buffer.

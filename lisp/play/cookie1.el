@@ -25,11 +25,10 @@
 ;;; Commentary:
 
 ;; Support for random cookie fetches from phrase files, used for such
-;; critical applications as emulating Zippy the Pinhead and confounding
-;; the NSA Trunk Trawler.
+;; critical applications as confounding the NSA Trunk Trawler.
 ;;
 ;; The two entry points are `cookie' and `cookie-insert'.  The helper
-;; function `shuffle-vector' may be of interest to programmers.
+;; function `cookie-shuffle-vector' may be of interest to programmers.
 ;;
 ;; The code expects phrase files to be in one of two formats:
 ;;
@@ -49,9 +48,20 @@
 ;; This code derives from Steve Strassmann's 1987 spook.el package, but
 ;; has been generalized so that it supports multiple simultaneous
 ;; cookie databases and fortune files.  It is intended to be called
-;; from other packages such as yow.el and spook.el.
+;; from other packages such as spook.el.
 
 ;;; Code:
+
+(defgroup cookie nil
+  "Random cookies from phrase files."
+  :prefix "cookie-"
+  :group 'games)
+
+(defcustom cookie-file nil
+  "Default phrase file for cookie functions."
+  :type '(choice (const nil) file)
+  :group 'cookie
+  :version "24.4")
 
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
@@ -59,22 +69,41 @@
 (defvar cookie-cache (make-vector 511 0)
   "Cache of cookie files that have already been snarfed.")
 
+(defun cookie-check-file (file)
+  "Return either FILE or `cookie-file'.
+Signal an error if the result is nil or not readable."
+  (or (setq file (or file cookie-file)) (user-error "No phrase file specified"))
+  (or (file-readable-p file) (user-error "Cannot read file `%s'" file))
+  file)
+
 ;;;###autoload
-(defun cookie (phrase-file startmsg endmsg)
+(defun cookie (phrase-file &optional startmsg endmsg)
   "Return a random phrase from PHRASE-FILE.
 When the phrase file is read in, display STARTMSG at the beginning
-of load, ENDMSG at the end."
-  (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg)))
-    (shuffle-vector cookie-vector)
-    (aref cookie-vector 0)))
+of load, ENDMSG at the end.
+Interactively, PHRASE-FILE defaults to `cookie-file', unless that
+is nil or a prefix argument is used."
+  (interactive (list (if (or current-prefix-arg (not cookie-file))
+			 (read-file-name "Cookie file: " nil
+					 cookie-file t cookie-file)
+		       cookie-file) nil nil))
+  (setq phrase-file (cookie-check-file phrase-file))
+  (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg))
+	res)
+    (cookie-shuffle-vector cookie-vector)
+    (setq res (aref cookie-vector 0))
+    (if (called-interactively-p 'interactive)
+	(message "%s" res)
+      res)))
 
 ;;;###autoload
 (defun cookie-insert (phrase-file &optional count startmsg endmsg)
   "Insert random phrases from PHRASE-FILE; COUNT of them.
 When the phrase file is read in, display STARTMSG at the beginning
 of load, ENDMSG at the end."
+  (setq phrase-file (cookie-check-file phrase-file))
   (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg)))
-    (shuffle-vector cookie-vector)
+    (cookie-shuffle-vector cookie-vector)
     (let ((start (point)))
       (insert ?\n)
       (cookie1 (min (- (length cookie-vector) 1) (or count 1)) cookie-vector)
@@ -89,12 +118,11 @@ of load, ENDMSG at the end."
 	   (cookie1 (1- arg) cookie-vec))))
 
 ;;;###autoload
-(defun cookie-snarf (phrase-file startmsg endmsg)
+(defun cookie-snarf (phrase-file &optional startmsg endmsg)
   "Reads in the PHRASE-FILE, returns it as a vector of strings.
 Emit STARTMSG and ENDMSG before and after.  Caches the result; second
 and subsequent calls on the same file won't go to disk."
-  (or (file-readable-p phrase-file)
-      (error "Cannot read file `%s'" phrase-file))
+  (setq phrase-file (cookie-check-file phrase-file))
   (let ((sym (intern-soft phrase-file cookie-cache)))
     (and sym (not (equal (symbol-function sym)
 			 (nth 5 (file-attributes phrase-file))))
@@ -104,27 +132,25 @@ and subsequent calls on the same file won't go to disk."
     (if sym
 	(symbol-value sym)
       (setq sym (intern phrase-file cookie-cache))
-      (message "%s" startmsg)
-      (save-excursion
-	(let ((buf (generate-new-buffer "*cookie*"))
-	      (result nil))
-	  (set-buffer buf)
-	  (fset sym (nth 5 (file-attributes phrase-file)))
+      (if startmsg (message "%s" startmsg))
+      (fset sym (nth 5 (file-attributes phrase-file)))
+      (let (result)
+	(with-temp-buffer
 	  (insert-file-contents (expand-file-name phrase-file))
 	  (re-search-forward cookie-delimiter)
 	  (while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
 	    (let ((beg (point)))
 	      (re-search-forward cookie-delimiter)
 	      (setq result (cons (buffer-substring beg (match-beginning 0))
-				 result))))
-	  (kill-buffer buf)
-	  (message "%s" endmsg)
-	  (set sym (apply 'vector result)))))))
+				 result)))))
+	(if endmsg (message "%s" endmsg))
+	(set sym (apply 'vector result))))))
 
-(defun read-cookie (prompt phrase-file startmsg endmsg &optional require-match)
+(defun cookie-read (prompt phrase-file &optional startmsg endmsg require-match)
   "Prompt with PROMPT and read with completion among cookies in PHRASE-FILE.
 STARTMSG and ENDMSG are passed along to `cookie-snarf'.
-Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
+Argument REQUIRE-MATCH non-nil forces a matching cookie."
+  (setq phrase-file (cookie-check-file phrase-file))
   ;; Make sure the cookies are in the cache.
   (or (intern-soft phrase-file cookie-cache)
       (cookie-snarf phrase-file startmsg endmsg))
@@ -141,24 +167,79 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 			   (put sym 'completion-alist alist))))
 		   nil require-match nil nil))
 
-; Thanks to Ian G Batten <BattenIG@CS.BHAM.AC.UK>
-; [of the University of Birmingham Computer Science Department]
-; for the iterative version of this shuffle.
-;
-;;;###autoload
-(defun shuffle-vector (vector)
+(define-obsolete-function-alias 'read-cookie 'cookie-read "24.4")
+
+;; Thanks to Ian G Batten <BattenIG@CS.BHAM.AC.UK>
+;; [of the University of Birmingham Computer Science Department]
+;; for the iterative version of this shuffle.
+(defun cookie-shuffle-vector (vector)
   "Randomly permute the elements of VECTOR (all permutations equally likely)."
-  (let ((i 0)
-	j
-	temp
-	(len (length vector)))
-    (while (< i len)
-      (setq j (+ i (random (- len i))))
-      (setq temp (aref vector i))
+  (let ((len (length vector))
+	j temp)
+    (dotimes (i len vector)
+      (setq j (+ i (random (- len i)))
+	    temp (aref vector i))
       (aset vector i (aref vector j))
-      (aset vector j temp)
-      (setq i (1+ i))))
-  vector)
+      (aset vector j temp))))
+
+(define-obsolete-function-alias 'shuffle-vector 'cookie-shuffle-vector "24.4")
+
+
+(defun cookie-apropos (regexp phrase-file &optional display)
+  "Return a list of all entries matching REGEXP from PHRASE-FILE.
+Interactively, PHRASE-FILE defaults to `cookie-file', unless that
+is nil or a prefix argument is used.
+If called interactively, or if DISPLAY is non-nil, display a list of matches."
+  (interactive (list (read-regexp "Apropos phrase (regexp): ")
+		     (if (or current-prefix-arg (not cookie-file))
+			 (read-file-name "Cookie file: " nil
+					 cookie-file t cookie-file)
+		       cookie-file) t))
+  (setq phrase-file (cookie-check-file phrase-file))
+  ;; Make sure phrases are loaded.
+  (cookie phrase-file)
+  (let* ((case-fold-search t)
+         (cookie-table-symbol (intern phrase-file cookie-cache))
+         (string-table (symbol-value cookie-table-symbol))
+         (matches nil))
+    (and (dotimes (i (length string-table) matches)
+           (and (string-match-p regexp (aref string-table i))
+                (setq matches (cons (aref string-table i) matches))))
+         (setq matches (sort matches 'string-lessp)))
+    (and display
+         (if matches
+             (let ((l matches))
+               (with-output-to-temp-buffer "*Cookie Apropos*"
+                 (while l
+                   (princ (car l))
+                   (setq l (cdr l))
+                   (and l (princ "\n\n")))
+                 (help-print-return-message)))
+           (message "No matches found.")))
+    matches))
+
+
+(declare-function doctor-ret-or-read "doctor" (arg))
+
+(defun cookie-doctor (phrase-file)
+  "Feed cookie phrases from PHRASE-FILE to the doctor.
+Interactively, PHRASE-FILE defaults to `cookie-file', unless that
+is nil or a prefix argument is used."
+  (interactive (list (if (or current-prefix-arg (not cookie-file))
+			 (read-file-name "Cookie file: " nil
+					 cookie-file t cookie-file)
+		       cookie-file)))
+  (setq phrase-file (cookie-check-file phrase-file))
+  (doctor)				; start the psychotherapy
+  (message "")
+  (switch-to-buffer "*doctor*")
+  (sit-for 0)
+  (while (not (input-pending-p))
+    (insert (cookie phrase-file))
+    (sit-for 0)
+    (doctor-ret-or-read 1)
+    (doctor-ret-or-read 1)))
+
 
 (provide 'cookie1)
 

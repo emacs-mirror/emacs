@@ -1,3 +1,150 @@
+2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean up SIGCHLD handling a bit (Bug#14569).
+	* process.c, process.h (catch_child_signal):
+	Now always extern, even if !NS_IMPL_GNUSTEP.
+	* process.c (catch_child_signal): Move glib tickler here from
+	init_process_emacs, so that it's done earlier in Emacs
+	initialization.  Also move the noninteractive && !initialized
+	check here from init_process_emacs.  This is all a bit cleaner for
+	GNUish platforms, and I hope it works around the Cygwin bug.
+	* sysdep.c (init_signals): Invoke catch_child_signal here, so
+	that glib signal handling is tickled before glib creates threads.
+
+	* process.c (wait_reading_process_output): Avoid int overflow
+	when reading more than 2 GiB total from a process.
+
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (create_process): Handle a couple more cases,
+	i.e., work even if new_argv and wait_child_setup[i] are cached.
+	Use Fcall_process's style for volatile vars.
+
+2013-06-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Mark PROCESS volatile.
+
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	This avoids some subtle aliasing issues, which typically
+	aren't a problem with GCC but may be a problem elsewhere.
+	* alloc.c (sdata): New typedef, replacing the old struct sdata.
+	It is a struct if GC_CHECK_STRING_BYTES, a union otherwise.
+	In either case, it uses a flexible array member rather than
+	the old struct hack.  All uses changed.
+	(SDATA_NBYTES, sweep_strings) [!GC_CHECK_STRING_BYTES]:
+	Adjust to sdata reorganization.
+	* alloc.c (VBLOCK_BYTES_MIN, allocate_vectorlike, Fgarbage_collect):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+	* chartab.c (Fmake_char_table, make_sub_char_table, copy_char_table):
+	Use CHAR_TABLE_STANDARD_SLOTS rather than its definition,
+	as the latter has changed.
+	* conf_post.h (FLEXIBLE_ARRAY_MEMBER): Move here from w32.c,
+	and port better to pre-C99 GCC.
+	* image.c (struct xpm_cached_color):
+	* lisp.h (struct Lisp_Vector, struct Lisp_Bool_Vector)
+	(struct Lisp_Char_Table, struct Lisp_Sub_Char_Table):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	* lisp.h (string_bytes) [GC_CHECK_STRING_BYTES]:
+	Move decl to top level so it gets checked against implementation.
+	(CHAR_TABLE_STANDARD_SLOTS): Adjust to struct Lisp_Char_Table change.
+	* w32.c (FLEXIBLE_ARRAY_MEMBER): Move to conf_post.h.
+
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* syntax.c: Integer cleanups.
+	(SYNTAX_FLAGS_COMMENT_STYLEC): Return a boolean, not 0-or-2.
+	All uses that need 0-or-2 changed to:
+	(SYNTAX_FLAGS_COMMENT_STYLEC2): New macro, with the same semantics
+	as the old SYNTAX_FLAGS_COMMENT_STYLEC.
+	(struct lisp_parse_state, syntax_prefix_flag_p, update_syntax_table)
+	(char_quoted, prev_char_comend_first, back_comment)
+	(Finternal_describe_syntax_value, skip_chars, skip_syntaxes)
+	(in_classes, forw_comment, scan_lists, scan_sexps_forward):
+	Use bool for boolean.
+	(update_syntax_table, skip_chars, skip_syntaxes):
+	Prefer int to unsigned when either will do.
+	(back_comment): Return boolean success flag, like forw_comment,
+	instead of positive-or-minus-1 (which might have overflowed int anyway).
+	Don't stuff ptrdiff_t into int.
+	(syntax_spec_code, syntax_code_spec): Now const.
+	(Fmatching_paren, scan_lists, scan_sexps_forward):
+	Use enum syntaxcode for syntax code.
+	(Fmatching_paren): Check that arg is a character, not just an integer.
+	(Fstring_to_syntax): Don't assume 0377 fits in enum syntaxcode.
+	(Finternal_describe_syntax_value): Omit no-longer-needed
+	comparison to 0.
+	(skip_chars): Use char, not unsigned char, when the distinction
+	doesn't matter.
+	(forw_comment, scan_lists): Prefer A |= B to A = A || B when B's cheap.
+	* bytecode.c (exec_byte_code):
+	* syntax.c (syntax_spec_code, Fchar_syntax)
+	(Finternal_describe_syntax_value, skip_chars, skip_syntaxes)
+	(init_syntax_once):
+	* syntax.h (SYNTAX_WITH_FLAGS):
+	Omit unnecessary casts.
+
+2013-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't compute the header line and mode
+	line dimensions here, to avoid race conditions with the main
+	thread.  (Bug#14062, bug#14630, bug#14669)
+
+	* w32term.c (w32_draw_window_cursor): Compute the header line and
+	mode line dimensions here.
+	<w32_system_caret_window, w32_system_caret_hdr_height>:
+	<w32_system_caret_mode_height>: New variables.
+
+	* w32term.h: Declare them.
+
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (die): Move "assertion failed" string here ...
+	* lisp.h (eassert): ... from here.  Also, suppress evaluation of
+	COND when SUPPRESS_CHECKING.  This shrinks the executable text
+	size by 0.8% to 2.2% when configured with --enable-checking,
+	depending on optimization flags (GCC 4.8.1 x86-64).
+
+	* floatfns.c (Flog10): Move to Lisp (marked obsolete there).
+
+2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* floatfns.c (Flog) [HAVE_LOG2]: Use log2 if available and if the
+	base is 2; this is more accurate.
+
+2013-06-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (string_default): Move to !WINDOWSNT section.
+	(Fplay_sound_internal) [WINDOWSNT]: Remove i_result to avoid warning.
+
+2013-06-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sound.c: Integer cleanups.
+	Remove unnecessary forward decls.
+	(struct sound_device): The 'file' member is now a Lisp_Object, not
+	a char *, so that we needn't invoke alloca on a huge size.
+	(Fplay_sound_internal): Adjust to this.
+	(string_default): New function.
+	(vox_open, vox_init, alsa_open, alsa_configure, alsa_init):
+	Use it to adjust to the struct sound_device change.
+	(parse_sound, wav_init, au_init, alsa_init): Use bool for booleans.
+	(be2hs) [0]: Remove.
+
+	* syntax.c (skip_chars): Don't use uninitialized storage
+	when searching a multibyte buffer for characters that are not in a
+	unibyte string that contains non-ASCII characters.
+
+2013-06-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c: Include xgselect.h if HAVE_GLIB.  Include glib.h
+	if HAVE_GLIB && ! WINDOWSNT (Bug#14654).
+
+2013-06-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h: Add comments for INLINE, EXTERN_INLINE, etc.
+
 2013-06-18  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_spec): Signal an error for an invalid font name
@@ -581,7 +728,7 @@
 	(update_frame_tool_bar): Update code for GNUStep.
 	(clearAll): New method.
 	(addDisplayItemWithImage:idx:tag:helpText:enabled:): Handle new tag
-	argument. Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
+	argument.  Call insertItemWithItemIdentifier when NS_IMPL_GNUSTEP.
 	Move identifierToItem setObject and activeIdentifiers addObject before
 	call to insertItemWithItemIdentifier.
 	(validateVisibleItems): Fix indentation.

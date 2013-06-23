@@ -1,3 +1,7 @@
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* url-future.el (url-future-call): Remove useless value call.
+
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* url.el (mm-dissect-buffer, mm-display-part): Declare.

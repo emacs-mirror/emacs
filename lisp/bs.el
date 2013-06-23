@@ -336,14 +336,12 @@ Used internally, only.")
 ;; Internal globals
 ;; ----------------------------------------------------------------------
 
-(defvar bs-buffer-show-mark nil
+(defvar-local bs-buffer-show-mark nil
   "Flag for the current mode for showing this buffer.
 A value of nil means buffer will be shown depending on the current
 configuration.
 A value of `never' means to never show the buffer.
 A value of `always' means to show buffer regardless of the configuration.")
-
-(make-variable-buffer-local 'bs-buffer-show-mark)
 
 ;; Make face named region (for XEmacs)
 (unless (facep 'region)
@@ -648,17 +646,14 @@ available Buffer Selection Menu configuration.
 to show always.
 \\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
 \\[bs-help] -- display this help text."
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'font-lock-verbose)
-  (make-local-variable 'font-lock-global-modes)
   (buffer-disable-undo)
   (setq buffer-read-only t
 	truncate-lines t
-	show-trailing-whitespace nil
-	font-lock-global-modes '(not bs-mode)
-	font-lock-defaults '(bs-mode-font-lock-keywords t)
-	font-lock-verbose nil)
-  (set (make-local-variable 'revert-buffer-function) 'bs-refresh)
+	show-trailing-whitespace nil)
+  (setq-local font-lock-defaults '(bs-mode-font-lock-keywords t))
+  (setq-local font-lock-verbose nil)
+  (setq-local font-lock-global-modes '(not bs-mode))
+  (setq-local revert-buffer-function 'bs-refresh)
   (add-hook 'window-size-change-functions 'bs--track-window-changes)
   (add-hook 'kill-buffer-hook 'bs--remove-hooks nil t)
   (add-hook 'change-major-mode-hook 'bs--remove-hooks nil t))

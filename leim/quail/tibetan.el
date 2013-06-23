@@ -148,13 +148,13 @@
 
   SPECIAL KEYS
   +     :  Consonant Stacking
-          \(Consonant stacking for ordinary Tibetan is done automatically)
+          (Consonant stacking for ordinary Tibetan is done automatically)
   -     : No Consonant Stacking
-          \(To suppress automatic stacking for \"g-y\",
+          (To suppress automatic stacking for \"g-y\",
             and to get da-drag in  -r-d, -l-d .)
   |     : Special signs.
 
-  Tsheg is assigned to SPC. Space is assigned to period '.'.
+  Tsheg is assigned to SPC.  Space is assigned to period '.'.
 "
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
@@ -426,16 +426,16 @@
   DIFFERENCE FROM THE ORIGINAL TIBKEY:
 
     1. Vowel 'a' should be typed explicitly by the key 'A'.
-       This is really inconvenient. But to make the coding
+       This is really inconvenient.  But to make the coding
        scheme clear, it is desirable to have an explicit
        vowel sign for 'a'.
-    2. Tsheg is assigned to SPC key. You can input a space
+    2. Tsheg is assigned to SPC key.  You can input a space
        by typing '>'.
     4. To avoid the default stacking ö„» and to obtain à½‚à½¡,
        type 'E' instead of 'v' (=à½¡).
     3. There are many characters that are not supported in the
-       current implementation (especially special signs). I hope
-       I'll complete in a future revision.
+       current implementation (especially special signs).
+       I hope I'll complete in a future revision.
 "
  nil nil nil nil nil nil nil nil
  'quail-tibkey-update-translation)

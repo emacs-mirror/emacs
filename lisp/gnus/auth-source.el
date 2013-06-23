@@ -1078,8 +1078,8 @@ Note that the MAX parameter is used so we can exit the parse early."
       (when (and alist
                  (or default
                      (equal item "machine")))
-        (auth-source-do-trivia
-         "auth-source-netrc-parse-entries: got entry %S" alist)
+        ;; (auth-source-do-trivia
+        ;;  "auth-source-netrc-parse-entries: got entry %S" alist)
         (setq all (funcall adder check alist all)
               alist nil))
       ;; In default entries, we don't have a next token.
@@ -1101,8 +1101,9 @@ Note that the MAX parameter is used so we can exit the parse early."
     ;; Clean up: if there's an entry left over, use it.
     (when alist
       (setq all (funcall adder check alist all))
-      (auth-source-do-trivia
-       "auth-source-netrc-parse-entries: got2 entry %S" alist))
+      ;; (auth-source-do-trivia
+      ;;  "auth-source-netrc-parse-entries: got2 entry %S" alist)
+      )
     (nreverse all)))
 
 (defvar auth-source-passphrase-alist nil)

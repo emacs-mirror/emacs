@@ -689,9 +689,7 @@ archive.
 	(setq revert-buffer-function 'archive-mode-revert)
 	(auto-save-mode 0)
 
-	;; Remote archives are not written by a hook.
-	(if archive-remote nil
-	  (add-hook 'write-contents-functions 'archive-write-file nil t))
+	(add-hook 'write-contents-functions 'archive-write-file nil t)
 
 	(make-local-variable 'require-final-newline)
 	(setq require-final-newline nil)

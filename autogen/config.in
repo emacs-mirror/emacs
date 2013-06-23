@@ -746,6 +746,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
+/* Define to 1 if you have the `log2' function. */
+#undef HAVE_LOG2
+
 /* Define to 1 if you support file names longer than 14 characters. */
 #undef HAVE_LONG_FILE_NAMES
 
@@ -1677,15 +1680,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    configuration information. */
 #undef config_opsysfile
 
-/* _GL_INLINE is a portable alternative to ISO C99 plain 'inline'.
-   _GL_EXTERN_INLINE is a portable alternative to 'extern inline'.
-   _GL_INLINE_HEADER_BEGIN contains useful stuff to put
-     in an include file, before uses of _GL_INLINE.
-     It suppresses GCC's bogus "no previous prototype for 'FOO'" diagnostic,
-     when FOO is an inline function in the header; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.
-   _GL_INLINE_HEADER_END contains useful stuff to put
-     in the same include file, after uses of _GL_INLINE.
+/* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
    <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
@@ -1728,6 +1723,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define _GL_INLINE_HEADER_CONST_PRAGMA \
      _Pragma ("GCC diagnostic ignored \"-Wsuggest-attribute=const\"")
 # endif
+  /* Suppress GCC's bogus "no previous prototype for 'FOO'"
+     and "no previous declaration for 'FOO'"  diagnostics,
+     when FOO is an inline function in the header; see
+     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
 # define _GL_INLINE_HEADER_BEGIN \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \

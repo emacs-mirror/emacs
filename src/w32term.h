@@ -750,6 +750,9 @@ extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+extern struct window *w32_system_caret_window;
+extern int w32_system_caret_hdr_height;
+extern int w32_system_caret_mode_height;
 
 #ifdef _MSC_VER
 #ifndef EnumSystemLocales

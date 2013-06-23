@@ -124,8 +124,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 #include "xgselect.h"
+#ifndef WINDOWSNT
+#include <glib.h>
+#endif
 #endif
 
 #ifdef WINDOWSNT
@@ -1588,11 +1591,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   int wait_child_setup[2];
 #endif
   sigset_t blocked;
-  /* Use volatile to protect variables from being clobbered by vfork.  */
-  volatile int forkin, forkout;
-  volatile bool pty_flag = 0;
-  volatile Lisp_Object lisp_pty_name = Qnil;
-  volatile Lisp_Object encoded_current_dir;
+  int forkin, forkout;
+  bool pty_flag = 0;
+  Lisp_Object lisp_pty_name = Qnil;
+  Lisp_Object encoded_current_dir;
 
   inchannel = outchannel = -1;
 
@@ -1691,7 +1693,31 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
 
 #ifndef WINDOWSNT
-  pid = vfork ();
+  /* vfork, and prevent local vars from being clobbered by the vfork.  */
+  {
+    Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
+    Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
+    Lisp_Object volatile process_volatile = process;
+    bool volatile pty_flag_volatile = pty_flag;
+    char **volatile new_argv_volatile = new_argv;
+    int volatile forkin_volatile = forkin;
+    int volatile forkout_volatile = forkout;
+    int volatile wait_child_setup_0_volatile = wait_child_setup[0];
+    int volatile wait_child_setup_1_volatile = wait_child_setup[1];
+
+    pid = vfork ();
+
+    encoded_current_dir = encoded_current_dir_volatile;
+    lisp_pty_name = lisp_pty_name_volatile;
+    process = process_volatile;
+    pty_flag = pty_flag_volatile;
+    new_argv = new_argv_volatile;
+    forkin = forkin_volatile;
+    forkout = forkout_volatile;
+    wait_child_setup[0] = wait_child_setup_0_volatile;
+    wait_child_setup[1] = wait_child_setup_1_volatile;
+  }
+
   if (pid == 0)
 #endif /* not WINDOWSNT */
     {
@@ -4404,7 +4430,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  && ! EQ (wait_proc->status, Qrun)
 	  && ! EQ (wait_proc->status, Qconnect))
 	{
-	  int nread, total_nread = 0;
+	  bool read_some_bytes = 0;
 
 	  clear_waiting_for_input ();
 	  XSETPROCESS (proc, wait_proc);
@@ -4412,16 +4438,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* Read data from the process, until we exhaust it.  */
 	  while (wait_proc->infd >= 0)
 	    {
-	      nread = read_process_output (proc, wait_proc->infd);
+	      int nread = read_process_output (proc, wait_proc->infd);
 
 	      if (nread == 0)
 		break;
 
 	      if (nread > 0)
-		{
-		  total_nread += nread;
-		  got_some_input = 1;
-		}
+		got_some_input = read_some_bytes = 1;
 	      else if (nread == -1 && (errno == EIO || errno == EAGAIN))
 		break;
 #ifdef EWOULDBLOCK
@@ -4429,7 +4452,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		break;
 #endif
 	    }
-	  if (total_nread > 0 && do_display)
+	  if (read_some_bytes && do_display)
 	    redisplay_preserve_echo_area (10);
 
 	  break;
@@ -7037,13 +7060,29 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
-#ifndef NS_IMPL_GNUSTEP
-static
-#endif
+/* Arrange to catch SIGCHLD if needed.  */
+
 void
 catch_child_signal (void)
 {
   struct sigaction action, old_action;
+
+#if !defined CANNOT_DUMP
+  if (noninteractive && !initialized)
+    return;
+#endif
+
+#if defined HAVE_GLIB && !defined WINDOWSNT
+  /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+     this should always fail, but is enough to initialize glib's
+     private SIGCHLD handler, allowing the code below to copy it into
+     LIB_CHILD_HANDLER.
+
+     Do this early in Emacs initialization, before glib creates
+     threads, to avoid race condition bugs in Cygwin glib.  */
+  g_source_unref (g_child_watch_source_new (getpid ()));
+#endif
+
   emacs_sigaction_init (&action, deliver_child_signal);
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
@@ -7062,19 +7101,6 @@ init_process_emacs (void)
   register int i;
 
   inhibit_sentinels = 0;
-
-#ifndef CANNOT_DUMP
-  if (! noninteractive || initialized)
-#endif
-    {
-#if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
-	 this should always fail, but is enough to initialize glib's
-	 private SIGCHLD handler.  */
-      g_source_unref (g_child_watch_source_new (getpid ()));
-#endif
-      catch_child_signal ();
-    }
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);

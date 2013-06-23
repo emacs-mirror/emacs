@@ -86,7 +86,7 @@ and whether the file exists:
     If the file does not exist   default value of `buffer-file-coding-system'
 
 Note that the CAR of arguments to `insert-file-contents' operation could
-be a cons cell of the form \(FILENAME . BUFFER\), where BUFFER is a buffer
+be a cons cell of the form (FILENAME . BUFFER), where BUFFER is a buffer
 into which the file's contents were already read, but not yet decoded.
 
 If operation is `write-region', the coding system is chosen based
@@ -203,8 +203,8 @@ dealing with untranslated filesystems."
 	;; with bare drive letters (which would have the cwd appended).
 	;; Avoid expanding names that could trigger ange-ftp to prompt
 	;; for passwords, though.
-	(if (or (string-match "^.:$" name)
-		(string-match "^/[^/:]+:" name))
+	(if (or (string-match-p "^.:$" name)
+		(string-match-p "^/[^/:]+:" name))
 	    name
 	  (expand-file-name name)))
     filename))
@@ -216,7 +216,7 @@ CR/LF translation, and nil otherwise."
 	(ufs-list untranslated-filesystem-list)
 	(found nil))
     (while (and (not found) ufs-list)
-      (if (string-match (concat "^" (car ufs-list)) fs)
+      (if (string-match-p (concat "^" (car ufs-list)) fs)
 	  (setq found t)
 	(setq ufs-list (cdr ufs-list))))
     found))
@@ -288,19 +288,19 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
     ;; asking command.com to copy the file.
     ;; No action is needed for UNC printer names, which is just as well
     ;; because `expand-file-name' doesn't support UNC names on MS-DOS.
-    (if (and (stringp printer) (not (string-match "^\\\\" printer)))
+    (if (and (stringp printer) (not (string-match-p "^\\\\" printer)))
 	(setq printer
 	      (subst-char-in-string ?/ ?\\ (expand-file-name printer safe-dir))))
     ;; Handle known programs specially where necessary.
     (unwind-protect
 	(cond
 	 ;; nprint.exe is the standard print command on Netware
-	 ((string-match "^nprint\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	 ((string-match-p "^nprint\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
 	  (write-region start end tempfile nil 0)
 	  (call-process lpr-prog nil errbuf nil
 			tempfile (concat "P=" printer)))
 	 ;; print.exe is a standard command on NT
-	 ((string-match "^print\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	 ((string-match-p "^print\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
 	  ;; Be careful not to invoke print.exe on MS-DOS or Windows 9x
 	  ;; though, because it is a TSR program there (hangs Emacs).
 	  (or (and (eq system-type 'windows-nt)
@@ -355,7 +355,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
                                      &rest rest)
   "DOS/Windows-specific function to print the region on a printer.
 Writes the region to the device or file which is a value of
-`printer-name' \(which see\), unless the value of `lpr-command'
+`printer-name' (which see), unless the value of `lpr-command'
 indicates a specific program should be invoked."
 
   ;; DOS printers need the lines to end with CR-LF pairs, so make
@@ -405,7 +405,7 @@ indicates a specific program should be invoked."
 					      &rest rest)
   "DOS/Windows-specific function to print the region on a PostScript printer.
 Writes the region to the device or file which is a value of
-`ps-printer-name' \(which see\), unless the value of `ps-lpr-command'
+`ps-printer-name' (which see), unless the value of `ps-lpr-command'
 indicates a specific program should be invoked."
 
   (let ((printer (or (and (boundp 'dos-ps-printer)

@@ -310,13 +310,42 @@ It returns t if not."
 (defconst secrets-interface-item-type-generic "org.freedesktop.Secret.Generic"
   "The default item type we are using.")
 
+;; We cannot use introspection, because some servers, like
+;; mate-keyring-daemon, don't provide relevant data.  Once the dust
+;; has settled, we shall assume the new interface, and get rid of the test.
 (defconst secrets-struct-secret-content-type
-  (when (string-equal
-	 (dbus-introspect-get-signature
-	  :session secrets-service secrets-path secrets-interface-service
-	  "GetSecrets" "out")
-	 "a{o(oayays)}")
-    '("text/plain"))
+  (ignore-errors
+    (let ((content-type "text/plain")
+	  (path (cadr
+		 (dbus-call-method
+		  :session secrets-service secrets-path
+		  secrets-interface-service
+		  "OpenSession" "plain" '(:variant ""))))
+	  result)
+      ;; Create a dummy item.
+      (setq result
+	    (dbus-call-method
+	     :session secrets-service secrets-session-collection-path
+	     secrets-interface-collection "CreateItem"
+	     ;; Properties.
+	     `(:array
+	       (:dict-entry ,(concat secrets-interface-item ".Label")
+			    (:variant "dummy"))
+	       (:dict-entry ,(concat secrets-interface-item ".Type")
+			    (:variant ,secrets-interface-item-type-generic)))
+	     ;; Secret.
+	     `(:struct :object-path ,path
+		       (:array :signature "y")
+		       ,(dbus-string-to-byte-array " ")
+		       :string ,content-type)
+	     ;; Don't replace.
+	     nil))
+      ;; Remove it.
+      (dbus-call-method
+       :session secrets-service (car result)
+       secrets-interface-item "Delete")
+      ;; Result.
+      `(,content-type)))
   "The content_type of a secret struct.
 It must be wrapped as list, because we add it via `append'.  This
 is an interface introduced in 2011.")

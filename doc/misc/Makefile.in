@@ -24,6 +24,8 @@ SHELL = /bin/sh
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 
+version=@version@
+
 ## Where the output files go.
 buildinfodir = $(srcdir)/../../info
 ## Directory with emacsver.texi.
@@ -161,8 +163,6 @@ PDF_TARGETS = \
 	wisent.pdf \
 	woman.pdf
 
-HTML_TARGETS = emacs-faq.html
-
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 
@@ -191,8 +191,6 @@ webhack: clean
 	$(MAKE) pdf MAKEINFO_OPTS="-DWEBHACKDEVEL $(MAKEINFO_OPTS)"
 
 dvi: $(DVI_TARGETS)
-
-html: $(HTML_TARGETS)
 
 pdf: $(PDF_TARGETS)
 
@@ -400,15 +398,6 @@ faq.dvi: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
 faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/faq.texi
-## This is the name used on the Emacs web-page.
-## sed fixes up links to point to split version of the manual.
-emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-	$(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
-	  --css-ref='/layout.css' --html -o $@ ${srcdir}/faq.texi
-	sed -i -e 's|a href="\([a-z]*\)\.html#\([^"]*\)"|a href="manual/html_node/\1/\2.html"|g' \
-	  -e 's|/Top\.html|/|g' $@
-emacs-faq.text: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-	$(MAKEINFO) $(MAKEINFO_OPTS) --plaintext -o $@ ${srcdir}/faq.texi
 
 flymake : $(buildinfodir)/flymake$(INFO_EXT)
 $(buildinfodir)/flymake$(INFO_EXT): ${srcdir}/flymake.texi ${gfdl}
@@ -718,16 +707,39 @@ mostlyclean:
 	rm -f gnustmp.*
 
 clean: mostlyclean
-	rm -f $(DVI_TARGETS) $(PDF_TARGETS) $(HTML_TARGETS) emacs-faq.text
+	rm -f $(DVI_TARGETS) $(PDF_TARGETS)
+	rm -f emacs-misc-${version}.tar*
 
 distclean: clean
 #	rm -f Makefile
 
 ## buildinfodir is relative to srcdir.
-maintainer-clean: distclean
+infoclean:
 	cd $(buildinfodir); for file in $(INFO_TARGETS); do \
 	  file=`echo $${file} | sed 's/\.info$$//'`${INFO_EXT}; \
 	  rm -f $${file} $${file}-[1-9] $${file}-[1-9][0-9]; \
 	done
+
+maintainer-clean: distclean infoclean
+
+dist:
+	rm -rf emacs-misc-${version}
+	mkdir emacs-misc-${version}
+	cp ${srcdir}/*.texi ${srcdir}/texinfo.tex \
+	  $(emacsdir)/emacsver.texi ${srcdir}/ChangeLog* \
+	  emacs-misc-${version}/
+	sed -e 's/@sr[c]dir@/./' \
+	  -e 's/^\(emacsdir *=\).*/\1 ./' \
+	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
+	  -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e "s/@ver[s]ion@/${version}/" \
+	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
+	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
+	  ${srcdir}/Makefile.in > emacs-misc-${version}/Makefile
+	@if grep '@[a-zA-Z_]*@' emacs-misc-${version}/Makefile; then \
+	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
+	fi
+	tar -cf emacs-misc-${version}.tar emacs-misc-${version}
+	rm -rf emacs-misc-${version}
 
 ### Makefile ends here

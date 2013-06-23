@@ -2653,7 +2653,7 @@
 
 	* help-macro.el (make-help-screen): Instead of switch-to-buffer
 	use pop-to-buffer with NORECORD argument t.  As buffer name, use
-	*Metahelp* with a leading space (Bug#13190).
+	*Metahelp* with a leading space (Bug#13146).
 
 2012-12-16  Romain Francoise  <romain@orebokech.com>
 
