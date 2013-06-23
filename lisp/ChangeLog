@@ -1,3 +1,10 @@
+2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-init-header):
+	Don't skip aligning the next header field when padding is 0;
+	otherwise, field width is not respected unless the title is as
+	wide as the field.
+
 2013-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-el-version): Remove.
