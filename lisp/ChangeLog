@@ -2,6 +2,9 @@
 
 	* net/eww.el (eww-search-prefix): New variable.
 	(eww): Use it.
+	(eww-external-browser): New variable.
+	(eww-mode-map): New keystroke.
+	(eww-browse-with-external-browser): New command.
 
 2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
 

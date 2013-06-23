@@ -50,6 +50,18 @@
   :group 'eww
   :type 'string)
 
+(defcustom eww-external-browser
+  (cond ((eq system-type 'windows-nt)
+	 'browse-url-default-windows-browser)
+	((eq system-type 'darwin)
+	 'browse-url-default-macosx-browser)
+	(t
+	 'browse-url-netscape))
+  "Function used to launch an external browser."
+  :version "24.4"
+  :group 'eww
+  :type 'function)
+
 (defface eww-form-submit
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -317,6 +329,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "p" 'eww-previous-url)
     (define-key map "u" 'eww-up-url)
     (define-key map "t" 'eww-top-url)
+    (define-key map "w" 'eww-browse-with-external-browser)
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -822,6 +835,12 @@ appears in a <link> or <a> tag."
 	  eww-current-url)
 	"?"
 	(mm-url-encode-www-form-urlencoded values))))))
+
+(defun eww-browse-with-external-browser ()
+  "Browse the current URL with an external browser.
+The browser to used is specified by the `eww-external-browser' variable."
+  (interactive)
+  (funcall eww-external-browser eww-current-url))
 
 (provide 'eww)
 
