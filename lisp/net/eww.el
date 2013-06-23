@@ -415,12 +415,14 @@ appears in a <link> or <a> tag."
 (defvar eww-submit-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\r" 'eww-submit)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defvar eww-checkbox-map
   (let ((map (make-sparse-keymap)))
     (define-key map [space] 'eww-toggle-checkbox)
     (define-key map "\r" 'eww-toggle-checkbox)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defvar eww-text-map
@@ -428,6 +430,7 @@ appears in a <link> or <a> tag."
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'eww-submit)
     (define-key map [(control a)] 'eww-beginning-of-text)
+    (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [(control e)] 'eww-end-of-text)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
@@ -437,6 +440,7 @@ appears in a <link> or <a> tag."
   (let ((map (make-keymap)))
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'forward-line)
+    (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     map))
@@ -444,6 +448,7 @@ appears in a <link> or <a> tag."
 (defvar eww-select-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\r" 'eww-change-select)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defun eww-beginning-of-text ()

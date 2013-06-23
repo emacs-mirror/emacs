@@ -6,6 +6,8 @@
 	(eww-mode-map): New keystroke.
 	(eww-browse-with-external-browser): New command.
 
+	* net/eww.el: Bind `C-c C-c' to "submit" in all form keymaps.
+
 2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-init-header):
