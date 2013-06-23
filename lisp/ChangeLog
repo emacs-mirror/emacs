@@ -1,3 +1,8 @@
+2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-rescale-image): Use the new
+	:max-width/:max-height functionality.
+
 2013-06-23  Ivan Kanis  <ivan@kanis.fr>
 
 	* net/eww.el (eww-search-prefix): New variable.

@@ -695,6 +695,9 @@ ImageMagick types are treated as images.  The function
 `imagemagick-filter-types' returns the list of types that will be
 treated as images.
 
+*** ImageMagick images now support the :max-width and :max-height
+keywords.
+
 ** Minibuffer
 
 *** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the

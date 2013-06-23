@@ -741,34 +741,18 @@ size, and full-buffer size."
 (defun shr-rescale-image (data &optional force)
   "Rescale DATA, if too big, to fit the current buffer.
 If FORCE, rescale the image anyway."
-  (let ((image (create-image data nil t :ascent 100)))
-    (if (or (not (fboundp 'imagemagick-types))
-	    (not (get-buffer-window (current-buffer))))
-	image
-      (let* ((size (image-size image t))
-	     (width (car size))
-	     (height (cdr size))
-	     (edges (window-inside-pixel-edges
-		     (get-buffer-window (current-buffer))))
-	     (window-width (truncate (* shr-max-image-proportion
-					(- (nth 2 edges) (nth 0 edges)))))
-	     (window-height (truncate (* shr-max-image-proportion
-					 (- (nth 3 edges) (nth 1 edges)))))
-	     scaled-image)
-	(when (or force
-		  (> height window-height))
-	  (setq image (or (create-image data 'imagemagick t
-					:height window-height
-					:ascent 100)
-			  image))
-	  (setq size (image-size image t)))
-	(when (> (car size) window-width)
-	  (setq image (or
-		       (create-image data 'imagemagick t
-				     :width window-width
-				     :ascent 100)
-		       image)))
-	image))))
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      (create-image data nil t :ascent 100)
+    (let ((edges (window-inside-pixel-edges
+		  (get-buffer-window (current-buffer)))))
+      (create-image
+       data 'imagemagick t
+       :ascent 100
+       :max-width (truncate (* shr-max-image-proportion
+			       (- (nth 2 edges) (nth 0 edges))))
+       :max-height (truncate (* shr-max-image-proportion
+				(- (nth 3 edges) (nth 1 edges))))))))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))

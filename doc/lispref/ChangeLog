@@ -1,3 +1,8 @@
+2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (ImageMagick Images): Mention :max-width and
+	:max-height.
+
 2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* numbers.texi (Math Functions): Remove obsolete function log10.

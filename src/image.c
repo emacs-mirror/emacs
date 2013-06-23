@@ -132,6 +132,8 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 #endif
 
+Lisp_Object QCmax_width, QCmax_height;
+
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are
    reference counted so they can be shared among frames.
@@ -7489,6 +7491,76 @@ gif_load (struct frame *f, struct image *img)
 #endif /* HAVE_GIF */
 
 
+static void
+compute_image_size (size_t width, size_t height,
+		    Lisp_Object spec,
+		    int *d_width, int *d_height)
+{
+  Lisp_Object value;
+  int desired_width, desired_height;
+
+  /* If width and/or height is set in the display spec assume we want
+     to scale to those values.  If either h or w is unspecified, the
+     unspecified should be calculated from the specified to preserve
+     aspect ratio.  */
+  value = image_spec_value (spec, QCwidth, NULL);
+  desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
+  value = image_spec_value (spec, QCheight, NULL);
+  desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
+
+  if (desired_width == -1)
+    {
+      value = image_spec_value (spec, QCmax_width, NULL);
+      if (INTEGERP (value) &&
+	  width > XFASTINT (value))
+	{
+	  /* The image is wider than :max-width. */
+	  desired_width = XFASTINT (value);
+	  if (desired_height == -1)
+	    {
+	      value = image_spec_value (spec, QCmax_height, NULL);
+	      if (INTEGERP (value))
+		{
+		  /* We have no specified height, but we have a
+		     :max-height value, so check that we satisfy both
+		     conditions. */
+		  desired_height = (double) desired_width / width * height;
+		  if (desired_height > XFASTINT (value))
+		    {
+		      desired_height = XFASTINT (value);
+		      desired_width = (double) desired_height / height * width;
+		    }
+		}
+	      else
+		{
+		  /* We have no specified height and no specified
+		     max-height, so just compute the height. */
+		  desired_height = (double) desired_width / width * height;
+		}
+	    }
+	}
+    }
+
+  if (desired_height == -1)
+    {
+      value = image_spec_value (spec, QCmax_height, NULL);
+      if (INTEGERP (value) &&
+	  height > XFASTINT (value))
+	  desired_height = XFASTINT (value);
+    }
+
+  if (desired_width != -1 && desired_height == -1)
+    /* w known, calculate h.  */
+    desired_height = (double) desired_width / width * height;
+
+  if (desired_width == -1 && desired_height != -1)
+    /* h known, calculate w.  */
+    desired_width = (double) desired_height / height * width;
+
+  *d_width = desired_width;
+  *d_height = desired_height;
+}
+
 /***********************************************************************
 				 ImageMagick
 ***********************************************************************/
@@ -7516,6 +7588,8 @@ enum imagemagick_keyword_index
     IMAGEMAGICK_BACKGROUND,
     IMAGEMAGICK_HEIGHT,
     IMAGEMAGICK_WIDTH,
+    IMAGEMAGICK_MAX_HEIGHT,
+    IMAGEMAGICK_MAX_WIDTH,
     IMAGEMAGICK_ROTATION,
     IMAGEMAGICK_CROP,
     IMAGEMAGICK_LAST
@@ -7538,6 +7612,8 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
     {":height",		IMAGE_INTEGER_VALUE,			0},
     {":width",		IMAGE_INTEGER_VALUE,			0},
+    {":max-height",	IMAGE_INTEGER_VALUE,			0},
+    {":max-width",	IMAGE_INTEGER_VALUE,			0},
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
@@ -7726,24 +7802,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
     PixelSetBlue  (bg_wand, (double) bgcolor.blue  / 65535);
   }
 
-  /* If width and/or height is set in the display spec assume we want
-     to scale to those values.  If either h or w is unspecified, the
-     unspecified should be calculated from the specified to preserve
-     aspect ratio.  */
-  value = image_spec_value (img->spec, QCwidth, NULL);
-  desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
-  value = image_spec_value (img->spec, QCheight, NULL);
-  desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
+  compute_image_size (MagickGetImageWidth (image_wand),
+		      MagickGetImageHeight (image_wand),
+		      img->spec, &desired_width, &desired_height);
 
-  height = MagickGetImageHeight (image_wand);
-  width = MagickGetImageWidth (image_wand);
-
-  if (desired_width != -1 && desired_height == -1)
-    /* w known, calculate h.  */
-    desired_height = (double) desired_width / width * height;
-  if (desired_width == -1 && desired_height != -1)
-    /* h known, calculate w.  */
-    desired_width = (double) desired_height / height * width;
   if (desired_width != -1 && desired_height != -1)
     {
       status = MagickScaleImage (image_wand, desired_width, desired_height);
@@ -8895,6 +8957,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qheuristic, "heuristic");
 
   DEFSYM (Qpostscript, "postscript");
+  DEFSYM (QCmax_width, ":max-width");
+  DEFSYM (QCmax_height, ":max-height");
 #ifdef HAVE_GHOSTSCRIPT
   ADD_IMAGE_TYPE (Qpostscript);
   DEFSYM (QCloader, ":loader");
