@@ -1,5 +1,7 @@
 2013-06-24  Ivan Kanis  <ivan@kanis.fr>
 
+	* net/shr.el (shr-browse-url): Fix interactive spec.
+
 	* net/eww.el (eww): Add a trailing slash to domain names.
 
 2013-06-24  Juanma Barranquero  <lekktu@gmail.com>

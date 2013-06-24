@@ -648,7 +648,7 @@ size, and full-buffer size."
 (defun shr-browse-url (&optional external)
   "Browse the URL under point.
 If EXTERNAL, browse the URL using `shr-external-browser'."
-  (interactive "p")
+  (interactive "P")
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
      ((not url)
