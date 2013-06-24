@@ -1,3 +1,15 @@
+2013-06-24  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-make-context): Check if PROTOCOL is valid; embed the
+	file name of gpg executable.
+	(epg-context-program): New function.
+	(epg-context-home-directory): New function.
+	(epg-context-set-program): New function.
+	(epg-context-set-home-directory): New function.
+	(epg--start): Use `epg-context-program' instead of
+	'epg-gpg-program'.
+	(epg--list-keys-1): Likewise.
+
 2013-06-24  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Fix bug#14620.
