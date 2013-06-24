@@ -2141,9 +2141,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 		    done t)
 	    (setq ido-set-default-item t)))
 
-	 ((or (string-match "[/\\][^/\\]" ido-selected)
-	      (and (memq system-type '(windows-nt ms-dos))
-		   (string-match "\\`[a-zA-Z]:" ido-selected)))
+	 ((if (memq system-type '(windows-nt ms-dos))
+	      (string-match "\\`[a-zA-Z]:\\|[\\][^\\]" ido-selected)
+	    (string-match "/[^/]" ido-selected))
 	  (ido-set-current-directory (file-name-directory ido-selected))
 	  (setq ido-set-default-item t))
 

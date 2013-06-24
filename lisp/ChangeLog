@@ -1,3 +1,7 @@
+2013-06-24  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Fix bug#14620.
+
 2013-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-documentation): Simplify.
