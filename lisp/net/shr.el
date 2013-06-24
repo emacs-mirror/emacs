@@ -645,9 +645,10 @@ size, and full-buffer size."
 	    (forward-line 1)
 	  (goto-char end))))))
 
-(defun shr-browse-url ()
-  "Browse the URL under point."
-  (interactive)
+(defun shr-browse-url (&optional external)
+  "Browse the URL under point.
+If EXTERNAL, browse the URL using `shr-external-browser'."
+  (interactive "p")
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
      ((not url)
@@ -655,7 +656,9 @@ size, and full-buffer size."
      ((string-match "^mailto:" url)
       (browse-url-mail url))
      (t
-      (browse-url url)))))
+      (if external
+	  (funcall shr-external-browser url)
+	(browse-url url))))))
 
 (defun shr-save-contents (directory)
   "Save the contents from URL in a file."
