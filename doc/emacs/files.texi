@@ -1267,9 +1267,12 @@ minibuffer, and displays the differences between the two files in a
 buffer named @file{*diff*}.  This works by running the @command{diff}
 program, using options taken from the variable @code{diff-switches}.
 The value of @code{diff-switches} should be a string; the default is
-@code{"-c"} to specify a context diff.  @xref{Top,, Diff, diff,
-Comparing and Merging Files}, for more information about the
-@command{diff} program.
+@code{"-c"} to specify a context diff.
+@c Note that the actual name of the info file is diffutils.info,
+@c but it adds a dir entry for diff too.
+@c On older systems, only "info diff" works, not "info diffutils".
+@xref{Top,, Diff, diff, Comparing and Merging Files}, for more
+information about the @command{diff} program.
 
   The output of the @code{diff} command is shown using a major mode
 called Diff mode.  @xref{Diff Mode}.

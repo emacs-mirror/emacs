@@ -974,10 +974,11 @@ Note that we do not quote the @code{lambda} form.
 compiled.  This would not happen if, say, you had constructed the
 anonymous function by quoting it as a list:
 
+@c Do not unquote this lambda!
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop (lambda (x) (* 2 x))))
+  (change-property symbol prop '(lambda (x) (* 2 x))))
 @end group
 @end example
 
