@@ -1,3 +1,7 @@
+2013-06-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww): Start of strings is \\`, not ^.
+
 2013-06-24  Ivan Kanis  <ivan@kanis.fr>
 
 	* net/shr.el (shr-browse-url): Fix interactive spec.

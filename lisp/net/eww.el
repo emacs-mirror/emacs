@@ -108,7 +108,7 @@ word(s) will be searched for via `eww-search-prefix'."
         ;; some site don't redirect final /
         (when (string= (url-filename (url-generic-parse-url url)) "")
           (setq url (concat url "/"))))
-    (unless (string-match-p "^file:" url)
+    (unless (string-match-p "\\'file:" url)
       (setq url (concat eww-search-prefix
                         (replace-regexp-in-string " " "+" url)))))
   (url-retrieve url 'eww-render (list url)))
