@@ -104,7 +104,9 @@ inline query
 Fast minibuffer queries for email addresses and phone numbers
 @item
 Interface to BBDB to let you insert server records into your own BBDB database
+@ifinfo
 (@pxref{Top,,BBDB,bbdb,BBDB Manual})
+@end ifinfo
 @end itemize
 
 @menu
@@ -730,7 +732,10 @@ that all available servers should be tried.
 @findex eudc-insert-record-at-point-into-bbdb
 @findex eudc-try-bbdb-insert
 With EUDC, you can automatically create BBDB records
-(@pxref{Top,,BBDB,bbdb,BBDB Manual}) from records you get from a
+@ifinfo
+(@pxref{Top,,BBDB,bbdb,BBDB Manual})
+@end ifinfo
+from records you get from a
 directory server.  You do this by moving point to the appropriate
 record in a query result display buffer and invoking the command
 @kbd{M-x eudc-insert-record-at-point-into-bbdb} with the

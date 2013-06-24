@@ -1,5 +1,8 @@
 2013-06-24  Glenn Morris  <rgm@gnu.org>
 
+	* eudc.texi (Overview, Creating BBDB Records):
+	Restrict bbdb cross-ref to info output.
+
 	* eshell.texi: Fix cross-references to other manuals.
 
 2013-03-11  Glenn Morris  <rgm@gnu.org>
