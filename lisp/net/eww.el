@@ -102,8 +102,12 @@ word(s) will be searched for via `eww-search-prefix'."
   (interactive "sEnter URL or keywords: ")
   (if (and (= (length (split-string url)) 1)
            (> (length (split-string url "\\.")) 1))
-      (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
-        (setq url (concat "http://" url)))
+      (progn
+        (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
+          (setq url (concat "http://" url)))
+        ;; some site don't redirect final /
+        (when (string= (url-filename (url-generic-parse-url url)) "")
+          (setq url (concat url "/"))))
     (unless (string-match-p "^file:" url)
       (setq url (concat eww-search-prefix
                         (replace-regexp-in-string " " "+" url)))))

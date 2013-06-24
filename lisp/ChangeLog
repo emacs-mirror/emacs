@@ -1,3 +1,7 @@
+2013-06-24  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/eww.el (eww): Add a trailing slash to domain names.
+
 2013-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-spec-recalc): Revert part of revno:113147 (bug#14705).
