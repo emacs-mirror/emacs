@@ -50,18 +50,6 @@
   :group 'eww
   :type 'string)
 
-(defcustom eww-external-browser
-  (cond ((eq system-type 'windows-nt)
-	 'browse-url-default-windows-browser)
-	((eq system-type 'darwin)
-	 'browse-url-default-macosx-browser)
-	(t
-	 'browse-url-netscape))
-  "Function used to launch an external browser."
-  :version "24.4"
-  :group 'eww
-  :type 'function)
-
 (defface eww-form-submit
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -845,9 +833,9 @@ appears in a <link> or <a> tag."
 
 (defun eww-browse-with-external-browser ()
   "Browse the current URL with an external browser.
-The browser to used is specified by the `eww-external-browser' variable."
+The browser to used is specified by the `shr-external-browser' variable."
   (interactive)
-  (funcall eww-external-browser eww-current-url))
+  (funcall shr-external-browser eww-current-url))
 
 (defun eww-yank-page-url ()
   (interactive)

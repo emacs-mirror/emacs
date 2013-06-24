@@ -37,7 +37,7 @@
 (defgroup shr nil
   "Simple HTML Renderer"
   :version "24.1"
-  :group 'mail)
+  :group 'hypermedia)
 
 (defcustom shr-max-image-proportion 0.9
   "How big pictures displayed are in relation to the window they're in.
@@ -92,6 +92,12 @@ Alternative suggestions are:
 - \"  \""
   :type 'string
   :group 'shr)
+
+(defcustom shr-external-browser 'browse-url-default-browser
+  "Function used to launch an external browser."
+  :version "24.4"
+  :group 'shr
+  :type 'function)
 
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.

@@ -1,3 +1,7 @@
+2013-06-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-external-browser): Moved to shr.
+
 2013-06-24  Ivan Kanis  <ivan@kanis.fr>
 
 	* net/eww.el (eww): Work more correctly for file: URLs.
