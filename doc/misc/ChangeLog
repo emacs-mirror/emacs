@@ -1,3 +1,7 @@
+2013-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.texi: Fix cross-references to other manuals.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
