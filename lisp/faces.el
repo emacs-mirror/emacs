@@ -1627,7 +1627,6 @@ the face's attributes on existing frames."
   "Reset the face attributes of FACE on FRAME according to its specs.
 This applies the defface/custom spec first, then the custom theme specs,
 then the override spec."
-  (check-face face)
   (while (get face 'face-alias)
     (setq face (get face 'face-alias)))
   (face-spec-reset-face face frame)

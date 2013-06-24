@@ -1,3 +1,7 @@
+2013-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-spec-recalc): Revert part of revno:113147 (bug#14705).
+
 2013-06-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-browse-url): Use an external browser if given a
