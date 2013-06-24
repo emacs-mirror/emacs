@@ -116,8 +116,9 @@ word(s) will be searched for via `eww-search-prefix'."
            (> (length (split-string url "\\.")) 1))
       (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
         (setq url (concat "http://" url)))
-    (setq url (concat eww-search-prefix
-                      (replace-regexp-in-string " " "+" url))))
+    (unless (string-match-p "^file:" url)
+      (setq url (concat eww-search-prefix
+                        (replace-regexp-in-string " " "+" url)))))
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
@@ -189,7 +190,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	(pt (point)))
     (or (and html-p
 	     (re-search-forward
-	      "<meta[\t\n\r ]+[^>]*charset=\"?\\([^\t\n\r \"/>]+\\)" nil t)
+	      "<meta[\t\n\r ]+[^>]*charset=\"?\\([^\t\n\r \"/>]+\\)[\\\"'.*]" nil t)
 	     (goto-char pt)
 	     (match-string 1))
 	(and (looking-at
@@ -330,6 +331,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "u" 'eww-up-url)
     (define-key map "t" 'eww-top-url)
     (define-key map "w" 'eww-browse-with-external-browser)
+    (define-key map "y" 'eww-yank-page-url)
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -847,6 +849,10 @@ The browser to used is specified by the `eww-external-browser' variable."
   (interactive)
   (funcall eww-external-browser eww-current-url))
 
+(defun eww-yank-page-url ()
+  (interactive)
+  (message eww-current-url)
+  (kill-new eww-current-url))
 (provide 'eww)
 
 ;;; eww.el ends here

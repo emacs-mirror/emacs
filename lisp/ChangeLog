@@ -1,3 +1,9 @@
+2013-06-24  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/eww.el (eww): Work more correctly for file: URLs.
+	(eww-detect-charset): Allow quoted charsets.
+	(eww-yank-page-url): New command and keystroke.
+
 2013-06-24  Daiki Ueno  <ueno@gnu.org>
 
 	* epg.el (epg-make-context): Check if PROTOCOL is valid; embed the
