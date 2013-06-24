@@ -1257,13 +1257,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     tzset ();
 #endif /* MSDOS */
 
-  /* Do this after initializing the memory allocator, since it uses
-     glib and glib uses malloc.  And do it before anything else that
-     invokes glib, to avoid potential races among glib subthreads in
-     Cygwin glib.  gfilenotify invokes glib, so this can't be delayed
-     further.  */
-  catch_child_signal ();
-
 #ifdef HAVE_GFILENOTIFY
   globals_of_gfilenotify ();
 #endif

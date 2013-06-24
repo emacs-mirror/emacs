@@ -4360,12 +4360,6 @@ ns_term_init (Lisp_Object display_name)
 
   [NSApp run];
   ns_do_open_file = YES;
-
-#ifdef NS_IMPL_GNUSTEP
-  /* GNUstep steals SIGCHLD for use in NSTask, but we don't use NSTask.
-     We must re-catch it so subprocess works.  */
-  catch_child_signal ();
-#endif
   return dpyinfo;
 }
 

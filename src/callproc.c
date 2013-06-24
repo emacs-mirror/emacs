@@ -613,6 +613,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
     block_input ();
     block_child_signal ();
+    catch_child_signal ();
 
 #ifdef WINDOWSNT
     pid = child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);

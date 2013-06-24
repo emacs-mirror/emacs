@@ -1,3 +1,20 @@
+2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A more-conservative workaround for Cygwin SIGCHLD issues (Bug#14569).
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	Make sure SIGCHLD is caught before we fork,
+	since Emacs startup no arranges to catch SIGCHLD.
+	* process.c (lib_child_handler): Initialize to null, not to
+	dummy_handler.
+	(catch_child_signal): Allow self to be called lazily.
+	Do nothing if it's already been called.
+	Assume caller has blocked SIGCHLD (all callers do now).
+	* emacs.c (main): Do not catch SIGCHLD here; defer it until
+	just before it's really needed.
+	* nsterm.m (ns_term_init): No need to re-catch SIGCHLD here,
+	since it hasn't been caught yet.
+
 2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (compute_image_size): New function to implement
