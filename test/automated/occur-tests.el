@@ -35,7 +35,7 @@ xd
 xex
 fx
 " "\
-5 matches for \"x\" in buffer:  *test-occur*
+6 matches in 5 lines for \"x\" in buffer:  *test-occur*
       1:xa
       3:cx
       4:xd
