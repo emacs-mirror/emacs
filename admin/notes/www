@@ -42,7 +42,7 @@ They still see old-page.html in their address bar.  (In other words,
 the mod_rewrite rule does not use the [R] flag.)  Sometimes this is
 what you want, sometimes not.
 
-ii) it doesn't work write if the new page is in a different directory
+ii) it doesn't work right if the new page is in a different directory
 to the old page: relative links from the visited page will break.
 
 ** Use a .htaccess file
