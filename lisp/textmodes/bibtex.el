@@ -3400,9 +3400,6 @@ if that value is non-nil.
   (set (make-local-variable 'syntax-propertize-function)
        (syntax-propertize-via-font-lock
         bibtex-font-lock-syntactic-keywords))
-  (setq imenu-generic-expression
-        (list (list nil bibtex-entry-head bibtex-key-in-head))
-        imenu-case-fold-search t)
   ;; Allow `bibtex-dialect' as a file-local variable.
   (add-hook 'hack-local-variables-hook 'bibtex-set-dialect nil t))
 
@@ -3479,7 +3476,10 @@ LOCAL is t for interactive calls."
              (concat "^[ \t]*@[ \t]*\\(?:"
                      (regexp-opt
                       (append '("String" "Preamble")
-                              (mapcar 'car bibtex-entry-alist))) "\\)"))))
+                              (mapcar 'car bibtex-entry-alist))) "\\)"))
+    (setq imenu-generic-expression
+          (list (list nil bibtex-entry-head bibtex-key-in-head))
+          imenu-case-fold-search t)))
 
 ;; Entry commands and menus for BibTeX dialects
 ;; We do not use `easy-menu-define' here because this gets confused
