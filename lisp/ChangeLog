@@ -1,5 +1,10 @@
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
+	* lisp/textmodes/bibtex.el (bibtex-generate-url-list): Add support
+	for DOI URLs.
+
+2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
 	* lisp/textmodes/bibtex.el (bibtex-mode, bibtex-set-dialect):
 	Update imenu-support when dialect changes.
 

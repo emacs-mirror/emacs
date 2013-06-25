@@ -1224,7 +1224,10 @@ Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
                  (function :tag "Personalized function")))
 
 (defcustom bibtex-generate-url-list
-  '((("url" . ".*:.*")))
+  '((("url" . ".*:.*"))
+    (("doi" . "10\\.[0-9]+/.+")
+     "http://dx.doi.org/%s"
+     ("doi" ".*" 0)))
   "List of schemes for generating the URL of a BibTeX entry.
 These schemes are used by `bibtex-url'.
 
@@ -1261,6 +1264,7 @@ The following is a complex example, see URL `http://link.aps.org/'.
      (\"volume\" \".*\" 0)
      (\"pages\" \"\\`[A-Z]?[0-9]+\" 0)))"
   :group 'bibtex
+  :version "24.4"
   :type '(repeat
           (cons :tag "Scheme"
                 (cons :tag "Matcher" :extra-offset 4
