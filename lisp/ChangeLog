@@ -1,3 +1,12 @@
+2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-copy-page-url): Changed name of command.
+
+	* net/shr.el (shr-map): Change `shr-copy-url' from `u' to `w' to
+	be more consistent with Info and dired.
+
+	* net/eww.el (eww-mode-map): Ditto.
+
 2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el: Use lexical-binding.  Include obsolete

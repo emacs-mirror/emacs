@@ -324,8 +324,8 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "p" 'eww-previous-url)
     (define-key map "u" 'eww-up-url)
     (define-key map "t" 'eww-top-url)
-    (define-key map "w" 'eww-browse-with-external-browser)
-    (define-key map "y" 'eww-yank-page-url)
+    (define-key map "&" 'eww-browse-with-external-browser)
+    (define-key map "w" 'eww-copy-page-url)
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -871,10 +871,11 @@ The browser to used is specified by the `shr-external-browser' variable."
   (interactive)
   (funcall shr-external-browser eww-current-url))
 
-(defun eww-yank-page-url ()
+(defun eww-copy-page-url ()
   (interactive)
-  (message eww-current-url)
+  (message "%s" eww-current-url)
   (kill-new eww-current-url))
+
 (provide 'eww)
 
 ;;; eww.el ends here
