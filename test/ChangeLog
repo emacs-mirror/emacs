@@ -1,3 +1,9 @@
+2013-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-test-create): New function.
+	Use it to create separate tests for each element, so we run them
+	all rather than stopping at the first error.
+
 2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* automated/occur-tests.el (occur-tests):
