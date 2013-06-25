@@ -174,6 +174,11 @@ echo. Note that this capability of processing parameters that include the =
 echo. character depends on command extensions.  This batch file attempts to
 echo. enable command extensions.  If command extensions cannot be enabled, a
 echo. warning message will be displayed.
+echo.
+echo. IMPORTANT: This method of building Emacs for MS-Windows is deprecated,
+echo. and could be removed in a future version of Emacs.  The preferred way
+echo  to build Emacs for MS-Windows from now on is using the MSYS environment
+echo. and MinGW development tools.  Please see nt/INSTALL.MSYS for details.
 goto end
 
 rem ----------------------------------------------------------------------

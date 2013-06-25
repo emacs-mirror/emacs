@@ -1,3 +1,8 @@
+2013-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add warning to the help text about using the
+	MSYS/MinGW building procedure.
+
 2013-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL.MSYS: mingw-get is not a GUI program (yet).
