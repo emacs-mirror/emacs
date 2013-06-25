@@ -1,3 +1,8 @@
+2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-back-url): Implement the history by stashing all
+	the data into a list.
+
 2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files-x.el (read-file-local-variable-value): Use read-from-minibuffer

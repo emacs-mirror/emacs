@@ -339,7 +339,9 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-browse-url (url &optional new-window)
   (when (and (equal major-mode 'eww-mode)
 	     eww-current-url)
-    (push (list eww-current-url (point))
+    (push (list :url eww-current-url
+		:point (point)
+		:text (buffer-string))
 	  eww-history))
   (eww url))
 
@@ -354,8 +356,12 @@ word(s) will be searched for via `eww-search-prefix'."
   (interactive)
   (when (zerop (length eww-history))
     (error "No previous page"))
-  (let ((prev (pop eww-history)))
-    (url-retrieve (car prev) 'eww-render (list (car prev) (cadr prev)))))
+  (let ((prev (pop eww-history))
+	(inhibit-read-only t))
+    (erase-buffer)
+    (insert (plist-get prev :text))
+    (goto-char (plist-get prev :point))
+    (setq eww-current-url (plist-get prev :url))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
