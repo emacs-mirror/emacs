@@ -90,7 +90,8 @@ Intended to be used in the `interactive' spec of
           (minibuffer-completing-symbol t))
       (read-from-minibuffer (format "Add %s with value: " variable)
                             nil read-expression-map t
-                            'set-variable-value-history)))))
+                            'set-variable-value-history
+			    default)))))
 
 (defun read-file-local-variable-mode ()
   "Read per-directory file-local variable's mode using completion.
