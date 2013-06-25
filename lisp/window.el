@@ -4259,7 +4259,7 @@ specific buffers."
             (normal-height . ,(window-normal-size window))
             (normal-width . ,(window-normal-size window t))
             ,@(unless (window-live-p window)
-                `(combination-limit . ,(window-combination-limit window)))
+                `((combination-limit . ,(window-combination-limit window))))
             ,@(let ((parameters (window-parameters window))
 		    list)
 		;; Make copies of those window parameters whose
