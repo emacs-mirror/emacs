@@ -1,3 +1,8 @@
+2013-06-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--state-get-1): Workaround for bug#14527.
+	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00941.html
+
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-back-url): Implement the history by stashing all
