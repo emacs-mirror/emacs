@@ -118,7 +118,6 @@ word(s) will be searched for via `eww-search-prefix'."
     (unless (string-match-p "\\'file:" url)
       (setq url (concat eww-search-prefix
                         (replace-regexp-in-string " " "+" url)))))
-  (setq eww-history-position 0)
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
@@ -161,6 +160,7 @@ word(s) will be searched for via `eww-search-prefix'."
 	    (eww-display-image))
 	   (t
 	    (eww-display-raw charset)))
+	  (setq eww-history-position 0)
 	  (cond
 	   (point
 	    (goto-char point))

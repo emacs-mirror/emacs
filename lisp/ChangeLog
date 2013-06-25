@@ -3,6 +3,7 @@
 	* net/eww.el: Rework history traversal.  When going forward/back,
 	put these actions into the history, too, so that they can be
 	replayed.
+	(eww-render): Move the history reset to the correct buffer.
 
 2013-06-25  Juri Linkov  <juri@jurta.org>
 
