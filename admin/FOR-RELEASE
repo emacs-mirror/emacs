@@ -10,6 +10,14 @@ directory in the Emacs build tree:
 emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
   -f info-xref-check-all
 
+Setting Info-directory-list avoids having system info pages confuse
+things.  References to external manuals will be flagged as
+uncheckable.  You should still check these, and also that each
+external manual has an appropriate redirect in the file manual/.htaccess
+in the web pages repository.  E.g.:
+Redirect /software/emacs/manual/html_mono/automake.html /software/automake/manual/automake.html
+Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/html_node/
+
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
 references etc) in the output.  Break any overfull lines.
 Underfull hboxes are not serious, but it can be nice to get rid of
