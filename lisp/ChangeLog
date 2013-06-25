@@ -1,3 +1,10 @@
+2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files-x.el (read-file-local-variable-value): Use read-from-minibuffer
+	for values and use read--expression for expressions (bug#14710).
+	(read-file-local-variable): Avoid setq.
+	(read-file-local-variable-mode): Use minor-mode-list.
+
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* lisp/textmodes/bibtex.el (bibtex-generate-url-list): Add support
@@ -31,7 +38,7 @@
 	* net/shr.el (shr-browse-url): Use an external browser if given a
 	prefix.
 
-	* net/eww.el (eww-external-browser): Moved to shr.
+	* net/eww.el (eww-external-browser): Move to shr.
 
 2013-06-24  Ivan Kanis  <ivan@kanis.fr>
 
@@ -119,8 +126,8 @@
 
 2013-06-21  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	keyword-like methods on Kernel and Module with
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight keyword-like methods on Kernel and Module with
 	font-lock-builtin-face.
 	(auto-mode-alist): Consolidate different entries into one regexp
 	and add more *file-s.
@@ -606,8 +613,8 @@
 
 2013-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/secrets.el (secrets-struct-secret-content-type): Replace
-	check of introspection data by a test call of "CreateItem".
+	* net/secrets.el (secrets-struct-secret-content-type):
+	Replace check of introspection data by a test call of "CreateItem".
 	Some servers do not offer introspection.
 
 2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
