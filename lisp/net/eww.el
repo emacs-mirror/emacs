@@ -50,6 +50,12 @@
   :group 'eww
   :type 'string)
 
+(defcustom eww-download-path "~/Downloads/"
+  "Path where files will downloaded."
+  :version "24.4"
+  :group 'eww
+  :type 'string)
+
 (defface eww-form-submit
   '((((type x w32 ns) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
@@ -325,6 +331,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "u" 'eww-up-url)
     (define-key map "t" 'eww-top-url)
     (define-key map "&" 'eww-browse-with-external-browser)
+    (define-key map "d" 'eww-download)
     (define-key map "w" 'eww-copy-page-url)
     map))
 
@@ -875,6 +882,40 @@ The browser to used is specified by the `shr-external-browser' variable."
   (interactive)
   (message "%s" eww-current-url)
   (kill-new eww-current-url))
+
+(defun eww-download ()
+  "Download URL under point to `eww-download-directory'."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (if (not url)
+        (message "No URL under point")
+      (url-retrieve url 'eww-download-callback (list url)))))
+
+(defun eww-download-callback (status url)
+  (unless (plist-get status :error)
+    (let* ((obj (url-generic-parse-url url))
+           (path (car (url-path-and-query obj)))
+           (file (eww-make-unique-file-name (file-name-nondirectory path)
+					    eww-download-path)))
+      (write-file file)
+      (message "Saved %s" file))))
+
+(defun eww-make-unique-file-name (file directory)
+    (cond
+     ((zerop (length file))
+      (setq file "!"))
+     ((string-match "\\`[.]" file)
+      (setq file (concat "!" file))))
+    (let ((base file)
+	  (count 1))
+      (while (file-exists-p (expand-file-name file directory))
+	(setq file
+	      (if (string-match "\\`\\(.*\\)\\([.][^.]+\\)" file)
+		  (format "%s(%d)%s" (match-string 1 file)
+			  count (match-string 2 file))
+		(format "%s(%d)" file count)))
+	(setq count (1+ count)))
+      (expand-file-name file directory)))
 
 (provide 'eww)
 

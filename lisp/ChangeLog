@@ -1,5 +1,14 @@
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/eww.el (eww-make-unique-file-name): Create a unique file
+	name before saving to entering `y' accidentally asynchronously.
+
+2013-06-25  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/eww.el (eww-download): New command and keystroke.
+
+2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* net/eww.el (eww-copy-page-url): Changed name of command.
 
 	* net/shr.el (shr-map): Change `shr-copy-url' from `u' to `w' to
