@@ -475,7 +475,7 @@ from the MODE alist ignoring the input argument VALUE."
 
       ;; Insert modified alist of directory-local variables.
       (insert ";;; Directory Local Variables\n")
-      (insert ";;; See Info node `(emacs) Directory Variables' for more information.\n\n")
+      (insert ";;; For more information see (info \"(emacs) Directory Variables\")\n\n")
       (pp (sort variables
 		(lambda (a b)
 		  (cond

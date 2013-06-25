@@ -1,3 +1,8 @@
+2013-06-25  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el (modify-dir-local-variable): Change the header comment
+	in the file with directory local variables.  (Bug#14692)
+
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-make-unique-file-name): Create a unique file
