@@ -2,6 +2,7 @@
 
 	* net/eww.el (eww-back-url): Implement the history by stashing all
 	the data into a list.
+	(eww-forward-url): Allow going forward in the history, too.
 
 2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 

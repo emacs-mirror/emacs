@@ -86,6 +86,7 @@
 (defvar eww-current-title ""
   "Title of current page.")
 (defvar eww-history nil)
+(defvar eww-history-position 0)
 
 (defvar eww-next-url nil)
 (defvar eww-previous-url nil)
@@ -318,6 +319,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "\177" 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "l" 'eww-back-url)
+    (define-key map "f" 'eww-forward-url)
     (define-key map "n" 'eww-next-url)
     (define-key map "p" 'eww-previous-url)
     (define-key map "u" 'eww-up-url)
@@ -336,13 +338,20 @@ word(s) will be searched for via `eww-search-prefix'."
   ;;(setq buffer-read-only t)
   )
 
+(defun eww-save-history ()
+  (let ((elem (list :url eww-current-url
+		    :point (point)
+		    :text (buffer-string))))
+    (if (or (zerop eww-history-position)
+	    (= eww-history-position (length eww-history)))
+	(push elem eww-history)
+      (setcdr (nthcdr eww-history-position eww-history)
+	      (cons elem (nthcdr eww-history-position eww-history))))))
+
 (defun eww-browse-url (url &optional new-window)
   (when (and (equal major-mode 'eww-mode)
 	     eww-current-url)
-    (push (list :url eww-current-url
-		:point (point)
-		:text (buffer-string))
-	  eww-history))
+    (eww-save-history))
   (eww url))
 
 (defun eww-quit ()
@@ -354,14 +363,29 @@ word(s) will be searched for via `eww-search-prefix'."
 (defun eww-back-url ()
   "Go to the previously displayed page."
   (interactive)
-  (when (zerop (length eww-history))
+  (when (>= eww-history-position (length eww-history))
     (error "No previous page"))
-  (let ((prev (pop eww-history))
-	(inhibit-read-only t))
+  (eww-restore-history
+   (if (not (zerop eww-history-position))
+       (elt eww-history eww-history-position)
+     (eww-save-history)
+     (elt eww-history (1+ eww-history-position))))
+  (setq eww-history-position (1+ eww-history-position)))
+
+(defun eww-forward-url ()
+  "Go to the next displayed page."
+  (interactive)
+  (when (zerop eww-history-position)
+    (error "No next page"))
+  (eww-restore-history (elt eww-history (1- eww-history-position)))
+  (setq eww-history-position (1- eww-history-position)))
+
+(defun eww-restore-history (elem)
+  (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert (plist-get prev :text))
-    (goto-char (plist-get prev :point))
-    (setq eww-current-url (plist-get prev :url))))
+    (insert (plist-get elem :text))
+    (goto-char (plist-get elem :point))
+    (setq eww-current-url (plist-get elem :url))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
