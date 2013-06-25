@@ -118,6 +118,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (unless (string-match-p "\\'file:" url)
       (setq url (concat eww-search-prefix
                         (replace-regexp-in-string " " "+" url)))))
+  (setq eww-history-position 0)
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
@@ -309,10 +310,11 @@ word(s) will be searched for via `eww-search-prefix'."
 
 (defun eww-setup-buffer ()
   (pop-to-buffer (get-buffer-create "*eww*"))
-  (remove-overlays)
   (let ((inhibit-read-only t))
+    (remove-overlays)
     (erase-buffer))
-  (eww-mode))
+  (unless (eq major-mode 'eww-mode)
+    (eww-mode)))
 
 (defvar eww-mode-map
   (let ((map (make-sparse-keymap)))
@@ -342,18 +344,16 @@ word(s) will be searched for via `eww-search-prefix'."
   (set (make-local-variable 'eww-current-url) 'author)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
+  (set (make-local-variable 'eww-history) nil)
+  (set (make-local-variable 'eww-history-position) 0)
   ;;(setq buffer-read-only t)
   )
 
 (defun eww-save-history ()
-  (let ((elem (list :url eww-current-url
-		    :point (point)
-		    :text (buffer-string))))
-    (if (or (zerop eww-history-position)
-	    (= eww-history-position (length eww-history)))
-	(push elem eww-history)
-      (setcdr (nthcdr eww-history-position eww-history)
-	      (cons elem (nthcdr eww-history-position eww-history))))))
+  (push (list :url eww-current-url
+	      :point (point)
+	      :text (buffer-string))
+	eww-history))
 
 (defun eww-browse-url (url &optional new-window)
   (when (and (equal major-mode 'eww-mode)
@@ -372,20 +372,17 @@ word(s) will be searched for via `eww-search-prefix'."
   (interactive)
   (when (>= eww-history-position (length eww-history))
     (error "No previous page"))
-  (eww-restore-history
-   (if (not (zerop eww-history-position))
-       (elt eww-history eww-history-position)
-     (eww-save-history)
-     (elt eww-history (1+ eww-history-position))))
-  (setq eww-history-position (1+ eww-history-position)))
+  (eww-save-history)
+  (setq eww-history-position (+ eww-history-position 2))
+  (eww-restore-history (elt eww-history (1- eww-history-position))))
 
 (defun eww-forward-url ()
   "Go to the next displayed page."
   (interactive)
   (when (zerop eww-history-position)
     (error "No next page"))
-  (eww-restore-history (elt eww-history (1- eww-history-position)))
-  (setq eww-history-position (1- eww-history-position)))
+  (eww-save-history)
+  (eww-restore-history (elt eww-history (1- eww-history-position))))
 
 (defun eww-restore-history (elem)
   (let ((inhibit-read-only t))

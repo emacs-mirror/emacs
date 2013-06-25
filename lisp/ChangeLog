@@ -1,3 +1,9 @@
+2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el: Rework history traversal.  When going forward/back,
+	put these actions into the history, too, so that they can be
+	replayed.
+
 2013-06-25  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (modify-dir-local-variable): Change the header comment
