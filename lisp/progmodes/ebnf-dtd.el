@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.1
+;; Old-Version: 1.1
 ;; Package: ebnf2ps
 
 ;; This file is part of GNU Emacs.

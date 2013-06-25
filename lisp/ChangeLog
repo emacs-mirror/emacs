@@ -1,3 +1,38 @@
+2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el: Use lexical-binding.  Include obsolete
+	packages from archives.
+	(package-archive-contents): Change format; include obsolete packages.
+	(package-desc): Use `dir' to mark builtin packages.
+	(package--from-builtin): Set the `dir' field to `builtin'.
+	(generated-autoload-file, version-control): Declare.
+	(package-compute-transaction): Change first arg and return value to be
+	lists of package-descs.  Adjust to new package-archive-contents format.
+	(package--add-to-archive-contents): Adjust to new
+	package-archive-contents format.
+	(package-download-transaction): Arg is now a list of package-descs.
+	(package-install): If `pkg' is a package name, pass it as
+	a requirement, so it is subject to the usual (e.g. disabled) checks.
+	(describe-package): Accept package-desc as well.
+	(describe-package-1): Describe a specific package-desc.  Add links to
+	other package-descs for the same package name.
+	(package-menu-describe-package): Pass the actual package-desc.
+	(package-menu-mode): Add to tabulated-list-revert-hook so revert-buffer
+	works correctly.
+	(package-desc-status): New function.
+	(package-menu--refresh): New function, extracted
+	from package-menu--generate.
+	(package-menu--generate): Use it.
+	(package-delete): Update package-alist.
+	(package-menu-execute): Don't call package-initialize.
+
+	* progmodes/idlw-toolbar.el, progmodes/idlw-shell.el,
+	progmodes/idlw-help.el, progmodes/idlw-complete-structtag.el,
+	progmodes/ebnf-yac.el, progmodes/ebnf-otz.el, progmodes/ebnf-iso.el,
+	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-bnf.el,
+	progmodes/ebnf-abn.el, emacs-lisp/package-x.el, emacs-lisp/cl-seq.el,
+	emacs-lisp/cl-macs.el: Neuter the "Version:" header.
+
 2013-06-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-get-1): Workaround for bug#14527.

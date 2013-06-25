@@ -4,7 +4,6 @@
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1.22
 ;; Keywords: processes
 ;; Package: idlwave
 
