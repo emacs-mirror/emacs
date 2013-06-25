@@ -150,6 +150,9 @@ usually line-oriented command a visual command.  Typical examples are
 pager by default.  See `eshell-visual-subcommands' and
 `eshell-visual-options'.
 
+** If your Emacs is compiled with libxml2 support, you can use the new
+built-in web browser `eww'.
+
 ** `remember' can now store notes in separates files
 You can use the new function `remember-store-in-files' within the
 `remember-handler-functions' option.
