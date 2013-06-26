@@ -335,6 +335,20 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "&" 'eww-browse-with-external-browser)
     (define-key map "d" 'eww-download)
     (define-key map "w" 'eww-copy-page-url)
+    (define-key map "C" 'url-cookie-list)
+
+    (easy-menu-define nil map ""
+      '("eww"
+	["Quit" eww-quit t]
+	["Reload" eww-reload t]
+	["Back to previous page" eww-back-url
+	 :active (not (zerop (length eww-history)))]
+	["Forward to next page" eww-forward-url
+	 :active (not (zerop eww-history-position))]
+	["Browse with external browser" eww-browse-with-external-browser t]
+	["Download" eww-download t]
+	["Copy page URL" eww-copy-page-url t]
+	["List cookies" url-cookie-list t]))
     map))
 
 (define-derived-mode eww-mode nil "eww"
