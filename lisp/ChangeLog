@@ -1,5 +1,7 @@
 2013-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (set-variable): Use read-from-minibuffer (bug#14710).
+
 	* emacs-lisp/package.el (package--add-to-archive-contents): Add missing
 	nil terminate the loop (bug#14718).
 
