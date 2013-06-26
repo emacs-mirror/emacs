@@ -1,3 +1,7 @@
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* syntax.texi (Syntax Table Functions): Mention describe-syntax.
+
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Autoload): Fix typo.

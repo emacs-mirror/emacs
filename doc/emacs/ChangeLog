@@ -1,3 +1,7 @@
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Misc Help): Index describe-syntax.
+
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* programs.texi (Semantic): Fix typo.
