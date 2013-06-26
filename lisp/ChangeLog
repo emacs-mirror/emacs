@@ -1,5 +1,8 @@
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* htmlfontify.el (hfy-triplet): Handle unspecified-fg, bg.
+	(hfy-size): Handle ttys.  (Bug#14668)
+
 	* info-xref.el: Update for Texinfo 5 change in *note format.
 	(info-xref-node-re, info-xref-note-re): New constants.
 	(info-xref-check-buffer): Use info-xref-note-re.
