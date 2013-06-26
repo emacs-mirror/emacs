@@ -1,3 +1,8 @@
+2013-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package--add-to-archive-contents): Add missing
+	nil terminate the loop (bug#14718).
+
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el: Rework history traversal.  When going forward/back,
@@ -24,7 +29,7 @@
 
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/eww.el (eww-copy-page-url): Changed name of command.
+	* net/eww.el (eww-copy-page-url): Change name of command.
 
 	* net/shr.el (shr-map): Change `shr-copy-url' from `u' to `w' to
 	be more consistent with Info and dired.

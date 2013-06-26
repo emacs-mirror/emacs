@@ -3,6 +3,7 @@
 ;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
+;;         Daniel Hackney <dan@haxney.org>
 ;; Created: 10 Mar 2007
 ;; Version: 1.0.1
 ;; Keywords: tools
@@ -924,7 +925,8 @@ Also, add the originating archive to the `package-desc' structure."
                    (version-list-<
                     version (package-desc-version (cadr existing-packages))))
               (setq existing-packages (cdr existing-packages))
-            (push pkg-desc (cdr existing-packages))))))))
+            (push pkg-desc (cdr existing-packages))
+            nil))))))
 
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
