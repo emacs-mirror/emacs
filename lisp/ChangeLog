@@ -1,3 +1,9 @@
+2013-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--defalias-fset): Move advice back to
+	advice--pending if newdef is nil or an autoload (bug#13820).
+	(advice-mapc): New function.
+
 2013-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-mode): Undo isn't necessary in eww buffers,
