@@ -1,3 +1,9 @@
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* info-xref.el: Update for Texinfo 5 change in *note format.
+	(info-xref-node-re, info-xref-note-re): New constants.
+	(info-xref-check-buffer): Use info-xref-note-re.
+
 2013-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (set-variable): Use read-from-minibuffer (bug#14710).
