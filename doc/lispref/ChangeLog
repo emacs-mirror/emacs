@@ -1,3 +1,7 @@
+2013-06-26  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* tips.texi (Coding Conventions): Improve wording.
+
 2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* loading.texi (Autoload): Fix typo.
