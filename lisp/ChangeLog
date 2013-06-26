@@ -3,6 +3,8 @@
 	* net/eww.el (eww-mode): Undo isn't necessary in eww buffers,
 	probably.
 	(eww-mode-map): Add a menu bar.
+	(eww-add-bookmark): New command.
+	(eww-bookmark-mode): New mode and commands.
 
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 

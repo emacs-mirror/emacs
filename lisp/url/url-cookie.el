@@ -427,9 +427,10 @@ to run the `url-cookie-setup-save-timer' function manually."
     (suppress-keymap map)
     (define-key map "q" 'url-cookie-quit)
     (define-key map [delete] 'url-cookie-delete)
+    (define-key map [(control k)] 'url-cookie-delete)
     map))
 
-(define-derived-mode url-cookie-mode nil "eww"
+(define-derived-mode url-cookie-mode nil "URL Cookie"
   "Mode for listing cookies.
 
 \\{url-cookie-mode-map}"

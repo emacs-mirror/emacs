@@ -2,6 +2,7 @@
 
 	* url-cookie.el: Implement a command and mode for displaying and
 	editing cookies.
+	(url-cookie-mode): Fix mode name.
 
 2013-06-21  Glenn Morris  <rgm@gnu.org>
 

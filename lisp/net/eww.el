@@ -337,6 +337,11 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map "w" 'eww-copy-page-url)
     (define-key map "C" 'url-cookie-list)
 
+    (define-key map "b" 'eww-add-bookmark)
+    (define-key map "B" 'eww-list-bookmarks)
+    (define-key map [(meta n)] 'eww-next-bookmark)
+    (define-key map [(meta p)] 'eww-previous-bookmark)
+
     (easy-menu-define nil map ""
       '("eww"
 	["Quit" eww-quit t]
@@ -348,6 +353,8 @@ word(s) will be searched for via `eww-search-prefix'."
 	["Browse with external browser" eww-browse-with-external-browser t]
 	["Download" eww-download t]
 	["Copy page URL" eww-copy-page-url t]
+	["Add bookmark" eww-add-bookmark t]
+	["List bookmarks" eww-copy-page-url t]
 	["List cookies" url-cookie-list t]))
     map))
 
@@ -366,6 +373,7 @@ word(s) will be searched for via `eww-search-prefix'."
 
 (defun eww-save-history ()
   (push (list :url eww-current-url
+	      :title eww-current-title
 	      :point (point)
 	      :text (buffer-string))
 	eww-history))
@@ -404,7 +412,8 @@ word(s) will be searched for via `eww-search-prefix'."
     (erase-buffer)
     (insert (plist-get elem :text))
     (goto-char (plist-get elem :point))
-    (setq eww-current-url (plist-get elem :url))))
+    (setq eww-current-url (plist-get elem :url)
+	  eww-current-title (plist-get elem :title))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
@@ -928,6 +937,169 @@ The browser to used is specified by the `shr-external-browser' variable."
 		(format "%s(%d)" file count)))
 	(setq count (1+ count)))
       (expand-file-name file directory)))
+
+;;; Bookmarks code
+
+(defvar eww-bookmarks nil)
+
+(defun eww-add-bookmark ()
+  "Add the current page to the bookmarks."
+  (interactive)
+  (eww-read-bookmarks)
+  (dolist (bookmark eww-bookmarks)
+    (when (equal eww-current-url
+		 (plist-get bookmark :url))
+      (error "Already bookmarked")))
+  (push (list :url eww-current-url
+	      :title eww-current-title
+	      :time (current-time-string))
+	eww-bookmarks)
+  (eww-write-bookmarks)
+  (message "Bookmarked %s (%s)" eww-current-url eww-current-title))
+
+(defun eww-write-bookmarks ()
+  (with-temp-file (expand-file-name "eww-bookmarks" user-emacs-directory)
+    (insert ";; Auto-generated file; don't edit\n")
+    (pp eww-bookmarks (current-buffer))))
+
+(defun eww-read-bookmarks ()
+  (with-temp-buffer
+    (insert-file-contents
+     (expand-file-name "eww-bookmarks" user-emacs-directory))
+    (setq eww-bookmarks (read (current-buffer)))))
+
+(defun eww-list-bookmarks ()
+  "Display the bookmarks."
+  (interactive)
+  (eww-bookmark-prepare)
+  (pop-to-buffer "*eww bookmarks*"))
+
+(defun eww-bookmark-prepare ()
+  (eww-read-bookmarks)
+  (when (null eww-bookmarks)
+    (error "No bookmarks are defined"))
+  (set-buffer (get-buffer-create "*eww bookmarks*"))
+  (eww-bookmark-mode)
+  (let ((format "%-40s %s")
+	(inhibit-read-only t)
+	start url)
+    (erase-buffer)
+    (setq header-line-format (concat " " (format format "URL" "Title")))
+    (dolist (bookmark eww-bookmarks)
+      (setq start (point))
+      (setq url (plist-get bookmark :url))
+      (when (> (length url) 40)
+	(setq url (substring url 0 40)))
+      (insert (format format url
+		      (plist-get bookmark :title))
+	      "\n")
+      (put-text-property start (1+ start) 'eww-bookmark bookmark))
+    (goto-char (point-min))))
+
+(defvar eww-bookmark-kill-ring nil)
+
+(defun eww-bookmark-kill ()
+  "Kill the current bookmark."
+  (interactive)
+  (let* ((start (line-beginning-position))
+	 (bookmark (get-text-property start 'eww-bookmark))
+	 (inhibit-read-only t))
+    (unless bookmark
+      (error "No bookmark on the current line"))
+    (forward-line 1)
+    (push (buffer-substring start (point)) eww-bookmark-kill-ring)
+    (delete-region start (point))
+    (setq eww-bookmarks (delq bookmark eww-bookmarks))
+    (eww-write-bookmarks)))
+
+(defun eww-bookmark-yank ()
+  "Yank a previously killed bookmark to the current line."
+  (interactive)
+  (unless eww-bookmark-kill-ring
+    (error "No previously killed bookmark"))
+  (beginning-of-line)
+  (let ((inhibit-read-only t)
+	(start (point))
+	bookmark)
+    (insert (pop eww-bookmark-kill-ring))
+    (setq bookmark (get-text-property start 'eww-bookmark))
+    (if (= start (point-min))
+	(push bookmark eww-bookmarks)
+      (let ((line (count-lines start (point))))
+	(setcdr (nthcdr (1- line) eww-bookmarks)
+		(cons bookmark (nthcdr line eww-bookmarks)))))
+    (eww-write-bookmarks)))
+
+(defun eww-bookmark-quit ()
+  "Kill the current buffer."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun eww-bookmark-browse ()
+  "Browse the bookmark under point in eww."
+  (interactive)
+  (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
+    (unless bookmark
+      (error "No bookmark on the current line"))
+    (delete-window)
+    (eww (plist-get bookmark :url))))
+
+(defun eww-next-bookmark ()
+  "Go to the next bookmark in the list."
+  (interactive)
+  (let ((first nil)
+	bookmark)
+    (unless (get-buffer "*eww bookmarks*")
+      (setq first t)
+      (eww-bookmark-prepare))
+    (with-current-buffer (get-buffer "*eww bookmarks*")
+      (when (and (not first)
+		 (not (eobp)))
+	(forward-line 1))
+      (setq bookmark (get-text-property (line-beginning-position)
+					'eww-bookmark))
+      (unless bookmark
+	(error "No next bookmark")))
+    (eww-browse-url (plist-get bookmark :url))))
+
+(defun eww-previous-bookmark ()
+  "Go to the previous bookmark in the list."
+  (interactive)
+  (let ((first nil)
+	bookmark)
+    (unless (get-buffer "*eww bookmarks*")
+      (setq first t)
+      (eww-bookmark-prepare))
+    (with-current-buffer (get-buffer "*eww bookmarks*")
+      (if first
+	  (goto-char (point-max))
+	(beginning-of-line))
+      ;; On the final line.
+      (when (eolp)
+	(forward-line -1))
+      (if (bobp)
+	  (error "No previous bookmark")
+	(forward-line -1))
+      (setq bookmark (get-text-property (line-beginning-position)
+					'eww-bookmark)))
+    (eww-browse-url (plist-get bookmark :url))))
+
+(defvar eww-bookmark-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'eww-bookmark-quit)
+    (define-key map [(control k)] 'eww-bookmark-kill)
+    (define-key map [(control y)] 'eww-bookmark-yank)
+    (define-key map "\r" 'eww-bookmark-browse)
+    map))
+
+(define-derived-mode eww-bookmark-mode nil "eww bookmarks"
+  "Mode for listing bookmarks.
+
+\\{eww-bookmark-mode-map}"
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+	truncate-lines t))
 
 (provide 'eww)
 
