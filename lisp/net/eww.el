@@ -346,6 +346,7 @@ word(s) will be searched for via `eww-search-prefix'."
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
   (set (make-local-variable 'eww-history) nil)
   (set (make-local-variable 'eww-history-position) 0)
+  (buffer-disable-undo)
   ;;(setq buffer-read-only t)
   )
 

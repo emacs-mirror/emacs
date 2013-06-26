@@ -1194,6 +1194,9 @@ and the `attributes' slot is always nil.
 The `url-retrieve' function now uses this to encode its URL argument,
 in case that is not properly encoded.
 
+*** New command `url-cookie-list' displays all the current cookies, and
+allows deleting selected cookies.
+
 ** notifications.el supports now version 1.2 of the Notifications API.
 The function `notifications-get-capabilities' returns the supported
 server properties.

@@ -1,3 +1,8 @@
+2013-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/eww.el (eww-mode): Undo isn't necessary in eww buffers,
+	probably.
+
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* htmlfontify.el (hfy-triplet): Handle unspecified-fg, bg.
