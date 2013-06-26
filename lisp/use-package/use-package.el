@@ -238,6 +238,17 @@
 ;; actual load.  In this case, everything could be put inside `:init' and
 ;; there would be no difference.
 ;;
+;; * For package.el user
+;;
+;; You can use `use-package' to load packages from ELPA with package.el. This
+;; is particularly useful if you share your .emacs between several machines;
+;; the relevant packages will download automatically once placed in your
+;; .emacs. The `:ensure' key will install the package automatically if it is
+;; not already present.
+;;
+;; (use-package tex-site
+;;  :ensure auctex)
+;;
 ;; * For el-get users
 ;;
 ;; You can use `use-package' as a way to create source definitions for el-get.
