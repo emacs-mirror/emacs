@@ -1043,7 +1043,10 @@ The browser to used is specified by the `shr-external-browser' variable."
   (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
     (unless bookmark
       (error "No bookmark on the current line"))
-    (delete-window)
+    ;; We wish to leave this window, but if it's the only window here,
+    ;; just let it remain.
+    (ignore-errors
+      (delete-window))
     (eww (plist-get bookmark :url))))
 
 (defun eww-next-bookmark ()
