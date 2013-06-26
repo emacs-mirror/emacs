@@ -422,7 +422,8 @@ For full documentation. please see commentary.
 :defines Define vars to silence byte-compiler.
 :load-path Add to `load-path' before loading.
 :diminish Support for diminish package (if it's installed).
-:idle adds a form to run on an idle timer"
+:idle adds a form to run on an idle timer
+:ensure loads package using package.el if necessary."
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
