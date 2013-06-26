@@ -238,6 +238,17 @@
 ;; actual load.  In this case, everything could be put inside `:init' and
 ;; there would be no difference.
 ;;
+;; * For package.el user
+;;
+;; You can use `use-package' to load packages from ELPA with package.el. This
+;; is particularly useful if you share your .emacs between several machines;
+;; the relevant packages will download automatically once placed in your
+;; .emacs. The `:ensure' key will install the package automatically if it is
+;; not already present.
+;;
+;; (use-package tex-site
+;;  :ensure auctex)
+;;
 ;; * For el-get users
 ;;
 ;; You can use `use-package' as a way to create source definitions for el-get.
@@ -411,7 +422,8 @@ For full documentation. please see commentary.
 :defines Define vars to silence byte-compiler.
 :load-path Add to `load-path' before loading.
 :diminish Support for diminish package (if it's installed).
-:idle adds a form to run on an idle timer"
+:idle adds a form to run on an idle timer
+:ensure loads package using package.el if necessary."
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
          (init-body (plist-get args :init))
