@@ -5,6 +5,7 @@
 	(eww-mode-map): Add a menu bar.
 	(eww-add-bookmark): New command.
 	(eww-bookmark-mode): New mode and commands.
+	(eww-add-bookmark): Remove newlines from the title.
 
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 

@@ -950,10 +950,12 @@ The browser to used is specified by the `shr-external-browser' variable."
     (when (equal eww-current-url
 		 (plist-get bookmark :url))
       (error "Already bookmarked")))
-  (push (list :url eww-current-url
-	      :title eww-current-title
-	      :time (current-time-string))
-	eww-bookmarks)
+  (let ((title (replace-regexp-in-string "[\n\t\r]" " " eww-current-title)))
+    (setq title (replace-regexp-in-string "\\` +\\| +\\'" "" title))
+    (push (list :url eww-current-url
+		:title title
+		:time (current-time-string))
+	  eww-bookmarks))
   (eww-write-bookmarks)
   (message "Bookmarked %s (%s)" eww-current-url eww-current-title))
 
