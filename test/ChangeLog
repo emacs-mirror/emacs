@@ -1,6 +1,9 @@
 2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/package-x-test.el: Change the commentary.
+	(package-x-test--single-archive-entry-1-3)
+	(package-x-test--single-archive-entry-1-4): Fix the tests, by
+	using the appropriate data structure.
 
 2013-06-27  Daniel Hackney  <dan@haxney.org>
 

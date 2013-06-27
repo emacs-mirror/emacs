@@ -44,17 +44,17 @@
   (require 'package-test))
 
 (defvar package-x-test--single-archive-entry-1-3
-  (package-desc-create :name 'simple-single
-                       :version '(1 3)
-                       :summary "A single-file package with no dependencies"
-                       :kind 'single)
+  (cons 'simple-single
+        (package-make-ac-desc '(1 3) nil
+                              "A single-file package with no dependencies"
+                              'single))
   "Expected contents of the archive entry from the \"simple-single\" package.")
 
 (defvar package-x-test--single-archive-entry-1-4
-  (package-desc-create :name 'simple-single
-                       :version '(1 4)
-                       :summary "A single-file package with no dependencies"
-                       :kind 'single)
+  (cons 'simple-single
+        (package-make-ac-desc '(1 4) nil
+                              "A single-file package with no dependencies"
+                              'single))
   "Expected contents of the archive entry from the updated \"simple-single\" package.")
 
 (ert-deftest package-x-test-upload-buffer ()
