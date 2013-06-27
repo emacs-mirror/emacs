@@ -1,3 +1,21 @@
+2013-06-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not tickle glib SIGCHLD handling if Cygwin (Bug#14569).
+	This mostly consists of undoing recent changes.
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	Do not worry about catching SIGCHLD here, undoing previous change.
+	* nsterm.m (ns_term_init): Re-catch SIGCHLD, undoing previous change.
+	* process.c, process.h (catch_child_signal):
+	No longer extern if !NS_IMPL_GNUSTEP, undoing 06-22 change.
+	* process.c (catch_child_handler): Don't worry about being called
+	lazily and do not assume caller has blocked SIGCHLD, undoing
+	previous change.  Move first-time stuff back to
+	init_process_emacs, undoing 06-22 change.  If CYGWIN, do not
+	tickle glib, as that causes Cygwin bootstrap to fail.  Do not
+	set lib_child_handler if it's already initialized, which may
+	help avoid problems on GNUStep.
+
 2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	A more-conservative workaround for Cygwin SIGCHLD issues (Bug#14569).

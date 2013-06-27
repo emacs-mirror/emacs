@@ -1685,7 +1685,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   block_input ();
   block_child_signal ();
-  catch_child_signal ();
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -7061,48 +7060,24 @@ integer or floating point values.
    futz with the SIGCHLD handler, but before Emacs forks any children.
    This function's caller should block SIGCHLD.  */
 
+#ifndef NS_IMPL_GNUSTEP
+static
+#endif
 void
 catch_child_signal (void)
 {
   struct sigaction action, old_action;
-
-#if !defined CANNOT_DUMP
-  if (noninteractive && !initialized)
-    return;
-#endif
-
-#ifndef NS_IMPL_GNUSTEP
-  if (lib_child_handler)
-    return;
-#endif
-
-#if defined HAVE_GLIB && !defined WINDOWSNT
-  /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
-     this should always fail, but is enough to initialize glib's
-     private SIGCHLD handler, allowing the code below to copy it into
-     LIB_CHILD_HANDLER.
-
-     Do this here, rather than early in Emacs initialization where it
-     might make more sense, to try to avoid bugs in Cygwin glib (Bug#14569).  */
-  {
-    GSource *source = g_child_watch_source_new (getpid ());
-    g_source_unref (source);
-  }
-#endif
-
   emacs_sigaction_init (&action, deliver_child_signal);
+  block_child_signal ();
   sigaction (SIGCHLD, &action, &old_action);
   eassert (! (old_action.sa_flags & SA_SIGINFO));
 
-#ifdef NS_IMPL_GNUSTEP
-  if (old_action.sa_handler == deliver_child_signal)
-    return;
-#endif
-
-  lib_child_handler
-    = (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN
-       ? dummy_handler
-       : old_action.sa_handler);
+  if (old_action.sa_handler != deliver_child_signal)
+    lib_child_handler
+      = (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN
+	 ? dummy_handler
+	 : old_action.sa_handler);
+  unblock_child_signal ();
 }
 
 
@@ -7115,6 +7090,24 @@ init_process_emacs (void)
   register int i;
 
   inhibit_sentinels = 0;
+
+#ifndef CANNOT_DUMP
+  if (! noninteractive || initialized)
+#endif
+    {
+#if defined HAVE_GLIB && !defined WINDOWSNT && !defined CYGWIN
+      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+	 this should always fail, but is enough to initialize glib's
+	 private SIGCHLD handler, allowing the code below to copy it into
+	 LIB_CHILD_HANDLER.
+
+	 For some reason tickling causes Cygwin bootstrap to fail, so it's
+	 skipped under Cygwin.  FIXME: Skipping the tickling likely causes
+	 bugs in subprocess handling under Cygwin (Bug#14569).  */
+      g_source_unref (g_child_watch_source_new (getpid ()));
+#endif
+      catch_child_signal ();
+    }
 
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
