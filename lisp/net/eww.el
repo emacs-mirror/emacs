@@ -965,10 +965,12 @@ The browser to used is specified by the `shr-external-browser' variable."
     (pp eww-bookmarks (current-buffer))))
 
 (defun eww-read-bookmarks ()
-  (with-temp-buffer
-    (insert-file-contents
-     (expand-file-name "eww-bookmarks" user-emacs-directory))
-    (setq eww-bookmarks (read (current-buffer)))))
+  (let ((file (expand-file-name "eww-bookmarks" user-emacs-directory)))
+    (setq eww-bookmarks
+	  (unless (zerop (or (nth 7 (file-attributes file)) 0))
+	    (with-temp-buffer
+	      (insert-file-contents file)
+	      (read (current-buffer)))))))
 
 (defun eww-list-bookmarks ()
   "Display the bookmarks."

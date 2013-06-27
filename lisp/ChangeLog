@@ -1,3 +1,7 @@
+2013-06-27  Leo Liu  <sdl.web@gmail.com>
+
+	* net/eww.el (eww-read-bookmarks): Check file size.
+
 2013-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (advice--defalias-fset): Move advice back to
