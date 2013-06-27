@@ -57,6 +57,9 @@ files are in share/emacs/VERSION/etc.  (Emacs knows about all these
 directories and will find the files in there automatically; there's no
 need to set any variables due to this change.)
 
+** Directories passed to configure option `--enable-locallisppath' are
+no longer created during installation.
+
 
 * Startup Changes in Emacs 24.4
 

@@ -1,3 +1,8 @@
+2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (install-arch-indep): Do not create directories passed
+	with --enable-locallisppath.
+
 2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* configure.ac: Include X11/X.h when testing for Xft.h.  (Bug#14684)

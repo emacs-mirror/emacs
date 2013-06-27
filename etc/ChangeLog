@@ -1,3 +1,7 @@
+2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention policy change with respect to locallisppath dirs.
+
 2013-06-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document new Prettify Symbols mode.

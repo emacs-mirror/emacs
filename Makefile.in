@@ -548,13 +548,9 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## I'm not sure creating locallisppath here serves any useful purpose.
-## If it has the default value, then the later write_subdir commands
-## will ensure all these components exist.
-## This will only do something if locallisppath has a non-standard value.
-## Is it really Emacs's job to create those directories?
-## Should we also be ensuring they contain subdirs.el files?
-## It would be easy to do, just use write_subdir.
+## We used to create locallisppath, but if it points to non-standard
+## locations, is not really Emacs's job to create these directories,
+## so it is no longer done.
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
@@ -564,12 +560,6 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
-	umask 022 ; \
-	locallisppath='${locallisppath}'; \
-	IFS=:; \
-	for d in $$locallisppath; do \
-	  ${MKDIR_P} "$(DESTDIR)$$d"; \
-	done
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \
