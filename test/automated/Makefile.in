@@ -50,7 +50,7 @@ emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */.* | */.*/* | */=* ) ;; \
+	   case $$file in */.* | */.*/* | */=* | ./data* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done

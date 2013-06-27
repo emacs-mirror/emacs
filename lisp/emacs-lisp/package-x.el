@@ -204,12 +204,12 @@ if it exists."
                              package--default-summary)
 			 (read-string "Description of package: ")
 		       (package-desc-summary pkg-desc)))
-	       (pkg-version (package-desc-version pkg-desc))
+	       (split-version (package-desc-version pkg-desc))
 	       (commentary
                 (pcase file-type
                   (`single (lm-commentary))
                   (`tar nil))) ;; FIXME: Get it from the README file.
-	       (split-version (version-to-list pkg-version))
+	       (pkg-version (package-version-join split-version))
 	       (pkg-buffer (current-buffer)))
 
 	  ;; Get archive-contents from ARCHIVE-URL if it's non-nil, or
@@ -223,7 +223,7 @@ if it exists."
 	    (let ((elt (assq pkg-name (cdr contents))))
 	      (if elt
 		  (if (version-list-<= split-version
-				       (package-desc-version (cdr elt)))
+				       (package--ac-desc-version (cdr elt)))
 		      (error "New package has smaller version: %s" pkg-version)
 		    (setcdr elt new-desc))
 		(setq contents (cons (car contents)

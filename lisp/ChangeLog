@@ -1,3 +1,10 @@
+2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal): Adapt
+	to `package-desc-version' being a list.  Use
+	`package--ac-desc-version' to retrieve version from a package
+	archive element.
+
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	New experimental feature to save&restore window and frame setup.

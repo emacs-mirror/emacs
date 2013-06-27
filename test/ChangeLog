@@ -1,3 +1,13 @@
+2013-06-27  Daniel Hackney  <dan@haxney.org>
+
+	* automated/Makefile.in (setwins): Include the 'data' subdirectory.
+
+	* automated/package-x-test.el: New file.
+
+	* automated/package-test.el: New file.
+
+	* automated/data/package: New directory, with test examples.
+
 2013-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* automated/python-tests.el (python-tests-with-temp-file):
