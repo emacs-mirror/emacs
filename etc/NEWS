@@ -237,6 +237,9 @@ on the given date.
 *** `desktop-auto-save-timeout' defines the number of seconds between
 auto-saves of the desktop.
 
+*** `desktop-save-windows' enables saving and restoring the window/frame
+configuration.
+
 ** Dired
 
 *** New minor mode `dired-hide-details-mode' hides details.

@@ -1,3 +1,14 @@
+2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	New experimental feature to save&restore window and frame setup.
+	* desktop.el (desktop-save-windows): New defcustom.
+	(desktop--saved-states): New var.
+	(desktop--excluded-frame-parameters): New defconst.
+	(desktop--filter-frame-parms, desktop--find-frame-in-display)
+	(desktop--restore-windows, desktop--save-windows): New functions.
+	(desktop-save): Call `desktop--save-windows'.
+	(desktop-read): Call `desktop--restore-windows'.
+
 2013-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (add-face-text-property): Removed compat definition.

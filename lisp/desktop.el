@@ -371,6 +371,12 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
+(defcustom desktop-save-windows nil
+  "When non-nil, save window/frame configuration to desktop file."
+  :type 'boolean
+  :group 'desktop
+  :version "24.4")
+
 (defcustom desktop-file-name-format 'absolute
   "Format in which desktop file names should be saved.
 Possible values are:
@@ -555,6 +561,9 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 (defvar desktop-file-checksum nil
   "Checksum of the last auto-saved contents of the desktop file.
 Used to avoid writing contents unchanged between auto-saves.")
+
+(defvar desktop--saved-states nil
+  "Internal use only.")
 
 ;; ----------------------------------------------------------------------------
 ;; Desktop file conflict detection
@@ -858,6 +867,42 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 
 ;; ----------------------------------------------------------------------------
+(defconst desktop--excluded-frame-parameters
+  '(buffer-list
+    buffer-predicate
+    buried-buffer-list
+    explicit-name
+    font-backend
+    minibuffer
+    name
+    outer-window-id
+    parent-id
+    window-id
+    window-system)
+  "Frame parameters not saved or restored.")
+
+(defun desktop--filter-frame-parms (frame)
+  "Return frame parameters of FRAME.
+Parameters in `desktop--excluded-frame-parameters' are excluded.
+Internal use only."
+  (let (params)
+    (dolist (param (frame-parameters frame))
+      (unless (memq (car param) desktop--excluded-frame-parameters)
+	(push param params)))
+    params))
+
+(defun desktop--save-windows ()
+  "Save window/frame state, as a global variable.
+Intended to be called from `desktop-save'.
+Internal use only."
+  (setq desktop--saved-states
+	(and desktop-save-windows
+	     (mapcar (lambda (frame)
+		       (cons (desktop--filter-frame-parms frame)
+			     (window-state-get (frame-root-window frame) t)))
+		     (frame-list))))
+  (desktop-outvar 'desktop--saved-states))
+
 ;;;###autoload
 (defun desktop-save (dirname &optional release auto-save)
   "Save the desktop in a desktop file.
@@ -896,6 +941,9 @@ and don't save the buffer if they are the same."
 	  (save-excursion (run-hooks 'desktop-save-hook))
 	  (goto-char (point-max))
 	  (insert "\n;; Global section:\n")
+	  ;; Called here because we save the window/frame state as a global
+	  ;; variable for compatibility with previous Emacsen.
+	  (desktop--save-windows)
 	  (mapc (function desktop-outvar) desktop-globals-to-save)
 	  (when (memq 'kill-ring desktop-globals-to-save)
 	    (insert
@@ -954,6 +1002,37 @@ This function also sets `desktop-dirname' to nil."
 (defvar desktop-lazy-timer nil)
 
 ;; ----------------------------------------------------------------------------
+(defun desktop--find-frame-in-display (frames display)
+  (let (result)
+    (while (and frames (not result))
+      (if (equal display (frame-parameter (car frames) 'display))
+	  (setq result (car frames))
+	(setq frames (cdr frames))))
+    result))
+
+(defun desktop--restore-windows ()
+  "Restore window/frame configuration.
+Internal use only."
+  (when (and desktop-save-windows desktop--saved-states)
+    (condition-case nil
+	(let ((frames (frame-list)))
+	  (dolist (state desktop--saved-states)
+	    (let* ((fconfig (car state))
+		   (display (cdr (assq 'display fconfig)))
+		   (frame (desktop--find-frame-in-display frames display)))
+	      (if (not frame)
+		  ;; no frames in the display -- make a new one
+		  (setq frame (make-frame-on-display display fconfig))
+		;; found one -- reuse and remove from list
+		(setq frames (delq frame frames))
+		(modify-frame-parameters frame fconfig))
+	      ;; restore windows
+	      (window-state-put (cdr state) (frame-root-window frame) 'safe)))
+	  ;; delete any remaining frames
+	  (mapc #'delete-frame frames))
+      (error
+       (message "Error loading window configuration from desktop file")))))
+
 ;;;###autoload
 (defun desktop-read (&optional dirname)
   "Read and process the desktop file in directory DIRNAME.
@@ -1022,6 +1101,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    (switch-to-buffer (car (buffer-list)))
 	    (run-hooks 'desktop-delay-hook)
 	    (setq desktop-delay-hook nil)
+	    (desktop--restore-windows)
 	    (run-hooks 'desktop-after-read-hook)
 	    (message "Desktop: %d buffer%s restored%s%s."
 		     desktop-buffer-ok-count
