@@ -1,7 +1,7 @@
 2013-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* automated/undo-tests.el (undo-test3): Remove test that seems to
-	nothing that the previous one doesn't, except leave a tempfile.
+	do nothing that the previous one doesn't, except leave a tempfile.
 
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 
