@@ -1,3 +1,7 @@
+2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* obsolete/otodo-mode.el: Add obsolescence info to file header.
+
 2013-06-27  Leo Liu  <sdl.web@gmail.com>
 
 	* net/eww.el (eww-read-bookmarks): Check file size.
