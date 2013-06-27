@@ -15,6 +15,11 @@
 
 2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
 
+	* info.el (Info-try-follow-nearest-node): Move search for footnote
+	above search for node name to prevent missing a footnote (bug#14717).
+
+2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
 	* obsolete/otodo-mode.el: Add obsolescence info to file header.
 
 2013-06-27  Leo Liu  <sdl.web@gmail.com>

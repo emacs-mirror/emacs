@@ -3870,23 +3870,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
 				 "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?"))
       (Info-follow-reference node fork))
-     ;; menu item: node name
-     ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
-      (Info-goto-node node fork))
-     ;; menu item: node name or index entry
-     ((Info-get-token (point) "\\* +" "\\* +\\(.*\\): ")
-      (beginning-of-line)
-      (forward-char 2)
-      (setq node (Info-extract-menu-node-name nil (Info-index-node)))
-      (Info-goto-node node fork))
-     ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)"))
-      (Info-goto-node node fork))
-     ((setq node (Info-get-token (point) "Next: " "Next: \\([^,\n\t]*\\)"))
-      (Info-goto-node node fork))
-     ((setq node (Info-get-token (point) "File: " "File: \\([^,\n\t]*\\)"))
-      (Info-goto-node "Top" fork))
-     ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
-      (Info-goto-node node fork))
      ;; footnote
      ((setq node (Info-get-token (point) "(" "\\(([0-9]+)\\)"))
       (let ((old-point (point)) new-point)
@@ -3904,7 +3887,24 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 	    (progn
 	      (goto-char new-point)
 	      (setq node t))
-	  (setq node nil)))))
+	  (setq node nil))))
+     ;; menu item: node name
+     ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
+      (Info-goto-node node fork))
+     ;; menu item: node name or index entry
+     ((Info-get-token (point) "\\* +" "\\* +\\(.*\\): ")
+      (beginning-of-line)
+      (forward-char 2)
+      (setq node (Info-extract-menu-node-name nil (Info-index-node)))
+      (Info-goto-node node fork))
+     ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)"))
+      (Info-goto-node node fork))
+     ((setq node (Info-get-token (point) "Next: " "Next: \\([^,\n\t]*\\)"))
+      (Info-goto-node node fork))
+     ((setq node (Info-get-token (point) "File: " "File: \\([^,\n\t]*\\)"))
+      (Info-goto-node "Top" fork))
+     ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
+      (Info-goto-node node fork)))
     node))
 
 (defun Info-mouse-follow-link (click)
