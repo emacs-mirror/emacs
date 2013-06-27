@@ -1606,27 +1606,6 @@ ones, in case fg and bg are nil."
 			      (shr-count (cdr row) 'th))))))
     max))
 
-;; Emacs less than 24.3
-(unless (fboundp 'add-face-text-property)
-  (defun add-face-text-property (beg end face &optional appendp object)
-    "Combine FACE BEG and END."
-    (let ((b beg))
-      (while (< b end)
-	(let ((oldval (get-text-property b 'face)))
-	  (put-text-property
-	   b (setq b (next-single-property-change b 'face nil end))
-	   'face (cond ((null oldval)
-			face)
-		       ((and (consp oldval)
-			     (not (keywordp (car oldval))))
-			(if appendp
-			    (nconc oldval (list face))
-			  (cons face oldval)))
-		       (t
-			(if appendp
-			    (list oldval face)
-			  (list face oldval))))))))))
-
 (provide 'shr)
 
 ;; Local Variables:

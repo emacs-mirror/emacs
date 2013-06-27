@@ -1,3 +1,7 @@
+2013-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (add-face-text-property): Removed compat definition.
+
 2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
 
 	* obsolete/otodo-mode.el: Add obsolescence info to file header.
