@@ -167,9 +167,6 @@ for new options related to this function.
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
-~/.emacs.d/todo-do	replaces  ~/.todo-do
-~/.emacs.d/todo-done	replaces  ~/.todo-done
-~/.emacs.d/todo-top	replaces  ~/.todo-top
 ~/.emacs.d/vip		replaces  ~/.vip
 ~/.emacs.d/viper	replaces  ~/.viper
 ~/.emacs.d/ido.last	replaces  ~/.ido.last
@@ -183,6 +180,11 @@ Affected files:
 ~/.emacs.d/strokes	replaces  ~/.strokes
 ~/.emacs.d/notes	replaces  ~/.notes
 ~/.emacs.d/type-break	replaces  ~/.type-break
+Also the following files used by the now obsolete otodo-mode.el:
+~/.emacs.d/todo-do	replaces  ~/.todo-do
+~/.emacs.d/todo-done	replaces  ~/.todo-done
+~/.emacs.d/todo-top	replaces  ~/.todo-top
+
 
 ** Delphi mode is now called OPascal mode.
 *** All delphi-* variables and functions have been renamed to opascal-*.
@@ -352,6 +354,25 @@ space, no spaces, or reverting to the original spacing.  Like
 `just-one-space' command it can handle or ignore newlines and
 leave different number of spaces.
 
+** Todo mode has been rewritten and enhanced.
+New features include:
+- support for multiple todo files and archive files of done items;
+- renaming, reordering, moving, merging, and deleting categories;
+- sortable tabular summaries of categories and the types of items they contain;
+- cross-categorial lists of items filtered by specific criteria;
+- more fine-grained interaction with the Emacs diary, by being able to decide
+  for each todo item whether it appears in the Fancy Diary display;
+- highly flexible new item insertion and item editing;
+- moving items between categories, storing done items in their category or in
+  archive files, undoing or unarchiving done items;
+- reprioritizing items by inputting a numerical priority;
+- extensive customizability of operation and display, including numerous faces.
+To support some of these features, a new file format is used, which is
+incompatible with the old format; however, you can convert old todo and done
+item files to the new format on initializing the first new todo file, or at any
+later time with the provided conversion command.  The old version of
+todo-mode.el has been made obsolete and renamed otodo-mode.el.
+
 ** Tramp
 
 +++
@@ -396,6 +417,8 @@ module.
 *** sup-mouse.el.
 
 *** terminal.el is obsolete; use term.el instead.
+
+*** The previous version of todo-mode.el is obsolete and renamed otodo-mode.el.
 
 *** xesam.el.
 

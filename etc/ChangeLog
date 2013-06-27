@@ -1,3 +1,8 @@
+2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* NEWS: Mention new version of todo-mode.el and obsoleting and
+	renaming of old version.
+
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Mention policy change with respect to locallisppath dirs.
