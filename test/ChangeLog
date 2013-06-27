@@ -1,5 +1,8 @@
 2013-06-27  Glenn Morris  <rgm@gnu.org>
 
+	* automated/python-tests.el (python-tests-with-temp-file):
+	Clean up after ourself.
+
 	* automated/undo-tests.el (undo-test3): Remove test that seems to
 	do nothing that the previous one doesn't, except leave a tempfile.
 
