@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 
-;; Run this from a separate Emacs instance from your main one as it
-;; messes with the package archive files. In fact, it wouldn't be a
-;; bad idea to back up your whole package archive before testing!
+;; You may want to run this from a separate Emacs instance from your
+;; main one, because a bug in the code below could mess with your
+;; installed packages.
 
 ;; Run this in a clean Emacs session using:
 ;;

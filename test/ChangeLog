@@ -1,3 +1,7 @@
+2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-x-test.el: Change the commentary.
+
 2013-06-27  Daniel Hackney  <dan@haxney.org>
 
 	* automated/Makefile.in (setwins): Include the 'data' subdirectory.
