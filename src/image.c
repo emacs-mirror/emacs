@@ -2181,10 +2181,13 @@ image_get_x_image_or_dc (struct frame *f, struct image *img, bool mask_p,
 
   release_frame_dc (f, frame_dc);
   *prev = SelectObject (ximg, !mask_p ? img->pixmap : img->mask);
+
+  return ximg;
 }
 
-static void image_unget_x_image_or_dc (struct frame *img, bool mask_p,
-				       XImagePtr_or_DC ximg, HGDIOBJ prev)
+static void
+image_unget_x_image_or_dc (struct image *img, bool mask_p,
+			   XImagePtr_or_DC ximg, HGDIOBJ prev)
 {
   SelectObject (ximg, prev);
   DeleteDC (ximg);
