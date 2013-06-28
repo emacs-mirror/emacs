@@ -1,3 +1,39 @@
+2013-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Defer image data transfer between X client and server until actual
+	display happens.
+
+	* dispextern.h (struct image) [HAVE_X_WINDOWS]: New members `ximg'
+	and `mask_img'.
+
+	* image.c (Destroy_Image): Remove.
+	(x_clear_image_1): New arg `flags' instead of 3 bools `pixmap_p',
+	`mask_p', and `colors_p'.  All uses changed.
+	(x_clear_image_1) [HAVE_X_WINDOWS]: Destroy `ximg' and `mask_img'.
+	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS): New
+	macros for `flags' arg to x_clear_image_1.
+	(postprocess_image, xpm_load_image, x_build_heuristic_mask)
+	(png_load_body): Use x_clear_image_1 instead of Free_Pixmap.
+	(NO_PIXMAP, XGetImage) [HAVE_NS]: Remove.
+	(image_get_x_image_or_dc, image_unget_x_image_or_dc)
+	(image_get_x_image, image_unget_x_image): New functions or macros.
+	(image_background, image_background_transparent, x_to_xcolors)
+	(x_build_heuristic_mask): Use image_get_x_image_or_dc instead of
+	XGetImage or CreateCompatibleDC.  Use image_unget_x_image_or_dc
+	instead of Destroy_Image.
+	(image_create_x_image_and_pixmap, image_put_x_image): New functions.
+	(xpm_load_image, x_from_xcolors, x_build_heuristic_mask, pbm_load)
+	(png_load_body, jpeg_load_body, tiff_load, gif_load)
+	(imagemagick_load_image, svg_load_image): Use them instead of
+	x_create_x_image_and_pixmap, and x_put_x_image followed by
+	x_destroy_x_image, respectively.
+	(xpm_load) [HAVE_XPM && !HAVE_NTGUI]: Use XpmReadFileToImage and
+	XpmCreateImageFromBuffer instead of XpmReadFileToPixmap and
+	XpmCreatePixmapFromBuffer.  Create pixmaps.  Fill background and
+	background_transparent fields.
+	(image_sync_to_pixmaps) [HAVE_X_WINDOWS]: New function.
+	(prepare_image_for_display, x_disable_image) [HAVE_X_WINDOWS]: Use it.
+
 2013-06-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Do not tickle glib SIGCHLD handling if Cygwin (Bug#14569).

@@ -106,8 +106,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
-#define ZPixmap 0
-
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
@@ -146,16 +144,6 @@ Lisp_Object QCmax_width, QCmax_height;
    data more than once will not be caught.  */
 
 #ifdef HAVE_NS
-XImagePtr
-XGetImage (Display *display, Pixmap pixmap, int x, int y,
-           unsigned int width, unsigned int height,
-           unsigned long plane_mask, int format)
-{
-  /* TODO: not sure what this function is supposed to do.. */
-  ns_retain_object (pixmap);
-  return pixmap;
-}
-
 /* Use with images created by ns_image_for_XPM.  */
 unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
@@ -435,7 +423,23 @@ static bool x_create_x_image_and_pixmap (struct frame *, int, int, int,
 					 XImagePtr *, Pixmap *);
 static void x_destroy_x_image (XImagePtr ximg);
 
+#ifdef HAVE_NTGUI
+static XImagePtr_or_DC image_get_x_image_or_dc (struct frame *, struct image *,
+						bool, HGDIOBJ *);
+static void image_unget_x_image_or_dc (struct image *, bool, XImagePtr_or_DC,
+				       HGDIOBJ);
+#else
+static XImagePtr image_get_x_image (struct frame *, struct image *, bool);
+static void image_unget_x_image (struct image *, bool, XImagePtr);
+#define image_get_x_image_or_dc(f, img, mask_p, dummy)	\
+  image_get_x_image (f, img, mask_p)
+#define image_unget_x_image_or_dc(img, mask_p, ximg, dummy)	\
+  image_unget_x_image (img, mask_p, ximg)
+#endif
+
 #ifdef HAVE_X_WINDOWS
+
+static void image_sync_to_pixmaps (struct frame *, struct image *);
 
 /* Useful functions defined in the section
    `Image type independent image structures' below. */
@@ -1050,6 +1054,14 @@ prepare_image_for_display (struct frame *f, struct image *img)
   if (img->pixmap == NO_PIXMAP && !img->load_failed_p)
     img->load_failed_p = ! img->type->load (f, img);
 
+#ifdef HAVE_X_WINDOWS
+  if (!img->load_failed_p)
+    {
+      block_input ();
+      image_sync_to_pixmaps (f, img);
+      unblock_input ();
+    }
+#endif
 }
 
 
@@ -1145,24 +1157,15 @@ four_corners_best (XImagePtr_or_DC ximg, int *corners,
 
 #ifdef HAVE_NTGUI
 
-#define Destroy_Image(img_dc, prev) \
-  do { SelectObject (img_dc, prev); DeleteDC (img_dc); } while (0)
-
 #define Free_Pixmap(display, pixmap) \
   DeleteObject (pixmap)
 
 #elif defined (HAVE_NS)
 
-#define Destroy_Image(ximg, dummy) \
-  ns_release_object (ximg)
-
 #define Free_Pixmap(display, pixmap) \
   ns_release_object (pixmap)
 
 #else
-
-#define Destroy_Image(ximg, dummy) \
-  XDestroyImage (ximg)
 
 #define Free_Pixmap(display, pixmap) \
   XFreePixmap (display, pixmap)
@@ -1187,22 +1190,12 @@ image_background (struct image *img, struct frame *f, XImagePtr_or_DC ximg)
 #endif /* HAVE_NTGUI */
 
       if (free_ximg)
-	{
-#ifndef HAVE_NTGUI
-	  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
-			    0, 0, img->width, img->height, ~0, ZPixmap);
-#else
-	  HDC frame_dc = get_frame_dc (f);
-	  ximg = CreateCompatibleDC (frame_dc);
-	  release_frame_dc (f, frame_dc);
-	  prev = SelectObject (ximg, img->pixmap);
-#endif /* !HAVE_NTGUI */
-	}
+	ximg = image_get_x_image_or_dc (f, img, 0, &prev);
 
       img->background = four_corners_best (ximg, img->corners, img->width, img->height);
 
       if (free_ximg)
-	Destroy_Image (ximg, prev);
+	image_unget_x_image_or_dc (img, 0, ximg, prev);
 
       img->background_valid = 1;
     }
@@ -1228,23 +1221,13 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
 #endif /* HAVE_NTGUI */
 
 	  if (free_mask)
-	    {
-#ifndef HAVE_NTGUI
-	      mask = XGetImage (FRAME_X_DISPLAY (f), img->mask,
-				0, 0, img->width, img->height, ~0, ZPixmap);
-#else
-	      HDC frame_dc = get_frame_dc (f);
-	      mask = CreateCompatibleDC (frame_dc);
-	      release_frame_dc (f, frame_dc);
-	      prev = SelectObject (mask, img->mask);
-#endif /* HAVE_NTGUI */
-	    }
+	    mask = image_get_x_image_or_dc (f, img, 1, &prev);
 
 	  img->background_transparent
 	    = (four_corners_best (mask, img->corners, img->width, img->height) == PIX_MASK_RETAIN);
 
 	  if (free_mask)
-	    Destroy_Image (mask, prev);
+	    image_unget_x_image_or_dc (img, 1, mask, prev);
 	}
       else
 	img->background_transparent = 0;
@@ -1260,30 +1243,58 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
 		  Helper functions for X image types
  ***********************************************************************/
 
-/* Clear X resources of image IMG on frame F.  PIXMAP_P means free the
-   pixmap if any.  MASK_P means clear the mask pixmap if any.
-   COLORS_P means free colors allocated for the image, if any.  */
+/* Clear X resources of image IMG on frame F according to FLAGS.
+   FLAGS is bitwise-or of the following masks:
+   CLEAR_IMAGE_PIXMAP free the pixmap if any.
+   CLEAR_IMAGE_MASK means clear the mask pixmap if any.
+   CLEAR_IMAGE_COLORS means free colors allocated for the image, if
+     any.  */
+
+#define CLEAR_IMAGE_PIXMAP	(1 << 0)
+#define CLEAR_IMAGE_MASK	(1 << 1)
+#define CLEAR_IMAGE_COLORS	(1 << 2)
 
 static void
-x_clear_image_1 (struct frame *f, struct image *img, bool pixmap_p,
-		 bool mask_p, bool colors_p)
+x_clear_image_1 (struct frame *f, struct image *img, int flags)
 {
-  if (pixmap_p && img->pixmap)
+  if (flags & CLEAR_IMAGE_PIXMAP)
     {
-      Free_Pixmap (FRAME_X_DISPLAY (f), img->pixmap);
-      img->pixmap = NO_PIXMAP;
-      /* NOTE (HAVE_NS): background color is NOT an indexed color! */
-      img->background_valid = 0;
+      if (img->pixmap)
+	{
+	  Free_Pixmap (FRAME_X_DISPLAY (f), img->pixmap);
+	  img->pixmap = NO_PIXMAP;
+	  /* NOTE (HAVE_NS): background color is NOT an indexed color! */
+	  img->background_valid = 0;
+	}
+#ifdef HAVE_X_WINDOWS
+      if (img->ximg)
+	{
+	  x_destroy_x_image (img->ximg);
+	  img->ximg = NULL;
+	  img->background_valid = 0;
+	}
+#endif
     }
 
-  if (mask_p && img->mask)
+  if (flags & CLEAR_IMAGE_MASK)
     {
-      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = NO_PIXMAP;
-      img->background_transparent_valid = 0;
+      if (img->mask)
+	{
+	  Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
+	  img->mask = NO_PIXMAP;
+	  img->background_transparent_valid = 0;
+	}
+#ifdef HAVE_X_WINDOWS
+      if (img->mask_img)
+	{
+	  x_destroy_x_image (img->mask_img);
+	  img->mask_img = NULL;
+	  img->background_transparent_valid = 0;
+	}
+#endif
     }
 
-  if (colors_p && img->ncolors)
+  if ((flags & CLEAR_IMAGE_COLORS) && img->ncolors)
     {
       /* W32_TODO: color table support.  */
 #ifdef HAVE_X_WINDOWS
@@ -1302,7 +1313,8 @@ static void
 x_clear_image (struct frame *f, struct image *img)
 {
   block_input ();
-  x_clear_image_1 (f, img, 1, 1, 1);
+  x_clear_image_1 (f, img,
+		   CLEAR_IMAGE_PIXMAP | CLEAR_IMAGE_MASK | CLEAR_IMAGE_COLORS);
   unblock_input ();
 }
 
@@ -1633,10 +1645,7 @@ postprocess_image (struct frame *f, struct image *img)
 		x_build_heuristic_mask (f, img, XCDR (mask));
 	    }
 	  else if (NILP (mask) && found_p && img->mask)
-	    {
-	      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
-	      img->mask = NO_PIXMAP;
-	    }
+	    x_clear_image_1 (f, img, CLEAR_IMAGE_MASK);
 	}
 
 
@@ -2093,6 +2102,130 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
   ns_retain_object (ximg);
 #endif
 }
+
+/* Thin wrapper for x_create_x_image_and_pixmap, so that it matches
+   with image_put_x_image.  */
+
+static bool
+image_create_x_image_and_pixmap (struct frame *f, struct image *img,
+				 int width, int height, int depth,
+				 XImagePtr *ximg, bool mask_p)
+{
+  eassert ((!mask_p ? img->pixmap : img->mask) == NO_PIXMAP);
+
+  return x_create_x_image_and_pixmap (f, width, height, depth, ximg,
+				      !mask_p ? &img->pixmap : &img->mask);
+}
+
+/* Put X image XIMG into image IMG on frame F, as a mask if and only
+   if MASK_P.  On X, this simply records XIMG on a member of IMG, so
+   it can be put into the pixmap afterwards via image_sync_to_pixmaps.
+   On the other platforms, it puts XIMG into the pixmap, then frees
+   the X image and its buffer.  */
+
+static void
+image_put_x_image (struct frame *f, struct image *img, XImagePtr ximg,
+		   bool mask_p)
+{
+#ifdef HAVE_X_WINDOWS
+  if (!mask_p)
+    {
+      eassert (img->ximg == NULL);
+      img->ximg = ximg;
+    }
+  else
+    {
+      eassert (img->mask_img == NULL);
+      img->mask_img = ximg;
+    }
+#else
+  x_put_x_image (f, ximg, !mask_p ? img->pixmap : img->mask,
+		 img->width, img->height);
+  x_destroy_x_image (ximg);
+#endif
+}
+
+#ifdef HAVE_X_WINDOWS
+/* Put the X images recorded in IMG on frame F into pixmaps, then free
+   the X images and their buffers.  */
+
+static void
+image_sync_to_pixmaps (struct frame *f, struct image *img)
+{
+  if (img->ximg)
+    {
+      x_put_x_image (f, img->ximg, img->pixmap, img->width, img->height);
+      x_destroy_x_image (img->ximg);
+      img->ximg = NULL;
+    }
+  if (img->mask_img)
+    {
+      x_put_x_image (f, img->mask_img, img->mask, img->width, img->height);
+      x_destroy_x_image (img->mask_img);
+      img->mask_img = NULL;
+    }
+}
+#endif
+
+#ifdef HAVE_NTGUI
+/* Create a memory device context for IMG on frame F.  It stores the
+   currently selected GDI object into *PREV for future restoration by
+   image_unget_x_image_or_dc.  */
+
+static XImagePtr_or_DC
+image_get_x_image_or_dc (struct frame *f, struct image *img, bool mask_p,
+			 HGDIOBJ *prev)
+{
+  HDC frame_dc = get_frame_dc (f);
+  XImagePtr_or_DC ximg = CreateCompatibleDC (frame_dc);
+
+  release_frame_dc (f, frame_dc);
+  *prev = SelectObject (ximg, !mask_p ? img->pixmap : img->mask);
+}
+
+static void image_unget_x_image_or_dc (struct frame *img, bool mask_p,
+				       XImagePtr_or_DC ximg, HGDIOBJ prev)
+{
+  SelectObject (ximg, prev);
+  DeleteDC (ximg);
+}
+#else  /* !HAVE_NTGUI */
+/* Get the X image for IMG on frame F.  The resulting X image data
+   should be treated as read-only at least on X.  */
+
+static XImagePtr
+image_get_x_image (struct frame *f, struct image *img, bool mask_p)
+{
+#ifdef HAVE_X_WINDOWS
+  XImagePtr ximg_in_img = !mask_p ? img->ximg : img->mask_img;
+
+  if (ximg_in_img)
+    return ximg_in_img;
+  else
+    return XGetImage (FRAME_X_DISPLAY (f), !mask_p ? img->pixmap : img->mask,
+		      0, 0, img->width, img->height, ~0, ZPixmap);
+#elif defined (HAVE_NS)
+  XImagePtr pixmap = !mask_p ? img->pixmap : img->mask;
+
+  ns_retain_object (pixmap);
+  return pixmap;
+#endif
+}
+
+static void image_unget_x_image (struct image *img, bool mask_p, XImagePtr ximg)
+{
+#ifdef HAVE_X_WINDOWS
+  XImagePtr ximg_in_img = !mask_p ? img->ximg : img->mask_img;
+
+  if (ximg_in_img)
+    eassert (ximg == ximg_in_img);
+  else
+    XDestroyImage (ximg);
+#elif defined (HAVE_NS)
+  ns_release_object (ximg);
+#endif
+}
+#endif	/* !HAVE_NTGUI */
 
 
 /***********************************************************************
@@ -3461,9 +3594,9 @@ xpm_load (struct frame *f, struct image *img)
 				  &xpm_image, &xpm_mask,
 				  &attrs);
 #else
-      rc = XpmReadFileToPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				SSDATA (file), &img->pixmap, &img->mask,
-				&attrs);
+      rc = XpmReadFileToImage (FRAME_X_DISPLAY (f), SSDATA (file),
+			       &img->ximg, &img->mask_img,
+			       &attrs);
 #endif /* HAVE_NTGUI */
     }
   else
@@ -3484,12 +3617,37 @@ xpm_load (struct frame *f, struct image *img)
 					&xpm_image, &xpm_mask,
 					&attrs);
 #else
-      rc = XpmCreatePixmapFromBuffer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				      SSDATA (buffer),
-				      &img->pixmap, &img->mask,
-				      &attrs);
+      rc = XpmCreateImageFromBuffer (FRAME_X_DISPLAY (f), SSDATA (buffer),
+				     &img->ximg, &img->mask_img,
+				     &attrs);
 #endif /* HAVE_NTGUI */
     }
+
+#ifdef HAVE_X_WINDOWS
+  if (rc == XpmSuccess)
+    {
+      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				   img->ximg->width, img->ximg->height,
+				   img->ximg->depth);
+      if (img->pixmap == NO_PIXMAP)
+	{
+	  x_clear_image (f, img);
+	  rc = XpmNoMemory;
+	}
+      else if (img->mask_img)
+	{
+	  img->mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				     img->mask_img->width,
+				     img->mask_img->height,
+				     img->mask_img->depth);
+	  if (img->mask == NO_PIXMAP)
+	    {
+	      x_clear_image (f, img);
+	      rc = XpmNoMemory;
+	    }
+	}
+    }
+#endif
 
   if (rc == XpmSuccess)
     {
@@ -3549,6 +3707,15 @@ xpm_load (struct frame *f, struct image *img)
 #else
       XpmFreeAttributes (&attrs);
 #endif /* HAVE_NTGUI */
+
+#ifdef HAVE_X_WINDOWS
+      /* Maybe fill in the background field while we have ximg handy.  */
+      IMAGE_BACKGROUND (img, f, img->ximg);
+      if (img->mask_img)
+	/* Fill in the background_transparent field while we have the
+	   mask handy.  */
+	image_background_transparent (img, f, img->mask_img);
+#endif
     }
   else
     {
@@ -3847,11 +4014,10 @@ xpm_load_image (struct frame *f,
       goto failure;
     }
 
-  if (!x_create_x_image_and_pixmap (f, width, height, 0,
-				    &ximg, &img->pixmap)
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0)
 #ifndef HAVE_NS
-      || !x_create_x_image_and_pixmap (f, width, height, 1,
-				       &mask_img, &img->mask)
+      || !image_create_x_image_and_pixmap (f, img, width, height, 1,
+					   &mask_img, 1)
 #endif
       )
     {
@@ -3986,8 +4152,7 @@ xpm_load_image (struct frame *f,
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
     IMAGE_BACKGROUND (img, f, ximg);
 
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  image_put_x_image (f, img, ximg, 0);
 #ifndef HAVE_NS
   if (have_mask)
     {
@@ -3995,14 +4160,12 @@ xpm_load_image (struct frame *f,
 	 mask handy.  */
       image_background_transparent (img, f, mask_img);
 
-      x_put_x_image (f, mask_img, img->mask, width, height);
-      x_destroy_x_image (mask_img);
+      image_put_x_image (f, img, mask_img, 1);
     }
   else
     {
       x_destroy_x_image (mask_img);
-      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = NO_PIXMAP;
+      x_clear_image_1 (f, img, CLEAR_IMAGE_MASK);
     }
 #endif
   return 1;
@@ -4400,17 +4563,8 @@ x_to_xcolors (struct frame *f, struct image *img, bool rgb_p)
     memory_full (SIZE_MAX);
   colors = xmalloc (sizeof *colors * img->width * img->height);
 
-#ifndef HAVE_NTGUI
-  /* Get the X image IMG->pixmap.  */
-  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
-		    0, 0, img->width, img->height, ~0, ZPixmap);
-#else
-  /* Load the image into a memory device context.  */
-  hdc = get_frame_dc (f);
-  ximg = CreateCompatibleDC (hdc);
-  release_frame_dc (f, hdc);
-  prev = SelectObject (ximg, img->pixmap);
-#endif /* HAVE_NTGUI */
+  /* Get the X image or create a memory device context for IMG. */
+  ximg = image_get_x_image_or_dc (f, img, 0, &prev);
 
   /* Fill the `pixel' members of the XColor array.  I wished there
      were an easy and portable way to circumvent XGetPixel.  */
@@ -4440,7 +4594,7 @@ x_to_xcolors (struct frame *f, struct image *img, bool rgb_p)
 #endif /* HAVE_X_WINDOWS */
     }
 
-  Destroy_Image (ximg, prev);
+  image_unget_x_image_or_dc (img, 0, ximg, prev);
 
   return colors;
 }
@@ -4505,8 +4659,9 @@ x_from_xcolors (struct frame *f, struct image *img, XColor *colors)
 
   init_color_table ();
 
-  x_create_x_image_and_pixmap (f, img->width, img->height, 0,
-			       &oimg, &pixmap);
+  x_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP | CLEAR_IMAGE_COLORS);
+  image_create_x_image_and_pixmap (f, img, img->width, img->height, 0,
+				   &oimg, 0);
   p = colors;
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x, ++p)
@@ -4517,11 +4672,8 @@ x_from_xcolors (struct frame *f, struct image *img, XColor *colors)
       }
 
   xfree (colors);
-  x_clear_image_1 (f, img, 1, 0, 1);
 
-  x_put_x_image (f, oimg, pixmap, img->width, img->height);
-  x_destroy_x_image (oimg);
-  img->pixmap = pixmap;
+  image_put_x_image (f, img, oimg, 0);
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
@@ -4706,7 +4858,10 @@ x_disable_image (struct frame *f, struct image *img)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 
       Display *dpy = FRAME_X_DISPLAY (f);
-      GC gc = XCreateGC (dpy, img->pixmap, 0, NULL);
+      GC gc;
+
+      image_sync_to_pixmaps (f, img);
+      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
       XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
       XDrawLine (dpy, img->pixmap, gc, 0, 0,
 		 img->width - 1, img->height - 1);
@@ -4781,36 +4936,24 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
   unsigned long bg = 0;
 
   if (img->mask)
-    {
-      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = NO_PIXMAP;
-      img->background_transparent_valid = 0;
-    }
+    x_clear_image_1 (f, img, CLEAR_IMAGE_MASK);
 
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS
   /* Create an image and pixmap serving as mask.  */
-  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
-				    &mask_img, &img->mask);
+  rc = image_create_x_image_and_pixmap (f, img, img->width, img->height, 1,
+					&mask_img, 1);
   if (!rc)
     return;
 #endif /* !HAVE_NS */
-
-  /* Get the X image of IMG->pixmap.  */
-  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap, 0, 0,
-		    img->width, img->height,
-		    ~0, ZPixmap);
 #else
   /* Create the bit array serving as mask.  */
   row_width = (img->width + 7) / 8;
   mask_img = xzalloc (row_width * img->height);
-
-  /* Create a memory device context for IMG->pixmap.  */
-  frame_dc = get_frame_dc (f);
-  ximg = CreateCompatibleDC (frame_dc);
-  release_frame_dc (f, frame_dc);
-  prev = SelectObject (ximg, img->pixmap);
 #endif /* HAVE_NTGUI */
+
+  /* Get the X image or create a memory device context for IMG.  */
+  ximg = image_get_x_image_or_dc (f, img, 0, &prev);
 
   /* Determine the background color of ximg.  If HOW is `(R G B)'
      take that as color.  Otherwise, use the image's background color. */
@@ -4858,9 +5001,8 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
   /* Fill in the background_transparent field while we have the mask handy. */
   image_background_transparent (img, f, mask_img);
 
-  /* Put mask_img into img->mask.  */
-  x_put_x_image (f, mask_img, img->mask, img->width, img->height);
-  x_destroy_x_image (mask_img);
+  /* Put mask_img into the image.  */
+  image_put_x_image (f, img, mask_img, 1);
 #endif /* !HAVE_NS */
 #else
   for (y = 0; y < img->height; ++y)
@@ -4882,7 +5024,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
   xfree (mask_img);
 #endif /* HAVE_NTGUI */
 
-  Destroy_Image (ximg, prev);
+  image_unget_x_image_or_dc (img, 0, ximg, prev);
 }
 
 
@@ -5110,8 +5252,7 @@ pbm_load (struct frame *f, struct image *img)
       goto error;
     }
 
-  if (!x_create_x_image_and_pixmap (f, width, height, 0,
-				    &ximg, &img->pixmap))
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     goto error;
 
   /* Initialize the color hash table.  */
@@ -5248,9 +5389,8 @@ pbm_load (struct frame *f, struct image *img)
     /* Casting avoids a GCC warning.  */
     IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into a pixmap.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
 
   /* X and W32 versions did it here, MAC version above.  ++kfs
      img->width = width;
@@ -5688,8 +5828,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 
   /* Create the X image and pixmap now, so that the work below can be
      omitted if the image is too large for X.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
-				    &img->pixmap))
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     goto error;
 
   /* If image contains simply transparency data, we prefer to
@@ -5801,12 +5940,11 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
      contains an alpha channel.  */
   if (channels == 4
       && !transparent_p
-      && !x_create_x_image_and_pixmap (f, width, height, 1,
-				       &mask_img, &img->mask))
+      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
+					   &mask_img, 1))
     {
       x_destroy_x_image (ximg);
-      Free_Pixmap (FRAME_X_DISPLAY (f), img->pixmap);
-      img->pixmap = NO_PIXMAP;
+      x_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
       goto error;
     }
 
@@ -5880,9 +6018,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
      Casting avoids a GCC warning.  */
   IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into the pixmap, then free the X image and its buffer.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
 
   /* Same for the mask.  */
   if (mask_img)
@@ -5891,8 +6028,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	 mask handy.  Casting avoids a GCC warning.  */
       image_background_transparent (img, f, (XImagePtr_or_DC)mask_img);
 
-      x_put_x_image (f, mask_img, img->mask, img->width, img->height);
-      x_destroy_x_image (mask_img);
+      image_put_x_image (f, img, mask_img, 1);
     }
 
   return 1;
@@ -6429,7 +6565,7 @@ jpeg_load_body (struct frame *f, struct image *img,
     }
 
   /* Create X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     {
       mgr->failure_code = MY_JPEG_CANNOT_CREATE_X;
       sys_longjmp (mgr->setjmp_buffer, 1);
@@ -6496,9 +6632,8 @@ jpeg_load_body (struct frame *f, struct image *img,
     /* Casting avoids a GCC warning.  */
     IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into the pixmap.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
   return 1;
 }
 
@@ -6895,8 +7030,8 @@ tiff_load (struct frame *f, struct image *img)
 
   /* Create the X image and pixmap.  */
   if (! (height <= min (PTRDIFF_MAX, SIZE_MAX) / sizeof *buf / width
-	 && x_create_x_image_and_pixmap (f, width, height, 0,
-					 &ximg, &img->pixmap)))
+	 && image_create_x_image_and_pixmap (f, img, width, height, 0,
+					     &ximg, 0)))
     {
       fn_TIFFClose (tiff);
       return 0;
@@ -6955,9 +7090,8 @@ tiff_load (struct frame *f, struct image *img)
     /* Casting avoids a GCC warning on W32.  */
     IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into the pixmap, then free the X image and its buffer.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
   xfree (buf);
 
   return 1;
@@ -7285,7 +7419,7 @@ gif_load (struct frame *f, struct image *img)
     }
 
   /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     {
       fn_DGifCloseFile (gif);
       return 0;
@@ -7469,9 +7603,8 @@ gif_load (struct frame *f, struct image *img)
     /* Casting avoids a GCC warning.  */
     IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into the pixmap, then free the X image and its buffer.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
 
   return 1;
 }
@@ -7909,8 +8042,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
       int imagedepth = 24; /*MagickGetImageDepth(image_wand);*/
       const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP"; /*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
-                                        &ximg, &img->pixmap))
+      if (!image_create_x_image_and_pixmap (f, img, width, height, imagedepth,
+					    &ximg, 0))
 	{
 #ifdef COLOR_TABLE_SUPPORT
 	  free_color_table ();
@@ -7948,8 +8081,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
       size_t image_height;
 
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      if (!x_create_x_image_and_pixmap (f, width, height, 0,
-                                        &ximg, &img->pixmap))
+      if (!image_create_x_image_and_pixmap (f, img, width, height, 0,
+					    &ximg, 0))
         {
 #ifdef COLOR_TABLE_SUPPORT
 	  free_color_table ();
@@ -8003,10 +8136,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
   img->width  = width;
   img->height = height;
 
-  /* Put the image into the pixmap, then free the X image and its
-     buffer.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
 
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
@@ -8400,7 +8531,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   eassert (fn_gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
 
   /* Try to create a x pixmap to hold the svg pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+  if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     {
       fn_g_object_unref (pixbuf);
       return 0;
@@ -8475,10 +8606,8 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
      Casting avoids a GCC warning.  */
   IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
-  /* Put the image into the pixmap, then free the X image and its
-     buffer.  */
-  x_put_x_image (f, ximg, img->pixmap, width, height);
-  x_destroy_x_image (ximg);
+  /* Put ximg into the image.  */
+  image_put_x_image (f, img, ximg, 0);
 
   return 1;
 
