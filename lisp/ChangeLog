@@ -1,3 +1,20 @@
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (define-coding-system): New coding system
+	properties :inhibit-null-byte-detection,
+	:inhibit-iso-escape-detection, and :prefer-utf-8.
+	(set-buffer-file-coding-system): If :charset-list property of
+	CODING-SYSTEM is `emacs', do not check if CODING-SYSTEM is
+	appropriate for setting.
+
+	* international/mule-cmds.el (select-safe-coding-system): If
+	DEFAULT-CODING-SYSTEM is prefer-utf-8 and the buffer contains
+	multibyte characters, return utf-8 (or one of it's siblings).
+
+	* international/mule-conf.el (prefer-utf-8): New coding system.
+	(file-coding-system-alist): Use prefer-utf-8 as default for Elisp
+	files.
+
 2013-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-el-version): Remove.
