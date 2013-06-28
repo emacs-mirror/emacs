@@ -115,6 +115,10 @@ Christian Limpach and Adrian Robert developed and maintained the
 NeXTstep port of Emacs.
 
 @item
+Stephen Berman wrote @file{todo-mode.el} (based on the original version
+by Oliver Seidel), a package for maintaining @file{TODO} list files.
+
+@item
 Anna M. Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
 
 @item
@@ -1113,10 +1117,6 @@ wrote parts of the IRC client ERC (q.v.).
 
 @item
 Randal Schwartz wrote @file{pp.el}, a pretty-printer for lisp objects.
-
-@item
-Oliver Seidel wrote @file{todo-mode.el}, a package for maintaining
-@file{TODO} list files.
 
 @item
 Manuel Serrano wrote the Flyspell package, which does spell checking
