@@ -14,7 +14,7 @@
 	macros for `flags' arg to x_clear_image_1.
 	(postprocess_image, xpm_load_image, x_build_heuristic_mask)
 	(png_load_body): Use x_clear_image_1 instead of Free_Pixmap.
-	(NO_PIXMAP, XGetImage) [HAVE_NS]: Remove.
+	(ZPixmap, XGetImage) [HAVE_NS]: Remove.
 	(image_get_x_image_or_dc, image_unget_x_image_or_dc)
 	(image_get_x_image, image_unget_x_image): New functions or macros.
 	(image_background, image_background_transparent, x_to_xcolors)
