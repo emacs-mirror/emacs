@@ -1,3 +1,22 @@
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* coding.h (define_coding_undecided_arg_index): New enum.
+	(coding_attr_index): New members
+	coding_attr_undecided_inhibit_null_byte_detection,
+	coding_attr_undecided_inhibit_iso_escape_detection,
+	coding_attr_undecided_prefer_utf_8.
+	(undecided_spec): New struct.
+	(struct coding_system): New member `undecied' of the member
+	`spec'.
+
+	* coding.c (setup_coding_system): Handle CODING->spec.undecided.
+	(detect_coding): Likewise.
+	(detect_coding_system): Likewise.
+	(Fdefine_coding_system_internal): New coding system properties
+	:inhibit-null-byte-detection, :inhibit-iso-escape-detection, and
+	:prefer-utf-8.
+	(syms_of_coding): Adjusted for coding_arg_undecided_max.
+
 2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean up SIGCHLD handling a bit (Bug#14569).
