@@ -1,3 +1,8 @@
+2013-06-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-extend-url-button): Make it work again with
+	gnus-button-push revised at 2011-01-19.
+
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-mark-article-as-read): Fix declaration.
