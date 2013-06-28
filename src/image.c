@@ -2215,7 +2215,8 @@ image_get_x_image (struct frame *f, struct image *img, bool mask_p)
 #endif
 }
 
-static void image_unget_x_image (struct image *img, bool mask_p, XImagePtr ximg)
+static void
+image_unget_x_image (struct image *img, bool mask_p, XImagePtr ximg)
 {
 #ifdef HAVE_X_WINDOWS
   XImagePtr ximg_in_img = !mask_p ? img->ximg : img->mask_img;
