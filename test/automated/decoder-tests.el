@@ -23,11 +23,13 @@
 
 (require 'ert)
 
-;;; Check ASCII optimizing decoder
-
 ;; Directory to hold test data files.
 (defvar decoder-tests-workdir
   (expand-file-name "decoder-tests" temporary-file-directory))
+
+;; Remove all generated test files.
+(defun decoder-tests-remove-files ()
+  (delete-directory decoder-tests-workdir t))
 
 ;; Return the contents (specified by CONTENT-TYPE; ascii, latin, or
 ;; binary) of a test file.
@@ -43,25 +45,16 @@
 	  (t
 	   (error "Invalid file content type: %s" content-type)))))
 
-;; Return the name of test file whose contents specified by
-;; CONTENT-TYPE and whose encoding specified by CODING-SYSTEM.
-(defun decoder-tests-filename (content-type coding-system)
-  (expand-file-name (format "%s-%s" content-type coding-system)
-		    decoder-tests-workdir))
-
-;; Generate a test file whose contents specified by CONTENT-TYPE and
+;; Generate FILE with CONTENTS encoded by CODING-SYSTEM.
 ;; whose encoding specified by CODING-SYSTEM.
-(defun decoder-tests-gen-file (content-type coding-system)
+(defun decoder-tests-gen-file (file contents coding-system)
   (or (file-directory-p decoder-tests-workdir)
       (mkdir decoder-tests-workdir t))
-  (let ((file (decoder-tests-filename content-type coding-system)))
-    (with-temp-file file
-      (set-buffer-file-coding-system coding-system)
-      (insert (decoder-tests-file-contents content-type)))))
-
-;; Remove all generated test files.
-(defun decoder-tests-remove-files ()
-  (delete-directory decoder-tests-workdir t))
+  (setq file (expand-file-name file decoder-tests-workdir))
+  (with-temp-file file
+    (set-buffer-file-coding-system coding-system)
+    (insert contents))
+  file)
 
 ;;; The following three functions are filters for contents of a test
 ;;; file.
@@ -96,6 +89,26 @@
 (defun decoder-tests-add-bom (str)
   (concat "\xfeff" str))
 
+;; Return the name of test file whose contents specified by
+;; CONTENT-TYPE and whose encoding specified by CODING-SYSTEM.
+(defun decoder-tests-filename (content-type coding-system &optional ext)
+  (if ext
+      (expand-file-name (format "%s-%s.%s" content-type coding-system ext)
+			decoder-tests-workdir)
+    (expand-file-name (format "%s-%s" content-type coding-system)
+		      decoder-tests-workdir)))
+
+
+;;; Check ASCII optimizing decoder
+
+;; Generate a test file whose contents specified by CONTENT-TYPE and
+;; whose encoding specified by CODING-SYSTEM.
+(defun decoder-tests-ao-gen-file (content-type coding-system)
+  (let ((file (decoder-tests-filename content-type coding-system)))
+    (decoder-tests-gen-file file 
+			    (decoder-tests-file-contents content-type)
+			    coding-system)))
+
 ;; Test the decoding of a file whose contents and encoding are
 ;; specified by CONTENT-TYPE and WRITE-CODING.  The test passes if the
 ;; file is read by READ-CODING and detected as DETECTED-CODING and the
@@ -127,7 +140,7 @@
   (unwind-protect
       (progn
 	(dolist (eol-type '(unix dos mac))
-	  (decoder-tests-gen-file 'ascii eol-type))
+	  (decoder-tests-ao-gen-file 'ascii eol-type))
 	(should-not (decoder-tests 'ascii 'unix 'undecided 'unix))
 	(should-not (decoder-tests 'ascii 'dos 'undecided 'dos))
 	(should-not (decoder-tests 'ascii 'dos 'dos 'dos))
@@ -147,8 +160,8 @@
       (progn
 	(dolist (coding '("utf-8" "utf-8-with-signature"))
 	  (dolist (eol-type '("unix" "dos" "mac"))
-	    (decoder-tests-gen-file 'latin
-				    (intern (concat coding "-" eol-type)))))
+	    (decoder-tests-ao-gen-file 'latin
+				       (intern (concat coding "-" eol-type)))))
 	(should-not (decoder-tests 'latin 'utf-8-unix 'undecided 'utf-8-unix))
 	(should-not (decoder-tests 'latin 'utf-8-unix 'utf-8-unix 'utf-8-unix))
 	(should-not (decoder-tests 'latin 'utf-8-dos 'undecided 'utf-8-dos))
@@ -177,8 +190,8 @@
   (unwind-protect
       (progn
 	(dolist (eol-type '("unix" "dos" "mac"))
-	  (decoder-tests-gen-file 'binary
-				  (intern (concat "raw-text" "-" eol-type))))
+	  (decoder-tests-ao-gen-file 'binary
+				     (intern (concat "raw-text" "-" eol-type))))
 	(should-not (decoder-tests 'binary 'raw-text-unix 'undecided
 				   'raw-text-unix))
 	(should-not (decoder-tests 'binary 'raw-text-dos 'undecided
@@ -193,6 +206,64 @@
 				   'raw-text-mac 'decoder-tests-lf-to-lflf)))
     (decoder-tests-remove-files)))
 
+
+;;; Check the coding system `prefer-utf-8'.
+
+;; Read FILE.  Check if the encoding was detected as DETECT.  If
+;; PREFER is non-nil, prefer that coding system before reading.
+
+(defun decoder-tests-prefer-utf-8-read (file detect prefer)
+  (if prefer
+      (prefer-coding-system prefer))
+  (with-temp-buffer
+    (insert-file-contents file)
+    (if (eq buffer-file-coding-system detect)
+	nil
+      (format "Invalid detection: %s" buffer-file-coding-system))))
+
+;; Read FILE, modify it, and write it.  Check if the coding system
+;; used for writing was CODING.  If CODING-TAG is non-nil, insert
+;; coding tag with it before writing.  If STR is non-nil, insert it
+;; before writing.
+
+(defun decoder-tests-prefer-utf-8-write (file coding-tag coding
+					      &optional str)
+  (with-temp-buffer
+    (insert-file-contents file)
+    (goto-char (point-min))
+    (if coding-tag
+	(insert (format ";; -*- coding: %s; -*-\n" coding-tag))
+      (insert ";;\n"))
+    (if str
+	(insert str))
+    (write-file (decoder-tests-filename 'test 'test "el"))
+    (if (coding-system-equal buffer-file-coding-system coding)
+	nil
+      (format "Incorrect encoding: %s" last-coding-system-used))))
+
+(ert-deftest ert-test-decoder-prefer-utf-8 ()
+  (unwind-protect
+      (let ((ascii (decoder-tests-gen-file "ascii.el"
+					   (decoder-tests-file-contents 'ascii)
+					   'unix))
+	    (latin (decoder-tests-gen-file "utf-8.el"
+					   (decoder-tests-file-contents 'latin)
+					   'utf-8)))
+	(should-not (decoder-tests-prefer-utf-8-read
+		     ascii 'prefer-utf-8-unix nil))
+	(should-not (decoder-tests-prefer-utf-8-read
+		     latin 'utf-8-unix nil))
+	(should-not (decoder-tests-prefer-utf-8-read
+		     latin 'utf-8-unix 'iso-8859-1))
+	(should-not (decoder-tests-prefer-utf-8-read
+		     latin 'utf-8-unix 'sjis))
+	(should-not (decoder-tests-prefer-utf-8-write
+		     ascii nil 'prefer-utf-8-unix))
+	(should-not (decoder-tests-prefer-utf-8-write
+		     ascii 'iso-8859-1 'iso-8859-1-unix))
+	(should-not (decoder-tests-prefer-utf-8-write
+		     ascii nil 'utf-8-unix "À")))
+    (decoder-tests-remove-files)))
 
 
 ;;; The following is for benchmark testing of the new optimized
