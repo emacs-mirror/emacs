@@ -1,5 +1,7 @@
 2013-06-28  Ivan Kanis  <ivan@kanis.fr>
 
+	* net/shr.el (shr-render-region): New function.
+
 	* net/eww.el: Autoload `eww-browse-url'.
 
 2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>

@@ -166,6 +166,17 @@ cid: URL as the argument.")
      (libxml-parse-html-region (point-min) (point-max))))
   (goto-char (point-min)))
 
+(defun shr-render-region (begin end &optional buffer)
+  "Display the HTML rendering of the region between BEGIN and END."
+  (interactive "r")
+  (unless (fboundp 'libxml-parse-html-region)
+    (error "This function requires Emacs to be compiled with libxml2"))
+  (with-current-buffer (or buffer (current-buffer))
+    (let ((dom (libxml-parse-html-region begin end)))
+      (delete-region begin end)
+      (goto-char begin)
+      (shr-insert-document dom))))
+
 (defun shr-visit-file (file)
   "Parse FILE as an HTML document, and render it in a new buffer."
   (interactive "fHTML file name: ")
