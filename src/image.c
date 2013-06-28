@@ -4657,7 +4657,6 @@ x_from_xcolors (struct frame *f, struct image *img, XColor *colors)
 {
   int x, y;
   XImagePtr oimg = NULL;
-  Pixmap pixmap;
   XColor *p;
 
   init_color_table ();

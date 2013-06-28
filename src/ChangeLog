@@ -1,3 +1,7 @@
+2013-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (x_from_xcolors): Remove unused local.
+
 2013-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	Defer image data transfer between X client and server until actual
