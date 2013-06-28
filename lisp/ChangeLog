@@ -1,3 +1,7 @@
+2013-06-28  Ivan Kanis  <ivan@kanis.fr>
+
+	* net/eww.el: Autoload `eww-browse-url'.
+
 2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* emacs-lisp/package-x.el (package-upload-buffer-internal): Adapt
