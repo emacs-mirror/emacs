@@ -732,7 +732,26 @@ decoding.  This attribute has a meaning only when `:coding-type' is
 
 VALUE is a symbol representing the registered CCL program used for
 encoding.  This attribute has a meaning only when `:coding-type' is
-`ccl'."
+`ccl'.
+
+:inhibit-null-byte-detection
+
+VALUE non-nil means Emacs ignore null bytes on code detection.
+See the variable `inhibit-null-byte-detection'.  This attribute
+has a meaning only when `:coding-type' is `undecided'.
+
+:inhibit-iso-escape-detection
+
+VALUE non-nil means Emacs ignores ISO-2022 escape sequences on
+code detection.  See the variable `inhibit-iso-escape-detection'.
+This attribute has a meaning only when `:coding-type' is
+`undecided'.
+
+:prefer-utf-8
+
+VALUE non-nil means Emacs prefers UTF-8 on code detection for
+non-ASCII files.  This attribute has a meaning only when
+`:coding-type' is `undecided'."
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -761,7 +780,11 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				   ((eq coding-type 'ccl)
 				    '(:ccl-decoder
 				      :ccl-encoder
-				      :valids))))))
+				      :valids))
+				   ((eq coding-type 'undecided)
+				    '(:inhibit-null-byte-detection
+				      :inhibit-iso-escape-detection
+				      :prefer-utf-8))))))
 
     (dolist (slot common-attrs)
       (setcdr slot (plist-get props (car slot))))
@@ -1236,7 +1259,9 @@ just set the variable `buffer-file-coding-system' directly."
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
-  (when (called-interactively-p 'interactive)
+  (when (and (called-interactively-p 'interactive)
+	     (not (memq 'emacs (coding-system-get coding-system
+						  :charset-list))))
     ;; Check whether save would succeed, and jump to the offending char(s)
     ;; if not.
     (let ((css (find-coding-systems-region (point-min) (point-max))))
