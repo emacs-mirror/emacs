@@ -334,21 +334,17 @@ the @import directive."
 
 (defun manual-pdf (texi-file dest)
   "Run texi2pdf on TEXI-FILE, emitting pdf output to DEST."
-  (call-process "texi2pdf" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		texi-file "-o" dest))
+  (let ((default-directory (file-name-directory texi-file)))
+    (call-process "texi2pdf" nil nil nil
+		  "-I" "../emacs" "-I" "../misc"
+		  texi-file "-o" dest)))
 
 (defun manual-ps (texi-file dest)
   "Generate a PostScript version of TEXI-FILE as DEST."
-  (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi")))
+  (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
+	(default-directory (file-name-directory texi-file)))
     (call-process "texi2dvi" nil nil nil
-		  "-I" (expand-file-name "../emacs"
-					 (file-name-directory texi-file))
-		  "-I" (expand-file-name "../misc"
-					 (file-name-directory texi-file))
+		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dvi-dest)
     (call-process "dvips" nil nil nil dvi-dest "-o" dest)
     (delete-file dvi-dest)

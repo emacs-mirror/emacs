@@ -4,6 +4,8 @@
 	(manual-txt): Remove.
 	(manual-pdf): Doc fix.
 	(manual-ps): Rename from manual-dvi.
+	(manual-pdf, manual-ps): Work in the directory with the texi file,
+	so that TeX intermediate files go there rather than to PWD.
 
 2013-06-15  Xue Fuqiao  <xfq.free@gmail.com>
 
