@@ -1180,8 +1180,7 @@
 		31172ABA17750F9D009488E5 /* thxc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = thxc.c; sourceTree = "<group>"; };
 		31172ABB177512F6009488E5 /* prmci3xc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prmci3xc.c; sourceTree = "<group>"; };
 		31172ABC1775131C009488E5 /* prmci6xc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prmci6xc.c; sourceTree = "<group>"; };
-		31172ABE1775164F009488E5 /* prmci6xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci6xc.h; sourceTree = "<group>"; };
-		31172ABF17751663009488E5 /* prmci3xc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmci3xc.h; sourceTree = "<group>"; };
+		31172ABE1775164F009488E5 /* prmcxc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prmcxc.h; sourceTree = "<group>"; };
 		31172AC017752253009488E5 /* protxc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = protxc.c; sourceTree = "<group>"; };
 		311F2F5017398AD500C15B6A /* boot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = boot.h; sourceTree = "<group>"; };
 		311F2F5117398AE900C15B6A /* bt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bt.h; sourceTree = "<group>"; };
@@ -1716,7 +1715,6 @@
 		31A47BA6156C1E620039B1C2 /* I3 */ = {
 			isa = PBXGroup;
 			children = (
-				31172ABF17751663009488E5 /* prmci3xc.h */,
 				31172ABB177512F6009488E5 /* prmci3xc.c */,
 				31A47BA5156C1E5E0039B1C2 /* ssixi3.c */,
 			);
@@ -1726,7 +1724,6 @@
 		31A47BA7156C1E6E0039B1C2 /* I6 */ = {
 			isa = PBXGroup;
 			children = (
-				31172ABE1775164F009488E5 /* prmci6xc.h */,
 				31172ABC1775131C009488E5 /* prmci6xc.c */,
 				3104AFA5156D27E7000A585A /* ssixi6.c */,
 			);
@@ -1903,6 +1900,7 @@
 			children = (
 				31A47BA7156C1E6E0039B1C2 /* I6 */,
 				31A47BA6156C1E620039B1C2 /* I3 */,
+				31172ABE1775164F009488E5 /* prmcxc.h */,
 				31EEAC4C156AB3B000714D05 /* lockix.c */,
 				31EEAC4F156AB3E300714D05 /* protix.c */,
 				31172AC017752253009488E5 /* protxc.c */,
