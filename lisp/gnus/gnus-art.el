@@ -7866,7 +7866,9 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (let (gnus-article-mouse-face widget-mouse-face)
 	    (while points
 	      (gnus-article-add-button (pop points) (pop points)
-				       'gnus-button-push beg)))
+				       'gnus-button-push
+				       (list beg (assq 'gnus-button-url-regexp
+						       gnus-button-alist)))))
 	  (let ((overlay (gnus-make-overlay start end)))
 	    (gnus-overlay-put overlay 'evaporate t)
 	    (gnus-overlay-put overlay 'gnus-button-url

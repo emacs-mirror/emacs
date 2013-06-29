@@ -6448,10 +6448,10 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
                      (call-interactively `(lambda (arg)
                                             (interactive ,prop)
                                             arg))
-                   (read
-                    (read-string prompt nil
-                                 'set-variable-value-history
-				 (format "%S" (symbol-value var))))))))
+                   (read-from-minibuffer prompt nil
+                                         read-expression-map t
+                                         'set-variable-value-history
+                                         (format "%S" (symbol-value var)))))))
      (list var val current-prefix-arg)))
 
   (and (custom-variable-p variable)

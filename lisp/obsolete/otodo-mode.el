@@ -6,6 +6,7 @@
 ;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
 ;; Created: 2 Aug 1997
 ;; Keywords: calendar, todo
+;; Obsolete-since: 24.4
 
 ;; This file is part of GNU Emacs.
 

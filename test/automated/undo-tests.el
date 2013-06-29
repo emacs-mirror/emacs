@@ -1,6 +1,6 @@
 ;;; undo-tests.el --- Tests of primitive-undo
 
-;; Copyright (C) 2012  Aaron S. Hawley
+;; Copyright (C) 2012-2013 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 
@@ -139,26 +139,6 @@
                      (undo-more 2)
                      (undo)
                      (buffer-string))))))
-
-(ert-deftest undo-test3 ()
-  "Test modtime with \\[undo] command."
-  (let ((tmpfile (make-temp-file "undo-test3")))
-    (with-temp-file tmpfile
-      (let ((buffer-file-name tmpfile))
-        (buffer-enable-undo)
-        (set (make-local-variable 'make-backup-files) nil)
-        (undo-boundary)
-        (insert ?\s)
-        (undo-boundary)
-        (basic-save-buffer)
-        (insert ?\t)
-        (undo)
-        (should
-         (string-equal (buffer-string)
-                       (progn
-                         (undo)
-                         (buffer-string)))))
-      (delete-file tmpfile))))
 
 (ert-deftest undo-test4 ()
   "Test \\[undo] of \\[flush-lines]."

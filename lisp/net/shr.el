@@ -37,7 +37,7 @@
 (defgroup shr nil
   "Simple HTML Renderer"
   :version "24.1"
-  :group 'mail)
+  :group 'hypermedia)
 
 (defcustom shr-max-image-proportion 0.9
   "How big pictures displayed are in relation to the window they're in.
@@ -93,6 +93,12 @@ Alternative suggestions are:
   :type 'string
   :group 'shr)
 
+(defcustom shr-external-browser 'browse-url-default-browser
+  "Function used to launch an external browser."
+  :version "24.4"
+  :group 'shr
+  :type 'function)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -138,7 +144,7 @@ cid: URL as the argument.")
     (define-key map [backtab] 'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "I" 'shr-insert-image)
-    (define-key map "u" 'shr-copy-url)
+    (define-key map "w" 'shr-copy-url)
     (define-key map "v" 'shr-browse-url)
     (define-key map "o" 'shr-save-contents)
     (define-key map "\r" 'shr-browse-url)
@@ -159,6 +165,17 @@ cid: URL as the argument.")
    (with-current-buffer buffer
      (libxml-parse-html-region (point-min) (point-max))))
   (goto-char (point-min)))
+
+(defun shr-render-region (begin end &optional buffer)
+  "Display the HTML rendering of the region between BEGIN and END."
+  (interactive "r")
+  (unless (fboundp 'libxml-parse-html-region)
+    (error "This function requires Emacs to be compiled with libxml2"))
+  (with-current-buffer (or buffer (current-buffer))
+    (let ((dom (libxml-parse-html-region begin end)))
+      (delete-region begin end)
+      (goto-char begin)
+      (shr-insert-document dom))))
 
 (defun shr-visit-file (file)
   "Parse FILE as an HTML document, and render it in a new buffer."
@@ -639,9 +656,10 @@ size, and full-buffer size."
 	    (forward-line 1)
 	  (goto-char end))))))
 
-(defun shr-browse-url ()
-  "Browse the URL under point."
-  (interactive)
+(defun shr-browse-url (&optional external)
+  "Browse the URL under point.
+If EXTERNAL, browse the URL using `shr-external-browser'."
+  (interactive "P")
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
      ((not url)
@@ -649,7 +667,9 @@ size, and full-buffer size."
      ((string-match "^mailto:" url)
       (browse-url-mail url))
      (t
-      (browse-url url)))))
+      (if external
+	  (funcall shr-external-browser url)
+	(browse-url url))))))
 
 (defun shr-save-contents (directory)
   "Save the contents from URL in a file."
@@ -741,34 +761,18 @@ size, and full-buffer size."
 (defun shr-rescale-image (data &optional force)
   "Rescale DATA, if too big, to fit the current buffer.
 If FORCE, rescale the image anyway."
-  (let ((image (create-image data nil t :ascent 100)))
-    (if (or (not (fboundp 'imagemagick-types))
-	    (not (get-buffer-window (current-buffer))))
-	image
-      (let* ((size (image-size image t))
-	     (width (car size))
-	     (height (cdr size))
-	     (edges (window-inside-pixel-edges
-		     (get-buffer-window (current-buffer))))
-	     (window-width (truncate (* shr-max-image-proportion
-					(- (nth 2 edges) (nth 0 edges)))))
-	     (window-height (truncate (* shr-max-image-proportion
-					 (- (nth 3 edges) (nth 1 edges)))))
-	     scaled-image)
-	(when (or force
-		  (> height window-height))
-	  (setq image (or (create-image data 'imagemagick t
-					:height window-height
-					:ascent 100)
-			  image))
-	  (setq size (image-size image t)))
-	(when (> (car size) window-width)
-	  (setq image (or
-		       (create-image data 'imagemagick t
-				     :width window-width
-				     :ascent 100)
-		       image)))
-	image))))
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      (create-image data nil t :ascent 100)
+    (let ((edges (window-inside-pixel-edges
+		  (get-buffer-window (current-buffer)))))
+      (create-image
+       data 'imagemagick t
+       :ascent 100
+       :max-width (truncate (* shr-max-image-proportion
+			       (- (nth 2 edges) (nth 0 edges))))
+       :max-height (truncate (* shr-max-image-proportion
+				(- (nth 3 edges) (nth 1 edges))))))))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))
@@ -1612,27 +1616,6 @@ ones, in case fg and bg are nil."
 	(setq max (max max (+ (shr-count (cdr row) 'td)
 			      (shr-count (cdr row) 'th))))))
     max))
-
-;; Emacs less than 24.3
-(unless (fboundp 'add-face-text-property)
-  (defun add-face-text-property (beg end face &optional appendp object)
-    "Combine FACE BEG and END."
-    (let ((b beg))
-      (while (< b end)
-	(let ((oldval (get-text-property b 'face)))
-	  (put-text-property
-	   b (setq b (next-single-property-change b 'face nil end))
-	   'face (cond ((null oldval)
-			face)
-		       ((and (consp oldval)
-			     (not (keywordp (car oldval))))
-			(if appendp
-			    (nconc oldval (list face))
-			  (cons face oldval)))
-		       (t
-			(if appendp
-			    (list oldval face)
-			  (list face oldval))))))))))
 
 (provide 'shr)
 

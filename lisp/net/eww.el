@@ -40,6 +40,19 @@
   "Header line format.
 - %t is replaced by the title.
 - %u is replaced by the URL."
+  :version "24.4"
+  :group 'eww
+  :type 'string)
+
+(defcustom eww-search-prefix "https://duckduckgo.com/html/?q="
+  "Prefix URL to search engine"
+  :version "24.4"
+  :group 'eww
+  :type 'string)
+
+(defcustom eww-download-path "~/Downloads/"
+  "Path where files will downloaded."
+  :version "24.4"
   :group 'eww
   :type 'string)
 
@@ -79,6 +92,7 @@
 (defvar eww-current-title ""
   "Title of current page.")
 (defvar eww-history nil)
+(defvar eww-history-position 0)
 
 (defvar eww-next-url nil)
 (defvar eww-previous-url nil)
@@ -89,10 +103,21 @@
 
 ;;;###autoload
 (defun eww (url)
-  "Fetch URL and render the page."
-  (interactive "sUrl: ")
-  (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
-    (setq url (concat "http://" url)))
+  "Fetch URL and render the page.
+If the input doesn't look like an URL or a domain name, the
+word(s) will be searched for via `eww-search-prefix'."
+  (interactive "sEnter URL or keywords: ")
+  (if (and (= (length (split-string url)) 1)
+           (> (length (split-string url "\\.")) 1))
+      (progn
+        (unless (string-match-p "\\`[a-zA-Z][-a-zA-Z0-9+.]*://" url)
+          (setq url (concat "http://" url)))
+        ;; some site don't redirect final /
+        (when (string= (url-filename (url-generic-parse-url url)) "")
+          (setq url (concat url "/"))))
+    (unless (string-match-p "\\'file:" url)
+      (setq url (concat eww-search-prefix
+                        (replace-regexp-in-string " " "+" url)))))
   (url-retrieve url 'eww-render (list url)))
 
 ;;;###autoload
@@ -135,6 +160,7 @@
 	    (eww-display-image))
 	   (t
 	    (eww-display-raw charset)))
+	  (setq eww-history-position 0)
 	  (cond
 	   (point
 	    (goto-char point))
@@ -164,7 +190,7 @@
 	(pt (point)))
     (or (and html-p
 	     (re-search-forward
-	      "<meta[\t\n\r ]+[^>]*charset=\"?\\([^\t\n\r \"/>]+\\)" nil t)
+	      "<meta[\t\n\r ]+[^>]*charset=\"?\\([^\t\n\r \"/>]+\\)[\\\"'.*]" nil t)
 	     (goto-char pt)
 	     (match-string 1))
 	(and (looking-at
@@ -284,10 +310,11 @@
 
 (defun eww-setup-buffer ()
   (pop-to-buffer (get-buffer-create "*eww*"))
-  (remove-overlays)
   (let ((inhibit-read-only t))
+    (remove-overlays)
     (erase-buffer))
-  (eww-mode))
+  (unless (eq major-mode 'eww-mode)
+    (eww-mode)))
 
 (defvar eww-mode-map
   (let ((map (make-sparse-keymap)))
@@ -300,10 +327,35 @@
     (define-key map "\177" 'scroll-down-command)
     (define-key map " " 'scroll-up-command)
     (define-key map "l" 'eww-back-url)
+    (define-key map "f" 'eww-forward-url)
     (define-key map "n" 'eww-next-url)
     (define-key map "p" 'eww-previous-url)
     (define-key map "u" 'eww-up-url)
     (define-key map "t" 'eww-top-url)
+    (define-key map "&" 'eww-browse-with-external-browser)
+    (define-key map "d" 'eww-download)
+    (define-key map "w" 'eww-copy-page-url)
+    (define-key map "C" 'url-cookie-list)
+
+    (define-key map "b" 'eww-add-bookmark)
+    (define-key map "B" 'eww-list-bookmarks)
+    (define-key map [(meta n)] 'eww-next-bookmark)
+    (define-key map [(meta p)] 'eww-previous-bookmark)
+
+    (easy-menu-define nil map ""
+      '("eww"
+	["Quit" eww-quit t]
+	["Reload" eww-reload t]
+	["Back to previous page" eww-back-url
+	 :active (not (zerop (length eww-history)))]
+	["Forward to next page" eww-forward-url
+	 :active (not (zerop eww-history-position))]
+	["Browse with external browser" eww-browse-with-external-browser t]
+	["Download" eww-download t]
+	["Copy page URL" eww-copy-page-url t]
+	["Add bookmark" eww-add-bookmark t]
+	["List bookmarks" eww-copy-page-url t]
+	["List cookies" url-cookie-list t]))
     map))
 
 (define-derived-mode eww-mode nil "eww"
@@ -313,14 +365,24 @@
   (set (make-local-variable 'eww-current-url) 'author)
   (set (make-local-variable 'browse-url-browser-function) 'eww-browse-url)
   (set (make-local-variable 'after-change-functions) 'eww-process-text-input)
+  (set (make-local-variable 'eww-history) nil)
+  (set (make-local-variable 'eww-history-position) 0)
+  (buffer-disable-undo)
   ;;(setq buffer-read-only t)
   )
 
+(defun eww-save-history ()
+  (push (list :url eww-current-url
+	      :title eww-current-title
+	      :point (point)
+	      :text (buffer-string))
+	eww-history))
+
+;;;###autoload
 (defun eww-browse-url (url &optional new-window)
   (when (and (equal major-mode 'eww-mode)
 	     eww-current-url)
-    (push (list eww-current-url (point))
-	  eww-history))
+    (eww-save-history))
   (eww url))
 
 (defun eww-quit ()
@@ -332,10 +394,27 @@
 (defun eww-back-url ()
   "Go to the previously displayed page."
   (interactive)
-  (when (zerop (length eww-history))
+  (when (>= eww-history-position (length eww-history))
     (error "No previous page"))
-  (let ((prev (pop eww-history)))
-    (url-retrieve (car prev) 'eww-render (list (car prev) (cadr prev)))))
+  (eww-save-history)
+  (setq eww-history-position (+ eww-history-position 2))
+  (eww-restore-history (elt eww-history (1- eww-history-position))))
+
+(defun eww-forward-url ()
+  "Go to the next displayed page."
+  (interactive)
+  (when (zerop eww-history-position)
+    (error "No next page"))
+  (eww-save-history)
+  (eww-restore-history (elt eww-history (1- eww-history-position))))
+
+(defun eww-restore-history (elem)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert (plist-get elem :text))
+    (goto-char (plist-get elem :point))
+    (setq eww-current-url (plist-get elem :url)
+	  eww-current-title (plist-get elem :title))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
@@ -389,12 +468,14 @@ appears in a <link> or <a> tag."
 (defvar eww-submit-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\r" 'eww-submit)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defvar eww-checkbox-map
   (let ((map (make-sparse-keymap)))
     (define-key map [space] 'eww-toggle-checkbox)
     (define-key map "\r" 'eww-toggle-checkbox)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defvar eww-text-map
@@ -402,6 +483,7 @@ appears in a <link> or <a> tag."
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'eww-submit)
     (define-key map [(control a)] 'eww-beginning-of-text)
+    (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [(control e)] 'eww-end-of-text)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
@@ -411,6 +493,7 @@ appears in a <link> or <a> tag."
   (let ((map (make-keymap)))
     (set-keymap-parent map text-mode-map)
     (define-key map "\r" 'forward-line)
+    (define-key map [(control c) (control c)] 'eww-submit)
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     map))
@@ -418,6 +501,7 @@ appears in a <link> or <a> tag."
 (defvar eww-select-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\r" 'eww-change-select)
+    (define-key map [(control c) (control c)] 'eww-submit)
     map))
 
 (defun eww-beginning-of-text ()
@@ -809,6 +893,221 @@ appears in a <link> or <a> tag."
 	  eww-current-url)
 	"?"
 	(mm-url-encode-www-form-urlencoded values))))))
+
+(defun eww-browse-with-external-browser ()
+  "Browse the current URL with an external browser.
+The browser to used is specified by the `shr-external-browser' variable."
+  (interactive)
+  (funcall shr-external-browser eww-current-url))
+
+(defun eww-copy-page-url ()
+  (interactive)
+  (message "%s" eww-current-url)
+  (kill-new eww-current-url))
+
+(defun eww-download ()
+  "Download URL under point to `eww-download-directory'."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (if (not url)
+        (message "No URL under point")
+      (url-retrieve url 'eww-download-callback (list url)))))
+
+(defun eww-download-callback (status url)
+  (unless (plist-get status :error)
+    (let* ((obj (url-generic-parse-url url))
+           (path (car (url-path-and-query obj)))
+           (file (eww-make-unique-file-name (file-name-nondirectory path)
+					    eww-download-path)))
+      (write-file file)
+      (message "Saved %s" file))))
+
+(defun eww-make-unique-file-name (file directory)
+    (cond
+     ((zerop (length file))
+      (setq file "!"))
+     ((string-match "\\`[.]" file)
+      (setq file (concat "!" file))))
+    (let ((base file)
+	  (count 1))
+      (while (file-exists-p (expand-file-name file directory))
+	(setq file
+	      (if (string-match "\\`\\(.*\\)\\([.][^.]+\\)" file)
+		  (format "%s(%d)%s" (match-string 1 file)
+			  count (match-string 2 file))
+		(format "%s(%d)" file count)))
+	(setq count (1+ count)))
+      (expand-file-name file directory)))
+
+;;; Bookmarks code
+
+(defvar eww-bookmarks nil)
+
+(defun eww-add-bookmark ()
+  "Add the current page to the bookmarks."
+  (interactive)
+  (eww-read-bookmarks)
+  (dolist (bookmark eww-bookmarks)
+    (when (equal eww-current-url
+		 (plist-get bookmark :url))
+      (error "Already bookmarked")))
+  (let ((title (replace-regexp-in-string "[\n\t\r]" " " eww-current-title)))
+    (setq title (replace-regexp-in-string "\\` +\\| +\\'" "" title))
+    (push (list :url eww-current-url
+		:title title
+		:time (current-time-string))
+	  eww-bookmarks))
+  (eww-write-bookmarks)
+  (message "Bookmarked %s (%s)" eww-current-url eww-current-title))
+
+(defun eww-write-bookmarks ()
+  (with-temp-file (expand-file-name "eww-bookmarks" user-emacs-directory)
+    (insert ";; Auto-generated file; don't edit\n")
+    (pp eww-bookmarks (current-buffer))))
+
+(defun eww-read-bookmarks ()
+  (let ((file (expand-file-name "eww-bookmarks" user-emacs-directory)))
+    (setq eww-bookmarks
+	  (unless (zerop (or (nth 7 (file-attributes file)) 0))
+	    (with-temp-buffer
+	      (insert-file-contents file)
+	      (read (current-buffer)))))))
+
+(defun eww-list-bookmarks ()
+  "Display the bookmarks."
+  (interactive)
+  (eww-bookmark-prepare)
+  (pop-to-buffer "*eww bookmarks*"))
+
+(defun eww-bookmark-prepare ()
+  (eww-read-bookmarks)
+  (when (null eww-bookmarks)
+    (error "No bookmarks are defined"))
+  (set-buffer (get-buffer-create "*eww bookmarks*"))
+  (eww-bookmark-mode)
+  (let ((format "%-40s %s")
+	(inhibit-read-only t)
+	start url)
+    (erase-buffer)
+    (setq header-line-format (concat " " (format format "URL" "Title")))
+    (dolist (bookmark eww-bookmarks)
+      (setq start (point))
+      (setq url (plist-get bookmark :url))
+      (when (> (length url) 40)
+	(setq url (substring url 0 40)))
+      (insert (format format url
+		      (plist-get bookmark :title))
+	      "\n")
+      (put-text-property start (1+ start) 'eww-bookmark bookmark))
+    (goto-char (point-min))))
+
+(defvar eww-bookmark-kill-ring nil)
+
+(defun eww-bookmark-kill ()
+  "Kill the current bookmark."
+  (interactive)
+  (let* ((start (line-beginning-position))
+	 (bookmark (get-text-property start 'eww-bookmark))
+	 (inhibit-read-only t))
+    (unless bookmark
+      (error "No bookmark on the current line"))
+    (forward-line 1)
+    (push (buffer-substring start (point)) eww-bookmark-kill-ring)
+    (delete-region start (point))
+    (setq eww-bookmarks (delq bookmark eww-bookmarks))
+    (eww-write-bookmarks)))
+
+(defun eww-bookmark-yank ()
+  "Yank a previously killed bookmark to the current line."
+  (interactive)
+  (unless eww-bookmark-kill-ring
+    (error "No previously killed bookmark"))
+  (beginning-of-line)
+  (let ((inhibit-read-only t)
+	(start (point))
+	bookmark)
+    (insert (pop eww-bookmark-kill-ring))
+    (setq bookmark (get-text-property start 'eww-bookmark))
+    (if (= start (point-min))
+	(push bookmark eww-bookmarks)
+      (let ((line (count-lines start (point))))
+	(setcdr (nthcdr (1- line) eww-bookmarks)
+		(cons bookmark (nthcdr line eww-bookmarks)))))
+    (eww-write-bookmarks)))
+
+(defun eww-bookmark-quit ()
+  "Kill the current buffer."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun eww-bookmark-browse ()
+  "Browse the bookmark under point in eww."
+  (interactive)
+  (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
+    (unless bookmark
+      (error "No bookmark on the current line"))
+    ;; We wish to leave this window, but if it's the only window here,
+    ;; just let it remain.
+    (ignore-errors
+      (delete-window))
+    (eww (plist-get bookmark :url))))
+
+(defun eww-next-bookmark ()
+  "Go to the next bookmark in the list."
+  (interactive)
+  (let ((first nil)
+	bookmark)
+    (unless (get-buffer "*eww bookmarks*")
+      (setq first t)
+      (eww-bookmark-prepare))
+    (with-current-buffer (get-buffer "*eww bookmarks*")
+      (when (and (not first)
+		 (not (eobp)))
+	(forward-line 1))
+      (setq bookmark (get-text-property (line-beginning-position)
+					'eww-bookmark))
+      (unless bookmark
+	(error "No next bookmark")))
+    (eww-browse-url (plist-get bookmark :url))))
+
+(defun eww-previous-bookmark ()
+  "Go to the previous bookmark in the list."
+  (interactive)
+  (let ((first nil)
+	bookmark)
+    (unless (get-buffer "*eww bookmarks*")
+      (setq first t)
+      (eww-bookmark-prepare))
+    (with-current-buffer (get-buffer "*eww bookmarks*")
+      (if first
+	  (goto-char (point-max))
+	(beginning-of-line))
+      ;; On the final line.
+      (when (eolp)
+	(forward-line -1))
+      (if (bobp)
+	  (error "No previous bookmark")
+	(forward-line -1))
+      (setq bookmark (get-text-property (line-beginning-position)
+					'eww-bookmark)))
+    (eww-browse-url (plist-get bookmark :url))))
+
+(defvar eww-bookmark-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'eww-bookmark-quit)
+    (define-key map [(control k)] 'eww-bookmark-kill)
+    (define-key map [(control y)] 'eww-bookmark-yank)
+    (define-key map "\r" 'eww-bookmark-browse)
+    map))
+
+(define-derived-mode eww-bookmark-mode nil "eww bookmarks"
+  "Mode for listing bookmarks.
+
+\\{eww-bookmark-mode-map}"
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+	truncate-lines t))
 
 (provide 'eww)
 

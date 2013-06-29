@@ -230,7 +230,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
                                             `(space :align-to ,(+ x shift)))
                                 (cdr cols))))
               (setq x (+ x shift)))))
-	(if (> pad-right 0)
+	(if (>= pad-right 0)
 	    (push (propertize " "
 			      'display `(space :align-to ,next-x)
 			      'face 'fixed-pitch)

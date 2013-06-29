@@ -4653,6 +4653,15 @@ image.  If only one of them is specified, the other one will be
 calculated so as to preserve the aspect ratio.  If both are specified,
 aspect ratio may not be preserved.
 
+@item :max-width, :max-height
+The @code{:max-width} and @code{:max-height} keywords are used for
+scaling if the size of the image of the image exceeds these values.
+If @code{:width} is set it will have presedence over @code{max-width},
+and if @code{:height} is set it will have presedence over
+@code{max-height}, but you can otherwise mix these keywords as you
+wish.  @code{:max-width} and @code{:max-height} will always preserve
+the aspec ratio.
+
 @item :rotation
 Specifies a rotation angle in degrees.
 

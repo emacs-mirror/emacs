@@ -190,8 +190,17 @@
 				   cipher-algorithm digest-algorithm
 				   compress-algorithm)
   "Return a context object."
+  (unless protocol
+    (setq protocol 'OpenPGP))
+  (unless (memq protocol '(OpenPGP CMS))
+    (signal 'epg-error (list "unknown protocol" protocol)))
   (cons 'epg-context
-	(vector (or protocol 'OpenPGP) armor textmode include-certs
+	(vector protocol
+		(if (eq protocol 'OpenPGP)
+		    epg-gpg-program
+		  epg-gpgsm-program)
+		epg-gpg-home-directory
+		armor textmode include-certs
 		cipher-algorithm digest-algorithm compress-algorithm
 		(list #'epg-passphrase-callback-function)
 		nil
@@ -203,97 +212,109 @@
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 0))
 
+(defun epg-context-program (context)
+  "Return the gpg or gpgsm executable used within CONTEXT."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (aref (cdr context) 1))
+
+(defun epg-context-home-directory (context)
+  "Return the GnuPG home directory used in CONTEXT."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (aref (cdr context) 2))
+
 (defun epg-context-armor (context)
   "Return t if the output should be ASCII armored in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 1))
+  (aref (cdr context) 3))
 
 (defun epg-context-textmode (context)
   "Return t if canonical text mode should be used in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 2))
+  (aref (cdr context) 4))
 
 (defun epg-context-include-certs (context)
   "Return how many certificates should be included in an S/MIME signed message."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 3))
+  (aref (cdr context) 5))
 
 (defun epg-context-cipher-algorithm (context)
   "Return the cipher algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 4))
+  (aref (cdr context) 6))
 
 (defun epg-context-digest-algorithm (context)
   "Return the digest algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 5))
+  (aref (cdr context) 7))
 
 (defun epg-context-compress-algorithm (context)
   "Return the compress algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 6))
+  (aref (cdr context) 8))
 
 (defun epg-context-passphrase-callback (context)
   "Return the function used to query passphrase."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 7))
+  (aref (cdr context) 9))
 
 (defun epg-context-progress-callback (context)
   "Return the function which handles progress update."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 8))
+  (aref (cdr context) 10))
 
 (defun epg-context-signers (context)
   "Return the list of key-id for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 9))
+  (aref (cdr context) 11))
 
 (defun epg-context-sig-notations (context)
   "Return the list of notations for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 10))
+  (aref (cdr context) 12))
 
 (defun epg-context-process (context)
   "Return the process object of `epg-gpg-program'.
 This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 11))
+  (aref (cdr context) 13))
 
 (defun epg-context-output-file (context)
   "Return the output file of `epg-gpg-program'.
 This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 12))
+  (aref (cdr context) 14))
 
 (defun epg-context-result (context)
   "Return the result of the previous cryptographic operation."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 13))
+  (aref (cdr context) 15))
 
 (defun epg-context-operation (context)
   "Return the name of the current cryptographic operation."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 14))
+  (aref (cdr context) 16))
 
 (defun epg-context-pinentry-mode (context)
   "Return the mode of pinentry invocation."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aref (cdr context) 15))
+  (aref (cdr context) 17))
 
 (defun epg-context-set-protocol (context protocol)
   "Set the protocol used within CONTEXT."
@@ -301,41 +322,53 @@ This function is for internal use only."
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 0 protocol))
 
+(defun epg-context-set-program (context protocol)
+  "Set the gpg or gpgsm executable used within CONTEXT."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (aset (cdr context) 1 protocol))
+
+(defun epg-context-set-home-directory (context directory)
+  "Set the GnuPG home directory."
+  (unless (eq (car-safe context) 'epg-context)
+    (signal 'wrong-type-argument (list 'epg-context-p context)))
+  (aset (cdr context) 2 directory))
+
 (defun epg-context-set-armor (context armor)
   "Specify if the output should be ASCII armored in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 1 armor))
+  (aset (cdr context) 3 armor))
 
 (defun epg-context-set-textmode (context textmode)
   "Specify if canonical text mode should be used in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 2 textmode))
+  (aset (cdr context) 4 textmode))
 
 (defun epg-context-set-include-certs (context include-certs)
  "Set how many certificates should be included in an S/MIME signed message."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 3 include-certs))
+  (aset (cdr context) 5 include-certs))
 
 (defun epg-context-set-cipher-algorithm (context cipher-algorithm)
  "Set the cipher algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 4 cipher-algorithm))
+  (aset (cdr context) 6 cipher-algorithm))
 
 (defun epg-context-set-digest-algorithm (context digest-algorithm)
  "Set the digest algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 5 digest-algorithm))
+  (aset (cdr context) 7 digest-algorithm))
 
 (defun epg-context-set-compress-algorithm (context compress-algorithm)
  "Set the compress algorithm in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 6 compress-algorithm))
+  (aset (cdr context) 8 compress-algorithm))
 
 (defun epg-context-set-passphrase-callback (context
 					    passphrase-callback)
@@ -354,7 +387,7 @@ installing GnuPG 1.x _along with_ GnuPG 2.x, which does passphrase
 query by itself and Emacs can intercept them."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 7 (if (consp passphrase-callback)
+  (aset (cdr context) 9 (if (consp passphrase-callback)
 			    passphrase-callback
 			  (list passphrase-callback))))
 
@@ -371,7 +404,7 @@ current amount done, the total amount to be done, and the
 callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 8 (if (consp progress-callback)
+  (aset (cdr context) 10 (if (consp progress-callback)
 			    progress-callback
 			  (list progress-callback))))
 
@@ -379,39 +412,39 @@ callback data (if any)."
   "Set the list of key-id for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 9 signers))
+  (aset (cdr context) 11 signers))
 
 (defun epg-context-set-sig-notations (context notations)
   "Set the list of notations for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 10 notations))
+  (aset (cdr context) 12 notations))
 
 (defun epg-context-set-process (context process)
   "Set the process object of `epg-gpg-program'.
 This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 11 process))
+  (aset (cdr context) 13 process))
 
 (defun epg-context-set-output-file (context output-file)
   "Set the output file of `epg-gpg-program'.
 This function is for internal use only."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 12 output-file))
+  (aset (cdr context) 14 output-file))
 
 (defun epg-context-set-result (context result)
   "Set the result of the previous cryptographic operation."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 13 result))
+  (aset (cdr context) 15 result))
 
 (defun epg-context-set-operation (context operation)
   "Set the name of the current cryptographic operation."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
-  (aset (cdr context) 14 operation))
+  (aset (cdr context) 16 operation))
 
 (defun epg-context-set-pinentry-mode (context mode)
   "Set the mode of pinentry invocation."
@@ -419,7 +452,7 @@ This function is for internal use only."
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (unless (memq mode '(nil ask cancel error loopback))
     (signal 'epg-error (list "Unknown pinentry mode" mode)))
-  (aset (cdr context) 15 mode))
+  (aset (cdr context) 17 mode))
 
 (defun epg-make-signature (status &optional key-id)
   "Return a signature object."
@@ -1145,9 +1178,7 @@ This function is for internal use only."
   (if (and (epg-context-process context)
 	   (eq (process-status (epg-context-process context)) 'run))
       (error "%s is already running in this context"
-	     (if (eq (epg-context-protocol context) 'CMS)
-		 epg-gpgsm-program
-	       epg-gpg-program)))
+	     (epg-context-program context)))
   (let* ((agent-info (getenv "GPG_AGENT_INFO"))
 	 (args (append (list "--no-tty"
 			     "--status-fd" "1"
@@ -1158,8 +1189,9 @@ This function is for internal use only."
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
 				(epg-context-progress-callback context))
 			   '("--enable-progress-filter"))
-		       (if epg-gpg-home-directory
-			   (list "--homedir" epg-gpg-home-directory))
+		       (if (epg-context-home-directory context)
+			   (list "--homedir"
+				 (epg-context-home-directory context)))
 		       (unless (eq (epg-context-protocol context) 'CMS)
 			 '("--command-fd" "0"))
 		       (if (epg-context-armor context) '("--armor"))
@@ -1213,9 +1245,7 @@ This function is for internal use only."
 		      (format "GPG_AGENT_INFO=%s\n" agent-info)
 		    "GPG_AGENT_INFO is not set\n")
 		  (format "%s %s\n"
-			  (if (eq (epg-context-protocol context) 'CMS)
-			      epg-gpgsm-program
-			   epg-gpg-program)
+			  (epg-context-program context)
 			  (mapconcat #'identity args " ")))))
     (with-current-buffer buffer
       (if (fboundp 'set-buffer-multibyte)
@@ -1241,9 +1271,7 @@ This function is for internal use only."
 	  (set-default-file-modes 448)
 	  (setq process
 		(apply #'start-process "epg" buffer
-		       (if (eq (epg-context-protocol context) 'CMS)
-			   epg-gpgsm-program
-			 epg-gpg-program)
+		       (epg-context-program context)
 		       args)))
       (set-default-file-modes orig-mode))
     (set-process-filter process #'epg--process-filter)
@@ -1854,8 +1882,9 @@ This function is for internal use only."
 	   (format "Passphrase for %s: " key-id)))))))
 
 (defun epg--list-keys-1 (context name mode)
-  (let ((args (append (if epg-gpg-home-directory
-			  (list "--homedir" epg-gpg-home-directory))
+  (let ((args (append (if (epg-context-home-directory context)
+			  (list "--homedir"
+				(epg-context-home-directory context)))
 		      '("--with-colons" "--no-greeting" "--batch"
 			"--with-fingerprint" "--with-fingerprint")
 		      (unless (eq (epg-context-protocol context) 'CMS)
@@ -1877,9 +1906,7 @@ This function is for internal use only."
       (setq args (append args (list list-keys-option))))
     (with-temp-buffer
       (apply #'call-process
-	     (if (eq (epg-context-protocol context) 'CMS)
-		 epg-gpgsm-program
-	       epg-gpg-program)
+	     (epg-context-program context)
 	     nil (list t nil) nil args)
       (goto-char (point-min))
       (while (re-search-forward "^[a-z][a-z][a-z]:.*" nil t)

@@ -1901,8 +1901,6 @@ init_signals (bool dumping)
       sigaction (SIGFPE, &action, 0);
     }
 
-  catch_child_signal ();
-
 #ifdef SIGUSR1
   add_user_signal (SIGUSR1, "sigusr1");
 #endif

@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 1.2
+;; Old-Version: 1.2
 ;; Keywords: languages
 ;; Package: idlwave
 

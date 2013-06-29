@@ -38,11 +38,10 @@
 Intended to be used in the `interactive' spec of
 `add-file-local-variable', `delete-file-local-variable',
 `add-dir-local-variable', `delete-dir-local-variable'."
-  (let (default variable)
-    (setq default (variable-at-point))
-    (setq default (and (symbolp default) (boundp default)
+  (let* ((default (variable-at-point))
+         (default (and (symbolp default) (boundp default)
 		       (symbol-name default)))
-    (setq variable
+         (variable
 	  (completing-read
 	   (if default
 	       (format "%s (default %s): " prompt default)
@@ -52,48 +51,47 @@ Intended to be used in the `interactive' spec of
 	     (or (custom-variable-p sym)
                  (get sym 'safe-local-variable)
 		 (memq sym '(mode eval coding unibyte))))
-	   nil nil nil default nil))
+	   nil nil nil default nil)))
     (and (stringp variable) (intern variable))))
 
 (defun read-file-local-variable-value (variable)
   "Read value of file-local VARIABLE using completion.
 Intended to be used in the `interactive' spec of
 `add-file-local-variable' and `add-dir-local-variable'."
-  (let (default value)
-    (cond
-     ((eq variable 'mode)
-      (setq default (and (symbolp major-mode) (symbol-name major-mode)))
-      (setq value
-	    (completing-read
-	     (if default
-		 (format "Add %s with value (default %s): " variable default)
-	       (format "Add %s with value: " variable))
-	     obarray
-	     (lambda (sym)
-	       (string-match-p "-mode\\'" (symbol-name sym)))
-	     nil nil nil default nil))
+  (cond
+   ((eq variable 'mode)
+    (let* ((default (and (symbolp major-mode) (symbol-name major-mode)))
+           (value
+            (completing-read
+             (if default
+                 (format "Add %s with value (default %s): " variable default)
+               (format "Add %s with value: " variable))
+             obarray
+             (lambda (sym)
+               (string-match-p "-mode\\'" (symbol-name sym)))
+             nil nil nil default nil)))
       (and (stringp value)
-	   (intern (replace-regexp-in-string "-mode\\'" "" value))))
-     ((eq variable 'eval)
-      (let ((minibuffer-completing-symbol t))
-	(read-from-minibuffer (format "Add %s with expression: " variable)
-			      nil read-expression-map t
-			      'read-expression-history)))
-     ((eq variable 'coding)
-      (setq default (and (symbolp buffer-file-coding-system)
-			 (symbol-name buffer-file-coding-system)))
+           (intern (replace-regexp-in-string "-mode\\'" "" value)))))
+   ((eq variable 'eval)
+    (read--expression (format "Add %s with expression: " variable)))
+   ((eq variable 'coding)
+    (let ((default (and (symbolp buffer-file-coding-system)
+                        (symbol-name buffer-file-coding-system))))
       (read-coding-system
        (if default
-	   (format "Add %s with value (default %s): " variable default)
-	 (format "Add %s with value: " variable))
-       default))
-     (t
-      (read (read-string (format "Add %s with value: " variable)
-			 nil 'set-variable-value-history
-			 (format "%S"
-				 (cond ((eq variable 'unibyte) t)
-				       ((boundp variable)
-					(symbol-value variable))))))))))
+           (format "Add %s with value (default %s): " variable default)
+         (format "Add %s with value: " variable))
+       default)))
+   (t
+    (let ((default (format "%S"
+                           (cond ((eq variable 'unibyte) t)
+                                 ((boundp variable)
+                                  (symbol-value variable)))))
+          (minibuffer-completing-symbol t))
+      (read-from-minibuffer (format "Add %s with value: " variable)
+                            nil read-expression-map t
+                            'set-variable-value-history
+			    default)))))
 
 (defun read-file-local-variable-mode ()
   "Read per-directory file-local variable's mode using completion.
@@ -108,7 +106,9 @@ Intended to be used in the `interactive' spec of
 	   obarray
 	   (lambda (sym)
 	     (and (string-match-p "-mode\\'" (symbol-name sym))
-		  (not (string-match-p "-minor-mode\\'" (symbol-name sym)))))
+		  (not (or (memq sym minor-mode-list)
+                           (string-match-p "-minor-mode\\'"
+                                           (symbol-name sym))))))
 	   nil nil nil default nil)))
     (cond
      ((equal mode "nil") nil)
@@ -476,7 +476,7 @@ from the MODE alist ignoring the input argument VALUE."
 
       ;; Insert modified alist of directory-local variables.
       (insert ";;; Directory Local Variables\n")
-      (insert ";;; See Info node `(emacs) Directory Variables' for more information.\n\n")
+      (insert ";;; For more information see (info \"(emacs) Directory Variables\")\n\n")
       (pp (sort variables
 		(lambda (a b)
 		  (cond

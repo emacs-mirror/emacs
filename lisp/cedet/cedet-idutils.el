@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
 

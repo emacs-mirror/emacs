@@ -8,6 +8,46 @@
 	(decoder-tests-prefer-utf-8-write): New function.
 	(ert-test-decoder-prefer-utf-8): New test.
 
+2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-x-test.el: Change the commentary.
+	(package-x-test--single-archive-entry-1-3)
+	(package-x-test--single-archive-entry-1-4): Fix the tests, by
+	using the appropriate data structure.
+
+2013-06-27  Daniel Hackney  <dan@haxney.org>
+
+	* automated/Makefile.in (setwins): Include the 'data' subdirectory.
+
+	* automated/package-x-test.el: New file.
+
+	* automated/package-test.el: New file.
+
+	* automated/data/package: New directory, with test examples.
+
+2013-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-tests-with-temp-file):
+	Clean up after ourself.
+
+	* automated/undo-tests.el (undo-test3): Remove test that seems to
+	do nothing that the previous one doesn't, except leave a tempfile.
+
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/info-xref.el: New file.
+
+2013-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-test-create): New function.
+	Use it to create separate tests for each element, so we run them
+	all rather than stopping at the first error.
+
+2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
+
+	* automated/occur-tests.el (occur-tests):
+	Update for 2013-05-29 change to occur header line.
+
 2013-06-21  Eduard Wiebe  <usenet@pusto.de>
 
 	Test suite for flymake.

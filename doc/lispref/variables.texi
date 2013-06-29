@@ -988,7 +988,7 @@ Here is an example:
   (setq my-ticker (lambda ()
                     (setq x (1+ x)))))
     @result{} (closure ((x . 0) t) ()
-          (1+ x))
+          (setq x (1+ x)))
 
 (funcall my-ticker)
     @result{} 1

@@ -536,11 +536,9 @@ Use `face-attribute' for finer control."
 (defun face-documentation (face)
   "Get the documentation string for FACE.
 If FACE is a face-alias, get the documentation for the target face."
-  (let ((alias (get face 'face-alias))
-        doc)
+  (let ((alias (get face 'face-alias)))
     (if alias
-        (progn
-          (setq doc (get alias 'face-documentation))
+        (let ((doc (get alias 'face-documentation)))
 	  (format "%s is an alias for the face `%s'.%s" face alias
                   (if doc (format "\n%s" doc)
                     "")))
@@ -1171,7 +1169,7 @@ of a global face.  Value is the new attribute value."
     ;; pixmap file name won't start with an open-paren.
     (and (memq attribute '(:stipple :box :underline))
 	 (stringp new-value)
-	 (string-match "^[[(]" new-value)
+	 (string-match-p "^[[(]" new-value)
 	 (setq new-value (read new-value)))
     new-value))
 
@@ -1272,7 +1270,7 @@ arg, prompt for a regular expression."
 	  (delq nil
 		(mapcar (lambda (f)
 			  (let ((s (symbol-name f)))
-			    (when (or all-faces (string-match regexp s))
+			    (when (or all-faces (string-match-p regexp s))
 			      (setq max-length (max (length s) max-length))
 			      f)))
 			(sort (face-list) #'string-lessp))))
@@ -1328,10 +1326,8 @@ arg, prompt for a regular expression."
     (setq disp-frame (if window (window-frame window)
 		       (car (frame-list))))
     (or (eq frame disp-frame)
-	(let ((faces (face-list)))
-	  (while faces
-	    (copy-face (car faces) (car faces) frame disp-frame)
-	    (setq faces (cdr faces)))))))
+	(dolist (face (face-list))
+	  (copy-face face face frame disp-frame)))))
 
 
 (defun describe-face (face &optional frame)
@@ -1850,7 +1846,7 @@ resulting color name in the echo area."
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
 	(let ((components (x-color-values color)))
-	  (unless (string-match "^#\\([a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
+	  (unless (string-match-p "^#\\(?:[a-fA-F0-9][a-fA-F0-9][a-fA-F0-9]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))
 				(logand 65535 (nth 1 components))
@@ -2096,7 +2092,7 @@ the above example."
 		(not (funcall pred type)))
       ;; Strip off last hyphen and what follows, then try again
       (setq type
-	    (if (setq hyphend (string-match "[-_][^-_]+$" type))
+	    (if (setq hyphend (string-match-p "[-_][^-_]+$" type))
 		(substring type 0 hyphend)
 	      nil))))
   type)
@@ -2617,7 +2613,7 @@ also the same size as FACE on FRAME, or fail."
       (let ((fonts (x-list-fonts pattern face frame 1)))
 	(or fonts
 	    (if face
-		(if (string-match "\\*" pattern)
+		(if (string-match-p "\\*" pattern)
 		    (if (null (face-font face))
 			(error "No matching fonts are the same height as the frame default font")
 		      (error "No matching fonts are the same height as face `%s'" face))

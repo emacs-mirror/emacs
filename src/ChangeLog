@@ -17,6 +17,99 @@
 	:prefer-utf-8.
 	(syms_of_coding): Adjusted for coding_arg_undecided_max.
 
+2013-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (x_from_xcolors): Remove unused local.
+
+2013-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Defer image data transfer between X client and server until actual
+	display happens.
+
+	* dispextern.h (struct image) [HAVE_X_WINDOWS]: New members `ximg'
+	and `mask_img'.
+
+	* image.c (Destroy_Image): Remove.
+	(x_clear_image_1): New arg `flags' instead of 3 bools `pixmap_p',
+	`mask_p', and `colors_p'.  All uses changed.
+	(x_clear_image_1) [HAVE_X_WINDOWS]: Destroy `ximg' and `mask_img'.
+	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS): New
+	macros for `flags' arg to x_clear_image_1.
+	(postprocess_image, xpm_load_image, x_build_heuristic_mask)
+	(png_load_body): Use x_clear_image_1 instead of Free_Pixmap.
+	(ZPixmap, XGetImage) [HAVE_NS]: Remove.
+	(image_get_x_image_or_dc, image_unget_x_image_or_dc)
+	(image_get_x_image, image_unget_x_image): New functions or macros.
+	(image_background, image_background_transparent, x_to_xcolors)
+	(x_build_heuristic_mask): Use image_get_x_image_or_dc instead of
+	XGetImage or CreateCompatibleDC.  Use image_unget_x_image_or_dc
+	instead of Destroy_Image.
+	(image_create_x_image_and_pixmap, image_put_x_image): New functions.
+	(xpm_load_image, x_from_xcolors, x_build_heuristic_mask, pbm_load)
+	(png_load_body, jpeg_load_body, tiff_load, gif_load)
+	(imagemagick_load_image, svg_load_image): Use them instead of
+	x_create_x_image_and_pixmap, and x_put_x_image followed by
+	x_destroy_x_image, respectively.
+	(xpm_load) [HAVE_XPM && !HAVE_NTGUI]: Use XpmReadFileToImage and
+	XpmCreateImageFromBuffer instead of XpmReadFileToPixmap and
+	XpmCreatePixmapFromBuffer.  Create pixmaps.  Fill background and
+	background_transparent fields.
+	(image_sync_to_pixmaps) [HAVE_X_WINDOWS]: New function.
+	(prepare_image_for_display, x_disable_image) [HAVE_X_WINDOWS]: Use it.
+
+2013-06-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not tickle glib SIGCHLD handling if Cygwin (Bug#14569).
+	This mostly consists of undoing recent changes.
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	Do not worry about catching SIGCHLD here, undoing previous change.
+	* nsterm.m (ns_term_init): Re-catch SIGCHLD, undoing previous change.
+	* process.c, process.h (catch_child_signal):
+	No longer extern if !NS_IMPL_GNUSTEP, undoing 06-22 change.
+	* process.c (catch_child_handler): Don't worry about being called
+	lazily and do not assume caller has blocked SIGCHLD, undoing
+	previous change.  Move first-time stuff back to
+	init_process_emacs, undoing 06-22 change.  If CYGWIN, do not
+	tickle glib, as that causes Cygwin bootstrap to fail.  Do not
+	set lib_child_handler if it's already initialized, which may
+	help avoid problems on GNUStep.
+
+2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A more-conservative workaround for Cygwin SIGCHLD issues (Bug#14569).
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	Make sure SIGCHLD is caught before we fork,
+	since Emacs startup no arranges to catch SIGCHLD.
+	* process.c (lib_child_handler): Initialize to null, not to
+	dummy_handler.
+	(catch_child_signal): Allow self to be called lazily.
+	Do nothing if it's already been called.
+	Assume caller has blocked SIGCHLD (all callers do now).
+	* emacs.c (main): Do not catch SIGCHLD here; defer it until
+	just before it's really needed.
+	* nsterm.m (ns_term_init): No need to re-catch SIGCHLD here,
+	since it hasn't been caught yet.
+
+2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (compute_image_size): New function to implement
+	:max-width and :max-height.
+	(imagemagick_load_image): Use it.
+
+2013-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to avoid malloc SEGVs on Cygwin (Bug#14569).
+	* callproc.c, process.h (block_child_signal, unblock_child_signal):
+	Now extern.
+	* emacs.c (main): Catch SIGCHLD just before initializing gfilenotify.
+	* process.c (catch_child_signal): Block SIGCHLD while futzing with
+	the SIGCHLD handler, since the code is not atomic and (due to glib)
+	signals may be arriving now.
+	* sysdep.c (init_signals): Do not catch child signals here;
+	'main' now does that later, at a safer time.
+
 2013-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean up SIGCHLD handling a bit (Bug#14569).

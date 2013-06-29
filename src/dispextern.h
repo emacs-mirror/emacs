@@ -2870,6 +2870,14 @@ struct image
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
 
+#ifdef HAVE_X_WINDOWS
+  /* X images of the image, corresponding to the above Pixmaps.
+     Non-NULL means it and its Pixmap counterpart may be out of sync
+     and the latter is outdated.  NULL means the X image has been
+     synchronized to Pixmap.  */
+  XImagePtr ximg, mask_img;
+#endif
+
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
   unsigned long *colors;
   int ncolors;

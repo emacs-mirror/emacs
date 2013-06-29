@@ -1370,6 +1370,7 @@ mailboxes, etc.  It is able to access remote mailboxes using the POP3
 or IMAP4 protocol, and can retrieve mail from them using a TLS
 encrypted channel.  It also accepts mailbox arguments in @acronym{URL}
 form.  The detailed description of mailbox @acronym{URL}s can be found
+@c Note this node seems to be missing in some versions of mailutils.info?
 in @ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a
 @acronym{URL} is:
 

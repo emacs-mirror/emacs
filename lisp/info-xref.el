@@ -367,13 +367,28 @@ in the path."
                     (forward-line)))
               (info-xref-check-buffer))))))))
 
+(defconst info-xref-node-re "\\(?1:\\(([^)]*)\\)[^.,]+\\)"
+  "Regexp with subexp 1 matching (manual)node.")
+
+;; "@xref{node,crossref,manual}." produces:
+;; texinfo 4 or 5:
+;; *Note crossref: (manual)node.
+;; "@xref{node,,manual}." produces:
+;; texinfo 4:
+;; *Note node: (manual)node.
+;; texinfo 5:
+;; *Note (manual)node::.
+(defconst info-xref-note-re
+  (concat "\\*[Nn]ote[ \n\t]+\\(?:"
+          "[^:]*:[ \n\t]+" info-xref-node-re "\\|"
+          info-xref-node-re "::\\)[.,]")
+  "Regexp matching a \"*note...\" link.")
+
 (defun info-xref-check-buffer ()
   "Check external references in the info file in the current buffer.
 This should be the raw file contents, not `Info-mode'."
   (goto-char (point-min))
-  (while (re-search-forward
-          "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]*)\\)[^.,]+\\)[.,]"
-          nil t)
+  (while (re-search-forward info-xref-note-re nil t)
     (save-excursion
       (goto-char (match-beginning 1)) ;; start of nodename as error position
       (info-xref-check-node (match-string 1)))))

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007-2013 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 0.2
+;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
 

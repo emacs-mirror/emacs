@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.02
+;; Old-Version: 2.02
 ;; Keywords: extensions
 ;; Package: emacs
 

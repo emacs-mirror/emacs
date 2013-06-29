@@ -378,12 +378,13 @@ Similar to, but slightly different from, the GNU Coreutils
 
 @item define
 @cmindex define
-Define a varalias.  @xref{Variable Aliases, , , elisp}.
+Define a varalias.
+@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
 
 @item diff
 @cmindex diff
 Use Emacs's internal @code{diff} (not to be confused with
-@code{ediff}).  @xref{Comparing Files, , , elisp}.
+@code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs Manual}.
 
 @item grep
 @cmindex grep
@@ -422,15 +423,18 @@ and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
 @item locate
 @cmindex locate
 Alias to Emacs's @code{locate} function, which simply runs the external
-@command{locate} command and parses the results.  @xref{Dired and `find', , , elisp}.
+@command{locate} command and parses the results.
+@xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
 
 @item make
 @cmindex make
-Run @command{make} through @code{compile}.  @xref{Running Compilations under Emacs, , , elisp}.
+Run @command{make} through @code{compile}.
+@xref{Compilation, , , emacs, The GNU Emacs Manual}.
 
 @item occur
 @cmindex occur
-Alias to Emacs's @code{occur}.  @xref{Other Search-and-Loop Commands, , , elisp}.
+Alias to Emacs's @code{occur}.
+@xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
 
 @item printnl
 @cmindex printnl
@@ -648,7 +652,8 @@ variables in command invocations.
 
 @item $#var
 Expands to the length of the value bound to @code{var}.  Raises an error
-if the value is not a sequence (@pxref{Sequences Arrays and Vectors, Sequences, , elisp}).
+if the value is not a sequence
+(@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
 
 @item $(lisp)
 Expands to the result of evaluating the S-expression @code{(lisp)}.  On
@@ -680,7 +685,8 @@ any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}
 
 @item $var[hello]
 Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
-an alist (@pxref{Association List Type, Association Lists, , elisp}).
+an alist (@pxref{Association List Type, Association Lists, , elisp,
+The Emacs Lisp Reference Manual}).
 
 @item $#var[hello]
 Returns the length of the cdr of the element of @code{var} who car is equal
@@ -693,9 +699,11 @@ to @code{"hello"}.
 Eshell's globbing syntax is very similar to that of Zsh.  Users coming
 from Bash can still use Bash-style globbing, as there are no
 incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  See @ref{Filename Generation, , , zsh}
+is also predicate-based expansion.  See
+@ref{Filename Generation, , , zsh, The Z Shell Manual}
 for full syntax.  To customize the syntax and behaviour of globbing in
-Eshell see the Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
+The GNU Emacs Manual}.}
 groups ``eshell-glob'' and ``eshell-pred''.
 
 @node Input/Output
@@ -757,7 +765,8 @@ can be disabled and enabled without having to unload and reload them,
 and to provide a common parent Customize group for the
 modules.@footnote{ERC provides a similar module facility.}  An Eshell
 module is defined the same as any other library but one requirement: the
-module must define a Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+module must define a Customize@footnote{@xref{Customization, , ,
+elisp, The Emacs Lisp Reference Manual}.}
 group using @code{eshell-defgroup} (in place of @code{defgroup}) with
 @code{eshell-module} as the parent group.@footnote{If the module has
 no user-customizable options, then there is no need to define it as an

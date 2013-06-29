@@ -1,3 +1,7 @@
+2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data-debug.el, cedet-idutils.el: Neuter the "Version:" header.
+
 2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* semantic/idle.el (define-semantic-idle-service):
