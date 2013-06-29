@@ -1,3 +1,10 @@
+2013-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Don't bother with txt or dvi any more.
+	(manual-txt): Remove.
+	(manual-pdf): Doc fix.
+	(manual-ps): Rename from manual-dvi.
+
 2013-06-15  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* notes/changelogs: Mention trivial changes in Change Log.
