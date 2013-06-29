@@ -13,9 +13,9 @@
 	CODING-SYSTEM is `emacs', do not check if CODING-SYSTEM is
 	appropriate for setting.
 
-	* international/mule-cmds.el (select-safe-coding-system): If
-	DEFAULT-CODING-SYSTEM is prefer-utf-8 and the buffer contains
-	multibyte characters, return utf-8 (or one of it's siblings).
+	* international/mule-cmds.el (select-safe-coding-system):
+	If DEFAULT-CODING-SYSTEM is prefer-utf-8 and the buffer contains
+	multibyte characters, return utf-8 (or one of its siblings).
 
 	* international/mule-conf.el (prefer-utf-8): New coding system.
 	(file-coding-system-alist): Use prefer-utf-8 as default for Elisp
@@ -29,9 +29,9 @@
 
 2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Adapt
-	to `package-desc-version' being a list.  Use
-	`package--ac-desc-version' to retrieve version from a package
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Adapt to `package-desc-version' being a list.
+	Use `package--ac-desc-version' to retrieve version from a package
 	archive element.
 
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
