@@ -199,8 +199,6 @@ Root must be the root of an Emacs source tree."
   (let* ((dest (expand-file-name "manual" root))
 	 (html-node-dir (expand-file-name "html_node" dest))
 	 (html-mono-dir (expand-file-name "html_mono" dest))
-	 (txt-dir (expand-file-name "text" dest))
-	 (dvi-dir (expand-file-name "dvi" dest))
 	 (ps-dir (expand-file-name "ps" dest)))
     (when (file-directory-p dest)
       (if (y-or-n-p (format "Directory %s exists, delete it first?" dest))
@@ -209,41 +207,31 @@ Root must be the root of an Emacs source tree."
     (make-directory dest)
     (make-directory html-node-dir)
     (make-directory html-mono-dir)
-    (make-directory txt-dir)
-    (make-directory dvi-dir)
     (make-directory ps-dir)
     ;; Emacs manual
     (let ((texi (expand-file-name "doc/emacs/emacs.texi" root)))
       (manual-html-node texi (expand-file-name "emacs" html-node-dir))
       (manual-html-mono texi (expand-file-name "emacs.html" html-mono-dir))
-      (manual-txt texi (expand-file-name "emacs.txt" txt-dir))
       (manual-pdf texi (expand-file-name "emacs.pdf" dest))
-      (manual-dvi texi (expand-file-name "emacs.dvi" dvi-dir)
-		  (expand-file-name "emacs.ps" ps-dir)))
+      (manual-ps texi (expand-file-name "emacs.ps" ps-dir)))
     ;; Lisp manual
     (let ((texi (expand-file-name "doc/lispref/elisp.texi" root)))
       (manual-html-node texi (expand-file-name "elisp" html-node-dir))
       (manual-html-mono texi (expand-file-name "elisp.html" html-mono-dir))
-      (manual-txt texi (expand-file-name "elisp.txt" txt-dir))
       (manual-pdf texi (expand-file-name "elisp.pdf" dest))
-      (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
-		  (expand-file-name "elisp.ps" ps-dir)))
+      (manual-ps texi (expand-file-name "elisp.ps" ps-dir)))
     (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
 	  (dest (expand-file-name "emacs-lisp-intro" dest))
-	  dest2 dest3)
+	  dest2)
       ;; Mimic the atypical directory layout used for emacs-lisp-intro.
       (make-directory dest)
       (make-directory (setq dest2 (expand-file-name "html_node" dest)))
       (manual-html-node texi dest2)
       (make-directory (setq dest2 (expand-file-name "html_mono" dest)))
       (manual-html-mono texi (expand-file-name "emacs-lisp-intro.html" dest2))
-      (make-directory (setq dest2 (expand-file-name "txt" dest)))
-      (manual-txt texi (expand-file-name "emacs-lisp-intro.txt" dest2))
       (manual-pdf texi (expand-file-name "emacs-lisp-intro.pdf" dest))
-      (make-directory (setq dest2 (expand-file-name "dvi" dest)))
-      (make-directory (setq dest3 (expand-file-name "ps" dest)))
-      (manual-dvi texi (expand-file-name "emacs-lisp-intro.dvi" dest2)
-		  (expand-file-name "emacs-lisp-intro.ps" dest3)))
+      (make-directory (setq dest2 (expand-file-name "ps" dest)))
+      (manual-ps texi (expand-file-name "emacs-lisp-intro.ps" dest2)))
     ;; Misc manuals
     (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
 		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
@@ -344,37 +332,23 @@ the @import directive."
 	    (manual-html-fix-node-div))
 	  (save-buffer))))))
 
-(defun manual-txt (texi-file dest)
-  "Run Makeinfo on TEXI-FILE, emitting plaintext output to DEST."
-  (call-process "makeinfo" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		"--plaintext" "--no-split" texi-file "-o" dest)
-  (shell-command (concat "gzip -c " dest " > " (concat dest ".gz"))))
-
 (defun manual-pdf (texi-file dest)
-  "Run texi2pdf on TEXI-FILE, emitting plaintext output to DEST."
-  (call-process "texi2pdf" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		texi-file "-o" dest))
+  "Run texi2pdf on TEXI-FILE, emitting pdf output to DEST."
+  (let ((default-directory (file-name-directory texi-file)))
+    (call-process "texi2pdf" nil nil nil
+		  "-I" "../emacs" "-I" "../misc"
+		  texi-file "-o" dest)))
 
-(defun manual-dvi (texi-file dest ps-dest)
-  "Run texi2dvi on TEXI-FILE, emitting dvi output to DEST.
-Also generate PostScript output in PS-DEST."
-  (call-process "texi2dvi" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		texi-file "-o" dest)
-  (call-process "dvips" nil nil nil dest "-o" ps-dest)
-  (call-process "gzip" nil nil nil dest)
-  (call-process "gzip" nil nil nil ps-dest))
+(defun manual-ps (texi-file dest)
+  "Generate a PostScript version of TEXI-FILE as DEST."
+  (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
+	(default-directory (file-name-directory texi-file)))
+    (call-process "texi2dvi" nil nil nil
+		  "-I" "../emacs" "-I" "../misc"
+		  texi-file "-o" dvi-dest)
+    (call-process "dvips" nil nil nil dvi-dest "-o" dest)
+    (delete-file dvi-dest)
+    (call-process "gzip" nil nil nil dest)))
 
 (defun manual-html-fix-headers ()
   "Fix up HTML headers for the Emacs manual in the current buffer."
