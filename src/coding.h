@@ -382,9 +382,15 @@ struct ccl_spec;
 
 struct undecided_spec
 {
-  int inhibit_nbd;		/* nbd: null byte detection */
-  int inhibit_ied;		/* ied: iso escape detection */
-  int prefer_utf_8;
+  /* Inhibit null byte detection.  1 means always inhibit,
+     -1 means do not inhibit, 0 means rely on user variable.  */
+  int inhibit_nbd;
+
+  /* Inhibit ISO escape detection.  -1, 0, 1 as above.  */
+  int inhibit_ied;
+
+  /* Prefer UTF-8 when the input could be other encodings.  */
+  bool prefer_utf_8;
 };
 
 enum utf_bom_type

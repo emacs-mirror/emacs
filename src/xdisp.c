@@ -20252,7 +20252,6 @@ Value is the new character position of point.  */)
       struct it it;
       int pt_x, target_x, pixel_width, pt_vpos;
       bool at_eol_p;
-      bool disp_string_at_start_p = 0;
       bool overshoot_expected = false;
       bool target_is_eol_p = false;
 

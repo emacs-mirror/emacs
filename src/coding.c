@@ -649,6 +649,23 @@ static struct coding_system coding_categories[coding_category_max];
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
+/* Encode a flag that can be nil, something else, or t as -1, 0, 1.  */
+
+static int
+encode_inhibit_flag (Lisp_Object flag)
+{
+  return NILP (flag) ? -1 : EQ (flag, Qt);
+}
+
+/* True if the value of ENCODED_FLAG says a flag should be treated as set.
+   1 means yes, -1 means no, 0 means ask the user variable VAR.  */
+
+static bool
+inhibit_flag (int encoded_flag, bool var)
+{
+  return 0 < encoded_flag + var;
+}
+
 #define CODING_GET_INFO(coding, attrs, charset_list)	\
   do {							\
     (attrs) = CODING_ID_ATTRS ((coding)->id);		\
@@ -5706,17 +5723,11 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
       coding->encoder = encode_coding_raw_text;
       coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
       coding->spec.undecided.inhibit_nbd
-	= (NILP (AREF (attrs, coding_attr_undecided_inhibit_null_byte_detection))
-	   ? -1
-	   : EQ (AREF (attrs, coding_attr_undecided_inhibit_null_byte_detection), Qt)
-	   ? 1
-	   : 0);
+	= (encode_inhibit_flag
+	   (AREF (attrs, coding_attr_undecided_inhibit_null_byte_detection)));
       coding->spec.undecided.inhibit_ied
-	= (NILP (AREF (attrs, coding_attr_undecided_inhibit_iso_escape_detection))
-	   ? -1
-	   : EQ (AREF (attrs, coding_attr_undecided_inhibit_iso_escape_detection), Qt)
-	   ? 1
-	   : 0);
+	= (encode_inhibit_flag
+	   (AREF (attrs, coding_attr_undecided_inhibit_iso_escape_detection)));
       coding->spec.undecided.prefer_utf_8
 	= ! NILP (AREF (attrs, coding_attr_undecided_prefer_utf_8));
     }
@@ -6476,16 +6487,11 @@ detect_coding (struct coding_system *coding)
       int c, i;
       struct coding_detection_info detect_info;
       bool null_byte_found = 0, eight_bit_found = 0;
-      int inhibit_nbd		/* null byte detection */
-	= (coding->spec.undecided.inhibit_nbd > 0
-	   | (coding->spec.undecided.inhibit_nbd == 0
-	      & inhibit_null_byte_detection));
-      int inhibit_ied		/* iso escape detection */
-	= (coding->spec.undecided.inhibit_ied > 0
-	   | (coding->spec.undecided.inhibit_ied == 0
-	      & inhibit_iso_escape_detection));
-      int prefer_utf_8
-	= coding->spec.undecided.prefer_utf_8;
+      bool inhibit_nbd = inhibit_flag (coding->spec.undecided.inhibit_nbd,
+				       inhibit_null_byte_detection);
+      bool inhibit_ied = inhibit_flag (coding->spec.undecided.inhibit_ied,
+				       inhibit_iso_escape_detection);
+      bool prefer_utf_8 = coding->spec.undecided.prefer_utf_8;
 
       coding->head_ascii = 0;
       detect_info.checked = detect_info.found = detect_info.rejected = 0;
@@ -8544,17 +8550,11 @@ detect_coding_system (const unsigned char *src,
       enum coding_category category IF_LINT (= 0);
       struct coding_system *this IF_LINT (= NULL);
       int c, i;
-      int inhibit_nbd		/* null byte detection */
-	= (coding.spec.undecided.inhibit_nbd > 0
-	   | (coding.spec.undecided.inhibit_nbd == 0
-	      & inhibit_null_byte_detection));
-      int inhibit_ied		/* iso escape detection */
-	= (coding.spec.undecided.inhibit_ied > 0
-	   | (coding.spec.undecided.inhibit_ied == 0
-	      & inhibit_iso_escape_detection));
-      int prefer_utf_8
-	= coding.spec.undecided.prefer_utf_8;
-
+      bool inhibit_nbd = inhibit_flag (coding.spec.undecided.inhibit_nbd,
+				       inhibit_null_byte_detection);
+      bool inhibit_ied = inhibit_flag (coding.spec.undecided.inhibit_ied,
+				       inhibit_iso_escape_detection);
+      bool prefer_utf_8 = coding.spec.undecided.prefer_utf_8;
 
       /* Skip all ASCII bytes except for a few ISO2022 controls.  */
       for (; src < src_end; src++)

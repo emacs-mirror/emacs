@@ -1,3 +1,15 @@
+2013-06-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* coding.c (encode_inhibit_flag, inhibit_flag): New functions.
+	Redo the latter's body to sidestep GCC parenthesization warnings.
+	(setup_coding_system, detect_coding, detect_coding_system): Use them.
+	* coding.c (detect_coding, detect_coding_system):
+	* coding.h (struct undecided_spec):
+	Use bool for boolean.
+	* image.c (QCmax_width, QCmax_height): Now static.
+	* xdisp.c (Fmove_point_visually): Remove unused local.
+
 2013-06-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fmove_point_visually): New function.

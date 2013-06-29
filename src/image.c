@@ -130,7 +130,7 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 #endif
 
-Lisp_Object QCmax_width, QCmax_height;
+static Lisp_Object QCmax_width, QCmax_height;
 
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are
