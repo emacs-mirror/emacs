@@ -1,3 +1,7 @@
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document move-point-visually.
+
 2013-06-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* buffers.texi (Buffer File Name): Fix typo.

@@ -1,3 +1,8 @@
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Document visual-order-cursor-movement
+	and its effect on right-char and left-char.
+
 2013-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Small update.

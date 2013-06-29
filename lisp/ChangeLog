@@ -1,3 +1,9 @@
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* bindings.el (visual-order-cursor-movement): New defcustom.
+	(right-char, left-char): Provide visual-order cursor motion by
+	calling move-point-visually.  Update the doc strings.
+
 2013-06-28  Kenichi Handa  <handa@gnu.org>
 
 	* international/mule.el (define-coding-system): New coding system

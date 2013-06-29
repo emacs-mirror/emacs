@@ -131,6 +131,13 @@ bound to <f11> and M-<f10>, respectively.
 ** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
 Eg View mode, etc.
 
++++
+** New option `visual-order-cursor-movement'.
+If this is non-nil, cursor motion with arrow keys will follow the
+visual order of characters on the screen: <left> always moves to the
+left, <right> always moves to the right, disregarding the surrounding
+bidirectional context.
+
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
 ** Shell Script mode

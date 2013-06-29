@@ -6431,6 +6431,26 @@ determined dynamically by Emacs.  For buffers whose value of
 buffers, this function always returns @code{left-to-right}.
 @end defun
 
+@cindex visual-order cursor motion
+  Sometimes there's a need to move point in strict visual order,
+either to the left or to the right of its current screen position.
+Emacs provides a primitive to do that.
+
+@defun move-point-visually direction
+This function moves point of the currently selected window to the
+buffer position that appears immediately to the right or to the left
+of point on the screen.  If @var{direction} is positive, point will
+move one screen position to the right, otherwise it will move one
+screen position to the left.  Note that, depending on the surrounding
+bidirectional context, this could potentially move point many buffer
+positions away.  If invoked at the end of a screen line, the function
+moves point to the rightmost or leftmost screen position of the next
+or previous screen line, as appropriate for the value of
+@var{direction}.
+
+The function returns the new buffer position as its value.
+@end defun
+
 @cindex layout on display, and bidirectional text
 @cindex jumbled display of bidirectional text
 @cindex concatenating bidirectional strings
