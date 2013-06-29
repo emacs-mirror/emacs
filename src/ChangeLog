@@ -22,7 +22,7 @@
 	coding_attr_undecided_inhibit_iso_escape_detection,
 	coding_attr_undecided_prefer_utf_8.
 	(undecided_spec): New struct.
-	(struct coding_system): New member `undecied' of the member
+	(struct coding_system): New member `undecided' of the member
 	`spec'.
 
 	* coding.c (setup_coding_system): Handle CODING->spec.undecided.
