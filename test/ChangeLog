@@ -1,3 +1,13 @@
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-gen-file): New arg FILE.
+	(decoder-tests-ao-gen-file): Renamed from decoder-tests-filename.
+	Callers changed.
+	(decoder-tests-filename): New function.
+	(decoder-tests-prefer-utf-8-read)
+	(decoder-tests-prefer-utf-8-write): New function.
+	(ert-test-decoder-prefer-utf-8): New test.
+
 2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* automated/package-x-test.el: Change the commentary.
