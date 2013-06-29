@@ -392,10 +392,37 @@
 #endif
 
 #if defined(MPS_OS_XC)
-#define PROT_SIGINFO_GOOD(info) (1)
+#define PROT_SIGINFO_GOOD(info) (1) /* FIXME: Unused? */
 #elif defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
 #endif
+
+
+/* Almost all of protxc.c etc. are architecture-independent, but unfortunately
+   the Mach headers don't provide architecture neutral symbols for simple
+   things like thread states.  These definitions fix that */
+
+#if defined(MPS_OS_XC)
+#if defined(MPS_ARCH_I6)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE64
+#define THREAD_STATE_T x86_thread_state64_t
+
+#elif defined(MPS_ARCH_I3)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE32
+#define THREAD_STATE_T x86_thread_state32_t
+
+#else
+
+#error "Unknown Mac OS X architecuture"
+
+#endif
+#endif
+
+
 
 
 /* Tracer Configuration -- see <code/trace.c> */
