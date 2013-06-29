@@ -71,6 +71,9 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->port = mach_thread_self();
+  
+  /* FIXME: Set up thread specific exception ports?
+     (Boehm just does it for the whole task.) */
 
   AVERT(Thread, thread);
 
@@ -122,12 +125,14 @@ static void mapThreadRing(Ring threadRing, void (*func)(Thread))
 static void threadSuspend(Thread thread)
 {
   /* FIXME: Think about error cases */
+  /* FIXME: Do threads take any time to suspend?  Need to rendezvous? */
   (void)thread_suspend(thread->port);
 }
 
 static void threadResume(Thread thread)
 {
   /* FIXME: Think about error cases */
+  /* FIXME: Does client code have to watch for EAGAIN? */
   (void)thread_resume(thread->port);
 }
 
@@ -162,6 +167,64 @@ Arena ThreadArena(Thread thread)
   /* Can't AVER thread as that would not be thread-safe */
   /* AVERT(Thread, thread); */
   return thread->arena;
+}
+
+
+/* ThreadScan -- scan the state of a thread (stack and regs) */
+
+#include "prmcxc.h"
+
+Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+{
+  mach_port_t self;
+  Res res;
+
+  AVERT(Thread, thread);
+  self = mach_thread_self();
+  if (thread->port == self) {
+    /* scan this thread's stack */
+    res = StackScan(ss, stackBot);
+    if(res != ResOK)
+      return res;
+  } else {
+    MutatorFaultContextStruct mfcStruct;
+    Addr *stackBase, *stackLimit, stackPtr;
+    mach_msg_type_number_t count;
+    kern_return_t kern_return;
+    
+    /* FIXME: Assert that threads have been suspended? */
+
+    count = THREAD_STATE_COUNT;
+    AVER(sizeof(mfcStruct.thread_state) == count * sizeof(natural_t));
+    kern_return = thread_get_state(thread->port,
+                                   THREAD_STATE_FLAVOR,
+                                   (thread_state_t)&mfcStruct.thread_state,
+                                   &count);
+    /* FIXME: error checking */
+    AVER(kern_return == KERN_SUCCESS);
+    AVER(count == THREAD_STATE_COUNT);
+    
+    stackPtr = MutatorFaultContextSP(&mfcStruct);
+    /* .stack.align */
+    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackLimit = (Addr *)stackBot;
+    if (stackBase >= stackLimit)
+      return ResOK;    /* .stack.below-bottom */
+
+    /* scan stack inclusive of current sp and exclusive of
+     * stackBot (.stack.full-descend)
+     */
+    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
+    if(res != ResOK)
+      return res;
+
+    /* scan the registers in the mutator fault context */
+    res = MutatorFaultContextScan(ss, &mfcStruct);
+    if(res != ResOK)
+      return res;
+  }
+
+  return ResOK;
 }
 
 

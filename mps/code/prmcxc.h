@@ -1,4 +1,4 @@
-/* prmci3xc.h: PROTECTION MUTATOR CONTEXT FOR OS X MACH
+/* prmcxc.h: PROTECTION MUTATOR CONTEXT FOR OS X MACH
  *
  * $Id$
  * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
@@ -6,19 +6,22 @@
  * .readership: MPS developers.
  */
 
-#ifndef prmci3xc_h
-#define prmci3xc_h
+#ifndef prmcxc_h
+#define prmcxc_h
 
 #include "mpm.h"
 
 #include <mach/i386/thread_status.h>
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
-  x86_thread_state32_t state;
+  Addr address;
+  THREAD_STATE_T thread_state;
+  /* FIXME: Might need to get the floats in case the compiler stashes
+     intermediate values in them. */
 } MutatorFaultContextStruct;
 
 
-#endif /* prmci3xc_h */
+#endif /* prmcxc_h */
 
 
 /* C. COPYRIGHT AND LICENSE

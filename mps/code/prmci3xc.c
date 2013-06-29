@@ -24,7 +24,7 @@
  * storing into an MRef pointer.
  */
 
-#include "prmci3xc.h"
+#include "prmcxc.h"
 #include "prmci3.h"
 
 SRCID(prmci3li, "$Id$");
@@ -47,14 +47,14 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
      suppress the warning my casting through `char *` and this might make
      it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EAX]);
-    case 1: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ECX]);
-    case 2: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EDX]);
-    case 3: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EBX]);
-    case 4: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ESP]);
-    case 5: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EBP]);
-    case 6: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_ESI]);
-    case 7: return (MRef)((char *)&mfc->ucontext->uc_mcontext.gregs[REG_EDI]);
+    case 0: return (MRef)((char *)&mfc->thread_state.__eax);
+    case 1: return (MRef)((char *)&mfc->thread_state.__ecx);
+    case 2: return (MRef)((char *)&mfc->thread_state.__edx);
+    case 3: return (MRef)((char *)&mfc->thread_state.__ebx);
+    case 4: return (MRef)((char *)&mfc->thread_state.__esp);
+    case 5: return (MRef)((char *)&mfc->thread_state.__ebp);
+    case 6: return (MRef)((char *)&mfc->thread_state.__esi);
+    case 7: return (MRef)((char *)&mfc->thread_state.__edi);
   }
   NOTREACHED;
   return (MRef)NULL;  /* Avoids compiler warning. */
@@ -67,9 +67,8 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
                               MutatorFaultContext mfc)
 {
-  /* .source.linux.kernel (linux/arch/i386/mm/fault.c). */
-  *faultmemReturn = (MRef)mfc->info->si_addr;
-  *insvecReturn = (Byte*)mfc->ucontext->uc_mcontext.gregs[REG_EIP];
+  *faultmemReturn = (MRef)mfc->address;
+  *insvecReturn = (Byte*)mfc->thread_state.__eip;
 }
 
 
@@ -77,25 +76,25 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
 
 void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
-  mfc->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
+  mfc->thread_state.__eip += (Word)inslen;
 }
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.gregs[REG_ESP];
+  return (Addr)mfc->thread_state.__esp;
 }
 
 
 Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
 {
-  mcontext_t *mc;
+  x86_thread_state32_t *mc;
   Res res;
 
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = &mfc->ucontext->uc_mcontext;
+  mc = &mfc->thread_state;
   res = TraceScanAreaTagged(ss,
                             (Addr *)mc,
                             (Addr *)((char *)mc + sizeof(*mc)));
