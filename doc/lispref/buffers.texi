@@ -1065,7 +1065,7 @@ Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
 @end deffn
 
 @defvar kill-buffer-query-functions
-After confirming unsaved changes, @code{kill-buffer} calls the functions
+Before confirming unsaved changes, @code{kill-buffer} calls the functions
 in the list @code{kill-buffer-query-functions}, in order of appearance,
 with no arguments.  The buffer being killed is the current buffer when
 they are called.  The idea of this feature is that these functions will

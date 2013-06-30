@@ -1,3 +1,11 @@
+2013-06-30  Michal Nazarewicz  <mina86@mina86.com>
+
+	* buffer.c (FKill_buffer): Run `kill-buffer-query-functions'
+	before checking whether buffer is modified.  This lets
+	`kill-buffer-query-functions' cancel killing of the buffer or save
+	its content before `kill-buffer' asks user the "Buffer %s
+	modified; kill anyway?" question.
+
 2013-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m (handlePanelKeys): Don't process Command+Function keys.
@@ -59,6 +67,24 @@
 	:prefer-utf-8.
 	(syms_of_coding): Adjust for coding_arg_undecided_max.
 
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* coding.h (define_coding_undecided_arg_index): New enum.
+	(coding_attr_index): New members
+	coding_attr_undecided_inhibit_null_byte_detection,
+	coding_attr_undecided_inhibit_iso_escape_detection,
+	coding_attr_undecided_prefer_utf_8.
+	(undecided_spec): New struct.
+	(struct coding_system): New member `undecided' of the member `spec'.
+
+	* coding.c (setup_coding_system): Handle CODING->spec.undecided.
+	(detect_coding): Likewise.
+	(detect_coding_system): Likewise.
+	(Fdefine_coding_system_internal): New coding system properties
+	:inhibit-null-byte-detection, :inhibit-iso-escape-detection, and
+	:prefer-utf-8.
+	(syms_of_coding): Adjust for coding_arg_undecided_max.
+
 2013-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (x_from_xcolors): Remove unused local.
@@ -75,8 +101,8 @@
 	(x_clear_image_1): New arg `flags' instead of 3 bools `pixmap_p',
 	`mask_p', and `colors_p'.  All uses changed.
 	(x_clear_image_1) [HAVE_X_WINDOWS]: Destroy `ximg' and `mask_img'.
-	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS): New
-	macros for `flags' arg to x_clear_image_1.
+	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS):
+	New macros for `flags' arg to x_clear_image_1.
 	(postprocess_image, xpm_load_image, x_build_heuristic_mask)
 	(png_load_body): Use x_clear_image_1 instead of Free_Pixmap.
 	(ZPixmap, XGetImage) [HAVE_NS]: Remove.
@@ -343,7 +369,7 @@
 	* textprop.c (property_set_type): New enum.
 	(add_properties): Allow appending/prepending text properties.
 	(add_text_properties_1): Factored out of Fadd_text_properties.
-	(Fadd_text_properties): Moved all the code into
+	(Fadd_text_properties): Move all the code into
 	add_text_properties_1.
 	(Fadd_face_text_property): New function that calls
 	add_text_properties_1.
@@ -914,7 +940,7 @@
 	(Fxw_color_values): Use EmacsCGFloat
 	(Fns_display_monitor_attributes_list): Only get screen number for
 	Cocoa.
-	(getDirectory, getFilename): Removed from EmacsOpenPanel and
+	(getDirectory, getFilename): Remove from EmacsOpenPanel and
 	EmacsSavePanel.
 	(EmacsOpenPanel:ok:): Use ns_filename_from_panel and
 	ns_directory_from_panel.

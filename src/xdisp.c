@@ -20110,7 +20110,7 @@ Value is the new character position of point.  */)
 	      w->cursor.vpos = -1;
 	      return make_number (PT);
 	    }
-	  else if (!INTEGERP (g->object) && g->object != gpt->object)
+	  else if (!INTEGERP (g->object) && !EQ (g->object, gpt->object))
 	    {
 	      ptrdiff_t new_pos;
 

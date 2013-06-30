@@ -53,7 +53,8 @@ or directory when no target file is specified."
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
-          (function  :tag "Function")
+	  (const     :tag "Notes buffer" remember-notes)
+	  (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "24.4"
   :group 'initialization)

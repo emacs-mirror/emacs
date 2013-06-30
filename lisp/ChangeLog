@@ -1,18 +1,37 @@
+2013-06-30  Michal Nazarewicz  <mina86@mina86.com>
+
+	* files.el (find-file-noselect): Simplify conditional expression.
+
+	* remember.el (remember-append-to-file):
+	Don't mix `find-buffer-visiting' and `get-file-buffer'.
+
+	Add `remember-notes' function to store random notes across Emacs
+	restarts.
+	* remember.el (remember-data-file): Add :set callback to affect
+	notes buffer (if any).
+	(remember-notes): New command.
+	(remember-notes-buffer-name, bury-remember-notes-on-kill):
+	New defcustoms for the `remember-notes' function.
+	(remember-notes-save-and-bury-buffer): New command.
+	(remember-notes-mode-map): New variable.
+	(remember-mode): New minor mode.
+	(remember-notes--kill-buffer-query): New function.
+	* startup.el (initial-buffer-choice): Add notes to custom type.
+
 2013-06-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* bindings.el (right-char, left-char): Don't call sit-for, this is
 	no longer needed.  Use arithmetic comparison only for numerical
 	arguments.
 
-	* international/mule-cmds.el (select-safe-coding-system): Handle
-	the case of FROM being a string correctly.  (Bug#14755)
+	* international/mule-cmds.el (select-safe-coding-system):
+	Handle the case of FROM being a string correctly.  (Bug#14755)
 
 2013-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-make-table-1): Add a sanity check that allows
 	progression on degenerate tables.
-	(shr-rescale-image): ImageMagick animated images currently doesn't
-	work.
+	(shr-rescale-image): ImageMagick animated images currently don't work.
 
 2013-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -28,8 +47,8 @@
 
 2013-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Don't
-	start heredoc inside a string or comment.
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function):
+	Don't start heredoc inside a string or comment.
 
 2013-06-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -80,7 +99,7 @@
 
 2013-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/shr.el (add-face-text-property): Removed compat definition.
+	* net/shr.el (add-face-text-property): Remove compat definition.
 
 2013-06-27  Stephen Berman  <stephen.berman@gmx.net>
 

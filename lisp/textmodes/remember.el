@@ -382,8 +382,18 @@ Subject: %s\n\n"
 ;; Remembering to plain files
 
 (defcustom remember-data-file (locate-user-emacs-file "notes" ".notes")
-  "The file in which to store unprocessed data."
+  "The file in which to store unprocessed data.
+When set via customize, visited file of the notes buffer (if it
+exists) might be changed."
   :type 'file
+  :set (lambda (symbol value)
+         (let ((buf (find-buffer-visiting (default-value symbol))))
+           (set-default symbol value)
+           (when (buffer-live-p buf)
+             (with-current-buffer buf
+               (set-visited-file-name
+                (expand-file-name remember-data-file))))))
+  :initialize 'custom-initialize-default
   :group 'remember)
 
 (defcustom remember-leader-text "** "
@@ -393,21 +403,20 @@ Subject: %s\n\n"
 
 (defun remember-append-to-file ()
   "Remember, with description DESC, the given TEXT."
-  (let ((text (buffer-string))
-        (desc (remember-buffer-desc)))
-    (with-temp-buffer
-      (insert "\n" remember-leader-text (current-time-string)
-              " (" desc ")\n\n" text)
-      (if (not (bolp))
-          (insert "\n"))
-      (if (find-buffer-visiting remember-data-file)
-          (let ((remember-text (buffer-string)))
-            (set-buffer (get-file-buffer remember-data-file))
-            (save-excursion
-              (goto-char (point-max))
-              (insert remember-text)
-              (when remember-save-after-remembering (save-buffer))))
-        (append-to-file (point-min) (point-max) remember-data-file)))))
+  (let* ((text (buffer-string))
+         (desc (remember-buffer-desc))
+         (remember-text (concat "\n" remember-leader-text (current-time-string)
+                                " (" desc ")\n\n" text
+                                (save-excursion (goto-char (point-max))
+                                                (if (bolp) nil "\n"))))
+         (buf (find-buffer-visiting remember-data-file)))
+    (if buf
+        (with-current-buffer buf
+          (save-excursion
+            (goto-char (point-max))
+            (insert remember-text))
+          (if remember-save-after-remembering (save-buffer)))
+      (append-to-file remember-text nil remember-data-file))))
 
 (defun remember-region (&optional beg end)
   "Remember the data from BEG to END.
@@ -550,5 +559,97 @@ the data away for latter retrieval, and possible indexing.
 
 \\{remember-mode-map}"
   (set-keymap-parent remember-mode-map nil))
+
+;; Notes buffer showing the notes:
+
+(defcustom remember-notes-buffer-name "*notes*"
+  "Name of the notes buffer.
+Setting it to *scratch* will hijack the *scratch* buffer for the
+purpose of storing notes."
+  :type 'string
+  :version "24.4")
+
+(defcustom remember-notes-initial-major-mode nil
+  "Major mode to set to notes buffer when it's created.
+If set to nil will use the same mode as `initial-major-mode'."
+  :type '(choice (const    :tag "Same as `initial-major-mode'" nil)
+		 (function :tag "Major mode" text-mode))
+  :version "24.4")
+
+(defcustom remember-notes-bury-on-kill t
+  "Whether to bury notes buffer instead of killing."
+  :type 'boolean
+  :version "24.4")
+
+(defun remember-notes-save-and-bury-buffer ()
+  "Saves and buries current buffer.
+Buffer is saved only if `buffer-modified-p' returns non-nil."
+  (interactive)
+  (when (buffer-modified-p)
+    (save-buffer))
+  (bury-buffer))
+
+
+
+(defvar remember-notes-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'remember-notes-save-and-bury-buffer)
+    map)
+  "Keymap used in remember-notes mode.")
+
+(define-minor-mode remember-notes-mode
+  "Minor mode for the `remember-notes' buffer."
+  nil nil nil
+  (cond
+   (remember-notes-mode
+    (add-hook 'kill-buffer-query-functions
+              #'remember-notes--kill-buffer-query nil t)
+    (setq buffer-save-without-query t))))
+
+;;;###autoload
+(defun remember-notes (&optional switch-to)
+  "Creates notes buffer and switches to it if called interactively.
+
+If a notes buffer created by a previous invocation of this
+function already exist, it will be returned.  Otherwise a new
+buffer will be created whose content will be read from file
+pointed by `remember-data-file'.  If a buffer visiting this file
+already exist, that buffer will be used instead of creating a new
+one (see `find-file-noselect' function for more details).
+
+Name of the created buffer is taken from `remember-notes-buffer-name'
+variable and if a buffer with that name already exist (but was not
+created by this function), it will be first killed.
+\\<remember-notes-mode-map>
+`remember-notes-mode' is active in the notes buffer which by default
+contains only one \\[save-and-bury-buffer] binding which saves and
+buries the buffer.
+
+Function returns notes buffer.  When called interactively,
+switches to it as well.
+
+Notes buffer is meant for keeping random notes which you'd like to
+preserve across Emacs restarts.  The notes will be stored in the
+`remember-data-file'."
+  (interactive "p")
+  (let ((buf (or (find-buffer-visiting remember-data-file)
+                 (with-current-buffer (find-file-noselect remember-data-file)
+                   (and remember-notes-buffer-name
+                        (not (get-buffer remember-notes-buffer-name))
+                        (rename-buffer remember-notes-buffer-name))
+                   (funcall (or remember-notes-initial-major-mode
+                                initial-major-mode))
+                   (remember-notes-mode 1)
+                   (current-buffer)))))
+    (when switch-to
+      (switch-to-buffer buf))
+    buf))
+
+(defun remember-notes--kill-buffer-query ()
+  (when (buffer-modified-p)
+    (save-buffer))
+  (if remember-notes-bury-on-kill
+      (bury-buffer)
+    t))
 
 ;;; remember.el ends here

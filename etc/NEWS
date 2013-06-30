@@ -90,6 +90,14 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
+** `remember-notes' creates a buffer whose content is saved on kill-emacs.
+You may think of it as a *scratch* buffer whose content is preserved.
+In fact, it was designed as a replacement for *scratch* buffer and can
+be used that way by setting `initial-buffer-choice' to `remember-notes'
+and `remember-notes-buffer-name' to "*scratch*".  Without the second
+change, *scratch* buffer will still be there for notes that do not
+need to be preserved.
+
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
 ** ACL support has been added.
