@@ -1,3 +1,8 @@
+2013-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (handlePanelKeys): Don't process Command+Function keys.
+	Let the super performKeyEquivalent deal with them (Bug#14747).
+
 2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* widget.c (resize_cb): Remove unused local.
