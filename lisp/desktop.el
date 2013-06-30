@@ -900,7 +900,8 @@ Internal use only."
 	     (mapcar (lambda (frame)
 		       (cons (desktop--filter-frame-parms frame)
 			     (window-state-get (frame-root-window frame) t)))
-		     (frame-list))))
+		     (cons (selected-frame)
+			   (delq (selected-frame) (frame-list))))))
   (desktop-outvar 'desktop--saved-states))
 
 ;;;###autoload
@@ -1010,28 +1011,53 @@ This function also sets `desktop-dirname' to nil."
 	(setq frames (cdr frames))))
     result))
 
+(defun desktop--make-full-frame (full display config)
+  (let ((width (and (eq full 'fullheight) (cdr (assq 'width config))))
+	(height (and (eq full 'fullwidth) (cdr (assq 'height config))))
+	(params '((visibility)))
+	frame)
+    (when width
+      (setq params (append `((user-size . t) (width . ,width)) params)))
+    (when height
+      (setq params (append `((user-size . t) (height . ,height)) params)))
+    (setq frame (make-frame-on-display display params))
+    (modify-frame-parameters frame config)
+    frame))
+
 (defun desktop--restore-windows ()
   "Restore window/frame configuration.
 Internal use only."
   (when (and desktop-save-windows desktop--saved-states)
-    (condition-case nil
-	(let ((frames (frame-list)))
-	  (dolist (state desktop--saved-states)
+    (let ((frames (frame-list))
+	  (selected nil))
+      (dolist (state desktop--saved-states)
+	(condition-case err
 	    (let* ((fconfig (car state))
 		   (display (cdr (assq 'display fconfig)))
-		   (frame (desktop--find-frame-in-display frames display)))
-	      (if (not frame)
-		  ;; no frames in the display -- make a new one
-		  (setq frame (make-frame-on-display display fconfig))
-		;; found one -- reuse and remove from list
-		(setq frames (delq frame frames))
-		(modify-frame-parameters frame fconfig))
+		   (full (cdr (assq 'fullscreen fconfig)))
+		   (frame (and (not full)
+			       (desktop--find-frame-in-display frames display))))
+	      (cond (full
+		     ;; treat fullscreen/maximized frames specially
+		     (setq frame (desktop--make-full-frame full display fconfig)))
+		    (frame
+		     ;; found a frame in the right display -- reuse
+		     (setq frames (delq frame frames))
+		     (modify-frame-parameters frame fconfig))
+		    (t
+		     ;; no frames in the display -- make a new one
+		     (setq frame (make-frame-on-display display fconfig))))
 	      ;; restore windows
-	      (window-state-put (cdr state) (frame-root-window frame) 'safe)))
-	  ;; delete any remaining frames
-	  (mapc #'delete-frame frames))
-      (error
-       (message "Error loading window configuration from desktop file")))))
+	      (window-state-put (cdr state) (frame-root-window frame) 'safe)
+	      (unless selected (setq selected frame)))
+	  (error
+	   (message "Error restoring frame: %S" (error-message-string err)))))
+      ;; make sure the original selected frame is visible and selected
+      (unless (or (frame-parameter selected 'visibility) (daemonp))
+	(modify-frame-parameters selected '((visibility . t))))
+      (select-frame-set-input-focus selected)
+      ;; delete any remaining frames
+      (mapc #'delete-frame frames))))
 
 ;;;###autoload
 (defun desktop-read (&optional dirname)

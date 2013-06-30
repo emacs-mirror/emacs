@@ -1,3 +1,15 @@
+2013-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	Some fixes and improvements for desktop frame restoration.
+	It is still experimental and disabled by default.
+	* desktop.el (desktop--save-windows): Put the selected frame at
+	the head of the list.
+	(desktop--make-full-frame): New function.
+	(desktop--restore-windows): Try to re-select the frame that was
+	selected upon saving.  Do not abort if some frames fail to restore,
+	just show an error message and contnue.  Set up maximized frames so
+	they have default non-maximized dimensions.
+
 2013-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Don't
