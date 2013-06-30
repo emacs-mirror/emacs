@@ -1,3 +1,10 @@
+2013-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-make-table-1): Add a sanity check that allows
+	progression on degenerate tables.
+	(shr-rescale-image): ImageMagick animated images currently doesn't
+	work.
+
 2013-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	Some fixes and improvements for desktop frame restoration.
