@@ -1,5 +1,9 @@
 2013-06-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* bindings.el (right-char, left-char): Don't call sit-for, this is
+	no longer needed.  Use arithmetic comparison only for numerical
+	arguments.
+
 	* international/mule-cmds.el (select-safe-coding-system): Handle
 	the case of FROM being a string correctly.  (Bug#14755)
 

@@ -725,8 +725,7 @@ see."
   (interactive "^p")
   (if visual-order-cursor-movement
       (dotimes (i (if (numberp n) (abs n) 1))
-	(move-point-visually (if (< n 0) -1 1))
-	(sit-for 0))
+	(move-point-visually (if (and (numberp n) (< n 0)) -1 1)))
     (if (eq (current-bidi-paragraph-direction) 'left-to-right)
 	(forward-char n)
       (backward-char n))))
@@ -744,8 +743,7 @@ see."
   (interactive "^p")
   (if visual-order-cursor-movement
       (dotimes (i (if (numberp n) (abs n) 1))
-	(move-point-visually (if (< n 0) 1 -1))
-	(sit-for 0))
+	(move-point-visually (if (and (numberp n) (< n 0)) 1 -1)))
     (if (eq (current-bidi-paragraph-direction) 'left-to-right)
 	(backward-char n)
       (forward-char n))))

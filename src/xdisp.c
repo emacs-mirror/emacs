@@ -20107,6 +20107,7 @@ Value is the new character position of point.  */)
 	  if (BUFFERP (g->object) && g->charpos != PT)
 	    {
 	      SET_PT (g->charpos);
+	      w->cursor.vpos = -1;
 	      return make_number (PT);
 	    }
 	  else if (!INTEGERP (g->object) && g->object != gpt->object)
@@ -20126,6 +20127,7 @@ Value is the new character position of point.  */)
 	      else
 		break;
 	      SET_PT (new_pos);
+	      w->cursor.vpos = -1;
 	      return make_number (PT);
 	    }
 	  else if (ROW_GLYPH_NEWLINE_P (row, g))
@@ -20141,6 +20143,7 @@ Value is the new character position of point.  */)
 		SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
 	      else
 		break;
+	      w->cursor.vpos = -1;
 	      return make_number (PT);
 	    }
 	}
@@ -20161,6 +20164,7 @@ Value is the new character position of point.  */)
 	      if (row->reversed_p && !row->continued_p)
 		{
 		  SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
+		  w->cursor.vpos = -1;
 		  return make_number (PT);
 		}
 	      g = row->glyphs[TEXT_AREA];
@@ -20188,6 +20192,7 @@ Value is the new character position of point.  */)
 			SET_PT (ZV);
 		      else
 			continue;
+		      w->cursor.vpos = -1;
 		      return make_number (PT);
 		    }
 		}
@@ -20197,6 +20202,7 @@ Value is the new character position of point.  */)
 	      if (!row->reversed_p && !row->continued_p)
 		{
 		  SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
+		  w->cursor.vpos = -1;
 		  return make_number (PT);
 		}
 	      e = row->glyphs[TEXT_AREA];
@@ -20224,6 +20230,7 @@ Value is the new character position of point.  */)
 			SET_PT (ZV);
 		      else
 			continue;
+		      w->cursor.vpos = -1;
 		      return make_number (PT);
 		    }
 		}
