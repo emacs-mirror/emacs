@@ -1,3 +1,8 @@
+2013-06-30  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): Don't
+	start heredoc inside a string or comment.
+
 2013-06-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* bindings.el (visual-order-cursor-movement): New defcustom.

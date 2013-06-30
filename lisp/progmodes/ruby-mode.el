@@ -1422,7 +1422,9 @@ It will be properly highlighted even when the call omits parens.")
             ("^\\(=\\)begin\\_>" (1 "!"))
             ;; Handle here documents.
             ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-             (7 (unless (ruby-singleton-class-p (match-beginning 0))
+             (7 (unless (or (nth 8 (save-excursion
+                                     (syntax-ppss (match-beginning 0))))
+                            (ruby-singleton-class-p (match-beginning 0)))
                   (put-text-property (match-beginning 7) (match-end 7)
                                      'syntax-table (string-to-syntax "\""))
                   (ruby-syntax-propertize-heredoc end))))

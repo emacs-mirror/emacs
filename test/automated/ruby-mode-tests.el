@@ -87,6 +87,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-heredoc-highlights-interpolations ()
   (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
 
+(ert-deftest ruby-no-heredoc-inside-quotes ()
+  (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
