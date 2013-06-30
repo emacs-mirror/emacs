@@ -1,3 +1,11 @@
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* lwlib-Xaw.h (xaw_update_one_value, xaw_popup_menu):
+	* lwlib-Xlw.h (xlw_update_one_value, xlw_pop_instance):
+	* lwlib.h (lw_allow_resizing, lw_set_main_areas) [!USE_MOTIF]:
+	Now const.
+
 2012-10-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (AR, ARFLAGS): Get values from configure.
