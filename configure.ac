@@ -2078,6 +2078,7 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
+gtk_term_header=$term_header
 check_gtk2=no
 gtk3_pkg_errors=
 if test "${opsys}" != "mingw32"; then
@@ -2094,7 +2095,7 @@ if test "${opsys}" != "mingw32"; then
     if test "$pkg_check_gtk" = "yes"; then
        AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
        GTK_OBJ=emacsgtkfixed.o
-       term_header=gtkutil.h
+       gtk_term_header=gtkutil.h
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
        	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
@@ -2133,6 +2134,7 @@ if test x"$pkg_check_gtk" = xyes; then
   GTK_COMPILES=no
   AC_CHECK_FUNCS(gtk_main, GTK_COMPILES=yes)
   if test "${GTK_COMPILES}" != "yes"; then
+    GTK_OBJ=
     if test "$USE_X_TOOLKIT" != "maybe"; then
       AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
     fi
@@ -2140,6 +2142,7 @@ if test x"$pkg_check_gtk" = xyes; then
     HAVE_GTK=yes
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     GTK_OBJ="gtkutil.o $GTK_OBJ"
+    term_header=$gtk_term_header
     USE_X_TOOLKIT=none
     if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :

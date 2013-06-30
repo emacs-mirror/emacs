@@ -1,5 +1,10 @@
 2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Do not use GTK 3 if it exists but cannot be compiled.
+	* xmenu.c (x_menu_wait_for_event) [!USE_GTK]:
+	* xterm.c (x_error_handler) [!USE_GTK]:
+	Do not use GTK 3.
+
 	* intervals.c (get_local_map): Actually clip POSITION (Bug#14753).
 
 2013-06-30  Eli Zaretskii  <eliz@gnu.org>

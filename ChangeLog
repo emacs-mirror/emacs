@@ -1,3 +1,9 @@
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not use GTK 3 if it exists but cannot be compiled.
+	* configure.ac: Leave GTK_OBJ and term_header alone if GTK 3
+	exists but cannot be compiled.
+
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* Makefile.in (install-arch-indep): Do not create directories passed
