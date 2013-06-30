@@ -1,3 +1,7 @@
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* intervals.c (get_local_map): Actually clip POSITION (Bug#14753).
+
 2013-06-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* intervals.c (get_local_map): Instead of aborting, clip POSITION
