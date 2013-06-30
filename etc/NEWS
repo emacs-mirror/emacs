@@ -369,7 +369,7 @@ New features include:
 - support for multiple todo files and archive files of done items;
 - renaming, reordering, moving, merging, and deleting categories;
 - sortable tabular summaries of categories and the types of items they contain;
-- cross-categorial lists of items filtered by specific criteria;
+- cross-category lists of items filtered by specific criteria;
 - more fine-grained interaction with the Emacs diary, by being able to decide
   for each todo item whether it appears in the Fancy Diary display;
 - highly flexible new item insertion and item editing;

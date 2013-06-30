@@ -40,7 +40,7 @@
 ;; You can add new todo files and categories, rename categories, move
 ;; them to another file or delete them.  You can also display summary
 ;; tables of the categories in a file and the types of items they
-;; contain.  And you can build cross-categorial lists of items that
+;; contain.  And you can build cross-category lists of items that
 ;; satisfy various criteria.
 
 ;; To get started, load this package and type `M-x todo-show'.  This
@@ -440,7 +440,7 @@ less than or equal the category's top priority setting."
     (((class color) (min-colors 16) (background dark)) :foreground "LightSteelBlue")
     (((class color) (min-colors 8)) :foreground "blue" :weight bold)
     (t :weight bold))
-  "Face for separator string bewteen done and not done todo items."
+  "Face for separator string between done and not done todo items."
   :group 'todo-faces)
 
 (defface todo-done
@@ -1095,7 +1095,7 @@ Noninteractively, return the name of the new file."
 This makes the entire file visible and the buffer writeable and
 you can use the self-insertion keys and standard Emacs editing
 commands to make changes.  To return to Todo mode, type
-\\[todo-edit-quit].  This runs a file format check, signalling
+\\[todo-edit-quit].  This runs a file format check, signaling
 an error if the format has become invalid.  However, this check
 cannot tell if the number of items changed, which could result in
 the file containing inconsistent information.  For this reason
@@ -1586,7 +1586,7 @@ marking of the next N items."
       (todo-forward-item))))
 
 (defun todo-mark-category ()
-  "Mark all visiblw items in this category with `todo-item-mark'."
+  "Mark all visible items in this category with `todo-item-mark'."
   (interactive)
   (let* ((cat (todo-current-category))
 	 (marks (assoc cat todo-categories-with-marks)))
@@ -1628,7 +1628,7 @@ marking of the next N items."
 This is the function from which the generated Todo mode item
 insertion commands derive.
 
-The generated commands have mnenomic key bindings based on the
+The generated commands have mnemonic key bindings based on the
 arguments' values and their order in the command's argument list,
 as follows: (1) for DIARY `d', (2) for NONMARKING `k', (3) for
 DATE-TYPE either `c' for calendar or `d' for date or `n' for
@@ -3288,7 +3288,7 @@ categories display according to priority."
 
 In the initial display the categories are numbered, indicating
 their current order for navigating by \\[todo-forward-category]
-and \\[todo-backward-category].  You can persistantly change the
+and \\[todo-backward-category].  You can permanently change the
 order of the category at point by typing
 \\[todo-set-category-number], \\[todo-raise-category] or
 \\[todo-lower-category].
@@ -4019,10 +4019,10 @@ regexp items."
   "Buffer type string for `todo-filter-items'.")
 
 (defun todo-filter-items (filter &optional new multifile)
-  "Display a cross-categorial list of items filtered by FILTER.
+  "Display a cross-category list of items filtered by FILTER.
 The values of FILTER can be `top' for top priority items, a cons
 of `top' and a number passed by the caller, `diary' for diary
-items, or `regexp' for items matching a regular expresion entered
+items, or `regexp' for items matching a regular expression entered
 by the user.  The items can be from any categories in the current
 todo file or, with non-nil MULTIFILE, from several files.  If NEW
 is nil, visit an appropriate file containing the list of filtered
@@ -5069,7 +5069,7 @@ empty line above the done items separator."
       (not (looking-at (regexp-quote todo-nondiary-start))))))
 
 ;; This duplicates the item locating code from diary-goto-entry, but
-;; without the marker code, to test whether the latter is dispensible.
+;; without the marker code, to test whether the latter is dispensable.
 ;; If it is, diary-goto-entry can be simplified.  The code duplication
 ;; here can also be eliminated, leaving only the widening and category
 ;; selection, and instead of :override advice :around can be used.
@@ -5266,10 +5266,10 @@ The elements of ARGLIST may be atoms or lists."
   "Generator list for argument lists of item insertion commands.")
 
 (defvar todo-insertion-commands-args
-  (let ((argslist (todo-gen-arglists todo-insertion-commands-args-genlist))
+  (let ((arglist (todo-gen-arglists todo-insertion-commands-args-genlist))
 	res new)
     (setq res (cl-remove-duplicates
-	       (apply 'append (mapcar 'todo-powerset argslist)) :test 'equal))
+	       (apply 'append (mapcar 'todo-powerset arglist)) :test 'equal))
     (dolist (l res)
       (unless (= 5 (length l))
 	(let ((v (make-vector 5 nil)) elt)
@@ -5524,12 +5524,12 @@ categories from `todo-category-completions-files'."
       ;; Default to the current file.
       (unless file0 (setq file0 todo-current-todo-file))
       ;; First validate only a name passed interactively from
-      ;; todo-add-category, which must be of a nonexisting category.
+      ;; todo-add-category, which must be of a nonexistent category.
       (unless (and (assoc cat categories) (not add))
 	;; Validate only against completion categories.
 	(let ((todo-categories categories))
 	  (setq cat (todo-validate-name cat 'category)))
-	;; When user enters a nonexisting category name by jumping or
+	;; When user enters a nonexistest category name by jumping or
 	;; moving, confirm that it should be added, then validate.
 	(unless add
 	  (if (todo-y-or-n-p (format "Add new category \"%s\" to file \"%s\"? "
@@ -5677,7 +5677,7 @@ number of the last the day of the month."
     (completing-read "Enter a day name: "
 		     (append calendar-day-name-array nil)
 		     nil t)))
-  
+
 (defun todo-read-time ()
   "Prompt for and return a valid clock time as a string.
 
@@ -6221,7 +6221,7 @@ Filtered Items mode following todo (not done) items."
 ;;     ))
 
 ;; -----------------------------------------------------------------------------
-;;; Hook functions and mode definitions 
+;;; Hook functions and mode definitions
 ;; -----------------------------------------------------------------------------
 
 (defun todo-show-current-file ()

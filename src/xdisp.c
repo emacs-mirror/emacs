@@ -20387,7 +20387,7 @@ Value is the new character position of point.  */)
 		break;
 	    }
 	  /* If we ended up on a composed character inside
-	     bidi-reordered text (e.g., Hebrew text with diacriticals),
+	     bidi-reordered text (e.g., Hebrew text with diacritics),
 	     the iterator gives us the buffer position of the last (in
 	     logical order) character of the composed grapheme cluster,
 	     which is not what we want.  So we cheat: we compute the

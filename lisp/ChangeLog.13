@@ -12554,7 +12554,7 @@
 
 2007-08-23  John Wiegley  <johnw@newartisans.com>
 
-	* calendar/cal-bahai.el: Added in the diacriticals that were
+	* calendar/cal-bahai.el: Added in the diacritics that were
 	missing for many of the month names.
 
 2007-08-22  Jason Rumney  <jasonr@gnu.org>

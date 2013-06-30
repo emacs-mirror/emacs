@@ -80,7 +80,7 @@
 	(eww-colorize-region): Use `add-face-text-property'.
 
 	* shr.el (shr-add-font): Append face data, so that we get the correct
-	presedence: The innermost value (which is applied first) wins.
+	precedence: The innermost value (which is applied first) wins.
 	(shr-make-overlay): Obsolete function.
 
 	* mm-decode.el (mm-convert-shr-links): New function to convert
