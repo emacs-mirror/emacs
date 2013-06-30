@@ -1,3 +1,8 @@
+2013-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Handle
+	the case of FROM being a string correctly.  (Bug#14755)
+
 2013-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-make-table-1): Add a sanity check that allows
