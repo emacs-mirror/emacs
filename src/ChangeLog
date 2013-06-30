@@ -1,5 +1,8 @@
 2013-06-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* intervals.c (get_local_map): Instead of aborting, clip POSITION
+	to the valid range of values.  (Bug#14753)
+
 	* xdisp.c (Fmove_point_visually): Invalidate the cursor position
 	when moving point by using the current glyph matrix.  This avoids
 	the need to force redisplay when this function is called in a
