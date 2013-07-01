@@ -1,3 +1,8 @@
+2013-07-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fkill_emacs): Expand Vauto_save_list_file_name before
+	unlinking it (bug#14691).
+
 2013-06-30  Michal Nazarewicz  <mina86@mina86.com>
 
 	* buffer.c (FKill_buffer): Run `kill-buffer-query-functions'
