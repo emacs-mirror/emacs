@@ -42,8 +42,8 @@
 	(desktop--make-full-frame): New function.
 	(desktop--restore-windows): Try to re-select the frame that was
 	selected upon saving.  Do not abort if some frames fail to restore,
-	just show an error message and contnue.  Set up maximized frames so
-	they have default non-maximized dimensions.
+	just show an error message and continue.  Set up maximized frames
+	so they have default non-maximized dimensions.
 
 2013-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
