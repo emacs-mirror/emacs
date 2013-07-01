@@ -1,3 +1,13 @@
+2013-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug re noninteractive multithreaded memory allocation (Bug#14569).
+	* emacs.c (malloc_enable_thread): Hoist extern decl to top level.
+	(main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Invoke malloc_enable_thread even when not interactive.
+	Problem reported by Ken Brown in <http://bugs.gnu.org/14569#275>.
+	* process.c (init_process_emacs) [CYGWIN]: Tickle glib even
+	in this case, since the underlying bug has now been fixed.
+
 2013-07-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (Fkill_emacs): Expand Vauto_save_list_file_name before

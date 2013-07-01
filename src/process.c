@@ -7095,15 +7095,11 @@ init_process_emacs (void)
   if (! noninteractive || initialized)
 #endif
     {
-#if defined HAVE_GLIB && !defined WINDOWSNT && !defined CYGWIN
+#if defined HAVE_GLIB && !defined WINDOWSNT
       /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
 	 this should always fail, but is enough to initialize glib's
-	 private SIGCHLD handler, allowing the code below to copy it into
-	 LIB_CHILD_HANDLER.
-
-	 For some reason tickling causes Cygwin bootstrap to fail, so it's
-	 skipped under Cygwin.  FIXME: Skipping the tickling likely causes
-	 bugs in subprocess handling under Cygwin (Bug#14569).  */
+	 private SIGCHLD handler, allowing catch_child_signal to copy
+	 it into lib_child_handler.  */
       g_source_unref (g_child_watch_source_new (getpid ()));
 #endif
       catch_child_signal ();
