@@ -528,6 +528,7 @@ Otherwise, just return the value."
 		(or (widget-get widget :value)
 		    (progn
 		      (when (widget-get widget :args)
+			(setq widget (widget-copy widget))
 			(let (args)
 			  (dolist (arg (widget-get widget :args))
 			    (setq args (append args

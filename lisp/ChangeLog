@@ -1,3 +1,7 @@
+2013-01-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* wid-edit.el (widget-default-get): Don't modify widget (Bug#14738).
+
 2013-07-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restore-frames): Rename from desktop-save-windows.
