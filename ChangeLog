@@ -1,5 +1,9 @@
 2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Merge from gnulib, incorporating:
+	2013-06-23 ignore-value: port to gcc -pedantic
+	2013-06-21 extern-inline: port to gcc -std=c89
+
 	Do not use GTK 3 if it exists but cannot be compiled.
 	* configure.ac: Leave GTK_OBJ and term_header alone if GTK 3
 	exists but cannot be compiled.
