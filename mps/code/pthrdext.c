@@ -128,7 +128,6 @@ static void PThreadextModuleInit(void)
 {
     int status;
     struct sigaction pthreadext_sigsuspend, pthreadext_sigresume;
-    int e;
   
     AVER(pthreadextModuleInitialized == FALSE);
 
@@ -137,7 +136,6 @@ static void PThreadextModuleInit(void)
 
     /* Initialize the semaphore */
     status = sem_init(&pthreadextSem, 0, 0);
-    e = errno;
     AVER(status != -1);
 
     /* Install the signal handlers for suspend/resume. */
