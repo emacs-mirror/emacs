@@ -1,3 +1,16 @@
+2013-07-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Rename from desktop-save-windows.
+	(desktop-restore-in-current-display): New customization option.
+	(desktop--excluded-frame-parameters): Add `font'.
+	(desktop--save-frames): Rename from desktop--save-windows.
+	(desktop--restore-in-this-display-p): New function.
+	(desktop--make-full-frame): Remove unwanted width/height from
+	full(width|height) frames.
+	(desktop--restore-frames): Rename from desktop--restore-windows.
+	Obey desktop-restore-current-display.  Do not delete old frames or
+	select a new frame unless we were able to restore at least one frame.
+
 2013-06-30  Michal Nazarewicz  <mina86@mina86.com>
 
 	* files.el (find-file-noselect): Simplify conditional expression.

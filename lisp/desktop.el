@@ -371,8 +371,15 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
-(defcustom desktop-save-windows nil
+(defcustom desktop-restore-frames nil
   "When non-nil, save window/frame configuration to desktop file."
+  :type 'boolean
+  :group 'desktop
+  :version "24.4")
+
+(defcustom desktop-restore-in-current-display nil
+  "When non-nil, frames are restored in the current display.
+Otherwise they are restored, if possible, in their original displays."
   :type 'boolean
   :group 'desktop
   :version "24.4")
@@ -872,6 +879,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
     buffer-predicate
     buried-buffer-list
     explicit-name
+    font
     font-backend
     minibuffer
     name
@@ -891,12 +899,12 @@ Internal use only."
 	(push param params)))
     params))
 
-(defun desktop--save-windows ()
+(defun desktop--save-frames ()
   "Save window/frame state, as a global variable.
 Intended to be called from `desktop-save'.
 Internal use only."
   (setq desktop--saved-states
-	(and desktop-save-windows
+	(and desktop-restore-frames
 	     (mapcar (lambda (frame)
 		       (cons (desktop--filter-frame-parms frame)
 			     (window-state-get (frame-root-window frame) t)))
@@ -944,7 +952,7 @@ and don't save the buffer if they are the same."
 	  (insert "\n;; Global section:\n")
 	  ;; Called here because we save the window/frame state as a global
 	  ;; variable for compatibility with previous Emacsen.
-	  (desktop--save-windows)
+	  (desktop--save-frames)
 	  (mapc (function desktop-outvar) desktop-globals-to-save)
 	  (when (memq 'kill-ring desktop-globals-to-save)
 	    (insert
@@ -1003,6 +1011,10 @@ This function also sets `desktop-dirname' to nil."
 (defvar desktop-lazy-timer nil)
 
 ;; ----------------------------------------------------------------------------
+(defun desktop--restore-in-this-display-p ()
+  (or desktop-restore-in-current-display
+      (and (eq system-type 'windows-nt) (not (display-graphic-p)))))
+
 (defun desktop--find-frame-in-display (frames display)
   (let (result)
     (while (and frames (not result))
@@ -1017,47 +1029,53 @@ This function also sets `desktop-dirname' to nil."
 	(params '((visibility)))
 	frame)
     (when width
-      (setq params (append `((user-size . t) (width . ,width)) params)))
+      (setq params (append `((user-size . t) (width . ,width)) params)
+            config (assq-delete-all 'height config)))
     (when height
-      (setq params (append `((user-size . t) (height . ,height)) params)))
+      (setq params (append `((user-size . t) (height . ,height)) params)
+            config (assq-delete-all 'width config)))
     (setq frame (make-frame-on-display display params))
     (modify-frame-parameters frame config)
     frame))
 
-(defun desktop--restore-windows ()
+(defun desktop--restore-frames ()
   "Restore window/frame configuration.
 Internal use only."
-  (when (and desktop-save-windows desktop--saved-states)
+  (when (and desktop-restore-frames desktop--saved-states)
     (let ((frames (frame-list))
+	  (current (frame-parameter nil 'display))
 	  (selected nil))
       (dolist (state desktop--saved-states)
 	(condition-case err
-	    (let* ((fconfig (car state))
-		   (display (cdr (assq 'display fconfig)))
-		   (full (cdr (assq 'fullscreen fconfig)))
+	    (let* ((config (car state))
+		   (display (if (desktop--restore-in-this-display-p)
+				(setcdr (assq 'display config) current)
+			      (cdr (assq 'display config))))
+		   (full (cdr (assq 'fullscreen config)))
 		   (frame (and (not full)
 			       (desktop--find-frame-in-display frames display))))
 	      (cond (full
 		     ;; treat fullscreen/maximized frames specially
-		     (setq frame (desktop--make-full-frame full display fconfig)))
+		     (setq frame (desktop--make-full-frame full display config)))
 		    (frame
 		     ;; found a frame in the right display -- reuse
 		     (setq frames (delq frame frames))
-		     (modify-frame-parameters frame fconfig))
+		     (modify-frame-parameters frame config))
 		    (t
 		     ;; no frames in the display -- make a new one
-		     (setq frame (make-frame-on-display display fconfig))))
+		     (setq frame (make-frame-on-display display config))))
 	      ;; restore windows
 	      (window-state-put (cdr state) (frame-root-window frame) 'safe)
 	      (unless selected (setq selected frame)))
 	  (error
 	   (message "Error restoring frame: %S" (error-message-string err)))))
-      ;; make sure the original selected frame is visible and selected
-      (unless (or (frame-parameter selected 'visibility) (daemonp))
-	(modify-frame-parameters selected '((visibility . t))))
-      (select-frame-set-input-focus selected)
-      ;; delete any remaining frames
-      (mapc #'delete-frame frames))))
+      (when selected
+	;; make sure the original selected frame is visible and selected
+	(unless (or (frame-parameter selected 'visibility) (daemonp))
+	  (modify-frame-parameters selected '((visibility . t))))
+	(select-frame-set-input-focus selected)
+	;; delete any remaining frames
+	(mapc #'delete-frame frames)))))
 
 ;;;###autoload
 (defun desktop-read (&optional dirname)
@@ -1127,7 +1145,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    (switch-to-buffer (car (buffer-list)))
 	    (run-hooks 'desktop-delay-hook)
 	    (setq desktop-delay-hook nil)
-	    (desktop--restore-windows)
+	    (desktop--restore-frames)
 	    (run-hooks 'desktop-after-read-hook)
 	    (message "Desktop: %d buffer%s restored%s%s."
 		     desktop-buffer-ok-count
