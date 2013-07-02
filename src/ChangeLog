@@ -1,3 +1,8 @@
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (sys_siglist) [HAVE_DECL___SYS_SIGLIST]:
+	Define to __sys_siglist.
+
 2013-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): Don't disallow

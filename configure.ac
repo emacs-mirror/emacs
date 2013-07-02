@@ -1254,7 +1254,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h,
+  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h],
     have_sound_header=yes, [], [
     #ifdef __MINGW32__
     #define WIN32_LEAN_AND_MEAN
@@ -1311,7 +1311,7 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
-  linux/version.h sys/systeminfo.h
+  sys/systeminfo.h
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h)
@@ -1337,21 +1337,8 @@ if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
   AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
 			                  ]])
-  if test $ac_cv_have_decl___sys_siglist = yes; then
-    AC_DEFINE(sys_siglist, __sys_siglist,
-              [Define to any substitute for sys_siglist.])
-  fi
 fi
 AC_HEADER_SYS_WAIT
-
-dnl Check for speed_t typedef.
-AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
-    emacs_cv_speed_t=yes, emacs_cv_speed_t=no)])
-if test $emacs_cv_speed_t = yes; then
-  AC_DEFINE(HAVE_SPEED_T, 1,
-  	   [Define to 1 if `speed_t' is declared by <termios.h>.])
-fi
 
 AC_CHECK_HEADERS_ONCE(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
@@ -1870,8 +1857,7 @@ fi
 
 LIBS="$LIBS_SYSTEM $LIBS"
 
-dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
-dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
+dnl If found, this adds -ldnet to LIBS, which Autoconf uses for checks.
 AC_CHECK_LIB(dnet, dnet_ntoa)
 dnl This causes -lresolv to get used in subsequent tests,
 dnl which causes failures on some systems such as HPUX 9.
@@ -2305,28 +2291,18 @@ fi
 AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
-HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.6], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
 
-  OLD_CFLAGS=$CFLAGS
-  OLD_LIBS=$LIBS
-  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
-  LIBS="$LIBGNUTLS_LIBS $LIBS"
-  AC_CHECK_FUNCS(gnutls_certificate_set_verify_function, HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes)
-
-  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
-    AC_DEFINE(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY, 1, [Define if using GnuTLS certificate verification callbacks.])
-  fi
-
   # Windows loads GnuTLS dynamically
   if test "${opsys}" = "mingw32"; then
-    CFLAGS=$OLD_CFLAGS
-    LIBS=$OLD_LIBS
     LIBGNUTLS_LIBS=
+  else
+    CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+    LIBS="$LIBGNUTLS_LIBS $LIBS"
   fi
 fi
 
@@ -3265,7 +3241,7 @@ AC_CHECK_FUNCS(gethostname \
 getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
-utimes getrlimit setrlimit shutdown getaddrinfo \
+getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim sync \
@@ -3477,8 +3453,6 @@ if test "$with_hesiod" != no ; then
 	hesiod=yes, :, $RESOLVLIB)])
 
   if test x"$hesiod" = xyes; then
-    AC_DEFINE(HAVE_LIBHESIOD, 1,
-              [Define to 1 if you have the hesiod library (-lhesiod).])
     LIBHESIOD=-lhesiod
   fi
 fi
@@ -3486,8 +3460,6 @@ AC_SUBST(LIBHESIOD)
 
 # Do we need libresolv (due to res_init or Hesiod)?
 if test "$resolv" = yes && test $opsys != darwin; then
-  AC_DEFINE(HAVE_LIBRESOLV, 1,
-            [Define to 1 if you have the resolv library (-lresolv).])
   LIBRESOLV=-lresolv
 else
   LIBRESOLV=
@@ -3506,25 +3478,21 @@ if test "${with_kerberos}" != no; then
   if test $have_com_err = yes; then
     COM_ERRLIB=-lcom_err
     LIBS="$COM_ERRLIB $LIBS"
-    AC_DEFINE(HAVE_LIBCOM_ERR, 1, [Define to 1 if you have the `com_err' library (-lcom_err).])
   fi
   AC_CHECK_LIB(crypto, mit_des_cbc_encrypt, have_crypto=yes, have_crypto=no)
   if test $have_crypto = yes; then
     CRYPTOLIB=-lcrypto
     LIBS="$CRYPTOLIB $LIBS"
-    AC_DEFINE(HAVE_LIBCRYPTO, 1, [Define to 1 if you have the `crypto' library (-lcrypto).])
   fi
   AC_CHECK_LIB(k5crypto, mit_des_cbc_encrypt, have_k5crypto=yes, have_k5crypto=no)
   if test $have_k5crypto = yes; then
     CRYPTOLIB=-lk5crypto
     LIBS="$CRYPTOLIB $LIBS"
-    AC_DEFINE(HAVE_LIBK5CRYPTO, 1, [Define to 1 if you have the `k5crypto' library (-lk5crypto).])
   fi
   AC_CHECK_LIB(krb5, krb5_init_context, have_krb5=yes, have_krb5=no)
   if test $have_krb5=yes; then
     KRB5LIB=-lkrb5
     LIBS="$KRB5LIB $LIBS"
-    AC_DEFINE(HAVE_LIBKRB5, 1, [Define to 1 if you have the `krb5' library (-lkrb5).])
   fi
   dnl FIXME Simplify.  Does not match 22 logic, thanks to default_off?
   if test "${with_kerberos5}" = no; then
@@ -3532,26 +3500,22 @@ if test "${with_kerberos}" != no; then
     if test $have_des425 = yes; then
       DESLIB=-ldes425
       LIBS="$DESLIB $LIBS"
-      AC_DEFINE(HAVE_LIBDES425, 1, [Define to 1 if you have the `des425' library (-ldes425).])
     else
       AC_CHECK_LIB(des, des_cbc_encrypt, have_des=yes, have_des=no)
       if test $have_des = yes; then
         DESLIB=-ldes
         LIBS="$DESLIB $LIBS"
-        AC_DEFINE(HAVE_LIBDES, 1, [Define to 1 if you have the `des' library (-ldes).])
       fi
     fi
     AC_CHECK_LIB(krb4, krb_get_cred, have_krb4=yes, have_krb4=no)
     if test $have_krb4 = yes; then
       KRB4LIB=-lkrb4
       LIBS="$KRB4LIB $LIBS"
-      AC_DEFINE(HAVE_LIBKRB4, 1, [Define to 1 if you have the `krb4' library (-lkrb4).])
     else
       AC_CHECK_LIB(krb, krb_get_cred, have_krb=yes, have_krb=no)
       if test $have_krb = yes; then
         KRB4LIB=-lkrb
         LIBS="$KRB4LIB $LIBS"
-        AC_DEFINE(HAVE_LIBKRB, 1, [Define to 1 if you have the `krb' library (-lkrb).])
       fi
     fi
   fi
@@ -3561,9 +3525,6 @@ if test "${with_kerberos}" != no; then
       [AC_CHECK_MEMBERS([krb5_error.text, krb5_error.e_text],,,
 		        [#include <krb5.h>])])
   else
-    AC_CHECK_HEADERS(des.h,,
-		     [AC_CHECK_HEADERS(kerberosIV/des.h,,
-				       [AC_CHECK_HEADERS(kerberos/des.h)])])
     AC_CHECK_HEADERS(krb.h,,
 		     [AC_CHECK_HEADERS(kerberosIV/krb.h,,
 				       [AC_CHECK_HEADERS(kerberos/krb.h)])])
@@ -3627,19 +3588,6 @@ if test $ok_so_far = yes; then
 dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
   AC_DEFINE(HAVE_INET_SOCKETS, 1,
 	    [Define to 1 if you have inet sockets.])
-fi
-
-if test -f /usr/lpp/X11/bin/smt.exp; then
-  AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
-	    [Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists.])
-fi
-
-AC_MSG_CHECKING(whether system supports dynamic ptys)
-if test -d /dev/pts && ls -d /dev/ptmx > /dev/null 2>&1 ; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(HAVE_DEV_PTMX, 1, [Define to 1 if dynamic ptys are supported.])
-else
-  AC_MSG_RESULT(no)
 fi
 
 dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
@@ -3761,11 +3709,8 @@ AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 AC_DEFINE(DIRECTORY_SEP, ['/'],
   [Character that separates directories in a file name.])
 
-AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
 if test "${opsys}" = "mingw32"; then
-  dnl Only used on MS platforms.
-  AC_DEFINE(DEVICE_SEP, ':')
-  AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == DEVICE_SEP)],
+  AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == ':')],
     [Returns true if character is a device separator.])
 
   AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == '/' || (_c_) == '\\')],
@@ -4229,13 +4174,11 @@ dnl Define all the symbols that apply correctly.
 AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
 AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
 AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
-AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
 AH_TEMPLATE(USG5_4, [Define if the system is compatible with System V Release 4.])
 
 case $opsys in
   aix4-2)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     dnl This symbol should be defined on AIX Version 3  ???????
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #ifndef _AIX
@@ -4262,13 +4205,11 @@ case $opsys in
 
   hpux*)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
     ;;
 
   irix6-5)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
     ;;
@@ -4283,14 +4224,12 @@ case $opsys in
 
   sol2*)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
     ;;
 
   unixware)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     ;;
 esac

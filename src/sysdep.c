@@ -1630,6 +1630,8 @@ deliver_thread_signal (int sig, signal_handler_t handler)
 # undef sys_siglist
 # ifdef _sys_siglist
 #  define sys_siglist _sys_siglist
+# elif defined HAVE_DECL___SYS_SIGLIST
+#  define sys_siglist __sys_siglist
 # else
 #  define sys_siglist my_sys_siglist
 static char const *sys_siglist[NSIG];

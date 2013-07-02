@@ -1,5 +1,16 @@
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove some unused macros from 'configure'.
+	* configure.ac (HAVE_SOUNDCARD_H, HAVE_LINUX_VERSION_H, HAVE_SPEED_T)
+	(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY)
+	(HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION, HAVE_UTIMES)
+	(HAVE_LIBHESIOD, HAVE_LIBRESOLV, HAVE_LIBCOM_ERR, HAVE_LIBCRYPTO)
+	(HAVE_LIBK5CRYPTO, HAVE_LIBKRB5, HAVE_LIBDES425, HAVE_LIBDES)
+	(HAVE_LIBKRB4, HAVE_LIBKRB, HAVE_DES_H, HAVE_KERBEROSIV_DES_H)
+	(HAVE_DEV_PTMX, DEVICE_SEP, USG5):
+	Remove these macros, as they are not used.
+	(sys_siglist): Remove macro; src/sysdep.c now does this.
+
 	* configure.ac (GTK_COMPILES): Check API a bit more carefully.
 	Also check that it links.  Say whether it compiled and linked.
 
