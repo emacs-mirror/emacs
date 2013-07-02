@@ -1,3 +1,8 @@
+2013-07-02  Christoph Egger  <christoph@debian.org>  (tiny change)
+
+	* configure.ac (emacs_broken_SIGIO): Set on gnu-kfreebsd to avoid hang.
+	http://bugs.debian.org/712974
+
 2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
 
 	* configure.ac: Include X11/X.h when testing for Xft.h.  (Bug#14684)
