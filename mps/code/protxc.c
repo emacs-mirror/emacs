@@ -208,6 +208,11 @@ static thread_state_flavor_t old_flavor;
    the access, doing some scanning, lowering the shield, or single-stepping
    the mutator in the case of a weak access. */
 
+/* TODO: This probably ought to be in a separate worker thread to the
+   exception message receiver, so that if there's ever a bug in the MPS
+   that causes an exception there's no deadlock.  We could also spread
+   scanning work across cores. */
+
 static int catch_bad_access(void *address, THREAD_STATE_T *state)
 {
   MutatorFaultContextStruct mfcStruct;

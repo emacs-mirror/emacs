@@ -47,7 +47,7 @@ static mps_word_t wrapper_wrapper[] = {
   UNINIT,                       /* class */
   0,                            /* Extra word */
   (mps_word_t)4<<2|2,                     /* F */
-  (mps_word_t)2<<(MPS_WORD_WIDTH - 8),    /* V */
+  (mps_word_t)2<<(MPS_WORD_WIDTH - 8),    /* V (version 2) */
   (mps_word_t)1<<2|1,                     /* VL */
   1                             /* patterns */
 };
@@ -120,7 +120,7 @@ static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
   size_t objsize;
   void *p;
   mps_word_t *object;
-  objsize = (4 + n) * sizeof(mps_word_t);
+  objsize = (3 + n) * sizeof(mps_word_t);
   objsize = (objsize + MPS_PF_ALIGN-1)/MPS_PF_ALIGN*MPS_PF_ALIGN;
   do {
     unsigned long i;
