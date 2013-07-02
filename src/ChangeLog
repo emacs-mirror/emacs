@@ -1,5 +1,20 @@
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't convert function pointers to void * and back.
+	It isn't portable C, and it's easy enough to avoid.
+	* alloc.c: Verify SAVE_FUNCPOINTER bits, too.
+	(make_save_value): Add support for SAVE_FUNCPOINTER.
+	* keymap.c (map_keymap_char_table_item, map_keymap_internal):
+	* print.c (print_object):
+	Distinguish function from object pointers.
+	* lisp.h (SAVE_FUNCPOINTER): New constant.
+	(SAVE_SLOT_BITS): Adjust to it.
+	(SAVE_TYPE_FUNCPTR_PTR_OBJ): New constant, replacing
+	SAVE_TYPE_PTR_PTR_OBJ.  Change the only use.
+	(voidfuncptr): New typedef.
+	(struct Lisp_Save_Value): New member data[0].funcpointer.
+	(XSAVE_FUNCPOINTER): New function.
+
 	Simplify buildobj processing.
 	* Makefile.in (buildobj.h): Make it a sequence of strings each
 	followed by comma, rather than a single string.  Put it into a

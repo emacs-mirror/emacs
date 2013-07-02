@@ -2103,6 +2103,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 				     v->data[index].pointer);
 			break;
 
+		      case SAVE_FUNCPOINTER:
+			i = sprintf (buf, "<funcpointer %p>",
+				     ((void *) (intptr_t)
+				      v->data[index].funcpointer));
+			break;
+
 		      case SAVE_INTEGER:
 			i = sprintf (buf, "<integer %"pD"d>",
 				     v->data[index].integer);
@@ -2112,6 +2118,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			print_object (v->data[index].object, printcharfun,
 				      escapeflag);
 			continue;
+
+		      default:
+			emacs_abort ();
 		      }
 
 		    strout (buf, i, i, printcharfun);

@@ -3352,7 +3352,9 @@ free_misc (Lisp_Object misc)
    that are assumed here and elsewhere.  */
 
 verify (SAVE_UNUSED == 0);
-verify ((SAVE_INTEGER | SAVE_POINTER | SAVE_OBJECT) >> SAVE_SLOT_BITS == 0);
+verify (((SAVE_INTEGER | SAVE_POINTER | SAVE_FUNCPOINTER | SAVE_OBJECT)
+	 >> SAVE_SLOT_BITS)
+	== 0);
 
 /* Return a Lisp_Save_Value object with the data saved according to
    DATA_TYPE.  DATA_TYPE should be one of SAVE_TYPE_INT_INT, etc.  */
@@ -3377,6 +3379,10 @@ make_save_value (enum Lisp_Save_Type save_type, ...)
       {
       case SAVE_POINTER:
 	p->data[i].pointer = va_arg (ap, void *);
+	break;
+
+      case SAVE_FUNCPOINTER:
+	p->data[i].funcpointer = va_arg (ap, voidfuncptr);
 	break;
 
       case SAVE_INTEGER:
