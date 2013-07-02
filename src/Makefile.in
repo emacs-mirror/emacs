@@ -477,16 +477,19 @@ $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	echo "#define BUILDOBJ \"$(ALLOBJS) " "\"" >$@
+	for i in $(ALLOBJS); do \
+	  echo "$$i" | sed 's,.*/,,; s/\.obj$$/\.o/; s/^/"/; s/$$/",/' \
+	    || exit; \
+	done >$@.tmp
+	mv $@.tmp $@
 
 globals.h: gl-stamp; @true
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	@rm -f gl-tmp
-	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl-tmp
-	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
+	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
+	$(srcdir)/../build-aux/move-if-change gl.tmp globals.h
 	echo timestamp > $@
 
 $(ALLOBJS): globals.h
@@ -557,7 +560,7 @@ mostlyclean:
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
-	rm -f *.res
+	rm -f *.res *.tmp
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)

@@ -1,3 +1,14 @@
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify buildobj processing.
+	* Makefile.in (buildobj.h): Make it a sequence of strings each
+	followed by comma, rather than a single string.  Put it into a
+	.tmp file in case there's an error while generating it.
+	(gl-stamp): Use .tmp for temp files.
+	(mostlyclean): Clean .tmp files.
+	* doc.c (buildobj): Move to just the routine that needs it.
+	It's now an array of strings, so processing is simpler.
+
 2013-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix bug re noninteractive multithreaded memory allocation (Bug#14569).
