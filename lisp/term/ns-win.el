@@ -940,7 +940,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-apply-session-resources)
   (setq ns-initialized t))
 
-(add-to-list 'display-format-alist '("\\`ns\\'" . ns))
+;; Any display name is OK.
+(add-to-list 'display-format-alist '(".*" . ns))
 (add-to-list 'handle-args-function-alist '(ns . x-handle-args))
 (add-to-list 'frame-creation-function-alist '(ns . x-create-frame-with-faces))
 (add-to-list 'window-system-initialization-alist '(ns . ns-initialize-window-system))

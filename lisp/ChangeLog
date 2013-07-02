@@ -1,3 +1,7 @@
+2013-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (display-format-alist): Use .* (Bug#14765).
+
 2013-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* wid-edit.el (widget-default-get): Don't modify widget (Bug#14738).
