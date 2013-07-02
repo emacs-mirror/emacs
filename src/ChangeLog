@@ -1,3 +1,8 @@
+2013-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (handle_child_signal): Call catch_child_signal if
+	NS_IMPL_GNUSTEP.
+
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't convert function pointers to void * and back.
