@@ -365,21 +365,26 @@ struct glyph_slice
 struct glyph
 {
   /* Position from which this glyph was drawn.  If `object' below is a
-     Lisp string, this is a position in that string.  If it is a
-     buffer, this is a position in that buffer.  A value of -1
-     together with a null object means glyph is a truncation glyph at
-     the start of a row.  Right truncation and continuation glyphs at
-     the right edge of a row have their position set to the next
-     buffer position that is not shown on this row.  Glyphs inserted
-     by redisplay, such as the empty space after the end of a line on
-     TTYs, or the overlay-arrow on a TTY, have this set to -1.  */
+     Lisp string, this is an index into that string.  If it is a
+     buffer, this is a position in that buffer.  In addition, some
+     special glyphs have special values for this:
+
+      glyph standing for newline at end of line    0
+      empty space after the end of the line       -1
+      overlay arrow on a TTY                      -1
+      glyph at EOB that ends in a newline         -1
+      left truncation glyphs:                     -1
+      right truncation/continuation glyphs        next buffer position
+      glyph standing for newline of an empty line buffer position of newline
+      stretch glyph at left edge of R2L lines     buffer position of newline  */
   ptrdiff_t charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or a
      string, if the glyph was produced from characters which came from
-     a buffer or a string; or 0 if the glyph was inserted by redisplay
-     for its own purposes, such as padding or truncation/continuation
-     glyphs, or the overlay-arrow glyphs on TTYs.  */
+     a buffer or a string; or Lisp integer zero (a.k.a. "null object")
+     if the glyph was inserted by redisplay for its own purposes, such
+     as padding or truncation/continuation glyphs, or the
+     overlay-arrow glyphs on TTYs.  */
   Lisp_Object object;
 
   /* Width in pixels.  */
