@@ -288,7 +288,7 @@ is `(valuefunc member)'."
 (eval-when-compile
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
-  (autoload 'nnimap-possibly-change-group "nnimap")
+  (autoload 'nnimap-change-group "nnimap")
   (autoload 'nnimap-make-thread-query "nnimap")
   (autoload 'gnus-registry-action "gnus-registry")
   (autoload 'gnus-registry-get-id-key "gnus-registry")
@@ -973,7 +973,7 @@ details on the language and supported extensions."
           #'(lambda (group)
             (let (artlist)
               (condition-case ()
-                  (when (nnimap-possibly-change-group
+                  (when (nnimap-change-group
                          (gnus-group-short-name group) server)
                     (with-current-buffer (nnimap-buffer)
                       (message "Searching %s..." group)

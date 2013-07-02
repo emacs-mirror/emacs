@@ -1524,6 +1524,9 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 (defvar gnus-newsgroup-seen nil
   "Range of seen articles in the current newsgroup.")
 
+(defvar gnus-newsgroup-unexist nil
+  "Range of unexistent articles in the current newsgroup.")
+
 (defvar gnus-newsgroup-articles nil
   "List of articles in the current newsgroup.")
 
@@ -1571,6 +1574,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-killed
     gnus-newsgroup-unseen
     gnus-newsgroup-seen
+    gnus-newsgroup-unexist
     gnus-newsgroup-cached
     gnus-newsgroup-downloadable
     gnus-newsgroup-undownloaded
@@ -5789,6 +5793,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
   "Find out what articles the user wants to read."
   (let* ((only-read-p t)
 	 (articles
+	  (gnus-list-range-difference
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5815,7 +5820,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	    (setq only-read-p nil)
 	    (gnus-sorted-nunion
 	     (gnus-sorted-union gnus-newsgroup-dormant gnus-newsgroup-marked)
-	     gnus-newsgroup-unreads)))
+	     gnus-newsgroup-unreads))
+	  (cdr (assq 'unexist (gnus-info-marks (gnus-get-info group))))))
 	 (scored-list (gnus-killed-articles gnus-newsgroup-killed articles))
 	 (scored (length scored-list))
 	 (number (length articles))
@@ -5985,7 +5991,9 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			  (and (numberp (car articles))
 			       (> min (car articles)))))
 	    (pop articles))
-	  (set var articles))))))))
+	  (set var articles))
+	 ((eq mark 'unexist)
+	  (set var (cdr marks)))))))))
 
 (defun gnus-update-missing-marks (missing)
   "Go through the list of MISSING articles and remove them from the mark lists."
@@ -6061,7 +6069,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
 
-	(when list
+	(when (or list
+		  (eq (cdr type) 'unexist))
 	  (push (cons (cdr type) list) newmarked)))
 
       (when delta-marks
@@ -10305,16 +10314,19 @@ This will be the case if the article has both been mailed and posted."
 	      'request-expire-articles gnus-newsgroup-name))
     ;; This backend supports expiry.
     (let* ((total (gnus-group-total-expirable-p gnus-newsgroup-name))
-	   (expirable (if total
-			  (progn
-			    ;; We need to update the info for
-			    ;; this group for `gnus-list-of-read-articles'
-			    ;; to give us the right answer.
-			    (gnus-run-hooks 'gnus-exit-group-hook)
-			    (gnus-summary-update-info)
-			    (gnus-list-of-read-articles gnus-newsgroup-name))
-			(setq gnus-newsgroup-expirable
-			      (sort gnus-newsgroup-expirable '<))))
+	   (expirable
+	    (gnus-list-range-difference
+	     (if total
+		 (progn
+		   ;; We need to update the info for
+		   ;; this group for `gnus-list-of-read-articles'
+		   ;; to give us the right answer.
+		   (gnus-run-hooks 'gnus-exit-group-hook)
+		   (gnus-summary-update-info)
+		   (gnus-list-of-read-articles gnus-newsgroup-name))
+	       (setq gnus-newsgroup-expirable
+		     (sort gnus-newsgroup-expirable '<)))
+	     gnus-newsgroup-unexist))
 	   (expiry-wait (if now 'immediate
 			  (gnus-group-find-parameter
 			   gnus-newsgroup-name 'expiry-wait)))
@@ -12847,7 +12859,9 @@ If ALL is a number, fetch this number of articles."
 	      ;; Some nntp servers lie about their active range.  When
 	      ;; this happens, the active range can be in the millions.
 	      ;; Use a compressed range to avoid creating a huge list.
-	      (gnus-range-difference (list gnus-newsgroup-active) old))
+	      (gnus-range-difference
+	       (gnus-range-difference (list gnus-newsgroup-active) old)
+	       gnus-newsgroup-unexist))
 	(setq len (gnus-range-length older))
 	(cond
 	 ((null older) nil)

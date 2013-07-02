@@ -3654,6 +3654,10 @@ Uses the process/prefix convention."
 	   (expirable (if (gnus-group-total-expirable-p group)
 			  (cons nil (gnus-list-of-read-articles group))
 			(assq 'expire (gnus-info-marks info))))
+	   (articles-to-expire
+	    (gnus-list-range-difference
+	     (gnus-uncompress-sequence (cdr expirable))
+	     (cdr (assq 'unexist (gnus-info-marks info)))))
 	   (expiry-wait (gnus-group-find-parameter group 'expiry-wait))
 	   (nnmail-expiry-target
 	    (or (gnus-group-find-parameter group 'expiry-target)
@@ -3668,11 +3672,9 @@ Uses the process/prefix convention."
 	      ;; parameter.
 	      (let ((nnmail-expiry-wait-function nil)
 		    (nnmail-expiry-wait expiry-wait))
-		(gnus-request-expire-articles
-		 (gnus-uncompress-sequence (cdr expirable)) group))
+		(gnus-request-expire-articles articles-to-expire group))
 	    ;; Just expire using the normal expiry values.
-	    (gnus-request-expire-articles
-	     (gnus-uncompress-sequence (cdr expirable)) group))))
+	    (gnus-request-expire-articles articles-to-expire group))))
 	(gnus-close-group group))
       (gnus-message 6 "Expiring articles in %s...done"
 		    (gnus-group-decoded-name group))

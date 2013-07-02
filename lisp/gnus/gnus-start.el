@@ -2301,7 +2301,27 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Reading %s...done" newsrc-file)))
 
       ;; Convert old to new.
-      (gnus-convert-old-newsrc))))
+      (gnus-convert-old-newsrc)
+      (gnus-clean-old-newsrc))))
+
+(defun gnus-clean-old-newsrc (&optional force)
+  (when gnus-newsrc-file-version
+    ;; Remove totally bogus `unexists' entries.  The name is
+    ;; `unexist'.
+    (dolist (info (cdr gnus-newsrc-alist))
+      (let ((exist (assoc 'unexists (gnus-info-marks info))))
+	(when exist
+	  (gnus-info-set-marks
+	   info (delete exist (gnus-info-marks info))))))
+    (when (or force
+	      (< (gnus-continuum-version gnus-newsrc-file-version)
+		 (gnus-continuum-version "Ma Gnus v0.03")))
+      ;; Remove old `exist' marks from old nnimap groups.
+      (dolist (info (cdr gnus-newsrc-alist))
+	(let ((exist (assoc 'unexist (gnus-info-marks info))))
+	  (when exist
+	    (gnus-info-set-marks
+	     info (delete exist (gnus-info-marks info)))))))))
 
 (defun gnus-convert-old-newsrc ()
   "Convert old newsrc formats into the current format, if needed."
