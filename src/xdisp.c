@@ -378,8 +378,7 @@ static Lisp_Object Qline_height;
    && ((IT)->bidi_it.paragraph_dir == R2L		\
        ? (WINDOW_LEFT_FRINGE_WIDTH ((IT)->w) > 0)	\
        : (WINDOW_RIGHT_FRINGE_WIDTH ((IT)->w) > 0))	\
-   && (IT)->current_x == (IT)->last_visible_x		\
-   && (IT)->line_wrap != WORD_WRAP)
+   && (IT)->current_x == (IT)->last_visible_x)
 
 #else /* !HAVE_WINDOW_SYSTEM */
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
@@ -8539,7 +8538,9 @@ move_it_in_display_line_to (struct it *it,
 				    result = MOVE_LINE_CONTINUED;
 				  break;
 				}
-			      if (ITERATOR_AT_END_OF_LINE_P (it))
+			      if (ITERATOR_AT_END_OF_LINE_P (it)
+				  && (it->line_wrap != WORD_WRAP
+				      || wrap_it.sp < 0))
 				{
 				  result = MOVE_NEWLINE_OR_CR;
 				  break;

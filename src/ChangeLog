@@ -1,3 +1,16 @@
+2013-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): Don't disallow
+	word-wrap, so that overflow-newline-into-fringe would work in
+	visual-line-mode.  (Bug#2749)
+	(move_it_in_display_line_to): When the last scanned display
+	element fits exactly on the display line, and
+	overflow-newline-into-fringe is non-nil, but wrap_it is valid,
+	don't return MOVE_NEWLINE_OR_CR, but instead back up to the last
+	wrap point and return MOVE_LINE_CONTINUED.  Fixes problems with
+	finding buffer position that corresponds to pixel coordinates,
+	e.g. in buffer_posn_from_coords.
+
 2013-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (handle_child_signal): Call catch_child_signal if
