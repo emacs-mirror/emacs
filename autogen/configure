@@ -11455,18 +11455,41 @@ if test x"$pkg_check_gtk" = xyes; then
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
-    GTK_COMPILES=no
-  for ac_func in gtk_main
-do :
-  ac_fn_c_check_func "$LINENO" "gtk_main" "ac_cv_func_gtk_main"
-if test "x$ac_cv_func_gtk_main" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GTK_MAIN 1
-_ACEOF
- GTK_COMPILES=yes
-fi
-done
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether GTK compiles" >&5
+$as_echo_n "checking whether GTK compiles... " >&6; }
+  GTK_COMPILES=no
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check the Gtk and Glib APIs.  */
+	 #include <gtk/gtk.h>
+	 #include <glib-object.h>
+	 static void
+	 callback (GObject *go, GParamSpec *spec, gpointer user_data)
+	 {}
 
+int
+main ()
+{
+
+	 GtkSettings *gs = 0;
+	 /* Use G_CALLBACK to make sure function pointers can be cast to void *;
+	    strict C prohibits this.  Use gtk_main_iteration to test that the
+	    libraries are there.  */
+	 if (g_signal_handler_find (G_OBJECT (gs), G_SIGNAL_MATCH_FUNC,
+				    0, 0, 0, G_CALLBACK (callback), 0))
+	   gtk_main_iteration ();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  GTK_COMPILES=yes
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_COMPILES" >&5
+$as_echo "$GTK_COMPILES" >&6; }
   if test "${GTK_COMPILES}" != "yes"; then
     GTK_OBJ=
     if test "$USE_X_TOOLKIT" != "maybe"; then
