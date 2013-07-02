@@ -1,3 +1,8 @@
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (GTK_COMPILES): Check API a bit more carefully.
+	Also check that it links.  Say whether it compiled and linked.
+
 2013-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:

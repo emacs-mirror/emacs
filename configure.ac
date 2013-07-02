@@ -2131,8 +2131,28 @@ if test x"$pkg_check_gtk" = xyes; then
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
   dnl Try to compile a simple GTK program.
+  AC_MSG_CHECKING([whether GTK compiles])
   GTK_COMPILES=no
-  AC_CHECK_FUNCS(gtk_main, GTK_COMPILES=yes)
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM(
+       [[/* Check the Gtk and Glib APIs.  */
+	 #include <gtk/gtk.h>
+	 #include <glib-object.h>
+	 static void
+	 callback (GObject *go, GParamSpec *spec, gpointer user_data)
+	 {}
+       ]],
+       [[
+	 GtkSettings *gs = 0;
+	 /* Use G_CALLBACK to make sure function pointers can be cast to void *;
+	    strict C prohibits this.  Use gtk_main_iteration to test that the
+	    libraries are there.  */
+	 if (g_signal_handler_find (G_OBJECT (gs), G_SIGNAL_MATCH_FUNC,
+				    0, 0, 0, G_CALLBACK (callback), 0))
+	   gtk_main_iteration ();
+       ]])],
+    [GTK_COMPILES=yes])
+  AC_MSG_RESULT([$GTK_COMPILES])
   if test "${GTK_COMPILES}" != "yes"; then
     GTK_OBJ=
     if test "$USE_X_TOOLKIT" != "maybe"; then
