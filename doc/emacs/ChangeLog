@@ -1,3 +1,9 @@
+2013-07-02  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (EDE): Fix cross-reference.
+
+	* programs.texi (Program Modes): Fix emacs-xtra reference.
+
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* help.texi (Misc Help): Index describe-syntax.
