@@ -1,5 +1,12 @@
 2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	I missed these instances of 'static inline' in an earlier sweep.
+	* ebrowse.c (putstr):
+	* etags.c (hash):
+	* make-docfile.c (put_char): No longer inline.
+	* etags.c (hash): Prefer int to unsigned when either will do.
+
 	Use C99-style flexible array members if available.
 	* ebrowse.c: Include <stddef.h>, for offsetof.
 	(struct member, struct alias, struct sym):

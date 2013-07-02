@@ -1096,7 +1096,7 @@ leave_namespace (void)
 /* Write string S to the output file FP in a Lisp-readable form.
    If S is null, write out `()'.  */
 
-static inline void
+static void
 putstr (const char *s, FILE *fp)
 {
   if (!s)
