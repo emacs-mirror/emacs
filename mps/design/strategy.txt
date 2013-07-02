@@ -145,7 +145,7 @@ end up in the topGen, which is shared between all chains and all
 pools.
 
 For statistics and reporting purposes, when ``STATISTICS`` is
-on, each AMC pool has an array of ``PageRetStruct``s, one per
+on, each AMC pool has an array of ``PageRetStruct`` s, one per
 trace.  This structure has many ``Count`` fields, and is
 intended to help to assess AMC page retention code.  See job001811.
 
