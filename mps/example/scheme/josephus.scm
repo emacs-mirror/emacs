@@ -47,17 +47,10 @@
     (vector-set! chain 0 current)
     current)
 
-(define (inner-loop i)
-    (if (< i 100)
+(define (loop i)
+    (if (< i 10000)
         (begin
             (define chain (make-chain 40))
             (chain-kill chain 3)
-            (inner-loop (+ i 1)))))
-
-(define (loop i)
-    (if (< i 100)
-        (begin
-            (inner-loop 0)
-            (write i)
             (loop (+ i 1)))))
 (loop 0)
