@@ -404,8 +404,8 @@ The interface offers also a signal, which returns 2 parameters: an
 integer, and an array consisting of elements which are a struct of a
 string and 2 boolean values.@footnote{ The interfaces of the service
 @samp{org.freedesktop.Hal} are described in
-@c Previous link is gone.  Since HAL is now obsolete, and this URL
-@c this one (unchanged in ~ 4 years) feels like it might go too...
+@c Previous link is gone.  Since HAL is now obsolete, this URL
+@c (unchanged in ~ 4 years) feels like it might go too...
 @uref{http://people.freedesktop.org/~dkukawka/hal-spec-git/hal-spec.html#interfaces,
 the HAL specification}.}
 @end defun
