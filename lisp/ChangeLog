@@ -1,3 +1,13 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	Make info-xref checks case-sensitive by default
+	* info.el (Info-find-node, Info-find-in-tag-table)
+	(Info-find-node-in-buffer, Info-find-node-2, Info-goto-node):
+	Add option for exact case matching of nodes.
+	* info-xref.el (info-xref): New custom group.
+	(info-xref-case-fold): New option.
+	(info-xref-goto-node-p): Pass info-xref-case-fold to Info-goto-node.
+
 2013-07-03  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-delete-file-at-head): Respect delete-by-moving-to-trash.
