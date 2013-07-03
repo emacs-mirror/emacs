@@ -546,6 +546,17 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby-beginning-of-block))
     (should (= 1 (line-number-at-pos)))))
 
+(ert-deftest ruby-move-to-block-moves-from-else-to-if ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "if true
+                          |  nested_block do
+                          |  end
+                          |else
+                          |end")
+    (goto-line 4)
+    (ruby-beginning-of-block)
+    (should (= 1 (line-number-at-pos)))))
+
 (ert-deftest ruby-beginning-of-defun-does-not-fold-case ()
   (ruby-with-temp-buffer
       (ruby-test-string

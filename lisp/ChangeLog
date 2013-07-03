@@ -1,3 +1,11 @@
+2013-07-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-move-to-block): When we're at a
+	middle of block statement initially, lower the depth.  Remove
+	FIXME comment, not longer valid.  Remove middle of block statement
+	detection, no need to do that anymore since we've been using
+	`ruby-parse-region' here.
+
 2013-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (display-format-alist): Use .* (Bug#14765).
