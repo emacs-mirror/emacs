@@ -1,3 +1,7 @@
+2013-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* bovine.texi (top):

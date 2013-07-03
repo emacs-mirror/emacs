@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2013-02-01.11}
+\def\texinfoversion{2013-06-23.10}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -2475,14 +2475,14 @@ end
 }
 
 % We *must* turn on hyphenation at `-' and `_' in @code.
+% (But see \codedashfinish below.)
 % Otherwise, it is too hard to avoid overfull hboxes
 % in the Emacs manual, the Library manual, etc.
 %
 % Unfortunately, TeX uses one parameter (\hyphenchar) to control
 % both hyphenation at - and hyphenation within words.
 % We must therefore turn them both off (\tclose does that)
-% and arrange explicitly to hyphenate at a dash.
-%  -- rms.
+% and arrange explicitly to hyphenate at a dash. -- rms.
 {
   \catcode`\-=\active \catcode`\_=\active
   \catcode`\'=\active \catcode`\`=\active
@@ -2499,14 +2499,33 @@ end
      \let-\normaldash
      \let_\realunder
     \fi
+    % Given -foo (with a single dash), we do not want to allow a break
+    % after the hyphen.
+    \global\let\codedashprev=\codedash
+    %
     \codex
   }
+  %
+  \gdef\codedash{\futurelet\next\codedashfinish}
+  \gdef\codedashfinish{%
+    \normaldash % always output the dash character itself.
+    % 
+    % Now, output a discretionary to allow a line break, unless
+    % (a) the next character is a -, or
+    % (b) the preceding character is a -.
+    % E.g., given --posix, we do not want to allow a break after either -.
+    % Given --foo-bar, we do want to allow a break between the - and the b.
+    \ifx\next\codedash \else
+      \ifx\codedashprev\codedash 
+      \else \discretionary{}{}{}\fi
+    \fi
+    \global\let\codedashprev=\next
+  }
 }
-
+\def\normaldash{-}
+%
 \def\codex #1{\tclose{#1}\endgroup}
 
-\def\normaldash{-}
-\def\codedash{-\discretionary{}{}{}}
 \def\codeunder{%
   % this is all so @math{@code{var_name}+1} can work.  In math mode, _
   % is "active" (mathcode"8000) and \normalunderscore (or \char95, etc.)
@@ -4211,8 +4230,9 @@ end
 
 % @ifset VAR ... @end ifset reads the `...' iff VAR has been defined
 % with @set.
-%
-% To get special treatment of `@end ifset,' call \makeond and the redefine.
+% 
+% To get the special treatment we need for `@end ifset,' we call
+% \makecond and then redefine.
 %
 \makecond{ifset}
 \def\ifset{\parsearg{\doifset{\let\next=\ifsetfail}}}
@@ -6402,7 +6422,7 @@ end
 \newdimen\nonfillparindent
 \def\nonfillstart{%
   \aboveenvbreak
-  \hfuzz = 12pt % Don't be fussy
+  \ifdim\hfuzz < 12pt \hfuzz = 12pt \fi % Don't be fussy
   \sepspaces % Make spaces be word-separators rather than space tokens.
   \let\par = \lisppar % don't ignore blank lines
   \obeylines % each line of input is a line of output
