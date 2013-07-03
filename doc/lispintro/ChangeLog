@@ -1,3 +1,7 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (edebug): Fix cross-references.
+
 2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (dist): Edit more configure variables.  (Bug#14660)

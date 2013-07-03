@@ -1,3 +1,11 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (EDE): Fix cross-reference.
+
+	* programs.texi (Program Modes): Fix emacs-xtra reference.
+
+	* help.texi (Misc Help): Index describe-syntax.
+
 2013-06-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* basic.texi (Moving Point): Document visual-order-cursor-movement

@@ -76,7 +76,7 @@ The @dfn{bovine} parser is the original @semantic{} parser, and is an
 implementation of an @acronym{LL} parser.  It is good for simple
 languages.  It has many conveniences making grammar writing easy.  The
 conveniences make it less powerful than a Bison-like @acronym{LALR}
-parser.  For more information, @inforef{top, the Wisent Parser Manual,
+parser.  For more information, @inforef{Top, The Wisent Parser Manual,
 wisent}.
 
 Bovine @acronym{LL} grammars are stored in files with a @file{.by}
