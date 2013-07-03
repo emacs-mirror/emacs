@@ -530,7 +530,23 @@ An arena is always in one of three states.
    The *parked state* is the same as the clamped state, with the
    additional constraint that no garbage collections are in progress.
 
-The clamped and parked states are used for introspection and
+Here's a summary:
+
+======================================== ================================== ============================= ===========================
+State                                    unclamped                          clamped                       parked
+======================================== ================================== ============================= ===========================
+Collections may be running?              yes                                yes                           no
+New collections may start?               yes                                no                            no
+Objects may move?                        yes                                no                            no
+Location dependencies may become stale?  yes                                no                            no
+Memory may be returned to the OS?        yes                                no                            no
+Functions that leave arena in this state :c:func:`mps_arena_create`,        :c:func:`mps_arena_clamp`,    :c:func:`mps_arena_park`,
+                                         :c:func:`mps_arena_release`,       :c:func:`mps_arena_step`      :c:func:`mps_arena_collect`
+                                         :c:func:`mps_arena_start_collect`, 
+                                         :c:func:`mps_arena_step`           
+======================================== ================================== ============================= ===========================
+
+The clamped and parked states are important when introspecting and
 debugging. If you are examining the contents of the heap, you don't
 want data moving under your feet. So for example, if your program is
 stopped in GDB you might type::
