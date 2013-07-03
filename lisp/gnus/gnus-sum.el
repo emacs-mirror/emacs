@@ -3657,18 +3657,17 @@ buffer that was in action when the last article was fetched."
   (or (car (funcall gnus-extract-address-components from))
       from))
 
-(defun gnus-summary-from-or-to-or-newsgroups (header from)
+(defun gnus-summary-from-or-to-or-newsgroups (header gnus-tmp-from)
   (let ((mail-parse-charset gnus-newsgroup-charset)
-        (ignored-from-addresses (gnus-ignored-from-addresses))
-        ;; Is it really necessary to do this next part for each summary line?
-        ;; Luckily, doesn't seem to slow things down much.
-        (mail-parse-ignored-charsets
-         (with-current-buffer gnus-summary-buffer
-           gnus-newsgroup-ignored-charsets))
-        (address (cadr (gnus-extract-address-components from))))
+	(ignored-from-addresses (gnus-ignored-from-addresses))
+	;; Is it really necessary to do this next part for each summary line?
+	;; Luckily, doesn't seem to slow things down much.
+	(mail-parse-ignored-charsets
+	 (with-current-buffer gnus-summary-buffer
+	   gnus-newsgroup-ignored-charsets)))
     (or
      (and ignored-from-addresses
-	  (string-match ignored-from-addresses address)
+	  (string-match ignored-from-addresses gnus-tmp-from)
 	  (let ((extra-headers (mail-header-extra header))
 		to
 		newsgroups)
@@ -3683,11 +3682,13 @@ buffer that was in action when the last article was fetched."
 		     (cdr (assq 'Newsgroups extra-headers))
 		     (and
 		      (memq 'Newsgroups gnus-extra-headers)
-                      (eq (car (gnus-find-method-for-group
-                                gnus-newsgroup-name)) 'nntp)
+		      (eq (car (gnus-find-method-for-group
+				gnus-newsgroup-name)) 'nntp)
 		      (gnus-group-real-name gnus-newsgroup-name))))
 	      (concat gnus-summary-newsgroup-prefix newsgroups)))))
-     (gnus-string-mark-left-to-right (gnus-summary-extract-address-component from)))))
+     (gnus-string-mark-left-to-right
+      (inline
+	(gnus-summary-extract-address-component gnus-tmp-from))))))
 
 (defun gnus-summary-insert-line (gnus-tmp-header
 				 gnus-tmp-level gnus-tmp-current

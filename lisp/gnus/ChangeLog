@@ -1,3 +1,8 @@
+2013-07-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups):
+	Revert 2013-01-14 change.
+
 2013-07-02  David Engster  <deng@randomsample.de>
 
 	* gnus-sum.el (gnus-update-marks): Do not remove empty 'unexist'
