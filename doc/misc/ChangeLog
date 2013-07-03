@@ -1,5 +1,7 @@
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
+	* pgg.texi (Top, Overview): Add note about obsolescence.
+
 	* bovine.texi (top):
 	* cc-mode.texi (AWK Mode Font Locking):
 	* mh-e.texi (Preface):
