@@ -1,3 +1,8 @@
+2013-07-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight more
+	keywords and built-ins.
+
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (y-or-n-p): Handle empty prompts.  (Bug#14770)
