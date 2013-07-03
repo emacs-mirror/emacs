@@ -62,10 +62,12 @@ than this. See the documentation for the pool class.
     them signals. There's a shortage of available signals that aren't
     already dedicated to other purposes (for example, LinuxThreads
     uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
-    ``SIGXFSZ``. This means that a program that handles these signals
-    needs to co-operate with the MPS.
+    ``SIGXFSZ``. This means that programs must not mask these two
+    signals.
 
-    The mechanism for co-operation is currently undocumented: please
+    If your program needs to handle these signals, then it must
+    co-operate with the MPS. At present, there's no documented
+    mechanism for co-operating: if you are in this situation, please
     :ref:`contact us <contact>`.
 
 
@@ -82,13 +84,14 @@ result from barrier hits.
 
 .. warning::
 
-    The use of barriers has the consequence that a program that
-    handles ``SIGBUS`` (on OS X), ``SIGSEGV`` (on FreeBSD or Linux),
-    or first-chance exceptions (on Windows) needs to co-operate with
-    the MPS.
+    Your program must not mask ``SIGBUS`` (on OS X) or ``SIGSEGV`` (on
+    FreeBSD or Linux).
 
-    The mechanism for co-operation is currently undocumented: please
-    :ref:`contact us <contact>`.
+    If your program needs to handle these signals, or handle
+    first-chance exceptions (on Windows), then it must co-operate with
+    the MPS. At present, there's no documented mechanism for
+    co-operating: if you are in this situation, please :ref:`contact
+    us <contact>`.
 
 
 .. index::
