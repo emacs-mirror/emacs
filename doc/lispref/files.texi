@@ -1115,7 +1115,7 @@ permissions} of @var{filename}, as an integer.  It recursively follows
 symbolic links in @var{filename} at all levels.  If @var{filename}
 does not exist, the return value is @code{nil}.
 
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
 Manual}, for a description of mode bits.  If the low-order bit is 1,
 then the file is executable by all users, if the second-lowest-order
 bit is 1, then the file is writable by all users, etc.  The highest
@@ -1625,7 +1625,7 @@ octal numbers to enter @var{mode}.  For example,
 @noindent
 specifies that the file should be readable and writable for its owner,
 readable for group members, and readable for all other users.
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
 Manual}, for a description of mode bit specifications.
 
 Interactively, @var{mode} is read from the minibuffer using
@@ -1676,7 +1676,7 @@ the permissions on which the specification is based are taken from the
 mode bits of @var{base-file}.  If @var{base-file} is omitted or
 @code{nil}, the function uses @code{0} as the base mode bits.  The
 complete and relative specifications can be combined, as in
-@code{"u+r,g+rx,o+r,g-w"}.  @xref{File Permissions,,, coreutils, The
+@code{"u+r,g+rx,o+r,g-w"}.  @xref{File permissions,,, coreutils, The
 @sc{gnu} @code{Coreutils} Manual}, for a description of file mode
 specifications.
 @end defun

@@ -762,6 +762,7 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
   "Rescale DATA, if too big, to fit the current buffer.
 If FORCE, rescale the image anyway."
   (if (or (not (fboundp 'imagemagick-types))
+	  (eq (image-type-from-data data) 'gif)
 	  (not (get-buffer-window (current-buffer))))
       (create-image data nil t :ascent 100)
     (let ((edges (window-inside-pixel-edges
@@ -1473,7 +1474,10 @@ ones, in case fg and bg are nil."
 	      (setq width
 		    (if column
 			(aref widths width-column)
-		      0))
+		      10))
+	      ;; Sanity check for degenerate tables.
+	      (when (zerop width)
+		(setq width 10))
 	      (when (and fill
 			 (setq colspan (cdr (assq :colspan (cdr column)))))
 		(setq colspan (string-to-number colspan))

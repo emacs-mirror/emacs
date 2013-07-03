@@ -378,8 +378,7 @@ static Lisp_Object Qline_height;
    && ((IT)->bidi_it.paragraph_dir == R2L		\
        ? (WINDOW_LEFT_FRINGE_WIDTH ((IT)->w) > 0)	\
        : (WINDOW_RIGHT_FRINGE_WIDTH ((IT)->w) > 0))	\
-   && (IT)->current_x == (IT)->last_visible_x		\
-   && (IT)->line_wrap != WORD_WRAP)
+   && (IT)->current_x == (IT)->last_visible_x)
 
 #else /* !HAVE_WINDOW_SYSTEM */
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
@@ -8539,7 +8538,9 @@ move_it_in_display_line_to (struct it *it,
 				    result = MOVE_LINE_CONTINUED;
 				  break;
 				}
-			      if (ITERATOR_AT_END_OF_LINE_P (it))
+			      if (ITERATOR_AT_END_OF_LINE_P (it)
+				  && (it->line_wrap != WORD_WRAP
+				      || wrap_it.sp < 0))
 				{
 				  result = MOVE_NEWLINE_OR_CR;
 				  break;
@@ -20051,6 +20052,404 @@ See also `bidi-paragraph-direction'.  */)
     }
 }
 
+DEFUN ("move-point-visually", Fmove_point_visually,
+       Smove_point_visually, 1, 1, 0,
+       doc: /* Move point in the visual order in the specified DIRECTION.
+DIRECTION can be 1, meaning move to the right, or -1, which moves to the
+left.
+
+Value is the new character position of point.  */)
+  (Lisp_Object direction)
+{
+  struct window *w = XWINDOW (selected_window);
+  struct buffer *b = NULL;
+  struct glyph_row *row;
+  int dir;
+  Lisp_Object paragraph_dir;
+
+#define ROW_GLYPH_NEWLINE_P(ROW,GLYPH)		\
+  (!(ROW)->continued_p				\
+   && INTEGERP ((GLYPH)->object)		\
+   && (GLYPH)->type == CHAR_GLYPH		\
+   && (GLYPH)->u.ch == ' '			\
+   && (GLYPH)->charpos >= 0			\
+   && !(GLYPH)->avoid_cursor_p)
+
+  CHECK_NUMBER (direction);
+  dir = XINT (direction);
+  if (dir > 0)
+    dir = 1;
+  else
+    dir = -1;
+
+  if (BUFFERP (w->contents))
+    b = XBUFFER (w->contents);
+
+  /* If current matrix is up-to-date, we can use the information
+     recorded in the glyphs, at least as long as the goal is on the
+     screen.  */
+  if (w->window_end_valid
+      && !windows_or_buffers_changed
+      && b
+      && !b->clip_changed
+      && !b->prevent_redisplay_optimizations_p
+      && w->last_modified >= BUF_MODIFF (b)
+      && w->last_overlay_modified >= BUF_OVERLAY_MODIFF (b)
+      && w->cursor.vpos >= 0
+      && w->cursor.vpos < w->current_matrix->nrows
+      && (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos))->enabled_p)
+    {
+      struct glyph *g = row->glyphs[TEXT_AREA];
+      struct glyph *e = dir > 0 ? g + row->used[TEXT_AREA] : g - 1;
+      struct glyph *gpt = g + w->cursor.hpos;
+
+      for (g = gpt + dir; (dir > 0 ? g < e : g > e); g += dir)
+	{
+	  if (BUFFERP (g->object) && g->charpos != PT)
+	    {
+	      SET_PT (g->charpos);
+	      w->cursor.vpos = -1;
+	      return make_number (PT);
+	    }
+	  else if (!INTEGERP (g->object) && !EQ (g->object, gpt->object))
+	    {
+	      ptrdiff_t new_pos;
+
+	      if (BUFFERP (gpt->object))
+		{
+		  new_pos = PT;
+		  if ((gpt->resolved_level - row->reversed_p) % 2 == 0)
+		    new_pos += (row->reversed_p ? -dir : dir);
+		  else
+		    new_pos -= (row->reversed_p ? -dir : dir);;
+		}
+	      else if (BUFFERP (g->object))
+		new_pos = g->charpos;
+	      else
+		break;
+	      SET_PT (new_pos);
+	      w->cursor.vpos = -1;
+	      return make_number (PT);
+	    }
+	  else if (ROW_GLYPH_NEWLINE_P (row, g))
+	    {
+	      /* Glyphs inserted at the end of a non-empty line for
+		 positioning the cursor have zero charpos, so we must
+		 deduce the value of point by other means.  */
+	      if (g->charpos > 0)
+		SET_PT (g->charpos);
+	      else if (row->ends_at_zv_p && PT != ZV)
+		SET_PT (ZV);
+	      else if (PT != MATRIX_ROW_END_CHARPOS (row) - 1)
+		SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
+	      else
+		break;
+	      w->cursor.vpos = -1;
+	      return make_number (PT);
+	    }
+	}
+      if (g == e || INTEGERP (g->object))
+	{
+	  if (row->truncated_on_left_p || row->truncated_on_right_p)
+	    goto simulate_display;
+	  if (!row->reversed_p)
+	    row += dir;
+	  else
+	    row -= dir;
+	  if (row < MATRIX_FIRST_TEXT_ROW (w->current_matrix)
+	      || row > MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w))
+	    goto simulate_display;
+
+	  if (dir > 0)
+	    {
+	      if (row->reversed_p && !row->continued_p)
+		{
+		  SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
+		  w->cursor.vpos = -1;
+		  return make_number (PT);
+		}
+	      g = row->glyphs[TEXT_AREA];
+	      e = g + row->used[TEXT_AREA];
+	      for ( ; g < e; g++)
+		{
+		  if (BUFFERP (g->object)
+		      /* Empty lines have only one glyph, which stands
+			 for the newline, and whose charpos is the
+			 buffer position of the newline.  */
+		      || ROW_GLYPH_NEWLINE_P (row, g)
+		      /* When the buffer ends in a newline, the line at
+			 EOB also has one glyph, but its charpos is -1.  */
+		      || (row->ends_at_zv_p
+			  && !row->reversed_p
+			  && INTEGERP (g->object)
+			  && g->type == CHAR_GLYPH
+			  && g->u.ch == ' '))
+		    {
+		      if (g->charpos > 0)
+			SET_PT (g->charpos);
+		      else if (!row->reversed_p
+			       && row->ends_at_zv_p
+			       && PT != ZV)
+			SET_PT (ZV);
+		      else
+			continue;
+		      w->cursor.vpos = -1;
+		      return make_number (PT);
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (!row->reversed_p && !row->continued_p)
+		{
+		  SET_PT (MATRIX_ROW_END_CHARPOS (row) - 1);
+		  w->cursor.vpos = -1;
+		  return make_number (PT);
+		}
+	      e = row->glyphs[TEXT_AREA];
+	      g = e + row->used[TEXT_AREA] - 1;
+	      for ( ; g >= e; g--)
+		{
+		  if (BUFFERP (g->object)
+		      || (ROW_GLYPH_NEWLINE_P (row, g)
+			  && g->charpos > 0)
+		      /* Empty R2L lines on GUI frames have the buffer
+			 position of the newline stored in the stretch
+			 glyph.  */
+		      || g->type == STRETCH_GLYPH
+		      || (row->ends_at_zv_p
+			  && row->reversed_p
+			  && INTEGERP (g->object)
+			  && g->type == CHAR_GLYPH
+			  && g->u.ch == ' '))
+		    {
+		      if (g->charpos > 0)
+			SET_PT (g->charpos);
+		      else if (row->reversed_p
+			       && row->ends_at_zv_p
+			       && PT != ZV)
+			SET_PT (ZV);
+		      else
+			continue;
+		      w->cursor.vpos = -1;
+		      return make_number (PT);
+		    }
+		}
+	    }
+	}
+    }
+
+ simulate_display:
+
+  /* If we wind up here, we failed to move by using the glyphs, so we
+     need to simulate display instead.  */
+
+  if (b)
+    paragraph_dir = Fcurrent_bidi_paragraph_direction (w->contents);
+  else
+    paragraph_dir = Qleft_to_right;
+  if (EQ (paragraph_dir, Qright_to_left))
+    dir = -dir;
+  if (PT <= BEGV && dir < 0)
+    xsignal0 (Qbeginning_of_buffer);
+  else if (PT >= ZV && dir > 0)
+    xsignal0 (Qend_of_buffer);
+  else
+    {
+      struct text_pos pt;
+      struct it it;
+      int pt_x, target_x, pixel_width, pt_vpos;
+      bool at_eol_p;
+      bool overshoot_expected = false;
+      bool target_is_eol_p = false;
+
+      /* Setup the arena.  */
+      SET_TEXT_POS (pt, PT, PT_BYTE);
+      start_display (&it, w, pt);
+
+      if (it.cmp_it.id < 0
+	  && it.method == GET_FROM_STRING
+	  && it.area == TEXT_AREA
+	  && it.string_from_display_prop_p
+	  && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER))
+	overshoot_expected = true;
+
+      /* Find the X coordinate of point.  We start from the beginning
+	 of this or previous line to make sure we are before point in
+	 the logical order (since the move_it_* functions can only
+	 move forward).  */
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = it.current_y = it.vpos = 0;
+      if (IT_CHARPOS (it) != PT)
+	move_it_to (&it, overshoot_expected ? PT - 1 : PT,
+		    -1, -1, -1, MOVE_TO_POS);
+      pt_x = it.current_x;
+      pt_vpos = it.vpos;
+      if (dir > 0 || overshoot_expected)
+	{
+	  struct glyph_row *row = it.glyph_row;
+
+	  /* When point is at beginning of line, we don't have
+	     information about the glyph there loaded into struct
+	     it.  Calling get_next_display_element fixes that.  */
+	  if (pt_x == 0)
+	    get_next_display_element (&it);
+	  at_eol_p = ITERATOR_AT_END_OF_LINE_P (&it);
+	  it.glyph_row = NULL;
+	  PRODUCE_GLYPHS (&it);	/* compute it.pixel_width */
+	  it.glyph_row = row;
+	  /* PRODUCE_GLYPHS advances it.current_x, so we must restore
+	     it, lest it will become out of sync with it's buffer
+	     position.  */
+	  it.current_x = pt_x;
+	}
+      else
+	at_eol_p = ITERATOR_AT_END_OF_LINE_P (&it);
+      pixel_width = it.pixel_width;
+      if (overshoot_expected && at_eol_p)
+	pixel_width = 0;
+      else if (pixel_width <= 0)
+	pixel_width = 1;
+
+      /* If there's a display string at point, we are actually at the
+	 glyph to the left of point, so we need to correct the X
+	 coordinate.  */
+      if (overshoot_expected)
+	pt_x += pixel_width;
+
+      /* Compute target X coordinate, either to the left or to the
+	 right of point.  On TTY frames, all characters have the same
+	 pixel width of 1, so we can use that.  On GUI frames we don't
+	 have an easy way of getting at the pixel width of the
+	 character to the left of point, so we use a different method
+	 of getting to that place.  */
+      if (dir > 0)
+	target_x = pt_x + pixel_width;
+      else
+	target_x = pt_x - (!FRAME_WINDOW_P (it.f)) * pixel_width;
+
+      /* Target X coordinate could be one line above or below the line
+	 of point, in which case we need to adjust the target X
+	 coordinate.  Also, if moving to the left, we need to begin at
+	 the left edge of the point's screen line.  */
+      if (dir < 0)
+	{
+	  if (pt_x > 0)
+	    {
+	      start_display (&it, w, pt);
+	      reseat_at_previous_visible_line_start (&it);
+	      it.current_x = it.current_y = it.hpos = 0;
+	      if (pt_vpos != 0)
+		move_it_by_lines (&it, pt_vpos);
+	    }
+	  else
+	    {
+	      move_it_by_lines (&it, -1);
+	      target_x = it.last_visible_x - !FRAME_WINDOW_P (it.f);
+	      target_is_eol_p = true;
+	    }
+	}
+      else
+	{
+	  if (at_eol_p
+	      || (target_x >= it.last_visible_x
+		  && it.line_wrap != TRUNCATE))
+	    {
+	      if (pt_x > 0)
+		move_it_by_lines (&it, 0);
+	      move_it_by_lines (&it, 1);
+	      target_x = 0;
+	    }
+	}
+
+      /* Move to the target X coordinate.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      /* On GUI frames, as we don't know the X coordinate of the
+	 character to the left of point, moving point to the left
+	 requires walking, one grapheme cluster at a time, until we
+	 find ourself at a place immediately to the left of the
+	 character at point.  */
+      if (FRAME_WINDOW_P (it.f) && dir < 0)
+	{
+	  struct text_pos new_pos = it.current.pos;
+	  enum move_it_result rc = MOVE_X_REACHED;
+
+	  while (it.current_x + it.pixel_width <= target_x
+		 && rc == MOVE_X_REACHED)
+	    {
+	      int new_x = it.current_x + it.pixel_width;
+
+	      new_pos = it.current.pos;
+	      if (new_x == it.current_x)
+		new_x++;
+	      rc = move_it_in_display_line_to (&it, ZV, new_x,
+					       MOVE_TO_POS | MOVE_TO_X);
+	      if (ITERATOR_AT_END_OF_LINE_P (&it) && !target_is_eol_p)
+		break;
+	    }
+	  /* If we ended up on a composed character inside
+	     bidi-reordered text (e.g., Hebrew text with diacritics),
+	     the iterator gives us the buffer position of the last (in
+	     logical order) character of the composed grapheme cluster,
+	     which is not what we want.  So we cheat: we compute the
+	     character position of the character that follows (in the
+	     logical order) the one where the above loop stopped.  That
+	     character will appear on display to the left of point.  */
+	  if (it.bidi_p
+	      && it.bidi_it.scan_dir == -1
+	      && new_pos.charpos - IT_CHARPOS (it) > 1)
+	    {
+	      new_pos.charpos = IT_CHARPOS (it) + 1;
+	      new_pos.bytepos = CHAR_TO_BYTE (new_pos.charpos);
+	    }
+	  it.current.pos = new_pos;
+	}
+      else
+#endif
+      if (it.current_x != target_x)
+	move_it_in_display_line_to (&it, ZV, target_x, MOVE_TO_POS | MOVE_TO_X);
+
+      /* When lines are truncated, the above loop will stop at the
+	 window edge.  But we want to get to the end of line, even if
+	 it is beyond the window edge; automatic hscroll will then
+	 scroll the window to show point as appropriate.  */
+      if (target_is_eol_p && it.line_wrap == TRUNCATE
+	  && get_next_display_element (&it))
+	{
+	  struct text_pos new_pos = it.current.pos;
+
+	  while (!ITERATOR_AT_END_OF_LINE_P (&it))
+	    {
+	      set_iterator_to_next (&it, 0);
+	      if (it.method == GET_FROM_BUFFER)
+		new_pos = it.current.pos;
+	      if (!get_next_display_element (&it))
+		break;
+	    }
+
+	  it.current.pos = new_pos;
+	}
+
+      /* If we ended up in a display string that covers point, move to
+	 buffer position to the right in the visual order.  */
+      if (dir > 0)
+	{
+	  while (IT_CHARPOS (it) == PT)
+	    {
+	      set_iterator_to_next (&it, 0);
+	      if (!get_next_display_element (&it))
+		break;
+	    }
+	}
+
+      /* Move point to that position.  */
+      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+    }
+
+  return make_number (PT);
+
+#undef ROW_GLYPH_NEWLINE_P
+}
 
 
 /***********************************************************************
@@ -28713,6 +29112,7 @@ syms_of_xdisp (void)
   defsubr (&Sformat_mode_line);
   defsubr (&Sinvisible_p);
   defsubr (&Scurrent_bidi_paragraph_direction);
+  defsubr (&Smove_point_visually);
 
   DEFSYM (Qmenu_bar_update_hook, "menu-bar-update-hook");
   DEFSYM (Qoverriding_terminal_local_map, "overriding-terminal-local-map");

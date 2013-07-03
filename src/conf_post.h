@@ -231,7 +231,7 @@ extern void _DebPrint (const char *fmt, ...);
       #define FOO_INLINE EXTERN_INLINE
 
    before including any .h file other than config.h.
-   Other .c files should not define FOO_INILNE.
+   Other .c files should not define FOO_INLINE.
 
    C99 compilers compile functions like 'incr' as C99-style extern
    inline functions.  Pre-C99 GCCs do something similar with

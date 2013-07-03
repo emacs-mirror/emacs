@@ -43,7 +43,7 @@
           (face-at-point))
       (and buffer (kill-buffer buffer)))))
 
-(ert-deftest warnining-predicate-rx-gcc ()
+(ert-deftest warning-predicate-rx-gcc ()
   "Test GCC warning via regexp predicate."
   :expected-result (if (executable-find "gcc") :passed :failed)
   (should (eq 'flymake-warnline

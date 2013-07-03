@@ -33,7 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "buildobj.h"
 
 Lisp_Object Qfunction_documentation;
 
@@ -555,7 +554,6 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
     }
 }
 
-static const char buildobj[] = BUILDOBJ;
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
        1, 1, 0,
@@ -598,27 +596,16 @@ the same file name is found in the `doc-directory'.  */)
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
-  {
-    const char *beg, *end;
-
-    for (beg = buildobj; *beg; beg = end)
-      {
-        ptrdiff_t len;
-
-        while (*beg && c_isspace (*beg)) ++beg;
-
-        for (end = beg; *end && ! c_isspace (*end); ++end)
-          if (*end == '/') beg = end + 1;  /* Skip directory part.  */
-
-        len = end - beg;
-        if (len > 4 && end[-4] == '.' && end[-3] == 'o')
-          len -= 2;  /* Just take .o if it ends in .obj  */
-
-        if (len > 0)
-          Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
-      }
-    Vbuild_files = Fpurecopy (Vbuild_files);
-  }
+    {
+      static char const *const buildobj[] =
+	{
+	  #include "buildobj.h"
+	};
+      int i = sizeof buildobj / sizeof *buildobj;
+      while (0 <= --i)
+	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
+      Vbuild_files = Fpurecopy (Vbuild_files);
+    }
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)

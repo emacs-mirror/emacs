@@ -1777,12 +1777,13 @@ enum
   {
     SAVE_UNUSED,
     SAVE_INTEGER,
+    SAVE_FUNCPOINTER,
     SAVE_POINTER,
     SAVE_OBJECT
   };
 
 /* Number of bits needed to store one of the above values.  */
-enum { SAVE_SLOT_BITS = 2 };
+enum { SAVE_SLOT_BITS = 3 };
 
 /* Number of slots in a save value where save_type is nonzero.  */
 enum { SAVE_VALUE_SLOTS = 4 };
@@ -1803,8 +1804,8 @@ enum Lisp_Save_Type
     SAVE_TYPE_PTR_INT = SAVE_POINTER + (SAVE_INTEGER << SAVE_SLOT_BITS),
     SAVE_TYPE_PTR_OBJ = SAVE_POINTER + (SAVE_OBJECT << SAVE_SLOT_BITS),
     SAVE_TYPE_PTR_PTR = SAVE_POINTER + (SAVE_POINTER << SAVE_SLOT_BITS),
-    SAVE_TYPE_PTR_PTR_OBJ
-      = SAVE_POINTER + (SAVE_TYPE_PTR_OBJ << SAVE_SLOT_BITS),
+    SAVE_TYPE_FUNCPTR_PTR_OBJ
+      = SAVE_FUNCPOINTER + (SAVE_TYPE_PTR_OBJ << SAVE_SLOT_BITS),
 
     /* This has an extra bit indicating it's raw memory.  */
     SAVE_TYPE_MEMORY = SAVE_TYPE_PTR_INT + (1 << (SAVE_TYPE_BITS - 1))
@@ -1813,9 +1814,9 @@ enum Lisp_Save_Type
 /* Special object used to hold a different values for later use.
 
    This is mostly used to package C integers and pointers to call
-   record_unwind_protect.  Typical task is to pass just one C pointer
-   to unwind function.  You should pack pointer with make_save_pointer
-   and then get it back with XSAVE_POINTER, e.g.:
+   record_unwind_protect.  A typical task is to pass just one C object
+   pointer to the unwind function.  You should pack an object pointer with
+   make_save_pointer and then get it back with XSAVE_POINTER, e.g.:
 
    ...
      struct my_data *md = get_my_data ();
@@ -1828,10 +1829,10 @@ enum Lisp_Save_Type
      ...
    }
 
-   If yon need to pass more than just one C pointer, you should
-   use make_save_value.  This function allows you to pack up to
-   SAVE_VALUE_SLOTS integers, pointers or Lisp_Objects and
-   conveniently get them back with XSAVE_POINTER, XSAVE_INTEGER and
+   If you need to pass something else you can use make_save_value,
+   which allows you to pack up to SAVE_VALUE_SLOTS integers, pointers,
+   function pointers or Lisp_Objects and conveniently get them back
+   with XSAVE_INTEGER, XSAVE_POINTER, XSAVE_FUNCPOINTER, and
    XSAVE_OBJECT macros:
 
    ...
@@ -1854,6 +1855,8 @@ enum Lisp_Save_Type
    or XSAVE_OBJECT (arg, 0) are wrong because nothing was saved in slot 2 and
    Lisp_Object was saved in slot 1 of ARG.  */
 
+typedef void (*voidfuncptr) (void);
+
 struct Lisp_Save_Value
   {
     ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Save_Value */
@@ -1869,6 +1872,7 @@ struct Lisp_Save_Value
     ENUM_BF (Lisp_Save_Type) save_type : SAVE_TYPE_BITS;
     union {
       void *pointer;
+      voidfuncptr funcpointer;
       ptrdiff_t integer;
       Lisp_Object object;
     } data[SAVE_VALUE_SLOTS];
@@ -1888,13 +1892,19 @@ LISP_INLINE void *
 XSAVE_POINTER (Lisp_Object obj, int n)
 {
   eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
-  return XSAVE_VALUE (obj)->data[n].pointer;;
+  return XSAVE_VALUE (obj)->data[n].pointer;
 }
 LISP_INLINE void
 set_save_pointer (Lisp_Object obj, int n, void *val)
 {
   eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_POINTER);
   XSAVE_VALUE (obj)->data[n].pointer = val;
+}
+LISP_INLINE voidfuncptr
+XSAVE_FUNCPOINTER (Lisp_Object obj, int n)
+{
+  eassert (save_type (XSAVE_VALUE (obj), n) == SAVE_FUNCPOINTER);
+  return XSAVE_VALUE (obj)->data[n].funcpointer;
 }
 
 /* Likewise for the saved integer.  */

@@ -276,7 +276,7 @@ struct rcsoc_state
 /* Output CH to the file or buffer in STATE.  Any pending newlines or
    spaces are output first.  */
 
-static inline void
+static void
 put_char (int ch, struct rcsoc_state *state)
 {
   int out_ch;

@@ -1,3 +1,168 @@
+2013-07-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups):
+	Revert 2013-01-14 change.
+
+2013-07-02  David Engster  <deng@randomsample.de>
+
+	* gnus-sum.el (gnus-update-marks): Do not remove empty 'unexist'
+	ranges, since `nnimap-retrieve-group-data-early' also uses it as a flag
+	to see whether the group was synced before.
+
+2013-07-02  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* nnimap.el (nnimap-request-move-article): Decode the group name when
+	doing internal moves to avoid charset issues.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-request-list):
+	Revert change that made listing synchronous.
+	(nnimap-get-responses): Restore.
+
+2013-07-02  Dave Abrahams  <dave@boostpro.com>
+
+	* nnimap.el (nnimap-change-group): Document result value.
+
+	* nnimap.el (nnimap-find-article-by-message-id):
+	Account for the fact that nnimap-change-group can return t.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-request-head):
+	Resture to-buffer parameter, used by `nnimap-request-move-article'.
+
+	* nnimap.el (nnimap-request-head): Remove to-buffer argument.
+
+	* gnus-int.el (gnus-request-head): Remove to-buffer argument, only
+	supported by nnimap actually. Reverts previous change.
+
+	* gnus-int.el (gnus-request-head): Add an optional to-buffer parameter
+	to mimic `gnus-request-article' and enjoy backends the nn*-request-head
+	to-buffer argument that is already supported.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-get-responses): Remove, unused.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-request-articles-find-limit): Rename from
+	`nnimap-request-move-articles-find-limit' since we do not use it
+	only for move operations.
+	(nnimap-request-accept-article):
+	Use `nnimap-request-articles-find-limit' to limit search by message-id.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnir.el (nnir-run-imap): Fix, use `nnimap-change-group'.
+
+	* nnimap.el (nnimap-log-buffer):
+	Check that `window-point-insertion-type' is boundp, since it's not
+	available in XEmacs.
+
+2013-07-02  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* nnimap.el (nnimap-log-buffer):
+	Add this, setting `window-point-insertion-type' in the buffer to t.
+	(nnimap-log-command): Use nnimap-log-buffer.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-find-article-by-message-id):
+	Add an optional limit argument to be able to limit the search.
+	(nnimap-request-move-article):
+	Use `nnimap-request-move-articles-find-limit'.
+	(nnimap-request-move-articles-find-limit):
+	Add this to limit the search by Message-Id after a message move.
+	(nnimap): Add defgroup.
+
+2013-07-02  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-find-article-by-message-id):
+	Use `nnimap-possibly-change-group' rather than its own EXAMINE call.
+	(nnimap-possibly-change-group): Add read-only argument.
+	(nnimap-request-list): Use nnimap-possibly-change-group rather than
+	issuing EXAMINE manually.
+	(nnimap-find-article-by-message-id):
+	Use `nnimap-possibly-change-group' with read-only argument.
+	(nnimap-change-group): Rename from `nnimap-possibly-change-group'.
+	We cannot possibly change because we need to be sure that it's either
+	read-write or read-only.
+
+2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-insert-old-articles):
+	Don't include unexistent messages.
+
+2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-clean-old-newsrc):
+	Remove totally bogus `unexists' entries.
+	(gnus-clean-old-newsrc): Fix last checkin.
+
+	* nnimap.el (nnimap-update-info):
+	None of the articles below the active low-water mark exist.
+
+2013-07-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnimap.el (gnus-refer-thread-use-nnir): Silence the byte compiler.
+
+2013-07-02  Sergio Martinez  <samf0xb58@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-request-scan):
+	Allow `nnimap-inbox' to be a list of inboxes.
+
+2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-expire-articles-1):
+	Don't try to expire messages that don't exist.
+
+	* gnus-sum.el (gnus-summary-expire-articles): Ditto.
+
+2013-07-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-clean-old-newsrc): Allow a FORCE parameter.
+
+2013-07-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-clean-old-newsrc):
+	Delete `unexist' from pre-Ma Gnus 0.3.
+
+2013-07-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-local-variables):
+	Make `gnus-newsgroup-unexist' into a local variable.
+
+2013-07-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-adjust-marked-articles):
+	Add to `gnus-newsgroup-unexist'.
+
+	* gnus.el (gnus-article-mark-lists):
+	Add `unexist' to the list of marks.
+	(gnus-article-special-mark-lists):
+	Put the `unexist' in the special marks list instead.
+
+	* gnus-sum.el (gnus-articles-to-read): Don't include unexisting
+	articles in the list of articles to be selected.
+
+	* nnimap.el (nnimap-retrieve-group-data-early):
+	Query for unexisting articles.
+	(nnimap-update-info): Keep track of unexisting articles.
+	(nnimap-update-qresync-info): Ditto.
+
+2013-07-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-clean-old-newsrc): New function.
+	(gnus-read-newsrc-file): Use it.
+
+2013-07-02  Daiki Ueno  <ueno@gnu.org>
+
+	* mml2015.el (mml2015-epg-key-image): Use 'gnus-create-image' instead
+	of 'create-image' for XEmacs compatibility; check errors when decoding
+	image.  Reported by Uwe Brauer.
+
 2013-06-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-extend-url-button): Make it work again with
@@ -80,7 +245,7 @@
 	(eww-colorize-region): Use `add-face-text-property'.
 
 	* shr.el (shr-add-font): Append face data, so that we get the correct
-	presedence: The innermost value (which is applied first) wins.
+	precedence: The innermost value (which is applied first) wins.
 	(shr-make-overlay): Obsolete function.
 
 	* mm-decode.el (mm-convert-shr-links): New function to convert

@@ -572,7 +572,7 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
   if (!NILP (val))
     {
       map_keymap_function_t fun
-	= (map_keymap_function_t) XSAVE_POINTER (args, 0);
+	= (map_keymap_function_t) XSAVE_FUNCPOINTER (args, 0);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
       if (CONSP (key))
@@ -617,8 +617,8 @@ map_keymap_internal (Lisp_Object map,
 	}
       else if (CHAR_TABLE_P (binding))
 	map_char_table (map_keymap_char_table_item, Qnil, binding,
-			make_save_value (SAVE_TYPE_PTR_PTR_OBJ,
-					 fun, data, args));
+			make_save_value (SAVE_TYPE_FUNCPTR_PTR_OBJ,
+					 (voidfuncptr) fun, data, args));
     }
   UNGCPRO;
   return tail;

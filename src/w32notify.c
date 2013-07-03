@@ -59,7 +59,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    When the FILE_NOTIFY_EVENT event is processed by keyboard.c's
    kbd_buffer_get_event, it is converted to a Lispy event that can be
-   bound to a command.  The default binding is w32notify-handle-event,
+   bound to a command.  The default binding is file-notify-handle-event,
    defined on subr.el.
 
    After w32_read_socket or w32_console_read_socket are done

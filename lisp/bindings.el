@@ -696,29 +696,57 @@ language you are using."
 (put 'narrow-to-region 'disabled t)
 
 ;; Moving with arrows in bidi-sensitive direction.
+(defcustom visual-order-cursor-movement nil
+  "If non-nil, moving cursor with arrow keys follows the visual order.
+
+When this is non-nil, \\[right-char] will move to the character that is
+to the right of point on display, and \\[left-char] will move to the left,
+disregarding the surrounding bidirectional context.  Depending on the
+bidirectional context of the surrounding characters, this can move point
+many buffer positions away.
+
+When the text is entirely left-to-right, logical-order and visual-order
+cursor movements produce identical results."
+  :type '(choice (const :tag "Logical-order cursor movement" nil)
+		 (const :tag "Visual-order cursor movement" t))
+  :group 'display
+  :version "24.5")
+
 (defun right-char (&optional n)
   "Move point N characters to the right (to the left if N is negative).
 On reaching beginning or end of buffer, stop and signal error.
 
-Depending on the bidirectional context, this may move either forward
-or backward in the buffer.  This is in contrast with \\[forward-char]
-and \\[backward-char], which see."
+If `visual-order-cursor-movement' is non-nil, this always moves
+to the right on display, wherever that is in the buffer.
+Otherwise, depending on the bidirectional context, this may move
+one position either forward or backward in the buffer.  This is
+in contrast with \\[forward-char] and \\[backward-char], which
+see."
   (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (forward-char n)
-    (backward-char n)))
+  (if visual-order-cursor-movement
+      (dotimes (i (if (numberp n) (abs n) 1))
+	(move-point-visually (if (and (numberp n) (< n 0)) -1 1)))
+    (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+	(forward-char n)
+      (backward-char n))))
 
 (defun left-char ( &optional n)
   "Move point N characters to the left (to the right if N is negative).
 On reaching beginning or end of buffer, stop and signal error.
 
-Depending on the bidirectional context, this may move either backward
-or forward in the buffer.  This is in contrast with \\[backward-char]
-and \\[forward-char], which see."
+If `visual-order-cursor-movement' is non-nil, this always moves
+to the left on display, wherever that is in the buffer.
+Otherwise, depending on the bidirectional context, this may move
+one position either backward or forward in the buffer.  This is
+in contrast with \\[forward-char] and \\[backward-char], which
+see."
   (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (backward-char n)
-    (forward-char n)))
+  (if visual-order-cursor-movement
+      (dotimes (i (if (numberp n) (abs n) 1))
+	(move-point-visually (if (and (numberp n) (< n 0)) 1 -1)))
+    (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+	(backward-char n)
+      (forward-char n))))
 
 (defun right-word (&optional n)
   "Move point N words to the right (to the left if N is negative).

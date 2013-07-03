@@ -2196,20 +2196,15 @@ get_property_and_range (ptrdiff_t pos, Lisp_Object prop, Lisp_Object *val,
 /* Return the proper local keymap TYPE for position POSITION in
    BUFFER; TYPE should be one of `keymap' or `local-map'.  Use the map
    specified by the PROP property, if any.  Otherwise, if TYPE is
-   `local-map' use BUFFER's local map.
-
-   POSITION must be in the accessible part of BUFFER.  */
+   `local-map' use BUFFER's local map.  */
 
 Lisp_Object
-get_local_map (register ptrdiff_t position, register struct buffer *buffer,
-	       Lisp_Object type)
+get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
 {
   Lisp_Object prop, lispy_position, lispy_buffer;
   ptrdiff_t old_begv, old_zv, old_begv_byte, old_zv_byte;
 
-  /* Perhaps we should just change `position' to the limit.  */
-  if (position > BUF_ZV (buffer) || position < BUF_BEGV (buffer))
-    emacs_abort ();
+  position = clip_to_bounds (BUF_BEGV (buffer), position, BUF_ZV (buffer));
 
   /* Ignore narrowing, so that a local map continues to be valid even if
      the visible region contains no characters and hence no properties.  */

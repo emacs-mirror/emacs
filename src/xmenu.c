@@ -397,7 +397,7 @@ x_menu_wait_for_event (void *data)
       else
         ntp = &next_time;
 
-#ifdef HAVE_GTK3
+#if defined USE_GTK && defined HAVE_GTK3
       /* Gtk3 have arrows on menus when they don't fit.  When the
 	 pointer is over an arrow, a timeout scrolls it a bit.  Use
 	 xg_select so that timeout gets triggered.  */

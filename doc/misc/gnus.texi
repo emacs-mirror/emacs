@@ -14240,7 +14240,8 @@ variables are relevant:
 
 @table @code
 @item nnimap-inbox
-This is the @acronym{IMAP} mail box that will be scanned for new mail.
+This is the @acronym{IMAP} mail box that will be scanned for new
+mail.  This can also be a list of mail box names.
 
 @item nnimap-split-methods
 Uses the same syntax as @code{nnmail-split-methods} (@pxref{Splitting

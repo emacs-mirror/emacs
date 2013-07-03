@@ -1,3 +1,15 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* bovine.texi (top):
+	* cc-mode.texi (AWK Mode Font Locking):
+	* mh-e.texi (Preface):
+	* url.texi (URI Parsing): Fix cross-references to other manuals.
+
+2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting):
+	Note that `nnimap-inbox' now can be a list.
+
 2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.texi: Fix cross-references to other manuals.

@@ -920,10 +920,14 @@ just return nil (no error)."
 	  (error "Info file %s does not exist" filename)))
       filename))))
 
-(defun Info-find-node (filename nodename &optional no-going-back)
+(defun Info-find-node (filename nodename &optional no-going-back strict-case)
   "Go to an Info node specified as separate FILENAME and NODENAME.
 NO-GOING-BACK is non-nil if recovering from an error in this function;
-it says do not attempt further (recursive) error recovery."
+it says do not attempt further (recursive) error recovery.
+
+This function first looks for a case-sensitive match for NODENAME;
+if none is found it then tries a case-insensitive match (unless
+STRICT-CASE is non-nil)."
   (info-initialize)
   (setq filename (Info-find-file filename))
   ;; Go into Info buffer.
@@ -933,7 +937,7 @@ it says do not attempt further (recursive) error recovery."
        Info-current-file
        (push (list Info-current-file Info-current-node (point))
              Info-history))
-  (Info-find-node-2 filename nodename no-going-back))
+  (Info-find-node-2 filename nodename no-going-back strict-case))
 
 ;;;###autoload
 (defun Info-on-current-buffer (&optional nodename)
@@ -1010,7 +1014,7 @@ which the match was found."
 	      (+ (point-min) (read (current-buffer)))
 	      major-mode)))))
 
-(defun Info-find-in-tag-table (marker regexp)
+(defun Info-find-in-tag-table (marker regexp &optional strict-case)
   "Find a node in a tag table.
 MARKER specifies the buffer and position to start searching at.
 REGEXP is a regular expression matching nodes or references.  Its first
@@ -1020,10 +1024,11 @@ FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
 where the match was found, and MODE is `major-mode' of the buffer in
 which the match was found.
 This function tries to find a case-sensitive match first, then a
-case-insensitive match is tried."
+case-insensitive match is tried (unless optional argument STRICT-CASE
+is non-nil)."
   (let ((result (Info-find-in-tag-table-1 marker regexp nil)))
-    (when (null (car result))
-      (setq result (Info-find-in-tag-table-1 marker regexp t)))
+    (or strict-case (car result)
+	(setq result (Info-find-in-tag-table-1 marker regexp t)))
     result))
 
 (defun Info-find-node-in-buffer-1 (regexp case-fold)
@@ -1046,17 +1051,19 @@ Value is the position at which a match was found, or nil if not found."
                 (setq found (line-beginning-position)))))))
     found))
 
-(defun Info-find-node-in-buffer (regexp)
+(defun Info-find-node-in-buffer (regexp &optional strict-case)
   "Find a node or anchor in the current buffer.
 REGEXP is a regular expression matching nodes or references.  Its first
 group should match `Node:' or `Ref:'.
 Value is the position at which a match was found, or nil if not found.
 This function looks for a case-sensitive match first.  If none is found,
-a case-insensitive match is tried."
+a case-insensitive match is tried (unless optional argument STRICT-CASE
+is non-nil)."
   (or (Info-find-node-in-buffer-1 regexp nil)
-      (Info-find-node-in-buffer-1 regexp t)))
+      (and (not strict-case)
+	   (Info-find-node-in-buffer-1 regexp t))))
 
-(defun Info-find-node-2 (filename nodename &optional no-going-back)
+(defun Info-find-node-2 (filename nodename &optional no-going-back strict-case)
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
@@ -1167,7 +1174,7 @@ a case-insensitive match is tried."
 	      ;; First, search a tag table, if any
 	      (when (marker-position Info-tag-table-marker)
 		(let* ((m Info-tag-table-marker)
-		       (found (Info-find-in-tag-table m regexp)))
+		       (found (Info-find-in-tag-table m regexp strict-case)))
 
 		  (when found
 		    ;; FOUND is (ANCHOR POS MODE).
@@ -1194,7 +1201,7 @@ a case-insensitive match is tried."
 	      ;; buffer) to find the actual node.  First, check
 	      ;; whether the node is right where we are, in case the
 	      ;; buffer begins with a node.
-	      (let ((pos (Info-find-node-in-buffer regexp)))
+	      (let ((pos (Info-find-node-in-buffer regexp strict-case)))
 		(when pos
 		  (goto-char pos)
 		  (throw 'foo t)))
@@ -1701,7 +1708,7 @@ escaped (\\\",\\\\)."
 ;; Don't autoload this function: the correct entry point for other packages
 ;; to use is `info'.  --Stef
 ;; ;;;###autoload
-(defun Info-goto-node (nodename &optional fork)
+(defun Info-goto-node (nodename &optional fork strict-case)
   "Go to Info node named NODENAME.  Give just NODENAME or (FILENAME)NODENAME.
 If NODENAME is of the form (FILENAME)NODENAME, the node is in the Info file
 FILENAME; otherwise, NODENAME should be in the current Info file (or one of
@@ -1711,7 +1718,11 @@ in the Info file FILENAME after the closing parenthesis in (FILENAME).
 Empty NODENAME in (FILENAME) defaults to the Top node.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.
-If FORK is a string, it is the name to use for the new buffer."
+If FORK is a string, it is the name to use for the new buffer.
+
+This function first looks for a case-sensitive match for the node part
+of NODENAME; if none is found it then tries a case-insensitive match
+\(unless STRICT-CASE is non-nil)."
   (interactive (list (Info-read-node-name "Go to node: ") current-prefix-arg))
   (info-initialize)
   (if fork
@@ -1730,7 +1741,7 @@ If FORK is a string, it is the name to use for the new buffer."
       (if trim (setq nodename (substring nodename 0 trim))))
     (if transient-mark-mode (deactivate-mark))
     (Info-find-node (if (equal filename "") nil filename)
-		    (if (equal nodename "") "Top" nodename))))
+		    (if (equal nodename "") "Top" nodename) nil strict-case)))
 
 (defvar Info-read-node-completion-table)
 

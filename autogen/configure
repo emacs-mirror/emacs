@@ -3352,7 +3352,6 @@ $as_echo "$as_me: creating cache $cache_file" >&6;}
   >$cache_file
 fi
 
-as_fn_append ac_header_list " linux/version.h"
 as_fn_append ac_header_list " sys/systeminfo.h"
 as_fn_append ac_header_list " coff.h"
 as_fn_append ac_header_list " pty.h"
@@ -8991,7 +8990,7 @@ fi
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
-  for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h
+  for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "
@@ -9213,8 +9212,6 @@ done
 
 
 
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if personality LINUX32 can be set" >&5
 $as_echo_n "checking if personality LINUX32 can be set... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9318,11 +9315,6 @@ cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL___SYS_SIGLIST $ac_have_decl
 _ACEOF
 
-  if test $ac_cv_have_decl___sys_siglist = yes; then
-
-$as_echo "#define sys_siglist __sys_siglist" >>confdefs.h
-
-  fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sys/wait.h that is POSIX.1 compatible" >&5
 $as_echo_n "checking for sys/wait.h that is POSIX.1 compatible... " >&6; }
@@ -9365,37 +9357,6 @@ $as_echo "#define HAVE_SYS_WAIT_H 1" >>confdefs.h
 
 fi
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for speed_t" >&5
-$as_echo_n "checking for speed_t... " >&6; }
-if test "${emacs_cv_speed_t+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <termios.h>
-int
-main ()
-{
-speed_t x = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_speed_t=yes
-else
-  emacs_cv_speed_t=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_speed_t" >&5
-$as_echo "$emacs_cv_speed_t" >&6; }
-if test $emacs_cv_speed_t = yes; then
-
-$as_echo "#define HAVE_SPEED_T 1" >>confdefs.h
-
-fi
 
 
 
@@ -11303,6 +11264,7 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
+gtk_term_header=$term_header
 check_gtk2=no
 gtk3_pkg_errors=
 if test "${opsys}" != "mingw32"; then
@@ -11370,7 +11332,7 @@ $as_echo "no" >&6; }
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
        GTK_OBJ=emacsgtkfixed.o
-       term_header=gtkutil.h
+       gtk_term_header=gtkutil.h
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
        	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
@@ -11454,19 +11416,43 @@ if test x"$pkg_check_gtk" = xyes; then
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
-    GTK_COMPILES=no
-  for ac_func in gtk_main
-do :
-  ac_fn_c_check_func "$LINENO" "gtk_main" "ac_cv_func_gtk_main"
-if test "x$ac_cv_func_gtk_main" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GTK_MAIN 1
-_ACEOF
- GTK_COMPILES=yes
-fi
-done
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether GTK compiles" >&5
+$as_echo_n "checking whether GTK compiles... " >&6; }
+  GTK_COMPILES=no
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check the Gtk and Glib APIs.  */
+	 #include <gtk/gtk.h>
+	 #include <glib-object.h>
+	 static void
+	 callback (GObject *go, GParamSpec *spec, gpointer user_data)
+	 {}
 
+int
+main ()
+{
+
+	 GtkSettings *gs = 0;
+	 /* Use G_CALLBACK to make sure function pointers can be cast to void *;
+	    strict C prohibits this.  Use gtk_main_iteration to test that the
+	    libraries are there.  */
+	 if (g_signal_handler_find (G_OBJECT (gs), G_SIGNAL_MATCH_FUNC,
+				    0, 0, 0, G_CALLBACK (callback), 0))
+	   gtk_main_iteration ();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  GTK_COMPILES=yes
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_COMPILES" >&5
+$as_echo "$GTK_COMPILES" >&6; }
   if test "${GTK_COMPILES}" != "yes"; then
+    GTK_OBJ=
     if test "$USE_X_TOOLKIT" != "maybe"; then
       as_fn_error "Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?" "$LINENO" 5;
     fi
@@ -11476,6 +11462,7 @@ done
 $as_echo "#define USE_GTK 1" >>confdefs.h
 
     GTK_OBJ="gtkutil.o $GTK_OBJ"
+    term_header=$gtk_term_header
     USE_X_TOOLKIT=none
     if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
@@ -11934,7 +11921,6 @@ fi
 
 
 HAVE_GNUTLS=no
-HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
 
   succeeded=no
@@ -11993,33 +11979,12 @@ $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
   fi
 
-  OLD_CFLAGS=$CFLAGS
-  OLD_LIBS=$LIBS
-  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
-  LIBS="$LIBGNUTLS_LIBS $LIBS"
-  for ac_func in gnutls_certificate_set_verify_function
-do :
-  ac_fn_c_check_func "$LINENO" "gnutls_certificate_set_verify_function" "ac_cv_func_gnutls_certificate_set_verify_function"
-if test "x$ac_cv_func_gnutls_certificate_set_verify_function" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION 1
-_ACEOF
- HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes
-fi
-done
-
-
-  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
-
-$as_echo "#define HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY 1" >>confdefs.h
-
-  fi
-
   # Windows loads GnuTLS dynamically
   if test "${opsys}" = "mingw32"; then
-    CFLAGS=$OLD_CFLAGS
-    LIBS=$OLD_LIBS
     LIBGNUTLS_LIBS=
+  else
+    CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+    LIBS="$LIBGNUTLS_LIBS $LIBS"
   fi
 fi
 
@@ -14694,7 +14659,7 @@ for ac_func in gethostname \
 getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
-utimes getrlimit setrlimit shutdown getaddrinfo \
+getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim sync \
@@ -15267,9 +15232,6 @@ fi
 
 
   if test x"$hesiod" = xyes; then
-
-$as_echo "#define HAVE_LIBHESIOD 1" >>confdefs.h
-
     LIBHESIOD=-lhesiod
   fi
 fi
@@ -15277,9 +15239,6 @@ fi
 
 # Do we need libresolv (due to res_init or Hesiod)?
 if test "$resolv" = yes && test $opsys != darwin; then
-
-$as_echo "#define HAVE_LIBRESOLV 1" >>confdefs.h
-
   LIBRESOLV=-lresolv
 else
   LIBRESOLV=
@@ -15339,9 +15298,6 @@ fi
   if test $have_com_err = yes; then
     COM_ERRLIB=-lcom_err
     LIBS="$COM_ERRLIB $LIBS"
-
-$as_echo "#define HAVE_LIBCOM_ERR 1" >>confdefs.h
-
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lcrypto" >&5
 $as_echo_n "checking for mit_des_cbc_encrypt in -lcrypto... " >&6; }
@@ -15388,9 +15344,6 @@ fi
   if test $have_crypto = yes; then
     CRYPTOLIB=-lcrypto
     LIBS="$CRYPTOLIB $LIBS"
-
-$as_echo "#define HAVE_LIBCRYPTO 1" >>confdefs.h
-
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lk5crypto" >&5
 $as_echo_n "checking for mit_des_cbc_encrypt in -lk5crypto... " >&6; }
@@ -15437,9 +15390,6 @@ fi
   if test $have_k5crypto = yes; then
     CRYPTOLIB=-lk5crypto
     LIBS="$CRYPTOLIB $LIBS"
-
-$as_echo "#define HAVE_LIBK5CRYPTO 1" >>confdefs.h
-
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb5_init_context in -lkrb5" >&5
 $as_echo_n "checking for krb5_init_context in -lkrb5... " >&6; }
@@ -15486,9 +15436,6 @@ fi
   if test $have_krb5=yes; then
     KRB5LIB=-lkrb5
     LIBS="$KRB5LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB5 1" >>confdefs.h
-
   fi
     if test "${with_kerberos5}" = no; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes425" >&5
@@ -15536,9 +15483,6 @@ fi
     if test $have_des425 = yes; then
       DESLIB=-ldes425
       LIBS="$DESLIB $LIBS"
-
-$as_echo "#define HAVE_LIBDES425 1" >>confdefs.h
-
     else
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes" >&5
 $as_echo_n "checking for des_cbc_encrypt in -ldes... " >&6; }
@@ -15585,9 +15529,6 @@ fi
       if test $have_des = yes; then
         DESLIB=-ldes
         LIBS="$DESLIB $LIBS"
-
-$as_echo "#define HAVE_LIBDES 1" >>confdefs.h
-
       fi
     fi
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb4" >&5
@@ -15635,9 +15576,6 @@ fi
     if test $have_krb4 = yes; then
       KRB4LIB=-lkrb4
       LIBS="$KRB4LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB4 1" >>confdefs.h
-
     else
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb" >&5
 $as_echo_n "checking for krb_get_cred in -lkrb... " >&6; }
@@ -15684,9 +15622,6 @@ fi
       if test $have_krb = yes; then
         KRB4LIB=-lkrb
         LIBS="$KRB4LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB 1" >>confdefs.h
-
       fi
     fi
   fi
@@ -15725,44 +15660,6 @@ fi
 done
 
   else
-    for ac_header in des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "des.h" "ac_cv_header_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DES_H 1
-_ACEOF
-
-else
-  for ac_header in kerberosIV/des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberosIV/des.h" "ac_cv_header_kerberosIV_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberosIV_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROSIV_DES_H 1
-_ACEOF
-
-else
-  for ac_header in kerberos/des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberos/des.h" "ac_cv_header_kerberos_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberos_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROS_DES_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-done
-
-fi
-
-done
-
     for ac_header in krb.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "krb.h" "ac_cv_header_krb_h" "$ac_includes_default"
@@ -15930,25 +15827,6 @@ if test $ok_so_far = yes; then
 
 $as_echo "#define HAVE_INET_SOCKETS 1" >>confdefs.h
 
-fi
-
-if test -f /usr/lpp/X11/bin/smt.exp; then
-
-$as_echo "#define HAVE_AIX_SMT_EXP 1" >>confdefs.h
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system supports dynamic ptys" >&5
-$as_echo_n "checking whether system supports dynamic ptys... " >&6; }
-if test -d /dev/pts && ls -d /dev/ptmx > /dev/null 2>&1 ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define HAVE_DEV_PTMX 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
 fi
 
 case $canonical in
@@ -16383,12 +16261,9 @@ $as_echo "#define USER_FULL_NAME pw->pw_gecos" >>confdefs.h
 $as_echo "#define DIRECTORY_SEP '/'" >>confdefs.h
 
 
-
 if test "${opsys}" = "mingw32"; then
-    $as_echo "#define DEVICE_SEP ':'" >>confdefs.h
 
-
-$as_echo "#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)" >>confdefs.h
+$as_echo "#define IS_DEVICE_SEP(_c_) ((_c_) == ':')" >>confdefs.h
 
 
 
@@ -16440,7 +16315,7 @@ esac
 emacs_broken_SIGIO=no
 
 case $opsys in
-      hpux* | irix6-5 | openbsd | sol2* | unixware )
+      hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -16872,12 +16747,9 @@ esac
 
 
 
-
 case $opsys in
   aix4-2)
     $as_echo "#define USG /**/" >>confdefs.h
-
-    $as_echo "#define USG5 /**/" >>confdefs.h
 
         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -16927,8 +16799,6 @@ $as_echo "#define GNU_LINUX /**/" >>confdefs.h
   hpux*)
     $as_echo "#define USG /**/" >>confdefs.h
 
-    $as_echo "#define USG5 /**/" >>confdefs.h
-
 
 $as_echo "#define HPUX /**/" >>confdefs.h
 
@@ -16936,8 +16806,6 @@ $as_echo "#define HPUX /**/" >>confdefs.h
 
   irix6-5)
     $as_echo "#define USG /**/" >>confdefs.h
-
-    $as_echo "#define USG5 /**/" >>confdefs.h
 
     $as_echo "#define USG5_4 /**/" >>confdefs.h
 
@@ -16962,8 +16830,6 @@ $as_echo "#define EMACSDEBUG 1" >>confdefs.h
   sol2*)
     $as_echo "#define USG /**/" >>confdefs.h
 
-    $as_echo "#define USG5 /**/" >>confdefs.h
-
     $as_echo "#define USG5_4 /**/" >>confdefs.h
 
 
@@ -16973,8 +16839,6 @@ $as_echo "#define SOLARIS2 /**/" >>confdefs.h
 
   unixware)
     $as_echo "#define USG /**/" >>confdefs.h
-
-    $as_echo "#define USG5 /**/" >>confdefs.h
 
     $as_echo "#define USG5_4 /**/" >>confdefs.h
 

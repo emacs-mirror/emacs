@@ -2346,7 +2346,7 @@ directory trees.  The @dfn{project root} is the topmost directory of a
 project.  To define a new project, visit a file in the desired project
 root and type @kbd{M-x ede-new}.  This command prompts for a
 @dfn{project type}, which refers to the underlying method that EDE
-will use to manage the project (@pxref{Creating a Project, EDE,, ede,
+will use to manage the project (@pxref{Creating a project, EDE,, ede,
 Emacs Development Environment}).  The most common project types are
 @samp{Make}, which uses Makefiles, and @samp{Automake}, which uses GNU
 Automake (@pxref{Top, Automake,, automake, Automake}).  In both cases,

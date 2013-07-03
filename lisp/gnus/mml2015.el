@@ -877,7 +877,9 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
                           (shell-quote-argument epg-gpg-program) key-id))))
       (when (> (length data) 0)
         (insert (substring data 16))
-        (create-image (buffer-string) nil t)))))
+	(condition-case nil
+	    (gnus-create-image (buffer-string) nil t)
+	  (error))))))
 
 (autoload 'gnus-rescale-image "gnus-util")
 

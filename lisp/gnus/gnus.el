@@ -2636,10 +2636,11 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (seen . seen)))
+    (seen . seen) (unexist . unexist)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
+    (unexist range)
     (killed range)
     (bookmark tuple)
     (uid tuple)
@@ -2654,7 +2655,7 @@ a string, be sure to use a valid format, see RFC 2616."
 ;; `score' is not a proper mark
 ;; `bookmark': don't propagated it, or fix the bug in update-mark.
 (defconst gnus-article-unpropagated-mark-lists
-  '(seen cache download unsend score bookmark)
+  '(seen cache download unsend score bookmark unexist)
   "Marks that shouldn't be propagated to back ends.
 Typical marks are those that make no sense in a standalone back end,
 such as a mark that says whether an article is stored in the cache

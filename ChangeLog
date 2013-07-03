@@ -1,3 +1,36 @@
+2013-07-03  Christoph Egger  <christoph@debian.org>  (tiny change)
+
+	* configure.ac (emacs_broken_SIGIO): Set on gnu-kfreebsd to avoid hang.
+	http://bugs.debian.org/712974
+
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove some unused macros from 'configure'.
+	* configure.ac (HAVE_SOUNDCARD_H, HAVE_LINUX_VERSION_H, HAVE_SPEED_T)
+	(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY)
+	(HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION, HAVE_UTIMES)
+	(HAVE_LIBHESIOD, HAVE_LIBRESOLV, HAVE_LIBCOM_ERR, HAVE_LIBCRYPTO)
+	(HAVE_LIBK5CRYPTO, HAVE_LIBKRB5, HAVE_LIBDES425, HAVE_LIBDES)
+	(HAVE_LIBKRB4, HAVE_LIBKRB, HAVE_DES_H, HAVE_KERBEROSIV_DES_H)
+	(HAVE_DEV_PTMX, DEVICE_SEP, USG5):
+	Remove these macros, as they are not used.
+	(sys_siglist): Remove macro; src/sysdep.c now does this.
+
+	* configure.ac (GTK_COMPILES): Check API a bit more carefully.
+	Also check that it links.  Say whether it compiled and linked.
+
+2013-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-06-23 ignore-value: port to gcc -pedantic
+	2013-06-21 extern-inline: port to gcc -std=c89
+
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not use GTK 3 if it exists but cannot be compiled.
+	* configure.ac: Leave GTK_OBJ and term_header alone if GTK 3
+	exists but cannot be compiled.
+
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* Makefile.in (install-arch-indep): Do not create directories passed

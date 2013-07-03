@@ -90,6 +90,14 @@ simply disabling Transient Mark mode does the same thing.
 ** `initial-buffer-choice' can now specify a function to set up the
 initial buffer.
 
+** `remember-notes' creates a buffer whose content is saved on kill-emacs.
+You may think of it as a *scratch* buffer whose content is preserved.
+In fact, it was designed as a replacement for *scratch* buffer and can
+be used that way by setting `initial-buffer-choice' to `remember-notes'
+and `remember-notes-buffer-name' to "*scratch*".  Without the second
+change, *scratch* buffer will still be there for notes that do not
+need to be preserved.
+
 ** `write-region-inhibit-fsync' now defaults to t in batch mode.
 
 ** ACL support has been added.
@@ -130,6 +138,13 @@ bound to <f11> and M-<f10>, respectively.
 
 ** In keymaps where SPC scrolls, S-SPC now scrolls in the reverse direction.
 Eg View mode, etc.
+
++++
+** New option `visual-order-cursor-movement'.
+If this is non-nil, cursor motion with arrow keys will follow the
+visual order of characters on the screen: <left> always moves to the
+left, <right> always moves to the right, disregarding the surrounding
+bidirectional context.
 
 ** New command `kmacro-to-register' to store keyboard macros in registers.
 
@@ -237,7 +252,7 @@ on the given date.
 *** `desktop-auto-save-timeout' defines the number of seconds between
 auto-saves of the desktop.
 
-*** `desktop-save-windows' enables saving and restoring the window/frame
+*** `desktop-restore-frames enables saving and restoring the window/frame
 configuration.
 
 ** Dired
@@ -362,7 +377,7 @@ New features include:
 - support for multiple todo files and archive files of done items;
 - renaming, reordering, moving, merging, and deleting categories;
 - sortable tabular summaries of categories and the types of items they contain;
-- cross-categorial lists of items filtered by specific criteria;
+- cross-category lists of items filtered by specific criteria;
 - more fine-grained interaction with the Emacs diary, by being able to decide
   for each todo item whether it appears in the Fancy Diary display;
 - highly flexible new item insertion and item editing;

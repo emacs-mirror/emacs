@@ -1734,18 +1734,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (!BUFFER_LIVE_P (b))
     return Qnil;
 
-  /* Query if the buffer is still modified.  */
-  if (INTERACTIVE && !NILP (BVAR (b, filename))
-      && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
-    {
-      GCPRO1 (buffer);
-      tem = do_yes_or_no_p (format2 ("Buffer %s modified; kill anyway? ",
-				     BVAR (b, name), make_number (0)));
-      UNGCPRO;
-      if (NILP (tem))
-	return Qnil;
-    }
-
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
     ptrdiff_t count = SPECPDL_INDEX ();
@@ -1760,6 +1748,22 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     tem = Frun_hook_with_args_until_failure (1, arglist);
     if (NILP (tem))
       return unbind_to (count, Qnil);
+
+    /* Query if the buffer is still modified.  */
+    if (INTERACTIVE && !NILP (BVAR (b, filename))
+	&& BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
+      {
+        GCPRO1 (buffer);
+        tem = do_yes_or_no_p (format2 ("Buffer %s modified; kill anyway? ",
+				       BVAR (b, name), make_number (0)));
+	UNGCPRO;
+	if (NILP (tem))
+	  return unbind_to (count, Qnil);
+      }
+
+    /* If the hooks have killed the buffer, exit now.  */
+    if (!BUFFER_LIVE_P (b))
+      return unbind_to (count, Qt);
 
     /* Then run the hooks.  */
     Frun_hooks (1, &Qkill_buffer_hook);

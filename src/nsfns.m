@@ -2705,8 +2705,14 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
         case NSPageUpFunctionKey:
         case NSPageDownFunctionKey:
         case NSEndFunctionKey:
-          [panel sendEvent: theEvent];
-          ret = YES;
+          /* Don't send command modified keys, as those are handled in the
+             performKeyEquivalent method of the super class.
+          */
+          if (! ([theEvent modifierFlags] & NSCommandKeyMask))
+            {
+              [panel sendEvent: theEvent];
+              ret = YES;
+            }
           break;
           /* As we don't have the standard key commands for
              copy/paste/cut/select-all in our edit menu, we must handle

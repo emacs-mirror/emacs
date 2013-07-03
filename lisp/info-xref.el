@@ -45,7 +45,25 @@
 ;;; Code:
 
 (require 'info)
-(eval-when-compile (require 'cl-lib)) ;; for `incf'
+(eval-when-compile (require 'cl-lib))   ; for `cl-incf'
+
+(defgroup info-xref nil
+  "Check external cross-references in Info documents."
+  :group 'docs)                         ; FIXME right parent?
+
+;; Should this even be an option?
+(defcustom info-xref-case-fold nil
+  "Non-nil means node checks should ignore case.
+When following cross-references, the Emacs Info reader first tries a
+case-sensitive match, then if that fails a case-insensitive one.
+The standalone Info reader does not do this, nor does this work
+for links in the html versions of Texinfo manuals.  Therefore
+to ensure your cross-references work on the widest range of platforms,
+you should set this variable to nil."
+  :group 'info-xref
+  :type 'boolean
+  :version "24.4")
+
 
 ;;-----------------------------------------------------------------------------
 ;; vaguely generic
@@ -204,7 +222,8 @@ buffer's line and column of point."
                   (Info-goto-node node
                                   (when (get-buffer "*info*")
                                     (set-buffer "*info*")
-                                    "xref - temporary"))
+                                    "xref - temporary")
+                                  (not info-xref-case-fold))
                   t)
               (error nil))
           (unless (equal (current-buffer) oldbuf)

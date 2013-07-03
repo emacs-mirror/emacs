@@ -1,3 +1,16 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Debugging):
+	* files.texi (File Attributes, Changing Files): Fix cross-references.
+
+	* package.texi (Package Archives): Fix @url call.
+
+	* syntax.texi (Syntax Table Functions): Mention describe-syntax.
+
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document move-point-visually.
+
 2013-06-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* buffers.texi (Buffer File Name): Fix typo.

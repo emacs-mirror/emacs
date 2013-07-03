@@ -127,6 +127,8 @@ extern int malloc_set_state (void*);
 /* True if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
+#elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
+extern void malloc_enable_thread (void);
 #endif
 
 Lisp_Object Qfile_name_handler_alist;
@@ -1074,13 +1076,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif /* DOS_NT */
     }
 
-#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
-  if (! noninteractive)
-    {
-      extern void malloc_enable_thread (void);
-
-      malloc_enable_thread ();
-    }
+#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+  malloc_enable_thread ();
 #endif
 
   init_signals (dumping);
@@ -1864,7 +1861,11 @@ all of which are called before Emacs is actually killed.  */)
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (SSDATA (Vauto_save_list_file_name));
+    {
+      Lisp_Object listfile;
+      listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
+      unlink (SSDATA (listfile));
+    }
 
   if (INTEGERP (arg))
     exit_code = (XINT (arg) < 0

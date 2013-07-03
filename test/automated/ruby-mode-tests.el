@@ -87,6 +87,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-heredoc-highlights-interpolations ()
   (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
 
+(ert-deftest ruby-no-heredoc-inside-quotes ()
+  (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
@@ -541,6 +544,17 @@ VALUES-PLIST is a list with alternating index and value elements."
     (end-of-buffer)
     (let ((case-fold-search t))
       (ruby-beginning-of-block))
+    (should (= 1 (line-number-at-pos)))))
+
+(ert-deftest ruby-move-to-block-moves-from-else-to-if ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "if true
+                          |  nested_block do
+                          |  end
+                          |else
+                          |end")
+    (goto-line 4)
+    (ruby-beginning-of-block)
     (should (= 1 (line-number-at-pos)))))
 
 (ert-deftest ruby-beginning-of-defun-does-not-fold-case ()

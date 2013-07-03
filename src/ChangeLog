@@ -1,3 +1,117 @@
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (sys_siglist) [HAVE_DECL___SYS_SIGLIST]:
+	Define to __sys_siglist.
+
+2013-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): Don't disallow
+	word-wrap, so that overflow-newline-into-fringe would work in
+	visual-line-mode.  (Bug#2749)
+	(move_it_in_display_line_to): When the last scanned display
+	element fits exactly on the display line, and
+	overflow-newline-into-fringe is non-nil, but wrap_it is valid,
+	don't return MOVE_NEWLINE_OR_CR, but instead back up to the last
+	wrap point and return MOVE_LINE_CONTINUED.  Fixes problems with
+	finding buffer position that corresponds to pixel coordinates,
+	e.g. in buffer_posn_from_coords.
+
+2013-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (handle_child_signal): Call catch_child_signal if
+	NS_IMPL_GNUSTEP.
+
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't convert function pointers to void * and back.
+	It isn't portable C, and it's easy enough to avoid.
+	* alloc.c: Verify SAVE_FUNCPOINTER bits, too.
+	(make_save_value): Add support for SAVE_FUNCPOINTER.
+	* keymap.c (map_keymap_char_table_item, map_keymap_internal):
+	* print.c (print_object):
+	Distinguish function from object pointers.
+	* lisp.h (SAVE_FUNCPOINTER): New constant.
+	(SAVE_SLOT_BITS): Adjust to it.
+	(SAVE_TYPE_FUNCPTR_PTR_OBJ): New constant, replacing
+	SAVE_TYPE_PTR_PTR_OBJ.  Change the only use.
+	(voidfuncptr): New typedef.
+	(struct Lisp_Save_Value): New member data[0].funcpointer.
+	(XSAVE_FUNCPOINTER): New function.
+
+	Simplify buildobj processing.
+	* Makefile.in (buildobj.h): Make it a sequence of strings each
+	followed by comma, rather than a single string.  Put it into a
+	.tmp file in case there's an error while generating it.
+	(gl-stamp): Use .tmp for temp files.
+	(mostlyclean): Clean .tmp files.
+	* doc.c (buildobj): Move to just the routine that needs it.
+	It's now an array of strings, so processing is simpler.
+
+2013-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug re noninteractive multithreaded memory allocation (Bug#14569).
+	* emacs.c (malloc_enable_thread): Hoist extern decl to top level.
+	(main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Invoke malloc_enable_thread even when not interactive.
+	Problem reported by Ken Brown in <http://bugs.gnu.org/14569#275>.
+	* process.c (init_process_emacs) [CYGWIN]: Tickle glib even
+	in this case, since the underlying bug has now been fixed.
+
+2013-07-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fkill_emacs): Expand Vauto_save_list_file_name before
+	unlinking it (bug#14691).
+
+2013-06-30  Michal Nazarewicz  <mina86@mina86.com>
+
+	* buffer.c (FKill_buffer): Run `kill-buffer-query-functions'
+	before checking whether buffer is modified.  This lets
+	`kill-buffer-query-functions' cancel killing of the buffer or save
+	its content before `kill-buffer' asks user the "Buffer %s
+	modified; kill anyway?" question.
+
+2013-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (handlePanelKeys): Don't process Command+Function keys.
+	Let the super performKeyEquivalent deal with them (Bug#14747).
+
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* widget.c (resize_cb): Remove unused local.
+
+	Do not use GTK 3 if it exists but cannot be compiled.
+	* xmenu.c (x_menu_wait_for_event) [!USE_GTK]:
+	* xterm.c (x_error_handler) [!USE_GTK]:
+	Do not use GTK 3.
+
+	* intervals.c (get_local_map): Actually clip POSITION (Bug#14753).
+
+2013-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* intervals.c (get_local_map): Instead of aborting, clip POSITION
+	to the valid range of values.  (Bug#14753)
+
+	* xdisp.c (Fmove_point_visually): Invalidate the cursor position
+	when moving point by using the current glyph matrix.  This avoids
+	the need to force redisplay when this function is called in a
+	loop.
+
+2013-06-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* coding.c (encode_inhibit_flag, inhibit_flag): New functions.
+	Redo the latter's body to sidestep GCC parenthesization warnings.
+	(setup_coding_system, detect_coding, detect_coding_system): Use them.
+	* coding.c (detect_coding, detect_coding_system):
+	* coding.h (struct undecided_spec):
+	Use bool for boolean.
+	* image.c (QCmax_width, QCmax_height): Now static.
+	* xdisp.c (Fmove_point_visually): Remove unused local.
+
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fmove_point_visually): New function.
+
 2013-06-28  Kenichi Handa  <handa@gnu.org>
 
 	* coding.h (define_coding_undecided_arg_index): New enum.
@@ -6,7 +120,7 @@
 	coding_attr_undecided_inhibit_iso_escape_detection,
 	coding_attr_undecided_prefer_utf_8.
 	(undecided_spec): New struct.
-	(struct coding_system): New member `undecied' of the member
+	(struct coding_system): New member `undecided' of the member
 	`spec'.
 
 	* coding.c (setup_coding_system): Handle CODING->spec.undecided.
@@ -15,7 +129,7 @@
 	(Fdefine_coding_system_internal): New coding system properties
 	:inhibit-null-byte-detection, :inhibit-iso-escape-detection, and
 	:prefer-utf-8.
-	(syms_of_coding): Adjusted for coding_arg_undecided_max.
+	(syms_of_coding): Adjust for coding_arg_undecided_max.
 
 2013-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -33,8 +147,8 @@
 	(x_clear_image_1): New arg `flags' instead of 3 bools `pixmap_p',
 	`mask_p', and `colors_p'.  All uses changed.
 	(x_clear_image_1) [HAVE_X_WINDOWS]: Destroy `ximg' and `mask_img'.
-	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS): New
-	macros for `flags' arg to x_clear_image_1.
+	(CLEAR_IMAGE_PIXMAP, CLEAR_IMAGE_MASK, CLEAR_IMAGE_COLORS):
+	New macros for `flags' arg to x_clear_image_1.
 	(postprocess_image, xpm_load_image, x_build_heuristic_mask)
 	(png_load_body): Use x_clear_image_1 instead of Free_Pixmap.
 	(ZPixmap, XGetImage) [HAVE_NS]: Remove.
@@ -301,7 +415,7 @@
 	* textprop.c (property_set_type): New enum.
 	(add_properties): Allow appending/prepending text properties.
 	(add_text_properties_1): Factored out of Fadd_text_properties.
-	(Fadd_text_properties): Moved all the code into
+	(Fadd_text_properties): Move all the code into
 	add_text_properties_1.
 	(Fadd_face_text_property): New function that calls
 	add_text_properties_1.
@@ -872,7 +986,7 @@
 	(Fxw_color_values): Use EmacsCGFloat
 	(Fns_display_monitor_attributes_list): Only get screen number for
 	Cocoa.
-	(getDirectory, getFilename): Removed from EmacsOpenPanel and
+	(getDirectory, getFilename): Remove from EmacsOpenPanel and
 	EmacsSavePanel.
 	(EmacsOpenPanel:ok:): Use ns_filename_from_panel and
 	ns_directory_from_panel.

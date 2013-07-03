@@ -4656,11 +4656,11 @@ aspect ratio may not be preserved.
 @item :max-width, :max-height
 The @code{:max-width} and @code{:max-height} keywords are used for
 scaling if the size of the image of the image exceeds these values.
-If @code{:width} is set it will have presedence over @code{max-width},
-and if @code{:height} is set it will have presedence over
+If @code{:width} is set it will have precedence over @code{max-width},
+and if @code{:height} is set it will have precedence over
 @code{max-height}, but you can otherwise mix these keywords as you
 wish.  @code{:max-width} and @code{:max-height} will always preserve
-the aspec ratio.
+the aspect ratio.
 
 @item :rotation
 Specifies a rotation angle in degrees.
@@ -6429,6 +6429,26 @@ otherwise, the returned value reflects the paragraph direction
 determined dynamically by Emacs.  For buffers whose value of
 @code{bidi-display-reordering} is @code{nil} as well as unibyte
 buffers, this function always returns @code{left-to-right}.
+@end defun
+
+@cindex visual-order cursor motion
+  Sometimes there's a need to move point in strict visual order,
+either to the left or to the right of its current screen position.
+Emacs provides a primitive to do that.
+
+@defun move-point-visually direction
+This function moves point of the currently selected window to the
+buffer position that appears immediately to the right or to the left
+of point on the screen.  If @var{direction} is positive, point will
+move one screen position to the right, otherwise it will move one
+screen position to the left.  Note that, depending on the surrounding
+bidirectional context, this could potentially move point many buffer
+positions away.  If invoked at the end of a screen line, the function
+moves point to the rightmost or leftmost screen position of the next
+or previous screen line, as appropriate for the value of
+@var{direction}.
+
+The function returns the new buffer position as its value.
 @end defun
 
 @cindex layout on display, and bidirectional text

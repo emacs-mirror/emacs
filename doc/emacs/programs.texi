@@ -119,17 +119,17 @@ those specified in the mode's own mode hook (@pxref{Major Modes}).
 For instance, entering C mode runs the hooks @code{prog-mode-hook} and
 @code{c-mode-hook}.  @xref{Hooks}, for information about hooks.
 
-@ifinfo
+@ifnottex
   Separate manuals are available for the modes for Ada (@pxref{Top,,
 Ada Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba
 IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), and IDLWAVE
 (@pxref{Top,, IDLWAVE, idlwave, IDLWAVE User Manual}).
-@end ifinfo
-@ifnotinfo
+@end ifnottex
+@iftex
   The Emacs distribution contains Info manuals for the major modes for
 Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE@.  For
 Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
-@end ifnotinfo
+@end iftex
 
 @node Defuns
 @section Top-Level Definitions, or Defuns

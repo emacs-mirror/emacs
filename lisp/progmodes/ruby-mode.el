@@ -990,13 +990,14 @@ calculating indentation on the lines after it."
 (defun ruby-move-to-block (n)
   "Move to the beginning (N < 0) or the end (N > 0) of the
 current block, a sibling block, or an outer block.  Do that (abs N) times."
+  (back-to-indentation)
   (let ((signum (if (> n 0) 1 -1))
         (backward (< n 0))
-        (depth (or (nth 2 (ruby-parse-region (line-beginning-position)
-                                             (line-end-position)))
-                   0))
+        (depth (or (nth 2 (ruby-parse-region (point) (line-end-position))) 0))
         case-fold-search
         down done)
+    (when (looking-at ruby-block-mid-re)
+      (setq depth (+ depth signum)))
     (when (< (* depth signum) 0)
       ;; Moving end -> end or beginning -> beginning.
       (setq depth 0))
@@ -1033,22 +1034,16 @@ current block, a sibling block, or an outer block.  Do that (abs N) times."
             (unless (car state) ; Line ends with unfinished string.
               (setq depth (+ (nth 2 state) depth))))
           (cond
-           ;; Deeper indentation, we found a block.
-           ;; FIXME: We can't recognize empty blocks this way.
+           ;; Increased depth, we found a block.
            ((> (* signum depth) 0)
             (setq down t))
-           ;; Block found, and same indentation as when started, stop.
+           ;; We're at the same depth as when we started, and we've
+           ;; encountered a block before.  Stop.
            ((and down (zerop depth))
             (setq done t))
-           ;; Shallower indentation, means outer block, can stop now.
+           ;; Lower depth, means outer block, can stop now.
            ((< (* signum depth) 0)
-            (setq done t)))))
-        (if done
-            (save-excursion
-              (back-to-indentation)
-              ;; Not really at the first or last line of the block, move on.
-              (if (looking-at (concat "\\<\\(" ruby-block-mid-re "\\)\\>"))
-                  (setq done nil))))))
+            (setq done t)))))))
     (back-to-indentation)))
 
 (defun ruby-beginning-of-block (&optional arg)
@@ -1422,7 +1417,9 @@ It will be properly highlighted even when the call omits parens.")
             ("^\\(=\\)begin\\_>" (1 "!"))
             ;; Handle here documents.
             ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
-             (7 (unless (ruby-singleton-class-p (match-beginning 0))
+             (7 (unless (or (nth 8 (save-excursion
+                                     (syntax-ppss (match-beginning 0))))
+                            (ruby-singleton-class-p (match-beginning 0)))
                   (put-text-property (match-beginning 7) (match-end 7)
                                      'syntax-table (string-to-syntax "\""))
                   (ruby-syntax-propertize-heredoc end))))
