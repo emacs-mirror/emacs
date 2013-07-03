@@ -1,5 +1,7 @@
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
+	* dbus.texi (Introspection): Update URL to a less defunct one.
+
 	* pgg.texi (Top, Overview): Add note about obsolescence.
 
 	* bovine.texi (top):
