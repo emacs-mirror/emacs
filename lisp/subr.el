@@ -2352,7 +2352,8 @@ is nil and `use-dialog-box' is non-nil."
     (cond
      (noninteractive
       (setq prompt (concat prompt
-                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                           (if (or (zerop (length prompt))
+                                   (eq ?\s (aref prompt (1- (length prompt)))))
                                "" " ")
                            "(y or n) "))
       (let ((temp-prompt prompt))
@@ -2369,7 +2370,8 @@ is nil and `use-dialog-box' is non-nil."
 	    (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
      (t
       (setq prompt (concat prompt
-                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                           (if (or (zerop (length prompt))
+                                   (eq ?\s (aref prompt (1- (length prompt)))))
                                "" " ")
                            "(y or n) "))
       (while

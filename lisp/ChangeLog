@@ -1,3 +1,7 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (y-or-n-p): Handle empty prompts.  (Bug#14770)
+
 2013-05-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-block-enders): Add break,
