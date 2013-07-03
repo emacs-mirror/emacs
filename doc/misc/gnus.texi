@@ -420,6 +420,9 @@ This manual corresponds to Gnus v5.13
 * Index::                    Variable, function and concept index.
 * Key Index::                Key Index.
 
+@c Doesn't work right in html.
+@c FIXME Do this in a more standard way.
+@ifinfo
 Other related manuals
 
 * Message:(message).         Composing messages.
@@ -427,6 +430,7 @@ Other related manuals
 * Sieve:(sieve).             Managing Sieve scripts in Emacs.
 * EasyPG:(epa).              @acronym{PGP/MIME} with Gnus.
 * SASL:(sasl).               @acronym{SASL} authentication in Emacs.
+@end ifinfo
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -2708,11 +2712,11 @@ the article range.
 This command is similar to @code{gnus-read-ephemeral-gmane-group}, but
 the group name and the article number and range are constructed from a
 given @acronym{URL}.  Supported @acronym{URL} formats include:
-@url{http://thread.gmane.org/gmane.foo.bar/12300/focus=12399},
-@url{http://thread.gmane.org/gmane.foo.bar/12345/},
-@url{http://article.gmane.org/gmane.foo.bar/12345/},
-@url{http://permalink.gmane.org/gmane.foo.bar/12345/}, and
-@url{http://news.gmane.org/group/gmane.foo.bar/thread=12345}.
+@indicateurl{http://thread.gmane.org/gmane.foo.bar/12300/focus=12399},
+@indicateurl{http://thread.gmane.org/gmane.foo.bar/12345/},
+@indicateurl{http://article.gmane.org/gmane.foo.bar/12345/},
+@indicateurl{http://permalink.gmane.org/gmane.foo.bar/12345/}, and
+@indicateurl{http://news.gmane.org/group/gmane.foo.bar/thread=12345}.
 
 @item gnus-read-ephemeral-emacs-bug-group
 @findex gnus-read-ephemeral-emacs-bug-group
@@ -13805,9 +13809,12 @@ installed.  You then define a server as follows:
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{http://www.openssl.org, OpenSSL} or
-@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay} installed.  You
-then define a server as follows:
+this you must have @uref{http://www.openssl.org, OpenSSL}
+@ignore
+@c Defunct URL, ancient package, so don't mention it.
+or @uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay}
+@end ignore
+installed.  You then define a server as follows:
 
 @lisp
 ;; @r{"snews" is port 563 and is predefined in our @file{/etc/services}}
@@ -16919,7 +16926,7 @@ Some web sites have an RDF Site Summary (@acronym{RSS}).
 @acronym{RSS} is a format for summarizing headlines from news related
 sites (such as BBC or CNN).  But basically anything list-like can be
 presented as an @acronym{RSS} feed: weblogs, changelogs or recent
-changes to a wiki (e.g., @url{http://cliki.net/recent-changes.rdf}).
+changes to a wiki (e.g., @url{http://cliki.net/site/recent-changes}).
 
 @acronym{RSS} has a quite regular and nice interface, and it's
 possible to get the information Gnus needs to keep groups updated.
