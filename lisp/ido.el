@@ -3986,6 +3986,7 @@ If cursor is not at the end of the user input, delete to end of input."
 ;;; DELETE CURRENT FILE
 (defun ido-delete-file-at-head ()
   "Delete the file at the head of `ido-matches'.
+Trash the file if `delete-by-moving-to-trash' is non-nil.
 If cursor is not at the end of the user input, delete to end of input."
   (interactive)
   (if (not (eobp))
@@ -3998,8 +3999,9 @@ If cursor is not at the end of the user input, delete to end of input."
 		 (file-exists-p file)
 		 (not (file-directory-p file))
 		 (file-writable-p ido-current-directory)
-		 (yes-or-no-p (concat "Delete " file "? ")))
-	(delete-file file)
+		 (or delete-by-moving-to-trash
+		     (yes-or-no-p (concat "Delete " file "? "))))
+	(delete-file file 'trash)
 	;; Check if file still exists.
 	(if (file-exists-p file)
 	    ;; file could not be deleted

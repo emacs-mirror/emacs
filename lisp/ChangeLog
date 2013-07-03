@@ -1,3 +1,7 @@
+2013-07-03  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-delete-file-at-head): Respect delete-by-moving-to-trash.
+
 2013-07-03  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-move-to-block): When we're at a
