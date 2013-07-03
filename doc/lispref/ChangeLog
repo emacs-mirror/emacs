@@ -1,3 +1,10 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Debugging):
+	* files.texi (File Attributes, Changing Files): Fix cross-references.
+
+	* package.texi (Package Archives): Fix @url call.
+
 2013-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* syntax.texi (Syntax Table Functions): Mention describe-syntax.

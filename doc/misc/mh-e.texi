@@ -233,7 +233,7 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @cite{GNU Emacs Manual},
 @end iftex
 @ifinfo
-@ref{top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
+@ref{Top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
 @uref{http://www.gnu.org/software/emacs/manual/html_node/,

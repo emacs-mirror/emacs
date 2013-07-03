@@ -1,3 +1,10 @@
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* bovine.texi (top):
+	* cc-mode.texi (AWK Mode Font Locking):
+	* mh-e.texi (Preface):
+	* url.texi (URI Parsing): Fix cross-references to other manuals.
+
 2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.texi: Fix cross-references to other manuals.

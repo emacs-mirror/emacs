@@ -2111,7 +2111,7 @@ contributing it: send a note to @email{bug-cc-mode@@gnu.org}.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 The general appearance of font-locking in AWK mode is much like in any
-other programming mode.  @xref{Faces For Font Lock,,,elisp, GNU Emacs
+other programming mode.  @xref{Faces for Font Lock,,,elisp, GNU Emacs
 Lisp Reference Manual}.
 
 The following faces are, however, used in a non-standard fashion in
