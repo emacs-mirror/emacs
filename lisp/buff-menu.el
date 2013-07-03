@@ -482,11 +482,10 @@ If UNMARK is non-nil, unmark them."
   (interactive)
   (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
 
-(defun Buffer-menu-multi-occur ()
+(defun Buffer-menu-multi-occur (regexp &optional nlines)
   "Show all lines in marked buffers containing a match for a regexp."
-  (interactive)
-  (let ((regexp (occur-read-primary-args)))
-    (multi-occur (Buffer-menu-marked-buffers) (car regexp))))
+  (interactive (occur-read-primary-args))
+  (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
 
 
 (defun Buffer-menu-visit-tags-table ()

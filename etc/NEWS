@@ -218,6 +218,10 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 *** Battery information via the BSD `apm' utility is now supported.
 
+** Buffer Menu
+
+*** `M-s a C-o' shows lines matching a regexp in marked buffers using Occur.
+
 ** Calendar and Diary
 
 +++

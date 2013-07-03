@@ -1,3 +1,11 @@
+2013-07-03  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (Buffer-menu-multi-occur): Add args and move the
+	call of `occur-read-primary-args' to interactive spec.
+
+	* ibuffer.el (ibuffer-mode-map): Bind "M-s a C-o" to
+	`ibuffer-do-occur' like in buff-menu.el.  (Bug#14673)
+
 2013-07-03  Matthias Meulien  <orontee@gmail.com>
 
 	* buff-menu.el (Buffer-menu-mode-map): Bind "M-s a C-o" to
