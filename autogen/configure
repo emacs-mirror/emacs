@@ -15139,7 +15139,7 @@ esac
 emacs_broken_SIGIO=no
 
 case $opsys in
-      hpux* | irix6-5 | openbsd | sol2* | unixware )
+      hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
     emacs_broken_SIGIO=yes
     ;;
 
