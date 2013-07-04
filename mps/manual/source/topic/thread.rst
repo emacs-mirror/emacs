@@ -60,7 +60,7 @@ than this. See the documentation for the pool class.
 
     On Unix platforms, the MPS suspends and resumes threads by sending
     them signals. There's a shortage of available signals that aren't
-    already dedicated to other purposes (for example, LinuxThreads
+    already dedicated to other purposes (for example, ValGrind
     uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
     ``SIGXFSZ``. This means that programs must not mask these two
     signals.
