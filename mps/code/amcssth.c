@@ -316,7 +316,7 @@ static void *fooey(void* childIsFinishedReturn)
 int main(int argc, char *argv[])
 {
   mps_thr_t thread;
-  /* mps_root_t reg_root; */
+  mps_root_t reg_root;
   void *marker = &marker;
   pthread_t kids[10];
   unsigned i;
@@ -331,15 +331,15 @@ int main(int argc, char *argv[])
   mps_message_type_enable(arena, mps_message_type_gc());
   init();
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  /* die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
-                             mps_stack_scan_ambig, marker, 0), "root_create"); */
+  die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
+                             mps_stack_scan_ambig, marker, 0), "root_create");
   for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {
     int err = pthread_create(&kids[i], NULL, fooey, (void *)&childIsFinished);
     if (err != 0)
       error("pthread_create returned %d", err);
   }
   mps_tramp(&r, test, arena, 0);
-  /* mps_root_destroy(reg_root); */
+  mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
 
   for (i = 0; i < sizeof(kids)/sizeof(kids[0]); ++i) {

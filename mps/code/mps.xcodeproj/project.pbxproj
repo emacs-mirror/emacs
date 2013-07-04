@@ -1238,6 +1238,8 @@
 		3124CAE4156BE6D500753214 /* fmthe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmthe.c; sourceTree = "<group>"; };
 		3124CAEB156BE7F300753214 /* amcss */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = amcss; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAF5156BE81100753214 /* amcss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = amcss.c; sourceTree = "<group>"; };
+		315B7AFC17834FDB00B097C4 /* proti3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = proti3.c; sourceTree = "<group>"; };
+		315B7AFD17834FDB00B097C4 /* proti6.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = proti6.c; sourceTree = "<group>"; };
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
@@ -1880,6 +1882,8 @@
 		31EEAC4B156AB39C00714D05 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
+				315B7AFC17834FDB00B097C4 /* proti3.c */,
+				315B7AFD17834FDB00B097C4 /* proti6.c */,
 				31EEAC4C156AB3B000714D05 /* lockix.c */,
 				31172ABB177512F6009488E5 /* prmci3xc.c */,
 				31172ABC1775131C009488E5 /* prmci6xc.c */,
