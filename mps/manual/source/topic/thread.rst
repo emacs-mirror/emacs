@@ -56,6 +56,14 @@ For simplicity, we recommend that a thread must be registered with an
 However, some automatically managed pool classes may be more liberal
 than this. See the documentation for the pool class.
 
+
+.. index::
+   single: signal; handling
+   single: thread; signal handling
+
+Signal handling issues
+----------------------
+
 .. warning::
 
     On Unix platforms, the MPS suspends and resumes threads by sending
@@ -70,19 +78,11 @@ than this. See the documentation for the pool class.
     mechanism for co-operating: if you are in this situation, please
     :ref:`contact us <contact>`.
 
-
-.. index::
-   single: signal; handling
-   single: thread; signal handling
-
-Signal handling issues
-----------------------
-
-The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
-memory from the :term:`client program` and handles the signals that
-result from barrier hits.
-
 .. warning::
+
+    The MPS uses :term:`barriers (1)` to :term:`protect <protection>`
+    memory from the :term:`client program` and handles the signals that
+    result from barrier hits.
 
     Your program must not mask ``SIGBUS`` (on OS X) or ``SIGSEGV`` (on
     FreeBSD or Linux).
