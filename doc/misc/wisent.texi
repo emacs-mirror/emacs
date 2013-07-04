@@ -113,9 +113,6 @@ of GNU Bison 1.28 & 1.31.
 
 For more details on the basic concepts for understanding Wisent, it is
 worthwhile to read the @ref{Top, Bison Manual, , bison}.
-@ifhtml
-@uref{http://www.gnu.org/manual/bison/html_node/index.html}.
-@end ifhtml
 
 Wisent can generate compilers compatible with the @semantic{} tool set.
 See the @ref{Top, Semantic Manual, , semantic}.
