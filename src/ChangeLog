@@ -1,3 +1,13 @@
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try again to fix FreeBSD bug re multithreaded memory alloc (Bug#14569).
+	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Do not clear _malloc_thread_enabled_p, undoing the previous change,
+	which did not work (see <http://bugs.gnu.org/14569#307>).
+	(main): Do not invoke malloc_enable_thread if (! CANNOT_DUMP
+	&& (!noninteractive || initialized)).  This attempts to thread
+	the needle between the Scylla of FreeBSD and the Charybdis of Cygwin.
+
 2013-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (x_to_xcolors) [HAVE_NTGUI]: Remove unused var `hdc'.

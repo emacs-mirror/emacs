@@ -128,7 +128,6 @@ extern int malloc_set_state (void*);
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
 #elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
-extern int _malloc_thread_enabled_p;
 extern void malloc_enable_thread (void);
 #endif
 
@@ -682,12 +681,6 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
-#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
-  /* Disable mutexes in gmalloc.c.  Otherwise, FreeBSD Emacs recursively
-     loops with pthread_mutex_lock calling calloc and vice versa.  */
-  _malloc_thread_enabled_p = 0;
-#endif
-
 #ifdef G_SLICE_ALWAYS_MALLOC
   /* This is used by the Cygwin build.  */
   xputenv ("G_SLICE=always-malloc");
@@ -1084,7 +1077,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
 #if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
-  malloc_enable_thread ();
+# ifndef CANNOT_DUMP
+  /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
+     that causes an infinite recursive loop with FreeBSD.  But do make
+     it thread-safe when creating emacs, otherwise bootstrap-emacs
+     fails on Cygwin.  See Bug#14569.  */
+  if (!noninteractive || initialized)
+# endif
+    malloc_enable_thread ();
 #endif
 
   init_signals (dumping);
