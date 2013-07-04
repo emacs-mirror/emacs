@@ -1,3 +1,27 @@
+2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32fns.c (Qgeometry, Qworkarea, Qmm_size, Qframes): New variables.
+	(syms_of_w32fns): DEFSYM them.
+	(MONITORINFOF_PRIMARY, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN)
+	(CCHDEVICENAME): Define macros if not defined.
+	(struct MONITOR_INFO_EX): New struct.
+	(MonitorEnum_Proc, EnumDisplayMonitors_Proc): New prototypes.
+	(enum_display_monitors_fn): New variable.
+	(globals_of_w32fns): Initialize it.
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_mm_height, Fx_display_mm_width): Mention behavior on
+	multi-monitor setups in docstrings.
+	(Fx_display_mm_height, Fx_display_mm_width): Approximate whole
+	screen size by primary monitor's millimeter per pixel.
+	(w32_monitor_enum, w32_display_monitor_attributes_list)
+	(w32_display_monitor_attributes_list_fallback)
+	(Fw32_display_monitor_attributes_list): New functions.
+	(syms_of_w32fns): Defsubr Sw32_display_monitor_attributes_list.
+
+	* w32term.c (SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN): Define macros
+	if not defined.
+	(x_display_pixel_height, x_display_pixel_width): Use GetSystemMetrics.
+
 2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fileio.c (Qfile_notify_error): New error symbol.

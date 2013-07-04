@@ -143,6 +143,15 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define WS_EX_LAYERED 0x80000
 #endif
 
+/* SM_CXVIRTUALSCREEN and SM_CYVIRTUALSCREEN are not defined on 95 and
+   NT4.  */
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+
 /* This is a frame waiting to be autoraised, within w32_read_socket.  */
 struct frame *pending_autoraise_frame;
 
@@ -519,18 +528,24 @@ x_set_frame_alpha (struct frame *f)
 int
 x_display_pixel_height (struct w32_display_info *dpyinfo)
 {
-  HDC dc = GetDC (NULL);
-  int pixels = GetDeviceCaps (dc, VERTRES);
-  ReleaseDC (NULL, dc);
+  int pixels = GetSystemMetrics (SM_CYVIRTUALSCREEN);
+
+  if (pixels == 0)
+    /* Fallback for Windows 95 or NT 4.0.  */
+    pixels = GetSystemMetrics (SM_CYSCREEN);
+
   return pixels;
 }
 
 int
 x_display_pixel_width (struct w32_display_info *dpyinfo)
 {
-  HDC dc = GetDC (NULL);
-  int pixels = GetDeviceCaps (dc, HORZRES);
-  ReleaseDC (NULL, dc);
+  int pixels = GetSystemMetrics (SM_CXVIRTUALSCREEN);
+
+  if (pixels == 0)
+    /* Fallback for Windows 95 or NT 4.0.  */
+    pixels = GetSystemMetrics (SM_CXSCREEN);
+
   return pixels;
 }
 

@@ -106,6 +106,7 @@ Lisp_Object Qalt;
 Lisp_Object Qctrl;
 Lisp_Object Qcontrol;
 Lisp_Object Qshift;
+static Lisp_Object Qgeometry, Qworkarea, Qmm_size, Qframes;
 
 
 /* Prefix for system colors.  */
@@ -131,6 +132,15 @@ static HWND track_mouse_window;
 #ifndef MONITOR_DEFAULT_TO_NEAREST
 #define MONITOR_DEFAULT_TO_NEAREST 2
 #endif
+#ifndef MONITORINFOF_PRIMARY
+#define MONITORINFOF_PRIMARY 1
+#endif
+#ifndef SM_XVIRTUALSCREEN
+#define SM_XVIRTUALSCREEN 76
+#endif
+#ifndef SM_YVIRTUALSCREEN
+#define SM_YVIRTUALSCREEN 77
+#endif
 /* MinGW headers define MONITORINFO unconditionally, but MSVC ones don't.
    To avoid a compile error on one or the other, redefine with a new name.  */
 struct MONITOR_INFO
@@ -139,6 +149,18 @@ struct MONITOR_INFO
     RECT    rcMonitor;
     RECT    rcWork;
     DWORD   dwFlags;
+};
+
+#ifndef CCHDEVICENAME
+#define CCHDEVICENAME 32
+#endif
+struct MONITOR_INFO_EX
+{
+    DWORD   cbSize;
+    RECT    rcMonitor;
+    RECT    rcWork;
+    DWORD   dwFlags;
+    char    szDevice[CCHDEVICENAME];
 };
 
 /* Reportedly, MSVC does not have this in its headers.  */
@@ -159,6 +181,10 @@ typedef BOOL (WINAPI * GetMonitorInfo_Proc)
   (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
 typedef HMONITOR (WINAPI * MonitorFromWindow_Proc)
   (IN HWND hwnd, IN DWORD dwFlags);
+typedef BOOL CALLBACK (* MonitorEnum_Proc)
+  (IN HMONITOR monitor, IN HDC hdc, IN RECT *rcMonitor, IN LPARAM dwData);
+typedef BOOL (WINAPI * EnumDisplayMonitors_Proc)
+  (IN HDC hdc, IN RECT *rcClip, IN MonitorEnum_Proc fnEnum, IN LPARAM dwData);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
@@ -168,6 +194,7 @@ ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
 MonitorFromPoint_Proc monitor_from_point_fn = NULL;
 GetMonitorInfo_Proc get_monitor_info_fn = NULL;
 MonitorFromWindow_Proc monitor_from_window_fn = NULL;
+EnumDisplayMonitors_Proc enum_display_monitors_fn = NULL;
 
 #ifdef NTGUI_UNICODE
 #define unicode_append_menu AppendMenuW
@@ -4674,7 +4701,11 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
        doc: /* Return the width in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel width for all
+physical monitors associated with DISPLAY.  To get information for
+each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
@@ -4687,7 +4718,11 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        doc: /* Return the height in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel height for all
+physical monitors associated with DISPLAY.  To get information for
+each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
@@ -4779,41 +4814,46 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height,
        doc: /* Return the height in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the height in millimeters for
+all physical monitors associated with DISPLAY.  To get information
+for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
   HDC hdc;
-  int cap;
+  double mm_per_pixel;
 
-  hdc = GetDC (dpyinfo->root_window);
+  hdc = GetDC (NULL);
+  mm_per_pixel = ((double) GetDeviceCaps (hdc, VERTSIZE)
+		  / GetDeviceCaps (hdc, VERTRES));
+  ReleaseDC (NULL, hdc);
 
-  cap = GetDeviceCaps (hdc, VERTSIZE);
-
-  ReleaseDC (dpyinfo->root_window, hdc);
-
-  return make_number (cap);
+  return make_number (x_display_pixel_height (dpyinfo) * mm_per_pixel + 0.5);
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
        doc: /* Return the width in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the width in millimeters for
+all physical monitors associated with TERMINAL.  To get information
+for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
-
   HDC hdc;
-  int cap;
+  double mm_per_pixel;
 
-  hdc = GetDC (dpyinfo->root_window);
+  hdc = GetDC (NULL);
+  mm_per_pixel = ((double) GetDeviceCaps (hdc, HORZSIZE)
+		  / GetDeviceCaps (hdc, HORZRES));
+  ReleaseDC (NULL, hdc);
 
-  cap = GetDeviceCaps (hdc, HORZSIZE);
-
-  ReleaseDC (dpyinfo->root_window, hdc);
-
-  return make_number (cap);
+  return make_number (x_display_pixel_width (dpyinfo) * mm_per_pixel + 0.5);
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
@@ -4863,6 +4903,202 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
   return Qnil;
+}
+
+static BOOL CALLBACK
+w32_monitor_enum (HMONITOR monitor, HDC hdc, RECT *rcMonitor, LPARAM dwData)
+{
+  Lisp_Object *monitor_list = (Lisp_Object *) dwData;
+
+  *monitor_list = Fcons (make_save_pointer (monitor), *monitor_list);
+
+  return TRUE;
+}
+
+static Lisp_Object
+w32_display_monitor_attributes_list (void)
+{
+  Lisp_Object attributes_list = Qnil, primary_monitor_attributes = Qnil;
+  Lisp_Object monitor_list = Qnil, monitor_frames, rest, frame;
+  int i, n_monitors;
+  HMONITOR *monitors;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
+  if (!(enum_display_monitors_fn && get_monitor_info_fn
+	&& monitor_from_window_fn))
+    return Qnil;
+
+  if (!enum_display_monitors_fn (NULL, NULL, w32_monitor_enum,
+				 (LPARAM) &monitor_list)
+      || NILP (monitor_list))
+    return Qnil;
+
+  n_monitors = 0;
+  for (rest = monitor_list; CONSP (rest); rest = XCDR (rest))
+    n_monitors++;
+
+  monitors = xmalloc (n_monitors * sizeof (*monitors));
+  for (i = 0; i < n_monitors; i++)
+    {
+      monitors[i] = XSAVE_POINTER (XCAR (monitor_list), 0);
+      monitor_list = XCDR (monitor_list);
+    }
+
+  monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_W32_P (f) && !EQ (frame, tip_frame))
+	{
+	  HMONITOR monitor =
+	    monitor_from_window_fn (FRAME_W32_WINDOW (f),
+				    MONITOR_DEFAULT_TO_NEAREST);
+
+	  for (i = 0; i < n_monitors; i++)
+	    if (monitors[i] == monitor)
+	      break;
+
+	  if (i < n_monitors)
+	    ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	}
+    }
+
+  GCPRO3 (attributes_list, primary_monitor_attributes, monitor_frames);
+
+  for (i = 0; i < n_monitors; i++)
+    {
+      Lisp_Object geometry, workarea, name, attributes = Qnil;
+      HDC hdc;
+      int width_mm, height_mm;
+      struct MONITOR_INFO_EX mi;
+
+      mi.cbSize = sizeof (mi);
+      if (!get_monitor_info_fn (monitors[i], (struct MONITOR_INFO *) &mi))
+	continue;
+
+      hdc = CreateDCA ("DISPLAY", mi.szDevice, NULL, NULL);
+      if (hdc == NULL)
+	continue;
+      width_mm = GetDeviceCaps (hdc, HORZSIZE);
+      height_mm = GetDeviceCaps (hdc, VERTSIZE);
+      DeleteDC (hdc);
+
+      attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
+			  attributes);
+
+      name = DECODE_SYSTEM (make_unibyte_string (mi.szDevice,
+						 strlen (mi.szDevice)));
+      attributes = Fcons (Fcons (Qname, name), attributes);
+
+      attributes = Fcons (Fcons (Qmm_size, list2i (width_mm, height_mm)),
+			  attributes);
+
+      workarea = list4i (mi.rcWork.left, mi.rcWork.top,
+			 mi.rcWork.right - mi.rcWork.left,
+			 mi.rcWork.bottom - mi.rcWork.top);
+      attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+
+      geometry = list4i (mi.rcMonitor.left, mi.rcMonitor.top,
+			 mi.rcMonitor.right - mi.rcMonitor.left,
+			 mi.rcMonitor.bottom - mi.rcMonitor.top);
+      attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+
+      if (mi.dwFlags & MONITORINFOF_PRIMARY)
+	primary_monitor_attributes = attributes;
+      else
+	attributes_list = Fcons (attributes, attributes_list);
+    }
+
+  if (!NILP (primary_monitor_attributes))
+    attributes_list = Fcons (primary_monitor_attributes, attributes_list);
+
+  UNGCPRO;
+
+  xfree (monitors);
+
+  return attributes_list;
+}
+
+static Lisp_Object
+w32_display_monitor_attributes_list_fallback (struct w32_display_info *dpyinfo)
+{
+  Lisp_Object geometry, workarea, frames, rest, frame, attributes = Qnil;
+  HDC hdc;
+  double mm_per_pixel;
+  int pixel_width, pixel_height, width_mm, height_mm;
+  RECT workarea_rect;
+
+  /* Fallback: treat (possibly) multiple physical monitors as if they
+     formed a single monitor as a whole.  This should provide a
+     consistent result at least on single monitor environments.  */
+  attributes = Fcons (Fcons (Qname, build_string ("combined screen")),
+		      attributes);
+
+  frames = Qnil;
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_W32_P (f) && !EQ (frame, tip_frame))
+	frames = Fcons (frame, frames);
+    }
+  attributes = Fcons (Fcons (Qframes, frames), attributes);
+
+  pixel_width = x_display_pixel_width (dpyinfo);
+  pixel_height = x_display_pixel_height (dpyinfo);
+
+  hdc = GetDC (NULL);
+  mm_per_pixel = ((double) GetDeviceCaps (hdc, HORZSIZE)
+		  / GetDeviceCaps (hdc, HORZRES));
+  width_mm = pixel_width * mm_per_pixel + 0.5;
+  mm_per_pixel = ((double) GetDeviceCaps (hdc, VERTSIZE)
+		  / GetDeviceCaps (hdc, VERTRES));
+  height_mm = pixel_height * mm_per_pixel + 0.5;
+  ReleaseDC (NULL, hdc);
+  attributes = Fcons (Fcons (Qmm_size, list2i (width_mm, height_mm)),
+		      attributes);
+
+  /* GetSystemMetrics below may return 0 for Windows 95 or NT 4.0, but
+     we don't care.  */
+  geometry = list4i (GetSystemMetrics (SM_XVIRTUALSCREEN),
+		     GetSystemMetrics (SM_YVIRTUALSCREEN),
+		     pixel_width, pixel_height);
+  if (SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0))
+    workarea = list4i (workarea_rect.left, workarea_rect.top,
+		       workarea_rect.right - workarea_rect.left,
+		       workarea_rect.bottom - workarea_rect.top);
+  else
+    workarea = geometry;
+  attributes = Fcons (Fcons (Qworkarea, workarea), attributes);
+
+  attributes = Fcons (Fcons (Qgeometry, geometry), attributes);
+
+  return list1 (attributes);
+}
+
+DEFUN ("w32-display-monitor-attributes-list", Fw32_display_monitor_attributes_list,
+       Sw32_display_monitor_attributes_list,
+       0, 1, 0,
+       doc: /* Return a list of physical monitor attributes on the W32 display DISPLAY.
+
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+Internal use only, use `display-monitor-attributes-list' instead.  */)
+  (Lisp_Object display)
+{
+  struct w32_display_info *dpyinfo = check_x_display_info (display);
+  Lisp_Object attributes_list;
+
+  block_input ();
+  attributes_list = w32_display_monitor_attributes_list ();
+  if (NILP (attributes_list))
+    attributes_list = w32_display_monitor_attributes_list_fallback (dpyinfo);
+  unblock_input ();
+
+  return attributes_list;
 }
 
 DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
@@ -7357,6 +7593,10 @@ syms_of_w32fns (void)
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qshift, "shift");
   DEFSYM (Qfont_param, "font-parameter");
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qworkarea, "workarea");
+  DEFSYM (Qmm_size, "mm-size");
+  DEFSYM (Qframes, "frames");
   /* This is the end of symbol initialization.  */
 
 
@@ -7646,6 +7886,7 @@ only be necessary if the default setting causes problems.  */);
 
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
+  defsubr (&Sw32_display_monitor_attributes_list);
   defsubr (&Sw32_send_sys_command);
   defsubr (&Sw32_shell_execute);
   defsubr (&Sw32_register_hot_key);
@@ -7707,6 +7948,8 @@ globals_of_w32fns (void)
     GetProcAddress (user32_lib, "GetMonitorInfoA");
   monitor_from_window_fn = (MonitorFromWindow_Proc)
     GetProcAddress (user32_lib, "MonitorFromWindow");
+  enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
+    GetProcAddress (user32_lib, "EnumDisplayMonitors");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");

@@ -1,3 +1,11 @@
+2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (display-pixel-height, display-pixel-width)
+	(display-mm-height, display-mm-width): Mention behavior on
+	multi-monitor setups in docstrings.
+	(w32-display-monitor-attributes-list): Declare function.
+	(display-monitor-attributes-list): Use it.
+
 2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* filenotify.el: New package.
