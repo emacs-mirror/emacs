@@ -661,6 +661,7 @@ extern void mps_ld_reset(mps_ld_t, mps_arena_t);
 extern void mps_ld_add(mps_ld_t, mps_arena_t, mps_addr_t);
 extern void mps_ld_merge(mps_ld_t, mps_arena_t, mps_ld_t);
 extern mps_bool_t mps_ld_isstale(mps_ld_t, mps_arena_t, mps_addr_t);
+extern mps_bool_t mps_ld_isstale_any(mps_ld_t, mps_arena_t);
 
 extern mps_word_t mps_collections(mps_arena_t);
 

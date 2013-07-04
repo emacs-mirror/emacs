@@ -1480,6 +1480,15 @@ mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena,
   return (mps_bool_t)b;
 }
 
+mps_bool_t mps_ld_isstale_any(mps_ld_t ld, mps_arena_t arena)
+{
+  Bool b;
+
+  b = LDIsStaleAny(ld, arena);
+
+  return (mps_bool_t)b;
+}
+
 mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
 {
   mps_res_t res;
