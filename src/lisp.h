@@ -3809,6 +3809,7 @@ extern void syms_of_marker (void);
 /* Defined in fileio.c.  */
 
 extern Lisp_Object Qfile_error;
+extern Lisp_Object Qfile_notify_error;
 extern Lisp_Object Qfile_exists_p;
 extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qinsert_file_contents;

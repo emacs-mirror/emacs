@@ -148,7 +148,7 @@ static Lisp_Object Qdelete_directory;
 #ifdef WINDOWSNT
 #endif
 
-Lisp_Object Qfile_error;
+Lisp_Object Qfile_error, Qfile_notify_error;
 static Lisp_Object Qfile_already_exists, Qfile_date_error;
 static Lisp_Object Qexcl;
 Lisp_Object Qfile_name_history;
@@ -5887,6 +5887,7 @@ syms_of_fileio (void)
   DEFSYM (Qfile_error, "file-error");
   DEFSYM (Qfile_already_exists, "file-already-exists");
   DEFSYM (Qfile_date_error, "file-date-error");
+  DEFSYM (Qfile_notify_error, "file-notify-error");
   DEFSYM (Qexcl, "excl");
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
@@ -5924,6 +5925,11 @@ of file names regardless of the current language environment.  */);
 	Fpurecopy (list3 (Qfile_date_error, Qfile_error, Qerror)));
   Fput (Qfile_date_error, Qerror_message,
 	build_pure_c_string ("Cannot set file date"));
+
+  Fput (Qfile_notify_error, Qerror_conditions,
+	Fpurecopy (list3 (Qfile_notify_error, Qfile_error, Qerror)));
+  Fput (Qfile_notify_error, Qerror_message,
+	build_pure_c_string ("File notification error"));
 
   DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
 	       doc: /* Alist of elements (REGEXP . HANDLER) for file names handled specially.

@@ -1,3 +1,15 @@
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Qfile_notify_error): New error symbol.
+
+	* gfilenotify.c (Fgfile_add_watch, Fgfile_rm_watch):
+	* inotify.c (inotify_callback, symbol_to_inotifymask)
+	(Finotify_add_watch, Finotify_rm_watch): Use it.
+	(inotifyevent_to_event): Exchange order of cookie and file name.
+	(Finotify_add_watch): Adapt docstring.
+
+	* lisp.h (Qfile_notify_error): Declare.
+
 2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Try again to fix FreeBSD bug re multithreaded memory alloc (Bug#14569).
