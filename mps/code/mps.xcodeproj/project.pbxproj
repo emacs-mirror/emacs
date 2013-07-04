@@ -204,7 +204,6 @@
 		3124CAFB156BE82000753214 /* testlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 31EEAC9E156AB73400714D05 /* testlib.c */; };
 		3124CAFC156BE82900753214 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
 		3150AE53156ABA2500A6E22A /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
-		317B3C2B1731830100F9A469 /* arg.c in Sources */ = {isa = PBXBuildFile; fileRef = 317B3C2A1731830100F9A469 /* arg.c */; };
 		31A47BA4156C1E130039B1C2 /* mps.c in Sources */ = {isa = PBXBuildFile; fileRef = 31A47BA3156C1E130039B1C2 /* mps.c */; };
 		31D60007156D3C6200337B26 /* segsmss.c in Sources */ = {isa = PBXBuildFile; fileRef = 31D60006156D3C5F00337B26 /* segsmss.c */; };
 		31D60008156D3C7400337B26 /* libmps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 31EEABFB156AAF9D00714D05 /* libmps.a */; };
@@ -3123,7 +3122,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				31A47BA4156C1E130039B1C2 /* mps.c in Sources */,
-				317B3C2B1731830100F9A469 /* arg.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
