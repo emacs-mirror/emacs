@@ -1,8 +1,10 @@
 2013-07-04  Glenn Morris  <rgm@gnu.org>
 
-	* nxml-mode.texi (Introduction): Update @url.
+	* newsticker.texi (Overview): Update URL.
 
-	* org.texi (JavaScript support): Fix @url.
+	* nxml-mode.texi (Introduction): Update URL.
+
+	* org.texi (JavaScript support): Fix URL.
 
 	* wisent.texi (Wisent Overview): Remove incorrect, unnecessary uref.
 
