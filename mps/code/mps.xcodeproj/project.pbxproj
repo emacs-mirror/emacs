@@ -1243,6 +1243,7 @@
 		317B3C2A1731830100F9A469 /* arg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = arg.c; sourceTree = "<group>"; };
 		31A47BA3156C1E130039B1C2 /* mps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mps.c; sourceTree = "<group>"; };
 		31A47BA5156C1E5E0039B1C2 /* ssixi3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssixi3.c; sourceTree = "<group>"; };
+		31C83ADD1786281C0031A0DB /* protxc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = protxc.h; sourceTree = "<group>"; };
 		31CD33BB173A9F1500524741 /* mpscams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscams.h; sourceTree = "<group>"; };
 		31CD33BC173A9F1500524741 /* poolams.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = poolams.c; sourceTree = "<group>"; };
 		31CD33BD173A9F1500524741 /* poolams.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolams.h; sourceTree = "<group>"; };
@@ -1889,6 +1890,7 @@
 				31172ABC1775131C009488E5 /* prmci6xc.c */,
 				31172ABE1775164F009488E5 /* prmcxc.h */,
 				31EEAC4F156AB3E300714D05 /* protix.c */,
+				31C83ADD1786281C0031A0DB /* protxc.h */,
 				31172AC017752253009488E5 /* protxc.c */,
 				31EEACA7156AB79800714D05 /* span.c */,
 				31A47BA5156C1E5E0039B1C2 /* ssixi3.c */,
