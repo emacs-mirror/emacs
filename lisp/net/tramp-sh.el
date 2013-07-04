@@ -862,7 +862,9 @@ of command line.")
     (set-file-selinux-context . tramp-sh-handle-set-file-selinux-context)
     (file-acl . tramp-sh-handle-file-acl)
     (set-file-acl . tramp-sh-handle-set-file-acl)
-    (vc-registered . tramp-sh-handle-vc-registered))
+    (vc-registered . tramp-sh-handle-vc-registered)
+    (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -2669,7 +2671,7 @@ the result will be a local, non-Tramp, filename."
   (unless (memq (process-status proc) '(run open))
     (let ((vec (tramp-get-connection-property proc "vector" nil)))
       (when vec
-	(tramp-message vec 5 "Sentinel called: `%s' `%s'" proc event)
+	(tramp-message vec 5 "Sentinel called: `%S' `%s'" proc event)
         (tramp-flush-connection-property proc)
         (tramp-flush-directory-property vec "")))))
 
@@ -3375,6 +3377,63 @@ Fall back to normal file name handler if no Tramp handler exists."
 	 (fn (save-match-data (apply (cdr fn) args)))
 	 ;; Default file name handlers, we don't care.
 	 (t (tramp-run-real-handler operation args)))))))
+
+;; We use inotify for implementation.  It is more likely to exist than glib.
+(defun tramp-sh-handle-file-notify-add-watch (file-name flags callback)
+  "Like `file-notify-add-watch' for Tramp files."
+  (setq file-name (expand-file-name file-name))
+  (with-parsed-tramp-file-name file-name nil
+    (let* ((default-directory (file-name-directory file-name))
+	   (command (tramp-get-remote-inotifywait v))
+	   (events
+	    (cond
+	     ((and (memq 'change flags) (memq 'attribute-change flags))
+	      "create,modify,move,delete,attrib")
+	     ((memq 'change flags) "create,modify,move,delete")
+	     ((memq 'attribute-change flags) "attrib")))
+	   (p (and command
+		   (start-file-process
+		    "inotifywait" (generate-new-buffer " *inotifywait*")
+		    command "-mq" "-e" events localname))))
+      ;; Return the process object as watch-descriptor.
+      (if (not (processp p))
+	  (tramp-error
+	   v 'file-notify-error "`inotifywait' not found on remote host")
+	(tramp-compat-set-process-query-on-exit-flag p nil)
+	(set-process-filter p 'tramp-sh-file-notify-process-filter)
+	p))))
+
+(defun tramp-sh-file-notify-process-filter (proc string)
+  "Read output from \"inotifywait\" and add corresponding file-notify events."
+  (tramp-message proc 6 (format "%S\n%s" proc string))
+  (dolist (line (split-string string "[\n\r]+" 'omit-nulls))
+    ;; Check, whether there is a problem.
+    (unless
+	(string-match
+	 "^[^[:blank:]]+[[:blank:]]+\\([^[:blank:]]+\\)+\\([[:blank:]]+\\([^[:blank:]]+\\)\\)?[[:blank:]]*$" line)
+      (tramp-error proc 'file-notify-error "%s" line))
+
+    ;; Usually, we would add an Emacs event now.  Unfortunately,
+    ;; `unread-command-events' does not accept several events at once.
+    ;; Therefore, we apply the callback directly.
+    (let* ((object
+	    (list
+	     proc
+	     (mapcar
+	      (lambda (x)
+		(intern-soft (replace-regexp-in-string "_" "-" (downcase x))))
+	      (split-string (match-string 1 line) "," 'omit-nulls))
+	     (match-string 3 line))))
+      (tramp-compat-funcall 'file-notify-callback object))))
+
+(defvar file-notify-descriptors)
+(defun tramp-sh-handle-file-notify-rm-watch (proc)
+  "Like `file-notify-rm-watch' for Tramp files."
+  ;; The descriptor must be a process object.
+  (unless (and (processp proc) (gethash proc file-notify-descriptors))
+    (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
+  (tramp-message proc 6 (format "Kill %S" proc))
+  (kill-process proc))
 
 ;;; Internal Functions:
 
@@ -4863,6 +4922,11 @@ Return ATTR."
   (with-tramp-connection-property vec "trash"
     (tramp-message vec 5 "Finding a suitable `trash' command")
     (tramp-find-executable vec "trash" (tramp-get-remote-path vec))))
+
+(defun tramp-get-remote-inotifywait (vec)
+  (with-tramp-connection-property vec "inotifywait"
+    (tramp-message vec 5 "Finding a suitable `inotifywait' command")
+    (tramp-find-executable vec "inotifywait" (tramp-get-remote-path vec) t t)))
 
 (defun tramp-get-remote-id (vec)
   (with-tramp-connection-property vec "id"

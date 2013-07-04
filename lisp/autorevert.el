@@ -103,6 +103,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'timer)
+(require 'filenotify)
 
 ;; Custom Group:
 ;;
@@ -270,21 +271,17 @@ This variable becomes buffer local when set in any fashion.")
   :type 'boolean
   :version "24.4")
 
-(defconst auto-revert-notify-enabled
-  (or (featurep 'gfilenotify) (featurep 'inotify) (featurep 'w32notify))
-  "Non-nil when Emacs has been compiled with file notification support.")
-
-(defcustom auto-revert-use-notify auto-revert-notify-enabled
+(defcustom auto-revert-use-notify (and file-notify-support t)
   "If non-nil Auto Revert Mode uses file notification functions.
 This requires Emacs being compiled with file notification
-support (see `auto-revert-notify-enabled').  You should set this
-variable through Custom."
+support (see `file-notify-support').  You should set this variable
+through Custom."
   :group 'auto-revert
   :type 'boolean
   :set (lambda (variable value)
-	 (set-default variable (and auto-revert-notify-enabled value))
+	 (set-default variable (and file-notify-support value))
 	 (unless (symbol-value variable)
-	   (when auto-revert-notify-enabled
+	   (when file-notify-support
 	     (dolist (buf (buffer-list))
 	       (with-current-buffer buf
 		 (when (symbol-value 'auto-revert-notify-watch-descriptor)
@@ -502,12 +499,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	     (puthash key value auto-revert-notify-watch-descriptor-hash-list)
 	   (remhash key auto-revert-notify-watch-descriptor-hash-list)
 	   (ignore-errors
-	     (funcall
-	      (cond
-	       ((fboundp 'gfile-rm-watch) 'gfile-rm-watch)
-	       ((fboundp 'inotify-rm-watch) 'inotify-rm-watch)
-	       ((fboundp 'w32notify-rm-watch) 'w32notify-rm-watch))
-	      auto-revert-notify-watch-descriptor)))))
+	     (file-notify-rm-watch auto-revert-notify-watch-descriptor)))))
      auto-revert-notify-watch-descriptor-hash-list)
     (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
@@ -522,100 +514,58 @@ will use an up-to-date value of `auto-revert-interval'"
 
   (when (and buffer-file-name auto-revert-use-notify
 	     (not auto-revert-notify-watch-descriptor))
-    (let ((func
-	   (cond
-	    ((fboundp 'gfile-add-watch) 'gfile-add-watch)
-	    ((fboundp 'inotify-add-watch) 'inotify-add-watch)
-	    ((fboundp 'w32notify-add-watch) 'w32notify-add-watch)))
-	  (aspect
-	   (cond
-	    ((fboundp 'gfile-add-watch) '(watch-mounts))
-	    ;; `attrib' is needed for file modification time.
-	    ((fboundp 'inotify-add-watch) '(attrib create modify moved-to))
-	    ((fboundp 'w32notify-add-watch) '(size last-write-time))))
-	  (file (if (or (fboundp 'gfile-add-watch) (fboundp 'inotify-add-watch))
-		    (directory-file-name (expand-file-name default-directory))
-		  (buffer-file-name))))
-      (setq auto-revert-notify-watch-descriptor
-	    (ignore-errors
-	      (funcall func file aspect 'auto-revert-notify-handler)))
-      (if auto-revert-notify-watch-descriptor
-	  (progn
-	    (puthash
-	     auto-revert-notify-watch-descriptor
-	     (cons (current-buffer)
-		   (gethash auto-revert-notify-watch-descriptor
-			    auto-revert-notify-watch-descriptor-hash-list))
-	     auto-revert-notify-watch-descriptor-hash-list)
-	    (add-hook (make-local-variable 'kill-buffer-hook)
-		      'auto-revert-notify-rm-watch))
-	;; Fallback to file checks.
-	(set (make-local-variable 'auto-revert-use-notify) nil)))))
-
-(defun auto-revert-notify-event-p (event)
-  "Check that event is a file notification event."
-  (and (listp event)
-       (cond ((featurep 'gfilenotify)
-	      (and (>= (length event) 3) (stringp (nth 2 event))))
-	     ((featurep 'inotify)
-	      (= (length event) 4))
-	     ((featurep 'w32notify)
-	      (and (= (length event) 3) (stringp (nth 2 event)))))))
-
-(defun auto-revert-notify-event-descriptor (event)
-  "Return watch descriptor of file notification event, or nil."
-  (and (auto-revert-notify-event-p event) (car event)))
-
-(defun auto-revert-notify-event-action (event)
-  "Return action of file notification event, or nil."
-  (and (auto-revert-notify-event-p event) (nth 1 event)))
-
-(defun auto-revert-notify-event-file-name (event)
-  "Return file name of file notification event, or nil."
-  (and (auto-revert-notify-event-p event)
-       (cond ((featurep 'gfilenotify) (nth 2 event))
-	     ((featurep 'inotify) (nth 3 event))
-	     ((featurep 'w32notify) (nth 2 event)))))
+    (setq auto-revert-notify-watch-descriptor
+	  (ignore-errors
+	    (file-notify-add-watch
+	     (expand-file-name buffer-file-name default-directory)
+	     '(change attribute-change) 'auto-revert-notify-handler)))
+    (if auto-revert-notify-watch-descriptor
+	(progn
+	  (puthash
+	   auto-revert-notify-watch-descriptor
+	   (cons (current-buffer)
+		 (gethash auto-revert-notify-watch-descriptor
+			  auto-revert-notify-watch-descriptor-hash-list))
+	   auto-revert-notify-watch-descriptor-hash-list)
+	  (add-hook (make-local-variable 'kill-buffer-hook)
+		    'auto-revert-notify-rm-watch))
+      ;; Fallback to file checks.
+      (set (make-local-variable 'auto-revert-use-notify) nil))))
 
 (defun auto-revert-notify-handler (event)
   "Handle an EVENT returned from file notification."
-  (when (auto-revert-notify-event-p event)
-    (let* ((descriptor (auto-revert-notify-event-descriptor event))
-	   (action (auto-revert-notify-event-action event))
-	   (file (auto-revert-notify-event-file-name event))
+  (ignore-errors
+    (let* ((descriptor (car event))
+	   (action (nth 1 event))
+	   (file (nth 2 event))
+	   (file1 (nth 3 event)) ;; Target of `renamed'.
 	   (buffers (gethash descriptor
 			     auto-revert-notify-watch-descriptor-hash-list)))
-      (ignore-errors
-	;; Check, that event is meant for us.
-	;; TODO: Filter events which stop watching, like `move' or `removed'.
-	(cl-assert descriptor)
-	(cond
-	 ((featurep 'gfilenotify)
-	  (cl-assert (memq action '(attribute-changed changed created deleted
-                                    ;; FIXME: I keep getting this action, so I
-                                    ;; added it here, but I have no idea what
-                                    ;; I'm doing.  --Stef
-                                    changes-done-hint))
-                     t))
-	 ((featurep 'inotify)
-	  (cl-assert (or (memq 'attrib action)
-			 (memq 'create action)
-			 (memq 'modify action)
-			 (memq 'moved-to action))))
-	 ((featurep 'w32notify) (cl-assert (eq 'modified action))))
-	;; Since we watch a directory, a file name must be returned.
-	(cl-assert (stringp file))
-	(dolist (buffer buffers)
-	  (when (buffer-live-p buffer)
-	    (with-current-buffer buffer
-	      (when (and (stringp buffer-file-name)
-			 (string-equal
-			  (file-name-nondirectory file)
-			  (file-name-nondirectory buffer-file-name)))
-		;; Mark buffer modified.
-		(setq auto-revert-notify-modified-p t)
-		;; No need to check other buffers.
-		(cl-return)))))))))
+      ;; Check, that event is meant for us.
+      (cl-assert descriptor)
+      ;; We do not handle `deleted', because nothing has to be refreshed.
+      (cl-assert (memq action '(attribute-changed changed created renamed)) t)
+      ;; Since we watch a directory, a file name must be returned.
+      (cl-assert (stringp file))
+      (when (eq action 'renamed) (cl-assert (stringp file1)))
+      ;; Loop over all buffers, in order to find the intended one.
+      (dolist (buffer buffers)
+	(when (buffer-live-p buffer)
+	  (with-current-buffer buffer
+	    (when (and (stringp buffer-file-name)
+		       (or
+			(and (memq action '(attribute-changed changed created))
+			     (string-equal
+			      (file-name-nondirectory file)
+			      (file-name-nondirectory buffer-file-name)))
+			(and (eq action 'renamed)
+			     (string-equal
+			      (file-name-nondirectory file1)
+			      (file-name-nondirectory buffer-file-name)))))
+	      ;; Mark buffer modified.
+	      (setq auto-revert-notify-modified-p t)
+	      ;; No need to check other buffers.
+	      (cl-return))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."

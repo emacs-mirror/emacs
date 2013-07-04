@@ -1,3 +1,26 @@
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el: New package.
+
+	* autorevert.el (top): Require filenotify.el.
+	(auto-revert-notify-enabled): Remove.  Use `file-notify-support'
+	instead.
+	(auto-revert-notify-rm-watch, auto-revert-notify-add-watch)
+	(auto-revert-notify-handler): Use `file-notify-*' functions.
+
+	* subr.el (file-notify-handle-event): Move function to filenotify.el.
+
+	* net/tramp.el (tramp-file-name-for-operation): Handle
+	`file-notify-add-watch' and `file-notify-rm-watch'.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Add handler
+	for `file-notify-add-watch' and `file-notify-rm-watch'.
+	(tramp-process-sentinel): Improve trace.
+	(tramp-sh-handle-file-notify-add-watch)
+	(tramp-sh-file-notify-process-filter)
+	(tramp-sh-handle-file-notify-rm-watch)
+	(tramp-get-remote-inotifywait): New defuns.
+
 2013-07-03  Juri Linkov  <juri@jurta.org>
 
 	* buff-menu.el (Buffer-menu-multi-occur): Add args and move the
@@ -299,12 +322,12 @@
 
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/bibtex.el (bibtex-generate-url-list): Add support
+	* textmodes/bibtex.el (bibtex-generate-url-list): Add support
 	for DOI URLs.
 
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/bibtex.el (bibtex-mode, bibtex-set-dialect):
+	* textmodes/bibtex.el (bibtex-mode, bibtex-set-dialect):
 	Update imenu-support when dialect changes.
 
 2013-06-25  Leo Liu  <sdl.web@gmail.com>

@@ -4496,20 +4496,6 @@ convenience wrapper around `make-progress-reporter' and friends.
        nil ,@(cdr (cdr spec)))))
 
 
-;;;; Support for watching filesystem events.
-
-(defun file-notify-handle-event (event)
-  "Handle file system monitoring event.
-If EVENT is a filewatch event, call its callback.
-Otherwise, signal a `filewatch-error'."
-  (interactive "e")
-  (if (and (eq (car event) 'file-notify)
-	   (>= (length event) 3))
-      (funcall (nth 2 event) (nth 1 event))
-    (signal 'filewatch-error
-	    (cons "Not a valid file-notify event" event))))
-
-
 ;;;; Comparing version strings.
 
 (defconst version-separator "."
