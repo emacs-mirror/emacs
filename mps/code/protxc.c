@@ -3,18 +3,51 @@
  * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
- * SOURCES
+ * This is the protection exception handling code for Mac OS X using the
+ * Mach interface (not pthreads).
  *
+ * In Mach, a thread that hits protected memory is suspended, and a message
+ * is sent to a separate handler thread.
+ * The handler thread can fix things up and continue the suspended thread by
+ * sending back a "success" reply.  It can forward the message to another
+ * handler of the same kind, or it can forward the message to another handler
+ * at the next level out (the levels are thread, task, host) by sending a
+ * "fail" reply.
+ *
+ * In Mac OS X, pthreads are implemented by Mach threads.  (The implementation
+ * is part of the XNU source code at opensource.apple.com.  [copy to import?])
+ * So we can use some pthread interfaces for convenience in setting up threads.
+ *
+ * This module sets up an exception handling thread for the EXC_BAD_ACCESS
+ * exceptions that will be caused by the MPS shield (read/write barriers).
+ * That thread calls the MPS to resolve the condition and allow the mutator
+ * thread to progress.
+ *
+ * That part is fairly simple.  Most of the code in this module is concerned
+ * with decoding Mach messages and re-encoding them in order to forward them
+ * on to other exception handlers.
+ *
+ *
+ * SOURCES
  * .source.man: <http://felinemenace.org/~nemo/mach/manpages/>
+ *              <http://web.mit.edu/darwin/src/modules/xnu/osfmk/man/>
+ *
  *
  * REFERENCES
- * http://www.mikeash.com/pyblog/friday-qa-2013-01-11-mach-exception-handlers.html
+ * [Fuller_2013] "Mach Exception Handlers"; Landon Fuller;
+ *               <http://www.mikeash.com/pyblog/friday-qa-2013-01-11-mach-exception-handlers.html>
+ *
+ *
+ * TRANSGRESSIONS
+ *
+ * .trans.stdlib: It's OK to use the C library from here because we know
+ * we're on OS X and not freestanding.  In particular, we use memcpy.
  */
 
 #include "mpm.h"
 #include "prmcxc.h"
 
-#include <stdlib.h>
+#include <stdlib.h> /* see .trans.stdlib */
 
 #include <pthread.h>
 
@@ -101,6 +134,8 @@ typedef REQUEST_RAISE_STATE_STRUCT(request_s64_s, __int64_t) request_s64_s;
 typedef REQUEST_RAISE_STATE_IDENTITY_STRUCT(request_si32_s, __int32_t) request_si32_s;
 typedef REQUEST_RAISE_STATE_IDENTITY_STRUCT(request_si64_s, __int64_t) request_si64_s;
 
+typedef __Reply__exception_raise_state_identity_t reply_si_s;
+
 #ifdef  __MigPackStructs
 #pragma pack()
 #endif
@@ -125,7 +160,7 @@ typedef REQUEST_RAISE_STATE_IDENTITY_STRUCT(request_si64_s, __int64_t) request_s
    Mac OS X does. */
 
 #define COPY_COMMON(dst, src, id, code_type) \
-  do { \
+  BEGIN \
     (dst)->Head = (src)->Head; \
     (dst)->Head.msgh_id = (id); \
     (dst)->Head.msgh_size = sizeof(*dst); \
@@ -134,16 +169,16 @@ typedef REQUEST_RAISE_STATE_IDENTITY_STRUCT(request_si64_s, __int64_t) request_s
     (dst)->codeCnt = (src)->codeCnt; \
     (dst)->code[0] = (code_type)(src)->code[0]; \
     (dst)->code[1] = (code_type)(src)->code[1]; \
-  } while(0)
+  END
 
 #define COPY_IDENTITY(dst, src) \
-  do { \
+  BEGIN \
     (dst)->thread = (src)->thread; \
     (dst)->task = (src)->task; \
-  } while(0)
+  END
 
 #define COPY_STATE(dst, src, state_flavor, state, state_count) \
-  do { \
+  BEGIN \
     mach_msg_size_t _s; \
     (dst)->flavor = (state_flavor); \
     (dst)->old_stateCnt = (state_count); \
@@ -152,26 +187,26 @@ typedef REQUEST_RAISE_STATE_IDENTITY_STRUCT(request_si64_s, __int64_t) request_s
     memcpy((dst)->old_state, (state), _s); \
     (dst)->Head.msgh_size = \
       offsetof(request_s32_s, old_state) + _s; \
-  } while(0)
+  END
 
 #define COPY_REQUEST(dst, src, width) \
-  do { \
+  BEGIN \
     COPY_COMMON(dst, src, MSG_ID_REQUEST_##width, __int##width##_t); \
     COPY_IDENTITY(dst, src); \
-  } while(0);
+  END;
 
 #define COPY_REQUEST_STATE(dst, src, width, state_flavor, state, state_count) \
-  do { \
+  BEGIN \
     COPY_COMMON(dst, src, MSG_ID_REQUEST_STATE_##width, __int##width##_t); \
     COPY_STATE(dst, src, state_flavor, state, state_count); \
-  } while(0)
+  END
 
 #define COPY_REQUEST_STATE_IDENTITY(dst, src, width, state_flavor, state, state_count) \
-  do { \
+  BEGIN \
     COPY_COMMON(dst, src, MSG_ID_REQUEST_STATE_IDENTITY_##width, __int##width##_t); \
     COPY_IDENTITY(dst, src); \
     COPY_STATE(dst, src, state_flavor, state, state_count); \
-  } while(0)
+  END
 
 
 /* Guard used to ensure we only set up the exception handler once. */
@@ -231,7 +266,7 @@ static int catch_bad_access(void *address, THREAD_STATE_T *state)
 
 /* Build a reply message based on a request. */
 
-static void build_reply(__Reply__exception_raise_state_identity_t *reply,
+static void build_reply(reply_si_s *reply,
                         request_si64_s *request,
                         kern_return_t ret_code)
 {
@@ -250,7 +285,7 @@ static void build_reply(__Reply__exception_raise_state_identity_t *reply,
   memcpy(reply->new_state, request->old_state, state_size);
   /* If you use sizeof(reply) for reply->Head.msgh_size then the state
      gets ignored. */
-  reply->Head.msgh_size = offsetof(__Reply__exception_raise_state_identity_t, new_state) + state_size;
+  reply->Head.msgh_size = offsetof(reply_si_s, new_state) + state_size;
 }
 
 
@@ -309,7 +344,7 @@ static void handle_one(void)
   kern_return_t kr;
   thread_state_data_t thread_state;
   mach_msg_type_number_t thread_state_count;
-  __Reply__exception_raise_state_identity_t reply;
+  reply_si_s reply;
 
   /* TODO: This timeout loop probably isn't necessary, but it might help
      with killing or interrupting the process. */
@@ -354,7 +389,8 @@ static void handle_one(void)
   
   /* If there was no previously installed exception port, send a reply
      that will cause the system to pass the message on to the next kind
-     of handler -- presumably the host handler. */
+     of handler -- presumably the host handler.  The BSD subsystem of OS X
+     has a host handler that turns exception into Unix signals [ref?] */
 
   if (old_port == MACH_PORT_NULL) {
     build_reply(&reply, &request, KERN_FAILURE);
@@ -362,9 +398,11 @@ static void handle_one(void)
   }
   
   /* Forward the exception message to the previously installed exception
-     port.  That port might've been expecting a different behavior and
-     flavour, unfortunately, so we have to cope.  Note that we leave the
-     reply port intact, so we don't have to handle and forward replies. */
+     port.  This is a common situation when running under a debugger, when
+     the port will be the debugger's handler for this process' exceptions.
+     Unfortunately, that port might've been expecting a different behavior
+     and flavour, so we have to cope.  Note that we leave the reply port
+     intact, so we don't have to handle and forward replies. */
   
   switch (old_behaviour) {
   case EXCEPTION_DEFAULT:
