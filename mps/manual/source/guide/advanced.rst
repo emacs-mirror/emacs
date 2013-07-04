@@ -335,7 +335,7 @@ any of its keys.
 If you look up a key in an address-based hash table and fail to find it
 there, that might be because the table's dependency on the location of
 the key is stale: that is, if the garbage collector moved the key. The
-function :c:func:`mps_ld_isstale` tells you if any of the blocks whose
+function :c:func:`mps_ld_isstale` tells you if a block whose
 locations you depended upon since the last call to
 :c:func:`mps_ld_reset` might have moved.
 
@@ -354,24 +354,16 @@ locations you depended upon since the last call to
         return NULL;
     }
 
-It's important to test :c:func:`mps_ld_isstale` only in case of failure.
-The function tells you whether *any* of the dependencies is stale, not
-whether a particular dependency is stale. So if ``key`` has not moved,
-but some other keys have moved, then if you tested
-:c:func:`mps_ld_isstale` first, it would return true and so you'd end up
-unnecessarily rehashing the whole table. (It's crucial, however, to
-actually test that ``key`` appears in the table, not just that some key
-with the same hash does.)
+It's important to test :c:func:`mps_ld_isstale` only in case of
+failure. The function may report a false positive (returning true
+despite the block not having moved). So if ``key`` has not moved, then
+if you tested :c:func:`mps_ld_isstale` first, it might return true and
+so you'd end up unnecessarily rehashing the whole table. (It's
+crucial, however, to actually test that ``key`` appears in the table,
+not just that some key with the same hash does.)
 
 When a table is rehashed, call :c:func:`mps_ld_reset` to clear the
 location dependency, and then :c:func:`mps_ld_add` for each key before it is added back to the table.
-
-.. note::
-
-    Somewhat misleadingly, :c:func:`mps_ld_isstale` takes an address as
-    its third argument. This address is not tested for staleness: it
-    appears in the :term:`telemetry stream`, however, where it might be
-    useful for debugging.
 
 .. note::
 
@@ -605,8 +597,8 @@ See the :ref:`pool-awl-caution` section in :ref:`pool-awl`.
 
 A one-bit tag suffices here::
 
-    #define TAG_SIZE(i) (((i) << 1) | 1)
-    #define UNTAG_SIZE(i) ((i) >> 1)
+    #define TAG_COUNT(i) (((i) << 1) + 1)
+    #define UNTAG_COUNT(i) ((i) >> 1)
 
     typedef struct buckets_s {
         struct buckets_s *dependent;  /* the dependent object */
@@ -626,8 +618,8 @@ code highlighted:
     {
         MPS_SCAN_BEGIN(ss) {
             while (base < limit) {
-                buckets_t buckets = base;
-                size_t i, length = UNTAG_SIZE(buckets->length);
+                buckets_t buckets = base; /* see note 1 */
+                size_t i, length = UNTAG_COUNT(buckets->length);
                 FIX(buckets->dependent);
                 if(buckets->dependent != NULL)
                     assert(buckets->dependent->length == buckets->length);
@@ -638,19 +630,19 @@ code highlighted:
                         if (res != MPS_RES_OK) return res;
                         if (p == NULL) {
                             /* key/value was splatted: splat value/key too */
-                            p = obj_deleted;
-                            buckets->deleted += 2; /* tagged */
-                            if (buckets->dependent != NULL) {
+                            p = obj_deleted; /* see note 3 */
+                            buckets->deleted = TAG_COUNT(UNTAG_COUNT(buckets->deleted) + 1);
+                            if (buckets->dependent != NULL) { /* see note 2 */
                                 buckets->dependent->bucket[i] = p;
-                                buckets->dependent->deleted += 2; /* tagged */
+                                buckets->dependent->deleted
+                                    = TAG_COUNT(UNTAG_COUNT(buckets->dependent->deleted) + 1);
                             }
                         }
                         buckets->bucket[i] = p;
                     }
                 }
-                base = (char *)base +
-                    ALIGN(offsetof(buckets_s, bucket) +
-                          length * sizeof(buckets->bucket[0]));
+                base = (char *)base + ALIGN(offsetof(buckets_s, bucket) +
+                                            length * sizeof(buckets->bucket[0]));
             }
         } MPS_SCAN_END(ss);
         return MPS_RES_OK;
@@ -667,18 +659,10 @@ code highlighted:
        that even if you are confident that you will always initialize
        this field, you still have to guard access to it, as here.
 
-    3. This hash table implementation uses ``NULL`` to mean "never used"
-       and ``obj_deleted`` to mean "formerly used but then deleted". So
-       when a key is splatted it is necessary to replace it with
-       ``obj_deleted``. (It would simplify the code slightly to turn the
-       implementation around and use ``obj_unused``, say, for "never
-       used", and ``NULL`` for "deleted".)
-
-    4. The updating of the tagged sizes has been abbreviated from::
-
-           buckets->deleted = TAG_SIZE(UNTAG_SIZE(buckets->deleted) + 1)
-
-       to ``buckets->deleted += 2``.
+    3. This hash table implementation uses ``NULL`` to mean "never
+       used" and ``obj_deleted`` to mean "formerly used but then
+       deleted". So when a key is splatted it is necessary to replace
+       it with ``obj_deleted``.
 
 The :term:`skip method` is straightforward::
 
@@ -686,9 +670,8 @@ The :term:`skip method` is straightforward::
     {
         buckets_t buckets = base;
         size_t length = UNTAG_SIZE(buckets->length);
-        return (char *)base +
-            ALIGN(offsetof(buckets_s, bucket) +
-                  length * sizeof(buckets->bucket[0]));
+        return (char *)base + ALIGN(offsetof(buckets_s, bucket) +
+                                    length * sizeof(buckets->bucket[0]));
     }
 
 Now we can create the object format, the pool and the allocation
