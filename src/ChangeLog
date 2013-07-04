@@ -1,3 +1,8 @@
+2013-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_to_xcolors) [HAVE_NTGUI]: Remove unused var `hdc'.
+	(x_build_heuristic_mask) [HAVE_NTGUI]: Remove unused var `frame_dc'.
+
 2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Try to fix FreeBSD bug re multithreaded memory allocation (Bug#14569).

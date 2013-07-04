@@ -4559,7 +4559,6 @@ x_to_xcolors (struct frame *f, struct image *img, bool rgb_p)
   XColor *colors, *p;
   XImagePtr_or_DC ximg;
 #ifdef HAVE_NTGUI
-  HDC hdc;
   HGDIOBJ prev;
 #endif /* HAVE_NTGUI */
 
@@ -4929,7 +4928,6 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 #ifndef HAVE_NTGUI
   XImagePtr mask_img;
 #else
-  HDC frame_dc;
   HGDIOBJ prev;
   char *mask_img;
   int row_width;
