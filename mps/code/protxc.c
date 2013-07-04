@@ -234,9 +234,11 @@ static mach_port_name_t exc_port;
    TODO: Determine what happens if you attach a debugger to a process that
    has already set up the exception handler. */
 
+#if 0
 static exception_handler_t old_port;
 static exception_behavior_t old_behaviour;
 static thread_state_flavor_t old_flavor;
+#endif
 
 
 /* This corresponds to the portable part of the MPS that would resolve
@@ -248,19 +250,22 @@ static thread_state_flavor_t old_flavor;
    that causes an exception there's no deadlock.  We could also spread
    scanning work across cores. */
 
-static int catch_bad_access(void *address, THREAD_STATE_T *state)
+static Bool catch_bad_access(void *address, THREAD_STATE_T *state)
 {
   MutatorFaultContextStruct mfcStruct;
+  Bool handled;
 
-  fprintf(stderr, "catch_bad_access(address = %p)\n", address);
+  /* fprintf(stderr, "catch_bad_access(address = %p)\n", address); */
 
   mfcStruct.address = (Addr)address;
   AVER(sizeof(mfcStruct.thread_state) == sizeof(THREAD_STATE_T));
   memcpy(&mfcStruct.thread_state, state, sizeof(mfcStruct.thread_state));
   
-  return ArenaAccess(mfcStruct.address,
-                     AccessREAD | AccessWRITE,
-                     &mfcStruct);
+  handled = ArenaAccess(mfcStruct.address,
+                        AccessREAD | AccessWRITE,
+                        &mfcStruct);
+  
+  return handled;
 }
 
 
@@ -331,6 +336,8 @@ static void must_send(mach_msg_header_t *head)
 static void handle_one(void)
 {
   request_si64_s request;
+  mach_msg_return_t mr;
+#if 0
   union {
     mach_msg_header_t Head;
     request_32_s r32;
@@ -340,10 +347,10 @@ static void handle_one(void)
     request_si32_s rsi32;
     request_si64_s rsi64;
   } forward;
-  mach_msg_return_t mr;
   kern_return_t kr;
   thread_state_data_t thread_state;
   mach_msg_type_number_t thread_state_count;
+#endif
   reply_si_s reply;
 
   /* TODO: This timeout loop probably isn't necessary, but it might help
@@ -370,12 +377,6 @@ static void handle_one(void)
   AVER(request.old_stateCnt == THREAD_STATE_COUNT);
   AVER(request.flavor == THREAD_STATE_FLAVOR);
   
-  fprintf(stderr,
-          "message from %u, exception %u, code %llu\n",
-          request.Head.msgh_remote_port,
-          request.exception,
-          request.code[0]);
-
   if (request.code[0] == KERN_PROTECTION_FAILURE)
     if (catch_bad_access((void *)request.code[1],
                          (THREAD_STATE_T *)request.old_state)) {
@@ -392,11 +393,20 @@ static void handle_one(void)
      of handler -- presumably the host handler.  The BSD subsystem of OS X
      has a host handler that turns exception into Unix signals [ref?] */
 
-  if (old_port == MACH_PORT_NULL) {
+  fprintf(stderr,
+          "unhandled message from port %u, thread %u, exception %u, code %llu\n",
+          request.Head.msgh_remote_port,
+          request.thread.name,
+          request.exception,
+          request.code[0]);
+
+/*  if (old_port == MACH_PORT_NULL) { */
     build_reply(&reply, &request, KERN_FAILURE);
     must_send(&reply.Head);
-  }
+    return;
+/*  } */
   
+#if 0
   /* Forward the exception message to the previously installed exception
      port.  This is a common situation when running under a debugger, when
      the port will be the debugger's handler for this process' exceptions.
@@ -488,6 +498,7 @@ static void handle_one(void)
     build_reply(&reply, &request, KERN_FAILURE);
     must_send(&reply.Head);
   }
+#endif
 }
 
 
@@ -501,12 +512,71 @@ static void *handler(void *p) {
 }
 
 
-static void protSetup(void)
+extern void protThreadRegister(Bool setup);
+
+extern void protThreadRegister(Bool setup)
 {
   kern_return_t kr;
   mach_msg_type_number_t old_cnt;
   exception_mask_t old_mask;
   exception_behavior_t behaviour;
+  mach_port_t old_port;
+  exception_behavior_t old_behaviour;
+  thread_state_flavor_t old_flavor;
+  mach_port_t self;
+  static mach_port_t setup_thread = MACH_PORT_NULL;
+
+  self = mach_thread_self();
+  
+  /* Avoid setting up the exception handler for the setup thread twice,
+     in the case where the mutator registers that thread twice. */
+  if (setup) {
+    AVER(setup_thread == MACH_PORT_NULL);
+    setup_thread = self;
+  } else {
+    AVER(setup_thread != MACH_PORT_NULL);
+    if (self == setup_thread)
+      return;
+  }
+  
+  /* Ask to receive EXC_BAD_ACCESS exceptions on our new port, complete
+     with thread state and identity information in the message.
+     The MACH_EXCEPTION_CODES flag causes the code fields to be
+     passed 64-bits wide, matching request_si64_s. */
+  behaviour = (exception_behavior_t)(EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES);
+  kr = thread_swap_exception_ports(self,
+                                   EXC_MASK_BAD_ACCESS,
+                                   exc_port,
+                                   behaviour,
+                                   THREAD_STATE_FLAVOR,
+                                   &old_mask,
+                                   &old_cnt,
+                                   &old_port,
+                                   &old_behaviour,
+                                   &old_flavor);
+  if (kr != KERN_SUCCESS) {
+    mach_error("thread_swap_exception_ports", kr);
+    exit(1);
+  }
+  AVER(old_mask == EXC_MASK_BAD_ACCESS);
+  AVER(old_cnt == 1);
+  
+  fprintf(stderr,
+          "thread = %u, old_port = %u, old_behaviour = %x, old_flavour = %d\n",
+          self, old_port, old_behaviour, old_flavor);
+
+  AVER(old_port == MACH_PORT_NULL);
+}
+
+
+static void protSetup(void)
+{
+  kern_return_t kr;
+#if 0
+  mach_msg_type_number_t old_cnt;
+  exception_mask_t old_mask;
+  exception_behavior_t behaviour;
+#endif
   int pr;
 
   /* Create a port right to send and receive exceptions */
@@ -528,6 +598,7 @@ static void protSetup(void)
     exit(1);
   }
   
+#if 0
   /* Ask to receive EXC_BAD_ACCESS exceptions on our new port, complete
      with thread state and identity information in the message.
      The MACH_EXCEPTION_CODES flag causes the code fields to be
@@ -553,6 +624,10 @@ static void protSetup(void)
   fprintf(stderr,
           "old_port = %u, old_behaviour = %x, old_flavour = %d\n",
           old_port, old_behaviour, old_flavor);
+
+#endif
+
+  protThreadRegister(TRUE);
 
   /* Launch the exception handling thread. */
   pr = pthread_create(&exc_thread, NULL, handler, NULL);

@@ -56,6 +56,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   Thread thread;
   Ring ring;
   void *p;
+  extern void protThreadRegister(Bool setup);
 
   AVER(threadReturn != NULL);
 
@@ -74,6 +75,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   
   /* FIXME: Set up thread specific exception ports?
      (Boehm just does it for the whole task.) */
+  protThreadRegister(FALSE);
 
   AVERT(Thread, thread);
 
