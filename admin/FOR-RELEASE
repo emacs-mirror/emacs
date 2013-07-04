@@ -18,6 +18,20 @@ in the web pages repository.  E.g.:
 Redirect /software/emacs/manual/html_mono/automake.html /software/automake/manual/automake.html
 Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/html_node/
 
+Another tool you can use to check links is gnu.org's linc.py:
+http://www.gnu.org/server/source/
+
+You run this something like:
+
+cd /path/to/cvs/emacs-www
+linc.py -o /path/to/output-dir --url http://www.gnu.org/software/emacs/ .
+
+Be warned that it is really, really slow (as in, can take ~ a full day
+to check the manual/ directory).  It is probably best to run it on a
+single directory at a time from eg manual/html_node.  It is very
+inefficient, but may reveal a few things that info-xref does not.
+
+
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
 references etc) in the output.  Break any overfull lines.
 Underfull hboxes are not serious, but it can be nice to get rid of
