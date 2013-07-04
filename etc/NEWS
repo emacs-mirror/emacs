@@ -411,6 +411,10 @@ when possible.
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
 which support POSIX ACLs.
 
++++
+*** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
+for remote machines which support filesystem notifications.
+
 ** VHDL mode
 
 *** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
@@ -424,9 +428,9 @@ are obsolete.  Customize the `woman-* faces instead.
 
 ** Eshell
 
-*** Added Eshell-TRAMP module
+*** Added Eshell-Tramp module
 External su and sudo commands are now the default; the internal,
-TRAMP-using variants can still be used by enabling the eshell-tramp
+Tramp-using variants can still be used by enabling the eshell-tramp
 module.
 
 ** New term.el option `term-suppress-hard-newline'.
@@ -465,6 +469,10 @@ It is layered as:
   function-carrying place, such as process-filters or `<foo>-function' hooks.
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
+
+** The package file-notify.el provides an interface for file system
+notifications.  It requires, that Emacs is compiled with one of the
+low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
