@@ -7625,6 +7625,31 @@ gif_load (struct frame *f, struct image *img)
 #endif /* HAVE_GIF */
 
 
+#ifdef HAVE_IMAGEMAGICK
+
+/***********************************************************************
+				 ImageMagick
+***********************************************************************/
+
+/* Scale an image size by returning SIZE / DIVISOR * MULTIPLIER,
+   safely rounded and clipped to int range.  */
+
+static int
+scale_image_size (int size, size_t divisor, size_t multiplier)
+{
+  if (divisor != 0)
+    {
+      double s = size;
+      double scaled = s * multiplier / divisor + 0.5;
+      if (scaled < INT_MAX)
+	return scaled;
+    }
+  return INT_MAX;
+}
+
+/* Compute the desired size of an image with native size WIDTH x HEIGHT.
+   Use SPEC to deduce the size.  Store the desired size into
+   *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
 static void
 compute_image_size (size_t width, size_t height,
 		    Lisp_Object spec,
@@ -7638,38 +7663,35 @@ compute_image_size (size_t width, size_t height,
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
   value = image_spec_value (spec, QCwidth, NULL);
-  desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
+  desired_width = NATNUMP (value) ? min (XFASTINT (value), INT_MAX) : -1;
   value = image_spec_value (spec, QCheight, NULL);
-  desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
+  desired_height = NATNUMP (value) ? min (XFASTINT (value), INT_MAX) : -1;
 
   if (desired_width == -1)
     {
       value = image_spec_value (spec, QCmax_width, NULL);
-      if (INTEGERP (value) &&
-	  width > XFASTINT (value))
+      if (NATNUMP (value))
 	{
-	  /* The image is wider than :max-width. */
-	  desired_width = XFASTINT (value);
-	  if (desired_height == -1)
+	  int max_width = min (XFASTINT (value), INT_MAX);
+	  if (max_width < width)
 	    {
-	      value = image_spec_value (spec, QCmax_height, NULL);
-	      if (INTEGERP (value))
+	      /* The image is wider than :max-width. */
+	      desired_width = max_width;
+	      if (desired_height == -1)
 		{
-		  /* We have no specified height, but we have a
-		     :max-height value, so check that we satisfy both
-		     conditions. */
-		  desired_height = (double) desired_width / width * height;
-		  if (desired_height > XFASTINT (value))
+		  desired_height = scale_image_size (desired_width,
+						     width, height);
+		  value = image_spec_value (spec, QCmax_height, NULL);
+		  if (NATNUMP (value))
 		    {
-		      desired_height = XFASTINT (value);
-		      desired_width = (double) desired_height / height * width;
+		      int max_height = min (XFASTINT (value), INT_MAX);
+		      if (max_height < desired_height)
+			{
+			  desired_height = max_height;
+			  desired_width = scale_image_size (desired_height,
+							    height, width);
+			}
 		    }
-		}
-	      else
-		{
-		  /* We have no specified height and no specified
-		     max-height, so just compute the height. */
-		  desired_height = (double) desired_width / width * height;
 		}
 	    }
 	}
@@ -7678,27 +7700,25 @@ compute_image_size (size_t width, size_t height,
   if (desired_height == -1)
     {
       value = image_spec_value (spec, QCmax_height, NULL);
-      if (INTEGERP (value) &&
-	  height > XFASTINT (value))
-	  desired_height = XFASTINT (value);
+      if (NATNUMP (value))
+	{
+	  int max_height = min (XFASTINT (value), INT_MAX);
+	  if (max_height < height)
+	    desired_height = max_height;
+	}
     }
 
   if (desired_width != -1 && desired_height == -1)
     /* w known, calculate h.  */
-    desired_height = (double) desired_width / width * height;
+    desired_height = scale_image_size (desired_width, width, height);
 
   if (desired_width == -1 && desired_height != -1)
     /* h known, calculate w.  */
-    desired_width = (double) desired_height / height * width;
+    desired_width = scale_image_size (desired_height, height, width);
 
   *d_width = desired_width;
   *d_height = desired_height;
 }
-
-/***********************************************************************
-				 ImageMagick
-***********************************************************************/
-#if defined (HAVE_IMAGEMAGICK)
 
 static Lisp_Object Qimagemagick;
 

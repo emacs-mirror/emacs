@@ -1,3 +1,11 @@
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Scale ImageMagick images more carefully.
+	* image.c (scale_image_size) [HAVE_IMAGEMAGICK]: New function.
+	(compute_image_size): Use it.  Define only if HAVE_IMAGEMAGICK.
+	Be more careful about avoiding undefined behavior after
+	integer overflow and division by zero.
+
 2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* w32fns.c (Qgeometry, Qworkarea, Qmm_size, Qframes): New variables.
