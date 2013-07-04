@@ -1,3 +1,10 @@
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to fix FreeBSD bug re multithreaded memory allocation (Bug#14569).
+	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Clear _malloc_thread_enabled_p at startup.  Reported by Ashish SHUKLA in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00088.html>.
+
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (sys_siglist) [HAVE_DECL___SYS_SIGLIST]:

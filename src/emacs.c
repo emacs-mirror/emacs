@@ -128,6 +128,7 @@ extern int malloc_set_state (void*);
    dumping.  Used to work around a bug in glibc's malloc.  */
 static bool malloc_using_checking;
 #elif defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
+extern int _malloc_thread_enabled_p;
 extern void malloc_enable_thread (void);
 #endif
 
@@ -679,6 +680,12 @@ main (int argc, char **argv)
 
 #if GC_MARK_STACK
   stack_base = &dummy;
+#endif
+
+#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
+  /* Disable mutexes in gmalloc.c.  Otherwise, FreeBSD Emacs recursively
+     loops with pthread_mutex_lock calling calloc and vice versa.  */
+  _malloc_thread_enabled_p = 0;
 #endif
 
 #ifdef G_SLICE_ALWAYS_MALLOC
