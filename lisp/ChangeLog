@@ -1,3 +1,7 @@
+2013-07-05  Leo Liu  <sdl.web@gmail.com>
+
+	* autoinsert.el (auto-insert-alist): Default to lexical-binding.
+
 2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.el (display-pixel-height, display-pixel-width)
