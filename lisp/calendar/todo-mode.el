@@ -37,11 +37,14 @@
 ;; can edit todo items, reprioritize them within their category, move
 ;; them to another category, delete them, or mark items as done and
 ;; store them separately from the not yet done items in a category.
-;; You can add new todo files and categories, rename categories, move
-;; them to another file or delete them.  You can also display summary
-;; tables of the categories in a file and the types of items they
-;; contain.  And you can build cross-category lists of items that
-;; satisfy various criteria.
+;; You can add new todo files, edit and delete them.  You can add new
+;; categories, rename and delete them, move categories to another file
+;; and merge the items of two categories.  You can also reorder the
+;; sequence of categories in a todo file for the purpose of
+;; navigation.  You can display summary tables of the categories in a
+;; file and the types of items they contain.  And you can compile
+;; lists of existing items from multiple categories in one or more
+;; todo files, which are filtered by various criteria.
 
 ;; To get started, load this package and type `M-x todo-show'.  This
 ;; will prompt you for the name of the first todo file, its first
@@ -169,12 +172,7 @@ the value of `todo-done-separator'."
   "Return string used as value of variable `todo-done-separator'."
   (let ((sep todo-done-separator-string))
     (propertize (if (= 1 (length sep))
-		    ;; Until bug#2749 is fixed, if separator's length
-		    ;; is window-width and todo-wrap-lines is
-		    ;; non-nil, an indented empty line appears between
-		    ;; the separator and the first done item.
-		    ;; (make-string (window-width) (string-to-char sep))
-		    (make-string (1- (window-width)) (string-to-char sep))
+		    (make-string (window-width) (string-to-char sep))
 		  todo-done-separator-string)
 		'face 'todo-done-sep)))
 
@@ -578,11 +576,12 @@ This lacks the extension and directory components."
     (file-name-sans-extension (file-name-nondirectory file))))
 
 (defcustom todo-default-todo-file (todo-short-file-name
-				     (car (funcall todo-files-function)))
+				   (car (funcall todo-files-function)))
   "Todo file visited by first session invocation of `todo-show'."
-  :type `(radio ,@(mapcar (lambda (f) (list 'const f))
-			  (mapcar 'todo-short-file-name
-				  (funcall todo-files-function))))
+  :type (when todo-files
+	  `(radio ,@(mapcar (lambda (f) (list 'const f))
+			    (mapcar 'todo-short-file-name
+				    (funcall todo-files-function)))))
   :group 'todo)
 
 (defcustom todo-show-current-file t
@@ -630,7 +629,7 @@ Otherwise, `todo-show' always visits `todo-default-todo-file'."
   :group 'todo)
 
 ;;;###autoload
-(defun todo-show (&optional solicit-file)
+(defun todo-show (&optional solicit-file interactive)
   "Visit a todo file and display one of its categories.
 
 When invoked in Todo mode, prompt for which todo file to visit.
@@ -668,117 +667,124 @@ and done items are always shown on visiting a category.
 
 Invoking this command in Todo Archive mode visits the
 corresponding todo file, displaying the corresponding category."
-  (interactive "P")
+  (interactive "P\np")
+  (when todo-default-todo-file
+    (todo-check-file (todo-absolute-file-name todo-default-todo-file)))
   (catch 'shown
-    ;; If there is a legacy todo file but no todo file in the current
-    ;; format, offer to convert the legacy file and show it.
+    ;; Before initializing the first todo first, check if there is a
+    ;; legacy todo file and if so, offer to convert to the current
+    ;; format and make it the first new todo file.
     (unless todo-default-todo-file
       (let ((legacy-todo-file (if (boundp 'todo-file-do)
-				  todo-file-do
-				(locate-user-emacs-file "todo-do" ".todo-do"))))
-	(when (and (file-exists-p legacy-todo-file)
-		   (y-or-n-p (concat "Do you want to convert a copy of your "
-				     "old todo file to the new format? ")))
-	  (when (todo-convert-legacy-files)
-	    (throw 'shown nil)))))
-    (let* ((cat)
-	   (show-first todo-show-first)
-	   (file (cond ((or solicit-file
-			    (and (called-interactively-p 'any)
-				 (memq major-mode '(todo-mode
-						    todo-archive-mode
-						    todo-filtered-items-mode))))
-			(if (funcall todo-files-function)
-			    (todo-read-file-name "Choose a todo file to visit: "
-						  nil t)
-			  (user-error "There are no todo files")))
-		       ((and (eq major-mode 'todo-archive-mode)
-			     ;; Called noninteractively via todo-quit
-			     ;; to jump to corresponding category in
-			     ;; todo file.
-			     (not (called-interactively-p 'any)))
-			(setq cat (todo-current-category))
-			(concat (file-name-sans-extension
-				 todo-current-todo-file) ".todo"))
-		       (t
-			(or todo-current-todo-file
-			    (and todo-show-current-file
-				 todo-global-current-todo-file)
-			    (todo-absolute-file-name todo-default-todo-file)
-			    (todo-add-file)))))
-	   add-item first-file)
-      (unless todo-default-todo-file
-	;; We just initialized the first todo file, so make it the default.
-	(setq todo-default-todo-file (todo-short-file-name file)
-	      first-file t)
-	(todo-reevaluate-default-file-defcustom))
-      (unless (member file todo-visited)
-	;; Can't setq t-c-t-f here, otherwise wrong file shown when
-	;; todo-show is called from todo-show-categories-table.
-	(let ((todo-current-todo-file file))
-	  (cond ((eq todo-show-first 'table)
-		 (todo-show-categories-table))
-		((memq todo-show-first '(top diary regexp))
-		 (let* ((shortf (todo-short-file-name file))
-			(fi-file (todo-absolute-file-name
-				  shortf todo-show-first)))
-		   (when (eq todo-show-first 'regexp)
-		     (let ((rxfiles (directory-files todo-directory t
-						     ".*\\.todr$" t)))
-		       (when (and rxfiles (> (length rxfiles) 1))
-			 (let ((rxf (mapcar 'todo-short-file-name rxfiles)))
-			   (setq fi-file (todo-absolute-file-name
-					  (completing-read
-					   "Choose a regexp items file: "
-					   rxf) 'regexp))))))
-		   (if (file-exists-p fi-file)
-		       (set-window-buffer
-			(selected-window)
-			(set-buffer (find-file-noselect fi-file 'nowarn)))
-		     (message "There is no %s file for %s"
-			      (cond ((eq todo-show-first 'top)
-				     "top priorities")
-				    ((eq todo-show-first 'diary)
-				     "diary items")
-				    ((eq todo-show-first 'regexp)
-				     "regexp items"))
-			      shortf)
-		     (setq todo-show-first 'first)))))))
-      (when (or (member file todo-visited)
-		(eq todo-show-first 'first))
-	(set-window-buffer (selected-window)
-			   (set-buffer (find-file-noselect file 'nowarn)))
-	;; When quitting an archive file, show the corresponding
-	;; category in the corresponding todo file, if it exists.
-	(when (assoc cat todo-categories)
-	  (setq todo-category-number (todo-category-number cat)))
-	;; If this is a new todo file, add its first category.
-	(when (zerop (buffer-size))
-	  (let (cat-added)
-	    (unwind-protect
-		(setq todo-category-number
-		      (todo-add-category todo-current-todo-file "")
-		      add-item todo-add-item-if-new-category
-		      cat-added t)
-	      (if cat-added
-		  ;; If the category was added, save the file now, so we
-		  ;; don't risk having an empty todo file, which would
-		  ;; signal an error if we tried to visit it later,
-		  ;; since doing that looks for category boundaries.
-		  (save-buffer 0)
-		;; If user cancels before adding the category, clean up
-		;; and exit, so we have a fresh slate the next time.
-		(delete-file file)
-		(setq todo-files (delete file todo-files))
-		(when first-file
-		  (setq todo-default-todo-file nil
-			todo-current-todo-file nil))
-		(kill-buffer)
-		(keyboard-quit)))))
-	(save-excursion (todo-category-select))
-	(when add-item (todo-basic-insert-item)))
-      (setq todo-show-first show-first)
-      (add-to-list 'todo-visited file))))
+    				  todo-file-do
+    				(locate-user-emacs-file "todo-do" ".todo-do"))))
+    	(when (and (file-exists-p legacy-todo-file)
+    		   (y-or-n-p (concat "Do you want to convert a copy of your "
+    				     "old todo file to the new format? ")))
+    	  (when (todo-convert-legacy-files)
+    	    (throw 'shown nil)))))
+    (catch 'end
+      (let* ((cat)
+	     (show-first todo-show-first)
+	     (file (cond ((or solicit-file
+			      (and interactive
+				   (memq major-mode '(todo-mode
+						      todo-archive-mode
+						      todo-filtered-items-mode))))
+			  (if (funcall todo-files-function)
+			      (todo-read-file-name "Choose a todo file to visit: "
+						    nil t)
+			    (user-error "There are no todo files")))
+			 ((and (eq major-mode 'todo-archive-mode)
+			       ;; Called noninteractively via todo-quit
+			       ;; to jump to corresponding category in
+			       ;; todo file.
+			       (not interactive))
+			  (setq cat (todo-current-category))
+			  (concat (file-name-sans-extension
+				   todo-current-todo-file) ".todo"))
+			 (t
+			  (or todo-current-todo-file
+			      (and todo-show-current-file
+				   todo-global-current-todo-file)
+			      (todo-absolute-file-name todo-default-todo-file)
+			      (todo-add-file)))))
+	     add-item first-file)
+	(unless todo-default-todo-file
+	  ;; We just initialized the first todo file, so make it the default.
+	  (setq todo-default-todo-file (todo-short-file-name file)
+		first-file t)
+	  (todo-reevaluate-default-file-defcustom))
+	(unless (member file todo-visited)
+	  ;; Can't setq t-c-t-f here, otherwise wrong file shown when
+	  ;; todo-show is called from todo-show-categories-table.
+	  (let ((todo-current-todo-file file))
+	    (cond ((eq todo-show-first 'table)
+		   (todo-show-categories-table))
+		  ((memq todo-show-first '(top diary regexp))
+		   (let* ((shortf (todo-short-file-name file))
+			  (fi-file (todo-absolute-file-name
+				    shortf todo-show-first)))
+		     (when (eq todo-show-first 'regexp)
+		       (let ((rxfiles (directory-files todo-directory t
+						       ".*\\.todr$" t)))
+			 (when (and rxfiles (> (length rxfiles) 1))
+			   (let ((rxf (mapcar 'todo-short-file-name rxfiles)))
+			     (setq fi-file (todo-absolute-file-name
+					    (completing-read
+					     "Choose a regexp items file: "
+					     rxf) 'regexp))))))
+		     (if (file-exists-p fi-file)
+			 (set-window-buffer
+			  (selected-window)
+			  (set-buffer (find-file-noselect fi-file 'nowarn)))
+		       (message "There is no %s file for %s"
+				(cond ((eq todo-show-first 'top)
+				       "top priorities")
+				      ((eq todo-show-first 'diary)
+				       "diary items")
+				      ((eq todo-show-first 'regexp)
+				       "regexp items"))
+				shortf)
+		       (setq todo-show-first 'first)))))))
+	(when (or (member file todo-visited)
+		  (eq todo-show-first 'first))
+	  (unless (todo-check-file file) (throw 'end nil))
+	  (set-window-buffer (selected-window)
+			     (set-buffer (find-file-noselect file 'nowarn)))
+	  ;; When quitting an archive file, show the corresponding
+	  ;; category in the corresponding todo file, if it exists.
+	  (when (assoc cat todo-categories)
+	    (setq todo-category-number (todo-category-number cat)))
+	  ;; If this is a new todo file, add its first category.
+	  (when (zerop (buffer-size))
+	    (let (cat-added)
+	      (unwind-protect
+		  (setq todo-category-number
+			(todo-add-category todo-current-todo-file "")
+			add-item todo-add-item-if-new-category
+			cat-added t)
+		(if cat-added
+		    ;; If the category was added, save the file now, so we
+		    ;; don't risk having an empty todo file, which would
+		    ;; signal an error if we tried to visit it later,
+		    ;; since doing that looks for category boundaries.
+		    (save-buffer 0)
+		  ;; If user cancels before adding the category, clean up
+		  ;; and exit, so we have a fresh slate the next time.
+		  (delete-file file)
+		  ;; (setq todo-files (funcall todo-files-function))
+		  (setq todo-files (delete file todo-files))
+		  (when first-file
+		    (setq todo-default-todo-file nil
+			  todo-current-todo-file nil)
+		    (todo-reevaluate-default-file-defcustom))
+		  (kill-buffer)
+		  (keyboard-quit)))))
+	  (save-excursion (todo-category-select))
+	  (when add-item (todo-basic-insert-item)))
+	(setq todo-show-first show-first)
+	(add-to-list 'todo-visited file)))))
 
 (defun todo-save ()
   "Save the current todo file."
@@ -814,8 +820,15 @@ buries it and restores state as needed."
 	   ;; Have to write a newly created archive to file to avoid
 	   ;; subsequent errors.
 	   (todo-save)
-	   (todo-show)
-	   (bury-buffer buf))
+	   (let ((todo-file (concat todo-directory
+				    (todo-short-file-name todo-current-todo-file)
+				    ".todo")))
+	     (if (todo-check-file todo-file)
+		 (todo-show)
+	       (message "There is no todo file for this archive")))
+	   ;; When todo-check-file runs in todo-show, it kills the
+	   ;; buffer if the archive file was deleted externally.
+	   (when (buffer-live-p buf) (bury-buffer buf)))
 	  ((eq major-mode 'todo-mode)
 	   (todo-save)
 	   ;; If we just quit archive mode, just burying the buffer
@@ -893,7 +906,7 @@ Categories mode."
   (interactive "P")
   ;; If invoked outside of Todo mode and there is not yet any Todo
   ;; file, initialize one.
-  (if (null todo-files)
+  (if (null (funcall todo-files-function))
       (todo-show)
     (let* ((archive (eq where 'archive))
 	   (cat (unless archive where))
@@ -1069,10 +1082,9 @@ option `todo-add-item-if-new-category' is non-nil (the default),
 prompt for the first item.
 Noninteractively, return the name of the new file."
   (interactive)
-  (let ((prompt (concat "Enter name of new todo file "
-			"(TAB or SPC to see current names): "))
-	file)
-    (setq file (todo-read-file-name prompt))
+  (let* ((prompt (concat "Enter name of new todo file "
+			 "(TAB or SPC to see current names): "))
+	 (file (todo-read-file-name prompt)))
     (with-current-buffer (get-buffer-create file)
       (erase-buffer)
       (write-region (point-min) (point-max) file nil 'nomessage nil t)
@@ -1086,6 +1098,55 @@ Noninteractively, return the name of the new file."
 	  (setq todo-current-todo-file file)
 	  (todo-show))
       file)))
+
+(defun todo-delete-file ()
+  "Delete the current todo, archive or filtered items file.
+If the todo file has a corresponding archive file, or vice versa,
+prompt whether to delete that as well.  Also kill the buffers
+visiting the deleted files."
+  (interactive)
+  (let* ((file1 (buffer-file-name))
+	 (todo (eq major-mode 'todo-mode))
+	 (archive (eq major-mode 'todo-archive-mode))
+	 (filtered (eq major-mode 'todo-filtered-items-mode))
+	 (file1-sn (todo-short-file-name file1))
+	 (file2 (concat todo-directory file1-sn (cond (todo ".toda")
+						      (archive ".todo"))))
+	 (buf1 (current-buffer))
+	 (buf2 (when file2 (find-buffer-visiting file2)))
+	 (prompt1 (concat "Delete " (cond (todo "todo")
+					  (archive "archive")
+					  (filtered "filtered items"))
+	 		  " file \"%s\"? "))
+	 (prompt2 (concat "Also delete the corresponding "
+			  (cond (todo "archive") (archive "todo")) " file "
+			  (when buf2 "and kill the buffer visiting it? ")))
+	 (delete1 (yes-or-no-p (format prompt1 file1-sn)))
+	 (delete2 (when (and delete1 (or (file-exists-p file2) buf2))
+		    (yes-or-no-p prompt2))))
+    (when delete1
+      (when (file-exists-p file1) (delete-file file1))
+      (setq todo-visited (delete file1 todo-visited))
+      (kill-buffer buf1)
+      (when delete2
+	(when (file-exists-p file2) (delete-file file2))
+	(setq todo-visited (delete file2 todo-visited))
+	(and buf2 (kill-buffer buf2)))
+      (setq todo-files (funcall todo-files-function)
+	    todo-archives (funcall todo-files-function t))
+      (when (or (string=  file1-sn todo-default-todo-file)
+		(and delete2 (string= file1-sn todo-default-todo-file)))
+	(setq todo-default-todo-file (todo-short-file-name (car todo-files))))
+      (when (or (string= file1 todo-global-current-todo-file)
+		(and delete2 (string= file2 todo-global-current-todo-file)))
+	(setq todo-global-current-todo-file nil))
+      (todo-reevaluate-filelist-defcustoms)
+      (message (concat (cond (todo "Todo") (archive "Archive")) " file \"%s\" "
+		       (when delete2
+			 (concat "and its "
+				 (cond (todo "archive") (archive "todo"))
+				 " file "))
+		       "deleted") file1-sn))))
 
 (defvar todo-edit-buffer "*Todo Edit*"
   "Name of current buffer in Todo Edit mode.")
@@ -1190,9 +1251,9 @@ category there as well."
   (save-excursion (todo-category-select)))
 
 (defun todo-delete-category (&optional arg)
-  "Delete current todo category provided it is empty.
-With ARG non-nil delete the category unconditionally,
-i.e. including all existing todo and done items."
+  "Delete current todo category provided it contains no items.
+With prefix ARG delete the category even if it does contain
+todo or done items."
   (interactive "P")
   (let* ((file todo-current-todo-file)
 	 (cat (todo-current-category))
@@ -1723,7 +1784,7 @@ the new item:
   the item accordingly."
   ;; If invoked outside of Todo mode and there is not yet any Todo
   ;; file, initialize one.
-  (if (null todo-files)
+  (if (null (funcall todo-files-function))
       (todo-show)
     (let ((region (eq region-or-here 'region))
 	  (here (eq region-or-here 'here)))
@@ -2958,31 +3019,32 @@ first visit in a session displays the first category in the
 archive, subsequent visits return to the last category
 displayed."
   (interactive)
-  (let* ((cat (todo-current-category))
-	 (count (todo-get-count 'archived cat))
-	 (archive (concat (file-name-sans-extension todo-current-todo-file)
-			  ".toda"))
-	 place)
-    (setq place (cond (ask 'other-archive)
-		      ((file-exists-p archive) 'this-archive)
-		      (t (when (todo-y-or-n-p
-				(concat "This file has no archive; "
-					"visit another archive? "))
-			   'other-archive))))
-    (when (eq place 'other-archive)
-      (setq archive (todo-read-file-name "Choose a todo archive: " t t)))
-    (when (and (eq place 'this-archive) (zerop count))
-      (setq place (when (todo-y-or-n-p
-			  (concat "This category has no archived items;"
-				  " visit archive anyway? "))
-		     'other-cat)))
-    (when place
-      (set-window-buffer (selected-window)
-			 (set-buffer (find-file-noselect archive)))
-      (if (member place '(other-archive other-cat))
-	  (setq todo-category-number 1)
-	(todo-category-number cat))
-      (todo-category-select))))
+  (if (null (funcall todo-files-function t))
+      (message "There are no archive files")
+    (let* ((cat (todo-current-category))
+	   (count (todo-get-count 'archived cat))
+	   (archive (concat (file-name-sans-extension todo-current-todo-file)
+			    ".toda"))
+	   (place (cond (ask 'other-archive)
+			((file-exists-p archive) 'this-archive)
+			(t (when (todo-y-or-n-p
+				  (concat "This file has no archive; "
+					  "visit another archive? "))
+			     'other-archive)))))
+      (when (eq place 'other-archive)
+	(setq archive (todo-read-file-name "Choose a todo archive: " t t)))
+      (when (and (eq place 'this-archive) (zerop count))
+	(setq place (when (todo-y-or-n-p
+			    (concat "This category has no archived items;"
+				    " visit archive anyway? "))
+		       'other-cat)))
+      (when place
+	(set-window-buffer (selected-window)
+			   (set-buffer (find-file-noselect archive)))
+	(if (member place '(other-archive other-cat))
+	    (setq todo-category-number 1)
+	  (todo-category-number cat))
+	(todo-category-select)))))
 
 (defun todo-choose-archive ()
   "Choose an archive and visit it."
@@ -3010,9 +3072,7 @@ this category does not exist in the archive, it is created."
 	       (marked (assoc cat todo-categories-with-marks))
 	       (afile (concat (file-name-sans-extension
 			       todo-current-todo-file) ".toda"))
-	       (archive (if (file-exists-p afile)
-			    (find-file-noselect afile t)
-			  (get-buffer-create afile)))
+	       (archive (find-file-noselect afile t))
 	       (item (and (todo-done-item-p)
 			  (concat (todo-item-string) "\n")))
 	       (count 0)
@@ -3056,7 +3116,6 @@ this category does not exist in the archive, it is created."
 	  (if (not (or marked all item))
 	      (throw 'end (message "Only done items can be archived"))
 	    (with-current-buffer archive
-	      (unless buffer-file-name (erase-buffer))
 	      (let (buffer-read-only)
 		(widen)
 		(goto-char (point-min))
@@ -3076,11 +3135,13 @@ this category does not exist in the archive, it is created."
 			      (item)))
 		(todo-update-count 'done (if (or marked all) count 1) cat)
 		(todo-update-categories-sexp)
-		;; If archive is new, save to file now (using write-region in
-		;; order not to get prompted for file to save to), to let
-		;; auto-mode-alist take effect below.
-		(unless buffer-file-name
-		  (write-region nil nil afile)
+		;; If archive is new, save to file now (with
+		;; write-region to avoid prompt for file to save to)
+		;; to update todo-archives, and to let auto-mode-alist
+		;; take effect below on visiting the archive.
+		(unless (nth 7 (file-attributes afile))
+		  (write-region nil nil afile t t)
+		  (setq todo-archives (funcall todo-files-function t))
 		  (kill-buffer))))
 	    (with-current-buffer tbuf
 	      (cond
@@ -3286,19 +3347,24 @@ categories display according to priority."
 (defun todo-show-categories-table ()
   "Display a table of the current file's categories and item counts.
 
-In the initial display the categories are numbered, indicating
-their current order for navigating by \\[todo-forward-category]
-and \\[todo-backward-category].  You can permanently change the
-order of the category at point by typing
-\\[todo-set-category-number], \\[todo-raise-category] or
-\\[todo-lower-category].
+In the initial display the lines of the table are numbered,
+indicating the current order of the categories when sequentially
+navigating through the todo file with `\\[todo-forward-category]'
+and `\\[todo-backward-category]'.  You can reorder the lines, and
+hence the category sequence, by typing `\\[todo-raise-category]'
+or `\\[todo-lower-category]' to raise or lower the category at
+point, or by typing `\\[todo-set-category-number]' and entering a
+number at the prompt or by typing `\\[todo-set-category-number]'
+with a numeric prefix.  If you save the todo file after
+reordering the categories, the new order persists in subsequent
+Emacs sessions.
 
 The labels above the category names and item counts are buttons,
 and clicking these changes the display: sorted by category name
 or by the respective item counts (alternately descending or
 ascending).  In these displays the categories are not numbered
-and \\[todo-set-category-number], \\[todo-raise-category] and
-\\[todo-lower-category] are disabled.  (Programmatically, the
+and `\\[todo-set-category-number]', `\\[todo-raise-category]' and
+`\\[todo-lower-category]' are disabled.  (Programmatically, the
 sorting is triggered by passing a non-nil SORTKEY argument.)
 
 In addition, the lines with the category names and item counts
@@ -4019,15 +4085,15 @@ regexp items."
   "Buffer type string for `todo-filter-items'.")
 
 (defun todo-filter-items (filter &optional new multifile)
-  "Display a cross-category list of items filtered by FILTER.
+  "Display a list of items filtered by FILTER.
 The values of FILTER can be `top' for top priority items, a cons
 of `top' and a number passed by the caller, `diary' for diary
-items, or `regexp' for items matching a regular expression entered
-by the user.  The items can be from any categories in the current
-todo file or, with non-nil MULTIFILE, from several files.  If NEW
-is nil, visit an appropriate file containing the list of filtered
-items; if there is no such file, or with non-nil NEW, build the
-list and display it.
+items, or `regexp' for items matching a regular expression
+entered by the user.  The items can come from any categories in
+the current todo file or, with non-nil MULTIFILE, from several
+files.  If NEW is nil, visit an appropriate file containing the
+list of filtered items; if there is no such file, or with non-nil
+NEW, build the list and display it.
 
 See the documentation strings of the commands
 `todo-filter-top-priorities', `todo-filter-diary-items',
@@ -4699,14 +4765,57 @@ short todo archive or top priorities file name, respectively."
 		   ((eq type 'regexp) ".todr")
 		   (t ".todo"))))))
 
+(defun todo-check-file (file)
+  "Check the state associated with FILE and update it if necessary.
+If FILE exists, return t.  If it does not exist and there is no
+live buffer with its content, return nil; if there is such a
+buffer and the user tries to show it, ask whether to restore
+FILE, and if confirmed, do so and return t; else delete the
+buffer, clean up the state and return nil."
+  (setq todo-files (funcall todo-files-function))
+  (setq todo-archives (funcall todo-files-function t))
+  (if (file-exists-p file)
+      t
+    (setq todo-visited (delete file todo-visited))
+    (let ((buf (find-buffer-visiting file)))
+      (if (and buf
+	       (y-or-n-p
+		(concat
+		 (format (concat "Todo file \"%s\" has been deleted but "
+				 "its content is still in a buffer!\n")
+			 (todo-short-file-name file))
+		 "Save that buffer and restore the todo file? ")))
+	  (progn
+	    (with-current-buffer buf (save-buffer))
+	    (setq todo-files (funcall todo-files-function))
+	    (setq todo-archives (funcall todo-files-function t))
+	    t)
+	(let* ((files (append todo-files todo-archives))
+	       (tctf todo-current-todo-file)
+	       (tgctf todo-global-current-todo-file)
+	       (tdtf (todo-absolute-file-name todo-default-todo-file)))
+	  (unless (or (not todo-current-todo-file)
+		      (member todo-current-todo-file files))
+	    (setq todo-current-todo-file nil))
+	  (unless (or (not todo-global-current-todo-file)
+		      (member todo-global-current-todo-file files))
+	    (setq todo-global-current-todo-file nil))
+	  (unless (or (not todo-default-todo-file)
+		      (member todo-default-todo-file files))
+	    (setq todo-default-todo-file (todo-short-file-name
+					  (car todo-files))))
+	  (todo-reevaluate-filelist-defcustoms)
+	  (when buf (kill-buffer buf))
+	  nil)))))
+
 (defun todo-category-number (cat)
   "Return the number of category CAT in this todo file.
 The buffer-local variable `todo-category-number' holds this
 number as its value."
   (let ((categories (mapcar 'car todo-categories)))
     (setq todo-category-number
-	  ;; Increment by one, so that the highest priority category in Todo
-	  ;; Categories mode is numbered one rather than zero.
+	  ;; Increment by one, so that the number of the first
+	  ;; category is one rather than zero.
 	  (1+ (- (length categories)
 		 (length (member cat categories)))))))
 
@@ -5384,7 +5493,27 @@ Each element of the list is a cons of a category name and the
 file or list of files (as short file names) it is in.  The files
 are either the current (or if there is none, the default) todo
 file plus the files listed in `todo-category-completions-files',
-or, with non-nil ARCHIVE, the current archive file."
+or, with non-nil ARCHIVE, the current archive file.
+
+Before calculating the completions, update the value of
+`todo-category-completions-files' in case any files named in it
+have been removed."
+  (let (deleted)
+    (dolist (f todo-category-completions-files)
+      (unless (file-exists-p (todo-absolute-file-name f))
+	(setq todo-category-completions-files
+	      (delete f todo-category-completions-files))
+	(push f deleted)))
+    (when deleted
+      (let ((pl (> (length deleted) 1))
+	    (names (mapconcat (lambda (f) (concat "\"" f "\"")) deleted ", ")))
+	(message (concat "File" (if pl "s" "") " " names " ha" (if pl "ve" "s")
+			 " been deleted and removed from\n"
+			 "the list of category completion files")))
+      (todo-reevaluate-category-completions-files-defcustom)
+      (custom-set-default 'todo-category-completions-files
+			  (symbol-value 'todo-category-completions-files))
+      (sleep-for 1.5)))
   (let* ((curfile (or todo-current-todo-file
 		      (and todo-show-current-file
 			   todo-global-current-todo-file)
@@ -5435,6 +5564,7 @@ MUSTMATCH the name of an existing file must be chosen;
 otherwise, a new file name is allowed."
   (let* ((completion-ignore-case todo-completion-ignore-case)
 	 (files (mapcar 'todo-short-file-name
+			;; (funcall todo-files-function archive)))
 			(if archive todo-archives todo-files)))
 	 (file (completing-read prompt files nil mustmatch nil nil
 				(if files
@@ -5529,7 +5659,7 @@ categories from `todo-category-completions-files'."
 	;; Validate only against completion categories.
 	(let ((todo-categories categories))
 	  (setq cat (todo-validate-name cat 'category)))
-	;; When user enters a nonexistest category name by jumping or
+	;; When user enters a nonexistent category name by jumping or
 	;; moving, confirm that it should be added, then validate.
 	(unless add
 	  (if (todo-y-or-n-p (format "Add new category \"%s\" to file \"%s\"? "
@@ -5867,13 +5997,24 @@ the empty string (i.e., no time string)."
 
 (defun todo-reevaluate-default-file-defcustom ()
   "Reevaluate defcustom of `todo-default-todo-file'.
-Called after adding or deleting a todo file."
-  (eval (defcustom todo-default-todo-file (car (funcall todo-files-function))
-	  "Todo file visited by first session invocation of `todo-show'."
-	  :type `(radio ,@(mapcar (lambda (f) (list 'const f))
-				  (mapcar 'todo-short-file-name
-					  (funcall todo-files-function))))
-	  :group 'todo)))
+Called after adding or deleting a todo file.  If the value of
+`todo-default-todo-file' before calling this function was
+associated with an existing file, keep that value."
+  ;; (let ((curval todo-default-todo-file))
+    (eval
+     (defcustom todo-default-todo-file (todo-short-file-name
+					(car (funcall todo-files-function)))
+       "Todo file visited by first session invocation of `todo-show'."
+       :type (when todo-files
+	       `(radio ,@(mapcar (lambda (f) (list 'const f))
+				 (mapcar 'todo-short-file-name
+					 (funcall todo-files-function)))))
+       :group 'todo))
+    ;; (when (and curval (file-exists-p (todo-absolute-file-name curval)))
+    ;;   (custom-set-default 'todo-default-todo-file curval)
+    ;;   ;; (custom-reevaluate-setting 'todo-default-todo-file)
+    ;;   )))
+    )
 
 (defun todo-reevaluate-category-completions-files-defcustom ()
   "Reevaluate defcustom of `todo-category-completions-files'.
@@ -6060,6 +6201,7 @@ Filtered Items mode following todo (not done) items."
     ("Cu" todo-unmark-category)
     ("Fh" todo-toggle-item-header)
     ("h"  todo-toggle-item-header)
+    ("Fk" todo-delete-file)
     ("Fe" todo-edit-file)
     ("FH" todo-toggle-item-highlighting)
     ("H"  todo-toggle-item-highlighting)
@@ -6226,12 +6368,13 @@ Filtered Items mode following todo (not done) items."
 
 (defun todo-show-current-file ()
   "Visit current instead of default todo file with `todo-show'.
-This function is added to `pre-command-hook' when user option
+Added to `pre-command-hook' in Todo mode when user option
 `todo-show-current-file' is set to non-nil."
   (setq todo-global-current-todo-file todo-current-todo-file))
 
 (defun todo-display-as-todo-file ()
-  "Show todo files correctly when visited from outside of Todo mode."
+  "Show todo files correctly when visited from outside of Todo mode.
+Added to `find-file-hook' in Todo mode and Todo Archive mode."
   (and (member this-command todo-visit-files-commands)
        (= (- (point-max) (point-min)) (buffer-size))
        (member major-mode '(todo-mode todo-archive-mode))
@@ -6265,7 +6408,7 @@ This function is added to `kill-buffer-hook' in Todo mode."
 
 (defun todo-reset-and-enable-done-separator ()
   "Show resized done items separator overlay after window change.
-Added to `window-configuration-change-hook' in `todo-mode'."
+Added to `window-configuration-change-hook' in Todo mode."
   (when (= 1 (length todo-done-separator-string))
     (let ((sep todo-done-separator))
       (setq todo-done-separator (todo-done-separator))

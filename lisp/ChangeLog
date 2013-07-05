@@ -1,3 +1,41 @@
+2013-07-05  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Add handling of file deletion, both by
+	mode command and externally.  Fix various related bugs.  Clarify
+	Commentary and improve some documentation strings and code.
+	(todo-delete-file): New command.
+	(todo-check-file): New function.
+	(todo-show): Handle external deletion of the file we're trying to
+	show (bug#14688).  Replace called-interactively-p by an optional
+	prefix argument to avoid problematic interaction with catch form
+	when byte compiled (bug#14702).
+	(todo-quit): Handle external deletion of the archive's todo file.
+	Make sure the buffer that was visiting the archive file is still
+	live before trying to bury it.
+	(todo-category-completions): Handle external deletion of any
+	category completion files.
+	(todo-jump-to-category, todo-basic-insert-item): Recalculate list
+	of todo files, in case of external deletion.
+	(todo-add-file): Replace unnecessary setq by let-binding.
+	(todo-find-archive): Check whether there are any archives.
+	Replace unnecessary setq by let-binding.
+	(todo-archive-done-item): Use find-file-noselect to get the
+	archive buffer whether or not the archive already exists.  Remove
+	superfluous code.  Use file size instead of buffer-file-name to
+	check if the archive is new; if it is, update list of archives.
+	(todo-default-todo-file): Allow nil to be a valid value for when
+	there are no todo files.
+	(todo-reevaluate-default-file-defcustom): Use corrected definition
+	of todo-default-todo-file.
+	(todo-key-bindings-t+a+f): Add key binding for todo-delete-file.
+	(todo-delete-category, todo-show-categories-table)
+	(todo-category-number): Clarify comment.
+	(todo-filter-items): Clarify documentation string.
+	(todo-show-current-file, todo-display-as-todo-file)
+	(todo-reset-and-enable-done-separator): Tweak documentation string.
+	(todo-done-separator): Make separator length window-width, since
+	bug#2749 is now fixed.
+
 2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-notify-add-watch): Support
