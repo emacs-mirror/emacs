@@ -23,10 +23,6 @@
  * That thread calls the MPS to resolve the condition and allow the mutator
  * thread to progress.
  *
- * That part is fairly simple.  Most of the code in this module is concerned
- * with decoding Mach messages and re-encoding them in order to forward them
- * on to other exception handlers.
- *
  *
  * SOURCES
  *
