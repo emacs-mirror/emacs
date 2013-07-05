@@ -313,8 +313,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gtkutil.h"
 #endif
 
-#include "font.h"
-
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
 #endif

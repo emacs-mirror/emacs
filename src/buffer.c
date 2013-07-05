@@ -4603,7 +4603,6 @@ evaporate_overlays (ptrdiff_t pos)
 
 #ifdef USE_MMAP_FOR_BUFFERS
 
-#include <sys/types.h>
 #include <sys/mman.h>
 
 #ifndef MAP_ANON
@@ -4617,8 +4616,6 @@ evaporate_overlays (ptrdiff_t pos)
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *) -1)
 #endif
-
-#include <stdio.h>
 
 #if MAP_ANON == 0
 #include <fcntl.h>

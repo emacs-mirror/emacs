@@ -203,7 +203,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdio.h>              /* This needs to be before termchar.h */
 
 #include "lisp.h"
 #include "character.h"

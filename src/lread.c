@@ -38,7 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "termhooks.h"
-#include "coding.h"
 #include "blockinput.h"
 
 #ifdef MSDOS

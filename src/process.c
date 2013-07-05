@@ -78,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_RES_INIT
-#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
 #endif

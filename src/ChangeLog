@@ -1,3 +1,20 @@
+2013-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove duplicate #include directives.
+	* alloc.c [GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES]:
+	* xfaces.c:
+	Don't include stdio.h twice.
+	* buffer.c [USE_MMAP_FOR_BUFFERS]:
+	Don't include sys/types.h or stdio.h twice.
+	* fileio.c [WINDOWSNT | MSDOS]: Don't include fcntl.h twice.
+	* lread.c: Don't include coding.h twice.
+	* nsfont.m: Don't include frame.h twice.
+	* process.c [HAVE_RES_INIT]: Don't include <netinet/in.h> twice.
+	* ralloc.c: Don't include <unistd.h> twice.
+	* xdisp.c: Don't include font.h twice.
+	* xterm.c: Don't include fontset.h twice.
+	* xterm.h [USE_X_TOOLKIT]: Don't include X11/StringDefs.h twice.
+
 2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Scale ImageMagick images more carefully.
