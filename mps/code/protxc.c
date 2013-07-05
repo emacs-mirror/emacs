@@ -226,15 +226,16 @@ static void protCatchOne(void)
     MutatorFaultContextStruct mfcStruct;
 
     mfcStruct.address = (Addr)request.code[1];
-    AVER(sizeof(mfcStruct.thread_state) == sizeof(THREAD_STATE_T));
-    /* FIXME: Pass a pointer in mfcStruct instead, to avoid copies. */
-    memcpy(&mfcStruct.thread_state, request.old_state, sizeof(mfcStruct.thread_state));
+    AVER(sizeof(*mfcStruct.threadState) == sizeof(THREAD_STATE_S));
+    mfcStruct.threadState = (THREAD_STATE_S *)request.old_state;
   
     if (ArenaAccess(mfcStruct.address,
                     AccessREAD | AccessWRITE,
                     &mfcStruct)) {
-      /* Send a reply that will cause the thread to continue. */
-      memcpy(request.old_state, &mfcStruct.thread_state, sizeof(mfcStruct.thread_state));
+      /* Send a reply that will cause the thread to continue.
+         Note that ArenaAccess may have updated request.old_state
+         via mfcStruct.thread_state, and that will get copied to the
+         reply and affect the state the thread resumes in. */
       protBuildReply(&reply, &request, KERN_SUCCESS);
       protMustSend(&reply.Head);
       return;
