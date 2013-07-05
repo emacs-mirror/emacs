@@ -190,17 +190,21 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return res;
   } else {
     MutatorFaultContextStruct mfcStruct;
+    THREAD_STATE_S threadState;
     Addr *stackBase, *stackLimit, stackPtr;
     mach_msg_type_number_t count;
     kern_return_t kern_return;
     
     /* FIXME: Assert that threads have been suspended? */
 
+    mfcStruct.address = NULL;
+    mfcStruct.threadState = &threadState;
+
     count = THREAD_STATE_COUNT;
-    AVER(sizeof(mfcStruct.thread_state) == count * sizeof(natural_t));
+    AVER(sizeof(*mfcStruct.threadState) == count * sizeof(natural_t));
     kern_return = thread_get_state(thread->port,
                                    THREAD_STATE_FLAVOR,
-                                   (thread_state_t)&mfcStruct.thread_state,
+                                   (thread_state_t)mfcStruct.threadState,
                                    &count);
     /* FIXME: error checking */
     AVER(kern_return == KERN_SUCCESS);

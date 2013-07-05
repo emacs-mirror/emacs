@@ -47,14 +47,14 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
      suppress the warning my casting through `char *` and this might make
      it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (MRef)((char *)&mfc->thread_state.__eax);
-    case 1: return (MRef)((char *)&mfc->thread_state.__ecx);
-    case 2: return (MRef)((char *)&mfc->thread_state.__edx);
-    case 3: return (MRef)((char *)&mfc->thread_state.__ebx);
-    case 4: return (MRef)((char *)&mfc->thread_state.__esp);
-    case 5: return (MRef)((char *)&mfc->thread_state.__ebp);
-    case 6: return (MRef)((char *)&mfc->thread_state.__esi);
-    case 7: return (MRef)((char *)&mfc->thread_state.__edi);
+    case 0: return (MRef)((char *)&mfc->threadState->__eax);
+    case 1: return (MRef)((char *)&mfc->threadState->__ecx);
+    case 2: return (MRef)((char *)&mfc->threadState->__edx);
+    case 3: return (MRef)((char *)&mfc->threadState->__ebx);
+    case 4: return (MRef)((char *)&mfc->threadState->__esp);
+    case 5: return (MRef)((char *)&mfc->threadState->__ebp);
+    case 6: return (MRef)((char *)&mfc->threadState->__esi);
+    case 7: return (MRef)((char *)&mfc->threadState->__edi);
   }
   NOTREACHED;
   return (MRef)NULL;  /* Avoids compiler warning. */
@@ -68,7 +68,7 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               MutatorFaultContext mfc)
 {
   *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->thread_state.__eip;
+  *insvecReturn = (Byte*)mfc->threadState->__eip;
 }
 
 
@@ -76,13 +76,13 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
 
 void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
-  mfc->thread_state.__eip += (Word)inslen;
+  mfc->threadState->__eip += (Word)inslen;
 }
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->thread_state.__esp;
+  return (Addr)mfc->threadState->__esp;
 }
 
 
@@ -94,7 +94,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = &mfc->thread_state;
+  mc = mfc->threadState;
   res = TraceScanAreaTagged(ss,
                             (Addr *)mc,
                             (Addr *)((char *)mc + sizeof(*mc)));
