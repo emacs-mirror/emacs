@@ -97,16 +97,6 @@ This is edition @value{VERSION} of the @cite{GNU Emacs Lisp Reference Manual},@*
 This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
-@ifset WWW_GNU_ORG
-@html
-<p>The homepage for GNU Emacs is at
-<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
-For information on using Emacs, refer to
-the <a href="/software/emacs/manual/html_node/emacs/index.html">Emacs
-Manual</a>.<br>  To view this manual in other formats,
-click <a href="/software/emacs/manual/elisp.html">here</a>.
-@end html
-@end ifset
 
 Copyright @copyright{} 1990--1996, 1998--2013 Free Software Foundation, Inc.
 
@@ -166,6 +156,17 @@ Cover art by Etienne Suvasa.
 @ifnottex
 @node Top
 @top Emacs Lisp
+
+@ifset WWW_GNU_ORG
+@html
+<p>The homepage for GNU Emacs is at
+<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+For information on using Emacs, refer to the
+<a href="/software/emacs/manual/emacs.html">Emacs Manual</a>.<br>
+To view this manual in other formats, click
+<a href="/software/emacs/manual/elisp.html">here</a>.
+@end html
+@end ifset
 
 @insertcopying
 @end ifnottex
