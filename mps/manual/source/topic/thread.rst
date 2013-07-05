@@ -59,19 +59,21 @@ than this. See the documentation for the pool class.
 
 .. index::
    single: signal; handling
+   single: exception; handling
    single: thread; signal handling
+   single: thread; exception handling
 
-Signal handling issues
-----------------------
+Signal and exception handling issues
+------------------------------------
 
 .. warning::
 
-    On Unix platforms, the MPS suspends and resumes threads by sending
-    them signals. There's a shortage of available signals that aren't
-    already dedicated to other purposes (for example, ValGrind
-    uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
-    ``SIGXFSZ``. This means that programs must not mask these two
-    signals.
+    On Unix platforms (except OS X), the MPS suspends and resumes
+    threads by sending them signals. There's a shortage of available
+    signals that aren't already dedicated to other purposes (for
+    example, ValGrind uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
+    ``SIGXCPU`` and ``SIGXFSZ``. This means that programs must not mask
+    these two signals.
 
     If your program needs to handle these signals, then it must
     co-operate with the MPS. At present, there's no documented
@@ -84,15 +86,17 @@ Signal handling issues
     memory from the :term:`client program` and handles the signals that
     result from barrier hits.
 
-    Your program must not mask ``SIGBUS`` (on OS X) or ``SIGSEGV`` (on
-    FreeBSD or Linux).
+    * On Linux and FreeBSD, your program must not mask or handle ``SIGSEGV``.
+    
+    * On Windows, you must not install a first-chance exception handler.
+    
+    * On OS X, you must not install a thread-local Mach exception handler
+      for ``EXC_BAD_ACCESS`` exceptions.
 
-    If your program needs to handle these signals, or handle
-    first-chance exceptions (on Windows), then it must co-operate with
-    the MPS. At present, there's no documented mechanism for
-    co-operating: if you are in this situation, please :ref:`contact
+    All of these things are, in fact, possible, but your program must
+    co-operate with the MPS. At present, there's no documented mechanism
+    for co-operating: if you are in this situation, please :ref:`contact
     us <contact>`.
-
 
 .. index::
    single: thread; interface
