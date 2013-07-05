@@ -15,7 +15,7 @@
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
   Addr address;
-  THREAD_STATE_T thread_state;
+  THREAD_STATE_S *threadState;
   /* FIXME: Might need to get the floats in case the compiler stashes
      intermediate values in them. */
 } MutatorFaultContextStruct;

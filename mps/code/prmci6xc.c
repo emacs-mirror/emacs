@@ -42,22 +42,22 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
      types (actually a __uint64_t).  To avoid aliasing optimization
      problems, The registers are cast through (char *) */
   switch (regnum) {
-    case  0: return (MRef)((char *)&mfc->thread_state.__rax);
-    case  1: return (MRef)((char *)&mfc->thread_state.__rcx);
-    case  2: return (MRef)((char *)&mfc->thread_state.__rdx);
-    case  3: return (MRef)((char *)&mfc->thread_state.__rbx);
-    case  4: return (MRef)((char *)&mfc->thread_state.__rsp);
-    case  5: return (MRef)((char *)&mfc->thread_state.__rbp);
-    case  6: return (MRef)((char *)&mfc->thread_state.__rsi);
-    case  7: return (MRef)((char *)&mfc->thread_state.__rdi);
-    case  8: return (MRef)((char *)&mfc->thread_state.__r8);
-    case  9: return (MRef)((char *)&mfc->thread_state.__r9);
-    case 10: return (MRef)((char *)&mfc->thread_state.__r10);
-    case 11: return (MRef)((char *)&mfc->thread_state.__r11);
-    case 12: return (MRef)((char *)&mfc->thread_state.__r12);
-    case 13: return (MRef)((char *)&mfc->thread_state.__r13);
-    case 14: return (MRef)((char *)&mfc->thread_state.__r14);
-    case 15: return (MRef)((char *)&mfc->thread_state.__r15);
+    case  0: return (MRef)((char *)&mfc->threadState->__rax);
+    case  1: return (MRef)((char *)&mfc->threadState->__rcx);
+    case  2: return (MRef)((char *)&mfc->threadState->__rdx);
+    case  3: return (MRef)((char *)&mfc->threadState->__rbx);
+    case  4: return (MRef)((char *)&mfc->threadState->__rsp);
+    case  5: return (MRef)((char *)&mfc->threadState->__rbp);
+    case  6: return (MRef)((char *)&mfc->threadState->__rsi);
+    case  7: return (MRef)((char *)&mfc->threadState->__rdi);
+    case  8: return (MRef)((char *)&mfc->threadState->__r8);
+    case  9: return (MRef)((char *)&mfc->threadState->__r9);
+    case 10: return (MRef)((char *)&mfc->threadState->__r10);
+    case 11: return (MRef)((char *)&mfc->threadState->__r11);
+    case 12: return (MRef)((char *)&mfc->threadState->__r12);
+    case 13: return (MRef)((char *)&mfc->threadState->__r13);
+    case 14: return (MRef)((char *)&mfc->threadState->__r14);
+    case 15: return (MRef)((char *)&mfc->threadState->__r15);
   }
   NOTREACHED;
   return (MRef)NULL;  /* Avoids compiler warning. */
@@ -71,7 +71,7 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
                               MutatorFaultContext mfc)
 {
   *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->thread_state.__rip;
+  *insvecReturn = (Byte*)mfc->threadState->__rip;
 }
 
 
@@ -79,13 +79,13 @@ void Prmci6DecodeFaultContext(MRef *faultmemReturn,
 
 void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
 {
-  mfc->thread_state.__rip += (Word)inslen;
+  mfc->threadState->__rip += (Word)inslen;
 }
 
 
 Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 {
-  return (Addr)mfc->thread_state.__rsp;
+  return (Addr)mfc->threadState->__rsp;
 }
 
 
@@ -97,7 +97,7 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
   /* This scans the root registers (.context.regroots).  It also
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
-  mc = &mfc->thread_state;
+  mc = mfc->threadState;
   res = TraceScanAreaTagged(ss,
                             (Addr *)mc,
                             (Addr *)((char *)mc + sizeof(*mc)));

@@ -407,13 +407,13 @@
 
 #define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
 #define THREAD_STATE_FLAVOR x86_THREAD_STATE64
-#define THREAD_STATE_T x86_thread_state64_t
+#define THREAD_STATE_S x86_thread_state64_t
 
 #elif defined(MPS_ARCH_I3)
 
 #define THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
 #define THREAD_STATE_FLAVOR x86_THREAD_STATE32
-#define THREAD_STATE_T x86_thread_state32_t
+#define THREAD_STATE_S x86_thread_state32_t
 
 #else
 
