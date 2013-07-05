@@ -199,7 +199,8 @@ Root must be the root of an Emacs source tree."
   (let* ((dest (expand-file-name "manual" root))
 	 (html-node-dir (expand-file-name "html_node" dest))
 	 (html-mono-dir (expand-file-name "html_mono" dest))
-	 (ps-dir (expand-file-name "ps" dest)))
+	 (ps-dir (expand-file-name "ps" dest))
+	 (pdf-dir (expand-file-name "pdf" dest)))
     (when (file-directory-p dest)
       (if (y-or-n-p (format "Directory %s exists, delete it first?" dest))
 	  (delete-directory dest t)
@@ -208,23 +209,24 @@ Root must be the root of an Emacs source tree."
     (make-directory html-node-dir)
     (make-directory html-mono-dir)
     (make-directory ps-dir)
+    (make-directory pdf-dir)
     ;; Emacs manual
     (let ((texi (expand-file-name "doc/emacs/emacs.texi" root)))
       (manual-html-node texi (expand-file-name "emacs" html-node-dir))
       (manual-html-mono texi (expand-file-name "emacs.html" html-mono-dir))
-      (manual-pdf texi (expand-file-name "emacs.pdf" dest))
+      (manual-pdf texi (expand-file-name "emacs.pdf" pdf-dif))
       (manual-ps texi (expand-file-name "emacs.ps" ps-dir)))
     ;; Lisp manual
     (let ((texi (expand-file-name "doc/lispref/elisp.texi" root)))
       (manual-html-node texi (expand-file-name "elisp" html-node-dir))
       (manual-html-mono texi (expand-file-name "elisp.html" html-mono-dir))
-      (manual-pdf texi (expand-file-name "elisp.pdf" dest))
+      (manual-pdf texi (expand-file-name "elisp.pdf" pdf-dir))
       (manual-ps texi (expand-file-name "elisp.ps" ps-dir)))
     ;; Lisp intro.
     (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root)))
       (manual-html-node texi (expand-file-name "eintr" html-node-dir))
       (manual-html-mono texi (expand-file-name "eintr.html" html-mono-dir))
-      (manual-pdf texi (expand-file-name "eintr.pdf" dest))
+      (manual-pdf texi (expand-file-name "eintr.pdf" pdf-dir))
       (manual-ps texi (expand-file-name "eintr.ps" ps-dir)))
     ;; Misc manuals
     (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"

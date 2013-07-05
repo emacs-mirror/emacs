@@ -1,6 +1,7 @@
 2013-07-05  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals): Use a standard location for lispintro.
+	Use a pdf/ subdirectory for pdf versions.
 
 2013-06-29  Glenn Morris  <rgm@gnu.org>
 
