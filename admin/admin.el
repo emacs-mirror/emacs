@@ -220,18 +220,12 @@ Root must be the root of an Emacs source tree."
       (manual-html-mono texi (expand-file-name "elisp.html" html-mono-dir))
       (manual-pdf texi (expand-file-name "elisp.pdf" dest))
       (manual-ps texi (expand-file-name "elisp.ps" ps-dir)))
-    (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
-	  (dest (expand-file-name "emacs-lisp-intro" dest))
-	  dest2)
-      ;; Mimic the atypical directory layout used for emacs-lisp-intro.
-      (make-directory dest)
-      (make-directory (setq dest2 (expand-file-name "html_node" dest)))
-      (manual-html-node texi dest2)
-      (make-directory (setq dest2 (expand-file-name "html_mono" dest)))
-      (manual-html-mono texi (expand-file-name "emacs-lisp-intro.html" dest2))
-      (manual-pdf texi (expand-file-name "emacs-lisp-intro.pdf" dest))
-      (make-directory (setq dest2 (expand-file-name "ps" dest)))
-      (manual-ps texi (expand-file-name "emacs-lisp-intro.ps" dest2)))
+    ;; Lisp intro.
+    (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root)))
+      (manual-html-node texi (expand-file-name "eintr" html-node-dir))
+      (manual-html-mono texi (expand-file-name "eintr.html" html-mono-dir))
+      (manual-pdf texi (expand-file-name "eintr.pdf" dest))
+      (manual-ps texi (expand-file-name "eintr.ps" ps-dir)))
     ;; Misc manuals
     (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
 		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
