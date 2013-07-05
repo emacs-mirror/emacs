@@ -438,7 +438,7 @@ _`.conf.params`: The compilation of a module is parameterized by::
 
     MPS_ARCH_<arch-code>
     MPS_OS_<os-code>
-    MPS_BUILDER_<builder-code>
+    MPS_BUILD_<builder-code>
     MPS_PF_<platform-code>
 
 
