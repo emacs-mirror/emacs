@@ -18,8 +18,12 @@ bugs in production since its first commercial use in 1997.  There are a
 fairly large number of rules, both low- and high-level that your code
 must follow in order to be accepted.  These rules are the result of
 continuous process improvement to prevent defects.  Unfortunately, we do
-not have them published at present.  We apologise if you find it
+not have many of them published at present.  We apologise if you find it
 frustrating that we do not accept your changes as they are.
+
+The style guide in guide.impl.c.format_ contains basic rules for style.
+
+.. _guide.impl.c.format: design/guide.impl.c.format.txt
 
 
 Licensing
@@ -32,7 +36,8 @@ MPS and thereby fund future development.
     non-exclusive licence to do anything with [your contribution] that I
     would have the right to do. This includes (but is not limited to):
 
-    1. reproducing it and doing other act that is restricted by copyright;
+    1. reproducing it and doing any other act that is restricted by
+       copyright;
 
     2. the right to sublicence to others the code and any derivative
        work.
