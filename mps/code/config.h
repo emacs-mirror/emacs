@@ -356,7 +356,10 @@
 #if defined(MPS_OS_LI)
 
 #define _XOPEN_SOURCE 500
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #endif
 
