@@ -3418,37 +3418,40 @@ Fall back to normal file name handler if no Tramp handler exists."
 
 (defun tramp-sh-file-gvfs-monitor-dir-process-filter (proc string)
   "Read output from \"gvfs-monitor-dir\" and add corresponding file-notify events."
-  (tramp-message proc 6 (format "%S\n%s" proc string))
-  (with-current-buffer (process-buffer proc)
-    (dolist
-	(line
-	 (split-string string "Directory Monitor Event:[\n\r]+" 'omit-nulls))
-      ;; Attribute change is returned in unused wording.
-      (setq line
-	    (replace-regexp-in-string
-	     "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" line))
-      ;; Check, whether there is a problem.
-      (unless
-	  (string-match
-	   "^Child = \\([^[:blank:]]+\\)[\n\r]+\\(Other = \\([^[:blank:]]+\\)[\n\r]+\\)?Event = \\([^[:blank:]]+\\)[\n\r]+$" line)
-	(tramp-error proc 'file-notify-error "%s" line))
+  (let ((remote-prefix
+	 (with-current-buffer (process-buffer proc)
+	   (file-remote-p default-directory)))
+	(previous-string (tramp-compat-process-get proc 'previous-string)))
+    (when previous-string
+      (tramp-message proc 10 (format "Previous string:\n%s" previous-string)))
+    (tramp-message proc 6 (format "%S\n%s" proc string))
+    (setq string (concat previous-string string)
+	  ;; Attribute change is returned in unused wording.
+	  string (replace-regexp-in-string
+		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
 
-      (let* ((remote-prefix (file-remote-p default-directory))
-	     (object
-	      (list
-	       proc
-	       (intern-soft
-		(replace-regexp-in-string
-		 "_" "-" (downcase (match-string 4 line))))
-	       ;; File names are returned as absolute paths.  We must
-	       ;; add the remote prefix.
-	       (concat remote-prefix (match-string 1 line))
-	       (when (match-string 3 line)
-		 (concat remote-prefix (match-string 3 line))))))
+    (while (string-match
+	    "^Directory Monitor Event:[\n\r]+Child = \\([^[:blank:]]+\\)[\n\r]+\\(Other = \\([^[:blank:]]+\\)[\n\r]+\\)?Event = \\([^[:blank:]]+\\)[\n\r]+$" string)
+      (let ((object
+	     (list
+	      proc
+	      (intern-soft
+	       (replace-regexp-in-string
+		"_" "-" (downcase (match-string 4 string))))
+	      ;; File names are returned as absolute paths.  We must
+	      ;; add the remote prefix.
+	      (concat remote-prefix (match-string 1 string))
+	      (when (match-string 3 string)
+		(concat remote-prefix (match-string 3 string))))))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
-	(tramp-compat-funcall 'file-notify-callback object)))))
+	(tramp-compat-funcall 'file-notify-callback object)
+	(setq string (replace-match "" nil nil string)))))
+
+  ;; Save rest of the string.
+  (when string (tramp-message proc 10 (format "Rest string:\n%s" string)))
+  (tramp-compat-process-put proc 'previous-string string))
 
 (defun tramp-sh-file-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding file-notify events."
