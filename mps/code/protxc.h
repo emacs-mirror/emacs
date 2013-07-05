@@ -1,4 +1,4 @@
-/* protxc.c: PROTECTION EXCPETION HANDLER FOR OS X MACH
+/* protxc.h: PROTECTION EXCPETION HANDLER FOR OS X MACH
  *
  * $Id$
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
