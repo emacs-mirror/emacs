@@ -3378,32 +3378,79 @@ Fall back to normal file name handler if no Tramp handler exists."
 	 ;; Default file name handlers, we don't care.
 	 (t (tramp-run-real-handler operation args)))))))
 
-;; We use inotify for implementation.  It is more likely to exist than glib.
 (defun tramp-sh-handle-file-notify-add-watch (file-name flags callback)
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
     (let* ((default-directory (file-name-directory file-name))
-	   (command (tramp-get-remote-inotifywait v))
-	   (events
-	    (cond
-	     ((and (memq 'change flags) (memq 'attribute-change flags))
-	      "create,modify,move,delete,attrib")
-	     ((memq 'change flags) "create,modify,move,delete")
-	     ((memq 'attribute-change flags) "attrib")))
-	   (p (and command
-		   (start-file-process
-		    "inotifywait" (generate-new-buffer " *inotifywait*")
-		    command "-mq" "-e" events localname))))
+	   command events filter p)
+      (cond
+       ;; gvfs-monitor-dir.
+       ((setq command (tramp-get-remote-gvfs-monitor-dir v))
+	(setq filter 'tramp-sh-file-gvfs-monitor-dir-process-filter
+	      p (start-file-process
+		 "gvfs-monitor-dir" (generate-new-buffer " *gvfs-monitor-dir*")
+		 command localname)))
+       ;; inotifywait.
+       ((setq command (tramp-get-remote-inotifywait v))
+	(setq filter 'tramp-sh-file-inotifywait-process-filter
+	      events
+	      (cond
+	       ((and (memq 'change flags) (memq 'attribute-change flags))
+		"create,modify,move,delete,attrib")
+	       ((memq 'change flags) "create,modify,move,delete")
+	       ((memq 'attribute-change flags) "attrib"))
+	      p (start-file-process
+		  "inotifywait" (generate-new-buffer " *inotifywait*")
+		  command "-mq" "-e" events localname)))
+       ;; None.
+       (t (tramp-error
+	   v 'file-notify-error
+	   "No file notification program found on %s"
+	   (file-remote-p file-name))))
       ;; Return the process object as watch-descriptor.
       (if (not (processp p))
 	  (tramp-error
-	   v 'file-notify-error "`inotifywait' not found on remote host")
+	   v 'file-notify-error "`%s' failed to start on remote host" command)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
-	(set-process-filter p 'tramp-sh-file-notify-process-filter)
+	(set-process-filter p filter)
 	p))))
 
-(defun tramp-sh-file-notify-process-filter (proc string)
+(defun tramp-sh-file-gvfs-monitor-dir-process-filter (proc string)
+  "Read output from \"gvfs-monitor-dir\" and add corresponding file-notify events."
+  (tramp-message proc 6 (format "%S\n%s" proc string))
+  (with-current-buffer (process-buffer proc)
+    (dolist
+	(line
+	 (split-string string "Directory Monitor Event:[\n\r]+" 'omit-nulls))
+      ;; Attribute change is returned in unused wording.
+      (setq line
+	    (replace-regexp-in-string
+	     "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" line))
+      ;; Check, whether there is a problem.
+      (unless
+	  (string-match
+	   "^Child = \\([^[:blank:]]+\\)[\n\r]+\\(Other = \\([^[:blank:]]+\\)[\n\r]+\\)?Event = \\([^[:blank:]]+\\)[\n\r]+$" line)
+	(tramp-error proc 'file-notify-error "%s" line))
+
+      (let* ((remote-prefix (file-remote-p default-directory))
+	     (object
+	      (list
+	       proc
+	       (intern-soft
+		(replace-regexp-in-string
+		 "_" "-" (downcase (match-string 4 line))))
+	       ;; File names are returned as absolute paths.  We must
+	       ;; add the remote prefix.
+	       (concat remote-prefix (match-string 1 line))
+	       (when (match-string 3 line)
+		 (concat remote-prefix (match-string 3 line))))))
+	;; Usually, we would add an Emacs event now.  Unfortunately,
+	;; `unread-command-events' does not accept several events at
+	;; once.  Therefore, we apply the callback directly.
+	(tramp-compat-funcall 'file-notify-callback object)))))
+
+(defun tramp-sh-file-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding file-notify events."
   (tramp-message proc 6 (format "%S\n%s" proc string))
   (dolist (line (split-string string "[\n\r]+" 'omit-nulls))
@@ -3413,17 +3460,17 @@ Fall back to normal file name handler if no Tramp handler exists."
 	 "^[^[:blank:]]+[[:blank:]]+\\([^[:blank:]]+\\)+\\([[:blank:]]+\\([^[:blank:]]+\\)\\)?[[:blank:]]*$" line)
       (tramp-error proc 'file-notify-error "%s" line))
 
-    ;; Usually, we would add an Emacs event now.  Unfortunately,
-    ;; `unread-command-events' does not accept several events at once.
-    ;; Therefore, we apply the callback directly.
-    (let* ((object
-	    (list
-	     proc
-	     (mapcar
-	      (lambda (x)
-		(intern-soft (replace-regexp-in-string "_" "-" (downcase x))))
-	      (split-string (match-string 1 line) "," 'omit-nulls))
-	     (match-string 3 line))))
+    (let ((object
+	   (list
+	    proc
+	    (mapcar
+	     (lambda (x)
+	       (intern-soft (replace-regexp-in-string "_" "-" (downcase x))))
+	     (split-string (match-string 1 line) "," 'omit-nulls))
+	    (match-string 3 line))))
+      ;; Usually, we would add an Emacs event now.  Unfortunately,
+      ;; `unread-command-events' does not accept several events at
+      ;; once.  Therefore, we apply the callback directly.
       (tramp-compat-funcall 'file-notify-callback object))))
 
 (defvar file-notify-descriptors)
@@ -4922,6 +4969,12 @@ Return ATTR."
   (with-tramp-connection-property vec "trash"
     (tramp-message vec 5 "Finding a suitable `trash' command")
     (tramp-find-executable vec "trash" (tramp-get-remote-path vec))))
+
+(defun tramp-get-remote-gvfs-monitor-dir (vec)
+  (with-tramp-connection-property vec "gvfs-monitor-dir"
+    (tramp-message vec 5 "Finding a suitable `gvfs-monitor-dir' command")
+    (tramp-find-executable
+     vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t)))
 
 (defun tramp-get-remote-inotifywait (vec)
   (with-tramp-connection-property vec "inotifywait"
