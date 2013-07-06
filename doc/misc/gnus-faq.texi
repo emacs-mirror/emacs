@@ -222,10 +222,9 @@ Which version of Emacs do I need?
 
 @subsubheading Answer
 
-Gnus 5.10 requires an Emacs version that is greater than or equal
-to Emacs 20.7 or XEmacs 21.1.
-The development versions of Gnus (aka No Gnus) requires Emacs 21
-or XEmacs 21.4.
+Gnus 5.13 requires an Emacs version that is greater than or equal
+to Emacs 23.1 or XEmacs 21.1, although there are some features that
+only work on Emacs 24.
 
 @node FAQ 1-7
 @subsubheading Question 1.7

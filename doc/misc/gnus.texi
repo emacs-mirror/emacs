@@ -3091,6 +3091,12 @@ if address "sender" ["name@@one.org", "else@@two.org"] @{
 @}
 @end example
 
+You can also use regexp expansions in the rules:
+
+@example
+(sieve header :regex "list-id" "<c++std-\\1.accu.org>")
+@end example
+
 See @pxref{Sieve Commands} for commands and variables that might be of
 interest in relation to the sieve parameter.
 
@@ -6380,10 +6386,10 @@ The default is @code{t}.
 @node Generic Marking Commands
 @subsection Generic Marking Commands
 
-Some people would like the command that ticks an article (@kbd{!}) go to
-the next article.  Others would like it to go to the next unread
-article.  Yet others would like it to stay on the current article.  And
-even though I haven't heard of anybody wanting it to go to the
+Some people would like the command that ticks an article (@kbd{!}) to
+go to the next article.  Others would like it to go to the next unread
+article.  Yet others would like it to stay on the current article.
+And even though I haven't heard of anybody wanting it to go to the
 previous (unread) article, I'm sure there are people that want that as
 well.
 
@@ -26575,7 +26581,7 @@ This version of Gnus should work on:
 @itemize @bullet
 
 @item
-Emacs 21.1 and up.
+Emacs 23.1 and up.
 
 @item
 XEmacs 21.4 and up.

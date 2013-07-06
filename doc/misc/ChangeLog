@@ -1,3 +1,18 @@
+2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Parameters): Mention regexp
+	substitutions (bug#11688).
+
+2013-07-06  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
+
+	* gnus.texi (Generic Marking Commands): Fix grammar (bug#13368).
+
+2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Emacsen): Fix version.
+
+	* gnus-faq.texi (FAQ 1-6): Mention the correct Emacs version.
+
 2013-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* mh-e.texi: Fix external links.
