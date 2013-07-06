@@ -7368,7 +7368,7 @@ implementations of COMMAND, so that running `C-u M-x COMMAND'
 will allow the user to chose among them.
 CUSTOMIZATIONS, if non-nil, should be composed of alternating
 `defcustom' keywords and values to add to the declaration of
-`COMMAND-alternatives' (typically to add new groups)."
+`COMMAND-alternatives' (typically :group and :version)."
   (let* ((command-name (symbol-name command))
          (varalt-name (concat command-name "-alternatives"))
          (varalt-sym (intern varalt-name))
@@ -7383,7 +7383,6 @@ ALTNAME - The name shown at user to describe the alternative implementation.
 ALTFUN  - The function called to implement this alternative."
                   command-name)
          :type '(alist :key-type string :value-type function)
-         :group 'dispatcher
          ,@customizations)
 
        (defvar ,varimp-sym nil "Internal use only.")

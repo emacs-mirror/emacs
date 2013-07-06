@@ -1,3 +1,8 @@
+2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (alternatives-define): Remove leftover :group keyword.
+	Tweak docstring.
+
 2013-07-06  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-use-virtual-buffers): Allow new value 'auto.
