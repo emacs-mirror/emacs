@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <limits.h>
 #include <fcntl.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -5618,7 +5618,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  UNGCPRO;
 	}
 
-      stream = fopen (SSDATA (listfile), "w");
+      stream = emacs_fopen (SSDATA (listfile), "w");
     }
 
   record_unwind_protect (do_auto_save_unwind,

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <unistd.h>
 
 #ifdef HAVE_PNG
@@ -2274,7 +2274,7 @@ x_find_image_file (Lisp_Object file)
 static unsigned char *
 slurp_file (char *file, ptrdiff_t *size)
 {
-  FILE *fp = fopen (file, "rb");
+  FILE *fp = emacs_fopen (file, "rb");
   unsigned char *buf = NULL;
   struct stat st;
 
@@ -5723,7 +5723,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	}
 
       /* Open the image file.  */
-      fp = fopen (SSDATA (file), "rb");
+      fp = emacs_fopen (SSDATA (file), "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file, Qnil);
@@ -6484,7 +6484,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 	  return 0;
 	}
 
-      fp = fopen (SSDATA (file), "rb");
+      fp = emacs_fopen (SSDATA (file), "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);

@@ -200,7 +200,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    used to fill in unspecified attributes of the default face.  */
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -6290,7 +6290,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SSDATA (abspath), "rt");
+  fp = emacs_fopen (SSDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];

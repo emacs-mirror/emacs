@@ -1,5 +1,37 @@
 2013-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use emacs_open more consistently when opening files.
+	This handles EINTR more consistently now, and makes it easier
+	to introduce other uniform changes to file descriptor handling.
+	* src/systdio.h: New file.
+	* src/buffer.c (mmap_init):
+	* cygw32.c (chdir_to_default_directory):
+	* dispnew.c (Fopen_termscript):
+	* emacs.c (Fdaemon_initialized):
+	* fileio.c (Fdo_auto_save):
+	* image.c (slurp_file, png_load_body, jpeg_load_body):
+	* keyboard.c (Fopen_dribble_file):
+	* lread.c (Fload):
+	* print.c (Fredirect_debugging_output):
+	* sysdep.c (get_up_time, procfs_ttyname, procfs_get_total_memory):
+	* termcap.c (tgetent):
+	* unexaix.c, unexcoff.c (unexec, adjust_lnnoptrs):
+	* unexcw.c, unexelf.c, unexhp9k800.c, unexmacosx.c (unexec):
+	* w32term.c (w32_initialize) [CYGWIN]:
+	* xfaces.c (Fx_load_color_file):
+	Use emacs_open instead of plain open, and emacs_fopen instead of
+	plain fopen.
+	* dispnew.c, fileio.c, image.c, keyboard.c, lread.c, print.c, sysdep.c:
+	* xfaces.c: Include sysstdio.h rather than stdio.h, for emacs_fopen.
+	* callproc.c (default_output_mode): New constant.
+	(Fcall_process): Use it to call emacs_open instead of plain creat.
+	* dispnew.c (Fopen_termscript): Fix minor race in opening termscript.
+	* sysdep.c (emacs_open): Add commentary and don't call file name "path".
+	(emacs_fopen): New function.
+	* unexaix.c, unexcoff.c, unexelf.c, unexhp9k800.c, unexmacosx.c:
+	Include <lisp.h>, for emacs_open.
+	* unexelf.c (fatal): Remove decl; not needed with <lisp.h> included.
+
 	Remove duplicate #include directives.
 	* alloc.c [GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES]:
 	* xfaces.c:

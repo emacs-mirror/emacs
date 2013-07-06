@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
 
 #define PERROR(file) report_error (file, new)
 
@@ -486,7 +487,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
 #ifdef MSDOS
   if ((new = writedesc) < 0)
 #else
-  if ((new = open (new_name, O_RDWR)) < 0)
+  if ((new = emacs_open (new_name, O_RDWR, 0)) < 0)
 #endif
     {
       PERROR (new_name);
@@ -525,11 +526,11 @@ unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
-  if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
+  if (a_name && (a_out = emacs_open (a_name, O_RDONLY, 0)) < 0)
     {
       PERROR (a_name);
     }
-  if ((new = creat (new_name, 0666)) < 0)
+  if ((new = emacs_open (new_name, O_WRONLY | O_CREAT | O_TRUNC, 0666)) < 0)
     {
       PERROR (new_name);
     }

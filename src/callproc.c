@@ -186,6 +186,12 @@ call_process_cleanup (Lisp_Object arg)
   return Qnil;
 }
 
+#ifdef DOS_NT
+static mode_t const default_output_mode = S_IREAD | S_IWRITE;
+#else
+static mode_t const default_output_mode = 0666;
+#endif
+
 DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
@@ -407,13 +413,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
   if (STRINGP (output_file))
     {
-#ifdef DOS_NT
       fd_output = emacs_open (SSDATA (output_file),
-			      O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-			      S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-      fd_output = creat (SSDATA (output_file), 0666);
-#endif /* not DOS_NT */
+			      O_WRONLY | O_CREAT | O_TRUNC | O_TEXT,
+			      default_output_mode);
       if (fd_output < 0)
 	{
 	  output_file = DECODE_FILE (output_file);
@@ -492,7 +494,8 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	strcat (tempfile, "/");
       strcat (tempfile, "detmp.XXX");
       mktemp (tempfile);
-      outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
+      outfilefd = emacs_open (tempfile, O_WRONLY | O_CREAT | O_TRUNC,
+			      S_IREAD | S_IWRITE);
       if (outfilefd < 0) {
 	emacs_close (filefd);
 	report_file_error ("Opening process output file",
@@ -535,15 +538,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     if (NILP (error_file))
       fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
     else if (STRINGP (error_file))
-      {
-#ifdef DOS_NT
-	fd_error = emacs_open (SSDATA (error_file),
-			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-			       S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-	fd_error = creat (SSDATA (error_file), 0666);
-#endif /* not DOS_NT */
-      }
+      fd_error = emacs_open (SSDATA (error_file),
+			     O_WRONLY | O_CREAT | O_TRUNC | O_TEXT,
+			     default_output_mode);
 
     if (fd_error < 0)
       {

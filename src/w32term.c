@@ -6621,7 +6621,7 @@ w32_initialize (void)
     }
 
 #ifdef CYGWIN
-  if ((w32_message_fd = open ("/dev/windows", O_RDWR | O_CLOEXEC)) == -1)
+  if ((w32_message_fd = emacs_open ("/dev/windows", O_RDWR, 0)) == -1)
     fatal ("opening /dev/windows: %s", strerror (errno));
 #endif /* CYGWIN */
 

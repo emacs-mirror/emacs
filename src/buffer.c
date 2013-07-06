@@ -4726,7 +4726,7 @@ mmap_init (void)
   if (mmap_fd <= 0)
     {
       /* No anonymous mmap -- we need the file descriptor.  */
-      mmap_fd = open ("/dev/zero", O_RDONLY);
+      mmap_fd = emacs_open ("/dev/zero", O_RDONLY, 0);
       if (mmap_fd == -1)
 	fatal ("Cannot open /dev/zero: %s", emacs_strerror (errno));
     }

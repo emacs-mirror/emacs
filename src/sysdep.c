@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSTIME_INLINE EXTERN_INLINE
 
 #include <execinfo.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
@@ -2151,15 +2151,29 @@ emacs_abort (void)
 }
 #endif
 
-int
-emacs_open (const char *path, int oflag, int mode)
-{
-  register int rtnval;
+/* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+   Do not fail merely because the open was interrupted by a signal.
+   Allow the user to quit.  */
 
-  while ((rtnval = open (path, oflag, mode)) == -1
-	 && (errno == EINTR))
+int
+emacs_open (const char *file, int oflags, int mode)
+{
+  int fd;
+  while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     QUIT;
-  return (rtnval);
+  return fd;
+}
+
+/* Open FILE as a stream for Emacs use, with mode MODE.
+   Act like emacs_open with respect to threads, signals, and quits.  */
+
+FILE *
+emacs_fopen (char const *file, char const *mode)
+{
+  FILE *fp;
+  while (! (fp = fopen (file, mode)) && errno == EINTR)
+    QUIT;
+  return fp;
 }
 
 int
@@ -2637,7 +2651,7 @@ get_up_time (void)
   EMACS_TIME up = make_emacs_time (0, 0);
 
   block_input ();
-  fup = fopen ("/proc/uptime", "r");
+  fup = emacs_fopen ("/proc/uptime", "r");
 
   if (fup)
     {
@@ -2682,7 +2696,7 @@ procfs_ttyname (int rdev)
   char name[PATH_MAX];
 
   block_input ();
-  fdev = fopen ("/proc/tty/drivers", "r");
+  fdev = emacs_fopen ("/proc/tty/drivers", "r");
 
   if (fdev)
     {
@@ -2724,7 +2738,7 @@ procfs_get_total_memory (void)
   unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
 
   block_input ();
-  fmem = fopen ("/proc/meminfo", "r");
+  fmem = emacs_fopen ("/proc/meminfo", "r");
 
   if (fmem)
     {

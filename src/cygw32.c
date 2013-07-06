@@ -35,7 +35,7 @@ static void
 chdir_to_default_directory ()
 {
   Lisp_Object new_cwd;
-  int old_cwd_fd = open (".", O_RDONLY | O_DIRECTORY);
+  int old_cwd_fd = emacs_open (".", O_RDONLY | O_DIRECTORY, 0);
 
   if (old_cwd_fd == -1)
     error ("could not open current directory: %s", strerror (errno));
