@@ -2286,7 +2286,6 @@ read_event_from_main_queue (EMACS_TIME *end_time,
       XSETINT (c, XINT (c) | (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL));
     }
 
-  /* FIXME: Decode tty keyboard input here.  */
   return c;
 }
 

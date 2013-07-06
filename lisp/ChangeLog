@@ -1,8 +1,13 @@
+2013-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Use read-key.
+	(sit-for): Let read-event decode tty input (bug#14782).
+
 2013-07-05  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Add handling of file deletion, both by
-	mode command and externally.  Fix various related bugs.  Clarify
-	Commentary and improve some documentation strings and code.
+	mode command and externally.  Fix various related bugs.
+	Clarify Commentary and improve some documentation strings and code.
 	(todo-delete-file): New command.
 	(todo-check-file): New function.
 	(todo-show): Handle external deletion of the file we're trying to
@@ -20,8 +25,8 @@
 	(todo-find-archive): Check whether there are any archives.
 	Replace unnecessary setq by let-binding.
 	(todo-archive-done-item): Use find-file-noselect to get the
-	archive buffer whether or not the archive already exists.  Remove
-	superfluous code.  Use file size instead of buffer-file-name to
+	archive buffer whether or not the archive already exists.
+	Remove superfluous code.  Use file size instead of buffer-file-name to
 	check if the archive is new; if it is, update list of archives.
 	(todo-default-todo-file): Allow nil to be a valid value for when
 	there are no todo files.
@@ -38,9 +43,9 @@
 
 2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-file-notify-add-watch): Support
-	both "gvfs-monitor-dir" and "inotifywait".
-	(tramp-sh-file-inotifywait-process-filter): Renamed from
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-add-watch):
+	Support both "gvfs-monitor-dir" and "inotifywait".
+	(tramp-sh-file-inotifywait-process-filter): Rename from
 	`tramp-sh-file-notify-process-filter'.
 	(tramp-sh-file-gvfs-monitor-dir-process-filter)
 	(tramp-get-remote-gvfs-monitor-dir): New defuns.
@@ -69,8 +74,8 @@
 
 	* subr.el (file-notify-handle-event): Move function to filenotify.el.
 
-	* net/tramp.el (tramp-file-name-for-operation): Handle
-	`file-notify-add-watch' and `file-notify-rm-watch'.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Handle `file-notify-add-watch' and `file-notify-rm-watch'.
 
 	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Add handler
 	for `file-notify-add-watch' and `file-notify-rm-watch'.
