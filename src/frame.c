@@ -2964,6 +2964,15 @@ x_set_line_spacing (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
     f->extra_line_spacing = 0;
   else if (RANGED_INTEGERP (0, new_value, INT_MAX))
     f->extra_line_spacing = XFASTINT (new_value);
+  else if (FLOATP (new_value))
+    {
+      int new_spacing = XFLOAT_DATA (new_value) * FRAME_LINE_HEIGHT (f) + 0.5;
+
+      if (new_spacing >= 0)
+	f->extra_line_spacing = new_spacing;
+      else
+	signal_error ("Invalid line-spacing", new_value);
+    }
   else
     signal_error ("Invalid line-spacing", new_value);
   if (FRAME_VISIBLE_P (f))

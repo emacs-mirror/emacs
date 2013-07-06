@@ -1,5 +1,18 @@
 2013-07-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (default_line_pixel_height): New function.
+	(pos_visible_p, move_it_vertically_backward, try_scrolling)
+	(try_cursor_movement, redisplay_window, try_window)
+	(try_window_id): Use it instead of FRAME_LINE_HEIGHT.  (Bug#14771)
+
+	* window.c (window_scroll_pixel_based): use
+	default_line_pixel_height.
+
+	* dispextern.h (default_line_pixel_height): Add prototype.
+
+	* frame.c (x_set_line_spacing): Accept a float value for
+	line-spacing parameter, per the documentation.
+
 	* data.c (Fmultibyte_string_p): Doc fix.
 
 2013-07-05  Paul Eggert  <eggert@cs.ucla.edu>
