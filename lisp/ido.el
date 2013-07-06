@@ -782,21 +782,29 @@ remaining completion.  If absent, elements 5 and 6 are used instead."
   :group 'ido)
 
 (defcustom ido-use-virtual-buffers nil
-  "If non-nil, refer to past buffers as well as existing ones.
+  "Specify how vritual buffers should be used.
+The value can be one of the following:
+
+  nil:  No virtual buffers are used.
+  auto: Use virtual bufferw when the current input matches no
+        existing buffers.
+  t:    Always use virtual buffers.
+
 Essentially it works as follows: Say you are visiting a file and
 the buffer gets cleaned up by midnight.el.  Later, you want to
-switch to that buffer, but find it's no longer open.  With
-virtual buffers enabled, the buffer name stays in the buffer
-list (using the `ido-virtual' face, and always at the end), and if
-you select it, it opens the file back up again.  This allows you
-to think less about whether recently opened files are still open
-or not.  Most of the time you can quit Emacs, restart, and then
-switch to a file buffer that was previously open as if it still
-were.
-    This feature relies upon the `recentf' package, which will be
-enabled if this variable is configured to a non-nil value."
-  :version "24.1"
-  :type 'boolean
+switch to that buffer, but find it's no longer open.  With virtual
+buffers enabled, the buffer name stays in the buffer list (using
+the `ido-virtual' face, and always at the end), and if you select
+it, it opens the file back up again.  This allows you to think
+less about whether recently opened files are still open or not.
+Most of the time you can quit Emacs, restart, and then switch to
+a file buffer that was previously open as if it still were.  This
+feature relies upon the `recentf' package, which will be enabled
+if this variable is configured to a non-nil value."
+  :version "24.4"
+  :type '(choice (const :tag "Always" t)
+		 (const :tag "Automatic" auto)
+		 (const :tag "Never" nil))
   :group 'ido)
 
 (defcustom ido-use-faces t
@@ -1102,6 +1110,9 @@ Only used if `ido-use-virtual-buffers' is non-nil.")
 
 ;; Don't process ido-ignore- lists once.
 (defvar ido-process-ignore-lists-inhibit)
+
+;; Is ido using virtual buffers?
+(defvar ido-enable-virtual-buffers)
 
 ;; Buffer from which ido was entered.
 (defvar ido-entry-buffer)
@@ -2202,7 +2213,8 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
-	   (ido-use-virtual-buffers ido-use-virtual-buffers)
+	   (ido-enable-virtual-buffers (and ido-use-virtual-buffers
+					    (not (eq ido-use-virtual-buffers 'auto))))
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
 				   require-match initial))
@@ -2243,7 +2255,8 @@ If cursor is not at the end of the user input, move to end of input."
 	  (ido-visit-buffer buf method t)))
 
        ;; check for a virtual buffer reference
-       ((and ido-use-virtual-buffers ido-virtual-buffers
+       ((and ido-enable-virtual-buffers
+	     ido-virtual-buffers
 	     (setq filename (assoc buf ido-virtual-buffers)))
 	(ido-visit-buffer (find-file-noselect (cdr filename)) method t))
 
@@ -2734,7 +2747,11 @@ C-x C-f ... C-d  enter `dired' on current directory."
 See `ido-use-virtual-buffers' for explanation of virtual buffer."
   (interactive)
   (when (and ido-mode (eq ido-cur-item 'buffer))
-    (setq ido-use-virtual-buffers (not ido-use-virtual-buffers))
+    (setq ido-enable-virtual-buffers
+	  (if ido-enable-virtual-buffers
+	      nil
+	    ;; Use `always' instead of t for `ido-exhibit'.
+	    'always))
     (setq ido-text-init ido-text)
     (setq ido-exit 'refresh)
     (exit-minibuffer)))
@@ -3427,9 +3444,9 @@ it is put to the start of the list."
 	(nconc ido-temp-list ido-current-buffers)
       (setq ido-temp-list ido-current-buffers))
     (if default
-        (setq ido-temp-list
-              (cons default (delete default ido-temp-list))))
-    (if ido-use-virtual-buffers
+	(setq ido-temp-list
+	      (cons default (delete default ido-temp-list))))
+    (if (bound-and-true-p ido-enable-virtual-buffers)
 	(ido-add-virtual-buffers-to-list))
     (run-hooks 'ido-make-buffer-list-hook)
     ido-temp-list))
@@ -4476,6 +4493,27 @@ For details of keybindings, see `ido-find-file'."
 	   (concat ido-current-directory (ido-name (car ido-matches))))
 	  (setq ido-exit 'refresh)
 	  (exit-minibuffer))
+
+	(when (and (boundp 'ido-enable-virtual-buffers)
+		   (not (eq ido-enable-virtual-buffers 'always))
+		   (eq ido-cur-item 'buffer)
+		   (eq ido-use-virtual-buffers 'auto))
+
+	  (when (and (not ido-enable-virtual-buffers)
+		     (not ido-matches))
+	    (setq ido-text-init ido-text)
+	    (setq ido-enable-virtual-buffers t)
+	    (setq ido-exit 'refresh)
+	    (exit-minibuffer))
+
+	  ;; If input matches real buffers turn off virtual buffers.
+	  (when (and ido-enable-virtual-buffers
+		     ido-matches
+		     (ido-set-matches-1 (ido-make-buffer-list-1)))
+	    (setq ido-enable-virtual-buffers nil)
+	    (setq ido-text-init ido-text)
+	    (setq ido-exit 'refresh)
+	    (exit-minibuffer)))
 
 	(when (and (not ido-matches)
 		   (not ido-directory-nonreadable)

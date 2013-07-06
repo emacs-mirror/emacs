@@ -1,3 +1,12 @@
+2013-07-06  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers): Allow new value 'auto.
+	(ido-enable-virtual-buffers): New variable.
+	(ido-buffer-internal, ido-toggle-virtual-buffers)
+	(ido-make-buffer-list): Use it.
+	(ido-exhibit): Support turning on and off virtual buffers
+	automatically.
+
 2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (alternatives-define): New macro.
