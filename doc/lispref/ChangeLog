@@ -1,3 +1,8 @@
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Text Representations): Document that
+	multibyte-string-p returns nil for non-string objects.
+
 2013-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi (Top): Move WWW_GNU_ORG section outside @copying.

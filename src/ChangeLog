@@ -1,3 +1,7 @@
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* data.c (Fmultibyte_string_p): Doc fix.
+
 2013-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use emacs_open more consistently when opening files.

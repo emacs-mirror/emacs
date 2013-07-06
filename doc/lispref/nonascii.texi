@@ -124,7 +124,8 @@ belong to the same character.
 
 @defun multibyte-string-p string
 Return @code{t} if @var{string} is a multibyte string, @code{nil}
-otherwise.
+otherwise.  This function also returns @code{nil} if @var{string} is
+some object other than a string.
 @end defun
 
 @defun string-bytes string
