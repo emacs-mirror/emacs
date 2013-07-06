@@ -4759,9 +4759,12 @@ lines."
 		  this-height (nth 4 wstart))))
 	(setq py
 	      (or (nth 1 this-lh)
-		  (let ((ppos (posn-at-point)))
-		    (cdr (or (posn-actual-col-row ppos)
-			     (posn-col-row ppos))))))
+		  (let ((ppos (posn-at-point))
+			col-row)
+		    (setq col-row (posn-actual-col-row ppos))
+		    (if col-row
+			(- (cdr col-row) (window-vscroll))
+		      (cdr (posn-col-row ppos))))))
 	(cond
 	 ;; If last line of window is fully visible, and vscrolling
 	 ;; more would make this line invisible, move forward.

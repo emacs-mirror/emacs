@@ -1,3 +1,8 @@
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial): Adjust the row returned by
+	posn-at-point for the current window-vscroll.  (Bug#14567)
+
 2013-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-file-gvfs-monitor-dir-process-filter):
