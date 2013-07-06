@@ -1,3 +1,8 @@
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-misc-manuals): New function.
+	(make-manuals): Avoid hard-coding list of misc manuals.
+
 2013-07-05  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals): Use a standard location for lispintro.

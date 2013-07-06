@@ -193,6 +193,22 @@ Root must be the root of an Emacs source tree."
 
 ;;; Various bits of magic for generating the web manuals
 
+(defun manual-misc-manuals (root)
+  "Return doc/misc manuals as list of strings."
+  ;; Like `make -C doc/misc echo-info', but works if unconfigured.
+  (with-temp-buffer
+    (insert-file-contents (expand-file-name "doc/misc/Makefile.in" root))
+    (search-forward "INFO_TARGETS = ")
+    (let ((start (point))
+	  res)
+      (end-of-line)
+      (while (and (looking-back "\\\\")
+		  (zerop (forward-line 1)))
+	(end-of-line))
+      (split-string (replace-regexp-in-string
+		     "\\(\\\\\\|\\.info\\)" ""
+		     (buffer-substring start (point)))))))
+
 (defun make-manuals (root)
   "Generate the web manuals for the Emacs webpage."
   (interactive "DEmacs root directory: ")
@@ -229,18 +245,8 @@ Root must be the root of an Emacs source tree."
       (manual-pdf texi (expand-file-name "eintr.pdf" pdf-dir))
       (manual-ps texi (expand-file-name "eintr.ps" ps-dir)))
     ;; Misc manuals
-    (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
-		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
-		     "edt" "eieio" "emacs-gnutls" "emacs-mime" "epa" "erc" "ert"
-		     "eshell" "eudc" "faq" "flymake" "forms"
-		     "gnus" "htmlfontify" "idlwave" "info"
-		     "mairix-el" "message" "mh-e" "newsticker"
-		     "nxml-mode" "org" "pcl-cvs" "pgg" "rcirc"
-		     "reftex" "remember" "sasl" "sc" "semantic"
-		     "ses" "sieve" "smtpmail" "speedbar" "srecode" "tramp"
-		     "url" "vip" "viper" "widget" "wisent" "woman")))
-      (dolist (manual manuals)
-	(manual-misc-html manual root html-node-dir html-mono-dir)))
+    (dolist (manual (manual-misc-manuals root))
+      (manual-misc-html manual root html-node-dir html-mono-dir))
     (message "Manuals created in %s" dest)))
 
 (defconst manual-doctype-string
