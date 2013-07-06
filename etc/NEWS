@@ -268,7 +268,7 @@ on the given date.
 *** `desktop-auto-save-timeout' defines the number of seconds between
 auto-saves of the desktop.
 
-*** `desktop-restore-frames enables saving and restoring the window/frame
+*** `desktop-restore-frames' enables saving and restoring the window/frame
 configuration.
 
 ** Dired
@@ -436,7 +436,7 @@ for remote machines which support filesystem notifications.
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
-are obsolete.  Customize the `woman-* faces instead.
+are obsolete.  Customize the `woman-*' faces instead.
 
 ** Eshell
 
@@ -1058,7 +1058,7 @@ file at point.
 `DEL' (`dired-unmark-backward'), and `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
 
-*** The minibuffer default for `=' (`dired-diff) has changed.
+*** The minibuffer default for `=' (`dired-diff') has changed.
 It is now the backup file for the file at point, if one exists.
 In Transient Mark mode the default is the file at the active mark.
 
