@@ -86,7 +86,11 @@ convert a RELAX NG XML syntax schema to an RNC schema.
 
 @noindent To convert a RELAX NG XML syntax (@samp{.rng}) schema to a RNC
 one, you can also use the XSLT stylesheet from
+@url{https://github.com/oleg-pavliv/emacs/tree/master/xsl}.
+@ignore
+@c Original location, now defunct.
 @url{http://www.pantor.com/download.html}.
+@end ignore
 
 To convert a W3C XML Schema to an RNC schema, you need first to convert it
 to RELAX NG XML syntax using the RELAX NG converter tool @code{rngconv}
