@@ -236,7 +236,7 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @ref{Top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
-@uref{http://www.gnu.org/software/emacs/manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
 @cite{GNU Emacs Manual}},
 @end ifhtml
 from the Free Software Foundation.
@@ -255,7 +255,7 @@ version is distributed with Emacs and can be accessed with the
 @command{info} command (@samp{info mh-e}) or within Emacs (@kbd{C-h i
 m mh-e @key{RET}}). The online version is available at
 @uref{http://mh-e.sourceforge.net/manual/, SourceForge}. Another great
-online resource is the book @uref{http://www.ics.uci.edu/~mh/book/,
+online resource is the book @uref{http://rand-mh.sourceforge.net/book/,
 @cite{MH & nmh: Email for Users & Programmers}} (also known as
 @dfn{the MH book}).
 
@@ -384,7 +384,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Easy-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
 Easy Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 @xref{Options}.
@@ -404,7 +404,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Face-Customization.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -422,7 +422,7 @@ Emacs Manual}
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Hooks.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
 Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
@@ -473,7 +473,7 @@ point.
 @end ifnothtml
 @ifhtml
 See the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
@@ -1121,7 +1121,7 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}. You
 can also order a printed manual, which has the desirable side-effect
 of helping to support the Free Software Foundation which made all this
 great software available. You can find an order form by running
@@ -1132,7 +1132,7 @@ gnu.org}.}
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/}. You
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}. You
 can also order a printed manual, which has the desirable side-effect
 of helping to support the Free Software Foundation which made all this
 great software available. You can find an order form by running
@@ -1141,7 +1141,7 @@ gnu.org}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/software/emacs/elisp-manual/html_node/,
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html,
 The GNU Emacs Lisp Reference Manual} may also be available online in
 the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}. You can
 also order a printed manual, which has the desirable side-effect of
@@ -1152,7 +1152,7 @@ gnu.org}.}
 @end ifhtml
 and you can look at the code itself for examples. Look in the Emacs
 Lisp directory on your system (such as
-@file{/usr/local/lib/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
+@file{/usr/local/share/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
 files there. When calling MH-E and other Emacs Lisp functions directly
 from Emacs Lisp code, you'll need to know the correct arguments. Use
 the online help for this. For example, try @kbd{C-h f
@@ -1311,7 +1311,7 @@ When you choose a folder in MH-E via a command such as @kbd{o}
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Completion.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}).
 @end ifhtml
 In addition, MH-E has several ways of choosing a suitable default so
@@ -2849,7 +2849,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -5059,7 +5059,7 @@ for the next hook function. The standard prefix
 @vindex mh-yank-behavior
 
 For example, if you use the hook function
-@uref{http://shasta.cs.uiuc.edu/~lrclause/tc.html,
+@uref{http://www.emacswiki.org/emacs/TrivialCite,
 @code{trivial-cite}} (which is NOT part of Emacs), set
 @code{mh-yank-behavior} to @samp{Body and Header}.
 
@@ -5616,7 +5616,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -6025,7 +6025,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6175,7 +6175,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6283,7 +6283,7 @@ You can also use the speedbar
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Speedbar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
 Speedbar Frames} in @cite{The GNU Emacs Manual})
 @end ifhtml
 to view your folders. To bring up the speedbar, run @kbd{M-x speedbar
@@ -6415,7 +6415,7 @@ For a description of the menu bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Menu-Bar.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6437,7 +6437,7 @@ tool bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Tool-Bars.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8171,7 +8171,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/Regexps.html,
+@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
