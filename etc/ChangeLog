@@ -1,3 +1,7 @@
+2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new "generic commands" support.
+
 2013-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document new Desktop option `desktop-save-windows'.

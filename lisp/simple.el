@@ -7346,6 +7346,67 @@ warning using STRING as the message.")
     (with-eval-after-load pkg
       (bad-package-check pkg))))
 
+
+;;; Generic dispatcher commands
+
+;; Macro `alternatives-define' is used to create generic commands.
+;; Generic commands are these (like web, mail, news, encrypt, irc, etc.)
+;; that can have different alternative implementations where choosing
+;; among them is exclusively a matter of user preference.
+
+;; (alternatives-define COMMAND) creates a new interactive command
+;; M-x COMMAND and a customizable variable COMMAND-alternatives.
+;; Typically, the user will not need to customize this variable; packages
+;; wanting to add alternative implementations should use
+;;
+;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
+
+(defmacro alternatives-define (command &rest customizations)
+  "Define new command `COMMAND'.
+The variable `COMMAND-alternatives' will contain alternative
+implementations of COMMAND, so that running `C-u M-x COMMAND'
+will allow the user to chose among them.
+CUSTOMIZATIONS, if non-nil, should be composed of alternating
+`defcustom' keywords and values to add to the declaration of
+`COMMAND-alternatives' (typically to add new groups)."
+  (let* ((command-name (symbol-name command))
+         (varalt-name (concat command-name "-alternatives"))
+         (varalt-sym (intern varalt-name))
+         (varimp-sym (intern (concat command-name "--implementation"))))
+    `(progn
+
+       (defcustom ,varalt-sym nil
+         ,(format "Alist of alternative implementations for the `%s' command.
+
+Each entry must be a pair (ALTNAME . ALTFUN), where:
+ALTNAME - The name shown at user to describe the alternative implementation.
+ALTFUN  - The function called to implement this alternative."
+                  command-name)
+         :type '(alist :key-type string :value-type function)
+         :group 'dispatcher
+         ,@customizations)
+
+       (defvar ,varimp-sym nil "Internal use only.")
+
+       (defun ,command (&optional arg)
+         ,(format "Run generic command `%s'.
+If used for the first time, or with interactive ARG, ask the user which
+implementation to use for `%s'.  The variable `%s'
+contains the list of implementations currently supported for this command."
+                  command-name command-name varalt-name)
+         (interactive "P")
+         (when (or arg (null ,varimp-sym))
+           (let ((val (completing-read
+                       ,(format "Select implementation for command `%s': " command-name)
+                       ,varalt-sym nil t)))
+             (unless (string-equal val "")
+               (customize-save-variable ',varimp-sym
+                                        (cdr (assoc-string val ,varalt-sym))))))
+         (if ,varimp-sym
+             (funcall ,varimp-sym)
+           (message ,(format "No implementation selected for command `%s'"
+                             command-name)))))))
+
 (provide 'simple)
 
 ;;; simple.el ends here
