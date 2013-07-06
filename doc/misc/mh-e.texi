@@ -1121,31 +1121,19 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.
-You can purchase a printed copy from @url{http://shop.fsf.org/, the
-FSF online store}, which has the desirable side-effect
-of helping to support the Free Software Foundation, which made all this
-great software available.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.
-You can purchase a printed copy from @url{http://shop.fsf.org/, the
-FSF online store}, which has the desirable side-effect
-of helping to support the Free Software Foundation, which made all this
-great software available.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end ifinfo
 @ifhtml
 @footnote{The
 @uref{http://www.gnu.org/software/emacs/manual/elisp.html,
 The GNU Emacs Lisp Reference Manual} may also be available online in
-the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.
-You can purchase a printed copy from @url{http://shop.fsf.org/, the
-FSF online store}, which has the desirable side-effect
-of helping to support the Free Software Foundation, which made all this
-great software available.}
+the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.}
 @end ifhtml
 and you can look at the code itself for examples. Look in the Emacs
 Lisp directory on your system (such as

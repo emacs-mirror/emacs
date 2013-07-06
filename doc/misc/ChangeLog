@@ -1,7 +1,7 @@
 2013-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* mh-e.texi: Fix external links.
-	(Using This Manual): Refer to shop.fsf.org.
+	(Using This Manual): Printed elisp manuals no longer available.
 
 2013-07-04  Glenn Morris  <rgm@gnu.org>
 
