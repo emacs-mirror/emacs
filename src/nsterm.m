@@ -4419,15 +4419,22 @@ ns_term_shutdown (int sig)
 /*  NSTRACE (sendEvent); */
 /*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
-#ifdef NS_IMPL_COCOA
-  if (type == NSApplicationDefined
-      && [theEvent data2] == NSAPP_DATA2_RUNASSCRIPT)
+  if (type == NSApplicationDefined)
     {
-      ns_run_ascript ();
-      [self stop: self];
-      return;
-    }
+      switch ([theEvent data2])
+        {
+#ifdef NS_IMPL_COCOA
+        case NSAPP_DATA2_RUNASSCRIPT:
+          ns_run_ascript ();
+          [self stop: self];
+          return;
 #endif
+        case NSAPP_DATA2_RUNFILEDIALOG:
+          ns_run_file_dialog ();
+          [self stop: self];
+          return;
+        }
+    }
 
   if (type == NSCursorUpdate && window == nil)
     {

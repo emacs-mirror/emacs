@@ -1,3 +1,8 @@
+2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* files.el (write-file): Do not display confirm dialog for NS,
+	it does its own dialog, which can't be cancelled (Bug#14578).
+
 2013-07-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move-partial): Adjust the row returned by

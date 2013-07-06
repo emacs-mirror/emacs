@@ -286,8 +286,7 @@ typedef float EmacsCGFloat;
 /* ==========================================================================
 
    File open/save panels
-   This and next override methods to work around OS X behavior of
-   restarting application loop when user dismisses panel.
+   This and next override methods to handle keyboard input in panels.
 
    ========================================================================== */
 
@@ -837,6 +836,9 @@ extern Lisp_Object ns_popup_dialog (Lisp_Object position, Lisp_Object contents,
 
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
+
+#define NSAPP_DATA2_RUNFILEDIALOG 11
+extern void ns_run_file_dialog (void);
 
 extern const char *ns_etc_directory (void);
 extern const char *ns_exec_path (void);

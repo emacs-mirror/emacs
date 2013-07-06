@@ -1,3 +1,19 @@
+2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (sendEvent:): Handle NSAPP_DATA2_RUNFILEDIALOG.
+
+	* nsterm.h (NSSavePanel): Update comment.
+	(NSAPP_DATA2_RUNFILEDIALOG): Define.
+	(ns_run_file_dialog): Declare.
+
+	* nsfns.m: Remove panelOK.
+	(ns_fd_data): New.
+	(ns_run_file_dialog): New function.
+	(Fns_read_file_name): Fill in ns_fd_data, post an event and start the
+	event loop, so file dialog is popped up by ns_run_file_dialog, called
+	by sendEvent (Bug#14578).
+	(EmacsSavePanel, EmacsOpenPanel): Remove ok and cancel methods.
+
 2013-07-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (default_line_pixel_height): New function.

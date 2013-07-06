@@ -3878,6 +3878,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
 				    (or buffer-file-name (buffer-name))))))
 	(and confirm
 	     (file-exists-p filename)
+	     ;; NS does its own confirm dialog.
+	     (not (and (eq (framep-on-display) 'ns)
+		       (listp last-nonmenu-event)
+		       use-dialog-box))
 	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
 		 (error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
