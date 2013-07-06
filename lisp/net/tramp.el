@@ -4160,6 +4160,9 @@ Only works for Bourne-like shells."
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <http://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
+;; * Use also port to distinguish connections.  This is needed for
+;;   different hosts sitting behind a single router (distinguished by
+;;   different port numbers).  (Tzvi Edelman)
 
 ;;; tramp.el ends here
 
