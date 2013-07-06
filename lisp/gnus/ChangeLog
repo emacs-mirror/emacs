@@ -1,3 +1,9 @@
+2013-07-05  David Kastrup  <dak@gnu.org>
+
+	* auth-source.el (auth-source-netrc-parse-one): Allow empty strings in
+	authinfo file again (important for blank passwords).  This had been
+	broken with 2013-06-15 change.
+
 2013-07-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups):

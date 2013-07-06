@@ -1048,8 +1048,8 @@ Note that the MAX parameter is used so we can exit the parse early."
   "Read one thing from the current buffer."
   (auth-source-netrc-parse-next-interesting)
 
-  (when (or (looking-at "'\\([^']+\\)'")
-            (looking-at "\"\\([^\"]+\\)\"")
+  (when (or (looking-at "'\\([^']*\\)'")
+            (looking-at "\"\\([^\"]*\\)\"")
             (looking-at "\\([^ \t\n]+\\)"))
     (forward-char (length (match-string 0)))
     (auth-source-netrc-parse-next-interesting)
