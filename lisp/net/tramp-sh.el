@@ -3421,17 +3421,22 @@ Fall back to normal file name handler if no Tramp handler exists."
   (let ((remote-prefix
 	 (with-current-buffer (process-buffer proc)
 	   (file-remote-p default-directory)))
-	(previous-string (tramp-compat-process-get proc 'previous-string)))
-    (when previous-string
-      (tramp-message proc 10 (format "Previous string:\n%s" previous-string)))
+	(rest-string (tramp-compat-process-get proc 'rest-string)))
+    (when rest-string
+      (tramp-message proc 10 (format "Previous string:\n%s" rest-string)))
     (tramp-message proc 6 (format "%S\n%s" proc string))
-    (setq string (concat previous-string string)
+    (setq string (concat rest-string string)
 	  ;; Attribute change is returned in unused wording.
 	  string (replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
 
     (while (string-match
-	    "^Directory Monitor Event:[\n\r]+Child = \\([^[:blank:]]+\\)[\n\r]+\\(Other = \\([^[:blank:]]+\\)[\n\r]+\\)?Event = \\([^[:blank:]]+\\)[\n\r]+$" string)
+	    (concat "^[\n\r]*"
+		    "Directory Monitor Event:[\n\r]+"
+		    "Child = \\([^\n\r]+\\)[\n\r]+"
+		    "\\(Other = \\([^\n\r]+\\)[\n\r]+\\)?"
+		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
+	    string)
       (let ((object
 	     (list
 	      proc
@@ -3443,15 +3448,16 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (concat remote-prefix (match-string 1 string))
 	      (when (match-string 3 string)
 		(concat remote-prefix (match-string 3 string))))))
+	(setq string (replace-match "" nil nil string))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
-	(tramp-compat-funcall 'file-notify-callback object)
-	(setq string (replace-match "" nil nil string)))))
+	(tramp-compat-funcall 'file-notify-callback object)))
 
-  ;; Save rest of the string.
-  (when string (tramp-message proc 10 (format "Rest string:\n%s" string)))
-  (tramp-compat-process-put proc 'previous-string string))
+    ;; Save rest of the string.
+    (when (zerop (length string)) (setq string nil))
+    (when string (tramp-message proc 10 (format "Rest string:\n%s" string)))
+    (tramp-compat-process-put proc 'rest-string string)))
 
 (defun tramp-sh-file-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding file-notify events."
@@ -3460,7 +3466,10 @@ Fall back to normal file name handler if no Tramp handler exists."
     ;; Check, whether there is a problem.
     (unless
 	(string-match
-	 "^[^[:blank:]]+[[:blank:]]+\\([^[:blank:]]+\\)+\\([[:blank:]]+\\([^[:blank:]]+\\)\\)?[[:blank:]]*$" line)
+	 (concat "^[^[:blank:]]+"
+		 "[[:blank:]]+\\([^[:blank:]]+\\)+"
+		 "\\([[:blank:]]+\\([^\n\r]+\\)\\)?")
+	 line)
       (tramp-error proc 'file-notify-error "%s" line))
 
     (let ((object
