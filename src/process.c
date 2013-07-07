@@ -137,6 +137,9 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 
 #ifndef SOCK_CLOEXEC
 # define SOCK_CLOEXEC 0
+#endif
+
+#ifndef HAVE_ACCEPT4
 
 /* Emulate GNU/Linux accept4 and socket well enough for this module.  */
 

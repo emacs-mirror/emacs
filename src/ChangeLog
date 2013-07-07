@@ -1,3 +1,10 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Ubuntu 10 (Bug#14803).
+	Problem reported by T.V. Raman.
+	* process.c (close_on_exec, accept4, process_socket):
+	Define these if !HAVE_ACCEPT4, not if !SOCK_CLOEXEC.
+
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_dup): Declare prototype.
