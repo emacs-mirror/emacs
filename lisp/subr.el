@@ -1980,7 +1980,7 @@ any other terminator is used itself as input.
 The optional argument PROMPT specifies a string to use to prompt the user.
 The variable `read-quoted-char-radix' controls which radix to use
 for numeric input."
-  (let ((message-log-max nil) done (first t) (code 0) char translated)
+  (let ((message-log-max nil) done (first t) (code 0) translated)
     (while (not done)
       (let ((inhibit-quit first)
 	    ;; Don't let C-h get the help message--only help function keys.
