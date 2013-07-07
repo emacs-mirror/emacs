@@ -1,3 +1,12 @@
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-font-height, window-screen-lines): New
+	functions.
+	(line-move, line-move-partial): Use them instead of
+	frame-char-height and window-text-height.  This makes scrolling
+	text smoother when the buffer's default face uses a font that is
+	different from the frame's default font.
+
 2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* files.el (write-file): Do not display confirm dialog for NS,

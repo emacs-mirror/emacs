@@ -4725,14 +4725,35 @@ lines."
   :group 'editing-basics
   :version "23.1")
 
+(defun default-font-height ()
+  "Return the height in pixels of the current buffer's default face font."
+  (cond
+   ((display-multi-font-p)
+    (aref (font-info (face-font 'default)) 3))
+   (t (frame-char-height))))
+
+(defun window-screen-lines ()
+  "Return the number of screen lines in the text area of the selected window.
+
+This is different from `window-text-height' in that this function counts
+lines in units of the height of the font used by the default face displayed
+in the window, not in units of the frame's default font.
+
+The value is a floating-point number."
+  (let ((canonical (window-text-height))
+	(fch (frame-char-height))
+	(dfh (default-font-height)))
+    (/ (* (float canonical) fch) dfh)))
+
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
   (if (< arg 0)
       ;; Move backward (up).
       ;; If already vscrolled, reduce vscroll
-      (let ((vs (window-vscroll nil t)))
-	(when (> vs (frame-char-height))
-	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
+      (let ((vs (window-vscroll nil t))
+	    (dfh (default-font-height)))
+	(when (> vs dfh)
+	  (set-window-vscroll nil (- vs dfh) t)))
 
     ;; Move forward (down).
     (let* ((lh (window-line-height -1))
@@ -4742,13 +4763,13 @@ lines."
 	   (this-lh (window-line-height))
 	   (this-height (nth 0 this-lh))
 	   (this-ypos (nth 2 this-lh))
-	   (fch (frame-char-height))
+	   (dfh (default-font-height))
 	   py vs)
       (when (or (null lh)
-		(>= rbot fch)
-		(<= ypos (- fch))
+		(>= rbot dfh)
+		(<= ypos (- dfh))
 		(null this-lh)
-		(<= this-ypos (- fch)))
+		(<= this-ypos (- dfh)))
 	(unless lh
 	  (let ((wend (pos-visible-in-window-p t nil t)))
 	    (setq rbot (nth 3 wend)
@@ -4768,32 +4789,32 @@ lines."
 	(cond
 	 ;; If last line of window is fully visible, and vscrolling
 	 ;; more would make this line invisible, move forward.
-	 ((and (or (< (setq vs (window-vscroll nil t)) fch)
+	 ((and (or (< (setq vs (window-vscroll nil t)) dfh)
 		   (null this-height)
-		   (<= this-height fch))
+		   (<= this-height dfh))
 	       (or (null rbot) (= rbot 0)))
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, and the
 	 ;; current line is is not too tall, move forward.
-	 ((and (or (null this-height) (<= this-height fch))
+	 ((and (or (null this-height) (<= this-height dfh))
 	       vpos
 	       (> vpos 0)
 	       (< py
-		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
+		  (min (- (window-screen-lines) scroll-margin 1) (1- vpos))))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
 	 ((> vs 0)
 	  (when (or (and rbot (> rbot 0))
-		    (and this-height (> this-height fch)))
-	    (set-window-vscroll nil (+ vs fch) t)))
+		    (and this-height (> this-height dfh)))
+	    (set-window-vscroll nil (+ vs dfh) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
 	 ;; but also vscroll one line so redisplay won't recenter.
 	 ((and vpos
 	       (> vpos 0)
-	       (= py (min (- (window-text-height) scroll-margin 1)
+	       (= py (min (- (window-screen-lines) scroll-margin 1)
 			  (1- vpos))))
-	  (set-window-vscroll nil (frame-char-height) t)
+	  (set-window-vscroll nil dfh t)
 	  (line-move-1 arg noerror to-end)
 	  t)
 	 ;; If there are lines above the last line, scroll-up one line.
@@ -4802,7 +4823,7 @@ lines."
 	  t)
 	 ;; Finally, start vscroll.
 	 (t
-	  (set-window-vscroll nil (frame-char-height) t)))))))
+	  (set-window-vscroll nil dfh t)))))))
 
 
 ;; This is like line-move-1 except that it also performs
@@ -4835,11 +4856,14 @@ lines."
 	  (prog1 (line-move-visual arg noerror)
 	    ;; If we moved into a tall line, set vscroll to make
 	    ;; scrolling through tall images more smooth.
-	    (let ((lh (line-pixel-height)))
+	    (let ((lh (line-pixel-height))
+		  (dfh (default-font-height)))
 	      (if (and (< arg 0)
 		       (< (point) (window-start))
-		       (> lh (frame-char-height)))
-		  (set-window-vscroll nil (- lh (frame-char-height)) t))))
+		       (> lh dfh))
+		  (set-window-vscroll
+		   nil
+		   (- lh dfh) t))))
 	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.
