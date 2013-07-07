@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
+#include <sys/socket.h>
 #include "w32.h"
 #include "w32heap.h"
 #endif

@@ -234,6 +234,8 @@ extern int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
+extern int sys_dup (int);
+
 
 
 

@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #define NOMINMAX
+#include <sys/socket.h>	/* for fcntl */
 #include <windows.h>
 #include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */

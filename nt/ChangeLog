@@ -1,3 +1,8 @@
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
+	(FD_CLOEXEC): New macros.
+
 2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make file descriptors close-on-exec when possible (Bug#14803).

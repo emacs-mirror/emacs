@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #ifdef WINDOWSNT
 #include <share.h>
+#include <sys/socket.h>	/* for fcntl */
 #include "w32.h"	/* for dostounix_filename */
 #endif
 
