@@ -1,3 +1,33 @@
+2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* faces.el  (tty-run-terminal-initialization): function changed (Stefan
+	Monnier's patch).
+	
+	* viper.el (viper-emacs-state-mode-list): add egg-status-buffer-mode.
+	(viper-version): version update.
+	(viper-go-away,viper-setup-hooks): function changed (Stefan Monnier's
+	patch).
+	(viper--lookup-key,viper-catch-tty-ESC,viper-uncatch-tty-ESC,
+	viper-setup-ESC-to-escape): new functions (Stefan Monnier's
+	patch).
+	
+	* viper-cmd.el: (viper-del-forward-char-in-insert): new function.
+	(viper-save-kill-buffer): check if buffer is modified.
+	(viper-envelop-ESC-key): function deleted (Stefan Monnier's patch).
+	(viper-intercept-ESC-key): function changed (Stefan Monnier's patch).
+	
+	* viper-keym.el (viper-ESC-key): constant changed (Stefan Monnier's
+	patch).
+	
+	* ediff.el (ediff-files-command,ediff3-files-command): new functions.
+	(ediff-merge-command,ediff-merge-with-ancestor-command): new functions.
+	(ediff-directories-command,ediff-directories3-command): new functions.
+	(ediff-merge-directories-command): new function.
+	(ediff-merge-directories-with-ancestor-command): new function.
+	All the above are command-line interfaces to ediff: facilitate calling
+	Emacs with the appropriate ediff functions invoked.
+	(ediff-version): version update.
+	
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (default-font-height, window-screen-lines): New

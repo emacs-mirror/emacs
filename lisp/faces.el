@@ -2122,7 +2122,8 @@ terminal type to a different value."
 		       type)
 	(when (fboundp term-init-func)
 	  (funcall term-init-func))
-	(set-terminal-parameter frame 'terminal-initted term-init-func)))))
+	(set-terminal-parameter frame 'terminal-initted term-init-func)
+	(run-hooks 'tty-setup-hook)))))
 
 ;; Called from C function init_display to initialize faces of the
 ;; dumped terminal frame on startup.
