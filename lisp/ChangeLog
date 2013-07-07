@@ -3,39 +3,36 @@
 	* subr.el (read-quoted-char): Remove unused local variable `char'.
 
 2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* faces.el  (tty-run-terminal-initialization): function changed (Stefan
-	Monnier's patch).
+	* faces.el (tty-run-terminal-initialization): Function changed.
 
-	* viper.el (viper-emacs-state-mode-list): add egg-status-buffer-mode.
-	(viper-version): version update.
-	(viper-go-away,viper-setup-hooks): function changed (Stefan Monnier's
-	patch).
-	(viper--lookup-key,viper-catch-tty-ESC,viper-uncatch-tty-ESC,
-	viper-setup-ESC-to-escape): new functions (Stefan Monnier's
-	patch).
+	* viper.el (viper-emacs-state-mode-list): Add egg-status-buffer-mode.
+	(viper-version): Version update.
+	(viper-go-away, viper-setup-hooks): Function changed.
+	(viper--lookup-key, viper-catch-tty-ESC, viper-uncatch-tty-ESC)
+	(viper-setup-ESC-to-escape): New functions.
 
-	* viper-cmd.el: (viper-del-forward-char-in-insert): new function.
-	(viper-save-kill-buffer): check if buffer is modified.
-	(viper-envelop-ESC-key): function deleted (Stefan Monnier's patch).
-	(viper-intercept-ESC-key): function changed (Stefan Monnier's patch).
+	* viper-cmd.el (viper-del-forward-char-in-insert): New function.
+	(viper-save-kill-buffer): Check if buffer is modified.
+	(viper-envelop-ESC-key): Function deleted.
+	(viper-intercept-ESC-key): Function changed.
 
-	* viper-keym.el (viper-ESC-key): constant changed (Stefan Monnier's
-	patch).
+	* viper-keym.el (viper-ESC-key): Constant changed.
 
-	* ediff.el (ediff-files-command,ediff3-files-command): new functions.
-	(ediff-merge-command,ediff-merge-with-ancestor-command): new functions.
-	(ediff-directories-command,ediff-directories3-command): new functions.
-	(ediff-merge-directories-command): new function.
-	(ediff-merge-directories-with-ancestor-command): new function.
+	* ediff.el (ediff-files-command, ediff3-files-command): New functions.
+	(ediff-merge-command, ediff-merge-with-ancestor-command): New functions.
+	(ediff-directories-command, ediff-directories3-command): New functions.
+	(ediff-merge-directories-command): New function.
+	(ediff-merge-directories-with-ancestor-command): New function.
 	All the above are command-line interfaces to ediff: facilitate calling
 	Emacs with the appropriate ediff functions invoked.
-	(ediff-version): version update.
+	(ediff-version): Version update.
 
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* simple.el (default-font-height, window-screen-lines): New
-	functions.
+	* simple.el (default-font-height, window-screen-lines):
+	New functions.
 	(line-move, line-move-partial): Use them instead of
 	frame-char-height and window-text-height.  This makes scrolling
 	text smoother when the buffer's default face uses a font that is

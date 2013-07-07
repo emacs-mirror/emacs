@@ -713,7 +713,7 @@
 	(VALMASK): Also a constant, for benefit of old GDB.
 	(LISP_INT_TAG_P): Remove; no longer needed as the only caller
 	is INTEGERP, which can fold it in.
-	(XLI, XIL, XHASH, XTYPE,XINT, XFASTINT, XUINT)
+	(XLI, XIL, XHASH, XTYPE, XINT, XFASTINT, XUINT)
 	(make_number, XPNTR, XUNTAG, EQ, XCONS, XVECTOR, XSTRING, XSYMBOL)
 	(XFLOAT, XPROCESS, XWINDOW, XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE)
 	(XSUB_CHAR_TABLE, XBOOL_VECTOR, make_lisp_ptr, CHECK_TYPE)
