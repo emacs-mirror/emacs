@@ -1,3 +1,10 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix openp errno handling.
+	* callproc.c (Fcall_process): Preserve openp errno around close.
+	* lread.c (openp): Set errno when returning -1, as some callers
+	expect this.
+
 2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (sendEvent:): Handle NSAPP_DATA2_RUNFILEDIALOG.

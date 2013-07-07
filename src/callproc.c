@@ -436,7 +436,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   }
   if (NILP (path))
     {
+      int openp_errno = errno;
       emacs_close (filefd);
+      errno = openp_errno;
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
 

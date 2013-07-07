@@ -1448,14 +1448,15 @@ static Lisp_Object Qdir_ok;
 
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
-   On success, returns a file descriptor.  On failure, returns -1.
+   On success, return a file descriptor (or 1 or -2 as described below).
+   On failure, return -1 and set errno.
 
    SUFFIXES is a list of strings containing possible suffixes.
    The empty suffix is automatically added if the list is empty.
 
    PREDICATE non-nil means don't open the files,
    just look for one that satisfies the predicate.  In this case,
-   returns 1 on success.  The predicate can be a lisp function or
+   return 1 on success.  The predicate can be a lisp function or
    an integer to pass to `access' (in which case file-name-handlers
    are ignored).
 
@@ -1467,7 +1468,8 @@ static Lisp_Object Qdir_ok;
    but store the found remote file name in *STOREPTR.  */
 
 int
-openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
+openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
+       Lisp_Object *storeptr, Lisp_Object predicate)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
@@ -1478,6 +1480,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object string, tail, encoded_fn;
   ptrdiff_t max_suffix_len = 0;
+  int last_errno = ENOENT;
 
   CHECK_STRING (str);
 
@@ -1547,14 +1550,22 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      bool exists;
+	      last_errno = ENOENT;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
 		{
 		  Lisp_Object tmp = call1 (predicate, string);
-		  exists = !NILP (tmp)
-		    && (EQ (tmp, Qdir_ok)
-			|| NILP (Ffile_directory_p (string)));
+		  if (NILP (tmp))
+		    exists = 0;
+		  else if (EQ (tmp, Qdir_ok)
+			   || NILP (Ffile_directory_p (string)))
+		    exists = 1;
+		  else
+		    {
+		      exists = 0;
+		      last_errno = EISDIR;
+		    }
 		}
 
 	      if (exists)
@@ -1576,21 +1587,36 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 
 	      /* Check that we can access or open it.  */
 	      if (NATNUMP (predicate))
-		fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
-		       && (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
+		{
+		  fd = -1;
+		  if (INT_MAX < XFASTINT (predicate))
+		    last_errno = EINVAL;
+		  else if (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
 				      AT_EACCESS)
 			   == 0)
-		       && ! file_directory_p (pfn))
-		      ? 1 : -1);
+		    {
+		      if (file_directory_p (pfn))
+			last_errno = EISDIR;
+		      else
+			fd = 1;
+		    }
+		}
 	      else
 		{
-		  struct stat st;
 		  fd = emacs_open (pfn, O_RDONLY, 0);
-		  if (fd >= 0
-		      && (fstat (fd, &st) != 0 || S_ISDIR (st.st_mode)))
+		  if (fd < 0)
+		    last_errno = errno;
+		  else
 		    {
-		      emacs_close (fd);
-		      fd = -1;
+		      struct stat st;
+		      int err = (fstat (fd, &st) != 0 ? errno
+				 : S_ISDIR (st.st_mode) ? EISDIR : 0);
+		      if (err)
+			{
+			  last_errno = err;
+			  emacs_close (fd);
+			  fd = -1;
+			}
 		    }
 		}
 
@@ -1609,6 +1635,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
     }
 
   UNGCPRO;
+  errno = last_errno;
   return -1;
 }
 
