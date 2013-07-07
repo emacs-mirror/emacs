@@ -519,7 +519,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     {
 #ifndef MSDOS
       int fd[2];
-      if (pipe (fd) == -1)
+      if (pipe2 (fd, O_CLOEXEC) != 0)
 	{
 	  int pipe_errno = errno;
 	  emacs_close (filefd);
@@ -1036,12 +1036,16 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     memcpy (tempfile, SDATA (encoded_tem), SBYTES (encoded_tem) + 1);
     coding_systems = Qt;
 
-#ifdef HAVE_MKSTEMP
+#if defined HAVE_MKOSTEMP || defined HAVE_MKSTEMP
     {
       int fd;
 
       block_input ();
+# ifdef HAVE_MKOSTEMP
+      fd = mkostemp (tempfile, O_CLOEXEC);
+# else
       fd = mkstemp (tempfile);
+# endif
       unblock_input ();
       if (fd == -1)
 	report_file_error ("Failed to open temporary file",
@@ -1183,15 +1187,6 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 #endif /* WINDOWSNT */
 
   pid_t pid = getpid ();
-
-  /* Close Emacs's descriptors that this process should not have.  */
-  close_process_descs ();
-
-  /* DOS_NT isn't in a vfork, so if we are in the middle of load-file,
-     we will lose if we call close_load_descs here.  */
-#ifndef DOS_NT
-  close_load_descs ();
-#endif
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
@@ -1354,9 +1349,11 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   emacs_close (1);
   emacs_close (2);
 
+  /* Redirect file descriptors and clear FD_CLOEXEC on the redirected ones.  */
   dup2 (in, 0);
   dup2 (out, 1);
   dup2 (err, 2);
+
   emacs_close (in);
   if (out != in)
     emacs_close (out);
@@ -1394,7 +1391,7 @@ relocate_fd (int fd, int minfd)
     return fd;
   else
     {
-      int new = fcntl (fd, F_DUPFD, minfd);
+      int new = fcntl (fd, F_DUPFD_CLOEXEC, minfd);
       if (new == -1)
 	{
 	  const char *message_1 = "Error while setting up child: ";

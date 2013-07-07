@@ -3668,7 +3668,6 @@ extern Lisp_Object string_to_number (char const *, int, bool);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
-extern void close_load_descs (void);
 extern void init_obarray (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
@@ -3995,7 +3994,6 @@ extern void delete_keyboard_wait_descriptor (int);
 extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
 #endif
-extern void close_process_descs (void);
 extern void init_process_emacs (void);
 extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);

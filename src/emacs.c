@@ -889,7 +889,7 @@ main (int argc, char **argv)
 	  emacs_close (0);
 	  emacs_close (1);
 	  result = emacs_open (term, O_RDWR, 0);
-	  if (result < 0 || dup (0) < 0)
+	  if (result < 0 || fcntl (0, F_DUPFD_CLOEXEC, 1) < 0)
 	    {
 	      char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
@@ -969,7 +969,7 @@ main (int argc, char **argv)
 	 use a pipe for synchronization.  The parent waits for the child
 	 to close its end of the pipe (using `daemon-initialized')
 	 before exiting.  */
-      if (pipe (daemon_pipe) == -1)
+      if (pipe2 (daemon_pipe, O_CLOEXEC) != 0)
 	{
 	  fprintf (stderr, "Cannot pipe!\n");
 	  exit (1);
@@ -1065,9 +1065,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
        	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       close (daemon_pipe[0]);
-      /* Make sure that the used end of the pipe is closed on exec, so
-	 that it is not accessible to programs started from .emacs.  */
-      fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
 
       setsid ();
 #else /* DOS_NT */

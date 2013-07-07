@@ -1,3 +1,9 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* merge-gnulib (GNULIB_MODULES): Add fcntl, pipe2.
+	(GNULIB_TOOL_FLAGS): Avoid binary-io, close.  Do not avoid fcntl.
+
 2013-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (manual-misc-manuals): New function.

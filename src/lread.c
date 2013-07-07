@@ -95,9 +95,6 @@ static Lisp_Object Qload_in_progress;
    It must be set to nil before all top-level calls to read0.  */
 static Lisp_Object read_objects;
 
-/* List of descriptors now open for Fload.  */
-static Lisp_Object load_descriptor_list;
-
 /* File for get_file_char to read from.  Use by load.  */
 static FILE *instream;
 
@@ -149,7 +146,6 @@ static void readevalloop (Lisp_Object, FILE *, Lisp_Object, bool,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
-static Lisp_Object load_descriptor_unwind (Lisp_Object);
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -1328,11 +1324,8 @@ Return t if the file exists and loads successfully.  */)
     }
 
   record_unwind_protect (load_unwind, make_save_pointer (stream));
-  record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
-  load_descriptor_list
-    = Fcons (make_number (fileno (stream)), load_descriptor_list);
   specbind (Qload_in_progress, Qt);
 
   instream = stream;
@@ -1394,26 +1387,6 @@ load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
       unblock_input ();
     }
   return Qnil;
-}
-
-static Lisp_Object
-load_descriptor_unwind (Lisp_Object oldlist)
-{
-  load_descriptor_list = oldlist;
-  return Qnil;
-}
-
-/* Close all descriptors in use for Floads.
-   This is used when starting a subprocess.  */
-
-void
-close_load_descs (void)
-{
-#ifndef WINDOWSNT
-  Lisp_Object tail;
-  for (tail = load_descriptor_list; CONSP (tail); tail = XCDR (tail))
-    emacs_close (XFASTINT (XCAR (tail)));
-#endif
 }
 
 static bool
@@ -4376,9 +4349,6 @@ init_lread (void)
 
   load_in_progress = 0;
   Vload_file_name = Qnil;
-
-  load_descriptor_list = Qnil;
-
   Vstandard_input = Qt;
   Vloads_in_progress = Qnil;
 }
@@ -4650,9 +4620,6 @@ variables, this must be set in the first line of a file.  */);
   DEFSYM (Qold_style_backquotes, "old-style-backquotes");
 
   /* Vsource_directory was initialized in init_lread.  */
-
-  load_descriptor_list = Qnil;
-  staticpro (&load_descriptor_list);
 
   DEFSYM (Qcurrent_load_list, "current-load-list");
   DEFSYM (Qstandard_input, "standard-input");

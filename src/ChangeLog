@@ -1,3 +1,41 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	This simplifies Emacs a bit, since it no longer needs to worry
+	about closing file descriptors by hand in some cases.
+	It also fixes some unlikely races.  Not all such races, as
+	libraries often open files internally without setting
+	close-on-exec, but it's an improvement.
+	* alloc.c (valid_pointer_p) [!WINDOWSNT]:
+	* callproc.c (Fcall_process) [!MSDOS]:
+	* emacs.c (main) [!DOS_NT]:
+	* nsterm.m (ns_term_init):
+	* process.c (create_process):
+	Use 'pipe2' with O_CLOEXEC instead of 'pipe'.
+	* emacs.c (Fcall_process_region) [HAVE_MKOSTEMP]:
+	* filelock.c (create_lock_file) [HAVE_MKOSTEMP]:
+	Prefer mkostemp with O_CLOEXEC to mkstemp.
+	* callproc.c (relocate_fd) [!WINDOWSNT]:
+	* emacs.c (main): Use F_DUPFD_CLOEXEC, not plain F_DUPFD.
+	No need to use fcntl (..., F_SETFD, FD_CLOEXEC), since we're
+	now using pipe2.
+	* filelock.c (create_lock_file) [! HAVE_MKOSTEMP]:
+	Make the resulting file descriptor close-on-exec.
+	* lisp.h, lread.c, process.c (close_load_descs, close_process_descs):
+	* lread.c (load_descriptor_list, load_descriptor_unwind):
+	Remove; no longer needed.  All uses removed.
+	* process.c (SOCK_CLOEXEC): Define to 0 if not supplied by system.
+	(close_on_exec, accept4, process_socket) [!SOCK_CLOEXEC]:
+	New functions.
+	(socket) [!SOCK_CLOEXEC]: Supply a substitute.
+	(Fmake_network_process, Fnetwork_interface_list):
+	(Fnetwork_interface_info, server_accept_connection):
+	Make newly-created socket close-on-exec.
+	* sysdep.c (emacs_open, emacs_fopen):
+	Make new-created descriptor close-on-exec.
+	* w32.c (fcntl): Support F_DUPFD_CLOEXEC well enough for Emacs.
+	* w32.c, w32.h (pipe2): Rename from 'pipe', with new flags arg.
+
 2013-07-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (sendEvent:): Propagate keyboard events to modal windows

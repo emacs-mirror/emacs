@@ -876,9 +876,6 @@ EXTRA_DIST += utimens.h
 
 ## begin gnulib module verify
 
-if gl_GNULIB_ENABLED_verify
-
-endif
 EXTRA_DIST += verify.h
 
 ## end   gnulib module verify

@@ -543,8 +543,6 @@ sys_subshell (void)
 #endif
 	}
 
-      close_process_descs ();	/* Close Emacs's pipes/ptys */
-
 #ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
       {
 	char *epwd = getenv ("PWD");
@@ -2152,6 +2150,8 @@ emacs_abort (void)
 #endif
 
 /* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+   Arrange for subprograms to not inherit the file descriptor.
+   Prefer a method that is multithread-safe, if available.
    Do not fail merely because the open was interrupted by a signal.
    Allow the user to quit.  */
 
@@ -2159,8 +2159,11 @@ int
 emacs_open (const char *file, int oflags, int mode)
 {
   int fd;
+  oflags |= O_CLOEXEC;
   while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     QUIT;
+  if (! O_CLOEXEC && 0 <= fd)
+    fcntl (fd, F_SETFD, FD_CLOEXEC);
   return fd;
 }
 
@@ -2170,10 +2173,29 @@ emacs_open (const char *file, int oflags, int mode)
 FILE *
 emacs_fopen (char const *file, char const *mode)
 {
-  FILE *fp;
-  while (! (fp = fopen (file, mode)) && errno == EINTR)
-    QUIT;
-  return fp;
+  int fd, omode, oflags;
+  int bflag = 0;
+  char const *m = mode;
+
+  switch (*m++)
+    {
+    case 'r': omode = O_RDONLY; oflags = 0; break;
+    case 'w': omode = O_WRONLY; oflags = O_CREAT | O_TRUNC; break;
+    case 'a': omode = O_WRONLY; oflags = O_CREAT | O_APPEND; break;
+    default: emacs_abort ();
+    }
+
+  while (*m)
+    switch (*m++)
+      {
+      case '+': omode = O_RDWR; break;
+      case 'b': bflag = O_BINARY; break;
+      case 't': bflag = O_TEXT; break;
+      default: /* Ignore.  */ break;
+      }
+
+  fd = emacs_open (file, omode | oflags | bflag, 0666);
+  return fd < 0 ? 0 : fdopen (fd, mode);
 }
 
 int
