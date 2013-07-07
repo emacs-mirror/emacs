@@ -4419,6 +4419,16 @@ ns_term_shutdown (int sig)
 /*  NSTRACE (sendEvent); */
 /*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
+#ifdef NS_IMPL_GNUSTEP
+  // Keyboard events aren't propagated to file dialogs for some reason.
+  if ([NSApp modalWindow] != nil &&
+      (type == NSKeyDown || type == NSKeyUp || type == NSFlagsChanged))
+    {
+      [[NSApp modalWindow] sendEvent: theEvent];
+      return;
+    }
+#endif
+
   if (type == NSApplicationDefined)
     {
       switch ([theEvent data2])
