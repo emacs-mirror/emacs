@@ -31,7 +31,8 @@ AC_DEFUN([gl_STDALIGN_H],
 
             /* Test _Alignas only on platforms where gnulib can help.  */
             #if \
-                (__GNUC__ || __IBMC__ || __IBMCPP__ \
+                ((defined __cplusplus && 201103 <= __cplusplus) \
+                 || __GNUC__ || __IBMC__ || __IBMCPP__ || __ICC \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
               struct alignas_test { char c; char alignas (8) alignas_8; };
               char test_alignas[offsetof (struct alignas_test, alignas_8) == 8

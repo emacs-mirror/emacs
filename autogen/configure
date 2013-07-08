@@ -614,8 +614,6 @@ LIBGNU_LIBDEPS
 gltests_WITNESS
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE
-gl_GNULIB_ENABLED_verify_FALSE
-gl_GNULIB_ENABLED_verify_TRUE
 gl_GNULIB_ENABLED_strtoull_FALSE
 gl_GNULIB_ENABLED_strtoull_TRUE
 gl_GNULIB_ENABLED_strtoll_FALSE
@@ -634,6 +632,8 @@ gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE
 gl_GNULIB_ENABLED_getgroups_FALSE
 gl_GNULIB_ENABLED_getgroups_TRUE
+gl_GNULIB_ENABLED_getdtablesize_FALSE
+gl_GNULIB_ENABLED_getdtablesize_TRUE
 gl_GNULIB_ENABLED_euidaccess_FALSE
 gl_GNULIB_ENABLED_euidaccess_TRUE
 gl_GNULIB_ENABLED_dosname_FALSE
@@ -3373,6 +3373,7 @@ as_fn_append ac_func_list " readlinkat"
 as_fn_append ac_header_list " dirent.h"
 as_fn_append ac_header_list " execinfo.h"
 as_fn_append ac_func_list " faccessat"
+as_fn_append ac_func_list " fcntl"
 as_fn_append ac_func_list " fdopendir"
 as_fn_append ac_header_list " stdio_ext.h"
 as_fn_append ac_func_list " __fpending"
@@ -3387,6 +3388,7 @@ as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
+as_fn_append ac_func_list " pipe2"
 as_fn_append ac_header_list " sys/select.h"
 as_fn_append ac_func_list " pselect"
 as_fn_append ac_func_list " pthread_sigmask"
@@ -3402,6 +3404,7 @@ as_fn_append ac_func_list " futimesat"
 as_fn_append ac_func_list " futimens"
 as_fn_append ac_func_list " utimensat"
 as_fn_append ac_func_list " lutimes"
+as_fn_append ac_func_list " getdtablesize"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -7247,6 +7250,7 @@ esac
 
   # Code from module extern-inline:
   # Code from module faccessat:
+  # Code from module fcntl:
   # Code from module fcntl-h:
   # Code from module fdatasync:
   # Code from module fdopendir:
@@ -7254,6 +7258,7 @@ esac
   # Code from module fpending:
   # Code from module fstatat:
   # Code from module fsync:
+  # Code from module getdtablesize:
   # Code from module getgroups:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
@@ -7276,6 +7281,7 @@ esac
   # Code from module nocrash:
   # Code from module openat-h:
   # Code from module pathmax:
+  # Code from module pipe2:
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
@@ -14655,14 +14661,14 @@ esac
 
 
 
-for ac_func in gethostname \
+for ac_func in accept4 gethostname \
 getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkstemp getline getdelim sync \
+gai_strerror mkostemp mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -16433,7 +16439,7 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
                   $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
             if test "x$ac_cv_func_posix_openpt" = xyes; then
-        $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_NOCTTY)" >>confdefs.h
+        $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)" >>confdefs.h
 
         $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
 
@@ -18400,6 +18406,8 @@ $as_echo "$gl_cv_header_errno_h_EOVERFLOW" >&6; }
   REPLACE_FCNTL=0;
   REPLACE_OPEN=0;
   REPLACE_OPENAT=0;
+
+
 
 
 ac_fn_c_check_type "$LINENO" "mode_t" "ac_cv_type_mode_t" "$ac_includes_default"
@@ -20692,6 +20700,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+
   GNULIB_PSELECT=0;
   GNULIB_SELECT=0;
     HAVE_PSELECT=1;
@@ -21891,6 +21901,8 @@ _ACEOF
 
 
 
+
+
    if false; then
   GL_COND_LIBTOOL_TRUE=
   GL_COND_LIBTOOL_FALSE='#'
@@ -22431,6 +22443,169 @@ _ACEOF
 
 
           GNULIB_FACCESSAT=1
+
+
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_fcntl = no; then
+
+
+
+  if test $ac_cv_func_fcntl = no; then
+    HAVE_FCNTL=0
+  else
+    REPLACE_FCNTL=1
+  fi
+
+  else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether fcntl handles F_DUPFD correctly" >&5
+$as_echo_n "checking whether fcntl handles F_DUPFD correctly... " >&6; }
+if test "${gl_cv_func_fcntl_f_dupfd_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  # Guess that it works on glibc systems
+          case $host_os in #((
+            *-gnu*) gl_cv_func_fcntl_f_dupfd_works="guessing yes";;
+            *)      gl_cv_func_fcntl_f_dupfd_works="guessing no";;
+          esac
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <fcntl.h>
+#include <errno.h>
+
+int
+main ()
+{
+int result = 0;
+      if (fcntl (0, F_DUPFD, -1) != -1) result |= 1;
+      if (errno != EINVAL) result |= 2;
+      return result;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_fcntl_f_dupfd_works=yes
+else
+  gl_cv_func_fcntl_f_dupfd_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_fcntl_f_dupfd_works" >&5
+$as_echo "$gl_cv_func_fcntl_f_dupfd_works" >&6; }
+    case $gl_cv_func_fcntl_f_dupfd_works in
+      *yes) ;;
+      *)
+
+
+  if test $ac_cv_func_fcntl = no; then
+    HAVE_FCNTL=0
+  else
+    REPLACE_FCNTL=1
+  fi
+
+
+$as_echo "#define FCNTL_DUPFD_BUGGY 1" >>confdefs.h
+ ;;
+    esac
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether fcntl understands F_DUPFD_CLOEXEC" >&5
+$as_echo_n "checking whether fcntl understands F_DUPFD_CLOEXEC... " >&6; }
+if test "${gl_cv_func_fcntl_f_dupfd_cloexec+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <fcntl.h>
+#ifndef F_DUPFD_CLOEXEC
+choke me
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef __linux__
+/* The Linux kernel only added F_DUPFD_CLOEXEC in 2.6.24, so we always replace
+   it to support the semantics on older kernels that failed with EINVAL.  */
+choke me
+#endif
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_func_fcntl_f_dupfd_cloexec=yes
+else
+  gl_cv_func_fcntl_f_dupfd_cloexec="needs runtime check"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+else
+  gl_cv_func_fcntl_f_dupfd_cloexec=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_fcntl_f_dupfd_cloexec" >&5
+$as_echo "$gl_cv_func_fcntl_f_dupfd_cloexec" >&6; }
+    if test "$gl_cv_func_fcntl_f_dupfd_cloexec" != yes; then
+
+
+
+  if test $ac_cv_func_fcntl = no; then
+    HAVE_FCNTL=0
+  else
+    REPLACE_FCNTL=1
+  fi
+
+          fi
+  fi
+
+
+  if test $HAVE_FCNTL = 0 || test $REPLACE_FCNTL = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS fcntl.$ac_objext"
+
+  fi
+
+
+
+
+
+          GNULIB_FCNTL=1
 
 
 
@@ -24150,6 +24325,27 @@ $as_echo "$gl_cv_func_working_mktime" >&6; }
 
 
 
+
+  if test $ac_cv_func_pipe2 != yes; then
+    HAVE_PIPE2=0
+  fi
+
+
+
+
+
+
+          GNULIB_PIPE2=1
+
+
+
+
+
+
+
+
+
+
   if test $ac_cv_func_pselect = yes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether signature of pselect conforms to POSIX" >&5
 $as_echo_n "checking whether signature of pselect conforms to POSIX... " >&6; }
@@ -25637,7 +25833,8 @@ else
 
             /* Test _Alignas only on platforms where gnulib can help.  */
             #if \
-                (__GNUC__ || __IBMC__ || __IBMCPP__ \
+                ((defined __cplusplus && 201103 <= __cplusplus) \
+                 || __GNUC__ || __IBMC__ || __IBMCPP__ || __ICC \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
               struct alignas_test { char c; char alignas (8) alignas_8; };
               char test_alignas[offsetof (struct alignas_test, alignas_8) == 8
@@ -27260,6 +27457,7 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
   gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_euidaccess=false
+  gl_gnulib_enabled_getdtablesize=false
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
@@ -27269,7 +27467,6 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
-  gl_gnulib_enabled_verify=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
@@ -27547,6 +27744,43 @@ done
       if test $HAVE_EUIDACCESS = 0; then
         func_gl_gnulib_m4code_stat
       fi
+    fi
+  }
+  func_gl_gnulib_m4code_getdtablesize ()
+  {
+    if ! $gl_gnulib_enabled_getdtablesize; then
+
+
+
+  if test $ac_cv_func_getdtablesize != yes; then
+    HAVE_GETDTABLESIZE=0
+  fi
+
+      if test $HAVE_GETDTABLESIZE = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS getdtablesize.$ac_objext"
+
+        :
+      fi
+
+
+
+
+
+          GNULIB_GETDTABLESIZE=1
+
+
+
+
+
+      gl_gnulib_enabled_getdtablesize=true
     fi
   }
   func_gl_gnulib_m4code_getgroups ()
@@ -27971,9 +28205,6 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
       if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_pathmax
       fi
-      if test $REPLACE_STAT = 1; then
-        func_gl_gnulib_m4code_verify
-      fi
     fi
   }
   func_gl_gnulib_m4code_strtoll ()
@@ -28080,12 +28311,6 @@ done
       gl_gnulib_enabled_strtoull=true
     fi
   }
-  func_gl_gnulib_m4code_verify ()
-  {
-    if ! $gl_gnulib_enabled_verify; then
-      gl_gnulib_enabled_verify=true
-    fi
-  }
   func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec ()
   {
     if ! $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28103,6 +28328,9 @@ done
   fi
   if test $HAVE_FACCESSAT = 0; then
     func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
+  if test $HAVE_FCNTL = 0 || test $REPLACE_FCNTL = 1; then
+    func_gl_gnulib_m4code_getdtablesize
   fi
   if test $HAVE_FDOPENDIR = 0; then
     func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
@@ -28140,14 +28368,8 @@ done
   if { test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test $HAVE_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
-    func_gl_gnulib_m4code_verify
-  fi
   if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
-  fi
-  if test $ac_cv_func_strtoumax = no; then
-    func_gl_gnulib_m4code_verify
   fi
 
    if $gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b; then
@@ -28172,6 +28394,14 @@ fi
 else
   gl_GNULIB_ENABLED_euidaccess_TRUE='#'
   gl_GNULIB_ENABLED_euidaccess_FALSE=
+fi
+
+   if $gl_gnulib_enabled_getdtablesize; then
+  gl_GNULIB_ENABLED_getdtablesize_TRUE=
+  gl_GNULIB_ENABLED_getdtablesize_FALSE='#'
+else
+  gl_GNULIB_ENABLED_getdtablesize_TRUE='#'
+  gl_GNULIB_ENABLED_getdtablesize_FALSE=
 fi
 
    if $gl_gnulib_enabled_getgroups; then
@@ -28244,14 +28474,6 @@ fi
 else
   gl_GNULIB_ENABLED_strtoull_TRUE='#'
   gl_GNULIB_ENABLED_strtoull_FALSE=
-fi
-
-   if $gl_gnulib_enabled_verify; then
-  gl_GNULIB_ENABLED_verify_TRUE=
-  gl_GNULIB_ENABLED_verify_FALSE='#'
-else
-  gl_GNULIB_ENABLED_verify_TRUE='#'
-  gl_GNULIB_ENABLED_verify_FALSE=
 fi
 
    if $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28715,6 +28937,10 @@ if test -z "${gl_GNULIB_ENABLED_euidaccess_TRUE}" && test -z "${gl_GNULIB_ENABLE
   as_fn_error "conditional \"gl_GNULIB_ENABLED_euidaccess\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${gl_GNULIB_ENABLED_getdtablesize_TRUE}" && test -z "${gl_GNULIB_ENABLED_getdtablesize_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_getdtablesize\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${gl_GNULIB_ENABLED_getgroups_TRUE}" && test -z "${gl_GNULIB_ENABLED_getgroups_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_getgroups\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -28749,10 +28975,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_strtoull_TRUE}" && test -z "${gl_GNULIB_ENABLED_strtoull_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_strtoull\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${gl_GNULIB_ENABLED_verify_TRUE}" && test -z "${gl_GNULIB_ENABLED_verify_FALSE}"; then
-  as_fn_error "conditional \"gl_GNULIB_ENABLED_verify\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE}" && test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE}"; then
