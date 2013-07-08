@@ -120,6 +120,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    enabled. */
 #undef ENABLE_CHECKING
 
+/* Define this to 1 if F_DUPFD behavior does not match POSIX */
+#undef FCNTL_DUPFD_BUGGY
+
 /* Letter to use in finding device name of first PTY, if PTYs are supported.
    */
 #undef FIRST_PTY_LETTER
@@ -205,6 +208,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to set the G_SLICE environment variable to "always-malloc" at
    startup, if using GTK. */
 #undef G_SLICE_ALWAYS_MALLOC
+
+/* Define to 1 if you have the `accept4' function. */
+#undef HAVE_ACCEPT4
 
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
@@ -439,6 +445,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `facl' function. */
 #undef HAVE_FACL
 
+/* Define to 1 if you have the `fcntl' function. */
+#undef HAVE_FCNTL
+
 /* Define to 1 if you have the `fdatasync' function. */
 #undef HAVE_FDATASYNC
 
@@ -486,6 +495,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
+
+/* Define to 1 if you have the `getdtablesize' function. */
+#undef HAVE_GETDTABLESIZE
 
 /* Define to 1 if you have the `getgrent' function. */
 #undef HAVE_GETGRENT
@@ -738,6 +750,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
+/* Define to 1 if you have the `mkostemp' function. */
+#undef HAVE_MKOSTEMP
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
@@ -768,6 +783,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if personality LINUX32 can be set. */
 #undef HAVE_PERSONALITY_LINUX32
+
+/* Define to 1 if you have the `pipe2' function. */
+#undef HAVE_PIPE2
 
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
