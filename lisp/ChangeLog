@@ -1,5 +1,7 @@
 2013-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* faces.el (tty-setup-hook): Declare the hook.
+
 	* emacs-lisp/pcase.el (pcase--split-pred): Add `vars' argument to try
 	and detect when a guard/pred depends on local vars (bug#14773).
 	(pcase--u1): Adjust caller.

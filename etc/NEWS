@@ -540,6 +540,8 @@ file using `set-file-extended-attributes'.
 
 * Lisp Changes in Emacs 24.4
 
+** New hook `tty-setup-hook'.
+
 +++
 ** New macro with-eval-after-load.  Like eval-after-load, but better behaved.
 
