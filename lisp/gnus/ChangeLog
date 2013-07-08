@@ -1,3 +1,12 @@
+2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnml.el (nnml-request-compact-group): Don't bug out if we can't
+	delete files (bug#13481).
+
+2013-07-08  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-registry.el (gnus-registry-remove-extra-data): New function.
+
 2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (gnus-block-private-groups): Allow `global' methods to

@@ -26006,9 +26006,13 @@ following variables.
 
 @defvar gnus-registry-track-extra
 This is a list of symbols, so it's best to change it from the
-Customize interface.  By default it's @code{(subject sender)}, which
-may work for you.  It can be annoying if your mail flow is large and
-people don't stick to the same groups.
+Customize interface.  By default it's @code{(subject sender recipient)},
+which may work for you.  It can be annoying if your mail flow is large
+and people don't stick to the same groups.
+
+When you decide to stop tracking any of those extra data, you can use
+the command @code{gnus-registry-remove-extra-data} to purge it from
+the existing registry entries.
 @end defvar
 
 @defvar gnus-registry-split-strategy
