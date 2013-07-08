@@ -1,3 +1,9 @@
+2013-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--split-pred): Add `vars' argument to try
+	and detect when a guard/pred depends on local vars (bug#14773).
+	(pcase--u1): Adjust caller.
+
 2013-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move-partial, line-move): Account for
@@ -17,7 +23,7 @@
 2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* faces.el (tty-run-terminal-initialization): Function changed.
+	* faces.el (tty-run-terminal-initialization): Run new tty-setup-hook.
 
 	* viper.el (viper-emacs-state-mode-list): Add egg-status-buffer-mode.
 	(viper-version): Version update.

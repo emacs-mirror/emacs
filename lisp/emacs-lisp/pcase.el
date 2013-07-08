@@ -482,12 +482,19 @@ MATCH is the pattern that needs to be matched, of the form:
            all))
     '(:pcase--succeed . nil))))
 
-(defun pcase--split-pred (upat pat)
-  ;; FIXME: For predicates like (pred (> a)), two such predicates may
-  ;; actually refer to different variables `a'.
+(defun pcase--split-pred (vars upat pat)
   (let (test)
     (cond
-     ((equal upat pat) '(:pcase--succeed . :pcase--fail))
+     ((and (equal upat pat)
+           ;; For predicates like (pred (> a)), two such predicates may
+           ;; actually refer to different variables `a'.
+           (or (and (eq 'pred (car upat)) (symbolp (cadr upat)))
+               ;; FIXME: `vars' gives us the environment in which `upat' will
+               ;; run, but we don't have the environment in which `pat' will
+               ;; run, so we can't do a reliable verification.  But let's try
+               ;; and catch at least the easy cases such as (bug#14773).
+               (not (pcase--fgrep (mapcar #'car vars) (cadr upat)))))
+      '(:pcase--succeed . :pcase--fail))
      ((and (eq 'pred (car upat))
            (eq 'pred (car-safe pat))
            (or (member (cons (cadr upat) (cadr pat))
@@ -589,7 +596,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (if (eq (car upat) 'pred) (pcase--mark-used sym))
         (let* ((splitrest
                 (pcase--split-rest
-                 sym (lambda (pat) (pcase--split-pred upat pat)) rest))
+                 sym (lambda (pat) (pcase--split-pred vars upat pat)) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
           (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
