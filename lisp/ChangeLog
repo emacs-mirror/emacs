@@ -1,3 +1,8 @@
+2013-07-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/sh-script.el (sh-read-variable): Remove interactive
+	spec.  (Bug#14826)
+
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (y-or-n-p): Handle empty prompts.  (Bug#14770)
