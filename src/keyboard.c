@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BLOCKINPUT_INLINE EXTERN_INLINE
 #define KEYBOARD_INLINE EXTERN_INLINE
 
-#include <stdio.h>
+#include "sysstdio.h"
 
 #include "lisp.h"
 #include "termchar.h"
@@ -2286,7 +2286,6 @@ read_event_from_main_queue (EMACS_TIME *end_time,
       XSETINT (c, XINT (c) | (extra_keyboard_modifiers & ~0xff7f & ~CHAR_CTL));
     }
 
-  /* FIXME: Decode tty keyboard input here.  */
   return c;
 }
 
@@ -10130,7 +10129,7 @@ The file will be closed when Emacs exits.  */)
   if (!NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      dribble = fopen (SSDATA (file), "w");
+      dribble = emacs_fopen (SSDATA (file), "w");
       if (dribble == 0)
 	report_file_error ("Opening dribble", Fcons (file, Qnil));
     }

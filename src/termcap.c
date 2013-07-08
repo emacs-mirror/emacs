@@ -427,11 +427,7 @@ tgetent (char *bp, const char *name)
 
   /* Here we know we must search a file and termcap_name has its name.  */
 
-#ifdef MSDOS
-  fd = open (termcap_name, O_RDONLY|O_TEXT, 0);
-#else
-  fd = open (termcap_name, O_RDONLY, 0);
-#endif
+  fd = emacs_open (termcap_name, O_RDONLY | O_TEXT, 0);
   if (fd < 0)
     return -1;
 

@@ -2479,7 +2479,7 @@ term_mouse_moveto (int x, int y)
   const char *name;
   int fd;
   name = (const char *) ttyname (0);
-  fd = open (name, O_WRONLY);
+  fd = emacs_open (name, O_WRONLY, 0);
      SOME_FUNCTION (x, y, fd);
   close (fd);
   last_mouse_x = x;

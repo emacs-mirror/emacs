@@ -4347,6 +4347,9 @@ value can be also stored on disk and read back in a new session."
 (defvar window-state-put-list nil
   "Helper variable for `window-state-put'.")
 
+(defvar window-state-put-stale-windows nil
+  "Helper variable for `window-state-put'.")
+
 (defun window--state-put-1 (state &optional window ignore totals)
   "Helper function for `window-state-put'."
   (let ((type (car state)))
@@ -4429,9 +4432,14 @@ value can be also stored on disk and read back in a new session."
 	  (set-window-parameter window (car parameter) (cdr parameter))))
       ;; Process buffer related state.
       (when state
-	;; We don't want to raise an error here so we create a buffer if
-	;; there's none.
-	(set-window-buffer window (get-buffer-create (car state)))
+	;; We don't want to raise an error in case the buffer does not
+	;; exist anymore, so we switch to a previous one and save the
+	;; window with the intention of deleting it later if possible.
+	(let ((buffer (get-buffer (car state))))
+	  (if buffer
+	      (set-window-buffer window buffer)
+	    (switch-to-prev-buffer window)
+	    (push window window-state-put-stale-windows)))
 	(with-current-buffer (window-buffer window)
 	  (set-window-hscroll window (cdr (assq 'hscroll state)))
 	  (apply 'set-window-fringes
@@ -4491,6 +4499,7 @@ Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
 windows can get as small as `window-safe-min-height' and
 `window-safe-min-width'."
+  (setq window-state-put-stale-windows nil)
   (setq window (window-normalize-window window t))
   (let* ((frame (window-frame window))
 	 (head (car state))
@@ -4539,6 +4548,10 @@ windows can get as small as `window-safe-min-height' and
 	(set-window-buffer window (current-buffer))
 	(window--state-put-1 state window nil totals)
 	(window--state-put-2 ignore))
+      (while window-state-put-stale-windows
+	(let ((window (pop window-state-put-stale-windows)))
+	  (when (eq (window-deletable-p window) t)
+	    (delete-window window))))
       (window--check frame))))
 
 (defun display-buffer-record-window (type window buffer)

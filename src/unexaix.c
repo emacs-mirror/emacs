@@ -42,6 +42,7 @@ what you give them.   Help stamp out software-hoarding!  */
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
 
 #define PERROR(file) report_error (file, new)
 #include <a.out.h>
@@ -132,11 +133,11 @@ unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
-  if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
+  if (a_name && (a_out = emacs_open (a_name, O_RDONLY, 0)) < 0)
     {
       PERROR (a_name);
     }
-  if ((new = creat (new_name, 0666)) < 0)
+  if ((new = emacs_open (new_name, O_WRONLY | O_CREAT | O_TRUNC, 0666)) < 0)
     {
       PERROR (new_name);
     }
@@ -503,7 +504,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
   if (!lnnoptr || !f_hdr.f_symptr)
     return 0;
 
-  if ((new = open (new_name, O_RDWR)) < 0)
+  if ((new = emacs_open (new_name, O_RDWR, 0)) < 0)
     {
       PERROR (new_name);
       return -1;

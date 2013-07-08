@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #define NOMINMAX
+#include <sys/socket.h>	/* for fcntl */
 #include <windows.h>
 #include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */
@@ -185,6 +186,12 @@ call_process_cleanup (Lisp_Object arg)
 
   return Qnil;
 }
+
+#ifdef DOS_NT
+static mode_t const default_output_mode = S_IREAD | S_IWRITE;
+#else
+static mode_t const default_output_mode = 0666;
+#endif
 
 DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
@@ -407,13 +414,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
   if (STRINGP (output_file))
     {
-#ifdef DOS_NT
       fd_output = emacs_open (SSDATA (output_file),
-			      O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-			      S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-      fd_output = creat (SSDATA (output_file), 0666);
-#endif /* not DOS_NT */
+			      O_WRONLY | O_CREAT | O_TRUNC | O_TEXT,
+			      default_output_mode);
       if (fd_output < 0)
 	{
 	  output_file = DECODE_FILE (output_file);
@@ -434,7 +437,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   }
   if (NILP (path))
     {
+      int openp_errno = errno;
       emacs_close (filefd);
+      errno = openp_errno;
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
 
@@ -492,7 +497,8 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	strcat (tempfile, "/");
       strcat (tempfile, "detmp.XXX");
       mktemp (tempfile);
-      outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
+      outfilefd = emacs_open (tempfile, O_WRONLY | O_CREAT | O_TRUNC,
+			      S_IREAD | S_IWRITE);
       if (outfilefd < 0) {
 	emacs_close (filefd);
 	report_file_error ("Opening process output file",
@@ -514,7 +520,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     {
 #ifndef MSDOS
       int fd[2];
-      if (pipe (fd) == -1)
+      if (pipe2 (fd, O_CLOEXEC) != 0)
 	{
 	  int pipe_errno = errno;
 	  emacs_close (filefd);
@@ -535,15 +541,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     if (NILP (error_file))
       fd_error = emacs_open (NULL_DEVICE, O_WRONLY, 0);
     else if (STRINGP (error_file))
-      {
-#ifdef DOS_NT
-	fd_error = emacs_open (SSDATA (error_file),
-			       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-			       S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-	fd_error = creat (SSDATA (error_file), 0666);
-#endif /* not DOS_NT */
-      }
+      fd_error = emacs_open (SSDATA (error_file),
+			     O_WRONLY | O_CREAT | O_TRUNC | O_TEXT,
+			     default_output_mode);
 
     if (fd_error < 0)
       {
@@ -1037,12 +1037,16 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     memcpy (tempfile, SDATA (encoded_tem), SBYTES (encoded_tem) + 1);
     coding_systems = Qt;
 
-#ifdef HAVE_MKSTEMP
+#if defined HAVE_MKOSTEMP || defined HAVE_MKSTEMP
     {
       int fd;
 
       block_input ();
+# ifdef HAVE_MKOSTEMP
+      fd = mkostemp (tempfile, O_CLOEXEC);
+# else
       fd = mkstemp (tempfile);
+# endif
       unblock_input ();
       if (fd == -1)
 	report_file_error ("Failed to open temporary file",
@@ -1184,15 +1188,6 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 #endif /* WINDOWSNT */
 
   pid_t pid = getpid ();
-
-  /* Close Emacs's descriptors that this process should not have.  */
-  close_process_descs ();
-
-  /* DOS_NT isn't in a vfork, so if we are in the middle of load-file,
-     we will lose if we call close_load_descs here.  */
-#ifndef DOS_NT
-  close_load_descs ();
-#endif
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
@@ -1355,9 +1350,11 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   emacs_close (1);
   emacs_close (2);
 
+  /* Redirect file descriptors and clear FD_CLOEXEC on the redirected ones.  */
   dup2 (in, 0);
   dup2 (out, 1);
   dup2 (err, 2);
+
   emacs_close (in);
   if (out != in)
     emacs_close (out);
@@ -1395,7 +1392,7 @@ relocate_fd (int fd, int minfd)
     return fd;
   else
     {
-      int new = fcntl (fd, F_DUPFD, minfd);
+      int new = fcntl (fd, F_DUPFD_CLOEXEC, minfd);
       if (new == -1)
 	{
 	  const char *message_1 = "Error while setting up child: ";

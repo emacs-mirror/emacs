@@ -1,3 +1,17 @@
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
+	(FD_CLOEXEC): New macros.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* gnulib.mk: Remove empty gl_GNULIB_ENABLED_verify section;
+	otherwise, gnulib-tool complains given close-on-exec changes.
+	* inc/ms-w32.h (pipe): Remove.
+	* mingw-cfg.site (ac_cv_func_fcntl, gl_cv_func_fcntl_f_dupfd_cloexec)
+	(gl_cv_func_fcntl_f_dupfd_works, ac_cv_func_pipe2): New vars.
+
 2013-06-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Add warning to the help text about using the

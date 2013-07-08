@@ -247,10 +247,6 @@ enum mem_type
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-#include <stdio.h>		/* For fprintf.  */
-#endif
-
 /* A unique object in pure space used to make some Lisp objects
    on free lists recognizable in O(1).  */
 
@@ -4745,7 +4741,7 @@ valid_pointer_p (void *p)
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if (pipe (fd) == 0)
+  if (pipe2 (fd, O_CLOEXEC) == 0)
     {
       bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
       emacs_close (fd[1]);

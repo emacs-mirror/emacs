@@ -1762,31 +1762,67 @@ See `font-lock-syntax-table'.")
              "yield")
            'symbols)
           "\\|"
-          ;; keyword-like methods on Kernel and Module
           (regexp-opt
-           '("alias_method"
+           ;; built-in methods on Kernel
+           '("__callee__"
+             "__dir__"
+             "__method__"
+             "abort"
+             "at_exit"
+             "autoload"
+             "autoload?"
+             "binding"
+             "block_given?"
+             "caller"
+             "catch"
+             "eval"
+             "exec"
+             "exit"
+             "exit!"
+             "fail"
+             "fork"
+             "format"
+             "lambda"
+             "load"
+             "loop"
+             "open"
+             "p"
+             "print"
+             "printf"
+             "proc"
+             "putc"
+             "puts"
+             "raise"
+             "rand"
+             "readline"
+             "readlines"
+             "require"
+             "require_relative"
+             "sleep"
+             "spawn"
+             "sprintf"
+             "srand"
+             "syscall"
+             "system"
+             "throw"
+             "trap"
+             "warn"
+             ;; keyword-like private methods on Module
+             "alias_method"
              "autoload"
              "attr"
              "attr_accessor"
              "attr_reader"
              "attr_writer"
-             "catch"
              "define_method"
              "extend"
-             "fail"
              "include"
-             "lambda"
-             "loop"
              "module_function"
+             "prepend"
              "private"
-             "proc"
              "protected"
              "public"
-             "raise"
              "refine"
-             "require"
-             "require_relative"
-             "throw"
              "using")
            'symbols)
           "\\)")
@@ -1794,12 +1830,16 @@ See `font-lock-syntax-table'.")
          '(if (match-beginning 4)
               font-lock-builtin-face
             font-lock-keyword-face))
+   ;; Perl-ish keywords
+   "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; here-doc beginnings
    `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
                                'font-lock-string-face))
    ;; variables
    '("\\(^\\|[^.@$]\\|\\.\\.\\)\\_<\\(nil\\|self\\|true\\|false\\)\\>"
      2 font-lock-variable-name-face)
+   ;; keywords that evaluate to certain values
+   '("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>" 0 font-lock-variable-name-face)
    ;; symbols
    '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|@?\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-constant-face)

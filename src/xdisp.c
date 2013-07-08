@@ -313,8 +313,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gtkutil.h"
 #endif
 
-#include "font.h"
-
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
 #endif
@@ -1234,6 +1232,52 @@ Value is the height in pixels of the line at point.  */)
   return make_number (line_bottom_y (&it));
 }
 
+/* Return the default pixel height of text lines in window W.  The
+   value is the canonical height of the W frame's default font, plus
+   any extra space required by the line-spacing variable or frame
+   parameter.
+
+   Implementation note: this ignores any line-spacing text properties
+   put on the newline characters.  This is because those properties
+   only affect the _screen_ line ending in the newline (i.e., in a
+   continued line, only the last screen line will be affected), which
+   means only a small number of lines in a buffer can ever use this
+   feature.  Since this function is used to compute the default pixel
+   equivalent of text lines in a window, we can safely ignore those
+   few lines.  For the same reasons, we ignore the line-height
+   properties.  */
+int
+default_line_pixel_height (struct window *w)
+{
+  struct frame *f = WINDOW_XFRAME (w);
+  int height = FRAME_LINE_HEIGHT (f);
+
+  if (!FRAME_INITIAL_P (f) && BUFFERP (w->contents))
+    {
+      struct buffer *b = XBUFFER (w->contents);
+      Lisp_Object val = BVAR (b, extra_line_spacing);
+
+      if (NILP (val))
+	val = BVAR (&buffer_defaults, extra_line_spacing);
+      if (!NILP (val))
+	{
+	  if (RANGED_INTEGERP (0, val, INT_MAX))
+	    height += XFASTINT (val);
+	  else if (FLOATP (val))
+	    {
+	      int addon = XFLOAT_DATA (val) * height + 0.5;
+
+	      if (addon >= 0)
+		height += addon;
+	    }
+	}
+      else
+	height += f->extra_line_spacing;
+    }
+
+  return height;
+}
+
 /* Subroutine of pos_visible_p below.  Extracts a display string, if
    any, from the display spec given as its argument.  */
 static Lisp_Object
@@ -1368,8 +1412,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	  struct it save_it = it;
 	  /* Why 10? because we don't know how many canonical lines
 	     will the height of the next line(s) be.  So we guess.  */
-	  int ten_more_lines =
-	    10 * FRAME_LINE_HEIGHT (XFRAME (WINDOW_FRAME (w)));
+	  int ten_more_lines = 10 * default_line_pixel_height (w);
 
 	  move_it_to (&it, charpos, -1, bottom_y + ten_more_lines, -1,
 		      MOVE_TO_POS | MOVE_TO_Y);
@@ -9058,7 +9101,7 @@ move_it_vertically_backward (struct it *it, int dy)
   start_pos = IT_CHARPOS (*it);
 
   /* Estimate how many newlines we must move back.  */
-  nlines = max (1, dy / FRAME_LINE_HEIGHT (it->f));
+  nlines = max (1, dy / default_line_pixel_height (it->w));
   if (it->line_wrap == TRUNCATE)
     pos_limit = BEGV;
   else
@@ -14538,6 +14581,9 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   Lisp_Object aggressive;
   /* We will never try scrolling more than this number of lines.  */
   int scroll_limit = SCROLL_LIMIT;
+  int frame_line_height = default_line_pixel_height (w);
+  int window_total_lines
+    = WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
 
 #ifdef GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -14548,8 +14594,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   /* Compute scroll margin height in pixels.  We scroll when point is
      within this distance from the top or bottom of the window.  */
   if (scroll_margin > 0)
-    this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
-      * FRAME_LINE_HEIGHT (f);
+    this_scroll_margin = min (scroll_margin, window_total_lines / 4)
+      * frame_line_height;
   else
     this_scroll_margin = 0;
 
@@ -14560,19 +14606,19 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   if (arg_scroll_conservatively > scroll_limit)
     {
       arg_scroll_conservatively = scroll_limit + 1;
-      scroll_max = scroll_limit * FRAME_LINE_HEIGHT (f);
+      scroll_max = scroll_limit * frame_line_height;
     }
   else if (scroll_step || arg_scroll_conservatively || temp_scroll_step)
     /* Compute how much we should try to scroll maximally to bring
        point into view.  */
     scroll_max = (max (scroll_step,
 		       max (arg_scroll_conservatively, temp_scroll_step))
-		  * FRAME_LINE_HEIGHT (f));
+		  * frame_line_height);
   else if (NUMBERP (BVAR (current_buffer, scroll_down_aggressively))
 	   || NUMBERP (BVAR (current_buffer, scroll_up_aggressively)))
     /* We're trying to scroll because of aggressive scrolling but no
        scroll_step is set.  Choose an arbitrary one.  */
-    scroll_max = 10 * FRAME_LINE_HEIGHT (f);
+    scroll_max = 10 * frame_line_height;
   else
     scroll_max = 0;
 
@@ -14587,7 +14633,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	 either that ypos or PT, whichever comes first.  */
       start_display (&it, w, startp);
       scroll_margin_y = it.last_visible_y - this_scroll_margin
-	- FRAME_LINE_HEIGHT (f) * extra_scroll_margin_lines;
+	- frame_line_height * extra_scroll_margin_lines;
       move_it_to (&it, PT, -1, scroll_margin_y - 1, -1,
 		  (MOVE_TO_POS | MOVE_TO_Y));
 
@@ -14599,7 +14645,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	     the user limited scrolling by a small number of lines, but
 	     always finds PT if scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
-	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
+	  int slack = max (scroll_max, 10 * frame_line_height);
 	  int y_to_move = it.last_visible_y + slack;
 
 	  /* Compute the distance from the scroll margin to PT or to
@@ -14626,8 +14672,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	 move it down by scroll_step.  */
       if (arg_scroll_conservatively)
 	amount_to_scroll
-	  = min (max (dy, FRAME_LINE_HEIGHT (f)),
-		 FRAME_LINE_HEIGHT (f) * arg_scroll_conservatively);
+	  = min (max (dy, frame_line_height),
+		 frame_line_height * arg_scroll_conservatively);
       else if (scroll_step || temp_scroll_step)
 	amount_to_scroll = scroll_max;
       else
@@ -14724,7 +14770,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  start_display (&it, w, pos);
 	  y0 = it.current_y;
 	  y_to_move = max (it.last_visible_y,
-			   max (scroll_max, 10 * FRAME_LINE_HEIGHT (f)));
+			   max (scroll_max, 10 * frame_line_height));
 	  move_it_to (&it, CHARPOS (scroll_margin_pos), 0,
 		      y_to_move, -1,
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
@@ -14740,7 +14786,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  start_display (&it, w, startp);
 
 	  if (arg_scroll_conservatively)
-	    amount_to_scroll = max (dy, FRAME_LINE_HEIGHT (f) *
+	    amount_to_scroll = max (dy, frame_line_height *
 				    max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
@@ -14960,6 +15006,9 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
     {
       int this_scroll_margin, top_scroll_margin;
       struct glyph_row *row = NULL;
+      int frame_line_height = default_line_pixel_height (w);
+      int window_total_lines
+	= WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
 
 #ifdef GLYPH_DEBUG
       debug_method_add (w, "cursor movement");
@@ -14969,8 +15018,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	 of the window.  This is a pixel value.  */
       if (scroll_margin > 0)
 	{
-	  this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-	  this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+	  this_scroll_margin = min (scroll_margin, window_total_lines / 4);
+	  this_scroll_margin *= frame_line_height;
 	}
       else
 	this_scroll_margin = 0;
@@ -15312,6 +15361,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   int centering_position = -1;
   int last_line_misfit = 0;
   ptrdiff_t beg_unchanged, end_unchanged;
+  int frame_line_height;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -15326,6 +15376,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
  restart:
   reconsider_clip_changes (w, buffer);
+  frame_line_height = default_line_pixel_height (w);
 
   /* Has the mode line to be updated?  */
   update_mode_line = (w->update_mode_line
@@ -15561,8 +15612,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  /* Some people insist on not letting point enter the scroll
 	     margin, even though this part handles windows that didn't
 	     scroll at all.  */
-	  int margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-	  int pixel_margin = margin * FRAME_LINE_HEIGHT (f);
+	  int window_total_lines
+	    = WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
+	  int margin = min (scroll_margin, window_total_lines / 4);
+	  int pixel_margin = margin * frame_line_height;
 	  bool header_line = WINDOW_WANTS_HEADER_LINE_P (w);
 
 	  /* Note: We add an extra FRAME_LINE_HEIGHT, because the loop
@@ -15573,7 +15626,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	    new_vpos
 	      = pixel_margin + (header_line
 				? CURRENT_HEADER_LINE_HEIGHT (w)
-				: 0) + FRAME_LINE_HEIGHT (f);
+				: 0) + frame_line_height;
 	  else
 	    {
 	      int window_height = window_box_height (w);
@@ -15822,9 +15875,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   it.current_y = it.last_visible_y;
   if (centering_position < 0)
     {
+      int window_total_lines
+	= WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
       int margin =
 	scroll_margin > 0
-	? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+	? min (scroll_margin, window_total_lines / 4)
 	: 0;
       ptrdiff_t margin_pos = CHARPOS (startp);
       Lisp_Object aggressive;
@@ -15846,7 +15901,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
 	  SAVE_IT (it1, it, it1data);
 	  start_display (&it1, w, startp);
-	  move_it_vertically (&it1, margin * FRAME_LINE_HEIGHT (f));
+	  move_it_vertically (&it1, margin * frame_line_height);
 	  margin_pos = IT_CHARPOS (it1);
 	  RESTORE_IT (&it, &it, it1data);
 	}
@@ -15882,15 +15937,15 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      if (pt_offset)
 		centering_position -= pt_offset;
 	      centering_position -=
-		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0))
+		frame_line_height * (1 + margin + (last_line_misfit != 0))
 		+ WINDOW_HEADER_LINE_HEIGHT (w);
 	      /* Don't let point enter the scroll margin near top of
 		 the window.  */
-	      if (centering_position < margin * FRAME_LINE_HEIGHT (f))
-		centering_position = margin * FRAME_LINE_HEIGHT (f);
+	      if (centering_position < margin * frame_line_height)
+		centering_position = margin * frame_line_height;
 	    }
 	  else
-	    centering_position = margin * FRAME_LINE_HEIGHT (f) + pt_offset;
+	    centering_position = margin * frame_line_height + pt_offset;
 	}
       else
 	/* Set the window start half the height of the window backward
@@ -15995,11 +16050,13 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	 make that row fully visible and out of the margin.  */
       if (scroll_conservatively > SCROLL_LIMIT)
 	{
+	  int window_total_lines
+	    = WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) * frame_line_height;
 	  int margin =
 	    scroll_margin > 0
-	    ? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+	    ? min (scroll_margin, window_total_lines / 4)
 	    : 0;
-	  int move_down = w->cursor.vpos >= WINDOW_TOTAL_LINES (w) / 2;
+	  int move_down = w->cursor.vpos >= window_total_lines / 2;
 
 	  move_it_by_lines (&it, move_down ? margin + 1 : -(margin + 1));
 	  clear_glyph_matrix (w->desired_matrix);
@@ -16186,6 +16243,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   struct it it;
   struct glyph_row *last_text_row = NULL;
   struct frame *f = XFRAME (w->frame);
+  int frame_line_height = default_line_pixel_height (w);
 
   /* Make POS the new window start.  */
   set_marker_both (w->start, Qnil, CHARPOS (pos), BYTEPOS (pos));
@@ -16211,11 +16269,13 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
       && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin;
+      int window_total_lines
+	= WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (f) / frame_line_height;
 
       if (scroll_margin > 0)
 	{
-	  this_scroll_margin = min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
-	  this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+	  this_scroll_margin = min (scroll_margin, window_total_lines / 4);
+	  this_scroll_margin *= frame_line_height;
 	}
       else
 	this_scroll_margin = 0;
@@ -17516,10 +17576,13 @@ try_window_id (struct window *w)
   /* Don't let the cursor end in the scroll margins.  */
   {
     int this_scroll_margin, cursor_height;
+    int frame_line_height = default_line_pixel_height (w);
+    int window_total_lines
+      = WINDOW_TOTAL_LINES (w) * FRAME_LINE_HEIGHT (it.f) / frame_line_height;
 
     this_scroll_margin =
-      max (0, min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4));
-    this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
+      max (0, min (scroll_margin, window_total_lines / 4));
+    this_scroll_margin *= frame_line_height;
     cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
 
     if ((w->cursor.y < this_scroll_margin

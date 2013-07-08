@@ -89,9 +89,6 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
-/* hack for OS X file panels */
-char panelOK = 0;
-
 EmacsTooltip *ns_tooltip = nil;
 
 /* Need forward declaration here to preserve organizational integrity of file */
@@ -1396,6 +1393,41 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
   return Qnil;
 }
 
+static struct
+{
+  id panel;
+  BOOL ret;
+#if ! defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+  NSString *dirS, *initS;
+  BOOL no_types;
+#endif
+} ns_fd_data;
+
+void
+ns_run_file_dialog (void)
+{
+  if (ns_fd_data.panel == nil) return;
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  ns_fd_data.ret = [ns_fd_data.panel runModal];
+#else
+  if (ns_fd_data.no_types)
+    {
+      ns_fd_data.ret = [ns_fd_data.panel
+                           runModalForDirectory: ns_fd_data.dirS
+                           file: ns_fd_data.initS];
+    }
+  else
+    {
+      ns_fd_data.ret = [ns_fd_data.panel
+                           runModalForDirectory: ns_fd_data.dirS
+                           file: ns_fd_data.initS
+                           types: nil];
+    }
+#endif
+  ns_fd_data.panel = nil;
+}
 
 DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 5, 0,
        doc: /* Use a graphical panel to read a file name, using prompt PROMPT.
@@ -1420,6 +1452,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     [NSString stringWithUTF8String: SSDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SSDATA (init)];
+  NSEvent *nxev;
 
   check_window_system (NULL);
 
@@ -1440,7 +1473,6 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   [panel setTreatsFilePackagesAsDirectories: YES];
   [panel setDelegate: fileDelegate];
 
-  panelOK = 0;
   if (! NILP (dir_only_p))
     {
       [panel setCanChooseDirectories: YES];
@@ -1454,7 +1486,9 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
       [panel setCanChooseFiles: YES];
     }
 
- block_input ();
+  block_input ();
+  ns_fd_data.panel = panel;
+  ns_fd_data.ret = NO;
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   if (! NILP (mustmatch) || ! NILP (dir_only_p))
@@ -1465,19 +1499,32 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   else
     [panel setNameFieldStringValue: @""];
 
-  ret = [panel runModal];
 #else
-  if (NILP (mustmatch) && NILP (dir_only_p))
-    {
-      ret = [panel runModalForDirectory: dirS file: initS];
-    }
-  else
-    {
-      ret = [panel runModalForDirectory: dirS file: initS types: nil];
-    }
+  ns_fd_data.no_types = NILP (mustmatch) && NILP (dir_only_p);
+  ns_fd_data.dirS = dirS;
+  ns_fd_data.initS = initS;
 #endif
 
-  ret = (ret == NSOKButton) || panelOK;
+  /* runModalForDirectory/runModal restarts the main event loop when done,
+     so we must start an event loop and then pop up the file dialog.
+     The file dialog may pop up a confirm dialog after Ok has been pressed,
+     so we can not simply pop down on the Ok/Cancel press.
+   */
+  nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: NSAPP_DATA2_RUNFILEDIALOG];
+
+  [NSApp postEvent: nxev atStart: NO];
+  while (ns_fd_data.panel != nil)
+    [NSApp run];
+
+  ret = (ns_fd_data.ret == NSOKButton);
 
   if (ret)
     {
@@ -2755,25 +2802,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 }
 
 @implementation EmacsSavePanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-#endif
-
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
   BOOL ret = handlePanelKeys (self, theEvent);
@@ -2785,31 +2813,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
 
 @implementation EmacsOpenPanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-
-  // If not choosing directories, and Open is pressed on a directory, return.
-  if (! [self canChooseDirectories] && ns_directory_from_panel (self) &&
-      ! ns_filename_from_panel (self))
-    return;
-
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-
-#endif
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
   // NSOpenPanel inherits NSSavePanel, so passing self is OK.

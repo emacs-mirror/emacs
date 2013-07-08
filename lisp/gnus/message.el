@@ -7145,7 +7145,7 @@ If ARG, allow editing of the cancellation message."
 	(erase-buffer)
 	(insert "Newsgroups: " newsgroups "\n"
 		"From: " from "\n"
-		"Subject: cmsg cancel " message-id "\n"
+		"Subject: cancel " message-id "\n"
 		"Control: cancel " message-id "\n"
 		(if distribution
 		    (concat "Distribution: " distribution "\n")

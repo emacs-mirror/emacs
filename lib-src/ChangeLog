@@ -6134,7 +6134,7 @@
 
 1995-06-13  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* etags.c (process_file,absolute_filename): Handle filenames
+	* etags.c (process_file, absolute_filename): Handle filenames
 	starting with a drive letter.
 
 	* makefile.nt (install): Copy wakeup.exe properly.
@@ -6161,12 +6161,12 @@
 1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt (LIBS): Use BASE_LIBS.
-	(make-docfile.exe,hexl.exe,wakeup.exe,etags.exe): Don't depend
+	(make-docfile.exe, hexl.exe, wakeup.exe, etags.exe): Don't depend
 	upon LIBS.
 	(DOC): Use del instead of rm.
 	(DOC) [WINDOWS95]: Use DOC.
 	(clean): Handle MSVC aux files.
-	(config.h,paths.h): Use $(CP) instead of cp.
+	(config.h, paths.h): Use $(CP) instead of cp.
 	(config.h): Use $(CONFIG_H)
 	(make-docfile.obj): Depend upon config.h.
 	Clean up comments.

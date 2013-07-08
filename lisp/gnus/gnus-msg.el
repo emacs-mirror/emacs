@@ -920,6 +920,7 @@ header line with the old Message-ID."
       (with-current-buffer article-buffer
 	(let ((gnus-newsgroup-charset (or gnus-article-charset
 					  gnus-newsgroup-charset))
+	      (inhibit-read-only t)
 	      (gnus-newsgroup-ignored-charsets
 	       (or gnus-article-ignored-charsets
 		   gnus-newsgroup-ignored-charsets)))

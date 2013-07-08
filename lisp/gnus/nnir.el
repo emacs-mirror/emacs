@@ -548,15 +548,15 @@ that it is for notmuch, not Namazu."
     (gmane   nnir-run-gmane
 	     ((gmane-author . "Gmane Author: ")))
     (swish++ nnir-run-swish++
-             ((swish++-group . "Swish++ Group spec: ")))
+             ((swish++-group . "Swish++ Group spec (regexp): ")))
     (swish-e nnir-run-swish-e
-             ((swish-e-group . "Swish-e Group spec: ")))
+             ((swish-e-group . "Swish-e Group spec (regexp): ")))
     (namazu  nnir-run-namazu
              ())
     (notmuch nnir-run-notmuch
              ())
     (hyrex   nnir-run-hyrex
-	     ((hyrex-group . "Hyrex Group spec: ")))
+	     ((hyrex-group . "Hyrex Group spec (regexp): ")))
     (find-grep nnir-run-find-grep
 	       ((grep-options . "Grep options: "))))
   "Alist of supported search engines.

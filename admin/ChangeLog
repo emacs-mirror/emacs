@@ -1,3 +1,24 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* merge-gnulib (GNULIB_MODULES): Add fcntl, pipe2.
+	(GNULIB_TOOL_FLAGS): Avoid binary-io, close.  Do not avoid fcntl.
+
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-misc-manuals): New function.
+	(make-manuals): Avoid hard-coding list of misc manuals.
+	Add the option to only make certain type(s) of output.
+	(manual-misc-html): Special-case ccmode and efaq.
+	(manual-html-mono, manual-html-node, manual-pdf, manual-ps):
+	Move creation of output directory here from make-manuals.
+	(manual-html-fix-index-2): Avoid dynamic reference to `f'.
+
+2013-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Use a standard location for lispintro.
+	Use a pdf/ subdirectory for pdf versions.
+
 2013-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (make-manuals): Don't bother with txt or dvi any more.

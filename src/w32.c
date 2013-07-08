@@ -234,6 +234,8 @@ extern int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
+extern int sys_dup (int);
+
 
 
 
@@ -6719,10 +6721,16 @@ sys_sendto (int s, const char * buf, int len, int flags,
 }
 
 /* Windows does not have an fcntl function.  Provide an implementation
-   solely for making sockets non-blocking.  */
+   good enough for Emacs.  */
 int
 fcntl (int s, int cmd, int options)
 {
+  /* In the w32 Emacs port, fcntl (fd, F_DUPFD_CLOEXEC, fd1) is always
+     invoked in a context where fd1 is closed and all descriptors less
+     than fd1 are open, so sys_dup is an adequate implementation.  */
+  if (cmd == F_DUPFD_CLOEXEC)
+    return sys_dup (s);
+
   if (winsock_lib == NULL)
     {
       errno = ENETDOWN;
@@ -6864,12 +6872,13 @@ sys_dup2 (int src, int dst)
   return rc;
 }
 
-/* Unix pipe() has only one arg */
 int
-sys_pipe (int * phandles)
+pipe2 (int * phandles, int pipe2_flags)
 {
   int rc;
   unsigned flags;
+
+  eassert (pipe2_flags == O_CLOEXEC);
 
   /* make pipe handles non-inheritable; when we spawn a child, we
      replace the relevant handle with an inheritable one.  Also put

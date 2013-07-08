@@ -129,6 +129,7 @@ commands.")
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
+    (define-key map (kbd "M-s a C-o") 'Buffer-menu-multi-occur)
 
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
     (define-key map [follow-link] 'mouse-face)
@@ -169,6 +170,9 @@ commands.")
     (bindings--define-key menu-map [ir]
       '(menu-item "Isearch Marked Buffers..." Buffer-menu-isearch-buffers
 		 :help "Search for a string through all marked buffers using Isearch"))
+    (bindings--define-key menu-map [mo]
+      '(menu-item "Multi Occur Marked Buffers..." Buffer-menu-multi-occur
+		 :help "Show lines matching a regexp in marked buffers using Occur"))
     (bindings--define-key menu-map [s3] menu-bar-separator)
     (bindings--define-key menu-map [by]
       '(menu-item "Bury" Buffer-menu-bury
@@ -226,6 +230,7 @@ In Buffer Menu mode, the following commands are defined:
      buffer selected before this one in another window.
 \\[Buffer-menu-isearch-buffers]    Incremental search in the marked buffers.
 \\[Buffer-menu-isearch-buffers-regexp]  Isearch for regexp in the marked buffers.
+\\[Buffer-menu-multi-occur] Show lines matching regexp in the marked buffers.
 \\[Buffer-menu-visit-tags-table]    visit-tags-table this buffer.
 \\[Buffer-menu-not-modified]    Clear modified-flag on that buffer.
 \\[Buffer-menu-save]    Mark that buffer to be saved, and move down.
@@ -476,6 +481,11 @@ If UNMARK is non-nil, unmark them."
   "Search for a regexp through all marked buffers using Isearch."
   (interactive)
   (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
+
+(defun Buffer-menu-multi-occur (regexp &optional nlines)
+  "Show all lines in marked buffers containing a match for a regexp."
+  (interactive (occur-read-primary-args))
+  (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
 
 
 (defun Buffer-menu-visit-tags-table ()

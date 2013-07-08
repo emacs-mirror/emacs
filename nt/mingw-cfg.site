@@ -67,6 +67,10 @@ gl_cv_func_readlink_works=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
+# Implemented in w32.c
+ac_cv_func_fcntl=yes
+gl_cv_func_fcntl_f_dupfd_cloexec=yes
+gl_cv_func_fcntl_f_dupfd_works=yes
 # We don't need fdopendir
 ac_cv_func_fdopendir="not-needed"
 gl_cv_func_fdopendir_works="no-but-not-needed-so-yes"
@@ -95,6 +99,7 @@ ac_cv_func_getloadavg=yes
 # Avoid compiling gnulib mktime
 gl_cv_func_working_mktime=yes
 # Implemented in w32.c
+ac_cv_func_pipe2=yes
 ac_cv_have_decl_unsetenv=yes
 ac_cv_func_unsetenv=yes
 gt_cv_func_unsetenv_ret='int'

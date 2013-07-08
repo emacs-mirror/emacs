@@ -33,7 +33,6 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "window.h"
 #include "fontset.h"
 #include "nsterm.h"
-#include "frame.h"
 #include "character.h"
 #include "font.h"
 #include "termchar.h"

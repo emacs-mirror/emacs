@@ -1,3 +1,190 @@
+2013-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (read-quoted-char): Remove unused local variable `char'.
+
+2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (tty-run-terminal-initialization): Function changed.
+
+	* viper.el (viper-emacs-state-mode-list): Add egg-status-buffer-mode.
+	(viper-version): Version update.
+	(viper-go-away, viper-setup-hooks): Function changed.
+	(viper--lookup-key, viper-catch-tty-ESC, viper-uncatch-tty-ESC)
+	(viper-setup-ESC-to-escape): New functions.
+
+	* viper-cmd.el (viper-del-forward-char-in-insert): New function.
+	(viper-save-kill-buffer): Check if buffer is modified.
+	(viper-envelop-ESC-key): Function deleted.
+	(viper-intercept-ESC-key): Function changed.
+
+	* viper-keym.el (viper-ESC-key): Constant changed.
+
+	* ediff.el (ediff-files-command, ediff3-files-command): New functions.
+	(ediff-merge-command, ediff-merge-with-ancestor-command): New functions.
+	(ediff-directories-command, ediff-directories3-command): New functions.
+	(ediff-merge-directories-command): New function.
+	(ediff-merge-directories-with-ancestor-command): New function.
+	All the above are command-line interfaces to ediff: facilitate calling
+	Emacs with the appropriate ediff functions invoked.
+	(ediff-version): Version update.
+
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-font-height, window-screen-lines):
+	New functions.
+	(line-move, line-move-partial): Use them instead of
+	frame-char-height and window-text-height.  This makes scrolling
+	text smoother when the buffer's default face uses a font that is
+	different from the frame's default font.
+
+2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* files.el (write-file): Do not display confirm dialog for NS,
+	it does its own dialog, which can't be cancelled (Bug#14578).
+
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial): Adjust the row returned by
+	posn-at-point for the current window-vscroll.  (Bug#14567)
+
+2013-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-file-gvfs-monitor-dir-process-filter):
+	(tramp-sh-file-inotifywait-process-filter): Handle file names with
+	spaces.
+
+2013-07-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-put-stale-windows): New variable.
+	(window--state-put-2): Save list of windows without matching buffer.
+	(window-state-put): Remove "bufferless" windows if possible.
+
+2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (alternatives-define): Remove leftover :group keyword.
+	Tweak docstring.
+
+2013-07-06  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers): Allow new value 'auto.
+	(ido-enable-virtual-buffers): New variable.
+	(ido-buffer-internal, ido-toggle-virtual-buffers)
+	(ido-make-buffer-list): Use it.
+	(ido-exhibit): Support turning on and off virtual buffers
+	automatically.
+
+2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (alternatives-define): New macro.
+
+2013-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Use read-key.
+	(sit-for): Let read-event decode tty input (bug#14782).
+
+2013-07-05  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Add handling of file deletion, both by
+	mode command and externally.  Fix various related bugs.
+	Clarify Commentary and improve some documentation strings and code.
+	(todo-delete-file): New command.
+	(todo-check-file): New function.
+	(todo-show): Handle external deletion of the file we're trying to
+	show (bug#14688).  Replace called-interactively-p by an optional
+	prefix argument to avoid problematic interaction with catch form
+	when byte compiled (bug#14702).
+	(todo-quit): Handle external deletion of the archive's todo file.
+	Make sure the buffer that was visiting the archive file is still
+	live before trying to bury it.
+	(todo-category-completions): Handle external deletion of any
+	category completion files.
+	(todo-jump-to-category, todo-basic-insert-item): Recalculate list
+	of todo files, in case of external deletion.
+	(todo-add-file): Replace unnecessary setq by let-binding.
+	(todo-find-archive): Check whether there are any archives.
+	Replace unnecessary setq by let-binding.
+	(todo-archive-done-item): Use find-file-noselect to get the
+	archive buffer whether or not the archive already exists.
+	Remove superfluous code.  Use file size instead of buffer-file-name to
+	check if the archive is new; if it is, update list of archives.
+	(todo-default-todo-file): Allow nil to be a valid value for when
+	there are no todo files.
+	(todo-reevaluate-default-file-defcustom): Use corrected definition
+	of todo-default-todo-file.
+	(todo-key-bindings-t+a+f): Add key binding for todo-delete-file.
+	(todo-delete-category, todo-show-categories-table)
+	(todo-category-number): Clarify comment.
+	(todo-filter-items): Clarify documentation string.
+	(todo-show-current-file, todo-display-as-todo-file)
+	(todo-reset-and-enable-done-separator): Tweak documentation string.
+	(todo-done-separator): Make separator length window-width, since
+	bug#2749 is now fixed.
+
+2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-add-watch):
+	Support both "gvfs-monitor-dir" and "inotifywait".
+	(tramp-sh-file-inotifywait-process-filter): Rename from
+	`tramp-sh-file-notify-process-filter'.
+	(tramp-sh-file-gvfs-monitor-dir-process-filter)
+	(tramp-get-remote-gvfs-monitor-dir): New defuns.
+
+2013-07-05  Leo Liu  <sdl.web@gmail.com>
+
+	* autoinsert.el (auto-insert-alist): Default to lexical-binding.
+
+2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (display-pixel-height, display-pixel-width)
+	(display-mm-height, display-mm-width): Mention behavior on
+	multi-monitor setups in docstrings.
+	(w32-display-monitor-attributes-list): Declare function.
+	(display-monitor-attributes-list): Use it.
+
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el: New package.
+
+	* autorevert.el (top): Require filenotify.el.
+	(auto-revert-notify-enabled): Remove.  Use `file-notify-support'
+	instead.
+	(auto-revert-notify-rm-watch, auto-revert-notify-add-watch)
+	(auto-revert-notify-handler): Use `file-notify-*' functions.
+
+	* subr.el (file-notify-handle-event): Move function to filenotify.el.
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Handle `file-notify-add-watch' and `file-notify-rm-watch'.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Add handler
+	for `file-notify-add-watch' and `file-notify-rm-watch'.
+	(tramp-process-sentinel): Improve trace.
+	(tramp-sh-handle-file-notify-add-watch)
+	(tramp-sh-file-notify-process-filter)
+	(tramp-sh-handle-file-notify-rm-watch)
+	(tramp-get-remote-inotifywait): New defuns.
+
+2013-07-03  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (Buffer-menu-multi-occur): Add args and move the
+	call of `occur-read-primary-args' to interactive spec.
+
+	* ibuffer.el (ibuffer-mode-map): Bind "M-s a C-o" to
+	`ibuffer-do-occur' like in buff-menu.el.  (Bug#14673)
+
+2013-07-03  Matthias Meulien  <orontee@gmail.com>
+
+	* buff-menu.el (Buffer-menu-mode-map): Bind "M-s a C-o" to
+	`Buffer-menu-multi-occur'.  Add it to the menu.
+	(Buffer-menu-mode): Document it in docstring.
+	(Buffer-menu-multi-occur): New command.  (Bug#14673)
+
+2013-07-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight more
+	keywords and built-ins.
+
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (y-or-n-p): Handle empty prompts.  (Bug#14770)
@@ -279,12 +466,12 @@
 
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/bibtex.el (bibtex-generate-url-list): Add support
+	* textmodes/bibtex.el (bibtex-generate-url-list): Add support
 	for DOI URLs.
 
 2013-06-25  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
-	* lisp/textmodes/bibtex.el (bibtex-mode, bibtex-set-dialect):
+	* textmodes/bibtex.el (bibtex-mode, bibtex-set-dialect):
 	Update imenu-support when dialect changes.
 
 2013-06-25  Leo Liu  <sdl.web@gmail.com>
@@ -994,6 +1181,7 @@
 2013-06-18  Matthias Meulien  <orontee@gmail.com>
 
 	* tabify.el (untabify, tabify): With prefix, apply to entire buffer.
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00545.html>
 
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 

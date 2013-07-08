@@ -54,6 +54,8 @@ modify this GNU manual.''
 PGG is an interface library between Emacs
 and various tools for secure communication.  PGG also provides a simple
 user interface to encrypt, decrypt, sign, and verify MIME messages.
+This package is obsolete; for new code we recommend EasyPG instead.
+@xref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}.
 
 @ifnottex
 @insertcopying
@@ -77,6 +79,9 @@ PGG is an interface library between Emacs and various tools for secure
 communication.  Even though Mailcrypt has similar feature, it does not
 deal with detached PGP messages, normally used in PGP/MIME
 infrastructure.  This was the main reason why I wrote the new library.
+
+Note that the PGG library is now obsolete, replaced by EasyPG.
+@xref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}.
 
 PGP/MIME is an application of MIME Object Security Services (RFC1848).
 The standard is documented in RFC2015.

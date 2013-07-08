@@ -462,6 +462,7 @@ directory, like `default-directory'."
     (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
     (define-key map (kbd "M-s a C-s") 'ibuffer-do-isearch)
     (define-key map (kbd "M-s a M-C-s") 'ibuffer-do-isearch-regexp)
+    (define-key map (kbd "M-s a C-o") 'ibuffer-do-occur)
     (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
     (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
     (define-key map (kbd "* *") 'ibuffer-unmark-all)

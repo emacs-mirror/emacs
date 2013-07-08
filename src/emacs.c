@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
+#include <sys/socket.h>
 #include "w32.h"
 #include "w32heap.h"
 #endif
@@ -889,7 +890,7 @@ main (int argc, char **argv)
 	  emacs_close (0);
 	  emacs_close (1);
 	  result = emacs_open (term, O_RDWR, 0);
-	  if (result < 0 || dup (0) < 0)
+	  if (result < 0 || fcntl (0, F_DUPFD_CLOEXEC, 1) < 0)
 	    {
 	      char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
@@ -969,7 +970,7 @@ main (int argc, char **argv)
 	 use a pipe for synchronization.  The parent waits for the child
 	 to close its end of the pipe (using `daemon-initialized')
 	 before exiting.  */
-      if (pipe (daemon_pipe) == -1)
+      if (pipe2 (daemon_pipe, O_CLOEXEC) != 0)
 	{
 	  fprintf (stderr, "Cannot pipe!\n");
 	  exit (1);
@@ -1065,9 +1066,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
        	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       close (daemon_pipe[0]);
-      /* Make sure that the used end of the pipe is closed on exec, so
-	 that it is not accessible to programs started from .emacs.  */
-      fcntl (daemon_pipe[1], F_SETFD, FD_CLOEXEC);
 
       setsid ();
 #else /* DOS_NT */
@@ -1077,7 +1075,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
 #if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC
-  malloc_enable_thread ();
+# ifndef CANNOT_DUMP
+  /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
+     that causes an infinite recursive loop with FreeBSD.  But do make
+     it thread-safe when creating emacs, otherwise bootstrap-emacs
+     fails on Cygwin.  See Bug#14569.  */
+  if (!noninteractive || initialized)
+# endif
+    malloc_enable_thread ();
 #endif
 
   init_signals (dumping);
@@ -2229,7 +2234,7 @@ from the parent process and its tty file descriptors.  */)
     error ("This function can only be called after loading the init files");
 
   /* Get rid of stdin, stdout and stderr.  */
-  nfd = open ("/dev/null", O_RDWR);
+  nfd = emacs_open ("/dev/null", O_RDWR, 0);
   err |= nfd < 0;
   err |= dup2 (nfd, 0) < 0;
   err |= dup2 (nfd, 1) < 0;

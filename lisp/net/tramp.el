@@ -1964,7 +1964,7 @@ ARGS are the arguments OPERATION has been called with."
 		  ;; Emacs 22+ only.
 		  'set-file-times
 		  ;; Emacs 24+ only.
-		  'file-acl 'file-selinux-context
+		  'file-acl 'file-notify-add-watch 'file-selinux-context
 		  'set-file-acl 'set-file-selinux-context
 		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
@@ -2018,6 +2018,10 @@ ARGS are the arguments OPERATION has been called with."
 	          ;; XEmacs only.
 		  'dired-print-file 'dired-shell-call-process))
     default-directory)
+   ;; PROC.
+   ((eq operation 'file-notify-rm-watch)
+    (with-current-buffer (process-buffer (nth 0 args))
+      default-directory))
    ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))
 
@@ -4156,6 +4160,9 @@ Only works for Bourne-like shells."
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <http://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
+;; * Use also port to distinguish connections.  This is needed for
+;;   different hosts sitting behind a single router (distinguished by
+;;   different port numbers).  (Tzvi Edelman)
 
 ;;; tramp.el ends here
 

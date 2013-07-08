@@ -4368,6 +4368,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   int vscrolled = 0;
   int x, y, rtop, rbot, rowh, vpos;
   void *itdata = NULL;
+  int window_total_lines;
+  int frame_line_height = default_line_pixel_height (w);
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   /* Scrolling a minibuffer window via scroll bar when the echo area
@@ -4411,7 +4413,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       if (rtop || rbot)		/* partially visible */
 	{
 	  int px;
-	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+	  int dy = frame_line_height;
 	  if (whole)
 	    dy = max ((window_box_height (w)
 		       - next_screen_context_lines * dy),
@@ -4497,7 +4499,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   if (whole)
     {
       ptrdiff_t start_pos = IT_CHARPOS (it);
-      int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+      int dy = frame_line_height;
       dy = max ((window_box_height (w)
 		 - next_screen_context_lines * dy),
 		dy) * n;
@@ -4614,10 +4616,12 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   /* Move PT out of scroll margins.
      This code wants current_y to be zero at the window start position
      even if there is a header line.  */
+  window_total_lines
+    = w->total_lines * WINDOW_FRAME_LINE_HEIGHT (w) / frame_line_height;
   this_scroll_margin = max (0, scroll_margin);
   this_scroll_margin
-    = min (this_scroll_margin, w->total_lines / 4);
-  this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
+    = min (this_scroll_margin, window_total_lines / 4);
+  this_scroll_margin *= frame_line_height;
 
   if (n > 0)
     {

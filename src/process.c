@@ -78,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_RES_INIT
-#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
 #endif
@@ -134,6 +133,37 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
+#endif
+
+#ifndef SOCK_CLOEXEC
+# define SOCK_CLOEXEC 0
+#endif
+
+#ifndef HAVE_ACCEPT4
+
+/* Emulate GNU/Linux accept4 and socket well enough for this module.  */
+
+static int
+close_on_exec (int fd)
+{
+  if (0 <= fd)
+    fcntl (fd, F_SETFD, FD_CLOEXEC);
+  return fd;
+}
+
+static int
+accept4 (int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
+{
+  return close_on_exec (accept (sockfd, addr, addrlen));
+}
+
+static int
+process_socket (int domain, int type, int protocol)
+{
+  return close_on_exec (socket (domain, type, protocol));
+}
+# undef socket
+# define socket(domain, type, protocol) process_socket (domain, type, protocol)
 #endif
 
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
@@ -1620,14 +1650,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   else
 #endif /* HAVE_PTYS */
     {
-      int tem;
-      tem = pipe (sv);
-      if (tem < 0)
+      if (pipe2 (sv, O_CLOEXEC) != 0)
 	report_file_error ("Creating pipe", Qnil);
       inchannel = sv[0];
       forkout = sv[1];
-      tem = pipe (sv);
-      if (tem < 0)
+      if (pipe2 (sv, O_CLOEXEC) != 0)
 	{
 	  emacs_close (inchannel);
 	  emacs_close (forkout);
@@ -1638,29 +1665,14 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 
 #ifndef WINDOWSNT
-    {
-      int tem;
-
-      tem = pipe (wait_child_setup);
-      if (tem < 0)
-	report_file_error ("Creating pipe", Qnil);
-      tem = fcntl (wait_child_setup[1], F_GETFD, 0);
-      if (tem >= 0)
-	tem = fcntl (wait_child_setup[1], F_SETFD, tem | FD_CLOEXEC);
-      if (tem < 0)
-	{
-	  emacs_close (wait_child_setup[0]);
-	  emacs_close (wait_child_setup[1]);
-	  report_file_error ("Setting file descriptor flags", Qnil);
-	}
-    }
+  if (pipe2 (wait_child_setup, O_CLOEXEC) != 0)
+    report_file_error ("Creating pipe", Qnil);
 #endif
 
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 
-  /* Record this as an active process, with its channels.
-     As a result, child_setup will close Emacs's side of the pipes.  */
+  /* Record this as an active process, with its channels.  */
   chan_process[inchannel] = process;
   XPROCESS (process)->infd = inchannel;
   XPROCESS (process)->outfd = outchannel;
@@ -3136,7 +3148,8 @@ usage: (make-network-process &rest ARGS)  */)
     retry_connect:
 #endif
 
-      s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
+      s = socket (lres->ai_family, lres->ai_socktype | SOCK_CLOEXEC,
+		  lres->ai_protocol);
       if (s < 0)
 	{
 	  xerrno = errno;
@@ -3533,7 +3546,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   int s;
   Lisp_Object res;
 
-  s = socket (AF_INET, SOCK_STREAM, 0);
+  s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
 
@@ -3689,7 +3702,7 @@ FLAGS is the current flags of the interface.  */)
     error ("interface name too long");
   strcpy (rq.ifr_name, SSDATA (ifname));
 
-  s = socket (AF_INET, SOCK_STREAM, 0);
+  s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
 
@@ -3985,7 +3998,7 @@ server_accept_connection (Lisp_Object server, int channel)
   } saddr;
   socklen_t len = sizeof saddr;
 
-  s = accept (channel, &saddr.sa, &len);
+  s = accept4 (channel, &saddr.sa, &len, SOCK_CLOEXEC);
 
   if (s < 0)
     {
@@ -6856,32 +6869,6 @@ setup_process_coding_systems (Lisp_Object process)
     proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
-#endif
-}
-
-/* Close all descriptors currently in use for communication
-   with subprocess.  This is used in a newly-forked subprocess
-   to get rid of irrelevant descriptors.  */
-
-void
-close_process_descs (void)
-{
-#ifndef DOS_NT
-  int i;
-  for (i = 0; i < MAXDESC; i++)
-    {
-      Lisp_Object process;
-      process = chan_process[i];
-      if (!NILP (process))
-	{
-	  int in  = XPROCESS (process)->infd;
-	  int out = XPROCESS (process)->outfd;
-	  if (in >= 0)
-	    emacs_close (in);
-	  if (out >= 0 && in != out)
-	    emacs_close (out);
-	}
-    }
 #endif
 }
 

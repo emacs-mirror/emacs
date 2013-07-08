@@ -132,15 +132,14 @@ This arranges for filesystem events pertaining to FILE to be reported
 to Emacs.  Use `gfile-rm-watch' to cancel the watch.
 
 Value is a descriptor for the added watch.  If the file cannot be
-watched for some reason, this function signals a `file-error' error.
+watched for some reason, this function signals a `file-notify-error' error.
 
 FLAGS is a list of conditions to set what will be watched for.  It can
 include the following symbols:
 
   'watch-mounts' -- watch for mount events
   'send-moved'   -- pair 'deleted' and 'created' events caused by file
-                    renames (moves) and send a single 'event-moved'
-                    event instead
+                    renames and send a single 'renamed' event instead
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
@@ -193,7 +192,7 @@ will be reported only in case of the 'moved' event.  */)
   /* Enable watch.  */
   monitor = g_file_monitor (gfile, gflags, NULL, NULL);
   if (! monitor)
-    xsignal2 (Qfile_error, build_string ("Cannot watch file"), file);
+    xsignal2 (Qfile_notify_error, build_string ("Cannot watch file"), file);
 
   /* On all known glib platforms, converting MONITOR directly to a
      Lisp_Object value results is a Lisp integer, which is safe.  This
@@ -202,7 +201,8 @@ will be reported only in case of the 'moved' event.  */)
   if (! INTEGERP (watch_descriptor))
     {
       g_object_unref (monitor);
-      xsignal2 (Qfile_error, build_string ("Unsupported file watcher"), file);
+      xsignal2 (Qfile_notify_error, build_string ("Unsupported file watcher"),
+		file);
     }
 
   g_signal_connect (monitor, "changed",
@@ -226,14 +226,14 @@ WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.  */)
   Lisp_Object watch_object = assq_no_quit (watch_descriptor, watch_list);
 
   if (! CONSP (watch_object))
-    xsignal2 (Qfile_error, build_string ("Not a watch descriptor"),
+    xsignal2 (Qfile_notify_error, build_string ("Not a watch descriptor"),
 	      watch_descriptor);
 
   eassert (INTEGERP (watch_descriptor));
   int_monitor = XLI (watch_descriptor);
   monitor = (GFileMonitor *) int_monitor;
   if (!g_file_monitor_cancel (monitor))
-    xsignal2 (Qfile_error, build_string ("Could not rm watch"),
+    xsignal2 (Qfile_notify_error, build_string ("Could not rm watch"),
 	      watch_descriptor);
 
   /* Remove watch descriptor from watch list. */

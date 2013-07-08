@@ -15,10 +15,10 @@ You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
 Temporary note:
-+++ indicates that the appropriate manual has already been updated.
---- means no change in the manuals is called for.
-When you add a new item, please add it without either +++ or ---
-so we will look at it and add it to the manual.
++++ indicates that all necessary updates to the manuals in doc/ are complete.
+--- means no change in the manuals is needed.
+When you add a new item, use the appropriate mark if you know it applies,
+otherwise leave it unmarked.
 
 
 * Installation Changes in Emacs 24.4
@@ -125,6 +125,18 @@ used to conveniently prepend/append new face attributes to text.
 `frame-monitor-attributes' can be used to obtain information about
 each physical monitor on multi-monitor setups.
 
+*** The functions `display-pixel-width' and `display-pixel-height' now
+behave consistently among the platforms: they return the pixel width
+or height for all physical monitors associated with the given display
+as just they were on X11.  To get information for each physical
+monitor, use the new functions above.  Similar notes also apply to
+`x-display-pixel-width', `x-display-pixel-height', `display-mm-width',
+`display-mm-height', `x-display-mm-width', and `x-display-mm-height'.
+
+** New macro `alternatives-define' can be used to define generic commands.
+Generic commands are interactive functions whose implementation can be
+selected among several alternatives, as a matter of user preference.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -218,6 +230,10 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 *** Battery information via the BSD `apm' utility is now supported.
 
+** Buffer Menu
+
+*** `M-s a C-o' shows lines matching a regexp in marked buffers using Occur.
+
 ** Calendar and Diary
 
 +++
@@ -252,7 +268,7 @@ on the given date.
 *** `desktop-auto-save-timeout' defines the number of seconds between
 auto-saves of the desktop.
 
-*** `desktop-restore-frames enables saving and restoring the window/frame
+*** `desktop-restore-frames' enables saving and restoring the window/frame
 configuration.
 
 ** Dired
@@ -407,6 +423,10 @@ when possible.
 *** Handlers for `file-acl' and `set-file-acl' for remote machines
 which support POSIX ACLs.
 
++++
+*** Handlers for `file-notify-add-watch' and `file-notify-rm-watch'
+for remote machines which support filesystem notifications.
+
 ** VHDL mode
 
 *** New options: `vhdl-actual-generic-name', `vhdl-beautify-options'.
@@ -416,13 +436,13 @@ which support POSIX ACLs.
 ** Woman
 
 *** The commands `woman-default-faces' and `woman-monochrome-faces'
-are obsolete.  Customize the `woman-* faces instead.
+are obsolete.  Customize the `woman-*' faces instead.
 
 ** Eshell
 
-*** Added Eshell-TRAMP module
+*** Added Eshell-Tramp module
 External su and sudo commands are now the default; the internal,
-TRAMP-using variants can still be used by enabling the eshell-tramp
+Tramp-using variants can still be used by enabling the eshell-tramp
 module.
 
 ** New term.el option `term-suppress-hard-newline'.
@@ -461,6 +481,10 @@ It is layered as:
   function-carrying place, such as process-filters or `<foo>-function' hooks.
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
+
+** The package file-notify.el provides an interface for file system
+notifications.  It requires, that Emacs is compiled with one of the
+low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
@@ -1034,7 +1058,7 @@ file at point.
 `DEL' (`dired-unmark-backward'), and `d' (`dired-flag-file-deletion')
 mark/unmark/flag all files in the active region.
 
-*** The minibuffer default for `=' (`dired-diff) has changed.
+*** The minibuffer default for `=' (`dired-diff') has changed.
 It is now the backup file for the file at point, if one exists.
 In Transient Mark mode the default is the file at the active mark.
 

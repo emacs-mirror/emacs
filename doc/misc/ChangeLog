@@ -1,3 +1,49 @@
+2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Group Parameters): Mention regexp
+	substitutions (bug#11688).
+
+2013-07-06  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
+
+	* gnus.texi (Generic Marking Commands): Fix grammar (bug#13368).
+
+2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Emacsen): Fix version.
+
+	* gnus-faq.texi (FAQ 1-6): Mention the correct Emacs version.
+
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.texi: Fix external links.
+	(Using This Manual): Printed elisp manuals no longer available.
+
+	* newsticker.texi (Overview): Update URL.
+
+	* nxml-mode.texi (Introduction): Update URL.
+
+	* org.texi (JavaScript support): Fix URL.
+
+	* wisent.texi (Wisent Overview): Remove incorrect, unnecessary uref.
+
+	* eudc.texi (CCSO PH/QI): Remove defunct URL.
+
+	* dbus.texi (Introspection): Update URL to a less defunct one.
+
+	* gnus.texi (Top): Restrict "Other related manuals" to info output.
+	(Foreign Groups): Use @indicateurl for examples.
+	(Direct Functions): Remove defunct URL.
+	(RSS): Update URL.
+
+	* gnus-faq.texi (FAQ 5-8, FAQ 6-3): Remove defunct URLs.
+	(FAQ 7-1): Update URL.
+
+	* pgg.texi (Top, Overview): Add note about obsolescence.
+
+2013-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2013-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* bovine.texi (top):

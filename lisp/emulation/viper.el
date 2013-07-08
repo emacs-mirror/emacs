@@ -14,7 +14,7 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst viper-version "3.14.1 of August 15, 2009"
+(defconst viper-version "3.14.2 of July 4, 2013"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -411,6 +411,7 @@ widget."
     dired-mode
     efs-mode
     tar-mode
+    egg-status-buffer-mode
 
     browse-kill-ring-mode
     recentf-mode
@@ -660,7 +661,7 @@ user customization, unrelated to Viper.  For instance, if the user advised
 undone.
 It also can't undo some Viper settings."
   (interactive)
-
+  (viper-setup-ESC-to-escape nil)
   ;; restore non-viper vars
   (setq-default
    next-line-add-newlines
@@ -825,6 +826,58 @@ It also can't undo some Viper settings."
   (add-hook 'viper-post-command-hooks 'set-viper-state-in-major-mode t))
 
 
+;;; Handling of tty's ESC event
+
+;; On a tty, an ESC event can either be the user hitting the escape key, or
+;; some element of a byte sequence used to encode for example cursor keys.
+;; So we try to recognize those events that correspond to the escape key and
+;; turn them into `escape' events (same as used under GUIs).  The heuristic we
+;; use to distinguish the two cases is based, as usual, on a timeout, and on
+;; the fact that the special ESC=>escape mapping only takes place if the whole
+;; last key-sequence so far is just [?\e], i.e. either we're still in
+;; read-key-sequence, or the last read-key-sequence only read [?\e], which
+;; should ideally never happen because it should have been mapped to [escape].
+
+(defun viper--tty-ESC-filter (map)
+  (if (and (equal (this-single-command-keys) [?\e])
+           (sit-for (/ viper-fast-keyseq-timeout 1000)))
+      [escape] map))
+
+(defun viper--lookup-key (map key)
+  "Kind of like `lookup-key'.
+Two differences:
+- KEY is a single key, not a sequence.
+- the result is the \"raw\" binding, so it can be a `menu-item', rather than the
+  binding contained in that menu item."
+  (catch 'found
+    (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
+
+(defun viper-catch-tty-ESC ()
+  "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
+  (when (memq (terminal-live-p (frame-terminal)) '(t pc))
+    (let ((esc-binding (viper-uncatch-tty-ESC)))
+      (define-key input-decode-map
+        [?\e] `(menu-item "" ,esc-binding :filter viper--tty-ESC-filter)))))
+
+(defun viper-uncatch-tty-ESC ()
+  "Don't hack ESC into `escape' any more."
+  (let ((b (viper--lookup-key input-decode-map ?\e)))
+    (and (eq 'menu-item (car-safe b))
+         (eq 'viper--tty-ESC-filter (nth 4 b))
+         (define-key input-decode-map [?\e] (setq b (nth 2 b))))
+    b))
+
+(defun viper-setup-ESC-to-escape (enable)
+  (if enable
+      (add-hook 'tty-setup-hook 'viper-catch-tty-ESC)
+    (remove-hook 'tty-setup-hook 'viper-catch-tty-ESC))
+  (let ((seen ()))
+    (dolist (frame (frame-list))
+      (let ((terminal (frame-terminal frame)))
+        (unless (memq terminal seen)
+          (push terminal seen)
+          (with-selected-frame frame
+            (if enable (viper-catch-tty-ESC) (viper-uncatch-tty-ESC))))))))
 
 ;; This sets major mode hooks to make them come up in vi-state.
 (defun viper-set-hooks ()
@@ -837,6 +890,8 @@ It also can't undo some Viper settings."
   (if (eq (default-value 'major-mode) 'fundamental-mode)
       (setq-default major-mode 'viper-mode))
 
+  (viper-setup-ESC-to-escape t)
+
   (add-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
   (add-hook 'find-file-hooks 'set-viper-state-in-major-mode)
 
@@ -847,13 +902,6 @@ It also can't undo some Viper settings."
   (defvar emerge-startup-hook)
   (add-hook 'emerge-startup-hook 'viper-change-state-to-emacs)
 
-  ;; Zap bad bindings in flyspell-mouse-map, which prevent ESC from working
-  ;; over misspelled words (due to the overlay keymaps)
-  (defvar flyspell-mode-hook)
-  (defvar flyspell-mouse-map)
-  (add-hook 'flyspell-mode-hook
-	    (lambda ()
-              (define-key flyspell-mouse-map viper-ESC-key nil)))
   ;; if viper is started from .emacs, it might be impossible to get certain
   ;; info about the display and windows until emacs initialization is complete
   ;; So do it via the window-setup-hook

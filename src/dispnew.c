@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DISPEXTERN_INLINE EXTERN_INLINE
 
-#include <stdio.h>
+#include "sysstdio.h"
 #include <unistd.h>
 
 #include "lisp.h"
@@ -5605,17 +5605,17 @@ FILE = nil means just close any termscript file currently open.  */)
   tty = CURTTY ();
 
   if (tty->termscript != 0)
-  {
-    block_input ();
-    fclose (tty->termscript);
-    unblock_input ();
-  }
-  tty->termscript = 0;
+    {
+      block_input ();
+      fclose (tty->termscript);
+      tty->termscript = 0;
+      unblock_input ();
+    }
 
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      tty->termscript = fopen (SSDATA (file), "w");
+      tty->termscript = emacs_fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }

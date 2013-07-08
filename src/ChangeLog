@@ -1,3 +1,216 @@
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Ubuntu 10 (Bug#14803).
+	Problem reported by T.V. Raman.
+	* process.c (close_on_exec, accept4, process_socket):
+	Define these if !HAVE_ACCEPT4, not if !SOCK_CLOEXEC.
+
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_dup): Declare prototype.
+
+	* filelock.c:
+	* emacs.c:
+	* callproc.c [WINDOWSNT]: Include sys/socket.h.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	This simplifies Emacs a bit, since it no longer needs to worry
+	about closing file descriptors by hand in some cases.
+	It also fixes some unlikely races.  Not all such races, as
+	libraries often open files internally without setting
+	close-on-exec, but it's an improvement.
+	* alloc.c (valid_pointer_p) [!WINDOWSNT]:
+	* callproc.c (Fcall_process) [!MSDOS]:
+	* emacs.c (main) [!DOS_NT]:
+	* nsterm.m (ns_term_init):
+	* process.c (create_process):
+	Use 'pipe2' with O_CLOEXEC instead of 'pipe'.
+	* emacs.c (Fcall_process_region) [HAVE_MKOSTEMP]:
+	* filelock.c (create_lock_file) [HAVE_MKOSTEMP]:
+	Prefer mkostemp with O_CLOEXEC to mkstemp.
+	* callproc.c (relocate_fd) [!WINDOWSNT]:
+	* emacs.c (main): Use F_DUPFD_CLOEXEC, not plain F_DUPFD.
+	No need to use fcntl (..., F_SETFD, FD_CLOEXEC), since we're
+	now using pipe2.
+	* filelock.c (create_lock_file) [! HAVE_MKOSTEMP]:
+	Make the resulting file descriptor close-on-exec.
+	* lisp.h, lread.c, process.c (close_load_descs, close_process_descs):
+	* lread.c (load_descriptor_list, load_descriptor_unwind):
+	Remove; no longer needed.  All uses removed.
+	* process.c (SOCK_CLOEXEC): Define to 0 if not supplied by system.
+	(close_on_exec, accept4, process_socket) [!SOCK_CLOEXEC]:
+	New functions.
+	(socket) [!SOCK_CLOEXEC]: Supply a substitute.
+	(Fmake_network_process, Fnetwork_interface_list):
+	(Fnetwork_interface_info, server_accept_connection):
+	Make newly-created socket close-on-exec.
+	* sysdep.c (emacs_open, emacs_fopen):
+	Make new-created descriptor close-on-exec.
+	* w32.c (fcntl): Support F_DUPFD_CLOEXEC well enough for Emacs.
+	* w32.c, w32.h (pipe2): Rename from 'pipe', with new flags arg.
+
+2013-07-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (sendEvent:): Propagate keyboard events to modal windows
+	for NS_IMPL_GNUSTEP.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix openp errno handling.
+	* callproc.c (Fcall_process): Preserve openp errno around close.
+	* lread.c (openp): Set errno when returning -1, as some callers
+	expect this.
+
+2013-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (sendEvent:): Handle NSAPP_DATA2_RUNFILEDIALOG.
+
+	* nsterm.h (NSSavePanel): Update comment.
+	(NSAPP_DATA2_RUNFILEDIALOG): Define.
+	(ns_run_file_dialog): Declare.
+
+	* nsfns.m: Remove panelOK.
+	(ns_fd_data): New.
+	(ns_run_file_dialog): New function.
+	(Fns_read_file_name): Fill in ns_fd_data, post an event and start the
+	event loop, so file dialog is popped up by ns_run_file_dialog, called
+	by sendEvent (Bug#14578).
+	(EmacsSavePanel, EmacsOpenPanel): Remove ok and cancel methods.
+
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (default_line_pixel_height): New function.
+	(pos_visible_p, move_it_vertically_backward, try_scrolling)
+	(try_cursor_movement, redisplay_window, try_window)
+	(try_window_id): Use it instead of FRAME_LINE_HEIGHT.  (Bug#14771)
+
+	* window.c (window_scroll_pixel_based): use
+	default_line_pixel_height.
+
+	* dispextern.h (default_line_pixel_height): Add prototype.
+
+	* frame.c (x_set_line_spacing): Accept a float value for
+	line-spacing parameter, per the documentation.
+
+	* data.c (Fmultibyte_string_p): Doc fix.
+
+2013-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use emacs_open more consistently when opening files.
+	This handles EINTR more consistently now, and makes it easier
+	to introduce other uniform changes to file descriptor handling.
+	* src/systdio.h: New file.
+	* src/buffer.c (mmap_init):
+	* cygw32.c (chdir_to_default_directory):
+	* dispnew.c (Fopen_termscript):
+	* emacs.c (Fdaemon_initialized):
+	* fileio.c (Fdo_auto_save):
+	* image.c (slurp_file, png_load_body, jpeg_load_body):
+	* keyboard.c (Fopen_dribble_file):
+	* lread.c (Fload):
+	* print.c (Fredirect_debugging_output):
+	* sysdep.c (get_up_time, procfs_ttyname, procfs_get_total_memory):
+	* termcap.c (tgetent):
+	* unexaix.c, unexcoff.c (unexec, adjust_lnnoptrs):
+	* unexcw.c, unexelf.c, unexhp9k800.c, unexmacosx.c (unexec):
+	* w32term.c (w32_initialize) [CYGWIN]:
+	* xfaces.c (Fx_load_color_file):
+	Use emacs_open instead of plain open, and emacs_fopen instead of
+	plain fopen.
+	* dispnew.c, fileio.c, image.c, keyboard.c, lread.c, print.c, sysdep.c:
+	* xfaces.c: Include sysstdio.h rather than stdio.h, for emacs_fopen.
+	* callproc.c (default_output_mode): New constant.
+	(Fcall_process): Use it to call emacs_open instead of plain creat.
+	* dispnew.c (Fopen_termscript): Fix minor race in opening termscript.
+	* sysdep.c (emacs_open): Add commentary and don't call file name "path".
+	(emacs_fopen): New function.
+	* unexaix.c, unexcoff.c, unexelf.c, unexhp9k800.c, unexmacosx.c:
+	Include <lisp.h>, for emacs_open.
+	* unexelf.c (fatal): Remove decl; not needed with <lisp.h> included.
+
+	Remove duplicate #include directives.
+	* alloc.c [GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES]:
+	* xfaces.c:
+	Don't include stdio.h twice.
+	* buffer.c [USE_MMAP_FOR_BUFFERS]:
+	Don't include sys/types.h or stdio.h twice.
+	* fileio.c [WINDOWSNT | MSDOS]: Don't include fcntl.h twice.
+	* lread.c: Don't include coding.h twice.
+	* nsfont.m: Don't include frame.h twice.
+	* process.c [HAVE_RES_INIT]: Don't include <netinet/in.h> twice.
+	* ralloc.c: Don't include <unistd.h> twice.
+	* xdisp.c: Don't include font.h twice.
+	* xterm.c: Don't include fontset.h twice.
+	* xterm.h [USE_X_TOOLKIT]: Don't include X11/StringDefs.h twice.
+
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Scale ImageMagick images more carefully.
+	* image.c (scale_image_size) [HAVE_IMAGEMAGICK]: New function.
+	(compute_image_size): Use it.  Define only if HAVE_IMAGEMAGICK.
+	Be more careful about avoiding undefined behavior after
+	integer overflow and division by zero.
+
+2013-07-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32fns.c (Qgeometry, Qworkarea, Qmm_size, Qframes): New variables.
+	(syms_of_w32fns): DEFSYM them.
+	(MONITORINFOF_PRIMARY, SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN)
+	(CCHDEVICENAME): Define macros if not defined.
+	(struct MONITOR_INFO_EX): New struct.
+	(MonitorEnum_Proc, EnumDisplayMonitors_Proc): New prototypes.
+	(enum_display_monitors_fn): New variable.
+	(globals_of_w32fns): Initialize it.
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_mm_height, Fx_display_mm_width): Mention behavior on
+	multi-monitor setups in docstrings.
+	(Fx_display_mm_height, Fx_display_mm_width): Approximate whole
+	screen size by primary monitor's millimeter per pixel.
+	(w32_monitor_enum, w32_display_monitor_attributes_list)
+	(w32_display_monitor_attributes_list_fallback)
+	(Fw32_display_monitor_attributes_list): New functions.
+	(syms_of_w32fns): Defsubr Sw32_display_monitor_attributes_list.
+
+	* w32term.c (SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN): Define macros
+	if not defined.
+	(x_display_pixel_height, x_display_pixel_width): Use GetSystemMetrics.
+
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Qfile_notify_error): New error symbol.
+
+	* gfilenotify.c (Fgfile_add_watch, Fgfile_rm_watch):
+	* inotify.c (inotify_callback, symbol_to_inotifymask)
+	(Finotify_add_watch, Finotify_rm_watch): Use it.
+	(inotifyevent_to_event): Exchange order of cookie and file name.
+	(Finotify_add_watch): Adapt docstring.
+
+	* lisp.h (Qfile_notify_error): Declare.
+
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try again to fix FreeBSD bug re multithreaded memory alloc (Bug#14569).
+	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Do not clear _malloc_thread_enabled_p, undoing the previous change,
+	which did not work (see <http://bugs.gnu.org/14569#307>).
+	(main): Do not invoke malloc_enable_thread if (! CANNOT_DUMP
+	&& (!noninteractive || initialized)).  This attempts to thread
+	the needle between the Scylla of FreeBSD and the Charybdis of Cygwin.
+
+2013-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (x_to_xcolors) [HAVE_NTGUI]: Remove unused var `hdc'.
+	(x_build_heuristic_mask) [HAVE_NTGUI]: Remove unused var `frame_dc'.
+
+2013-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to fix FreeBSD bug re multithreaded memory allocation (Bug#14569).
+	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Clear _malloc_thread_enabled_p at startup.  Reported by Ashish SHUKLA in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00088.html>.
+
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (sys_siglist) [HAVE_DECL___SYS_SIGLIST]:
@@ -507,7 +720,7 @@
 	(VALMASK): Also a constant, for benefit of old GDB.
 	(LISP_INT_TAG_P): Remove; no longer needed as the only caller
 	is INTEGERP, which can fold it in.
-	(XLI, XIL, XHASH, XTYPE,XINT, XFASTINT, XUINT)
+	(XLI, XIL, XHASH, XTYPE, XINT, XFASTINT, XUINT)
 	(make_number, XPNTR, XUNTAG, EQ, XCONS, XVECTOR, XSTRING, XSYMBOL)
 	(XFLOAT, XPROCESS, XWINDOW, XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE)
 	(XSUB_CHAR_TABLE, XBOOL_VECTOR, make_lisp_ptr, CHECK_TYPE)

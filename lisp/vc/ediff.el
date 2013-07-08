@@ -12,8 +12,8 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst ediff-version "2.81.4" "The current version of Ediff")
-(defconst ediff-date "December 7, 2009" "Date of last update")
+(defconst ediff-version "2.81.5" "The current version of Ediff")
+(defconst ediff-date "July 4, 2013" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -1558,6 +1558,75 @@ With optional NODE, goes to that node."
                 "^There is no file to merge$"
                 "^Version control package .*.el not found. Use vc.el instead$"))
   (add-to-list 'debug-ignored-errors mess))
+
+
+
+;;; Command line interface
+
+;;;###autoload
+(defun ediff-files-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 2 command-line-args-left))
+    (ediff file-a file-b)))
+
+;;;###autoload
+(defun ediff3-files-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(file-c (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff3 file-a file-b file-c)))
+
+;;;###autoload
+(defun ediff-merge-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 2 command-line-args-left))
+    (ediff-merge-files file-a file-b)))
+
+;;;###autoload
+(defun ediff-merge-with-ancestor-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(ancestor (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-merge-files-with-ancestor file-a file-b ancestor)))
+
+;;;###autoload
+(defun ediff-directories-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(regexp (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-directories file-a file-b regexp)))
+
+;;;###autoload
+(defun ediff-directories3-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(file-c (nth 2 command-line-args-left))
+	(regexp (nth 3 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 4 command-line-args-left))
+    (ediff-directories3 file-a file-b file-c regexp)))
+
+;;;###autoload
+(defun ediff-merge-directories-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(regexp (nth 2 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 3 command-line-args-left))
+    (ediff-merge-directories file-a file-b regexp)))
+
+;;;###autoload
+(defun ediff-merge-directories-with-ancestor-command ()
+  (let ((file-a (nth 0 command-line-args-left))
+	(file-b (nth 1 command-line-args-left))
+	(ancestor (nth 2 command-line-args-left))
+	(regexp (nth 3 command-line-args-left)))
+    (setq command-line-args-left (nthcdr 4 command-line-args-left))
+    (ediff-merge-directories-with-ancestor file-a file-b ancestor regexp)))
+
 
 
 (require 'ediff-util)

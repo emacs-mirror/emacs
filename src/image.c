@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <unistd.h>
 
 #ifdef HAVE_PNG
@@ -2274,7 +2274,7 @@ x_find_image_file (Lisp_Object file)
 static unsigned char *
 slurp_file (char *file, ptrdiff_t *size)
 {
-  FILE *fp = fopen (file, "rb");
+  FILE *fp = emacs_fopen (file, "rb");
   unsigned char *buf = NULL;
   struct stat st;
 
@@ -4559,7 +4559,6 @@ x_to_xcolors (struct frame *f, struct image *img, bool rgb_p)
   XColor *colors, *p;
   XImagePtr_or_DC ximg;
 #ifdef HAVE_NTGUI
-  HDC hdc;
   HGDIOBJ prev;
 #endif /* HAVE_NTGUI */
 
@@ -4929,7 +4928,6 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 #ifndef HAVE_NTGUI
   XImagePtr mask_img;
 #else
-  HDC frame_dc;
   HGDIOBJ prev;
   char *mask_img;
   int row_width;
@@ -5725,7 +5723,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	}
 
       /* Open the image file.  */
-      fp = fopen (SSDATA (file), "rb");
+      fp = emacs_fopen (SSDATA (file), "rb");
       if (!fp)
 	{
 	  image_error ("Cannot open image file `%s'", file, Qnil);
@@ -6486,7 +6484,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 	  return 0;
 	}
 
-      fp = fopen (SSDATA (file), "rb");
+      fp = emacs_fopen (SSDATA (file), "rb");
       if (fp == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -7627,6 +7625,31 @@ gif_load (struct frame *f, struct image *img)
 #endif /* HAVE_GIF */
 
 
+#ifdef HAVE_IMAGEMAGICK
+
+/***********************************************************************
+				 ImageMagick
+***********************************************************************/
+
+/* Scale an image size by returning SIZE / DIVISOR * MULTIPLIER,
+   safely rounded and clipped to int range.  */
+
+static int
+scale_image_size (int size, size_t divisor, size_t multiplier)
+{
+  if (divisor != 0)
+    {
+      double s = size;
+      double scaled = s * multiplier / divisor + 0.5;
+      if (scaled < INT_MAX)
+	return scaled;
+    }
+  return INT_MAX;
+}
+
+/* Compute the desired size of an image with native size WIDTH x HEIGHT.
+   Use SPEC to deduce the size.  Store the desired size into
+   *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
 static void
 compute_image_size (size_t width, size_t height,
 		    Lisp_Object spec,
@@ -7640,38 +7663,35 @@ compute_image_size (size_t width, size_t height,
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
   value = image_spec_value (spec, QCwidth, NULL);
-  desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
+  desired_width = NATNUMP (value) ? min (XFASTINT (value), INT_MAX) : -1;
   value = image_spec_value (spec, QCheight, NULL);
-  desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
+  desired_height = NATNUMP (value) ? min (XFASTINT (value), INT_MAX) : -1;
 
   if (desired_width == -1)
     {
       value = image_spec_value (spec, QCmax_width, NULL);
-      if (INTEGERP (value) &&
-	  width > XFASTINT (value))
+      if (NATNUMP (value))
 	{
-	  /* The image is wider than :max-width. */
-	  desired_width = XFASTINT (value);
-	  if (desired_height == -1)
+	  int max_width = min (XFASTINT (value), INT_MAX);
+	  if (max_width < width)
 	    {
-	      value = image_spec_value (spec, QCmax_height, NULL);
-	      if (INTEGERP (value))
+	      /* The image is wider than :max-width. */
+	      desired_width = max_width;
+	      if (desired_height == -1)
 		{
-		  /* We have no specified height, but we have a
-		     :max-height value, so check that we satisfy both
-		     conditions. */
-		  desired_height = (double) desired_width / width * height;
-		  if (desired_height > XFASTINT (value))
+		  desired_height = scale_image_size (desired_width,
+						     width, height);
+		  value = image_spec_value (spec, QCmax_height, NULL);
+		  if (NATNUMP (value))
 		    {
-		      desired_height = XFASTINT (value);
-		      desired_width = (double) desired_height / height * width;
+		      int max_height = min (XFASTINT (value), INT_MAX);
+		      if (max_height < desired_height)
+			{
+			  desired_height = max_height;
+			  desired_width = scale_image_size (desired_height,
+							    height, width);
+			}
 		    }
-		}
-	      else
-		{
-		  /* We have no specified height and no specified
-		     max-height, so just compute the height. */
-		  desired_height = (double) desired_width / width * height;
 		}
 	    }
 	}
@@ -7680,27 +7700,25 @@ compute_image_size (size_t width, size_t height,
   if (desired_height == -1)
     {
       value = image_spec_value (spec, QCmax_height, NULL);
-      if (INTEGERP (value) &&
-	  height > XFASTINT (value))
-	  desired_height = XFASTINT (value);
+      if (NATNUMP (value))
+	{
+	  int max_height = min (XFASTINT (value), INT_MAX);
+	  if (max_height < height)
+	    desired_height = max_height;
+	}
     }
 
   if (desired_width != -1 && desired_height == -1)
     /* w known, calculate h.  */
-    desired_height = (double) desired_width / width * height;
+    desired_height = scale_image_size (desired_width, width, height);
 
   if (desired_width == -1 && desired_height != -1)
     /* h known, calculate w.  */
-    desired_width = (double) desired_height / height * width;
+    desired_width = scale_image_size (desired_height, height, width);
 
   *d_width = desired_width;
   *d_height = desired_height;
 }
-
-/***********************************************************************
-				 ImageMagick
-***********************************************************************/
-#if defined (HAVE_IMAGEMAGICK)
 
 static Lisp_Object Qimagemagick;
 

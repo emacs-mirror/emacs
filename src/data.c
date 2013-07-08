@@ -377,7 +377,8 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0,
 
 DEFUN ("multibyte-string-p", Fmultibyte_string_p, Smultibyte_string_p,
        1, 1, 0,
-       doc: /* Return t if OBJECT is a multibyte string.  */)
+       doc: /* Return t if OBJECT is a multibyte string.
+Return nil if OBJECT is either a unibyte string, or not a string.  */)
   (Lisp_Object object)
 {
   if (STRINGP (object) && STRING_MULTIBYTE (object))

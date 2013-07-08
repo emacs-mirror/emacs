@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSTIME_INLINE EXTERN_INLINE
 
 #include <execinfo.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
@@ -542,8 +542,6 @@ sys_subshell (void)
 	  _exit (1);
 #endif
 	}
-
-      close_process_descs ();	/* Close Emacs's pipes/ptys */
 
 #ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
       {
@@ -2151,15 +2149,53 @@ emacs_abort (void)
 }
 #endif
 
-int
-emacs_open (const char *path, int oflag, int mode)
-{
-  register int rtnval;
+/* Open FILE for Emacs use, using open flags OFLAG and mode MODE.
+   Arrange for subprograms to not inherit the file descriptor.
+   Prefer a method that is multithread-safe, if available.
+   Do not fail merely because the open was interrupted by a signal.
+   Allow the user to quit.  */
 
-  while ((rtnval = open (path, oflag, mode)) == -1
-	 && (errno == EINTR))
+int
+emacs_open (const char *file, int oflags, int mode)
+{
+  int fd;
+  oflags |= O_CLOEXEC;
+  while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     QUIT;
-  return (rtnval);
+  if (! O_CLOEXEC && 0 <= fd)
+    fcntl (fd, F_SETFD, FD_CLOEXEC);
+  return fd;
+}
+
+/* Open FILE as a stream for Emacs use, with mode MODE.
+   Act like emacs_open with respect to threads, signals, and quits.  */
+
+FILE *
+emacs_fopen (char const *file, char const *mode)
+{
+  int fd, omode, oflags;
+  int bflag = 0;
+  char const *m = mode;
+
+  switch (*m++)
+    {
+    case 'r': omode = O_RDONLY; oflags = 0; break;
+    case 'w': omode = O_WRONLY; oflags = O_CREAT | O_TRUNC; break;
+    case 'a': omode = O_WRONLY; oflags = O_CREAT | O_APPEND; break;
+    default: emacs_abort ();
+    }
+
+  while (*m)
+    switch (*m++)
+      {
+      case '+': omode = O_RDWR; break;
+      case 'b': bflag = O_BINARY; break;
+      case 't': bflag = O_TEXT; break;
+      default: /* Ignore.  */ break;
+      }
+
+  fd = emacs_open (file, omode | oflags | bflag, 0666);
+  return fd < 0 ? 0 : fdopen (fd, mode);
 }
 
 int
@@ -2637,7 +2673,7 @@ get_up_time (void)
   EMACS_TIME up = make_emacs_time (0, 0);
 
   block_input ();
-  fup = fopen ("/proc/uptime", "r");
+  fup = emacs_fopen ("/proc/uptime", "r");
 
   if (fup)
     {
@@ -2682,7 +2718,7 @@ procfs_ttyname (int rdev)
   char name[PATH_MAX];
 
   block_input ();
-  fdev = fopen ("/proc/tty/drivers", "r");
+  fdev = emacs_fopen ("/proc/tty/drivers", "r");
 
   if (fdev)
     {
@@ -2724,7 +2760,7 @@ procfs_get_total_memory (void)
   unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
 
   block_input ();
-  fmem = fopen ("/proc/meminfo", "r");
+  fmem = emacs_fopen ("/proc/meminfo", "r");
 
   if (fmem)
     {

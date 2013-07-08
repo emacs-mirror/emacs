@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -38,7 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "termhooks.h"
-#include "coding.h"
 #include "blockinput.h"
 
 #ifdef MSDOS
@@ -96,9 +95,6 @@ static Lisp_Object Qload_in_progress;
    It must be set to nil before all top-level calls to read0.  */
 static Lisp_Object read_objects;
 
-/* List of descriptors now open for Fload.  */
-static Lisp_Object load_descriptor_list;
-
 /* File for get_file_char to read from.  Use by load.  */
 static FILE *instream;
 
@@ -150,7 +146,6 @@ static void readevalloop (Lisp_Object, FILE *, Lisp_Object, bool,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
-static Lisp_Object load_descriptor_unwind (Lisp_Object);
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -1298,7 +1293,7 @@ Return t if the file exists and loads successfully.  */)
   if (fd >= 0)
     {
       emacs_close (fd);
-      stream = fopen (SSDATA (efound), fmode);
+      stream = emacs_fopen (SSDATA (efound), fmode);
     }
   else
     stream = NULL;
@@ -1329,11 +1324,8 @@ Return t if the file exists and loads successfully.  */)
     }
 
   record_unwind_protect (load_unwind, make_save_pointer (stream));
-  record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
-  load_descriptor_list
-    = Fcons (make_number (fileno (stream)), load_descriptor_list);
   specbind (Qload_in_progress, Qt);
 
   instream = stream;
@@ -1396,26 +1388,6 @@ load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
     }
   return Qnil;
 }
-
-static Lisp_Object
-load_descriptor_unwind (Lisp_Object oldlist)
-{
-  load_descriptor_list = oldlist;
-  return Qnil;
-}
-
-/* Close all descriptors in use for Floads.
-   This is used when starting a subprocess.  */
-
-void
-close_load_descs (void)
-{
-#ifndef WINDOWSNT
-  Lisp_Object tail;
-  for (tail = load_descriptor_list; CONSP (tail); tail = XCDR (tail))
-    emacs_close (XFASTINT (XCAR (tail)));
-#endif
-}
 
 static bool
 complete_filename_p (Lisp_Object pathname)
@@ -1449,14 +1421,15 @@ static Lisp_Object Qdir_ok;
 
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
-   On success, returns a file descriptor.  On failure, returns -1.
+   On success, return a file descriptor (or 1 or -2 as described below).
+   On failure, return -1 and set errno.
 
    SUFFIXES is a list of strings containing possible suffixes.
    The empty suffix is automatically added if the list is empty.
 
    PREDICATE non-nil means don't open the files,
    just look for one that satisfies the predicate.  In this case,
-   returns 1 on success.  The predicate can be a lisp function or
+   return 1 on success.  The predicate can be a lisp function or
    an integer to pass to `access' (in which case file-name-handlers
    are ignored).
 
@@ -1468,7 +1441,8 @@ static Lisp_Object Qdir_ok;
    but store the found remote file name in *STOREPTR.  */
 
 int
-openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
+openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
+       Lisp_Object *storeptr, Lisp_Object predicate)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
@@ -1479,6 +1453,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object string, tail, encoded_fn;
   ptrdiff_t max_suffix_len = 0;
+  int last_errno = ENOENT;
 
   CHECK_STRING (str);
 
@@ -1548,14 +1523,22 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      bool exists;
+	      last_errno = ENOENT;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
 		{
 		  Lisp_Object tmp = call1 (predicate, string);
-		  exists = !NILP (tmp)
-		    && (EQ (tmp, Qdir_ok)
-			|| NILP (Ffile_directory_p (string)));
+		  if (NILP (tmp))
+		    exists = 0;
+		  else if (EQ (tmp, Qdir_ok)
+			   || NILP (Ffile_directory_p (string)))
+		    exists = 1;
+		  else
+		    {
+		      exists = 0;
+		      last_errno = EISDIR;
+		    }
 		}
 
 	      if (exists)
@@ -1577,21 +1560,36 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 
 	      /* Check that we can access or open it.  */
 	      if (NATNUMP (predicate))
-		fd = (((XFASTINT (predicate) & ~INT_MAX) == 0
-		       && (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
+		{
+		  fd = -1;
+		  if (INT_MAX < XFASTINT (predicate))
+		    last_errno = EINVAL;
+		  else if (faccessat (AT_FDCWD, pfn, XFASTINT (predicate),
 				      AT_EACCESS)
 			   == 0)
-		       && ! file_directory_p (pfn))
-		      ? 1 : -1);
+		    {
+		      if (file_directory_p (pfn))
+			last_errno = EISDIR;
+		      else
+			fd = 1;
+		    }
+		}
 	      else
 		{
-		  struct stat st;
 		  fd = emacs_open (pfn, O_RDONLY, 0);
-		  if (fd >= 0
-		      && (fstat (fd, &st) != 0 || S_ISDIR (st.st_mode)))
+		  if (fd < 0)
+		    last_errno = errno;
+		  else
 		    {
-		      emacs_close (fd);
-		      fd = -1;
+		      struct stat st;
+		      int err = (fstat (fd, &st) != 0 ? errno
+				 : S_ISDIR (st.st_mode) ? EISDIR : 0);
+		      if (err)
+			{
+			  last_errno = err;
+			  emacs_close (fd);
+			  fd = -1;
+			}
 		    }
 		}
 
@@ -1610,6 +1608,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
     }
 
   UNGCPRO;
+  errno = last_errno;
   return -1;
 }
 
@@ -4350,9 +4349,6 @@ init_lread (void)
 
   load_in_progress = 0;
   Vload_file_name = Qnil;
-
-  load_descriptor_list = Qnil;
-
   Vstandard_input = Qt;
   Vloads_in_progress = Qnil;
 }
@@ -4624,9 +4620,6 @@ variables, this must be set in the first line of a file.  */);
   DEFSYM (Qold_style_backquotes, "old-style-backquotes");
 
   /* Vsource_directory was initialized in init_lread.  */
-
-  load_descriptor_list = Qnil;
-  staticpro (&load_descriptor_list);
 
   DEFSYM (Qcurrent_load_list, "current-load-list");
   DEFSYM (Qstandard_input, "standard-input");

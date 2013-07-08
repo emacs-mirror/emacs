@@ -69,7 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "keymap.h"
 #include "font.h"
-#include "fontset.h"
 #include "xsettings.h"
 #include "xgselect.h"
 #include "sysselect.h"

@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #ifdef WINDOWSNT
 #include <share.h>
+#include <sys/socket.h>	/* for fcntl */
 #include "w32.h"	/* for dostounix_filename */
 #endif
 
@@ -416,8 +417,13 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       memcpy (nonce, lfname, lfdirlen);
       strcpy (nonce + lfdirlen, nonce_base);
 
-#if HAVE_MKSTEMP
-      /* Prefer mkstemp if available, as it avoids a race between
+#if HAVE_MKOSTEMP
+      /* Prefer mkostemp to mkstemp, as it avoids a window where FD is
+	 temporarily open without close-on-exec.  */
+      fd = mkostemp (nonce, O_BINARY | O_CLOEXEC);
+      need_fchmod = 1;
+#elif HAVE_MKSTEMP
+      /* Prefer mkstemp to mktemp, as it avoids a race between
 	 mktemp and emacs_open.  */
       fd = mkstemp (nonce);
       need_fchmod = 1;
@@ -432,7 +438,11 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 	err = errno;
       else
 	{
-	  ptrdiff_t lock_info_len = strlen (lock_info_str);
+	  ptrdiff_t lock_info_len;
+#if ! HAVE_MKOSTEMP
+	  fcntl (fd, F_SETFD, FD_CLOEXEC);
+#endif
+	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
 	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
 	      || (need_fchmod && fchmod (fd, world_readable) != 0))

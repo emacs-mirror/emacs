@@ -192,7 +192,7 @@ Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
   :type 'string
   :group 'viper)
 
-(defvar viper-ESC-key (kbd "ESC")
+(defconst viper-ESC-key [escape]
   "Key used to ESC.")
 
 

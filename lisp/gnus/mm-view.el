@@ -419,16 +419,18 @@
        (buffer-string)))))
 
 (defun mm-inline-text-html (handle)
-  (let* ((func mm-text-html-renderer)
-	 (entry (assq func mm-text-html-renderer-alist))
-	 (inhibit-read-only t))
-    (if entry
-	(setq func (cdr entry)))
-    (cond
-     ((functionp func)
-      (funcall func handle))
-     (t
-      (apply (car func) handle (cdr func))))))
+  (if (stringp (car handle))
+      (mapcar 'mm-inline-text-html (cdr handle))
+    (let* ((func mm-text-html-renderer)
+	   (entry (assq func mm-text-html-renderer-alist))
+	   (inhibit-read-only t))
+      (if entry
+	  (setq func (cdr entry)))
+      (cond
+       ((functionp func)
+	(funcall func handle))
+       (t
+	(apply (car func) handle (cdr func)))))))
 
 (defun mm-inline-text-vcard (handle)
   (let ((inhibit-read-only t))

@@ -1365,7 +1365,11 @@ frame's display)."
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
-For character terminals, each character counts as a single pixel."
+For character terminals, each character counts as a single pixel.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the pixel height for all physical monitors associated
+with DISPLAY.  To get information for each physical monitor, use
+`display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1377,7 +1381,11 @@ For character terminals, each character counts as a single pixel."
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
-For character terminals, each character counts as a single pixel."
+For character terminals, each character counts as a single pixel.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the pixel width for all physical monitors associated
+with DISPLAY.  To get information for each physical monitor, use
+`display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1408,7 +1416,11 @@ displays not explicitly specified."
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
-If the information is unavailable, value is nil."
+If the information is unavailable, value is nil.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the height in millimeters for all physical monitors
+associated with DISPLAY.  To get information for each physical
+monitor, use `display-monitor-attributes-list'."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1420,7 +1432,11 @@ If the information is unavailable, value is nil."
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
-If the information is unavailable, value is nil."
+If the information is unavailable, value is nil.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the width in millimeters for all physical monitors
+associated with DISPLAY.  To get information for each physical
+monitor, use `display-monitor-attributes-list'."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1495,6 +1511,8 @@ The value is one of the symbols `static-gray', `gray-scale',
 
 (declare-function x-display-monitor-attributes-list "xfns.c"
 		  (&optional terminal))
+(declare-function w32-display-monitor-attributes-list "w32fns.c"
+		  (&optional display))
 (declare-function ns-display-monitor-attributes-list "nsfns.m"
 		  (&optional terminal))
 
@@ -1530,6 +1548,8 @@ monitors."
     (cond
      ((eq frame-type 'x)
       (x-display-monitor-attributes-list display))
+     ((eq frame-type 'w32)
+      (w32-display-monitor-attributes-list display))
      ((eq frame-type 'ns)
       (ns-display-monitor-attributes-list display))
      (t

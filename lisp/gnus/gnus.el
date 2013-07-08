@@ -1628,7 +1628,7 @@ slower."
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
-    ("nnrss" none)
+    ("nnrss" none global)
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
