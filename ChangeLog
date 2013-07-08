@@ -1,3 +1,9 @@
+2013-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to fix FreeBSD 9.1 porting problem (Bug#14812).
+	This incorporates the following merge from gnulib:
+	2013-07-07 stdalign, verify: port to FreeBSD 9.1, to C11, and to C++11
+
 2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Ubuntu 10 (Bug#14803).
