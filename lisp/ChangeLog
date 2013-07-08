@@ -1,3 +1,8 @@
+2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-map): Reinstate the `u' key binding, since it's
+	been used a while.
+
 2013-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (read-quoted-char): Remove unused local variable `char'.
