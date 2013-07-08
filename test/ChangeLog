@@ -1,3 +1,8 @@
+2013-07-08  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-prefer-utf-8-read):
+	Use with-ccoding-priority to avoid side-effect (Bug#14781).
+
 2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el
