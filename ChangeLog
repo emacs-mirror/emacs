@@ -6,7 +6,6 @@
 	Make file descriptors close-on-exec when possible (Bug#14803).
 	* configure.ac (mkostemp): New function to check for.
 	(PTY_OPEN): Pass O_CLOEXEC to posix_openpt.
-
 	* lib/fcntl.c, lib/getdtablesize.c, lib/pipe2.c, m4/fcntl.m4:
 	* m4/getdtablesize.m4, m4/pipe2.m4: New files, taken from gnulib.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
