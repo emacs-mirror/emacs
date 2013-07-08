@@ -8054,7 +8054,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
+#if defined(HAVE_MAGICKEXPORTIMAGEPIXELS) && ! defined(HAVE_NS)
   if (imagemagick_render_type != 0)
     {
       /* Magicexportimage is normally faster than pixelpushing.  This

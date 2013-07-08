@@ -1,3 +1,7 @@
+2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change)
+
+	* configure.ac (HAVE_IMAGEMAGICK): Check on NS also (Bug#14798).
+
 2013-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Try to fix FreeBSD 9.1 porting problem (Bug#14812).

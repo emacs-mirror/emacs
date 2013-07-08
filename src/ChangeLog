@@ -1,3 +1,8 @@
+2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change).
+
+	* image.c (imagemagick_load_image): Do not use MagickExportImagePixels
+	on NS even if it is present.  Pixmap on NS is a void*.
+
 2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Ubuntu 10 (Bug#14803).
