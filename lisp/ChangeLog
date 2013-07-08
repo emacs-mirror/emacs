@@ -2,6 +2,8 @@
 
 	* simple.el (line-move-partial, line-move): Account for
 	line-spacing.
+	(line-move-partial): Avoid setting vscroll when the last
+	partially-visible line in window is of default height.
 
 2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
