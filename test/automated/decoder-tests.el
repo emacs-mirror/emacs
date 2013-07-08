@@ -213,10 +213,9 @@
 ;; PREFER is non-nil, prefer that coding system before reading.
 
 (defun decoder-tests-prefer-utf-8-read (file detect prefer)
-  (if prefer
-      (prefer-coding-system prefer))
   (with-temp-buffer
-    (insert-file-contents file)
+    (with-coding-priority (if prefer (list prefer))
+      (insert-file-contents file))
     (if (eq buffer-file-coding-system detect)
 	nil
       (format "Invalid detection: %s" buffer-file-coding-system))))
