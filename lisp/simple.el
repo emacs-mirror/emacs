@@ -4764,15 +4764,27 @@ The value is a floating-point number."
 	   (this-height (nth 0 this-lh))
 	   (this-ypos (nth 2 this-lh))
 	   (dfh (default-font-height))
-	   py vs)
+	   (lsp (if (display-graphic-p)
+		    (or line-spacing
+			(default-value 'line-spacing)
+			(frame-parameter nil 'line-spacing)
+			0)
+		  0))
+	   py vs rowh dlh)
+      (if (floatp lsp)
+	  (setq lsp (* dfh lsp)))
+      ;; Default height of a text line, accounting for the default
+      ;; face's font and line-spacing, if any.
+      (setq dlh (+ dfh lsp))
       (when (or (null lh)
-		(>= rbot dfh)
-		(<= ypos (- dfh))
+		(>= rbot dlh)
+		(<= ypos (- dlh))
 		(null this-lh)
-		(<= this-ypos (- dfh)))
+		(<= this-ypos (- dlh)))
 	(unless lh
 	  (let ((wend (pos-visible-in-window-p t nil t)))
 	    (setq rbot (nth 3 wend)
+		  rowh  (nth 4 wend)
 		  vpos (nth 5 wend))))
 	(unless this-lh
 	  (let ((wstart (pos-visible-in-window-p nil nil t)))
@@ -4789,14 +4801,14 @@ The value is a floating-point number."
 	(cond
 	 ;; If last line of window is fully visible, and vscrolling
 	 ;; more would make this line invisible, move forward.
-	 ((and (or (< (setq vs (window-vscroll nil t)) dfh)
+	 ((and (or (< (setq vs (window-vscroll nil t)) dlh)
 		   (null this-height)
-		   (<= this-height dfh))
+		   (<= this-height dlh))
 	       (or (null rbot) (= rbot 0)))
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, and the
 	 ;; current line is is not too tall, move forward.
-	 ((and (or (null this-height) (<= this-height dfh))
+	 ((and (or (null this-height) (<= this-height dlh))
 	       vpos
 	       (> vpos 0)
 	       (< py
@@ -4806,15 +4818,26 @@ The value is a floating-point number."
 	 ;; or clear vscroll and move forward at end of tall image.
 	 ((> vs 0)
 	  (when (or (and rbot (> rbot 0))
-		    (and this-height (> this-height dfh)))
-	    (set-window-vscroll nil (+ vs dfh) t)))
+		    (and this-height (> this-height dlh)))
+	    (set-window-vscroll nil (+ vs dlh) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
-	 ;; but also vscroll one line so redisplay won't recenter.
+	 ;; but also optionally vscroll one line so redisplay won't recenter.
 	 ((and vpos
 	       (> vpos 0)
 	       (= py (min (- (window-screen-lines) scroll-margin 1)
 			  (1- vpos))))
-	  (set-window-vscroll nil dfh t)
+	  ;; Don't vscroll if the partially-visible line at window
+	  ;; bottom has the default height (a.k.a. "just one more text
+	  ;; line"): in that case, we do want redisplay to behave
+	  ;; normally, i.e. recenter or whatever.
+	  ;;
+	  ;; Note: ROWH + RBOT from the value returned by
+	  ;; pos-visible-in-window-p give the total height of the
+	  ;; partially-visible glyph row at the end of the window.  As
+	  ;; we are dealing with floats, we disregard sub-pixel
+	  ;; discrepancies between that and DLH.
+	  (if (and rowh rbot (>= (- (+ rowh rbot) dlh) 1))
+	      (set-window-vscroll nil dlh t))
 	  (line-move-1 arg noerror to-end)
 	  t)
 	 ;; If there are lines above the last line, scroll-up one line.
@@ -4823,7 +4846,7 @@ The value is a floating-point number."
 	  t)
 	 ;; Finally, start vscroll.
 	 (t
-	  (set-window-vscroll nil dfh t)))))))
+	  (set-window-vscroll nil dlh t)))))))
 
 
 ;; This is like line-move-1 except that it also performs
@@ -4857,13 +4880,25 @@ The value is a floating-point number."
 	    ;; If we moved into a tall line, set vscroll to make
 	    ;; scrolling through tall images more smooth.
 	    (let ((lh (line-pixel-height))
-		  (dfh (default-font-height)))
+		  (dfh (default-font-height))
+		  (lsp (if (display-graphic-p)
+			   (or line-spacing
+			       (default-value 'line-spacing)
+			       (frame-parameter nil 'line-spacing)
+			       0)
+			 0))
+		  dlh)
+	      ;; DLH is the default height of a text line, accounting
+	      ;; for the default face's font and line-spacing, if any.
+	      (if (floatp lsp)
+		  (setq lsp (* dfh lsp)))
+	      (setq dlh (+ dfh lsp))
 	      (if (and (< arg 0)
 		       (< (point) (window-start))
-		       (> lh dfh))
+		       (> lh dlh))
 		  (set-window-vscroll
 		   nil
-		   (- lh dfh) t))))
+		   (- lh dlh) t))))
 	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.

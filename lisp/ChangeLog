@@ -1,3 +1,8 @@
+2013-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial, line-move): Account for
+	line-spacing.
+
 2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-map): Reinstate the `u' key binding, since it's
