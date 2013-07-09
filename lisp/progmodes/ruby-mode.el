@@ -1721,7 +1721,7 @@ See `font-lock-syntax-table'.")
 (defconst ruby-font-lock-keywords
   (list
    ;; functions
-   '("^\\s *def\\s +\\([^( \t\n]+\\)"
+   '("^\\s *def\\s +\\(?:[^( \t\n.]*\\.\\)?\\([^( \t\n]+\\)"
      1 font-lock-function-name-face)
    (list (concat
           "\\(^\\|[^.@$]\\|\\.\\.\\)\\("
@@ -1809,7 +1809,6 @@ See `font-lock-syntax-table'.")
              "warn"
              ;; keyword-like private methods on Module
              "alias_method"
-             "autoload"
              "attr"
              "attr_accessor"
              "attr_reader"
@@ -1855,9 +1854,9 @@ See `font-lock-syntax-table'.")
    ;; expression expansion
    '(ruby-match-expression-expansion
      2 font-lock-variable-name-face t)
-   ;; warn lower camel case
-                                        ;'("\\<[a-z]+[a-z0-9]*[A-Z][A-Za-z0-9]*\\([!?]?\\|\\>\\)"
-                                        ;  0 font-lock-warning-face)
+   ;; negation char
+   '("[^[:alnum:]_]\\(!\\)[^=]"
+     1 font-lock-negation-char-face)
    )
   "Additional expressions to highlight in Ruby mode.")
 

@@ -1,3 +1,10 @@
+2013-07-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove extra
+	"autoload".  Remove "warn lower camel case" section, previously
+	commented out.  Highlight negation char.  Do not highlight the
+	target in singleton method definitions.
+
 2013-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (tty-setup-hook): Declare the hook.
