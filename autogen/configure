@@ -7267,7 +7267,6 @@ esac
   # Code from module gettime:
   # Code from module gettimeofday:
   # Code from module group-member:
-  # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module inttypes-incomplete:
@@ -11183,7 +11182,7 @@ $as_echo "#define HAVE_RSVG 1" >>confdefs.h
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     ## 6.2.8 is the earliest version known to work, but earlier versions
     ## might work - let us know if you find one.
