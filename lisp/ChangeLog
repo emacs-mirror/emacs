@@ -1,3 +1,9 @@
+2013-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-directory-name): Handle fallback.
+	(ido-read-file-name): Update DIR to ido-current-directory.
+	(Bug#1516)
+
 2013-07-09  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove extra
