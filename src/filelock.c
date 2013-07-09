@@ -381,9 +381,9 @@ rename_lock_file (char const *old, char const *new, bool force)
 #endif
 }
 
-/* Create the lock file FILE with contents CONTENTS.  Return 0 if
+/* Create the lock file LFNAME with contents LOCK_INFO_STR.  Return 0 if
    successful, an errno value on failure.  If FORCE, remove any
-   existing FILE if necessary.  */
+   existing LFNAME if necessary.  */
 
 static int
 create_lock_file (char *lfname, char *lock_info_str, bool force)
