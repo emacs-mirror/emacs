@@ -1,5 +1,9 @@
 2013-07-09  Glenn Morris  <rgm@gnu.org>
 
+	* automated/inotify-test.el (inotify-add-watch, inotify-rm-watch):
+	Declare.
+	(inotify-file-watch-simple): Silence compiler.
+
 	* automated/python-tests.el (python-indent-block-enders):
 	Make it actually test something.
 

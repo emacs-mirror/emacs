@@ -25,6 +25,9 @@
 
 (require 'ert)
 
+(declare-function inotify-add-watch "inotify.c" (file-name aspect callback))
+(declare-function inotify-rm-watch "inotify.c" (watch-descriptor))
+
 (when (featurep 'inotify)
 
   ;; (ert-deftest filewatch-file-watch-aspects-check ()
@@ -45,7 +48,7 @@
     (let ((temp-file (make-temp-file "inotify-simple"))
 	   (events 0))
       (let ((wd
-	     (inotify-add-watch temp-file t (lambda (ev)
+	     (inotify-add-watch temp-file t (lambda (_ev)
                                               (setq events (1+ events))))))
 	(unwind-protect
 	    (progn
