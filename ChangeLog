@@ -1,3 +1,9 @@
+2013-07-09  Peter Rosin  <peda@lysator.liu.se>  (tiny change>
+
+	* configure.ac (HAVE_W32): Avoid nested functions (the second
+	argument of AC_LANG_PROGRAM is already expanded inside a
+	function).  (Bug#14830)
+
 2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port recent close-on-exec changes to Cygwin (Bug#14821).

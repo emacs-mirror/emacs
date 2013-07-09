@@ -1635,8 +1635,8 @@ if test "${opsys}" = "mingw32"; then
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
      #include <windows.h>
      #include <usp10.h>]],
-   [[void test(PIMAGE_NT_HEADERS pHeader)
-     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
+   [[PIMAGE_NT_HEADERS pHeader;
+     PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader)]])],
    [emacs_cv_w32api=yes
     HAVE_W32=yes],
    emacs_cv_w32api=no)
