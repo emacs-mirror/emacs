@@ -885,7 +885,7 @@ ns_appkit_version_str (void)
 
 #ifdef NS_IMPL_GNUSTEP
   sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
-#elif defined(NS_IMPL_COCOA)
+#elif defined (NS_IMPL_COCOA)
   sprintf(tmp, "apple-appkit-%.2f", NSAppKitVersionNumber);
 #else
   tmp = "ns-unknown";
@@ -902,7 +902,7 @@ ns_appkit_version_int (void)
 {
 #ifdef NS_IMPL_GNUSTEP
   return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GUI_MINOR_VERSION;
-#elif defined(NS_IMPL_COCOA)
+#elif defined (NS_IMPL_COCOA)
   return (int)NSAppKitVersionNumber;
 #endif
   return 0;
@@ -2493,7 +2493,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
           vy = (short) (primary_display_height -
                         vfr.size.height - vfr.origin.y);
         }
-      
+
       m->geom.x = (short) fr.origin.x;
       m->geom.y = y;
       m->geom.width = (unsigned short) fr.size.width;

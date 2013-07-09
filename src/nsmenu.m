@@ -612,8 +612,8 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-#if ! defined(NS_IMPL_COCOA) || \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+#if (! defined (NS_IMPL_COCOA) \
+     || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5)
   /* Don't know how to do this for anything other than OSX >= 10.5
      This is wrong, as it might run Lisp code in the event loop.  */
   ns_update_menubar (frame, true, self);
@@ -1240,7 +1240,7 @@ update_frame_tool_bar (FRAME_PTR f)
 #ifdef NS_IMPL_GNUSTEP
   [self insertItemWithItemIdentifier: identifier atIndex: idx];
 #endif
-  
+
   [item setTag: tag];
   [item setEnabled: enabled];
 
