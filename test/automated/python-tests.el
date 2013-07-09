@@ -464,10 +464,10 @@ Class foo(object):
 "
    (python-tests-look-at "3)")
    (forward-line 1)
-   (= (python-indent-calculate-indentation) 12)
+   (should (= (python-indent-calculate-indentation) 8))
    (python-tests-look-at "pass")
    (forward-line 1)
-   (= (python-indent-calculate-indentation) 8)))
+   (should (= (python-indent-calculate-indentation) 8))))
 
 
 ;;; Navigation

@@ -1,5 +1,8 @@
 2013-07-09  Glenn Morris  <rgm@gnu.org>
 
+	* automated/python-tests.el (python-indent-block-enders):
+	Make it actually test something.
+
 	* automated/package-x-test.el: Require package-test when compiling.
 
 	* automated/add-log-tests.el, automated/advice-tests.el:
