@@ -35,6 +35,7 @@
 (require 'package-x)
 (require 'ert)
 (require 'cl-lib)
+(eval-when-compile (require 'package-test))
 
 ;; package-test is not normally in `load-path', so temporarily set
 ;; `load-path' to contain the current directory.

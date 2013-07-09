@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'python)
 
 (defmacro python-tests-with-temp-buffer (contents &rest body)

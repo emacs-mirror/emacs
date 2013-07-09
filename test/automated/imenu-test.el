@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'imenu)
 
 ;; (imenu-simple-scan-deftest-gather-strings-from-list

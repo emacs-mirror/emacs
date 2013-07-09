@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'ruby-mode)
 
 (defun ruby-should-indent (content column)
