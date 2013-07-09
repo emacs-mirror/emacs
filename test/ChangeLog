@@ -1,3 +1,12 @@
+2013-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test00-availability):
+	Set :expected-result.
+	(file-notify-test01-add-watch, file-notify-test01-add-watch-remote)
+	(file-notify-test02-events, file-notify-test02-events-remote)
+	(file-notify-test03-autorevert, file-notify-test03-autorevert-remote):
+	Skip when `file-notify-support' is nil.  (Bug#14823)
+
 2013-07-09  Glenn Morris  <rgm@gnu.org>
 
 	* automated/inotify-test.el (inotify-add-watch, inotify-rm-watch):
