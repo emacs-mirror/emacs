@@ -3,6 +3,7 @@
 	* ido.el (ido-read-directory-name): Handle fallback.
 	(ido-read-file-name): Update DIR to ido-current-directory.
 	(Bug#1516)
+	(ido-add-virtual-buffers-to-list): Robustify.  (Bug#14552)
 
 2013-07-09  Dmitry Gutov  <dgutov@yandex.ru>
 
