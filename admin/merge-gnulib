@@ -41,7 +41,7 @@ GNULIB_MODULES='
 '
 
 GNULIB_TOOL_FLAGS='
-  --avoid=binary-io --avoid=close --avoid=dup
+  --avoid=close --avoid=dup
   --avoid=fchdir --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir

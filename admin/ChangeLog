@@ -1,5 +1,8 @@
 2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port recent close-on-exec changes to Cygwin (Bug#14821).
+	* merge-gnulib (GNULIB_TOOL_FLAGS): Don't avoid binary-io.
+
 	Handle error numbers a bit more reliably.
 	* merge-gnulib (GNULIB_MODULES): Remove ignore-value.
 

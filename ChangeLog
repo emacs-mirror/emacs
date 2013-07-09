@@ -1,5 +1,12 @@
 2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port recent close-on-exec changes to Cygwin (Bug#14821).
+	* lib/binary-io.c, lib/binary-io.h: New files.
+	Merge from gnulib, incorporating:
+	2013-07-09 accept4, dup3, pipe2: port to Cygwin
+	* lib/pipe2.c: Update from gnulib, as part of this merge.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 	Handle errno and exit status a bit more carefully.
 	* lib/ignore-value.h: Remove this gnulib-imported file.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
