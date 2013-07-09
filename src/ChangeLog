@@ -1,3 +1,7 @@
+2013-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/sysdep.$(O)): Update.
+
 2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Handle errno and exit status a bit more carefully.
