@@ -1,3 +1,7 @@
+2013-07-09  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE) [__x86_64__]: Increase to 18MB.
+
 2013-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/sysdep.$(O)): Update.
