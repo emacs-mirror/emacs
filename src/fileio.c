@@ -2122,7 +2122,7 @@ entries (depending on how Emacs was built).  */)
   immediate_quit = 1;
   QUIT;
   while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
-    if (emacs_write (ofd, buf, n) != n)
+    if (emacs_write_sig (ofd, buf, n) != n)
       report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
@@ -5317,12 +5317,10 @@ e_write (int desc, Lisp_Object string, ptrdiff_t start, ptrdiff_t end,
 
       if (coding->produced > 0)
 	{
-	  coding->produced
-	    -= emacs_write (desc,
-			    STRINGP (coding->dst_object)
-			    ? SSDATA (coding->dst_object)
-			    : (char *) BYTE_POS_ADDR (coding->dst_pos_byte),
-			    coding->produced);
+	  char *buf = (STRINGP (coding->dst_object)
+		       ? SSDATA (coding->dst_object)
+		       : (char *) BYTE_POS_ADDR (coding->dst_pos_byte));
+	  coding->produced -= emacs_write_sig (desc, buf, coding->produced);
 
 	  if (coding->produced)
 	    return 0;

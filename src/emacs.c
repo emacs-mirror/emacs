@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <close-stream.h>
-#include <ignore-value.h>
 
 #include "lisp.h"
 
@@ -646,9 +645,7 @@ close_output_streams (void)
 {
   if (close_stream (stdout) != 0)
     {
-      fprintf (stderr, "Write error to standard output: %s\n",
-	       strerror (errno));
-      fflush (stderr);
+      emacs_perror ("Write error to standard output");
       _exit (EXIT_FAILURE);
     }
 
@@ -789,7 +786,7 @@ main (int argc, char **argv)
       execvp (argv[0], argv);
 
       /* If the exec fails, try to dump anyway.  */
-      perror ("execvp");
+      emacs_perror (argv[0]);
     }
 #endif /* HAVE_PERSONALITY_LINUX32 */
 
@@ -1020,8 +1017,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	}
       if (f < 0)
 	{
-	  fprintf (stderr, "Cannot fork!\n");
-	  exit (1);
+	  emacs_perror ("fork");
+	  exit (EXIT_CANCELED);
 	}
 
 #ifdef DAEMON_MUST_EXEC
@@ -1038,14 +1035,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	    if (! (0 <= fdStrlen && fdStrlen < sizeof fdStr))
               {
                 fprintf (stderr, "daemon: child name too long\n");
-                exit (1);
+                exit (EXIT_CANNOT_INVOKE);
               }
 
             argv[skip_args] = fdStr;
 
             execvp (argv[0], argv);
-            fprintf (stderr, "emacs daemon: exec failed: %d\n", errno);
-            exit (1);
+	    emacs_perror (argv[0]);
+	    exit (errno == ENOENT : EXIT_ENOENT : EXIT_CANNOT_INVOKE);
           }
 
         /* In exec'd: parse special dname into pipe and name info. */
@@ -1053,7 +1050,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
             || strlen (dname_arg) < 1 || strlen (dname_arg) > 70)
           {
             fprintf (stderr, "emacs daemon: daemon name absent or too long\n");
-            exit (1);
+            exit (EXIT_CANNOT_INVOKE);
           }
         dname_arg2[0] = '\0';
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
@@ -1916,8 +1913,8 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 	    char buf[sizeof format - 2 + INT_STRLEN_BOUND (int)];
 	    int buflen = sprintf (buf, format, sig);
 	    char const *sig_desc = safe_strsignal (sig);
-	    ignore_value (write (STDERR_FILENO, buf, buflen));
-	    ignore_value (write (STDERR_FILENO, sig_desc, strlen (sig_desc)));
+	    emacs_write (STDERR_FILENO, buf, buflen);
+	    emacs_write (STDERR_FILENO, sig_desc, strlen (sig_desc));
 	  }
       }
   }

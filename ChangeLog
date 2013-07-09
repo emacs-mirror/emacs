@@ -1,3 +1,9 @@
+2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle errno and exit status a bit more carefully.
+	* lib/ignore-value.h: Remove this gnulib-imported file.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change)
 
 	* configure.ac (HAVE_IMAGEMAGICK): Check on NS also (Bug#14798).

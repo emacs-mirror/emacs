@@ -879,7 +879,7 @@ vox_init (struct sound_device *sd)
 static void
 vox_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
-  if (emacs_write (sd->fd, buffer, nbytes) != nbytes)
+  if (emacs_write_sig (sd->fd, buffer, nbytes) != nbytes)
     sound_perror ("Error writing to sound device");
 }
 

@@ -1221,7 +1221,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
        are changed between the check and this chdir, but we should
        at least check.  */
     if (chdir (temp) < 0)
-      _exit (errno);
+      _exit (EXIT_CANCELED);
 #else /* DOS_NT */
     /* Get past the drive letter, so that d:/ is left alone.  */
     if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
@@ -1366,10 +1366,12 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 
   execve (new_argv[0], new_argv, env);
 
-  emacs_write (1, "Can't exec program: ", 20);
-  emacs_write (1, new_argv[0], strlen (new_argv[0]));
-  emacs_write (1, "\n", 1);
-  _exit (1);
+  /* Don't output the program name here, as it can be arbitrarily long,
+     and a long write from a vforked child to its parent can cause a
+     deadlock.  */
+  emacs_perror ("child process");
+
+  _exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 
 #else /* MSDOS */
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
@@ -1395,13 +1397,8 @@ relocate_fd (int fd, int minfd)
       int new = fcntl (fd, F_DUPFD_CLOEXEC, minfd);
       if (new == -1)
 	{
-	  const char *message_1 = "Error while setting up child: ";
-	  const char *errmessage = strerror (errno);
-	  const char *message_2 = "\n";
-	  emacs_write (2, message_1, strlen (message_1));
-	  emacs_write (2, errmessage, strlen (errmessage));
-	  emacs_write (2, message_2, strlen (message_2));
-	  _exit (1);
+	  emacs_perror ("while setting up child");
+	  _exit (EXIT_CANCELED);
 	}
       emacs_close (fd);
       return new;

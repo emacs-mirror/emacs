@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <c-ctype.h>
-#include <ignore-value.h>
 #include <utimens.h>
 
 #include "lisp.h"
@@ -538,8 +537,8 @@ sys_subshell (void)
       if (str && chdir ((char *) str) != 0)
 	{
 #ifndef DOS_NT
-	  ignore_value (write (1, "Can't chdir\n", 12));
-	  _exit (1);
+	  emacs_perror ((char *) str);
+	  _exit (EXIT_CANCELED);
 #endif
 	}
 
@@ -570,8 +569,8 @@ sys_subshell (void)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
       execlp (sh, sh, (char *) 0);
-      ignore_value (write (1, "Can't execute subshell", 22));
-      _exit (1);
+      emacs_perror (sh);
+      _exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 #endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
     }
@@ -2134,10 +2133,10 @@ emacs_backtrace (int backtrace_limit)
 
   if (npointers)
     {
-      ignore_value (write (STDERR_FILENO, "\nBacktrace:\n", 12));
+      emacs_write (STDERR_FILENO, "\nBacktrace:\n", 12);
       backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
       if (bounded_limit < npointers)
-	ignore_value (write (STDERR_FILENO, "...\n", 4));
+	emacs_write (STDERR_FILENO, "...\n", 4);
     }
 }
 
@@ -2246,27 +2245,26 @@ emacs_read (int fildes, char *buf, ptrdiff_t nbyte)
 }
 
 /* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
-   or if a partial write occurs.  Return the number of bytes written, setting
+   or if a partial write occurs.  If interrupted, process pending
+   signals if PROCESS SIGNALS.  Return the number of bytes written, setting
    errno if this is less than NBYTE.  */
-ptrdiff_t
-emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
+static ptrdiff_t
+emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
+		  bool process_signals)
 {
-  ssize_t rtnval;
-  ptrdiff_t bytes_written;
-
-  bytes_written = 0;
+  ptrdiff_t bytes_written = 0;
 
   while (nbyte > 0)
     {
-      rtnval = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
+      ssize_t n = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
 
-      if (rtnval < 0)
+      if (n < 0)
 	{
 	  if (errno == EINTR)
 	    {
 	      /* I originally used `QUIT' but that might causes files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
-	      if (pending_signals)
+	      if (process_signals && pending_signals)
 		process_pending_signals ();
 	      continue;
 	    }
@@ -2274,12 +2272,57 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
 	    break;
 	}
 
-      buf += rtnval;
-      nbyte -= rtnval;
-      bytes_written += rtnval;
+      buf += n;
+      nbyte -= n;
+      bytes_written += n;
     }
 
-  return (bytes_written);
+  return bytes_written;
+}
+
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if
+   interrupted or if a partial write occurs.  Return the number of
+   bytes written, setting errno if this is less than NBYTE.  */
+ptrdiff_t
+emacs_write (int fildes, char const *buf, ptrdiff_t nbyte)
+{
+  return emacs_full_write (fildes, buf, nbyte, 0);
+}
+
+/* Like emacs_write, but also process pending signals if interrupted.  */
+ptrdiff_t
+emacs_write_sig (int fildes, char const *buf, ptrdiff_t nbyte)
+{
+  return emacs_full_write (fildes, buf, nbyte, 1);
+}
+
+/* Write a diagnostic to standard error that contains MESSAGE and a
+   string derived from errno.  Preserve errno.  Do not buffer stderr.
+   Do not process pending signals if interrupted.  */
+void
+emacs_perror (char const *message)
+{
+  int err = errno;
+  char const *error_string = strerror (err);
+  char const *command = (initial_argv && initial_argv[0]
+			 ? initial_argv[0] : "emacs");
+  /* Write it out all at once, if it's short; this is less likely to
+     be interleaved with other output.  */
+  char buf[BUFSIZ];
+  int nbytes = snprintf (buf, sizeof buf, "%s: %s: %s\n",
+			 command, message, error_string);
+  if (0 <= nbytes && nbytes < BUFSIZ)
+    emacs_write (STDERR_FILENO, buf, nbytes);
+  else
+    {
+      emacs_write (STDERR_FILENO, command, strlen (command));
+      emacs_write (STDERR_FILENO, ": ", 2);
+      emacs_write (STDERR_FILENO, message, strlen (message));
+      emacs_write (STDERR_FILENO, ": ", 2);
+      emacs_write (STDERR_FILENO, error_string, strlen (error_string));
+      emacs_write (STDERR_FILENO, "\n", 1);
+    }
+  errno = err;
 }
 
 /* Return a struct timeval that is roughly equivalent to T.

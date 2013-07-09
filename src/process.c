@@ -1752,7 +1752,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  tcgetattr (xforkin, &t);
 	  t.c_lflag = LDISC1;
 	  if (tcsetattr (xforkin, TCSANOW, &t) < 0)
-	    emacs_write (1, "create_process/tcsetattr LDISC1 failed\n", 39);
+	    emacs_perror ("create_process/tcsetattr LDISC1");
 	}
 #else
 #if defined (NTTYDISC) && defined (TIOCSETD)
@@ -1799,10 +1799,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
 	  if (xforkin < 0)
 	    {
-	      emacs_write (1, "Couldn't open the pty terminal ", 31);
-	      emacs_write (1, pty_name, strlen (pty_name));
-	      emacs_write (1, "\n", 1);
-	      _exit (1);
+	      emacs_perror (pty_name);
+	      _exit (EXIT_CANCELED);
 	    }
 
 	}
@@ -5503,7 +5501,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		written = emacs_gnutls_write (p, cur_buf, cur_len);
 	      else
 #endif
-		written = emacs_write (outfd, cur_buf, cur_len);
+		written = emacs_write_sig (outfd, cur_buf, cur_len);
 	      rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 	      if (p->read_output_delay > 0

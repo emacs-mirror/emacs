@@ -3998,6 +3998,7 @@ extern void init_process_emacs (void);
 extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
+/* Defined in callproc.c.  */
 #ifndef DOS_NT
  _Noreturn
 #endif
@@ -4090,6 +4091,8 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern ptrdiff_t emacs_read (int, char *, ptrdiff_t);
 extern ptrdiff_t emacs_write (int, const char *, ptrdiff_t);
+extern ptrdiff_t emacs_write_sig (int, char const *, ptrdiff_t);
+extern void emacs_perror (char const *);
 
 extern void unlock_all_files (void);
 extern void lock_file (Lisp_Object);

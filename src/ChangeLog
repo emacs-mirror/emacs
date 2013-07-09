@@ -1,3 +1,34 @@
+2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle errno and exit status a bit more carefully.
+	* callproc.c (child_setup) [!DOS_NT]: Don't try to stuff an error
+	number into an exit status.  Instead, use EXIT_CANCELED.
+	(child_setup) [!MSDOS]: Avoid possible deadlock with vfork.
+	* callproc.c (relocate_fd):
+	* emacs.c (close_output_streams, main):
+	* process.c (create_process):
+	* sysdep.c (sys_subshell) [!DOS_NT || !WINDOWSNT]:
+	Use emacs_perror for simplicity.
+	* callproc.c (relocate_fd, main):
+	* sysdep.c (sys_subshell):
+	Exit with EXIT_CANCELED etc., not 1, when exec setup fails.
+	(shut_down_emacs): Use emacs_write, not write.
+	* emacs.c, sysdep.c: Don't include <ignore-value.h>.
+	* fileio.c (Fcopy_file, e_write):
+	* nsterm.m (ns_select):
+	* process.c (send_process):
+	* sound.c (vox_write):
+	Use emacs_write_sig, not emacs_write.
+	* lisp.h (emacs_write_sig, emacs_perror): New decls.
+	* process.h (EXIT_CANCELED), EXIT_CANNOT_INVOKE, EXIT_ENOENT):
+	New constants.
+	* sysdep.c (emacs_backtrace): Use emacs_write, not ignore_value
+	of write.
+	(emacs_full_write): New function.
+	(emacs_write): Rewrite to use it.
+	(emacswrite_sig, emacs_perror): New functions.
+	* xrdb.c (fatal): Don't invoke perror, since errno might be garbage.
+
 2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change).
 
 	* image.c (imagemagick_load_image): Do not use MagickExportImagePixels
