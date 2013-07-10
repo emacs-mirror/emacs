@@ -1,3 +1,8 @@
+2013-07-10  Leo Liu  <sdl.web@gmail.com>
+
+	* files.el (require-final-newline): Allow safe local value.
+	(Bug#14834)
+
 2013-07-09  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-directory-name): Handle fallback.

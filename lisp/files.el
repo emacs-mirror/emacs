@@ -316,12 +316,14 @@ A value of nil means don't add newlines.
 
 Certain major modes set this locally to the value obtained
 from `mode-require-final-newline'."
+  :safe #'symbolp
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
 		 (const :tag "Don't add newlines" nil)
 		 (other :tag "Ask each time" ask))
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "24.4")
 
 (defcustom mode-require-final-newline t
   "Whether to add a newline at end of file, in certain major modes.
