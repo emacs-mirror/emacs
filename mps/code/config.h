@@ -344,12 +344,12 @@
  * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
  * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
  *
- * Unfortunately it's not possible to localize these feature
- * specifications around the individual headers: all headers share a
- * common set of features (via <feature.h>) and so all sources in the
- * same compilation unit must turn on the same set of features.
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <feature.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
  *
- * See "Feature Test Macros" in the GCC Manual:
+ * See "Feature Test Macros" in the Glibc Manual:
  * <http://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html>
  */
 
@@ -361,7 +361,7 @@
 #endif
 
 
-/* .feature.xc: Mac OS X feature specification
+/* .feature.xc: OS X feature specification
  *
  * The MPS needs the following symbols which are not defined by default
  *
@@ -370,12 +370,18 @@
  * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
  * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
  *
- * I don't know whether it is possible to localize these feature
- * specifications around the individual headers.
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <sys/cdefs.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
  */
 
 #if defined(MPS_OS_XC)
+
+#if !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE
+#endif
+
 #endif
 
 
@@ -417,7 +423,7 @@
 
 #else
 
-#error "Unknown Mac OS X architecuture"
+#error "Unknown OS X architecture"
 
 #endif
 #endif
