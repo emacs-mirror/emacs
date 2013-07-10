@@ -4732,18 +4732,35 @@ lines."
     (aref (font-info (face-font 'default)) 3))
    (t (frame-char-height))))
 
+(defun default-line-height ()
+  "Return the pixel height of current buffer's default-face text line.
+
+The value includes `line-spacing', if any, defined for the buffer
+or the frame."
+  (let ((dfh (default-font-height))
+	(lsp (if (display-graphic-p)
+		 (or line-spacing
+		     (default-value 'line-spacing)
+		     (frame-parameter nil 'line-spacing)
+		     0)
+	       0)))
+    (if (floatp lsp)
+	(setq lsp (* dfh lsp)))
+    (+ dfh lsp)))
+
 (defun window-screen-lines ()
   "Return the number of screen lines in the text area of the selected window.
 
 This is different from `window-text-height' in that this function counts
 lines in units of the height of the font used by the default face displayed
-in the window, not in units of the frame's default font.
+in the window, not in units of the frame's default font, and also accounts
+for `line-spacing', if any, defined for the window's buffer or frame.
 
 The value is a floating-point number."
   (let ((canonical (window-text-height))
 	(fch (frame-char-height))
-	(dfh (default-font-height)))
-    (/ (* (float canonical) fch) dfh)))
+	(dlh (default-line-height)))
+    (/ (* (float canonical) fch) dlh)))
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -4751,31 +4768,24 @@ The value is a floating-point number."
       ;; Move backward (up).
       ;; If already vscrolled, reduce vscroll
       (let ((vs (window-vscroll nil t))
-	    (dfh (default-font-height)))
-	(when (> vs dfh)
-	  (set-window-vscroll nil (- vs dfh) t)))
+	    (dlh (default-line-height)))
+	(when (> vs dlh)
+	  (set-window-vscroll nil (- vs dlh) t)))
 
     ;; Move forward (down).
     (let* ((lh (window-line-height -1))
+	   (rowh (car lh))
 	   (vpos (nth 1 lh))
 	   (ypos (nth 2 lh))
 	   (rbot (nth 3 lh))
 	   (this-lh (window-line-height))
-	   (this-height (nth 0 this-lh))
+	   (this-height (car this-lh))
 	   (this-ypos (nth 2 this-lh))
-	   (dfh (default-font-height))
-	   (lsp (if (display-graphic-p)
-		    (or line-spacing
-			(default-value 'line-spacing)
-			(frame-parameter nil 'line-spacing)
-			0)
-		  0))
-	   py vs rowh dlh)
-      (if (floatp lsp)
-	  (setq lsp (* dfh lsp)))
-      ;; Default height of a text line, accounting for the default
-      ;; face's font and line-spacing, if any.
-      (setq dlh (+ dfh lsp))
+	   (dlh (default-line-height))
+	   (wslines (window-screen-lines))
+	   py vs last-line)
+      (if (> (mod wslines 1.0) 0.0)
+	  (setq wslines (round (+ wslines 0.5))))
       (when (or (null lh)
 		(>= rbot dlh)
 		(<= ypos (- dlh))
@@ -4798,6 +4808,19 @@ The value is a floating-point number."
 		    (if col-row
 			(- (cdr col-row) (window-vscroll))
 		      (cdr (posn-col-row ppos))))))
+	;; VPOS > 0 means the last line is only partially visible.
+	;; But if the part that is visible is at least as tall as the
+	;; default font, that means the line is actually fully
+	;; readable, and something like line-spacing is hidden.  So in
+	;; that case we accept the last line in the window as still
+	;; visible, and consider the margin as starting one line
+	;; later.
+	(if (and vpos (> vpos 0))
+	    (if (and rowh
+		     (>= rowh (default-font-height))
+		     (< rowh dlh))
+		(setq last-line (min (- wslines scroll-margin) vpos))
+	      (setq last-line (min (- wslines scroll-margin 1) (1- vpos)))))
 	(cond
 	 ;; If last line of window is fully visible, and vscrolling
 	 ;; more would make this line invisible, move forward.
@@ -4811,8 +4834,7 @@ The value is a floating-point number."
 	 ((and (or (null this-height) (<= this-height dlh))
 	       vpos
 	       (> vpos 0)
-	       (< py
-		  (min (- (window-screen-lines) scroll-margin 1) (1- vpos))))
+	       (< py last-line))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
@@ -4824,8 +4846,7 @@ The value is a floating-point number."
 	 ;; but also optionally vscroll one line so redisplay won't recenter.
 	 ((and vpos
 	       (> vpos 0)
-	       (= py (min (- (window-screen-lines) scroll-margin 1)
-			  (1- vpos))))
+	       (= py last-line))
 	  ;; Don't vscroll if the partially-visible line at window
 	  ;; bottom has the default height (a.k.a. "just one more text
 	  ;; line"): in that case, we do want redisplay to behave
@@ -4880,19 +4901,7 @@ The value is a floating-point number."
 	    ;; If we moved into a tall line, set vscroll to make
 	    ;; scrolling through tall images more smooth.
 	    (let ((lh (line-pixel-height))
-		  (dfh (default-font-height))
-		  (lsp (if (display-graphic-p)
-			   (or line-spacing
-			       (default-value 'line-spacing)
-			       (frame-parameter nil 'line-spacing)
-			       0)
-			 0))
-		  dlh)
-	      ;; DLH is the default height of a text line, accounting
-	      ;; for the default face's font and line-spacing, if any.
-	      (if (floatp lsp)
-		  (setq lsp (* dfh lsp)))
-	      (setq dlh (+ dfh lsp))
+		  (dlh (default-line-height)))
 	      (if (and (< arg 0)
 		       (< (point) (window-start))
 		       (> lh dlh))

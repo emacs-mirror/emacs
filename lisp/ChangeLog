@@ -1,3 +1,12 @@
+2013-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-line-height): New function.
+	(line-move-partial, line-move): Use it instead of computing the
+	line height inline.
+	(line-move-partial): Always compute ROWH.  If the last line is
+	partially-visible, but its text is completely visible, allow
+	cursor to enter such a partially-visible line.
+
 2013-07-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Improve error messages.  (Bug#14808)
