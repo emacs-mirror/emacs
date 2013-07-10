@@ -1,3 +1,43 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Syntax cleanup, mostly replacing macros with functions.
+`	This removes the need for the syntax_temp hack.
+	* search.c: Include syntax.h after buffer.h, since syntax.h uses BVAR.
+	* syntax.c (SYNTAX_INLINE): New macro.
+	(SYNTAX_FLAGS_COMSTART_FIRST, SYNTAX_FLAGS_COMSTART_SECOND)
+	(SYNTAX_FLAGS_COMEND_FIRST, SYNTAX_FLAGS_COMEND_SECOND)
+	(SYNTAX_FLAGS_PREFIX, SYNTAX_FLAGS_COMMENT_STYLEB)
+	(SYNTAX_FLAGS_COMMENT_STYLEC, SYNTAX_FLAGS_COMMENT_STYLEC2)
+	(SYNTAX_FLAGS_COMMENT_NESTED, SYNTAX_FLAGS_COMMENT_STYLE)
+	(SYNTAX_COMEND_FIRST): Now functions, not macros.
+	(ST_COMMENT_STYLE, ST_STRING_STYLE, INTERVALS_AT_ONCE):
+	Now constants, not macros.
+	(syntax_temp) [!__GNUC__]: Remove.
+	(SYNTAX_PREFIX): Remove; all uses replaced by syntax_prefix_flag_p.
+	(syntax_prefix_flag_p): Move implementation of SYNTAX_PREFIX here.
+	(SET_RAW_SYNTAX_ENTRY, SET_RAW_SYNTAX_ENTRY_RANGE, SYNTAX_MATCH)
+	(SETUP_SYNTAX_TABLE, SETUP_SYNTAX_TABLE_FOR_OBJECT):
+	Move here from syntax.h; now functions, not macros.  Except for the
+	last function, these are static since only syntax.c uses them.
+	(syntax_multibyte): Rename from SYNTAX_WITH_MULTIBYTE_CHECK.
+	All uses changed.  Now a function, not a macro; use this fact
+	to simplify the code.
+	(scan_lists, scan_sexps_forward): Remove workarounds for ancient
+	compiler bugs; no longer relevant.
+	* syntax.h: Use INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	(SYNTAX_INLINE): New macro.
+	(struct gl_state_s, gl_state): Move earlier, so that it's in scope
+	for the new functions.  Use bool for boolean member.
+	(SYNTAX_ENTRY, SYNTAX, SYNTAX_WITH_FLAGS, SYNTAX_MATCH)
+	(SYNTAX_TABLE_BYTE_TO_CHAR, UPDATE_SYNTAX_TABLE_FORWARD)
+	(UPDATE_SYNTAX_TABLE_BACKWARD, UPDATE_SYNTAX_TABLE)
+	(SETUP_BUFFER_SYNTAX_TABLE):
+	Now extern inline functions, not macros.
+	(CURRENT_SYNTAX_TABLE, SYNTAX_ENTRY_INT):
+	Remove; all uses replaced by implementation.
+	(syntax_temp) [!__GNUC__]: Remove decl.
+	(SETUP_SYNTAX_TABLE_FOR_OBJECT): New decl.
+
 2013-07-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (main): Fix syntax error.
