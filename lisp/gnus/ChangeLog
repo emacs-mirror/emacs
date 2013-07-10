@@ -1,3 +1,11 @@
+2013-07-10  David Engster  <deng@randomsample.de>
+
+	* gnus-start.el (gnus-clean-old-newsrc): Always remove 'unexist' marks
+	if `gnus-newsrc-file-version' does not match `gnus-version'.  This
+	fixes a bug in Emacs trunk where the 'unexist' marks were always
+	removed at startup because "Gnus v5.13" was considered smaller than "Ma
+	Gnus v0.03".
+
 2013-07-10  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.el (gnus-summary-line-format): Reference
