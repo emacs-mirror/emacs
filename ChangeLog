@@ -1,3 +1,7 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (removenullpaths): Remove adjacent null paths (Bug#14835).
+
 2013-07-09  Peter Rosin  <peda@lysator.liu.se>  (tiny change>
 
 	* configure.ac (HAVE_W32): Avoid nested functions (the second
