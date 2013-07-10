@@ -1,3 +1,21 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* atimer.c (schedule_atimer):
+	* fileio.c (Ffile_newer_than_file_p):
+	Minor cleanup: use EMACS_TIME_LT so that we can remove EMACS_TIME_GT.
+	* buffer.c (buffer-undo-list): Document (t . 0) and (t . -1).
+	* fileio.c (Fclear_visited_file_modtime): Move to lisp/files.el.
+	(syms_of_fileio): Remove Sclear_visited_file_name.
+	(Fvisited_file_modtime): Return -1, not (-1 ...), when the visited
+	file doesn't exist; this avoids an ambiguity with negative timestamps.
+	(Fset_visited_file_modtime): Accept -1 and 0 as time-list arg.
+	* systime.h (make_emacs_time, invalid_emacs_time):
+	Don't assume struct timespec layout; POSIX doesn't guarantee it.
+	(EMACS_TIME_NE, EMACS_TIME_GT, EMACS_TIME_GE): Remove.
+	* undo.c (record_first_change): Push (visited-file-modtime) onto
+	undo list rather than reimplementing it by hand, incorrectly.
+
 2013-07-09  Ken Brown  <kbrown@cornell.edu>
 
 	* sheap.c (STATIC_HEAP_SIZE) [__x86_64__]: Increase to 18MB.

@@ -1,3 +1,8 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* NEWS: Changes to visited-file-modtime, set-visited-file-modtime.
+
 2013-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: NS can be build with ImageMagick.

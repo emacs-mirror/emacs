@@ -336,7 +336,7 @@ schedule_atimer (struct atimer *t)
   struct atimer *a = atimers, *prev = NULL;
 
   /* Look for the first atimer that is ripe after T.  */
-  while (a && EMACS_TIME_GT (t->expiration, a->expiration))
+  while (a && EMACS_TIME_LT (a->expiration, t->expiration))
     prev = a, a = a->next;
 
   /* Insert T in front of the atimer found, if any.  */

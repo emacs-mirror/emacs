@@ -3345,7 +3345,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   if (stat (SSDATA (absname2), &st2) < 0)
     return Qt;
 
-  return (EMACS_TIME_GT (get_stat_mtime (&st1), get_stat_mtime (&st2))
+  return (EMACS_TIME_LT (get_stat_mtime (&st2), get_stat_mtime (&st1))
 	  ? Qt : Qnil);
 }
 
@@ -5375,36 +5375,19 @@ See Info node `(elisp)Modification Time' for more details.  */)
   return Qnil;
 }
 
-DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
-       Sclear_visited_file_modtime, 0, 0, 0,
-       doc: /* Clear out records of last mod time of visited file.
-Next attempt to save will certainly not complain of a discrepancy.  */)
-  (void)
-{
-  current_buffer->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
-  current_buffer->modtime_size = -1;
-  return Qnil;
-}
-
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
 The value is a list of the form (HIGH LOW USEC PSEC), like the time values that
 `file-attributes' returns.  If the current buffer has no recorded file
 modification time, this function returns 0.  If the visited file
-doesn't exist, HIGH will be -1.
+doesn't exist, return -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
-  if (EMACS_NSECS (current_buffer->modtime) < 0)
-    {
-      if (EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
-	{
-	  /* make_lisp_time won't work here if time_t is unsigned.  */
-	  return list4i (-1, 65535, 0, 0);
-	}
-      return make_number (0);
-    }
+  int ns = EMACS_NSECS (current_buffer->modtime);
+  if (ns < 0)
+    return make_number (UNKNOWN_MODTIME_NSECS - ns);
   return make_lisp_time (current_buffer->modtime);
 }
 
@@ -5415,12 +5398,22 @@ Useful if the buffer was not read from the file normally
 or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
 \(instead of that of the visited file), in the form of a list
-\(HIGH LOW USEC PSEC) as returned by `current-time'.  */)
-  (Lisp_Object time_list)
+\(HIGH LOW USEC PSEC) or an integer flag as returned by
+`visited-file-modtime'.  */)
+  (Lisp_Object time_flag)
 {
-  if (!NILP (time_list))
+  if (!NILP (time_flag))
     {
-      current_buffer->modtime = lisp_time_argument (time_list);
+      EMACS_TIME mtime;
+      if (INTEGERP (time_flag))
+	{
+	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
+	  mtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
+	}
+      else
+	mtime = lisp_time_argument (time_flag);
+
+      current_buffer->modtime = mtime;
       current_buffer->modtime_size = -1;
     }
   else
@@ -6121,7 +6114,6 @@ This includes interactive calls to `delete-file' and
   defsubr (&Swrite_region);
   defsubr (&Scar_less_than_car);
   defsubr (&Sverify_visited_file_modtime);
-  defsubr (&Sclear_visited_file_modtime);
   defsubr (&Svisited_file_modtime);
   defsubr (&Sset_visited_file_modtime);
   defsubr (&Sdo_auto_save);

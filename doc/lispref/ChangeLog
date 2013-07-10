@@ -1,3 +1,8 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* text.texi (Undo): Document (t . 0) and (t . -1) in buffer-undo-list.
+
 2013-07-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Text Representations): Document that

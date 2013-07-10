@@ -67,7 +67,9 @@ SYSTIME_INLINE time_t *emacs_secs_addr (EMACS_TIME *t) { return &t->tv_sec; }
 SYSTIME_INLINE EMACS_TIME
 make_emacs_time (time_t s, int ns)
 {
-  EMACS_TIME r = { s, ns };
+  EMACS_TIME r;
+  r.tv_sec = s;
+  r.tv_nsec = ns;
   return r;
 }
 
@@ -75,7 +77,9 @@ make_emacs_time (time_t s, int ns)
 SYSTIME_INLINE EMACS_TIME
 invalid_emacs_time (void)
 {
-  EMACS_TIME r = { 0, -1 };
+  EMACS_TIME r;
+  r.tv_sec = 0;
+  r.tv_nsec = -1;
   return r;
 }
 
@@ -164,21 +168,6 @@ SYSTIME_INLINE int
 EMACS_TIME_EQ (EMACS_TIME t1, EMACS_TIME t2)
 {
   return timespec_cmp (t1, t2) == 0;
-}
-SYSTIME_INLINE int
-EMACS_TIME_NE (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) != 0;
-}
-SYSTIME_INLINE int
-EMACS_TIME_GT (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) > 0;
-}
-SYSTIME_INLINE int
-EMACS_TIME_GE (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) >= 0;
 }
 SYSTIME_INLINE int
 EMACS_TIME_LT (EMACS_TIME t1, EMACS_TIME t2)

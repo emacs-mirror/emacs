@@ -537,6 +537,9 @@ alist of extended attributes as returned by the new function
 `file-extended-attributes'.  The attributes can be applied to another
 file using `set-file-extended-attributes'.
 
+** `visited-file-modtime' now returns -1 for nonexistent files.
+Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
+in the presence of files with negative time stamps.
 
 * Lisp Changes in Emacs 24.4
 
@@ -612,6 +615,9 @@ Emacs uses `image-default-frame-delay'.
 +++
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
+
+** The function `set-visited-file-modtime' now accepts a 0 or -1 argument
+with the same interpretation as the returned value of `visited-file-modtime'.
 
 ** time-to-seconds is not obsolete any more.
 ** New function special-form-p.
