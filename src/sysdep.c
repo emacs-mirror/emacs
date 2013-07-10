@@ -2676,7 +2676,7 @@ list_system_processes (void)
 
 #endif /* !defined (WINDOWSNT) */
 
-#ifdef GNU_LINUX
+#if defined GNU_LINUX && defined HAVE_LONG_LONG_INT
 static EMACS_TIME
 time_from_jiffies (unsigned long long tval, long hz)
 {

@@ -3481,7 +3481,9 @@ open_file (char *file)
 
 /* Display usage information and exit program.  */
 
-#define USAGE "\
+static char const *const usage_message[] =
+  {
+    "\
 Usage: ebrowse [options] {files}\n\
 \n\
   -a, --append                  append output to existing file\n\
@@ -3489,6 +3491,8 @@ Usage: ebrowse [options] {files}\n\
   -I, --search-path=LIST        set search path for input files\n\
   -m, --min-regexp-length=N     set minimum regexp length to N\n\
   -M, --max-regexp-length=N     set maximum regexp length to N\n\
+",
+    "\
   -n, --no-nested-classes       exclude nested classes\n\
   -o, --output-file=FILE        set output file name to FILE\n\
   -p, --position-info           print info about position in file\n\
@@ -3498,12 +3502,16 @@ Usage: ebrowse [options] {files}\n\
   -x, --no-regexps		don't record regular expressions\n\
       --help                    display this help\n\
       --version			display version info\n\
+\n\
 "
+  };
 
 static _Noreturn void
 usage (int error)
 {
-  puts (USAGE);
+  int i;
+  for (i = 0; i < sizeof usage_message / sizeof *usage_message; i++)
+    fputs (usage_message[i], stdout);
   exit (error ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 

@@ -1,5 +1,43 @@
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port to C89.
+	* bytecode.c (BYTE_CODE_THREADED): Do not define if __STRICT_ANSI__.
+	(B__dummy__): New dummy symbol, to pacify C89.
+	* dbusbind.c (XD_DEBUG_MESSAGE): Omit debugging on C89 hosts, since
+	they can't grok varargs macros.
+	* dispnew.c (add_window_display_history)
+	(add_frame_display_history):
+	* print.c (print_object):
+	* xdisp.c (debug_method_add):
+	Use %p printf format only for void pointers.
+	* emacs.c (usage_message): New constant, replacing ...
+	(USAGE1, USAGE2, USAGE3): Remove; they were too long for C89.
+	(main): Adjust to usage reorg.
+	* fns.c (syms_of_fns):
+	* profiler.c (syms_of_profiler):
+	Don't use non-constant struct initializers.
+	* gnutls.h (gnutls_initstage_t):
+	* lisp.h (enum Lisp_Fwd_Type):
+	* lread.c (lisp_file_lexically_bound_p):
+	* xsettings.c (anonymous enum):
+	Remove trailing comma.
+	* xsettings.c (apply_xft_settings): Use %f, not %lf; %lf is a C99ism.
+	* lisp.h (ENUM_BF): Use unsigned if pedantic.
+	(DEFUN_FUNCTION_INIT): New macro, that falls back on a cast if pre-C99.
+	(DEFUN): Use it.
+	* regex.c (const_re_char): New type, to pacify strict C89.
+	All uses of 'const re_char' replaced to use it.
+	* regex.h (_Restrict_): Rename from __restrict, to avoid clash
+	with glibc when strict C89.  This change is imported from gnulib.
+	All uses changed.
+	(_Restrict_arr_): Rename from __restrict_arr, similarly.
+	* sysdep.c (time_from_jiffies) [!HAVE_LONG_LONG_INT]:
+	Omit GNU_LINUX implementation, since it requires long long.
+	* xterm.c (x_draw_underwave):
+	Do not assume the traditional order of struct's members.
+	(x_term_init): Rewrite to avoid the need for non-constant structure
+	initializers.
+
 	Syntax cleanup, mostly replacing macros with functions.
 `	This removes the need for the syntax_temp hack.
 	* search.c: Include syntax.h after buffer.h, since syntax.h uses BVAR.

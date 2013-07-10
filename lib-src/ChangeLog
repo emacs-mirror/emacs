@@ -1,3 +1,15 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C89.
+	* ebrowse.c (USAGE): Remove macro with too-long string literal ...
+	(usage_message): ... and replace it with this new static constant
+	containing multiple literals.  All uses changed.
+	* emacsclient.c (print_help_and_exit):
+	Rewrite to avoid string literals longer than the C89 limits.
+	(start_daemon_and_retry_set_socket):
+	Rewrite to avoid non-constant array initializer.
+	* make-docfile.c (enum global_type): Omit trailing comma.
+
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer plain 'static' to 'static inline' (Bug#12541).

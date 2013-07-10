@@ -59,7 +59,8 @@ by Hallvard:
    indirect threaded, using GCC's computed goto extension.  This code,
    as currently implemented, is incompatible with BYTE_CODE_SAFE and
    BYTE_CODE_METER.  */
-#if defined (__GNUC__) && !defined (BYTE_CODE_SAFE) && !defined (BYTE_CODE_METER)
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ \
+     && !defined BYTE_CODE_SAFE && !defined BYTE_CODE_METER)
 #define BYTE_CODE_THREADED
 #endif
 
@@ -285,8 +286,10 @@ enum byte_code_op
 
 #ifdef BYTE_CODE_SAFE
     Bscan_buffer = 0153, /* No longer generated as of v18.  */
-    Bset_mark = 0163 /* this loser is no longer generated as of v18 */
+    Bset_mark = 0163, /* this loser is no longer generated as of v18 */
 #endif
+
+    B__dummy__ = 0  /* Pacify C89.  */
 };
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */

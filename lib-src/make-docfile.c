@@ -555,7 +555,7 @@ enum global_type
   LISP_OBJECT,
   EMACS_INTEGER,
   BOOLEAN,
-  FUNCTION,
+  FUNCTION
 };
 
 /* A single global.  */

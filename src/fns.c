@@ -5011,13 +5011,21 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
 
-  {
-    struct hash_table_test
-      eq = { Qeq, Qnil, Qnil, NULL, hashfn_eq },
-      eql = { Qeql, Qnil, Qnil, cmpfn_eql, hashfn_eql },
-      equal = { Qequal, Qnil, Qnil, cmpfn_equal, hashfn_equal };
-    hashtest_eq = eq;
-    hashtest_eql = eql;
-    hashtest_equal = equal;
-  }
+  hashtest_eq.name = Qeq;
+  hashtest_eq.user_hash_function = Qnil;
+  hashtest_eq.user_cmp_function = Qnil;
+  hashtest_eq.cmpfn = 0;
+  hashtest_eq.hashfn = hashfn_eq;
+
+  hashtest_eql.name = Qeql;
+  hashtest_eql.user_hash_function = Qnil;
+  hashtest_eql.user_cmp_function = Qnil;
+  hashtest_eql.cmpfn = cmpfn_eql;
+  hashtest_eql.hashfn = hashfn_eql;
+
+  hashtest_equal.name = Qequal;
+  hashtest_equal.user_hash_function = Qnil;
+  hashtest_equal.user_cmp_function = Qnil;
+  hashtest_equal.cmpfn = cmpfn_equal;
+  hashtest_equal.hashfn = hashfn_equal;
 }

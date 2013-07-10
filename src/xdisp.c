@@ -12589,6 +12589,7 @@ static void debug_method_add (struct window *, char const *, ...)
 static void
 debug_method_add (struct window *w, char const *fmt, ...)
 {
+  void *ptr = w;
   char *method = w->desired_matrix->method;
   int len = strlen (method);
   int size = sizeof w->desired_matrix->method;
@@ -12607,7 +12608,7 @@ debug_method_add (struct window *w, char const *fmt, ...)
 
   if (trace_redisplay_p)
     fprintf (stderr, "%p (%s): %s\n",
-	     w,
+	     ptr,
 	     ((BUFFERP (w->contents)
 	       && STRINGP (BVAR (XBUFFER (w->contents), name)))
 	      ? SSDATA (BVAR (XBUFFER (w->contents), name))

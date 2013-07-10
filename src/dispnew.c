@@ -213,6 +213,7 @@ static void
 add_window_display_history (struct window *w, const char *msg, bool paused_p)
 {
   char *buf;
+  void *ptr = w;
 
   if (history_idx >= REDISPLAY_HISTORY_SIZE)
     history_idx = 0;
@@ -222,7 +223,7 @@ add_window_display_history (struct window *w, const char *msg, bool paused_p)
   snprintf (buf, sizeof redisplay_history[0].trace,
 	    "%"pMu": window %p (`%s')%s\n%s",
 	    history_tick++,
-	    w,
+	    ptr,
 	    ((BUFFERP (w->contents)
 	      && STRINGP (BVAR (XBUFFER (w->contents), name)))
 	     ? SSDATA (BVAR (XBUFFER (w->contents), name))
@@ -240,6 +241,7 @@ static void
 add_frame_display_history (struct frame *f, bool paused_p)
 {
   char *buf;
+  void *ptr = f;
 
   if (history_idx >= REDISPLAY_HISTORY_SIZE)
     history_idx = 0;
@@ -248,7 +250,7 @@ add_frame_display_history (struct frame *f, bool paused_p)
 
   sprintf (buf, "%"pMu": update frame %p%s",
 	   history_tick++,
-	   f, paused_p ? " ***paused***" : "");
+	   ptr, paused_p ? " ***paused***" : "");
 }
 
 

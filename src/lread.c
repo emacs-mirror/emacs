@@ -823,7 +823,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
     {
       bool rv = 0;
       enum {
-	NOMINAL, AFTER_FIRST_DASH, AFTER_ASTERIX,
+	NOMINAL, AFTER_FIRST_DASH, AFTER_ASTERIX
       } beg_end_state = NOMINAL;
       bool in_file_vars = 0;
 

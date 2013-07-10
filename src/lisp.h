@@ -363,9 +363,9 @@ enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 
-/* Idea stolen from GDB.  MSVC doesn't support enums in bitfields,
-   and xlc complains vociferously about them.  */
-#if defined _MSC_VER || defined __IBMC__
+/* Idea stolen from GDB.  Pedantic GCC complains about enum bitfields,
+   MSVC doesn't support them, and xlc complains vociferously about them.  */
+#if defined __STRICT_ANSI__ || defined _MSC_VER || defined __IBMC__
 #define ENUM_BF(TYPE) unsigned int
 #else
 #define ENUM_BF(TYPE) enum TYPE
@@ -398,7 +398,7 @@ enum Lisp_Type
     /* Cons.  XCONS (object) points to a struct Lisp_Cons.  */
     Lisp_Cons = 6,
 
-    Lisp_Float = 7,
+    Lisp_Float = 7
   };
 
 /* This is the set of data types that share a common structure.
@@ -428,7 +428,7 @@ enum Lisp_Fwd_Type
     Lisp_Fwd_Bool,		/* Fwd to a C boolean var.  */
     Lisp_Fwd_Obj,		/* Fwd to a C Lisp_Object variable.  */
     Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
-    Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
+    Lisp_Fwd_Kboard_Obj		/* Fwd to a Lisp_Object field of kboards.  */
   };
 
 /* If you want to define a new Lisp data type, here are some
@@ -2540,11 +2540,16 @@ CHECK_NUMBER_CDR (Lisp_Object x)
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #else  /* not _MSC_VER */
+# if __STDC_VERSION__ < 199901
+#  define DEFUN_FUNCTION_INIT(fnname, maxargs) (Lisp_Object (*) (void)) fnname
+# else
+#  define DEFUN_FUNCTION_INIT(fnname, maxargs) .a ## maxargs = fnname
+# endif
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
    Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
    static struct Lisp_Subr alignas (GCALIGNMENT) sname =		\
      { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
-       { .a ## maxargs = fnname },					\
+       { DEFUN_FUNCTION_INIT (fnname, maxargs) },			\
        minargs, maxargs, lname, intspec, 0};				\
    Lisp_Object fnname
 #endif
