@@ -4,10 +4,10 @@
  * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
  *
  * REFERENCES
- * "Abusing Mach on Mac OS X" <http://www.uninformed.org/?v=4&a=3&t=pdf>
- * Mach man pages <http://felinemenace.org/~nemo/mach/manpages/>
  *
- * TODO: Consider making Register a no-op and using task_threads().
+ * [Mach_man]  Mach man pages within XNU;
+ *             Apple Computer;
+ *             <http://www.opensource.apple.com/source/xnu/xnu-2050.22.13/osfmk/man/>.
  */
 
 #include "mpm.h"
