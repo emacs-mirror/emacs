@@ -3752,12 +3752,16 @@ file exists and nonzero exit status otherwise."
   "Wait for shell prompt and barf if none appears.
 Looks at process PROC to see if a shell prompt appears in TIMEOUT
 seconds.  If not, it produces an error message with the given ERROR-ARGS."
-  (unless
-      (tramp-wait-for-regexp
-       proc timeout
-       (format
-	"\\(%s\\|%s\\)\\'" shell-prompt-pattern tramp-shell-prompt-pattern))
-    (apply 'tramp-error-with-buffer nil proc 'file-error error-args)))
+  (let ((vec (tramp-get-connection-property proc "vector" nil)))
+    (condition-case err
+	(tramp-wait-for-regexp
+	 proc timeout
+	 (format
+	  "\\(%s\\|%s\\)\\'" shell-prompt-pattern tramp-shell-prompt-pattern))
+      (error
+       (delete-process proc)
+       (apply 'tramp-error-with-buffer
+	      (tramp-get-connection-buffer vec) vec 'file-error error-args)))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
@@ -4332,9 +4336,6 @@ Gateway hops are already opened."
     ;; Result.
     target-alist))
 
-(defvar tramp-current-connection nil
-  "Last connection timestamp.")
-
 (defun tramp-maybe-open-connection (vec)
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
@@ -4348,7 +4349,7 @@ connection if a previous connection has died for some reason."
       ;; If Tramp opens the same connection within a short time frame,
       ;; there is a problem.  We shall signal this.
       (unless (or (and p (processp p) (memq (process-status p) '(run open)))
-		  (not (equal (butlast (append vec nil))
+		  (not (equal (butlast (append vec nil) 2)
 			      (car tramp-current-connection)))
 		  (> (tramp-time-diff
 		      (current-time) (cdr tramp-current-connection))
@@ -4433,7 +4434,7 @@ connection if a previous connection has died for some reason."
 		(set-process-sentinel p 'tramp-process-sentinel)
 		(tramp-compat-set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection
-		      (cons (butlast (append vec nil)) (current-time))
+		      (cons (butlast (append vec nil) 2) (current-time))
 		      tramp-current-host (system-name))
 
 		(tramp-message
@@ -4442,7 +4443,7 @@ connection if a previous connection has died for some reason."
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
 		 p 60
-		 "Couldn't find local shell prompt %s" tramp-encoding-shell)
+		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
 
 		;; Now do all the connections as specified.
 		(while target-alist
