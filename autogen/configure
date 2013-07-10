@@ -7228,6 +7228,7 @@ esac
   # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module at-internal:
+  # Code from module binary-io:
   # Code from module c-ctype:
   # Code from module c-strcase:
   # Code from module careadlinkat:
@@ -10084,8 +10085,8 @@ $as_echo_n "checking whether Windows API headers are recent enough... " >&6; }
 int
 main ()
 {
-void test(PIMAGE_NT_HEADERS pHeader)
-     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}
+PIMAGE_NT_HEADERS pHeader;
+     PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader)
   ;
   return 0;
 }
