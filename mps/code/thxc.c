@@ -1,7 +1,9 @@
-/* thxc.c: MAC OS X THREADS MANAGER
+/* thxc.c: OS X MACH THREADS MANAGER
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ *
+ * .design: See <design/thread-manager/>.
  *
  * REFERENCES
  *
@@ -37,7 +39,7 @@ Bool ThreadCheck(Thread thread)
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKL(RingCheck(&thread->arenaRing));
-  /* FIXME: How to check thread->port? */
+  CHECKL(MACH_PORT_VALID(thread->port));
   return TRUE;
 }
 
@@ -68,16 +70,15 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->arena = arena;
   RingInit(&thread->arenaRing);
 
-  thread->sig = ThreadSig;
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->port = mach_thread_self();
-  
+  thread->sig = ThreadSig;
+  AVERT(Thread, thread);
+
   /* FIXME: Set up thread specific exception ports?
      (Boehm just does it for the whole task.) */
   ProtThreadRegister(FALSE);
-
-  AVERT(Thread, thread);
 
   ring = ArenaThreadRing(arena);
 
@@ -115,6 +116,7 @@ static void mapThreadRing(Ring threadRing, void (*func)(Thread))
   AVERT(Ring, threadRing);
 
   self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
@@ -126,27 +128,34 @@ static void mapThreadRing(Ring threadRing, void (*func)(Thread))
 
 static void threadSuspend(Thread thread)
 {
-  /* FIXME: Think about error cases */
-  /* FIXME: Do threads take any time to suspend?  Need to rendezvous? */
-  (void)thread_suspend(thread->port);
+  kern_return_t kern_return;
+  kern_return = thread_suspend(thread->port);
+  /* No rendezvous is necessary: thread_suspend "prevents the thread
+   * from executing any more user-level instructions" */
+  AVER(kern_return == KERN_SUCCESS);
 }
 
 static void threadResume(Thread thread)
 {
-  /* FIXME: Think about error cases */
-  /* FIXME: Does client code have to watch for EAGAIN? */
-  (void)thread_resume(thread->port);
+  kern_return_t kern_return;
+  kern_return = thread_resume(thread->port);
+  /* Mach has no equivalent of EAGAIN. */
+  AVER(kern_return == KERN_SUCCESS);
 }
 
 
-/* ThreadRingSuspend -- suspend all threads on a ring, expect the current one */
+/* ThreadRingSuspend -- suspend all threads on a ring, except the
+ * current one.
+ */
 void ThreadRingSuspend(Ring threadRing)
 {
   AVERT(Ring, threadRing);
   mapThreadRing(threadRing, threadSuspend);
 }
 
-/* ThreadRingResume -- resume all threads on a ring, expect the current one */
+/* ThreadRingResume -- resume all threads on a ring, except the
+ * current one.
+ */
 void ThreadRingResume(Ring threadRing)
 {
   AVERT(Ring, threadRing);
@@ -183,6 +192,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
   AVERT(Thread, thread);
   self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
   if (thread->port == self) {
     /* scan this thread's stack */
     res = StackScan(ss, stackBot);
@@ -194,7 +204,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     Addr *stackBase, *stackLimit, stackPtr;
     mach_msg_type_number_t count;
     kern_return_t kern_return;
-    
+
     /* FIXME: Assert that threads have been suspended? */
 
     mfcStruct.address = NULL;
@@ -206,10 +216,9 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
                                    THREAD_STATE_FLAVOR,
                                    (thread_state_t)mfcStruct.threadState,
                                    &count);
-    /* FIXME: error checking */
     AVER(kern_return == KERN_SUCCESS);
     AVER(count == THREAD_STATE_COUNT);
-    
+
     stackPtr = MutatorFaultContextSP(&mfcStruct);
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
@@ -237,10 +246,10 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
   Res res;
- 
+
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  arena $P ($U)\n", 
+               "  arena $P ($U)\n",
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "  port $U\n", (WriteFU)thread->port,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
@@ -253,7 +262,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
