@@ -1,3 +1,9 @@
+2013-07-10  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.el (gnus-summary-line-format): Reference
+	`gnus-user-date-format-alist' for the &user-date; format, not
+	`gnus-summary-user-date-format-alist'.
+
 2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnml.el (nnml-request-compact-group): Don't bug out if we can't
