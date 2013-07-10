@@ -1,3 +1,7 @@
+2013-07-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (main): Fix syntax error.
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Timestamp fixes for undo (Bug#14824).

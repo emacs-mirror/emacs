@@ -1042,7 +1042,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
             execvp (argv[0], argv);
 	    emacs_perror (argv[0]);
-	    exit (errno == ENOENT : EXIT_ENOENT : EXIT_CANNOT_INVOKE);
+	    exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
           }
 
         /* In exec'd: parse special dname into pipe and name info. */
