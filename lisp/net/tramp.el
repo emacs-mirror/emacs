@@ -1600,7 +1600,7 @@ If LEVEL does not fit for visible messages, or if this is a
 nested call of the macro, there are only traces without a visible
 progress reporter."
   (declare (indent 3) (debug t))
-  `(let (pr tm)
+  `(let (pr tm result)
      (tramp-message ,vec ,level "%s..." ,message)
      ;; We start a pulsing progress reporter after 3 seconds.  Feature
      ;; introduced in Emacs 24.1.
@@ -1614,7 +1614,7 @@ progress reporter."
      (condition-case err
 	 (unwind-protect
 	     ;; Execute the body.
-	     (progn  ,@body)
+	     (setq result (progn ,@body))
 	   ;; Stop progress reporter.
 	   (if tm (tramp-compat-funcall 'cancel-timer tm)))
 
@@ -1624,7 +1624,8 @@ progress reporter."
 	(signal (car err) (cdr err))))
 
      ;; Exit.
-     (tramp-message ,vec ,level "%s...done" ,message)))
+     (tramp-message ,vec ,level "%s...done" ,message)
+     result))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
