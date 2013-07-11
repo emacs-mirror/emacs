@@ -1,5 +1,16 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* automated/ruby-mode-tests.el (ruby-deftest-move-to-block):
+	Goto point-min.
+	(works-on-do, zero-is-noop, ok-with-three, ok-with-minus-two)
+	(ruby-move-to-block-skips-percent-literal)
+	(ruby-move-to-block-skips-heredoc)
+	(ruby-move-to-block-moves-from-else-to-if)
+	(ruby-beginning-of-defun-does-not-fold-case)
+	(ruby-end-of-defun-skips-to-next-line-after-the-method):
+	Replace goto-line with forward-line/goto-char.
+	(ruby-move-to-block-does-not-fold-case): Remove unneeded end-of-buffer.
+
 	* automated/package-test.el (makeinfo-buffer): Autoload.
 	(compilation-in-progress, tar-parse-info, tar-header-name): Declare.
 	(package-test-install-texinfo): Don't require makeinfo.

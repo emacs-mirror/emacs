@@ -475,29 +475,30 @@ VALUES-PLIST is a list with alternating index and value elements."
      (with-temp-buffer
        (insert ruby-block-test-example)
        (ruby-mode)
+       (goto-char (point-min))
        ,@body)))
 
 (put 'ruby-deftest-move-to-block 'lisp-indent-function 'defun)
 
 (ruby-deftest-move-to-block works-on-do
-  (goto-line 11)
+  (forward-line 10)
   (ruby-end-of-block)
   (should (= 13 (line-number-at-pos)))
   (ruby-beginning-of-block)
   (should (= 11 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block zero-is-noop
-  (goto-line 5)
+  (forward-line 4)
   (ruby-move-to-block 0)
   (should (= 5 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block ok-with-three
-  (goto-line 2)
+  (forward-line 1)
   (ruby-move-to-block 3)
   (should (= 14 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block ok-with-minus-two
-  (goto-line 10)
+  (forward-line 9)
   (ruby-move-to-block -2)
   (should (= 2 (line-number-at-pos))))
 
@@ -515,7 +516,7 @@ VALUES-PLIST is a list with alternating index and value elements."
                     |  |
                     |end")))
     (ruby-with-temp-buffer s
-      (goto-line 1)
+      (goto-char (point-min))
       (ruby-end-of-block)
       (should (= 5 (line-number-at-pos)))
       (ruby-beginning-of-block)
@@ -530,7 +531,7 @@ VALUES-PLIST is a list with alternating index and value elements."
        |  end
        |  eowarn
        |end")
-    (goto-line 1)
+    (goto-char (point-min))
     (ruby-end-of-block)
     (should (= 6 (line-number-at-pos)))
     (ruby-beginning-of-block)
@@ -542,7 +543,6 @@ VALUES-PLIST is a list with alternating index and value elements."
        "foo do
        |  Module.to_s
        |end")
-    (end-of-buffer)
     (let ((case-fold-search t))
       (ruby-beginning-of-block))
     (should (= 1 (line-number-at-pos)))))
@@ -554,7 +554,8 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |  end
                           |else
                           |end")
-    (goto-line 4)
+    (goto-char (point-min))
+    (forward-line 3)
     (ruby-beginning-of-block)
     (should (= 1 (line-number-at-pos)))))
 
@@ -566,7 +567,8 @@ VALUES-PLIST is a list with alternating index and value elements."
        |    Class.to_s
        |  end
        |end")
-    (goto-line 4)
+    (goto-char (point-min))
+    (forward-line 3)
     (let ((case-fold-search t))
       (beginning-of-defun))
     (should (= 2 (line-number-at-pos)))))
@@ -579,7 +581,8 @@ VALUES-PLIST is a list with alternating index and value elements."
        |    'ho hum'
        |  end
        |end")
-    (goto-line 2)
+    (goto-char (point-min))
+    (forward-line 1)
     (end-of-defun)
     (should (= 5 (line-number-at-pos)))))
 
