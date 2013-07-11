@@ -63,6 +63,8 @@ than this. See the documentation for the pool class.
    single: thread; signal handling
    single: thread; exception handling
 
+.. _topic-thread-signal:
+
 Signal and exception handling issues
 ------------------------------------
 
