@@ -322,8 +322,7 @@ from `mode-require-final-newline'."
 		 (const :tag "When visiting or saving" visit-save)
 		 (const :tag "Don't add newlines" nil)
 		 (other :tag "Ask each time" ask))
-  :group 'editing-basics
-  :version "24.4")
+  :group 'editing-basics)
 
 (defcustom mode-require-final-newline t
   "Whether to add a newline at end of file, in certain major modes.
