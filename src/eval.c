@@ -114,6 +114,13 @@ Lisp_Object Vsignaling_function;
    frame is half-initialized.  */
 Lisp_Object inhibit_lisp_code;
 
+/* These would ordinarily be static, but they need to be visible to GDB.  */
+bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
+Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
+Lisp_Object backtrace_function (union specbinding *) EXTERNALLY_VISIBLE;
+union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
+union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
+
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
@@ -152,7 +159,7 @@ specpdl_func (union specbinding *pdl)
   return pdl->unwind.func;
 }
 
-static Lisp_Object
+Lisp_Object
 backtrace_function (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
@@ -166,7 +173,7 @@ backtrace_nargs (union specbinding *pdl)
   return pdl->bt.nargs;
 }
 
-static Lisp_Object *
+Lisp_Object *
 backtrace_args (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
@@ -204,10 +211,6 @@ set_backtrace_debug_on_exit (union specbinding *pdl, bool doe)
 }
 
 /* Helper functions to scan the backtrace.  */
-
-bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
-union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
-union specbinding *backtrace_next (union specbinding *pdl) EXTERNALLY_VISIBLE;
 
 bool
 backtrace_p (union specbinding *pdl)

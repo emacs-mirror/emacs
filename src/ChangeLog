@@ -1,5 +1,8 @@
 2013-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (backtrace_function, backtrace_args): Now EXTERNALLY_VISIBLE.
+	This is for .gdbinit xbacktrace.
+
 	* sysdep.c, term.c, termcap.c, terminal.c: Integer-related minor fixes.
 	* sysdep.c (emacs_get_tty): Return void, since nobody uses the value.
 	(emacs_set_tty): Now static.
