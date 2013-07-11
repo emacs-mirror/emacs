@@ -1,5 +1,9 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* automated/package-test.el (makeinfo-buffer): Autoload.
+	(compilation-in-progress, tar-parse-info, tar-header-name): Declare.
+	(package-test-install-texinfo): Don't require makeinfo.
+
 	* automated/files.el: Stop "local variables" confusion.
 
 	* automated/flymake-tests.el (flymake-tests): Remove unused group.
