@@ -1,3 +1,18 @@
+2013-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/ert.el: Require cl-lib at runtime too.
+	(ert--cl-do-remf, ert--remprop, ert--remove-if-not)
+	(ert--intersection, ert--set-difference, ert--set-difference-eq)
+	(ert--union, ert--gensym-counter, ert--gensym-counter)
+	(ert--coerce-to-vector, ert--remove*, ert--string-position)
+	(ert--mismatch, ert--subseq): Remove reimplementations of cl funcs.
+	(ert-make-test-unbound, ert--expand-should-1)
+	(ert--expand-should, ert--should-error-handle-error)
+	(should-error, ert--explain-equal-rec)
+	(ert--plist-difference-explanation, ert-select-tests)
+	(ert--make-stats, ert--remove-from-list, ert--string-first-line):
+	Use cl-lib functions rather than reimplementations.
+
 2013-07-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Extend docstring.

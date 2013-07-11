@@ -1,5 +1,13 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* automated/ert-tests.el: Require cl-lib at runtime too.
+	(ert-test-special-operator-p): Use cl-gensym rather than ert-- version.
+	(ert-test-remprop, ert-test-remove-if-not, ert-test-remove*)
+	(ert-test-set-functions, ert-test-gensym)
+	(ert-test-coerce-to-vector, ert-test-string-position)
+	(ert-test-mismatch): Remove tests.
+	* automated/cl-lib.el: New, split from ert-tests.el.
+
 	* automated/ruby-mode-tests.el (ruby-deftest-move-to-block):
 	Goto point-min.
 	(works-on-do, zero-is-noop, ok-with-three, ok-with-minus-two)
