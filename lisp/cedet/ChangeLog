@@ -2,7 +2,7 @@
 
 	* data-debug.el, cedet-idutils.el: Neuter the "Version:" header.
 
-2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/idle.el (define-semantic-idle-service):
 	No need to use eval-and-compile, progn will do.

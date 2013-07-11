@@ -136,7 +136,7 @@
 	Use it to create separate tests for each element, so we run them
 	all rather than stopping at the first error.
 
-2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* automated/occur-tests.el (occur-tests):
 	Update for 2013-05-29 change to occur header line.
