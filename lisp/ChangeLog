@@ -1,5 +1,15 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/edebug.el: Require cl-lib at run-time too.
+	(edebug-gensym-index, edebug-gensym):
+	Remove reimplementation of cl-gensym.
+	(edebug-make-enter-wrapper, edebug-make-form-wrapper): Use cl-gensym.
+
+	* thumbs.el: Require cl-lib at run-time too.
+	(thumbs-gensym-counter, thumbs-gensym):
+	Remove reimplementation of cl-gensym.
+	(thumbs-temp-file): Use cl-gensym.
+
 	* emacs-lisp/ert.el: Require cl-lib at runtime too.
 	(ert--cl-do-remf, ert--remprop, ert--remove-if-not)
 	(ert--intersection, ert--set-difference, ert--set-difference-eq)
@@ -691,7 +701,7 @@
 	* emacs-lock.el (emacs-lock-mode, emacs-lock--old-mode)
 	(emacs-lock--try-unlocking): Make defvar-local.
 
-2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* play/cookie1.el (cookie-apropos): Minor simplification.
 
@@ -1157,7 +1167,7 @@
 
 	* net/shr.el (shr-map): Bind [down-mouse-1] to browse URLs.
 
-2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eieio.el (defclass): Make it eval-and-compile once more.
 

@@ -53,7 +53,7 @@
 ;;; Code:
 
 (require 'macroexp)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (eval-when-compile (require 'pcase))
 
 ;;; Options
@@ -262,26 +262,6 @@ An extant spec symbol is a symbol that is not a function and has a
 	 (unless (functionp spec) (function-get spec 'edebug-form-spec)))))
 
 ;;; Utilities
-
-;; Define edebug-gensym - from old cl.el
-(defvar edebug-gensym-index 0
-  "Integer used by `edebug-gensym' to produce new names.")
-
-(defun edebug-gensym (&optional prefix)
-  "Generate a fresh uninterned symbol.
-There is an optional argument, PREFIX.  PREFIX is the string
-that begins the new name.  Most people take just the default,
-except when debugging needs suggest otherwise."
-  (if (null prefix)
-      (setq prefix "G"))
-  (let ((newsymbol nil)
-        (newname   ""))
-    (while (not newsymbol)
-      (setq newname (concat prefix (int-to-string edebug-gensym-index)))
-      (setq edebug-gensym-index (+ edebug-gensym-index 1))
-      (if (not (intern-soft newname))
-          (setq newsymbol (make-symbol newname))))
-    newsymbol))
 
 (defun edebug-lambda-list-keywordp (object)
   "Return t if OBJECT is a lambda list keyword.
@@ -1186,7 +1166,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
   ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
   ;; Do this after parsing since that may find a name.
   (setq edebug-def-name
-	(or edebug-def-name edebug-old-def-name (edebug-gensym "edebug-anon")))
+	(or edebug-def-name edebug-old-def-name (cl-gensym "edebug-anon")))
   `(edebug-enter
     (quote ,edebug-def-name)
     ,(if edebug-inside-func
@@ -1299,7 +1279,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 
       ;; Set the name here if it was not set by edebug-make-enter-wrapper.
       (setq edebug-def-name
-	    (or edebug-def-name edebug-old-def-name (edebug-gensym "edebug-anon")))
+	    (or edebug-def-name edebug-old-def-name (cl-gensym "edebug-anon")))
 
       ;; Add this def as a dependent of containing def.  Buggy.
       '(if (and edebug-containing-def-name
