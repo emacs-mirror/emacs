@@ -1,5 +1,9 @@
 2013-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* inotify.c (uninitialized): Remove.  All uses replaced by -1.
+	(Finotify_add_watch): Simplify, since -1 means uninitialized now.
+	Touch up doc a bit.
+
 	* eval.c (backtrace_function, backtrace_args): Now EXTERNALLY_VISIBLE.
 	This is for .gdbinit xbacktrace.
 
