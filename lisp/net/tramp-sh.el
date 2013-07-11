@@ -222,21 +222,24 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-program        "su")
     (tramp-login-args           (("-") ("%u")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("sudo"
     (tramp-login-program        "sudo")
     (tramp-login-args           (("-u" "%u") ("-s") ("-H") ("-p" "Password:")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("ksu"
     (tramp-login-program        "ksu")
     (tramp-login-args           (("%u") ("-q")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("krlogin"
@@ -4442,7 +4445,7 @@ connection if a previous connection has died for some reason."
 
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
-		 p 60
+		 p 10
 		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
 
 		;; Now do all the connections as specified.
@@ -4461,6 +4464,9 @@ connection if a previous connection has died for some reason."
 			 (async-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-async-args))
+			 (connection-timeout
+			  (tramp-get-method-parameter
+			   l-method 'tramp-connection-timeout))
 			 (gw-args
 			  (tramp-get-method-parameter l-method 'tramp-gw-args))
 			 (gw (tramp-get-file-property hop "" "gateway" nil))
@@ -4543,7 +4549,8 @@ connection if a previous connection has died for some reason."
 		    (tramp-message vec 3 "Sending command `%s'" command)
 		    (tramp-send-command vec command t t)
 		    (tramp-process-actions
-		     p vec pos tramp-actions-before-shell 60)
+		     p vec pos tramp-actions-before-shell
+		     (or connection-timeout tramp-connection-timeout))
 		    (tramp-message
 		     vec 3 "Found remote shell prompt on `%s'" l-host))
 		  ;; Next hop.

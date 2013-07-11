@@ -1,3 +1,17 @@
+2013-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Extend docstring.
+	(tramp-connection-timeout): New defcustom.
+	(tramp-error-with-buffer): Reset timestamp only when appropriate.
+	(with-tramp-progress-reporter): Simplify.
+	(tramp-process-actions): Improve messages.
+
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	Use `tramp-connection-timeout'.
+	(tramp-methods) [su, sudo, ksu]: Add method specific timeouts.
+	(Bug#14808)
+
 2013-07-11  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-file-name): Conform to the requirements of
