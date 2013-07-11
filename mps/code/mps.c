@@ -98,11 +98,12 @@
 #if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "than.c"       /* generic single threading */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "protxc.c"     /* OS X Mach exception handling */
+#include "proti3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmci3xc.c"   /* 32-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
@@ -111,11 +112,12 @@
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "than.c"       /* generic single threading */
+#include "thxc.c"       /* OS X Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
+#include "protxc.c"     /* OS X Mach exception handling */
+#include "proti6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmci6xc.c"   /* 64-bit Intel for Mac OS X mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 

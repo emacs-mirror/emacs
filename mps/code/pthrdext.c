@@ -85,6 +85,7 @@ static void suspendSignalHandler(int sig,
 
     AVER(sig == PTHREADEXT_SIGSUSPEND);
     UNUSED(sig);
+    UNUSED(info);
 
     AVER(suspendingVictim != NULL);
     /* copy the ucontext structure so we definitely have it on our stack,
@@ -127,7 +128,7 @@ static void PThreadextModuleInit(void)
 {
     int status;
     struct sigaction pthreadext_sigsuspend, pthreadext_sigresume;
-
+  
     AVER(pthreadextModuleInitialized == FALSE);
 
     /* Initialize the ring of suspended threads */
