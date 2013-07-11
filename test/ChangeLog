@@ -1,5 +1,8 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* automated/icalendar-tests.el (icalendar-tests--do-test-cycle):
+	Use with-current-buffer.
+
 	* automated/undo-tests.el (undo-test-buffer-modified)
 	(undo-test-file-modified): New tests.
 
