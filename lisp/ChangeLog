@@ -1,3 +1,10 @@
+2013-07-11  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-file-name): Conform to the requirements of
+	read-file-name.  (Bug#11861)
+	(ido-read-directory-name): Conform to the requirements of
+	read-directory-name.
+
 2013-07-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (delay-warning): New function.

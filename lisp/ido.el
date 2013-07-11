@@ -4780,7 +4780,14 @@ See `read-file-name' for additional parameters."
 	     (ido-find-literal nil))
 	(setq ido-exit nil)
 	(setq filename
-	      (ido-read-internal 'file prompt 'ido-file-history default-filename mustmatch initial))
+	      (ido-read-internal 'file prompt 'ido-file-history
+				 (cond	; Bug#11861.
+				  ((stringp default-filename) default-filename)
+				  ((consp default-filename) (car default-filename))
+				  ((and (not default-filename) initial)
+				   (expand-file-name initial dir))
+				  (buffer-file-name buffer-file-name))
+				 mustmatch initial))
 	(setq dir ido-current-directory) ; See bug#1516.
 	(cond
 	 ((eq ido-exit 'fallback)
@@ -4813,8 +4820,13 @@ See `read-directory-name' for additional parameters."
 				     (ido-directory-too-big-p ido-current-directory)))
 	 (ido-work-directory-index -1)
 	 (ido-work-file-index -1))
-    (setq filename
-	  (ido-read-internal 'dir prompt 'ido-file-history default-dirname mustmatch initial))
+    (setq filename (ido-read-internal
+		    'dir prompt 'ido-file-history
+		    (or default-dirname	; Bug#11861.
+			(if initial
+			    (expand-file-name initial ido-current-directory)
+			  ido-current-directory))
+		    mustmatch initial))
     (cond
      ((eq ido-exit 'fallback)
       (let ((read-file-name-function nil))
