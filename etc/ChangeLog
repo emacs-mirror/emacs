@@ -5,7 +5,7 @@
 
 2013-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* NEWS: NS can be build with ImageMagick.
+	* NEWS: NS can be built with ImageMagick.
 
 2013-07-06  Juanma Barranquero  <lekktu@gmail.com>
 
