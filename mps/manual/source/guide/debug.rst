@@ -82,14 +82,11 @@ General debugging advice
    :term:`barrier (1)` hits (because the MPS uses barriers to protect
    parts of memory, and barrier hits are common and expected).
 
-   If you are using GDB on OS X, run these commands::
-
-        set dont-handle-bad-access 1
-        handle SIGBUS pass nostop noprint
-
    If you are using GDB on Linux or FreeBSD, run this command::
 
         handle SIGSEGV pass nostop noprint
+
+   On OS X barrier hits do not use signals and so do not enter the debugger.
 
    (On these operating systems, you can add these commands to your
    ``.gdbinit`` if you always want them to be run.)
