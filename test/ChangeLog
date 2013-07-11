@@ -1,5 +1,7 @@
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* automated/files.el: Stop "local variables" confusion.
+
 	* automated/flymake-tests.el (flymake-tests): Remove unused group.
 
 	* automated/icalendar-tests.el (icalendar-tests--do-test-cycle):
