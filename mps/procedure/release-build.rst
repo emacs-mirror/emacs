@@ -40,25 +40,13 @@ All relative paths are relative to
         VERSION=VERSION
         RELEASE=$VERSION.N
 
-#. Ensure that the HTML version of the manual is up to date on the
-   version branch::
-
-        pushd version/$VERSION/manual
-        make checkin
-        popd
-
-   If this fails with the error
-   ``make: sphinx-build: No such file or directory`` then you need to
-   install the Sphinx documentation system [Sphinx]_.
-
-   On Mac OS X with MacPorts you can install it like this::
-   
-        sudo port install py27-sphinx
-        sudo port select --set sphinx py27-sphinx
-
 #. Ensure that ``version/$VERSION/readme.txt`` contains an up-to-date
    description of the release you intend to build and the correct
    release name.
+
+#. Ensure that ``version/$VERSION/manual/source/release.txt`` contains
+   a section with an up-to-date description of significant
+   user-visible changes since the previous release.
 
 #. In ``version/$VERSION/code/version.c``, set ``MPS_RELEASE`` to the
    correct value (see the rules in the comments), and check strings that
@@ -68,8 +56,9 @@ All relative paths are relative to
    "``release $RELEASE``\ ", then open ``configure`` for edit and run
    ``autoreconf -vif`` to bring the configure script up to date.
 
-#. Submit ``readme.txt``, ``version.c``, ``configure.ac``, and other
-   changed files to Perforce before you continue.
+#. Submit ``readme.txt``, ``manual/source/release.txt``,
+   ``version.c``, ``configure.ac``, and other changed files to
+   Perforce before you continue.
 
 #. Determine the *CHANGELEVEL* at which you’re going to make the
    release. This will usually be the latest submitted changelevel on the
