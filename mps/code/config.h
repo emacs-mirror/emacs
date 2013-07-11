@@ -344,12 +344,12 @@
  * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
  * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
  *
- * Unfortunately it's not possible to localize these feature
- * specifications around the individual headers: all headers share a
- * common set of features (via <feature.h>) and so all sources in the
- * same compilation unit must turn on the same set of features.
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <feature.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
  *
- * See "Feature Test Macros" in the GCC Manual:
+ * See "Feature Test Macros" in the Glibc Manual:
  * <http://www.gnu.org/software/libc/manual/html_node/Feature-Test-Macros.html>
  */
 
@@ -359,6 +359,29 @@
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+
+#endif
+
+
+/* .feature.xc: OS X feature specification
+ *
+ * The MPS needs the following symbols which are not defined by default
+ *
+ * Source      Symbols                   Header        Feature
+ * =========== ========================= ============= ====================
+ * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
+ *
+ * It is not possible to localize these feature specifications around
+ * the individual headers: all headers share a common set of features
+ * (via <sys/cdefs.h>) and so all sources in the same compilation unit
+ * must turn on the same set of features.
+ */
+
+#if defined(MPS_OS_XC)
+
+#if !defined(_XOPEN_SOURCE)
+#define _XOPEN_SOURCE
 #endif
 
 #endif
@@ -377,10 +400,37 @@
 #endif
 
 #if defined(MPS_OS_XC)
-#define PROT_SIGINFO_GOOD(info) (1)
+#define PROT_SIGINFO_GOOD(info) (1) /* FIXME: Unused? */
 #elif defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
 #endif
+
+
+/* Almost all of protxc.c etc. are architecture-independent, but unfortunately
+   the Mach headers don't provide architecture neutral symbols for simple
+   things like thread states.  These definitions fix that */
+
+#if defined(MPS_OS_XC)
+#if defined(MPS_ARCH_I6)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE64
+#define THREAD_STATE_S x86_thread_state64_t
+
+#elif defined(MPS_ARCH_I3)
+
+#define THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
+#define THREAD_STATE_FLAVOR x86_THREAD_STATE32
+#define THREAD_STATE_S x86_thread_state32_t
+
+#else
+
+#error "Unknown OS X architecture"
+
+#endif
+#endif
+
+
 
 
 /* Tracer Configuration -- see <code/trace.c> */
