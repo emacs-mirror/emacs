@@ -259,7 +259,8 @@ static void protCatchOne(void)
   /* We didn't handle the exception -- it wasn't one of ours. */
 
   /* .assume.only-port: We assume that there was no previously installed
-     exception port.  (This is checked in ProtThreadRegister.)  If there
+     exception port.  This is checked in ProtThreadRegister, and we don't
+     check it again here to avoid the extra system call.  If there
      were, we must arrange to forward the exception message to the
      previous port.  This module used to do that because it installed a
      task-wide exception handler, but the code is pretty hairy and not
