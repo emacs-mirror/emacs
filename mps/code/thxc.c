@@ -5,6 +5,13 @@
  *
  * .design: See <design/thread-manager/>.
  *
+ *
+ * TODO
+ *
+ * Too much code in common with than.c, thix.c.  Consider how to reduce
+ * redundancy without making the code obscure.
+ *
+ *
  * REFERENCES
  *
  * [Mach_man]  Mach man pages within XNU;
@@ -51,8 +58,6 @@ Bool ThreadCheckSimple(Thread thread)
 }
 
 
-/* FIXME: Too much code in common with than.c, thix.c */
-
 Res ThreadRegister(Thread *threadReturn, Arena arena)
 {
   Res res;
@@ -76,8 +81,6 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
 
-  /* FIXME: Set up thread specific exception ports?
-     (Boehm just does it for the whole task.) */
   ProtThreadRegister(FALSE);
 
   ring = ArenaThreadRing(arena);
@@ -205,7 +208,9 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     mach_msg_type_number_t count;
     kern_return_t kern_return;
 
-    /* FIXME: Assert that threads have been suspended? */
+    /* Note: We could get the thread state and check the suspend cound in
+       order to assert that the thread is suspended, but it's probably
+       unnecessary and is a lot of work to check a static condition. */
 
     mfcStruct.address = NULL;
     mfcStruct.threadState = &threadState;
