@@ -93,7 +93,9 @@ SRCID(protxc, "$Id$");
  * then copying it from the resulting mach_exc.h file.  This gets the
  * structure with 64-bit code fields, corresponding to the exception
  * behaviour EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES.  Only the
- * 32-bit structures are available in /usr/include/mach.
+ * 32-bit structures are available in /usr/include/mach.  Note that these
+ * 32- and 64-bit message structures are independent of the architecture
+ * word width, so we choose to use 64-bit on both I3 and I6.
  */
 
 #ifdef  __MigPackStructs
@@ -218,7 +220,8 @@ static void protCatchOne(void)
   if (mr != MACH_MSG_SUCCESS)
     mach_error("ERROR: MPS mach_msg recv\n", mr);  /* .trans.must */
 
-  /* 2407 is the id for 64-bit exception requests with state and identity
+  /* 2407 is the id for the 64-bit exception requests we asked for in
+     ProtThreadRegister, with state and identity
      information, determined by experimentation and confirmed by 
      running mig on /usr/include/mach/mach_exc.defs */
   AVER(request.Head.msgh_id == 2407);
@@ -300,8 +303,10 @@ extern void ProtThreadRegister(Bool setup)
   self = mach_thread_self();
   AVER(MACH_PORT_VALID(self));
   
-  /* Avoid setting up the exception handler for the setup thread twice,
-     in the case where the mutator registers that thread twice. */
+  /* Avoid setting up the exception handler for the thread that calls
+     ProtSetup twice, in the case where the mutator registers that thread
+     explicitly.  We need a special case because we don't require thread
+     registration of the sole thread of a single-threaded mutator. */
   if (setup) {
     AVER(setupThread == MACH_PORT_NULL);
     setupThread = self;
@@ -314,7 +319,7 @@ extern void ProtThreadRegister(Bool setup)
   /* Ask to receive EXC_BAD_ACCESS exceptions on our port, complete
      with thread state and identity information in the message.
      The MACH_EXCEPTION_CODES flag causes the code fields to be
-     passed 64-bits wide, matching protRequestStruct. */
+     passed 64-bits wide, matching protRequestStruct [Fuller_2013]. */
   behavior = (exception_behavior_t)(EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES);
   AVER(MACH_PORT_VALID(protExcPort));
   kr = thread_swap_exception_ports(self,
