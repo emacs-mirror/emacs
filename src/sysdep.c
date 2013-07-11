@@ -102,8 +102,8 @@ int _cdecl _getpid (void);
 #include "syssignal.h"
 #include "systime.h"
 
-static int emacs_get_tty (int, struct emacs_tty *);
-static int emacs_set_tty (int, struct emacs_tty *, int);
+static void emacs_get_tty (int, struct emacs_tty *);
+static int emacs_set_tty (int, struct emacs_tty *, bool);
 
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
@@ -769,31 +769,26 @@ widen_foreground_group (int fd)
 
 /* Getting and setting emacs_tty structures.  */
 
-/* Set *TC to the parameters associated with the terminal FD.
-   Return zero if all's well, or -1 if we ran into an error we
-   couldn't deal with.  */
-int
+/* Set *TC to the parameters associated with the terminal FD,
+   or clear it if the parameters are not available.  */
+static void
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
 #ifndef DOS_NT
   /* We have those nifty POSIX tcmumbleattr functions.  */
   memset (&settings->main, 0, sizeof (settings->main));
-  if (tcgetattr (fd, &settings->main) < 0)
-    return -1;
+  tcgetattr (fd, &settings->main);
 #endif
-
-  /* We have survived the tempest.  */
-  return 0;
 }
 
 
 /* Set the parameters of the tty on FD according to the contents of
-   *SETTINGS.  If FLUSHP is non-zero, we discard input.
-   Return 0 if all went well, and -1 if anything failed.  */
+   *SETTINGS.  If FLUSHP, discard input.
+   Return 0 if all went well, and -1 (setting errno) if anything failed.  */
 
-int
-emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
+static int
+emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
 #ifndef DOS_NT
@@ -1118,10 +1113,10 @@ init_sys_modes (struct tty_display_info *tty_out)
   tty_out->term_initted = 1;
 }
 
-/* Return nonzero if safe to use tabs in output.
+/* Return true if safe to use tabs in output.
    At the time this is called, init_sys_modes has not been done yet.  */
 
-int
+bool
 tabs_safe_p (int fd)
 {
   struct emacs_tty etty;
@@ -1375,8 +1370,10 @@ init_system_name (void)
   uname (&uts);
   Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
-  unsigned int hostname_size = 256;
-  char *hostname = alloca (hostname_size);
+  char *hostname_alloc = NULL;
+  char hostname_buf[256];
+  ptrdiff_t hostname_size = sizeof hostname_buf;
+  char *hostname = hostname_buf;
 
   /* Try to get the host name; if the buffer is too short, try
      again.  Apparently, the only indication gethostname gives of
@@ -1391,8 +1388,8 @@ init_system_name (void)
       if (strlen (hostname) < hostname_size - 1)
 	break;
 
-      hostname_size <<= 1;
-      hostname = alloca (hostname_size);
+      hostname = hostname_alloc = xpalloc (hostname_alloc, &hostname_size, 1,
+					   min (PTRDIFF_MAX, SIZE_MAX), 1);
     }
 #ifdef HAVE_SOCKETS
   /* Turn the hostname into the official, fully-qualified hostname.
@@ -1437,7 +1434,13 @@ init_system_name (void)
               }
             if (it)
               {
-                hostname = alloca (strlen (it->ai_canonname) + 1);
+		ptrdiff_t len = strlen (it->ai_canonname);
+		if (hostname_size <= len)
+		  {
+		    hostname_size = len + 1;
+		    hostname = hostname_alloc = xrealloc (hostname_alloc,
+							  hostname_size);
+		  }
                 strcpy (hostname, it->ai_canonname);
               }
             freeaddrinfo (res);
@@ -1484,10 +1487,11 @@ init_system_name (void)
       }
 #endif /* HAVE_SOCKETS */
   Vsystem_name = build_string (hostname);
+  xfree (hostname_alloc);
 #endif /* HAVE_GETHOSTNAME */
   {
-    unsigned char *p;
-    for (p = SDATA (Vsystem_name); *p; p++)
+    char *p;
+    for (p = SSDATA (Vsystem_name); *p; p++)
       if (*p == ' ' || *p == '\t')
 	*p = '-';
   }
@@ -2200,8 +2204,8 @@ emacs_fopen (char const *file, char const *mode)
 int
 emacs_close (int fd)
 {
-  int did_retry = 0;
-  register int rtnval;
+  bool did_retry = 0;
+  int rtnval;
 
   while ((rtnval = close (fd)) == -1
 	 && (errno == EINTR))

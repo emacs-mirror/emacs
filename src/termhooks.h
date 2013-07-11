@@ -643,7 +643,7 @@ extern struct terminal *terminal_list;
   (((d)->type != output_termcap && (d)->type != output_msdos_raw)	\
    || (d)->display_info.tty->input)
 
-extern struct terminal *get_terminal (Lisp_Object terminal, int);
+extern struct terminal *get_terminal (Lisp_Object terminal, bool);
 extern struct terminal *create_terminal (void);
 extern void delete_terminal (struct terminal *);
 

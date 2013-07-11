@@ -1,3 +1,24 @@
+2013-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c, term.c, termcap.c, terminal.c: Integer-related minor fixes.
+	* sysdep.c (emacs_get_tty): Return void, since nobody uses the value.
+	(emacs_set_tty): Now static.
+	* sysdep.c (emacs_set_tty, tabs_safe_p, emacs_close):
+	* term.c (tty_capable_p, tty_default_color_capabilities)
+	(get_tty_terminal, term_mouse_movement)
+	(handle_one_term_event, init_tty, maybe_fatal):
+	* termcap.c (tgetst1, struct termcap_buffer, valid_filename_p)
+	(tgetent, scan_file, name_match, compare_contin):
+	* terminal.c (get_terminal):
+	Use bool for boolean.
+	* sysdep.c (init_system_name): Don't overflow stack on huge hostname.
+	Prefer char to unsigned char if either will do.
+	* term.c (OUTPUT, turn_on_face): Omit unnecessary casts to int.
+	(tty_write_glyphs): Prefer int to unsigned.
+	(produce_glyphless_glyph): Remove 2nd (unused) int arg.
+	All callers changed.
+	* termcap.c (tprint, main) [TEST]: Remove non-working test.
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to C89.
