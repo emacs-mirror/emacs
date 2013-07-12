@@ -2330,6 +2330,7 @@ if test "${with_file_notification}" != "no"; then
         AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
         NOTIFY_OBJ=w32notify.o
         NOTIFY_SUMMARY="yes (w32)"
+        with_file_notification=w32
      elif test "${with_file_notification}" = "w32"; then
        AC_MSG_ERROR([File notification `w32' requested but requirements not found.])
      elif test "${opsys}" = "mingw32"; then
