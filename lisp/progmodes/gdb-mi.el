@@ -1759,6 +1759,9 @@ static char *magick[] = {
 As long as GDB is in the recursive reading loop, it does not expect
 commands to be prefixed by \"-interpreter-exec console\".")
 
+(defun gdb-strip-string-backslash (string)
+  (replace-regexp-in-string "\\\\$" "" string))
+
 (defun gdb-send (proc string)
   "A comint send filter for gdb."
   (with-current-buffer gud-comint-buffer
@@ -1766,10 +1769,15 @@ commands to be prefixed by \"-interpreter-exec console\".")
       (remove-text-properties (point-min) (point-max) '(face))))
   ;; mimic <RET> key to repeat previous command in GDB
   (if (not (string= "" string))
-      (setq gdb-last-command string)
-    (if gdb-last-command (setq string gdb-last-command)))
-  (if (or (string-match "^-" string)
-	  (> gdb-control-level 0))
+      (if gdb-continuation
+	  (setq gdb-last-command (concat gdb-continuation
+					 (gdb-strip-string-backslash string)
+					 " "))
+	(setq gdb-last-command (gdb-strip-string-backslash string)))
+    (if gdb-last-command (setq string gdb-last-command))
+    (setq gdb-continuation nil))
+  (if (and (not gdb-continuation) (or (string-match "^-" string)
+	  (> gdb-control-level 0)))
       ;; Either MI command or we are feeding GDB's recursive reading loop.
       (progn
 	(setq gdb-first-done-or-error t)
@@ -1779,10 +1787,13 @@ commands to be prefixed by \"-interpreter-exec console\".")
 	    (setq gdb-control-level (1- gdb-control-level))))
     ;; CLI command
     (if (string-match "\\\\$" string)
-	(setq gdb-continuation (concat gdb-continuation string "\n"))
+	(setq gdb-continuation
+	      (concat gdb-continuation (gdb-strip-string-backslash
+					string)
+		      " "))
       (setq gdb-first-done-or-error t)
       (let ((to-send (concat "-interpreter-exec console "
-                             (gdb-mi-quote string)
+                             (gdb-mi-quote (concat gdb-continuation string " "))
                              "\n")))
         (if gdb-enable-debug
             (push (cons 'mi-send to-send) gdb-debug-log))

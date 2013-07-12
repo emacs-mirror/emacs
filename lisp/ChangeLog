@@ -1,3 +1,11 @@
+2013-07-12  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-strip-string-backslash): New function.
+	(gdb-send): Handle continued commands.
+
+	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
+	(Bug#14842)
+
 2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--v2s): Remove unused local variable.
@@ -8,11 +16,6 @@
 2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Fix last change.
-
-2013-07-12  Eli Zaretskii  <eliz@gnu.org>
-
-	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
-	(Bug#14842)
 
 2013-07-12  Glenn Morris  <rgm@gnu.org>
 
