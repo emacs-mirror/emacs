@@ -1,3 +1,8 @@
+2013-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (next-line, previous-line): Document TRY-VSCROLL.
+	(Bug#14842)
+
 2013-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* doc-view.el: Require cl-lib at runtime too.

@@ -4602,6 +4602,10 @@ for it.")
 (defun next-line (&optional arg try-vscroll)
   "Move cursor vertically down ARG lines.
 Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
+Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
+lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
+function will not vscroll.
+
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -4646,6 +4650,10 @@ and more reliable (no dependence on goal column, etc.)."
 (defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
 Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
+Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
+lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
+function will not vscroll.
+
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
