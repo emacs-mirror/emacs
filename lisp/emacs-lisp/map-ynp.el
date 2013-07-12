@@ -131,8 +131,9 @@ Returns the number of actions taken."
     (unwind-protect
 	(progn
 	  (if (stringp prompter)
-	      (setq prompter (lambda (object)
-			       (format prompter object))))
+	      (setq prompter (let ((prompter prompter))
+			       (lambda (object)
+				 (format prompter object)))))
 	  (while (funcall next)
 	    (setq prompt (funcall prompter elt))
 	    (cond ((stringp prompt)

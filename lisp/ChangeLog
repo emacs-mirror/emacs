@@ -1,3 +1,7 @@
+2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Fix last change.
+
 2013-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
