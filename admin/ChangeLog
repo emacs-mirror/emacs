@@ -1,3 +1,7 @@
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-style-string): Use non-abbreviated url.
+
 2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port recent close-on-exec changes to Cygwin (Bug#14821).
