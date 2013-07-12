@@ -1812,12 +1812,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  SETUP_SLAVE_PTY;
 	}
 #endif /* SETUP_SLAVE_PTY */
-#ifdef AIX
-      /* On AIX, we've disabled SIGHUP above once we start a child on a pty.
-	 Now reenable it in the child, so it will die when we want it to.  */
-      if (pty_flag)
-	signal (SIGHUP, SIG_DFL);
-#endif
 #endif /* HAVE_PTYS */
 
       signal (SIGINT, SIG_DFL);
@@ -4632,20 +4626,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  if (xerrno == EINTR)
 	    no_avail = 1;
 	  else if (xerrno == EBADF)
-	    {
-#ifdef AIX
-	      /* AIX doesn't handle PTY closure the same way BSD does.  On AIX,
-		 the child's closure of the pts gives the parent a SIGHUP, and
-		 the ptc file descriptor is automatically closed,
-		 yielding EBADF here or at select() call above.
-		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
-		 in m/ibmrt-aix.h), and here we just ignore the select error.
-		 Cleanup occurs c/o status_notify after SIGCHLD. */
-	      no_avail = 1; /* Cannot depend on values returned */
-#else
-	      emacs_abort ();
-#endif
-	    }
+	    emacs_abort ();
 	  else
 	    error ("select error: %s", emacs_strerror (xerrno));
 	}

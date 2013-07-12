@@ -2237,8 +2237,8 @@ posix_close (int fd, int flag)
    arriving.  FD is always closed when this function returns, even
    when it returns -1.
 
-   Do not call this function if FD might already be closed, as that
-   might close an innocent victim opened by some other thread.  */
+   Do not call this function if FD is nonnegative and might already be closed,
+   as that might close an innocent victim opened by some other thread.  */
 
 int
 emacs_close (int fd)
@@ -2250,7 +2250,7 @@ emacs_close (int fd)
 	return r;
       if (!POSIX_CLOSE_RESTART || errno != EINTR)
 	{
-	  eassert (errno != EBADF);
+	  eassert (errno != EBADF || fd < 0);
 	  return errno == EINPROGRESS ? 0 : r;
 	}
     }

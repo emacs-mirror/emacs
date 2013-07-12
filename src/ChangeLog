@@ -1,3 +1,12 @@
+2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor EBADF fixes.
+	* process.c (create_process, wait_reading_process_output) [AIX]:
+	Remove obsolete SIGHUP-related  code, as Emacs no longer disables
+	SIGHUP, so EBADF is no longer acceptable here (it wouldn't work in
+	a multithreaded environment anyway).
+	* sysdep.c (emacs_close): It's not dangerous to invoke emacs_close (-1).
+
 2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* image.c (x_find_image_file): Don't close a remote file handle.

@@ -7008,7 +7008,7 @@ tty_read_avail_input (struct terminal *terminal,
     {
       nread = emacs_read (fileno (tty->input), (char *) cbuf, n_to_read);
       /* POSIX infers that processes which are not in the session leader's
-         process group won't get SIGHUP's at logout time.  BSDI adheres to
+         process group won't get SIGHUPs at logout time.  BSDI adheres to
          this part standard and returns -1 from read (0) with errno==EIO
          when the control tty is taken away.
          Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
