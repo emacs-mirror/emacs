@@ -4727,9 +4727,12 @@ Modified from `icomplete-completions'."
 
 ;;; Helper functions for other programs
 
-(put 'dired-do-rename 'ido 'ignore)
 (put 'ibuffer-find-file 'ido 'find-file)
+(put 'dired 'ido 'dir)
 (put 'dired-other-window 'ido 'dir)
+;; See http://debbugs.gnu.org/11954 for reasons.
+(put 'dired-do-copy 'ido 'ignore)
+(put 'dired-do-rename 'ido 'ignore)
 
 ;;;###autoload
 (defun ido-read-buffer (prompt &optional default require-match)

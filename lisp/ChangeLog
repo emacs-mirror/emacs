@@ -1,3 +1,7 @@
+2013-07-12  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (dired-do-copy, dired): Set 'ido property.  (Bug#11954)
+
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/edebug.el: Require cl-lib at run-time too.
