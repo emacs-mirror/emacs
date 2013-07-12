@@ -4606,6 +4606,8 @@ Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
 lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
 function will not vscroll.
 
+ARG defaults to 1.
+
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -4653,6 +4655,8 @@ Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
 Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
 lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
 function will not vscroll.
+
+ARG defaults to 1.
 
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this

@@ -1,6 +1,6 @@
 2013-07-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* simple.el (next-line, previous-line): Document TRY-VSCROLL.
+	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
 	(Bug#14842)
 
 2013-07-12  Glenn Morris  <rgm@gnu.org>
