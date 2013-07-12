@@ -1,3 +1,8 @@
+2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-multiple-value-bind, cl-multiple-value-setq)
+	(cl-the, cl-declare, cl-defstruct): Fix typos in docstrings.
+
 2013-07-12  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (dired-do-copy, dired): Set 'ido property.  (Bug#11954)
