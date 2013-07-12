@@ -1,7 +1,7 @@
 2013-07-12  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb-strip-string-backslash): New function.
-	(gdb-send): Handle continued commands.
+	(gdb-send): Handle continued commands.  (Bug#14847)
 
 	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
 	(Bug#14842)
