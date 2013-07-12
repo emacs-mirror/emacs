@@ -1,3 +1,12 @@
+2013-07-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-percent-literals-beg-re):
+	(ruby-syntax-expansion-allowed-p): Support array of symbols, for
+	Ruby 2.0.
+	(ruby-font-lock-keywords): Distinguish calls to functions with
+	module-like names from module references.  Highlight character
+	literals.
+
 2013-07-12  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb-strip-string-backslash): New function.

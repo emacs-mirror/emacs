@@ -1351,7 +1351,7 @@ If the result is do-end block, it will always be multiline."
     (progn
       (eval-and-compile
         (defconst ruby-percent-literal-beg-re
-          "\\(%\\)[qQrswWx]?\\([[:punct:]]\\)"
+          "\\(%\\)[qQrswWxIi]?\\([[:punct:]]\\)"
           "Regexp to match the beginning of percent literal.")
 
         (defconst ruby-syntax-methods-before-regexp
@@ -1387,7 +1387,7 @@ It will be properly highlighted even when the call omits parens.")
           (funcall
            (syntax-propertize-rules
             ;; $' $" $` .... are variables.
-            ;; ?' ?" ?` are ascii codes.
+            ;; ?' ?" ?` are character literals (one-char strings in 1.9+).
             ("\\([?$]\\)[#\"'`]"
              (1 (unless (save-excursion
                           ;; Not within a string.
@@ -1518,7 +1518,7 @@ It will be properly highlighted even when the call omits parens.")
             (save-match-data
               (save-excursion
                 (goto-char (nth 8 parse-state))
-                (looking-at "%\\(?:[QWrx]\\|\\W\\)")))))))
+                (looking-at "%\\(?:[QWrxI]\\|\\W\\)")))))))
 
       (defun ruby-syntax-propertize-expansions (start end)
         (save-excursion
@@ -1848,8 +1848,11 @@ See `font-lock-syntax-table'.")
    '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
    ;; constants
-   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
-     1 font-lock-type-face)
+   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)\\(?:\\_>[^\(]\\|::\\|\\'\\)"
+     1 (progn
+         (when (eq ?: (char-before))
+           (forward-char -2))
+         font-lock-type-face))
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
@@ -1857,6 +1860,9 @@ See `font-lock-syntax-table'.")
    ;; negation char
    '("[^[:alnum:]_]\\(!\\)[^=]"
      1 font-lock-negation-char-face)
+   ;; character literals
+   ;; FIXME: Support longer escape sequences.
+   '("\\?\\\\?\\S " 0 font-lock-string-face)
    )
   "Additional expressions to highlight in Ruby mode.")
 
