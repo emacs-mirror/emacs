@@ -1,3 +1,7 @@
+2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (x_find_image_file): Don't close a remote file handle.
+
 2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix races with threads and file descriptors.

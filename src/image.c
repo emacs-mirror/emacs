@@ -2260,7 +2260,8 @@ x_find_image_file (Lisp_Object file)
   else
     {
       file_found = ENCODE_FILE (file_found);
-      emacs_close (fd);
+      if (fd != -2)
+	emacs_close (fd);
     }
 
   return file_found;
