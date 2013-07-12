@@ -1848,11 +1848,8 @@ See `font-lock-syntax-table'.")
    '("\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+"
      0 font-lock-variable-name-face)
    ;; constants
-   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)\\(?:\\_>[^\(]\\|::\\|\\'\\)"
-     1 (progn
-         (when (eq ?: (char-before))
-           (forward-char -2))
-         font-lock-type-face))
+   '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
+     1 (unless (eq ?\( (char-after)) font-lock-type-face))
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
