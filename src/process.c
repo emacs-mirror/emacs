@@ -1616,6 +1616,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   int inchannel, outchannel;
   pid_t pid;
+  int vfork_errno;
   int sv[2];
 #ifndef WINDOWSNT
   int wait_child_setup[2];
@@ -1656,9 +1657,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       forkout = sv[1];
       if (pipe2 (sv, O_CLOEXEC) != 0)
 	{
+	  int pipe_errno = errno;
 	  emacs_close (inchannel);
 	  emacs_close (forkout);
-	  report_file_error ("Creating pipe", Qnil);
+	  report_file_errno ("Creating pipe", Qnil, pipe_errno);
 	}
       outchannel = sv[1];
       forkin = sv[0];
@@ -1837,6 +1839,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* Back in the parent process.  */
 
+  vfork_errno = errno;
   XPROCESS (process)->pid = pid;
   if (pid >= 0)
     XPROCESS (process)->alive = 1;
@@ -1851,6 +1854,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	emacs_close (forkin);
       if (forkin != forkout && forkout >= 0)
 	emacs_close (forkout);
+      report_file_errno ("Doing vfork", Qnil, vfork_errno);
     }
   else
     {
@@ -1896,10 +1900,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       }
 #endif
     }
-
-  /* Now generate the error if vfork failed.  */
-  if (pid < 0)
-    report_file_error ("Doing vfork", Qnil);
 }
 
 void
@@ -3265,12 +3265,11 @@ usage: (make-network-process &rest ARGS)  */)
 
 	  len = sizeof xerrno;
 	  eassert (FD_ISSET (s, &fdset));
-	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) < 0)
 	    report_file_error ("getsockopt failed", Qnil);
 	  if (xerrno)
-	    errno = xerrno, report_file_error ("error during connect", Qnil);
-	  else
-	    break;
+	    report_file_errno ("error during connect", Qnil, xerrno);
+	  break;
 	}
 #endif /* !WINDOWSNT */
 
@@ -3354,11 +3353,10 @@ usage: (make-network-process &rest ARGS)  */)
       if (is_non_blocking_client)
 	  return Qnil;
 
-      errno = xerrno;
-      if (is_server)
-	report_file_error ("make server process failed", contact);
-      else
-	report_file_error ("make client process failed", contact);
+      report_file_errno ((is_server
+			  ? "make server process failed"
+			  : "make client process failed"),
+			 contact, xerrno);
     }
 
   inch = s;

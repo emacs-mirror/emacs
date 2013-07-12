@@ -419,9 +419,10 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 			      default_output_mode);
       if (fd_output < 0)
 	{
+	  int open_errno = errno;
 	  output_file = DECODE_FILE (output_file);
-	  report_file_error ("Opening process output file",
-			     Fcons (output_file, Qnil));
+	  report_file_errno ("Opening process output file",
+			     Fcons (output_file, Qnil), open_errno);
 	}
       if (STRINGP (error_file) || NILP (error_file))
 	output_to_buffer = 0;
@@ -430,18 +431,19 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   /* Search for program; barf if not found.  */
   {
     struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+    int ok;
 
     GCPRO4 (infile, buffer, current_dir, error_file);
-    openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK));
+    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK));
     UNGCPRO;
+    if (ok < 0)
+      {
+	int openp_errno = errno;
+	emacs_close (filefd);
+	report_file_errno ("Searching for program",
+			   Fcons (args[0], Qnil), openp_errno);
+      }
   }
-  if (NILP (path))
-    {
-      int openp_errno = errno;
-      emacs_close (filefd);
-      errno = openp_errno;
-      report_file_error ("Searching for program", Fcons (args[0], Qnil));
-    }
 
   /* If program file name starts with /: for quoting a magic name,
      discard that.  */
@@ -499,11 +501,13 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
       mktemp (tempfile);
       outfilefd = emacs_open (tempfile, O_WRONLY | O_CREAT | O_TRUNC,
 			      S_IREAD | S_IWRITE);
-      if (outfilefd < 0) {
-	emacs_close (filefd);
-	report_file_error ("Opening process output file",
-			   Fcons (build_string (tempfile), Qnil));
-      }
+      if (outfilefd < 0)
+	{
+	  int open_errno = errno;
+	  emacs_close (filefd);
+	  report_file_errno ("Opening process output file",
+			     Fcons (build_string (tempfile), Qnil), open_errno);
+	}
     }
   else
     outfilefd = fd_output;
@@ -524,8 +528,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	{
 	  int pipe_errno = errno;
 	  emacs_close (filefd);
-	  errno = pipe_errno;
-	  report_file_error ("Creating process pipe", Qnil);
+	  report_file_errno ("Creating process pipe", Qnil, pipe_errno);
 	}
       fd0 = fd[0];
       fd1 = fd[1];
@@ -547,6 +550,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
     if (fd_error < 0)
       {
+	int open_errno = errno;
 	emacs_close (filefd);
 	if (fd0 != filefd)
 	  emacs_close (fd0);
@@ -559,7 +563,8 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	  error_file = build_string (NULL_DEVICE);
 	else if (STRINGP (error_file))
 	  error_file = DECODE_FILE (error_file);
-	report_file_error ("Cannot redirect stderr", Fcons (error_file, Qnil));
+	report_file_errno ("Cannot redirect stderr",
+			   Fcons (error_file, Qnil), open_errno);
       }
 
 #ifdef MSDOS /* MW, July 1993 */
@@ -587,10 +592,12 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	fd0 = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
 	if (fd0 < 0)
 	  {
+	    int open_errno = errno;
 	    unlink (tempfile);
 	    emacs_close (filefd);
-	    report_file_error ("Cannot re-open temporary file",
-			       Fcons (build_string (tempfile), Qnil));
+	    report_file_errno ("Cannot re-open temporary file",
+			       Fcons (build_string (tempfile), Qnil),
+			       open_errno);
 	  }
       }
     else
@@ -708,10 +715,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   }
 
   if (pid < 0)
-    {
-      errno = child_errno;
-      report_file_error ("Doing vfork", Qnil);
-    }
+    report_file_errno ("Doing vfork", Qnil, child_errno);
 
   if (INTEGERP (buffer))
     return unbind_to (count, Qnil);
@@ -1039,7 +1043,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
 #if defined HAVE_MKOSTEMP || defined HAVE_MKSTEMP
     {
-      int fd;
+      int fd, open_errno;
 
       block_input ();
 # ifdef HAVE_MKOSTEMP
@@ -1047,23 +1051,19 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 # else
       fd = mkstemp (tempfile);
 # endif
+      open_errno = errno;
       unblock_input ();
-      if (fd == -1)
-	report_file_error ("Failed to open temporary file",
-			   Fcons (build_string (tempfile), Qnil));
-      else
-	emacs_close (fd);
+      if (fd < 0)
+	report_file_errno ("Failed to open temporary file",
+			   Fcons (build_string (tempfile), Qnil), open_errno);
+      emacs_close (fd);
     }
 #else
-    errno = 0;
+    errno = EEXIST;
     mktemp (tempfile);
     if (!*tempfile)
-      {
-	if (!errno)
-	  errno = EEXIST;
-	report_file_error ("Failed to open temporary file using pattern",
-			   Fcons (pattern, Qnil));
-      }
+      report_file_error ("Failed to open temporary file using pattern",
+			 Fcons (pattern, Qnil));
 #endif
 
     filename_string = build_string (tempfile);

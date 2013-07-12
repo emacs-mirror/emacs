@@ -1412,7 +1412,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
 {
   Lisp_Object file;
   int fd = openp (path, filename, suffixes, &file, predicate);
-  if (NILP (predicate) && fd > 0)
+  if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
 }

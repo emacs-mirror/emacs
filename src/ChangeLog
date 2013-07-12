@@ -1,5 +1,28 @@
 2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Clean up errno reporting and fix some errno-reporting bugs.
+	* callproc.c (Fcall_process):
+	* fileio.c (Fcopy_file, Finsert_file_contents, Fwrite_region):
+	* process.c (create_process, Fmake_network_process):
+	* unexaix.c (report_error):
+	* unexcoff.c (report_error):
+	Be more careful about reporting the errno of failed operations.
+	The code previously reported the wrong errno sometimes.
+	Also, prefer report_file_errno to setting errno + report_file_error.
+	(Fcall_process): Look at openp return value rather than at path,
+	as that's a bit faster and clearer when there's a numeric predicate.
+	* fileio.c (report_file_errno): New function, with most of the
+	old contents of report_file_error.
+	(report_file_error): Use it.
+	(Ffile_exists_p, Ffile_accessible_directory_p):
+	Set errno to 0 when it is junk.
+	* fileio.c (Faccess_file):
+	* image.c (x_create_bitmap_from_file):
+	Use faccessat rather than opening the file, to avoid the hassle of
+	having a file descriptor open.
+	* lisp.h (report_file_errno): New decl.
+	* lread.c (Flocate_file_internal): File descriptor 0 is valid, too.
+
 	Minor EBADF fixes.
 	* process.c (create_process, wait_reading_process_output) [AIX]:
 	Remove obsolete SIGHUP-related  code, as Emacs no longer disables

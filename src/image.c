@@ -316,7 +316,6 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   int xhot, yhot, result;
   ptrdiff_t id;
   Lisp_Object found;
-  int fd;
   char *filename;
 
   /* Look for an existing bitmap with the same name.  */
@@ -332,10 +331,8 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  fd = openp (Vx_bitmap_file_path, file, Qnil, &found, Qnil);
-  if (fd < 0)
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found, make_number (R_OK)) < 0)
     return -1;
-  emacs_close (fd);
 
   filename = SSDATA (found);
 

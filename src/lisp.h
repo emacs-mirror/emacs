@@ -3822,6 +3822,7 @@ extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
 EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
+extern _Noreturn void report_file_errno (const char *, Lisp_Object, int);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
 extern bool internal_delete_file (Lisp_Object);
 extern Lisp_Object emacs_readlinkat (int, const char *);

@@ -94,13 +94,10 @@ static int pagemask;
 static _Noreturn void
 report_error (const char *file, int fd)
 {
+  int err = errno;
   if (fd)
-    {
-      int failed_errno = errno;
-      emacs_close (fd);
-      errno = failed_errno;
-    }
-  report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
+    emacs_close (fd);
+  report_file_errno ("Cannot unexec", Fcons (build_string (file), Qnil), err);
 }
 
 #define ERROR0(msg) report_error_1 (new, msg)
