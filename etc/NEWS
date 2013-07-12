@@ -29,33 +29,14 @@ build time, like libacl on GNU/Linux.  To prevent this, use the
 configure option `--disable-acl'.
 
 ** Emacs can be compiled with file notification support.
-The configure option `--with-file-notification=LIB' enables file
-notification support in Emacs.  This option's value should be `yes',
-`no', `gfile', `inotify' or `w32'.  `yes' is a synonym for `w32' on
-MS-Windows, and for `gfile' otherwise.  The default value is `yes'.
+This happens by default if a suitable system library is found at
+build time.  To prevent this, use the configure option
+`--with-file-notification-no'.  See below for file-notify features.
+FIXME?  This feature is not available for the Nextstep port. (?)
 
 ** The configure option --with-crt-dir has been removed.
 It is no longer needed, as the crt*.o files are no longer linked
 specially.
-
-** Emacs for MS-Windows can now be built by running the configure script
-using the MSYS environment and MinGW development tools.
-This is from now on the preferred method of building Emacs on
-MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
-files are deprecated.  See the file nt/INSTALL.MSYS for detailed
-instructions.
-
-Using the Posix configure script and Makefile's also means a change in
-the directory structure of the Emacs installation on Windows.  It is
-now the same as on GNU and Unix systems.  In particular, the auxiliary
-programs, such as cmdproxy.exe and hexl.exe, are in
-libexec/emacs/VERSION/i686-pc-mingw32 (where VERSION is the Emacs
-version), version-independent site-lisp is in share/emacs/site-lisp,
-version-specific Lisp files are in share/emacs/VERSION/lisp and in
-share/emacs/VERSION/site-lisp, Info docs are in share/info, and data
-files are in share/emacs/VERSION/etc.  (Emacs knows about all these
-directories and will find the files in there automatically; there's no
-need to set any variables due to this change.)
 
 ** Directories passed to configure option `--enable-locallisppath' are
 no longer created during installation.
@@ -661,6 +642,25 @@ meant to be used by other packages.
 
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems
+
+** Emacs for MS-Windows can now be built by running the configure script
+using the MSYS environment and MinGW development tools.
+This is from now on the preferred method of building Emacs on
+MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
+files are deprecated.  See the file nt/INSTALL.MSYS for detailed
+instructions.
+
+Using the Posix configure script and Makefile's also means a change in
+the directory structure of the Emacs installation on Windows.  It is
+now the same as on GNU and Unix systems.  In particular, the auxiliary
+programs, such as cmdproxy.exe and hexl.exe, are in
+libexec/emacs/VERSION/i686-pc-mingw32 (where VERSION is the Emacs
+version), version-independent site-lisp is in share/emacs/site-lisp,
+version-specific Lisp files are in share/emacs/VERSION/lisp and in
+share/emacs/VERSION/site-lisp, Info docs are in share/info, and data
+files are in share/emacs/VERSION/etc.  (Emacs knows about all these
+directories and will find the files in there automatically; there's no
+need to set any variables due to this change.)
 
 +++
 ** The "generate a backtrace on fatal error" feature now works on MS Windows.

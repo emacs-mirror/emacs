@@ -1,3 +1,8 @@
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: If with-file-notification=yes, if gfile not found,
+	go on to try inotify (not on MS Windows or Nextstep).
+
 2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix races with threads and file descriptors.
