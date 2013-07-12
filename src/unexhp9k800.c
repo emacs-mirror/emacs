@@ -306,6 +306,6 @@ unexec (const char *new_name,      /* name of the new a.out file to be created *
   write_header (new, &hdr, &auxhdr);
 
   /* Close the binary file */
-  close (old);
-  close (new);
+  emacs_close (old);
+  emacs_close (new);
 }

@@ -455,7 +455,7 @@ tgetent (char *bp, const char *name)
       /* Scan the file, reading it via buf, till find start of main entry.  */
       if (scan_file (term, fd, &buf) == 0)
 	{
-	  close (fd);
+	  emacs_close (fd);
 	  xfree (buf.beg);
 	  if (malloc_size)
 	    xfree (bp);
@@ -493,7 +493,7 @@ tgetent (char *bp, const char *name)
       term = tgetst1 (tc_search_point, (char **) 0);
     }
 
-  close (fd);
+  emacs_close (fd);
   xfree (buf.beg);
 
   if (malloc_size)

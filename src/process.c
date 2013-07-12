@@ -3555,14 +3555,14 @@ format; see the description of ADDRESS in `make-network-process'.  */)
       ifconf.ifc_len = buf_size;
       if (ioctl (s, SIOCGIFCONF, &ifconf))
 	{
-	  close (s);
+	  emacs_close (s);
 	  xfree (buf);
 	  return Qnil;
 	}
     }
   while (ifconf.ifc_len == buf_size);
 
-  close (s);
+  emacs_close (s);
 
   res = Qnil;
   ifreq = ifconf.ifc_req;
@@ -3819,7 +3819,7 @@ FLAGS is the current flags of the interface.  */)
 #endif
   res = Fcons (elt, res);
 
-  close (s);
+  emacs_close (s);
 
   return any ? res : Qnil;
 }

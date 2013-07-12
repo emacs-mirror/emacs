@@ -1052,7 +1052,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 	report_file_error ("Failed to open temporary file",
 			   Fcons (build_string (tempfile), Qnil));
       else
-	close (fd);
+	emacs_close (fd);
     }
 #else
     errno = 0;

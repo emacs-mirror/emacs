@@ -128,7 +128,7 @@ static void
 report_error (const char *file, int fd)
 {
   if (fd)
-    close (fd);
+    emacs_close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
 
@@ -139,7 +139,7 @@ report_error (const char *file, int fd)
 static void
 report_error_1 (int fd, const char *msg, int a1, int a2)
 {
-  close (fd);
+  emacs_close (fd);
   error (msg, a1, a2);
 }
 
@@ -511,7 +511,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
 	}
     }
 #ifndef MSDOS
-  close (new);
+  emacs_close (new);
 #endif
   return 0;
 }
@@ -541,13 +541,13 @@ unexec (const char *new_name, const char *a_name)
       || adjust_lnnoptrs (new, a_out, new_name) < 0
       )
     {
-      close (new);
+      emacs_close (new);
       return;
     }
 
-  close (new);
+  emacs_close (new);
   if (a_out >= 0)
-    close (a_out);
+    emacs_close (a_out);
   mark_x (new_name);
 }
 

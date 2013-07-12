@@ -1,3 +1,28 @@
+2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix races with threads and file descriptors.
+	* callproc.c (Fcall_process_region):
+	* dired.c (open_directory):
+	* emacs.c (main, Fdaemon_initialized):
+	* image.c (x_find_image_file):
+	* inotify.c (Finotify_rm_watch):
+	* lread.c (Flocate_file_internal):
+	* process.c (Fnetwork_interface_list, Fnetwork_interface_info):
+	* term.c (term_mouse_moveto, init_tty):
+	* termcap.c (tgetent):
+	* unexaix.c, unexcoff.c (report_error, report_error_1, adjust_lnnoptrs)
+	* unexaix.c, unexcoff.c, unexcw.c, unexelf.c (unexec):
+	* unexhp9k800.c, unexmacosx.c (unexec):
+	* callproc.c (Fcall_process_region):
+	Use emacs_close, not close.
+	* sysdep.c (POSIX_CLOSE_RESTART, posix_close) [!POSIX_CLOSE_RESTART]:
+	New macro and function, which emulates the POSIX_CLOSE_RESTART macro
+	and posix_close function on current platforms (which all lack them).
+	(emacs_close): Use it.  This should fix the races on GNU/Linux and
+	on AIX and on future platforms that support POSIX_CLOSE_RESTART,
+	and it should avoid closing random victim file descriptors on
+	other platforms.
+
 2013-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* inotify.c (uninitialized): Remove.  All uses replaced by -1.

@@ -1,3 +1,8 @@
+2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix races with threads and file descriptors.
+	* configure.ac (PTY_TTY_NAME_SPRINTF): Use emacs_close, not close.
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (removenullpaths): Remove adjacent null paths (Bug#14835).

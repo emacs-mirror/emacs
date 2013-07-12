@@ -1312,13 +1312,13 @@ temacs:
   /* Close the files and make the new file executable.  */
 
 #if MAP_ANON == 0
-  close (mmap_fd);
+  emacs_close (mmap_fd);
 #endif
 
-  if (close (old_file) != 0)
+  if (emacs_close (old_file) != 0)
     fatal ("Can't close (%s): %s", old_name, strerror (errno));
 
-  if (close (new_file) != 0)
+  if (emacs_close (new_file) != 0)
     fatal ("Can't close (%s): %s", new_name, strerror (errno));
 
   if (stat (new_name, &stat_buf) != 0)

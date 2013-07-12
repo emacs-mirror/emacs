@@ -2201,23 +2201,59 @@ emacs_fopen (char const *file, char const *mode)
   return fd < 0 ? 0 : fdopen (fd, mode);
 }
 
+/* Approximate posix_close and POSIX_CLOSE_RESTART well enough for Emacs.
+   For the background behind this mess, please see Austin Group defect 529
+   <http://austingroupbugs.net/view.php?id=529>.  */
+
+#ifndef POSIX_CLOSE_RESTART
+# define POSIX_CLOSE_RESTART 1
+static int
+posix_close (int fd, int flag)
+{
+  /* Only the POSIX_CLOSE_RESTART case is emulated.  */
+  eassert (flag == POSIX_CLOSE_RESTART);
+
+  /* Things are tricky if close (fd) returns -1 with errno == EINTR
+     on a system that does not define POSIX_CLOSE_RESTART.
+
+     In this case, in some systems (e.g., GNU/Linux, AIX) FD is
+     closed, and retrying the close could inadvertently close a file
+     descriptor allocated by some other thread.  In other systems
+     (e.g., HP/UX) FD is not closed.  And in still other systems
+     (e.g., OS X, Solaris), maybe FD is closed, maybe not, and in a
+     multithreaded program there can be no way to tell.
+
+     So, in this case, pretend that the close succeeded.  This works
+     well on systems like GNU/Linux that close FD.  Although it may
+     leak a file descriptor on other systems, the leak is unlikely and
+     it's better to leak than to close a random victim.  */
+  return close (fd) == 0 || errno == EINTR ? 0 : -1;
+}
+#endif
+
+/* Close FD, retrying if interrupted.  If successful, return 0;
+   otherwise, return -1 and set errno to a non-EINTR value.  Consider
+   an EINPROGRESS error to be successful, as that's merely a signal
+   arriving.  FD is always closed when this function returns, even
+   when it returns -1.
+
+   Do not call this function if FD might already be closed, as that
+   might close an innocent victim opened by some other thread.  */
+
 int
 emacs_close (int fd)
 {
-  bool did_retry = 0;
-  int rtnval;
-
-  while ((rtnval = close (fd)) == -1
-	 && (errno == EINTR))
-    did_retry = 1;
-
-  /* If close is interrupted SunOS 4.1 may or may not have closed the
-     file descriptor.  If it did the second close will fail with
-     errno = EBADF.  That means we have succeeded.  */
-  if (rtnval == -1 && did_retry && errno == EBADF)
-    return 0;
-
-  return rtnval;
+  while (1)
+    {
+      int r = posix_close (fd, POSIX_CLOSE_RESTART);
+      if (r == 0)
+	return r;
+      if (!POSIX_CLOSE_RESTART || errno != EINTR)
+	{
+	  eassert (errno != EBADF);
+	  return errno == EINPROGRESS ? 0 : r;
+	}
+    }
 }
 
 /* Maximum number of bytes to read or write in a single system call.

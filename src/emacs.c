@@ -1010,7 +1010,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	  char buf[1];
 
 	  /* Close unused writing end of the pipe.  */
-	  close (daemon_pipe[1]);
+	  emacs_close (daemon_pipe[1]);
 
 	  /* Just wait for the child to close its end of the pipe.  */
 	  do
@@ -1030,7 +1030,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	      exit (1);
 	    }
 
-	  close (daemon_pipe[0]);
+	  emacs_close (daemon_pipe[0]);
 	  exit (0);
 	}
       if (f < 0)
@@ -1080,7 +1080,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
-      close (daemon_pipe[0]);
+      emacs_close (daemon_pipe[0]);
 
       setsid ();
 #else /* DOS_NT */
@@ -2254,7 +2254,7 @@ from the parent process and its tty file descriptors.  */)
   err |= dup2 (nfd, 0) < 0;
   err |= dup2 (nfd, 1) < 0;
   err |= dup2 (nfd, 2) < 0;
-  err |= close (nfd) != 0;
+  err |= emacs_close (nfd) != 0;
 
   /* Closing the pipe will notify the parent that it can exit.
      FIXME: In case some other process inherited the pipe, closing it here
@@ -2264,7 +2264,7 @@ from the parent process and its tty file descriptors.  */)
      call-process to make sure the pipe is never inherited by
      subprocesses.  */
   err |= write (daemon_pipe[1], "\n", 1) < 0;
-  err |= close (daemon_pipe[1]) != 0;
+  err |= emacs_close (daemon_pipe[1]) != 0;
   /* Set it to an invalid value so we know we've already run this function.  */
   daemon_pipe[1] = -1;
 

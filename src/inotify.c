@@ -387,7 +387,7 @@ See inotify_rm_watch(2) for more information.
   /* Cleanup if no more files are watched. */
   if (NILP (watch_list))
     {
-      close (inotifyfd);
+      emacs_close (inotifyfd);
       delete_read_fd (inotifyfd);
       inotifyfd = -1;
     }

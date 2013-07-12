@@ -2478,7 +2478,7 @@ term_mouse_moveto (int x, int y)
   name = (const char *) ttyname (0);
   fd = emacs_open (name, O_WRONLY, 0);
      SOME_FUNCTION (x, y, fd);
-  close (fd);
+  emacs_close (fd);
   last_mouse_x = x;
   last_mouse_y = y;  */
 }
@@ -3012,7 +3012,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
                    name);
     if (!isatty (fd))
       {
-        close (fd);
+        emacs_close (fd);
         maybe_fatal (must_succeed, terminal,
                      "Not a tty device: %s",
                      "Not a tty device: %s",

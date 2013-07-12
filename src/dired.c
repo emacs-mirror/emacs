@@ -95,7 +95,7 @@ open_directory (char const *name, int *fdp)
       d = fdopendir (fd);
       opendir_errno = errno;
       if (! d)
-	close (fd);
+	emacs_close (fd);
     }
 #endif
 
