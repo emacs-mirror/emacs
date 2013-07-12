@@ -55,6 +55,7 @@
 ;; See `widget.el'.
 
 ;;; Code:
+(require 'cl-lib)
 
 ;;; Compatibility.
 
@@ -221,7 +222,7 @@ minibuffer."
 	((or widget-menu-minibuffer-flag
 	     (> (length items) widget-menu-max-shortcuts))
 	 ;; Read the choice of name from the minibuffer.
-	 (setq items (widget-remove-if 'stringp items))
+	 (setq items (cl-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
 	   (if (stringp val)
 	       (let ((try (try-completion val items)))
@@ -294,14 +295,6 @@ minibuffer."
 	   (when (eq value 'keyboard-quit)
 	     (error "Canceled"))
 	   value))))
-
-(defun widget-remove-if (predicate list)
-  (let (result (tail list))
-    (while tail
-      (or (funcall predicate (car tail))
-	  (setq result (cons (car tail) result)))
-      (setq tail (cdr tail)))
-    (nreverse result)))
 
 ;;; Widget text specifications.
 ;;

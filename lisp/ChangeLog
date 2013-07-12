@@ -1,3 +1,29 @@
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* doc-view.el: Require cl-lib at runtime too.
+	(doc-view-remove-if): Remove.
+	(doc-view-search-next-match, doc-view-search-previous-match):
+	Use cl-remove-if.
+
+	* edmacro.el: Require cl-lib at runtime too.
+	(edmacro-format-keys, edmacro-parse-keys): Use cl-mismatch, cl-subseq.
+	(edmacro-mismatch, edmacro-subseq): Remove.
+
+	* shadowfile.el: Require cl-lib.
+	(shadow-remove-if): Remove.
+	(shadow-set-cluster, shadow-shadows-of-1, shadow-remove-from-todo):
+	Use cl-remove-if.
+
+	* wid-edit.el: Require cl-lib.
+	(widget-choose): Use cl-remove-if.
+	(widget-remove-if): Remove.
+
+	* progmodes/ebrowse.el: Require cl-lib at runtime too.
+	(ebrowse-delete-if-not): Remove.
+	(ebrowse-browser-buffer-list, ebrowse-member-buffer-list)
+	(ebrowse-tree-buffer-list, ebrowse-same-tree-member-buffer-list):
+	Use cl-delete-if-not.
+
 2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-macs.el (cl-multiple-value-bind, cl-multiple-value-setq)

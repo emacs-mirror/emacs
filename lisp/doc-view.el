@@ -136,7 +136,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
@@ -697,14 +697,6 @@ It's a subdirectory of `doc-view-cache-directory'."
 			(insert-file-contents-literally file)
 			(md5 (current-buffer)))))
             doc-view-cache-directory)))))
-
-(defun doc-view-remove-if (predicate list)
-  "Return LIST with all items removed that satisfy PREDICATE."
-  (let (new-list)
-    (dolist (item list)
-      (when (not (funcall predicate item))
-	(setq new-list (cons item new-list))))
-     (nreverse new-list)))
 
 ;;;###autoload
 (defun doc-view-mode-p (type)
@@ -1488,7 +1480,7 @@ If BACKWARD is non-nil, jump to the previous match."
 (defun doc-view-search-next-match (arg)
   "Go to the ARGth next matching page."
   (interactive "p")
-  (let* ((next-pages (doc-view-remove-if
+  (let* ((next-pages (cl-remove-if
 		      (lambda (i) (<= (car i) (doc-view-current-page)))
 		      doc-view--current-search-matches))
 	 (page (car (nth (1- arg) next-pages))))
@@ -1502,7 +1494,7 @@ If BACKWARD is non-nil, jump to the previous match."
 (defun doc-view-search-previous-match (arg)
   "Go to the ARGth previous matching page."
   (interactive "p")
-  (let* ((prev-pages (doc-view-remove-if
+  (let* ((prev-pages (cl-remove-if
 		      (lambda (i) (>= (car i) (doc-view-current-page)))
 		      doc-view--current-search-matches))
 	 (page (car (nth (1- arg) (nreverse prev-pages)))))
