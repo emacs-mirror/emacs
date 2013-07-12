@@ -16436,7 +16436,7 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
       $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
             if test "x$ac_cv_func_posix_openpt" = xyes; then
         $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)" >>confdefs.h
