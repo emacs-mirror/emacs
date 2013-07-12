@@ -1,3 +1,10 @@
+2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--v2s): Remove unused local variable.
+	(desktop-save-buffer): Make defvar-local; adjust docstring.
+	(desktop-auto-save-timeout, desktop-owner): Use ignore-errors.
+	(desktop-clear, desktop-save-buffer-p): Use string-match-p.
+
 2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Fix last change.

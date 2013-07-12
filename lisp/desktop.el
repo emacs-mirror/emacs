@@ -196,9 +196,7 @@ Zero or nil means disable timer-based auto-saving."
                  (integer :tag "Seconds"))
   :set (lambda (symbol value)
          (set-default symbol value)
-         (condition-case nil
-	     (desktop-auto-save-set-timer)
-	   (error nil)))
+         (ignore-errors (desktop-auto-save-set-timer)))
   :group 'desktop
   :version "24.4")
 
@@ -416,9 +414,8 @@ See `desktop-restore-eager'."
   :version "22.1")
 
 ;;;###autoload
-(defvar desktop-save-buffer nil
+(defvar-local desktop-save-buffer nil
   "When non-nil, save buffer status in desktop file.
-This variable becomes buffer local when set.
 
 If the value is a function, it is called by `desktop-save' with argument
 DESKTOP-DIRNAME to obtain auxiliary information to save in the desktop
@@ -430,7 +427,6 @@ When file names are returned, they should be formatted using the call
 Later, when `desktop-read' evaluates the desktop file, auxiliary information
 is passed as the argument DESKTOP-BUFFER-MISC to functions in
 `desktop-buffer-mode-handlers'.")
-(make-variable-buffer-local 'desktop-save-buffer)
 (make-obsolete-variable 'desktop-buffer-modes-to-save
                         'desktop-save-buffer "22.1")
 (make-obsolete-variable 'desktop-buffer-misc-functions
@@ -582,15 +578,15 @@ Used to detect desktop file conflicts.")
   "Return the PID of the Emacs process that owns the desktop file in DIRNAME.
 Return nil if no desktop file found or no Emacs process is using it.
 DIRNAME omitted or nil means use `desktop-dirname'."
-  (let (owner)
-    (and (file-exists-p (desktop-full-lock-name dirname))
-	 (condition-case nil
-	     (with-temp-buffer
-	       (insert-file-contents-literally (desktop-full-lock-name dirname))
-	       (goto-char (point-min))
-	       (setq owner (read (current-buffer)))
-	       (integerp owner))
-	   (error nil))
+  (let (owner
+	(file (desktop-full-lock-name dirname)))
+    (and (file-exists-p file)
+	 (ignore-errors
+	   (with-temp-buffer
+	     (insert-file-contents-literally file)
+	     (goto-char (point-min))
+	     (setq owner (read (current-buffer)))
+	     (integerp owner)))
 	 owner)))
 
 (defun desktop-claim-lock (&optional dirname)
@@ -636,7 +632,7 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
       (let ((bufname (buffer-name (car buffers))))
          (or
            (null bufname)
-           (string-match preserve-regexp bufname)
+           (string-match-p preserve-regexp bufname)
            ;; Don't kill buffers made for internal purposes.
            (and (not (equal bufname "")) (eq (aref bufname 0) ?\s))
            (kill-buffer (car buffers))))
@@ -758,8 +754,7 @@ QUOTE may be `may' (value may be quoted),
     ((consp value)
      (let ((p value)
 	   newlist
-	   use-list*
-	   anynil)
+	   use-list*)
        (while (consp p)
 	 (let ((q.sexp (desktop--v2s (car p))))
            (push q.sexp newlist))
@@ -841,17 +836,17 @@ MODE is the major mode.
         dired-skip)
     (and (not (and (stringp desktop-buffers-not-to-save)
 		   (not filename)
-		   (string-match desktop-buffers-not-to-save bufname)))
+		   (string-match-p desktop-buffers-not-to-save bufname)))
          (not (memq mode desktop-modes-not-to-save))
          ;; FIXME this is broken if desktop-files-not-to-save is nil.
          (or (and filename
 		  (stringp desktop-files-not-to-save)
-                  (not (string-match desktop-files-not-to-save filename)))
+                  (not (string-match-p desktop-files-not-to-save filename)))
              (and (memq mode '(dired-mode vc-dir-mode))
                   (with-current-buffer bufname
                     (not (setq dired-skip
-                               (string-match desktop-files-not-to-save
-                                             default-directory)))))
+                               (string-match-p desktop-files-not-to-save
+                                               default-directory)))))
              (and (null filename)
                   (null dired-skip)     ; bug#5755
 		  (with-current-buffer bufname desktop-save-buffer))))))
