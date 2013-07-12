@@ -2350,6 +2350,7 @@ if test "${with_file_notification}" != "no"; then
         AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
         NOTIFY_OBJ=gfilenotify.o
         NOTIFY_SUMMARY="yes -lgio (gfile)"
+        with_file_notification=gfile
      elif test "${with_file_notification}" = "gfile"; then
         AC_MSG_ERROR([File notification `gfile' requested but requirements not found.])
      fi
@@ -2365,10 +2366,13 @@ if test "${with_file_notification}" != "no"; then
              AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
   	   NOTIFY_OBJ=inotify.o
   	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
-  	fi
-     elif test "${with_file_notification}" = "inotify"; then
+	   with_file_notification=inotify
+  	 fi
+     fi
+     if test "${with_file_notification}" = "inotify" && \
+       test -z "${NOTIFY_OBJ}"; then
         AC_MSG_ERROR([File notification `inotify' requested but requirements not found.])
-    fi
+     fi
   fi
 fi                              dnl ${with_file_notification} != no
 
