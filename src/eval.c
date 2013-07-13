@@ -1996,38 +1996,52 @@ If LEXICAL is t, evaluate using lexical scoping.  */)
   return unbind_to (count, eval_sub (form));
 }
 
+/* Grow the specpdl stack by one entry.
+   The caller should have already initialized the entry.
+   Signal an error on stack overflow.
+
+   Make sure that there is always one unused entry past the top of the
+   stack, so that the just-initialized entry is safely unwound if
+   memory exhausted and an error is signaled here.  Also, allocate a
+   never-used entry just before the bottom of the stack; sometimes its
+   address is taken.  */
+
 static void
 grow_specpdl (void)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
-  union specbinding *pdlvec = specpdl - 1;
-  ptrdiff_t pdlvecsize = specpdl_size + 1;
-  if (max_size <= specpdl_size)
+  specpdl_ptr++;
+
+  if (specpdl_ptr == specpdl + specpdl_size)
     {
-      if (max_specpdl_size < 400)
-	max_size = max_specpdl_size = 400;
+      ptrdiff_t count = SPECPDL_INDEX ();
+      ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
+      union specbinding *pdlvec = specpdl - 1;
+      ptrdiff_t pdlvecsize = specpdl_size + 1;
       if (max_size <= specpdl_size)
-	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
+	{
+	  if (max_specpdl_size < 400)
+	    max_size = max_specpdl_size = 400;
+	  if (max_size <= specpdl_size)
+	    signal_error ("Variable binding depth exceeds max-specpdl-size",
+			  Qnil);
+	}
+      pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
+      specpdl = pdlvec + 1;
+      specpdl_size = pdlvecsize - 1;
+      specpdl_ptr = specpdl + count;
     }
-  pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
-  specpdl = pdlvec + 1;
-  specpdl_size = pdlvecsize - 1;
-  specpdl_ptr = specpdl + count;
 }
 
 void
 record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 {
   eassert (nargs >= UNEVALLED);
-  if (specpdl_ptr == specpdl + specpdl_size)
-    grow_specpdl ();
   specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
   specpdl_ptr->bt.debug_on_exit = false;
   specpdl_ptr->bt.function = function;
   specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
-  specpdl_ptr++;
+  grow_specpdl ();
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same
@@ -3113,8 +3127,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 
   CHECK_SYMBOL (symbol);
   sym = XSYMBOL (symbol);
-  if (specpdl_ptr == specpdl + specpdl_size)
-    grow_specpdl ();
 
  start:
   switch (sym->redirect)
@@ -3127,7 +3139,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       specpdl_ptr->let.kind = SPECPDL_LET;
       specpdl_ptr->let.symbol = symbol;
       specpdl_ptr->let.old_value = SYMBOL_VAL (sym);
-      ++specpdl_ptr;
+      grow_specpdl ();
       if (!sym->constant)
 	SET_SYMBOL_VAL (sym, value);
       else
@@ -3162,7 +3174,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	    if (NILP (Flocal_variable_p (symbol, Qnil)))
 	      {
 		specpdl_ptr->let.kind = SPECPDL_LET_DEFAULT;
-		++specpdl_ptr;
+		grow_specpdl ();
 		Fset_default (symbol, value);
 		return;
 	      }
@@ -3170,7 +3182,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	else
 	  specpdl_ptr->let.kind = SPECPDL_LET;
 
-	specpdl_ptr++;
+	grow_specpdl ();
 	set_internal (symbol, value, Qnil, 1);
 	break;
       }
@@ -3181,12 +3193,10 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 void
 record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
 {
-  if (specpdl_ptr == specpdl + specpdl_size)
-    grow_specpdl ();
   specpdl_ptr->unwind.kind = SPECPDL_UNWIND;
   specpdl_ptr->unwind.func = function;
   specpdl_ptr->unwind.arg = arg;
-  specpdl_ptr++;
+  grow_specpdl ();
 }
 
 Lisp_Object

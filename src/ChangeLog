@@ -1,3 +1,11 @@
+2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't lose top specpdl entry when memory is exhausted.
+	* eval.c (grow_specpdl): Increment specpdl top by 1 and check for
+	specpdl overflow here, to simplify callers; all callers changed.
+	Always reserve an unused entry at the stack top; this avoids
+	losing the top entry's information when memory is exhausted.
+
 2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean up errno reporting and fix some errno-reporting bugs.
