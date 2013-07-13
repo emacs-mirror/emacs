@@ -1,5 +1,8 @@
 2013-07-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32term.c (x_draw_hollow_cursor): Delete the brush object when
+	returning early.  (Bug#14850)
+
 	* coding.c (syms_of_coding): Set up inhibit-null-byte-detection
 	and inhibit-iso-escape-detection attributes of 'undecided'.
 	(Bug#14822)

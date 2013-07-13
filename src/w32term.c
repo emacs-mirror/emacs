@@ -5174,7 +5174,10 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
      the current matrix is invalid or such, give up.  */
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph == NULL)
-    return;
+    {
+      DeleteObject (hb);
+      return;
+    }
 
   /* Compute frame-relative coordinates for phys cursor.  */
   get_phys_cursor_geometry (w, row, cursor_glyph, &left, &top, &h);
