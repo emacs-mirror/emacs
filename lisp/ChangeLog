@@ -1,3 +1,9 @@
+2013-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-font-height): Don't call font-info if the
+	frame's default font didn't change since the frame was created.
+	(Bug#14838)
+
 2013-07-13  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-file-name): Guard against non-symbol value.

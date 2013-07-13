@@ -4739,10 +4739,15 @@ lines."
 
 (defun default-font-height ()
   "Return the height in pixels of the current buffer's default face font."
-  (cond
-   ((display-multi-font-p)
-    (aref (font-info (face-font 'default)) 3))
-   (t (frame-char-height))))
+  (let ((default-font (face-font 'default)))
+    (cond
+     ((and (display-multi-font-p)
+	   ;; Avoid calling font-info if the frame's default font was
+	   ;; not changed since the frame was created.  That's because
+	   ;; font-info is expensive for some fonts, see bug #14838.
+	   (not (string= (frame-parameter nil 'font) default-font)))
+      (aref (font-info default-font) 3))
+     (t (frame-char-height)))))
 
 (defun default-line-height ()
   "Return the pixel height of current buffer's default-face text line.
