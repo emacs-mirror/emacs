@@ -4351,7 +4351,8 @@ if test "${with_file_notification+set}" = set; then :
     w | w3 | w32 )	val=w32 ;;
     * ) as_fn_error "\`--with-file-notification=$withval' is invalid;
 this option's value should be \`yes', \`no', \`gfile', \`inotify' or \`w32'.
-\`yes' is a synonym for \`w32' on MS-Windows, and for \`gfile' otherwise." "$LINENO" 5
+\`yes' is a synonym for \`w32' on MS-Windows, for \`no' on Nextstep,
+otherwise for the first of \`gfile' or \`inotify' that is usable." "$LINENO" 5
     ;;
    esac
    with_file_notification=$val
@@ -12000,17 +12001,29 @@ fi
 NOTIFY_OBJ=
 NOTIFY_SUMMARY=no
 
-if test "${with_file_notification}" = "yes"; then
-   if test "${opsys}" = "mingw32"; then
-      with_file_notification=w32
-   else
-      if test "${with_ns}" != yes; then
-        with_file_notification=gfile
-      fi
-   fi
+if test "${with_ns}" = yes && test ${with_file_notification} = yes; then
+  with_file_notification=no
 fi
 
-if test "${with_file_notification}" = "gfile"; then
+case $with_file_notification,$opsys in
+  w32,* | yes,mingw32)
+    ac_fn_c_check_header_mongrel "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
+if test "x$ac_cv_header_windows_h" = x""yes; then :
+
+fi
+
+
+    if test "$ac_cv_header_windows_h" = yes ; then
+
+$as_echo "#define HAVE_W32NOTIFY 1" >>confdefs.h
+
+       NOTIFY_OBJ=w32notify.o
+       NOTIFY_SUMMARY="yes (w32)"
+    fi ;;
+esac
+
+case $with_file_notification,$NOTIFY_OBJ in
+  gfile, | yes,)
 
   succeeded=no
 
@@ -12062,51 +12075,44 @@ $as_echo "no" >&6; }
      HAVE_GFILENOTIFY=no
   fi
 
-   if test "$HAVE_GFILENOTIFY" = "yes"; then
+    if test "$HAVE_GFILENOTIFY" = "yes"; then
 
 $as_echo "#define HAVE_GFILENOTIFY 1" >>confdefs.h
 
-      NOTIFY_OBJ=gfilenotify.o
-      NOTIFY_SUMMARY="yes -lgio (gfile)"
-   fi
-fi
-if test "${with_file_notification}" = "inotify"; then
-   ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
+       NOTIFY_OBJ=gfilenotify.o
+       NOTIFY_SUMMARY="yes -lgio (gfile)"
+    fi ;;
+esac
+
+case $with_file_notification,$NOTIFY_OBJ in
+  inotify, | yes,)
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/inotify.h" "ac_cv_header_sys_inotify_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_inotify_h" = x""yes; then :
 
 fi
 
 
-   if test "$ac_cv_header_sys_inotify_h" = yes ; then
-       ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
+    if test "$ac_cv_header_sys_inotify_h" = yes ; then
+	ac_fn_c_check_func "$LINENO" "inotify_init1" "ac_cv_func_inotify_init1"
 if test "x$ac_cv_func_inotify_init1" = x""yes; then :
 
 fi
 
-       if test "$ac_cv_func_inotify_init1" = yes; then
+	if test "$ac_cv_func_inotify_init1" = yes; then
 
 $as_echo "#define HAVE_INOTIFY 1" >>confdefs.h
 
-	   NOTIFY_OBJ=inotify.o
-	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
-	fi
-  fi
-fi
-if test "${with_file_notification}" = "w32"; then
-   ac_fn_c_check_header_mongrel "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
-if test "x$ac_cv_header_windows_h" = x""yes; then :
+	  NOTIFY_OBJ=inotify.o
+	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+       fi
+    fi ;;
+esac
 
-fi
+case $with_file_notification,$NOTIFY_OBJ in
+  yes,* | no,* | *,?*) ;;
+  *) as_fn_error "File notification \`$with_file_notification' requested but requirements not found." "$LINENO" 5 ;;
+esac
 
-
-   if test "$ac_cv_header_windows_h" = yes ; then
-
-$as_echo "#define HAVE_W32NOTIFY 1" >>confdefs.h
-
-      NOTIFY_OBJ=w32notify.o
-      NOTIFY_SUMMARY="yes (w32)"
-   fi
-fi
 if test -n "$NOTIFY_OBJ"; then
 
 $as_echo "#define USE_FILE_NOTIFY 1" >>confdefs.h
