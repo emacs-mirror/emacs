@@ -1,3 +1,9 @@
+2013-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Document prefer-utf-8 and the new attributes
+	:inhibit-null-byte-detection, :inhibit-iso-escape-detection, and
+	:prefer-utf-8.
+
 2013-07-13  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention new value for ido-use-virtual-buffers.

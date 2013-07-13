@@ -1,5 +1,7 @@
 2013-07-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/mule.el (define-coding-system): Doc fix.
+
 	* simple.el (default-font-height): Don't call font-info if the
 	frame's default font didn't change since the frame was created.
 	(Bug#14838)

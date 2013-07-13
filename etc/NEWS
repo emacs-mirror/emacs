@@ -599,6 +599,35 @@ Emacs uses `image-default-frame-delay'.
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
 
+** Changes in encoding and decoding of text
+
+---
+*** New coding-system `prefer-utf-8'.
+This is like `undecided' but prefers UTF-8 on decoding if the text to
+be decoded does not contain any invalid UTF-8 sequences.  On encoding,
+any non-ASCII characters are automatically encoded as UTF-8.
+
+---
+*** New attributes of coding-systems whose type is `undecided'.
+Two new attributes, `:inhibit-null-byte-detection' and
+`:inhibit-iso-escape-detection', determine how to detect encoding of
+text that includes null bytes and ISO-2022 escape sequences,
+respectively.  Each of these attributes can be either nil, zero, or
+t.  If it is t, decoding text ignores null bytes and, respectively,
+ISO-2022 sequences.  If it is nil, null bytes cause text to be decoded
+with no-conversion and ISO-2022 sequences cause Emacs to assume the
+text is encoded in one of the ISO-2022 encodings, such as
+iso-2022-7bit.  If the value is zero, Emacs consults the variables
+inhibit-null-byte-detection and inhibit-iso-escape-detection, which
+see.
+The new attribute `:prefer-utf-8', if non-nil, causes Emacs to prefer
+UTF-8 encoding and decoding, whenever possible.
+
+These attributes are only meaningful for coding-systems of type
+`undecided'.  (The type of a coding-system is determined by its
+`:coding-type' attribute and can be accessed by calling the
+`coding-system-type' function.)
+
 ** The function `set-visited-file-modtime' now accepts a 0 or -1 argument
 with the same interpretation as the returned value of `visited-file-modtime'.
 

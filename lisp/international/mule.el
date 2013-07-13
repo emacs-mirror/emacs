@@ -672,7 +672,7 @@ is unsuitable for the top-level media type \"text\".
 
 VALUE must be a list of symbols that control the ISO-2022 converter.
 Each must be a member of the list `coding-system-iso-2022-flags'
-\(which see).  This attribute has a meaning only when `:coding-type'
+\(which see).  This attribute is meaningful only when `:coding-type'
 is `iso-2022'.
 
 `:designation'
@@ -692,7 +692,7 @@ to GN.  If the list contains 96, any charsets whose whose ranges are
 96 long can be designated to GN.  If the first element is a charset,
 that charset is initially designated to GN.
 
-This attribute has a meaning only when `:coding-type' is `iso-2022'.
+This attribute is meaningful only when `:coding-type' is `iso-2022'.
 
 `:bom'
 
@@ -712,7 +712,7 @@ are 0xFF 0xFE, use the cdr part coding system of the value.
 Otherwise, treat them as bytes for a normal character.  On encoding,
 produce BOM bytes according to the value of `:endian'.
 
-This attribute has a meaning only when `:coding-type' is `utf-16' or
+This attribute is meaningful only when `:coding-type' is `utf-16' or
 `utf-8'.
 
 `:endian'
@@ -720,37 +720,37 @@ This attribute has a meaning only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute has a meaning only when `:coding-type' is `utf-16'.
+This attribute is meaningful only when `:coding-type' is `utf-16'.
 
 `:ccl-decoder'
 
 VALUE is a symbol representing the registered CCL program used for
-decoding.  This attribute has a meaning only when `:coding-type' is
+decoding.  This attribute is meaningful only when `:coding-type' is
 `ccl'.
 
 `:ccl-encoder'
 
 VALUE is a symbol representing the registered CCL program used for
-encoding.  This attribute has a meaning only when `:coding-type' is
+encoding.  This attribute is meaningful only when `:coding-type' is
 `ccl'.
 
-:inhibit-null-byte-detection
+`:inhibit-null-byte-detection'
 
 VALUE non-nil means Emacs ignore null bytes on code detection.
 See the variable `inhibit-null-byte-detection'.  This attribute
-has a meaning only when `:coding-type' is `undecided'.
+is meaningful only when `:coding-type' is `undecided'.
 
-:inhibit-iso-escape-detection
+`:inhibit-iso-escape-detection'
 
 VALUE non-nil means Emacs ignores ISO-2022 escape sequences on
 code detection.  See the variable `inhibit-iso-escape-detection'.
-This attribute has a meaning only when `:coding-type' is
+This attribute is meaningful only when `:coding-type' is
 `undecided'.
 
-:prefer-utf-8
+`:prefer-utf-8'
 
 VALUE non-nil means Emacs prefers UTF-8 on code detection for
-non-ASCII files.  This attribute has a meaning only when
+non-ASCII files.  This attribute is meaningful only when
 `:coding-type' is `undecided'."
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
