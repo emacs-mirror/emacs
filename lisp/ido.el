@@ -4760,16 +4760,20 @@ See `read-file-name' for additional parameters."
   (let (filename)
     (cond
      ((or (eq predicate 'file-directory-p)
-	  (eq (get this-command 'ido) 'dir)
+	  (eq (and (symbolp this-command)
+		   (get this-command 'ido)) 'dir)
 	  (memq this-command ido-read-file-name-as-directory-commands))
       (setq filename
 	    (ido-read-directory-name prompt dir default-filename mustmatch initial)))
-     ((and (not (eq (get this-command 'ido) 'ignore))
+     ((and (not (eq (and (symbolp this-command)
+			 (get this-command 'ido)) 'ignore))
 	   (not (memq this-command ido-read-file-name-non-ido))
 	   (or (null predicate) (eq predicate 'file-exists-p)))
       (let* (ido-saved-vc-hb
 	     (ido-context-switch-command
-	      (if (eq (get this-command 'ido) 'find-file) nil 'ignore))
+	      (if (eq (and (symbolp this-command)
+			   (get this-command 'ido)) 'find-file)
+		  nil 'ignore))
 	     (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
 	     (minibuffer-completing-file-name t)
 	     (ido-current-directory (ido-expand-directory dir))
