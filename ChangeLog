@@ -1,3 +1,7 @@
+2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Simplify --with-file-notification handling.
+
 2013-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: If with-file-notification=yes, if gfile not found,

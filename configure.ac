@@ -2319,63 +2319,50 @@ if test "${with_ns}" = yes && test ${with_file_notification} = yes; then
   with_file_notification=no
 fi
 
-if test "${with_file_notification}" != "no"; then
+dnl MS Windows native file monitor is available for mingw32 only.
+case $with_file_notification,$opsys in
+  w32,* | yes,mingw32)
+    AC_CHECK_HEADER(windows.h)
+    if test "$ac_cv_header_windows_h" = yes ; then
+       AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
+       NOTIFY_OBJ=w32notify.o
+       NOTIFY_SUMMARY="yes (w32)"
+    fi ;;
+esac
 
-  dnl MS Windows native file monitor is available for mingw32 only.
-  if test "${with_file_notification}" = "w32" || \
-     ( test "${opsys}" = "mingw32" && \
-       test "${with_file_notification}" = "yes" ); then
-     AC_CHECK_HEADER(windows.h)
-     if test "$ac_cv_header_windows_h" = yes ; then
-        AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
-        NOTIFY_OBJ=w32notify.o
-        NOTIFY_SUMMARY="yes (w32)"
-        with_file_notification=w32
-     elif test "${with_file_notification}" = "w32"; then
-       AC_MSG_ERROR([File notification `w32' requested but requirements not found.])
-     elif test "${opsys}" = "mingw32"; then
-       dnl Do not try any further.
-       with_file_notification=no
-     fi
-  fi
-  
-  dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
-  dnl has been added in glib 2.24.  It has been tested under
-  dnl GNU/Linux only.  We take precedence over inotify, but this makes
-  dnl only sense when glib has been compiled with inotify support.  How
-  dnl to check?
-  if test "${with_file_notification}" = "gfile" || \
-    test "${with_file_notification}" = "yes"; then
-     PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
-     if test "$HAVE_GFILENOTIFY" = "yes"; then
-        AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
-        NOTIFY_OBJ=gfilenotify.o
-        NOTIFY_SUMMARY="yes -lgio (gfile)"
-        with_file_notification=gfile
-     elif test "${with_file_notification}" = "gfile"; then
-        AC_MSG_ERROR([File notification `gfile' requested but requirements not found.])
-     fi
-  fi
+dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
+dnl has been added in glib 2.24.  It has been tested under
+dnl GNU/Linux only.  We take precedence over inotify, but this makes
+dnl only sense when glib has been compiled with inotify support.  How
+dnl to check?
+case $with_file_notification,$NOTIFY_OBJ in
+  gfile, | yes,)
+    PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+    if test "$HAVE_GFILENOTIFY" = "yes"; then
+       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
+       NOTIFY_OBJ=gfilenotify.o
+       NOTIFY_SUMMARY="yes -lgio (gfile)"
+    fi ;;
+esac
 
-  dnl inotify is only available on GNU/Linux.
-  if test "${with_file_notification}" = "inotify" || \
-    test "${with_file_notification}" = "yes"; then
-     AC_CHECK_HEADER(sys/inotify.h)
-     if test "$ac_cv_header_sys_inotify_h" = yes ; then
-         AC_CHECK_FUNC(inotify_init1)
-         if test "$ac_cv_func_inotify_init1" = yes; then
-             AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
-  	   NOTIFY_OBJ=inotify.o
-  	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
-	   with_file_notification=inotify
-  	 fi
-     fi
-     if test "${with_file_notification}" = "inotify" && \
-       test -z "${NOTIFY_OBJ}"; then
-        AC_MSG_ERROR([File notification `inotify' requested but requirements not found.])
-     fi
-  fi
-fi                              dnl ${with_file_notification} != no
+dnl inotify is only available on GNU/Linux.
+case $with_file_notification,$NOTIFY_OBJ in
+  inotify, | yes,)
+    AC_CHECK_HEADER(sys/inotify.h)
+    if test "$ac_cv_header_sys_inotify_h" = yes ; then
+	AC_CHECK_FUNC(inotify_init1)
+	if test "$ac_cv_func_inotify_init1" = yes; then
+	  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+	  NOTIFY_OBJ=inotify.o
+	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+       fi
+    fi ;;
+esac
+
+case $with_file_notification,$NOTIFY_OBJ in
+  yes,* | no,* | *,?*) ;;
+  *) AC_MSG_ERROR([File notification `$with_file_notification' requested but requirements not found.]) ;;
+esac
 
 if test -n "$NOTIFY_OBJ"; then
    AC_DEFINE(USE_FILE_NOTIFY, 1, [Define to 1 if using file notifications.])
