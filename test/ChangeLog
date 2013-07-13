@@ -1,3 +1,8 @@
+2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-2)
+	(python-imenu-create-index-3): New tests.
+
 2013-07-11  Glenn Morris  <rgm@gnu.org>
 
 	* automated/ert-tests.el: Require cl-lib at runtime too.
