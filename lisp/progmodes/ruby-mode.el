@@ -1851,6 +1851,11 @@ See `font-lock-syntax-table'.")
    '("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
      1 (unless (eq ?\( (char-after)) font-lock-type-face))
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
+   ;; conversion methods on Kernel
+   (list (concat "\\(?:^\\|[^.@$]\\|\\.\\.\\)"
+                 (regexp-opt '("Array" "Complex" "Float" "Hash"
+                               "Integer" "Rational" "String") 'symbols))
+         1 font-lock-builtin-face)
    ;; expression expansion
    '(ruby-match-expression-expansion
      2 font-lock-variable-name-face t)

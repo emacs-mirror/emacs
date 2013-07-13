@@ -1,3 +1,8 @@
+2013-07-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	conversion methods on Kernel.
+
 2013-07-13  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Label CASE 13
