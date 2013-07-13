@@ -4482,11 +4482,6 @@ For details of keybindings, see `ido-find-file'."
 	  (setq ido-exit 'refresh)
 	  (exit-minibuffer))
 
-	;; Update the list of matches
-	(setq ido-text contents)
-	(ido-set-matches)
-	(ido-trace "new    " ido-matches)
-
 	(when (and ido-enter-matching-directory
 		   ido-matches
 		   (or (eq ido-enter-matching-directory 'first)
@@ -4499,6 +4494,11 @@ For details of keybindings, see `ido-find-file'."
 	   (concat ido-current-directory (ido-name (car ido-matches))))
 	  (setq ido-exit 'refresh)
 	  (exit-minibuffer))
+
+	;; Update the list of matches
+	(setq ido-text contents)
+	(ido-set-matches)
+	(ido-trace "new    " ido-matches)
 
 	(when (and (boundp 'ido-enable-virtual-buffers)
 		   (not (eq ido-enable-virtual-buffers 'always))

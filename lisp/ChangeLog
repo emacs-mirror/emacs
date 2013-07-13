@@ -1,3 +1,8 @@
+2013-07-13  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-exhibit): Handle ido-enter-matching-directory before
+	ido-set-matches call.  (Bug#6852)
+
 2013-07-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-percent-literals-beg-re):
