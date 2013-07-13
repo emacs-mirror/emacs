@@ -1,3 +1,7 @@
+2013-07-13  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention new value for ido-use-virtual-buffers.
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Timestamp fixes for undo (Bug#14824).

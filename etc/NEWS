@@ -174,6 +174,8 @@ You can use the new function `remember-store-in-files' within the
 
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
+
+** `ido-use-virtual-buffers' takes a new value 'auto.
 ** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
