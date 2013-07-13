@@ -1,5 +1,9 @@
 2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* deps.mk (sysdep.o): Remove dependency on ../lib/ignore-value.h.
+	Reported by Herbert J. Skuhra in
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00455.html>.
+
 	Don't lose top specpdl entry when memory is exhausted.
 	* eval.c (grow_specpdl): Increment specpdl top by 1 and check for
 	specpdl overflow here, to simplify callers; all callers changed.
