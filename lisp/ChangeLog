@@ -1,3 +1,9 @@
+2013-07-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Label CASE 13
+	and comment it out.  This out-commenting enables certain C++
+	declarations to be parsed correctly.
+
 2013-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule.el (define-coding-system): Doc fix.
