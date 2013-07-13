@@ -1,3 +1,9 @@
+2013-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (syms_of_coding): Set up inhibit-null-byte-detection
+	and inhibit-iso-escape-detection attributes of 'undecided'.
+	(Bug#14822)
+
 2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* deps.mk (sysdep.o): Remove dependency on ../lib/ignore-value.h.

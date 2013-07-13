@@ -11218,6 +11218,8 @@ character.");
     plist[13] = build_pure_c_string ("No conversion on encoding, automatic conversion on decoding.");
     plist[15] = args[coding_arg_eol_type] = Qnil;
     args[coding_arg_plist] = Flist (16, plist);
+    args[coding_arg_undecided_inhibit_null_byte_detection] = make_number (0);
+    args[coding_arg_undecided_inhibit_iso_escape_detection] = make_number (0);
     Fdefine_coding_system_internal (coding_arg_undecided_max, args);
   }
 
