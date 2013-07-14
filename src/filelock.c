@@ -412,8 +412,6 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       USE_SAFE_ALLOCA;
       char *nonce = SAFE_ALLOCA (lfdirlen + sizeof nonce_base);
       int fd;
-      bool need_fchmod;
-      mode_t world_readable = S_IRUSR | S_IRGRP | S_IROTH;
       memcpy (nonce, lfname, lfdirlen);
       strcpy (nonce + lfdirlen, nonce_base);
 
@@ -421,17 +419,14 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       /* Prefer mkostemp to mkstemp, as it avoids a window where FD is
 	 temporarily open without close-on-exec.  */
       fd = mkostemp (nonce, O_BINARY | O_CLOEXEC);
-      need_fchmod = 1;
 #elif HAVE_MKSTEMP
       /* Prefer mkstemp to mktemp, as it avoids a race between
 	 mktemp and emacs_open.  */
       fd = mkstemp (nonce);
-      need_fchmod = 1;
 #else
       mktemp (nonce);
       fd = emacs_open (nonce, O_WRONLY | O_CREAT | O_EXCL | O_BINARY,
-		       world_readable);
-      need_fchmod = 0;
+		       S_IRUSR | S_IWUSR);
 #endif
 
       if (fd < 0)
@@ -445,7 +440,7 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
 	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
 	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
-	      || (need_fchmod && fchmod (fd, world_readable) != 0))
+	      || fchmod (fd, S_IRUSR | S_IRGRP | S_IROTH) != 0)
 	    err = errno;
 	  /* There is no need to call fsync here, as the contents of
 	     the lock file need not survive system crashes.  */

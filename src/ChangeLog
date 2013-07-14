@@ -1,5 +1,9 @@
 2013-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* filelock.c (create_lock_file) [!HAVE_MKOSTEMP && !HAVE_MKSTEMP]:
+	Simplify by making this case like the other two.  This is a bit
+	slower on obsolete hosts, but the extra complexity isn't worth it.
+
 	* callproc.c (child_setup, relocate_fd) [!DOS_NT]:
 	* process.c (create_process) [!DOS_NT]:
 	Remove now-unnecessary calls to emacs_close.
