@@ -1,3 +1,9 @@
+2013-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (child_setup, relocate_fd) [!DOS_NT]:
+	* process.c (create_process) [!DOS_NT]:
+	Remove now-unnecessary calls to emacs_close.
+
 2013-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (x_draw_hollow_cursor): Delete the brush object when

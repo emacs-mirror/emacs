@@ -1831,7 +1831,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       pid = child_setup (xforkin, xforkout, xforkout,
 			 new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
-      emacs_close (wait_child_setup[0]);
       child_setup (xforkin, xforkout, xforkout,
 		   new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */

@@ -1346,20 +1346,12 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   }
 
 #ifndef MSDOS
-  emacs_close (0);
-  emacs_close (1);
-  emacs_close (2);
-
-  /* Redirect file descriptors and clear FD_CLOEXEC on the redirected ones.  */
+  /* Redirect file descriptors and clear the close-on-exec flag on the
+     redirected ones.  IN, OUT, and ERR are close-on-exec so they
+     need not be closed explicitly.  */
   dup2 (in, 0);
   dup2 (out, 1);
   dup2 (err, 2);
-
-  emacs_close (in);
-  if (out != in)
-    emacs_close (out);
-  if (err != in && err != out)
-    emacs_close (err);
 
   setpgid (0, 0);
   tcsetpgrp (0, pid);
@@ -1386,7 +1378,8 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 
 #ifndef WINDOWSNT
 /* Move the file descriptor FD so that its number is not less than MINFD.
-   If the file descriptor is moved at all, the original is freed.  */
+   If the file descriptor is moved at all, the original is closed on MSDOS,
+   but not elsewhere as the caller will close it anyway.  */
 static int
 relocate_fd (int fd, int minfd)
 {
@@ -1400,7 +1393,9 @@ relocate_fd (int fd, int minfd)
 	  emacs_perror ("while setting up child");
 	  _exit (EXIT_CANCELED);
 	}
+#ifdef MSDOS
       emacs_close (fd);
+#endif
       return new;
     }
 }
