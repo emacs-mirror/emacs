@@ -782,7 +782,7 @@ remaining completion.  If absent, elements 5 and 6 are used instead."
   :group 'ido)
 
 (defcustom ido-use-virtual-buffers nil
-  "Specify how vritual buffers should be used.
+  "Specify how virtual buffers should be used.
 The value can be one of the following:
 
   nil:  No virtual buffers are used.

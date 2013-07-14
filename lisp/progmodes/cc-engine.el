@@ -7193,7 +7193,7 @@ comment at the start of cc-engine.el for more info."
 	;; uncommon (e.g. some placements of "const" in C++) it's not worth
 	;; the effort to look for them.)
 
-;;; 2008-04-16: commented out the next form, to allow the function to recognise
+;;; 2008-04-16: commented out the next form, to allow the function to recognize
 ;;; "foo (int bar)" in CC (an implicit type (in class foo) without a semicolon)
 ;;; as a(n almost complete) declaration, enabling it to be fontified.
 	;; CASE 13
