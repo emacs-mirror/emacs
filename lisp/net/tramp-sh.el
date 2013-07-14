@@ -3334,7 +3334,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	;; `process-file-side-effects' in order to keep the cache when
 	;; `process-file' calls appear.
 	(let (process-file-side-effects)
-	  (tramp-run-real-handler 'vc-registered (list file)))))))
+	  (ignore-errors
+	    (tramp-run-real-handler 'vc-registered (list file))))))))
 
 ;;;###tramp-autoload
 (defun tramp-sh-file-name-handler (operation &rest args)

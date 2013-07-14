@@ -1,3 +1,7 @@
+2013-07-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Use `ignore-error'.
+
 2013-07-13  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
