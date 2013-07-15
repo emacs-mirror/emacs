@@ -1,3 +1,7 @@
+2013-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (Fimage_flush): Fix doc typo.
+
 2013-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Version 24.3 released.
