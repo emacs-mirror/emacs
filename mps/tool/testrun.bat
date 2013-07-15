@@ -8,16 +8,36 @@ shift
 set VARIETY=%1
 shift
 
-set LOG=%TMP%\mps.%VARIETY%.log
-echo Logging test output to %LOG%
+set TEST_COUNT=0
+set PASS_COUNT=0
+set SEPARATOR=----------------------------------------
+set LOGDIR=%TMP%\mps-%VARIETY%-log
+echo Logging test output to %LOGDIR%
+rmdir /q /s %LOGDIR%
+mkdir %LOGDIR%
 
 :loop
 if "%1"=="" goto continue
+    set /a TEST_COUNT=%TEST_COUNT%+1
     echo Running %1
-    %PFM%\%VARIETY%\%1 >> %LOG%
+    %PFM%\%VARIETY%\%1 > %LOGDIR%\%1
+    if "%errorlevel%"=="0" goto success
+        echo %SEPARATOR%%SEPARATOR%
+        type %LOGDIR%\%1
+        echo %SEPARATOR%%SEPARATOR%
+        set /a FAIL_COUNT=%FAIL_COUNT%+1
+    :success
 shift
 goto loop
 :continue
+
+if "%FAIL_COUNT%"=="0" goto allpass
+    echo Tests: %TEST_COUNT%  Failures: %FAIL_COUNT%
+    exit 1
+
+:allpass
+echo Tests: %TEST_COUNT%  All tests pass.
+
 
 @rem C. COPYRIGHT AND LICENSE
 @rem
