@@ -456,6 +456,13 @@ module.
 *** The Info-edit command is obsolete.  Editing Info nodes by hand
 has not been relevant for some time.
 
+** Shell
+
+*** `explicit-bash-args' now always defaults to use --noediting.
+During initialization, Emacs no longer expends a process to decide
+whether it is safe to use Bash's --noediting option.  These days
+--noediting is ubiquitous; it was introduced in 1996 in Bash version 2.
+
 
 * New Modes and Packages in Emacs 24.4
 

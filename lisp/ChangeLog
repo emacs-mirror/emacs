@@ -1,3 +1,8 @@
+2013-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* shell.el (explicit-bash-args): Remove obsolete hack for Bash 1.x.
+	The hack didn't work outside English locales anyway.
+
 2013-07-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (define-alternatives): Rename from alternatives-define,
