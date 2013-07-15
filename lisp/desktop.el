@@ -33,6 +33,7 @@
 ;;		- the mark & mark-active
 ;;		- buffer-read-only
 ;;		- some local variables
+;;	- frame and window configuration
 
 ;; To use this, use customize to turn on desktop-save-mode or add the
 ;; following line somewhere in your init file:
@@ -127,7 +128,6 @@
 ;; ---------------------------------------------------------------------------
 ;; TODO:
 ;;
-;; Save window configuration.
 ;; Recognize more minor modes.
 ;; Save mark rings.
 
@@ -369,16 +369,29 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
-(defcustom desktop-restore-frames nil
+(defcustom desktop-restore-frames t
   "When non-nil, save window/frame configuration to desktop file."
   :type 'boolean
   :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-in-current-display nil
-  "When non-nil, frames are restored in the current display.
-Otherwise they are restored, if possible, in their original displays."
-  :type 'boolean
+  "If t, frames are restored in the current display.
+If nil, frames are restored, if possible, in their original displays.
+If `delete', frames on other displays are deleted instead of restored."
+  :type '(choice (const :tag "Restore in current display" t)
+		 (const :tag "Restore in original display" nil)
+		 (const :tag "Delete frames in other displays" 'delete))
+  :group 'desktop
+  :version "24.4")
+
+(defcustom desktop-restoring-reuses-frames t
+  "If t, restoring frames reuses existing frames.
+If nil, existing frames are deleted.
+If `keep', existing frames are kept and not reused."
+  :type '(choice (const :tag "Reuse existing frames" t)
+		 (const :tag "Delete existing frames" nil)
+		 (const :tag "Keep existing frames" 'keep))
   :group 'desktop
   :version "24.4")
 
@@ -566,7 +579,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 Used to avoid writing contents unchanged between auto-saves.")
 
 (defvar desktop--saved-states nil
-  "Internal use only.")
+  "Saved window/frame state.  Internal use only.")
 
 ;; ----------------------------------------------------------------------------
 ;; Desktop file conflict detection
@@ -869,30 +882,193 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 
 ;; ----------------------------------------------------------------------------
-(defconst desktop--excluded-frame-parameters
-  '(buffer-list
-    buffer-predicate
-    buried-buffer-list
-    explicit-name
-    font
-    font-backend
-    minibuffer
-    name
-    outer-window-id
-    parent-id
-    window-id
-    window-system)
-  "Frame parameters not saved or restored.")
+(defvar desktop-filter-parameters-alist
+  '((background-color	. desktop--filter-*-color)
+    (buffer-list	. t)
+    (buffer-predicate	. t)
+    (buried-buffer-list . t)
+    (desktop-font	. desktop--filter-restore-desktop-parm)
+    (desktop-fullscreen . desktop--filter-restore-desktop-parm)
+    (desktop-height	. desktop--filter-restore-desktop-parm)
+    (desktop-width	. desktop--filter-restore-desktop-parm)
+    (font		. desktop--filter-save-desktop-parm)
+    (font-backend	. t)
+    (foreground-color	. desktop--filter-*-color)
+    (fullscreen		. desktop--filter-save-desktop-parm)
+    (height		. desktop--filter-save-desktop-parm)
+    (minibuffer		. desktop--filter-minibuffer)
+    (name		. t)
+    (outer-window-id	. t)
+    (parent-id		. t)
+    (tty		. desktop--filter-tty*)
+    (tty-type		. desktop--filter-tty*)
+    (width		. desktop--filter-save-desktop-parm)
+    (window-id		. t)
+    (window-system	. t))
+  "Alist of frame parameters and filtering functions.
 
-(defun desktop--filter-frame-parms (frame)
-  "Return frame parameters of FRAME.
-Parameters in `desktop--excluded-frame-parameters' are excluded.
+Each element is a cons (PARAM . FILTER), where PARAM is a parameter
+name (a symbol identifying a frame parameter), and FILTER can be t
+\(meaning the parameter is removed from the parameter list on saving
+and restoring), or a function that will be called with three args:
+
+ CURRENT     a cons (PARAM . VALUE), where PARAM is the one being
+             filtered and VALUE is its current value
+ PARAMETERS  the complete alist of parameters being filtered
+ SAVING      non-nil if filtering before saving state, nil otherwise
+
+The FILTER function must return:
+ nil                  CURRENT is removed from the list
+ t                    CURRENT is left as is
+ (PARAM' . VALUE')    replace CURRENT with this
+
+Frame parameters not on this list are passed intact.")
+
+(defvar desktop--target-display nil
+  "Either (minibuffer . VALUE) or nil.
+This refers to the current frame config being processed inside
+`frame--restore-frames' and its auxiliary functions (like filtering).
+If nil, there is no need to change the display.
+If non-nil, display parameter to use when creating the frame.
+Internal use only.")
+
+(defun desktop-switch-to-gui-p (parameters)
+  "True when switching to a graphic display.
+Return t if PARAMETERS describes a text-only terminal and
+the target is a graphic display; otherwise return nil.
+Only meaningful when called from a filtering function in
+`desktop-filter-parameters-alist'."
+  (and desktop--target-display		       ; we're switching
+       (null (cdr (assq 'display parameters))) ; from a tty
+       (cdr desktop--target-display)))	       ; to a GUI display
+
+(defun desktop-switch-to-tty-p (parameters)
+  "True when switching to a text-only terminal.
+Return t if PARAMETERS describes a graphic display and
+the target is a text-only terminal; otherwise return nil.
+Only meaningful when called from a filtering function in
+`desktop-filter-parameters-alist'."
+  (and desktop--target-display		       ; we're switching
+       (cdr (assq 'display parameters))	       ; from a GUI display
+       (null (cdr desktop--target-display))))  ; to a tty
+
+(defun desktop--filter-tty* (_current parameters saving)
+  ;; Remove tty and tty-type parameters when switching
+  ;; to a GUI frame.
+  (or saving
+      (not (desktop-switch-to-gui-p parameters))))
+
+(defun desktop--filter-*-color (current parameters saving)
+  ;; Remove (foreground|background)-color parameters
+  ;; when switching to a GUI frame if they denote an
+  ;; "unspecified" color.
+  (or saving
+      (not (desktop-switch-to-gui-p parameters))
+      (not (stringp (cdr current)))
+      (not (string-match-p "^unspecified-[fb]g$" (cdr current)))))
+
+(defun desktop--filter-minibuffer (current _parameters saving)
+  ;; When minibuffer is a window, save it as minibuffer . t
+  (or (not saving)
+      (if (windowp (cdr current))
+	  '(minibuffer . t)
+	t)))
+
+(defun desktop--filter-restore-desktop-parm (current parameters saving)
+  ;; When switching to a GUI frame, convert desktop-XXX parameter to XXX
+  (or saving
+      (not (desktop-switch-to-gui-p parameters))
+      (let ((val (cdr current)))
+	(if (eq val :desktop-processed)
+	    nil
+	  (cons (intern (substring (symbol-name (car current))
+				   8)) ;; (length "desktop-")
+		val)))))
+
+(defun desktop--filter-save-desktop-parm (current parameters saving)
+  ;; When switching to a tty frame, save parameter XXX as desktop-XXX so it
+  ;; can be restored in a subsequent GUI session, unless it already exists.
+  (cond (saving t)
+	((desktop-switch-to-tty-p parameters)
+	 (let ((sym (intern (format "desktop-%s" (car current)))))
+	   (if (assq sym parameters)
+	       nil
+	     (cons sym (cdr current)))))
+	((desktop-switch-to-gui-p parameters)
+	 (let* ((dtp (assq (intern (format "desktop-%s" (car current)))
+			   parameters))
+		(val (cdr dtp)))
+	   (if (eq val :desktop-processed)
+	       nil
+	     (setcdr dtp :desktop-processed)
+	     (cons (car current) val))))
+	(t t)))
+
+(defun desktop-restore-in-original-display-p ()
+  "True if saved frames' displays should be honored."
+  (cond ((daemonp) t)
+	((eq system-type 'windows-nt) nil)
+	(t (null desktop-restore-in-current-display))))
+
+(defun desktop--filter-frame-parms (parameters saving)
+  "Filter frame parameters and return filtered list.
+PARAMETERS is a parameter alist as returned by `frame-parameters'.
+If SAVING is non-nil, filtering is happening before saving frame state;
+otherwise, filtering is being done before restoring frame state.
+Parameters are filtered according to the setting of
+`desktop-filter-parameters-alist' (which see).
 Internal use only."
-  (let (params)
-    (dolist (param (frame-parameters frame))
-      (unless (memq (car param) desktop--excluded-frame-parameters)
-	(push param params)))
-    params))
+  (let ((filtered nil))
+    (dolist (param parameters)
+      (let ((filter (cdr (assq (car param) desktop-filter-parameters-alist)))
+	    this)
+	(cond (;; no filter: pass param
+	       (null filter)
+	       (push param filtered))
+	      (;; filter = t; skip param
+	       (eq filter t))
+	      (;; filter func returns nil: skip param
+	       (null (setq this (funcall filter param parameters saving))))
+	      (;; filter func returns t: pass param
+	       (eq this t)
+	       (push param filtered))
+	      (;; filter func returns a new param: use it
+	       t
+	       (push this filtered)))))
+    ;; Set the display parameter after filtering, so that filter functions
+    ;; have access to its original value.
+    (when desktop--target-display
+      (let ((display (assq 'display filtered)))
+	(if display
+	    (setcdr display (cdr desktop--target-display))
+	  (push desktop--target-display filtered))))
+    filtered))
+
+(defun desktop--save-minibuffer-frames ()
+  ;; Adds a desktop-mini parameter to frames
+  ;; desktop-mini is a list (MINIBUFFER NUMBER DEFAULT?) where
+  ;; MINIBUFFER	 t if the frame (including minibuffer-only) owns a minibuffer
+  ;; NUMBER	 if MINIBUFFER = t, an ID for the frame; if nil, the ID of
+  ;;		 the frame containing the minibuffer used by this frame
+  ;; DEFAULT?	 if t, this frame is the value of default-minibuffer-frame
+  ;;		 FIXME: What happens with multi-terminal sessions?
+  (let ((frames (frame-list))
+	(count 0))
+    ;; Reset desktop-mini for all frames
+    (dolist (frame frames)
+      (set-frame-parameter frame 'desktop-mini nil))
+    ;; Number all frames with its own minibuffer
+    (dolist (frame (minibuffer-frame-list))
+      (set-frame-parameter frame 'desktop-mini
+			   (list t
+				 (setq count (1+ count))
+				 (eq frame default-minibuffer-frame))))
+    ;; Now link minibufferless frames with their minibuffer frames
+    (dolist (frame frames)
+      (unless (frame-parameter frame 'desktop-mini)
+	(let* ((mb-frame (window-frame (minibuffer-window frame)))
+	       (this (cadr (frame-parameter mb-frame 'desktop-mini))))
+	  (set-frame-parameter frame 'desktop-mini (list nil this nil)))))))
 
 (defun desktop--save-frames ()
   "Save window/frame state, as a global variable.
@@ -900,12 +1076,14 @@ Intended to be called from `desktop-save'.
 Internal use only."
   (setq desktop--saved-states
 	(and desktop-restore-frames
-	     (mapcar (lambda (frame)
-		       (cons (desktop--filter-frame-parms frame)
-			     (window-state-get (frame-root-window frame) t)))
-		     (cons (selected-frame)
-			   (delq (selected-frame) (frame-list))))))
-  (desktop-outvar 'desktop--saved-states))
+	     (progn
+	       (desktop--save-minibuffer-frames)
+	       (mapcar (lambda (frame)
+			 (cons (desktop--filter-frame-parms (frame-parameters frame) t)
+			       (window-state-get (frame-root-window frame) t)))
+		       (frame-list)))))
+  (unless (memq 'desktop--saved-states desktop-globals-to-save)
+    (desktop-outvar 'desktop--saved-states)))
 
 ;;;###autoload
 (defun desktop-save (dirname &optional release auto-save)
@@ -1006,71 +1184,220 @@ This function also sets `desktop-dirname' to nil."
 (defvar desktop-lazy-timer nil)
 
 ;; ----------------------------------------------------------------------------
-(defun desktop--restore-in-this-display-p ()
-  (or desktop-restore-in-current-display
-      (and (eq system-type 'windows-nt) (not (display-graphic-p)))))
+(defvar desktop--reuse-list nil
+  "Internal use only.")
 
-(defun desktop--find-frame-in-display (frames display)
-  (let (result)
-    (while (and frames (not result))
-      (if (equal display (frame-parameter (car frames) 'display))
-	  (setq result (car frames))
-	(setq frames (cdr frames))))
-    result))
+(defun desktop--find-frame (predicate display &rest args)
+  "Find a suitable frame in `desktop--reuse-list'.
+Look through frames whose display property matches DISPLAY and
+return the first one for which (PREDICATE frame ARGS) returns t.
+If PREDICATE is nil, it is always satisfied.  Internal use only.
+This is an auxiliary function for `desktop--select-frame'."
+  (catch :found
+    (dolist (frame desktop--reuse-list)
+      (when (and (equal (frame-parameter frame 'display) display)
+		 (or (null predicate)
+		     (apply predicate frame args)))
+	(throw :found frame)))
+    nil))
 
-(defun desktop--make-full-frame (full display config)
-  (let ((width (and (eq full 'fullheight) (cdr (assq 'width config))))
-	(height (and (eq full 'fullwidth) (cdr (assq 'height config))))
-	(params '((visibility)))
+(defun desktop--select-frame (display frame-cfg)
+  "Look for an existing frame to reuse.
+DISPLAY is the display where the frame will be shown, and FRAME-CFG
+is the parameter list of the frame being restored.  Internal use only."
+  (if (eq desktop-restoring-reuses-frames t)
+      (let ((frame nil)
+	    mini)
+	;; There are no fancy heuristics there.	 We could implement some
+	;; based on frame size and/or position, etc., but it is not clear
+	;; that any "gain" (in the sense of reduced flickering, etc.) is
+	;; worth the added complexity.	In fact, the code below mainly
+	;; tries to work nicely when M-x desktop-read is used after a desktop
+	;; session has already been loaded.  The other main use case, which
+	;; is the initial desktop-read upon starting Emacs, should usually
+	;; only have one, or very few, frame(s) to reuse.
+	(cond (;; When the target is tty, every existing frame is reusable.
+	       (null display)
+	       (setq frame (desktop--find-frame nil display)))
+	      (;; If the frame has its own minibuffer, let's see whether
+	       ;; that frame has already been loaded (which can happen after
+	       ;; M-x desktop-read).
+	       (car (setq mini (cdr (assq 'desktop-mini frame-cfg))))
+	       (setq frame (or (desktop--find-frame
+				(lambda (f m)
+				  (equal (frame-parameter f 'desktop-mini) m))
+				display mini))))
+	      (;; For minibufferless frames, check whether they already exist,
+	       ;; and that they are linked to the right minibuffer frame.
+	       mini
+	       (setq frame (desktop--find-frame
+			    (lambda (f n)
+			      (let ((m (frame-parameter f 'desktop-mini)))
+				(and m
+				     (null (car m))
+				     (= (cadr m) n)
+				     (equal (cadr (frame-parameter
+						   (window-frame (minibuffer-window f))
+						   'desktop-mini))
+					    n))))
+			    display (cadr mini))))
+	      (;; Default to just finding a frame in the same display.
+	       t
+	       (setq frame (desktop--find-frame nil display))))
+	;; If found, remove from the list.
+	(when frame
+	  (setq desktop--reuse-list (delq frame desktop--reuse-list)))
 	frame)
-    (when width
-      (setq params (append `((user-size . t) (width . ,width)) params)
-            config (assq-delete-all 'height config)))
-    (when height
-      (setq params (append `((user-size . t) (height . ,height)) params)
-            config (assq-delete-all 'width config)))
-    (setq frame (make-frame-on-display display params))
-    (modify-frame-parameters frame config)
+    nil))
+
+(defun desktop--make-frame (frame-cfg window-cfg)
+  "Set up a frame according to its saved state.
+That means either creating a new frame or reusing an existing one.
+FRAME-CFG is the parameter list of the new frame; WINDOW-CFG is
+its window state.  Internal use only."
+  (let* ((fullscreen (cdr (assq 'fullscreen frame-cfg)))
+	 (lines (assq 'tool-bar-lines frame-cfg))
+	 (filtered-cfg (desktop--filter-frame-parms frame-cfg nil))
+	 (display (cdr (assq 'display filtered-cfg))) ;; post-filtering
+	 alt-cfg frame)
+
+    ;; This works around bug#14795 (or feature#14795, if not a bug :-)
+    (setq filtered-cfg (assq-delete-all 'tool-bar-lines filtered-cfg))
+    (push '(tool-bar-lines . 0) filtered-cfg)
+
+    (when fullscreen
+      ;; Currently Emacs has the limitation that it does not record the size
+      ;; and position of a frame before maximizing it, so we cannot save &
+      ;; restore that info.  Instead, when restoring, we resort to creating
+      ;; invisible "fullscreen" frames of default size and then maximizing them
+      ;; (and making them visible) which at least is somewhat user-friendly
+      ;; when these frames are later de-maximized.
+      (let ((width (and (eq fullscreen 'fullheight) (cdr (assq 'width filtered-cfg))))
+	    (height (and (eq fullscreen 'fullwidth) (cdr (assq 'height filtered-cfg))))
+	    (visible (assq 'visibility filtered-cfg)))
+	(dolist (parameter '(visibility fullscreen width height))
+	  (setq filtered-cfg (assq-delete-all parameter filtered-cfg)))
+	(when width
+	  (setq filtered-cfg (append `((user-size . t) (width . ,width))
+				       filtered-cfg)))
+	(when height
+	  (setq filtered-cfg (append `((user-size . t) (height . ,height))
+				     filtered-cfg)))
+	;; These are parameters to apply after creating/setting the frame.
+	(push visible alt-cfg)
+	(push (cons 'fullscreen fullscreen) alt-cfg)))
+
+    ;; Time to select or create a frame an apply the big bunch of parameters
+    (if (setq frame (desktop--select-frame display filtered-cfg))
+	(modify-frame-parameters frame filtered-cfg)
+      (setq frame (make-frame-on-display display filtered-cfg)))
+
+    ;; Let's give the finishing touches (visibility, tool-bar, maximization).
+    (when lines (push lines alt-cfg))
+    (when alt-cfg (modify-frame-parameters frame alt-cfg))
+    ;; Now restore window state.
+    (window-state-put window-cfg (frame-root-window frame) 'safe)
     frame))
+
+(defun desktop--sort-states (state1 state2)
+  ;; Order: default minibuffer frame
+  ;;	    other frames with minibuffer, ascending ID
+  ;;	    minibufferless frames, ascending ID
+  (let ((dm1 (cdr (assq 'desktop-mini (car state1))))
+	(dm2 (cdr (assq 'desktop-mini (car state2)))))
+    (cond ((nth 2 dm1) t)
+	  ((nth 2 dm2) nil)
+	  ((null (car dm2)) t)
+	  ((null (car dm1)) nil)
+	  (t (< (cadr dm1) (cadr dm2))))))
 
 (defun desktop--restore-frames ()
   "Restore window/frame configuration.
 Internal use only."
   (when (and desktop-restore-frames desktop--saved-states)
-    (let ((frames (frame-list))
-	  (current (frame-parameter nil 'display))
-	  (selected nil))
+    (let* ((frame-mb-map nil) ;; Alist of frames with their own minibuffer
+	   (visible nil)
+	   (delete-saved (eq desktop-restore-in-current-display 'delete))
+	   (forcing (not (desktop-restore-in-original-display-p)))
+	   (target (and forcing (cons 'display (frame-parameter nil 'display)))))
+
+      ;; Sorting saved states allows us to easily restore minibuffer-owning frames
+      ;; before minibufferless ones.
+      (setq desktop--saved-states (sort desktop--saved-states #'desktop--sort-states))
+      ;; Potentially all existing frames are reusable.	Later we will decide which ones
+      ;; to reuse, and how to deal with any leftover.
+      (setq desktop--reuse-list (frame-list))
+
       (dolist (state desktop--saved-states)
 	(condition-case err
-	    (let* ((config (car state))
-		   (display (if (desktop--restore-in-this-display-p)
-				(setcdr (assq 'display config) current)
-			      (cdr (assq 'display config))))
-		   (full (cdr (assq 'fullscreen config)))
-		   (frame (and (not full)
-			       (desktop--find-frame-in-display frames display))))
-	      (cond (full
-		     ;; treat fullscreen/maximized frames specially
-		     (setq frame (desktop--make-full-frame full display config)))
-		    (frame
-		     ;; found a frame in the right display -- reuse
-		     (setq frames (delq frame frames))
-		     (modify-frame-parameters frame config))
-		    (t
-		     ;; no frames in the display -- make a new one
-		     (setq frame (make-frame-on-display display config))))
-	      ;; restore windows
-	      (window-state-put (cdr state) (frame-root-window frame) 'safe)
-	      (unless selected (setq selected frame)))
+	    (let* ((frame-cfg (car state))
+		   (window-cfg (cdr state))
+		   (d-mini (cdr (assq 'desktop-mini frame-cfg)))
+		   num frame to-tty)
+	      ;; Only set target if forcing displays and the target display is different.
+	      (if (or (not forcing)
+		      (equal target (or (assq 'display frame-cfg) '(display . nil))))
+		  (setq desktop--target-display nil)
+		(setq desktop--target-display target
+		      to-tty (null (cdr target))))
+	      ;; Time to restore frames and set up their minibuffers as they were.
+	      ;; We only skip a frame (thus deleting it) if either:
+	      ;; - we're switching displays, and the user chose the option to delete, or
+	      ;; - we're switching to tty, and the frame to restore is minibuffer-only.
+	      (unless (and desktop--target-display
+			   (or delete-saved
+			       (and to-tty
+				    (eq (cdr (assq 'minibuffer frame-cfg)) 'only))))
+
+		;; Restore minibuffers.	 Some of this stuff could be done in a filter
+		;; function, but it would be messy because restoring minibuffers affects
+		;; global state; it's best to do it here than add a bunch of global
+		;; variables to pass info back-and-forth to/from the filter function.
+		(cond
+		 ((null d-mini)) ;; No desktop-mini.  Process as normal frame.
+		 (to-tty) ;; Ignore minibuffer stuff and process as normal frame.
+		 ((car d-mini) ;; Frame has its own minibuffer (or it is minibuffer-only).
+		  (setq num (cadr d-mini))
+		  (when (eq (cdr (assq 'minibuffer frame-cfg)) 'only)
+		    (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
+					    frame-cfg))))
+		 (t ;; Frame depends on other frame's minibufer window.
+		  (let ((mb-frame (cdr (assq (cadr d-mini) frame-mb-map))))
+		    (unless (frame-live-p mb-frame)
+		      (error "Minibuffer frame %s not found" (cadr d-mini)))
+		    (let ((mb-param (assq 'minibuffer frame-cfg))
+			  (mb-window (minibuffer-window mb-frame)))
+		      (unless (and (window-live-p mb-window)
+				   (window-minibuffer-p mb-window))
+			(error "Not a minibuffer window %s" mb-window))
+		      (if mb-param
+			  (setcdr mb-param mb-window)
+			(push (cons 'minibuffer mb-window) frame-cfg))))))
+		;; OK, we're ready at last to create (or reuse) a frame and
+		;; restore the window config.
+		(setq frame (desktop--make-frame frame-cfg window-cfg))
+		;; Set default-minibuffer if required.
+		(when (nth 2 d-mini) (setq default-minibuffer-frame frame))
+		;; Store frame/NUM to assign to minibufferless frames.
+		(when num (push (cons num frame) frame-mb-map))
+		;; Try to locate at least one visible frame.
+		(when (and (not visible) (frame-visible-p frame))
+		  (setq visible frame))))
 	  (error
-	   (message "Error restoring frame: %S" (error-message-string err)))))
-      (when selected
-	;; make sure the original selected frame is visible and selected
-	(unless (or (frame-parameter selected 'visibility) (daemonp))
-	  (modify-frame-parameters selected '((visibility . t))))
-	(select-frame-set-input-focus selected)
-	;; delete any remaining frames
-	(mapc #'delete-frame frames)))))
+	   (delay-warning 'desktop (error-message-string err) :error))))
+
+      ;; Delete remaining frames, but do not fail if some resist being deleted.
+      (unless (eq desktop-restoring-reuses-frames 'keep)
+	(dolist (frame desktop--reuse-list)
+	  (ignore-errors (delete-frame frame))))
+      (setq desktop--reuse-list nil)
+      ;; Make sure there's at least one visible frame, and select it.
+      (unless (or visible (daemonp))
+	(setq visible (if (frame-live-p default-minibuffer-frame)
+			  default-minibuffer-frame
+			(car (frame-list))))
+	(make-frame-visible visible)
+	(select-frame-set-input-focus visible)))))
 
 ;;;###autoload
 (defun desktop-read (&optional dirname)

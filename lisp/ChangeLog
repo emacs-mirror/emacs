@@ -1,3 +1,30 @@
+2013-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Change default to t.
+	(desktop-restore-in-current-display): Now offer more options.
+	(desktop-restoring-reuses-frames): New customization option.
+	(desktop--saved-states): Doc fix.
+	(desktop-filter-parameters-alist): New variable, renamed and expanded
+	from desktop--excluded-frame-parameters.
+	(desktop--target-display): New variable.
+	(desktop-switch-to-gui-p, desktop-switch-to-tty-p)
+	(desktop--filter-tty*, desktop--filter-*-color)
+	(desktop--filter-minibuffer, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm)
+	(desktop-restore-in-original-display-p): New functions.
+	(desktop--filter-frame-parms): Use new desktop-filter-parameters-alist.
+	(desktop--save-minibuffer-frames): New function, inspired by a similar
+	function from Martin Rudalics.
+	(desktop--save-frames): Call it; play nice with desktop-globals-to-save.
+	(desktop--restore-in-this-display-p): Remove.
+	(desktop--find-frame): Rename from desktop--find-frame-in-display
+	and add predicate argument.
+	(desktop--make-full-frame): Remove, integrated into desktop--make-frame.
+	(desktop--reuse-list): New variable.
+	(desktop--select-frame, desktop--make-frame, desktop--sort-states):
+	New functions.
+	(desktop--restore-frames): Add support for "minibuffer-special" frames.
+
 2013-07-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Use `ignore-error'.
