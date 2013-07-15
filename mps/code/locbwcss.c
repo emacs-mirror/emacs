@@ -178,8 +178,6 @@ static void testInArena(mps_arena_t arena)
 
   if (lostat->max > histat->min) {
     error("\nFOUND PROBLEM - low range overlaps high\n");
-  } else if (lostat->ncCount != 0 || histat->ncCount != 0) {
-    error("\nFOUND POSSIBLE PROBLEM - some non-contiguous allocations\n");
   } else {
     printf("\nNo problems detected.\n");
   }
