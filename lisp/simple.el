@@ -7437,19 +7437,19 @@ warning using STRING as the message.")
 
 ;;; Generic dispatcher commands
 
-;; Macro `alternatives-define' is used to create generic commands.
+;; Macro `define-alternatives' is used to create generic commands.
 ;; Generic commands are these (like web, mail, news, encrypt, irc, etc.)
 ;; that can have different alternative implementations where choosing
 ;; among them is exclusively a matter of user preference.
 
-;; (alternatives-define COMMAND) creates a new interactive command
+;; (define-alternatives COMMAND) creates a new interactive command
 ;; M-x COMMAND and a customizable variable COMMAND-alternatives.
 ;; Typically, the user will not need to customize this variable; packages
 ;; wanting to add alternative implementations should use
 ;;
 ;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
 
-(defmacro alternatives-define (command &rest customizations)
+(defmacro define-alternatives (command &rest customizations)
   "Define new command `COMMAND'.
 The variable `COMMAND-alternatives' will contain alternative
 implementations of COMMAND, so that running `C-u M-x COMMAND'

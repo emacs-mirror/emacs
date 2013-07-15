@@ -1,3 +1,8 @@
+2013-07-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (define-alternatives): Rename from alternatives-define,
+	per RMS' suggestion.
+
 2013-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restore-frames): Change default to t.
