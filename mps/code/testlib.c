@@ -328,7 +328,16 @@ void verror(const char *format, va_list args)
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
   fflush(stderr); /* make sure the message is output */
-  abort();
+  /* On Windows, the abort signal pops up a dialog box. This suspends
+   * the test suite until a button is pressed, which is not acceptable
+   * for offline testing, so if the MPS_TESTLIB_NOABORT environment
+   * variable is set, then the test case exits instead of aborting.
+   */
+  if (getenv("MPS_TESTLIB_NOABORT")) {
+    exit(EXIT_FAILURE);
+  } else {
+    abort();
+  }
 }
 
 
