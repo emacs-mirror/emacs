@@ -159,7 +159,7 @@ static int testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   /* cross-segment allocation (possibly MVFF ought not to). */
   printf("MVFF\n");
   die(stress(mps_class_mvff(), randomSize8, arena,
-             (size_t)65536, (size_t)32, sizeof(void *), TRUE, TRUE, TRUE),
+             (size_t)65536, (size_t)32, MPS_PF_ALIGN, TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n");
   die(stress(mps_class_mv_debug(), randomSize, arena,
