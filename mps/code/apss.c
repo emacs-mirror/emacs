@@ -158,7 +158,7 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
   /* yet (MV Debug works here, because it fakes it through PoolAlloc). */
   printf("MVFF\n");
   res = stress(mps_class_mvff(), randomSizeAligned, arena,
-               (size_t)65536, (size_t)32, MPS_PF_ALIGN, TRUE, TRUE, TRUE);
+               (size_t)65536, (size_t)32, (size_t)MPS_PF_ALIGN, TRUE, TRUE, TRUE);
   if (res == MPS_RES_COMMIT_LIMIT) return;
   die(res, "stress MVFF");
 
