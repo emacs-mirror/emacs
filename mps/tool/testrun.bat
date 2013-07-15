@@ -9,7 +9,7 @@ set VARIETY=%1
 shift
 
 set TEST_COUNT=0
-set PASS_COUNT=0
+set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
 set LOGDIR=%TMP%\mps-%VARIETY%-log
 echo Logging test output to %LOGDIR%
