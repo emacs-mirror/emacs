@@ -562,7 +562,8 @@ doubt, use whitespace."
 	(unless (string-match " " desc)
 	  (let ((times 1) (pos bind-len))
 	    (while (not (cl-mismatch rest-mac rest-mac
-					  0 bind-len pos (+ bind-len pos)))
+				     :start1 0 :end1 bind-len
+				     :start2 pos :end2 (+ bind-len pos)))
 	      (cl-incf times)
 	      (cl-incf pos bind-len))
 	    (when (> times 1)

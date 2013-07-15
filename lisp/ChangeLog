@@ -1,3 +1,7 @@
+2013-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* edmacro.el (edmacro-format-keys): Fix previous change.
+
 2013-07-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* shell.el (explicit-bash-args): Remove obsolete hack for Bash 1.x.
