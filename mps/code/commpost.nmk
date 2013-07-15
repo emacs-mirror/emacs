@@ -61,6 +61,7 @@ mpsicv.cov:
 
 testrun: $(AUTO_TEST_TARGETS)
 !IFDEF VARIETY
+	set MPS_TESTLIB_NOABORT=true
 	..\tool\testrun.bat $(PFM) $(VARIETY) $(AUTO_TEST_TARGETS)
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk VARIETY=hot testrun
