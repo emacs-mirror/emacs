@@ -173,7 +173,7 @@ static int testInArena(mps_arena_t arena)
 
   printf("MVFF\n\n");
   die(stress(mps_class_mvff(), classCOUNT, classes, randomSize8, arena,
-             (size_t)65536, (size_t)32, MPS_PF_ALIGN, TRUE, TRUE, TRUE),
+             (size_t)65536, (size_t)32, (size_t)MPS_PF_ALIGN, TRUE, TRUE, TRUE),
       "stress MVFF");
   printf("MV debug\n\n");
   die(stress(mps_class_mv_debug(), classCOUNT, classes, randomSize8, arena,
