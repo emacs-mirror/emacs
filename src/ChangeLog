@@ -1,3 +1,18 @@
+2013-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process_region): Fix minor race and tune.
+	(create_temp_file): New function, with the temp-file-creation part
+	of the old Fcall_process_region.  Use Fcopy_sequence to create the
+	temp file name, rather than alloca + build_string, for simplicity.
+	Don't bother to block input around the temp file creation;
+	shouldn't be needed.  Simplify use of mktemp.  Use
+	record_unwind_protect immediately after creating the temp file;
+	this closes an unlikely race where the temp file was not removed.
+	Use memcpy rather than an open-coded loop.
+	(Fcall_process_region): Use the new function.  If the input is
+	empty, redirect from /dev/null rather than from a newly created
+	empty temp file; this avoids unnecessary file system traffic.
+
 2013-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* filelock.c (create_lock_file) [!HAVE_MKOSTEMP && !HAVE_MKSTEMP]:
