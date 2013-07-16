@@ -46,11 +46,6 @@
   :prefix "ruby-"
   :group 'languages)
 
-(defconst ruby-keyword-end-re
-  (if (string-match "\\_>" "ruby")
-      "\\_>"
-    "\\>"))
-
 (defconst ruby-block-beg-keywords
   '("class" "module" "def" "if" "unless" "case" "while" "until" "for" "begin" "do")
   "Keywords at the beginning of blocks.")
@@ -60,7 +55,7 @@
   "Regexp to match the beginning of blocks.")
 
 (defconst ruby-non-block-do-re
-  (concat (regexp-opt '("while" "until" "for" "rescue") t) ruby-keyword-end-re)
+  (regexp-opt '("while" "until" "for" "rescue") 'symbols)
   "Regexp to match keywords that nest without blocks.")
 
 (defconst ruby-indent-beg-re
@@ -696,7 +691,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
        ((looking-at (concat "\\_<\\(" ruby-block-beg-re "\\)\\_>"))
         (and
          (save-match-data
-           (or (not (looking-at (concat "do" ruby-keyword-end-re)))
+           (or (not (looking-at "do\\_>"))
                (save-excursion
                  (back-to-indentation)
                  (not (looking-at ruby-non-block-do-re)))))
@@ -1718,14 +1713,16 @@ See the definition of `ruby-font-lock-syntactic-keywords'."
   "The syntax table to use for fontifying Ruby mode buffers.
 See `font-lock-syntax-table'.")
 
+(defconst ruby-font-lock-keyword-beg-re "\\(?:^\\|[^.@$]\\|\\.\\.\\)")
+
 (defconst ruby-font-lock-keywords
   (list
    ;; functions
    '("^\\s *def\\s +\\(?:[^( \t\n.]*\\.\\)?\\([^( \t\n]+\\)"
      1 font-lock-function-name-face)
+   ;; keywords
    (list (concat
-          "\\(^\\|[^.@$]\\|\\.\\.\\)\\("
-          ;; keywords
+          ruby-font-lock-keyword-beg-re
           (regexp-opt
            '("alias"
              "and"
@@ -1760,11 +1757,14 @@ See `font-lock-syntax-table'.")
              "when"
              "while"
              "yield")
-           'symbols)
-          "\\|"
+           'symbols))
+         1 'font-lock-keyword-face)
+   ;; some core methods
+   (list (concat
+          ruby-font-lock-keyword-beg-re
           (regexp-opt
-           ;; built-in methods on Kernel
-           '("__callee__"
+           '(;; built-in methods on Kernel
+             "__callee__"
              "__dir__"
              "__method__"
              "abort"
@@ -1823,20 +1823,17 @@ See `font-lock-syntax-table'.")
              "public"
              "refine"
              "using")
-           'symbols)
-          "\\)")
-         2
-         '(if (match-beginning 4)
-              font-lock-builtin-face
-            font-lock-keyword-face))
+           'symbols))
+         1 'font-lock-builtin-face)
    ;; Perl-ish keywords
    "\\_<\\(?:BEGIN\\|END\\)\\_>\\|^__END__$"
    ;; here-doc beginnings
    `(,ruby-here-doc-beg-re 0 (unless (ruby-singleton-class-p (match-beginning 0))
                                'font-lock-string-face))
    ;; variables
-   '("\\(^\\|[^.@$]\\|\\.\\.\\)\\_<\\(nil\\|self\\|true\\|false\\)\\>"
-     2 font-lock-variable-name-face)
+   `(,(concat ruby-font-lock-keyword-beg-re
+              "\\_<\\(nil\\|self\\|true\\|false\\)\\>")
+     1 font-lock-variable-name-face)
    ;; keywords that evaluate to certain values
    '("\\_<__\\(?:LINE\\|ENCODING\\|FILE\\)__\\_>" 0 font-lock-variable-name-face)
    ;; symbols
@@ -1852,7 +1849,7 @@ See `font-lock-syntax-table'.")
      1 (unless (eq ?\( (char-after)) font-lock-type-face))
    '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-constant-face)
    ;; conversion methods on Kernel
-   (list (concat "\\(?:^\\|[^.@$]\\|\\.\\.\\)"
+   (list (concat ruby-font-lock-keyword-beg-re
                  (regexp-opt '("Array" "Complex" "Float" "Hash"
                                "Integer" "Rational" "String") 'symbols))
          1 font-lock-builtin-face)

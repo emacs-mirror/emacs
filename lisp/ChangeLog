@@ -2,6 +2,9 @@
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Do not
 	highlight question marks in the method names as strings.
+	(ruby-block-beg-keywords): Inline.
+	(ruby-font-lock-keyword-beg-re): Extract from
+	`ruby-font-lock-keywords'.
 
 2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
