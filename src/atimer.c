@@ -250,7 +250,7 @@ stop_other_atimers (struct atimer *t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-static void
+void
 run_all_atimers (void)
 {
   if (stopped_atimers)
@@ -271,16 +271,6 @@ run_all_atimers (void)
 
       unblock_atimers ();
     }
-}
-
-
-/* A version of run_all_atimers suitable for a record_unwind_protect.  */
-
-Lisp_Object
-unwind_stop_other_atimers (Lisp_Object dummy)
-{
-  run_all_atimers ();
-  return Qnil;
 }
 
 

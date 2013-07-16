@@ -437,10 +437,10 @@ find_sound_type (struct sound *s)
 }
 
 
-/* Function installed by play-sound-internal with record_unwind_protect.  */
+/* Function installed by play-sound-internal with record_unwind_protect_void.  */
 
-static Lisp_Object
-sound_cleanup (Lisp_Object arg)
+static void
+sound_cleanup (void)
 {
   if (current_sound_device->close)
     current_sound_device->close (current_sound_device);
@@ -448,8 +448,6 @@ sound_cleanup (Lisp_Object arg)
     emacs_close (current_sound->fd);
   xfree (current_sound_device);
   xfree (current_sound);
-
-  return Qnil;
 }
 
 /***********************************************************************
@@ -1346,7 +1344,7 @@ Internal use only, use `play-sound' instead.  */)
   GCPRO2 (sound, file);
   current_sound_device = xzalloc (sizeof *current_sound_device);
   current_sound = xzalloc (sizeof *current_sound);
-  record_unwind_protect (sound_cleanup, Qnil);
+  record_unwind_protect_void (sound_cleanup);
   current_sound->header = alloca (MAX_SOUND_HEADER_BYTES);
 
   if (STRINGP (attrs[SOUND_FILE]))

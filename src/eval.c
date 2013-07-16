@@ -152,13 +152,6 @@ specpdl_arg (union specbinding *pdl)
   return pdl->unwind.arg;
 }
 
-static specbinding_func
-specpdl_func (union specbinding *pdl)
-{
-  eassert (pdl->kind == SPECPDL_UNWIND);
-  return pdl->unwind.func;
-}
-
 Lisp_Object
 backtrace_function (union specbinding *pdl)
 {
@@ -267,12 +260,11 @@ init_eval (void)
 
 /* Unwind-protect function used by call_debugger.  */
 
-static Lisp_Object
+static void
 restore_stack_limits (Lisp_Object data)
 {
   max_specpdl_size = XINT (XCAR (data));
   max_lisp_eval_depth = XINT (XCDR (data));
-  return Qnil;
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
@@ -450,21 +442,30 @@ usage: (cond CLAUSES...)  */)
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
        doc: /* Eval BODY forms sequentially and return value of last one.
 usage: (progn BODY...)  */)
-  (Lisp_Object args)
+  (Lisp_Object body)
 {
-  register Lisp_Object val = Qnil;
+  Lisp_Object val = Qnil;
   struct gcpro gcpro1;
 
-  GCPRO1 (args);
+  GCPRO1 (body);
 
-  while (CONSP (args))
+  while (CONSP (body))
     {
-      val = eval_sub (XCAR (args));
-      args = XCDR (args);
+      val = eval_sub (XCAR (body));
+      body = XCDR (body);
     }
 
   UNGCPRO;
   return val;
+}
+
+/* Evaluate BODY sequentually, discarding its value.  Suitable for
+   record_unwind_protect.  */
+
+void
+unwind_body (Lisp_Object body)
+{
+  Fprogn (body);
 }
 
 DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
@@ -1149,7 +1150,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (Fprogn, Fcdr (args));
+  record_unwind_protect (unwind_body, Fcdr (args));
   val = eval_sub (Fcar (args));
   return unbind_to (count, val);
 }
@@ -1890,10 +1891,10 @@ this does nothing and returns nil.  */)
 		    Qnil);
 }
 
-Lisp_Object
+void
 un_autoload (Lisp_Object oldqueue)
 {
-  register Lisp_Object queue, first, second;
+  Lisp_Object queue, first, second;
 
   /* Queue to unwind is current value of Vautoload_queue.
      oldqueue is the shadowed value to leave in Vautoload_queue.  */
@@ -1910,7 +1911,6 @@ un_autoload (Lisp_Object oldqueue)
 	Ffset (first, second);
       queue = XCDR (queue);
     }
-  return Qnil;
 }
 
 /* Load an autoloaded function.
@@ -3191,11 +3191,37 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 }
 
 void
-record_unwind_protect (Lisp_Object (*function) (Lisp_Object), Lisp_Object arg)
+record_unwind_protect (void (*function) (Lisp_Object), Lisp_Object arg)
 {
   specpdl_ptr->unwind.kind = SPECPDL_UNWIND;
   specpdl_ptr->unwind.func = function;
   specpdl_ptr->unwind.arg = arg;
+  grow_specpdl ();
+}
+
+void
+record_unwind_protect_ptr (void (*function) (void *), void *arg)
+{
+  specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
+  specpdl_ptr->unwind_ptr.func = function;
+  specpdl_ptr->unwind_ptr.arg = arg;
+  grow_specpdl ();
+}
+
+void
+record_unwind_protect_int (void (*function) (int), int arg)
+{
+  specpdl_ptr->unwind_int.kind = SPECPDL_UNWIND_INT;
+  specpdl_ptr->unwind_int.func = function;
+  specpdl_ptr->unwind_int.arg = arg;
+  grow_specpdl ();
+}
+
+void
+record_unwind_protect_void (void (*function) (void))
+{
+  specpdl_ptr->unwind_void.kind = SPECPDL_UNWIND_VOID;
+  specpdl_ptr->unwind_void.func = function;
   grow_specpdl ();
 }
 
@@ -3220,7 +3246,16 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
       switch (specpdl_ptr->kind)
 	{
 	case SPECPDL_UNWIND:
-	  specpdl_func (specpdl_ptr) (specpdl_arg (specpdl_ptr));
+	  specpdl_ptr->unwind.func (specpdl_ptr->unwind.arg);
+	  break;
+	case SPECPDL_UNWIND_PTR:
+	  specpdl_ptr->unwind_ptr.func (specpdl_ptr->unwind_ptr.arg);
+	  break;
+	case SPECPDL_UNWIND_INT:
+	  specpdl_ptr->unwind_int.func (specpdl_ptr->unwind_int.arg);
+	  break;
+	case SPECPDL_UNWIND_VOID:
+	  specpdl_ptr->unwind_void.func ();
 	  break;
 	case SPECPDL_LET:
 	  /* If variable has a trivial value (no forwarding), we can

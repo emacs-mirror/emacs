@@ -145,7 +145,7 @@ static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
 static void readevalloop (Lisp_Object, FILE *, Lisp_Object, bool,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
-static Lisp_Object load_unwind (Lisp_Object);
+static void load_unwind (void *);
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -952,10 +952,10 @@ safe_to_load_version (int fd)
 /* Callback for record_unwind_protect.  Restore the old load list OLD,
    after loading a file successfully.  */
 
-static Lisp_Object
+static void
 record_load_unwind (Lisp_Object old)
 {
-  return Vloads_in_progress = old;
+  Vloads_in_progress = old;
 }
 
 /* This handler function is used via internal_condition_case_1.  */
@@ -966,7 +966,7 @@ load_error_handler (Lisp_Object data)
   return Qnil;
 }
 
-static Lisp_Object
+static void
 load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
@@ -976,7 +976,6 @@ load_warn_old_style_backquotes (Lisp_Object file)
       args[1] = file;
       Fmessage (2, args);
     }
-  return Qnil;
 }
 
 DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
@@ -1323,7 +1322,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  record_unwind_protect (load_unwind, make_save_pointer (stream));
+  record_unwind_protect_ptr (load_unwind, stream);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
@@ -1376,17 +1375,16 @@ Return t if the file exists and loads successfully.  */)
   return Qt;
 }
 
-static Lisp_Object
-load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
+static void
+load_unwind (void *arg)
 {
-  FILE *stream = XSAVE_POINTER (arg, 0);
+  FILE *stream = arg;
   if (stream != NULL)
     {
       block_input ();
       fclose (stream);
       unblock_input ();
     }
-  return Qnil;
 }
 
 static bool
@@ -1682,11 +1680,10 @@ build_load_history (Lisp_Object filename, bool entire)
 			   Vload_history);
 }
 
-static Lisp_Object
-readevalloop_1 (Lisp_Object old)
+static void
+readevalloop_1 (int old)
 {
-  load_convert_to_unibyte = ! NILP (old);
-  return Qnil;
+  load_convert_to_unibyte = old;
 }
 
 /* Signal an `end-of-file' error, if possible with file name
@@ -1756,7 +1753,7 @@ readevalloop (Lisp_Object readcharfun,
 
   specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
-  record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
+  record_unwind_protect_int (readevalloop_1, load_convert_to_unibyte);
   load_convert_to_unibyte = !NILP (unibyte);
 
   /* If lexical binding is active (either because it was specified in

@@ -212,21 +212,19 @@ report_file_error (char const *string, Lisp_Object name)
   report_file_errno (string, name, errno);
 }
 
-Lisp_Object
-close_file_unwind (Lisp_Object fd)
+void
+close_file_unwind (int fd)
 {
-  emacs_close (XFASTINT (fd));
-  return Qnil;
+  emacs_close (fd);
 }
 
 /* Restore point, having saved it as a marker.  */
 
-Lisp_Object
+void
 restore_point_unwind (Lisp_Object location)
 {
   Fgoto_char (location);
   Fset_marker (location, Qnil, Qnil);
-  return Qnil;
 }
 
 
@@ -2078,7 +2076,7 @@ entries (depending on how Emacs was built).  */)
   if (ifd < 0)
     report_file_error ("Opening input file", file);
 
-  record_unwind_protect (close_file_unwind, make_number (ifd));
+  record_unwind_protect_int (close_file_unwind, ifd);
 
   if (fstat (ifd, &st) != 0)
     report_file_error ("Input file status", file);
@@ -2119,7 +2117,7 @@ entries (depending on how Emacs was built).  */)
   if (ofd < 0)
     report_file_error ("Opening output file", newname);
 
-  record_unwind_protect (close_file_unwind, make_number (ofd));
+  record_unwind_protect_int (close_file_unwind, ofd);
 
   immediate_quit = 1;
   QUIT;
@@ -3377,7 +3375,7 @@ verify (READ_BUF_SIZE <= INT_MAX);
 	o remove all text properties.
 	o set back the buffer multibyteness.  */
 
-static Lisp_Object
+static void
 decide_coding_unwind (Lisp_Object unwind_data)
 {
   Lisp_Object multibyte, undo_list, buffer;
@@ -3396,8 +3394,6 @@ decide_coding_unwind (Lisp_Object unwind_data)
   /* Now we are safe to change the buffer's multibyteness directly.  */
   bset_enable_multibyte_characters (current_buffer, multibyte);
   bset_undo_list (current_buffer, undo_list);
-
-  return Qnil;
 }
 
 /* Read from a non-regular file.  STATE is a Lisp_Save_Value
@@ -3573,7 +3569,7 @@ by calling `format-decode', which see.  */)
   if (!NILP (replace))
     record_unwind_protect (restore_point_unwind, Fpoint_marker ());
 
-  record_unwind_protect (close_file_unwind, make_number (fd));
+  record_unwind_protect_int (close_file_unwind, fd);
 
   if (fstat (fd, &st) != 0)
     report_file_error ("Input file status", orig_filename);
@@ -4587,11 +4583,10 @@ by calling `format-decode', which see.  */)
 
 static Lisp_Object build_annotations (Lisp_Object, Lisp_Object);
 
-static Lisp_Object
+static void
 build_annotations_unwind (Lisp_Object arg)
 {
   Vwrite_region_annotation_buffers = arg;
-  return Qnil;
 }
 
 /* Decide the coding-system to encode the data with.  */
@@ -4901,7 +4896,7 @@ This calls `write-region-annotate-functions' at the start, and
       report_file_errno ("Opening output file", filename, open_errno);
     }
 
-  record_unwind_protect (close_file_unwind, make_number (desc));
+  record_unwind_protect_int (close_file_unwind, desc);
 
   if (NUMBERP (append))
     {
@@ -5492,11 +5487,18 @@ auto_save_1 (void)
 		   Qnil, Qnil);
 }
 
-static Lisp_Object
-do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
-
+struct auto_save_unwind
 {
-  FILE *stream = XSAVE_POINTER (arg, 0);
+  FILE *stream;
+  bool auto_raise;
+};
+
+static void
+do_auto_save_unwind (void *arg)
+{
+  struct auto_save_unwind *p = arg;
+  FILE *stream = p->stream;
+  minibuffer_auto_raise = p->auto_raise;
   auto_saving = 0;
   if (stream != NULL)
     {
@@ -5504,15 +5506,6 @@ do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
       fclose (stream);
       unblock_input ();
     }
-  return Qnil;
-}
-
-static Lisp_Object
-do_auto_save_unwind_1 (Lisp_Object value)  /* used as unwind-protect function */
-
-{
-  minibuffer_auto_raise = XINT (value);
-  return Qnil;
 }
 
 static Lisp_Object
@@ -5555,6 +5548,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   bool orig_minibuffer_auto_raise = minibuffer_auto_raise;
   bool old_message_p = 0;
+  struct auto_save_unwind auto_save_unwind;
   struct gcpro gcpro1, gcpro2;
 
   if (max_specpdl_size < specpdl_size + 40)
@@ -5566,7 +5560,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   if (NILP (no_message))
     {
       old_message_p = push_message ();
-      record_unwind_protect (pop_message_unwind, Qnil);
+      record_unwind_protect_void (pop_message_unwind);
     }
 
   /* Ordinarily don't quit within this function,
@@ -5605,10 +5599,9 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
       stream = emacs_fopen (SSDATA (listfile), "w");
     }
 
-  record_unwind_protect (do_auto_save_unwind,
-			 make_save_pointer (stream));
-  record_unwind_protect (do_auto_save_unwind_1,
-			 make_number (minibuffer_auto_raise));
+  auto_save_unwind.stream = stream;
+  auto_save_unwind.auto_raise = minibuffer_auto_raise;
+  record_unwind_protect_ptr (do_auto_save_unwind, &auto_save_unwind);
   minibuffer_auto_raise = 0;
   auto_saving = 1;
   auto_save_error_occurred = 0;

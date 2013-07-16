@@ -1913,12 +1913,18 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
    VARIABLE is the variable to maybe set to nil.
    NO-ERROR-FLAG is nil if there was an error,
    anything else meaning no error (so this function does nothing).  */
-static Lisp_Object
-reset_var_on_error (Lisp_Object val)
+struct rvoe_arg
 {
-  if (NILP (XCDR (val)))
-    Fset (XCAR (val), Qnil);
-  return Qnil;
+  Lisp_Object *location;
+  bool errorp;
+};
+
+static void
+reset_var_on_error (void *ptr)
+{
+  struct rvoe_arg *p = ptr;
+  if (p->errorp)
+    *p->location = Qnil;
 }
 
 /* Signal a change to the buffer immediately before it happens.
@@ -1936,6 +1942,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   Lisp_Object preserve_marker;
   struct gcpro gcpro1, gcpro2, gcpro3;
   ptrdiff_t count = SPECPDL_INDEX ();
+  struct rvoe_arg rvoe_arg;
 
   if (inhibit_modification_hooks)
     return;
@@ -1963,13 +1970,14 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   if (!NILP (Vbefore_change_functions))
     {
       Lisp_Object args[3];
-      Lisp_Object rvoe_arg = Fcons (Qbefore_change_functions, Qnil);
+      rvoe_arg.location = &Vbefore_change_functions;
+      rvoe_arg.errorp = 1;
 
       PRESERVE_VALUE;
       PRESERVE_START_END;
 
       /* Mark before-change-functions to be reset to nil in case of error.  */
-      record_unwind_protect (reset_var_on_error, rvoe_arg);
+      record_unwind_protect_ptr (reset_var_on_error, &rvoe_arg);
 
       /* Actually run the hook functions.  */
       args[0] = Qbefore_change_functions;
@@ -1978,7 +1986,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
       Frun_hook_with_args (3, args);
 
       /* There was no error: unarm the reset_on_error.  */
-      XSETCDR (rvoe_arg, Qt);
+      rvoe_arg.errorp = 0;
     }
 
   if (buffer_has_overlays ())
@@ -2009,6 +2017,8 @@ void
 signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
+  struct rvoe_arg rvoe_arg;
+
   if (inhibit_modification_hooks)
     return;
 
@@ -2042,10 +2052,11 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
   if (!NILP (Vafter_change_functions))
     {
       Lisp_Object args[4];
-      Lisp_Object rvoe_arg = Fcons (Qafter_change_functions, Qnil);
+      rvoe_arg.location = &Vafter_change_functions;
+      rvoe_arg.errorp = 1;
 
       /* Mark after-change-functions to be reset to nil in case of error.  */
-      record_unwind_protect (reset_var_on_error, rvoe_arg);
+      record_unwind_protect_ptr (reset_var_on_error, &rvoe_arg);
 
       /* Actually run the hook functions.  */
       args[0] = Qafter_change_functions;
@@ -2055,7 +2066,7 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
       Frun_hook_with_args (4, args);
 
       /* There was no error: unarm the reset_on_error.  */
-      XSETCDR (rvoe_arg, Qt);
+      rvoe_arg.errorp = 0;
     }
 
   if (buffer_has_overlays ())
@@ -2075,11 +2086,10 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
   unbind_to (count, Qnil);
 }
 
-static Lisp_Object
+static void
 Fcombine_after_change_execute_1 (Lisp_Object val)
 {
   Vcombine_after_change_calls = val;
-  return val;
 }
 
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,

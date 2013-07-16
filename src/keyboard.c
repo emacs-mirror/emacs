@@ -357,7 +357,7 @@ Lisp_Object Qvertical_line;
 static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
-static Lisp_Object recursive_edit_unwind (Lisp_Object buffer);
+static void recursive_edit_unwind (Lisp_Object buffer);
 static Lisp_Object command_loop (void);
 static Lisp_Object Qcommand_execute;
 EMACS_TIME timer_check (void);
@@ -428,7 +428,7 @@ static void save_getcjmp (sys_jmp_buf);
 static void restore_getcjmp (sys_jmp_buf);
 static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
-static Lisp_Object restore_kboard_configuration (Lisp_Object);
+static void restore_kboard_configuration (int);
 #ifdef USABLE_SIGIO
 static void deliver_input_available_signal (int signo);
 #endif
@@ -844,7 +844,7 @@ This function is called by the editor initialization to begin editing.  */)
   return unbind_to (count, Qnil);
 }
 
-Lisp_Object
+void
 recursive_edit_unwind (Lisp_Object buffer)
 {
   if (BUFFERP (buffer))
@@ -852,7 +852,6 @@ recursive_edit_unwind (Lisp_Object buffer)
 
   command_loop_level--;
   update_mode_lines = 1;
-  return Qnil;
 }
 
 
@@ -949,7 +948,7 @@ pop_kboard (void)
   from which further input is accepted.  If F is non-nil, set its
   KBOARD as the current keyboard.
 
-  This function uses record_unwind_protect to return to the previous
+  This function uses record_unwind_protect_int to return to the previous
   state later.
 
   If Emacs is already in single_kboard mode, and F's keyboard is
@@ -980,8 +979,7 @@ temporarily_switch_to_single_kboard (struct frame *f)
   else if (f != NULL)
     current_kboard = FRAME_KBOARD (f);
   single_kboard = 1;
-  record_unwind_protect (restore_kboard_configuration,
-                         (was_locked ? Qt : Qnil));
+  record_unwind_protect_int (restore_kboard_configuration, was_locked);
 }
 
 #if 0 /* This function is not needed anymore.  */
@@ -990,26 +988,22 @@ record_single_kboard_state ()
 {
   if (single_kboard)
     push_kboard (current_kboard);
-  record_unwind_protect (restore_kboard_configuration,
-                         (single_kboard ? Qt : Qnil));
+  record_unwind_protect_int (restore_kboard_configuration, single_kboard);
 }
 #endif
 
-static Lisp_Object
-restore_kboard_configuration (Lisp_Object was_locked)
+static void
+restore_kboard_configuration (int was_locked)
 {
-  if (NILP (was_locked))
-    single_kboard = 0;
-  else
+  single_kboard = was_locked;
+  if (was_locked)
     {
       struct kboard *prev = current_kboard;
-      single_kboard = 1;
       pop_kboard ();
       /* The pop should not change the kboard.  */
       if (single_kboard && current_kboard != prev)
         emacs_abort ();
     }
-  return Qnil;
 }
 
 
@@ -1237,7 +1231,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
 
-static Lisp_Object
+static void
 tracking_off (Lisp_Object old_value)
 {
   do_mouse_tracking = old_value;
@@ -1254,7 +1248,6 @@ tracking_off (Lisp_Object old_value)
 	  get_input_pending (READABLE_EVENTS_DO_TIMERS_NOW);
 	}
     }
-  return Qnil;
 }
 
 DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
@@ -1316,17 +1309,6 @@ static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
                               bool, bool, bool);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (ptrdiff_t, bool);
-
-/* Cancel hourglass from protect_unwind.
-   ARG is not used.  */
-#ifdef HAVE_WINDOW_SYSTEM
-static Lisp_Object
-cancel_hourglass_unwind (Lisp_Object arg)
-{
-  cancel_hourglass ();
-  return Qnil;
-}
-#endif
 
 /* The last boundary auto-added to buffer-undo-list.  */
 Lisp_Object last_undo_boundary;
@@ -1562,7 +1544,7 @@ command_loop_1 (void)
             if (display_hourglass_p
                 && NILP (Vexecuting_kbd_macro))
               {
-                record_unwind_protect (cancel_hourglass_unwind, Qnil);
+                record_unwind_protect_void (cancel_hourglass);
                 start_hourglass ();
               }
 #endif
@@ -2204,14 +2186,13 @@ static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, bool *used_mouse_menu,
 static void record_char (Lisp_Object c);
 
 static Lisp_Object help_form_saved_window_configs;
-static Lisp_Object
-read_char_help_form_unwind (Lisp_Object arg)
+static void
+read_char_help_form_unwind (void)
 {
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
   if (!NILP (window_config))
     Fset_window_configuration (window_config);
-  return Qnil;
 }
 
 #define STOP_POLLING					\
@@ -3199,7 +3180,7 @@ read_char (int commandflag, Lisp_Object map,
       help_form_saved_window_configs
 	= Fcons (Fcurrent_window_configuration (Qnil),
 		 help_form_saved_window_configs);
-      record_unwind_protect (read_char_help_form_unwind, Qnil);
+      record_unwind_protect_void (read_char_help_form_unwind);
       call0 (Qhelp_form_show);
 
       cancel_echoing ();
@@ -10193,8 +10174,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
-  record_unwind_protect ((Lisp_Object (*) (Lisp_Object)) init_all_sys_modes,
-			 Qnil);
+  record_unwind_protect_void (init_all_sys_modes);
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)
     sys_subshell ();

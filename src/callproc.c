@@ -123,8 +123,8 @@ record_kill_process (struct Lisp_Process *p)
 
 /* Clean up when exiting call_process_cleanup.  */
 
-static Lisp_Object
-call_process_kill (Lisp_Object ignored)
+static void
+call_process_kill (void)
 {
   if (synch_process_fd >= 0)
     emacs_close (synch_process_fd);
@@ -136,15 +136,13 @@ call_process_kill (Lisp_Object ignored)
       proc.pid = synch_process_pid;
       record_kill_process (&proc);
     }
-
-  return Qnil;
 }
 
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.
    On Unix, kill the process and any children on termination by signal.  */
 
-static Lisp_Object
+static void
 call_process_cleanup (Lisp_Object arg)
 {
 #ifdef MSDOS
@@ -162,7 +160,7 @@ call_process_cleanup (Lisp_Object arg)
     {
       ptrdiff_t count = SPECPDL_INDEX ();
       kill (-synch_process_pid, SIGINT);
-      record_unwind_protect (call_process_kill, make_number (0));
+      record_unwind_protect_void (call_process_kill);
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
       immediate_quit = 1;
       QUIT;
@@ -183,8 +181,6 @@ call_process_cleanup (Lisp_Object arg)
   if (!(strcmp (SDATA (file), NULL_DEVICE) == 0 || SREF (file, 0) == '\0'))
     unlink (SDATA (file));
 #endif
-
-  return Qnil;
 }
 
 #ifdef DOS_NT
@@ -931,7 +927,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   return make_number (WEXITSTATUS (status));
 }
 
-static Lisp_Object
+static void
 delete_temp_file (Lisp_Object name)
 {
   /* Suppress jka-compr handling, etc.  */
@@ -953,7 +949,6 @@ delete_temp_file (Lisp_Object name)
   internal_delete_file (name);
 #endif
   unbind_to (count, Qnil);
-  return Qnil;
 }
 
 /* Create a temporary file suitable for storing the input data of

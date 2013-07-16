@@ -1814,23 +1814,8 @@ enum Lisp_Save_Type
 /* Special object used to hold a different values for later use.
 
    This is mostly used to package C integers and pointers to call
-   record_unwind_protect.  A typical task is to pass just one C object
-   pointer to the unwind function.  You should pack an object pointer with
-   make_save_pointer and then get it back with XSAVE_POINTER, e.g.:
-
-   ...
-     struct my_data *md = get_my_data ();
-     record_unwind_protect (my_unwind, make_save_pointer (md));
-   ...
-
-   Lisp_Object my_unwind (Lisp_Object arg)
-   {
-     struct my_data *md = XSAVE_POINTER (arg, 0);
-     ...
-   }
-
-   If you need to pass something else you can use make_save_value,
-   which allows you to pack up to SAVE_VALUE_SLOTS integers, pointers,
+   record_unwind_protect when two or more values need to be saved.
+   make_save_value lets you pack up to SAVE_VALUE_SLOTS integers, pointers,
    function pointers or Lisp_Objects and conveniently get them back
    with XSAVE_INTEGER, XSAVE_POINTER, XSAVE_FUNCPOINTER, and
    XSAVE_OBJECT macros:
@@ -2701,10 +2686,11 @@ typedef jmp_buf sys_jmp_buf;
    used all over the place, needs to be fast, and needs to know the size of
    union specbinding.  But only eval.c should access it.  */
 
-typedef Lisp_Object (*specbinding_func) (Lisp_Object);
-
 enum specbind_tag {
-  SPECPDL_UNWIND,		/* An unwind_protect function.  */
+  SPECPDL_UNWIND,		/* An unwind_protect function on Lisp_Object.  */
+  SPECPDL_UNWIND_PTR,		/* Likewise, on void *.  */
+  SPECPDL_UNWIND_INT,		/* Likewise, on int.  */
+  SPECPDL_UNWIND_VOID,		/* Likewise, with no arg.  */
   SPECPDL_BACKTRACE,		/* An element of the backtrace.  */
   SPECPDL_LET,			/* A plain and simple dynamic let-binding.  */
   /* Tags greater than SPECPDL_LET must be "subkinds" of LET.  */
@@ -2717,9 +2703,23 @@ union specbinding
     ENUM_BF (specbind_tag) kind : CHAR_BIT;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      void (*func) (Lisp_Object);
       Lisp_Object arg;
-      specbinding_func func;
     } unwind;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      void (*func) (void *);
+      void *arg;
+    } unwind_ptr;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      void (*func) (int);
+      int arg;
+    } unwind_int;
+    struct {
+      ENUM_BF (specbind_tag) kind : CHAR_BIT;
+      void (*func) (void);
+    } unwind_void;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
       /* `where' is not used in the case of SPECPDL_LET.  */
@@ -2742,6 +2742,12 @@ LISP_INLINE ptrdiff_t
 SPECPDL_INDEX (void)
 {
   return specpdl_ptr - specpdl;
+}
+
+LISP_INLINE void
+set_unwind_protect_ptr (ptrdiff_t count, void *arg)
+{
+  specpdl[count].unwind_ptr.arg = arg;
 }
 
 /* Everything needed to describe an active condition case.
@@ -3418,7 +3424,7 @@ extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);
 extern void setup_echo_area_for_printing (int);
 extern bool push_message (void);
-extern Lisp_Object pop_message_unwind (Lisp_Object);
+extern void pop_message_unwind (void);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void restore_message (void);
 extern Lisp_Object current_message (void);
@@ -3582,6 +3588,7 @@ extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
 extern Lisp_Object make_save_value (enum Lisp_Save_Type, ...);
 extern Lisp_Object make_save_pointer (void *);
+extern void free_save_value (Lisp_Object);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
@@ -3738,12 +3745,15 @@ extern Lisp_Object internal_condition_case_n
     (Lisp_Object (*) (ptrdiff_t, Lisp_Object *), ptrdiff_t, Lisp_Object *,
      Lisp_Object, Lisp_Object (*) (Lisp_Object, ptrdiff_t, Lisp_Object *));
 extern void specbind (Lisp_Object, Lisp_Object);
-extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
+extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
+extern void record_unwind_protect_int (void (*) (int), int);
+extern void record_unwind_protect_ptr (void (*) (void *), void *);
+extern void record_unwind_protect_void (void (*) (void));
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
 extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
-extern Lisp_Object un_autoload (Lisp_Object);
+extern void un_autoload (Lisp_Object);
 extern Lisp_Object call_debugger (Lisp_Object arg);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
@@ -3751,6 +3761,7 @@ extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
 extern void syms_of_eval (void);
+extern void unwind_body (Lisp_Object);
 extern void record_in_backtrace (Lisp_Object function,
 				 Lisp_Object *args, ptrdiff_t nargs);
 extern void mark_specpdl (void);
@@ -3766,8 +3777,8 @@ extern void insert1 (Lisp_Object);
 extern Lisp_Object format2 (const char *, Lisp_Object, Lisp_Object);
 extern Lisp_Object save_excursion_save (void);
 extern Lisp_Object save_restriction_save (void);
-extern Lisp_Object save_excursion_restore (Lisp_Object);
-extern Lisp_Object save_restriction_restore (Lisp_Object);
+extern void save_excursion_restore (Lisp_Object);
+extern void save_restriction_restore (Lisp_Object);
 extern _Noreturn void time_overflow (void);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
@@ -3786,7 +3797,6 @@ extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
                                          Lisp_Object, Lisp_Object, Lisp_Object);
 extern bool overlay_touches_p (ptrdiff_t);
 extern Lisp_Object Vbuffer_alist;
-extern Lisp_Object set_buffer_if_live (Lisp_Object);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern Lisp_Object Qpriority, Qwindow, Qbefore_string, Qafter_string;
 extern Lisp_Object get_truename_buffer (Lisp_Object);
@@ -3820,8 +3830,8 @@ extern Lisp_Object Qinsert_file_contents;
 extern Lisp_Object Qfile_name_history;
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
 EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
-extern Lisp_Object close_file_unwind (Lisp_Object);
-extern Lisp_Object restore_point_unwind (Lisp_Object);
+extern void close_file_unwind (int);
+extern void restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_errno (const char *, Lisp_Object, int);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
 extern bool internal_delete_file (Lisp_Object);
@@ -4258,7 +4268,6 @@ extern void init_system_name (void);
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
-extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 extern void *record_xmalloc (size_t);
 
 #define USE_SAFE_ALLOCA			\
@@ -4282,8 +4291,7 @@ extern void *record_xmalloc (size_t);
       {								 \
 	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
 	sa_must_free = 1;					 \
-	record_unwind_protect (safe_alloca_unwind,		 \
-			       make_save_pointer (buf));	 \
+	record_unwind_protect_ptr (xfree, buf);			 \
       }								 \
   } while (0)
 
@@ -4310,7 +4318,7 @@ extern void *record_xmalloc (size_t);
 	buf = xmalloc ((nelt) * word_size);		       \
 	arg_ = make_save_value (SAVE_TYPE_MEMORY, buf, nelt);  \
 	sa_must_free = 1;				       \
-	record_unwind_protect (safe_alloca_unwind, arg_);      \
+	record_unwind_protect (free_save_value, arg_);	       \
       }							       \
     else						       \
       memory_full (SIZE_MAX);				       \

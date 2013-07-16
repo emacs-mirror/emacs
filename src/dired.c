@@ -107,22 +107,20 @@ open_directory (char const *name, int *fdp)
 }
 
 #ifdef WINDOWSNT
-Lisp_Object
+void
 directory_files_internal_w32_unwind (Lisp_Object arg)
 {
   Vw32_get_true_file_attributes = arg;
-  return Qnil;
 }
 #endif
 
-static Lisp_Object
-directory_files_internal_unwind (Lisp_Object dh)
+static void
+directory_files_internal_unwind (void *dh)
 {
-  DIR *d = XSAVE_POINTER (dh, 0);
+  DIR *d = dh;
   block_input ();
   closedir (d);
   unblock_input ();
-  return Qnil;
 }
 
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
@@ -190,8 +188,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
-  record_unwind_protect (directory_files_internal_unwind,
-			 make_save_pointer (d));
+  record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
 #ifdef WINDOWSNT
   if (attrs)
@@ -490,8 +487,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
   if (!d)
     report_file_error ("Opening directory", dirname);
 
-  record_unwind_protect (directory_files_internal_unwind,
-			 make_save_pointer (d));
+  record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
   /* Loop reading blocks */
   /* (att3b compiler bug requires do a null comparison this way) */

@@ -1410,10 +1410,10 @@ struct Popdown_data
   EmacsDialogPanel *dialog;
 };
 
-static Lisp_Object
-pop_down_menu (Lisp_Object arg)
+static void
+pop_down_menu (void *arg)
 {
-  struct Popdown_data *unwind_data = XSAVE_POINTER (arg, 0);
+  struct Popdown_data *unwind_data = arg;
 
   block_input ();
   if (popup_activated_flag)
@@ -1427,8 +1427,6 @@ pop_down_menu (Lisp_Object arg)
 
   xfree (unwind_data);
   unblock_input ();
-
-  return Qnil;
 }
 
 
@@ -1506,7 +1504,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     unwind_data->pool = pool;
     unwind_data->dialog = dialog;
 
-    record_unwind_protect (pop_down_menu, make_save_pointer (unwind_data));
+    record_unwind_protect_ptr (pop_down_menu, unwind_data);
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */

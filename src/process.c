@@ -1341,7 +1341,7 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
 
 /* Starting asynchronous inferior processes.  */
 
-static Lisp_Object start_process_unwind (Lisp_Object proc);
+static void start_process_unwind (Lisp_Object proc);
 
 DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
        doc: /* Start a program in a subprocess.  Return the process object for it.
@@ -1590,7 +1590,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
    PROC doesn't have its pid set, then we know someone has signaled
    an error and the process wasn't started successfully, so we should
    remove it from the process list.  */
-static Lisp_Object
+static void
 start_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
@@ -1600,8 +1600,6 @@ start_process_unwind (Lisp_Object proc)
      -2 is used for a pty with no process, eg for gdb.  */
   if (XPROCESS (proc)->pid <= 0 && XPROCESS (proc)->pid != -2)
     remove_process (proc);
-
-  return Qnil;
 }
 
 static void
@@ -2455,16 +2453,6 @@ usage: (serial-process-configure &rest ARGS)  */)
   return Qnil;
 }
 
-/* Used by make-serial-process to recover from errors.  */
-static Lisp_Object
-make_serial_process_unwind (Lisp_Object proc)
-{
-  if (!PROCESSP (proc))
-    emacs_abort ();
-  remove_process (proc);
-  return Qnil;
-}
-
 DEFUN ("make-serial-process", Fmake_serial_process, Smake_serial_process,
        0, MANY, 0,
        doc: /* Create and return a serial port process.
@@ -2570,7 +2558,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   CHECK_STRING (name);
   proc = make_process (name);
   specpdl_count = SPECPDL_INDEX ();
-  record_unwind_protect (make_serial_process_unwind, proc);
+  record_unwind_protect (remove_process, proc);
   p = XPROCESS (proc);
 
   fd = serial_open (port);
@@ -3006,7 +2994,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef POLL_FOR_INPUT
   if (socktype != SOCK_DGRAM)
     {
-      record_unwind_protect (unwind_stop_other_atimers, Qnil);
+      record_unwind_protect_void (run_all_atimers);
       bind_polling_period (10);
     }
 #endif
@@ -3166,7 +3154,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 
       /* Make us close S if quit.  */
-      record_unwind_protect (close_file_unwind, make_number (s));
+      record_unwind_protect_int (close_file_unwind, s);
 
       /* Parse network options in the arg list.
 	 We simply ignore anything which isn't a known option (including other keywords).
@@ -4176,11 +4164,10 @@ server_accept_connection (Lisp_Object server, int channel)
    when not inside wait_reading_process_output.  */
 static int waiting_for_user_input_p;
 
-static Lisp_Object
-wait_reading_process_output_unwind (Lisp_Object data)
+static void
+wait_reading_process_output_unwind (int data)
 {
-  waiting_for_user_input_p = XINT (data);
-  return Qnil;
+  waiting_for_user_input_p = data;
 }
 
 /* This is here so breakpoints can be put on it.  */
@@ -4258,8 +4245,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   if (wait_proc != NULL)
     wait_channel = wait_proc->infd;
 
-  record_unwind_protect (wait_reading_process_output_unwind,
-			 make_number (waiting_for_user_input_p));
+  record_unwind_protect_int (wait_reading_process_output_unwind,
+			     waiting_for_user_input_p);
   waiting_for_user_input_p = read_kbd;
 
   if (time_limit < 0)

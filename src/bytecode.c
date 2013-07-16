@@ -1063,8 +1063,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
 	  {
-	    register ptrdiff_t count1 = SPECPDL_INDEX ();
-	    record_unwind_protect (Fset_window_configuration,
+	    ptrdiff_t count1 = SPECPDL_INDEX ();
+	    record_unwind_protect (restore_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    BEFORE_POTENTIAL_GC ();
 	    TOP = Fprogn (TOP);
@@ -1089,7 +1089,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  }
 
 	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
-	  record_unwind_protect (Fprogn, POP);
+	  record_unwind_protect (unwind_body, POP);
 	  NEXT;
 
 	CASE (Bcondition_case):	/* FIXME: ill-suited for lexbind.  */

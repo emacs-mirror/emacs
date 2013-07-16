@@ -7791,7 +7791,7 @@ make_conversion_work_buffer (bool multibyte)
 }
 
 
-static Lisp_Object
+static void
 code_conversion_restore (Lisp_Object arg)
 {
   Lisp_Object current, workbuf;
@@ -7809,7 +7809,6 @@ code_conversion_restore (Lisp_Object arg)
     }
   set_buffer_internal (XBUFFER (current));
   UNGCPRO;
-  return Qnil;
 }
 
 Lisp_Object

@@ -2206,14 +2206,19 @@ ends when the current command terminates.  Use `switch-to-buffer' or
   return buffer;
 }
 
+void
+restore_buffer (Lisp_Object buffer_or_name)
+{
+  Fset_buffer (buffer_or_name);
+}
+
 /* Set the current buffer to BUFFER provided if it is alive.  */
 
-Lisp_Object
+void
 set_buffer_if_live (Lisp_Object buffer)
 {
   if (BUFFER_LIVE_P (XBUFFER (buffer)))
     set_buffer_internal (XBUFFER (buffer));
-  return Qnil;
 }
 
 DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,

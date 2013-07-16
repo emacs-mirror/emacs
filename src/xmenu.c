@@ -311,7 +311,7 @@ for instance using the window manager, then this produces a quit and
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
     CHECK_STRING (title);
-    record_unwind_protect (unuse_menu_items, Qnil);
+    record_unwind_protect_void (unuse_menu_items);
 
     if (NILP (Fcar (Fcdr (contents))))
       /* No buttons specified, add an "Ok" button so users can pop down
@@ -1405,14 +1405,13 @@ popup_selection_callback (GtkWidget *widget, gpointer client_data)
   if (cb_data) menu_item_selection = (Lisp_Object *) cb_data->call_data;
 }
 
-static Lisp_Object
-pop_down_menu (Lisp_Object arg)
+static void
+pop_down_menu (void *arg)
 {
   popup_activated_flag = 0;
   block_input ();
-  gtk_widget_destroy (GTK_WIDGET (XSAVE_POINTER (arg, 0)));
+  gtk_widget_destroy (GTK_WIDGET (arg));
   unblock_input ();
-  return Qnil;
 }
 
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
@@ -1474,7 +1473,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
 		  timestamp ? timestamp : gtk_get_current_event_time ());
 
-  record_unwind_protect (pop_down_menu, make_save_pointer (menu));
+  record_unwind_protect_ptr (pop_down_menu, menu);
 
   if (gtk_widget_get_mapped (menu))
     {
@@ -1513,7 +1512,7 @@ popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 /* ARG is the LWLIB ID of the dialog box, represented
    as a Lisp object as (HIGHPART . LOWPART).  */
 
-static Lisp_Object
+static void
 pop_down_menu (Lisp_Object arg)
 {
   LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
@@ -1523,8 +1522,6 @@ pop_down_menu (Lisp_Object arg)
   lw_destroy_all_widgets (id);
   unblock_input ();
   popup_activated_flag = 0;
-
-  return Qnil;
 }
 
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
@@ -1604,11 +1601,10 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 #endif /* not USE_GTK */
 
-static Lisp_Object
-cleanup_widget_value_tree (Lisp_Object arg)
+static void
+cleanup_widget_value_tree (void *arg)
 {
-  free_menubar_widget_value_tree (XSAVE_POINTER (arg, 0));
-  return Qnil;
+  free_menubar_widget_value_tree (arg);
 }
 
 Lisp_Object
@@ -1822,8 +1818,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
-  record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_pointer (first_wv));
+  record_unwind_protect_ptr (cleanup_widget_value_tree, first_wv);
 
   /* Actually create and show the menu until popped down.  */
   create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
@@ -1922,7 +1917,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   if (menu)
     {
       ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-      record_unwind_protect (pop_down_menu, make_save_pointer (menu));
+      record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
       gtk_widget_show_all (menu);
@@ -2132,8 +2127,7 @@ xdialog_show (FRAME_PTR f,
 
   /* Make sure to free the widget_value objects we used to specify the
      contents even with longjmp.  */
-  record_unwind_protect (cleanup_widget_value_tree,
-			 make_save_pointer (first_wv));
+  record_unwind_protect_ptr (cleanup_widget_value_tree, first_wv);
 
   /* Actually create and show the dialog.  */
   create_and_show_dialog (f, first_wv);
@@ -2228,7 +2222,7 @@ menu_help_callback (char const *help_string, int pane, int item)
  		  Qnil, menu_object, make_number (item));
 }
 
-static Lisp_Object
+static void
 pop_down_menu (Lisp_Object arg)
 {
   FRAME_PTR f = XSAVE_POINTER (arg, 0);
@@ -2255,8 +2249,6 @@ pop_down_menu (Lisp_Object arg)
 #endif /* HAVE_X_WINDOWS */
 
   unblock_input ();
-
-  return Qnil;
 }
 
 

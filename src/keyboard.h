@@ -341,7 +341,7 @@ enum menu_item_idx
   MENU_ITEMS_ITEM_LENGTH
 };
 
-extern Lisp_Object unuse_menu_items (Lisp_Object dummy);
+extern void unuse_menu_items (void);
 
 /* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
    isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be

@@ -1,5 +1,106 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	New unwind-protect flavors to better type-check C callbacks.
+	This also lessens the need to write wrappers for callbacks,
+	and the need for make_save_pointer.
+	* alloca.c (free_save_value):
+	* atimer.c (run_all_atimers):
+	Now extern.
+	* alloc.c (safe_alloca_unwind):
+	* atimer.c (unwind_stop_other_atimers):
+	* keyboard.c (cancel_hourglass_unwind) [HAVE_WINDOW_SYSTEM]:
+	* menu.c (cleanup_popup_menu) [HAVE_NS]:
+	* minibuf.c (choose_minibuf_frame_1):
+	* process.c (make_serial_process_unwind):
+	* xdisp.h (pop_message_unwind):
+	* xselect.c (queue_selection_requests_unwind):
+	Remove no-longer-needed wrapper.  All uses replaced by the wrappee.
+	* alloca.c (record_xmalloc):
+	Prefer record_unwind_protect_ptr to record_unwind_protect with
+	make_save_pointer.
+	* alloca.c (Fgarbage_collect):
+	Prefer record_unwind_protect_void to passing a dummy.
+	* buffer.c (restore_buffer):
+	* window.c (restore_window_configuration):
+	* xfns.c, w32fns.c (do_unwind_create_frame)
+	New wrapper.  All record-unwind uses of wrappee changed.
+	* buffer.c (set_buffer_if_live):
+	* callproc.c (call_process_cleanup, delete_temp_file):
+	* coding.c (code_conversion_restore):
+	* dired.c (directory_files_internal_w32_unwind) [WINDOWSNT]:
+	* editfns.c (save_excursion_restore)
+	(subst_char_in_region_unwind, subst_char_in_region_unwind_1)
+	(save_restriction_restore):
+	* eval.c (restore_stack_limits, un_autoload):
+	* fns.c (require_unwind):
+	* keyboard.c (recursive_edit_unwind, tracking_off):
+	* lread.c (record_load_unwind, load_warn_old_style_backquotes):
+	* macros.c (pop_kbd_macro, restore_menu_items):
+	* nsfns.m (unwind_create_frame):
+	* print.c (print_unwind):
+	* process.c (start_process_unwind):
+	* search.c (unwind_set_match_data):
+	* window.c (select_window_norecord, select_frame_norecord):
+	* xdisp.c (unwind_with_echo_area_buffer, unwind_format_mode_line)
+	(fast_set_selected_frame):
+	* xfns.c, w32fns.c (unwind_create_tip_frame):
+	Return void, not a dummy Lisp_Object.  All uses changed.
+	* buffer.h (set_buffer_if_live): Move decl here from lisp.h.
+	* callproc.c (call_process_kill):
+	* fileio.c (restore_point_unwind, decide_coding_unwind)
+	(build_annotations_unwind):
+	* insdel.c (Fcombine_after_change_execute_1):
+	* keyboard.c (read_char_help_form_unwind):
+	* menu.c (unuse_menu_items):
+	* minibuf.c (run_exit_minibuf_hook, read_minibuf_unwind):
+	* sound.c (sound_cleanup):
+	* xdisp.c (unwind_redisplay):
+	* xfns.c (clean_up_dialog):
+	* xselect.c (x_selection_request_lisp_error, x_catch_errors_unwind):
+	Accept no args and return void, instead of accepting and returning
+	a dummy Lisp_Object.  All uses changed.
+	* cygw32.c (fchdir_unwind):
+	* fileio.c (close_file_unwind):
+	* keyboard.c (restore_kboard_configuration):
+	* lread.c (readevalllop_1):
+	* process.c (wait_reading_process_output_unwind):
+	Accept int and return void, rather than accepting an Emacs integer
+	and returning a dummy object.  In some cases this fixes an
+	unlikely bug when the corresponding int is outside Emacs integer
+	range.  All uses changed.
+	* dired.c (directory_files_internal_unwind):
+	* fileio.c (do_auto_save_unwind):
+	* gtkutil.c (pop_down_dialog):
+	* insdel.c (reset_var_on_error):
+	* lread.c (load_unwind):
+	* xfns.c (clean_up_file_dialog):
+	* xmenu.c, nsmenu.m (pop_down_menu):
+	* xmenu.c (cleanup_widget_value_tree):
+	* xselect.c (wait_for_property_change_unwind):
+	Accept pointer and return void, rather than accepting an Emacs
+	save value encapsulating the pointer and returning a dummy object.
+	All uses changed.
+	* editfns.c (Fformat): Update the saved pointer directly via
+	set_unwind_protect_ptr rather than indirectly via make_save_pointer.
+	* eval.c (specpdl_func): Remove.  All uses replaced by definiens.
+	(unwind_body): New function.
+	(record_unwind_protect): First arg is now a function returning void,
+	not a dummy Lisp_Object.
+	(record_unwind_protect_ptr, record_unwind_protect_int)
+	(record_unwind_protect_void): New functions.
+	(unbind_to): Support SPECPDL_UNWIND_PTR etc.
+	* fileio.c (struct auto_save_unwind): New type.
+	(do_auto_save_unwind): Use it.
+	(do_auto_save_unwind_1): Remove; subsumed by new do_auto_save_unwind.
+	* insdel.c (struct rvoe_arg): New type.
+	(reset_var_on_error): Use it.
+	* lisp.h (SPECPDL_UNWIND_PTR, SPECPDL_UNWIND_INT, SPECPDL_UNWIND_VOID):
+	New constants.
+	(specbinding_func): Remove; there are now several such functions.
+	(union specbinding): New members unwind_ptr, unwind_int, unwind_void.
+	(set_unwind_protect_ptr): New function.
+	* xselect.c: Remove unnecessary forward decls, to simplify maintenance.
+
 	Be simpler and more consistent about reporting I/O errors.
 	* fileio.c (Fcopy_file, Finsert_file_contents, Fwrite_region):
 	Say "Read error" and "Write error", rather than "I/O error", or

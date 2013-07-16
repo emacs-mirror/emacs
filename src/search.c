@@ -3016,11 +3016,11 @@ restore_search_regs (void)
     }
 }
 
-static Lisp_Object
+static void
 unwind_set_match_data (Lisp_Object list)
 {
   /* It is NOT ALWAYS safe to free (evaporate) the markers immediately.  */
-  return Fset_match_data (list, Qt);
+  Fset_match_data (list, Qt);
 }
 
 /* Called to unwind protect the match data.  */
