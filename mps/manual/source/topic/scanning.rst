@@ -212,7 +212,7 @@ The MPS does not require you to :term:`fix` all your :term:`references`. But if 
 
 These optimizations can be tricky to make correct, and can make the
 system fragile (for example, it may break if you start using a
-different :term:`pool class`), so it usually safest to fix all
+different :term:`pool class`), so it is usually safest to fix all
 references.
 
 

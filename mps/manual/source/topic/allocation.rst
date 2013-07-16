@@ -243,18 +243,28 @@ is thus::
 
     mps_addr_t p;
     obj_t obj;
+    size_t aligned_size = ALIGN(size); /* see note 1 */
     do {
-        mps_res_t res = mps_reserve(&p, ap, size);
+        mps_res_t res = mps_reserve(&p, ap, aligned_size);
         if (res != MPS_RES_OK) /* handle the error */;
         /* p is now an ambiguous reference to the reserved block */
         obj = p;
         /* initialize obj */
-    } while (!mps_commit(ap, p, size));
+    } while (!mps_commit(ap, p, aligned_size)); /* see note 2 */
     /* obj is now valid and managed by the MPS */
 
-It is not necessary to worry about going around this loop many times:
-:c:func:`mps_commit` can fail at most once per thread per
-:term:`flip`.
+.. note::
+
+    1. Here :c:func:`ALIGN` represents a function or macro that
+       rounds ``size`` up to the necessary alignment, which should be
+       at least as big as the alignment of the pool. (The reason that
+       the MPS does not do this rounding up for you is to provide more
+       opportunities for optimization: in many cases the required
+       alignment will be a constant that's known at compilation time.)
+
+    2. It is not necessary to worry about going around this loop many
+       times: :c:func:`mps_commit` can fail at most once per thread
+       per :term:`flip`.
 
 
 .. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
