@@ -68,7 +68,7 @@ Interface
       field in the objects, and it must not be larger than the pool
       alignment.
 
-    * :c:macro:`MPS_KEY_FMT_HEADER_SIZE` (type :c:type:`mps_size_t`,
+    * :c:macro:`MPS_KEY_FMT_HEADER_SIZE` (type :c:type:`size_t`,
       default 0) is an integer value specifying the header size for
       objects with :term:`in-band headers`. See
       :ref:`topic-format-headers` below.

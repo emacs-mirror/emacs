@@ -112,5 +112,5 @@ MFS interface
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mfs(),
-                                      mps_size_t extend_size,
-                                      mps_size_t unit_size)
+                                      size_t extend_size,
+                                      size_t unit_size)
