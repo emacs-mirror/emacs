@@ -318,7 +318,7 @@ x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 
 
 static Lisp_Object unwind_create_frame (Lisp_Object);
-static Lisp_Object unwind_create_tip_frame (Lisp_Object);
+static void unwind_create_tip_frame (Lisp_Object);
 static void my_create_window (struct frame *);
 static void my_create_tip_window (struct frame *);
 

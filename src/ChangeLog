@@ -1,3 +1,7 @@
+2013-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (unwind_create_tip_frame): Fix declaration.
+
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix w32 bug with call-process-region (Bug#14885).
