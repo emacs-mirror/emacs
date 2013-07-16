@@ -2750,6 +2750,12 @@ set_unwind_protect_ptr (ptrdiff_t count, void *arg)
   specpdl[count].unwind_ptr.arg = arg;
 }
 
+LISP_INLINE void
+set_unwind_protect_int (ptrdiff_t count, int arg)
+{
+  specpdl[count].unwind_int.arg = arg;
+}
+
 /* Everything needed to describe an active condition case.
 
    Members are volatile if their values need to survive _longjmp when

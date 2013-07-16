@@ -1,5 +1,15 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix bug where Emacs tries to close a file twice (Bug#14839).
+	* fileio.c (close_file_unwind): Don't close if FD is negative;
+	this can happen when unwinding a zapped file descriptor.
+	(Finsert_file_contents): Unwind-protect the fd before the point marker,
+	in case Emacs runs out of memory between the two unwind-protects.
+	Don't trash errno when closing FD.
+	Zap the FD in the specpdl when closing it, instead of deferring
+	the removal of the unwind-protect; this fixes a bug where a child
+	function unwinds the stack past us.
+
 	New unwind-protect flavors to better type-check C callbacks.
 	This also lessens the need to write wrappers for callbacks,
 	and the need for make_save_pointer.

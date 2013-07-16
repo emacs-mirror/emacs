@@ -215,7 +215,8 @@ report_file_error (char const *string, Lisp_Object name)
 void
 close_file_unwind (int fd)
 {
-  emacs_close (fd);
+  if (0 <= fd)
+    emacs_close (fd);
 }
 
 /* Restore point, having saved it as a marker.  */
@@ -3514,7 +3515,7 @@ by calling `format-decode', which see.  */)
        && BEG == Z);
   Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
   bool we_locked_file = 0;
-  bool deferred_remove_unwind_protect = 0;
+  ptrdiff_t fd_index;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3565,11 +3566,12 @@ by calling `format-decode', which see.  */)
       goto notfound;
     }
 
+  fd_index = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
+
   /* Replacement should preserve point as it preserves markers.  */
   if (!NILP (replace))
     record_unwind_protect (restore_point_unwind, Fpoint_marker ());
-
-  record_unwind_protect_int (close_file_unwind, fd);
 
   if (fstat (fd, &st) != 0)
     report_file_error ("Input file status", orig_filename);
@@ -4015,15 +4017,10 @@ by calling `format-decode', which see.  */)
 	    memcpy (read_buf, coding.carryover, unprocessed);
 	}
       UNGCPRO;
-      emacs_close (fd);
-
-      /* We should remove the unwind_protect calling
-	 close_file_unwind, but other stuff has been added the stack,
-	 so defer the removal till we reach the `handled' label.  */
-      deferred_remove_unwind_protect = 1;
-
       if (this < 0)
 	report_file_error ("Read error", orig_filename);
+      emacs_close (fd);
+      set_unwind_protect_int (fd_index, -1);
 
       if (unprocessed > 0)
 	{
@@ -4264,9 +4261,7 @@ by calling `format-decode', which see.  */)
     Vdeactivate_mark = Qt;
 
   emacs_close (fd);
-
-  /* Discard the unwind protect for closing the file.  */
-  specpdl_ptr--;
+  set_unwind_protect_int (fd_index, -1);
 
   if (how_much < 0)
     report_file_error ("Read error", orig_filename);
@@ -4392,11 +4387,6 @@ by calling `format-decode', which see.  */)
   /* Now INSERTED is measured in characters.  */
 
  handled:
-
-  if (deferred_remove_unwind_protect)
-    /* If requested above, discard the unwind protect for closing the
-       file.  */
-    specpdl_ptr--;
 
   if (!NILP (visit))
     {
