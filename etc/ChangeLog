@@ -1,3 +1,7 @@
+2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Document blink-cursor-blinks and blink timers stopped.
+
 2013-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* NEWS: Document prefer-utf-8 and the new attributes

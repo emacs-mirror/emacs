@@ -1,3 +1,28 @@
+2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_focus_changed): Always generate FOCUS_IN_EVENT.
+	Set event->arg to Qt if switch-event shall be generated.
+	Generate FOCUS_OUT_EVENT for FocusOut if this is the focused frame.
+
+	* termhooks.h (enum event_kind): Add FOCUS_OUT_EVENT.
+
+	* nsterm.m (windowDidResignKey): If this is the focused frame, generate
+	FOCUS_OUT_EVENT.
+
+	* keyboard.c (Qfocus_in, Qfocus_out): New static objects.
+	(make_lispy_focus_in, make_lispy_focus_out): Declare and define.
+	(kbd_buffer_get_event): For FOCUS_IN, make a focus_in event if no
+	switch frame event is made.  Check ! NILP (event->arg) if X11 (moved
+	from xterm.c). Make focus_out event for FOCUS_OUT_EVENT if NS or X11
+	and there is a focused frame.
+	(head_table): Add focus-in and focus-out.
+	(keys_of_keyboard): Add focus-in and focus-out to Vspecial_event_map,
+	bind to handle-focus-in/out.
+
+	* frame.c (Fhandle_focus_in, Fhandle_focus_out): New functions.
+	(Fhandle_switch_frame): Call Fhandle_focus_in.
+	(syms_of_frame): defsubr handle-focus-in/out.
+
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix porting bug to older POSIXish platforms (Bug#14862).

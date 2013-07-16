@@ -172,6 +172,8 @@ enum event_kind
      `switch-frame' events in kbd_buffer_get_event, if necessary.  */
   FOCUS_IN_EVENT,
 
+  FOCUS_OUT_EVENT,
+
   /* Generated when mouse moves over window not currently selected.  */
   SELECT_WINDOW_EVENT,
 

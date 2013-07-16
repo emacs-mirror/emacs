@@ -122,6 +122,11 @@ monitor, use the new functions above.  Similar notes also apply to
 Generic commands are interactive functions whose implementation can be
 selected among several alternatives, as a matter of user preference.
 
+** The blink cursor stops blinking after 10 blinks (default) on X and NS.
+You can change the default by customizing the variable blink-cursor-blinks.
+Also timers for blinking are stopped when no blinking is done, so Emacs does
+not consume CPU cycles.
+
 
 * Editing Changes in Emacs 24.4
 

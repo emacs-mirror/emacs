@@ -5746,9 +5746,10 @@ not_in_argv (NSString *arg)
 /* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
+  BOOL is_focus_frame = dpyinfo->x_focus_frame == emacsframe;
   NSTRACE (windowDidResignKey);
 
-  if (dpyinfo->x_focus_frame == emacsframe)
+  if (is_focus_frame)
     dpyinfo->x_focus_frame = 0;
 
   ns_frame_rehighlight (emacsframe);
@@ -5761,10 +5762,10 @@ not_in_argv (NSString *arg)
       x_set_frame_alpha (emacsframe);
     }
 
-  if (emacs_event)
+  if (emacs_event && is_focus_frame)
     {
       [self deleteWorkingText];
-      emacs_event->kind = FOCUS_IN_EVENT;
+      emacs_event->kind = FOCUS_OUT_EVENT;
       EV_TRAILER ((id)nil);
     }
 }

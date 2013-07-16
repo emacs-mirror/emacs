@@ -295,6 +295,7 @@ static struct input_event * volatile kbd_store_ptr;
 static Lisp_Object Qmouse_movement;
 static Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
+static Lisp_Object Qfocus_in, Qfocus_out;
 static Lisp_Object Qdelete_frame;
 static Lisp_Object Qiconify_frame;
 static Lisp_Object Qmake_frame_visible;
@@ -420,6 +421,8 @@ static Lisp_Object modify_event_symbol (ptrdiff_t, int, Lisp_Object,
                                         Lisp_Object, const char *const *,
                                         Lisp_Object *, ptrdiff_t);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
+static Lisp_Object make_lispy_focus_in (Lisp_Object);
+static Lisp_Object make_lispy_focus_out (Lisp_Object);
 static bool help_char_p (Lisp_Object);
 static void save_getcjmp (sys_jmp_buf);
 static void restore_getcjmp (sys_jmp_buf);
@@ -4061,17 +4064,45 @@ kbd_buffer_get_event (KBOARD **kbp,
 	     switch-frame event if necessary.  */
 	  Lisp_Object frame, focus;
 
-	  frame = event->frame_or_window;
-	  focus = FRAME_FOCUS_FRAME (XFRAME (frame));
-	  if (FRAMEP (focus))
-	    frame = focus;
+          frame = event->frame_or_window;
+          focus = FRAME_FOCUS_FRAME (XFRAME (frame));
+          if (FRAMEP (focus))
+            frame = focus;
 
-	  if (!EQ (frame, internal_last_event_frame)
-	      && !EQ (frame, selected_frame))
-	    obj = make_lispy_switch_frame (frame);
-	  internal_last_event_frame = frame;
-	  kbd_fetch_ptr = event + 1;
-	}
+          if (
+#ifdef HAVE_X11
+              ! NILP (event->arg)
+              &&
+#endif
+              !EQ (frame, internal_last_event_frame)
+              && !EQ (frame, selected_frame))
+            obj = make_lispy_switch_frame (frame);
+          else
+            obj = make_lispy_focus_in (frame);
+
+          internal_last_event_frame = frame;
+          kbd_fetch_ptr = event + 1;
+        }
+      else if (event->kind == FOCUS_OUT_EVENT)
+        {
+#if defined(HAVE_NS) || defined (HAVE_X11)
+
+#ifdef HAVE_NS
+          struct ns_display_info *di;
+#else
+          struct x_display_info *di;
+#endif
+          Lisp_Object rest, frame = event->frame_or_window;
+          bool focused = false;
+
+          for (di = x_display_list; di && ! focused; di = di->next)
+            focused = di->x_highlight_frame != 0;
+
+          if (! focused) obj = make_lispy_focus_out (frame);
+#endif /* HAVE_NS || HAVE_X11 */
+
+          kbd_fetch_ptr = event + 1;
+        }
 #ifdef HAVE_DBUS
       else if (event->kind == DBUS_EVENT)
 	{
@@ -6051,6 +6082,17 @@ static Lisp_Object
 make_lispy_switch_frame (Lisp_Object frame)
 {
   return list2 (Qswitch_frame, frame);
+}
+
+static Lisp_Object
+make_lispy_focus_in (Lisp_Object frame)
+{
+  return list2 (Qfocus_in, frame);
+}
+static Lisp_Object
+make_lispy_focus_out (Lisp_Object frame)
+{
+  return list2 (Qfocus_out, frame);
 }
 
 /* Manipulating modifiers.  */
@@ -10911,6 +10953,8 @@ static const struct event_head head_table[] = {
   {&Qmouse_movement,      "mouse-movement",      &Qmouse_movement},
   {&Qscroll_bar_movement, "scroll-bar-movement", &Qmouse_movement},
   {&Qswitch_frame,        "switch-frame",        &Qswitch_frame},
+  {&Qfocus_in,            "focus-in",            &Qfocus_in},
+  {&Qfocus_out,           "focus-out",	         &Qfocus_out},
   {&Qdelete_frame,        "delete-frame",        &Qdelete_frame},
   {&Qiconify_frame,       "iconify-frame",       &Qiconify_frame},
   {&Qmake_frame_visible,  "make-frame-visible",  &Qmake_frame_visible},
@@ -11725,6 +11769,10 @@ keys_of_keyboard (void)
   initial_define_lispy_key (Vspecial_event_map, "language-change",
 			    "ignore");
 #endif
+  initial_define_lispy_key (Vspecial_event_map, "focus-in",
+			    "handle-focus-in");
+  initial_define_lispy_key (Vspecial_event_map, "focus-out",
+			    "handle-focus-out");
 }
 
 /* Mark the pointers in the kboard objects.

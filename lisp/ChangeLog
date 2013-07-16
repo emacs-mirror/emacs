@@ -1,3 +1,12 @@
+2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.el (blink-cursor-blinks): New defcustom.
+	(blink-cursor-blinks-done): New defvar.
+	(blink-cursor-start): Set blink-cursor-blinks-done to 1.
+	(blink-cursor-timer-function): Check if number of blinks has been
+	done on X and NS.
+	(blink-cursor-suspend, blink-cursor-check): New defuns.
+
 2013-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* edmacro.el (edmacro-format-keys): Fix previous change.
