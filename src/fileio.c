@@ -2125,7 +2125,7 @@ entries (depending on how Emacs was built).  */)
   QUIT;
   while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
     if (emacs_write_sig (ofd, buf, n) != n)
-      report_file_error ("I/O error", newname);
+      report_file_error ("Write error", newname);
   immediate_quit = 0;
 
 #ifndef MSDOS
@@ -2182,7 +2182,7 @@ entries (depending on how Emacs was built).  */)
     }
 
   if (emacs_close (ofd) < 0)
-    report_file_error ("I/O error", newname);
+    report_file_error ("Write error", newname);
 
   emacs_close (ifd);
 
@@ -3697,8 +3697,7 @@ by calling `format-decode', which see.  */)
 		}
 
 	      if (nread < 0)
-		error ("IO error reading %s: %s",
-		       SDATA (orig_filename), emacs_strerror (errno));
+		report_file_error ("Read error", orig_filename);
 	      else if (nread > 0)
 		{
 		  struct buffer *prev = current_buffer;
@@ -3813,8 +3812,7 @@ by calling `format-decode', which see.  */)
 
 	  nread = emacs_read (fd, read_buf, sizeof read_buf);
 	  if (nread < 0)
-	    error ("IO error reading %s: %s",
-		   SSDATA (orig_filename), emacs_strerror (errno));
+	    report_file_error ("Read error", orig_filename);
 	  else if (nread == 0)
 	    break;
 
@@ -3879,8 +3877,7 @@ by calling `format-decode', which see.  */)
 	    {
 	      nread = emacs_read (fd, read_buf + total_read, trial - total_read);
 	      if (nread < 0)
-		error ("IO error reading %s: %s",
-		       SDATA (orig_filename), emacs_strerror (errno));
+		report_file_error ("Read error", orig_filename);
 	      else if (nread == 0)
 		break;
 	      total_read += nread;
@@ -4030,8 +4027,7 @@ by calling `format-decode', which see.  */)
       deferred_remove_unwind_protect = 1;
 
       if (this < 0)
-	error ("IO error reading %s: %s",
-	       SDATA (orig_filename), emacs_strerror (errno));
+	report_file_error ("Read error", orig_filename);
 
       if (unprocessed > 0)
 	{
@@ -4277,8 +4273,7 @@ by calling `format-decode', which see.  */)
   specpdl_ptr--;
 
   if (how_much < 0)
-    error ("IO error reading %s: %s",
-	   SDATA (orig_filename), emacs_strerror (errno));
+    report_file_error ("Read error", orig_filename);
 
   /* Make the text read part of the buffer.  */
   GAP_SIZE -= inserted;
@@ -5071,8 +5066,7 @@ This calls `write-region-annotate-functions' at the start, and
     }
 
   if (! ok)
-    error ("IO error writing %s: %s", SDATA (filename),
-	   emacs_strerror (save_errno));
+    report_file_errno ("Write error", filename, save_errno);
 
   if (visiting)
     {

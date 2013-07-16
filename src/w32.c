@@ -7707,8 +7707,9 @@ globals_of_w32 (void)
 
 /* For make-serial-process  */
 int
-serial_open (char *port)
+serial_open (Lisp_Object port_obj)
 {
+  char *port = SSDATA (port_obj);
   HANDLE hnd;
   child_process *cp;
   int fd = -1;

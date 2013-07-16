@@ -2573,7 +2573,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   record_unwind_protect (make_serial_process_unwind, proc);
   p = XPROCESS (proc);
 
-  fd = serial_open (SSDATA (port));
+  fd = serial_open (port);
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_process_desc)
@@ -3257,16 +3257,16 @@ usage: (make-network-process &rest ARGS)  */)
 	      if (errno == EINTR)
 		goto retry_select;
 	      else
-		report_file_error ("select failed", Qnil);
+		report_file_error ("Failed select", Qnil);
 	    }
 	  eassert (sc > 0);
 
 	  len = sizeof xerrno;
 	  eassert (FD_ISSET (s, &fdset));
 	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) < 0)
-	    report_file_error ("getsockopt failed", Qnil);
+	    report_file_error ("Failed getsockopt", Qnil);
 	  if (xerrno)
-	    report_file_errno ("error during connect", Qnil, xerrno);
+	    report_file_errno ("Failed connect", Qnil, xerrno);
 	  break;
 	}
 #endif /* !WINDOWSNT */
@@ -4624,7 +4624,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  else if (xerrno == EBADF)
 	    emacs_abort ();
 	  else
-	    error ("select error: %s", emacs_strerror (xerrno));
+	    report_file_errno ("Failed select", Qnil, xerrno);
 	}
 
       if (no_avail)
@@ -5466,7 +5466,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
-		report_file_error ("sending datagram", proc);
+		report_file_error ("Sending datagram", proc);
 	    }
 	  else
 #endif
@@ -5543,7 +5543,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		}
 	      else
 		/* This is a real error.  */
-		report_file_error ("writing to process", proc);
+		report_file_error ("Writing to process", proc);
 	    }
 	  cur_buf += written;
 	  cur_len -= written;
@@ -6037,7 +6037,7 @@ process has been transmitted to the serial port.  */)
     {
 #ifndef WINDOWSNT
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
-	error ("tcdrain() failed: %s", emacs_strerror (errno));
+	report_file_error ("Failed tcdrain", Qnil);
 #endif /* not WINDOWSNT */
       /* Do nothing on Windows because writes are blocking.  */
     }
@@ -6733,7 +6733,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  if (xerrno == EINTR)
 	    FD_ZERO (&waitchannels);
 	  else
-	    error ("select error: %s", emacs_strerror (xerrno));
+	    report_file_errno ("Failed select", Qnil, xerrno);
 	}
 
       /* Check for keyboard input */

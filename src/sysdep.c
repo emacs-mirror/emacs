@@ -2436,14 +2436,11 @@ safe_strsignal (int code)
 #ifndef DOS_NT
 /* For make-serial-process  */
 int
-serial_open (char *port)
+serial_open (Lisp_Object port)
 {
-  int fd = emacs_open (port, O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
+  int fd = emacs_open (SSDATA (port), O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
   if (fd < 0)
-    {
-      error ("Could not open %s: %s",
-	     port, emacs_strerror (errno));
-    }
+    report_file_error ("Opening serial port", port);
 #ifdef TIOCEXCL
   ioctl (fd, TIOCEXCL, (char *) 0);
 #endif
@@ -2491,7 +2488,7 @@ serial_configure (struct Lisp_Process *p,
   /* Read port attributes and prepare default configuration.  */
   err = tcgetattr (p->outfd, &attr);
   if (err != 0)
-    error ("tcgetattr() failed: %s", emacs_strerror (errno));
+    report_file_error ("Failed tcgetattr", Qnil);
   cfmakeraw (&attr);
 #if defined (CLOCAL)
   attr.c_cflag |= CLOCAL;
@@ -2508,8 +2505,7 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%"pI"d) failed: %s", XINT (tem),
-	   emacs_strerror (errno));
+    report_file_error ("Failed cfsetspeed", tem);
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
@@ -2631,7 +2627,7 @@ serial_configure (struct Lisp_Process *p,
   /* Activate configuration.  */
   err = tcsetattr (p->outfd, TCSANOW, &attr);
   if (err != 0)
-    error ("tcsetattr() failed: %s", emacs_strerror (errno));
+    report_file_error ("Failed tcsetattr", Qnil);
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);

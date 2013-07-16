@@ -1,5 +1,21 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Be simpler and more consistent about reporting I/O errors.
+	* fileio.c (Fcopy_file, Finsert_file_contents, Fwrite_region):
+	Say "Read error" and "Write error", rather than "I/O error", or
+	"IO error reading", or "IO error writing", when a read or write
+	error occurs.
+	* process.c (Fmake_network_process, wait_reading_process_output)
+	(send_process, Fprocess_send_eof, wait_reading_process_output):
+	Capitalize diagnostics consistently.  Put "failed foo" at the
+	start of the diagnostic, so that we don't capitalize the
+	function name "foo".  Consistently say "failed" for such
+	diagnostics.
+	* sysdep.c, w32.c (serial_open): Now accepts Lisp string, not C string.
+	All callers changed.  This is so it can use report_file_error.
+	* sysdep.c (serial_open, serial_configure): Capitalize I/O
+	diagnostics consistently as above.
+
 	* fileio.c (report_file_errno): Fix errno reporting bug.
 	If the file name is neither null nor a pair, package it up as a
 	singleton list.  All callers changed, both to this function and to
