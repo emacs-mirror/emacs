@@ -107,8 +107,8 @@ MV interface
 
             mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena, 
                                       mps_class_t mps_class_mv(),
-                                      mps_size_t extend_size,
-                                      mps_size_t average_size,
+                                      size_t extend_size,
+                                      size_t average_size,
                                       mps_size_t maximum_size)
 
 
