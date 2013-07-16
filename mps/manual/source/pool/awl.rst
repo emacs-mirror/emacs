@@ -58,17 +58,9 @@ AWL properties
   via :c:func:`mps_free`.
 
 * Supports allocation via :term:`allocation points`. If an allocation
-  point is created in an AWL pool, the call to :c:func:`mps_ap_create`
-  takes one additional parameter, a :term:`rank` of type
-  :c:type:`mps_rank_t`. The rank must be either
-  :c:func:`mps_rank_exact` (to allocate ordinary objects containing
-  :term:`exact references`), or :c:func:`mps_rank_weak` (to allocate
-  objects that contain weak references). For example::
-
-      mps_ap_t ap;
-      mps_res_t res;
-      res = mps_ap_create(&ap, pool, mps_rank_weak());
-      if (res != MPS_RES_OK) error("can't create allocation point");
+  point is created in an AWL pool, the call to
+  :c:func:`mps_ap_create_k` requires one keyword argument,
+  :c:macro:`MPS_KEY_RANK`.
 
 * Supports :term:`allocation frames` but does not use them to improve
   the efficiency of stack-like allocation.
