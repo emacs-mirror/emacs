@@ -1,3 +1,8 @@
+2013-07-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Do not
+	highlight question marks in the method names as strings.
+
 2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.el (blink-cursor-blinks): New defcustom.

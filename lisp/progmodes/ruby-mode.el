@@ -1864,7 +1864,7 @@ See `font-lock-syntax-table'.")
      1 font-lock-negation-char-face)
    ;; character literals
    ;; FIXME: Support longer escape sequences.
-   '("\\?\\\\?\\S " 0 font-lock-string-face)
+   '("\\_<\\?\\\\?\\S " 0 font-lock-string-face)
    )
   "Additional expressions to highlight in Ruby mode.")
 
