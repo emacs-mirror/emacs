@@ -262,9 +262,9 @@ is thus::
        opportunities for optimization: in many cases the required
        alignment will be a constant that's known at compilation time.)
 
-    2. It is not necessary to worry about going around this loop many
-       times: :c:func:`mps_commit` can fail at most once per thread
-       per :term:`flip`.
+    2. :c:func:`mps_commit` returns false only if a garbage collection
+       :term:`flip` occurs after :c:func:`mps_reserve`.  This is a very
+       rare event, especially if the object initialization is short.
 
 
 .. c:function:: mps_res_t mps_reserve(mps_addr_t *p_o, mps_ap_t ap, size_t size)
