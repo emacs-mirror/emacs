@@ -1,3 +1,9 @@
+2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by --enable-gcc-warnings.
+	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Return a value.
+	* keyboard.c (kbd_buffer_get_event): Remove unused local.
+
 2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_focus_changed): Always generate FOCUS_IN_EVENT.

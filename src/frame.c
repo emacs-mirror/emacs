@@ -895,7 +895,7 @@ is not generated.
 This function checks if blink-cursor timers should be turned on again.  */)
   (Lisp_Object event)
 {
-  call0 (intern ("blink-cursor-check"));
+  return call0 (intern ("blink-cursor-check"));
 }
 
 DEFUN ("handle-focus-out", Fhandle_focus_out, Shandle_focus_out, 1, 1, "e",
@@ -905,7 +905,7 @@ Focus out events occur when no frame has focus.
 This function checks if blink-cursor timers should be turned off.  */)
   (Lisp_Object event)
 {
-  call0 (intern ("blink-cursor-suspend"));
+  return call0 (intern ("blink-cursor-suspend"));
 }
 
 DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 1, "e",

@@ -4092,7 +4092,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #else
           struct x_display_info *di;
 #endif
-          Lisp_Object rest, frame = event->frame_or_window;
+          Lisp_Object frame = event->frame_or_window;
           bool focused = false;
 
           for (di = x_display_list; di && ! focused; di = di->next)
