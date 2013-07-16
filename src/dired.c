@@ -185,7 +185,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
   d = open_directory (SSDATA (dirfilename), &fd);
   if (d == NULL)
-    report_file_error ("Opening directory", list1 (directory));
+    report_file_error ("Opening directory", directory);
 
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
@@ -488,7 +488,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
   d = open_directory (SSDATA (encoded_dir), &fd);
   if (!d)
-    report_file_error ("Opening directory", list1 (dirname));
+    report_file_error ("Opening directory", dirname);
 
   record_unwind_protect (directory_files_internal_unwind,
 			 make_save_pointer (d));

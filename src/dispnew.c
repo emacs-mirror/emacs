@@ -5619,7 +5619,7 @@ FILE = nil means just close any termscript file currently open.  */)
       file = Fexpand_file_name (file, Qnil);
       tty->termscript = emacs_fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
-	report_file_error ("Opening termscript", list1 (file));
+	report_file_error ("Opening termscript", file);
     }
   return Qnil;
 }

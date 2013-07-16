@@ -609,7 +609,7 @@ the same file name is found in the `doc-directory'.  */)
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
-    report_file_error ("Opening doc string file", list1 (build_string (name)));
+    report_file_error ("Opening doc string file", build_string (name));
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;

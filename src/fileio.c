@@ -160,11 +160,16 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 
 
 /* Signal a file-access failure.  STRING describes the failure,
-   DATA the file that was involved, and ERRORNO the errno value.  */
+   NAME the file involved, and ERRORNO the errno value.
+
+   If NAME is neither null nor a pair, package it up as a singleton
+   list before reporting it; this saves report_file_errno's caller the
+   trouble of preserving errno before calling list1.  */
 
 void
-report_file_errno (char const *string, Lisp_Object data, int errorno)
+report_file_errno (char const *string, Lisp_Object name, int errorno)
 {
+  Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
   Lisp_Object errstring;
   char *str;
 
@@ -198,10 +203,13 @@ report_file_errno (char const *string, Lisp_Object data, int errorno)
       }
 }
 
+/* Signal a file-access failure that set errno.  STRING describes the
+   failure, NAME the file involved.  */
+
 void
-report_file_error (char const *string, Lisp_Object data)
+report_file_error (char const *string, Lisp_Object name)
 {
-  report_file_errno (string, data, errno);
+  report_file_errno (string, name, errno);
 }
 
 Lisp_Object
@@ -749,7 +757,7 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 	       dog-slow, but also useless since eventually nil would
 	       have to be returned anyway.  */
 	    report_file_error ("Cannot create temporary name for prefix",
-			       list1 (prefix));
+			       prefix);
 	  /* not reached */
 	}
     }
@@ -2019,7 +2027,7 @@ entries (depending on how Emacs was built).  */)
     {
       acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
       if (acl == NULL && acl_errno_valid (errno))
-	report_file_error ("Getting ACL", list1 (file));
+	report_file_error ("Getting ACL", file);
     }
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
@@ -2058,7 +2066,7 @@ entries (depending on how Emacs was built).  */)
       bool fail =
 	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
       if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", list1 (newname));
+	report_file_error ("Setting ACL", newname);
 
       acl_free (acl);
     }
@@ -2068,12 +2076,12 @@ entries (depending on how Emacs was built).  */)
   immediate_quit = 0;
 
   if (ifd < 0)
-    report_file_error ("Opening input file", list1 (file));
+    report_file_error ("Opening input file", file);
 
   record_unwind_protect (close_file_unwind, make_number (ifd));
 
   if (fstat (ifd, &st) != 0)
-    report_file_error ("Input file status", list1 (file));
+    report_file_error ("Input file status", file);
 
   if (!NILP (preserve_extended_attributes))
     {
@@ -2082,7 +2090,7 @@ entries (depending on how Emacs was built).  */)
 	{
 	  conlength = fgetfilecon (ifd, &con);
 	  if (conlength == -1)
-	    report_file_error ("Doing fgetfilecon", list1 (file));
+	    report_file_error ("Doing fgetfilecon", file);
 	}
 #endif
     }
@@ -2094,7 +2102,7 @@ entries (depending on how Emacs was built).  */)
 
   /* We can copy only regular files.  */
   if (!S_ISREG (st.st_mode))
-    report_file_errno ("Non-regular file", list1 (file),
+    report_file_errno ("Non-regular file", file,
 		       S_ISDIR (st.st_mode) ? EISDIR : EINVAL);
 
   {
@@ -2109,7 +2117,7 @@ entries (depending on how Emacs was built).  */)
 		      new_mask);
   }
   if (ofd < 0)
-    report_file_error ("Opening output file", list1 (newname));
+    report_file_error ("Opening output file", newname);
 
   record_unwind_protect (close_file_unwind, make_number (ofd));
 
@@ -2117,7 +2125,7 @@ entries (depending on how Emacs was built).  */)
   QUIT;
   while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
     if (emacs_write_sig (ofd, buf, n) != n)
-      report_file_error ("I/O error", list1 (newname));
+      report_file_error ("I/O error", newname);
   immediate_quit = 0;
 
 #ifndef MSDOS
@@ -2145,8 +2153,8 @@ entries (depending on how Emacs was built).  */)
 			 st.st_mode & mode_mask)
 	    : fchmod (ofd, st.st_mode & mode_mask))
       {
-      case -2: report_file_error ("Copying permissions from", list1 (file));
-      case -1: report_file_error ("Copying permissions to", list1 (newname));
+      case -2: report_file_error ("Copying permissions from", file);
+      case -1: report_file_error ("Copying permissions to", newname);
       }
   }
 #endif	/* not MSDOS */
@@ -2158,7 +2166,7 @@ entries (depending on how Emacs was built).  */)
       bool fail = fsetfilecon (ofd, con) != 0;
       /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
       if (fail && errno != ENOTSUP)
-	report_file_error ("Doing fsetfilecon", list1 (newname));
+	report_file_error ("Doing fsetfilecon", newname);
 
       freecon (con);
     }
@@ -2174,7 +2182,7 @@ entries (depending on how Emacs was built).  */)
     }
 
   if (emacs_close (ofd) < 0)
-    report_file_error ("I/O error", list1 (newname));
+    report_file_error ("I/O error", newname);
 
   emacs_close (ifd);
 
@@ -2220,7 +2228,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 #else
   if (mkdir (dir, 0777 & ~auto_saving_dir_umask) != 0)
 #endif
-    report_file_error ("Creating directory", list1 (directory));
+    report_file_error ("Creating directory", directory);
 
   return Qnil;
 }
@@ -2239,7 +2247,7 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   dir = SSDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
-    report_file_error ("Removing directory", list1 (directory));
+    report_file_error ("Removing directory", directory);
 
   return Qnil;
 }
@@ -2282,7 +2290,7 @@ With a prefix argument, TRASH is nil.  */)
   encoded_file = ENCODE_FILE (filename);
 
   if (unlink (SSDATA (encoded_file)) < 0)
-    report_file_error ("Removing old name", list1 (filename));
+    report_file_error ("Removing old name", filename);
   return Qnil;
 }
 
@@ -2719,7 +2727,7 @@ If there is no error, returns nil.  */)
   encoded_filename = ENCODE_FILE (absname);
 
   if (faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK, AT_EACCESS) != 0)
-    report_file_error (SSDATA (string), list1 (filename));
+    report_file_error (SSDATA (string), filename);
 
   return Qnil;
 }
@@ -3054,14 +3062,14 @@ or if Emacs was not compiled with SELinux support.  */)
 		  != 0);
           /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
 	  if (fail && errno != ENOTSUP)
-	    report_file_error ("Doing lsetfilecon", list1 (absname));
+	    report_file_error ("Doing lsetfilecon", absname);
 
 	  context_free (parsed_con);
 	  freecon (con);
 	  return fail ? Qnil : Qt;
 	}
       else
-	report_file_error ("Doing lgetfilecon", list1 (absname));
+	report_file_error ("Doing lgetfilecon", absname);
     }
 #endif
 
@@ -3151,7 +3159,7 @@ support.  */)
       acl = acl_from_text (SSDATA (acl_string));
       if (acl == NULL)
 	{
-	  report_file_error ("Converting ACL", list1 (absname));
+	  report_file_error ("Converting ACL", absname);
 	  return Qnil;
 	}
 
@@ -3161,7 +3169,7 @@ support.  */)
 			    acl)
 	      != 0);
       if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", list1 (absname));
+	report_file_error ("Setting ACL", absname);
 
       acl_free (acl);
       return fail ? Qnil : Qt;
@@ -3221,7 +3229,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   encoded_absname = ENCODE_FILE (absname);
 
   if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
-    report_file_error ("Doing chmod", list1 (absname));
+    report_file_error ("Doing chmod", absname);
 
   return Qnil;
 }
@@ -3287,7 +3295,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
         if (file_directory_p (SSDATA (encoded_absname)))
           return Qnil;
 #endif
-        report_file_error ("Setting file times", list1 (absname));
+        report_file_error ("Setting file times", absname);
       }
   }
 
@@ -3553,7 +3561,7 @@ by calling `format-decode', which see.  */)
     {
       save_errno = errno;
       if (NILP (visit))
-	report_file_error ("Opening input file", list1 (orig_filename));
+	report_file_error ("Opening input file", orig_filename);
       mtime = time_error_value (save_errno);
       st.st_size = -1;
       if (!NILP (Vcoding_system_for_read))
@@ -3568,7 +3576,7 @@ by calling `format-decode', which see.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
   if (fstat (fd, &st) != 0)
-    report_file_error ("Input file status", list1 (orig_filename));
+    report_file_error ("Input file status", orig_filename);
   mtime = get_stat_mtime (&st);
 
   /* This code will need to be changed in order to work on named
@@ -3682,7 +3690,7 @@ by calling `format-decode', which see.  */)
 		      int ntail;
 		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
 			report_file_error ("Setting file position",
-					   list1 (orig_filename));
+					   orig_filename);
 		      ntail = emacs_read (fd, read_buf + nread, 1024 * 3);
 		      nread = ntail < 0 ? ntail : nread + ntail;
 		    }
@@ -3726,8 +3734,7 @@ by calling `format-decode', which see.  */)
 
 		  /* Rewind the file for the actual read done later.  */
 		  if (lseek (fd, 0, SEEK_SET) < 0)
-		    report_file_error ("Setting file position",
-				       list1 (orig_filename));
+		    report_file_error ("Setting file position", orig_filename);
 		}
 	    }
 
@@ -3793,8 +3800,7 @@ by calling `format-decode', which see.  */)
       if (beg_offset != 0)
 	{
 	  if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	    report_file_error ("Setting file position",
-			       list1 (orig_filename));
+	    report_file_error ("Setting file position", orig_filename);
 	}
 
       immediate_quit = 1;
@@ -3866,8 +3872,7 @@ by calling `format-decode', which see.  */)
 	  /* How much can we scan in the next step?  */
 	  trial = min (curpos, sizeof read_buf);
 	  if (lseek (fd, curpos - trial, SEEK_SET) < 0)
-	    report_file_error ("Setting file position",
-			       list1 (orig_filename));
+	    report_file_error ("Setting file position", orig_filename);
 
 	  total_read = nread = 0;
 	  while (total_read < trial)
@@ -3987,8 +3992,7 @@ by calling `format-decode', which see.  */)
 	 CONVERSION_BUFFER.  */
 
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position",
-			   list1 (orig_filename));
+	report_file_error ("Setting file position", orig_filename);
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
@@ -4168,8 +4172,7 @@ by calling `format-decode', which see.  */)
   if (beg_offset != 0 || !NILP (replace))
     {
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
-	report_file_error ("Setting file position",
-			   list1 (orig_filename));
+	report_file_error ("Setting file position", orig_filename);
     }
 
   /* In the following loop, HOW_MUCH contains the total bytes read so
@@ -4574,8 +4577,7 @@ by calling `format-decode', which see.  */)
       && EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
     {
       /* If visiting nonexistent file, return nil.  */
-      report_file_errno ("Opening input file", list1 (orig_filename),
-			 save_errno);
+      report_file_errno ("Opening input file", orig_filename, save_errno);
     }
 
   if (read_quit)
@@ -4901,8 +4903,7 @@ This calls `write-region-annotate-functions' at the start, and
       if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
       UNGCPRO;
-      report_file_errno ("Opening output file", list1 (filename),
-			 open_errno);
+      report_file_errno ("Opening output file", filename, open_errno);
     }
 
   record_unwind_protect (close_file_unwind, make_number (desc));
@@ -4917,8 +4918,7 @@ This calls `write-region-annotate-functions' at the start, and
 	  if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
 	  UNGCPRO;
-	  report_file_errno ("Lseek error", list1 (filename),
-			     lseek_errno);
+	  report_file_errno ("Lseek error", filename, lseek_errno);
 	}
     }
 

@@ -10128,7 +10128,7 @@ The file will be closed when Emacs exits.  */)
       file = Fexpand_file_name (file, Qnil);
       dribble = emacs_fopen (SSDATA (file), "w");
       if (dribble == 0)
-	report_file_error ("Opening dribble", list1 (file));
+	report_file_error ("Opening dribble", file);
     }
   return Qnil;
 }

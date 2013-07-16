@@ -1397,7 +1397,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 list1 (BVAR (current_buffer, directory)));
+			 BVAR (current_buffer, directory));
 
     UNGCPRO;
   }
@@ -1519,7 +1519,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK));
 	  UNGCPRO;
 	  if (NILP (tem))
-	    report_file_error ("Searching for program", list1 (program));
+	    report_file_error ("Searching for program", program);
 	  tem = Fexpand_file_name (tem, Qnil);
 	}
       else
@@ -5466,7 +5466,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
-		report_file_error ("sending datagram", list1 (proc));
+		report_file_error ("sending datagram", proc);
 	    }
 	  else
 #endif
@@ -5543,7 +5543,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		}
 	      else
 		/* This is a real error.  */
-		report_file_error ("writing to process", list1 (proc));
+		report_file_error ("writing to process", proc);
 	    }
 	  cur_buf += written;
 	  cur_len -= written;

@@ -1,5 +1,12 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (report_file_errno): Fix errno reporting bug.
+	If the file name is neither null nor a pair, package it up as a
+	singleton list.  All callers changed, both to this function and to
+	report_file_error.  This fixes a bug where the memory allocator
+	invoked by list1 set errno so that the immediately following
+	report_file_error reported the wrong errno value.
+
 	Fix minor problems found by --enable-gcc-warnings.
 	* frame.c (Fhandle_focus_in, Fhandle_focus_out): Return a value.
 	* keyboard.c (kbd_buffer_get_event): Remove unused local.

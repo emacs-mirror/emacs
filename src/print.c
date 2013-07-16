@@ -770,8 +770,7 @@ append to existing target file.  */)
 	{
 	  stderr = initial_stderr_stream;
 	  initial_stderr_stream = NULL;
-	  report_file_error ("Cannot open debugging output stream",
-			     list1 (file));
+	  report_file_error ("Cannot open debugging output stream", file);
 	}
     }
   return Qnil;
