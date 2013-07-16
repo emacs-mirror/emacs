@@ -11999,9 +11999,8 @@ redisplay_tool_bar (struct frame *f)
 
 	  XSETFRAME (frame, f);
 	  Fmodify_frame_parameters (frame,
-				    Fcons (Fcons (Qtool_bar_lines,
-						  make_number (nlines)),
-					   Qnil));
+				    list1 (Fcons (Qtool_bar_lines,
+						  make_number (nlines))));
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
@@ -12100,9 +12099,8 @@ redisplay_tool_bar (struct frame *f)
 	    {
 	      XSETFRAME (frame, f);
 	      Fmodify_frame_parameters (frame,
-					Fcons (Fcons (Qtool_bar_lines,
-						      make_number (nlines)),
-					       Qnil));
+					list1 (Fcons (Qtool_bar_lines,
+						      make_number (nlines))));
 	      if (WINDOW_TOTAL_LINES (w) != old_height)
 		{
 		  clear_glyph_matrix (w->desired_matrix);
@@ -21345,7 +21343,7 @@ store_mode_line_string (const char *string, Lisp_Object lisp_string, int copy_st
 	  if (NILP (face))
 	    face = mode_line_string_face;
 	  else
-	    face = Fcons (face, Fcons (mode_line_string_face, Qnil));
+	    face = list2 (face, mode_line_string_face);
 	  props = Fplist_put (props, Qface, face);
 	}
       Fadd_text_properties (make_number (0), make_number (len),
@@ -21369,8 +21367,8 @@ store_mode_line_string (const char *string, Lisp_Object lisp_string, int copy_st
 	  if (NILP (face))
 	    face = mode_line_string_face;
 	  else
-	    face = Fcons (face, Fcons (mode_line_string_face, Qnil));
-	  props = Fcons (Qface, Fcons (face, Qnil));
+	    face = list2 (face, mode_line_string_face);
+	  props = list2 (Qface, face);
 	  if (copy_string)
 	    lisp_string = Fcopy_sequence (lisp_string);
 	}
@@ -21484,7 +21482,7 @@ are the selected window and the WINDOW's buffer).  */)
       mode_line_string_list = Qnil;
       mode_line_string_face = face;
       mode_line_string_face_prop
-	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
+	= NILP (face) ? Qnil : list2 (Qface, face);
     }
 
   push_kboard (FRAME_KBOARD (it.f));
@@ -29234,9 +29232,8 @@ syms_of_xdisp (void)
   DEFSYM (Qarrow, "arrow");
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
-  list_of_error = Fcons (Fcons (intern_c_string ("error"),
-				Fcons (intern_c_string ("void-variable"), Qnil)),
-			 Qnil);
+  list_of_error = list1 (list2 (intern_c_string ("error"),
+				intern_c_string ("void-variable")));
   staticpro (&list_of_error);
 
   DEFSYM (Qlast_arrow_position, "last-arrow-position");
@@ -29340,7 +29337,7 @@ See also `overlay-arrow-position'.  */);
 The symbols on this list are examined during redisplay to determine
 where to display overlay arrows.  */);
   Voverlay_arrow_variable_list
-    = Fcons (intern_c_string ("overlay-arrow-position"), Qnil);
+    = list1 (intern_c_string ("overlay-arrow-position"));
 
   DEFVAR_INT ("scroll-step", emacs_scroll_step,
     doc: /* The number of lines to try scrolling a window by when point moves out.

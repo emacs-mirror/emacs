@@ -562,7 +562,7 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
   c = DECODE_CHAR (charset, code);
   if (c < 0)
     Fsignal (Qinvalid_read_syntax,
-	     Fcons (build_string ("invalid multibyte form"), Qnil));
+	     list1 (build_string ("invalid multibyte form")));
   return c;
 }
 
@@ -672,7 +672,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 	{
 	  if (error_nonascii)
 	    {
-	      Vunread_command_events = Fcons (val, Qnil);
+	      Vunread_command_events = list1 (val);
 	      error ("Non-character input-event");
 	    }
 	  else
@@ -1494,7 +1494,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	fn = alloca (fn_size = 100 + want_length);
 
       /* Loop over suffixes.  */
-      for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
+      for (tail = NILP (suffixes) ? list1 (empty_unibyte_string) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
 	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
@@ -1764,8 +1764,8 @@ readevalloop (Lisp_Object readcharfun,
      lexical environment, otherwise, turn off lexical binding.  */
   lex_bound = find_symbol_value (Qlexical_binding);
   specbind (Qinternal_interpreter_environment,
-	    NILP (lex_bound) || EQ (lex_bound, Qunbound)
-	    ? Qnil : Fcons (Qt, Qnil));
+	    (NILP (lex_bound) || EQ (lex_bound, Qunbound)
+	     ? Qnil : list1 (Qt)));
 
   GCPRO4 (sourcename, readfun, start, end);
 
@@ -2724,7 +2724,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       if (c == '$')
 	return Vload_file_name;
       if (c == '\'')
-	return Fcons (Qfunction, Fcons (read0 (readcharfun), Qnil));
+	return list2 (Qfunction, read0 (readcharfun));
       /* #:foo is the uninterned symbol named foo.  */
       if (c == ':')
 	{
@@ -2819,9 +2819,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       goto retry;
 
     case '\'':
-      {
-	return Fcons (Qquote, Fcons (read0 (readcharfun), Qnil));
-      }
+      return list2 (Qquote, read0 (readcharfun));
 
     case '`':
       {
@@ -2851,7 +2849,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    value = read0 (readcharfun);
 	    new_backquote_flag = saved_new_backquote_flag;
 
-	    return Fcons (Qbackquote, Fcons (value, Qnil));
+	    return list2 (Qbackquote, value);
 	  }
       }
     case ',':
@@ -2889,7 +2887,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      }
 
 	    value = read0 (readcharfun);
-	    return Fcons (comma_type, Fcons (value, Qnil));
+	    return list2 (comma_type, value);
 	  }
 	else
 	  {
@@ -3665,7 +3663,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	    }
 	  invalid_syntax ("] in a list");
 	}
-      tem = Fcons (elt, Qnil);
+      tem = list1 (elt);
       if (!NILP (tail))
 	XSETCDR (tail, tem);
       else
@@ -4232,7 +4230,7 @@ init_lread (void)
                          points to the eventual installed lisp, leim
                          directories.  We should not use those now, even
                          if they exist, so start over from a clean slate.  */
-                      Vload_path = Fcons (tem, Qnil);
+                      Vload_path = list1 (tem);
                     }
                 }
               else
@@ -4459,8 +4457,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (build_pure_c_string (".elc"),
-			  Fcons (build_pure_c_string (".el"), Qnil));
+  Vload_suffixes = list2 (build_pure_c_string (".elc"),
+			  build_pure_c_string (".el"));
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
@@ -4474,7 +4472,7 @@ and, if so, which suffixes they should try to append to the file name
 in order to do so.  However, if you want to customize which suffixes
 the loading functions recognize as compression suffixes, you should
 customize `jka-compr-load-suffixes' rather than the present variable.  */);
-  Vload_file_rep_suffixes = Fcons (empty_unibyte_string, Qnil);
+  Vload_file_rep_suffixes = list1 (empty_unibyte_string);
 
   DEFVAR_BOOL ("load-in-progress", load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);

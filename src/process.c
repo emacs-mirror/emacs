@@ -841,7 +841,7 @@ nil, indicating the current buffer's process.  */)
   p->raw_status_new = 0;
   if (NETCONN1_P (p) || SERIALCONN1_P (p))
     {
-      pset_status (p, Fcons (Qexit, Fcons (make_number (0), Qnil)));
+      pset_status (p, list2 (Qexit, make_number (0)));
       p->tick = ++process_tick;
       status_notify (p);
       redisplay_preserve_echo_area (13);
@@ -1206,11 +1206,11 @@ list of keywords.  */)
   if ((!NETCONN_P (process) && !SERIALCONN_P (process)) || EQ (key, Qt))
     return contact;
   if (NILP (key) && NETCONN_P (process))
-    return Fcons (Fplist_get (contact, QChost),
-		  Fcons (Fplist_get (contact, QCservice), Qnil));
+    return list2 (Fplist_get (contact, QChost),
+		  Fplist_get (contact, QCservice));
   if (NILP (key) && SERIALCONN_P (process))
-    return Fcons (Fplist_get (contact, QCport),
-		  Fcons (Fplist_get (contact, QCspeed), Qnil));
+    return list2 (Fplist_get (contact, QCport),
+		  Fplist_get (contact, QCspeed));
   return Fplist_get (contact, key);
 }
 
@@ -1397,7 +1397,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (BVAR (current_buffer, directory), Qnil));
+			 list1 (BVAR (current_buffer, directory)));
 
     UNGCPRO;
   }
@@ -1519,7 +1519,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK));
 	  UNGCPRO;
 	  if (NILP (tem))
-	    report_file_error ("Searching for program", Fcons (program, Qnil));
+	    report_file_error ("Searching for program", list1 (program));
 	  tem = Fexpand_file_name (tem, Qnil);
 	}
       else
@@ -1542,7 +1542,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
 	/* Encode the file name and put it in NEW_ARGV.
 	   That's where the child will use it to execute the program.  */
-	tem = Fcons (ENCODE_FILE (tem), Qnil);
+	tem = list1 (ENCODE_FILE (tem));
 
 	/* Here we encode arguments by the coding system used for sending
 	   data to the process.  We don't support using different coding
@@ -2323,8 +2323,7 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
     }
 
   if (ret < 0)
-    report_file_error ("Cannot set network option",
-		       Fcons (opt, Fcons (val, Qnil)));
+    report_file_error ("Cannot set network option", list2 (opt, val));
   return (1 << sopt->optbit);
 }
 
@@ -5124,9 +5123,7 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
        sometimes it's simply wrong to wrap (e.g. when called from
        accept-process-output).  */
     internal_condition_case_1 (read_process_output_call,
-			       Fcons (outstream,
-				      Fcons (make_lisp_proc (p),
-					     Fcons (text, Qnil))),
+			       list3 (outstream, make_lisp_proc (p), text),
 			       !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			       read_process_output_error_handler);
 
@@ -5296,7 +5293,7 @@ write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
   if (front)
     pset_write_queue (p, Fcons (entry, p->write_queue));
   else
-    pset_write_queue (p, nconc2 (p->write_queue, Fcons (entry, Qnil)));
+    pset_write_queue (p, nconc2 (p->write_queue, list1 (entry)));
 }
 
 /* Remove the first element in the write_queue of process P, put its
@@ -5469,7 +5466,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
-		report_file_error ("sending datagram", Fcons (proc, Qnil));
+		report_file_error ("sending datagram", list1 (proc));
 	    }
 	  else
 #endif
@@ -5546,7 +5543,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		}
 	      else
 		/* This is a real error.  */
-		report_file_error ("writing to process", Fcons (proc, Qnil));
+		report_file_error ("writing to process", list1 (proc));
 	    }
 	  cur_buf += written;
 	  cur_len -= written;
@@ -6272,8 +6269,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   running_asynch_code = 1;
 
   internal_condition_case_1 (read_process_output_call,
-			     Fcons (sentinel,
-				    Fcons (proc, Fcons (reason, Qnil))),
+			     list3 (sentinel, proc, reason),
 			     !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			     exec_sentinel_error_handler);
 

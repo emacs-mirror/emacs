@@ -226,7 +226,7 @@ validate_plist (Lisp_Object list)
       return list;
     }
 
-  return Fcons (list, Fcons (Qnil, Qnil));
+  return list2 (list, Qnil);
 }
 
 /* Return true if interval I has all the properties,
@@ -436,16 +436,14 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 		if (set_type == TEXT_PROPERTY_PREPEND)
 		  Fsetcar (this_cdr, Fcons (val1, Fcar (this_cdr)));
 		else
-		  nconc2 (Fcar (this_cdr), Fcons (val1, Qnil));
+		  nconc2 (Fcar (this_cdr), list1 (val1));
 	      else {
 		/* The previous value is a single value, so make it
 		   into a list. */
 		if (set_type == TEXT_PROPERTY_PREPEND)
-		  Fsetcar (this_cdr,
-			   Fcons (val1, Fcons (Fcar (this_cdr), Qnil)));
+		  Fsetcar (this_cdr, list2 (val1, Fcar (this_cdr)));
 		else
-		  Fsetcar (this_cdr,
-			   Fcons (Fcar (this_cdr), Fcons (val1, Qnil)));
+		  Fsetcar (this_cdr, list2 (Fcar (this_cdr), val1));
 	      }
 	    }
 	    changed = 1;
@@ -1308,9 +1306,7 @@ the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
-  Fadd_text_properties (start, end,
-			Fcons (property, Fcons (value, Qnil)),
-			object);
+  Fadd_text_properties (start, end, list2 (property, value), object);
   return Qnil;
 }
 
@@ -1344,11 +1340,10 @@ into it.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object face,
    Lisp_Object appendp, Lisp_Object object)
 {
-  add_text_properties_1 (start, end,
-			 Fcons (Qface, Fcons (face, Qnil)),
-			 object,
-			 NILP (appendp)? TEXT_PROPERTY_PREPEND:
-			 TEXT_PROPERTY_APPEND);
+  add_text_properties_1 (start, end, list2 (Qface, face), object,
+			 (NILP (appendp)
+			  ? TEXT_PROPERTY_PREPEND
+			  : TEXT_PROPERTY_APPEND));
   return Qnil;
 }
 
@@ -1929,7 +1924,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
 	  {
 	    if (EQ (Fcar (plist), prop))
 	      {
-		plist = Fcons (prop, Fcons (Fcar (Fcdr (plist)), Qnil));
+		plist = list2 (prop, Fcar (Fcdr (plist)));
 		break;
 	      }
 	    plist = Fcdr (Fcdr (plist));
@@ -1938,10 +1933,8 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_
 	{
 	  /* Must defer modifications to the interval tree in case src
 	     and dest refer to the same string or buffer.  */
-	  stuff = Fcons (Fcons (make_number (p),
-				Fcons (make_number (p + len),
-				       Fcons (plist, Qnil))),
-			stuff);
+	  stuff = Fcons (list3 (make_number (p), make_number (p + len), plist),
+			 stuff);
 	}
 
       i = next_interval (i);
@@ -2007,14 +2000,13 @@ text_property_list (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp
 	    for (; CONSP (plist); plist = Fcdr (XCDR (plist)))
 	      if (EQ (XCAR (plist), prop))
 		{
-		  plist = Fcons (prop, Fcons (Fcar (XCDR (plist)), Qnil));
+		  plist = list2 (prop, Fcar (XCDR (plist)));
 		  break;
 		}
 
 	  if (!NILP (plist))
-	    result = Fcons (Fcons (make_number (s),
-				   Fcons (make_number (s + len),
-					  Fcons (plist, Qnil))),
+	    result = Fcons (list3 (make_number (s), make_number (s + len),
+				   plist),
 			    result);
 
 	  i = next_interval (i);
@@ -2343,8 +2335,8 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   /* Text properties `syntax-table'and `display' should be nonsticky
      by default.  */
   Vtext_property_default_nonsticky
-    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt),
-	     Fcons (Fcons (intern_c_string ("display"), Qt), Qnil));
+    = list2 (Fcons (intern_c_string ("syntax-table"), Qt),
+	     Fcons (intern_c_string ("display"), Qt));
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);

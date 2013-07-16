@@ -489,8 +489,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   ptrdiff_t count;
   USE_SAFE_ALLOCA;
 
-  suffixes = Fcons (build_string (".map"),
-		    Fcons (build_string (".TXT"), Qnil));
+  suffixes = list2 (build_string (".map"), build_string (".TXT"));
 
   count = SPECPDL_INDEX ();
   specbind (Qfile_name_handler_alist, Qnil);
@@ -1178,7 +1177,7 @@ usage: (define-charset-internal ...)  */)
 			 charset.iso_final) = id;
       if (new_definition_p)
 	Viso_2022_charset_list = nconc2 (Viso_2022_charset_list,
-					 Fcons (make_number (id), Qnil));
+					 list1 (make_number (id)));
       if (ISO_CHARSET_TABLE (1, 0, 'J') == id)
 	charset_jisx0201_roman = id;
       else if (ISO_CHARSET_TABLE (2, 0, '@') == id)
@@ -1198,7 +1197,7 @@ usage: (define-charset-internal ...)  */)
 	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 2;
       if (new_definition_p)
 	Vemacs_mule_charset_list = nconc2 (Vemacs_mule_charset_list,
-					   Fcons (make_number (id), Qnil));
+					   list1 (make_number (id)));
     }
 
   if (new_definition_p)
@@ -1206,7 +1205,7 @@ usage: (define-charset-internal ...)  */)
       Vcharset_list = Fcons (args[charset_arg_name], Vcharset_list);
       if (charset.supplementary_p)
 	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
-					Fcons (make_number (id), Qnil));
+					list1 (make_number (id)));
       else
 	{
 	  Lisp_Object tail;
@@ -1223,7 +1222,7 @@ usage: (define-charset-internal ...)  */)
 					   Vcharset_ordered_list);
 	  else if (NILP (tail))
 	    Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
-					    Fcons (make_number (id), Qnil));
+					    list1 (make_number (id)));
 	  else
 	    {
 	      val = Fcons (XCAR (tail), XCDR (tail));
@@ -2308,7 +2307,7 @@ Please check your installation!\n",
       exit (1);
     }
 
-  Vcharset_map_path = Fcons (tempdir, Qnil);
+  Vcharset_map_path = list1 (tempdir);
 }
 
 

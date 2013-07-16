@@ -7581,8 +7581,7 @@ gif_load (struct frame *f, struct image *img)
 	      delay |= ext->Bytes[1];
 	    }
 	}
-      img->lisp_data = Fcons (Qextension_data,
-			      Fcons (img->lisp_data, Qnil));
+      img->lisp_data = list2 (Qextension_data, img->lisp_data);
       if (delay)
 	img->lisp_data
 	  = Fcons (Qdelay,

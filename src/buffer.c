@@ -613,7 +613,7 @@ even if it is dead.  The return value is never nil.  */)
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buffer), Qnil));
+  Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buffer)));
   /* And run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
@@ -824,7 +824,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+  Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buf)));
 
   bset_mark (b, Fmake_marker ());
 

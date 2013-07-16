@@ -3388,7 +3388,7 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = 0;
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font), Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, font)));
     }
 }
 
@@ -3709,14 +3709,10 @@ Value is nil if ATTR doesn't have a discrete set of valid values.  */)
 
   CHECK_SYMBOL (attr);
 
-  if (EQ (attr, QCunderline))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCoverline))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCstrike_through))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCinverse_video) || EQ (attr, QCreverse_video))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
+  if (EQ (attr, QCunderline) || EQ (attr, QCoverline)
+      || EQ (attr, QCstrike_through)
+      || EQ (attr, QCinverse_video) || EQ (attr, QCreverse_video))
+    result = list2 (Qt, Qnil);
 
   return result;
 }
@@ -3779,21 +3775,18 @@ Default face attributes override any local face attributes.  */)
 	      && newface->font)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
-	      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
-						      Qnil));
+	      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, name)));
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
 	    Fmodify_frame_parameters (frame,
-				      Fcons (Fcons (Qforeground_color,
-						    gvec[LFACE_FOREGROUND_INDEX]),
-					     Qnil));
+				      list1 (Fcons (Qforeground_color,
+						    gvec[LFACE_FOREGROUND_INDEX])));
 
 	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
 	    Fmodify_frame_parameters (frame,
-				      Fcons (Fcons (Qbackground_color,
-						    gvec[LFACE_BACKGROUND_INDEX]),
-					     Qnil));
+				      list1 (Fcons (Qbackground_color,
+						    gvec[LFACE_BACKGROUND_INDEX])));
 	}
     }
 
@@ -6483,7 +6476,7 @@ syms_of_xfaces (void)
   DEFSYM (Qtty_color_alist, "tty-color-alist");
   DEFSYM (Qscalable_fonts_allowed, "scalable-fonts-allowed");
 
-  Vparam_value_alist = Fcons (Fcons (Qnil, Qnil), Qnil);
+  Vparam_value_alist = list1 (Fcons (Qnil, Qnil));
   staticpro (&Vparam_value_alist);
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);

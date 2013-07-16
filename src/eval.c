@@ -338,7 +338,7 @@ do_debug_on_call (Lisp_Object code)
 {
   debug_on_next_call = 0;
   set_backtrace_debug_on_exit (specpdl_ptr - 1, true);
-  call_debugger (Fcons (code, Qnil));
+  call_debugger (list1 (code));
 }
 
 /* NOTE!!! Every function that can call EVAL must protect its args
@@ -1611,7 +1611,7 @@ signal_error (const char *s, Lisp_Object arg)
     }
 
   if (!NILP (hare))
-    arg = Fcons (arg, Qnil);	/* Make it a list.  */
+    arg = list1 (arg);
 
   xsignal (Qerror, Fcons (build_string (s), arg));
 }
@@ -1703,7 +1703,7 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
       /* RMS: What's this for?  */
       && when_entered_debugger < num_nonmacro_input_events)
     {
-      call_debugger (Fcons (Qerror, Fcons (combined_data, Qnil)));
+      call_debugger (list2 (Qerror, combined_data));
       return 1;
     }
 
@@ -1992,7 +1992,7 @@ If LEXICAL is t, evaluate using lexical scoping.  */)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
-	    CONSP (lexical) || NILP (lexical) ? lexical : Fcons (Qt, Qnil));
+	    CONSP (lexical) || NILP (lexical) ? lexical : list1 (Qt));
   return unbind_to (count, eval_sub (form));
 }
 
@@ -2257,7 +2257,7 @@ eval_sub (Lisp_Object form)
 
   lisp_eval_depth--;
   if (backtrace_debug_on_exit (specpdl_ptr - 1))
-    val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
+    val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
 
   return val;
@@ -2878,7 +2878,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   check_cons_list ();
   lisp_eval_depth--;
   if (backtrace_debug_on_exit (specpdl_ptr - 1))
-    val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
+    val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
   return val;
 }
@@ -2920,7 +2920,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
     {
       /* Don't do it again when we return to eval.  */
       set_backtrace_debug_on_exit (specpdl_ptr - 1, false);
-      tem = call_debugger (Fcons (Qexit, Fcons (tem, Qnil)));
+      tem = call_debugger (list2 (Qexit, tem));
     }
   SAFE_FREE ();
   return tem;

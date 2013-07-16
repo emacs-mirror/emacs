@@ -771,7 +771,7 @@ append to existing target file.  */)
 	  stderr = initial_stderr_stream;
 	  initial_stderr_stream = NULL;
 	  report_file_error ("Cannot open debugging output stream",
-			     Fcons (file, Qnil));
+			     list1 (file));
 	}
     }
   return Qnil;
@@ -1301,7 +1301,7 @@ print_prune_string_charset (Lisp_Object string)
       if (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND)
 	{
 	  if (NILP (print_prune_charset_plist))
-	    print_prune_charset_plist = Fcons (Qcharset, Qnil);
+	    print_prune_charset_plist = list1 (Qcharset);
 	  Fremove_text_properties (make_number (0),
 				   make_number (SCHARS (string)),
 				   print_prune_charset_plist, string);

@@ -185,7 +185,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 
   d = open_directory (SSDATA (dirfilename), &fd);
   if (d == NULL)
-    report_file_error ("Opening directory", Fcons (directory, Qnil));
+    report_file_error ("Opening directory", list1 (directory));
 
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
@@ -488,7 +488,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
   d = open_directory (SSDATA (encoded_dir), &fd);
   if (!d)
-    report_file_error ("Opening directory", Fcons (dirname, Qnil));
+    report_file_error ("Opening directory", list1 (dirname));
 
   record_unwind_protect (directory_files_internal_unwind,
 			 make_save_pointer (d));
@@ -1017,7 +1017,7 @@ return a list with one element, taken from `user-real-login-name'.  */)
 #endif
   if (EQ (users, Qnil))
     /* At least current user is always known. */
-    users = Fcons (Vuser_real_login_name, Qnil);
+    users = list1 (Vuser_real_login_name);
   return users;
 }
 

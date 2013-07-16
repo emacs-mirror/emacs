@@ -1962,7 +1962,7 @@ The PLIST is modified by side effects.  */)
       prev = tail;
       QUIT;
     }
-  newcell = Fcons (prop, Fcons (val, Qnil));
+  newcell = list2 (prop, val);
   if (NILP (prev))
     return newcell;
   else
@@ -2455,9 +2455,8 @@ is nil, and `use-dialog-box' is non-nil.  */)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
-      pane = Fcons (Fcons (build_string ("Yes"), Qt),
-		    Fcons (Fcons (build_string ("No"), Qnil),
-			   Qnil));
+      pane = list2 (Fcons (build_string ("Yes"), Qt),
+		    Fcons (build_string ("No"), Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, pane);
       obj = Fx_popup_dialog (Qt, menu, Qnil);
@@ -4915,7 +4914,7 @@ syms_of_fns (void)
   DEFVAR_LISP ("features", Vfeatures,
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
-  Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
+  Vfeatures = list1 (intern_c_string ("emacs"));
   DEFSYM (Qsubfeatures, "subfeatures");
   DEFSYM (Qfuncall, "funcall");
 

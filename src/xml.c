@@ -124,7 +124,7 @@ make_dom (xmlNode *node)
 {
   if (node->type == XML_ELEMENT_NODE)
     {
-      Lisp_Object result = Fcons (intern ((char *) node->name), Qnil);
+      Lisp_Object result = list1 (intern ((char *) node->name));
       xmlNode *child;
       xmlAttr *property;
       Lisp_Object plist = Qnil;

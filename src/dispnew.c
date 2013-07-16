@@ -5619,7 +5619,7 @@ FILE = nil means just close any termscript file currently open.  */)
       file = Fexpand_file_name (file, Qnil);
       tty->termscript = emacs_fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
-	report_file_error ("Opening termscript", Fcons (file, Qnil));
+	report_file_error ("Opening termscript", list1 (file));
     }
   return Qnil;
 }
@@ -5699,7 +5699,7 @@ bitch_at_user (void)
     {
       const char *msg
 	= "Keyboard macro terminated by a command ringing the bell";
-      Fsignal (Quser_error, Fcons (build_string (msg), Qnil));
+      Fsignal (Quser_error, list1 (build_string (msg)));
     }
   else
     ring_bell (XFRAME (selected_frame));
@@ -6127,15 +6127,14 @@ init_display (void)
 
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters
-      (selected_frame, Fcons (Fcons (Qtty_type,
-                                     Ftty_type (selected_frame)), Qnil));
+      (selected_frame, list1 (Fcons (Qtty_type,
+                                     Ftty_type (selected_frame))));
     if (t->display_info.tty->name)
-      Fmodify_frame_parameters (selected_frame,
-				Fcons (Fcons (Qtty, build_string (t->display_info.tty->name)),
-				       Qnil));
+      Fmodify_frame_parameters
+	(selected_frame,
+	 list1 (Fcons (Qtty, build_string (t->display_info.tty->name))));
     else
-      Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil),
-						       Qnil));
+      Fmodify_frame_parameters (selected_frame, list1 (Fcons (Qtty, Qnil)));
   }
 
   {

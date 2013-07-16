@@ -296,10 +296,10 @@ for instance using the window manager, then this produces a quit and
     XSETFRAME (frame, f);
     XSETINT (x, x_pixel_width (f) / 2);
     XSETINT (y, x_pixel_height (f) / 2);
-    newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
+    newpos = list2 (list2 (x, y), frame);
 
     return Fx_popup_menu (newpos,
-			  Fcons (Fcar (contents), Fcons (contents, Qnil)));
+			  list2 (Fcar (contents), contents));
   }
 #else
   {
@@ -317,9 +317,9 @@ for instance using the window manager, then this produces a quit and
       /* No buttons specified, add an "Ok" button so users can pop down
          the dialog.  Also, the lesstif/motif version crashes if there are
          no buttons.  */
-      contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
+      contents = list2 (title, Fcons (build_string ("Ok"), Qt));
 
-    list_of_panes (Fcons (contents, Qnil));
+    list_of_panes (list1 (contents));
 
     /* Display them in a dialog box.  */
     block_input ();
@@ -1871,7 +1871,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 		    {
 		      int j;
 
-		      entry = Fcons (entry, Qnil);
+		      entry = list1 (entry);
 		      if (!NILP (prefix))
 			entry = Fcons (prefix, entry);
 		      for (j = submenu_depth - 1; j >= 0; j--)
@@ -2172,7 +2172,7 @@ xdialog_show (FRAME_PTR f,
 		{
 		  if (keymaps != 0)
 		    {
-		      entry = Fcons (entry, Qnil);
+		      entry = list1 (entry);
 		      if (!NILP (prefix))
 			entry = Fcons (prefix, entry);
 		    }
@@ -2223,9 +2223,7 @@ menu_help_callback (char const *help_string, int pane, int item)
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 
   /* (menu-item MENU-NAME PANE-NUMBER)  */
-  menu_object = Fcons (Qmenu_item,
- 		       Fcons (pane_name,
- 			      Fcons (make_number (pane), Qnil)));
+  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
  		  Qnil, menu_object, make_number (item));
 }
@@ -2515,7 +2513,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 			= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 		      if (keymaps)
 			{
-			  entry = Fcons (entry, Qnil);
+			  entry = list1 (entry);
 			  if (!NILP (pane_prefix))
 			    entry = Fcons (pane_prefix, entry);
 			}

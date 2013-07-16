@@ -1004,7 +1004,7 @@ find_and_return_menu_selection (FRAME_PTR f, bool keymaps, void *client_data)
                 {
                   int j;
 
-                  entry = Fcons (entry, Qnil);
+                  entry = list1 (entry);
                   if (!NILP (prefix))
                     entry = Fcons (prefix, entry);
                   for (j = submenu_depth - 1; j >= 0; j--)

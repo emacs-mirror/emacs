@@ -786,7 +786,7 @@ get_minibuffer (EMACS_INT depth)
   tail = Fnthcdr (num, Vminibuffer_list);
   if (NILP (tail))
     {
-      tail = Fcons (Qnil, Qnil);
+      tail = list1 (Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
@@ -1862,7 +1862,7 @@ If FLAG is nil, invoke `try-completion'; if it is t, invoke
   else if (EQ (flag, Qlambda))
     return Ftest_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qmetadata))
-    return Fcons (Qmetadata, Fcons (Fcons (Qcategory, Qbuffer), Qnil));
+    return list2 (Qmetadata, Fcons (Qcategory, Qbuffer));
   else
     return Qnil;
 }
@@ -2106,8 +2106,7 @@ These are in addition to the basic `field' property, and stickiness
 properties.  */);
   /* We use `intern' here instead of Qread_only to avoid
      initialization-order problems.  */
-  Vminibuffer_prompt_properties
-    = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
+  Vminibuffer_prompt_properties = list2 (intern_c_string ("read-only"), Qt);
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);

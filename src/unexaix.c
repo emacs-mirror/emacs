@@ -97,7 +97,7 @@ report_error (const char *file, int fd)
   int err = errno;
   if (fd)
     emacs_close (fd);
-  report_file_errno ("Cannot unexec", Fcons (build_string (file), Qnil), err);
+  report_file_errno ("Cannot unexec", list1 (build_string (file)), err);
 }
 
 #define ERROR0(msg) report_error_1 (new, msg)

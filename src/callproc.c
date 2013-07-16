@@ -392,7 +392,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (BVAR (current_buffer, directory), Qnil));
+			 list1 (BVAR (current_buffer, directory)));
 
     if (STRING_MULTIBYTE (infile))
       infile = ENCODE_FILE (infile);
@@ -410,7 +410,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
     report_file_error ("Opening process input file",
-		       Fcons (DECODE_FILE (infile), Qnil));
+		       list1 (DECODE_FILE (infile)));
 
   if (STRINGP (output_file))
     {
@@ -422,7 +422,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	  int open_errno = errno;
 	  output_file = DECODE_FILE (output_file);
 	  report_file_errno ("Opening process output file",
-			     Fcons (output_file, Qnil), open_errno);
+			     list1 (output_file), open_errno);
 	}
       if (STRINGP (error_file) || NILP (error_file))
 	output_to_buffer = 0;
@@ -441,7 +441,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	int openp_errno = errno;
 	emacs_close (filefd);
 	report_file_errno ("Searching for program",
-			   Fcons (args[0], Qnil), openp_errno);
+			   list1 (args[0]), openp_errno);
       }
   }
 
@@ -506,7 +506,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	  int open_errno = errno;
 	  emacs_close (filefd);
 	  report_file_errno ("Opening process output file",
-			     Fcons (build_string (tempfile), Qnil), open_errno);
+			     list1 (build_string (tempfile)), open_errno);
 	}
     }
   else
@@ -564,7 +564,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	else if (STRINGP (error_file))
 	  error_file = DECODE_FILE (error_file);
 	report_file_errno ("Cannot redirect stderr",
-			   Fcons (error_file, Qnil), open_errno);
+			   list1 (error_file), open_errno);
       }
 
 #ifdef MSDOS /* MW, July 1993 */
@@ -596,8 +596,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 	    unlink (tempfile);
 	    emacs_close (filefd);
 	    report_file_errno ("Cannot re-open temporary file",
-			       Fcons (build_string (tempfile), Qnil),
-			       open_errno);
+			       list1 (build_string (tempfile)), open_errno);
 	  }
       }
     else
@@ -1028,7 +1027,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args)
 #endif
       if (fd < 0)
 	report_file_error ("Failed to open temporary file using pattern",
-			   Fcons (pattern, Qnil));
+			   list1 (pattern));
       emacs_close (fd);
     }
 

@@ -1715,7 +1715,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
     }
 
-  x_set_frame_parameters (f, Fcons (Fcons (prop, tem), Qnil));
+  x_set_frame_parameters (f, list1 (Fcons (prop, tem)));
   return tem;
 }
 
@@ -2948,7 +2948,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
+      x_set_frame_parameters (f, list1 (Fcons (Qfont_param, font_param)));
     }
 
   /* This call will make X resources override any system font setting.  */
@@ -5238,7 +5238,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
-    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtooltip, Qt), Qnil));
+    Fmodify_frame_parameters (frame, list1 (Fcons (Qtooltip, Qt)));
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
@@ -5256,8 +5256,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       disptype = intern ("color");
 
     if (NILP (Fframe_parameter (frame, Qdisplay_type)))
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qdisplay_type, disptype),
-                                              Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qdisplay_type, disptype)));
   }
 
   /* Set up faces after all frame parameters are known.  This call
@@ -5276,8 +5275,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
-					      Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qbackground_color, bg)));
   }
 
   f->no_split = 1;

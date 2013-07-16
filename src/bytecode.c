@@ -572,9 +572,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  if (nargs < mandatory)
 	    /* Too few arguments.  */
 	    Fsignal (Qwrong_number_of_arguments,
-		     Fcons (Fcons (make_number (mandatory),
+		     list2 (Fcons (make_number (mandatory),
 				   rest ? Qand_rest : make_number (nonrest)),
-			    Fcons (make_number (nargs), Qnil)));
+			    make_number (nargs)));
 	  else
 	    {
 	      for (; i < nonrest; i++)
@@ -593,9 +593,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       else
 	/* Too many arguments.  */
 	Fsignal (Qwrong_number_of_arguments,
-		 Fcons (Fcons (make_number (mandatory),
-			       make_number (nonrest)),
-			Fcons (make_number (nargs), Qnil)));
+		 list2 (Fcons (make_number (mandatory), make_number (nonrest)),
+			make_number (nargs)));
     }
   else if (! NILP (args_template))
     /* We should push some arguments on the stack.  */
@@ -1172,14 +1171,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  }
 
 	CASE (Blist1):
-	  TOP = Fcons (TOP, Qnil);
+	  TOP = list1 (TOP);
 	  NEXT;
 
 	CASE (Blist2):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
-	    TOP = Fcons (TOP, Fcons (v1, Qnil));
+	    TOP = list2 (TOP, v1);
 	    NEXT;
 	  }
 

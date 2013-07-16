@@ -3492,7 +3492,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       {
 	Lisp_Object pane, menu;
 	struct gcpro gcpro1;
-	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
+	pane = list1 (Fcons (build_string ("OK"), Qt));
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
 	Fx_popup_dialog (Qt, menu, Qt);

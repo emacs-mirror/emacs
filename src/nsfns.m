@@ -2022,7 +2022,7 @@ there was no result.  */)
   ns_string_to_pasteboard (pb, send);
 
   if (NSPerformService (svcName, pb) == NO)
-    Fsignal (Qquit, Fcons (build_string ("service not available"), Qnil));
+    Fsignal (Qquit, list1 (build_string ("service not available")));
 
   if ([[pb types] count] == 0)
     return build_string ("");
@@ -2878,7 +2878,7 @@ Example: Install an icon Gnus.tiff and execute the following code
 
 When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
-  Vns_icon_type_alist = Fcons (Qt, Qnil);
+  Vns_icon_type_alist = list1 (Qt);
 
   DEFVAR_LISP ("ns-version-string", Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);

@@ -1492,7 +1492,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   if (NILP (Fcar (Fcdr (contents))))
     /* No buttons specified, add an "Ok" button so users can pop down
        the dialog.  */
-    contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
+    contents = list2 (title, Fcons (build_string ("Ok"), Qt));
 
   block_input ();
   pool = [[NSAutoreleasePool alloc] init];

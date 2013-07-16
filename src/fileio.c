@@ -749,7 +749,7 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 	       dog-slow, but also useless since eventually nil would
 	       have to be returned anyway.  */
 	    report_file_error ("Cannot create temporary name for prefix",
-			       Fcons (prefix, Qnil));
+			       list1 (prefix));
 	  /* not reached */
 	}
     }
@@ -2019,7 +2019,7 @@ entries (depending on how Emacs was built).  */)
     {
       acl = acl_get_file (SDATA (encoded_file), ACL_TYPE_ACCESS);
       if (acl == NULL && acl_errno_valid (errno))
-	report_file_error ("Getting ACL", Fcons (file, Qnil));
+	report_file_error ("Getting ACL", list1 (file));
     }
   if (!CopyFile (SDATA (encoded_file),
 		 SDATA (encoded_newname),
@@ -2027,7 +2027,7 @@ entries (depending on how Emacs was built).  */)
     {
       /* CopyFile doesn't set errno when it fails.  By far the most
 	 "popular" reason is that the target is read-only.  */
-      report_file_errno ("Copying file", Fcons (file, Fcons (newname, Qnil)),
+      report_file_errno ("Copying file", list2 (file, newname),
 			 GetLastError () == 5 ? EACCES : EPERM);
     }
   /* CopyFile retains the timestamp by default.  */
@@ -2058,7 +2058,7 @@ entries (depending on how Emacs was built).  */)
       bool fail =
 	acl_set_file (SDATA (encoded_newname), ACL_TYPE_ACCESS, acl) != 0;
       if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", Fcons (newname, Qnil));
+	report_file_error ("Setting ACL", list1 (newname));
 
       acl_free (acl);
     }
@@ -2068,12 +2068,12 @@ entries (depending on how Emacs was built).  */)
   immediate_quit = 0;
 
   if (ifd < 0)
-    report_file_error ("Opening input file", Fcons (file, Qnil));
+    report_file_error ("Opening input file", list1 (file));
 
   record_unwind_protect (close_file_unwind, make_number (ifd));
 
   if (fstat (ifd, &st) != 0)
-    report_file_error ("Input file status", Fcons (file, Qnil));
+    report_file_error ("Input file status", list1 (file));
 
   if (!NILP (preserve_extended_attributes))
     {
@@ -2082,7 +2082,7 @@ entries (depending on how Emacs was built).  */)
 	{
 	  conlength = fgetfilecon (ifd, &con);
 	  if (conlength == -1)
-	    report_file_error ("Doing fgetfilecon", Fcons (file, Qnil));
+	    report_file_error ("Doing fgetfilecon", list1 (file));
 	}
 #endif
     }
@@ -2090,11 +2090,11 @@ entries (depending on how Emacs was built).  */)
   if (out_st.st_mode != 0
       && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
     report_file_errno ("Input and output files are the same",
-		       Fcons (file, Fcons (newname, Qnil)), 0);
+		       list2 (file, newname), 0);
 
   /* We can copy only regular files.  */
   if (!S_ISREG (st.st_mode))
-    report_file_errno ("Non-regular file", Fcons (file, Qnil),
+    report_file_errno ("Non-regular file", list1 (file),
 		       S_ISDIR (st.st_mode) ? EISDIR : EINVAL);
 
   {
@@ -2109,7 +2109,7 @@ entries (depending on how Emacs was built).  */)
 		      new_mask);
   }
   if (ofd < 0)
-    report_file_error ("Opening output file", Fcons (newname, Qnil));
+    report_file_error ("Opening output file", list1 (newname));
 
   record_unwind_protect (close_file_unwind, make_number (ofd));
 
@@ -2117,7 +2117,7 @@ entries (depending on how Emacs was built).  */)
   QUIT;
   while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
     if (emacs_write_sig (ofd, buf, n) != n)
-      report_file_error ("I/O error", Fcons (newname, Qnil));
+      report_file_error ("I/O error", list1 (newname));
   immediate_quit = 0;
 
 #ifndef MSDOS
@@ -2158,7 +2158,7 @@ entries (depending on how Emacs was built).  */)
       bool fail = fsetfilecon (ofd, con) != 0;
       /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
       if (fail && errno != ENOTSUP)
-	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
+	report_file_error ("Doing fsetfilecon", list1 (newname));
 
       freecon (con);
     }
@@ -2174,7 +2174,7 @@ entries (depending on how Emacs was built).  */)
     }
 
   if (emacs_close (ofd) < 0)
-    report_file_error ("I/O error", Fcons (newname, Qnil));
+    report_file_error ("I/O error", list1 (newname));
 
   emacs_close (ifd);
 
@@ -2719,7 +2719,7 @@ If there is no error, returns nil.  */)
   encoded_filename = ENCODE_FILE (absname);
 
   if (faccessat (AT_FDCWD, SSDATA (encoded_filename), R_OK, AT_EACCESS) != 0)
-    report_file_error (SSDATA (string), Fcons (filename, Qnil));
+    report_file_error (SSDATA (string), list1 (filename));
 
   return Qnil;
 }
@@ -3054,14 +3054,14 @@ or if Emacs was not compiled with SELinux support.  */)
 		  != 0);
           /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
 	  if (fail && errno != ENOTSUP)
-	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
+	    report_file_error ("Doing lsetfilecon", list1 (absname));
 
 	  context_free (parsed_con);
 	  freecon (con);
 	  return fail ? Qnil : Qt;
 	}
       else
-	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
+	report_file_error ("Doing lgetfilecon", list1 (absname));
     }
 #endif
 
@@ -3151,7 +3151,7 @@ support.  */)
       acl = acl_from_text (SSDATA (acl_string));
       if (acl == NULL)
 	{
-	  report_file_error ("Converting ACL", Fcons (absname, Qnil));
+	  report_file_error ("Converting ACL", list1 (absname));
 	  return Qnil;
 	}
 
@@ -3161,7 +3161,7 @@ support.  */)
 			    acl)
 	      != 0);
       if (fail && acl_errno_valid (errno))
-	report_file_error ("Setting ACL", Fcons (absname, Qnil));
+	report_file_error ("Setting ACL", list1 (absname));
 
       acl_free (acl);
       return fail ? Qnil : Qt;
@@ -3221,7 +3221,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   encoded_absname = ENCODE_FILE (absname);
 
   if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
-    report_file_error ("Doing chmod", Fcons (absname, Qnil));
+    report_file_error ("Doing chmod", list1 (absname));
 
   return Qnil;
 }
@@ -3287,7 +3287,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
         if (file_directory_p (SSDATA (encoded_absname)))
           return Qnil;
 #endif
-        report_file_error ("Setting file times", Fcons (absname, Qnil));
+        report_file_error ("Setting file times", list1 (absname));
       }
   }
 
@@ -3553,7 +3553,7 @@ by calling `format-decode', which see.  */)
     {
       save_errno = errno;
       if (NILP (visit))
-	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
+	report_file_error ("Opening input file", list1 (orig_filename));
       mtime = time_error_value (save_errno);
       st.st_size = -1;
       if (!NILP (Vcoding_system_for_read))
@@ -3568,7 +3568,7 @@ by calling `format-decode', which see.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
   if (fstat (fd, &st) != 0)
-    report_file_error ("Input file status", Fcons (orig_filename, Qnil));
+    report_file_error ("Input file status", list1 (orig_filename));
   mtime = get_stat_mtime (&st);
 
   /* This code will need to be changed in order to work on named
@@ -3682,7 +3682,7 @@ by calling `format-decode', which see.  */)
 		      int ntail;
 		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
 			report_file_error ("Setting file position",
-					   Fcons (orig_filename, Qnil));
+					   list1 (orig_filename));
 		      ntail = emacs_read (fd, read_buf + nread, 1024 * 3);
 		      nread = ntail < 0 ? ntail : nread + ntail;
 		    }
@@ -3727,7 +3727,7 @@ by calling `format-decode', which see.  */)
 		  /* Rewind the file for the actual read done later.  */
 		  if (lseek (fd, 0, SEEK_SET) < 0)
 		    report_file_error ("Setting file position",
-				       Fcons (orig_filename, Qnil));
+				       list1 (orig_filename));
 		}
 	    }
 
@@ -3794,7 +3794,7 @@ by calling `format-decode', which see.  */)
 	{
 	  if (lseek (fd, beg_offset, SEEK_SET) < 0)
 	    report_file_error ("Setting file position",
-			       Fcons (orig_filename, Qnil));
+			       list1 (orig_filename));
 	}
 
       immediate_quit = 1;
@@ -3867,7 +3867,7 @@ by calling `format-decode', which see.  */)
 	  trial = min (curpos, sizeof read_buf);
 	  if (lseek (fd, curpos - trial, SEEK_SET) < 0)
 	    report_file_error ("Setting file position",
-			       Fcons (orig_filename, Qnil));
+			       list1 (orig_filename));
 
 	  total_read = nread = 0;
 	  while (total_read < trial)
@@ -3988,7 +3988,7 @@ by calling `format-decode', which see.  */)
 
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position",
-			   Fcons (orig_filename, Qnil));
+			   list1 (orig_filename));
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
@@ -4169,7 +4169,7 @@ by calling `format-decode', which see.  */)
     {
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position",
-			   Fcons (orig_filename, Qnil));
+			   list1 (orig_filename));
     }
 
   /* In the following loop, HOW_MUCH contains the total bytes read so
@@ -4574,7 +4574,7 @@ by calling `format-decode', which see.  */)
       && EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
     {
       /* If visiting nonexistent file, return nil.  */
-      report_file_errno ("Opening input file", Fcons (orig_filename, Qnil),
+      report_file_errno ("Opening input file", list1 (orig_filename),
 			 save_errno);
     }
 
@@ -4631,7 +4631,7 @@ This function is for internal use only.  It may prompt the user.  */ )
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	/* Confirm that VAL can surely encode the current region.  */
 	val = call5 (Vselect_safe_coding_system_function,
-		     start, end, Fcons (Qt, Fcons (val, Qnil)),
+		     start, end, list2 (Qt, val),
 		     Qnil, filename);
     }
   else
@@ -4834,7 +4834,7 @@ This calls `write-region-annotate-functions' at the start, and
 
   record_unwind_protect (build_annotations_unwind,
 			 Vwrite_region_annotation_buffers);
-  Vwrite_region_annotation_buffers = Fcons (Fcurrent_buffer (), Qnil);
+  Vwrite_region_annotation_buffers = list1 (Fcurrent_buffer ());
   count1 = SPECPDL_INDEX ();
 
   given_buffer = current_buffer;
@@ -4901,7 +4901,7 @@ This calls `write-region-annotate-functions' at the start, and
       if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
       UNGCPRO;
-      report_file_errno ("Opening output file", Fcons (filename, Qnil),
+      report_file_errno ("Opening output file", list1 (filename),
 			 open_errno);
     }
 
@@ -4917,7 +4917,7 @@ This calls `write-region-annotate-functions' at the start, and
 	  if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
 	  UNGCPRO;
-	  report_file_errno ("Lseek error", Fcons (filename, Qnil),
+	  report_file_errno ("Lseek error", list1 (filename),
 			     lseek_errno);
 	}
     }

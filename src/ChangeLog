@@ -1,3 +1,86 @@
+2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer list1 (X) to Fcons (X, Qnil) when building lists.
+	This makes the code easier to read and the executable a bit smaller.
+	Do not replace all calls to Fcons that happen to create lists,
+	just calls that are intended to create lists.  For example, when
+	creating an alist that maps FOO to nil, use list1 (Fcons (FOO, Qnil))
+	rather than list1 (list1 (FOO)) or Fcons (Fcons (FOO, Qnil), Qnil).
+	Similarly for list2 through list5.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	* bytecode.c (exec_byte_code):
+	* callint.c (quotify_arg, Fcall_interactively):
+	* callproc.c (Fcall_process, create_temp_file):
+	* charset.c (load_charset_map_from_file)
+	(Fdefine_charset_internal, init_charset):
+	* coding.c (get_translation_table, detect_coding_system)
+	(Fcheck_coding_systems_region)
+	(Fset_terminal_coding_system_internal)
+	(Fdefine_coding_system_internal, Fdefine_coding_system_alias):
+	* composite.c (update_compositions, Ffind_composition_internal):
+	* dired.c (directory_files_internal, file_name_completion)
+	(Fsystem_users):
+	* dispnew.c (Fopen_termscript, bitch_at_user, init_display):
+	* doc.c (Fsnarf_documentation):
+	* editfns.c (Fmessage_box):
+	* emacs.c (main):
+	* eval.c (do_debug_on_call, signal_error, maybe_call_debugger)
+	(Feval, eval_sub, Ffuncall, apply_lambda):
+	* fileio.c (make_temp_name, Fcopy_file, Faccess_file)
+	(Fset_file_selinux_context, Fset_file_acl, Fset_file_modes)
+	(Fset_file_times, Finsert_file_contents)
+	(Fchoose_write_coding_system, Fwrite_region):
+	* fns.c (Flax_plist_put, Fyes_or_no_p, syms_of_fns):
+	* font.c (font_registry_charsets, font_parse_fcname)
+	(font_prepare_cache, font_update_drivers, Flist_fonts):
+	* fontset.c (Fset_fontset_font, Ffontset_info, syms_of_fontset):
+	* frame.c (make_frame, Fmake_terminal_frame)
+	(x_set_frame_parameters, x_report_frame_params)
+	(x_default_parameter, Fx_parse_geometry):
+	* ftfont.c (syms_of_ftfont):
+	* image.c (gif_load):
+	* keyboard.c (command_loop_1):
+	* keymap.c (Fmake_keymap, Fmake_sparse_keymap, access_keymap_1)
+	(Fcopy_keymap, append_key, Fcurrent_active_maps)
+	(Fminor_mode_key_binding, accessible_keymaps_1)
+	(Faccessible_keymaps, Fwhere_is_internal):
+	* lread.c (read_emacs_mule_char):
+	* menu.c (find_and_return_menu_selection):
+	* minibuf.c (get_minibuffer):
+	* nsfns.m (Fns_perform_service):
+	* nsfont.m (ns_script_to_charset):
+	* nsmenu.m (ns_popup_dialog):
+	* nsselect.m (ns_get_local_selection, ns_string_from_pasteboard)
+	(Fx_own_selection_internal):
+	* nsterm.m (append2):
+	* print.c (Fredirect_debugging_output)
+	(print_prune_string_charset):
+	* process.c (Fdelete_process, Fprocess_contact)
+	(Fformat_network_address, set_socket_option)
+	(read_and_dispose_of_process_output, write_queue_push)
+	(send_process, exec_sentinel):
+	* sound.c (Fplay_sound_internal):
+	* textprop.c (validate_plist, add_properties)
+	(Fput_text_property, Fadd_face_text_property)
+	(copy_text_properties, text_property_list, syms_of_textprop):
+	* unexaix.c (report_error):
+	* unexcoff.c (report_error):
+	* unexsol.c (unexec):
+	* xdisp.c (redisplay_tool_bar, store_mode_line_string)
+	(Fformat_mode_line, syms_of_xdisp):
+	* xfaces.c (set_font_frame_param)
+	(Finternal_lisp_face_attribute_values)
+	(Finternal_merge_in_global_face, syms_of_xfaces):
+	* xfns.c (x_default_scroll_bar_color_parameter)
+	(x_default_font_parameter, x_create_tip_frame):
+	* xfont.c (xfont_supported_scripts):
+	* xmenu.c (Fx_popup_dialog, xmenu_show, xdialog_show)
+	(menu_help_callback, xmenu_show):
+	* xml.c (make_dom):
+	* xterm.c (set_wm_state):
+	Prefer list1 (FOO) to Fcons (FOO, Qnil) when creating a list,
+	and similarly for list2 through list5.
+
 2013-07-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c (Fcall_process_region): Fix minor race and tune.
