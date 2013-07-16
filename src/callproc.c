@@ -524,7 +524,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     {
 #ifndef MSDOS
       int fd[2];
-      if (pipe2 (fd, O_CLOEXEC) != 0)
+      if (emacs_pipe (fd) != 0)
 	{
 	  int pipe_errno = errno;
 	  emacs_close (filefd);

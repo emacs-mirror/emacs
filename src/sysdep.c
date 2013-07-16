@@ -2201,6 +2201,20 @@ emacs_fopen (char const *file, char const *mode)
   return fd < 0 ? 0 : fdopen (fd, mode);
 }
 
+/* Create a pipe for Emacs use.  */
+
+int
+emacs_pipe (int fd[2])
+{
+  int result = pipe2 (fd, O_CLOEXEC);
+  if (! O_CLOEXEC && result == 0)
+    {
+      fcntl (fd[0], F_SETFD, FD_CLOEXEC);
+      fcntl (fd[1], F_SETFD, FD_CLOEXEC);
+    }
+  return result;
+}
+
 /* Approximate posix_close and POSIX_CLOSE_RESTART well enough for Emacs.
    For the background behind this mess, please see Austin Group defect 529
    <http://austingroupbugs.net/view.php?id=529>.  */

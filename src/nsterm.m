@@ -4142,7 +4142,7 @@ ns_term_init (Lisp_Object display_name)
 
   if (selfds[0] == -1)
     {
-      if (pipe2 (selfds, O_CLOEXEC) != 0)
+      if (emacs_pipe (selfds) != 0)
         {
           fprintf (stderr, "Failed to create pipe: %s\n",
                    emacs_strerror (errno));

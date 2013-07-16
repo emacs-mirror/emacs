@@ -1651,11 +1651,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   else
 #endif /* HAVE_PTYS */
     {
-      if (pipe2 (sv, O_CLOEXEC) != 0)
+      if (emacs_pipe (sv) != 0)
 	report_file_error ("Creating pipe", Qnil);
       inchannel = sv[0];
       forkout = sv[1];
-      if (pipe2 (sv, O_CLOEXEC) != 0)
+      if (emacs_pipe (sv) != 0)
 	{
 	  int pipe_errno = errno;
 	  emacs_close (inchannel);
@@ -1667,7 +1667,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 
 #ifndef WINDOWSNT
-  if (pipe2 (wait_child_setup, O_CLOEXEC) != 0)
+  if (emacs_pipe (wait_child_setup) != 0)
     report_file_error ("Creating pipe", Qnil);
 #endif
 

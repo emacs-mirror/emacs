@@ -1,5 +1,11 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix porting bug to older POSIXish platforms (Bug#14862).
+	* sysdep.c (emacs_pipe): New function, that implements
+	pipe2 (fd, O_CLOEXEC) even on hosts that lack O_CLOEXEC.
+	This should port better to CentOS 5 and to Mac OS X 10.6.
+	All calls to pipe2 changed.
+
 	Prefer list1 (X) to Fcons (X, Qnil) when building lists.
 	This makes the code easier to read and the executable a bit smaller.
 	Do not replace all calls to Fcons that happen to create lists,

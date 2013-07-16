@@ -985,7 +985,7 @@ main (int argc, char **argv)
 	 use a pipe for synchronization.  The parent waits for the child
 	 to close its end of the pipe (using `daemon-initialized')
 	 before exiting.  */
-      if (pipe2 (daemon_pipe, O_CLOEXEC) != 0)
+      if (emacs_pipe (daemon_pipe) != 0)
 	{
 	  fprintf (stderr, "Cannot pipe!\n");
 	  exit (1);

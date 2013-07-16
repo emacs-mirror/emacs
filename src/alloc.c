@@ -4741,7 +4741,7 @@ valid_pointer_p (void *p)
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if (pipe2 (fd, O_CLOEXEC) == 0)
+  if (emacs_pipe (fd) == 0)
     {
       bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
       emacs_close (fd[1]);
