@@ -1,6 +1,12 @@
 2013-07-16  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix bug where Emacs tries to close a file twice (Bug#14839).
+	Fix w32 bug with call-process-region (Bug#14885).
+	* callproc.c (Fcall_process_region): Pass nil, not "/dev/null",
+	to Fcall_process when the input is empty.  This simplifies the
+	code a bit.  It makes no difference on POSIXish platforms but
+	apparently it fixes a bug on w32.
+
+	Fix bug where insert-file-contents closes a file twice. (Bug#14839).
 	* fileio.c (close_file_unwind): Don't close if FD is negative;
 	this can happen when unwinding a zapped file descriptor.
 	(Finsert_file_contents): Unwind-protect the fd before the point marker,

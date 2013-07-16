@@ -1093,7 +1093,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct gcpro gcpro1;
-  Lisp_Object filename_string;
+  Lisp_Object infile;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object start = args[0];
   Lisp_Object end = args[1];
@@ -1111,10 +1111,8 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       empty_input = XINT (start) == XINT (end);
     }
 
-  filename_string = (empty_input
-		     ? build_string (NULL_DEVICE)
-		     : create_temp_file (nargs, args));
-  GCPRO1 (filename_string);
+  infile = empty_input ? Qnil : create_temp_file (nargs, args);
+  GCPRO1 (infile);
 
   if (nargs > 3 && !NILP (args[3]))
     Fdelete_region (start, end);
@@ -1129,7 +1127,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       args[0] = args[2];
       nargs = 2;
     }
-  args[1] = filename_string;
+  args[1] = infile;
 
   RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs, args)));
 }
