@@ -184,7 +184,7 @@
 	'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
        (ad-activate 'file-expand-wildcards)))))
 
-;; `with-temp-message' does not exists in XEmacs.
+;; `with-temp-message' does not exist in XEmacs.
 (if (fboundp 'with-temp-message)
     (defalias 'tramp-compat-with-temp-message 'with-temp-message)
   (defmacro tramp-compat-with-temp-message (message &rest body)
@@ -292,7 +292,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
       (error "Non-octal junk in string `%s'" x))
     (string-to-number ostr 8)))
 
-;; ID-FORMAT does not exists in XEmacs.
+;; ID-FORMAT does not exist in XEmacs.
 (defun tramp-compat-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files (compat function)."
   (cond
