@@ -4238,7 +4238,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	else
 	  {
 	    buf = xrealloc (buf, bufsize);
-	    set_unwind_protect_ptr (buf_save_value_index, buf);
+	    set_unwind_protect_ptr (buf_save_value_index, xfree, buf);
 	  }
 
 	p = buf + used;

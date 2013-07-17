@@ -3225,6 +3225,27 @@ record_unwind_protect_void (void (*function) (void))
   grow_specpdl ();
 }
 
+static void
+do_nothing (void)
+{}
+
+void
+clear_unwind_protect (ptrdiff_t count)
+{
+  union specbinding *p = specpdl + count;
+  p->unwind_void.kind = SPECPDL_UNWIND_VOID;
+  p->unwind_void.func = do_nothing;
+}
+
+void
+set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
+{
+  union specbinding *p = specpdl + count;
+  p->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
+  p->unwind_ptr.func = func;
+  p->unwind_ptr.arg = arg;
+}
+
 Lisp_Object
 unbind_to (ptrdiff_t count, Lisp_Object value)
 {

@@ -1040,10 +1040,12 @@ While the file is in the process of being loaded, the variable
 is bound to the file's name.
 
 Return t if the file exists and loads successfully.  */)
-  (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage, Lisp_Object nosuffix, Lisp_Object must_suffix)
+  (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
+   Lisp_Object nosuffix, Lisp_Object must_suffix)
 {
-  register FILE *stream;
-  register int fd = -1;
+  FILE *stream;
+  int fd;
+  int fd_index;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
@@ -1054,7 +1056,6 @@ Return t if the file exists and loads successfully.  */)
   Lisp_Object handler;
   bool safe_p = 1;
   const char *fmode = "r";
-  Lisp_Object tmp[2];
   int version;
 
 #ifdef DOS_NT
@@ -1087,19 +1088,23 @@ Return t if the file exists and loads successfully.  */)
   else
     file = Fsubstitute_in_file_name (file);
 
-
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file.  */
-  if (SBYTES (file) > 0)
+  if (SCHARS (file) == 0)
     {
-      ptrdiff_t size = SBYTES (file);
-
+      fd = -1;
+      errno = ENOENT;
+    }
+  else
+    {
+      Lisp_Object suffixes;
       found = Qnil;
       GCPRO2 (file, found);
 
       if (! NILP (must_suffix))
 	{
 	  /* Don't insist on adding a suffix if FILE already ends with one.  */
+	  ptrdiff_t size = SBYTES (file);
 	  if (size > 3
 	      && !strcmp (SSDATA (file) + size - 3, ".el"))
 	    must_suffix = Qnil;
@@ -1112,20 +1117,28 @@ Return t if the file exists and loads successfully.  */)
 	    must_suffix = Qnil;
 	}
 
-      fd = openp (Vload_path, file,
-		  (!NILP (nosuffix) ? Qnil
-		   : !NILP (must_suffix) ? Fget_load_suffixes ()
-		   : Fappend (2, (tmp[0] = Fget_load_suffixes (),
-				  tmp[1] = Vload_file_rep_suffixes,
-				  tmp))),
-		  &found, Qnil);
+      if (!NILP (nosuffix))
+	suffixes = Qnil;
+      else
+	{
+	  suffixes = Fget_load_suffixes ();
+	  if (NILP (must_suffix))
+	    {
+	      Lisp_Object arg[2];
+	      arg[0] = suffixes;
+	      arg[1] = Vload_file_rep_suffixes;
+	      suffixes = Fappend (2, arg);
+	    }
+	}
+
+      fd = openp (Vload_path, file, suffixes, &found, Qnil);
       UNGCPRO;
     }
 
   if (fd == -1)
     {
       if (NILP (noerror))
-	xsignal2 (Qfile_error, build_string ("Cannot open load file"), file);
+	report_file_error ("Cannot open load file", file);
       return Qnil;
     }
 
@@ -1163,6 +1176,12 @@ Return t if the file exists and loads successfully.  */)
 #endif
     }
 
+  if (0 <= fd)
+    {
+      fd_index = SPECPDL_INDEX ();
+      record_unwind_protect_int (close_file_unwind, fd);
+    }
+
   /* Check if we're stuck in a recursive load cycle.
 
      2000-09-21: It's not possible to just check for the file loaded
@@ -1178,11 +1197,7 @@ Return t if the file exists and loads successfully.  */)
     Lisp_Object tem;
     for (tem = Vloads_in_progress; CONSP (tem); tem = XCDR (tem))
       if (!NILP (Fequal (found, XCAR (tem))) && (++load_count > 3))
-	{
-	  if (fd >= 0)
-	    emacs_close (fd);
-	  signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
-	}
+	signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
     record_unwind_protect (record_load_unwind, Vloads_in_progress);
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
@@ -1195,9 +1210,8 @@ Return t if the file exists and loads successfully.  */)
 
   /* Get the name for load-history.  */
   hist_file_name = (! NILP (Vpurify_flag)
-                    ? Fconcat (2, (tmp[0] = Ffile_name_directory (file),
-                                   tmp[1] = Ffile_name_nondirectory (found),
-                                   tmp))
+                    ? concat2 (Ffile_name_directory (file),
+                               Ffile_name_nondirectory (found))
                     : found) ;
 
   version = -1;
@@ -1223,12 +1237,7 @@ Return t if the file exists and loads successfully.  */)
 	    {
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
-		{
-		  if (fd >= 0)
-		    emacs_close (fd);
-		  error ("File `%s' was not compiled in Emacs",
-			 SDATA (found));
-		}
+		error ("File `%s' was not compiled in Emacs", SDATA (found));
 	      else if (!NILP (nomessage) && !force_load_messages)
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
@@ -1274,7 +1283,10 @@ Return t if the file exists and loads successfully.  */)
 	  Lisp_Object val;
 
 	  if (fd >= 0)
-	    emacs_close (fd);
+	    {
+	      emacs_close (fd);
+	      clear_unwind_protect (fd_index);
+	    }
 	  val = call4 (Vload_source_file_function, found, hist_file_name,
 		       NILP (noerror) ? Qnil : Qt,
 		       (NILP (nomessage) || force_load_messages) ? Qnil : Qt);
@@ -1284,26 +1296,28 @@ Return t if the file exists and loads successfully.  */)
 
   GCPRO3 (file, found, hist_file_name);
 
-#ifdef WINDOWSNT
-  efound = ENCODE_FILE (found);
-  /* If we somehow got here with fd == -2, meaning the file is deemed
-     to be remote, don't even try to reopen the file locally; just
-     force a failure instead.  */
-  if (fd >= 0)
+  if (fd < 0)
     {
-      emacs_close (fd);
-      stream = emacs_fopen (SSDATA (efound), fmode);
+      /* We somehow got here with fd == -2, meaning the file is deemed
+	 to be remote.  Don't even try to reopen the file locally;
+	 just force a failure.  */
+      stream = NULL;
+      errno = EINVAL;
     }
   else
-    stream = NULL;
-#else  /* not WINDOWSNT */
-  stream = fdopen (fd, fmode);
-#endif /* not WINDOWSNT */
-  if (stream == 0)
     {
+#ifdef WINDOWSNT
       emacs_close (fd);
-      error ("Failure to create stdio stream for %s", SDATA (file));
+      clear_unwind_protect (fd_index);
+      efound = ENCODE_FILE (found);
+      stream = emacs_fopen (SSDATA (efound), fmode);
+#else
+      stream = fdopen (fd, fmode);
+#endif
     }
+  if (! stream)
+    report_file_error ("Opening stdio stream", file);
+  set_unwind_protect_ptr (fd_index, load_unwind, stream);
 
   if (! NILP (Vpurify_flag))
     Vpreloaded_file_list = Fcons (Fpurecopy (file), Vpreloaded_file_list);
@@ -1322,7 +1336,6 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  record_unwind_protect_ptr (load_unwind, stream);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
@@ -1521,7 +1534,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      bool exists;
-	      last_errno = ENOENT;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
@@ -1576,7 +1588,10 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		{
 		  fd = emacs_open (pfn, O_RDONLY, 0);
 		  if (fd < 0)
-		    last_errno = errno;
+		    {
+		      if (errno != ENOENT)
+			last_errno = errno;
+		    }
 		  else
 		    {
 		      struct stat st;

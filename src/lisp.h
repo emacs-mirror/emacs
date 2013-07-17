@@ -2744,18 +2744,6 @@ SPECPDL_INDEX (void)
   return specpdl_ptr - specpdl;
 }
 
-LISP_INLINE void
-set_unwind_protect_ptr (ptrdiff_t count, void *arg)
-{
-  specpdl[count].unwind_ptr.arg = arg;
-}
-
-LISP_INLINE void
-set_unwind_protect_int (ptrdiff_t count, int arg)
-{
-  specpdl[count].unwind_int.arg = arg;
-}
-
 /* Everything needed to describe an active condition case.
 
    Members are volatile if their values need to survive _longjmp when
@@ -3755,6 +3743,8 @@ extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
 extern void record_unwind_protect_int (void (*) (int), int);
 extern void record_unwind_protect_ptr (void (*) (void *), void *);
 extern void record_unwind_protect_void (void (*) (void));
+extern void clear_unwind_protect (ptrdiff_t);
+extern void set_unwind_protect_ptr (ptrdiff_t, void (*) (void *), void *);
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
 extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)

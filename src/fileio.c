@@ -217,8 +217,7 @@ report_file_error (char const *string, Lisp_Object name)
 void
 close_file_unwind (int fd)
 {
-  if (0 <= fd)
-    emacs_close (fd);
+  emacs_close (fd);
 }
 
 /* Restore point, having saved it as a marker.  */
@@ -4029,7 +4028,7 @@ by calling `format-decode', which see.  */)
       if (this < 0)
 	report_file_error ("Read error", orig_filename);
       emacs_close (fd);
-      set_unwind_protect_int (fd_index, -1);
+      clear_unwind_protect (fd_index);
 
       if (unprocessed > 0)
 	{
@@ -4270,7 +4269,7 @@ by calling `format-decode', which see.  */)
     Vdeactivate_mark = Qt;
 
   emacs_close (fd);
-  set_unwind_protect_int (fd_index, -1);
+  clear_unwind_protect (fd_index);
 
   if (how_much < 0)
     report_file_error ("Read error", orig_filename);

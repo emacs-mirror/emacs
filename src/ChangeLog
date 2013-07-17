@@ -1,5 +1,18 @@
 2013-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c: Fix file descriptor leaks and errno issues.
+	(Fload): Close some races that leaked fds or streams when 'load'
+	was interrupted.
+	(Fload, openp): Report error number of last nontrivial failure to open.
+	ENOENT counts as trivial.
+	* eval.c (do_nothing, clear_unwind_protect, set_unwind_protect_ptr):
+	New functions.
+	* fileio.c (close_file_unwind): No need to test whether FD is nonnegative,
+	now that the function is always called with a nonnegative arg.
+	* lisp.h (set_unwind_protect_ptr, set_unwind_protect_int): Remove.
+	All uses replaced with ...
+	(clear_unwind_protect, set_unwind_protect_ptr): New decls.
+
 	A few more minor file errno-reporting bugs.
 	* callproc.c (Fcall_process):
 	* doc.c (Fsnarf_documentation):
