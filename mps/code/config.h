@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2003, 2006 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -396,20 +396,16 @@
 
 #if defined(MPS_OS_FR)
 #define PROT_SIGNAL (SIGSEGV)
-#elif defined(MPS_OS_XC)
-#define PROT_SIGNAL (SIGBUS)
 #endif
 
-#if defined(MPS_OS_XC)
-#define PROT_SIGINFO_GOOD(info) (1) /* FIXME: Unused? */
-#elif defined(MPS_OS_FR)
+#if defined(MPS_OS_FR)
 #define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
 #endif
 
 
 /* Almost all of protxc.c etc. are architecture-independent, but unfortunately
    the Mach headers don't provide architecture neutral symbols for simple
-   things like thread states.  These definitions fix that */
+   things like thread states.  These definitions fix that. */
 
 #if defined(MPS_OS_XC)
 #if defined(MPS_ARCH_I6)
@@ -512,7 +508,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2003, 2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
