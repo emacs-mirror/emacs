@@ -1,3 +1,9 @@
+2013-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial, line-move): Don't start vscroll or
+	scroll-up if the current line is not taller than the window.
+	(Bug#14881)
+
 2013-07-16  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Do not
