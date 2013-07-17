@@ -301,7 +301,6 @@ static void *fooey(void* childIsFinishedReturn)
   void *marker = &marker;
   mps_root_t reg_root;
 
-  /* register the thread twice, just to make sure it works */
   die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
   die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, marker, 0), "root_create");
