@@ -405,7 +405,11 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
   filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
-    report_file_error ("Opening process input file", DECODE_FILE (infile));
+    {
+      int open_errno = errno;
+      report_file_errno ("Opening process input file", DECODE_FILE (infile),
+			 open_errno);
+    }
 
   if (STRINGP (output_file))
     {

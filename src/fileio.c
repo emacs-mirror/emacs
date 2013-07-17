@@ -204,7 +204,9 @@ report_file_errno (char const *string, Lisp_Object name, int errorno)
 }
 
 /* Signal a file-access failure that set errno.  STRING describes the
-   failure, NAME the file involved.  */
+   failure, NAME the file involved.  When invoking this function, take
+   care to not use arguments such as build_string ("foo") that involve
+   side effects that may set errno.  */
 
 void
 report_file_error (char const *string, Lisp_Object name)
@@ -2371,7 +2373,8 @@ This is what happens in interactive use with M-x.  */)
 				  INTEGERP (ok_if_already_exists), 0, 0);
   if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
     {
-      if (errno == EXDEV)
+      int rename_errno = errno;
+      if (rename_errno == EXDEV)
 	{
           ptrdiff_t count;
           symlink_target = Ffile_symlink_p (file);
@@ -2397,7 +2400,7 @@ This is what happens in interactive use with M-x.  */)
 	  unbind_to (count, Qnil);
 	}
       else
-	report_file_error ("Renaming", list2 (file, newname));
+	report_file_errno ("Renaming", list2 (file, newname), rename_errno);
     }
   UNGCPRO;
   return Qnil;
@@ -2451,7 +2454,10 @@ This is what happens in interactive use with M-x.  */)
 
   unlink (SSDATA (newname));
   if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
-    report_file_error ("Adding new name", list2 (file, newname));
+    {
+      int link_errno = errno;
+      report_file_errno ("Adding new name", list2 (file, newname), link_errno);
+    }
 
   UNGCPRO;
   return Qnil;
@@ -2510,6 +2516,7 @@ This happens for interactive use with M-x.  */)
   if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname)) < 0)
     {
       /* If we didn't complain already, silently delete existing file.  */
+      int symlink_errno;
       if (errno == EEXIST)
 	{
 	  unlink (SSDATA (encoded_linkname));
@@ -2527,7 +2534,9 @@ This happens for interactive use with M-x.  */)
 		    build_string ("Symbolic links are not supported"));
 	}
 
-      report_file_error ("Making symbolic link", list2 (filename, linkname));
+      symlink_errno = errno;
+      report_file_errno ("Making symbolic link", list2 (filename, linkname),
+			 symlink_errno);
     }
   UNGCPRO;
   return Qnil;

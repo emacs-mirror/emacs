@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG.  */
 #include <fcntl.h>
@@ -609,7 +610,11 @@ the same file name is found in the `doc-directory'.  */)
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
-    report_file_error ("Opening doc string file", build_string (name));
+    {
+      int open_errno = errno;
+      report_file_errno ("Opening doc string file", build_string (name),
+			 open_errno);
+    }
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;

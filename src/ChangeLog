@@ -1,3 +1,13 @@
+2013-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	A few more minor file errno-reporting bugs.
+	* callproc.c (Fcall_process):
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (Frename_file, Fadd_name_to_file, Fmake_symbolic_link):
+	* process.c (set_socket_option):
+	Don't let a constructor trash errno.
+	* doc.c: Include <errno.h>.
+
 2013-07-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (unwind_create_tip_frame): Fix declaration.

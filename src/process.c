@@ -2321,7 +2321,12 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
     }
 
   if (ret < 0)
-    report_file_error ("Cannot set network option", list2 (opt, val));
+    {
+      int setsockopt_errno = errno;
+      report_file_errno ("Cannot set network option", list2 (opt, val),
+			 setsockopt_errno);
+    }
+
   return (1 << sopt->optbit);
 }
 
