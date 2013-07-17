@@ -239,7 +239,9 @@ static void protCatchOne(void)
   if (request.code[0] == KERN_PROTECTION_FAILURE) {
     MutatorFaultContextStruct mfcStruct;
 
-    mfcStruct.address = (Addr)request.code[1];
+    /* The cast via Word suppresses "cast to pointer from integer of
+       different size" warnings in GCC, for the  XCI3GC build. */
+    mfcStruct.address = (Addr)(Word)request.code[1];
     AVER(sizeof(*mfcStruct.threadState) == sizeof(THREAD_STATE_S));
     mfcStruct.threadState = (THREAD_STATE_S *)request.old_state;
   
