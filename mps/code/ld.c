@@ -146,7 +146,7 @@ Bool LDIsStaleAny(mps_ld_t ld, Arena arena)
 }
 
 
-/* LDIsStaleAny -- check whether a particular dependency is stale
+/* LDIsStale -- check whether a particular dependency is stale
  *
  * .stale.conservative: In fact we just ignore the address and test if
  * any dependency is stale. This is conservatively correct (no false
