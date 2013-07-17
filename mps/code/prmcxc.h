@@ -11,6 +11,7 @@
 
 #include "mpm.h"
 
+#include <mach/mach_types.h>
 #include <mach/i386/thread_status.h>
 
 typedef struct MutatorFaultContextStruct { /* Protection fault context data */
