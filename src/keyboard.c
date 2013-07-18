@@ -4066,7 +4066,7 @@ kbd_buffer_get_event (KBOARD **kbp,
         }
       else if (event->kind == FOCUS_OUT_EVENT)
         {
-#if defined(HAVE_NS) || defined (HAVE_X11)
+#if defined (HAVE_NS) || defined (HAVE_X11) || defined (WINDOWSNT)
 
 #ifdef HAVE_NS
           struct ns_display_info *di;
@@ -4076,11 +4076,11 @@ kbd_buffer_get_event (KBOARD **kbp,
           Lisp_Object frame = event->frame_or_window;
           bool focused = false;
 
-          for (di = x_display_list; di && ! focused; di = di->next)
-            focused = di->x_highlight_frame != 0;
+          for (di = x_display_list; di && ! focused; di = FRAME_X_DISPLAY_INFO (di)->next)
+            focused = FRAME_X_DISPLAY_INFO (di)->x_highlight_frame = 0;
 
           if (! focused) obj = make_lispy_focus_out (frame);
-#endif /* HAVE_NS || HAVE_X11 */
+#endif /* HAVE_NS || HAVE_X11 || WINDOWSNT */
 
           kbd_fetch_ptr = event + 1;
         }

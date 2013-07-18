@@ -1,3 +1,9 @@
+2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (kbd_buffer_get_event):
+	* w32term.c (x_focus_changed): Port FOCUS_(IN|OUT)_EVENT changes to W32.
+	Followup to revno:113431.
+
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* filelock.c: Fix unlikely file descriptor leaks.

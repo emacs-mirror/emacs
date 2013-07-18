@@ -1,3 +1,8 @@
+2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (blink-cursor-timer-function, blink-cursor-suspend):
+	Add check for W32 (followup to revno:113431).
+
 2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* filenotify.el (file-notify--library): Renamed from

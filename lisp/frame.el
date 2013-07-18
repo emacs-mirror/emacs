@@ -1709,7 +1709,7 @@ command starts, by installing a pre-command hook."
   "Timer function of timer `blink-cursor-timer'."
   (internal-show-cursor nil (not (internal-show-cursor-p)))
   ;; Each blink is two calls to this function.
-  (when (memq window-system '(x ns))
+  (when (memq window-system '(x ns w32))
     (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done))
     (when (and (> blink-cursor-blinks 0)
 	       (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
@@ -1729,11 +1729,11 @@ itself as a pre-command hook."
     (setq blink-cursor-timer nil)))
 
 (defun blink-cursor-suspend ()
-  "Suspend cursor blinking on NS and X.
+  "Suspend cursor blinking on NS, X and W32.
 This is called when no frame has focus and timers can be suspended.
 Timers are restarted by `blink-cursor-check', which is called when a
 frame receives focus."
-  (when (memq window-system '(x ns))
+  (when (memq window-system '(x ns w32))
     (blink-cursor-end)
     (when blink-cursor-idle-timer
       (cancel-timer blink-cursor-idle-timer)
