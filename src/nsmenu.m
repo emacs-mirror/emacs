@@ -612,8 +612,8 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   if (trackingMenu == 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-#if ! defined(NS_IMPL_COCOA) || \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
+#if (! defined (NS_IMPL_COCOA) \
+     || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5)
   /* Don't know how to do this for anything other than OSX >= 10.5
      This is wrong, as it might run Lisp code in the event loop.  */
   ns_update_menubar (frame, true, self);
@@ -1240,7 +1240,7 @@ update_frame_tool_bar (FRAME_PTR f)
 #ifdef NS_IMPL_GNUSTEP
   [self insertItemWithItemIdentifier: identifier atIndex: idx];
 #endif
-  
+
   [item setTag: tag];
   [item setEnabled: enabled];
 
@@ -1410,10 +1410,10 @@ struct Popdown_data
   EmacsDialogPanel *dialog;
 };
 
-static Lisp_Object
-pop_down_menu (Lisp_Object arg)
+static void
+pop_down_menu (void *arg)
 {
-  struct Popdown_data *unwind_data = XSAVE_POINTER (arg, 0);
+  struct Popdown_data *unwind_data = arg;
 
   block_input ();
   if (popup_activated_flag)
@@ -1427,8 +1427,6 @@ pop_down_menu (Lisp_Object arg)
 
   xfree (unwind_data);
   unblock_input ();
-
-  return Qnil;
 }
 
 
@@ -1492,7 +1490,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   if (NILP (Fcar (Fcdr (contents))))
     /* No buttons specified, add an "Ok" button so users can pop down
        the dialog.  */
-    contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
+    contents = list2 (title, Fcons (build_string ("Ok"), Qt));
 
   block_input ();
   pool = [[NSAutoreleasePool alloc] init];
@@ -1506,7 +1504,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     unwind_data->pool = pool;
     unwind_data->dialog = dialog;
 
-    record_unwind_protect (pop_down_menu, make_save_pointer (unwind_data));
+    record_unwind_protect_ptr (pop_down_menu, unwind_data);
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
     unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */

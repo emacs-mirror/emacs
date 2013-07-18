@@ -1,3 +1,31 @@
+2013-07-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-shr-put-image): Make it work as well for shr.el's
+	that the old Emacs 24s bundle.
+
+2013-07-10  David Engster  <deng@randomsample.de>
+
+	* gnus-start.el (gnus-clean-old-newsrc): Always remove 'unexist' marks
+	if `gnus-newsrc-file-version' does not match `gnus-version'.  This
+	fixes a bug in Emacs trunk where the 'unexist' marks were always
+	removed at startup because "Gnus v5.13" was considered smaller than "Ma
+	Gnus v0.03".
+
+2013-07-10  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.el (gnus-summary-line-format): Reference
+	`gnus-user-date-format-alist' for the &user-date; format, not
+	`gnus-summary-user-date-format-alist'.
+
+2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnml.el (nnml-request-compact-group): Don't bug out if we can't
+	delete files (bug#13481).
+
+2013-07-08  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-registry.el (gnus-registry-remove-extra-data): New function.
+
 2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (gnus-block-private-groups): Allow `global' methods to
@@ -120,7 +148,7 @@
 2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-insert-old-articles):
-	Don't include unexistent messages.
+	Don't include unexisting messages.
 
 2013-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

@@ -1073,6 +1073,8 @@ extern Lisp_Object buffer_local_value_1 (Lisp_Object, Lisp_Object);
 extern void record_buffer (Lisp_Object);
 extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);
+extern void restore_buffer (Lisp_Object);
+extern void set_buffer_if_live (Lisp_Object);
 
 /* Set the current buffer to B.
 

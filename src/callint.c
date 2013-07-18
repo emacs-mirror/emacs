@@ -127,7 +127,7 @@ quotify_arg (register Lisp_Object exp)
   if (CONSP (exp)
       || (SYMBOLP (exp)
 	  && !NILP (exp) && !EQ (exp, Qt)))
-    return Fcons (Qquote, Fcons (exp, Qnil));
+    return list2 (Qquote, exp);
 
   return exp;
 }
@@ -802,7 +802,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       for (i = 1; i < nargs; i++)
 	{
 	  if (varies[i] > 0)
-	    visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
+	    visargs[i] = list1 (intern (callint_argfuns[varies[i]]));
 	  else
 	    visargs[i] = quotify_arg (args[i]);
 	}

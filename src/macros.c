@@ -279,7 +279,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 /* Restore Vexecuting_kbd_macro and executing_kbd_macro_index.
    Called when the unwind-protect in Fexecute_kbd_macro gets invoked.  */
 
-static Lisp_Object
+static void
 pop_kbd_macro (Lisp_Object info)
 {
   Lisp_Object tem;
@@ -288,7 +288,6 @@ pop_kbd_macro (Lisp_Object info)
   executing_kbd_macro_index = XINT (XCAR (tem));
   Vreal_this_command = XCDR (tem);
   Frun_hooks (1, &Qkbd_macro_termination_hook);
-  return Qnil;
 }
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,

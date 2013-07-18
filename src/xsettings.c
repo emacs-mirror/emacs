@@ -170,7 +170,7 @@ enum {
   SEEN_HINTSTYLE  = 0x10,
   SEEN_DPI        = 0x20,
   SEEN_FONT       = 0x40,
-  SEEN_TB_STYLE   = 0x80,
+  SEEN_TB_STYLE   = 0x80
 };
 struct xsettings
 {
@@ -687,7 +687,7 @@ apply_xft_settings (struct x_display_info *dpyinfo,
     {
       static char const format[] =
 	"Antialias: %d, Hinting: %d, RGBA: %d, LCDFilter: %d, "
-	"Hintstyle: %d, DPI: %lf";
+	"Hintstyle: %d, DPI: %f";
       enum
       {
 	d_formats = 5,
@@ -696,7 +696,7 @@ apply_xft_settings (struct x_display_info *dpyinfo,
 	max_f_integer_digits = DBL_MAX_10_EXP + 1,
 	f_precision = 6,
 	lf_growth = (sizeof "-." + max_f_integer_digits + f_precision
-		     - sizeof "%lf")
+		     - sizeof "%f")
       };
       char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
 

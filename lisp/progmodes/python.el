@@ -3091,7 +3091,12 @@ you are doing."
            ;; Stop collecting nodes after moving to a position with
            ;; indentation equaling min-indent. This is specially
            ;; useful for navigating nested definitions recursively.
-           tree)
+           (if (> num-children 0)
+               tree
+             ;; When there are no children, the collected tree is a
+             ;; single node intended to be added in the list of defuns
+             ;; of its parent.
+             (car tree)))
           (t
            (python-imenu--build-tree
             min-indent
@@ -3131,7 +3136,7 @@ you are doing."
                    (cons
                     (prog1
                         (python-imenu--build-tree
-                         prev-indent indent 1 (list (cons label pos)))
+                         prev-indent indent 0 (list (cons label pos)))
                       ;; Adjustment: after scanning backwards
                       ;; for all deeper children, we need to
                       ;; continue our scan for a parent from

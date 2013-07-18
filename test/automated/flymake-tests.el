@@ -25,9 +25,6 @@
 (require 'ert)
 (require 'flymake)
 
-(defgroup flymake-tests nil
-  "Test suite for flymake.")
-
 
 ;; Warning predicate
 (defun flymake-tests--current-face (file predicate)

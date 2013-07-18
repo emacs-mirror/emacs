@@ -211,7 +211,8 @@ AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
     w | w3 | w32 )	val=w32 ;;
     * ) AC_MSG_ERROR([`--with-file-notification=$withval' is invalid;
 this option's value should be `yes', `no', `gfile', `inotify' or `w32'.
-`yes' is a synonym for `w32' on MS-Windows, and for `gfile' otherwise.])
+`yes' is a synonym for `w32' on MS-Windows, for `no' on Nextstep,
+otherwise for the first of `gfile' or `inotify' that is usable.])
     ;;
    esac
    with_file_notification=$val
@@ -1635,8 +1636,8 @@ if test "${opsys}" = "mingw32"; then
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
      #include <windows.h>
      #include <usp10.h>]],
-   [[void test(PIMAGE_NT_HEADERS pHeader)
-     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
+   [[PIMAGE_NT_HEADERS pHeader;
+     PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader)]])],
    [emacs_cv_w32api=yes
     HAVE_W32=yes],
    emacs_cv_w32api=no)
@@ -2041,7 +2042,7 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     ## 6.2.8 is the earliest version known to work, but earlier versions
     ## might work - let us know if you find one.
@@ -2312,51 +2313,57 @@ AC_SUBST(LIBGNUTLS_CFLAGS)
 NOTIFY_OBJ=
 NOTIFY_SUMMARY=no
 
-dnl Set defaults of $with_file_notification.
-if test "${with_file_notification}" = "yes"; then
-   if test "${opsys}" = "mingw32"; then
-      with_file_notification=w32
-   else
-      if test "${with_ns}" != yes; then
-        with_file_notification=gfile
-      fi
-   fi
+dnl FIXME?  Don't auto-detect on NS, but do allow someone to specify
+dnl a particular library.  This doesn't make much sense?
+if test "${with_ns}" = yes && test ${with_file_notification} = yes; then
+  with_file_notification=no
 fi
+
+dnl MS Windows native file monitor is available for mingw32 only.
+case $with_file_notification,$opsys in
+  w32,* | yes,mingw32)
+    AC_CHECK_HEADER(windows.h)
+    if test "$ac_cv_header_windows_h" = yes ; then
+       AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
+       NOTIFY_OBJ=w32notify.o
+       NOTIFY_SUMMARY="yes (w32)"
+    fi ;;
+esac
 
 dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
 dnl has been added in glib 2.24.  It has been tested under
 dnl GNU/Linux only.  We take precedence over inotify, but this makes
 dnl only sense when glib has been compiled with inotify support.  How
 dnl to check?
-if test "${with_file_notification}" = "gfile"; then
-   PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
-   if test "$HAVE_GFILENOTIFY" = "yes"; then
-      AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
-      NOTIFY_OBJ=gfilenotify.o
-      NOTIFY_SUMMARY="yes -lgio (gfile)"
-   fi
-fi
+case $with_file_notification,$NOTIFY_OBJ in
+  gfile, | yes,)
+    PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+    if test "$HAVE_GFILENOTIFY" = "yes"; then
+       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
+       NOTIFY_OBJ=gfilenotify.o
+       NOTIFY_SUMMARY="yes -lgio (gfile)"
+    fi ;;
+esac
+
 dnl inotify is only available on GNU/Linux.
-if test "${with_file_notification}" = "inotify"; then
-   AC_CHECK_HEADER(sys/inotify.h)
-   if test "$ac_cv_header_sys_inotify_h" = yes ; then
-       AC_CHECK_FUNC(inotify_init1)
-       if test "$ac_cv_func_inotify_init1" = yes; then
-           AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
-	   NOTIFY_OBJ=inotify.o
-	   NOTIFY_SUMMARY="yes -lglibc (inotify)"
-	fi
-  fi
-fi
-dnl MS Windows native file monitor is available for mingw32 only.
-if test "${with_file_notification}" = "w32"; then
-   AC_CHECK_HEADER(windows.h)
-   if test "$ac_cv_header_windows_h" = yes ; then
-      AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
-      NOTIFY_OBJ=w32notify.o
-      NOTIFY_SUMMARY="yes (w32)"
-   fi
-fi
+case $with_file_notification,$NOTIFY_OBJ in
+  inotify, | yes,)
+    AC_CHECK_HEADER(sys/inotify.h)
+    if test "$ac_cv_header_sys_inotify_h" = yes ; then
+	AC_CHECK_FUNC(inotify_init1)
+	if test "$ac_cv_func_inotify_init1" = yes; then
+	  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+	  NOTIFY_OBJ=inotify.o
+	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+       fi
+    fi ;;
+esac
+
+case $with_file_notification,$NOTIFY_OBJ in
+  yes,* | no,* | *,?*) ;;
+  *) AC_MSG_ERROR([File notification `$with_file_notification' requested but requirements not found.]) ;;
+esac
+
 if test -n "$NOTIFY_OBJ"; then
    AC_DEFINE(USE_FILE_NOTIFY, 1, [Define to 1 if using file notifications.])
 fi
@@ -3931,7 +3938,7 @@ case $opsys in
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
-      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
       dnl if HAVE_POSIX_OPENPT
       if test "x$ac_cv_func_posix_openpt" = xyes; then
         AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)])

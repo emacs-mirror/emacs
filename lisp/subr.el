@@ -3853,6 +3853,7 @@ FILE should be the name of a library, with no directory name."
   (declare (obsolete eval-after-load "23.2"))
   (eval-after-load file (read)))
 
+
 (defun display-delayed-warnings ()
   "Display delayed warnings from `delayed-warnings-list'.
 Used from `delayed-warnings-hook' (which see)."
@@ -3885,6 +3886,12 @@ Used from `delayed-warnings-hook' (which see)."
 By default, this hook contains functions to consolidate the
 warnings listed in `delayed-warnings-list', display them, and set
 `delayed-warnings-list' back to nil.")
+
+(defun delay-warning (type message &optional level buffer-name)
+  "Display a delayed warning.
+Aside from going through `delayed-warnings-list', this is equivalent
+to `display-warning'."
+  (push (list type message level buffer-name) delayed-warnings-list))
 
 
 ;;;; invisibility specs

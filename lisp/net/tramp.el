@@ -252,6 +252,11 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-tmpdir'
     A directory on the remote host for temporary files.  If not
     specified, \"/tmp\" is taken as default.
+  * `tramp-connection-timeout'
+    This is the maximum time to be spent for establishing a connection.
+    In general, the global default value shall be used, but for
+    some methods, like \"su\" or \"sudo\", a shorter timeout
+    might be desirable.
 
 What does all this mean?  Well, you should specify `tramp-login-program'
 for all methods; this program is used to log in to the remote site.  Then,
@@ -1034,6 +1039,13 @@ opening a connection to a remote host."
   :group 'tramp
   :type '(choice (const nil) (const t) (const pty)))
 
+(defcustom tramp-connection-timeout 60
+  "Defines the max time to wait for establishing a connection (in seconds).
+This can be overwritten for different connection types in `tramp-methods'."
+  :group 'tramp
+  :version "24.4"
+  :type 'integer)
+
 (defcustom tramp-connection-min-time-diff 5
   "Defines seconds between two consecutive connection attempts.
 This is necessary as self defense mechanism, in order to avoid
@@ -1070,6 +1082,9 @@ means to use always cached values for the directory contents."
 
 (defvar tramp-current-host nil
   "Remote host for this *tramp* buffer.")
+
+(defvar tramp-current-connection nil
+  "Last connection timestamp.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-handler-alist
@@ -1464,10 +1479,6 @@ ARGS to actually emit the message (if applicable)."
 This variable is used to disable messages from `tramp-error'.
 The messages are visible anyway, because an error is raised.")
 
-(defvar tramp-message-show-progress-reporter-message t
-  "Show Tramp progress reporter message in the minibuffer.
-This variable is used to disable recursive progress reporter messages.")
-
 (defsubst tramp-message (vec-or-proc level fmt-string &rest args)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
@@ -1536,23 +1547,32 @@ signal identifier to be raised, remaining args passed to
 If BUFFER is nil, show the connection buffer.  Wait for 30\", or until
 an input event arrives.  The other arguments are passed to `tramp-error'."
   (save-window-excursion
-    (unwind-protect
-	(apply 'tramp-error vec-or-proc signal fmt-string args)
-      (when (and vec-or-proc
-		 tramp-message-show-message
-		 (not (zerop tramp-verbose))
-		 (not (tramp-completion-mode-p)))
-	(let ((enable-recursive-minibuffers t))
-	  (pop-to-buffer
-	   (or (and (bufferp buffer) buffer)
-	       (and (processp vec-or-proc) (process-buffer vec-or-proc))
-	       (tramp-get-connection-buffer vec-or-proc)))
-	  (when (string-equal fmt-string "Process died")
-	    (message
-	     "%s\n    %s"
-	     "Tramp failed to connect.  If this happens repeatedly, try"
-	     "`M-x tramp-cleanup-this-connection'"))
-	  (sit-for 30))))))
+    (let* ((buf (or (and (bufferp buffer) buffer)
+		    (and (processp vec-or-proc) (process-buffer vec-or-proc))
+		    (and (vectorp vec-or-proc)
+			 (tramp-get-connection-buffer vec-or-proc))))
+	   (vec (or (and (vectorp vec-or-proc) vec-or-proc)
+		    (and buf (with-current-buffer buf
+			       (tramp-dissect-file-name default-directory))))))
+      (unwind-protect
+	  (apply 'tramp-error vec-or-proc signal fmt-string args)
+	;; Save exit.
+	(when (and buf
+		   tramp-message-show-message
+		   (not (zerop tramp-verbose))
+		   (not (tramp-completion-mode-p)))
+	  (let ((enable-recursive-minibuffers t))
+	    ;; `tramp-error' does not show messages.  So we must do it
+	    ;; ourselves.
+	    (message fmt-string args)
+	    ;; Show buffer.
+	    (pop-to-buffer buf)
+	    (discard-input)
+	    (sit-for 30)))
+	;; Reset timestamp.  It would be wrong after waiting for a while.
+	(when (equal (butlast (append vec nil) 2)
+		     (car tramp-current-connection))
+	  (setcdr tramp-current-connection (current-time)))))))
 
 (defmacro with-parsed-tramp-file-name (filename var &rest body)
   "Parse a Tramp filename and make components available in the body.
@@ -1596,16 +1616,15 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
 
 (defmacro with-tramp-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
-If LEVEL does not fit for visible messages, or if this is a
-nested call of the macro, there are only traces without a visible
-progress reporter."
+If LEVEL does not fit for visible messages, there are only traces
+without a visible progress reporter."
   (declare (indent 3) (debug t))
-  `(let (pr tm)
+  `(let ((result "failed")
+	 pr tm)
      (tramp-message ,vec ,level "%s..." ,message)
      ;; We start a pulsing progress reporter after 3 seconds.  Feature
      ;; introduced in Emacs 24.1.
-     (when (and tramp-message-show-progress-reporter-message
-		tramp-message-show-message
+     (when (and tramp-message-show-message
 		;; Display only when there is a minimum level.
 		(<= ,level (min tramp-verbose 3)))
        (ignore-errors
@@ -1613,14 +1632,11 @@ progress reporter."
 	       tm (when pr
 		    (run-at-time 3 0.1 'tramp-progress-reporter-update pr)))))
      (unwind-protect
-	 ;; Execute the body.  Suppress concurrent progress reporter
-	 ;; messages.
-	 (let ((tramp-message-show-progress-reporter-message
-		(and tramp-message-show-progress-reporter-message (not tm))))
-	   ,@body)
+	 ;; Execute the body.
+	 (prog1 (progn ,@body) (setq result "done"))
        ;; Stop progress reporter.
        (if tm (tramp-compat-funcall 'cancel-timer tm))
-       (tramp-message ,vec ,level "%s...done" ,message))))
+       (tramp-message ,vec ,level "%s...%s" ,message result))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))
@@ -1964,8 +1980,8 @@ ARGS are the arguments OPERATION has been called with."
 		  ;; Emacs 22+ only.
 		  'set-file-times
 		  ;; Emacs 24+ only.
-		  'file-acl 'file-notify-add-watch 'file-selinux-context
-		  'set-file-acl 'set-file-selinux-context
+		  'file-acl 'file-notify-add-watch 'file-notify-supported-p
+		  'file-selinux-context 'set-file-acl 'set-file-selinux-context
 		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
 		  'dired-file-modtime 'dired-make-compressed-filename
@@ -3393,39 +3409,49 @@ The terminal type can be configured with `tramp-terminal-type'."
 PROC and VEC indicate the remote connection to be used.  POS, if
 set, is the starting point of the region to be deleted in the
 connection buffer."
-  ;; Preserve message for `progress-reporter'.
-  (tramp-compat-with-temp-message ""
-    ;; Enable `auth-source' and `password-cache'.  We must use
-    ;; tramp-current-* variables in case we have several hops.
-    (tramp-set-connection-property
-     (tramp-dissect-file-name
-      (tramp-make-tramp-file-name
-       tramp-current-method tramp-current-user tramp-current-host ""))
-     "first-password-request" t)
-    (save-restriction
+  ;; Enable `auth-source' and `password-cache'.  We must use
+  ;; tramp-current-* variables in case we have several hops.
+  (tramp-set-connection-property
+   (tramp-dissect-file-name
+    (tramp-make-tramp-file-name
+     tramp-current-method tramp-current-user tramp-current-host ""))
+   "first-password-request" t)
+  (save-restriction
+    (with-tramp-progress-reporter
+	proc 3 "Waiting for prompts from remote shell"
       (let (exit)
-	(while (not exit)
-	  (tramp-message proc 3 "Waiting for prompts from remote shell")
-	  (setq exit
-		(catch 'tramp-action
-		  (if timeout
-		      (with-timeout (timeout)
-			(tramp-process-one-action proc vec actions))
+	(if timeout
+	    (with-timeout (timeout (setq exit 'timeout))
+	      (while (not exit)
+		(setq exit
+		      (catch 'tramp-action
+			(tramp-process-one-action proc vec actions)))))
+	  (while (not exit)
+	    (setq exit
+		  (catch 'tramp-action
 		    (tramp-process-one-action proc vec actions)))))
 	(with-current-buffer (tramp-get-connection-buffer vec)
 	  (widen)
 	  (tramp-message vec 6 "\n%s" (buffer-string)))
 	(unless (eq exit 'ok)
 	  (tramp-clear-passwd vec)
+	  (delete-process proc)
 	  (tramp-error-with-buffer
-	   nil vec 'file-error
+	   (tramp-get-connection-buffer vec) vec 'file-error
 	   (cond
 	    ((eq exit 'permission-denied) "Permission denied")
-	    ((eq exit 'process-died) "Process died")
-	    (t "Login failed"))))
-	(when (numberp pos)
-	  (with-current-buffer (tramp-get-connection-buffer vec)
-	    (let (buffer-read-only) (delete-region pos (point)))))))))
+	    ((eq exit 'process-died)
+	     (concat
+	      "Tramp failed to connect.  If this happens repeatedly, try\n"
+	      "    `M-x tramp-cleanup-this-connection'"))
+	    ((eq exit 'timeout)
+	     (format
+	      "Timeout reached, see buffer `%s' for details"
+	      (tramp-get-connection-buffer vec)))
+	    (t "Login failed")))))
+      (when (numberp pos)
+	(with-current-buffer (tramp-get-connection-buffer vec)
+	  (let (buffer-read-only) (delete-region pos (point))))))))
 
 :;; Utility functions:
 

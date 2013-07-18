@@ -283,7 +283,7 @@ Optional argument TYPE is type of output (nil means all)."
 <meta name=\"DC.title\" content=\"gnu.org\">\n\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
-@import url('/s/emacs/manual.css');\n</style>\n")
+@import url('/software/emacs/manual.css');\n</style>\n")
 
 (defun manual-misc-html (name root html-node-dir html-mono-dir)
   ;; Hack to deal with the cases where .texi creates a different .info.

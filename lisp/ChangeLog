@@ -1,3 +1,316 @@
+2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el (file-notify--library): Renamed from
+	`file-notify-support'.  Do not autoload.  Adapt all uses.
+	(file-notify-supported-p): New defun.
+
+	* autorevert.el (auto-revert-use-notify): Use
+	`file-notify-supported-p' instead of `file-notify-support'.  Adapt
+	docstring.
+	(auto-revert-notify-add-watch): Use `file-notify-supported-p'.
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add `file-notify-supported-p'.
+
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-supported-p):
+	New defun.
+	(tramp-sh-file-name-handler-alist): Add it as handler for
+	`file-notify-supported-p '.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Add `ignore' as handler for `file-notify-*' functions.
+
+2013-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial, line-move): Don't start vscroll or
+	scroll-up if the current line is not taller than the window.
+	(Bug#14881)
+
+2013-07-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Do not
+	highlight question marks in the method names as strings.
+	(ruby-block-beg-keywords): Inline.
+	(ruby-font-lock-keyword-beg-re): Extract from
+	`ruby-font-lock-keywords'.
+
+2013-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.el (blink-cursor-blinks): New defcustom.
+	(blink-cursor-blinks-done): New defvar.
+	(blink-cursor-start): Set blink-cursor-blinks-done to 1.
+	(blink-cursor-timer-function): Check if number of blinks has been
+	done on X and NS.
+	(blink-cursor-suspend, blink-cursor-check): New defuns.
+
+2013-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* edmacro.el (edmacro-format-keys): Fix previous change.
+
+2013-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* shell.el (explicit-bash-args): Remove obsolete hack for Bash 1.x.
+	The hack didn't work outside English locales anyway.
+
+2013-07-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (define-alternatives): Rename from alternatives-define,
+	per RMS' suggestion.
+
+2013-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Change default to t.
+	(desktop-restore-in-current-display): Now offer more options.
+	(desktop-restoring-reuses-frames): New customization option.
+	(desktop--saved-states): Doc fix.
+	(desktop-filter-parameters-alist): New variable, renamed and expanded
+	from desktop--excluded-frame-parameters.
+	(desktop--target-display): New variable.
+	(desktop-switch-to-gui-p, desktop-switch-to-tty-p)
+	(desktop--filter-tty*, desktop--filter-*-color)
+	(desktop--filter-minibuffer, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm)
+	(desktop-restore-in-original-display-p): New functions.
+	(desktop--filter-frame-parms): Use new desktop-filter-parameters-alist.
+	(desktop--save-minibuffer-frames): New function, inspired by a similar
+	function from Martin Rudalics.
+	(desktop--save-frames): Call it; play nice with desktop-globals-to-save.
+	(desktop--restore-in-this-display-p): Remove.
+	(desktop--find-frame): Rename from desktop--find-frame-in-display
+	and add predicate argument.
+	(desktop--make-full-frame): Remove, integrated into desktop--make-frame.
+	(desktop--reuse-list): New variable.
+	(desktop--select-frame, desktop--make-frame, desktop--sort-states):
+	New functions.
+	(desktop--restore-frames): Add support for "minibuffer-special" frames.
+
+2013-07-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-vc-registered): Use `ignore-error'.
+
+2013-07-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
+	conversion methods on Kernel.
+
+2013-07-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Label CASE 13
+	and comment it out.  This out-commenting enables certain C++
+	declarations to be parsed correctly.
+
+2013-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (define-coding-system): Doc fix.
+
+	* simple.el (default-font-height): Don't call font-info if the
+	frame's default font didn't change since the frame was created.
+	(Bug#14838)
+
+2013-07-13  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-file-name): Guard against non-symbol value.
+
+2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-imenu--build-tree): Fix corner case
+	in nested defuns.
+
+2013-07-13  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-exhibit): Handle ido-enter-matching-directory before
+	ido-set-matches call.  (Bug#6852)
+
+2013-07-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-percent-literals-beg-re):
+	(ruby-syntax-expansion-allowed-p): Support array of symbols, for
+	Ruby 2.0.
+	(ruby-font-lock-keywords): Distinguish calls to functions with
+	module-like names from module references.  Highlight character
+	literals.
+
+2013-07-12  Sergio Durigan Junior  <sergiodj@riseup.net>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-strip-string-backslash): New function.
+	(gdb-send): Handle continued commands.  (Bug#14847)
+
+2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--v2s): Remove unused local variable.
+	(desktop-save-buffer): Make defvar-local; adjust docstring.
+	(desktop-auto-save-timeout, desktop-owner): Use ignore-errors.
+	(desktop-clear, desktop-save-buffer-p): Use string-match-p.
+
+2013-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Fix last change.
+
+2013-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (next-line, previous-line): Document TRY-VSCROLL and ARG.
+	(Bug#14842)
+
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* doc-view.el: Require cl-lib at runtime too.
+	(doc-view-remove-if): Remove.
+	(doc-view-search-next-match, doc-view-search-previous-match):
+	Use cl-remove-if.
+
+	* edmacro.el: Require cl-lib at runtime too.
+	(edmacro-format-keys, edmacro-parse-keys): Use cl-mismatch, cl-subseq.
+	(edmacro-mismatch, edmacro-subseq): Remove.
+
+	* shadowfile.el: Require cl-lib.
+	(shadow-remove-if): Remove.
+	(shadow-set-cluster, shadow-shadows-of-1, shadow-remove-from-todo):
+	Use cl-remove-if.
+
+	* wid-edit.el: Require cl-lib.
+	(widget-choose): Use cl-remove-if.
+	(widget-remove-if): Remove.
+
+	* progmodes/ebrowse.el: Require cl-lib at runtime too.
+	(ebrowse-delete-if-not): Remove.
+	(ebrowse-browser-buffer-list, ebrowse-member-buffer-list)
+	(ebrowse-tree-buffer-list, ebrowse-same-tree-member-buffer-list):
+	Use cl-delete-if-not.
+
+2013-07-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (cl-multiple-value-bind, cl-multiple-value-setq)
+	(cl-the, cl-declare, cl-defstruct): Fix typos in docstrings.
+
+2013-07-12  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (dired-do-copy, dired): Set 'ido property.  (Bug#11954)
+
+2013-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/edebug.el: Require cl-lib at run-time too.
+	(edebug-gensym-index, edebug-gensym):
+	Remove reimplementation of cl-gensym.
+	(edebug-make-enter-wrapper, edebug-make-form-wrapper): Use cl-gensym.
+
+	* thumbs.el: Require cl-lib at run-time too.
+	(thumbs-gensym-counter, thumbs-gensym):
+	Remove reimplementation of cl-gensym.
+	(thumbs-temp-file): Use cl-gensym.
+
+	* emacs-lisp/ert.el: Require cl-lib at runtime too.
+	(ert--cl-do-remf, ert--remprop, ert--remove-if-not)
+	(ert--intersection, ert--set-difference, ert--set-difference-eq)
+	(ert--union, ert--gensym-counter, ert--gensym-counter)
+	(ert--coerce-to-vector, ert--remove*, ert--string-position)
+	(ert--mismatch, ert--subseq): Remove reimplementations of cl funcs.
+	(ert-make-test-unbound, ert--expand-should-1)
+	(ert--expand-should, ert--should-error-handle-error)
+	(should-error, ert--explain-equal-rec)
+	(ert--plist-difference-explanation, ert-select-tests)
+	(ert--make-stats, ert--remove-from-list, ert--string-first-line):
+	Use cl-lib functions rather than reimplementations.
+
+2013-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Extend docstring.
+	(tramp-connection-timeout): New defcustom.
+	(tramp-error-with-buffer): Reset timestamp only when appropriate.
+	(with-tramp-progress-reporter): Simplify.
+	(tramp-process-actions): Improve messages.
+
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	Use `tramp-connection-timeout'.
+	(tramp-methods) [su, sudo, ksu]: Add method specific timeouts.
+	(Bug#14808)
+
+2013-07-11  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-file-name): Conform to the requirements of
+	read-file-name.  (Bug#11861)
+	(ido-read-directory-name): Conform to the requirements of
+	read-directory-name.
+
+2013-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (delay-warning): New function.
+
+2013-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (default-line-height): New function.
+	(line-move-partial, line-move): Use it instead of computing the
+	line height inline.
+	(line-move-partial): Always compute ROWH.  If the last line is
+	partially-visible, but its text is completely visible, allow
+	cursor to enter such a partially-visible line.
+
+2013-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve error messages.  (Bug#14808)
+
+	* net/tramp.el (tramp-current-connection): New defvar, moved from
+	tramp-sh.el.
+	(tramp-message-show-progress-reporter-message): Removed, not
+	needed anymore.
+	(tramp-error-with-buffer): Show message in minibuffer.  Discard
+	input before waiting.  Reset connection timestamp.
+	(with-tramp-progress-reporter): Improve messages.
+	(tramp-process-actions): Use progress reporter.  Delete process in
+	case of error.  Improve messages.
+
+	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use
+	condition-case.  Call `tramp-error-with-buffer' with vector and buffer.
+	(tramp-current-connection): Removed.
+	(tramp-maybe-open-connection): The car of
+	`tramp-current-connection' are the first 3 slots of the vector.
+
+2013-07-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el (cfengine3-indent-line): Do not indent
+	inside continued strings.
+
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* files.el (clear-visited-file-modtime): Move here from fileio.c.
+
+2013-07-10  Leo Liu  <sdl.web@gmail.com>
+
+	* files.el (require-final-newline): Allow safe local value.
+	(Bug#14834)
+
+2013-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-directory-name): Handle fallback.
+	(ido-read-file-name): Update DIR to ido-current-directory.
+	(Bug#1516)
+	(ido-add-virtual-buffers-to-list): Robustify.  (Bug#14552)
+
+2013-07-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Remove extra
+	"autoload".  Remove "warn lower camel case" section, previously
+	commented out.  Highlight negation char.  Do not highlight the
+	target in singleton method definitions.
+
+2013-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (tty-setup-hook): Declare the hook.
+
+	* emacs-lisp/pcase.el (pcase--split-pred): Add `vars' argument to try
+	and detect when a guard/pred depends on local vars (bug#14773).
+	(pcase--u1): Adjust caller.
+
+2013-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move-partial, line-move): Account for
+	line-spacing.
+	(line-move-partial): Avoid setting vscroll when the last
+	partially-visible line in window is of default height.
+
 2013-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-map): Reinstate the `u' key binding, since it's
@@ -8,31 +321,32 @@
 	* subr.el (read-quoted-char): Remove unused local variable `char'.
 
 2013-07-07  Michael Kifer  <kifer@cs.stonybrook.edu>
-            Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* faces.el (tty-run-terminal-initialization): Function changed.
-
-	* viper.el (viper-emacs-state-mode-list): Add egg-status-buffer-mode.
-	(viper-version): Version update.
-	(viper-go-away, viper-setup-hooks): Function changed.
-	(viper--lookup-key, viper-catch-tty-ESC, viper-uncatch-tty-ESC)
-	(viper-setup-ESC-to-escape): New functions.
+	* ediff.el (ediff-version): Version update.
+	(ediff-files-command, ediff3-files-command, ediff-merge-command)
+	(ediff-merge-with-ancestor-command, ediff-directories-command)
+	(ediff-directories3-command, ediff-merge-directories-command)
+	(ediff-merge-directories-with-ancestor-command): New functions.
+	All are command-line interfaces to ediff: to facilitate calling
+	Emacs with the appropriate ediff functions invoked.
 
 	* viper-cmd.el (viper-del-forward-char-in-insert): New function.
 	(viper-save-kill-buffer): Check if buffer is modified.
-	(viper-envelop-ESC-key): Function deleted.
-	(viper-intercept-ESC-key): Function changed.
 
-	* viper-keym.el (viper-ESC-key): Constant changed.
+	* viper.el (viper-version): Version update.
+	(viper-emacs-state-mode-list): Add egg-status-buffer-mode.
 
-	* ediff.el (ediff-files-command, ediff3-files-command): New functions.
-	(ediff-merge-command, ediff-merge-with-ancestor-command): New functions.
-	(ediff-directories-command, ediff-directories3-command): New functions.
-	(ediff-merge-directories-command): New function.
-	(ediff-merge-directories-with-ancestor-command): New function.
-	All the above are command-line interfaces to ediff: facilitate calling
-	Emacs with the appropriate ediff functions invoked.
-	(ediff-version): Version update.
+2013-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (tty-run-terminal-initialization): Run new tty-setup-hook.
+	* viper-cmd.el (viper-envelop-ESC-key): Remove function.
+	(viper-intercept-ESC-key): Simplify.
+	* viper-keym.el (viper-ESC-key): Make it a constant, don't use kbd.
+	* viper.el (viper--tty-ESC-filter, viper--lookup-key)
+	(viper-catch-tty-ESC, viper-uncatch-tty-ESC)
+	(viper-setup-ESC-to-escape): New functions.
+	(viper-go-away, viper-set-hooks): Call viper-setup-ESC-to-escape.
+	(viper-set-hooks): Do not modify flyspell-mode-hook.  (Bug#13793)
 
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
@@ -577,7 +891,7 @@
 	* emacs-lock.el (emacs-lock-mode, emacs-lock--old-mode)
 	(emacs-lock--try-unlocking): Make defvar-local.
 
-2013-06-22  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* play/cookie1.el (cookie-apropos): Minor simplification.
 
@@ -1043,7 +1357,7 @@
 
 	* net/shr.el (shr-map): Bind [down-mouse-1] to browse URLs.
 
-2013-06-19  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eieio.el (defclass): Make it eval-and-compile once more.
 

@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'python)
 
 (defmacro python-tests-with-temp-buffer (contents &rest body)
@@ -463,10 +464,10 @@ Class foo(object):
 "
    (python-tests-look-at "3)")
    (forward-line 1)
-   (= (python-indent-calculate-indentation) 12)
+   (should (= (python-indent-calculate-indentation) 8))
    (python-tests-look-at "pass")
    (forward-line 1)
-   (= (python-indent-calculate-indentation) 8)))
+   (should (= (python-indent-calculate-indentation) 8))))
 
 
 ;;; Navigation
@@ -1742,6 +1743,53 @@ class Baz(object):
                "Frob (class)"
                (cons "*class definition*" (copy-marker 601))
                (cons "c (def)" (copy-marker 626)))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-index-2 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    def foo(self):
+        def foo1():
+            pass
+
+    def foobar(self):
+        pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (list
+              "Foo (class)"
+              (cons "*class definition*" (copy-marker 2))
+              (list
+               "foo (def)"
+               (cons "*function definition*" (copy-marker 21))
+               (cons "foo1 (def)" (copy-marker 40)))
+              (cons "foobar (def)"  (copy-marker 78))))
+            (python-imenu-create-index)))))
+
+(ert-deftest python-imenu-create-index-3 ()
+  (python-tests-with-temp-buffer
+   "
+class Foo(object):
+    def foo(self):
+        def foo1():
+            pass
+        def foo2():
+            pass
+"
+   (goto-char (point-max))
+   (should (equal
+            (list
+             (list
+              "Foo (class)"
+              (cons "*class definition*" (copy-marker 2))
+              (list
+               "foo (def)"
+               (cons "*function definition*" (copy-marker 21))
+               (cons "foo1 (def)" (copy-marker 40))
+               (cons "foo2 (def)" (copy-marker 77)))))
             (python-imenu-create-index)))))
 
 (ert-deftest python-imenu-create-flat-index-1 ()

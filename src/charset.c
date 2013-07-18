@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define CHARSET_INLINE EXTERN_INLINE
 
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
@@ -477,7 +478,8 @@ read_hex (FILE *fp, bool *eof, bool *overflow)
    `file-name-handler-alist' to avoid running any Lisp code.  */
 
 static void
-load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int control_flag)
+load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
+			    int control_flag)
 {
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -487,22 +489,26 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   struct charset_map_entries *head, *entries;
   int n_entries;
   ptrdiff_t count;
-  USE_SAFE_ALLOCA;
 
-  suffixes = Fcons (build_string (".map"),
-		    Fcons (build_string (".TXT"), Qnil));
+  suffixes = list2 (build_string (".map"), build_string (".TXT"));
 
   count = SPECPDL_INDEX ();
+  record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
   fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
-  unbind_to (count, Qnil);
-  if (fd < 0
-      || ! (fp = fdopen (fd, "r")))
-    error ("Failure in loading charset map: %s", SDATA (mapfile));
+  fp = fd < 0 ? 0 : fdopen (fd, "r");
+  if (!fp)
+    {
+      int open_errno = errno;
+      emacs_close (fd);
+      report_file_errno ("Loading charset map", mapfile, open_errno);
+    }
+  set_unwind_protect_ptr (count, fclose_unwind, fp);
+  unbind_to (count + 1, Qnil);
 
-  /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
+  /* Use record_xmalloc, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
-  head = SAFE_ALLOCA (sizeof *head);
+  head = record_xmalloc (sizeof *head);
   entries = head;
   memset (entries, 0, sizeof (struct charset_map_entries));
 
@@ -531,9 +537,9 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
       if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
 	continue;
 
-      if (n_entries > 0 && (n_entries % 0x10000) == 0)
+      if (n_entries == 0x10000)
 	{
-	  entries->next = SAFE_ALLOCA (sizeof *entries->next);
+	  entries->next = record_xmalloc (sizeof *entries->next);
 	  entries = entries->next;
 	  memset (entries, 0, sizeof (struct charset_map_entries));
 	  n_entries = 0;
@@ -545,9 +551,10 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
       n_entries++;
     }
   fclose (fp);
+  clear_unwind_protect (count);
 
   load_charset_map (charset, head, n_entries, control_flag);
-  SAFE_FREE ();
+  unbind_to (count, Qnil);
 }
 
 static void
@@ -1178,7 +1185,7 @@ usage: (define-charset-internal ...)  */)
 			 charset.iso_final) = id;
       if (new_definition_p)
 	Viso_2022_charset_list = nconc2 (Viso_2022_charset_list,
-					 Fcons (make_number (id), Qnil));
+					 list1 (make_number (id)));
       if (ISO_CHARSET_TABLE (1, 0, 'J') == id)
 	charset_jisx0201_roman = id;
       else if (ISO_CHARSET_TABLE (2, 0, '@') == id)
@@ -1198,7 +1205,7 @@ usage: (define-charset-internal ...)  */)
 	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 2;
       if (new_definition_p)
 	Vemacs_mule_charset_list = nconc2 (Vemacs_mule_charset_list,
-					   Fcons (make_number (id), Qnil));
+					   list1 (make_number (id)));
     }
 
   if (new_definition_p)
@@ -1206,7 +1213,7 @@ usage: (define-charset-internal ...)  */)
       Vcharset_list = Fcons (args[charset_arg_name], Vcharset_list);
       if (charset.supplementary_p)
 	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
-					Fcons (make_number (id), Qnil));
+					list1 (make_number (id)));
       else
 	{
 	  Lisp_Object tail;
@@ -1223,7 +1230,7 @@ usage: (define-charset-internal ...)  */)
 					   Vcharset_ordered_list);
 	  else if (NILP (tail))
 	    Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
-					    Fcons (make_number (id), Qnil));
+					    list1 (make_number (id)));
 	  else
 	    {
 	      val = Fcons (XCAR (tail), XCDR (tail));
@@ -2308,7 +2315,7 @@ Please check your installation!\n",
       exit (1);
     }
 
-  Vcharset_map_path = Fcons (tempdir, Qnil);
+  Vcharset_map_path = list1 (tempdir);
 }
 
 

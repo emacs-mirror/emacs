@@ -94,13 +94,10 @@ static int pagemask;
 static _Noreturn void
 report_error (const char *file, int fd)
 {
+  int err = errno;
   if (fd)
-    {
-      int failed_errno = errno;
-      close (fd);
-      errno = failed_errno;
-    }
-  report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
+    emacs_close (fd);
+  report_file_errno ("Cannot unexec", build_string (file), err);
 }
 
 #define ERROR0(msg) report_error_1 (new, msg)
@@ -111,7 +108,7 @@ static _Noreturn void ATTRIBUTE_FORMAT_PRINTF (2, 3)
 report_error_1 (int fd, const char *msg, ...)
 {
   va_list ap;
-  close (fd);
+  emacs_close (fd);
   va_start (ap, msg);
   verror (msg, ap);
   va_end (ap);
@@ -148,13 +145,13 @@ unexec (const char *new_name, const char *a_name)
       || adjust_lnnoptrs (new, a_out, new_name) < 0
       || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
-      close (new);
+      emacs_close (new);
       return;
     }
 
-  close (new);
+  emacs_close (new);
   if (a_out >= 0)
-    close (a_out);
+    emacs_close (a_out);
   mark_x (new_name);
 }
 
@@ -534,7 +531,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
             }
 	}
     }
-  close (new);
+  emacs_close (new);
 
   return 0;
 }

@@ -3086,18 +3086,18 @@ run_funs (Lisp_Object funs)
       call0 (XCAR (funs));
 }
 
-static Lisp_Object
+static void
 select_window_norecord (Lisp_Object window)
 {
-  return WINDOW_LIVE_P (window)
-    ? Fselect_window (window, Qt) : selected_window;
+  if (WINDOW_LIVE_P (window))
+    Fselect_window (window, Qt);
 }
 
-static Lisp_Object
+static void
 select_frame_norecord (Lisp_Object frame)
 {
-  return FRAME_LIVE_P (XFRAME (frame))
-    ? Fselect_frame (frame, Qt) : selected_frame;
+  if (FRAME_LIVE_P (XFRAME (frame)))
+    Fselect_frame (frame, Qt);
 }
 
 void
@@ -3410,7 +3410,7 @@ temp_output_buffer_show (register Lisp_Object buf)
            Note: Both Fselect_window and select_window_norecord may
            set-buffer to the buffer displayed in the window,
            so we need to save the current buffer.  --stef  */
-        record_unwind_protect (Fset_buffer, prev_buffer);
+        record_unwind_protect (restore_buffer, prev_buffer);
         record_unwind_protect (select_window_norecord, prev_window);
         Fselect_window (window, Qt);
         Fset_buffer (w->contents);
@@ -5871,6 +5871,12 @@ the return value is nil.  Otherwise the value is t.  */)
   minibuf_selected_window = data->minibuf_selected_window;
 
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
+}
+
+void
+restore_window_configuration (Lisp_Object configuration)
+{
+  Fset_window_configuration (configuration);
 }
 
 

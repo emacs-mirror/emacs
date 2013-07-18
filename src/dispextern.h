@@ -3298,7 +3298,7 @@ int image_ascent (struct image *, struct face *, struct glyph_slice *);
 void get_tty_size (int, int *, int *);
 void request_sigio (void);
 void unrequest_sigio (void);
-int tabs_safe_p (int);
+bool tabs_safe_p (int);
 void init_baud_rate (int);
 void init_sigio (int);
 void ignore_sigio (void);
@@ -3470,11 +3470,12 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
+extern bool tty_capable_p (struct tty_display_info *, unsigned,
+			   unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 extern void create_tty_output (struct frame *);
-extern struct terminal *init_tty (const char *, const char *, int);
+extern struct terminal *init_tty (const char *, const char *, bool);
 extern void tty_append_glyph (struct it *);
 
 

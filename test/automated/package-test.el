@@ -142,6 +142,9 @@
     (let ((help-xref-following t))
       ,@body)))
 
+(autoload 'makeinfo-buffer "makeinfo")
+(defvar compilation-in-progress)
+
 (defun package-test-install-texinfo (file)
   "Install from texinfo FILE.
 
@@ -156,7 +159,6 @@ FILE should be a .texinfo file relative to the current
     (with-current-buffer (find-file-literally full-file)
       (unwind-protect
           (progn
-            (require 'makeinfo)
             (makeinfo-buffer)
             ;; Give `makeinfo-buffer' a chance to finish
             (while compilation-in-progress
@@ -183,6 +185,9 @@ DIR is the base name of the package directory, without the trailing slash"
   (let* ((pkg-dirname (file-name-nondirectory dir)))
     (dolist (file (package-test-suffix-matches dir package-test-built-file-suffixes))
       (delete-file file))))
+
+(defvar tar-parse-info)
+(declare-function tar-header-name "tar-mode" (cl-x) t) ; defstruct
 
 (defun package-test-search-tar-file (filename)
   "Search the current buffer's `tar-parse-info' variable for FILENAME.

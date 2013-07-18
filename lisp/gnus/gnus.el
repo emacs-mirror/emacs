@@ -3007,7 +3007,7 @@ with some simple extensions.
             summary just like information from any other summary
             specifier.
 &user-date; Age sensitive date format. Various date format is
-            defined in `gnus-summary-user-date-format-alist'.
+            defined in `gnus-user-date-format-alist'.
 
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled

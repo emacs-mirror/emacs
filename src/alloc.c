@@ -209,7 +209,6 @@ Lisp_Object Qchar_table_extra_slots;
 
 static Lisp_Object Qpost_gc_hook;
 
-static void free_save_value (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
@@ -813,22 +812,13 @@ xputenv (char const *string)
     memory_full (0);
 }
 
-/* Unwind for SAFE_ALLOCA */
-
-Lisp_Object
-safe_alloca_unwind (Lisp_Object arg)
-{
-  free_save_value (arg);
-  return Qnil;
-}
-
 /* Return a newly allocated memory block of SIZE bytes, remembering
    to free it when unwinding.  */
 void *
 record_xmalloc (size_t size)
 {
   void *p = xmalloc (size);
-  record_unwind_protect (safe_alloca_unwind, make_save_pointer (p));
+  record_unwind_protect_ptr (xfree, p);
   return p;
 }
 
@@ -3397,7 +3387,9 @@ make_save_value (enum Lisp_Save_Type save_type, ...)
   return val;
 }
 
-/* The most common task it to save just one C pointer.  */
+/* Save just one C pointer.  record_unwind_protect_ptr is simpler and
+   faster than combining this with record_unwind_protect, but
+   occasionally this function is useful for other reasons.  */
 
 Lisp_Object
 make_save_pointer (void *pointer)
@@ -3412,7 +3404,7 @@ make_save_pointer (void *pointer)
 /* Free a Lisp_Save_Value object.  Do not use this function
    if SAVE contains pointer other than returned by xmalloc.  */
 
-static void
+void
 free_save_value (Lisp_Object save)
 {
   xfree (XSAVE_POINTER (save, 0));
@@ -4741,7 +4733,7 @@ valid_pointer_p (void *p)
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if (pipe2 (fd, O_CLOEXEC) == 0)
+  if (emacs_pipe (fd) == 0)
     {
       bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
       emacs_close (fd[1]);
@@ -5227,7 +5219,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Save what's currently displayed in the echo area.  */
   message_p = push_message ();
-  record_unwind_protect (pop_message_unwind, Qnil);
+  record_unwind_protect_void (pop_message_unwind);
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0

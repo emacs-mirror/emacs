@@ -446,7 +446,7 @@ static NSCharacterSet
       {
 	Lisp_Object ranges, range_list;
 
-	ranges = Fcons (script, Qnil);
+	ranges = list1 (script);
 	map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table,
 			ranges);
 	range_list = Fnreverse (XCDR (ranges));

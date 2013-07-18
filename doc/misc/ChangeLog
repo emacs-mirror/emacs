@@ -1,3 +1,9 @@
+2013-07-08  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.texi (lines): Correct description of
+	`gnus-registry-track-extra's default value.  Mention
+	`gnus-registry-remove-extra-data'.
+
 2013-07-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Group Parameters): Mention regexp

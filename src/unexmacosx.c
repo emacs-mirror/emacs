@@ -1332,7 +1332,7 @@ unexec (const char *outfile, const char *infile)
   outfd = emacs_open (outfile, O_WRONLY | O_TRUNC | O_CREAT, 0755);
   if (outfd < 0)
     {
-      close (infd);
+      emacs_close (infd);
       unexec_error ("cannot open output file `%s'", outfile);
     }
 
@@ -1346,7 +1346,7 @@ unexec (const char *outfile, const char *infile)
 
   dump_it ();
 
-  close (outfd);
+  emacs_close (outfd);
 }
 
 

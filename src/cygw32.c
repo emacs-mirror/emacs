@@ -23,12 +23,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <fcntl.h>
 
-static Lisp_Object
-fchdir_unwind (Lisp_Object dir_fd)
+static void
+fchdir_unwind (int dir_fd)
 {
-  (void) fchdir (XFASTINT (dir_fd));
-  (void) close (XFASTINT (dir_fd));
-  return Qnil;
+  (void) fchdir (dir_fd);
+  (void) close (dir_fd);
 }
 
 static void
@@ -40,7 +39,7 @@ chdir_to_default_directory ()
   if (old_cwd_fd == -1)
     error ("could not open current directory: %s", strerror (errno));
 
-  record_unwind_protect (fchdir_unwind, make_number (old_cwd_fd));
+  record_unwind_protect_int (fchdir_unwind, old_cwd_fd);
 
   new_cwd = Funhandled_file_name_directory (
     Fexpand_file_name (build_string ("."), Qnil));

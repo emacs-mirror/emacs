@@ -2703,13 +2703,12 @@ syms_of_ftfont (void)
   DEFSYM (Qsans__serif, "sans serif");
 
   staticpro (&freetype_font_cache);
-  freetype_font_cache = Fcons (Qt, Qnil);
+  freetype_font_cache = list1 (Qt);
 
   staticpro (&ftfont_generic_family_list);
-  ftfont_generic_family_list
-    = Fcons (Fcons (Qmonospace, Qt),
-	     Fcons (Fcons (Qsans_serif, Qt),
-		    Fcons (Fcons (Qsans, Qt), Qnil)));
+  ftfont_generic_family_list = list3 (Fcons (Qmonospace, Qt),
+				      Fcons (Qsans_serif, Qt),
+				      Fcons (Qsans, Qt));
 
   staticpro (&ft_face_cache);
   ft_face_cache = Qnil;

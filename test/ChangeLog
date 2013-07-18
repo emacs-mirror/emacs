@@ -1,3 +1,68 @@
+2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-2)
+	(python-imenu-create-index-3): New tests.
+
+2013-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el: Require cl-lib at runtime too.
+	(ert-test-special-operator-p): Use cl-gensym rather than ert-- version.
+	(ert-test-remprop, ert-test-remove-if-not, ert-test-remove*)
+	(ert-test-set-functions, ert-test-gensym)
+	(ert-test-coerce-to-vector, ert-test-string-position)
+	(ert-test-mismatch): Remove tests.
+	* automated/cl-lib.el: New, split from ert-tests.el.
+
+	* automated/ruby-mode-tests.el (ruby-deftest-move-to-block):
+	Goto point-min.
+	(works-on-do, zero-is-noop, ok-with-three, ok-with-minus-two)
+	(ruby-move-to-block-skips-percent-literal)
+	(ruby-move-to-block-skips-heredoc)
+	(ruby-move-to-block-moves-from-else-to-if)
+	(ruby-beginning-of-defun-does-not-fold-case)
+	(ruby-end-of-defun-skips-to-next-line-after-the-method):
+	Replace goto-line with forward-line/goto-char.
+	(ruby-move-to-block-does-not-fold-case): Remove unneeded end-of-buffer.
+
+	* automated/package-test.el (makeinfo-buffer): Autoload.
+	(compilation-in-progress, tar-parse-info, tar-header-name): Declare.
+	(package-test-install-texinfo): Don't require makeinfo.
+
+	* automated/files.el: Stop "local variables" confusion.
+
+	* automated/flymake-tests.el (flymake-tests): Remove unused group.
+
+	* automated/icalendar-tests.el (icalendar-tests--do-test-cycle):
+	Use with-current-buffer.
+
+	* automated/undo-tests.el (undo-test-buffer-modified)
+	(undo-test-file-modified): New tests.
+
+2013-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test00-availability):
+	Set :expected-result.
+	(file-notify-test01-add-watch, file-notify-test01-add-watch-remote)
+	(file-notify-test02-events, file-notify-test02-events-remote)
+	(file-notify-test03-autorevert, file-notify-test03-autorevert-remote):
+	Skip when `file-notify-support' is nil.  (Bug#14823)
+
+2013-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* automated/inotify-test.el (inotify-add-watch, inotify-rm-watch):
+	Declare.
+	(inotify-file-watch-simple): Silence compiler.
+
+	* automated/python-tests.el (python-indent-block-enders):
+	Make it actually test something.
+
+	* automated/package-x-test.el: Require package-test when compiling.
+
+	* automated/add-log-tests.el, automated/advice-tests.el:
+	* automated/imenu-test.el, automated/package-x-test.el:
+	* automated/python-tests.el, automated/ruby-mode-tests.el:
+	* automated/xml-parse-tests.el: Explictly require ert.
+
 2013-07-08  Kenichi Handa  <handa@gnu.org>
 
 	* automated/decoder-tests.el (decoder-tests-prefer-utf-8-read):
@@ -76,7 +141,7 @@
 	Use it to create separate tests for each element, so we run them
 	all rather than stopping at the first error.
 
-2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* automated/occur-tests.el (occur-tests):
 	Update for 2013-05-29 change to occur header line.

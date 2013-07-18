@@ -6892,7 +6892,7 @@ comment at the start of cc-engine.el for more info."
       (while (and (looking-at c-type-decl-prefix-key)
 		  (if (and (c-major-mode-is 'c++-mode)
 			   (match-beginning 3))
-		      ;; If the second submatch matches in C++ then
+		      ;; If the third submatch matches in C++ then
 		      ;; we're looking at an identifier that's a
 		      ;; prefix only if it specifies a member pointer.
 		      (when (setq got-identifier (c-forward-name))
@@ -7193,19 +7193,23 @@ comment at the start of cc-engine.el for more info."
 	;; uncommon (e.g. some placements of "const" in C++) it's not worth
 	;; the effort to look for them.)
 
-	(unless (or at-decl-end (looking-at "=[^=]"))
-	  ;; If this is a declaration it should end here or its initializer(*)
-	  ;; should start here, so check for allowed separation tokens.  Note
-	  ;; that this rule doesn't work e.g. with a K&R arglist after a
-	  ;; function header.
-	  ;;
-	  ;; *) Don't check for C++ style initializers using parens
-	  ;; since those already have been matched as suffixes.
-	  ;;
-	  ;; If `at-decl-or-cast' is then we've found some other sign that
-	  ;; it's a declaration or cast, so then it's probably an
-	  ;; invalid/unfinished one.
-	  (throw 'at-decl-or-cast at-decl-or-cast))
+;;; 2008-04-16: commented out the next form, to allow the function to recognize
+;;; "foo (int bar)" in CC (an implicit type (in class foo) without a semicolon)
+;;; as a(n almost complete) declaration, enabling it to be fontified.
+	;; CASE 13
+	;; (unless (or at-decl-end (looking-at "=[^=]"))
+	;; If this is a declaration it should end here or its initializer(*)
+	;; should start here, so check for allowed separation tokens.  Note
+	;; that this rule doesn't work e.g. with a K&R arglist after a
+	;; function header.
+	;;
+	;; *) Don't check for C++ style initializers using parens
+	;; since those already have been matched as suffixes.
+	;;
+	;; If `at-decl-or-cast' is then we've found some other sign that
+	;; it's a declaration or cast, so then it's probably an
+	;; invalid/unfinished one.
+	;;  (throw 'at-decl-or-cast at-decl-or-cast))
 
 	;; Below are tests that only should be applied when we're certain to
 	;; not have parsed halfway through an expression.

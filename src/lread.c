@@ -145,7 +145,6 @@ static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
 static void readevalloop (Lisp_Object, FILE *, Lisp_Object, bool,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
-static Lisp_Object load_unwind (Lisp_Object);
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -562,7 +561,7 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
   c = DECODE_CHAR (charset, code);
   if (c < 0)
     Fsignal (Qinvalid_read_syntax,
-	     Fcons (build_string ("invalid multibyte form"), Qnil));
+	     list1 (build_string ("invalid multibyte form")));
   return c;
 }
 
@@ -672,7 +671,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 	{
 	  if (error_nonascii)
 	    {
-	      Vunread_command_events = Fcons (val, Qnil);
+	      Vunread_command_events = list1 (val);
 	      error ("Non-character input-event");
 	    }
 	  else
@@ -823,7 +822,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
     {
       bool rv = 0;
       enum {
-	NOMINAL, AFTER_FIRST_DASH, AFTER_ASTERIX,
+	NOMINAL, AFTER_FIRST_DASH, AFTER_ASTERIX
       } beg_end_state = NOMINAL;
       bool in_file_vars = 0;
 
@@ -952,10 +951,10 @@ safe_to_load_version (int fd)
 /* Callback for record_unwind_protect.  Restore the old load list OLD,
    after loading a file successfully.  */
 
-static Lisp_Object
+static void
 record_load_unwind (Lisp_Object old)
 {
-  return Vloads_in_progress = old;
+  Vloads_in_progress = old;
 }
 
 /* This handler function is used via internal_condition_case_1.  */
@@ -966,7 +965,7 @@ load_error_handler (Lisp_Object data)
   return Qnil;
 }
 
-static Lisp_Object
+static void
 load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
@@ -976,7 +975,6 @@ load_warn_old_style_backquotes (Lisp_Object file)
       args[1] = file;
       Fmessage (2, args);
     }
-  return Qnil;
 }
 
 DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
@@ -1041,10 +1039,12 @@ While the file is in the process of being loaded, the variable
 is bound to the file's name.
 
 Return t if the file exists and loads successfully.  */)
-  (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage, Lisp_Object nosuffix, Lisp_Object must_suffix)
+  (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
+   Lisp_Object nosuffix, Lisp_Object must_suffix)
 {
-  register FILE *stream;
-  register int fd = -1;
+  FILE *stream;
+  int fd;
+  int fd_index;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
@@ -1055,7 +1055,6 @@ Return t if the file exists and loads successfully.  */)
   Lisp_Object handler;
   bool safe_p = 1;
   const char *fmode = "r";
-  Lisp_Object tmp[2];
   int version;
 
 #ifdef DOS_NT
@@ -1088,19 +1087,23 @@ Return t if the file exists and loads successfully.  */)
   else
     file = Fsubstitute_in_file_name (file);
 
-
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file.  */
-  if (SBYTES (file) > 0)
+  if (SCHARS (file) == 0)
     {
-      ptrdiff_t size = SBYTES (file);
-
+      fd = -1;
+      errno = ENOENT;
+    }
+  else
+    {
+      Lisp_Object suffixes;
       found = Qnil;
       GCPRO2 (file, found);
 
       if (! NILP (must_suffix))
 	{
 	  /* Don't insist on adding a suffix if FILE already ends with one.  */
+	  ptrdiff_t size = SBYTES (file);
 	  if (size > 3
 	      && !strcmp (SSDATA (file) + size - 3, ".el"))
 	    must_suffix = Qnil;
@@ -1113,20 +1116,28 @@ Return t if the file exists and loads successfully.  */)
 	    must_suffix = Qnil;
 	}
 
-      fd = openp (Vload_path, file,
-		  (!NILP (nosuffix) ? Qnil
-		   : !NILP (must_suffix) ? Fget_load_suffixes ()
-		   : Fappend (2, (tmp[0] = Fget_load_suffixes (),
-				  tmp[1] = Vload_file_rep_suffixes,
-				  tmp))),
-		  &found, Qnil);
+      if (!NILP (nosuffix))
+	suffixes = Qnil;
+      else
+	{
+	  suffixes = Fget_load_suffixes ();
+	  if (NILP (must_suffix))
+	    {
+	      Lisp_Object arg[2];
+	      arg[0] = suffixes;
+	      arg[1] = Vload_file_rep_suffixes;
+	      suffixes = Fappend (2, arg);
+	    }
+	}
+
+      fd = openp (Vload_path, file, suffixes, &found, Qnil);
       UNGCPRO;
     }
 
   if (fd == -1)
     {
       if (NILP (noerror))
-	xsignal2 (Qfile_error, build_string ("Cannot open load file"), file);
+	report_file_error ("Cannot open load file", file);
       return Qnil;
     }
 
@@ -1164,6 +1175,12 @@ Return t if the file exists and loads successfully.  */)
 #endif
     }
 
+  if (0 <= fd)
+    {
+      fd_index = SPECPDL_INDEX ();
+      record_unwind_protect_int (close_file_unwind, fd);
+    }
+
   /* Check if we're stuck in a recursive load cycle.
 
      2000-09-21: It's not possible to just check for the file loaded
@@ -1179,11 +1196,7 @@ Return t if the file exists and loads successfully.  */)
     Lisp_Object tem;
     for (tem = Vloads_in_progress; CONSP (tem); tem = XCDR (tem))
       if (!NILP (Fequal (found, XCAR (tem))) && (++load_count > 3))
-	{
-	  if (fd >= 0)
-	    emacs_close (fd);
-	  signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
-	}
+	signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
     record_unwind_protect (record_load_unwind, Vloads_in_progress);
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
@@ -1196,9 +1209,8 @@ Return t if the file exists and loads successfully.  */)
 
   /* Get the name for load-history.  */
   hist_file_name = (! NILP (Vpurify_flag)
-                    ? Fconcat (2, (tmp[0] = Ffile_name_directory (file),
-                                   tmp[1] = Ffile_name_nondirectory (found),
-                                   tmp))
+                    ? concat2 (Ffile_name_directory (file),
+                               Ffile_name_nondirectory (found))
                     : found) ;
 
   version = -1;
@@ -1224,12 +1236,7 @@ Return t if the file exists and loads successfully.  */)
 	    {
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
-		{
-		  if (fd >= 0)
-		    emacs_close (fd);
-		  error ("File `%s' was not compiled in Emacs",
-			 SDATA (found));
-		}
+		error ("File `%s' was not compiled in Emacs", SDATA (found));
 	      else if (!NILP (nomessage) && !force_load_messages)
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
@@ -1275,7 +1282,10 @@ Return t if the file exists and loads successfully.  */)
 	  Lisp_Object val;
 
 	  if (fd >= 0)
-	    emacs_close (fd);
+	    {
+	      emacs_close (fd);
+	      clear_unwind_protect (fd_index);
+	    }
 	  val = call4 (Vload_source_file_function, found, hist_file_name,
 		       NILP (noerror) ? Qnil : Qt,
 		       (NILP (nomessage) || force_load_messages) ? Qnil : Qt);
@@ -1285,26 +1295,28 @@ Return t if the file exists and loads successfully.  */)
 
   GCPRO3 (file, found, hist_file_name);
 
-#ifdef WINDOWSNT
-  efound = ENCODE_FILE (found);
-  /* If we somehow got here with fd == -2, meaning the file is deemed
-     to be remote, don't even try to reopen the file locally; just
-     force a failure instead.  */
-  if (fd >= 0)
+  if (fd < 0)
     {
-      emacs_close (fd);
-      stream = emacs_fopen (SSDATA (efound), fmode);
+      /* We somehow got here with fd == -2, meaning the file is deemed
+	 to be remote.  Don't even try to reopen the file locally;
+	 just force a failure.  */
+      stream = NULL;
+      errno = EINVAL;
     }
   else
-    stream = NULL;
-#else  /* not WINDOWSNT */
-  stream = fdopen (fd, fmode);
-#endif /* not WINDOWSNT */
-  if (stream == 0)
     {
+#ifdef WINDOWSNT
       emacs_close (fd);
-      error ("Failure to create stdio stream for %s", SDATA (file));
+      clear_unwind_protect (fd_index);
+      efound = ENCODE_FILE (found);
+      stream = emacs_fopen (SSDATA (efound), fmode);
+#else
+      stream = fdopen (fd, fmode);
+#endif
     }
+  if (! stream)
+    report_file_error ("Opening stdio stream", file);
+  set_unwind_protect_ptr (fd_index, fclose_unwind, stream);
 
   if (! NILP (Vpurify_flag))
     Vpreloaded_file_list = Fcons (Fpurecopy (file), Vpreloaded_file_list);
@@ -1323,7 +1335,6 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  record_unwind_protect (load_unwind, make_save_pointer (stream));
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
@@ -1375,19 +1386,6 @@ Return t if the file exists and loads successfully.  */)
 
   return Qt;
 }
-
-static Lisp_Object
-load_unwind (Lisp_Object arg)  /* Used as unwind-protect function in load.  */
-{
-  FILE *stream = XSAVE_POINTER (arg, 0);
-  if (stream != NULL)
-    {
-      block_input ();
-      fclose (stream);
-      unblock_input ();
-    }
-  return Qnil;
-}
 
 static bool
 complete_filename_p (Lisp_Object pathname)
@@ -1412,8 +1410,8 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
 {
   Lisp_Object file;
   int fd = openp (path, filename, suffixes, &file, predicate);
-  if (NILP (predicate) && fd > 0)
-    close (fd);
+  if (NILP (predicate) && fd >= 0)
+    emacs_close (fd);
   return file;
 }
 
@@ -1494,7 +1492,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	fn = alloca (fn_size = 100 + want_length);
 
       /* Loop over suffixes.  */
-      for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
+      for (tail = NILP (suffixes) ? list1 (empty_unibyte_string) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
 	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
@@ -1523,7 +1521,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      bool exists;
-	      last_errno = ENOENT;
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
@@ -1578,7 +1575,10 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		{
 		  fd = emacs_open (pfn, O_RDONLY, 0);
 		  if (fd < 0)
-		    last_errno = errno;
+		    {
+		      if (errno != ENOENT)
+			last_errno = errno;
+		    }
 		  else
 		    {
 		      struct stat st;
@@ -1682,11 +1682,10 @@ build_load_history (Lisp_Object filename, bool entire)
 			   Vload_history);
 }
 
-static Lisp_Object
-readevalloop_1 (Lisp_Object old)
+static void
+readevalloop_1 (int old)
 {
-  load_convert_to_unibyte = ! NILP (old);
-  return Qnil;
+  load_convert_to_unibyte = old;
 }
 
 /* Signal an `end-of-file' error, if possible with file name
@@ -1756,7 +1755,7 @@ readevalloop (Lisp_Object readcharfun,
 
   specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
-  record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
+  record_unwind_protect_int (readevalloop_1, load_convert_to_unibyte);
   load_convert_to_unibyte = !NILP (unibyte);
 
   /* If lexical binding is active (either because it was specified in
@@ -1764,8 +1763,8 @@ readevalloop (Lisp_Object readcharfun,
      lexical environment, otherwise, turn off lexical binding.  */
   lex_bound = find_symbol_value (Qlexical_binding);
   specbind (Qinternal_interpreter_environment,
-	    NILP (lex_bound) || EQ (lex_bound, Qunbound)
-	    ? Qnil : Fcons (Qt, Qnil));
+	    (NILP (lex_bound) || EQ (lex_bound, Qunbound)
+	     ? Qnil : list1 (Qt)));
 
   GCPRO4 (sourcename, readfun, start, end);
 
@@ -2724,7 +2723,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       if (c == '$')
 	return Vload_file_name;
       if (c == '\'')
-	return Fcons (Qfunction, Fcons (read0 (readcharfun), Qnil));
+	return list2 (Qfunction, read0 (readcharfun));
       /* #:foo is the uninterned symbol named foo.  */
       if (c == ':')
 	{
@@ -2819,9 +2818,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
       goto retry;
 
     case '\'':
-      {
-	return Fcons (Qquote, Fcons (read0 (readcharfun), Qnil));
-      }
+      return list2 (Qquote, read0 (readcharfun));
 
     case '`':
       {
@@ -2851,7 +2848,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    value = read0 (readcharfun);
 	    new_backquote_flag = saved_new_backquote_flag;
 
-	    return Fcons (Qbackquote, Fcons (value, Qnil));
+	    return list2 (Qbackquote, value);
 	  }
       }
     case ',':
@@ -2889,7 +2886,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      }
 
 	    value = read0 (readcharfun);
-	    return Fcons (comma_type, Fcons (value, Qnil));
+	    return list2 (comma_type, value);
 	  }
 	else
 	  {
@@ -3665,7 +3662,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	    }
 	  invalid_syntax ("] in a list");
 	}
-      tem = Fcons (elt, Qnil);
+      tem = list1 (elt);
       if (!NILP (tail))
 	XSETCDR (tail, tem);
       else
@@ -4232,7 +4229,7 @@ init_lread (void)
                          points to the eventual installed lisp, leim
                          directories.  We should not use those now, even
                          if they exist, so start over from a clean slate.  */
-                      Vload_path = Fcons (tem, Qnil);
+                      Vload_path = list1 (tem);
                     }
                 }
               else
@@ -4459,8 +4456,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (build_pure_c_string (".elc"),
-			  Fcons (build_pure_c_string (".el"), Qnil));
+  Vload_suffixes = list2 (build_pure_c_string (".elc"),
+			  build_pure_c_string (".el"));
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
@@ -4474,7 +4471,7 @@ and, if so, which suffixes they should try to append to the file name
 in order to do so.  However, if you want to customize which suffixes
 the loading functions recognize as compression suffixes, you should
 customize `jka-compr-load-suffixes' rather than the present variable.  */);
-  Vload_file_rep_suffixes = Fcons (empty_unibyte_string, Qnil);
+  Vload_file_rep_suffixes = list1 (empty_unibyte_string);
 
   DEFVAR_BOOL ("load-in-progress", load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);

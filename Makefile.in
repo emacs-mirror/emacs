@@ -293,7 +293,7 @@ all: ${SUBDIR}
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
 
-removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
+removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
 # See comments in configure.ac for why it is done this way, as opposed

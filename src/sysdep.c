@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <c-ctype.h>
-#include <ignore-value.h>
 #include <utimens.h>
 
 #include "lisp.h"
@@ -103,8 +102,8 @@ int _cdecl _getpid (void);
 #include "syssignal.h"
 #include "systime.h"
 
-static int emacs_get_tty (int, struct emacs_tty *);
-static int emacs_set_tty (int, struct emacs_tty *, int);
+static void emacs_get_tty (int, struct emacs_tty *);
+static int emacs_set_tty (int, struct emacs_tty *, bool);
 
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
@@ -538,8 +537,8 @@ sys_subshell (void)
       if (str && chdir ((char *) str) != 0)
 	{
 #ifndef DOS_NT
-	  ignore_value (write (1, "Can't chdir\n", 12));
-	  _exit (1);
+	  emacs_perror ((char *) str);
+	  _exit (EXIT_CANCELED);
 #endif
 	}
 
@@ -570,8 +569,8 @@ sys_subshell (void)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
       execlp (sh, sh, (char *) 0);
-      ignore_value (write (1, "Can't execute subshell", 22));
-      _exit (1);
+      emacs_perror (sh);
+      _exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 #endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
     }
@@ -770,31 +769,26 @@ widen_foreground_group (int fd)
 
 /* Getting and setting emacs_tty structures.  */
 
-/* Set *TC to the parameters associated with the terminal FD.
-   Return zero if all's well, or -1 if we ran into an error we
-   couldn't deal with.  */
-int
+/* Set *TC to the parameters associated with the terminal FD,
+   or clear it if the parameters are not available.  */
+static void
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
 #ifndef DOS_NT
   /* We have those nifty POSIX tcmumbleattr functions.  */
   memset (&settings->main, 0, sizeof (settings->main));
-  if (tcgetattr (fd, &settings->main) < 0)
-    return -1;
+  tcgetattr (fd, &settings->main);
 #endif
-
-  /* We have survived the tempest.  */
-  return 0;
 }
 
 
 /* Set the parameters of the tty on FD according to the contents of
-   *SETTINGS.  If FLUSHP is non-zero, we discard input.
-   Return 0 if all went well, and -1 if anything failed.  */
+   *SETTINGS.  If FLUSHP, discard input.
+   Return 0 if all went well, and -1 (setting errno) if anything failed.  */
 
-int
-emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
+static int
+emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
 #ifndef DOS_NT
@@ -1119,10 +1113,10 @@ init_sys_modes (struct tty_display_info *tty_out)
   tty_out->term_initted = 1;
 }
 
-/* Return nonzero if safe to use tabs in output.
+/* Return true if safe to use tabs in output.
    At the time this is called, init_sys_modes has not been done yet.  */
 
-int
+bool
 tabs_safe_p (int fd)
 {
   struct emacs_tty etty;
@@ -1376,8 +1370,10 @@ init_system_name (void)
   uname (&uts);
   Vsystem_name = build_string (uts.nodename);
 #else /* HAVE_GETHOSTNAME */
-  unsigned int hostname_size = 256;
-  char *hostname = alloca (hostname_size);
+  char *hostname_alloc = NULL;
+  char hostname_buf[256];
+  ptrdiff_t hostname_size = sizeof hostname_buf;
+  char *hostname = hostname_buf;
 
   /* Try to get the host name; if the buffer is too short, try
      again.  Apparently, the only indication gethostname gives of
@@ -1392,8 +1388,8 @@ init_system_name (void)
       if (strlen (hostname) < hostname_size - 1)
 	break;
 
-      hostname_size <<= 1;
-      hostname = alloca (hostname_size);
+      hostname = hostname_alloc = xpalloc (hostname_alloc, &hostname_size, 1,
+					   min (PTRDIFF_MAX, SIZE_MAX), 1);
     }
 #ifdef HAVE_SOCKETS
   /* Turn the hostname into the official, fully-qualified hostname.
@@ -1438,7 +1434,13 @@ init_system_name (void)
               }
             if (it)
               {
-                hostname = alloca (strlen (it->ai_canonname) + 1);
+		ptrdiff_t len = strlen (it->ai_canonname);
+		if (hostname_size <= len)
+		  {
+		    hostname_size = len + 1;
+		    hostname = hostname_alloc = xrealloc (hostname_alloc,
+							  hostname_size);
+		  }
                 strcpy (hostname, it->ai_canonname);
               }
             freeaddrinfo (res);
@@ -1485,10 +1487,11 @@ init_system_name (void)
       }
 #endif /* HAVE_SOCKETS */
   Vsystem_name = build_string (hostname);
+  xfree (hostname_alloc);
 #endif /* HAVE_GETHOSTNAME */
   {
-    unsigned char *p;
-    for (p = SDATA (Vsystem_name); *p; p++)
+    char *p;
+    for (p = SSDATA (Vsystem_name); *p; p++)
       if (*p == ' ' || *p == '\t')
 	*p = '-';
   }
@@ -2134,10 +2137,10 @@ emacs_backtrace (int backtrace_limit)
 
   if (npointers)
     {
-      ignore_value (write (STDERR_FILENO, "\nBacktrace:\n", 12));
+      emacs_write (STDERR_FILENO, "\nBacktrace:\n", 12);
       backtrace_symbols_fd (buffer, npointers, STDERR_FILENO);
       if (bounded_limit < npointers)
-	ignore_value (write (STDERR_FILENO, "...\n", 4));
+	emacs_write (STDERR_FILENO, "...\n", 4);
     }
 }
 
@@ -2198,23 +2201,73 @@ emacs_fopen (char const *file, char const *mode)
   return fd < 0 ? 0 : fdopen (fd, mode);
 }
 
+/* Create a pipe for Emacs use.  */
+
+int
+emacs_pipe (int fd[2])
+{
+  int result = pipe2 (fd, O_CLOEXEC);
+  if (! O_CLOEXEC && result == 0)
+    {
+      fcntl (fd[0], F_SETFD, FD_CLOEXEC);
+      fcntl (fd[1], F_SETFD, FD_CLOEXEC);
+    }
+  return result;
+}
+
+/* Approximate posix_close and POSIX_CLOSE_RESTART well enough for Emacs.
+   For the background behind this mess, please see Austin Group defect 529
+   <http://austingroupbugs.net/view.php?id=529>.  */
+
+#ifndef POSIX_CLOSE_RESTART
+# define POSIX_CLOSE_RESTART 1
+static int
+posix_close (int fd, int flag)
+{
+  /* Only the POSIX_CLOSE_RESTART case is emulated.  */
+  eassert (flag == POSIX_CLOSE_RESTART);
+
+  /* Things are tricky if close (fd) returns -1 with errno == EINTR
+     on a system that does not define POSIX_CLOSE_RESTART.
+
+     In this case, in some systems (e.g., GNU/Linux, AIX) FD is
+     closed, and retrying the close could inadvertently close a file
+     descriptor allocated by some other thread.  In other systems
+     (e.g., HP/UX) FD is not closed.  And in still other systems
+     (e.g., OS X, Solaris), maybe FD is closed, maybe not, and in a
+     multithreaded program there can be no way to tell.
+
+     So, in this case, pretend that the close succeeded.  This works
+     well on systems like GNU/Linux that close FD.  Although it may
+     leak a file descriptor on other systems, the leak is unlikely and
+     it's better to leak than to close a random victim.  */
+  return close (fd) == 0 || errno == EINTR ? 0 : -1;
+}
+#endif
+
+/* Close FD, retrying if interrupted.  If successful, return 0;
+   otherwise, return -1 and set errno to a non-EINTR value.  Consider
+   an EINPROGRESS error to be successful, as that's merely a signal
+   arriving.  FD is always closed when this function returns, even
+   when it returns -1.
+
+   Do not call this function if FD is nonnegative and might already be closed,
+   as that might close an innocent victim opened by some other thread.  */
+
 int
 emacs_close (int fd)
 {
-  int did_retry = 0;
-  register int rtnval;
-
-  while ((rtnval = close (fd)) == -1
-	 && (errno == EINTR))
-    did_retry = 1;
-
-  /* If close is interrupted SunOS 4.1 may or may not have closed the
-     file descriptor.  If it did the second close will fail with
-     errno = EBADF.  That means we have succeeded.  */
-  if (rtnval == -1 && did_retry && errno == EBADF)
-    return 0;
-
-  return rtnval;
+  while (1)
+    {
+      int r = posix_close (fd, POSIX_CLOSE_RESTART);
+      if (r == 0)
+	return r;
+      if (!POSIX_CLOSE_RESTART || errno != EINTR)
+	{
+	  eassert (errno != EBADF || fd < 0);
+	  return errno == EINPROGRESS ? 0 : r;
+	}
+    }
 }
 
 /* Maximum number of bytes to read or write in a single system call.
@@ -2246,27 +2299,26 @@ emacs_read (int fildes, char *buf, ptrdiff_t nbyte)
 }
 
 /* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
-   or if a partial write occurs.  Return the number of bytes written, setting
+   or if a partial write occurs.  If interrupted, process pending
+   signals if PROCESS SIGNALS.  Return the number of bytes written, setting
    errno if this is less than NBYTE.  */
-ptrdiff_t
-emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
+static ptrdiff_t
+emacs_full_write (int fildes, char const *buf, ptrdiff_t nbyte,
+		  bool process_signals)
 {
-  ssize_t rtnval;
-  ptrdiff_t bytes_written;
-
-  bytes_written = 0;
+  ptrdiff_t bytes_written = 0;
 
   while (nbyte > 0)
     {
-      rtnval = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
+      ssize_t n = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
 
-      if (rtnval < 0)
+      if (n < 0)
 	{
 	  if (errno == EINTR)
 	    {
 	      /* I originally used `QUIT' but that might causes files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
-	      if (pending_signals)
+	      if (process_signals && pending_signals)
 		process_pending_signals ();
 	      continue;
 	    }
@@ -2274,12 +2326,57 @@ emacs_write (int fildes, const char *buf, ptrdiff_t nbyte)
 	    break;
 	}
 
-      buf += rtnval;
-      nbyte -= rtnval;
-      bytes_written += rtnval;
+      buf += n;
+      nbyte -= n;
+      bytes_written += n;
     }
 
-  return (bytes_written);
+  return bytes_written;
+}
+
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if
+   interrupted or if a partial write occurs.  Return the number of
+   bytes written, setting errno if this is less than NBYTE.  */
+ptrdiff_t
+emacs_write (int fildes, char const *buf, ptrdiff_t nbyte)
+{
+  return emacs_full_write (fildes, buf, nbyte, 0);
+}
+
+/* Like emacs_write, but also process pending signals if interrupted.  */
+ptrdiff_t
+emacs_write_sig (int fildes, char const *buf, ptrdiff_t nbyte)
+{
+  return emacs_full_write (fildes, buf, nbyte, 1);
+}
+
+/* Write a diagnostic to standard error that contains MESSAGE and a
+   string derived from errno.  Preserve errno.  Do not buffer stderr.
+   Do not process pending signals if interrupted.  */
+void
+emacs_perror (char const *message)
+{
+  int err = errno;
+  char const *error_string = strerror (err);
+  char const *command = (initial_argv && initial_argv[0]
+			 ? initial_argv[0] : "emacs");
+  /* Write it out all at once, if it's short; this is less likely to
+     be interleaved with other output.  */
+  char buf[BUFSIZ];
+  int nbytes = snprintf (buf, sizeof buf, "%s: %s: %s\n",
+			 command, message, error_string);
+  if (0 <= nbytes && nbytes < BUFSIZ)
+    emacs_write (STDERR_FILENO, buf, nbytes);
+  else
+    {
+      emacs_write (STDERR_FILENO, command, strlen (command));
+      emacs_write (STDERR_FILENO, ": ", 2);
+      emacs_write (STDERR_FILENO, message, strlen (message));
+      emacs_write (STDERR_FILENO, ": ", 2);
+      emacs_write (STDERR_FILENO, error_string, strlen (error_string));
+      emacs_write (STDERR_FILENO, "\n", 1);
+    }
+  errno = err;
 }
 
 /* Return a struct timeval that is roughly equivalent to T.
@@ -2339,14 +2436,11 @@ safe_strsignal (int code)
 #ifndef DOS_NT
 /* For make-serial-process  */
 int
-serial_open (char *port)
+serial_open (Lisp_Object port)
 {
-  int fd = emacs_open (port, O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
+  int fd = emacs_open (SSDATA (port), O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
   if (fd < 0)
-    {
-      error ("Could not open %s: %s",
-	     port, emacs_strerror (errno));
-    }
+    report_file_error ("Opening serial port", port);
 #ifdef TIOCEXCL
   ioctl (fd, TIOCEXCL, (char *) 0);
 #endif
@@ -2394,7 +2488,7 @@ serial_configure (struct Lisp_Process *p,
   /* Read port attributes and prepare default configuration.  */
   err = tcgetattr (p->outfd, &attr);
   if (err != 0)
-    error ("tcgetattr() failed: %s", emacs_strerror (errno));
+    report_file_error ("Failed tcgetattr", Qnil);
   cfmakeraw (&attr);
 #if defined (CLOCAL)
   attr.c_cflag |= CLOCAL;
@@ -2411,8 +2505,7 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%"pI"d) failed: %s", XINT (tem),
-	   emacs_strerror (errno));
+    report_file_error ("Failed cfsetspeed", tem);
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
@@ -2534,7 +2627,7 @@ serial_configure (struct Lisp_Process *p,
   /* Activate configuration.  */
   err = tcsetattr (p->outfd, TCSANOW, &attr);
   if (err != 0)
-    error ("tcsetattr() failed: %s", emacs_strerror (errno));
+    report_file_error ("Failed tcsetattr", Qnil);
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);
@@ -2633,7 +2726,7 @@ list_system_processes (void)
 
 #endif /* !defined (WINDOWSNT) */
 
-#ifdef GNU_LINUX
+#if defined GNU_LINUX && defined HAVE_LONG_LONG_INT
 static EMACS_TIME
 time_from_jiffies (unsigned long long tval, long hz)
 {

@@ -59,7 +59,8 @@ by Hallvard:
    indirect threaded, using GCC's computed goto extension.  This code,
    as currently implemented, is incompatible with BYTE_CODE_SAFE and
    BYTE_CODE_METER.  */
-#if defined (__GNUC__) && !defined (BYTE_CODE_SAFE) && !defined (BYTE_CODE_METER)
+#if (defined __GNUC__ && !defined __STRICT_ANSI__ \
+     && !defined BYTE_CODE_SAFE && !defined BYTE_CODE_METER)
 #define BYTE_CODE_THREADED
 #endif
 
@@ -285,8 +286,10 @@ enum byte_code_op
 
 #ifdef BYTE_CODE_SAFE
     Bscan_buffer = 0153, /* No longer generated as of v18.  */
-    Bset_mark = 0163 /* this loser is no longer generated as of v18 */
+    Bset_mark = 0163, /* this loser is no longer generated as of v18 */
 #endif
+
+    B__dummy__ = 0  /* Pacify C89.  */
 };
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */
@@ -569,9 +572,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  if (nargs < mandatory)
 	    /* Too few arguments.  */
 	    Fsignal (Qwrong_number_of_arguments,
-		     Fcons (Fcons (make_number (mandatory),
+		     list2 (Fcons (make_number (mandatory),
 				   rest ? Qand_rest : make_number (nonrest)),
-			    Fcons (make_number (nargs), Qnil)));
+			    make_number (nargs)));
 	  else
 	    {
 	      for (; i < nonrest; i++)
@@ -590,9 +593,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       else
 	/* Too many arguments.  */
 	Fsignal (Qwrong_number_of_arguments,
-		 Fcons (Fcons (make_number (mandatory),
-			       make_number (nonrest)),
-			Fcons (make_number (nargs), Qnil)));
+		 list2 (Fcons (make_number (mandatory), make_number (nonrest)),
+			make_number (nargs)));
     }
   else if (! NILP (args_template))
     /* We should push some arguments on the stack.  */
@@ -1061,8 +1063,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
 	  {
-	    register ptrdiff_t count1 = SPECPDL_INDEX ();
-	    record_unwind_protect (Fset_window_configuration,
+	    ptrdiff_t count1 = SPECPDL_INDEX ();
+	    record_unwind_protect (restore_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    BEFORE_POTENTIAL_GC ();
 	    TOP = Fprogn (TOP);
@@ -1087,7 +1089,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  }
 
 	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
-	  record_unwind_protect (Fprogn, POP);
+	  record_unwind_protect (unwind_body, POP);
 	  NEXT;
 
 	CASE (Bcondition_case):	/* FIXME: ill-suited for lexbind.  */
@@ -1169,14 +1171,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  }
 
 	CASE (Blist1):
-	  TOP = Fcons (TOP, Qnil);
+	  TOP = list1 (TOP);
 	  NEXT;
 
 	CASE (Blist2):
 	  {
 	    Lisp_Object v1;
 	    v1 = POP;
-	    TOP = Fcons (TOP, Fcons (v1, Qnil));
+	    TOP = list2 (TOP, v1);
 	    NEXT;
 	  }
 

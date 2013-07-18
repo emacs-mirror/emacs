@@ -387,10 +387,10 @@ Intended as the value of `indent-line-function'."
                               (skip-chars-forward " \t")
                               (current-column)))
           (error nil)))
-       ;; Inside a string and it starts before this line.
+       ;; Inside a string and it starts before this line: do nothing.
        ((and (nth 3 parse)
              (< (nth 8 parse) (save-excursion (beginning-of-line) (point))))
-        (indent-line-to 0))
+        )
 
        ;; Inside a defun, but not a nested list (depth is 1).  This is
        ;; a promise, usually.

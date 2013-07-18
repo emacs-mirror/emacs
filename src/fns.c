@@ -1962,7 +1962,7 @@ The PLIST is modified by side effects.  */)
       prev = tail;
       QUIT;
     }
-  newcell = Fcons (prop, Fcons (val, Qnil));
+  newcell = list2 (prop, val);
   if (NILP (prev))
     return newcell;
   else
@@ -2455,9 +2455,8 @@ is nil, and `use-dialog-box' is non-nil.  */)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
-      pane = Fcons (Fcons (build_string ("Yes"), Qt),
-		    Fcons (Fcons (build_string ("No"), Qnil),
-			   Qnil));
+      pane = list2 (Fcons (build_string ("Yes"), Qt),
+		    Fcons (build_string ("No"), Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, pane);
       obj = Fx_popup_dialog (Qt, menu, Qnil);
@@ -2586,10 +2585,10 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 static Lisp_Object require_nesting_list;
 
-static Lisp_Object
+static void
 require_unwind (Lisp_Object old_value)
 {
-  return require_nesting_list = old_value;
+  require_nesting_list = old_value;
 }
 
 DEFUN ("require", Frequire, Srequire, 1, 3, 0,
@@ -4915,7 +4914,7 @@ syms_of_fns (void)
   DEFVAR_LISP ("features", Vfeatures,
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
-  Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
+  Vfeatures = list1 (intern_c_string ("emacs"));
   DEFSYM (Qsubfeatures, "subfeatures");
   DEFSYM (Qfuncall, "funcall");
 
@@ -5011,13 +5010,21 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
 
-  {
-    struct hash_table_test
-      eq = { Qeq, Qnil, Qnil, NULL, hashfn_eq },
-      eql = { Qeql, Qnil, Qnil, cmpfn_eql, hashfn_eql },
-      equal = { Qequal, Qnil, Qnil, cmpfn_equal, hashfn_equal };
-    hashtest_eq = eq;
-    hashtest_eql = eql;
-    hashtest_equal = equal;
-  }
+  hashtest_eq.name = Qeq;
+  hashtest_eq.user_hash_function = Qnil;
+  hashtest_eq.user_cmp_function = Qnil;
+  hashtest_eq.cmpfn = 0;
+  hashtest_eq.hashfn = hashfn_eq;
+
+  hashtest_eql.name = Qeql;
+  hashtest_eql.user_hash_function = Qnil;
+  hashtest_eql.user_cmp_function = Qnil;
+  hashtest_eql.cmpfn = cmpfn_eql;
+  hashtest_eql.hashfn = hashfn_eql;
+
+  hashtest_equal.name = Qequal;
+  hashtest_equal.user_hash_function = Qnil;
+  hashtest_equal.user_cmp_function = Qnil;
+  hashtest_equal.cmpfn = cmpfn_equal;
+  hashtest_equal.hashfn = hashfn_equal;
 }

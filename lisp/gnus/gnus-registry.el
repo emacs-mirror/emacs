@@ -1186,6 +1186,29 @@ data stored in the registry."
                   (gnus-select-group-with-message-id group message-id) t)
               (throw 'found t))))))))
 
+(defun gnus-registry-remove-extra-data (extra)
+  "Remove tracked EXTRA data from the gnus registry.
+EXTRA is a list of symbols.  Valid symbols are those contained in
+the docs of `gnus-registry-track-extra'.  This command is useful
+when you stop tracking some extra data and now want to purge it
+from your existing entries."
+  (interactive (list (mapcar 'intern
+			     (completing-read-multiple
+			      "Extra data: "
+			      '("subject" "sender" "recipient")))))
+  (when extra
+    (let ((db gnus-registry-db))
+      (registry-reindex db)
+      (loop for k being the hash-keys of (oref db :data)
+	    using (hash-value v)
+	    do (let ((newv (delq nil (mapcar #'(lambda (entry)
+						 (unless (member (car entry) extra)
+						   entry))
+					     v))))
+		 (registry-delete db (list k) nil)
+		 (gnus-registry-insert db k newv)))
+      (registry-reindex db))))
+
 ;; TODO: a few things
 
 (provide 'gnus-registry)

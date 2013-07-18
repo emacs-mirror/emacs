@@ -595,7 +595,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
       specbind (Qinhibit_point_motion_hooks, Qt);
       Fremove_list_of_text_properties (make_number (min_pos),
 				       make_number (max_pos),
-				       Fcons (Qauto_composed, Qnil), Qnil);
+				       list1 (Qauto_composed), Qnil);
       unbind_to (count, Qnil);
     }
 }
@@ -1873,11 +1873,9 @@ See `find-composition' for more details.  */)
 	return list3 (make_number (s), make_number (e), gstring);
     }
   if (!COMPOSITION_VALID_P (start, end, prop))
-    return Fcons (make_number (start), Fcons (make_number (end),
-					      Fcons (Qnil, Qnil)));
+    return list3 (make_number (start), make_number (end), Qnil);
   if (NILP (detail_p))
-    return Fcons (make_number (start), Fcons (make_number (end),
-					      Fcons (Qt, Qnil)));
+    return list3 (make_number (start), make_number (end), Qt);
 
   if (COMPOSITION_REGISTERD_P (prop))
     id = COMPOSITION_ID (prop);
@@ -1899,10 +1897,7 @@ See `find-composition' for more details.  */)
       relative_p = (method == COMPOSITION_WITH_RULE_ALTCHARS
 		    ? Qnil : Qt);
       mod_func = COMPOSITION_MODIFICATION_FUNC (prop);
-      tail = Fcons (components,
-		    Fcons (relative_p,
-			   Fcons (mod_func,
-				  Fcons (make_number (width), Qnil))));
+      tail = list4 (components, relative_p, mod_func, make_number (width));
     }
   else
     tail = Qnil;

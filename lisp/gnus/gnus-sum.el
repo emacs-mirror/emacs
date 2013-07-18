@@ -1525,7 +1525,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
   "Range of seen articles in the current newsgroup.")
 
 (defvar gnus-newsgroup-unexist nil
-  "Range of unexistent articles in the current newsgroup.")
+  "Range of unexisting articles in the current newsgroup.")
 
 (defvar gnus-newsgroup-articles nil
   "List of articles in the current newsgroup.")

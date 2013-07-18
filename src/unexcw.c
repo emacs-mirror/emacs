@@ -316,13 +316,13 @@ unexec (const char *outfile, const char *infile)
       ret2 = write (fd_out, buffer, ret);
       assert (ret2 == ret);
     }
-  ret = close (fd_in);
+  ret = emacs_close (fd_in);
   assert (ret == 0);
 
   bss_sbrk_did_unexec = 1;
   fixup_executable (fd_out);
   bss_sbrk_did_unexec = 0;
 
-  ret = close (fd_out);
+  ret = emacs_close (fd_out);
   assert (ret == 0);
 }

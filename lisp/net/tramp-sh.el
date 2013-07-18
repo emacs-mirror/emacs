@@ -222,21 +222,24 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-program        "su")
     (tramp-login-args           (("-") ("%u")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("sudo"
     (tramp-login-program        "sudo")
     (tramp-login-args           (("-u" "%u") ("-s") ("-H") ("-p" "Password:")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("ksu"
     (tramp-login-program        "ksu")
     (tramp-login-args           (("%u") ("-q")))
     (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))))
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-connection-timeout   10)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
   '("krlogin"
@@ -864,7 +867,8 @@ of command line.")
     (set-file-acl . tramp-sh-handle-set-file-acl)
     (vc-registered . tramp-sh-handle-vc-registered)
     (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
-    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch))
+    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch)
+    (file-notify-supported-p . tramp-sh-handle-file-notify-supported-p))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -3331,7 +3335,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	;; `process-file-side-effects' in order to keep the cache when
 	;; `process-file' calls appear.
 	(let (process-file-side-effects)
-	  (tramp-run-real-handler 'vc-registered (list file)))))))
+	  (ignore-errors
+	    (tramp-run-real-handler 'vc-registered (list file))))))))
 
 ;;;###tramp-autoload
 (defun tramp-sh-file-name-handler (operation &rest args)
@@ -3493,6 +3498,13 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
   (tramp-message proc 6 (format "Kill %S" proc))
   (kill-process proc))
+
+(defun tramp-sh-handle-file-notify-supported-p (file-name)
+  "Like `file-notify-supported-p' for Tramp files."
+  (with-parsed-tramp-file-name (expand-file-name file-name) nil
+    (and (or (tramp-get-remote-gvfs-monitor-dir v)
+	     (tramp-get-remote-inotifywait v))
+	 t)))
 
 ;;; Internal Functions:
 
@@ -3752,12 +3764,16 @@ file exists and nonzero exit status otherwise."
   "Wait for shell prompt and barf if none appears.
 Looks at process PROC to see if a shell prompt appears in TIMEOUT
 seconds.  If not, it produces an error message with the given ERROR-ARGS."
-  (unless
-      (tramp-wait-for-regexp
-       proc timeout
-       (format
-	"\\(%s\\|%s\\)\\'" shell-prompt-pattern tramp-shell-prompt-pattern))
-    (apply 'tramp-error-with-buffer nil proc 'file-error error-args)))
+  (let ((vec (tramp-get-connection-property proc "vector" nil)))
+    (condition-case err
+	(tramp-wait-for-regexp
+	 proc timeout
+	 (format
+	  "\\(%s\\|%s\\)\\'" shell-prompt-pattern tramp-shell-prompt-pattern))
+      (error
+       (delete-process proc)
+       (apply 'tramp-error-with-buffer
+	      (tramp-get-connection-buffer vec) vec 'file-error error-args)))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
@@ -4332,9 +4348,6 @@ Gateway hops are already opened."
     ;; Result.
     target-alist))
 
-(defvar tramp-current-connection nil
-  "Last connection timestamp.")
-
 (defun tramp-maybe-open-connection (vec)
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
@@ -4348,7 +4361,7 @@ connection if a previous connection has died for some reason."
       ;; If Tramp opens the same connection within a short time frame,
       ;; there is a problem.  We shall signal this.
       (unless (or (and p (processp p) (memq (process-status p) '(run open)))
-		  (not (equal (butlast (append vec nil))
+		  (not (equal (butlast (append vec nil) 2)
 			      (car tramp-current-connection)))
 		  (> (tramp-time-diff
 		      (current-time) (cdr tramp-current-connection))
@@ -4433,7 +4446,7 @@ connection if a previous connection has died for some reason."
 		(set-process-sentinel p 'tramp-process-sentinel)
 		(tramp-compat-set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection
-		      (cons (butlast (append vec nil)) (current-time))
+		      (cons (butlast (append vec nil) 2) (current-time))
 		      tramp-current-host (system-name))
 
 		(tramp-message
@@ -4441,8 +4454,8 @@ connection if a previous connection has died for some reason."
 
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
-		 p 60
-		 "Couldn't find local shell prompt %s" tramp-encoding-shell)
+		 p 10
+		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
 
 		;; Now do all the connections as specified.
 		(while target-alist
@@ -4460,6 +4473,9 @@ connection if a previous connection has died for some reason."
 			 (async-args
 			  (tramp-get-method-parameter
 			   l-method 'tramp-async-args))
+			 (connection-timeout
+			  (tramp-get-method-parameter
+			   l-method 'tramp-connection-timeout))
 			 (gw-args
 			  (tramp-get-method-parameter l-method 'tramp-gw-args))
 			 (gw (tramp-get-file-property hop "" "gateway" nil))
@@ -4542,7 +4558,8 @@ connection if a previous connection has died for some reason."
 		    (tramp-message vec 3 "Sending command `%s'" command)
 		    (tramp-send-command vec command t t)
 		    (tramp-process-actions
-		     p vec pos tramp-actions-before-shell 60)
+		     p vec pos tramp-actions-before-shell
+		     (or connection-timeout tramp-connection-timeout))
 		    (tramp-message
 		     vec 3 "Found remote shell prompt on `%s'" l-host))
 		  ;; Next hop.

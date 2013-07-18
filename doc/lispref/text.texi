@@ -1250,14 +1250,18 @@ reinsert it is @code{(abs @var{position})}.  If @var{position} is
 positive, point was at the beginning of the deleted text, otherwise it
 was at the end.
 
-@item (t @var{sec-high} @var{sec-low} @var{microsec} @var{picosec})
+@item (t . @var{time-flag})
 This kind of element indicates that an unmodified buffer became
-modified.  The list @code{(@var{sec-high} @var{sec-low} @var{microsec}
+modified.  A @var{time-flag} of the form
+@code{(@var{sec-high} @var{sec-low} @var{microsec}
 @var{picosec})} represents the visited file's modification time as of
 when it was previously visited or saved, using the same format as
-@code{current-time}; see @ref{Time of Day}.  @code{primitive-undo} uses those
+@code{current-time}; see @ref{Time of Day}.
+A @var{time-flag} of 0 means the buffer does not correspond to any file;
+@minus{}1 means the visited file previously did not exist.
+@code{primitive-undo} uses these
 values to determine whether to mark the buffer as unmodified once again;
-it does so only if the file's modification time matches those numbers.
+it does so only if the file's status matches that of @var{time-flag}.
 
 @item (nil @var{property} @var{value} @var{beg} . @var{end})
 This kind of element records a change in a text property.

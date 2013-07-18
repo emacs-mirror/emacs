@@ -598,7 +598,7 @@ DRAWERS-REGEXP are converted to freemind notes."
 
 (defun org-freemind-check-overwrite (file interactively)
   "Check if file FILE already exists.
-If FILE does not exists return t.
+If FILE does not exist return t.
 
 If INTERACTIVELY is non-nil ask if the file should be replaced
 and return t/nil if it should/should not be replaced.

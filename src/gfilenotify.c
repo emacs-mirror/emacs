@@ -173,7 +173,7 @@ will be reported only in case of the 'moved' event.  */)
   CHECK_STRING (file);
   file = Fdirectory_file_name (Fexpand_file_name (file, Qnil));
   if (NILP (Ffile_exists_p (file)))
-    report_file_error ("File does not exists", Fcons (file, Qnil));
+    report_file_error ("File does not exist", file);
 
   CHECK_LIST (flags);
 

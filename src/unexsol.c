@@ -20,7 +20,7 @@ unexec (const char *new_name, const char *old_name)
   if (! dldump (0, new_name, RTLD_MEMORY))
     return;
 
-  data = Fcons (build_string (new_name), Qnil);
+  data = list1 (build_string (new_name));
   synchronize_system_messages_locale ();
   errstring = code_convert_string_norecord (build_string (dlerror ()),
 					    Vlocale_coding_system, 0);

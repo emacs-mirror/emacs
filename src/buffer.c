@@ -613,7 +613,7 @@ even if it is dead.  The return value is never nil.  */)
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buffer), Qnil));
+  Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buffer)));
   /* And run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
@@ -824,7 +824,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
+  Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buf)));
 
   bset_mark (b, Fmake_marker ());
 
@@ -2206,14 +2206,19 @@ ends when the current command terminates.  Use `switch-to-buffer' or
   return buffer;
 }
 
+void
+restore_buffer (Lisp_Object buffer_or_name)
+{
+  Fset_buffer (buffer_or_name);
+}
+
 /* Set the current buffer to BUFFER provided if it is alive.  */
 
-Lisp_Object
+void
 set_buffer_if_live (Lisp_Object buffer)
 {
   if (BUFFER_LIVE_P (XBUFFER (buffer)))
     set_buffer_internal (XBUFFER (buffer));
-  return Qnil;
 }
 
 DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
@@ -6094,6 +6099,11 @@ unmodified; (HIGH LOW USEC PSEC) is in the same style as (current-time)
 and is the visited file's modification time, as of that time.  If the
 modification time of the most recent save is different, this entry is
 obsolete.
+
+An entry (t . 0) means means the buffer was previously unmodified but
+its time stamp was unknown because it was not associated with a file.
+An entry (t . -1) is similar, except that it means the buffer's visited
+file did not exist.
 
 An entry (nil PROPERTY VALUE BEG . END) indicates that a text property
 was modified between BEG and END.  PROPERTY is the property name,

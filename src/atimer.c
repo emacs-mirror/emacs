@@ -250,7 +250,7 @@ stop_other_atimers (struct atimer *t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-static void
+void
 run_all_atimers (void)
 {
   if (stopped_atimers)
@@ -271,16 +271,6 @@ run_all_atimers (void)
 
       unblock_atimers ();
     }
-}
-
-
-/* A version of run_all_atimers suitable for a record_unwind_protect.  */
-
-Lisp_Object
-unwind_stop_other_atimers (Lisp_Object dummy)
-{
-  run_all_atimers ();
-  return Qnil;
 }
 
 
@@ -336,7 +326,7 @@ schedule_atimer (struct atimer *t)
   struct atimer *a = atimers, *prev = NULL;
 
   /* Look for the first atimer that is ripe after T.  */
-  while (a && EMACS_TIME_GT (t->expiration, a->expiration))
+  while (a && EMACS_TIME_LT (a->expiration, t->expiration))
     prev = a, a = a->next;
 
   /* Insert T in front of the atimer found, if any.  */

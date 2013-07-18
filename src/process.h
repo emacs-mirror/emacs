@@ -198,6 +198,14 @@ extern Lisp_Object QCspeed;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
+/* Exit statuses for GNU programs that exec other programs.  */
+enum
+{
+  EXIT_CANCELED = 125, /* Internal error prior to exec attempt.  */
+  EXIT_CANNOT_INVOKE = 126, /* Program located, but not usable.  */
+  EXIT_ENOENT = 127 /* Could not find program to exec.  */
+};
+
 /* Defined in callproc.c.  */
 
 extern void block_child_signal (void);

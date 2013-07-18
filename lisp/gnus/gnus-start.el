@@ -2314,8 +2314,9 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-info-set-marks
 	   info (delete exist (gnus-info-marks info))))))
     (when (or force
-	      (< (gnus-continuum-version gnus-newsrc-file-version)
-		 (gnus-continuum-version "Ma Gnus v0.03")))
+	      (not (string= gnus-newsrc-file-version gnus-version)))
+      (message (concat "Removing unexist marks because newsrc "
+		       "version does not match Gnus version."))
       ;; Remove old `exist' marks from old nnimap groups.
       (dolist (info (cdr gnus-newsrc-alist))
 	(let ((exist (assoc 'unexist (gnus-info-marks info))))

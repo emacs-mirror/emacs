@@ -146,4 +146,7 @@ form.")
 	      (should (file-test--do-local-variables-test str subtest))))))
     (ad-disable-advice 'hack-local-variables-confirm 'around 'files-test)))
 
+;; Stop the above "Local Var..." confusing Emacs.
+
+
 ;;; files.el ends here

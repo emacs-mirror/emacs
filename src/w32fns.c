@@ -318,7 +318,7 @@ x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 
 
 static Lisp_Object unwind_create_frame (Lisp_Object);
-static Lisp_Object unwind_create_tip_frame (Lisp_Object);
+static void unwind_create_tip_frame (Lisp_Object);
 static void my_create_window (struct frame *);
 static void my_create_tip_window (struct frame *);
 
@@ -4259,6 +4259,12 @@ unwind_create_frame (Lisp_Object frame)
 }
 
 static void
+do_unwind_create_frame (Lisp_Object frame)
+{
+  unwind_create_frame (frame);
+}
+
+static void
 x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
@@ -4398,7 +4404,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
-  record_unwind_protect (unwind_create_frame, frame);
+  record_unwind_protect (do_unwind_create_frame, frame);
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
@@ -5585,7 +5591,7 @@ Window tip_window;
 Lisp_Object last_show_tip_args;
 
 
-static Lisp_Object
+static void
 unwind_create_tip_frame (Lisp_Object frame)
 {
   Lisp_Object deleted;
@@ -5596,8 +5602,6 @@ unwind_create_tip_frame (Lisp_Object frame)
       tip_window = NULL;
       tip_frame = Qnil;
     }
-
-  return deleted;
 }
 
 

@@ -2097,6 +2097,10 @@ the above example."
 	      nil))))
   type)
 
+(defvar tty-setup-hook nil
+  "Hook run after running the initialization function of a new text terminal.
+This can be used to fine tune the `input-decode-map', for example.")
+
 (defun tty-run-terminal-initialization (frame &optional type)
   "Run the special initialization code for the terminal type of FRAME.
 The optional TYPE parameter may be used to override the autodetected

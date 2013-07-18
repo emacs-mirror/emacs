@@ -1,3 +1,44 @@
+2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac: Simplify --with-file-notification handling.
+
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: If with-file-notification=yes, if gfile not found,
+	go on to try inotify (not on MS Windows or Nextstep).
+
+2013-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix races with threads and file descriptors.
+	* configure.ac (PTY_TTY_NAME_SPRINTF): Use emacs_close, not close.
+
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (removenullpaths): Remove adjacent null paths (Bug#14835).
+
+2013-07-09  Peter Rosin  <peda@lysator.liu.se>  (tiny change>
+
+	* configure.ac (HAVE_W32): Avoid nested functions (the second
+	argument of AC_LANG_PROGRAM is already expanded inside a
+	function).  (Bug#14830)
+
+2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent close-on-exec changes to Cygwin (Bug#14821).
+	* lib/binary-io.c, lib/binary-io.h: New files.
+	Merge from gnulib, incorporating:
+	2013-07-09 accept4, dup3, pipe2: port to Cygwin
+	* lib/pipe2.c: Update from gnulib, as part of this merge.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Handle errno and exit status a bit more carefully.
+	* lib/ignore-value.h: Remove this gnulib-imported file.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change)
+
+	* configure.ac (HAVE_IMAGEMAGICK): Check on NS also (Bug#14798).
+
 2013-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Try to fix FreeBSD 9.1 porting problem (Bug#14812).
@@ -54,7 +95,7 @@
 	* Makefile.in (install-arch-indep): Do not create directories passed
 	with --enable-locallisppath.
 
-2013-06-24  Glenn Morris  <rgm@fencepost.gnu.org>
+2013-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Include X11/X.h when testing for Xft.h.  (Bug#14684)
 

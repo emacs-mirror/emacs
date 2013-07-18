@@ -1715,7 +1715,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
     }
 
-  x_set_frame_parameters (f, Fcons (Fcons (prop, tem), Qnil));
+  x_set_frame_parameters (f, list1 (Fcons (prop, tem)));
   return tem;
 }
 
@@ -2883,11 +2883,16 @@ unwind_create_frame (Lisp_Object frame)
   return Qnil;
 }
 
-static Lisp_Object
+static void
+do_unwind_create_frame (Lisp_Object frame)
+{
+  unwind_create_frame (frame);
+}
+
+static void
 unwind_create_frame_1 (Lisp_Object val)
 {
   inhibit_lisp_code = val;
-  return Qnil;
 }
 
 static void
@@ -2948,7 +2953,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
+      x_set_frame_parameters (f, list1 (Fcons (Qfont_param, font_param)));
     }
 
   /* This call will make X resources override any system font setting.  */
@@ -3090,7 +3095,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
-  record_unwind_protect (unwind_create_frame, frame);
+  record_unwind_protect (do_unwind_create_frame, frame);
 
   /* These colors will be set anyway later, but it's important
      to get the color reference counts right, so initialize them!  */
@@ -4975,7 +4980,7 @@ Window tip_window;
 static Lisp_Object last_show_tip_args;
 
 
-static Lisp_Object
+static void
 unwind_create_tip_frame (Lisp_Object frame)
 {
   Lisp_Object deleted;
@@ -4986,8 +4991,6 @@ unwind_create_tip_frame (Lisp_Object frame)
       tip_window = None;
       tip_frame = Qnil;
     }
-
-  return deleted;
 }
 
 
@@ -5238,7 +5241,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
-    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtooltip, Qt), Qnil));
+    Fmodify_frame_parameters (frame, list1 (Fcons (Qtooltip, Qt)));
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
@@ -5256,8 +5259,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       disptype = intern ("color");
 
     if (NILP (Fframe_parameter (frame, Qdisplay_type)))
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qdisplay_type, disptype),
-                                              Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qdisplay_type, disptype)));
   }
 
   /* Set up faces after all frame parameters are known.  This call
@@ -5276,8 +5278,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
-					      Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qbackground_color, bg)));
   }
 
   f->no_split = 1;
@@ -5766,10 +5767,10 @@ file_dialog_unmap_cb (Widget widget, XtPointer client_data, XtPointer call_data)
   *result = XmCR_CANCEL;
 }
 
-static Lisp_Object
-clean_up_file_dialog (Lisp_Object arg)
+static void
+clean_up_file_dialog (void *arg)
 {
-  Widget dialog = XSAVE_POINTER (arg, 0);
+  Widget dialog = arg;
 
   /* Clean up.  */
   block_input ();
@@ -5777,8 +5778,6 @@ clean_up_file_dialog (Lisp_Object arg)
   XtDestroyWidget (dialog);
   x_menu_set_in_use (0);
   unblock_input ();
-
-  return Qnil;
 }
 
 
@@ -5893,7 +5892,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
       XmStringFree (default_xmstring);
     }
 
-  record_unwind_protect (clean_up_file_dialog, make_save_pointer (dialog));
+  record_unwind_protect_ptr (clean_up_file_dialog, dialog);
 
   /* Process events until the user presses Cancel or OK.  */
   x_menu_set_in_use (1);
@@ -5947,12 +5946,10 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 #ifdef USE_GTK
 
-static Lisp_Object
-clean_up_dialog (Lisp_Object arg)
+static void
+clean_up_dialog (void)
 {
   x_menu_set_in_use (0);
-
-  return Qnil;
 }
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
@@ -5986,7 +5983,7 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
-  record_unwind_protect (clean_up_dialog, Qnil);
+  record_unwind_protect_void (clean_up_dialog);
 
   block_input ();
 
@@ -6041,7 +6038,7 @@ nil, it defaults to the selected frame. */)
 
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
-  record_unwind_protect (clean_up_dialog, Qnil);
+  record_unwind_protect_void (clean_up_dialog);
 
   block_input ();
 

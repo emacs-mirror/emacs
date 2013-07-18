@@ -228,7 +228,7 @@ With assert non-nil, errors out if the key does not exist already."
       (let ((entry (gethash key data)))
 	(when assert
 	  (assert entry nil
-		  "Key %s does not exists in database" key))
+		  "Key %s does not exist in database" key))
 	;; clean entry from the secondary indices
 	(dolist (tr tracked)
 	  ;; is this tracked symbol indexed?

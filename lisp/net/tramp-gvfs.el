@@ -435,6 +435,9 @@ Every entry is a list (NAME ADDRESS).")
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
+    (file-notify-add-watch . ignore)
+    (file-notify-rm-watch . ignore)
+    (file-notify-supported-p .  ignore)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -1539,7 +1542,8 @@ connection if a previous connection has died for some reason."
 	;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
 	;; file property.
 	(with-timeout
-	    (60
+	    ((or (tramp-get-method-parameter method 'tramp-connection-timeout)
+		 tramp-connection-timeout)
 	     (if (zerop (length (tramp-file-name-user vec)))
 		 (tramp-error
 		  vec 'file-error

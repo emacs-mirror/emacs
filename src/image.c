@@ -316,7 +316,6 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   int xhot, yhot, result;
   ptrdiff_t id;
   Lisp_Object found;
-  int fd;
   char *filename;
 
   /* Look for an existing bitmap with the same name.  */
@@ -332,10 +331,8 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  fd = openp (Vx_bitmap_file_path, file, Qnil, &found, Qnil);
-  if (fd < 0)
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found, make_number (R_OK)) < 0)
     return -1;
-  emacs_close (fd);
 
   filename = SSDATA (found);
 
@@ -2260,7 +2257,8 @@ x_find_image_file (Lisp_Object file)
   else
     {
       file_found = ENCODE_FILE (file_found);
-      close (fd);
+      if (fd != -2)
+	emacs_close (fd);
     }
 
   return file_found;
@@ -7583,8 +7581,7 @@ gif_load (struct frame *f, struct image *img)
 	      delay |= ext->Bytes[1];
 	    }
 	}
-      img->lisp_data = Fcons (Qextension_data,
-			      Fcons (img->lisp_data, Qnil));
+      img->lisp_data = list2 (Qextension_data, img->lisp_data);
       if (delay)
 	img->lisp_data
 	  = Fcons (Qdelay,
@@ -8054,7 +8051,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS
+#if defined (HAVE_MAGICKEXPORTIMAGEPIXELS) && ! defined (HAVE_NS)
   if (imagemagick_render_type != 0)
     {
       /* Magicexportimage is normally faster than pixelpushing.  This
