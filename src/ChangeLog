@@ -1,5 +1,10 @@
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* filelock.c: Fix unlikely file descriptor leaks.
+	(get_boot_time_1): Rework to avoid using emacs_open.
+	This doesn't actually fix a leak, but is better anyway.
+	(read_lock_data): Use read, not emacs_read.
+
 	* doc.c: Fix minor memory and file descriptor leaks.
 	* doc.c (get_doc_string): Fix memory leak when doc file absent.
 	(get_doc_string, Fsnarf_documentation):

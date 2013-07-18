@@ -257,17 +257,13 @@ void
 get_boot_time_1 (const char *filename, bool newest)
 {
   struct utmp ut, *utp;
-  int desc;
 
   if (filename)
     {
       /* On some versions of IRIX, opening a nonexistent file name
 	 is likely to crash in the utmp routines.  */
-      desc = emacs_open (filename, O_RDONLY, 0);
-      if (desc < 0)
+      if (faccessat (AT_FDCWD, filename, R_OK, AT_EACCESS) != 0)
 	return;
-
-      emacs_close (desc);
 
       utmpname (filename);
     }
@@ -512,7 +508,8 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
       int fd = emacs_open (lfname, O_RDONLY | O_BINARY | O_NOFOLLOW, 0);
       if (0 <= fd)
 	{
-	  ptrdiff_t read_bytes = emacs_read (fd, lfinfo, MAX_LFINFO + 1);
+	  /* Use read, not emacs_read, since FD isn't unwind-protected.  */
+	  ptrdiff_t read_bytes = read (fd, lfinfo, MAX_LFINFO + 1);
 	  int read_errno = errno;
 	  if (emacs_close (fd) != 0)
 	    return -1;
