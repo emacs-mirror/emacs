@@ -1,3 +1,18 @@
+2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* charset.c: Fix file descriptor leaks and errno issues.
+	Include <errno.h>.
+	(load_charset_map_from_file): Don't leak file descriptor on error.
+	Use plain record_xmalloc since the allocation is larger than
+	MAX_ALLOCA; that's simpler here.  Simplify test for exhaustion
+	of entries.
+	* eval.c (record_unwind_protect_nothing):
+	* fileio.c (fclose_unwind):
+	New functions.
+	* lread.c (load_unwind): Remove.  All uses replaced by fclose_unwind.
+	The replacement doesn't block input, but that no longer seems
+	necessary.
+
 2013-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lread.c: Fix file descriptor leaks and errno issues.

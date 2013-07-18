@@ -3190,6 +3190,8 @@ specbind (Lisp_Object symbol, Lisp_Object value)
     }
 }
 
+/* Push unwind-protect entries of various types.  */
+
 void
 record_unwind_protect (void (*function) (Lisp_Object), Lisp_Object arg)
 {
@@ -3229,6 +3231,18 @@ static void
 do_nothing (void)
 {}
 
+/* Push an unwind-protect entry that does nothing, so that
+   set_unwind_protect_ptr can overwrite it later.  */
+
+void
+record_unwind_protect_nothing (void)
+{
+  record_unwind_protect_void (do_nothing);
+}
+
+/* Clear the unwind-protect entry COUNT, so that it does nothing.
+   It need not be at the top of the stack.  */
+
 void
 clear_unwind_protect (ptrdiff_t count)
 {
@@ -3236,6 +3250,10 @@ clear_unwind_protect (ptrdiff_t count)
   p->unwind_void.kind = SPECPDL_UNWIND_VOID;
   p->unwind_void.func = do_nothing;
 }
+
+/* Set the unwind-protect entry COUNT so that it invokes FUNC (ARG).
+   It need not be at the top of the stack.  Discard the entry's
+   previous value without invoking it.  */
 
 void
 set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
@@ -3245,6 +3263,9 @@ set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
   p->unwind_ptr.func = func;
   p->unwind_ptr.arg = arg;
 }
+
+/* Pop and execute entries from the unwind-protect stack until the
+   depth COUNT is reached.  Return VALUE.  */
 
 Lisp_Object
 unbind_to (ptrdiff_t count, Lisp_Object value)

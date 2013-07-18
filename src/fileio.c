@@ -220,6 +220,13 @@ close_file_unwind (int fd)
   emacs_close (fd);
 }
 
+void
+fclose_unwind (void *arg)
+{
+  FILE *stream = arg;
+  fclose (stream);
+}
+
 /* Restore point, having saved it as a marker.  */
 
 void

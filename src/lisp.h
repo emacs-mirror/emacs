@@ -3743,6 +3743,7 @@ extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
 extern void record_unwind_protect_int (void (*) (int), int);
 extern void record_unwind_protect_ptr (void (*) (void *), void *);
 extern void record_unwind_protect_void (void (*) (void));
+extern void record_unwind_protect_nothing (void);
 extern void clear_unwind_protect (ptrdiff_t);
 extern void set_unwind_protect_ptr (ptrdiff_t, void (*) (void *), void *);
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
@@ -3827,6 +3828,7 @@ extern Lisp_Object Qfile_name_history;
 extern Lisp_Object expand_and_dir_to_file (Lisp_Object, Lisp_Object);
 EXFUN (Fread_file_name, 6);     /* Not a normal DEFUN.  */
 extern void close_file_unwind (int);
+extern void fclose_unwind (void *);
 extern void restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_errno (const char *, Lisp_Object, int);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);

@@ -145,7 +145,6 @@ static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
 static void readevalloop (Lisp_Object, FILE *, Lisp_Object, bool,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
-static void load_unwind (void *);
 
 /* Functions that read one byte from the current source READCHARFUN
    or unreads one byte.  If the integer argument C is -1, it returns
@@ -1317,7 +1316,7 @@ Return t if the file exists and loads successfully.  */)
     }
   if (! stream)
     report_file_error ("Opening stdio stream", file);
-  set_unwind_protect_ptr (fd_index, load_unwind, stream);
+  set_unwind_protect_ptr (fd_index, fclose_unwind, stream);
 
   if (! NILP (Vpurify_flag))
     Vpreloaded_file_list = Fcons (Fpurecopy (file), Vpreloaded_file_list);
@@ -1386,18 +1385,6 @@ Return t if the file exists and loads successfully.  */)
     }
 
   return Qt;
-}
-
-static void
-load_unwind (void *arg)
-{
-  FILE *stream = arg;
-  if (stream != NULL)
-    {
-      block_input ();
-      fclose (stream);
-      unblock_input ();
-    }
 }
 
 static bool
