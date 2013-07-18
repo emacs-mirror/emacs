@@ -2115,7 +2115,7 @@ current thread and update GDB buffers."
 	;; MI error - send to minibuffer
 	(when (eq type 'error)
           ;; Skip "msg=" from `output-field'
-          (message (read (substring output-field 4)))
+          (message "%s" (read (substring output-field 4)))
           ;; Don't send to the console twice.  (If it is a console error
           ;; it is also in the console stream.)
           (setq output-field nil)))

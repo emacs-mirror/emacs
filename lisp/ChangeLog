@@ -1,3 +1,8 @@
+2013-07-18  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb-done-or-error):
+	Guard against "%" in gdb output.  (Bug#14127)
+
 2013-07-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* progmodes/sh-script.el (sh-read-variable): Remove interactive
