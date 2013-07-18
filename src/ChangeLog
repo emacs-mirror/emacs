@@ -1,5 +1,9 @@
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c: Fix minor fdopen-related file descriptor leaks.
+	* term.c (Fresume_tty) [!MSDOS]: Close fd if fdopen (fd) fails.
+	(init_tty) [!DOS_NT]: Likewise.  Also close fd if isatty (fd) fails.
+
 	* charset.c: Fix file descriptor leaks and errno issues.
 	Include <errno.h>.
 	(load_charset_map_from_file): Don't leak file descriptor on error.

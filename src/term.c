@@ -2416,15 +2416,20 @@ frame's terminal). */)
       t->display_info.tty->input  = stdin;
 #else  /* !MSDOS */
       fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
+      t->display_info.tty->input = t->display_info.tty->output
+	= fd < 0 ? 0 : fdopen (fd, "w+");
 
-      if (fd == -1)
-        error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
+      if (! t->display_info.tty->input)
+	{
+	  int open_errno = errno;
+	  emacs_close (fd);
+	  report_file_errno ("Cannot reopen tty device",
+			     build_string (t->display_info.tty->name),
+			     open_errno);
+	}
 
       if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
-
-      t->display_info.tty->output = fdopen (fd, "w+");
-      t->display_info.tty->input = t->display_info.tty->output;
 #endif
 
       add_keyboard_wait_descriptor (fd);
@@ -2990,7 +2995,6 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
 
   {
     /* Open the terminal device.  */
-    FILE *file;
 
     /* If !ctty, don't recognize it as our controlling terminal, and
        don't make it the controlling tty if we don't have one now.
@@ -3001,30 +3005,21 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
        open a frame on the same terminal.  */
     int flags = O_RDWR | O_NOCTTY | (ctty ? 0 : O_IGNORE_CTTY);
     int fd = emacs_open (name, flags, 0);
+    tty->input = tty->output = fd < 0 || ! isatty (fd) ? 0 : fdopen (fd, "w+");
+
+    if (! tty->input)
+      {
+	char const *diagnostic
+	  = tty->input ? "Not a tty device: %s" : "Could not open file: %s";
+	emacs_close (fd);
+	maybe_fatal (must_succeed, terminal, diagnostic, diagnostic, name);
+      }
 
     tty->name = xstrdup (name);
     terminal->name = xstrdup (name);
 
-    if (fd < 0)
-      maybe_fatal (must_succeed, terminal,
-                   "Could not open file: %s",
-                   "Could not open file: %s",
-                   name);
-    if (!isatty (fd))
-      {
-        emacs_close (fd);
-        maybe_fatal (must_succeed, terminal,
-                     "Not a tty device: %s",
-                     "Not a tty device: %s",
-                     name);
-      }
-
     if (!O_IGNORE_CTTY && !ctty)
       dissociate_if_controlling_tty (fd);
-
-    file = fdopen (fd, "w+");
-    tty->input = file;
-    tty->output = file;
   }
 
   tty->type = xstrdup (terminal_type);
