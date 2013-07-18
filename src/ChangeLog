@@ -1,5 +1,10 @@
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doc.c: Fix minor memory and file descriptor leaks.
+	* doc.c (get_doc_string): Fix memory leak when doc file absent.
+	(get_doc_string, Fsnarf_documentation):
+	Fix file descriptor leak on error.
+
 	* term.c: Fix minor fdopen-related file descriptor leaks.
 	* term.c (Fresume_tty) [!MSDOS]: Close fd if fdopen (fd) fails.
 	(init_tty) [!DOS_NT]: Likewise.  Also close fd if isatty (fd) fails.
