@@ -1980,8 +1980,8 @@ ARGS are the arguments OPERATION has been called with."
 		  ;; Emacs 22+ only.
 		  'set-file-times
 		  ;; Emacs 24+ only.
-		  'file-acl 'file-notify-add-watch 'file-selinux-context
-		  'set-file-acl 'set-file-selinux-context
+		  'file-acl 'file-notify-add-watch 'file-notify-supported-p
+		  'file-selinux-context 'set-file-acl 'set-file-selinux-context
 		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
 		  'dired-file-modtime 'dired-make-compressed-filename

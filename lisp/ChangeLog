@@ -1,3 +1,27 @@
+2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el (file-notify--library): Renamed from
+	`file-notify-support'.  Do not autoload.  Adapt all uses.
+	(file-notify-supported-p): New defun.
+
+	* autorevert.el (auto-revert-use-notify): Use
+	`file-notify-supported-p' instead of `file-notify-support'.  Adapt
+	docstring.
+	(auto-revert-notify-add-watch): Use `file-notify-supported-p'.
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add `file-notify-supported-p'.
+
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-supported-p):
+	New defun.
+	(tramp-sh-file-name-handler-alist): Add it as handler for
+	`file-notify-supported-p '.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Add `ignore' as handler for `file-notify-*' functions.
+
 2013-07-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move-partial, line-move): Don't start vscroll or
