@@ -4916,7 +4916,7 @@ w32_monitor_enum (HMONITOR monitor, HDC hdc, RECT *rcMonitor, LPARAM dwData)
 {
   Lisp_Object *monitor_list = (Lisp_Object *) dwData;
 
-  *monitor_list = Fcons (make_save_pointer (monitor), *monitor_list);
+  *monitor_list = Fcons (make_save_ptr (monitor), *monitor_list);
 
   return TRUE;
 }

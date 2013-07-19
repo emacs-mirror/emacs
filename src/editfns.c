@@ -838,9 +838,8 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  return make_save_value
-    (SAVE_TYPE_OBJ_OBJ_OBJ_OBJ,
-     Fpoint_marker (),
+  return make_save_obj_obj_obj_obj
+    (Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
      (XMARKER (BVAR (current_buffer, mark))->buffer
       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)

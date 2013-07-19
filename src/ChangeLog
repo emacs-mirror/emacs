@@ -1,3 +1,20 @@
+2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix obscure porting bug with varargs functions.
+	The code assumed that int is treated like ptrdiff_t in a vararg
+	function, which is not a portable assumption.  There was a similar
+	-- though these days less likely -- porting problem with various
+	assumptions that pointers of different types all smell the same as
+	far as vararg functions is conserved.  To make this problem less
+	likely in the future, redo the API to use varargs functions.
+	* alloc.c (make_save_value): Remove this vararg function.
+	All uses changed to ...
+	(make_save_int_int_int, make_save_obj_obj_obj_obj)
+	(make_save_ptr_int, make_save_funcptr_ptr_obj, make_save_memory):
+	New functions.
+	(make_save_ptr): Rename from make_save_pointer, for consistency with
+	the above.  Define only on platforms that need it.  All uses changed.
+
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* keyboard.c: Try to fix typos in previous change.

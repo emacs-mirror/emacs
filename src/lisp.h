@@ -441,8 +441,7 @@ enum Lisp_Fwd_Type
    displayed to users.  These are Lisp_Save_Value, a Lisp_Misc
    subtype; and PVEC_OTHER, a kind of vectorlike object.  The former
    is suitable for temporarily stashing away pointers and integers in
-   a Lisp object (see the existing uses of make_save_value and
-   XSAVE_VALUE).  The latter is useful for vector-like Lisp objects
+   a Lisp object.  The latter is useful for vector-like Lisp objects
    that need to be used as part of other objects, but which are never
    shown to users or Lisp code (search for PVEC_OTHER in xterm.c for
    an example).
@@ -1815,30 +1814,26 @@ enum Lisp_Save_Type
 
    This is mostly used to package C integers and pointers to call
    record_unwind_protect when two or more values need to be saved.
-   make_save_value lets you pack up to SAVE_VALUE_SLOTS integers, pointers,
-   function pointers or Lisp_Objects and conveniently get them back
-   with XSAVE_INTEGER, XSAVE_POINTER, XSAVE_FUNCPOINTER, and
-   XSAVE_OBJECT macros:
+   For example:
 
    ...
      struct my_data *md = get_my_data ();
-     Lisp_Object my_object = get_my_object ();
-     record_unwind_protect
-       (my_unwind, make_save_value (SAVE_TYPE_PTR_OBJ, md, my_object));
+     ptrdiff_t mi = get_my_integer ();
+     record_unwind_protect (my_unwind, make_save_ptr_int (md, mi));
    ...
 
    Lisp_Object my_unwind (Lisp_Object arg)
    {
      struct my_data *md = XSAVE_POINTER (arg, 0);
-     Lisp_Object my_object = XSAVE_OBJECT (arg, 1);
+     ptrdiff_t mi = XSAVE_INTEGER (arg, 1);
      ...
    }
 
    If ENABLE_CHECKING is in effect, XSAVE_xxx macros do type checking of the
    saved objects and raise eassert if type of the saved object doesn't match
    the type which is extracted.  In the example above, XSAVE_INTEGER (arg, 2)
-   or XSAVE_OBJECT (arg, 0) are wrong because nothing was saved in slot 2 and
-   Lisp_Object was saved in slot 1 of ARG.  */
+   and XSAVE_OBJECT (arg, 0) are wrong because nothing was saved in slot 2 and
+   slot 0 is a pointer.  */
 
 typedef void (*voidfuncptr) (void);
 
@@ -1848,12 +1843,13 @@ struct Lisp_Save_Value
     unsigned gcmarkbit : 1;
     int spacer : 32 - (16 + 1 + SAVE_TYPE_BITS);
 
-    /* DATA[N] may hold up to SAVE_VALUE_SLOTS entries.  The type of
-       V's Ith entry is given by save_type (V, I).  E.g., if save_type
-       (V, 3) == SAVE_INTEGER, V->data[3].integer is in use.
+    /* V->data may hold up to SAVE_VALUE_SLOTS entries.  The type of
+       V's data entries are determined by V->save_type.  E.g., if
+       V->save_type == SAVE_TYPE_PTR_OBJ, V->data[0] is a pointer,
+       V->data[1] is an integer, and V's other data entries are unused.
 
-       If SAVE_TYPE == SAVE_TYPE_MEMORY, DATA[0].pointer is the address of
-       a memory area containing DATA[1].integer potential Lisp_Objects.  */
+       If V->save_type == SAVE_TYPE_MEMORY, V->data[0].pointer is the address of
+       a memory area containing V->data[1].integer potential Lisp_Objects.  */
     ENUM_BF (Lisp_Save_Type) save_type : SAVE_TYPE_BITS;
     union {
       void *pointer;
@@ -3580,8 +3576,15 @@ extern bool abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (enum Lisp_Save_Type, ...);
-extern Lisp_Object make_save_pointer (void *);
+extern Lisp_Object make_save_int_int_int (ptrdiff_t, ptrdiff_t, ptrdiff_t);
+extern Lisp_Object make_save_obj_obj_obj_obj (Lisp_Object, Lisp_Object,
+					      Lisp_Object, Lisp_Object);
+extern Lisp_Object make_save_ptr (void *);
+extern Lisp_Object make_save_ptr_int (void *, ptrdiff_t);
+extern Lisp_Object make_save_ptr_ptr (void *, void *);
+extern Lisp_Object make_save_funcptr_ptr_obj (void (*) (void), void *,
+					      Lisp_Object);
+extern Lisp_Object make_save_memory (Lisp_Object *, ptrdiff_t);
 extern void free_save_value (Lisp_Object);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
@@ -4314,7 +4317,7 @@ extern void *record_xmalloc (size_t);
       {							       \
 	Lisp_Object arg_;				       \
 	buf = xmalloc ((nelt) * word_size);		       \
-	arg_ = make_save_value (SAVE_TYPE_MEMORY, buf, nelt);  \
+	arg_ = make_save_memory (buf, nelt);		       \
 	sa_must_free = 1;				       \
 	record_unwind_protect (free_save_value, arg_);	       \
       }							       \

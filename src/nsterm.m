@@ -3777,7 +3777,7 @@ ns_set_vertical_scroll_bar (struct window *window,
         }
 
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      wset_vertical_scroll_bar (window, make_save_pointer (bar));
+      wset_vertical_scroll_bar (window, make_save_ptr (bar));
     }
   else
     {
