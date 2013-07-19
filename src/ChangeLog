@@ -1,3 +1,10 @@
+2013-07-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (kbd_buffer_get_event): Use Display_Info instead of
+	unportable 'struct x_display_info'.
+	(DISPLAY_LIST_INFO): Delete macro: not needed, since Display_Info
+	is a portable type.
+
 2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c [GNU_LINUX]: Fix fd and memory leaks and similar issues.
