@@ -3,7 +3,7 @@
 	* keyboard.c: Try to fix typos in previous change.
 	(DISPLAY_LIST_INFO): New macro.
 	(kbd_buffer_get_event): Do not access members that are not present
-	in X11.  Revert nadvertent change of "!=" to "=".
+	in X11.  Revert inadvertent change of "!=" to "=".
 
 2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
 

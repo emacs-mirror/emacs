@@ -5,13 +5,13 @@
 
 2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
-	* filenotify.el (file-notify--library): Renamed from
+	* filenotify.el (file-notify--library): Rename from
 	`file-notify-support'.  Do not autoload.  Adapt all uses.
 	(file-notify-supported-p): New defun.
 
-	* autorevert.el (auto-revert-use-notify): Use
-	`file-notify-supported-p' instead of `file-notify-support'.  Adapt
-	docstring.
+	* autorevert.el (auto-revert-use-notify):
+	Use `file-notify-supported-p' instead of `file-notify-support'.
+	Adapt docstring.
 	(auto-revert-notify-add-watch): Use `file-notify-supported-p'.
 
 	* net/tramp.el (tramp-file-name-for-operation):
@@ -3572,8 +3572,8 @@
 	(prolog-char-quote-workaround):
 	* progmodes/cperl-mode.el (cperl-under-as-char):
 	* progmodes/vhdl-mode.el (vhdl-underscore-is-part-of-word):
-	 Mark as obsolete.
-	 (vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
+	Mark as obsolete.
+	(vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
 	their declaration.
 	(vhdl-mode-syntax-table-init): Remove.
 
