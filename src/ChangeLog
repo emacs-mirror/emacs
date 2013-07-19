@@ -1,3 +1,7 @@
+2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h (RE_TRANSLATE_P) [emacs]: Remove obsolete optimization.
+
 2013-07-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (kbd_buffer_get_event): Use Display_Info instead of
