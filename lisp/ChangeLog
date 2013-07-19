@@ -1,3 +1,7 @@
+2013-07-19  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (split-string): New arg TRIM.
+
 2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (blink-cursor-timer-function, blink-cursor-suspend):

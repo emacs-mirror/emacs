@@ -3529,7 +3529,7 @@ likely to have undesired semantics.")
 ;; defaulted, OMIT-NULLS should be treated as t.  Simplifying the logical
 ;; expression leads to the equivalent implementation that if SEPARATORS
 ;; is defaulted, OMIT-NULLS is treated as t.
-(defun split-string (string &optional separators omit-nulls)
+(defun split-string (string &optional separators omit-nulls trim)
   "Split STRING into substrings bounded by matches for SEPARATORS.
 
 The beginning and end of STRING, and each match for SEPARATORS, are
@@ -3547,17 +3547,50 @@ that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
 
+If TRIM is non-nil, it should be a regular expression to match
+text to trim from the beginning and end of each substring.  If trimming
+makes the substring empty, it is treated as null.
+
+If you want to trim whitespace from the substrings, the reliably correct
+way is using TRIM.  Making SEPARATORS match that whitespace gives incorrect
+results when there is whitespace at the start or end of STRING.  If you
+see such calls to `split-string', please fix them.
+
 Note that the effect of `(split-string STRING)' is the same as
 `(split-string STRING split-string-default-separators t)'.  In the rare
 case that you wish to retain zero-length substrings when splitting on
 whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
-  (let ((keep-nulls (not (if separators omit-nulls t)))
-	(rexp (or separators split-string-default-separators))
-	(start 0)
-	notfirst
-	(list nil))
+  (let* ((keep-nulls (not (if separators omit-nulls t)))
+	 (rexp (or separators split-string-default-separators))
+	 (start 0)
+	 this-start this-end
+	 notfirst
+	 (list nil)
+	 (push-one
+	  ;; Push the substring in range THIS-START to THIS-END
+	  ;; onto LIST, trimming it and perhaps discarding it.
+	  (lambda ()
+	    (when trim
+	      ;; Discard the trim from start of this substring.
+	      (let ((tem (string-match trim string this-start)))
+		(and (eq tem this-start)
+		     (setq this-start (match-end 0)))))
+
+	    (when (or keep-nulls (< this-start this-end))
+	      (let ((this (substring string this-start this-end)))
+
+		;; Discard the trim from end of this substring.
+		(when trim
+		  (let ((tem (string-match (concat trim "\\'") this 0)))
+		    (and tem (< tem (length this))
+			 (setq this (substring this 0 tem)))))
+
+		;; Trimming could make it empty; check again.
+		(when (or keep-nulls (> (length this) 0))
+		  (push this list)))))))
+
     (while (and (string-match rexp string
 			      (if (and notfirst
 				       (= start (match-beginning 0))
@@ -3565,15 +3598,15 @@ Modifies the match data; use `save-match-data' if necessary."
 				  (1+ start) start))
 		(< start (length string)))
       (setq notfirst t)
-      (if (or keep-nulls (< start (match-beginning 0)))
-	  (setq list
-		(cons (substring string start (match-beginning 0))
-		      list)))
-      (setq start (match-end 0)))
-    (if (or keep-nulls (< start (length string)))
-	(setq list
-	      (cons (substring string start)
-		    list)))
+      (setq this-start start this-end (match-beginning 0)
+	    start (match-end 0))
+
+      (funcall push-one))
+
+    ;; Handle the substring at the end of STRING.
+    (setq this-start start this-end (length string))
+    (funcall push-one)
+
     (nreverse list)))
 
 (defun combine-and-quote-strings (strings &optional separator)
