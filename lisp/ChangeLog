@@ -1,3 +1,8 @@
+2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-make-table-1): Ensure that we don't infloop on
+	degenerate widths.
+
 2013-07-19  Richard Stallman  <rms@gnu.org>
 
 	* epa.el (epa-popup-info-window): Doc fix.

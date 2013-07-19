@@ -1476,9 +1476,6 @@ ones, in case fg and bg are nil."
 		    (if column
 			(aref widths width-column)
 		      10))
-	      ;; Sanity check for degenerate tables.
-	      (when (zerop width)
-		(setq width 10))
 	      (when (and fill
 			 (setq colspan (cdr (assq :colspan (cdr column)))))
 		(setq colspan (string-to-number colspan))
@@ -1491,6 +1488,9 @@ ones, in case fg and bg are nil."
 		(setq width-column (+ width-column (1- colspan))))
 	      (when (or column
 			(not fill))
+		;; Sanity check for degenerate tables.
+		(when (zerop width)
+		  (setq width 10))
 		(push (shr-render-td (cdr column) width fill)
 		      tds))
 	      (setq i (1+ i)
@@ -1499,6 +1499,7 @@ ones, in case fg and bg are nil."
     (nreverse trs)))
 
 (defun shr-render-td (cont width fill)
+  (when (= width 0) (debug))
   (with-temp-buffer
     (let ((bgcolor (cdr (assq :bgcolor cont)))
 	  (fgcolor (cdr (assq :fgcolor cont)))
