@@ -603,7 +603,7 @@ appears in a <link> or <a> tag."
     (insert " ")))
 
 (defun eww-process-text-input (beg end length)
-  (let* ((form (get-text-property end 'eww-form))
+  (let* ((form (get-text-property (min (1+ end) (point-max)) 'eww-form))
 	 (properties (text-properties-at end))
 	 (type (plist-get form :type)))
     (when (and form

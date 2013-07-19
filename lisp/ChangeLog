@@ -1,5 +1,9 @@
 2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/eww.el (eww-process-text-input): Allow inputting when the
+	point is at the start of the line, as the properties aren't
+	front-sticky.
+
 	* net/shr.el (shr-make-table-1): Ensure that we don't infloop on
 	degenerate widths.
 
