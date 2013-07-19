@@ -1,3 +1,8 @@
+2013-07-19  Richard Stallman  <rms@gnu.org>
+
+	* coding.c (decode_coding_utf_8): Add simple loop for fast
+	processing of ASCII characters.
+
 2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* conf_post.h (RE_TRANSLATE_P) [emacs]: Remove obsolete optimization.

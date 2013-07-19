@@ -1363,6 +1363,45 @@ decode_coding_utf_8 (struct coding_system *coding)
 	  break;
 	}
 
+      /* In the simple case, rapidly handle ordinary characters */
+      if (multibytep && ! eol_dos
+	  && charbuf < charbuf_end - 6 && src < src_end - 6)
+	{
+	  while (charbuf < charbuf_end - 6 && src < src_end - 6)
+	    {
+	      c1 = *src;
+	      if (c1 & 0x80)
+		break;
+	      src++;
+	      consumed_chars++;
+	      *charbuf++ = c1;
+
+	      c1 = *src;
+	      if (c1 & 0x80)
+		break;
+	      src++;
+	      consumed_chars++;
+	      *charbuf++ = c1;
+
+	      c1 = *src;
+	      if (c1 & 0x80)
+		break;
+	      src++;
+	      consumed_chars++;
+	      *charbuf++ = c1;
+
+	      c1 = *src;
+	      if (c1 & 0x80)
+		break;
+	      src++;
+	      consumed_chars++;
+	      *charbuf++ = c1;
+	    }
+	  /* If we handled at least one character, restart the main loop.  */
+	  if (src != src_base)
+	    continue;
+	}
+
       if (byte_after_cr >= 0)
 	c1 = byte_after_cr, byte_after_cr = -1;
       else
