@@ -1924,6 +1924,10 @@ frames to search for a reusable window:
 A frame means consider windows on that frame only.
 @end itemize
 
+Note that these meanings differ slightly from those of the
+@var{all-frames} argument to @code{next-window} (@pxref{Cyclic Window
+Ordering}).
+
 If @var{alist} contains no @code{reusable-frames} entry, this function
 normally searches just the selected frame; however, if the variable
 @code{pop-up-frames} is non-@code{nil}, it searches all frames on the
