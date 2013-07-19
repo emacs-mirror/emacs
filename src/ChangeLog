@@ -1,5 +1,18 @@
 2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix some minor file descriptor leaks and related glitches.
+	* filelock.c (create_lock_file) [!O_CLOEXEC]: Use fcntl with FD_CLOEXEC.
+	(create_lock_file): Use write, not emacs_write.
+	* image.c (slurp_file, png_load_body):
+	* process.c (Fnetwork_interface_list, Fnetwork_interface_info)
+	(server_accept_connection):
+	Don't leak an fd on memory allocation failure.
+	* image.c (slurp_file): Add a cheap heuristic for growing files.
+	* xfaces.c (Fx_load_color_file): Block input around the fopen too,
+	as that's what the other routines do.  Maybe input need not be
+	blocked at all, but it's better to be consistent.
+	Avoid undefined behavior when strlen is zero.
+
 	* alloc.c (staticpro): Avoid buffer overrun on repeated calls.
 	(NSTATICS): Now a constant; doesn't need to be a macro.
 
