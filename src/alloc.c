@@ -341,7 +341,7 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
 
-#define NSTATICS 0x800
+enum { NSTATICS = 2048 };
 static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
@@ -5136,9 +5136,9 @@ Does not copy symbols.  Copies strings without text properties.  */)
 void
 staticpro (Lisp_Object *varaddress)
 {
-  staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
     fatal ("NSTATICS too small; try increasing and recompiling Emacs.");
+  staticvec[staticidx++] = varaddress;
 }
 
 
