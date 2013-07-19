@@ -2807,11 +2807,12 @@ get_up_time (void)
 static Lisp_Object
 procfs_ttyname (int rdev)
 {
-  FILE *fdev = NULL;
+  FILE *fdev;
   char name[PATH_MAX];
 
   block_input ();
   fdev = emacs_fopen ("/proc/tty/drivers", "r");
+  name[0] = 0;
 
   if (fdev)
     {
@@ -2820,7 +2821,7 @@ procfs_ttyname (int rdev)
       char minor[25];	/* 2 32-bit numbers + dash */
       char *endp;
 
-      while (!feof (fdev) && !ferror (fdev))
+      for (; !feof (fdev) && !ferror (fdev); name[0] = 0)
 	{
 	  if (fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor) >= 3
 	      && major == MAJOR (rdev))
@@ -2849,7 +2850,7 @@ procfs_ttyname (int rdev)
 static unsigned long
 procfs_get_total_memory (void)
 {
-  FILE *fmem = NULL;
+  FILE *fmem;
   unsigned long retval = 2 * 1024 * 1024; /* default: 2GB */
 
   block_input ();
@@ -2892,7 +2893,7 @@ system_process_attributes (Lisp_Object pid)
   int cmdsize = sizeof default_cmd - 1;
   char *cmdline = NULL;
   ptrdiff_t cmdline_size;
-  unsigned char c;
+  char c;
   printmax_t proc_id;
   int ppid, pgrp, sess, tty, tpgid, thcount;
   uid_t uid;
@@ -2903,7 +2904,8 @@ system_process_attributes (Lisp_Object pid)
   EMACS_TIME tnow, tstart, tboot, telapsed, us_time;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
-  Lisp_Object cmd_str, decoded_cmd, tem;
+  Lisp_Object cmd_str, decoded_cmd;
+  ptrdiff_t count;
   struct gcpro gcpro1, gcpro2;
 
   CHECK_NUMBER_OR_FLOAT (pid);
@@ -2931,11 +2933,19 @@ system_process_attributes (Lisp_Object pid)
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
+  count = SPECPDL_INDEX ();
   strcpy (fn, procfn);
   procfn_end = fn + strlen (fn);
   strcpy (procfn_end, "/stat");
   fd = emacs_open (fn, O_RDONLY, 0);
-  if (fd >= 0 && (nread = emacs_read (fd, procbuf, sizeof (procbuf) - 1)) > 0)
+  if (fd < 0)
+    nread = 0;
+  else
+    {
+      record_unwind_protect_int (close_file_unwind, fd);
+      nread = emacs_read (fd, procbuf, sizeof procbuf - 1);
+    }
+  if (0 < nread)
     {
       procbuf[nread] = '\0';
       p = procbuf;
@@ -2959,39 +2969,32 @@ system_process_attributes (Lisp_Object pid)
 						  Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
 
-      if (q)
+      /* state ppid pgrp sess tty tpgid . minflt cminflt majflt cmajflt
+	 utime stime cutime cstime priority nice thcount . start vsize rss */
+      if (q
+	  && (sscanf (q + 2, ("%c %d %d %d %d %d %*u %lu %lu %lu %lu "
+			      "%Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld"),
+		      &c, &ppid, &pgrp, &sess, &tty, &tpgid,
+		      &minflt, &cminflt, &majflt, &cmajflt,
+		      &u_time, &s_time, &cutime, &cstime,
+		      &priority, &niceness, &thcount, &start, &vsize, &rss)
+	      == 20))
 	{
-	  EMACS_INT ppid_eint, pgrp_eint, sess_eint, tpgid_eint, thcount_eint;
-	  p = q + 2;
-	  /* state ppid pgrp sess tty tpgid . minflt cminflt majflt cmajflt utime stime cutime cstime priority nice thcount . start vsize rss */
-	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
-		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
-		  &minflt, &cminflt, &majflt, &cmajflt,
-		  &u_time, &s_time, &cutime, &cstime,
-		  &priority, &niceness, &thcount, &start, &vsize, &rss);
-	  {
-	    char state_str[2];
-
-	    state_str[0] = c;
-	    state_str[1] = '\0';
-	    tem =  build_string (state_str);
-	    attrs = Fcons (Fcons (Qstate, tem), attrs);
-	  }
-	  /* Stops GCC whining about limited range of data type.  */
-	  ppid_eint = ppid;
-	  pgrp_eint = pgrp;
-	  sess_eint = sess;
-	  tpgid_eint = tpgid;
-	  thcount_eint = thcount;
-	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid_eint)), attrs);
-	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp_eint)), attrs);
-	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess_eint)), attrs);
+	  char state_str[2];
+	  state_str[0] = c;
+	  state_str[1] = '\0';
+	  attrs = Fcons (Fcons (Qstate, build_string (state_str)), attrs);
+	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp)), attrs);
+	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess)), attrs);
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
-	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid_eint)), attrs);
+	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid)), attrs);
 	  attrs = Fcons (Fcons (Qminflt, make_fixnum_or_float (minflt)), attrs);
 	  attrs = Fcons (Fcons (Qmajflt, make_fixnum_or_float (majflt)), attrs);
-	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)), attrs);
-	  attrs = Fcons (Fcons (Qcmajflt, make_fixnum_or_float (cmajflt)), attrs);
+	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qcmajflt, make_fixnum_or_float (cmajflt)),
+			 attrs);
 	  clocks_per_sec = sysconf (_SC_CLK_TCK);
 	  if (clocks_per_sec < 0)
 	    clocks_per_sec = 100;
@@ -3012,19 +3015,22 @@ system_process_attributes (Lisp_Object pid)
 				ltime_from_jiffies (cstime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qctime,
-				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
+				ltime_from_jiffies (cstime + cutime,
+						    clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
-	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
+	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount)),
+			 attrs);
 	  tnow = current_emacs_time ();
 	  telapsed = get_up_time ();
 	  tboot = sub_emacs_time (tnow, telapsed);
 	  tstart = time_from_jiffies (start, clocks_per_sec);
 	  tstart = add_emacs_time (tboot, tstart);
 	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
-	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize/1024)), attrs);
-	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4*rss)), attrs);
+	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize / 1024)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4 * rss)), attrs);
 	  telapsed = sub_emacs_time (tnow, tstart);
 	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
 	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
@@ -3039,67 +3045,63 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
 	}
     }
-  if (fd >= 0)
-    emacs_close (fd);
+  unbind_to (count, Qnil);
 
   /* args */
   strcpy (procfn_end, "/cmdline");
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      char ch;
-      for (cmdline_size = 0; cmdline_size < STRING_BYTES_BOUND; cmdline_size++)
+      ptrdiff_t readsize, nread_incr;
+      record_unwind_protect_int (close_file_unwind, fd);
+      record_unwind_protect_nothing ();
+      nread = cmdline_size = 0;
+
+      do
 	{
-	  if (emacs_read (fd, &ch, 1) != 1)
-	    break;
-	  c = ch;
-	  if (c_isspace (c) || c == '\\')
-	    cmdline_size++;	/* for later quoting, see below */
+	  cmdline = xpalloc (cmdline, &cmdline_size, 2, STRING_BYTES_BOUND, 1);
+	  set_unwind_protect_ptr (count + 1, xfree, cmdline);
+
+	  /* Leave room even if every byte needs escaping below.  */
+	  readsize = (cmdline_size >> 1) - nread;
+
+	  nread_incr = emacs_read (fd, cmdline + nread, readsize);
+	  nread += max (0, nread_incr);
 	}
-      if (cmdline_size)
+      while (nread_incr == readsize);
+
+      if (nread)
 	{
-	  cmdline = xmalloc (cmdline_size + 1);
-	  lseek (fd, 0L, SEEK_SET);
-	  cmdline[0] = '\0';
-	  if ((nread = read (fd, cmdline, cmdline_size)) >= 0)
-	    cmdline[nread++] = '\0';
-	  else
-	    {
-	      /* Assigning zero to `nread' makes us skip the following
-		 two loops, assign zero to cmdline_size, and enter the
-		 following `if' clause that handles unknown command
-		 lines.  */
-	      nread = 0;
-	    }
 	  /* We don't want trailing null characters.  */
-	  for (p = cmdline + nread; p > cmdline + 1 && !p[-1]; p--)
-	    nread--;
-	  for (p = cmdline; p < cmdline + nread; p++)
+	  for (p = cmdline + nread; cmdline < p && !p[-1]; p--)
+	    continue;
+
+	  /* Escape-quote whitespace and backslashes.  */
+	  q = cmdline + cmdline_size;
+	  while (cmdline < p)
 	    {
-	      /* Escape-quote whitespace and backslashes.  */
-	      if (c_isspace (*p) || *p == '\\')
-		{
-		  memmove (p + 1, p, nread - (p - cmdline));
-		  nread++;
-		  *p++ = '\\';
-		}
-	      else if (*p == '\0')
-		*p = ' ';
+	      char c = *--p;
+	      *--q = c ? c : ' ';
+	      if (c_isspace (c) || c == '\\')
+		*--q = '\\';
 	    }
-	  cmdline_size = nread;
+
+	  nread = cmdline + cmdline_size - q;
 	}
-      if (!cmdline_size)
+
+      if (!nread)
 	{
-	  cmdline_size = cmdsize + 2;
-	  cmdline = xmalloc (cmdline_size + 1);
+	  nread = cmdsize + 2;
+	  cmdline_size = nread + 1;
+	  q = cmdline = xrealloc (cmdline, cmdline_size);
+	  set_unwind_protect_ptr (count + 1, xfree, cmdline);
 	  sprintf (cmdline, "[%.*s]", cmdsize, cmd);
 	}
-      emacs_close (fd);
       /* Command line is encoded in locale-coding-system; decode it.  */
-      cmd_str = make_unibyte_string (cmdline, cmdline_size);
+      cmd_str = make_unibyte_string (q, nread);
       decoded_cmd = code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);
-      xfree (cmdline);
+      unbind_to (count, Qnil);
       attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
     }
 
@@ -3141,8 +3143,9 @@ system_process_attributes (Lisp_Object pid)
   uid_t uid;
   gid_t gid;
   Lisp_Object attrs = Qnil;
-  Lisp_Object decoded_cmd, tem;
+  Lisp_Object decoded_cmd;
   struct gcpro gcpro1, gcpro2;
+  ptrdiff_t count;
 
   CHECK_NUMBER_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
@@ -3169,72 +3172,83 @@ system_process_attributes (Lisp_Object pid)
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
+  count = SPECPDL_INDEX ();
   strcpy (fn, procfn);
   procfn_end = fn + strlen (fn);
   strcpy (procfn_end, "/psinfo");
   fd = emacs_open (fn, O_RDONLY, 0);
-  if (fd >= 0
-      && (nread = read (fd, (char*)&pinfo, sizeof (struct psinfo)) > 0))
+  if (fd < 0)
+    nread = 0;
+  else
     {
-          attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (pinfo.pr_ppid)), attrs);
-	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pinfo.pr_pgid)), attrs);
-	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (pinfo.pr_sid)), attrs);
-
-	  {
-	    char state_str[2];
-	    state_str[0] =  pinfo.pr_lwp.pr_sname;
-	    state_str[1] =  '\0';
-	    tem =   build_string (state_str);
-	    attrs =  Fcons (Fcons (Qstate,  tem),  attrs);
-	  }
-
-	  /* FIXME: missing Qttyname. psinfo.pr_ttydev is a dev_t,
-	     need to get a string from it. */
-
-	  /* FIXME: missing: Qtpgid */
-
-	  /* FIXME: missing:
-		Qminflt
-		Qmajflt
-		Qcminflt
-		Qcmajflt
-
-		Qutime
-		Qcutime
-		Qstime
-		Qcstime
-		Are they available? */
-
-	  attrs = Fcons (Fcons (Qtime, make_lisp_time (pinfo.pr_time)), attrs);
-	  attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
-	  attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
-	  attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
-	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)), attrs);
-
-	  attrs = Fcons (Fcons (Qstart, make_lisp_time (pinfo.pr_start)), attrs);
-	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)), attrs);
-	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)), attrs);
-
-	  /* pr_pctcpu and pr_pctmem are unsigned integers in the
-	     range 0 .. 2**15, representing 0.0 .. 1.0.  */
-	  attrs = Fcons (Fcons (Qpcpu, make_float (100.0 / 0x8000 * pinfo.pr_pctcpu)), attrs);
-	  attrs = Fcons (Fcons (Qpmem, make_float (100.0 / 0x8000 * pinfo.pr_pctmem)), attrs);
-
-	  decoded_cmd
-	    =  code_convert_string_norecord (make_unibyte_string (pinfo.pr_fname,
-								  strlen (pinfo.pr_fname)),
-					     Vlocale_coding_system,  0);
-	  attrs =  Fcons (Fcons (Qcomm,  decoded_cmd),  attrs);
-	  decoded_cmd
-	    =  code_convert_string_norecord (make_unibyte_string (pinfo.pr_psargs,
-								  strlen (pinfo.pr_psargs)),
-					     Vlocale_coding_system,  0);
-	  attrs =  Fcons (Fcons (Qargs,  decoded_cmd),  attrs);
+      record_unwind_protect (close_file_unwind, fd);
+      nread = emacs_read (fd, &pinfo, sizeof pinfo);
     }
 
-  if (fd >= 0)
-    emacs_close (fd);
+  if (nread == sizeof pinfo)
+    {
+      attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (pinfo.pr_ppid)), attrs);
+      attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pinfo.pr_pgid)), attrs);
+      attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (pinfo.pr_sid)), attrs);
 
+      {
+	char state_str[2];
+	state_str[0] = pinfo.pr_lwp.pr_sname;
+	state_str[1] = '\0';
+	attrs = Fcons (Fcons (Qstate, build_string (state_str)), attrs);
+      }
+
+      /* FIXME: missing Qttyname. psinfo.pr_ttydev is a dev_t,
+	 need to get a string from it. */
+
+      /* FIXME: missing: Qtpgid */
+
+      /* FIXME: missing:
+	    Qminflt
+	    Qmajflt
+	    Qcminflt
+	    Qcmajflt
+
+	    Qutime
+	    Qcutime
+	    Qstime
+	    Qcstime
+	    Are they available? */
+
+      attrs = Fcons (Fcons (Qtime, make_lisp_time (pinfo.pr_time)), attrs);
+      attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
+      attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
+      attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
+      attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)),
+		     attrs);
+
+      attrs = Fcons (Fcons (Qstart, make_lisp_time (pinfo.pr_start)), attrs);
+      attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)),
+		     attrs);
+      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)),
+		     attrs);
+
+      /* pr_pctcpu and pr_pctmem are unsigned integers in the
+	 range 0 .. 2**15, representing 0.0 .. 1.0.  */
+      attrs = Fcons (Fcons (Qpcpu,
+			    make_float (100.0 / 0x8000 * pinfo.pr_pctcpu)),
+		     attrs);
+      attrs = Fcons (Fcons (Qpmem,
+			    make_float (100.0 / 0x8000 * pinfo.pr_pctmem)),
+		     attrs);
+
+      decoded_cmd = (code_convert_string_norecord
+		     (make_unibyte_string (pinfo.pr_fname,
+					   strlen (pinfo.pr_fname)),
+		      Vlocale_coding_system, 0));
+      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
+      decoded_cmd = (code_convert_string_norecord
+		     (make_unibyte_string (pinfo.pr_psargs,
+					   strlen (pinfo.pr_psargs)),
+		      Vlocale_coding_system, 0));
+      attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
+    }
+  unbind_to (count, Qnil);
   UNGCPRO;
   return attrs;
 }

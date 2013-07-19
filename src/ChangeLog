@@ -1,5 +1,15 @@
 2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c [GNU_LINUX]: Fix fd and memory leaks and similar issues.
+	(procfs_ttyname): Don't use uninitialized storage if emacs_fopen
+	or fscanf fails.
+	(system_process_attributes): Prefer plain char to unsigned char
+	when either will do.  Clean up properly if interrupted or if
+	memory allocations fail.  Don't assume sscanf succeeds.  Remove
+	no-longer-needed workaround to stop GCC from whining.  Read
+	command-line once, instead of multiple times.  Check read status a
+	bit more carefully.
+
 	Fix obscure porting bug with varargs functions.
 	The code assumed that int is treated like ptrdiff_t in a vararg
 	function, which is not a portable assumption.  There was a similar
