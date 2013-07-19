@@ -1,5 +1,7 @@
 2013-07-19  Richard Stallman  <rms@gnu.org>
 
+	* epa.el (epa-popup-info-window): Doc fix.
+
 	* subr.el (split-string): New arg TRIM.
 
 2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
