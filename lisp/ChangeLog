@@ -1,5 +1,8 @@
 2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/shr.el (shr-mouse-browse-url): New command and keystroke
+	(bug#14815).
+
 	* net/eww.el (eww-process-text-input): Allow inputting when the
 	point is at the start of the line, as the properties aren't
 	front-sticky.
