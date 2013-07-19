@@ -1,3 +1,13 @@
+2013-07-19  Geoff Kuenning  <geoff@cs.hmc.edu>  (tiny change)
+
+	* gnus-art.el (gnus-treat-predicate): Allow functions as predicates
+	(bug#13384).
+
+2013-07-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-clean-old-newsrc): Remove the newsrc cleanups
+	that were only relevant in a development version a long time ago.
+
 2013-07-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-shr-put-image): Make it work as well for shr.el's
