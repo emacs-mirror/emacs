@@ -34,8 +34,7 @@
   :group 'epg)
 
 (defcustom epa-popup-info-window t
-  "If non-nil, status information from epa commands is displayed on
-the separate window."
+  "If non-nil, display status information from epa commands in another window."
   :type 'boolean
   :group 'epa)
 

@@ -3,15 +3,38 @@
 	* international/mule.el (coding-system-iso-2022-flags): Add
 	`8-bit-level-4'.  (Bug#8522)
 
+2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-mouse-browse-url): New command and keystroke
+	(bug#14815).
+
+	* net/eww.el (eww-process-text-input): Allow inputting when the
+	point is at the start of the line, as the properties aren't
+	front-sticky.
+
+	* net/shr.el (shr-make-table-1): Ensure that we don't infloop on
+	degenerate widths.
+
+2013-07-19  Richard Stallman  <rms@gnu.org>
+
+	* epa.el (epa-popup-info-window): Doc fix.
+
+	* subr.el (split-string): New arg TRIM.
+
+2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (blink-cursor-timer-function, blink-cursor-suspend):
+	Add check for W32 (followup to revno:113431).
+
 2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
-	* filenotify.el (file-notify--library): Renamed from
+	* filenotify.el (file-notify--library): Rename from
 	`file-notify-support'.  Do not autoload.  Adapt all uses.
 	(file-notify-supported-p): New defun.
 
-	* autorevert.el (auto-revert-use-notify): Use
-	`file-notify-supported-p' instead of `file-notify-support'.  Adapt
-	docstring.
+	* autorevert.el (auto-revert-use-notify):
+	Use `file-notify-supported-p' instead of `file-notify-support'.
+	Adapt docstring.
 	(auto-revert-notify-add-watch): Use `file-notify-supported-p'.
 
 	* net/tramp.el (tramp-file-name-for-operation):
@@ -3572,8 +3595,8 @@
 	(prolog-char-quote-workaround):
 	* progmodes/cperl-mode.el (cperl-under-as-char):
 	* progmodes/vhdl-mode.el (vhdl-underscore-is-part-of-word):
-	 Mark as obsolete.
-	 (vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
+	Mark as obsolete.
+	(vhdl-mode-syntax-table, vhdl-mode-ext-syntax-table): Initialize in
 	their declaration.
 	(vhdl-mode-syntax-table-init): Remove.
 

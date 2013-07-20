@@ -11858,6 +11858,11 @@ predicate.  The following predicates are recognized: @code{or},
     (typep "text/x-vcard"))
 @end lisp
 
+@item
+A function: the function is called with no arguments and should return
+@code{nil} or non-@code{nil}.  The current article is available in the
+buffer named by @code{gnus-article-buffer}.
+
 @end enumerate
 
 You may have noticed that the word @dfn{part} is used here.  This refers

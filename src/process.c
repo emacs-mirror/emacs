@@ -3526,10 +3526,13 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   ptrdiff_t buf_size = 512;
   int s;
   Lisp_Object res;
+  ptrdiff_t count;
 
   s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   do
     {
@@ -3545,9 +3548,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
     }
   while (ifconf.ifc_len == buf_size);
 
-  emacs_close (s);
-
-  res = Qnil;
+  res = unbind_to (count, Qnil);
   ifreq = ifconf.ifc_req;
   while ((char *) ifreq < (char *) ifconf.ifc_req + ifconf.ifc_len)
     {
@@ -3672,6 +3673,7 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object elt;
   int s;
   bool any = 0;
+  ptrdiff_t count;
 #if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
      && defined HAVE_GETIFADDRS && defined LLADDR)
   struct ifaddrs *ifap;
@@ -3686,6 +3688,8 @@ FLAGS is the current flags of the interface.  */)
   s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   elt = Qnil;
 #if defined (SIOCGIFFLAGS) && defined (HAVE_STRUCT_IFREQ_IFR_FLAGS)
@@ -3802,9 +3806,7 @@ FLAGS is the current flags of the interface.  */)
 #endif
   res = Fcons (elt, res);
 
-  emacs_close (s);
-
-  return any ? res : Qnil;
+  return unbind_to (count, any ? res : Qnil);
 }
 #endif
 #endif	/* defined (HAVE_NET_IF_H) */
@@ -3978,6 +3980,7 @@ server_accept_connection (Lisp_Object server, int channel)
 #endif
   } saddr;
   socklen_t len = sizeof saddr;
+  ptrdiff_t count;
 
   s = accept4 (channel, &saddr.sa, &len, SOCK_CLOEXEC);
 
@@ -3999,6 +4002,9 @@ server_accept_connection (Lisp_Object server, int channel)
 			build_string ("\n")));
       return;
     }
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   connect_counter++;
 
@@ -4116,6 +4122,10 @@ server_accept_connection (Lisp_Object server, int channel)
   pset_filter (p, ps->filter);
   pset_command (p, Qnil);
   p->pid = 0;
+
+  /* Discard the unwind protect for closing S.  */
+  specpdl_ptr = specpdl + count;
+
   p->infd  = s;
   p->outfd = s;
   pset_status (p, Qrun);

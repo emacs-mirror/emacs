@@ -1044,7 +1044,7 @@ Return t if the file exists and loads successfully.  */)
 {
   FILE *stream;
   int fd;
-  int fd_index;
+  int fd_index = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
@@ -1175,7 +1175,7 @@ Return t if the file exists and loads successfully.  */)
 #endif
     }
 
-  if (0 <= fd)
+  if (fd >= 0)
     {
       fd_index = SPECPDL_INDEX ();
       record_unwind_protect_int (close_file_unwind, fd);

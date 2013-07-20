@@ -430,12 +430,14 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       else
 	{
 	  ptrdiff_t lock_info_len;
-#if ! HAVE_MKOSTEMP
+#if ! (HAVE_MKOSTEMP && O_CLOEXEC)
 	  fcntl (fd, F_SETFD, FD_CLOEXEC);
 #endif
 	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
-	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
+	  /* Use 'write', not 'emacs_write', as garbage collection
+	     might signal an error, which would leak FD.  */
+	  if (write (fd, lock_info_str, lock_info_len) != lock_info_len
 	      || fchmod (fd, S_IRUSR | S_IRGRP | S_IROTH) != 0)
 	    err = errno;
 	  /* There is no need to call fsync here, as the contents of

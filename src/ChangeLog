@@ -3,6 +3,84 @@
 	* coding.c (CODING_ISO_FLAG_LEVEL_4): New macro.
 	(decode_coding_iso_2022): Check the single-shift area.  (Bug#8522)
 
+2013-07-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (Fload): Avoid uninitialized warning.
+
+2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor file descriptor leaks and related glitches.
+	* filelock.c (create_lock_file) [!O_CLOEXEC]: Use fcntl with FD_CLOEXEC.
+	(create_lock_file): Use write, not emacs_write.
+	* image.c (slurp_file, png_load_body):
+	* process.c (Fnetwork_interface_list, Fnetwork_interface_info)
+	(server_accept_connection):
+	Don't leak an fd on memory allocation failure.
+	* image.c (slurp_file): Add a cheap heuristic for growing files.
+	* xfaces.c (Fx_load_color_file): Block input around the fopen too,
+	as that's what the other routines do.  Maybe input need not be
+	blocked at all, but it's better to be consistent.
+	Avoid undefined behavior when strlen is zero.
+
+	* alloc.c (staticpro): Avoid buffer overrun on repeated calls.
+	(NSTATICS): Now a constant; doesn't need to be a macro.
+
+2013-07-19  Richard Stallman  <rms@gnu.org>
+
+	* coding.c (decode_coding_utf_8): Add simple loop for fast
+	processing of ASCII characters.
+
+2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* conf_post.h (RE_TRANSLATE_P) [emacs]: Remove obsolete optimization.
+
+2013-07-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (kbd_buffer_get_event): Use Display_Info instead of
+	unportable 'struct x_display_info'.
+	(DISPLAY_LIST_INFO): Delete macro: not needed, since Display_Info
+	is a portable type.
+
+2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c [GNU_LINUX]: Fix fd and memory leaks and similar issues.
+	(procfs_ttyname): Don't use uninitialized storage if emacs_fopen
+	or fscanf fails.
+	(system_process_attributes): Prefer plain char to unsigned char
+	when either will do.  Clean up properly if interrupted or if
+	memory allocations fail.  Don't assume sscanf succeeds.  Remove
+	no-longer-needed workaround to stop GCC from whining.  Read
+	command-line once, instead of multiple times.  Check read status a
+	bit more carefully.
+
+	Fix obscure porting bug with varargs functions.
+	The code assumed that int is treated like ptrdiff_t in a vararg
+	function, which is not a portable assumption.  There was a similar
+	-- though these days less likely -- porting problem with various
+	assumptions that pointers of different types all smell the same as
+	far as vararg functions is conserved.  To make this problem less
+	likely in the future, redo the API to use varargs functions.
+	* alloc.c (make_save_value): Remove this vararg function.
+	All uses changed to ...
+	(make_save_int_int_int, make_save_obj_obj_obj_obj)
+	(make_save_ptr_int, make_save_funcptr_ptr_obj, make_save_memory):
+	New functions.
+	(make_save_ptr): Rename from make_save_pointer, for consistency with
+	the above.  Define only on platforms that need it.  All uses changed.
+
+2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c: Try to fix typos in previous change.
+	(DISPLAY_LIST_INFO): New macro.
+	(kbd_buffer_get_event): Do not access members that are not present
+	in X11.  Revert inadvertent change of "!=" to "=".
+
+2013-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (kbd_buffer_get_event):
+	* w32term.c (x_focus_changed): Port FOCUS_(IN|OUT)_EVENT changes to W32.
+	Followup to revno:113431.
+
 2013-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* filelock.c: Fix unlikely file descriptor leaks.

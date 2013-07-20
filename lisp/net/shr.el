@@ -143,6 +143,7 @@ cid: URL as the argument.")
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
+    (define-key map [mouse-2] 'shr-mouse-browse-url)
     (define-key map "I" 'shr-insert-image)
     (define-key map "w" 'shr-copy-url)
     (define-key map "u" 'shr-copy-url)
@@ -656,6 +657,12 @@ size, and full-buffer size."
 	(if (< (line-end-position) end)
 	    (forward-line 1)
 	  (goto-char end))))))
+
+(defun shr-mouse-browse-url (ev)
+  "Browse the URL under the mouse cursor."
+  (interactive "e")
+  (mouse-set-point ev)
+  (shr-browse-url))
 
 (defun shr-browse-url (&optional external)
   "Browse the URL under point.
@@ -1476,9 +1483,6 @@ ones, in case fg and bg are nil."
 		    (if column
 			(aref widths width-column)
 		      10))
-	      ;; Sanity check for degenerate tables.
-	      (when (zerop width)
-		(setq width 10))
 	      (when (and fill
 			 (setq colspan (cdr (assq :colspan (cdr column)))))
 		(setq colspan (string-to-number colspan))
@@ -1491,6 +1495,9 @@ ones, in case fg and bg are nil."
 		(setq width-column (+ width-column (1- colspan))))
 	      (when (or column
 			(not fill))
+		;; Sanity check for degenerate tables.
+		(when (zerop width)
+		  (setq width 10))
 		(push (shr-render-td (cdr column) width fill)
 		      tds))
 	      (setq i (1+ i)
@@ -1499,6 +1506,7 @@ ones, in case fg and bg are nil."
     (nreverse trs)))
 
 (defun shr-render-td (cont width fill)
+  (when (= width 0) (debug))
   (with-temp-buffer
     (let ((bgcolor (cdr (assq :bgcolor cont)))
 	  (fgcolor (cdr (assq :fgcolor cont)))

@@ -4215,8 +4215,7 @@ by calling `format-decode', which see.  */)
 	       to be signaled after decoding the text we read.  */
 	    nbytes = internal_condition_case_1
 	      (read_non_regular,
-	       make_save_value (SAVE_TYPE_INT_INT_INT, (ptrdiff_t) fd,
-				inserted, trytry),
+	       make_save_int_int_int (fd, inserted, trytry),
 	       Qerror, read_non_regular_quit);
 
 	    if (NILP (nbytes))

@@ -2912,9 +2912,15 @@ x_focus_changed (int type, int state, struct w32_display_info *dpyinfo,
               && CONSP (Vframe_list)
               && !NILP (XCDR (Vframe_list)))
             {
-              bufp->kind = FOCUS_IN_EVENT;
-              XSETFRAME (bufp->frame_or_window, frame);
+              bufp->arg = Qt;
             }
+          else
+            {
+              bufp->arg = Qnil;
+            }
+
+          bufp->kind = FOCUS_IN_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
         }
 
       frame->output_data.x->focus_state |= state;
@@ -2929,7 +2935,10 @@ x_focus_changed (int type, int state, struct w32_display_info *dpyinfo,
         {
           dpyinfo->w32_focus_event_frame = 0;
           x_new_focus_frame (dpyinfo, 0);
-        }
+
+          bufp->kind = FOCUS_OUT_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
+      }
 
       /* TODO: IME focus?  */
     }

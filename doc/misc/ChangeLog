@@ -1,3 +1,7 @@
+2013-07-19  Geoff Kuenning  <geoff@cs.hmc.edu>  (tiny change)
+
+	* gnus.texi (Customizing Articles): Document function predicates.
+
 2013-07-08  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (lines): Correct description of

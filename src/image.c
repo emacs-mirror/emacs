@@ -2276,23 +2276,28 @@ slurp_file (char *file, ptrdiff_t *size)
   unsigned char *buf = NULL;
   struct stat st;
 
-  if (fp && fstat (fileno (fp), &st) == 0
-      && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
-      && (buf = xmalloc (st.st_size),
-	  fread (buf, 1, st.st_size, fp) == st.st_size))
+  if (fp)
     {
-      *size = st.st_size;
-      fclose (fp);
-    }
-  else
-    {
-      if (fp)
-	fclose (fp);
-      if (buf)
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_protect_ptr (fclose_unwind, fp);
+
+      if (fstat (fileno (fp), &st) == 0
+	  && 0 <= st.st_size && st.st_size < min (PTRDIFF_MAX, SIZE_MAX))
 	{
-	  xfree (buf);
-	  buf = NULL;
+	  /* Report an error if we read past the purported EOF.
+	     This can happen if the file grows as we read it.  */
+	  ptrdiff_t buflen = st.st_size;
+	  buf = xmalloc (buflen + 1);
+	  if (fread (buf, 1, buflen + 1, fp) == buflen)
+	    *size = buflen;
+	  else
+	    {
+	      xfree (buf);
+	      buf = NULL;
+	    }
 	}
+
+      unbind_to (count, Qnil);
     }
 
   return buf;
@@ -5732,8 +5737,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
 	  || fn_png_sig_cmp (sig, 0, sizeof sig))
 	{
-	  image_error ("Not a PNG file: `%s'", file, Qnil);
 	  fclose (fp);
+	  image_error ("Not a PNG file: `%s'", file, Qnil);
 	  return 0;
 	}
     }

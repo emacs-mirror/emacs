@@ -561,6 +561,9 @@ The few hooks that used with-wrapper-hook are replaced as follows:
 *** `completion-in-region-function' obsoletes `completion-in-region-functions'.
 *** `filter-buffer-substring-function' obsoletes `filter-buffer-substring-functions'.
 
+** `split-string' now takes an optional argument TRIM.
+The value, if non-nil, is a regexp that specifies what to trim from
+the start and end of each substring.
 
 ** `get-upcase-table' is obsoleted by the new `case-table-get-table'.
 
