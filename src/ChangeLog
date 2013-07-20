@@ -1,3 +1,8 @@
+2013-07-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lread.c (Fload): Avoid initialization only when lint checking.
+	Mention that it's needed only for older GCCs.
+
 2013-07-20  Kenichi Handa  <handa@gnu.org>
 
 	* coding.c (CODING_ISO_FLAG_LEVEL_4): New macro.
