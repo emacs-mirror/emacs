@@ -1569,7 +1569,7 @@ which is then usually a filename.  */)
 
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
-       doc: /* Fush the image with specification SPEC on frame FRAME.
+       doc: /* Flush the image with specification SPEC on frame FRAME.
 This removes the image from the Emacs image cache.  If SPEC specifies
 an image file, the next redisplay of this image will read from the
 current contents of that file.

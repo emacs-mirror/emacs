@@ -2401,7 +2401,6 @@ which in this buffer is currently %s.
 
 (defun sh-read-variable (var)
   "Read a new value for indentation variable VAR."
-  (interactive "*variable? ") ;; to test
   (let ((minibuffer-help-form `(sh-help-string-for-variable
 				(quote ,var)))
 	val)
