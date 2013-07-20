@@ -1,3 +1,8 @@
+2013-07-20  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (coding-system-iso-2022-flags): Add
+	`level-4'.  (Bug#8522)
+
 2013-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* filenotify.el (file-notify--library): Renamed from
