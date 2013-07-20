@@ -1,3 +1,9 @@
+2013-07-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix array bounds violation when pty allocation fails.
+	* configure.ac (PTY_TTY_NAME_SPRINTF): Use PTY_NAME_SIZE,
+	not sizeof pty_name, since pty_name is now a pointer to the array.
+
 2013-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac: Simplify --with-file-notification handling.

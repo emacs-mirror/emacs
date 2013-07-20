@@ -640,19 +640,16 @@ status_message (struct Lisp_Process *p)
     return Fcopy_sequence (Fsymbol_name (symbol));
 }
 
-#ifdef HAVE_PTYS
-
-/* The file name of the pty opened by allocate_pty.  */
-static char pty_name[24];
+enum { PTY_NAME_SIZE = 24 };
 
 /* Open an available pty, returning a file descriptor.
-   Return -1 on failure.
-   The file name of the terminal corresponding to the pty
-   is left in the variable pty_name.  */
+   Store into PTY_NAME the file name of the terminal corresponding to the pty.
+   Return -1 on failure.  */
 
 static int
-allocate_pty (void)
+allocate_pty (char pty_name[PTY_NAME_SIZE])
 {
+#ifdef HAVE_PTYS
   int fd;
 
 #ifdef PTY_ITERATION
@@ -697,9 +694,9 @@ allocate_pty (void)
 	    return fd;
 	  }
       }
+#endif /* HAVE_PTYS */
   return -1;
 }
-#endif /* HAVE_PTYS */
 
 static Lisp_Object
 make_process (Lisp_Object name)
@@ -1621,14 +1618,14 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #endif
   int forkin, forkout;
   bool pty_flag = 0;
+  char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
   Lisp_Object encoded_current_dir;
 
   inchannel = outchannel = -1;
 
-#ifdef HAVE_PTYS
   if (!NILP (Vprocess_connection_type))
-    outchannel = inchannel = allocate_pty ();
+    outchannel = inchannel = allocate_pty (pty_name);
 
   if (inchannel >= 0)
     {
@@ -1647,7 +1644,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       lisp_pty_name = build_string (pty_name);
     }
   else
-#endif /* HAVE_PTYS */
     {
       if (emacs_pipe (sv) != 0)
 	report_file_error ("Creating pipe", Qnil);
@@ -1704,7 +1700,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
     Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
     Lisp_Object volatile process_volatile = process;
-    bool volatile pty_flag_volatile = pty_flag;
     char **volatile new_argv_volatile = new_argv;
     int volatile forkin_volatile = forkin;
     int volatile forkout_volatile = forkout;
@@ -1716,12 +1711,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     encoded_current_dir = encoded_current_dir_volatile;
     lisp_pty_name = lisp_pty_name_volatile;
     process = process_volatile;
-    pty_flag = pty_flag_volatile;
     new_argv = new_argv_volatile;
     forkin = forkin_volatile;
     forkout = forkout_volatile;
     wait_child_setup[0] = wait_child_setup_0_volatile;
     wait_child_setup[1] = wait_child_setup_1_volatile;
+
+    pty_flag = XPROCESS (process)->pty_flag;
   }
 
   if (pid == 0)
@@ -1791,15 +1787,15 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       if (pty_flag)
 	{
 
-	  /* I wonder if emacs_close (emacs_open (pty_name, ...))
+	  /* I wonder if emacs_close (emacs_open (SSDATA (lisp_pty_name), ...))
 	     would work?  */
 	  if (xforkin >= 0)
 	    emacs_close (xforkin);
-	  xforkout = xforkin = emacs_open (pty_name, O_RDWR, 0);
+	  xforkout = xforkin = emacs_open (SSDATA (lisp_pty_name), O_RDWR, 0);
 
 	  if (xforkin < 0)
 	    {
-	      emacs_perror (pty_name);
+	      emacs_perror (SSDATA (lisp_pty_name));
 	      _exit (EXIT_CANCELED);
 	    }
 
@@ -1899,17 +1895,16 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
 }
 
-void
+static void
 create_pty (Lisp_Object process)
 {
+  char pty_name[PTY_NAME_SIZE];
   int inchannel, outchannel;
-  bool pty_flag = 0;
 
   inchannel = outchannel = -1;
 
-#ifdef HAVE_PTYS
   if (!NILP (Vprocess_connection_type))
-    outchannel = inchannel = allocate_pty ();
+    outchannel = inchannel = allocate_pty (pty_name);
 
   if (inchannel >= 0)
     {
@@ -1928,40 +1923,34 @@ create_pty (Lisp_Object process)
       child_setup_tty (forkout);
 #endif /* DONT_REOPEN_PTY */
 #endif /* not USG, or USG_SUBTTY_WORKS */
-      pty_flag = 1;
+
+      fcntl (inchannel, F_SETFL, O_NONBLOCK);
+      fcntl (outchannel, F_SETFL, O_NONBLOCK);
+
+      /* Record this as an active process, with its channels.
+	 As a result, child_setup will close Emacs's side of the pipes.  */
+      chan_process[inchannel] = process;
+      XPROCESS (process)->infd = inchannel;
+      XPROCESS (process)->outfd = outchannel;
+
+      /* Previously we recorded the tty descriptor used in the subprocess.
+	 It was only used for getting the foreground tty process, so now
+	 we just reopen the device (see emacs_get_tty_pgrp) as this is
+	 more portable (see USG_SUBTTY_WORKS above).  */
+
+      XPROCESS (process)->pty_flag = 1;
+      pset_status (XPROCESS (process), Qrun);
+      setup_process_coding_systems (process);
+
+      FD_SET (inchannel, &input_wait_mask);
+      FD_SET (inchannel, &non_keyboard_wait_mask);
+      if (inchannel > max_process_desc)
+	max_process_desc = inchannel;
+
+      pset_tty_name (XPROCESS (process), build_string (pty_name));
     }
-#endif /* HAVE_PTYS */
-
-  fcntl (inchannel, F_SETFL, O_NONBLOCK);
-  fcntl (outchannel, F_SETFL, O_NONBLOCK);
-
-  /* Record this as an active process, with its channels.
-     As a result, child_setup will close Emacs's side of the pipes.  */
-  chan_process[inchannel] = process;
-  XPROCESS (process)->infd = inchannel;
-  XPROCESS (process)->outfd = outchannel;
-
-  /* Previously we recorded the tty descriptor used in the subprocess.
-     It was only used for getting the foreground tty process, so now
-     we just reopen the device (see emacs_get_tty_pgrp) as this is
-     more portable (see USG_SUBTTY_WORKS above).  */
-
-  XPROCESS (process)->pty_flag = pty_flag;
-  pset_status (XPROCESS (process), Qrun);
-  setup_process_coding_systems (process);
-
-  FD_SET (inchannel, &input_wait_mask);
-  FD_SET (inchannel, &non_keyboard_wait_mask);
-  if (inchannel > max_process_desc)
-    max_process_desc = inchannel;
 
   XPROCESS (process)->pid = -2;
-#ifdef HAVE_PTYS
-  if (pty_flag)
-    pset_tty_name (XPROCESS (process), build_string (pty_name));
-  else
-#endif
-    pset_tty_name (XPROCESS (process), Qnil);
 }
 
 
@@ -2589,7 +2578,7 @@ usage:  (make-serial-process &rest ARGS)  */)
     p->kill_without_query = 1;
   if (tem = Fplist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
-  p->pty_flag = 0;
+  eassert (! p->pty_flag);
 
   if (!EQ (p->command, Qt))
     {

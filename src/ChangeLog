@@ -1,5 +1,15 @@
 2013-07-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix array bounds violation when pty allocation fails.
+	* process.c (PTY_NAME_SIZE): New constant.
+	(pty_name): Remove static variable; it's now auto.
+	(allocate_pty): Define even if !HAVE_PTYS; that's simpler.
+	Take pty_name as an arg rather than using a static variable.
+	All callers changed.
+	(create_process): Recover pty_flag from process, not from volatile local.
+	(create_pty): Stay inside array even when pty allocation fails.
+	(Fmake_serial_process): Omit unnecessary initializaiton of pty_flag.
+
 	* lread.c (Fload): Avoid initialization only when lint checking.
 	Mention that it's needed only for older GCCs.
 
