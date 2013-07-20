@@ -543,8 +543,9 @@ If `locking-shift' is specified, decode locking-shift code correctly
 on decoding, and use locking-shift to invoke a graphic element on
 encoding.
 
-If `single-shift' is specified, decode single-shift code correctly on
-decoding, and use single-shift to invoke a graphic element on encoding.
+If `single-shift' is specified, decode single-shift code
+correctly on decoding, and use single-shift to invoke a graphic
+element on encoding.  See also `8-bit-level-4' specification.
 
 If `designation' is specified, decode designation code correctly on
 decoding, and use designation to designate a charset to a graphic
@@ -581,11 +582,11 @@ of ASCII.
 If `use-oldjis' is specified, JIS0208-1976 is designated instead of
 JIS0208-1983.
 
-If `level-4' is specified, the decoder assumes the implementation
-lavel \"4\" for 8-bit codes which means that GL is identified as the
-single-shift area.  The default implementation level for 8-bit
-code is \"4A\" which means that GR is identified as the
-single-shift area.")
+If `8-bit-level-4' is specified, the decoder assumes the
+implementation lavel \"4\" for 8-bit codes which means that GL is
+identified as the single-shift area.  The default implementation
+level for 8-bit code is \"4A\" which means that GR is identified
+as the single-shift area.")
 
 (defun define-coding-system (name docstring &rest props)
   "Define NAME (a symbol) as a coding system with DOCSTRING and attributes.
