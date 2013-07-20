@@ -518,7 +518,8 @@ Return -1 if charset isn't an ISO 2022 one."
     composition
     euc-tw-shift
     use-roman
-    use-oldjis)
+    use-oldjis
+    level-4)
   "List of symbols that control ISO-2022 encoder/decoder.
 
 The value of the `:flags' attribute in the argument of the function
@@ -578,7 +579,13 @@ If `use-roman' is specified, JIS0201-1976-Roman is designated instead
 of ASCII.
 
 If `use-oldjis' is specified, JIS0208-1976 is designated instead of
-JIS0208-1983.")
+JIS0208-1983.
+
+If `level-4' is specified, the decoder assumes the implementation
+lavel \"4\" for 8-bit codes which means that GL is identified as the
+single-shift area.  The default implementation level for 8-bit
+code is \"4A\" which means that GR is identified as the
+single-shift area.")
 
 (defun define-coding-system (name docstring &rest props)
   "Define NAME (a symbol) as a coding system with DOCSTRING and attributes.
