@@ -1,3 +1,8 @@
+2013-07-20  Kenichi Handa  <handa@gnu.org>
+
+	* coding.c (CODING_ISO_FLAG_LEVEL_4): New macro.
+	(decode_coding_iso_2022): Check the single-shift area.  (Bug#8522)
+
 2013-07-20  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lread.c (Fload): Avoid uninitialized warning.

@@ -1,3 +1,8 @@
+2013-07-20  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (coding-system-iso-2022-flags): Add
+	`8-bit-level-4'.  (Bug#8522)
+
 2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-mouse-browse-url): New command and keystroke
