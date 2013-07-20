@@ -290,9 +290,8 @@ discard all handlers having a token number less than TOKEN-NUMBER."
              (lambda (handler)
                "Discard any HANDLER with a token number `<=' than TOKEN-NUMBER."
                (when (< (gdb-handler-token-number handler) token-number)
-                 (message (format
-                           "WARNING! Discarding GDB handler with token #%d\n"
-                           (gdb-handler-token-number handler))))
+                 (message "WARNING! Discarding GDB handler with token #%d\n"
+			  (gdb-handler-token-number handler)))
                (<= (gdb-handler-token-number handler) token-number))
              gdb-handler-list))
 
@@ -1490,7 +1489,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 					       split-horizontal)
   `(defun ,name (&optional thread)
      ,(when doc doc)
-     (message thread)
+     (message "%s" thread)
      (gdb-preempt-existing-or-display-buffer
       (gdb-get-buffer-create ,buffer thread)
       ,split-horizontal)))
@@ -2445,9 +2444,9 @@ current thread and update GDB buffers."
         (if (or (eq gdb-switch-reasons t)
                 (member reason gdb-switch-reasons))
             (when (not (string-equal gdb-thread-number thread-id))
-              (message (concat "Switched to thread " thread-id))
+              (message "Switched to thread %s" thread-id)
               (gdb-setq-thread-number thread-id))
-          (message (format "Thread %s stopped" thread-id)))))
+          (message "Thread %s stopped" thread-id))))
 
     ;; Print "(gdb)" to GUD console
     (when gdb-first-done-or-error

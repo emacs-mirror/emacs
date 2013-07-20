@@ -1,5 +1,9 @@
 2013-07-20  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/gdb-mi.el (gdb-delete-handler, gdb-stopped):
+	Let `message' do the formatting.
+	(def-gdb-preempt-display-buffer): Add explicit format.
+
 	* image-dired.el (image-dired-track-original-file):
 	Avoid changing point of wrong window.  (Bug#14909)
 
