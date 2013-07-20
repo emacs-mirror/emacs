@@ -1,3 +1,7 @@
+2013-07-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (Fload): Avoid uninitialized warning.
+
 2013-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some minor file descriptor leaks and related glitches.
