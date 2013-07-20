@@ -3736,8 +3736,9 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		charset = CHARSET_FROM_ID (charset_id_2);
 	      ONE_MORE_BYTE (c1);
 	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0)
-		  || ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_LEVEL_4)
-		      ? c1 >= 0x80 : c1 < 0x80))
+		  || (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS)
+		      && ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_LEVEL_4)
+			  ? c1 >= 0x80 : c1 < 0x80)))
 		goto invalid_code;
 	      break;
 
@@ -3752,8 +3753,9 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		charset = CHARSET_FROM_ID (charset_id_3);
 	      ONE_MORE_BYTE (c1);
 	      if (c1 < 0x20 || (c1 >= 0x80 && c1 < 0xA0)
-		  || ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_LEVEL_4)
-		      ? c1 >= 0x80 : c1 < 0x80))
+		  || (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS)
+		      && ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_LEVEL_4)
+			  ? c1 >= 0x80 : c1 < 0x80)))
 		goto invalid_code;
 	      break;
 
