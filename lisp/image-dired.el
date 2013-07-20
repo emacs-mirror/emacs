@@ -1035,15 +1035,15 @@ With prefix argument ARG, remove tag from file at point."
 See documentation for `image-dired-toggle-movement-tracking'.
 Interactive use only useful if `image-dired-track-movement' is nil."
   (interactive)
-  (let ((old-buf (current-buffer))
+  (let* ((old-buf (current-buffer))
         (dired-buf (image-dired-associated-dired-buffer))
-        (file-name (image-dired-original-file-name)))
+         (file-name (image-dired-original-file-name))
+         (window (image-dired-get-buffer-window dired-buf)))
     (when (and (buffer-live-p dired-buf) file-name)
       (set-buffer dired-buf)
       (if (not (dired-goto-file file-name))
           (message "Could not track file")
-        (set-window-point
-         (image-dired-get-buffer-window dired-buf) (point)))
+        (if window (set-window-point window (point))))
       (set-buffer old-buf))))
 
 (defun image-dired-toggle-movement-tracking ()

@@ -1,3 +1,8 @@
+2013-07-20  Glenn Morris  <rgm@gnu.org>
+
+	* image-dired.el (image-dired-track-original-file):
+	Avoid changing point of wrong window.  (Bug#14909)
+
 2013-07-18  Richard Copley  <rcopley@gmail.com>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb-done-or-error):
