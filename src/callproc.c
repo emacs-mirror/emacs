@@ -1193,6 +1193,7 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 {
   char **env;
   char *pwd_var;
+  int exec_errno;
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
@@ -1368,13 +1369,16 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
   tcsetpgrp (0, pid);
 
   execve (new_argv[0], new_argv, env);
+  exec_errno = errno;
 
-  /* Don't output the program name here, as it can be arbitrarily long,
-     and a long write from a vforked child to its parent can cause a
-     deadlock.  */
-  emacs_perror ("child process");
+  /* Avoid deadlock if the child's perror writes to a full pipe; the
+     pipe's reader is the parent, but with vfork the parent can't
+     run until the child exits.  Truncate the diagnostic instead.  */
+  fcntl (STDERR_FILENO, F_SETFL, O_NONBLOCK);
 
-  _exit (errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
+  errno = exec_errno;
+  emacs_perror (new_argv[0]);
+  _exit (exec_errno == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 
 #else /* MSDOS */
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);

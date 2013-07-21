@@ -1599,12 +1599,6 @@ start_process_unwind (Lisp_Object proc)
     remove_process (proc);
 }
 
-static void
-create_process_1 (struct atimer *timer)
-{
-  /* Nothing to do.  */
-}
-
 
 static void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
@@ -1841,14 +1835,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   unblock_child_signal ();
   unblock_input ();
 
+  if (forkin >= 0)
+    emacs_close (forkin);
+  if (forkin != forkout && forkout >= 0)
+    emacs_close (forkout);
+
   if (pid < 0)
-    {
-      if (forkin >= 0)
-	emacs_close (forkin);
-      if (forkin != forkout && forkout >= 0)
-	emacs_close (forkout);
-      report_file_errno ("Doing vfork", Qnil, vfork_errno);
-    }
+    report_file_errno ("Doing vfork", Qnil, vfork_errno);
   else
     {
       /* vfork succeeded.  */
@@ -1856,26 +1849,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #ifdef WINDOWSNT
       register_child (pid, inchannel);
 #endif /* WINDOWSNT */
-
-      /* If the subfork execv fails, and it exits,
-	 this close hangs.  I don't know why.
-	 So have an interrupt jar it loose.  */
-      {
-	struct atimer *timer;
-	EMACS_TIME offset = make_emacs_time (1, 0);
-
-	stop_polling ();
-	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
-
-	if (forkin >= 0)
-	  emacs_close (forkin);
-
-	cancel_atimer (timer);
-	start_polling ();
-      }
-
-      if (forkin != forkout && forkout >= 0)
-	emacs_close (forkout);
 
       pset_tty_name (XPROCESS (process), lisp_pty_name);
 

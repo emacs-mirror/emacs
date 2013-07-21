@@ -1,3 +1,13 @@
+2013-07-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid vfork-related deadlock more cleanly.
+	* callproc.c (child_setup): When the child's exec fails, output
+	the program name, as that's more useful.  Use O_NONBLOCK to avoid
+	deadlock.
+	* process.c (create_process_1): Remove; no longer needed.
+	(create_process): Remove timer hack; no longer needed, now that
+	the child avoids deadlock.
+
 2013-07-20  Glenn Morris  <rgm@gnu.org>
 
 	* image.c (Fimage_flush): Fix doc typo.
