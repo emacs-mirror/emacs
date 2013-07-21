@@ -1,5 +1,16 @@
 2013-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* desktop.el (desktop-saved-frame-states):
+	Rename from desktop--saved-states; all users changed.
+	(desktop-save-frames): Rename from desktop--save-frames.
+	Do not save state to desktop file.
+	(desktop-save): Save desktop-saved-frame-states to desktop file
+	and reset to nil.
+	(desktop-restoring-frames-p): New function.
+	(desktop-restore-frames): Use it.  Rename from desktop--restore-frames.
+	(desktop-read): Use desktop-restoring-frames-p.  Do not try to fix
+	buffer-lists when restoring frames.  Suggested by Martin Rudalics.
+
 	* desktop.el: Correctly restore iconified frames.
 	(desktop--filter-iconified-position): New function.
 	(desktop-filter-parameters-alist): Add entries for `top' and `left'.

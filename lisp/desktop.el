@@ -578,8 +578,9 @@ DIRNAME omitted or nil means use `desktop-dirname'."
   "Checksum of the last auto-saved contents of the desktop file.
 Used to avoid writing contents unchanged between auto-saves.")
 
-(defvar desktop--saved-states nil
-  "Saved window/frame state.  Internal use only.")
+(defvar desktop-saved-frame-states nil
+  "Saved state of all frames.
+Only valid during frame saving & restoring; intended for internal use.")
 
 ;; ----------------------------------------------------------------------------
 ;; Desktop file conflict detection
@@ -1077,20 +1078,16 @@ Internal use only."
 	       (this (cadr (frame-parameter mb-frame 'desktop-mini))))
 	  (set-frame-parameter frame 'desktop-mini (list nil this nil)))))))
 
-(defun desktop--save-frames ()
-  "Save window/frame state, as a global variable.
-Intended to be called from `desktop-save'.
-Internal use only."
-  (setq desktop--saved-states
+(defun desktop-save-frames ()
+  "Save frame state in `desktop-saved-frame-states'."
+  (setq desktop-saved-frame-states
 	(and desktop-restore-frames
 	     (progn
 	       (desktop--save-minibuffer-frames)
 	       (mapcar (lambda (frame)
 			 (cons (desktop--filter-frame-parms (frame-parameters frame) t)
 			       (window-state-get (frame-root-window frame) t)))
-		       (frame-list)))))
-  (unless (memq 'desktop--saved-states desktop-globals-to-save)
-    (desktop-outvar 'desktop--saved-states)))
+		       (frame-list))))))
 
 ;;;###autoload
 (defun desktop-save (dirname &optional release auto-save)
@@ -1132,8 +1129,11 @@ and don't save the buffer if they are the same."
 	  (insert "\n;; Global section:\n")
 	  ;; Called here because we save the window/frame state as a global
 	  ;; variable for compatibility with previous Emacsen.
-	  (desktop--save-frames)
+	  (desktop-save-frames)
+	  (unless (memq 'desktop-saved-frame-states desktop-globals-to-save)
+	    (desktop-outvar 'desktop-saved-frame-states))
 	  (mapc (function desktop-outvar) desktop-globals-to-save)
+	  (setq desktop-saved-frame-states nil) ; after saving desktop-globals-to-save
 	  (when (memq 'kill-ring desktop-globals-to-save)
 	    (insert
 	     "(setq kill-ring-yank-pointer (nthcdr "
@@ -1318,10 +1318,15 @@ its window state.  Internal use only."
 	  ((null (car dm1)) nil)
 	  (t (< (cadr dm1) (cadr dm2))))))
 
-(defun desktop--restore-frames ()
+(defun desktop-restoring-frames-p ()
+  "True if calling `desktop-restore-frames' will actually restore frames."
+  (and desktop-restore-frames desktop-saved-frame-states))
+
+(defun desktop-restore-frames ()
   "Restore window/frame configuration.
-Internal use only."
-  (when (and desktop-restore-frames desktop--saved-states)
+This function depends on the value of `desktop-saved-frame-states'
+being set (usually, by reading it from the desktop)."
+  (when (desktop-restoring-frames-p)
     (let* ((frame-mb-map nil) ;; Alist of frames with their own minibuffer
 	   (visible nil)
 	   (delete-saved (eq desktop-restore-in-current-display 'delete))
@@ -1330,12 +1335,13 @@ Internal use only."
 
       ;; Sorting saved states allows us to easily restore minibuffer-owning frames
       ;; before minibufferless ones.
-      (setq desktop--saved-states (sort desktop--saved-states #'desktop--sort-states))
+      (setq desktop-saved-frame-states (sort desktop-saved-frame-states
+					     #'desktop--sort-states))
       ;; Potentially all existing frames are reusable.	Later we will decide which ones
       ;; to reuse, and how to deal with any leftover.
       (setq desktop--reuse-list (frame-list))
 
-      (dolist (state desktop--saved-states)
+      (dolist (state desktop-saved-frame-states)
 	(condition-case err
 	    (let* ((frame-cfg (car state))
 		   (window-cfg (cdr state))
@@ -1465,16 +1471,17 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 		(file-error (message "Couldn't record use of desktop file")
 			    (sit-for 1))))
 
-	    ;; `desktop-create-buffer' puts buffers at end of the buffer list.
-	    ;; We want buffers existing prior to evaluating the desktop (and
-	    ;; not reused) to be placed at the end of the buffer list, so we
-	    ;; move them here.
-	    (mapc 'bury-buffer
-		  (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
-	    (switch-to-buffer (car (buffer-list)))
+	    (unless (desktop-restoring-frames-p)
+	      ;; `desktop-create-buffer' puts buffers at end of the buffer list.
+	      ;; We want buffers existing prior to evaluating the desktop (and
+	      ;; not reused) to be placed at the end of the buffer list, so we
+	      ;; move them here.
+	      (mapc 'bury-buffer
+		    (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
+	      (switch-to-buffer (car (buffer-list))))
 	    (run-hooks 'desktop-delay-hook)
 	    (setq desktop-delay-hook nil)
-	    (desktop--restore-frames)
+	    (desktop-restore-frames)
 	    (run-hooks 'desktop-after-read-hook)
 	    (message "Desktop: %d buffer%s restored%s%s."
 		     desktop-buffer-ok-count
@@ -1486,18 +1493,19 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 			 (format ", %d to restore lazily"
 				 (length desktop-buffer-args-list))
 		       ""))
-	    ;; Bury the *Messages* buffer to not reshow it when burying
-	    ;; the buffer we switched to above.
-	    (when (buffer-live-p (get-buffer "*Messages*"))
-	      (bury-buffer "*Messages*"))
-	    ;; Clear all windows' previous and next buffers, these have
-	    ;; been corrupted by the `switch-to-buffer' calls in
-	    ;; `desktop-restore-file-buffer' (bug#11556).  This is a
-	    ;; brute force fix and should be replaced by a more subtle
-	    ;; strategy eventually.
-	    (walk-window-tree (lambda (window)
-				(set-window-prev-buffers window nil)
-				(set-window-next-buffers window nil)))
+	    (unless (desktop-restoring-frames-p)
+	      ;; Bury the *Messages* buffer to not reshow it when burying
+	      ;; the buffer we switched to above.
+	      (when (buffer-live-p (get-buffer "*Messages*"))
+		(bury-buffer "*Messages*"))
+	      ;; Clear all windows' previous and next buffers, these have
+	      ;; been corrupted by the `switch-to-buffer' calls in
+	      ;; `desktop-restore-file-buffer' (bug#11556).  This is a
+	      ;; brute force fix and should be replaced by a more subtle
+	      ;; strategy eventually.
+	      (walk-window-tree (lambda (window)
+				  (set-window-prev-buffers window nil)
+				  (set-window-next-buffers window nil))))
 	    t))
       ;; No desktop file found.
       (desktop-clear)
