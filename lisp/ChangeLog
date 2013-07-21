@@ -25,16 +25,16 @@
 
 2013-07-20  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* progmodes/sh-script.el (sh-read-variable): Remove interactive
-	spec.  (Bug#14826)
+	* progmodes/sh-script.el (sh-read-variable): Remove interactive spec.
+	(Bug#14826)
 
 	* international/mule.el (coding-system-iso-2022-flags): Fix last
 	change.
 
 2013-07-20  Kenichi Handa  <handa@gnu.org>
 
-	* international/mule.el (coding-system-iso-2022-flags): Add
-	`8-bit-level-4'.  (Bug#8522)
+	* international/mule.el (coding-system-iso-2022-flags):
+	Add `8-bit-level-4'.  (Bug#8522)
 
 2013-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -153,8 +153,8 @@
 
 2013-07-13  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Highlight
-	conversion methods on Kernel.
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Highlight conversion methods on Kernel.
 
 2013-07-13  Alan Mackenzie  <acm@muc.de>
 
@@ -322,8 +322,8 @@
 	(tramp-process-actions): Use progress reporter.  Delete process in
 	case of error.  Improve messages.
 
-	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use
-	condition-case.  Call `tramp-error-with-buffer' with vector and buffer.
+	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use condition-case.
+	Call `tramp-error-with-buffer' with vector and buffer.
 	(tramp-current-connection): Removed.
 	(tramp-maybe-open-connection): The car of
 	`tramp-current-connection' are the first 3 slots of the vector.

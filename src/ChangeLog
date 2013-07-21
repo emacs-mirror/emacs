@@ -592,7 +592,7 @@
 	initializers.
 
 	Syntax cleanup, mostly replacing macros with functions.
-`	This removes the need for the syntax_temp hack.
+	This removes the need for the syntax_temp hack.
 	* search.c: Include syntax.h after buffer.h, since syntax.h uses BVAR.
 	* syntax.c (SYNTAX_INLINE): New macro.
 	(SYNTAX_FLAGS_COMSTART_FIRST, SYNTAX_FLAGS_COMSTART_SECOND)
@@ -690,7 +690,7 @@
 	(emacswrite_sig, emacs_perror): New functions.
 	* xrdb.c (fatal): Don't invoke perror, since errno might be garbage.
 
-2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change).
+2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change).
 
 	* image.c (imagemagick_load_image): Do not use MagickExportImagePixels
 	on NS even if it is present.  Pixmap on NS is a void*.
@@ -1245,7 +1245,7 @@
 
 	* floatfns.c (Flog10): Move to Lisp (marked obsolete there).
 
-2013-06-20  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+2013-06-20  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
 
 	* floatfns.c (Flog) [HAVE_LOG2]: Use log2 if available and if the
 	base is 2; this is more accurate.
