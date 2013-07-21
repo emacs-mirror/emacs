@@ -1,3 +1,8 @@
+2013-07-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (sendEvent:): Skip mouse moved if no dialog and no Emacs
+	frame have focus (Bug#14895).
+
 2013-07-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Avoid vfork-related deadlock more cleanly.

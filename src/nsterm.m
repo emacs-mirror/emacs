@@ -4416,6 +4416,7 @@ ns_term_shutdown (int sig)
 {
   int type = [theEvent type];
   NSWindow *window = [theEvent window];
+
 /*  NSTRACE (sendEvent); */
 /*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
@@ -4468,6 +4469,23 @@ ns_term_shutdown (int sig)
           send_appdefined = YES;
         }
     }
+
+
+#ifdef NS_IMPL_COCOA
+  /* If no dialog and none of our frames have focus and it is a move, skip it.
+     It is a mouse move in an auxillary menu, i.e. on the top right on OSX,
+     such as Wifi, sound, date or similar.
+     This prevents "spooky" highlightning in the frame under the menu.  */
+  if (type == NSMouseMoved && [NSApp modalWindow] == nil)
+    {
+      struct ns_display_info *di;
+      BOOL has_focus = NO;
+      for (di = x_display_list; ! has_focus && di; di = di->next)
+        has_focus = di->x_focus_frame != 0;
+      if (! has_focus)
+        return;
+    }
+#endif
 
   [super sendEvent: theEvent];
 }
