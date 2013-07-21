@@ -1368,7 +1368,7 @@ Internal use only."
 		  (when (eq (cdr (assq 'minibuffer frame-cfg)) 'only)
 		    (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
 					    frame-cfg))))
-		 (t ;; Frame depends on other frame's minibufer window.
+		 (t ;; Frame depends on other frame's minibuffer window.
 		  (let ((mb-frame (cdr (assq (cadr d-mini) frame-mb-map))))
 		    (unless (frame-live-p mb-frame)
 		      (error "Minibuffer frame %s not found" (cadr d-mini)))

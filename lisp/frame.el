@@ -1740,7 +1740,7 @@ frame receives focus."
       (setq blink-cursor-idle-timer nil))))
 
 (defun blink-cursor-check ()
-  "Check if cursot blinking shall be restarted.
+  "Check if cursor blinking shall be restarted.
 This is done when a frame gets focus.  Blink timers may be stopped by
 `blink-cursor-suspend'."
   (when (and blink-cursor-mode

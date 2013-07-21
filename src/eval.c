@@ -459,7 +459,7 @@ usage: (progn BODY...)  */)
   return val;
 }
 
-/* Evaluate BODY sequentually, discarding its value.  Suitable for
+/* Evaluate BODY sequentially, discarding its value.  Suitable for
    record_unwind_protect.  */
 
 void
