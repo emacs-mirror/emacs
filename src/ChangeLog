@@ -1,3 +1,9 @@
+2013-07-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (make_save_ptr_ptr): Define this function.
+	It was inadvertently omitted.  It's needed only if
+	HAVE_MENUS && ! (USE_X_TOOLKIT || USE_GTK).
+
 2013-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (sendEvent:): Skip mouse moved if no dialog and no Emacs

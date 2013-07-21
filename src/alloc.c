@@ -3394,6 +3394,19 @@ make_save_ptr_int (void *a, ptrdiff_t b)
   return val;
 }
 
+#if defined HAVE_MENUS && ! (defined USE_X_TOOLKIT || defined USE_GTK)
+Lisp_Object
+make_save_ptr_ptr (void *a, void *b)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_PTR_PTR;
+  p->data[0].pointer = a;
+  p->data[1].pointer = b;
+  return val;
+}
+#endif
+
 Lisp_Object
 make_save_funcptr_ptr_obj (void (*a) (void), void *b, Lisp_Object c)
 {
