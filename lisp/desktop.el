@@ -896,10 +896,12 @@ DIRNAME must be the directory in which the desktop file will be saved."
     (foreground-color	. desktop--filter-*-color)
     (fullscreen		. desktop--filter-save-desktop-parm)
     (height		. desktop--filter-save-desktop-parm)
+    (left		. desktop--filter-iconified-position)
     (minibuffer		. desktop--filter-minibuffer)
     (name		. t)
     (outer-window-id	. t)
     (parent-id		. t)
+    (top		. desktop--filter-iconified-position)
     (tty		. desktop--filter-tty*)
     (tty-type		. desktop--filter-tty*)
     (width		. desktop--filter-save-desktop-parm)
@@ -1003,6 +1005,11 @@ Only meaningful when called from a filtering function in
 	     (setcdr dtp :desktop-processed)
 	     (cons (car current) val))))
 	(t t)))
+
+(defun desktop--filter-iconified-position (_current parameters saving)
+  ;; When saving an iconified frame, top & left are meaningless,
+  ;; so remove them to allow restoring to a default position.
+  (not (and saving (eq (cdr (assq 'visibility parameters)) 'icon))))
 
 (defun desktop-restore-in-original-display-p ()
   "True if saved frames' displays should be honored."

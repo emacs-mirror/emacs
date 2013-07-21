@@ -1,3 +1,9 @@
+2013-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Correctly restore iconified frames.
+	(desktop--filter-iconified-position): New function.
+	(desktop-filter-parameters-alist): Add entries for `top' and `left'.
+
 2013-07-20  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gdb-mi.el (gdb-delete-handler, gdb-stopped):
