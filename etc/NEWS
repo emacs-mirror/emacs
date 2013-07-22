@@ -483,7 +483,8 @@ It is layered as:
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
-** The package file-notify.el provides an interface for file system
++++
+** The package filenotify.el provides an interface for file system
 notifications.  It requires, that Emacs is compiled with one of the
 low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
