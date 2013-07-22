@@ -42,9 +42,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef __FreeBSD__
-#include <sys/user.h>
-#include <sys/resource.h>
-#include <math.h>
+/* Sparc/ARM machine/frame.h has 'struct frame' which conflicts with Emacs's
+   'struct frame', so rename it.  */
+# define frame freebsd_frame
+# include <sys/user.h>
+# undef frame
+
+# include <sys/resource.h>
+# include <math.h>
 #endif
 
 #ifdef WINDOWSNT

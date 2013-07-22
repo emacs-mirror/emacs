@@ -1,3 +1,9 @@
+2013-07-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (frame) [__FreeBSD__]: #define to freebsd_frame
+	when including <sys/user.h>, to prevent Sparc/ARM machine/frame.h
+	from messing up Emacs's 'struct frame' (Bug#14923).
+
 2013-07-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (make_save_ptr_ptr): Define this function.
