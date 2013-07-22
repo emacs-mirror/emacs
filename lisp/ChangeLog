@@ -1,3 +1,9 @@
+2013-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired-x.el (dired-mark-unmarked-files, dired-virtual)
+	(dired-guess-default, dired-mark-sexp, dired-filename-at-point):
+	Use string-match-p, looking-at-p (bug#14927).
+
 2013-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-saved-frame-states):
