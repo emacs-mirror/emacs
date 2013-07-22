@@ -4367,7 +4367,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "4b863621846609105c0371f8ffb8c1cf")
+;;;### (autoloads nil "dired-x" "dired-x.el" "9bfe6b761cb88b4d3ab78a7905979371")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\
