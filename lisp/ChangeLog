@@ -1,5 +1,8 @@
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* winner.el (winner-hook-installed-p): Remove.
+	(winner-mode): Simplify accordingly.
+
 	* subr.el (add-to-list): Fix compiler-macro when `append' is
 	not constant.  Don't use `cl-member' for the base case.
 
