@@ -1393,7 +1393,7 @@ Letters do not insert themselves; instead, they are commands.
 			       ("Description" 0 nil)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Status" nil))
-  (add-hook 'tabulated-list-revert-hook 'package-menu--refresh)
+  (add-hook 'tabulated-list-revert-hook 'package-menu--refresh nil t)
   (tabulated-list-init-header))
 
 (defmacro package--push (pkg-desc status listname)

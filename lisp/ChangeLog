@@ -1,3 +1,8 @@
+2013-07-22  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-menu-mode): Don't modify the
+	global value of tabulated-list-revert-hook (bug#14930).
+
 2013-07-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el: Require 'cl-lib.
