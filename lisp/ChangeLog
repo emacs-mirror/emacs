@@ -1,5 +1,13 @@
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload--setup-output): New function,
+	extracted from autoload--insert-text.
+	(autoload--insert-text): Remove.
+	(autoload--print-cookie-text): New function, extracted from
+	autoload--insert-cookie-text.
+	(autoload--insert-cookie-text): Remove.
+	(autoload-generate-file-autoloads): Adjust calls accordingly.
+
 	* winner.el (winner-hook-installed-p): Remove.
 	(winner-mode): Simplify accordingly.
 

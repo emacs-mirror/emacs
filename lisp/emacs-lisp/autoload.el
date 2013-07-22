@@ -436,33 +436,26 @@ Return non-nil in the case where no autoloads were added at point."
 
 (defvar print-readably)
 
-(defun autoload--insert-text (output-start otherbuf outbuf absfile
-                                           load-name printfun)
-  ;; If not done yet, figure out where to insert this text.
-  (unless (marker-buffer output-start)
-    (let ((outbuf
-           (or (if otherbuf
-                   ;; A file-local setting of
-                   ;; autoload-generated-file says we
-                   ;; should ignore OUTBUF.
-                   nil
-                 outbuf)
-               (autoload-find-destination absfile load-name)
-               ;; The file has autoload cookies, but they're
-               ;; already up-to-date. If OUTFILE is nil, the
-               ;; entries are in the expected OUTBUF,
-               ;; otherwise they're elsewhere.
-               (throw 'done otherbuf))))
-      (with-current-buffer outbuf
-        (move-marker output-start (point) outbuf))))
-  (let ((standard-output (marker-buffer output-start)))
-    (funcall printfun)))
 
-(defun autoload--insert-cookie-text (output-start otherbuf outbuf absfile
-                                                  load-name file)
-  (autoload--insert-text
-   output-start otherbuf outbuf absfile load-name
-   (lambda ()
+(defun autoload--setup-output (otherbuf outbuf absfile load-name)
+  (let ((outbuf
+         (or (if otherbuf
+                 ;; A file-local setting of
+                 ;; autoload-generated-file says we
+                 ;; should ignore OUTBUF.
+                 nil
+               outbuf)
+             (autoload-find-destination absfile load-name)
+             ;; The file has autoload cookies, but they're
+             ;; already up-to-date. If OUTFILE is nil, the
+             ;; entries are in the expected OUTBUF,
+             ;; otherwise they're elsewhere.
+             (throw 'done otherbuf))))
+    (with-current-buffer outbuf
+      (point-marker))))
+
+(defun autoload--print-cookie-text (output-start load-name file)
+  (let ((standard-output (marker-buffer output-start)))
      (search-forward generate-autoload-cookie)
      (skip-chars-forward " \t")
      (if (eolp)
@@ -490,7 +483,7 @@ Return non-nil in the case where no autoloads were added at point."
                      ;; Eat one space.
                      (forward-char 1))
                  (point))
-               (progn (forward-line 1) (point))))))))
+              (progn (forward-line 1) (point)))))))
 
 (defvar autoload-builtin-package-versions nil)
 
@@ -553,23 +546,25 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                        (setq package (or (lm-header "package")
                                          (file-name-sans-extension
                                           (file-name-nondirectory file))))
-                       (setq output-start (make-marker))
-                       (autoload--insert-text
-                        output-start otherbuf outbuf absfile load-name
-                        (lambda ()
+                       (setq output-start (autoload--setup-output
+                                           otherbuf outbuf absfile load-name))
+                       (let ((standard-output (marker-buffer output-start))
+                             (print-quoted t))
                           (princ `(push (purecopy
                                              ',(cons (intern package) version))
                                         package--builtin-versions))
-                          (newline))))))
+                         (newline)))))
 
               (goto-char (point-min))
               (while (not (eobp))
                 (skip-chars-forward " \t\n\f")
                 (cond
                  ((looking-at (regexp-quote generate-autoload-cookie))
-                  (unless output-start (setq output-start (make-marker)))
-                  (autoload--insert-cookie-text
-                   output-start otherbuf outbuf absfile load-name file))
+                  ;; If not done yet, figure out where to insert this text.
+                  (unless output-start
+                    (setq output-start (autoload--setup-output
+                                        otherbuf outbuf absfile load-name)))
+                  (autoload--print-cookie-text output-start load-name file))
                  ((looking-at ";")
                   ;; Don't read the comment.
                   (forward-line 1))
