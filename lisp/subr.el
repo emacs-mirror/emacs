@@ -1498,9 +1498,10 @@ other hooks, such as major mode hooks, can do the job."
       ;; FIXME: Something like this could be used for `set' as well.
       (if (or (not (eq 'quote (car-safe list-var)))
               (special-variable-p (cadr list-var))
-              (and append compare-fn))
+              (not (macroexp-const-p append)))
           exp
         (let* ((sym (cadr list-var))
+               (append (eval append))
                (msg (format "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
                             sym))
                ;; Big ugly hack so we only output a warning during
@@ -1513,13 +1514,17 @@ other hooks, such as major mode hooks, can do the job."
                           (when (assq sym byte-compile--lexical-environment)
                             (byte-compile-log-warning msg t :error))))
                (code
-                (if append
-                    (macroexp-let2 macroexp-copyable-p x element
-                    `(unless (member ,x ,sym)
-                       (setq ,sym (append ,sym (list ,x)))))
-                  (require 'cl-lib)
-                  `(cl-pushnew ,element ,sym
-                               :test ,(or compare-fn '#'equal)))))
+                (macroexp-let2 macroexp-copyable-p x element
+                  `(unless ,(if compare-fn
+                                (progn
+                                  (require 'cl-lib)
+                                  `(cl-member ,x ,sym :test ,compare-fn))
+                              ;; For bootstrapping reasons, don't rely on
+                              ;; cl--compiler-macro-member for the base case.
+                              `(member ,x ,sym))
+                     ,(if append
+                          `(setq ,sym (append ,sym (list ,x)))
+                        `(push ,x ,sym))))))
           (if (not (macroexp--compiling-p))
               code
             `(progn

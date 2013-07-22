@@ -1,5 +1,8 @@
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (add-to-list): Fix compiler-macro when `append' is
+	not constant.  Don't use `cl-member' for the base case.
+
 	* progmodes/subword.el: Fix boundary case (bug#13758).
 	(subword-forward-regexp): Make it a constant.  Wrap optional \\W in its
 	own group.
