@@ -1,5 +1,21 @@
 2013-07-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* desktop.el: Require 'cl-lib.
+	(desktop-before-saving-frames-functions): New hook.
+	(desktop--process-minibuffer-frames): Set desktop-mini parameter only
+	for frames being saved.  Rename from desktop--save-minibuffer-frames.
+	(desktop-save-frames): Run hook desktop-before-saving-frames-functions.
+	Do not save frames with non-nil `desktop-dont-save' parameter.  Filter
+	out deleted frames.
+	(desktop--find-frame): Use cl-find-if.
+	(desktop--select-frame): Use cl-(first|second|third) to access values
+	of desktop-mini.
+	(desktop--make-frame): Use cl-delete-if.
+	(desktop--sort-states): Fix sorting of minibuffer-owning frames.
+	(desktop-restore-frames): Use cl-(first|second|third) to access values
+	of desktop-mini.  Look for visible frame at the end, not while
+	restoring frames.
+
 	* dired-x.el (dired-mark-unmarked-files, dired-virtual)
 	(dired-guess-default, dired-mark-sexp, dired-filename-at-point):
 	Use string-match-p, looking-at-p (bug#14927).
