@@ -1482,7 +1482,8 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
-* Notifications::           Desktop notifications.
+* Desktop Notifications::   Desktop notifications.
+* File Notifications::      File notifications.
 * Dynamic Libraries::       On-demand loading of support libraries.
 
 Starting Up Emacs
