@@ -1,3 +1,12 @@
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/subword.el: Fix boundary case (bug#13758).
+	(subword-forward-regexp): Make it a constant.  Wrap optional \\W in its
+	own group.
+	(subword-backward-regexp): Make it a constant.
+	(subword-forward-internal): Don't treat a trailing capital as the
+	beginning of a word.
+
 2013-07-22  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
 
 	* emacs-lisp/package.el (package-menu-mode): Don't modify the
@@ -10,8 +19,8 @@
 	(desktop--process-minibuffer-frames): Set desktop-mini parameter only
 	for frames being saved.  Rename from desktop--save-minibuffer-frames.
 	(desktop-save-frames): Run hook desktop-before-saving-frames-functions.
-	Do not save frames with non-nil `desktop-dont-save' parameter.  Filter
-	out deleted frames.
+	Do not save frames with non-nil `desktop-dont-save' parameter.
+	Filter out deleted frames.
 	(desktop--find-frame): Use cl-find-if.
 	(desktop--select-frame): Use cl-(first|second|third) to access values
 	of desktop-mini.
@@ -352,17 +361,17 @@
 
 	* net/tramp.el (tramp-current-connection): New defvar, moved from
 	tramp-sh.el.
-	(tramp-message-show-progress-reporter-message): Removed, not
+	(tramp-message-show-progress-reporter-message): Remove, not
 	needed anymore.
-	(tramp-error-with-buffer): Show message in minibuffer.  Discard
-	input before waiting.  Reset connection timestamp.
+	(tramp-error-with-buffer): Show message in minibuffer.
+	Discard input before waiting.  Reset connection timestamp.
 	(with-tramp-progress-reporter): Improve messages.
 	(tramp-process-actions): Use progress reporter.  Delete process in
 	case of error.  Improve messages.
 
 	* net/tramp-sh.el (tramp-barf-if-no-shell-prompt): Use condition-case.
 	Call `tramp-error-with-buffer' with vector and buffer.
-	(tramp-current-connection): Removed.
+	(tramp-current-connection): Remove.
 	(tramp-maybe-open-connection): The car of
 	`tramp-current-connection' are the first 3 slots of the vector.
 

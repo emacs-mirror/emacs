@@ -1,3 +1,7 @@
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/subword-tests.el: New file.
+
 2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-imenu-create-index-2)
