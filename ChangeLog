@@ -1,6 +1,6 @@
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Port to Ubuntu 12.04 with tinfo but not ncurses.
+	Port to GNU/Linux systems with tinfo but not ncurses.
 	* configure.ac (USE_NCURSES): New symbol.
 
 2013-07-20  Paul Eggert  <eggert@cs.ucla.edu>
