@@ -1,3 +1,8 @@
+2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callproc.c (child_setup)[!WINDOWSNT]: Move exec_errno and pid
+	here to silence compiler warnings.
+
 2013-07-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (frame) [__FreeBSD__]: #define to freebsd_frame

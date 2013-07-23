@@ -1193,13 +1193,14 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
 {
   char **env;
   char *pwd_var;
-  int exec_errno;
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
-#endif /* WINDOWSNT */
+#else
+  int exec_errno;
 
   pid_t pid = getpid ();
+#endif /* WINDOWSNT */
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
