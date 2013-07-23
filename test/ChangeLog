@@ -1,5 +1,8 @@
 2013-07-23  Glenn Morris  <rgm@gnu.org>
 
+	* automated/inotify-test.el (inotify-file-watch-simple):
+	Delete temp-file when done.
+
 	* automated/subword-tests.el: Require subword.
 
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>

@@ -56,8 +56,10 @@
 		(insert "Foo\n"))
 	      (sit-for 5) ;; Hacky. Wait for 5s until events are processed
 	      (should (> events 0)))
-	  (inotify-rm-watch wd)))))
+	  (inotify-rm-watch wd)
+	  (delete-file temp-file)))))
 )
 
 (provide 'inotify-tests)
+
 ;;; inotify-tests.el ends here.
