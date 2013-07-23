@@ -1,5 +1,11 @@
 2013-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus.el (gnus-continuum-version):
+	* gnus-msg.el (gnus-extended-version): Simplify.
+
+	* gnus.el (gnus-continuum-version-1): Remove.
+	* gnus-msg.el (gnus-bug): Revert.
+
 	Calculate gnus-version correctly on Cygwin.
 
 	* gnus.el (gnus-continuum-version): Do main calculations in integers.

@@ -1132,7 +1132,9 @@ See the variable `gnus-user-agent'."
 	   (gnus-v
 	    (when (memq 'gnus gnus-user-agent)
 	      (concat "Gnus/"
-		      (gnus-continuum-version-1 gnus-version)
+		      (gnus-replace-in-string
+		       (format "%1.8f" (gnus-continuum-version gnus-version))
+		       "0+\\'" "")
 		      " (" gnus-version ")")))
 	   (emacs-v (gnus-emacs-version)))
       (concat gnus-v (when (and gnus-v emacs-v) " ")
@@ -1534,7 +1536,7 @@ If YANK is non-nil, include the original article."
                        (X-Debbugs-Package
                         . ,(format "%s" gnus-bug-package))
                        (X-Debbugs-Version
-                        . ,(gnus-continuum-version-1)))))
+                        . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
