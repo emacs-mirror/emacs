@@ -1468,6 +1468,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF
 
+/* Define to 1 if you use ncurses. */
+#undef USE_NCURSES
+
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE
