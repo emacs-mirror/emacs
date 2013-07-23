@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'subword)
 
 (defconst subword-tests-strings
   '("ABC^" ;;Bug#13758

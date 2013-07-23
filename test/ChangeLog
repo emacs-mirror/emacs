@@ -1,3 +1,7 @@
+2013-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/subword-tests.el: Require subword.
+
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/subword-tests.el: New file.
