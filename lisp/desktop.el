@@ -691,7 +691,7 @@ is nil, ask the user where to save the desktop."
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-list* (&rest args)
-  (and args (cl-list* args)))
+  (and args (apply #'cl-list* args)))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-info (buffer)
