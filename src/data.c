@@ -1478,24 +1478,19 @@ of previous VARs.
 usage: (setq-default [VAR VALUE]...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object args_left;
-  register Lisp_Object val, symbol;
+  Lisp_Object args_left, symbol, val;
   struct gcpro gcpro1;
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
+  args_left = val = args;
   GCPRO1 (args);
 
-  do
+  while (CONSP (args_left))
     {
-      val = eval_sub (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (XCDR (args_left)));
       symbol = XCAR (args_left);
       Fset_default (symbol, val);
       args_left = Fcdr (XCDR (args_left));
     }
-  while (!NILP (args_left));
 
   UNGCPRO;
   return val;

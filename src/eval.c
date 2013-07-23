@@ -393,16 +393,16 @@ If COND yields nil, and there are no ELSE's, the value is nil.
 usage: (if COND THEN ELSE...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object cond;
+  Lisp_Object cond;
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  cond = eval_sub (Fcar (args));
+  cond = eval_sub (XCAR (args));
   UNGCPRO;
 
   if (!NILP (cond))
-    return eval_sub (Fcar (Fcdr (args)));
-  return Fprogn (Fcdr (Fcdr (args)));
+    return eval_sub (Fcar (XCDR (args)));
+  return Fprogn (XCDR (XCDR (args)));
 }
 
 DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
@@ -417,18 +417,17 @@ CONDITION's value if non-nil is returned from the cond-form.
 usage: (cond CLAUSES...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object clause, val;
+  Lisp_Object val = args;
   struct gcpro gcpro1;
 
-  val = Qnil;
   GCPRO1 (args);
-  while (!NILP (args))
+  while (CONSP (args))
     {
-      clause = Fcar (args);
+      Lisp_Object clause = XCAR (args);
       val = eval_sub (Fcar (clause));
       if (!NILP (val))
 	{
-	  if (!EQ (XCDR (clause), Qnil))
+	  if (!NILP (XCDR (clause)))
 	    val = Fprogn (XCDR (clause));
 	  break;
 	}
@@ -476,11 +475,11 @@ usage: (prog1 FIRST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  register Lisp_Object args_left;
+  Lisp_Object args_left;
   struct gcpro gcpro1, gcpro2;
 
   args_left = args;
-  val = Qnil;
+  val = args;
   GCPRO2 (args, val);
 
   val = eval_sub (XCAR (args_left));
@@ -517,36 +516,37 @@ The return value of the `setq' form is the value of the last VAL.
 usage: (setq [SYM VAL]...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object args_left;
-  register Lisp_Object val, sym, lex_binding;
-  struct gcpro gcpro1;
+  Lisp_Object val, sym, lex_binding;
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  GCPRO1 (args);
-
-  do
+  val = args;
+  if (CONSP (args))
     {
-      val = eval_sub (Fcar (Fcdr (args_left)));
-      sym = Fcar (args_left);
+      Lisp_Object args_left = args;
+      struct gcpro gcpro1;
+      GCPRO1 (args);
 
-      /* Like for eval_sub, we do not check declared_special here since
-	 it's been done when let-binding.  */
-      if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
-	  && SYMBOLP (sym)
-	  && !NILP (lex_binding
-		    = Fassq (sym, Vinternal_interpreter_environment)))
-	XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
-      else
-	Fset (sym, val);	/* SYM is dynamically bound.  */
+      do
+	{
+	  val = eval_sub (Fcar (XCDR (args_left)));
+	  sym = XCAR (args_left);
 
-      args_left = Fcdr (Fcdr (args_left));
+	  /* Like for eval_sub, we do not check declared_special here since
+	     it's been done when let-binding.  */
+	  if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
+	      && SYMBOLP (sym)
+	      && !NILP (lex_binding
+			= Fassq (sym, Vinternal_interpreter_environment)))
+	    XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
+	  else
+	    Fset (sym, val);	/* SYM is dynamically bound.  */
+
+	  args_left = Fcdr (XCDR (args_left));
+	}
+      while (CONSP (args_left));
+
+      UNGCPRO;
     }
-  while (!NILP (args_left));
 
-  UNGCPRO;
   return val;
 }
 
@@ -563,9 +563,9 @@ of unexpected results when a quoted object is modified.
 usage: (quote ARG)  */)
   (Lisp_Object args)
 {
-  if (!NILP (Fcdr (args)))
+  if (CONSP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qquote, Flength (args));
-  return Fcar (args);
+  return XCAR (args);
 }
 
 DEFUN ("function", Ffunction, Sfunction, 1, UNEVALLED, 0,
@@ -577,7 +577,7 @@ usage: (function ARG)  */)
 {
   Lisp_Object quoted = XCAR (args);
 
-  if (!NILP (Fcdr (args)))
+  if (CONSP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
 
   if (!NILP (Vinternal_interpreter_environment)
@@ -679,21 +679,23 @@ To define a user option, use `defcustom' instead of `defvar'.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object sym, tem, tail;
+  Lisp_Object sym, tem, tail;
 
-  sym = Fcar (args);
-  tail = Fcdr (args);
-  if (!NILP (Fcdr (Fcdr (tail))))
-    error ("Too many arguments");
+  sym = XCAR (args);
+  tail = XCDR (args);
 
-  tem = Fdefault_boundp (sym);
-  if (!NILP (tail))
+  if (CONSP (tail))
     {
+      if (CONSP (XCDR (tail)) && CONSP (XCDR (XCDR (tail))))
+	error ("Too many arguments");
+
+      tem = Fdefault_boundp (sym);
+
       /* Do it before evaluating the initial value, for self-references.  */
       XSYMBOL (sym)->declared_special = 1;
 
       if (NILP (tem))
-	Fset_default (sym, eval_sub (Fcar (tail)));
+	Fset_default (sym, eval_sub (XCAR (tail)));
       else
 	{ /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
@@ -711,7 +713,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 		}
 	    }
 	}
-      tail = Fcdr (tail);
+      tail = XCDR (tail);
       tem = Fcar (tail);
       if (!NILP (tem))
 	{
@@ -756,18 +758,18 @@ The optional DOCSTRING specifies the variable's documentation string.
 usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   (Lisp_Object args)
 {
-  register Lisp_Object sym, tem;
+  Lisp_Object sym, tem;
 
-  sym = Fcar (args);
-  if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
+  sym = XCAR (args);
+  if (CONSP (Fcdr (XCDR (XCDR (args)))))
     error ("Too many arguments");
 
-  tem = eval_sub (Fcar (Fcdr (args)));
+  tem = eval_sub (Fcar (XCDR (args)));
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);
   XSYMBOL (sym)->declared_special = 1;
-  tem = Fcar (Fcdr (Fcdr (args)));
+  tem = Fcar (XCDR (XCDR (args)));
   if (!NILP (tem))
     {
       if (!NILP (Vpurify_flag))
@@ -808,7 +810,7 @@ usage: (let* VARLIST BODY...)  */)
 
   lexenv = Vinternal_interpreter_environment;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
   while (CONSP (varlist))
     {
       QUIT;
@@ -849,7 +851,7 @@ usage: (let* VARLIST BODY...)  */)
       varlist = XCDR (varlist);
     }
   UNGCPRO;
-  val = Fprogn (Fcdr (args));
+  val = Fprogn (XCDR (args));
   return unbind_to (count, val);
 }
 
@@ -869,7 +871,7 @@ usage: (let VARLIST BODY...)  */)
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
 
   /* Make space to hold the values to give the bound variables.  */
   elt = Flength (varlist);
@@ -896,7 +898,7 @@ usage: (let VARLIST BODY...)  */)
 
   lexenv = Vinternal_interpreter_environment;
 
-  varlist = Fcar (args);
+  varlist = XCAR (args);
   for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
       Lisp_Object var;
@@ -919,7 +921,7 @@ usage: (let VARLIST BODY...)  */)
     /* Instantiate a new lexical environment.  */
     specbind (Qinternal_interpreter_environment, lexenv);
 
-  elt = Fprogn (Fcdr (args));
+  elt = Fprogn (XCDR (args));
   SAFE_FREE ();
   return unbind_to (count, elt);
 }
@@ -936,8 +938,8 @@ usage: (while TEST BODY...)  */)
 
   GCPRO2 (test, body);
 
-  test = Fcar (args);
-  body = Fcdr (args);
+  test = XCAR (args);
+  body = XCDR (args);
   while (!NILP (eval_sub (test)))
     {
       QUIT;
@@ -1034,9 +1036,9 @@ usage: (catch TAG BODY...)  */)
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  tag = eval_sub (Fcar (args));
+  tag = eval_sub (XCAR (args));
   UNGCPRO;
-  return internal_catch (tag, Fprogn, Fcdr (args));
+  return internal_catch (tag, Fprogn, XCDR (args));
 }
 
 /* Set up a catch, then call C function FUNC on argument ARG.
@@ -1150,8 +1152,8 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (unwind_body, Fcdr (args));
-  val = eval_sub (Fcar (args));
+  record_unwind_protect (unwind_body, XCDR (args));
+  val = eval_sub (XCAR (args));
   return unbind_to (count, val);
 }
 
@@ -1183,9 +1185,9 @@ See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
   (Lisp_Object args)
 {
-  Lisp_Object var = Fcar (args);
-  Lisp_Object bodyform = Fcar (Fcdr (args));
-  Lisp_Object handlers = Fcdr (Fcdr (args));
+  Lisp_Object var = XCAR (args);
+  Lisp_Object bodyform = XCAR (XCDR (args));
+  Lisp_Object handlers = XCDR (XCDR (args));
 
   return internal_lisp_condition_case (var, bodyform, handlers);
 }

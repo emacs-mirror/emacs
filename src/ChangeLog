@@ -1,5 +1,13 @@
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Tune UNEVALLED functions by using XCAR instead of Fcar, etc.
+	* data.c (Fsetq_default):
+	* eval.c (Fif, Fcond, Fprog1, Fsetq, Fquote, Ffunction, Fdefvar)
+	(Fdefconst, FletX, Flet, Fwhile, Fcatch, Funwind_protect)
+	(Fcondition_case):
+	Tune by taking advantage of the fact that ARGS is always a list
+	when a function is declared to have UNEVALLED args.
+
 	* emacsgtkfixed.c: Port to GCC 4.6.
 	GCC 4.6 complains about -Wunused-local-typedefs, introduced in 4.7.
 
