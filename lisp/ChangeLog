@@ -1,3 +1,8 @@
+2013-07-23  Leo Liu  <sdl.web@gmail.com>
+
+	* bookmark.el (bookmark-make-record): Restore NAME as a default
+	value.  (Bug#14933)
+
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload--setup-output): New function,
