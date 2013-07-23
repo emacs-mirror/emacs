@@ -1,5 +1,7 @@
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (Fprogn): Check that BODY is a proper list.
+
 	Tune UNEVALLED functions by using XCAR instead of Fcar, etc.
 	* data.c (Fsetq_default):
 	* eval.c (Fif, Fcond, Fprog1, Fsetq, Fquote, Ffunction, Fdefvar)
