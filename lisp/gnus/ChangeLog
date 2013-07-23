@@ -1,3 +1,13 @@
+2013-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	Calculate gnus-version correctly on Cygwin.
+
+	* gnus.el (gnus-continuum-version): Do main calculations in integers.
+	(gnus-continuum-version-1): New function, return a string.
+
+	* gnus-msg.el (gnus-extended-version, gnus-bug):
+	Use gnus-continuum-version-1 instead of gnus-continuum-version.
+
 2013-07-19  Geoff Kuenning  <geoff@cs.hmc.edu>  (tiny change)
 
 	* gnus-art.el (gnus-treat-predicate): Allow functions as predicates

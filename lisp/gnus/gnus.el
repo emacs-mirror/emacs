@@ -3229,6 +3229,10 @@ If ARG, insert string at point."
 
 (defun gnus-continuum-version (&optional version)
   "Return VERSION as a floating point number."
+  (string-to-number (gnus-continuum-version-1 (or version gnus-version))))
+
+(defun gnus-continuum-version-1 (&optional version)
+  "Return VERSION as a string."
   (unless version
     (setq version gnus-version))
   (when (or (string-match "^\\([^ ]+\\)? ?Gnus v?\\([0-9.]+\\)$" version)
@@ -3244,18 +3248,21 @@ If ARG, insert string at point."
 	    least (if (match-beginning 3)
 		      (string-to-number (match-string 3 number))
 		    0))
-      (string-to-number
+      (gnus-replace-in-string
        (if (zerop major)
-	     (format "%s00%02d%02d"
-		     (if (member alpha '("(ding)" "d"))
-			 "4.99"
-		       (+ 5 (* 0.02
+	   (progn
+	     (setq major
+		   (if (member alpha '("(ding)" "d"))
+		       499
+		     (+ 500 (* 2
 			       (abs
 				(- (mm-char-int (aref (downcase alpha) 0))
 				   (mm-char-int ?t))))
-			  -0.01))
-		     minor least)
-	 (format "%d.%02d%02d" major minor least))))))
+			-1)))
+	     (format "%s.%s00%02d%02d"
+		     (/ major 100) (% major 100) minor least))
+	 (format "%d.%02d%02d" major minor least))
+       "0+\\'" ""))))
 
 (defun gnus-info-find-node (&optional nodename)
   "Find Info documentation of Gnus."
