@@ -1,4 +1,4 @@
-# Makefile for the GNU Emacs Lisp Reference Manual.
+### @configure_input@
 
 # Copyright (C) 1990-1996, 1998-2013 Free Software Foundation, Inc.
 

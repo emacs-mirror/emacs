@@ -1,4 +1,4 @@
-# src/Makefile for GNU Emacs.
+### @configure_input@
 
 # Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
 # Foundation, Inc.

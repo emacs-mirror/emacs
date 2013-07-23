@@ -1,6 +1,4 @@
-# DIST: This is the distribution Makefile for Emacs.  configure can
-# DIST: make most of the changes to this file you might want, so try
-# DIST: that first.
+### @configure_input@
 
 # Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
