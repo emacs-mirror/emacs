@@ -1,5 +1,11 @@
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Port to GNU/Linux systems with tinfo but not ncurses.
+	* dispnew.c (init_display): Depend on USE_NCURSES, not GNU_LINUX,
+	to decide whether ncurses is being used.  Without this change,
+	GCC complains about tgetent not being declared, on a system
+	that has tinfo installed but ncurses not installed.
+
 	* eval.c (Fprogn): Check that BODY is a proper list.
 
 	Tune UNEVALLED functions by using XCAR instead of Fcar, etc.

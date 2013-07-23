@@ -6041,7 +6041,7 @@ init_display (void)
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
 #endif
-#ifdef GNU_LINUX
+#ifdef USE_NCURSES
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
 	 So call tgetent.  */

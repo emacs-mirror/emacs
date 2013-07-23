@@ -3406,6 +3406,9 @@ if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
   TERMCAP_OBJ=terminfo.o
 fi
+if test "X$LIBS_TERMCAP" = "X-lncurses"; then
+  AC_DEFINE(USE_NCURSES, 1, [Define to 1 if you use ncurses.])
+fi
 AC_SUBST(LIBS_TERMCAP)
 AC_SUBST(TERMCAP_OBJ)
 
