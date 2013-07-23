@@ -1,3 +1,10 @@
+2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear): Simplify; remove useless checks
+	against invalid buffer names.
+	(desktop-list*): Use cl-list*.
+	(desktop-buffer-info, desktop-create-buffer): Simplify.
+
 2013-07-23  Leo Liu  <sdl.web@gmail.com>
 
 	* bookmark.el (bookmark-make-record): Restore NAME as a default

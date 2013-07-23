@@ -644,22 +644,17 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
     (if (symbolp var)
 	(eval `(setq-default ,var nil))
       (eval `(setq-default ,(car var) ,(cdr var)))))
-  (let ((buffers (buffer-list))
-        (preserve-regexp (concat "^\\("
+  (let ((preserve-regexp (concat "^\\("
                                  (mapconcat (lambda (regexp)
                                               (concat "\\(" regexp "\\)"))
                                             desktop-clear-preserve-buffers
                                             "\\|")
                                  "\\)$")))
-    (while buffers
-      (let ((bufname (buffer-name (car buffers))))
-         (or
-           (null bufname)
-           (string-match-p preserve-regexp bufname)
-           ;; Don't kill buffers made for internal purposes.
-           (and (not (equal bufname "")) (eq (aref bufname 0) ?\s))
-           (kill-buffer (car buffers))))
-      (setq buffers (cdr buffers))))
+    (dolist (buffer (buffer-list))
+      (let ((bufname (buffer-name buffer)))
+	(unless (or (eq (aref bufname 0) ?s) ;; Don't kill internal buffers
+		    (string-match-p preserve-regexp bufname))
+	  (kill-buffer buffer)))))
   (delete-other-windows))
 
 ;; ----------------------------------------------------------------------------
@@ -696,15 +691,7 @@ is nil, ask the user where to save the desktop."
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-list* (&rest args)
-  (if (null (cdr args))
-      (car args)
-    (setq args (nreverse args))
-    (let ((value (cons (nth 1 args) (car args))))
-      (setq args (cdr (cdr args)))
-      (while args
-	(setq value (cons (car args) value))
-	(setq args (cdr args)))
-      value)))
+  (and args (cl-list* args)))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-info (buffer)
@@ -736,16 +723,14 @@ is nil, ask the user where to save the desktop."
    (when (functionp desktop-save-buffer)
      (funcall desktop-save-buffer desktop-dirname))
    ;; local variables
-   (let ((locals desktop-locals-to-save)
-	 (loclist (buffer-local-variables))
-	 (ll))
-     (while locals
-       (let ((here (assq (car locals) loclist)))
-	 (if here
-	     (setq ll (cons here ll))
-	   (when (member (car locals) loclist)
-	     (setq ll (cons (car locals) ll)))))
-       (setq locals (cdr locals)))
+   (let ((loclist (buffer-local-variables))
+	 (ll nil))
+     (dolist (local desktop-locals-to-save)
+       (let ((here (assq local loclist)))
+	 (cond (here
+		(push here ll))
+	       ((member local loclist)
+		(push local ll)))))
      ll)))
 
 ;; ----------------------------------------------------------------------------
@@ -1748,17 +1733,15 @@ integer, start a new timer to call `desktop-auto-save' in that many seconds."
 	      (set-mark desktop-buffer-mark)))
 	  ;; Never override file system if the file really is read-only marked.
 	  (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
-	  (while desktop-buffer-locals
-	    (let ((this (car desktop-buffer-locals)))
-	      (if (consp this)
-		  ;; an entry of this form `(symbol . value)'
-		  (progn
-		    (make-local-variable (car this))
-		    (set (car this) (cdr this)))
-		;; an entry of the form `symbol'
-		(make-local-variable this)
-		(makunbound this)))
-	    (setq desktop-buffer-locals (cdr desktop-buffer-locals))))))))
+	  (dolist (this desktop-buffer-locals)
+	    (if (consp this)
+		;; an entry of this form `(symbol . value)'
+		(progn
+		  (make-local-variable (car this))
+		  (set (car this) (cdr this)))
+	      ;; an entry of the form `symbol'
+	      (make-local-variable this)
+	      (makunbound this))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Backward compatibility -- update parameters to 205 standards.
