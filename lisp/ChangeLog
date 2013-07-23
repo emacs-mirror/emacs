@@ -1,3 +1,11 @@
+2013-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-notify-add-watch): New defun.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use it.
+
 2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-clear): Simplify; remove useless checks

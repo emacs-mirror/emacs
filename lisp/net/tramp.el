@@ -3278,6 +3278,14 @@ beginning of local filename are not substituted."
   ;; for backward compatibility.
   (expand-file-name "~/"))
 
+(defun tramp-handle-file-notify-add-watch (filename flags callback)
+  "Like `file-notify-add-watch' for Tramp files."
+  ;; This is the default handler.  Some packages might have its own one.
+  (setq filename (expand-file-name filename))
+  (with-parsed-tramp-file-name filename nil
+    (tramp-error
+     v 'file-notify-error "File notification not supported for `%s'" filename)))
+
 ;;; Functions for establishing connection:
 
 ;; The following functions are actions to be taken when seeing certain
