@@ -1,3 +1,7 @@
+2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear, desktop-list*): Fix previous change.
+
 2013-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-notify-add-watch): New defun.

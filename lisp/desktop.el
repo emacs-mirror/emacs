@@ -652,7 +652,7 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
                                  "\\)$")))
     (dolist (buffer (buffer-list))
       (let ((bufname (buffer-name buffer)))
-	(unless (or (eq (aref bufname 0) ?s) ;; Don't kill internal buffers
+	(unless (or (eq (aref bufname 0) ?\s) ;; Don't kill internal buffers
 		    (string-match-p preserve-regexp bufname))
 	  (kill-buffer buffer)))))
   (delete-other-windows))
