@@ -1,3 +1,7 @@
+2013-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(etc)/DOC, temacs$(EXEEXT)): Ensure etc/ exists.
+
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to GNU/Linux systems with tinfo but not ncurses.

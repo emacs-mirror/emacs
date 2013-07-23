@@ -469,6 +469,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
 ## in the contents of the DOC file.
 ##
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
+	$(MKDIR_P) $(etc)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
 	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
@@ -497,10 +498,15 @@ $(ALLOBJS): globals.h
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
+## We have to create $(etc) here because init_cmdargs tests its
+## existence when setting Vinstallation_directory (FIXME?).
+## This goes on to affect various things, and the emacs binary fails
+## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
 	         $(lib)/libgnu.a $(EMACSRES)
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	$(MKDIR_P) $(etc)
 	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)

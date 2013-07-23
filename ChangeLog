@@ -1,3 +1,8 @@
+2013-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (etc, lisp): No need to create specially.
+	Configure already creates lisp, src/Makefile now creates etc.
+
 2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to GNU/Linux systems with tinfo but not ncurses.
