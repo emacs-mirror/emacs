@@ -1,3 +1,8 @@
+2013-07-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsgtkfixed.c: Port to GCC 4.6.
+	GCC 4.6 complains about -Wunused-local-typedefs, introduced in 4.7.
+
 2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callproc.c (child_setup)[!WINDOWSNT]: Move exec_errno and pid
