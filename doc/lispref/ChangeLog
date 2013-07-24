@@ -1,3 +1,10 @@
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* errors.texi (Standard Errors): Fix typo.
+
+	* files.texi (Magic File Names):
+	* os.texi (File Notifications): Remove file-notify-supported-p.
+
 2013-07-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.texi (Special Forms): Mention 'lambda'.  Also, say that

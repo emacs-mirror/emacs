@@ -2529,17 +2529,6 @@ Since all these libraries emit different events on notified file
 changes, there is the Emacs library @code{filenotify} which provides a
 unique interface.
 
-@defun file-notify-supported-p file
-This function returns non-nil if the filesystem pertaining to
-@var{file} could be watched.  This means, that Emacs is linked with a
-respective library (for local files), or Emacs has found an applicable
-file notification process on a remote machine.
-
-Sometimes, mounted filesystems cannot be watched for file changes.
-This is not detected by this function, a non-@code{nil} return value
-does not guarantee that changes on @var{file} will be notified.
-@end defun
-
 @defun file-notify-add-watch file flags callback
 Add a watch for filesystem events pertaining to @var{file}.  This
 arranges for filesystem events pertaining to @var{file} to be reported
@@ -2552,6 +2541,10 @@ integer as in the example below.  It should be used for comparison by
 
 If the @var{file} cannot be watched for some reason, this function
 signals a @code{file-notify-error} error.
+
+Sometimes, mounted filesystems cannot be watched for file changes.
+This is not detected by this function, a non-@code{nil} return value
+does not guarantee that changes on @var{file} will be notified.
 
 @var{flags} is a list of conditions to set what will be watched for.
 It can include the following symbols:
