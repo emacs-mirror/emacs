@@ -1,5 +1,13 @@
 2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (revert-buffer-function): Use a non-nil default.
+	(revert-buffer-preserve-modes): Declare var to
+	provide access to the `preserve-modes' argument.
+	(revert-buffer): Let-bind it.
+	(revert-buffer--default): New function, extracted from revert-buffer.
+
+2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* lpr.el: Signal print errors more prominently.
 	(print-region-function): Don't default to nil.
 	(lpr-print-region): New function, extracted from print-region-1.
