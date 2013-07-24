@@ -1980,7 +1980,7 @@ ARGS are the arguments OPERATION has been called with."
 		  ;; Emacs 22+ only.
 		  'set-file-times
 		  ;; Emacs 24+ only.
-		  'file-acl 'file-notify-add-watch 'file-notify-supported-p
+		  'file-acl 'file-notify-add-watch
 		  'file-selinux-context 'set-file-acl 'set-file-selinux-context
 		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
@@ -2036,8 +2036,9 @@ ARGS are the arguments OPERATION has been called with."
     default-directory)
    ;; PROC.
    ((eq operation 'file-notify-rm-watch)
-    (with-current-buffer (process-buffer (nth 0 args))
-      default-directory))
+    (when (processp (nth 0 args))
+      (with-current-buffer (process-buffer (nth 0 args))
+	default-directory)))
    ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))
 

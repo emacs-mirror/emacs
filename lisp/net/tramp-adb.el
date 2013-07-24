@@ -110,7 +110,6 @@
     (file-modes . tramp-handle-file-modes)
     (file-notify-add-watch . tramp-handle-file-notify-add-watch)
     (file-notify-rm-watch . ignore)
-    (file-notify-supported-p . ignore)
     (expand-file-name . tramp-adb-handle-expand-file-name)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     (directory-files . tramp-handle-directory-files)

@@ -867,8 +867,7 @@ of command line.")
     (set-file-acl . tramp-sh-handle-set-file-acl)
     (vc-registered . tramp-sh-handle-vc-registered)
     (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
-    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch)
-    (file-notify-supported-p . tramp-sh-handle-file-notify-supported-p))
+    (file-notify-rm-watch . tramp-sh-handle-file-notify-rm-watch))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -3498,13 +3497,6 @@ Fall back to normal file name handler if no Tramp handler exists."
     (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
   (tramp-message proc 6 (format "Kill %S" proc))
   (kill-process proc))
-
-(defun tramp-sh-handle-file-notify-supported-p (file-name)
-  "Like `file-notify-supported-p' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name file-name) nil
-    (and (or (tramp-get-remote-gvfs-monitor-dir v)
-	     (tramp-get-remote-inotifywait v))
-	 t)))
 
 ;;; Internal Functions:
 

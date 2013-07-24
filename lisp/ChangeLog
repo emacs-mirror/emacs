@@ -1,3 +1,18 @@
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* filenotify.el (file-notify-supported-p):
+	* net/tramp-sh.el (tramp-sh-handle-file-notify-supported-p):
+	Remove functions.
+
+	* autorevert.el (auto-revert-use-notify):
+	(auto-revert-notify-add-watch):
+	* net/tramp.el (tramp-file-name-for-operation):
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Remove `file-notify-supported-p' entry.
+
 2013-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el: Replace all uses of deleted ps-windows-system,
