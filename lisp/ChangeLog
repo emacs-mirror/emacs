@@ -1,7 +1,7 @@
 2013-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* printing.el: Replace all uses of deleted ps-windows-system,
-	ps-lp-system with lpr- versions.
+	ps-lp-system, ps-flatten-list with lpr- versions.
 
 2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
