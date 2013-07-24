@@ -1327,7 +1327,7 @@ its window state.  Internal use only."
 
 (defun desktop-restoring-frames-p ()
   "True if calling `desktop-restore-frames' will actually restore frames."
-  (and desktop-restore-frames desktop-saved-frame-states))
+  (and desktop-restore-frames desktop-saved-frame-states t))
 
 (defun desktop-restore-frames ()
   "Restore window/frame configuration.
@@ -1405,7 +1405,10 @@ being set (usually, by reading it from the desktop)."
       ;; Delete remaining frames, but do not fail if some resist being deleted.
       (unless (eq desktop-restoring-reuses-frames 'keep)
 	(dolist (frame desktop--reuse-list)
-	  (ignore-errors (delete-frame frame))))
+	  (condition-case err
+	      (delete-frame frame)
+	    (error
+	     (delay-warning 'desktop (error-message-string err))))))
       (setq desktop--reuse-list nil)
       ;; Make sure there's at least one visible frame, and select it.
       (unless (or (daemonp)

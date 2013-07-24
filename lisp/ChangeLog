@@ -1,3 +1,8 @@
+2013-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restoring-frames-p): Return a true boolean.
+	(desktop-restore-frames): Warn when deleting an existing frame failed.
+
 2013-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-machine-p): Handle "not known" response.  (Bug#14929)
