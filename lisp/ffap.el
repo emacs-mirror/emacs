@@ -459,7 +459,8 @@ Returned values:
 	   (let ((mesg (car (cdr error))))
 	     (cond
 	      ;; v18:
-	      ((string-match "^Unknown host" mesg) nil)
+	      ((string-match "\\(^Unknown host\\|Name or service not known$\\)"
+			     mesg) nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
 	      ;; (file-error "connection failed" "permission denied"
