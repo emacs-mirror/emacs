@@ -538,14 +538,6 @@ file using `set-file-extended-attributes'.
 ** `visited-file-modtime' now returns -1 for nonexistent files.
 Formerly it returned a list (-1 LOW USEC PSEC), but this was ambiguous
 in the presence of files with negative time stamps.
-
-** Special forms with implied progn now check for proper lists.
-Starting in Emacs 21.4, a special form with an implied progn of an
-improper list ignored the trailing value, treating it as nil.  For
-example, (cond (t (message "hello") . "there")) ignored the "there".
-This inadvertent change to Emacs's behavior has been reverted, and
-Emacs now signals an error for these improper forms, as it did in
-version 21.3 and earlier.
 
 * Lisp Changes in Emacs 24.4
 

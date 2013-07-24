@@ -454,12 +454,6 @@ usage: (progn BODY...)  */)
       body = XCDR (body);
     }
 
-  if (!NILP (body))
-    {
-      /* This can happen if functions like Fcond are the caller.  */
-      wrong_type_argument (Qlistp, body);
-    }
-
   UNGCPRO;
   return val;
 }

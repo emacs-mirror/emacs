@@ -659,11 +659,15 @@ Otherwise, it defers to REST which is a list of branches of the form
               (memq-fine t))
           (when all
             (dolist (alt (cdr upat))
-              (unless (or (pcase--self-quoting-p alt)
-                          (and (eq (car-safe alt) '\`)
-                               (or (symbolp (cadr alt)) (integerp (cadr alt))
-                                   (setq memq-fine nil)
-                                   (stringp (cadr alt)))))
+              (unless (if (pcase--self-quoting-p alt)
+                          (progn
+                            (unless (or (symbolp alt) (integerp alt))
+                              (setq memq-fine nil))
+                            t)
+                        (and (eq (car-safe alt) '\`)
+                             (or (symbolp (cadr alt)) (integerp (cadr alt))
+                                 (setq memq-fine nil)
+                                 (stringp (cadr alt)))))
                 (setq all nil))))
           (if all
               ;; Use memq for (or `a `b `c `d) rather than a big tree.

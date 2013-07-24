@@ -432,6 +432,14 @@ do.
 and which are used without evaluation.  Whether a particular argument is
 evaluated may depend on the results of evaluating other arguments.
 
+  If an expression's first symbol is that of a special form, the
+expression should follow the rules of that special form; otherwise,
+Emacs's behavior is not well-defined (though it will not crash).  For
+example, @code{((lambda (x) x . 3) 4)} contains a subexpression that
+begins with @code{lambda} but is not a well-formed @code{lambda}
+expression, so Emacs may signal an error, or may return 3 or 4 or
+@code{nil}, or may behave in other ways.
+
   Here is a list, in alphabetical order, of all of the special forms in
 Emacs Lisp with a reference to where each is described.
 
@@ -462,6 +470,9 @@ Emacs Lisp with a reference to where each is described.
 
 @item interactive
 @pxref{Interactive Call}
+
+@item lambda
+@pxref{Lambda Expressions}
 
 @item let
 @itemx let*

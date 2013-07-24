@@ -257,10 +257,10 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.
 (defun direct-print-region-helper (printer
-				   start end
-				   lpr-prog
-				   _delete-text _buf _display
-				   rest)
+                                   start end
+                                   lpr-prog
+                                   _delete-text _buf _display
+                                   rest)
   (let* (;; Ignore case when matching known external program names.
 	 (case-fold-search t)
 	 ;; Convert / to \ in printer name, for sake of external programs.
@@ -295,12 +295,14 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
     (unwind-protect
 	(cond
 	 ;; nprint.exe is the standard print command on Netware
-	 ((string-match-p "^nprint\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	 ((string-match-p "\\`nprint\\(\\.exe\\)?\\'"
+                          (file-name-nondirectory lpr-prog))
 	  (write-region start end tempfile nil 0)
 	  (call-process lpr-prog nil errbuf nil
 			tempfile (concat "P=" printer)))
 	 ;; print.exe is a standard command on NT
-	 ((string-match-p "^print\\(\\.exe\\)?$" (file-name-nondirectory lpr-prog))
+	 ((string-match-p "\\`print\\(\\.exe\\)?\\'"
+                          (file-name-nondirectory lpr-prog))
 	  ;; Be careful not to invoke print.exe on MS-DOS or Windows 9x
 	  ;; though, because it is a TSR program there (hangs Emacs).
 	  (or (and (eq system-type 'windows-nt)
@@ -369,7 +371,7 @@ indicates a specific program should be invoked."
 	 (write-region-annotate-functions
 	  (cons
 	   (lambda (_start end)
-	     (if (not (char-equal (char-before end) ?\C-l))
+	     (if (not (char-equal (char-before end) ?\f))
 		 `((,end . "\f"))))
 	   write-region-annotate-functions))
 	 (printer (or (and (boundp 'dos-printer)
@@ -383,9 +385,7 @@ indicates a specific program should be invoked."
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
 
-(defvar print-region-function)
 (defvar lpr-headers-switches)
-(setq print-region-function 'direct-print-region-function)
 
 ;; Set this to nil if you have a port of the `pr' program
 ;; (e.g., from GNU Textutils), or if you have an `lpr'
@@ -415,9 +415,6 @@ indicates a specific program should be invoked."
 		     (default-printer-name))))
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
-
-(defvar ps-print-region-function)
-(setq ps-print-region-function 'direct-ps-print-region-function)
 
 ;(setq ps-lpr-command "gs")
 
