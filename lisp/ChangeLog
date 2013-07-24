@@ -1,3 +1,15 @@
+2013-07-23  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el Version 3.3
+	(sql-product-alist): Improve oracle :prompt-cont-regexp.
+	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): New functions.
+	(sql-interactive-remove-continuation-prompt): Rewrite, use
+	functions above.  Fix continuation prompt and complete output line
+	handling.
+	(sql-redirect-one, sql-execute): Use `read-only-mode' on
+	redirected output buffer.
+	(sql-mode): Restore deleted code (Bug#13591).
+
 2013-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-clear, desktop-list*): Fix previous change.
