@@ -1,3 +1,8 @@
+2013-07-24  Ken Brown  <kbrown@cornell.edu>
+
+	* alloc.c (make_save_ptr): Define if HAVE_NTGUI is defined
+	(Bug#14944).
+
 2013-07-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (Fprogn): Do not check that BODY is a proper list.
