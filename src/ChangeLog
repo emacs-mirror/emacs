@@ -1,3 +1,10 @@
+2013-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (Fprogn): Do not check that BODY is a proper list.
+	This undoes the previous change.  The check slows down the
+	interpreter, and is not needed to prevent a crash.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00693.html>.
+
 2013-07-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(etc)/DOC, temacs$(EXEEXT)): Ensure etc/ exists.

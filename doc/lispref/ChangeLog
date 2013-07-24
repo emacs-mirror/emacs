@@ -1,3 +1,9 @@
+2013-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.texi (Special Forms): Mention 'lambda'.  Also, say that
+	non-well-formed expressions result in unspecified behavior, though
+	Emacs will not crash.
+
 2013-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add file-notify-add-watch,
