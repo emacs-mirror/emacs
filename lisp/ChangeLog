@@ -1,3 +1,23 @@
+2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lpr.el: Signal print errors more prominently.
+	(print-region-function): Don't default to nil.
+	(lpr-print-region): New function, extracted from print-region-1.
+	Check lpr's return value and signal an error in case of problem.
+	(print-region-1): Use it.
+	* ps-print.el (ps-windows-system, ps-lp-system): Remove.  Use the lpr-*
+	versions instead.
+	(ps-printer-name): Default to nil.
+	(ps-printer-name-option): Default to lpr-printer-switch.
+	(ps-print-region-function): Don't default to nil.
+	(ps-postscript-code-directory): Simplify default.
+	(ps-do-despool): Use lpr-print-region to properly check the outcome.
+	(ps-string-list, ps-eval-switch, ps-flatten-list)
+	(ps-flatten-list-1): Remove.
+	(ps-multibyte-buffer): Avoid setq.
+	* dos-w32.el (direct-print-region-helper): Use proper regexp operators.
+	(print-region-function, ps-print-region-function): Don't set them here.
+
 2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ansi-color.el: Fix old URL.
