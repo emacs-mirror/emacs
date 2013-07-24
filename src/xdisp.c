@@ -15608,10 +15608,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     the Y coordinate of the _next_ row, see the definition of
 	     MATRIX_ROW_BOTTOM_Y.  */
 	  if (w->cursor.vpos < margin + header_line)
-	    new_vpos
-	      = pixel_margin + (header_line
-				? CURRENT_HEADER_LINE_HEIGHT (w)
-				: 0) + frame_line_height;
+	    {
+	      w->cursor.vpos = -1;
+	      clear_glyph_matrix (w->desired_matrix);
+	      goto try_to_scroll;
+	    }
 	  else
 	    {
 	      int window_height = window_box_height (w);
@@ -15619,7 +15620,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      if (header_line)
 		window_height += CURRENT_HEADER_LINE_HEIGHT (w);
 	      if (w->cursor.y >= window_height - pixel_margin)
-		new_vpos = window_height - pixel_margin;
+		{
+		  w->cursor.vpos = -1;
+		  clear_glyph_matrix (w->desired_matrix);
+		  goto try_to_scroll;
+		}
 	    }
 	}
 
