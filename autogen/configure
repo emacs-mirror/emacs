@@ -28773,13 +28773,10 @@ SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e
 
 
 
-ac_config_commands="$ac_config_commands mkdirs"
+ac_config_commands="$ac_config_commands src/epaths.h"
 
 
-ac_config_commands="$ac_config_commands epaths"
-
-
-ac_config_commands="$ac_config_commands gdbinit"
+ac_config_commands="$ac_config_commands src/.gdbinit"
 
 
 cat >confcache <<\_ACEOF
@@ -29644,9 +29641,8 @@ do
     "nt/Makefile") CONFIG_FILES="$CONFIG_FILES nt/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "admin/unidata/Makefile") CONFIG_FILES="$CONFIG_FILES admin/unidata/Makefile" ;;
-    "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
-    "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
-    "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
+    "src/epaths.h") CONFIG_COMMANDS="$CONFIG_COMMANDS src/epaths.h" ;;
+    "src/.gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS src/.gdbinit" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -30365,22 +30361,15 @@ $as_echo X"$file" |
   done
 }
  ;;
-    "mkdirs":C)
-for dir in etc lisp ; do
-  test -d ${dir} || mkdir ${dir}
-done
- ;;
-    "epaths":C)
-echo creating src/epaths.h
+    "src/epaths.h":C)
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force
 fi
  ;;
-    "gdbinit":C)
+    "src/.gdbinit":C)
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo creating src/.gdbinit
   echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
  ;;
