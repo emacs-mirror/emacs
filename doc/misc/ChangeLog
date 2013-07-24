@@ -1,3 +1,7 @@
+2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi: New file.
+
 2013-07-19  Geoff Kuenning  <geoff@cs.hmc.edu>  (tiny change)
 
 	* gnus.texi (Customizing Articles): Document function predicates.

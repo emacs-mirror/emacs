@@ -180,9 +180,6 @@ You can use the new function `remember-store-in-files' within the
 See `remember-data-directory' and `remember-directory-file-name-format'
 for new options related to this function.
 
-** `ido-use-virtual-buffers' takes a new value 'auto.
-** `ido-decorations' has been slightly extended to give a bit more control.
-
 ** More packages look for ~/.emacs.d/<foo> additionally to ~/.<foo>.
 Affected files:
 ~/.emacs.d/timelog	replaces  ~/.timelog
@@ -282,6 +279,11 @@ amounts of data into the ERC input.
 *** key bindings to navigate through and select the completions.
 *** The icomplete-separator is customizable, and its default has changed.
 *** Removed icomplete-show-key-bindings.
+
+** Ido
+*** Ido has a manual now.
+** `ido-use-virtual-buffers' takes a new value 'auto.
+** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** Image mode
 
