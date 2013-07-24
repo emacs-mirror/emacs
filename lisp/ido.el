@@ -161,10 +161,10 @@
 ;; ---------------
 ;;
 ;; The standard way of completion with Unix-shells and Emacs is to insert a
-;; PREFIX and then hitting TAB (or another completion key). Cause of this
-;; behavior has become second nature to a lot of emacs users `ido' offers in
+;; PREFIX and then hitting TAB (or another completion key).  Cause of this
+;; behavior has become second nature to a lot of Emacs users `ido' offers in
 ;; addition to the default substring-matching-method (look above) also the
-;; prefix-matching-method. The kind of matching is the only difference to
+;; prefix-matching-method.  The kind of matching is the only difference to
 ;; the description of the substring-matching above.
 ;;
 ;; You can toggle prefix matching with C-p.
@@ -271,7 +271,7 @@
 ;; To use ido for all buffer and file selections in Emacs, customize the
 ;; variable `ido-everywhere'.
 
-;; Using ido-like behavior in other lisp packages
+;; Using ido-like behavior in other Lisp packages
 ;; -----------------------------------------------
 
 ;; If you don't want to rely on the `ido-everywhere' functionality,
@@ -312,7 +312,7 @@
 ;; so I invented a common "ido-" namespace for the merged packages.
 ;;
 ;; This version is based on ido.el version 1.57 released on
-;; gnu.emacs.sources adapted for emacs 22.1 to use command remapping
+;; gnu.emacs.sources adapted for Emacs 22.1 to use command remapping
 ;; and optionally hooking the read-buffer and read-file-name functions.
 ;;
 ;; Prefix matching was added by Klaus Berndl <klaus.berndl@sdm.de> based on
@@ -328,6 +328,7 @@
 ;; These are some things you might want to change.
 
 (defun ido-fractionp (n)
+  "Return t if N is a fraction."
   (and (numberp n) (> n 0.0) (<= n 1.0)))
 
 (defgroup ido nil
@@ -340,13 +341,13 @@
 
 ;;;###autoload
 (defcustom ido-mode nil
-  "Determines for which functional group \(buffer and files) ido behavior
-should be enabled.  The following values are possible:
-- `buffer': Turn only on ido buffer behavior \(switching, killing,
+  "Determines for which buffer/file Ido should be enabled.
+The following values are possible:
+- `buffer': Turn only on ido buffer behavior (switching, killing,
   displaying...)
-- `file': Turn only on ido file behavior \(finding, writing, inserting...)
+- `file': Turn only on ido file behavior (finding, writing, inserting...)
 - `both': Turn on ido buffer and file behavior.
-- `nil': Turn off any ido switching.
+-  nil: Turn off any ido switching.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
@@ -528,15 +529,20 @@ Note that the non-ido equivalent command is recorded."
   :group 'ido)
 
 (defcustom ido-max-prospects 12
-  "Non-zero means that the prospect list will be limited to that number of items.
-For a long list of prospects, building the full list for the minibuffer can take a
-non-negligible amount of time; setting this variable reduces that time."
+  "Upper limit of the prospect list if non-zero.
+Zero means no limit for the prospect list.
+For a long list of prospects, building the full list for the
+minibuffer can take a non-negligible amount of time; setting this
+variable reduces that time."
   :type 'integer
   :group 'ido)
 
 (defcustom ido-max-file-prompt-width 0.35
-  "Non-zero means that the prompt string be limited to that number of characters.
-If value is a floating point number, it specifies a fraction of the frame width."
+  "Upper limit of the prompt string.
+If value is an integer, it specifies the number of characters of
+the string.
+If value is a floating point number, it specifies a fraction of
+the frame width."
   :type '(choice
 	  (integer :tag "Characters" :value 20)
 	  (restricted-sexp :tag "Fraction of frame width"
@@ -612,7 +618,8 @@ A tramp file name uses the following syntax: /method:user@host:filename."
 
 (defcustom ido-cache-ftp-work-directory-time 1.0
   "Maximum time to cache contents of an ftp directory (in hours).
-Use C-l in prompt to refresh list.
+\\<ido-file-completion-map>
+Use \\[ido-reread-directory] in prompt to refresh list.
 If zero, ftp directories are not cached."
   :type 'number
   :group 'ido)
@@ -630,7 +637,7 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :group 'ido)
 
 (defvar ido-unc-hosts-cache t
-  "Cached value from `ido-unc-hosts' function.")
+  "Cached value from the function `ido-unc-hosts'.")
 
 (defcustom ido-unc-hosts nil
   "List of known UNC host names to complete after initial //.
@@ -658,7 +665,8 @@ Case is ignored if `ido-downcase-unc-hosts' is set."
 
 (defcustom ido-cache-unc-host-shares-time 8.0
   "Maximum time to cache shares of an UNC host (in hours).
-Use C-l in prompt to refresh list.
+\\<ido-file-completion-map>
+Use \\[ido-reread-directory] in prompt to refresh list.
 If zero, UNC host shares are not cached."
   :type 'number
   :group 'ido)
@@ -704,20 +712,22 @@ When a (partial) file name matches this regexp, merging is inhibited."
 
 (defcustom ido-max-dir-file-cache 100
   "Maximum number of working directories to be cached.
+\\<ido-file-completion-map>
 This is the size of the cache of `file-name-all-completions' results.
 Each cache entry is time stamped with the modification time of the
 directory.  Some systems, like Windows, have unreliable directory
 modification times, so you may choose to disable caching on such
 systems, or explicitly refresh the cache contents using the command
-`ido-reread-directory' command (C-l) in the minibuffer.
+`ido-reread-directory' command (\\[ido-reread-directory]) in the minibuffer.
 See also `ido-dir-file-cache' and `ido-save-directory-list-file'."
   :type 'integer
   :group 'ido)
 
 (defcustom ido-max-directory-size nil
   "Maximum size (in bytes) for directories to use ido completion.
+\\<ido-completion-map>
 If you enter a directory with a size larger than this size, ido will
-not provide the normal completion.  To show the completions, use C-a."
+not provide the normal completion.  To show the completions, use \\[ido-toggle-ignore]."
   :type '(choice (const :tag "No limit" nil)
 		 (integer :tag "Size in bytes" 30000))
   :group 'ido)
@@ -767,7 +777,8 @@ Obsolete.  Set 3rd element of `ido-decorations' instead."
   "List of strings used by ido to display the alternatives in the minibuffer.
 There are between 11 and 13 elements in this list:
 1st and 2nd elements are used as brackets around the prospect list,
-3rd element is the separator between prospects (ignored if `ido-separator' is set),
+3rd element is the separator between prospects (ignored if
+`ido-separator' is set),
 4th element is the string inserted at the end of a truncated list of prospects,
 5th and 6th elements are used as brackets around the common match string which
 can be completed using TAB,

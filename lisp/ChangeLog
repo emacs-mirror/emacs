@@ -36,6 +36,12 @@
 
 2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* ido.el (ido-fractionp):
+	(ido-cache-ftp-work-directory-time, ido-max-prospects, ido-mode)
+	(ido-max-file-prompt-width, ido-unc-hosts-cache)
+	(ido-max-directory-size, ido-max-dir-file-cache)
+	(ido-decorations): Doc fix.
+
 	* ansi-color.el: Fix old URL.
 
 2013-07-23  Michael R. Mauger  <michael@mauger.com>
