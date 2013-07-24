@@ -4862,8 +4862,7 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_CONFIG_COMMANDS([epaths], [
-echo creating src/epaths.h
+AC_CONFIG_COMMANDS([src/epaths.h], [
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
@@ -4871,9 +4870,8 @@ else
 fi
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
-AC_CONFIG_COMMANDS([gdbinit], [
+AC_CONFIG_COMMANDS([src/.gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo creating src/.gdbinit
   echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])
