@@ -331,9 +331,9 @@ See also the functions:
 ;; Mark files with some extension.
 (defun dired-mark-extension (extension &optional marker-char)
   "Mark all files with a certain EXTENSION for use in later commands.
-A `.' is *not* automatically prepended to the string entered."
-  ;; EXTENSION may also be a list of extensions instead of a single one.
-  ;; Optional MARKER-CHAR is marker to use.
+A `.' is *not* automatically prepended to the string entered.
+EXTENSION may also be a list of extensions instead of a single one.
+Optional MARKER-CHAR is marker to use."
   (interactive "sMarking extension: \nP")
   (or (listp extension)
       (setq extension (list extension)))
