@@ -1,3 +1,14 @@
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify--test-local-enabled): New defconst.  Replaces all
+	`file-notify-support' occurences.
+	(file-notify--test-remote-enabled): New defun.
+	(file-notify--deftest-remote): Use it.
+	(file-notify-test00-availability): Rewrite.
+	(file-notify-test00-availability-remote): New defun.
+	(file-notify-test01-add-watch): Rewrite first erroneous check.
+
 2013-07-23  Glenn Morris  <rgm@gnu.org>
 
 	* automated/inotify-test.el (inotify-file-watch-simple):
