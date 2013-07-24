@@ -282,8 +282,8 @@ amounts of data into the ERC input.
 
 ** Ido
 *** Ido has a manual now.
-** `ido-use-virtual-buffers' takes a new value 'auto.
-** `ido-decorations' has been slightly extended to give a bit more control.
+*** `ido-use-virtual-buffers' takes a new value 'auto.
+*** `ido-decorations' has been slightly extended to give a bit more control.
 
 ** Image mode
 
