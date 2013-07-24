@@ -1,3 +1,8 @@
+2013-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* printing.el: Replace all uses of deleted ps-windows-system,
+	ps-lp-system with lpr- versions.
+
 2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--u1): Verify if self-quoting values can be
