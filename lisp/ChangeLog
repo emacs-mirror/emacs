@@ -1,5 +1,8 @@
 2013-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/pcase.el (pcase--u1): Verify if self-quoting values can be
+	checked with memq (bug#14935).
+
 	* files.el (revert-buffer-function): Use a non-nil default.
 	(revert-buffer-preserve-modes): Declare var to
 	provide access to the `preserve-modes' argument.
