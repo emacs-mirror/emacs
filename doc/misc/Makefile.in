@@ -45,7 +45,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
-	flymake forms gnus emacs-gnutls htmlfontify idlwave info.info \
+	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode tramp \
@@ -79,6 +79,7 @@ DVI_TARGETS = \
 	emacs-gnutls.dvi \
 	htmlfontify.dvi \
 	idlwave.dvi \
+	ido.dvi \
 	info.dvi \
 	mairix-el.dvi \
 	message.dvi \
@@ -135,6 +136,7 @@ PDF_TARGETS = \
 	htmlfontify.pdf \
 	emacs-gnutls.pdf \
 	idlwave.pdf \
+	ido.pdf \
 	info.pdf \
 	mairix-el.pdf \
 	message.pdf \
@@ -451,6 +453,15 @@ idlwave.dvi: ${srcdir}/idlwave.texi ${gfdl}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/idlwave.texi
 idlwave.pdf: ${srcdir}/idlwave.texi ${gfdl}
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/idlwave.texi
+
+ido : $(buildinfodir)/ido$(INFO_EXT)
+$(buildinfodir)/ido$(INFO_EXT): ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ido.texi
+ido.dvi: ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ido.texi
+ido.pdf: ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/ido.texi
 
 # NB this one needs --no-split even without a .info extension.
 # Avoid name clash with overall "info" target.

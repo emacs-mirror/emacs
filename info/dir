@@ -75,6 +75,7 @@ Emacs misc features
 * Forms: (forms).               Emacs package for editing data bases
                                   by filling in forms.
 * Htmlfontify: (htmlfontify).   Convert source code to html.
+* Ido: (ido).                   Interactively do things with buffers and files.
 * PCL-CVS: (pcl-cvs).           Emacs front-end to CVS.
 * RefTeX: (reftex).             Emacs support for LaTeX cross-references
                                   and citations.

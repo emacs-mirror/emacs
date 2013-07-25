@@ -1,5 +1,7 @@
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
+	* info/dir: Add ido.
+
 	* make-dist: Add a --tests option, to include test/.
 
 2013-07-24  Glenn Morris  <rgm@gnu.org>

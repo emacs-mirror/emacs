@@ -1,5 +1,8 @@
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add ido.
+	(ido, $(buildinfodir)/ido$(INFO_EXT), ido.dvi, ido.pdf): New rules.
+
 	* erc.texi (Special Features): Update contact information.
 	(History): Avoid using @email.
 
