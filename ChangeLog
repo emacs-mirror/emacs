@@ -1,3 +1,7 @@
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add a --tests option, to include test/.
+
 2013-07-02  Christoph Egger  <christoph@debian.org>  (tiny change)
 
 	* configure.ac (emacs_broken_SIGIO): Set on gnu-kfreebsd to avoid hang.
