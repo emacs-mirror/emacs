@@ -1,3 +1,8 @@
+2013-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): In display-buffer bind
+	split-window-keep-point to t, bug#14829.
+
 2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el: Rename internal "desktop-X" frame params to "desktop--X".
