@@ -1289,7 +1289,7 @@ its window state.  Internal use only."
 	    (visible (assq 'visibility filtered-cfg)))
 	(setq filtered-cfg (cl-delete-if (lambda (p)
 					   (memq p '(visibility fullscreen width height)))
-					 filtered-cfg))
+					 filtered-cfg :key #'car))
 	(when width
 	  (setq filtered-cfg (append `((user-size . t) (width . ,width))
 				       filtered-cfg)))
@@ -1302,7 +1302,11 @@ its window state.  Internal use only."
 
     ;; Time to select or create a frame an apply the big bunch of parameters
     (if (setq frame (desktop--select-frame display filtered-cfg))
-	(modify-frame-parameters frame filtered-cfg)
+	(modify-frame-parameters frame
+				 (if (eq (frame-parameter frame 'fullscreen) fullscreen)
+				     ;; Workaround for bug#14949
+				     (assq-delete-all 'fullscreen filtered-cfg)
+				   filtered-cfg))
       (setq frame (make-frame-on-display display filtered-cfg)))
 
     ;; Let's give the finishing touches (visibility, tool-bar, maximization).

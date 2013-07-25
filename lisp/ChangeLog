@@ -1,3 +1,11 @@
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Do not pass the `fullscreen'
+	parameter to modify-frame-parameters if the value has not changed;
+	this is a workaround for bug#14949.
+	(desktop--make-frame): On cl-delete-if call, check parameter name,
+	not full parameter.
+
 2013-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restoring-frames-p): Return a true boolean.
