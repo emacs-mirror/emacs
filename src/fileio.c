@@ -3860,10 +3860,7 @@ by calling `format-decode', which see.  */)
       if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
 	{
 	  emacs_close (fd);
-
-	  /* Discard the unwind protect for closing the file, and any
-	     unwind protect for restoring point.  */
-	  specpdl_ptr = specpdl + fd_index;
+	  clear_unwind_protect (fd_index);
 
 	  /* Truncate the buffer to the size of the file.  */
 	  del_range_1 (same_at_start, same_at_end, 0, 0);
