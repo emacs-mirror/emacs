@@ -1,8 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2013 Free Software Foundation,
-## Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2013 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -51,6 +50,7 @@ clean_up=no
 make_tar=no
 default_gzip=gzip
 newer=""
+with_tests=no
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -98,6 +98,12 @@ while [ $# -gt 0 ]; do
       check=no
      ;;
 
+    ## Include the test/ directory.
+    ## This option is mainly for the hydra build server.
+    "--tests")
+      with_tests=yes
+     ;;
+
     "--help")
       echo "Usage: ${progname} [options]"
       echo ""
@@ -110,6 +116,7 @@ while [ $# -gt 0 ]; do
       echo "  --no-update	don't recompile or do analogous things"
       echo "  --snapshot	same as --clean-up --no-update --tar --no-check"
       echo "  --tar		make a tar file"
+      echo "  --tests	include the test/ directory"
       echo ""
       exit 0
     ;;
@@ -289,7 +296,7 @@ for subdir in site-lisp \
 	      build-aux build-aux/snippet \
 	      src src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      `find etc lisp admin -type d` \
+	      `find etc lisp admin test -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
 	      info m4 msdos \
 	      nextstep nextstep/templates \
@@ -300,6 +307,13 @@ for subdir in site-lisp \
 	      nextstep/GNUstep/Emacs.base \
 	      nextstep/GNUstep/Emacs.base/Resources
 do
+
+  if [ "$with_tests" != "yes" ]; then
+    case $subdir in
+        test*) continue ;;
+    esac
+  fi
+
   ## site-lisp for in-place installs (?).
   [ "$subdir" = "site-lisp" ] || [ -d "$subdir" ] || \
       echo "WARNING: $subdir not found, making anyway"
@@ -446,6 +460,17 @@ for f in `find admin -type f`; do
   esac
   ln $f $tempdir/$f
 done
+
+if [ "$with_tests" = "yes" ]; then
+  echo "Making links to \`test' and its subdirectories"
+  for f in `find test -type f`; do
+    case $f in
+      test/automated/flymake/warnpred/a.out) continue ;;
+      test/automated/Makefile) continue ;;
+    esac
+    ln $f $tempdir/$f
+  done
+fi
 
 echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do

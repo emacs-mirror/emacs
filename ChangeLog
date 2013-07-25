@@ -1,3 +1,7 @@
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add a --tests option, to include test/.
+
 2013-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac: Use self-descriptive tags for AC_CONFIG_COMMANDS.
