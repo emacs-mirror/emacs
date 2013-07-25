@@ -1228,33 +1228,34 @@ is the parameter list of the frame being restored.  Internal use only."
 	;; session has already been loaded.  The other main use case, which
 	;; is the initial desktop-read upon starting Emacs, should usually
 	;; only have one, or very few, frame(s) to reuse.
-	(cond (;; When the target is tty, every existing frame is reusable.
-	       (null display)
+	(cond ((null display)
+	       ;; When the target is tty, every existing frame is reusable.
 	       (setq frame (desktop--find-frame nil display)))
-	      (;; If the frame has its own minibuffer, let's see whether
+	      ((car (setq mini (cdr (assq 'desktop--mini frame-cfg))))
+	       ;; If the frame has its own minibuffer, let's see whether
 	       ;; that frame has already been loaded (which can happen after
 	       ;; M-x desktop-read).
-	       (car (setq mini (cdr (assq 'desktop--mini frame-cfg))))
 	       (setq frame (or (desktop--find-frame
 				(lambda (f m)
 				  (equal (frame-parameter f 'desktop--mini) m))
 				display mini))))
-	      (;; For minibufferless frames, check whether they already exist,
+	      (mini
+	       ;; For minibufferless frames, check whether they already exist,
 	       ;; and that they are linked to the right minibuffer frame.
-	       mini
 	       (setq frame (desktop--find-frame
 			    (lambda (f n)
-			      (let ((m (frame-parameter f 'desktop--mini)))
+			      (pcase-let (((and m `(,hasmini ,num))
+					   (frame-parameter f 'desktop--mini)))
 				(and m
-				     (null (cl-first m))
-				     (= (cl-second m) n)
+				     (null hasmini)
+				     (= num n)
 				     (equal (cl-second (frame-parameter
 							(window-frame (minibuffer-window f))
 							'desktop--mini))
 					    n))))
 			    display (cl-second mini))))
-	      (;; Default to just finding a frame in the same display.
-	       t
+	      (t
+	       ;; Default to just finding a frame in the same display.
 	       (setq frame (desktop--find-frame nil display))))
 	;; If found, remove from the list.
 	(when frame
@@ -1320,14 +1321,12 @@ its window state.  Internal use only."
   ;; Order: default minibuffer frame
   ;;	    other frames with minibuffer, ascending ID
   ;;	    minibufferless frames, ascending ID
-  (let ((dm1 (cdr (assq 'desktop--mini (car state1))))
-	(dm2 (cdr (assq 'desktop--mini (car state2)))))
-    (cond ((cl-third dm1) t)
-	  ((cl-third dm2) nil)
-	  ((eq (cl-first dm1) (cl-first dm2))
-	   (< (cl-second dm1) (cl-second dm2)))
-	  (t
-	   (cl-first dm1)))))
+  (pcase-let ((`(,_p1 ,hasmini1 ,num1 ,default1) (assq 'desktop--mini (car state1)))
+	      (`(,_p2 ,hasmini2 ,num2 ,default2) (assq 'desktop--mini (car state2))))
+    (cond (default1 t)
+	  (default2 nil)
+	  ((eq hasmini1 hasmini2) (< num1 num2))
+	  (t hasmini1))))
 
 (defun desktop-restoring-frames-p ()
   "True if calling `desktop-restore-frames' will actually restore frames."
@@ -1353,10 +1352,10 @@ being set (usually, by reading it from the desktop)."
 
       (dolist (state desktop-saved-frame-states)
 	(condition-case err
-	    (let* ((frame-cfg (car state))
-		   (window-cfg (cdr state))
-		   (d-mini (cdr (assq 'desktop--mini frame-cfg)))
-		   num frame to-tty)
+	    (pcase-let* ((`(,frame-cfg . ,window-cfg) state)
+			 ((and d-mini `(,hasmini ,num ,default))
+			  (cdr (assq 'desktop--mini frame-cfg)))
+			 (frame nil) (to-tty nil))
 	      ;; Only set target if forcing displays and the target display is different.
 	      (if (or (not forcing)
 		      (equal target (or (assq 'display frame-cfg) '(display . nil))))
@@ -1379,15 +1378,14 @@ being set (usually, by reading it from the desktop)."
 		(cond
 		 ((null d-mini)) ;; No desktop--mini.  Process as normal frame.
 		 (to-tty) ;; Ignore minibuffer stuff and process as normal frame.
-		 ((cl-first d-mini) ;; Frame has minibuffer (or it is minibuffer-only).
-		  (setq num (cl-second d-mini))
+		 (hasmini ;; Frame has minibuffer (or it is minibuffer-only).
 		  (when (eq (cdr (assq 'minibuffer frame-cfg)) 'only)
 		    (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
 					    frame-cfg))))
 		 (t ;; Frame depends on other frame's minibuffer window.
-		  (let ((mb-frame (cdr (assq (cl-second d-mini) frame-mb-map))))
+		  (let ((mb-frame (cdr (assq num frame-mb-map))))
 		    (unless (frame-live-p mb-frame)
-		      (error "Minibuffer frame %s not found" (cl-second d-mini)))
+		      (error "Minibuffer frame %s not found" num))
 		    (let ((mb-param (assq 'minibuffer frame-cfg))
 			  (mb-window (minibuffer-window mb-frame)))
 		      (unless (and (window-live-p mb-window)
@@ -1400,9 +1398,9 @@ being set (usually, by reading it from the desktop)."
 		;; restore the window config.
 		(setq frame (desktop--make-frame frame-cfg window-cfg))
 		;; Set default-minibuffer if required.
-		(when (cl-third d-mini) (setq default-minibuffer-frame frame))
-		;; Store frame/NUM to assign to minibufferless frames.
-		(when num (push (cons num frame) frame-mb-map))))
+		(when default (setq default-minibuffer-frame frame))
+		;; Store NUM/frame to assign to minibufferless frames.
+		(when hasmini (push (cons num frame) frame-mb-map))))
 	  (error
 	   (delay-warning 'desktop (error-message-string err) :error))))
 

@@ -5,6 +5,8 @@
 	(desktop--filter-save-desktop-parm, desktop--process-minibuffer-frames)
 	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
 	Change accordingly.
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Use pcase-let, pcase-let* to deobfuscate access to desktop--mini values.
 
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
