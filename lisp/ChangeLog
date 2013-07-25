@@ -1,3 +1,11 @@
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Rename internal "desktop-X" frame params to "desktop--X".
+	(desktop-filter-parameters-alist, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--process-minibuffer-frames)
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Change accordingly.
+
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-mark-extension): Convert comment to doc string.

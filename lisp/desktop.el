@@ -878,30 +878,30 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 ;; ----------------------------------------------------------------------------
 (defvar desktop-filter-parameters-alist
-  '((background-color	. desktop--filter-*-color)
-    (buffer-list	. t)
-    (buffer-predicate	. t)
-    (buried-buffer-list . t)
-    (desktop-font	. desktop--filter-restore-desktop-parm)
-    (desktop-fullscreen . desktop--filter-restore-desktop-parm)
-    (desktop-height	. desktop--filter-restore-desktop-parm)
-    (desktop-width	. desktop--filter-restore-desktop-parm)
-    (font		. desktop--filter-save-desktop-parm)
-    (font-backend	. t)
-    (foreground-color	. desktop--filter-*-color)
-    (fullscreen		. desktop--filter-save-desktop-parm)
-    (height		. desktop--filter-save-desktop-parm)
-    (left		. desktop--filter-iconified-position)
-    (minibuffer		. desktop--filter-minibuffer)
-    (name		. t)
-    (outer-window-id	. t)
-    (parent-id		. t)
-    (top		. desktop--filter-iconified-position)
-    (tty		. desktop--filter-tty*)
-    (tty-type		. desktop--filter-tty*)
-    (width		. desktop--filter-save-desktop-parm)
-    (window-id		. t)
-    (window-system	. t))
+  '((background-color	 . desktop--filter-*-color)
+    (buffer-list	 . t)
+    (buffer-predicate	 . t)
+    (buried-buffer-list  . t)
+    (desktop--font	 . desktop--filter-restore-desktop-parm)
+    (desktop--fullscreen . desktop--filter-restore-desktop-parm)
+    (desktop--height	 . desktop--filter-restore-desktop-parm)
+    (desktop--width	 . desktop--filter-restore-desktop-parm)
+    (font		 . desktop--filter-save-desktop-parm)
+    (font-backend	 . t)
+    (foreground-color	 . desktop--filter-*-color)
+    (fullscreen		 . desktop--filter-save-desktop-parm)
+    (height		 . desktop--filter-save-desktop-parm)
+    (left		 . desktop--filter-iconified-position)
+    (minibuffer		 . desktop--filter-minibuffer)
+    (name		 . t)
+    (outer-window-id	 . t)
+    (parent-id		 . t)
+    (top		 . desktop--filter-iconified-position)
+    (tty		 . desktop--filter-tty*)
+    (tty-type		 . desktop--filter-tty*)
+    (width		 . desktop--filter-save-desktop-parm)
+    (window-id		 . t)
+    (window-system	 . t))
   "Alist of frame parameters and filtering functions.
 
 Each element is a cons (PARAM . FILTER), where PARAM is a parameter
@@ -972,27 +972,27 @@ Only meaningful when called from a filtering function in
 	t)))
 
 (defun desktop--filter-restore-desktop-parm (current parameters saving)
-  ;; When switching to a GUI frame, convert desktop-XXX parameter to XXX
+  ;; When switching to a GUI frame, convert desktop--XXX parameter to XXX
   (or saving
       (not (desktop-switch-to-gui-p parameters))
       (let ((val (cdr current)))
 	(if (eq val :desktop-processed)
 	    nil
 	  (cons (intern (substring (symbol-name (car current))
-				   8)) ;; (length "desktop-")
+				   9)) ;; (length "desktop--")
 		val)))))
 
 (defun desktop--filter-save-desktop-parm (current parameters saving)
-  ;; When switching to a tty frame, save parameter XXX as desktop-XXX so it
+  ;; When switching to a tty frame, save parameter XXX as desktop--XXX so it
   ;; can be restored in a subsequent GUI session, unless it already exists.
   (cond (saving t)
 	((desktop-switch-to-tty-p parameters)
-	 (let ((sym (intern (format "desktop-%s" (car current)))))
+	 (let ((sym (intern (format "desktop--%s" (car current)))))
 	   (if (assq sym parameters)
 	       nil
 	     (cons sym (cdr current)))))
 	((desktop-switch-to-gui-p parameters)
-	 (let* ((dtp (assq (intern (format "desktop-%s" (car current)))
+	 (let* ((dtp (assq (intern (format "desktop--%s" (car current)))
 			   parameters))
 		(val (cdr dtp)))
 	   (if (eq val :desktop-processed)
@@ -1047,34 +1047,34 @@ Internal use only."
     filtered))
 
 (defun desktop--process-minibuffer-frames (frames)
-  ;; Adds a desktop-mini parameter to frames
-  ;; desktop-mini is a list (MINIBUFFER NUMBER DEFAULT?) where
+  ;; Adds a desktop--mini parameter to frames
+  ;; desktop--mini is a list (MINIBUFFER NUMBER DEFAULT?) where
   ;; MINIBUFFER	 t if the frame (including minibuffer-only) owns a minibuffer
   ;; NUMBER	 if MINIBUFFER = t, an ID for the frame; if nil, the ID of
   ;;		 the frame containing the minibuffer used by this frame
   ;; DEFAULT?	 if t, this frame is the value of default-minibuffer-frame
   (let ((count 0))
-    ;; Reset desktop-mini for all frames
+    ;; Reset desktop--mini for all frames
     (dolist (frame (frame-list))
-      (set-frame-parameter frame 'desktop-mini nil))
+      (set-frame-parameter frame 'desktop--mini nil))
     ;; Number all frames with its own minibuffer
     (dolist (frame (minibuffer-frame-list))
-      (set-frame-parameter frame 'desktop-mini
+      (set-frame-parameter frame 'desktop--mini
 			   (list t
 				 (cl-incf count)
 				 (eq frame default-minibuffer-frame))))
     ;; Now link minibufferless frames with their minibuffer frames
     (dolist (frame frames)
-      (unless (frame-parameter frame 'desktop-mini)
+      (unless (frame-parameter frame 'desktop--mini)
 	(let ((mb-frame (window-frame (minibuffer-window frame))))
 	  ;; Frames whose minibuffer frame has been filtered out will have
-	  ;; desktop-mini = nil, so desktop-restore-frames will restore them
-	  ;; according to their minibuffer parameter.  Set up desktop-mini
+	  ;; desktop--mini = nil, so desktop-restore-frames will restore them
+	  ;; according to their minibuffer parameter.  Set up desktop--mini
 	  ;; for the rest.
 	  (when (memq mb-frame frames)
-	    (set-frame-parameter frame 'desktop-mini
+	    (set-frame-parameter frame 'desktop--mini
 				 (list nil
-				       (cl-second (frame-parameter mb-frame 'desktop-mini))
+				       (cl-second (frame-parameter mb-frame 'desktop--mini))
 				       nil))))))))
 
 (defun desktop-save-frames ()
@@ -1234,23 +1234,23 @@ is the parameter list of the frame being restored.  Internal use only."
 	      (;; If the frame has its own minibuffer, let's see whether
 	       ;; that frame has already been loaded (which can happen after
 	       ;; M-x desktop-read).
-	       (car (setq mini (cdr (assq 'desktop-mini frame-cfg))))
+	       (car (setq mini (cdr (assq 'desktop--mini frame-cfg))))
 	       (setq frame (or (desktop--find-frame
 				(lambda (f m)
-				  (equal (frame-parameter f 'desktop-mini) m))
+				  (equal (frame-parameter f 'desktop--mini) m))
 				display mini))))
 	      (;; For minibufferless frames, check whether they already exist,
 	       ;; and that they are linked to the right minibuffer frame.
 	       mini
 	       (setq frame (desktop--find-frame
 			    (lambda (f n)
-			      (let ((m (frame-parameter f 'desktop-mini)))
+			      (let ((m (frame-parameter f 'desktop--mini)))
 				(and m
 				     (null (cl-first m))
 				     (= (cl-second m) n)
 				     (equal (cl-second (frame-parameter
 							(window-frame (minibuffer-window f))
-							'desktop-mini))
+							'desktop--mini))
 					    n))))
 			    display (cl-second mini))))
 	      (;; Default to just finding a frame in the same display.
@@ -1320,8 +1320,8 @@ its window state.  Internal use only."
   ;; Order: default minibuffer frame
   ;;	    other frames with minibuffer, ascending ID
   ;;	    minibufferless frames, ascending ID
-  (let ((dm1 (cdr (assq 'desktop-mini (car state1))))
-	(dm2 (cdr (assq 'desktop-mini (car state2)))))
+  (let ((dm1 (cdr (assq 'desktop--mini (car state1))))
+	(dm2 (cdr (assq 'desktop--mini (car state2)))))
     (cond ((cl-third dm1) t)
 	  ((cl-third dm2) nil)
 	  ((eq (cl-first dm1) (cl-first dm2))
@@ -1355,7 +1355,7 @@ being set (usually, by reading it from the desktop)."
 	(condition-case err
 	    (let* ((frame-cfg (car state))
 		   (window-cfg (cdr state))
-		   (d-mini (cdr (assq 'desktop-mini frame-cfg)))
+		   (d-mini (cdr (assq 'desktop--mini frame-cfg)))
 		   num frame to-tty)
 	      ;; Only set target if forcing displays and the target display is different.
 	      (if (or (not forcing)
@@ -1377,7 +1377,7 @@ being set (usually, by reading it from the desktop)."
 		;; global state; it's best to do it here than add a bunch of global
 		;; variables to pass info back-and-forth to/from the filter function.
 		(cond
-		 ((null d-mini)) ;; No desktop-mini.  Process as normal frame.
+		 ((null d-mini)) ;; No desktop--mini.  Process as normal frame.
 		 (to-tty) ;; Ignore minibuffer stuff and process as normal frame.
 		 ((cl-first d-mini) ;; Frame has minibuffer (or it is minibuffer-only).
 		  (setq num (cl-second d-mini))
