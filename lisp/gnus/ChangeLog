@@ -1,3 +1,8 @@
+2013-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-art.el (gnus-button-url-regexp): Make it match url in which
+	punctuation characters follow parentheses (bug#14950).
+
 2013-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.el (gnus-continuum-version):
