@@ -1,3 +1,7 @@
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-mark-extension): Convert comment to doc string.
+
 2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--make-frame): Do not pass the `fullscreen'

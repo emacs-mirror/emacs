@@ -172,17 +172,20 @@ Per Cederqvist wrote most of the otherwise unattributed functions in
 PCL-CVS as well as all the documentation.
 
 @item
-@email{inge@@lysator.liu.se, Inge Wallin} wrote the skeleton of
+@c inge@@lysator.liu.se
+Inge Wallin wrote the skeleton of
 @file{pcl-cvs.texi}, and gave useful comments on it.  He also wrote
 the files @file{elib-node.el} and @file{compile-all.el}.  The file
 @file{cookie.el} was inspired by Inge.@refill
 
 @item
-@email{linus@@lysator.liu.se, Linus Tolke} contributed useful comments
+@c linus@@lysator.liu.se
+Linus Tolke contributed useful comments
 on both the functionality and the documentation.@refill
 
 @item
-@email{jwz@@jwz.com, Jamie Zawinski} contributed
+@c jwz@@jwz.com
+Jamie Zawinski contributed
 @file{pcl-cvs-lucid.el}, which was later renamed to
 @file{pcl-cvs-xemacs.el}.@refill
 
@@ -191,34 +194,40 @@ Leif Lonnblad contributed RCVS support (since superseded by the new
 remote CVS support).
 
 @item
-@email{jimb@@cyclic.com, Jim Blandy} contributed hooks to automatically
+@c jimb@@cyclic.com
+Jim Blandy contributed hooks to automatically
 guess CVS log entries from @file{ChangeLog} contents, and initial support of
 the new Cygnus / Cyclic remote CVS, as well as various sundry bug fixes
 and cleanups.
 
 @item
-@email{kingdon@@cyclic.com, Jim Kingdon} contributed lots of fixes to
+@c kingdon@@cyclic.com
+Jim Kingdon contributed lots of fixes to
 the build and installation procedure.
 
 @item
-@email{woods@@weird.com, Greg A. Woods} contributed code to implement
+@c woods@@weird.com
+Greg A. Woods contributed code to implement
 the use of per-file diff buffers, and vendor join diffs with emerge and
 ediff, as well as various and sundry bug fixes and cleanups.
 
 @item
-@email{greg.klanderman@@alum.mit.edu, Greg Klanderman} implemented
+@c greg.klanderman@@alum.mit.edu
+Greg Klanderman implemented
 toggling of marked files, setting of CVS command flags via prefix
 arguments, updated the XEmacs support, updated the manual, and fixed
 numerous bugs.
 
 @item
-@email{monnier@@gnu.org, Stefan Monnier} added a slew of other
+@c monnier@@gnu.org
+Stefan Monnier added a slew of other
 features and introduced even more new bugs.  If there's any bug left,
 you can be sure it's his.
 
 @item
 @c wordy to avoid an underfull hbox
-@email{masata-y@@is.aist-nara.ac.jp, Masatake YAMATO} made a gracious
+@c masata-y@@is.aist-nara.ac.jp
+Masatake YAMATO made a gracious
 contribution of his cvstree code to display a tree of tags which was later
 superseded by the new @code{cvs-status-mode}.
 @end itemize
@@ -1369,18 +1378,19 @@ Used to highlight CVS messages.
 @cindex FAQ
 @cindex Problems, list of common
 
-If you find a bug or misfeature, don't hesitate to tell us!  Send email
-to @email{bug-gnu-emacs@@gnu.org} which is gatewayed to the newsgroup
-@samp{gnu.emacs.bugs}.  Feature requests should also be sent there.  We
-prefer discussing one thing at a time.  If you find several unrelated
+If you find a bug or misfeature, don't hesitate to tell us!
+Use @kbd{M-x report-emacs-bug} to send us a report.
+You can follow the same process for feature requests.
+We prefer discussing one thing at a time.  If you find several unrelated
 bugs, please report them separately.  If you are running PCL-CVS under
 XEmacs, you should also send a copy of bug reports to
-@email{xemacs-beta@@xemacs.org}.
+the @url{http://lists.xemacs.org/mailman/listinfo/xemacs-beta,
+XEmacs mailing list}.
 
 If you have problems using PCL-CVS or other questions, send them to
-@email{help-gnu-emacs@@gnu.org}, which is gatewayed to the
-@samp{gnu.emacs.help} newsgroup.  This is a good place to get help, as
-is @email{cvs-info@@gnu.org}, gatewayed to @samp{gnu.cvs.help}.
+the @url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+help-gnu-emacs mailing list}.  This is a good place to get help, as is
+the @url{http://lists.nongnu.org/mailman/listinfo/info-cvs, info-cvs list}.
 
 If you have ideas for improvements, or if you have written some
 extensions to this package, we would like to hear from you.  We hope that

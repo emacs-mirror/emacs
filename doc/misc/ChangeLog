@@ -1,3 +1,26 @@
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* erc.texi (Special Features): Update contact information.
+	(History): Avoid using @email.
+
+	* eshell.texi (Bugs and ideas): Minor updates.
+
+	* faq.texi (Reporting bugs, Origin of the term Emacs)
+	(Setting up a customization file)
+	(Using an already running Emacs process, Turning off beeping)
+	(Packages that do not come with Emacs)
+	(Replying to the sender of a message): Avoid using @email.
+
+	* pcl-cvs.texi (Contributors, Bugs): Avoid using @email.
+
+	* reftex.texi (Imprint): Avoid using @email.
+
+	* ses.texi (Top): Update bug reporting instructions.
+	(Acknowledgments): Avoid using @email.
+
+	* woman.texi (Introduction, Background): Remove outdated information.
+	(Bugs, Acknowledgments): Avoid using @email.
+
 2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ido.texi: New file.

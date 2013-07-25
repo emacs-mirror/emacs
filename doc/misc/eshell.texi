@@ -819,16 +819,18 @@ Eshell module.}  You also need to load the following as shown:
 @cindex known bugs
 @cindex bugs, known
 
-If you find a bug or misfeature, don't hesitate to let me know!  Send
-email to @email{johnw@@gnu.org}.  Feature requests should also be sent
-there.  I prefer discussing one thing at a time.  If you find several
+If you find a bug or misfeature, don't hesitate to report it, by
+using @kbd{M-x report-emacs-bug}.  The same applies to feature requests.
+It is best to discuss one thing at a time.  If you find several
 unrelated bugs, please report them separately.
 
+@ignore
 If you have ideas for improvements, or if you have written some
 extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
+@end ignore
 
-Below is a complete list of known problems with Eshell version 2.4.2,
+Below is a list of some known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis
