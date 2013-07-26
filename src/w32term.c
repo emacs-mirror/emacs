@@ -4360,8 +4360,9 @@ w32_read_socket (struct terminal *terminal,
 		  SET_FRAME_VISIBLE (f, 1);
 		  SET_FRAME_ICONIFIED (f, 0);
 		  SET_FRAME_GARBAGED (f);
-		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
-			     SDATA (f->name)));
+		  if (!f->output_data.w32->asked_for_visible)
+		    DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
+			       SDATA (f->name)));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
@@ -4819,7 +4820,8 @@ w32_read_socket (struct terminal *terminal,
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
 
-		    SET_FRAME_VISIBLE (f, 1);
+		    if (iconified)
+		      SET_FRAME_VISIBLE (f, 1);
 		    SET_FRAME_ICONIFIED (f, 0);
 
 		    /* wait_reading_process_output will notice this
@@ -6128,6 +6130,9 @@ x_iconify_frame (struct frame *f)
 
   /* Simulate the user minimizing the frame.  */
   SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
+
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 1);
 
   unblock_input ();
 }

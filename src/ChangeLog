@@ -1,3 +1,11 @@
+2013-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_EMACS_PAINT>: Warn about frame
+	being re-exposed only if it didn't ask to become visible.
+	<WM_SIZE>: Under SIZE_RESTORED, only set the frame visible if it
+	was previously iconified.  (Bug#14841)
+	(x_iconify_frame): Mark the frame iconified.
+
 2013-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
