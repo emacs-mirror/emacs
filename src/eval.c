@@ -3424,7 +3424,7 @@ Output stream used is value of `standard-output'.  */)
   return Qnil;
 }
 
-union specbinding *
+static union specbinding *
 get_backtrace_frame (Lisp_Object nframes, Lisp_Object base)
 {
   union specbinding *pdl = backtrace_top ();
@@ -3483,7 +3483,7 @@ nearest activation frame.  */)
    pointer-reversal trick.  As it turns out, the rewind does the same as the
    unwind, except it starts from the other end of the spepdl stack, so we use
    the same function for both unwind and rewind.  */
-void
+static void
 backtrace_eval_unrewind (int distance)
 {
   union specbinding *tmp = specpdl_ptr;
@@ -3524,10 +3524,11 @@ backtrace_eval_unrewind (int distance)
 	      break;
 	    }
 	  else
-	    /* FALLTHROUGH!
-	       NOTE: we only ever come here if make_local_foo was used for
-	       the first time on this var within this let.  */
-	    ;
+	    {
+	      /* FALLTHROUGH!
+		 NOTE: we only ever come here if make_local_foo was used for
+		 the first time on this var within this let.  */
+	    }
 	case SPECPDL_LET_DEFAULT:
 	  {
 	    Lisp_Object sym = specpdl_symbol (tmp);
