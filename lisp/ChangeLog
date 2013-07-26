@@ -1,3 +1,8 @@
+2013-07-26  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (global-visual-line-mode):
+	Do not duplicate the mode lighter.  (Bug#14858)
+
 2013-07-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): In display-buffer bind

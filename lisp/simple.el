@@ -5530,8 +5530,7 @@ Mode' for details."
   (visual-line-mode 1))
 
 (define-globalized-minor-mode global-visual-line-mode
-  visual-line-mode turn-on-visual-line-mode
-  :lighter " vl")
+  visual-line-mode turn-on-visual-line-mode)
 
 
 (defun transpose-chars (arg)
