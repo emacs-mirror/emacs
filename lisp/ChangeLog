@@ -1,3 +1,12 @@
+2013-07-26  Richard Stallman  <rms@gnu.org>
+
+	Add aliases for encrypting mail.
+	* epa.el (epa-mail-aliases): New option.
+	* epa-mail.el (epa-mail-encrypt): Rewrite to be callable from programs.
+	Bind inhibit-read-only so read-only text doesn't ruin everything.
+	(epa-mail-default-recipients): New subroutine broken out.
+	Handle epa-mail-aliases.
+
 2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add support for lexical variables to the debugger's `e' command.
