@@ -1,3 +1,8 @@
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--select-frame):
+	Try harder to reuse the initial frame.
+
 2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el: Use backtrace-eval to handle lexical variables.

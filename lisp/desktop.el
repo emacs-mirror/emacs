@@ -1235,10 +1235,20 @@ is the parameter list of the frame being restored.  Internal use only."
 	       ;; If the frame has its own minibuffer, let's see whether
 	       ;; that frame has already been loaded (which can happen after
 	       ;; M-x desktop-read).
-	       (setq frame (or (desktop--find-frame
-				(lambda (f m)
-				  (equal (frame-parameter f 'desktop--mini) m))
-				display mini))))
+	       (setq frame (desktop--find-frame
+			    (lambda (f m)
+			      (equal (frame-parameter f 'desktop--mini) m))
+			    display mini))
+	       ;; If it has not been loaded, and it is not a minibuffer-only frame,
+	       ;; let's look for an existing non-minibuffer-only frame to reuse.
+	       (unless (or frame (eq (cdr (assq 'minibuffer frame-cfg)) 'only))
+		 (setq frame (desktop--find-frame
+			      (lambda (f)
+				(let ((w (frame-parameter f 'minibuffer)))
+				  (and (window-live-p w)
+				       (window-minibuffer-p w)
+				       (eq (window-frame w) f))))
+			      display))))
 	      (mini
 	       ;; For minibufferless frames, check whether they already exist,
 	       ;; and that they are linked to the right minibuffer frame.
