@@ -138,6 +138,13 @@ specpdl_old_value (union specbinding *pdl)
   return pdl->let.old_value;
 }
 
+static void
+set_specpdl_old_value (union specbinding *pdl, Lisp_Object val)
+{
+  eassert (pdl->kind >= SPECPDL_LET);
+  pdl->let.old_value = val;
+}
+
 static Lisp_Object
 specpdl_where (union specbinding *pdl)
 {
@@ -3301,6 +3308,8 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	case SPECPDL_UNWIND_VOID:
 	  specpdl_ptr->unwind_void.func ();
 	  break;
+	case SPECPDL_BACKTRACE:
+	  break;
 	case SPECPDL_LET:
 	  /* If variable has a trivial value (no forwarding), we can
 	     just set it.  No need to check for constant symbols here,
@@ -3315,27 +3324,20 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	    Fset_default (specpdl_symbol (specpdl_ptr),
 			  specpdl_old_value (specpdl_ptr));
 	  break;
-	case SPECPDL_BACKTRACE:
+	case SPECPDL_LET_DEFAULT:
+	  Fset_default (specpdl_symbol (specpdl_ptr),
+			specpdl_old_value (specpdl_ptr));
 	  break;
 	case SPECPDL_LET_LOCAL:
-	case SPECPDL_LET_DEFAULT:
-	  { /* If the symbol is a list, it is really (SYMBOL WHERE
-	     . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
-	     frame.  If WHERE is a buffer or frame, this indicates we
-	     bound a variable that had a buffer-local or frame-local
-	     binding.  WHERE nil means that the variable had the default
-	     value when it was bound.  CURRENT-BUFFER is the buffer that
-	     was current when the variable was bound.  */
+	  {
 	    Lisp_Object symbol = specpdl_symbol (specpdl_ptr);
 	    Lisp_Object where = specpdl_where (specpdl_ptr);
 	    Lisp_Object old_value = specpdl_old_value (specpdl_ptr);
 	    eassert (BUFFERP (where));
 
-	    if (specpdl_ptr->kind == SPECPDL_LET_DEFAULT)
-	      Fset_default (symbol, old_value);
 	    /* If this was a local binding, reset the value in the appropriate
 	       buffer, but only if that buffer's binding still exists.  */
-	    else if (!NILP (Flocal_variable_p (symbol, where)))
+	    if (!NILP (Flocal_variable_p (symbol, where)))
 	      set_internal (symbol, old_value, where, 1);
 	  }
 	  break;
@@ -3422,7 +3424,30 @@ Output stream used is value of `standard-output'.  */)
   return Qnil;
 }
 
-DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 1, NULL,
+union specbinding *
+get_backtrace_frame (Lisp_Object nframes, Lisp_Object base)
+{
+  union specbinding *pdl = backtrace_top ();
+  register EMACS_INT i;
+
+  CHECK_NATNUM (nframes);
+
+  if (!NILP (base))
+    { /* Skip up to `base'.  */
+      base = Findirect_function (base, Qt);
+      while (backtrace_p (pdl)
+	     && !EQ (base, Findirect_function (backtrace_function (pdl), Qt)))
+	pdl = backtrace_next (pdl);
+    }
+
+  /* Find the frame requested.  */
+  for (i = XFASTINT (nframes); i > 0 && backtrace_p (pdl); i--)
+    pdl = backtrace_next (pdl);
+
+  return pdl;
+}
+
+DEFUN ("backtrace-frame", Fbacktrace_frame, Sbacktrace_frame, 1, 2, NULL,
        doc: /* Return the function and arguments NFRAMES up from current execution point.
 If that frame has not evaluated the arguments yet (or is a special form),
 the value is (nil FUNCTION ARG-FORMS...).
@@ -3431,17 +3456,12 @@ the value is (t FUNCTION ARG-VALUES...).
 A &rest arg is represented as the tail of the list ARG-VALUES.
 FUNCTION is whatever was supplied as car of evaluated list,
 or a lambda expression for macro calls.
-If NFRAMES is more than the number of frames, the value is nil.  */)
-  (Lisp_Object nframes)
+If NFRAMES is more than the number of frames, the value is nil.
+If BASE is non-nil, it should be a function and NFRAMES counts from its
+nearest activation frame.  */)
+  (Lisp_Object nframes, Lisp_Object base)
 {
-  union specbinding *pdl = backtrace_top ();
-  register EMACS_INT i;
-
-  CHECK_NATNUM (nframes);
-
-  /* Find the frame requested.  */
-  for (i = 0; backtrace_p (pdl) && i < XFASTINT (nframes); i++)
-    pdl = backtrace_next (pdl);
+  union specbinding *pdl = get_backtrace_frame (nframes, base);
 
   if (!backtrace_p (pdl))
     return Qnil;
@@ -3456,6 +3476,108 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
     }
 }
 
+/* For backtrace-eval, we want to temporarily unwind the last few elements of
+   the specpdl stack, and then rewind them.  We store the pre-unwind values
+   directly in the pre-existing specpdl elements (i.e. we swap the current
+   value and the old value stored in the specpdl), kind of like the inplace
+   pointer-reversal trick.  As it turns out, the rewind does the same as the
+   unwind, except it starts from the other end of the spepdl stack, so we use
+   the same function for both unwind and rewind.  */
+void
+backtrace_eval_unrewind (int distance)
+{
+  union specbinding *tmp = specpdl_ptr;
+  int step = -1;
+  if (distance < 0)
+    { /* It's a rewind rather than unwind.  */
+      tmp += distance - 1;
+      step = 1;
+      distance = -distance;
+    }
+
+  for (; distance > 0; distance--)
+    {
+      tmp += step;
+      /*  */
+      switch (tmp->kind)
+	{
+	  /* FIXME: Ideally we'd like to "temporarily unwind" (some of) those
+	     unwind_protect, but the problem is that we don't know how to
+	     rewind them afterwards.  */
+	case SPECPDL_UNWIND:
+	case SPECPDL_UNWIND_PTR:
+	case SPECPDL_UNWIND_INT:
+	case SPECPDL_UNWIND_VOID:
+	case SPECPDL_BACKTRACE:
+	  break;
+	case SPECPDL_LET:
+	  /* If variable has a trivial value (no forwarding), we can
+	     just set it.  No need to check for constant symbols here,
+	     since that was already done by specbind.  */
+	  if (XSYMBOL (specpdl_symbol (tmp))->redirect
+	      == SYMBOL_PLAINVAL)
+	    {
+	      struct Lisp_Symbol *sym = XSYMBOL (specpdl_symbol (tmp));
+	      Lisp_Object old_value = specpdl_old_value (tmp);
+	      set_specpdl_old_value (tmp, SYMBOL_VAL (sym));
+	      SET_SYMBOL_VAL (sym, old_value);
+	      break;
+	    }
+	  else
+	    /* FALLTHROUGH!
+	       NOTE: we only ever come here if make_local_foo was used for
+	       the first time on this var within this let.  */
+	    ;
+	case SPECPDL_LET_DEFAULT:
+	  {
+	    Lisp_Object sym = specpdl_symbol (tmp);
+	    Lisp_Object old_value = specpdl_old_value (tmp);
+	    set_specpdl_old_value (tmp, Fdefault_value (sym));
+	    Fset_default (sym, old_value);
+	  }
+	  break;
+	case SPECPDL_LET_LOCAL:
+	  {
+	    Lisp_Object symbol = specpdl_symbol (tmp);
+	    Lisp_Object where = specpdl_where (tmp);
+	    Lisp_Object old_value = specpdl_old_value (tmp);
+	    eassert (BUFFERP (where));
+
+	    /* If this was a local binding, reset the value in the appropriate
+	       buffer, but only if that buffer's binding still exists.  */
+	    if (!NILP (Flocal_variable_p (symbol, where)))
+	      {
+		set_specpdl_old_value
+		  (tmp, Fbuffer_local_value (symbol, where));
+		set_internal (symbol, old_value, where, 1);
+	      }
+	  }
+	  break;
+	}
+    }
+}
+
+DEFUN ("backtrace-eval", Fbacktrace_eval, Sbacktrace_eval, 2, 3, NULL,
+       doc: /* Evaluate EXP in the context of some activation frame.
+NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  */)
+     (Lisp_Object exp, Lisp_Object nframes, Lisp_Object base)
+{
+  union specbinding *pdl = get_backtrace_frame (nframes, base);
+  ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t distance = specpdl_ptr - pdl;
+  eassert (distance >= 0);
+
+  if (!backtrace_p (pdl))
+    error ("Activation frame not found!");
+
+  backtrace_eval_unrewind (distance);
+  record_unwind_protect_int (backtrace_eval_unrewind, -distance);
+
+  /* Use eval_sub rather than Feval since the main motivation behind
+     backtrace-eval is to be able to get/set the value of lexical variables
+     from the debugger.  */
+  return unbind_to (count, eval_sub (exp));
+}
 
 void
 mark_specpdl (void)
@@ -3701,6 +3823,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
+  defsubr (&Sbacktrace_eval);
   defsubr (&Sspecial_variable_p);
   defsubr (&Sfunctionp);
 }

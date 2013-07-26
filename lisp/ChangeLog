@@ -1,3 +1,19 @@
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add support for lexical variables to the debugger's `e' command.
+	* emacs-lisp/debug.el (debug): Don't let-bind the debugger-outer-*
+	vars, except for debugger-outer-match-data.
+	(debugger-frame-number): Move check for "on a function call" from
+	callers into it.  Add `skip-base' argument.
+	(debugger-frame, debugger-frame-clear): Simplify accordingly.
+	(debugger-env-macro): Only reset the state stored in non-variables,
+	i.e. current-buffer and match-data.
+	(debugger-eval-expression): Rewrite using backtrace-eval.
+	* subr.el (internal--called-interactively-p--get-frame): Remove.
+	(called-interactively-p):
+	* emacs-lisp/edebug.el (edebug--called-interactively-skip): Use the new
+	`base' arg of backtrace-frame instead.
+
 2013-07-26  Glenn Morris  <rgm@gnu.org>
 
 	* align.el (align-regexp): Doc fix.  (Bug#14857)

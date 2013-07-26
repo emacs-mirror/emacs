@@ -4268,7 +4268,7 @@ With prefix argument, make it a temporary breakpoint."
              (eq (nth 1 (nth 1 frame1)) '())
              (eq (nth 1 frame2) 'edebug-enter))
     ;; `edebug-enter' calls itself on its first invocation.
-    (if (eq (nth 1 (internal--called-interactively-p--get-frame i))
+    (if (eq (nth 1 (backtrace-frame i 'called-interactively-p))
             'edebug-enter)
         2 1)))
 

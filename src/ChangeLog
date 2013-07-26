@@ -1,3 +1,13 @@
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (set_specpdl_old_value): New function.
+	(unbind_to): Minor simplification.
+	(get_backtrace_frame): New function.
+	(Fbacktrace_frame): Use it.  Add `base' argument.
+	(backtrace_eval_unrewind, Fbacktrace_eval): New functions.
+	(syms_of_eval): Export backtrace-eval.
+	* xterm.c (x_focus_changed): Simplify.
+
 2013-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Avoid double-close (Bug#14936).

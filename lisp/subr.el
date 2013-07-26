@@ -4191,22 +4191,6 @@ I is the index of the frame after FRAME2.  It should return nil
 if those frames don't seem special and otherwise, it should return
 the number of frames to skip (minus 1).")
 
-(defmacro internal--called-interactively-p--get-frame (n)
-  ;; `sym' will hold a global variable, which will be used kind of like C's
-  ;; "static" variables.
-  (let ((sym (make-symbol "base-index")))
-    `(progn
-       (defvar ,sym)
-       (unless (boundp ',sym)
-         (let ((i 1))
-           (while (not (eq (indirect-function (nth 1 (backtrace-frame i)) t)
-                           (indirect-function 'called-interactively-p)))
-             (setq i (1+ i)))
-           (setq ,sym i)))
-       ;; (unless (eq (nth 1 (backtrace-frame ,sym)) 'called-interactively-p)
-       ;;   (error "called-interactively-p: %s is out-of-sync!" ,sym))
-       (backtrace-frame (+ ,sym ,n)))))
-
 (defun called-interactively-p (&optional kind)
   "Return t if the containing function was called by `call-interactively'.
 If KIND is `interactive', then only return t if the call was made
@@ -4241,7 +4225,7 @@ command is called from a keyboard macro?"
            (get-next-frame
             (lambda ()
               (setq frame nextframe)
-              (setq nextframe (internal--called-interactively-p--get-frame i))
+              (setq nextframe (backtrace-frame i 'called-interactively-p))
               ;; (message "Frame %d = %S" i nextframe)
               (setq i (1+ i)))))
       (funcall get-next-frame) ;; Get the first frame.

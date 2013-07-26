@@ -3435,17 +3435,10 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
           /* When run as a daemon, Vterminal_frame is always NIL.  */
-          if ((NILP (Vterminal_frame) || EQ (Fdaemonp(), Qt))
-              && CONSP (Vframe_list)
-              && !NILP (XCDR (Vframe_list)))
-            {
-              bufp->arg = Qt;
-            }
-          else
-            {
-              bufp->arg = Qnil;
-            }
-
+          bufp->arg = (((NILP (Vterminal_frame) || EQ (Fdaemonp (), Qt))
+			&& CONSP (Vframe_list)
+			&& !NILP (XCDR (Vframe_list)))
+		       ? Qt : Qnil);
           bufp->kind = FOCUS_IN_EVENT;
           XSETFRAME (bufp->frame_or_window, frame);
         }

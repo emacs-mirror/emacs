@@ -102,22 +102,6 @@ The value used here is passed to `quit-restore-window'."
 This is to optimize `debugger-make-xrefs'.")
 
 (defvar debugger-outer-match-data)
-(defvar debugger-outer-load-read-function)
-(defvar debugger-outer-overriding-local-map)
-(defvar debugger-outer-overriding-terminal-local-map)
-(defvar debugger-outer-track-mouse)
-(defvar debugger-outer-last-command)
-(defvar debugger-outer-this-command)
-(defvar debugger-outer-unread-command-events)
-(defvar debugger-outer-unread-post-input-method-events)
-(defvar debugger-outer-last-input-event)
-(defvar debugger-outer-last-command-event)
-(defvar debugger-outer-last-nonmenu-event)
-(defvar debugger-outer-last-event-frame)
-(defvar debugger-outer-standard-input)
-(defvar debugger-outer-standard-output)
-(defvar debugger-outer-inhibit-redisplay)
-(defvar debugger-outer-cursor-in-echo-area)
 (defvar debugger-will-be-back nil
   "Non-nil if we expect to get back in the debugger soon.")
 
@@ -174,24 +158,6 @@ first will be printed into the backtrace buffer."
 	  ;; Save the outer values of these vars for the `e' command
 	  ;; before we replace the values.
 	  (debugger-outer-match-data (match-data))
-	  (debugger-outer-load-read-function load-read-function)
-	  (debugger-outer-overriding-local-map overriding-local-map)
-	  (debugger-outer-overriding-terminal-local-map
-	   overriding-terminal-local-map)
-	  (debugger-outer-track-mouse track-mouse)
-	  (debugger-outer-last-command last-command)
-	  (debugger-outer-this-command this-command)
-	  (debugger-outer-unread-command-events unread-command-events)
-	  (debugger-outer-unread-post-input-method-events
-	   unread-post-input-method-events)
-	  (debugger-outer-last-input-event last-input-event)
-	  (debugger-outer-last-command-event last-command-event)
-	  (debugger-outer-last-nonmenu-event last-nonmenu-event)
-	  (debugger-outer-last-event-frame last-event-frame)
-	  (debugger-outer-standard-input standard-input)
-	  (debugger-outer-standard-output standard-output)
-	  (debugger-outer-inhibit-redisplay inhibit-redisplay)
-	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area)
 	  (debugger-with-timeout-suspend (with-timeout-suspend)))
       ;; Set this instead of binding it, so that `q'
       ;; will not restore it.
@@ -294,26 +260,6 @@ first will be printed into the backtrace buffer."
 		  (funcall (nth 0 debugger-previous-state))))))
 	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
-      ;; Put into effect the modified values of these variables
-      ;; in case the user set them with the `e' command.
-      (setq load-read-function debugger-outer-load-read-function)
-      (setq overriding-local-map debugger-outer-overriding-local-map)
-      (setq overriding-terminal-local-map
-	    debugger-outer-overriding-terminal-local-map)
-      (setq track-mouse debugger-outer-track-mouse)
-      (setq last-command debugger-outer-last-command)
-      (setq this-command debugger-outer-this-command)
-      (setq unread-command-events debugger-outer-unread-command-events)
-      (setq unread-post-input-method-events
-	    debugger-outer-unread-post-input-method-events)
-      (setq last-input-event debugger-outer-last-input-event)
-      (setq last-command-event debugger-outer-last-command-event)
-      (setq last-nonmenu-event debugger-outer-last-nonmenu-event)
-      (setq last-event-frame debugger-outer-last-event-frame)
-      (setq standard-input debugger-outer-standard-input)
-      (setq standard-output debugger-outer-standard-output)
-      (setq inhibit-redisplay debugger-outer-inhibit-redisplay)
-      (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area)
       (setq debug-on-next-call debugger-step-after-exit)
       debugger-value)))
 
@@ -518,18 +464,21 @@ removes itself from that hook."
   (setq debugger-jumping-flag nil)
   (remove-hook 'post-command-hook 'debugger-reenable))
 
-(defun debugger-frame-number ()
+(defun debugger-frame-number (&optional skip-base)
   "Return number of frames in backtrace before the one point points at."
   (save-excursion
     (beginning-of-line)
+    (if (looking-at " *;;;\\|[a-z]")
+	(error "This line is not a function call"))
     (let ((opoint (point))
 	  (count 0))
-      (while (not (eq (cadr (backtrace-frame count)) 'debug))
-	(setq count (1+ count)))
-      ;; Skip debug--implement-debug-on-entry frame.
-      (when (eq 'debug--implement-debug-on-entry
-                (cadr (backtrace-frame (1+ count))))
-	(setq count (+ 2 count)))
+      (unless skip-base
+        (while (not (eq (cadr (backtrace-frame count)) 'debug))
+          (setq count (1+ count)))
+        ;; Skip debug--implement-debug-on-entry frame.
+        (when (eq 'debug--implement-debug-on-entry
+                  (cadr (backtrace-frame (1+ count))))
+          (setq count (+ 2 count))))
       (goto-char (point-min))
       (when (looking-at "Debugger entered--\\(Lisp error\\|returning value\\):")
 	(goto-char (match-end 0))
@@ -551,12 +500,8 @@ removes itself from that hook."
   "Request entry to debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at " *;;;\\|[a-z]")
-	(error "This line is not a function call")))
-  (beginning-of-line)
   (backtrace-debug (debugger-frame-number) t)
+  (beginning-of-line)
   (if (= (following-char) ? )
       (let ((inhibit-read-only t))
 	(delete-char 1)
@@ -567,12 +512,8 @@ Applies to the frame whose line point is on in the backtrace."
   "Do not enter debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at " *;;;\\|[a-z]")
-	(error "This line is not a function call")))
-  (beginning-of-line)
   (backtrace-debug (debugger-frame-number) nil)
+  (beginning-of-line)
   (if (= (following-char) ?*)
       (let ((inhibit-read-only t))
 	(delete-char 1)
@@ -583,59 +524,33 @@ Applies to the frame whose line point is on in the backtrace."
   "Run BODY in original environment."
   (declare (indent 0))
   `(save-excursion
-    (if (null (buffer-name debugger-old-buffer))
+    (if (null (buffer-live-p debugger-old-buffer))
         ;; old buffer deleted
         (setq debugger-old-buffer (current-buffer)))
     (set-buffer debugger-old-buffer)
-    (let ((load-read-function debugger-outer-load-read-function)
-          (overriding-terminal-local-map
-           debugger-outer-overriding-terminal-local-map)
-          (overriding-local-map debugger-outer-overriding-local-map)
-          (track-mouse debugger-outer-track-mouse)
-          (last-command debugger-outer-last-command)
-          (this-command debugger-outer-this-command)
-          (unread-command-events debugger-outer-unread-command-events)
-          (unread-post-input-method-events
-           debugger-outer-unread-post-input-method-events)
-          (last-input-event debugger-outer-last-input-event)
-          (last-command-event debugger-outer-last-command-event)
-          (last-nonmenu-event debugger-outer-last-nonmenu-event)
-          (last-event-frame debugger-outer-last-event-frame)
-          (standard-input debugger-outer-standard-input)
-          (standard-output debugger-outer-standard-output)
-          (inhibit-redisplay debugger-outer-inhibit-redisplay)
-          (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
-      (set-match-data debugger-outer-match-data)
-      (prog1
-          (progn ,@body)
-        (setq debugger-outer-match-data (match-data))
-        (setq debugger-outer-load-read-function load-read-function)
-        (setq debugger-outer-overriding-terminal-local-map
-              overriding-terminal-local-map)
-        (setq debugger-outer-overriding-local-map overriding-local-map)
-        (setq debugger-outer-track-mouse track-mouse)
-        (setq debugger-outer-last-command last-command)
-        (setq debugger-outer-this-command this-command)
-        (setq debugger-outer-unread-command-events unread-command-events)
-        (setq debugger-outer-unread-post-input-method-events
-              unread-post-input-method-events)
-        (setq debugger-outer-last-input-event last-input-event)
-        (setq debugger-outer-last-command-event last-command-event)
-        (setq debugger-outer-last-nonmenu-event last-nonmenu-event)
-        (setq debugger-outer-last-event-frame last-event-frame)
-        (setq debugger-outer-standard-input standard-input)
-        (setq debugger-outer-standard-output standard-output)
-        (setq debugger-outer-inhibit-redisplay inhibit-redisplay)
-        (setq debugger-outer-cursor-in-echo-area cursor-in-echo-area)
-        ))))
+    (set-match-data debugger-outer-match-data)
+    (prog1
+        (progn ,@body)
+      (setq debugger-outer-match-data (match-data)))))
 
 (defun debugger-eval-expression (exp)
-  "Eval an expression, in an environment like that outside the debugger."
+  "Eval an expression, in an environment like that outside the debugger.
+The environment used is the one when entering the activation frame at point."
   (interactive
    (list (read-from-minibuffer "Eval: "
 			       nil read-expression-map t
 			       'read-expression-history)))
-  (debugger-env-macro (eval-expression exp)))
+  (let ((nframe (condition-case nil (1+ (debugger-frame-number 'skip-base))
+                  (error 0))) ;; If on first line.
+        (base (if (eq 'debug--implement-debug-on-entry
+                      (cadr (backtrace-frame 1 'debug)))
+                  'debug--implement-debug-on-entry 'debug)))
+    (debugger-env-macro
+      (let ((val (backtrace-eval exp nframe base)))
+        (prog1
+            (prin1 val t)
+          (let ((str (eval-expression-print-format val)))
+            (if str (princ str t))))))))
 
 (defvar debugger-mode-map
   (let ((map (make-keymap))
