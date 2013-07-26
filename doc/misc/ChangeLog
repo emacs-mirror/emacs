@@ -1122,7 +1122,7 @@
 	corresponding function names, according to
 	`org-agenda-view-mode-dispatch'.
 
-2012-09-30  Jan Bäcker  <jan.boecker@jboecker.de>
+2012-09-30  Jan Böcker  <jan.boecker@jboecker.de>
 
 	* org.texi (The spreadsheet): Fix typo.
 

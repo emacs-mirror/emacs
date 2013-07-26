@@ -69,7 +69,7 @@
 
 	* dispnew.c (update_window): Use MATRIX_ROW and MATRIX_MODE_LINE_ROW.
 
-2013-03-10  handa  <handa@gnu.org>
+2013-03-10  Kenichi Handa  <handa@gnu.org>
 
 	* lisp.h (adjust_after_replace): Extern it.
 
@@ -11043,7 +11043,7 @@
 	* nsterm.m (x_free_frame_resources): Move xfree so freed memory isn't
 	referenced (Bug#11583).
 
-2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+2012-06-16  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	Implement wave-style variant of underlining.
 	* dispextern.h (face_underline_type): New enum.
@@ -21400,7 +21400,7 @@
 
 	* process.c (Fformat_network_address): Doc fix.
 
-2011-04-08  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
+2011-04-08  T. V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
 	* xml.c (parse_region): Avoid creating spurious whitespace nodes.
 

@@ -5119,7 +5119,7 @@
 	(x-setup-function-keys, xw-defined-colors): Merge x- and w32-
 	definitions here.
 
-2010-10-24  T.V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
+2010-10-24  T. V. Raman  <tv.raman.tv@gmail.com>  (tiny change)
 
 	* net/mairix.el (mairix-searches-mode-map):
 	* mail/mspools.el (mspools-mode-map): Fix 2010-10-10 change.

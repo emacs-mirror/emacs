@@ -61,7 +61,7 @@
 	* lib/ignore-value.h: Remove this gnulib-imported file.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
 
-2013-07-08  Magnus Henoch <magnus.henoch@gmail.com> (tiny change)
+2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change)
 
 	* configure.ac (HAVE_IMAGEMAGICK): Check on NS also (Bug#14798).
 
@@ -2027,7 +2027,7 @@
 	* Makefile.in (install-arch-indep, install-doc, install-info)
 	(uninstall): Scrap superfluous subshells.
 
-2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
+2012-05-19  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)
 
@@ -3803,7 +3803,7 @@
 	* Makefile.in (install-arch-indep, info):
 	Replace MAKEINFO = off with HAVE_MAKEINFO = no.
 
-2010-12-29  Ulrich Mueller  <ulm@gentoo.org>
+2010-12-29  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.in: Make gameuser configurable (Bug#7717).
 
@@ -5013,7 +5013,7 @@
 
 	* info/dir: Untabify.
 
-2008-11-28  Ulrich Mueller  <ulm@gentoo.org>
+2008-11-28  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.in: Fix last change.
 
@@ -5076,7 +5076,7 @@
 	* configure (*-sunos5*, *-solaris*): Use the new file sol2-10.h.
 	Use sol2-6.h for Solaris 7-9.
 
-2008-10-18  Ulrich Mueller  <ulm@gentoo.org>
+2008-10-18  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.in: Add support for GNU/Linux on SuperH.
 
@@ -5160,7 +5160,7 @@
 
 	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Fix 2008-08-04 change.
 
-2008-08-05  Ulrich Mueller  <ulm@gentoo.org>
+2008-08-05  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.in: Add checks for krb5_error.text and
 	krb5_error.e_text struct members.
@@ -5528,7 +5528,7 @@
 	* configure.in (--with-gcc): Remove.
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Remove --with-gcc.
 
-2008-02-05  Ulrich Mueller  <ulm@gentoo.org>
+2008-02-05  Ulrich Müller  <ulm@gentoo.org>
 
 	* INSTALL: Recommend giflib, not libungif.
 
@@ -5550,7 +5550,7 @@
 	* configure.in: For libotf and m17n-flt checks, set shell vars
 	HAVE_LIBOTF and HAVE_M17N_FLT instead of pkg_check_libotf and
 	pkg_check_m17n_flt, respectively, for the sake of the summary output.
-	Reported by Ulrich Mueller.
+	Reported by Ulrich Müller.
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
@@ -5864,7 +5864,7 @@
 
 	* configure.in: Put quotes around nested macro calls.
 
-2007-08-31  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2007-08-31  Ulrich Müller  <ulm@gentoo.org>  (tiny change)
 
 	* configure.in: Fix typo.
 	* configure: Regenerate.
