@@ -1,3 +1,14 @@
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Use backtrace-eval to handle lexical variables.
+	(edebug-eval): Use backtrace-eval.
+	(edebug--display, edebug--recursive-edit): Don't let-bind the
+	edebug-outer-* vars that keep track of variables we locally let-bind.
+	(edebug-outside-excursion): Don't restore outside values of locally
+	let-bound vars.
+	(edebug--display): Use user-error.
+	(cl-lexical-debug, cl-debug-env): Remove.
+
 2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restore-frames): Call `sit-for' once all frames
