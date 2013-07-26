@@ -1,5 +1,8 @@
 2013-07-26  Glenn Morris  <rgm@gnu.org>
 
+	* align.el (align-regexp): Doc fix.  (Bug#14857)
+	(align-region): Explicit error if subexpression missing/does not match.
+
 	* simple.el (global-visual-line-mode):
 	Do not duplicate the mode lighter.  (Bug#14858)
 
