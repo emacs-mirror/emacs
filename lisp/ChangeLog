@@ -1,3 +1,9 @@
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Call `sit-for' once all frames
+	are restored to be sure that they are visible before deleting any
+	remaining ones.
+
 2013-07-26  Matthias Meulien  <orontee@gmail.com>
 
 	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-print-root-log.

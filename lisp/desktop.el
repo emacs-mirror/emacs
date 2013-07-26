@@ -1404,6 +1404,10 @@ being set (usually, by reading it from the desktop)."
 	  (error
 	   (delay-warning 'desktop (error-message-string err) :error))))
 
+      ;; In case we try to delete the initial frame, we want to make sure that
+      ;; other frames are already visible (discussed in thread for bug#14841).
+      (sit-for 0 t)
+
       ;; Delete remaining frames, but do not fail if some resist being deleted.
       (unless (eq desktop-restoring-reuses-frames 'keep)
 	(dolist (frame desktop--reuse-list)
