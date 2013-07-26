@@ -3,6 +3,10 @@
 	* emacs-lisp/nadvice.el (advice--called-interactively-skip): Use the new
 	`base' arg of backtrace-frame.
 
+2013-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (list-processes): Doc fix.
+
 2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--select-frame):

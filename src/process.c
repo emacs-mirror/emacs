@@ -1330,7 +1330,7 @@ Returns nil if format of ADDRESS is invalid.  */)
 }
 
 DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
-       doc: /* Return a list of all processes.  */)
+       doc: /* Return a list of all processes that are Emacs sub-processes.  */)
   (void)
 {
   return Fmapcar (Qcdr, Vprocess_alist);

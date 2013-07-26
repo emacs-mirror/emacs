@@ -3141,14 +3141,17 @@ Also, delete any process that is exited or signaled."
   (display-buffer (button-get button 'process-buffer)))
 
 (defun list-processes (&optional query-only buffer)
-  "Display a list of all processes.
+  "Display a list of all processes that are Emacs sub-processes.
 If optional argument QUERY-ONLY is non-nil, only processes with
 the query-on-exit flag set are listed.
 Any process listed as exited or signaled is actually eliminated
 after the listing is made.
 Optional argument BUFFER specifies a buffer to use, instead of
 \"*Process List*\".
-The return value is always nil."
+The return value is always nil.
+
+This function lists only processes that were launched by Emacs.  To
+see other processes running on the system, use `list-system-processes'."
   (interactive)
   (or (fboundp 'process-list)
       (error "Asynchronous subprocesses are not supported on this system"))

@@ -1,5 +1,7 @@
 2013-07-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* process.c (Fprocess_list): Doc fix.
+
 	* w32term.c (w32_read_socket) <WM_EMACS_PAINT>: Warn about frame
 	being re-exposed only if it didn't ask to become visible.
 	<WM_SIZE>: Under SIZE_RESTORED, only set the frame visible if it
