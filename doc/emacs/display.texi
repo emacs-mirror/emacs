@@ -1017,12 +1017,15 @@ mode's symbol is a member of the list @code{hi-lock-exclude-modes}.
 
 @findex set-fringe-style
 @findex fringe-mode
+@vindex fringe-mode @r{(variable)}
   On graphical displays, each Emacs window normally has narrow
 @dfn{fringes} on the left and right edges.  The fringes are used to
 display symbols that provide information about the text in the window.
 You can type @kbd{M-x fringe-mode} to disable the fringes, or modify
 their width.  This command affects fringes in all frames; to modify
 fringes on the selected frame only, use @kbd{M-x set-fringe-style}.
+You can make your changes to the fringes permanent by customizing the
+variable @code{fringe-mode}.
 
   The most common use of the fringes is to indicate a continuation
 line (@pxref{Continuation Lines}).  When one line of text is split
