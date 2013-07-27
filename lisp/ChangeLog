@@ -1,3 +1,7 @@
+2013-07-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-root-diff.
+
 2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/nadvice.el (advice--called-interactively-skip): Use the new
