@@ -89,7 +89,7 @@ works with the following RSS formats:
 as well as the following Atom formats:
 @item Atom 0.3
 @item Atom 1.0 (see
-@uref{http://www.ietf.org/internet-drafts/draft-ietf-atompub-format-11.txt}).
+@uref{https://datatracker.ietf.org/doc/rfc4287/}).
 @end itemize
 
 That makes Newsticker.el an ``Atom aggregator'', ``RSS reader'', ``Feed

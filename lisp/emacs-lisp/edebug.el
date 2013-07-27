@@ -53,7 +53,7 @@
 ;;; Code:
 
 (require 'macroexp)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (eval-when-compile (require 'pcase))
 
 ;;; Options
@@ -263,26 +263,6 @@ An extant spec symbol is a symbol that is not a function and has a
 
 ;;; Utilities
 
-;; Define edebug-gensym - from old cl.el
-(defvar edebug-gensym-index 0
-  "Integer used by `edebug-gensym' to produce new names.")
-
-(defun edebug-gensym (&optional prefix)
-  "Generate a fresh uninterned symbol.
-There is an optional argument, PREFIX.  PREFIX is the string
-that begins the new name.  Most people take just the default,
-except when debugging needs suggest otherwise."
-  (if (null prefix)
-      (setq prefix "G"))
-  (let ((newsymbol nil)
-        (newname   ""))
-    (while (not newsymbol)
-      (setq newname (concat prefix (int-to-string edebug-gensym-index)))
-      (setq edebug-gensym-index (+ edebug-gensym-index 1))
-      (if (not (intern-soft newname))
-          (setq newsymbol (make-symbol newname))))
-    newsymbol))
-
 (defun edebug-lambda-list-keywordp (object)
   "Return t if OBJECT is a lambda list keyword.
 A lambda list keyword is a symbol that starts with `&'."
@@ -472,6 +452,8 @@ the option `edebug-all-forms'."
 (or (fboundp 'edebug-original-eval-defun)
     (defalias 'edebug-original-eval-defun (symbol-function 'eval-defun)))
 
+(defvar edebug-result) ; The result of the function call returned by body.
+
 ;; We should somehow arrange to be able to do this
 ;; without actually replacing the eval-defun command.
 (defun edebug-eval-defun (edebug-it)
@@ -487,7 +469,7 @@ With a prefix argument, instrument the code for Edebug.
 
 Setting option `edebug-all-defs' to a non-nil value reverses the meaning
 of the prefix argument.  Code is then instrumented when this function is
-invoked without a prefix argument
+invoked without a prefix argument.
 
 If acting on a `defun' for FUNCTION, and the function was instrumented,
 `Edebug: FUNCTION' is printed in the minibuffer.  If not instrumented,
@@ -1184,7 +1166,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
   ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
   ;; Do this after parsing since that may find a name.
   (setq edebug-def-name
-	(or edebug-def-name edebug-old-def-name (edebug-gensym "edebug-anon")))
+	(or edebug-def-name edebug-old-def-name (cl-gensym "edebug-anon")))
   `(edebug-enter
     (quote ,edebug-def-name)
     ,(if edebug-inside-func
@@ -1297,7 +1279,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 
       ;; Set the name here if it was not set by edebug-make-enter-wrapper.
       (setq edebug-def-name
-	    (or edebug-def-name edebug-old-def-name (edebug-gensym "edebug-anon")))
+	    (or edebug-def-name edebug-old-def-name (cl-gensym "edebug-anon")))
 
       ;; Add this def as a dependent of containing def.  Buggy.
       '(if (and edebug-containing-def-name
@@ -2106,21 +2088,12 @@ expressions; a `progn' form will be returned enclosing these forms."
 (defvar edebug-coverage) ; the coverage results of each expression of function.
 
 (defvar edebug-buffer) ; which buffer the function is in.
-(defvar edebug-result) ; the result of the function call returned by body
-(defvar edebug-outside-executing-macro)
-(defvar edebug-outside-defining-kbd-macro)
 
 (defvar edebug-execution-mode 'step) ; Current edebug mode set by user.
 (defvar edebug-next-execution-mode nil) ; Use once instead of initial mode.
 
 (defvar edebug-outside-debug-on-error) ; the value of debug-on-error outside
 (defvar edebug-outside-debug-on-quit) ; the value of debug-on-quit outside
-
-
-(defvar edebug-outside-pre-command-hook)
-(defvar edebug-outside-post-command-hook)
-
-(defvar cl-lexical-debug)  ;; Defined in cl.el
 
 ;;; Handling signals
 
@@ -2173,10 +2146,7 @@ error is signaled again."
               ;; Binding these may not be the right thing to do.
               ;; We want to allow the global values to be changed.
               (debug-on-error (or debug-on-error edebug-on-error))
-              (debug-on-quit edebug-on-quit)
-
-              ;; Lexical bindings must be uncompiled for this to work.
-              (cl-lexical-debug t))
+              (debug-on-quit edebug-on-quit))
           (unwind-protect
               (let ((signal-hook-function 'edebug-signal))
                 (setq edebug-execution-mode (or edebug-next-execution-mode
@@ -2405,9 +2375,6 @@ MSG is printed after `::::} '."
 (defvar edebug-window-data)  ; window and window-start for current function
 (defvar edebug-outside-windows) ; outside window configuration
 (defvar edebug-eval-buffer) ; for the evaluation list.
-(defvar edebug-outside-o-a-p) ; outside overlay-arrow-position
-(defvar edebug-outside-o-a-s) ; outside overlay-arrow-string
-(defvar edebug-outside-c-i-e-a) ; outside cursor-in-echo-area
 (defvar edebug-outside-d-c-i-n-s-w) ; outside default-cursor-in-non-selected-windows
 
 (defvar edebug-eval-list nil) ;; List of expressions to evaluate.
@@ -2416,8 +2383,6 @@ MSG is printed after `::::} '."
 
 ;; Emacs 19 adds an arg to mark and mark-marker.
 (defalias 'edebug-mark-marker 'mark-marker)
-
-(defvar edebug-outside-unread-command-events)
 
 (defun edebug--display (value offset-index arg-mode)
   (unless (marker-position edebug-def-mark)
@@ -2440,7 +2405,6 @@ MSG is printed after `::::} '."
 	(edebug-outside-buffer (current-buffer))
 	(edebug-outside-point (point))
  	(edebug-outside-mark (edebug-mark))
-	(edebug-outside-unread-command-events unread-command-events)
 	edebug-outside-windows		; Window or screen configuration.
 	edebug-buffer-points
 
@@ -2450,9 +2414,6 @@ MSG is printed after `::::} '."
 	edebug-trace-window
 	edebug-trace-window-start
 
-	(edebug-outside-o-a-p overlay-arrow-position)
-	(edebug-outside-o-a-s overlay-arrow-string)
-	(edebug-outside-c-i-e-a cursor-in-echo-area)
 	(edebug-outside-d-c-i-n-s-w
          (default-value 'cursor-in-non-selected-windows)))
     (unwind-protect
@@ -2464,8 +2425,7 @@ MSG is printed after `::::} '."
 	      )
           (setq-default cursor-in-non-selected-windows t)
 	  (if (not (buffer-name edebug-buffer))
-	      (let ((debug-on-error nil))
-		(error "Buffer defining %s not found" edebug-function)))
+              (user-error "Buffer defining %s not found" edebug-function))
 
 	  (if (eq 'after arg-mode)
 	      ;; Compute result string now before windows are modified.
@@ -2505,10 +2465,9 @@ MSG is printed after `::::} '."
 	      ;; Check whether positions are up-to-date.
 	      ;; This assumes point is never before symbol.
 	      (if (not (memq (following-char) '(?\( ?\# ?\` )))
-		  (let ((debug-on-error nil))
-		    (error "Source has changed - reevaluate definition of %s"
-			   edebug-function)
-		    )))
+                  (user-error "Source has changed - reevaluate definition of %s"
+                              edebug-function)
+                ))
 
 	  (setcdr edebug-window-data
 		  (edebug-adjust-window (cdr edebug-window-data)))
@@ -2664,11 +2623,6 @@ MSG is printed after `::::} '."
       (if edebug-eval-buffer (kill-buffer edebug-eval-buffer))
       (with-timeout-unsuspend edebug-with-timeout-suspend)
       ;; Reset global variables to outside values in case they were changed.
-      (setq
-       unread-command-events edebug-outside-unread-command-events
-       overlay-arrow-position edebug-outside-o-a-p
-       overlay-arrow-string edebug-outside-o-a-s
-       cursor-in-echo-area edebug-outside-c-i-e-a)
       (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
       )))
 
@@ -2685,27 +2639,6 @@ MSG is printed after `::::} '."
 (defvar edebug-backtrace-buffer) ; each recursive edit gets its own
 (defvar edebug-inside-windows)
 (defvar edebug-interactive-p)
-
-(defvar edebug-outside-map)
-(defvar edebug-outside-standard-output)
-(defvar edebug-outside-standard-input)
-(defvar edebug-outside-current-prefix-arg)
-(defvar edebug-outside-last-command)
-(defvar edebug-outside-this-command)
-
-;; Note: here we have defvars for variables that are
-;; built-in in certain versions.
-;; Each defvar makes a difference
-;; in versions where the variable is *not* built-in.
-
-;; Emacs 18  FIXME
-
-;; Emacs 19.
-(defvar edebug-outside-last-command-event)
-(defvar edebug-outside-last-input-event)
-(defvar edebug-outside-last-event-frame)
-(defvar edebug-outside-last-nonmenu-event)
-(defvar edebug-outside-track-mouse)
 
 (defun edebug--recursive-edit (arg-mode)
   ;; Start up a recursive edit inside of edebug.
@@ -2724,28 +2657,6 @@ MSG is printed after `::::} '."
 	;; The window configuration may be saved and restored
 	;; during a recursive-edit
 	edebug-inside-windows
-
-        ;; Save the outside value of executing macro.  (here??)
-        (edebug-outside-executing-macro executing-kbd-macro)
-        (edebug-outside-pre-command-hook
-         (edebug-var-status 'pre-command-hook))
-        (edebug-outside-post-command-hook
-         (edebug-var-status 'post-command-hook))
-
-        (edebug-outside-standard-output standard-output)
-	(edebug-outside-standard-input standard-input)
-	(edebug-outside-defining-kbd-macro defining-kbd-macro)
-
-	(edebug-outside-last-command last-command)
-	(edebug-outside-this-command this-command)
-
-	(edebug-outside-current-prefix-arg current-prefix-arg)
-
-	(edebug-outside-last-input-event last-input-event)
-	(edebug-outside-last-command-event last-command-event)
-	(edebug-outside-last-event-frame last-event-frame)
-	(edebug-outside-last-nonmenu-event last-nonmenu-event)
-	(edebug-outside-track-mouse track-mouse)
 	)
 
     (unwind-protect
@@ -2776,7 +2687,7 @@ MSG is printed after `::::} '."
               (overriding-local-map nil)
               (overriding-terminal-local-map nil)
 
-		  ;; Bind again to outside values.
+              ;; Bind again to outside values.
 	      (debug-on-error edebug-outside-debug-on-error)
 	      (debug-on-quit edebug-outside-debug-on-quit)
 
@@ -2824,27 +2735,7 @@ MSG is printed after `::::} '."
 	      ;; gotta have a buffer to let its buffer local variables be set
 	      (get-buffer-create " bogus edebug buffer"))
 	    ));; inner let
-
-      ;; Reset global vars to outside values, in case they have been changed.
-      (setq
-       last-command-event edebug-outside-last-command-event
-       last-command edebug-outside-last-command
-       this-command edebug-outside-this-command
-       current-prefix-arg edebug-outside-current-prefix-arg
-       last-input-event edebug-outside-last-input-event
-       last-event-frame edebug-outside-last-event-frame
-       last-nonmenu-event edebug-outside-last-nonmenu-event
-       track-mouse edebug-outside-track-mouse
-
-       standard-output edebug-outside-standard-output
-       standard-input edebug-outside-standard-input
-       defining-kbd-macro edebug-outside-defining-kbd-macro)
-
-      (setq executing-kbd-macro edebug-outside-executing-macro)
-      (edebug-restore-status
-       'post-command-hook edebug-outside-post-command-hook)
-      (edebug-restore-status
-       'pre-command-hook edebug-outside-pre-command-hook))))
+      )))
 
 
 ;;; Display related functions
@@ -3442,6 +3333,9 @@ edebug-mode."
 (defmacro edebug-outside-excursion (&rest body)
   "Evaluate an expression list in the outside context.
 Return the result of the last expression."
+  ;; Only restores the non-variables context since all the variables let-bound
+  ;; by Edebug will be properly reset to the appropriate context's value by
+  ;; backtrace-eval.
   (declare (debug t))
   `(save-excursion			; of current-buffer
      (if edebug-save-windows
@@ -3454,89 +3348,32 @@ Return the result of the last expression."
 	   (edebug-set-windows edebug-outside-windows)))
 
      (set-buffer edebug-buffer)		; why?
-     ;; (use-local-map edebug-outside-map)
      (set-match-data edebug-outside-match-data)
      ;; Restore outside context.
-     (let (;; (edebug-inside-map (current-local-map)) ;; restore map??
-	   (last-command-event edebug-outside-last-command-event)
-	   (last-command edebug-outside-last-command)
-	   (this-command edebug-outside-this-command)
-	   (unread-command-events edebug-outside-unread-command-events)
-	   (current-prefix-arg edebug-outside-current-prefix-arg)
-	   (last-input-event edebug-outside-last-input-event)
-	   (last-event-frame edebug-outside-last-event-frame)
-	   (last-nonmenu-event edebug-outside-last-nonmenu-event)
-	   (track-mouse edebug-outside-track-mouse)
-	   (standard-output edebug-outside-standard-output)
-	   (standard-input edebug-outside-standard-input)
+     (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
+     (unwind-protect
+         (with-current-buffer edebug-outside-buffer ; of edebug-buffer
+           (goto-char edebug-outside-point)
+           (if (marker-buffer (edebug-mark-marker))
+               (set-marker (edebug-mark-marker) edebug-outside-mark))
+           ,@body)
 
-	   (executing-kbd-macro edebug-outside-executing-macro)
-	   (defining-kbd-macro edebug-outside-defining-kbd-macro)
-	   ;; Get the values out of the saved statuses.
-	   (pre-command-hook (cdr edebug-outside-pre-command-hook))
-	   (post-command-hook (cdr edebug-outside-post-command-hook))
+       ;; Back to edebug-buffer.  Restore rest of inside context.
+       ;; (use-local-map edebug-inside-map)
+       (if edebug-save-windows
+           ;; Restore inside windows.
+           (edebug-set-windows edebug-inside-windows))
 
-	   ;; See edebug-display.
-	   (overlay-arrow-position edebug-outside-o-a-p)
-	   (overlay-arrow-string edebug-outside-o-a-s)
-	   (cursor-in-echo-area edebug-outside-c-i-e-a)
-	   )
-       (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
-       (unwind-protect
-	   (with-current-buffer edebug-outside-buffer ; of edebug-buffer
-	     (goto-char edebug-outside-point)
-	     (if (marker-buffer (edebug-mark-marker))
-		 (set-marker (edebug-mark-marker) edebug-outside-mark))
-	     ,@body)
+       ;; Save values that may have been changed.
+       (setq edebug-outside-d-c-i-n-s-w
+             (default-value 'cursor-in-non-selected-windows))
 
-	 ;; Back to edebug-buffer.  Restore rest of inside context.
-	 ;; (use-local-map edebug-inside-map)
-	 (if edebug-save-windows
-	     ;; Restore inside windows.
-	     (edebug-set-windows edebug-inside-windows))
-
-	 ;; Save values that may have been changed.
-	 (setq
-	  edebug-outside-last-command-event last-command-event
-	  edebug-outside-last-command last-command
-	  edebug-outside-this-command this-command
-	  edebug-outside-unread-command-events unread-command-events
-	  edebug-outside-current-prefix-arg current-prefix-arg
-	  edebug-outside-last-input-event last-input-event
-	  edebug-outside-last-event-frame last-event-frame
-	  edebug-outside-last-nonmenu-event last-nonmenu-event
-	  edebug-outside-track-mouse track-mouse
-	  edebug-outside-standard-output standard-output
-	  edebug-outside-standard-input standard-input
-
-	  edebug-outside-executing-macro executing-kbd-macro
-	  edebug-outside-defining-kbd-macro defining-kbd-macro
-
-	  edebug-outside-o-a-p overlay-arrow-position
-	  edebug-outside-o-a-s overlay-arrow-string
-	  edebug-outside-c-i-e-a cursor-in-echo-area
-	  edebug-outside-d-c-i-n-s-w (default-value
-                                       'cursor-in-non-selected-windows)
-          )
-
-	 ;; Restore the outside saved values; don't alter
-	 ;; the outside binding loci.
-	 (setcdr edebug-outside-pre-command-hook pre-command-hook)
-	 (setcdr edebug-outside-post-command-hook post-command-hook)
-
-         (setq-default cursor-in-non-selected-windows t)
-	 ))				; let
-     ))
-
-(defvar cl-debug-env)  ; defined in cl; non-nil when lexical env used.
+       ;; Restore the outside saved values; don't alter
+       ;; the outside binding loci.
+       (setq-default cursor-in-non-selected-windows t))))
 
 (defun edebug-eval (expr)
-  ;; Are there cl lexical variables active?
-  (eval (if (and (bound-and-true-p cl-debug-env)
-                 (fboundp 'cl-macroexpand-all))
-            (cl-macroexpand-all expr cl-debug-env)
-          expr)
-        lexical-binding))
+  (backtrace-eval expr 0 'edebug-after))
 
 (defun edebug-safe-eval (expr)
   ;; Evaluate EXPR safely.
@@ -4287,7 +4124,7 @@ With prefix argument, make it a temporary breakpoint."
              (eq (nth 1 (nth 1 frame1)) '())
              (eq (nth 1 frame2) 'edebug-enter))
     ;; `edebug-enter' calls itself on its first invocation.
-    (if (eq (nth 1 (internal--called-interactively-p--get-frame i))
+    (if (eq (nth 1 (backtrace-frame i 'called-interactively-p))
             'edebug-enter)
         2 1)))
 

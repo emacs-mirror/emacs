@@ -1,3 +1,7 @@
+2013-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el: Require erc at run-time too.
+
 2013-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* erc-log.el (erc-network-name): Declare.
@@ -137,7 +141,7 @@
 	* erc-page.el (erc-page-function):
 	* erc-stamp.el (erc-stamp): Doc fix.
 
-2012-08-21  Josh Feinstein <jlf@foxtail.org>
+2012-08-21  Josh Feinstein  <jlf@foxtail.org>
 
 	* erc-join.el (erc-autojoin-timing): Fix defcustom type.
 
@@ -147,7 +151,7 @@
 	Use `erc-match-exclude-server-buffer' not
 	`erc-track-exclude-server-buffer'.
 
-2012-08-20  Josh Feinstein <jlf@foxtail.org>
+2012-08-20  Josh Feinstein  <jlf@foxtail.org>
 
 	* erc.el (erc-display-message): Abstract message hiding decision
 	to new function erc-hide-current-message-p.

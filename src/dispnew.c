@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DISPEXTERN_INLINE EXTERN_INLINE
 
-#include <stdio.h>
+#include "sysstdio.h"
 #include <unistd.h>
 
 #include "lisp.h"
@@ -213,6 +213,7 @@ static void
 add_window_display_history (struct window *w, const char *msg, bool paused_p)
 {
   char *buf;
+  void *ptr = w;
 
   if (history_idx >= REDISPLAY_HISTORY_SIZE)
     history_idx = 0;
@@ -222,7 +223,7 @@ add_window_display_history (struct window *w, const char *msg, bool paused_p)
   snprintf (buf, sizeof redisplay_history[0].trace,
 	    "%"pMu": window %p (`%s')%s\n%s",
 	    history_tick++,
-	    w,
+	    ptr,
 	    ((BUFFERP (w->contents)
 	      && STRINGP (BVAR (XBUFFER (w->contents), name)))
 	     ? SSDATA (BVAR (XBUFFER (w->contents), name))
@@ -240,6 +241,7 @@ static void
 add_frame_display_history (struct frame *f, bool paused_p)
 {
   char *buf;
+  void *ptr = f;
 
   if (history_idx >= REDISPLAY_HISTORY_SIZE)
     history_idx = 0;
@@ -248,7 +250,7 @@ add_frame_display_history (struct frame *f, bool paused_p)
 
   sprintf (buf, "%"pMu": update frame %p%s",
 	   history_tick++,
-	   f, paused_p ? " ***paused***" : "");
+	   ptr, paused_p ? " ***paused***" : "");
 }
 
 
@@ -5605,19 +5607,19 @@ FILE = nil means just close any termscript file currently open.  */)
   tty = CURTTY ();
 
   if (tty->termscript != 0)
-  {
-    block_input ();
-    fclose (tty->termscript);
-    unblock_input ();
-  }
-  tty->termscript = 0;
+    {
+      block_input ();
+      fclose (tty->termscript);
+      tty->termscript = 0;
+      unblock_input ();
+    }
 
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      tty->termscript = fopen (SSDATA (file), "w");
+      tty->termscript = emacs_fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
-	report_file_error ("Opening termscript", Fcons (file, Qnil));
+	report_file_error ("Opening termscript", file);
     }
   return Qnil;
 }
@@ -5697,7 +5699,7 @@ bitch_at_user (void)
     {
       const char *msg
 	= "Keyboard macro terminated by a command ringing the bell";
-      Fsignal (Quser_error, Fcons (build_string (msg), Qnil));
+      Fsignal (Quser_error, list1 (build_string (msg)));
     }
   else
     ring_bell (XFRAME (selected_frame));
@@ -6039,7 +6041,7 @@ init_display (void)
 #ifdef HAVE_X11
       Vwindow_system_version = make_number (11);
 #endif
-#ifdef GNU_LINUX
+#ifdef USE_NCURSES
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
 	 So call tgetent.  */
@@ -6125,15 +6127,14 @@ init_display (void)
 
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters
-      (selected_frame, Fcons (Fcons (Qtty_type,
-                                     Ftty_type (selected_frame)), Qnil));
+      (selected_frame, list1 (Fcons (Qtty_type,
+                                     Ftty_type (selected_frame))));
     if (t->display_info.tty->name)
-      Fmodify_frame_parameters (selected_frame,
-				Fcons (Fcons (Qtty, build_string (t->display_info.tty->name)),
-				       Qnil));
+      Fmodify_frame_parameters
+	(selected_frame,
+	 list1 (Fcons (Qtty, build_string (t->display_info.tty->name))));
     else
-      Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil),
-						       Qnil));
+      Fmodify_frame_parameters (selected_frame, list1 (Fcons (Qtty, Qnil)));
   }
 
   {

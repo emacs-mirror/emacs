@@ -886,6 +886,7 @@ extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, bool);
 extern void resize_frame_windows (struct frame *, int, bool);
+extern void restore_window_configuration (Lisp_Object);
 extern void delete_all_child_windows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, bool);
 extern void grow_mini_window (struct window *, int);
@@ -958,7 +959,7 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* These used to be in lisp.h.  */
 
-extern Lisp_Object Qwindowp, Qwindow_live_p;
+extern Lisp_Object Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 extern struct window *decode_live_window (Lisp_Object);

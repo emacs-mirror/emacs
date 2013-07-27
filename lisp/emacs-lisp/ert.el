@@ -54,7 +54,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'button)
 (require 'debug)
 (require 'easymenu)
@@ -86,127 +86,6 @@
 
 
 ;;; Copies/reimplementations of cl functions.
-
-(defun ert--cl-do-remf (plist tag)
-  "Copy of `cl-do-remf'.  Modify PLIST by removing TAG."
-  (let ((p (cdr plist)))
-    (while (and (cdr p) (not (eq (car (cdr p)) tag))) (setq p (cdr (cdr p))))
-    (and (cdr p) (progn (setcdr p (cdr (cdr (cdr p)))) t))))
-
-(defun ert--remprop (sym tag)
-  "Copy of `cl-remprop'.  Modify SYM's plist by removing TAG."
-  (let ((plist (symbol-plist sym)))
-    (if (and plist (eq tag (car plist)))
-	(progn (setplist sym (cdr (cdr plist))) t)
-      (ert--cl-do-remf plist tag))))
-
-(defun ert--remove-if-not (ert-pred ert-list)
-  "A reimplementation of `remove-if-not'.
-
-ERT-PRED is a predicate, ERT-LIST is the input list."
-  (cl-loop for ert-x in ert-list
-           if (funcall ert-pred ert-x)
-           collect ert-x))
-
-(defun ert--intersection (a b)
-  "A reimplementation of `intersection'.  Intersect the sets A and B.
-
-Elements are compared using `eql'."
-  (cl-loop for x in a
-           if (memql x b)
-           collect x))
-
-(defun ert--set-difference (a b)
-  "A reimplementation of `set-difference'.  Subtract the set B from the set A.
-
-Elements are compared using `eql'."
-  (cl-loop for x in a
-           unless (memql x b)
-           collect x))
-
-(defun ert--set-difference-eq (a b)
-  "A reimplementation of `set-difference'.  Subtract the set B from the set A.
-
-Elements are compared using `eq'."
-  (cl-loop for x in a
-           unless (memq x b)
-           collect x))
-
-(defun ert--union (a b)
-  "A reimplementation of `union'.  Compute the union of the sets A and B.
-
-Elements are compared using `eql'."
-  (append a (ert--set-difference b a)))
-
-(eval-and-compile
-  (defvar ert--gensym-counter 0))
-
-(eval-and-compile
-  (defun ert--gensym (&optional prefix)
-    "Only allows string PREFIX, not compatible with CL."
-    (unless prefix (setq prefix "G"))
-    (make-symbol (format "%s%s"
-                         prefix
-                         (prog1 ert--gensym-counter
-                           (cl-incf ert--gensym-counter))))))
-
-(defun ert--coerce-to-vector (x)
-  "Coerce X to a vector."
-  (when (char-table-p x) (error "Not supported"))
-  (if (vectorp x)
-      x
-    (vconcat x)))
-
-(cl-defun ert--remove* (x list &key key test)
-  "Does not support all the keywords of remove*."
-  (unless key (setq key #'identity))
-  (unless test (setq test #'eql))
-  (cl-loop for y in list
-           unless (funcall test x (funcall key y))
-           collect y))
-
-(defun ert--string-position (c s)
-  "Return the position of the first occurrence of C in S, or nil if none."
-  (cl-loop for i from 0
-           for x across s
-           when (eql x c) return i))
-
-(defun ert--mismatch (a b)
-  "Return index of first element that differs between A and B.
-
-Like `mismatch'.  Uses `equal' for comparison."
-  (cond ((or (listp a) (listp b))
-         (ert--mismatch (ert--coerce-to-vector a)
-                        (ert--coerce-to-vector b)))
-        ((> (length a) (length b))
-         (ert--mismatch b a))
-        (t
-         (let ((la (length a))
-               (lb (length b)))
-           (cl-assert (arrayp a) t)
-           (cl-assert (arrayp b) t)
-           (cl-assert (<= la lb) t)
-           (cl-loop for i below la
-                    when (not (equal (aref a i) (aref b i))) return i
-                    finally (cl-return (if (/= la lb)
-                                           la
-                                         (cl-assert (equal a b) t)
-                                         nil)))))))
-
-(defun ert--subseq (seq start &optional end)
-  "Return a subsequence of SEQ from START to END."
-  (when (char-table-p seq) (error "Not supported"))
-  (let ((vector (substring (ert--coerce-to-vector seq) start end)))
-    (cl-etypecase seq
-      (vector vector)
-      (string (concat vector))
-      (list (append vector nil))
-      (bool-vector (cl-loop with result
-                            = (make-bool-vector (length vector) nil)
-                            for i below (length vector) do
-                            (setf (aref result i) (aref vector i))
-                            finally (cl-return result)))
-      (char-table (cl-assert nil)))))
 
 (defun ert-equal-including-properties (a b)
   "Return t if A and B have similar structure and contents.
@@ -258,7 +137,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
 
 (defun ert-make-test-unbound (symbol)
   "Make SYMBOL name no test.  Return SYMBOL."
-  (ert--remprop symbol 'ert--test)
+  (cl-remprop symbol 'ert--test)
   symbol)
 
 (defun ert--parse-keys-and-body (keys-and-body)
@@ -396,8 +275,8 @@ DATA is displayed to the user and should state the reason of the failure."
                              cl-macro-environment)))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
-      (let ((value (ert--gensym "value-")))
-        `(let ((,value (ert--gensym "ert-form-evaluation-aborted-")))
+      (let ((value (cl-gensym "value-")))
+        `(let ((,value (cl-gensym "ert-form-evaluation-aborted-")))
            ,(funcall inner-expander
                      `(setq ,value ,form)
                      `(list ',whole :form ',form :value ,value)
@@ -410,10 +289,10 @@ DATA is displayed to the user and should state the reason of the failure."
                        (and (consp fn-name)
                             (eql (car fn-name) 'lambda)
                             (listp (cdr fn-name)))))
-        (let ((fn (ert--gensym "fn-"))
-              (args (ert--gensym "args-"))
-              (value (ert--gensym "value-"))
-              (default-value (ert--gensym "ert-form-evaluation-aborted-")))
+        (let ((fn (cl-gensym "fn-"))
+              (args (cl-gensym "args-"))
+              (value (cl-gensym "value-"))
+              (default-value (cl-gensym "ert-form-evaluation-aborted-")))
           `(let ((,fn (function ,fn-name))
                  (,args (list ,@arg-forms)))
              (let ((,value ',default-value))
@@ -450,7 +329,7 @@ FORM-DESCRIPTION-FORM before it has called INNER-FORM."
   (ert--expand-should-1
    whole form
    (lambda (inner-form form-description-form value-var)
-     (let ((form-description (ert--gensym "form-description-")))
+     (let ((form-description (cl-gensym "form-description-")))
        `(let (,form-description)
           ,(funcall inner-expander
                     `(unwind-protect
@@ -491,7 +370,7 @@ and aborts the current test as failed if it doesn't."
                               (list type)
                               (symbol (list type)))))
     (cl-assert signaled-conditions)
-    (unless (ert--intersection signaled-conditions handled-conditions)
+    (unless (cl-intersection signaled-conditions handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list
@@ -528,8 +407,8 @@ failed."
    `(should-error ,form ,@keys)
    form
    (lambda (inner-form form-description-form value-var)
-     (let ((errorp (ert--gensym "errorp"))
-           (form-description-fn (ert--gensym "form-description-fn-")))
+     (let ((errorp (cl-gensym "errorp"))
+           (form-description-fn (cl-gensym "form-description-fn-")))
        `(let ((,errorp nil)
               (,form-description-fn (lambda () ,form-description-form)))
           (condition-case -condition-
@@ -591,7 +470,7 @@ Returns nil if they are."
                    `(proper-lists-of-different-length ,(length a) ,(length b)
                                                       ,a ,b
                                                       first-mismatch-at
-                                                      ,(ert--mismatch a b))
+                                                      ,(cl-mismatch a b :test 'equal))
                  (cl-loop for i from 0
                           for ai in a
                           for bi in b
@@ -611,7 +490,7 @@ Returns nil if they are."
                                               ,a ,b
                                               ,@(unless (char-table-p a)
                                                   `(first-mismatch-at
-                                                    ,(ert--mismatch a b))))
+                                                    ,(cl-mismatch a b :test 'equal))))
                (cl-loop for i from 0
                         for ai across a
                         for bi across b
@@ -656,8 +535,8 @@ key/value pairs in each list does not matter."
   ;; work, so let's punt on it for now.
   (let* ((keys-a (ert--significant-plist-keys a))
          (keys-b (ert--significant-plist-keys b))
-         (keys-in-a-not-in-b (ert--set-difference-eq keys-a keys-b))
-         (keys-in-b-not-in-a (ert--set-difference-eq keys-b keys-a)))
+         (keys-in-a-not-in-b (cl-set-difference keys-a keys-b :test 'eq))
+         (keys-in-b-not-in-a (cl-set-difference keys-b keys-a :test 'eq)))
     (cl-flet ((explain-with-key (key)
                 (let ((value-a (plist-get a key))
                       (value-b (plist-get b key)))
@@ -1090,7 +969,7 @@ contained in UNIVERSE."
      (cl-etypecase universe
        ((member t) (mapcar #'ert-get-test
                            (apropos-internal selector #'ert-test-boundp)))
-       (list (ert--remove-if-not (lambda (test)
+       (list (cl-remove-if-not (lambda (test)
                                    (and (ert-test-name test)
                                         (string-match selector
                                                       (ert-test-name test))))
@@ -1123,13 +1002,13 @@ contained in UNIVERSE."
          (not
           (cl-assert (eql (length operands) 1))
           (let ((all-tests (ert-select-tests 't universe)))
-            (ert--set-difference all-tests
+            (cl-set-difference all-tests
                                  (ert-select-tests (car operands)
                                                    all-tests))))
          (or
           (cl-case (length operands)
             (0 (ert-select-tests 'nil universe))
-            (t (ert--union (ert-select-tests (car operands) universe)
+            (t (cl-union (ert-select-tests (car operands) universe)
                            (ert-select-tests `(or ,@(cdr operands))
                                              universe)))))
          (tag
@@ -1141,7 +1020,7 @@ contained in UNIVERSE."
                               universe)))
          (satisfies
           (cl-assert (eql (length operands) 1))
-          (ert--remove-if-not (car operands)
+          (cl-remove-if-not (car operands)
                               (ert-select-tests 't universe))))))))
 
 (defun ert--insert-human-readable-selector (selector)
@@ -1285,7 +1164,7 @@ Also changes the counters in STATS to match."
   "Create a new `ert--stats' object for running TESTS.
 
 SELECTOR is the selector that was used to select TESTS."
-  (setq tests (ert--coerce-to-vector tests))
+  (setq tests (cl-coerce tests 'vector))
   (let ((map (make-hash-table :size (length tests))))
     (cl-loop for i from 0
              for test across tests
@@ -1548,10 +1427,10 @@ This can be used as an inverse of `add-to-list'."
   (unless key (setq key #'identity))
   (unless test (setq test #'equal))
   (setf (symbol-value list-var)
-        (ert--remove* element
-                      (symbol-value list-var)
-                      :key key
-                      :test test)))
+        (cl-remove element
+                   (symbol-value list-var)
+                   :key key
+                   :test test)))
 
 
 ;;; Some basic interactive functions.
@@ -1810,7 +1689,7 @@ BEGIN and END specify a region in the current buffer."
   "Return the first line of S, or S if it contains no newlines.
 
 The return value does not include the line terminator."
-  (substring s 0 (ert--string-position ?\n s)))
+  (substring s 0 (cl-position ?\n s)))
 
 (defun ert-face-for-test-result (expectedp)
   "Return a face that shows whether a test result was expected or unexpected.

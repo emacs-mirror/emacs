@@ -21,6 +21,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'ruby-mode)
 
 (defun ruby-should-indent (content column)
@@ -87,6 +88,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-heredoc-highlights-interpolations ()
   (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
 
+(ert-deftest ruby-no-heredoc-inside-quotes ()
+  (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
+
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
         (ruby-deep-indent-paren '(?\( ?\{ ?\[ ?\] t)))
@@ -112,6 +116,9 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-regexp-starts-after-string ()
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
 
+(ert-deftest ruby-regexp-interpolation-is-highlighted ()
+  (ruby-assert-face "/#{foobs}/" 4 font-lock-variable-name-face))
+
 (ert-deftest ruby-regexp-skips-over-interpolation ()
   (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
 
@@ -120,6 +127,12 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-regexp-can-be-multiline ()
   (ruby-assert-state "/bars\ntees # toots \nfoos/" 3 nil))
+
+(ert-deftest ruby-slash-symbol-is-not-mistaken-for-regexp ()
+  (ruby-assert-state ":/" 3 nil))
+
+(ert-deftest ruby-slash-char-literal-is-not-mistaken-for-regexp ()
+  (ruby-assert-state "?/" 3 nil))
 
 (ert-deftest ruby-indent-simple ()
   (ruby-should-indent-buffer
@@ -353,6 +366,23 @@ VALUES-PLIST is a list with alternating index and value elements."
     ;; It's confused by the closing paren in the middle.
     (ruby-assert-state s 8 nil)))
 
+(ert-deftest ruby-interpolation-inside-double-quoted-percent-literals ()
+  (ruby-assert-face "%Q{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%W{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%r{foo #@bar}" 8 font-lock-variable-name-face)
+  (ruby-assert-face "%x{foo #@bar}" 8 font-lock-variable-name-face))
+
+(ert-deftest ruby-no-interpolation-in-single-quoted-literals ()
+  (ruby-assert-face "'foo #@bar'" 7 font-lock-string-face)
+  (ruby-assert-face "%q{foo #@bar}" 8 font-lock-string-face)
+  (ruby-assert-face "%w{foo #@bar}" 8 font-lock-string-face)
+  (ruby-assert-face "%s{foo #@bar}" 8 font-lock-string-face))
+
+(ert-deftest ruby-no-unknown-percent-literals ()
+  ;; No folding of case.
+  (ruby-assert-face "%S{foo}" 4 nil)
+  (ruby-assert-face "%R{foo}" 4 nil))
+
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")
                  ("C.foo" . ".foo")
@@ -445,29 +475,30 @@ VALUES-PLIST is a list with alternating index and value elements."
      (with-temp-buffer
        (insert ruby-block-test-example)
        (ruby-mode)
+       (goto-char (point-min))
        ,@body)))
 
 (put 'ruby-deftest-move-to-block 'lisp-indent-function 'defun)
 
 (ruby-deftest-move-to-block works-on-do
-  (goto-line 11)
+  (forward-line 10)
   (ruby-end-of-block)
   (should (= 13 (line-number-at-pos)))
   (ruby-beginning-of-block)
   (should (= 11 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block zero-is-noop
-  (goto-line 5)
+  (forward-line 4)
   (ruby-move-to-block 0)
   (should (= 5 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block ok-with-three
-  (goto-line 2)
+  (forward-line 1)
   (ruby-move-to-block 3)
   (should (= 14 (line-number-at-pos))))
 
 (ruby-deftest-move-to-block ok-with-minus-two
-  (goto-line 10)
+  (forward-line 9)
   (ruby-move-to-block -2)
   (should (= 2 (line-number-at-pos))))
 
@@ -485,7 +516,7 @@ VALUES-PLIST is a list with alternating index and value elements."
                     |  |
                     |end")))
     (ruby-with-temp-buffer s
-      (goto-line 1)
+      (goto-char (point-min))
       (ruby-end-of-block)
       (should (= 5 (line-number-at-pos)))
       (ruby-beginning-of-block)
@@ -500,7 +531,7 @@ VALUES-PLIST is a list with alternating index and value elements."
        |  end
        |  eowarn
        |end")
-    (goto-line 1)
+    (goto-char (point-min))
     (ruby-end-of-block)
     (should (= 6 (line-number-at-pos)))
     (ruby-beginning-of-block)
@@ -512,9 +543,20 @@ VALUES-PLIST is a list with alternating index and value elements."
        "foo do
        |  Module.to_s
        |end")
-    (end-of-buffer)
     (let ((case-fold-search t))
       (ruby-beginning-of-block))
+    (should (= 1 (line-number-at-pos)))))
+
+(ert-deftest ruby-move-to-block-moves-from-else-to-if ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "if true
+                          |  nested_block do
+                          |  end
+                          |else
+                          |end")
+    (goto-char (point-min))
+    (forward-line 3)
+    (ruby-beginning-of-block)
     (should (= 1 (line-number-at-pos)))))
 
 (ert-deftest ruby-beginning-of-defun-does-not-fold-case ()
@@ -525,7 +567,8 @@ VALUES-PLIST is a list with alternating index and value elements."
        |    Class.to_s
        |  end
        |end")
-    (goto-line 4)
+    (goto-char (point-min))
+    (forward-line 3)
     (let ((case-fold-search t))
       (beginning-of-defun))
     (should (= 2 (line-number-at-pos)))))
@@ -538,7 +581,8 @@ VALUES-PLIST is a list with alternating index and value elements."
        |    'ho hum'
        |  end
        |end")
-    (goto-line 2)
+    (goto-char (point-min))
+    (forward-line 1)
     (end-of-defun)
     (should (= 5 (line-number-at-pos)))))
 

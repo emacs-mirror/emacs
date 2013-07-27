@@ -233,6 +233,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
+	  (function-item :tag "eww" :value  eww-browse-url)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
 	  (function-item :tag "Text browser in an xterm window"

@@ -26,6 +26,7 @@
 ;; a set of simple arguments for srecode templates.
 
 (require 'srecode/dictionary)
+(require 'ede)
 
 ;;; Code:
 

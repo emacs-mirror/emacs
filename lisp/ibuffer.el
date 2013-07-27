@@ -462,6 +462,7 @@ directory, like `default-directory'."
     (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
     (define-key map (kbd "M-s a C-s") 'ibuffer-do-isearch)
     (define-key map (kbd "M-s a M-C-s") 'ibuffer-do-isearch-regexp)
+    (define-key map (kbd "M-s a C-o") 'ibuffer-do-occur)
     (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
     (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
     (define-key map (kbd "* *") 'ibuffer-unmark-all)
@@ -2652,7 +2653,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "9950bdf995e4b5e962a17d754a35f2c6")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "2c628e6cde385119c5f7b43cc1efe1a1")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2984,7 +2985,7 @@ Mark all buffers whose associated file does not exist.
 \(fn)" t nil)
 
 (autoload 'ibuffer-mark-help-buffers "ibuf-ext" "\
-Mark buffers like *Help*, *Apropos*, *Info*.
+Mark buffers whose major mode is in variable `ibuffer-help-buffer-modes'.
 
 \(fn)" t nil)
 

@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'xml)
 
 (defvar xml-parse-tests--data

@@ -319,51 +319,63 @@ closer."
    ;; I find it more often preferable not to pair when the
    ;; same char is next.
    (eq char (char-after))
-   (eq char (char-before (1- (point))))
+   ;; Don't pair up when we insert the second of "" or of ((.
+   (and (eq char (char-before))
+	(eq char (char-before (1- (point)))))
    ;; I also find it often preferable not to pair next to a word.
    (eq (char-syntax (following-char)) ?w)))
 
 (defun electric-pair-syntax (command-event)
-  (and electric-pair-mode
-       (let ((x (assq command-event electric-pair-pairs)))
-	 (cond
-	  (x (if (eq (car x) (cdr x)) ?\" ?\())
-	  ((rassq command-event electric-pair-pairs) ?\))
-	  (t (char-syntax command-event))))))
+  (let ((x (assq command-event electric-pair-pairs)))
+    (cond
+     (x (if (eq (car x) (cdr x)) ?\" ?\())
+     ((rassq command-event electric-pair-pairs) ?\))
+     ((nth 8 (syntax-ppss))
+      (with-syntax-table text-mode-syntax-table (char-syntax command-event)))
+     (t (char-syntax command-event)))))
+
+(defun electric-pair--insert (char)
+  (let ((last-command-event char)
+	(blink-matching-paren nil)
+	(electric-pair-mode nil))
+    (self-insert-command 1)))
 
 (defun electric-pair-post-self-insert-function ()
-  (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
-		      (electric-pair-syntax last-command-event)))
-         ;; FIXME: when inserting the closer, we should maybe use
-         ;; self-insert-command, although it may prove tricky running
-         ;; post-self-insert-hook recursively, and we wouldn't want to trigger
-         ;; blink-matching-open.
+  (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
+	 (syntax (and pos (electric-pair-syntax last-command-event)))
          (closer (if (eq syntax ?\()
                      (cdr (or (assq last-command-event electric-pair-pairs)
                               (aref (syntax-table) last-command-event)))
                    last-command-event)))
     (cond
+     ((null pos) nil)
      ;; Wrap a pair around the active region.
      ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
-      (if (> (mark) (point))
-          (goto-char (mark))
+      ;; FIXME: To do this right, we'd need a post-self-insert-function
+      ;; so we could add-function around it and insert the closer after
+      ;; all the rest of the hook has run.
+      (if (>= (mark) (point))
+	  (goto-char (mark))
 	;; We already inserted the open-paren but at the end of the
 	;; region, so we have to remove it and start over.
-	(delete-char -1)
+	(delete-region (1- pos) (point))
 	(save-excursion
           (goto-char (mark))
-	  ;; Do not insert after `save-excursion' marker (Bug#11520).
-          (insert-before-markers last-command-event)))
+          (electric-pair--insert last-command-event)))
+      ;; Since we're right after the closer now, we could tell the rest of
+      ;; post-self-insert-hook that we inserted `closer', but then we'd get
+      ;; blink-paren to kick in, which is annoying.
+      ;;(setq last-command-event closer)
       (insert closer))
      ;; Backslash-escaped: no pairing, no skipping.
      ((save-excursion
-        (goto-char (1- (point)))
+        (goto-char (1- pos))
         (not (zerop (% (skip-syntax-backward "\\") 2))))
       nil)
      ;; Skip self.
      ((and (memq syntax '(?\) ?\" ?\$))
            electric-pair-skip-self
-           (eq (char-after) last-command-event))
+           (eq (char-after pos) last-command-event))
       ;; This is too late: rather than insert&delete we'd want to only skip (or
       ;; insert in overwrite mode).  The difference is in what goes in the
       ;; undo-log and in the intermediate state which might be visible to other
@@ -373,7 +385,7 @@ closer."
      ((not (or (not (memq syntax `(?\( ?\" ?\$)))
                overwrite-mode
                (funcall electric-pair-inhibit-predicate last-command-event)))
-      (save-excursion (insert closer))))))
+      (save-excursion (electric-pair--insert closer))))))
 
 (defun electric-pair-will-use-region ()
   (and (use-region-p)

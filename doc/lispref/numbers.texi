@@ -1156,11 +1156,6 @@ This function returns the logarithm of @var{arg}, with base
 returns a NaN.
 @end defun
 
-@defun log10 arg
-This function returns the logarithm of @var{arg}, with base 10:
-@code{(log10 @var{x})} @equiv{} @code{(log @var{x} 10)}.
-@end defun
-
 @defun expt x y
 This function returns @var{x} raised to power @var{y}.  If both
 arguments are integers and @var{y} is positive, the result is an

@@ -94,7 +94,7 @@
     (exit-minibuffer)))
 
 ;;;###autoload
-(defun isearch-process-search-multibyte-characters (last-char)
+(defun isearch-process-search-multibyte-characters (last-char &optional count)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
 	    (prompt (isearch-message-prefix))
@@ -136,8 +136,11 @@
 
 	(if (and str (> (length str) 0))
 	    (let ((unread-command-events nil))
-	      (isearch-process-search-string str str))
+	      (if (and (integerp count) (> count 1))
+		  (let ((strs (mapconcat 'identity (make-list count str) "")))
+		    (isearch-process-search-string strs strs))
+		(isearch-process-search-string str str)))
 	  (isearch-update)))
-    (isearch-process-search-char last-char)))
+    (isearch-process-search-char last-char count)))
 
 ;;; isearch-x.el ends here

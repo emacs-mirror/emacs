@@ -2256,6 +2256,8 @@ IGNORE-WORDS List of words which should be removed from the string."
     (define-key reftex-mode-map [(shift mouse-2)]
       'reftex-mouse-view-crossref)))
 
+(defvar bibtex-mode-map)
+
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
 (eval-after-load
  "bibtex"

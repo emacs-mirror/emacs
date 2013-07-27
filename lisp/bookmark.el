@@ -481,19 +481,18 @@ equivalently just return ALIST without NAME.")
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
   (let ((record (funcall bookmark-make-record-function)))
+    ;; Set up default name if the function does not provide one.
+    (unless (stringp (car record))
+      (if (car record) (push nil record))
+      (setcar record (or bookmark-current-bookmark (bookmark-buffer-name))))
     ;; Set up defaults.
     (bookmark-prop-set
      record 'defaults
      (delq nil (delete-dups (append (bookmark-prop-get record 'defaults)
 				    (list bookmark-current-bookmark
-					  (bookmark-buffer-name))))))
-    ;; Set up default name.
-    (if (stringp (car record))
-        ;; The function already provided a default name.
-        record
-      (if (car record) (push nil record))
-      (setcar record (or bookmark-current-bookmark (bookmark-buffer-name)))
-      record)))
+					  (car record)
+                                          (bookmark-buffer-name))))))
+    record))
 
 (defun bookmark-store (name alist no-overwrite)
   "Store the bookmark NAME with data ALIST.

@@ -193,70 +193,82 @@ Root must be the root of an Emacs source tree."
 
 ;;; Various bits of magic for generating the web manuals
 
-(defun make-manuals (root)
-  "Generate the web manuals for the Emacs webpage."
-  (interactive "DEmacs root directory: ")
+(defun manual-misc-manuals (root)
+  "Return doc/misc manuals as list of strings."
+  ;; Like `make -C doc/misc echo-info', but works if unconfigured.
+  (with-temp-buffer
+    (insert-file-contents (expand-file-name "doc/misc/Makefile.in" root))
+    (search-forward "INFO_TARGETS = ")
+    (let ((start (point))
+	  res)
+      (end-of-line)
+      (while (and (looking-back "\\\\")
+		  (zerop (forward-line 1)))
+	(end-of-line))
+      (split-string (replace-regexp-in-string
+		     "\\(\\\\\\|\\.info\\)" ""
+		     (buffer-substring start (point)))))))
+
+(defun make-manuals (root &optional type)
+  "Generate the web manuals for the Emacs webpage.
+Interactively with a prefix argument, prompt for TYPE.
+Optional argument TYPE is type of output (nil means all)."
+  (interactive (let ((root (read-directory-name "Emacs root directory: "
+						source-directory nil t)))
+		 (list root
+		       (if current-prefix-arg
+			   (completing-read
+			    "Type: "
+			    (append
+			     '("misc" "pdf" "ps")
+			     (let (res)
+			       (dolist (i '("emacs" "elisp" "eintr") res)
+				 (dolist (j '("" "-mono" "-node" "-ps" "-pdf"))
+				   (push (concat i j) res))))
+			     (manual-misc-manuals root)))))))
   (let* ((dest (expand-file-name "manual" root))
 	 (html-node-dir (expand-file-name "html_node" dest))
 	 (html-mono-dir (expand-file-name "html_mono" dest))
-	 (txt-dir (expand-file-name "text" dest))
-	 (dvi-dir (expand-file-name "dvi" dest))
-	 (ps-dir (expand-file-name "ps" dest)))
+	 (ps-dir (expand-file-name "ps" dest))
+	 (pdf-dir (expand-file-name "pdf" dest))
+	 (emacs (expand-file-name "doc/emacs/emacs.texi" root))
+	 (elisp (expand-file-name "doc/lispref/elisp.texi" root))
+	 (eintr (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
+	 (misc (manual-misc-manuals root)))
+    ;; TODO this makes it non-continuable.
+    ;; Instead, delete the individual dest directory each time.
     (when (file-directory-p dest)
-      (if (y-or-n-p (format "Directory %s exists, delete it first?" dest))
+      (if (y-or-n-p (format "Directory %s exists, delete it first? " dest))
 	  (delete-directory dest t)
-	(error "Aborted")))
-    (make-directory dest)
-    (make-directory html-node-dir)
-    (make-directory html-mono-dir)
-    (make-directory txt-dir)
-    (make-directory dvi-dir)
-    (make-directory ps-dir)
-    ;; Emacs manual
-    (let ((texi (expand-file-name "doc/emacs/emacs.texi" root)))
-      (manual-html-node texi (expand-file-name "emacs" html-node-dir))
-      (manual-html-mono texi (expand-file-name "emacs.html" html-mono-dir))
-      (manual-txt texi (expand-file-name "emacs.txt" txt-dir))
-      (manual-pdf texi (expand-file-name "emacs.pdf" dest))
-      (manual-dvi texi (expand-file-name "emacs.dvi" dvi-dir)
-		  (expand-file-name "emacs.ps" ps-dir)))
-    ;; Lisp manual
-    (let ((texi (expand-file-name "doc/lispref/elisp.texi" root)))
-      (manual-html-node texi (expand-file-name "elisp" html-node-dir))
-      (manual-html-mono texi (expand-file-name "elisp.html" html-mono-dir))
-      (manual-txt texi (expand-file-name "elisp.txt" txt-dir))
-      (manual-pdf texi (expand-file-name "elisp.pdf" dest))
-      (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
-		  (expand-file-name "elisp.ps" ps-dir)))
-    (let ((texi (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
-	  (dest (expand-file-name "emacs-lisp-intro" dest))
-	  dest2 dest3)
-      ;; Mimic the atypical directory layout used for emacs-lisp-intro.
-      (make-directory dest)
-      (make-directory (setq dest2 (expand-file-name "html_node" dest)))
-      (manual-html-node texi dest2)
-      (make-directory (setq dest2 (expand-file-name "html_mono" dest)))
-      (manual-html-mono texi (expand-file-name "emacs-lisp-intro.html" dest2))
-      (make-directory (setq dest2 (expand-file-name "txt" dest)))
-      (manual-txt texi (expand-file-name "emacs-lisp-intro.txt" dest2))
-      (manual-pdf texi (expand-file-name "emacs-lisp-intro.pdf" dest))
-      (make-directory (setq dest2 (expand-file-name "dvi" dest)))
-      (make-directory (setq dest3 (expand-file-name "ps" dest)))
-      (manual-dvi texi (expand-file-name "emacs-lisp-intro.dvi" dest2)
-		  (expand-file-name "emacs-lisp-intro.ps" dest3)))
+	(user-error "Aborted")))
+    (if (member type '(nil "emacs" "emacs-node"))
+	(manual-html-node emacs (expand-file-name "emacs" html-node-dir)))
+    (if (member type '(nil "emacs" "emacs-mono"))
+	(manual-html-mono emacs (expand-file-name "emacs.html" html-mono-dir)))
+    (if (member type '(nil "emacs" "emacs-pdf" "pdf"))
+	(manual-pdf emacs (expand-file-name "emacs.pdf" pdf-dir)))
+    (if (member type '(nil "emacs" "emacs-ps" "ps"))
+	(manual-ps emacs (expand-file-name "emacs.ps" ps-dir)))
+    (if (member type '(nil "elisp" "elisp-node"))
+	(manual-html-node elisp (expand-file-name "elisp" html-node-dir)))
+    (if (member type '(nil "elisp" "elisp-mono"))
+	(manual-html-mono elisp (expand-file-name "elisp.html" html-mono-dir)))
+    (if (member type '(nil "elisp" "elisp-pdf" "pdf"))
+	(manual-pdf elisp (expand-file-name "elisp.pdf" pdf-dir)))
+    (if (member type '(nil "elisp" "elisp-ps" "ps"))
+	(manual-ps elisp (expand-file-name "elisp.ps" ps-dir)))
+    (if (member type '(nil "eintr" "eintr-node"))
+	(manual-html-node eintr (expand-file-name "eintr" html-node-dir)))
+    (if (member type '(nil "eintr" "eintr-node"))
+	(manual-html-mono eintr (expand-file-name "eintr.html" html-mono-dir)))
+    (if (member type '(nil "eintr" "eintr-pdf" "pdf"))
+	(manual-pdf eintr (expand-file-name "eintr.pdf" pdf-dir)))
+    (if (member type '(nil "eintr" "eintr-ps" "ps"))
+	(manual-ps eintr (expand-file-name "eintr.ps" ps-dir)))
     ;; Misc manuals
-    (let ((manuals '("ada-mode" "auth" "autotype" "bovine" "calc" "cc-mode"
-		     "cl" "dbus" "dired-x" "ebrowse" "ede" "ediff"
-		     "edt" "eieio" "emacs-gnutls" "emacs-mime" "epa" "erc" "ert"
-		     "eshell" "eudc" "faq" "flymake" "forms"
-		     "gnus" "htmlfontify" "idlwave" "info"
-		     "mairix-el" "message" "mh-e" "newsticker"
-		     "nxml-mode" "org" "pcl-cvs" "pgg" "rcirc"
-		     "reftex" "remember" "sasl" "sc" "semantic"
-		     "ses" "sieve" "smtpmail" "speedbar" "srecode" "tramp"
-		     "url" "vip" "viper" "widget" "wisent" "woman")))
-      (dolist (manual manuals)
-	(manual-misc-html manual root html-node-dir html-mono-dir)))
+    (dolist (manual misc)
+      (if (member type `(nil ,manual "misc"))
+	  (manual-misc-html manual root html-node-dir html-mono-dir)))
     (message "Manuals created in %s" dest)))
 
 (defconst manual-doctype-string
@@ -271,10 +283,15 @@ Root must be the root of an Emacs source tree."
 <meta name=\"DC.title\" content=\"gnu.org\">\n\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
-@import url('/style.css');\n</style>\n")
+@import url('/software/emacs/manual.css');\n</style>\n")
 
 (defun manual-misc-html (name root html-node-dir html-mono-dir)
-  (let ((texi (expand-file-name (format "doc/misc/%s.texi" name) root)))
+  ;; Hack to deal with the cases where .texi creates a different .info.
+  ;; Blech.  TODO Why not just rename the .texi files?
+  (let* ((texiname (cond ((equal name "ccmode") "cc-mode")
+			 ((equal name "efaq") "faq")
+			 (t name)))
+	 (texi (expand-file-name (format "doc/misc/%s.texi" texiname) root)))
     (manual-html-node texi (expand-file-name name html-node-dir))
     (manual-html-mono texi (expand-file-name (concat name ".html")
 					     html-mono-dir))))
@@ -284,6 +301,7 @@ Root must be the root of an Emacs source tree."
 This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
+  (make-directory (or (file-name-directory dest) ".") t)
   (call-process "makeinfo" nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
@@ -310,6 +328,7 @@ HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (unless (file-exists-p texi-file)
     (error "Manual file %s not found" texi-file))
+  (make-directory dir t)
   (call-process "makeinfo" nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
@@ -344,37 +363,25 @@ the @import directive."
 	    (manual-html-fix-node-div))
 	  (save-buffer))))))
 
-(defun manual-txt (texi-file dest)
-  "Run Makeinfo on TEXI-FILE, emitting plaintext output to DEST."
-  (call-process "makeinfo" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		"--plaintext" "--no-split" texi-file "-o" dest)
-  (shell-command (concat "gzip -c " dest " > " (concat dest ".gz"))))
-
 (defun manual-pdf (texi-file dest)
-  "Run texi2pdf on TEXI-FILE, emitting plaintext output to DEST."
-  (call-process "texi2pdf" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		texi-file "-o" dest))
+  "Run texi2pdf on TEXI-FILE, emitting pdf output to DEST."
+  (make-directory (or (file-name-directory dest) ".") t)
+  (let ((default-directory (file-name-directory texi-file)))
+    (call-process "texi2pdf" nil nil nil
+		  "-I" "../emacs" "-I" "../misc"
+		  texi-file "-o" dest)))
 
-(defun manual-dvi (texi-file dest ps-dest)
-  "Run texi2dvi on TEXI-FILE, emitting dvi output to DEST.
-Also generate PostScript output in PS-DEST."
-  (call-process "texi2dvi" nil nil nil
-		"-I" (expand-file-name "../emacs"
-				       (file-name-directory texi-file))
-		"-I" (expand-file-name "../misc"
-				       (file-name-directory texi-file))
-		texi-file "-o" dest)
-  (call-process "dvips" nil nil nil dest "-o" ps-dest)
-  (call-process "gzip" nil nil nil dest)
-  (call-process "gzip" nil nil nil ps-dest))
+(defun manual-ps (texi-file dest)
+  "Generate a PostScript version of TEXI-FILE as DEST."
+  (make-directory (or (file-name-directory dest) ".") t)
+  (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
+	(default-directory (file-name-directory texi-file)))
+    (call-process "texi2dvi" nil nil nil
+		  "-I" "../emacs" "-I" "../misc"
+		  texi-file "-o" dvi-dest)
+    (call-process "dvips" nil nil nil dvi-dest "-o" dest)
+    (delete-file dvi-dest)
+    (call-process "gzip" nil nil nil dest)))
 
 (defun manual-html-fix-headers ()
   "Fix up HTML headers for the Emacs manual in the current buffer."
@@ -478,7 +485,8 @@ Also generate PostScript output in PS-DEST."
 	(setq done t))
        (t
 	(if (eobp)
-	    (error "Parse error in %s" f)) ; f is bound in manual-html-node
+	    (error "Parse error in %s"
+		   (file-name-nondirectory buffer-file-name)))
 	(unless open-td
 	  (setq done t))))
       (forward-line 1))))

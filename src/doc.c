@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG.  */
 #include <fcntl.h>
@@ -33,7 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "buildobj.h"
 
 Lisp_Object Qfunction_documentation;
 
@@ -85,6 +85,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   int offset;
   EMACS_INT position;
   Lisp_Object file, tem, pos;
+  ptrdiff_t count;
   USE_SAFE_ALLOCA;
 
   if (INTEGERP (filepos))
@@ -144,9 +145,14 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
 #endif
       if (fd < 0)
-	return concat3 (build_string ("Cannot open doc string file \""),
-			file, build_string ("\"\n"));
+	{
+	  SAFE_FREE ();
+	  return concat3 (build_string ("Cannot open doc string file \""),
+			  file, build_string ("\"\n"));
+	}
     }
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
 
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
@@ -154,13 +160,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   offset = min (position, max (1024, position % (8 * 1024)));
   if (TYPE_MAXIMUM (off_t) < position
       || lseek (fd, position - offset, 0) < 0)
-    {
-      emacs_close (fd);
-      error ("Position %"pI"d out of range in doc string file \"%s\"",
-	     position, name);
-    }
-
-  SAFE_FREE ();
+    error ("Position %"pI"d out of range in doc string file \"%s\"",
+	   position, name);
 
   /* Read the doc string into get_doc_string_buffer.
      P points beyond the data just read.  */
@@ -190,10 +191,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	space_left = 1024 * 8;
       nread = emacs_read (fd, p, space_left);
       if (nread < 0)
-	{
-	  emacs_close (fd);
-	  error ("Read error on documentation file");
-	}
+	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
       if (!nread)
 	break;
@@ -209,7 +207,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
       p += nread;
     }
-  emacs_close (fd);
+  unbind_to (count, Qnil);
+  SAFE_FREE ();
 
   /* Sanity checking.  */
   if (CONSP (filepos))
@@ -555,7 +554,6 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
     }
 }
 
-static const char buildobj[] = BUILDOBJ;
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
        1, 1, 0,
@@ -575,6 +573,7 @@ the same file name is found in the `doc-directory'.  */)
   Lisp_Object sym;
   char *p, *name;
   bool skip_file = 0;
+  ptrdiff_t count;
 
   CHECK_STRING (filename);
 
@@ -598,32 +597,26 @@ the same file name is found in the `doc-directory'.  */)
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
-  {
-    const char *beg, *end;
-
-    for (beg = buildobj; *beg; beg = end)
-      {
-        ptrdiff_t len;
-
-        while (*beg && c_isspace (*beg)) ++beg;
-
-        for (end = beg; *end && ! c_isspace (*end); ++end)
-          if (*end == '/') beg = end + 1;  /* Skip directory part.  */
-
-        len = end - beg;
-        if (len > 4 && end[-4] == '.' && end[-3] == 'o')
-          len -= 2;  /* Just take .o if it ends in .obj  */
-
-        if (len > 0)
-          Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
-      }
-    Vbuild_files = Fpurecopy (Vbuild_files);
-  }
+    {
+      static char const *const buildobj[] =
+	{
+	  #include "buildobj.h"
+	};
+      int i = sizeof buildobj / sizeof *buildobj;
+      while (0 <= --i)
+	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
+      Vbuild_files = Fpurecopy (Vbuild_files);
+    }
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
-    report_file_error ("Opening doc string file",
-		       Fcons (build_string (name), Qnil));
+    {
+      int open_errno = errno;
+      report_file_errno ("Opening doc string file", build_string (name),
+			 open_errno);
+    }
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
   Vdoc_file_name = filename;
   filled = 0;
   pos = 0;
@@ -701,8 +694,7 @@ the same file name is found in the `doc-directory'.  */)
       filled -= end - buf;
       memmove (buf, end, filled);
     }
-  emacs_close (fd);
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
@@ -758,9 +750,7 @@ Otherwise, return a new string, without any text properties.  */)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STRING itself..  */
-  keymap = KVAR (current_kboard, Voverriding_terminal_local_map);
-  if (NILP (keymap))
-    keymap = Voverriding_local_map;
+  keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
   bufp = buf = xmalloc (bsize);

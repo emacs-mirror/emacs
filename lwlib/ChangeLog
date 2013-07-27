@@ -1,3 +1,11 @@
+2013-06-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* lwlib-Xaw.h (xaw_update_one_value, xaw_popup_menu):
+	* lwlib-Xlw.h (xlw_update_one_value, xlw_pop_instance):
+	* lwlib.h (lw_allow_resizing, lw_set_main_areas) [!USE_MOTIF]:
+	Now const.
+
 2012-10-06  Ulrich Müller  <ulm@gentoo.org>
 
 	* Makefile.in (AR, ARFLAGS): Get values from configure.
@@ -248,7 +256,7 @@
 	(xaw_update_one_widget): Reformat and remove dead code.
 	(xaw_scrollbar_scroll, xaw_scrollbar_jump, xaw_create_scrollbar)
 	(xaw_update_scrollbar): Remove (not used).
-	(make_dialog): Change from K&R to prototype. Remove dead code.
+	(make_dialog): Change from K&R to prototype.  Remove dead code.
 	(xaw_creation_table): Remove scrollbar entry.
 
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -357,7 +365,7 @@
 	(display_menu_item): Replace ws->window with ws->pixmap, remove
 	call to XftDrawRect.
 	(display_menu): Remove this and that argument.
-	Remove just_compute_this_one_p. Fill pixmap at start and copy it to
+	Remove just_compute_this_one_p.  Fill pixmap at start and copy it to
 	window at end.
 	(expose_cb): New function.
 	(make_windows_if_needed): Replace XCreateWindow with XtCreatePopup.
@@ -422,7 +430,7 @@
 	(make_windows_if_needed): Set max_rest_width and xft_draw
 	in windows[i].
 	(openXftFont): New.
-	(XlwMenuInitialize): Call openXftFont if HAVE_XFT. If mw->menu.font
+	(XlwMenuInitialize): Call openXftFont if HAVE_XFT.  If mw->menu.font
 	is not set, load font fixed and save it in xlwmenu_default_font.
 	(XlwMenuInitialize): Set max_rest_width and xft_draw in windows[0].
 	(XlwMenuClassInitialize): Initialize xlwmenu_default_font.
@@ -430,7 +438,7 @@
 	windows[0].xft_draw if xft_font is set.
 	(XlwMenuDestroy): Destroy all xft_draw and close xft_font.
 	(facename_changed): New.
-	(XlwMenuSetValues): Call facename_changed. If face name did change,
+	(XlwMenuSetValues): Call facename_changed.  If face name did change,
 	close old fonts and destroy xft_draw:s.  Then create new ones.
 
 	* xlwmenu.h (XtNfaceName, XtCFaceName, XtNdefaultFace,

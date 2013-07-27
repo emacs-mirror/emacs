@@ -374,7 +374,7 @@ IGNORE any input arguments."
   "Define a new decoration style with NAME.
 DOC is a documentation string describing the decoration style NAME.
 It is appended to auto-generated doc strings.
-An Optional list of FLAGS can also be specified.  Flags are:
+An optional list of FLAGS can also be specified.  Flags are:
   :enabled <value>  - specify the default enabled value for NAME.
   :load <value>     - specify a feature (as a string) with the rest of
                       the definition for decoration mode NAME.
@@ -396,7 +396,7 @@ decoration API found in this library."
   (let ((predicate   (semantic-decorate-style-predicate   name))
         (highlighter (semantic-decorate-style-highlighter name))
 	(predicatedef   (semantic-decorate-style-predicate-default   name))
-	(highlighterdef (semantic-decorate-style-highlighter-default name))	
+	(highlighterdef (semantic-decorate-style-highlighter-default name))
 	(defaultenable (if (plist-member flags :enabled)
 			   (plist-get flags :enabled)
 			 t))
@@ -422,17 +422,16 @@ decoration API found in this library."
        (add-to-list 'semantic-decoration-styles
                     (cons ',(symbol-name name)
 			  ,defaultenable))
-       ;; If there is a load file, then create the autload tokens for
+       ;; If there is a load file, then create the autoload tokens for
        ;; those functions to load the token, but only if the fsym
        ;; doesn't exist yet.
        (when (stringp ,loadfile)
 	 (unless (fboundp ',predicatedef)
 	   (autoload ',predicatedef ',loadfile "Return non-nil to decorate TAG."
-	     nil 'function))
-	 
+	     ))
+
 	 (unless (fboundp ',highlighterdef)
-	   (autoload ',highlighterdef ',loadfile "Decorate TAG."
-	     nil 'function))
+	   (autoload ',highlighterdef ',loadfile "Decorate TAG."))
 	 ))
     ))
 

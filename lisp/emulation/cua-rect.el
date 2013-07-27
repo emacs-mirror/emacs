@@ -31,8 +31,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cua-base))
+(require 'cua-base)
 
 ;;; Rectangle support
 

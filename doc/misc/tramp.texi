@@ -214,6 +214,8 @@ Configuring @value{tramp} for use
 * Customizing Completion::      Selecting config files for user/host name completion.
 * Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
+* Predefined connection information::
+                                Setting own connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
 * Android shell setup::         Android shell setup hints.
@@ -542,6 +544,8 @@ Method}.
 * Customizing Completion::      Selecting config files for user/host name completion.
 * Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
+* Predefined connection information::
+                                Setting own connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
 * Android shell setup::         Android shell setup hints.
@@ -1727,6 +1731,35 @@ connection related information for this host, and opens the
 connection again.
 
 
+@node Predefined connection information
+@section Setting own connection related information
+
+Sometimes, @var{tramp} is not able to detect correct connection
+related information.  In such cases, you could tell @var{tramp} which
+value it has to take.  Since this could result in errors, it has to be
+used with care.
+
+@vindex tramp-connection-properties
+Such settings can be performed via the list
+@code{tramp-connection-properties}.  An entry in this list has the
+form @code{(@var{regexp} @var{property} @var{value})}.  @var{regexp}
+matches remote file names for which a property shall be predefined.
+It can be @code{nil}.  @var{property} is a string, and @var{value} the
+corresponding value.  @var{property} could be any property found in
+the file @code{tramp-persistency-file-name}.
+
+A special property is @code{"busybox"}.  This must be set, if the
+remote host runs a very restricted busybox as shell, which closes the
+connection at will.  Since there is no reliable test for this,
+@var{tramp} must be indicated this way.  Example:
+
+@lisp
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{ssh, user, randomhost.your.domain,}")
+                   "busybox" t))
+@end lisp
+
+
 @node Remote Programs
 @section How @value{tramp} finds and uses programs on the remote machine
 
@@ -1874,7 +1907,7 @@ key.
 
 @var{tramp-password-prompt-regexp} handles the detection of such
 requests for English environments.  When you use another localization
-of your (local or remote) host, you might need to adapt this. Example:
+of your (local or remote) host, you might need to adapt this.  Example:
 
 @lisp
 (setq
@@ -2048,7 +2081,8 @@ You can instruct @value{tramp} by this form:
 @end lisp
 
 @noindent
-with @samp{192.168.0.26} being the IP address of your Android device.
+with @samp{192.168.0.26} being the IP address of your Android device
+(@pxref{Predefined connection information}).
 
 The user settings for the @code{$PATH} environment variable must be
 preserved.  It has also been reported, that the commands in

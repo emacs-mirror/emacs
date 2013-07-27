@@ -488,8 +488,9 @@ Normally, this function asks the user for confirmation if there
 already is a buffer visiting @var{filename}.  If @var{no-query} is
 non-@code{nil}, that prevents asking this question.  If there already
 is a buffer visiting @var{filename}, and the user confirms or
-@var{query} is non-@code{nil}, this function makes the new buffer name
-unique by appending a number inside of @samp{<@dots{}>} to @var{filename}.
+@var{no-query} is non-@code{nil}, this function makes the new
+buffer name unique by appending a number inside of @samp{<@dots{}>} to
+@var{filename}.
 
 If @var{along-with-file} is non-@code{nil}, that means to assume that
 the former visited file has been renamed to @var{filename}.  In this
@@ -1064,7 +1065,7 @@ Buffer foo.changed modified; kill anyway? (yes or no) @kbd{yes}
 @end deffn
 
 @defvar kill-buffer-query-functions
-After confirming unsaved changes, @code{kill-buffer} calls the functions
+Before confirming unsaved changes, @code{kill-buffer} calls the functions
 in the list @code{kill-buffer-query-functions}, in order of appearance,
 with no arguments.  The buffer being killed is the current buffer when
 they are called.  The idea of this feature is that these functions will

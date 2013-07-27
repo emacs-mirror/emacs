@@ -50,6 +50,10 @@ char const *safe_strsignal (int) ATTRIBUTE_CONST;
 # define NSIG NSIG_MINIMUM
 #endif
 
+#ifndef SA_SIGINFO
+# define SA_SIGINFO 0
+#endif
+
 #ifndef emacs_raise
 # define emacs_raise(sig) raise (sig)
 #endif

@@ -233,7 +233,7 @@ read an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @cite{GNU Emacs Manual},
 @end iftex
 @ifinfo
-@ref{top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
+@ref{Top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
 @uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
@@ -1121,38 +1121,23 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
 online in the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
-You can also order a printed manual, which has the desirable
-side-effect of helping to support the Free Software Foundation which
-made all this great software available. You can find an order form by
-running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which may be available online in the
 Info system. It is also available online at
-@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/}.
-You can also order a printed manual, which has the desirable
-side-effect of helping to support the Free Software Foundation which
-made all this great software available. You can find an order form by
-running @kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/savannah-checkouts/gnu/emacs/manual/html_node/elisp/,
+@uref{http://www.gnu.org/software/emacs/manual/elisp.html,
 The GNU Emacs Lisp Reference Manual} may also be available online in
-the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}. You can
-also order a printed manual, which has the desirable side-effect of
-helping to support the Free Software Foundation which made all this
-great software available. You can find an order form by running
-@kbd{C-h C-d}, or you can request an order form from @i{gnu at
-gnu.org}.}
+the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.}
 @end ifhtml
 and you can look at the code itself for examples. Look in the Emacs
 Lisp directory on your system (such as
-@file{/usr/local/lib/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
+@file{/usr/local/share/emacs/lisp/mh-e}) and find all the @file{mh-*.el}
 files there. When calling MH-E and other Emacs Lisp functions directly
 from Emacs Lisp code, you'll need to know the correct arguments. Use
 the online help for this. For example, try @kbd{C-h f
@@ -2848,7 +2833,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -5058,7 +5043,7 @@ for the next hook function. The standard prefix
 @vindex mh-yank-behavior
 
 For example, if you use the hook function
-@uref{http://shasta.cs.uiuc.edu/~lrclause/tc.html,
+@uref{http://www.emacswiki.org/emacs/TrivialCite,
 @code{trivial-cite}} (which is NOT part of Emacs), set
 @code{mh-yank-behavior} to @samp{Body and Header}.
 
@@ -5615,7 +5600,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.dk.xemacs.org/Documentation/packages/html/pgg.html,
+@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 

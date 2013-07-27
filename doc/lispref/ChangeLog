@@ -1,3 +1,145 @@
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* errors.texi (Standard Errors): Fix typo.
+
+	* files.texi (Magic File Names):
+	* os.texi (File Notifications): Remove file-notify-supported-p.
+
+2013-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.texi (Special Forms): Mention 'lambda'.  Also, say that
+	non-well-formed expressions result in unspecified behavior, though
+	Emacs will not crash.
+
+2013-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add file-notify-add-watch,
+	file-notify-rm-watch and file-notify-supported-p.  Move
+	file-remote-p down.
+
+	* errors.texi (Standard Errors): Add file-notify-error.
+
+	* os.texi (Desktop Notifications): Rename from Notifications.
+	(File Notifications): New node.
+
+	* elisp.texi (Top): Update menu for these changes.
+
+2013-07-19  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* windows.texi (Display Action Functions): Mention next-window.
+
+2013-07-16  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* windows.texi (Selecting Windows): Fix the introduction of
+	`set-frame-selected-window''s arguments.
+
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Timestamp fixes for undo (Bug#14824).
+	* text.texi (Undo): Document (t . 0) and (t . -1) in buffer-undo-list.
+
+2013-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Text Representations): Document that
+	multibyte-string-p returns nil for non-string objects.
+
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (Top): Move WWW_GNU_ORG section outside @copying.
+
+2013-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* debugging.texi (Debugging):
+	* files.texi (File Attributes, Changing Files): Fix cross-references.
+
+	* package.texi (Package Archives): Fix @url call.
+
+	* syntax.texi (Syntax Table Functions): Mention describe-syntax.
+
+2013-06-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document move-point-visually.
+
+2013-06-29  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* buffers.texi (Buffer File Name): Fix typo.
+
+2013-06-26  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* tips.texi (Coding Conventions): Improve wording.
+
+2013-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Autoload): Fix typo.
+
+	* variables.texi (Lexical Binding): Fix typo.
+
+	* functions.texi (Anonymous Functions): Put back ' removed 2012-10-23.
+
+2013-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (ImageMagick Images): Mention :max-width and
+	:max-height.
+
+2013-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Math Functions): Remove obsolete function log10.
+
+2013-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Mode Line Data, Properties in Mode): Advertise `keymap'
+	rather than `local-map'.
+
+	* keymaps.texi (Active Keymaps): Fix documentation of
+	set-temporary-overlay-map and overriding-terminal-local-map.
+
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dist): Edit more configure variables.
+	Try to check that we do not miss any in future.
+
+2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* text.texi (Undo, Changing Properties): Fix typos.
+
+2013-06-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Changing Properties): Document `add-face-text-property'.
+
+2013-06-17  Kenichi Handa  <handa@gnu.org>
+
+	* display.texi (Face Attributes): Refer to "Low-Level font" (not
+	"Font Selection") in the explanation of :font attribute (bug#14629).
+
+2013-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Hooks for Loading): Don't document after-load-alist.
+	Document with-eval-after-load instead of eval-after-load.
+
+2013-06-11  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (File Name Expansion): Make the example more
+	intuitive.
+
+2013-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Documentation fix for 'ls' and hard links.
+	* compile.texi (Compilation Functions):
+	* files.texi (File Attributes, Changing Files):
+	Use current format for GNU 'ls' output.
+	(File Attributes): Fix problem introduced in previous change:
+	the link count is the number of hard links, not the number
+	of hard links + 1.
+
+2013-06-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (File Attributes): Fix typo.
+
+2013-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Lambda Expressions): Lambda expressions don't
+	evaluate to themselves in general (bug#11782).
+
 2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loading.texi (Autoload):
@@ -938,7 +1080,7 @@
 	* display.texi (Face Attributes): Copyedits.  Add a few cindex entries.
 	Overlining no longer behaves exactly like underlining.
 
-2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+2012-06-16  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	* display.texi (Face Attributes):
 	Document wave-style underline face attribute.

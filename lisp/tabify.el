@@ -28,12 +28,17 @@
 ;;; Code:
 
 ;;;###autoload
-(defun untabify (start end)
+(defun untabify (start end &optional arg)
   "Convert all tabs in region to multiple spaces, preserving columns.
+If called interactively with prefix ARG, convert for the entire
+buffer.
+
 Called non-interactively, the region is specified by arguments
 START and END, rather than by the position of point and mark.
 The variable `tab-width' controls the spacing of tab stops."
-  (interactive "r")
+  (interactive (if current-prefix-arg
+		   (list (point-min) (point-max) current-prefix-arg)
+		 (list (region-beginning) (region-end) nil)))
   (let ((c (current-column)))
     (save-excursion
       (save-restriction
@@ -56,14 +61,19 @@ Usually this will be \" [ \\t]+\" to match a space followed by whitespace.
 \"^\\t* [ \\t]+\" is also useful, for tabifying only initial whitespace.")
 
 ;;;###autoload
-(defun tabify (start end)
+(defun tabify (start end &optional arg)
   "Convert multiple spaces in region to tabs when possible.
 A group of spaces is partially replaced by tabs
 when this can be done without changing the column they end at.
+If called interactively with prefix ARG, convert for the entire
+buffer.
+
 Called non-interactively, the region is specified by arguments
 START and END, rather than by the position of point and mark.
 The variable `tab-width' controls the spacing of tab stops."
-  (interactive "r")
+  (interactive (if current-prefix-arg
+		   (list (point-min) (point-max) current-prefix-arg)
+		 (list (region-beginning) (region-end) nil)))
   (save-excursion
     (save-restriction
       ;; Include the beginning of the line in the narrowing

@@ -25,6 +25,9 @@
 
 (require 'ert)
 
+(declare-function inotify-add-watch "inotify.c" (file-name aspect callback))
+(declare-function inotify-rm-watch "inotify.c" (watch-descriptor))
+
 (when (featurep 'inotify)
 
   ;; (ert-deftest filewatch-file-watch-aspects-check ()
@@ -45,7 +48,7 @@
     (let ((temp-file (make-temp-file "inotify-simple"))
 	   (events 0))
       (let ((wd
-	     (inotify-add-watch temp-file t (lambda (ev)
+	     (inotify-add-watch temp-file t (lambda (_ev)
                                               (setq events (1+ events))))))
 	(unwind-protect
 	    (progn
@@ -53,8 +56,10 @@
 		(insert "Foo\n"))
 	      (sit-for 5) ;; Hacky. Wait for 5s until events are processed
 	      (should (> events 0)))
-	  (inotify-rm-watch wd)))))
+	  (inotify-rm-watch wd)
+	  (delete-file temp-file)))))
 )
 
 (provide 'inotify-tests)
+
 ;;; inotify-tests.el ends here.

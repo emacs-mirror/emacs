@@ -89,9 +89,6 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
-/* hack for OS X file panels */
-char panelOK = 0;
-
 EmacsTooltip *ns_tooltip = nil;
 
 /* Need forward declaration here to preserve organizational integrity of file */
@@ -287,7 +284,7 @@ static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
-  CGFloat r, g, b, alpha;
+  EmacsCGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -319,7 +316,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  CGFloat r, g, b, alpha;
+  EmacsCGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -344,7 +341,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       [[view window] setBackgroundColor: col];
 
-      if (alpha != 1.0)
+      if (alpha != (EmacsCGFloat) 1.0)
           [[view window] setOpaque: NO];
       else
           [[view window] setOpaque: YES];
@@ -714,7 +711,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
-void
+static void
 ns_implicitly_set_icon_type (struct frame *f)
 {
   Lisp_Object tem;
@@ -859,7 +856,7 @@ ns_cursor_type_to_lisp (int arg)
 }
 
 /* This is the same as the xfns.c definition.  */
-void
+static void
 x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
@@ -888,7 +885,7 @@ ns_appkit_version_str (void)
 
 #ifdef NS_IMPL_GNUSTEP
   sprintf(tmp, "gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION));
-#elif defined(NS_IMPL_COCOA)
+#elif defined (NS_IMPL_COCOA)
   sprintf(tmp, "apple-appkit-%.2f", NSAppKitVersionNumber);
 #else
   tmp = "ns-unknown";
@@ -905,7 +902,7 @@ ns_appkit_version_int (void)
 {
 #ifdef NS_IMPL_GNUSTEP
   return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GUI_MINOR_VERSION;
-#elif defined(NS_IMPL_COCOA)
+#elif defined (NS_IMPL_COCOA)
   return (int)NSAppKitVersionNumber;
 #endif
   return 0;
@@ -984,7 +981,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
 /* Handler for signals raised during x_create_frame.
    FRAME is the frame which is partially constructed.  */
 
-static Lisp_Object
+static void
 unwind_create_frame (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
@@ -993,7 +990,7 @@ unwind_create_frame (Lisp_Object frame)
      display is disconnected after the frame has become official, but
      before x_create_frame removes the unwind protect.  */
   if (!FRAME_LIVE_P (f))
-    return Qnil;
+    return;
 
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
@@ -1009,10 +1006,7 @@ unwind_create_frame (Lisp_Object frame)
       /* Check that reference counts are indeed correct.  */
       eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
-      return Qt;
     }
-
-  return Qnil;
 }
 
 /*
@@ -1082,7 +1076,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct ns_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
-  Lisp_Object tfont, tfontsize;
   static int desc_ctr = 1;
 
   /* x_get_arg modifies parms.  */
@@ -1189,10 +1182,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   {
     /* use for default font name */
     id font = [NSFont userFixedPitchFontOfSize: -1.0]; /* default */
-    tfontsize = x_default_parameter (f, parms, Qfontsize,
+    x_default_parameter (f, parms, Qfontsize,
                                     make_number (0 /*(int)[font pointSize]*/),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
-    tfont = x_default_parameter (f, parms, Qfont,
+    x_default_parameter (f, parms, Qfont,
                                  build_string ([[font fontName] UTF8String]),
                                  "font", "Font", RES_TYPE_STRING);
   }
@@ -1397,6 +1390,41 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
   return Qnil;
 }
 
+static struct
+{
+  id panel;
+  BOOL ret;
+#if ! defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+  NSString *dirS, *initS;
+  BOOL no_types;
+#endif
+} ns_fd_data;
+
+void
+ns_run_file_dialog (void)
+{
+  if (ns_fd_data.panel == nil) return;
+#if defined (NS_IMPL_COCOA) && \
+  MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  ns_fd_data.ret = [ns_fd_data.panel runModal];
+#else
+  if (ns_fd_data.no_types)
+    {
+      ns_fd_data.ret = [ns_fd_data.panel
+                           runModalForDirectory: ns_fd_data.dirS
+                           file: ns_fd_data.initS];
+    }
+  else
+    {
+      ns_fd_data.ret = [ns_fd_data.panel
+                           runModalForDirectory: ns_fd_data.dirS
+                           file: ns_fd_data.initS
+                           types: nil];
+    }
+#endif
+  ns_fd_data.panel = nil;
+}
 
 DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 5, 0,
        doc: /* Use a graphical panel to read a file name, using prompt PROMPT.
@@ -1410,6 +1438,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 {
   static id fileDelegate = nil;
   BOOL ret;
+  BOOL isSave = NILP (mustmatch) && NILP (dir_only_p);
   id panel;
   Lisp_Object fname;
 
@@ -1420,6 +1449,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
     [NSString stringWithUTF8String: SSDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SSDATA (init)];
+  NSEvent *nxev;
 
   check_window_system (NULL);
 
@@ -1431,7 +1461,7 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   if ([dirS characterAtIndex: 0] == '~')
     dirS = [dirS stringByExpandingTildeInPath];
 
-  panel = NILP (mustmatch) && NILP (dir_only_p) ?
+  panel = isSave ?
     (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
@@ -1440,13 +1470,12 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   [panel setTreatsFilePackagesAsDirectories: YES];
   [panel setDelegate: fileDelegate];
 
-  panelOK = 0;
   if (! NILP (dir_only_p))
     {
       [panel setCanChooseDirectories: YES];
       [panel setCanChooseFiles: NO];
     }
-  else
+  else if (! isSave)
     {
       /* This is not quite what the documentation says, but it is compatible
          with the Gtk+ code.  Also, the menu entry says "Open File...".  */
@@ -1454,7 +1483,9 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
       [panel setCanChooseFiles: YES];
     }
 
- block_input ();
+  block_input ();
+  ns_fd_data.panel = panel;
+  ns_fd_data.ret = NO;
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   if (! NILP (mustmatch) || ! NILP (dir_only_p))
@@ -1465,24 +1496,37 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   else
     [panel setNameFieldStringValue: @""];
 
-  ret = [panel runModal];
 #else
-  if (NILP (mustmatch) && NILP (dir_only_p))
-    {
-      ret = [panel runModalForDirectory: dirS file: initS];
-    }
-  else
-    {
-      ret = [panel runModalForDirectory: dirS file: initS types: nil];
-    }
+  ns_fd_data.no_types = NILP (mustmatch) && NILP (dir_only_p);
+  ns_fd_data.dirS = dirS;
+  ns_fd_data.initS = initS;
 #endif
 
-  ret = (ret == NSOKButton) || panelOK;
+  /* runModalForDirectory/runModal restarts the main event loop when done,
+     so we must start an event loop and then pop up the file dialog.
+     The file dialog may pop up a confirm dialog after Ok has been pressed,
+     so we can not simply pop down on the Ok/Cancel press.
+   */
+  nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: NSAPP_DATA2_RUNFILEDIALOG];
+
+  [NSApp postEvent: nxev atStart: NO];
+  while (ns_fd_data.panel != nil)
+    [NSApp run];
+
+  ret = (ns_fd_data.ret == NSOKButton);
 
   if (ret)
     {
-      NSString *str = [panel getFilename];
-      if (! str) str = [panel getDirectory];
+      NSString *str = ns_filename_from_panel (panel);
+      if (! str) str = ns_directory_from_panel (panel);
       if (! str) ret = NO;
       else fname = build_string ([str UTF8String]);
     }
@@ -1909,7 +1953,9 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 #else
   Lisp_Object ret = Qnil;
   NSMenu *svcs;
+#ifdef NS_IMPL_COCOA
   id delegate;
+#endif
 
   check_window_system (NULL);
   svcs = [[NSMenu alloc] initWithTitle: @"Services"];
@@ -1973,7 +2019,7 @@ there was no result.  */)
   ns_string_to_pasteboard (pb, send);
 
   if (NSPerformService (svcName, pb) == NO)
-    Fsignal (Qquit, Fcons (build_string ("service not available"), Qnil));
+    Fsignal (Qquit, list1 (build_string ("service not available")));
 
   if ([[pb types] count] == 0)
     return build_string ("");
@@ -1992,15 +2038,9 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
 
   CHECK_STRING (str);
   utfStr = [NSString stringWithUTF8String: SSDATA (str)];
-  if (![utfStr respondsToSelector:
-                 @selector (precomposedStringWithCanonicalMapping)])
-    {
-      message1
-        ("Warning: ns-convert-utf8-nfd-to-nfc unsupported under GNUstep.\n");
-      return Qnil;
-    }
-  else
+#ifdef NS_IMPL_COCOA
     utfStr = [utfStr precomposedStringWithCanonicalMapping];
+#endif
   return build_string ([utfStr UTF8String]);
 }
 
@@ -2155,6 +2195,9 @@ x_set_scroll_bar_default_width (struct frame *f)
 }
 
 
+extern const char *x_get_string_resource (XrmDatabase, char *, char *);
+
+
 /* terms impl this instead of x-get-resource directly */
 const char *
 x_get_string_resource (XrmDatabase rdb, char *name, char *class)
@@ -2203,13 +2246,6 @@ x_pixel_height (struct frame *f)
 }
 
 
-int
-x_screen_planes (struct frame *f)
-{
-  return FRAME_NS_DISPLAY_INFO (f)->n_planes;
-}
-
-
 void
 x_sync (struct frame *f)
 {
@@ -2242,7 +2278,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;
-  CGFloat red, green, blue, alpha;
+  EmacsCGFloat red, green, blue, alpha;
 
   check_window_system (NULL);
   CHECK_STRING (color);
@@ -2434,11 +2470,10 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       struct MonitorInfo *m = &monitors[i];
       NSRect fr = [s frame];
       NSRect vfr = [s visibleFrame];
-      NSDictionary *dict = [s deviceDescription];
-      NSValue *resval = [dict valueForKey:NSDeviceResolution];
       short y, vy;
 
 #ifdef NS_IMPL_COCOA
+      NSDictionary *dict = [s deviceDescription];
       NSNumber *nid = [dict objectForKey:@"NSScreenNumber"];
       CGDirectDisplayID did = [nid unsignedIntValue];
 #endif
@@ -2455,7 +2490,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
           vy = (short) (primary_display_height -
                         vfr.size.height - vfr.origin.y);
         }
-      
+
       m->geom.x = (short) fr.origin.x;
       m->geom.y = y;
       m->geom.width = (unsigned short) fr.size.width;
@@ -2714,8 +2749,14 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
         case NSPageUpFunctionKey:
         case NSPageDownFunctionKey:
         case NSEndFunctionKey:
-          [panel sendEvent: theEvent];
-          ret = YES;
+          /* Don't send command modified keys, as those are handled in the
+             performKeyEquivalent method of the super class.
+          */
+          if (! ([theEvent modifierFlags] & NSCommandKeyMask))
+            {
+              [panel sendEvent: theEvent];
+              ret = YES;
+            }
           break;
           /* As we don't have the standard key commands for
              copy/paste/cut/select-all in our edit menu, we must handle
@@ -2758,33 +2799,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 }
 
 @implementation EmacsSavePanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-#endif
-- (NSString *) getFilename
-{
-  return ns_filename_from_panel (self);
-}
-- (NSString *) getDirectory
-{
-  return ns_directory_from_panel (self);
-}
-
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
   BOOL ret = handlePanelKeys (self, theEvent);
@@ -2796,39 +2810,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
 
 @implementation EmacsOpenPanel
-#ifdef NS_IMPL_COCOA
-/* --------------------------------------------------------------------------
-   These are overridden to intercept on OS X: ending panel restarts NSApp
-   event loop if it is stopped.  Not sure if this is correct behavior,
-   perhaps should check if running and if so send an appdefined.
-   -------------------------------------------------------------------------- */
-- (void) ok: (id)sender
-{
-  [super ok: sender];
-
-  // If not choosing directories, and Open is pressed on a directory, return.
-  if (! [self canChooseDirectories] && [self getDirectory] &&
-      ! [self getFilename])
-    return;
-
-  panelOK = 1;
-  [NSApp stop: self];
-}
-- (void) cancel: (id)sender
-{
-  [super cancel: sender];
-  [NSApp stop: self];
-}
-
-#endif
-- (NSString *) getFilename
-{
-  return ns_filename_from_panel (self);
-}
-- (NSString *) getDirectory
-{
-  return ns_directory_from_panel (self);
-}
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
   // NSOpenPanel inherits NSSavePanel, so passing self is OK.
@@ -2894,7 +2875,7 @@ Example: Install an icon Gnus.tiff and execute the following code
 
 When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
-  Vns_icon_type_alist = Fcons (Qt, Qnil);
+  Vns_icon_type_alist = list1 (Qt);
 
   DEFVAR_LISP ("ns-version-string", Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);

@@ -1523,7 +1523,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     {
       if (XFASTINT (target) < 0x80)
 	error ("Can't set a font for partial ASCII range");
-      range_list = Fcons (Fcons (target, target), Qnil);
+      range_list = list1 (Fcons (target, target));
     }
   else if (CONSP (target))
     {
@@ -1539,7 +1539,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    error ("Can't set a font for partial ASCII range");
 	  ascii_changed = 1;
 	}
-      range_list = Fcons (target, Qnil);
+      range_list = list1 (target);
     }
   else if (SYMBOLP (target) && !NILP (target))
     {
@@ -1552,7 +1552,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	{
 	  if (EQ (target, Qlatin))
 	    ascii_changed = 1;
-	  val = Fcons (target, Qnil);
+	  val = list1 (target);
 	  map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table,
 			  val);
 	  range_list = Fnreverse (XCDR (val));
@@ -1568,7 +1568,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	       SDATA (SYMBOL_NAME (target)));
     }
   else if (NILP (target))
-    range_list = Fcons (Qnil, Qnil);
+    range_list = list1 (Qnil);
   else
     error ("Invalid target for setting a font");
 
@@ -1628,7 +1628,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  if (! NILP (font_object))
 	    {
 	      update_auto_fontset_alist (font_object, fontset);
-	      alist = Fcons (Fcons (Qfont, Fcons (name, font_object)), Qnil);
+	      alist = list1 (Fcons (Qfont, Fcons (name, font_object)));
 	      Fmodify_frame_parameters (fr, alist);
 	    }
 	}
@@ -1999,7 +1999,7 @@ format is the same as above.  */)
 			  slot = Fassq (RFONT_DEF_SPEC (elt), alist);
 			  name = AREF (font_object, FONT_NAME_INDEX);
 			  if (NILP (Fmember (name, XCDR (slot))))
-			    nconc2 (slot, Fcons (name, Qnil));
+			    nconc2 (slot, list1 (name));
 			}
 		    }
 		}
@@ -2238,9 +2238,9 @@ alternate fontnames (if any) are tried instead.  */);
 
   DEFVAR_LISP ("fontset-alias-alist", Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
-  Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
-				       build_pure_c_string ("fontset-default")),
-				Qnil);
+  Vfontset_alias_alist
+    = list1 (Fcons (FONTSET_NAME (Vdefault_fontset),
+		    build_pure_c_string ("fontset-default")));
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
 	       Vvertical_centering_font_regexp,

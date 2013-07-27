@@ -378,12 +378,13 @@ Similar to, but slightly different from, the GNU Coreutils
 
 @item define
 @cmindex define
-Define a varalias.  @xref{Variable Aliases, , , elisp}.
+Define a varalias.
+@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
 
 @item diff
 @cmindex diff
 Use Emacs's internal @code{diff} (not to be confused with
-@code{ediff}).  @xref{Comparing Files, , , elisp}.
+@code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs Manual}.
 
 @item grep
 @cmindex grep
@@ -422,15 +423,18 @@ and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
 @item locate
 @cmindex locate
 Alias to Emacs's @code{locate} function, which simply runs the external
-@command{locate} command and parses the results.  @xref{Dired and `find', , , elisp}.
+@command{locate} command and parses the results.
+@xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
 
 @item make
 @cmindex make
-Run @command{make} through @code{compile}.  @xref{Running Compilations under Emacs, , , elisp}.
+Run @command{make} through @code{compile}.
+@xref{Compilation, , , emacs, The GNU Emacs Manual}.
 
 @item occur
 @cmindex occur
-Alias to Emacs's @code{occur}.  @xref{Other Search-and-Loop Commands, , , elisp}.
+Alias to Emacs's @code{occur}.
+@xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
 
 @item printnl
 @cmindex printnl
@@ -648,7 +652,8 @@ variables in command invocations.
 
 @item $#var
 Expands to the length of the value bound to @code{var}.  Raises an error
-if the value is not a sequence (@pxref{Sequences Arrays and Vectors, Sequences, , elisp}).
+if the value is not a sequence
+(@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
 
 @item $(lisp)
 Expands to the result of evaluating the S-expression @code{(lisp)}.  On
@@ -680,7 +685,8 @@ any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}
 
 @item $var[hello]
 Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
-an alist (@pxref{Association List Type, Association Lists, , elisp}).
+an alist (@pxref{Association List Type, Association Lists, , elisp,
+The Emacs Lisp Reference Manual}).
 
 @item $#var[hello]
 Returns the length of the cdr of the element of @code{var} who car is equal
@@ -693,22 +699,35 @@ to @code{"hello"}.
 Eshell's globbing syntax is very similar to that of Zsh.  Users coming
 from Bash can still use Bash-style globbing, as there are no
 incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  See @ref{Filename Generation, , , zsh}
+is also predicate-based expansion.  See
+@ref{Filename Generation, , , zsh, The Z Shell Manual}
 for full syntax.  To customize the syntax and behaviour of globbing in
-Eshell see the Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
+The GNU Emacs Manual}.}
 groups ``eshell-glob'' and ``eshell-pred''.
 
 @node Input/Output
 @chapter Input/Output
 Since Eshell does not communicate with a terminal like most command
-shells, IO is a little different.  If you try to run programs from
-within Eshell that are not line-oriented, such as programs that use
-ncurses, you will just get garbage output, since the Eshell buffer is
-not a terminal emulator.  Eshell solves this problem by running
-specified commands in Emacs's terminal emulator; to let Eshell know
-which commands need to be run in a terminal, add them to the list
-@var{eshell-visual-commands}.
+shells, IO is a little different.
 
+@section Visual Commands
+If you try to run programs from within Eshell that are not
+line-oriented, such as programs that use ncurses, you will just get
+garbage output, since the Eshell buffer is not a terminal emulator.
+Eshell solves this problem by running such programs in Emacs's
+terminal emulator.
+
+Programs that need a terminal to display output properly are referred
+to in this manual as ``visual commands,'' because they are not simply
+line-oriented.  You must tell Eshell which commands are visual, by
+adding them to @var{eshell-visual-commands}; for commands that are
+visual for only certain @emph{sub}-commands -- e.g. @samp{git log} but
+not @samp{git status} -- use @var{eshell-visual-subcommands}; and for
+commands that are visual only when passed certain options, use
+@var{eshell-visual-options}.
+
+@section Redirection
 Redirection is mostly the same in Eshell as it is in other command
 shells.  The output redirection operators @code{>} and @code{>>} as
 well as pipes are supported, but there is not yet any support for
@@ -746,7 +765,8 @@ can be disabled and enabled without having to unload and reload them,
 and to provide a common parent Customize group for the
 modules.@footnote{ERC provides a similar module facility.}  An Eshell
 module is defined the same as any other library but one requirement: the
-module must define a Customize@footnote{@xref{Customization Settings, Customize, , elisp}.}
+module must define a Customize@footnote{@xref{Customization, , ,
+elisp, The Emacs Lisp Reference Manual}.}
 group using @code{eshell-defgroup} (in place of @code{defgroup}) with
 @code{eshell-module} as the parent group.@footnote{If the module has
 no user-customizable options, then there is no need to define it as an
@@ -799,16 +819,18 @@ Eshell module.}  You also need to load the following as shown:
 @cindex known bugs
 @cindex bugs, known
 
-If you find a bug or misfeature, don't hesitate to let me know!  Send
-email to @email{johnw@@gnu.org}.  Feature requests should also be sent
-there.  I prefer discussing one thing at a time.  If you find several
+If you find a bug or misfeature, don't hesitate to report it, by
+using @kbd{M-x report-emacs-bug}.  The same applies to feature requests.
+It is best to discuss one thing at a time.  If you find several
 unrelated bugs, please report them separately.
 
+@ignore
 If you have ideas for improvements, or if you have written some
 extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
+@end ignore
 
-Below is a complete list of known problems with Eshell version 2.4.2,
+Below is a list of some known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis

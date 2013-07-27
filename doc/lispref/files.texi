@@ -1115,7 +1115,7 @@ permissions} of @var{filename}, as an integer.  It recursively follows
 symbolic links in @var{filename} at all levels.  If @var{filename}
 does not exist, the return value is @code{nil}.
 
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
 Manual}, for a description of mode bits.  If the low-order bit is 1,
 then the file is executable by all users, if the second-lowest-order
 bit is 1, then the file is writable by all users, etc.  The highest
@@ -1139,8 +1139,8 @@ both others and group, and that the sticky bit is set.
 @end group
 
 @group
-% ls -l diffs
-  -rw-rw-rw-  1 lewis 0 3063 Oct 30 16:00 diffs
+$ ls -l diffs
+-rw-rw-rw- 1 lewis lewis 3063 Oct 30 16:00 diffs
 @end group
 @end example
 
@@ -1166,17 +1166,17 @@ target.  However, they both recursively follow symbolic links at all
 levels of parent directories.
 
 @defun file-nlinks filename
-This functions returns the number of names (i.e., hard links) that
-file @var{filename} has.  If the file does not exist, then this function
+This function returns the number of names (i.e., hard links) that
+file @var{filename} has.  If the file does not exist, this function
 returns @code{nil}.  Note that symbolic links have no effect on this
-function, because they are not considered to be names of the files they
-link to.
+function, because they are not considered to be names of the files
+they link to.
 
 @example
 @group
-% ls -l foo*
--rw-rw-rw-  2 rms       4 Aug 19 01:27 foo
--rw-rw-rw-  2 rms       4 Aug 19 01:27 foo1
+$ ls -l foo*
+-rw-rw-rw- 2 rms rms 4 Aug 19 01:27 foo
+-rw-rw-rw- 2 rms rms 4 Aug 19 01:27 foo1
 @end group
 
 @group
@@ -1477,9 +1477,9 @@ In the first part of the following example, we list two files,
 
 @example
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  1 rms       29 Aug 18 20:32 foo
-84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 1 rms rms 29 Aug 18 20:32 foo
+84302 -rw-rw-rw- 1 rms rms 24 Aug 18 20:31 foo3
 @end group
 @end example
 
@@ -1494,10 +1494,10 @@ the files again.  This shows two names for one file, @file{foo} and
 @end group
 
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo
-81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo2
-84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 2 rms rms 29 Aug 18 20:32 foo
+81908 -rw-rw-rw- 2 rms rms 29 Aug 18 20:32 foo2
+84302 -rw-rw-rw- 1 rms rms 24 Aug 18 20:31 foo3
 @end group
 @end example
 
@@ -1519,10 +1519,10 @@ contents of @file{foo3} are lost.
 @end group
 
 @group
-% ls -li fo*
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo2
-81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo3
+$ ls -li fo*
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo2
+81908 -rw-rw-rw- 3 rms rms 29 Aug 18 20:32 foo3
 @end group
 @end example
 
@@ -1625,7 +1625,7 @@ octal numbers to enter @var{mode}.  For example,
 @noindent
 specifies that the file should be readable and writable for its owner,
 readable for group members, and readable for all other users.
-@xref{File Permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
+@xref{File permissions,,, coreutils, The @sc{gnu} @code{Coreutils}
 Manual}, for a description of mode bit specifications.
 
 Interactively, @var{mode} is read from the minibuffer using
@@ -1676,7 +1676,7 @@ the permissions on which the specification is based are taken from the
 mode bits of @var{base-file}.  If @var{base-file} is omitted or
 @code{nil}, the function uses @code{0} as the base mode bits.  The
 complete and relative specifications can be combined, as in
-@code{"u+r,g+rx,o+r,g-w"}.  @xref{File Permissions,,, coreutils, The
+@code{"u+r,g+rx,o+r,g-w"}.  @xref{File permissions,,, coreutils, The
 @sc{gnu} @code{Coreutils} Manual}, for a description of file mode
 specifications.
 @end defun
@@ -2105,10 +2105,6 @@ start with @samp{~}.)  Otherwise, the current buffer's value of
 (expand-file-name "foo" "/usr/spool/")
      @result{} "/usr/spool/foo"
 @end group
-@group
-(expand-file-name "$HOME/foo")
-     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
-@end group
 @end example
 
 If the part of the combined file name before the first slash is
@@ -2142,7 +2138,14 @@ This is for the sake of filesystems that have the concept of a
 @file{/../} is interpreted exactly the same as @file{/}.
 
 Note that @code{expand-file-name} does @emph{not} expand environment
-variables; only @code{substitute-in-file-name} does that.
+variables; only @code{substitute-in-file-name} does that:
+
+@example
+@group
+(expand-file-name "$HOME/foo")
+     @result{} "/xcssun/users/rms/lewis/$HOME/foo"
+@end group
+@end example
 
 Note also that @code{expand-file-name} does not follow symbolic links
 at any level.  This results in a difference between the way
@@ -2769,16 +2772,17 @@ first, before handlers for jobs such as remote file access.
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},@*
@@ -2817,20 +2821,21 @@ first, before handlers for jobs such as remote file access.
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
 @code{file-acl},
 @code{file-attributes},
-@code{file-direct@discretionary{}{}{}ory-p},
+@code{file-direc@discretionary{}{}{}tory-p},
 @code{file-equal-p},
 @code{file-executable-p}, @code{file-exists-p},
 @code{file-in-directory-p},
-@code{file-local-copy}, @code{file-remote-p},
+@code{file-local-copy},
 @code{file-modes}, @code{file-name-all-completions},
 @code{file-name-as-directory},
 @code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirec@discretionary{}{}{}tory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-notify-add-watch}, @code{file-notify-rm-watch},
 @code{file-ownership-pre@discretionary{}{}{}served-p},
 @code{file-readable-p}, @code{file-regular-p},
-@code{file-selinux-context},
+@code{file-remote-p}, @code{file-selinux-context},
 @code{file-symlink-p}, @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
 @c Not sure why it was here:   @code{find-file-noselect},

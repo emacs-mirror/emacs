@@ -483,38 +483,30 @@ like an INI file.  You can add this hook to `find-file-hook'."
      ;; are frequently used in simple text, we punt.)
      ;; In `generic-bat-mode-setup-function' we make the keywords
      ;; case-insensitive
-     (generic-make-keywords-list
-      '("for"
-	"if")
-      font-lock-keyword-face "^[@ \t]*")
+     '("^[@ \t]*\\_<\\(for\\|if\\)\\_>" 1 font-lock-keyword-face)
      ;; These keywords can be anywhere on a line
      ;; In `generic-bat-mode-setup-function' we make the keywords
      ;; case-insensitive
-     (generic-make-keywords-list
-      '("do"
-	"exist"
-	"errorlevel"
-	"goto"
-	"not")
-      font-lock-keyword-face)
+     (list (regexp-opt '("do" "exist" "errorlevel" "goto" "not") 'symbols)
+	   1 font-lock-keyword-face)
      ;; These are built-in commands.  Only frequently-used ones are listed.
-     (generic-make-keywords-list
-      '("CALL"	    "call"	 "Call"
-	"CD"	    "cd"	 "Cd"
-	"CLS"	    "cls"	 "Cls"
-	"COPY"	    "copy"	 "Copy"
-	"DEL"	    "del"	 "Del"
-	"ECHO"	    "echo"	 "Echo"
-	"MD"	    "md"	 "Md"
-	"PATH"	    "path"	 "Path"
-	"PAUSE"	    "pause"	 "Pause"
-	"PROMPT"    "prompt"	 "Prompt"
-	"RD"	    "rd"	 "Rd"
-	"REN"	    "ren"	 "Ren"
-	"SET"	    "set"	 "Set"
-	"START"	    "start"	 "Start"
-	"SHIFT"	    "shift"	 "Shift")
-      font-lock-builtin-face "[ \t|\n]")
+     (list (concat "[ \t|\n]"
+		   (regexp-opt '("CALL"	    "call"	 "Call"
+				 "CD"	    "cd"	 "Cd"
+				 "CLS"	    "cls"	 "Cls"
+				 "COPY"	    "copy"	 "Copy"
+				 "DEL"	    "del"	 "Del"
+				 "ECHO"	    "echo"	 "Echo"
+				 "MD"	    "md"	 "Md"
+				 "PATH"	    "path"	 "Path"
+				 "PAUSE"    "pause"	 "Pause"
+				 "PROMPT"   "prompt"	 "Prompt"
+				 "RD"	    "rd"	 "Rd"
+				 "REN"	    "ren"	 "Ren"
+				 "SET"	    "set"	 "Set"
+				 "START"    "start"	 "Start"
+				 "SHIFT"    "shift"	 "Shift") 'symbols))
+	   1 font-lock-builtin-face)
      '("^[ \t]*\\(:\\sw+\\)"         1 font-lock-function-name-face t)
      '("\\(%\\sw+%\\)"               1 font-lock-variable-name-face t)
      '("\\(%[0-9]\\)"                1 font-lock-variable-name-face t)
@@ -841,21 +833,16 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; the choice of face for each token group
   (eval-when-compile
     (list
-     (generic-make-keywords-list
-      '("FILEFLAGSMASK"
-	"FILEFLAGS"
-	"FILEOS"
-	"FILESUBTYPE"
-	"FILETYPE"
-	"FILEVERSION"
-	"PRODUCTVERSION")
-      font-lock-type-face)
-     (generic-make-keywords-list
-      '("BEGIN"
-	"BLOCK"
-	"END"
-	"VALUE")
-      font-lock-function-name-face)
+     (list (regexp-opt '("FILEFLAGSMASK"
+			 "FILEFLAGS"
+			 "FILEOS"
+			 "FILESUBTYPE"
+			 "FILETYPE"
+			 "FILEVERSION"
+			 "PRODUCTVERSION") 'symbols)
+	   1 font-lock-type-face)
+     (list (regexp-opt '("BEGIN" "BLOCK" "END" "VALUE") 'symbols)
+	   1 font-lock-function-name-face)
      '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
      '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
      '("^#[ \t]*\\(elif\\|if\\)\\>"
@@ -1470,21 +1457,25 @@ like an INI file.  You can add this hook to `find-file-hook'."
        (1 font-lock-keyword-face)
        (2 font-lock-constant-face nil t))
      ;; system variables
-     (generic-make-keywords-list
-      installshield-system-variables-list
-      font-lock-variable-name-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-system-variables-list 'symbols)
+		   "[^_]")
+	   1 font-lock-variable-name-face)
      ;; system functions
-     (generic-make-keywords-list
-      installshield-system-functions-list
-      font-lock-function-name-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-system-functions-list 'symbols)
+		   "[^_]")
+	   1 font-lock-function-name-face)
      ;; type keywords
-     (generic-make-keywords-list
-      installshield-types-list
-      font-lock-type-face "[^_]" "[^_]")
+     (list (concat "[^_]"
+		   (regexp-opt installshield-types-list 'symbols)
+		   "[^_]")
+	   1 font-lock-type-face)
      ;; function argument constants
-     (generic-make-keywords-list
-      installshield-funarg-constants-list
-      font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
+     (list (concat "[^_]"
+		   (regexp-opt installshield-funarg-constants-list 'symbols)
+		   "[^_]")
+	   1 font-lock-variable-name-face))) ; is this face the best choice?
   '("\\.[rR][uU][lL]\\'")
   '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files.")

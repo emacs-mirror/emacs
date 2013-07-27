@@ -1,6 +1,7 @@
-# Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2013 Free Software
-# Foundation, Inc.
+### @configure_input@
+
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2013
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -146,17 +147,17 @@ MOVE_FLAGS=
 ## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
 BLESSMAIL_TARGET=@BLESSMAIL_TARGET@
 
-## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
+## -lkrb or -lkrb4 if needed
 KRB4LIB=@KRB4LIB@
-## -ldes if HAVE_LIBDES or -ldes425 if HAVE_LIBDES425
+## -ldes or -ldes425 if needed
 DESLIB=@DESLIB@
-## -lkrb5 if HAVE_LIBKRB5
+## -lkrb5 if needed
 KRB5LIB=@KRB5LIB@
-## -lk5crypto if HAVE_LIBK5CRYPTO or -lcrypto if HAVE_LIBCRYPTO
+## -lk5crypto or -lcrypto if needed
 CRYPTOLIB=@CRYPTOLIB@
-## -lcom_err if HAVE_LIBCOM_ERR
+## -lcom_err if needed
 COM_ERRLIB=@COM_ERRLIB@
-## -lhesiod if HAVE_LIBHESIOD
+## -lhesiod if needed
 LIBHESIOD=@LIBHESIOD@
 ## -lresolv if HAVE_LIBRESOLV
 LIBRESOLV=@LIBRESOLV@
@@ -278,7 +279,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o *.res
 
 clean: mostlyclean
 	-rm -f ${EXE_FILES}

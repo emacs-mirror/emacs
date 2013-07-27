@@ -560,6 +560,13 @@ This variable is buffer-local."
   :type 'boolean
   :group 'term)
 
+(defcustom term-suppress-hard-newline nil
+  "Non-nil means interpreter should not break long lines with newlines.
+This means text can automatically reflow if the window is resized."
+  :version "24.4"
+  :type 'boolean
+  :group 'term)
+
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
 ;; indications of the current pc.
@@ -2828,8 +2835,9 @@ See `term-prompt-regexp'."
 			  (setq count (length decoded-substring))
 			  (setq temp (- (+ (term-horizontal-column) count)
 					term-width))
-			  (cond ((<= temp 0)) ;; All count chars fit in line.
-				((> count temp)	;; Some chars fit.
+			  (cond ((or term-suppress-hard-newline (<= temp 0)))
+				;; All count chars fit in line.
+				((> count temp) ;; Some chars fit.
 				 ;; This iteration, handle only what fits.
 				 (setq count (- count temp))
 				 (setq count-bytes

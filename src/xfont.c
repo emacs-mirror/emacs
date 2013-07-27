@@ -295,9 +295,9 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
 
   /* Two special cases to avoid opening rather big fonts.  */
   if (EQ (AREF (props, 2), Qja))
-    return Fcons (intern ("kana"), Fcons (intern ("han"), Qnil));
+    return list2 (intern ("kana"), intern ("han"));
   if (EQ (AREF (props, 2), Qko))
-    return Fcons (intern ("hangul"), Qnil);
+    return list1 (intern ("hangul"));
   scripts = Fgethash (props, xfont_scripts_cache, Qt);
   if (EQ (scripts, Qt))
     {

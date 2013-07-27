@@ -535,6 +535,8 @@ describes the commands and features that are changed in this mode.
 
 @kindex C-h b
 @findex describe-bindings
+@kindex C-h s
+@findex describe-syntax
   @kbd{C-h b} (@code{describe-bindings}) and @kbd{C-h s}
 (@code{describe-syntax}) show other information about the current
 environment within Emacs.  @kbd{C-h b} displays a list of all the key

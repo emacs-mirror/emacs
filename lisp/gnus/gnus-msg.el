@@ -920,6 +920,7 @@ header line with the old Message-ID."
       (with-current-buffer article-buffer
 	(let ((gnus-newsgroup-charset (or gnus-article-charset
 					  gnus-newsgroup-charset))
+	      (inhibit-read-only t)
 	      (gnus-newsgroup-ignored-charsets
 	       (or gnus-article-ignored-charsets
 		   gnus-newsgroup-ignored-charsets)))
@@ -1131,7 +1132,9 @@ See the variable `gnus-user-agent'."
 	   (gnus-v
 	    (when (memq 'gnus gnus-user-agent)
 	      (concat "Gnus/"
-		      (prin1-to-string (gnus-continuum-version gnus-version) t)
+		      (gnus-replace-in-string
+		       (format "%1.8f" (gnus-continuum-version gnus-version))
+		       "0+\\'" "")
 		      " (" gnus-version ")")))
 	   (emacs-v (gnus-emacs-version)))
       (concat gnus-v (when (and gnus-v emacs-v) " ")

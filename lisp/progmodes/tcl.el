@@ -266,7 +266,7 @@ quoted for Tcl."
   ;; Maybe someone has a better set?
   (let ((map (make-sparse-keymap)))
     ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
-    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\t" 'completion-at-point)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\177" 'backward-delete-char-untabify)
     (define-key map "\M-\C-x" 'tcl-eval-defun)

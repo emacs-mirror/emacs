@@ -160,13 +160,7 @@ extern void _DebPrint (const char *fmt, ...);
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
-#ifdef make_number
-/* If make_number is a macro, use it.  */
 #define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
-#else
-/* If make_number is a function, avoid it.  */
-#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
-#endif
 #endif
 
 #include <string.h>
@@ -207,10 +201,52 @@ extern void _DebPrint (const char *fmt, ...);
 #undef noinline
 #endif
 
+/* Use Gnulib's extern-inline module for extern inline functions.
+   An include file foo.h should prepend FOO_INLINE to function
+   definitions, with the following overall pattern:
+
+      [#include any other .h files first.]
+      ...
+      INLINE_HEADER_BEGIN
+      #ifndef FOO_INLINE
+      # define FOO_INLINE INLINE
+      #endif
+      ...
+      FOO_INLINE int
+      incr (int i)
+      {
+        return i + 1;
+      }
+      ...
+      INLINE_HEADER_END
+
+   The corresponding foo.c file should do this:
+
+      #define FOO_INLINE EXTERN_INLINE
+
+   before including any .h file other than config.h.
+   Other .c files should not define FOO_INLINE.
+
+   C99 compilers compile functions like 'incr' as C99-style extern
+   inline functions.  Pre-C99 GCCs do something similar with
+   GNU-specific keywords.  Pre-C99 non-GCC compilers use static
+   functions, which bloats the code but is good enough.  */
+
 #define INLINE _GL_INLINE
 #define EXTERN_INLINE _GL_EXTERN_INLINE
 #define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
 #define INLINE_HEADER_END _GL_INLINE_HEADER_END
+
+/* To use the struct hack with N elements, declare the struct like this:
+     struct s { ...; t name[FLEXIBLE_ARRAY_MEMBER]; };
+   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.  */
+#if 199901 <= __STDC_VERSION__
+# define FLEXIBLE_ARRAY_MEMBER
+#elif __GNUC__ && !defined __STRICT_ANSI__
+# define FLEXIBLE_ARRAY_MEMBER 0
+#else
+# define FLEXIBLE_ARRAY_MEMBER 1
+#endif
 
 /* Use this to suppress gcc's `...may be used before initialized' warnings. */
 #ifdef lint

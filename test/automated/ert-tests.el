@@ -26,10 +26,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib))
+(require 'cl-lib)
 (require 'ert)
-
 
 ;;; Self-test that doesn't rely on ERT, for bootstrapping.
 
@@ -578,7 +576,7 @@ This macro is used to test if macroexpansion in `should' works."
   (should (ert--special-operator-p 'if))
   (should-not (ert--special-operator-p 'car))
   (should-not (ert--special-operator-p 'ert--special-operator-p))
-  (let ((b (ert--gensym)))
+  (let ((b (cl-gensym)))
     (should-not (ert--special-operator-p b))
     (fset b 'if)
     (should (ert--special-operator-p b))))
@@ -625,171 +623,6 @@ This macro is used to test if macroexpansion in `should' works."
                        ((should (equal obj '(b))) :form (equal (b) (b)) :value t
                         :explanation nil)
                        ))))))
-
-(ert-deftest ert-test-remprop ()
-  (let ((x (ert--gensym)))
-    (should (equal (symbol-plist x) '()))
-    ;; Remove nonexistent property on empty plist.
-    (ert--remprop x 'b)
-    (should (equal (symbol-plist x) '()))
-    (put x 'a 1)
-    (should (equal (symbol-plist x) '(a 1)))
-    ;; Remove nonexistent property on nonempty plist.
-    (ert--remprop x 'b)
-    (should (equal (symbol-plist x) '(a 1)))
-    (put x 'b 2)
-    (put x 'c 3)
-    (put x 'd 4)
-    (should (equal (symbol-plist x) '(a 1 b 2 c 3 d 4)))
-    ;; Remove property that is neither first nor last.
-    (ert--remprop x 'c)
-    (should (equal (symbol-plist x) '(a 1 b 2 d 4)))
-    ;; Remove last property from a plist of length >1.
-    (ert--remprop x 'd)
-    (should (equal (symbol-plist x) '(a 1 b 2)))
-    ;; Remove first property from a plist of length >1.
-    (ert--remprop x 'a)
-    (should (equal (symbol-plist x) '(b 2)))
-    ;; Remove property when there is only one.
-    (ert--remprop x 'b)
-    (should (equal (symbol-plist x) '()))))
-
-(ert-deftest ert-test-remove-if-not ()
-  (let ((list (list 'a 'b 'c 'd))
-        (i 0))
-    (let ((result (ert--remove-if-not (lambda (x)
-                                        (should (eql x (nth i list)))
-                                        (cl-incf i)
-                                        (member i '(2 3)))
-                                      list)))
-      (should (equal i 4))
-      (should (equal result '(b c)))
-      (should (equal list '(a b c d)))))
-  (should (equal '()
-                 (ert--remove-if-not (lambda (_x) (should nil)) '()))))
-
-(ert-deftest ert-test-remove* ()
-  (let ((list (list 'a 'b 'c 'd))
-        (key-index 0)
-        (test-index 0))
-    (let ((result
-           (ert--remove* 'foo list
-                         :key (lambda (x)
-                                (should (eql x (nth key-index list)))
-                                (prog1
-                                    (list key-index x)
-                                  (cl-incf key-index)))
-                         :test
-                         (lambda (a b)
-                           (should (eql a 'foo))
-                           (should (equal b (list test-index
-                                                  (nth test-index list))))
-                           (cl-incf test-index)
-                           (member test-index '(2 3))))))
-      (should (equal key-index 4))
-      (should (equal test-index 4))
-      (should (equal result '(a d)))
-      (should (equal list '(a b c d)))))
-  (let ((x (cons nil nil))
-        (y (cons nil nil)))
-    (should (equal (ert--remove* x (list x y))
-                   ;; or (list x), since we use `equal' -- the
-                   ;; important thing is that only one element got
-                   ;; removed, this proves that the default test is
-                   ;; `eql', not `equal'
-                   (list y)))))
-
-
-(ert-deftest ert-test-set-functions ()
-  (let ((c1 (cons nil nil))
-        (c2 (cons nil nil))
-        (sym (make-symbol "a")))
-    (let ((e '())
-          (a (list 'a 'b sym nil "" "x" c1 c2))
-          (b (list c1 'y 'b sym 'x)))
-      (should (equal (ert--set-difference e e) e))
-      (should (equal (ert--set-difference a e) a))
-      (should (equal (ert--set-difference e a) e))
-      (should (equal (ert--set-difference a a) e))
-      (should (equal (ert--set-difference b e) b))
-      (should (equal (ert--set-difference e b) e))
-      (should (equal (ert--set-difference b b) e))
-      (should (equal (ert--set-difference a b) (list 'a nil "" "x" c2)))
-      (should (equal (ert--set-difference b a) (list 'y 'x)))
-
-      ;; We aren't testing whether this is really using `eq' rather than `eql'.
-      (should (equal (ert--set-difference-eq e e) e))
-      (should (equal (ert--set-difference-eq a e) a))
-      (should (equal (ert--set-difference-eq e a) e))
-      (should (equal (ert--set-difference-eq a a) e))
-      (should (equal (ert--set-difference-eq b e) b))
-      (should (equal (ert--set-difference-eq e b) e))
-      (should (equal (ert--set-difference-eq b b) e))
-      (should (equal (ert--set-difference-eq a b) (list 'a nil "" "x" c2)))
-      (should (equal (ert--set-difference-eq b a) (list 'y 'x)))
-
-      (should (equal (ert--union e e) e))
-      (should (equal (ert--union a e) a))
-      (should (equal (ert--union e a) a))
-      (should (equal (ert--union a a) a))
-      (should (equal (ert--union b e) b))
-      (should (equal (ert--union e b) b))
-      (should (equal (ert--union b b) b))
-      (should (equal (ert--union a b) (list 'a 'b sym nil "" "x" c1 c2 'y 'x)))
-      (should (equal (ert--union b a) (list c1 'y 'b sym 'x 'a nil "" "x" c2)))
-
-      (should (equal (ert--intersection e e) e))
-      (should (equal (ert--intersection a e) e))
-      (should (equal (ert--intersection e a) e))
-      (should (equal (ert--intersection a a) a))
-      (should (equal (ert--intersection b e) e))
-      (should (equal (ert--intersection e b) e))
-      (should (equal (ert--intersection b b) b))
-      (should (equal (ert--intersection a b) (list 'b sym c1)))
-      (should (equal (ert--intersection b a) (list c1 'b sym))))))
-
-(ert-deftest ert-test-gensym ()
-  ;; Since the expansion of `should' calls `ert--gensym' and thus has a
-  ;; side-effect on `ert--gensym-counter', we have to make sure all
-  ;; macros in our test body are expanded before we rebind
-  ;; `ert--gensym-counter' and run the body.  Otherwise, the test would
-  ;; fail if run interpreted.
-  (let ((body (byte-compile
-               '(lambda ()
-                  (should (equal (symbol-name (ert--gensym)) "G0"))
-                  (should (equal (symbol-name (ert--gensym)) "G1"))
-                  (should (equal (symbol-name (ert--gensym)) "G2"))
-                  (should (equal (symbol-name (ert--gensym "foo")) "foo3"))
-                  (should (equal (symbol-name (ert--gensym "bar")) "bar4"))
-                  (should (equal ert--gensym-counter 5))))))
-    (let ((ert--gensym-counter 0))
-      (funcall body))))
-
-(ert-deftest ert-test-coerce-to-vector ()
-  (let* ((a (vector))
-         (b (vector 1 a 3))
-         (c (list))
-         (d (list b a)))
-    (should (eql (ert--coerce-to-vector a) a))
-    (should (eql (ert--coerce-to-vector b) b))
-    (should (equal (ert--coerce-to-vector c) (vector)))
-    (should (equal (ert--coerce-to-vector d) (vector b a)))))
-
-(ert-deftest ert-test-string-position ()
-  (should (eql (ert--string-position ?x "") nil))
-  (should (eql (ert--string-position ?a "abc") 0))
-  (should (eql (ert--string-position ?b "abc") 1))
-  (should (eql (ert--string-position ?c "abc") 2))
-  (should (eql (ert--string-position ?d "abc") nil))
-  (should (eql (ert--string-position ?A "abc") nil)))
-
-(ert-deftest ert-test-mismatch ()
-  (should (eql (ert--mismatch "" "") nil))
-  (should (eql (ert--mismatch "" "a") 0))
-  (should (eql (ert--mismatch "a" "a") nil))
-  (should (eql (ert--mismatch "ab" "a") 1))
-  (should (eql (ert--mismatch "Aa" "aA") 0))
-  (should (eql (ert--mismatch '(a b c) '(a b d)) 2)))
 
 (ert-deftest ert-test-string-first-line ()
   (should (equal (ert--string-first-line "") ""))

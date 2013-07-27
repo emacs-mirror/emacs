@@ -118,13 +118,11 @@ See also `emacs-session-save'.")
 
 (defun emacs-session-filename (session-id)
   "Construct a filename to save the session in based on SESSION-ID.
-If the directory ~/.emacs.d exists, we make a filename in there, otherwise
-a file in the home directory."
-  (let ((basename (concat "session." session-id))
-	(emacs-dir user-emacs-directory))
-    (expand-file-name (if (file-directory-p emacs-dir)
-			  (concat emacs-dir basename)
-			(concat "~/.emacs-" basename)))))
+Return a filename in `user-emacs-directory', unless the session file
+already exists in the home directory."
+  (let ((basename (concat "session." session-id)))
+    (locate-user-emacs-file basename
+                            (concat ".emacs-" basename))))
 
 (defun emacs-session-save ()
   "This function is called when the window system is shutting down.

@@ -1,3 +1,60 @@
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
+	(FD_CLOEXEC): New macros.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* gnulib.mk: Remove empty gl_GNULIB_ENABLED_verify section;
+	otherwise, gnulib-tool complains given close-on-exec changes.
+	* inc/ms-w32.h (pipe): Remove.
+	* mingw-cfg.site (ac_cv_func_fcntl, gl_cv_func_fcntl_f_dupfd_cloexec)
+	(gl_cv_func_fcntl_f_dupfd_works, ac_cv_func_pipe2): New vars.
+
+2013-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add warning to the help text about using the
+	MSYS/MinGW building procedure.
+
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.MSYS: mingw-get is not a GUI program (yet).
+	msys-automake is not suitable for MinGW builds.  Mention the
+	--enable-locallisppath switch to msysconfig.sh.  Suggested by
+	Óscar Fuentes <ofv@wanadoo.es>.
+
+2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* epaths.nt (PATH_SITELOADSEARCH): Fix commentary.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Add HAVE_GFILENOTIFY, HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timeval): Remove the _W64 guards.
+
+2013-06-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h [!_TIMEZONE_DEFINED]: Define _TIMEZONE_DEFINED to
+	avoid multiple definition errors on MinGW64.
+
+2013-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
+	'restrict', which is a C99 extension.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00588.html
+	and the following discussion for the problem this caused in the
+	old nt/configure.bat build.
+
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (emacs.res): Include srcdir when preprocessing
+	resources, for out-of-tree builds.
+	(mostlyclean): Remove *.res files.
+
 2013-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* runemacs.c (WinMain): Support invocation of un-installed
@@ -70,7 +127,7 @@
 
 2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use Gnulib ACL implementation, for benefit of Solaris etc. (Bug#14295)
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
 	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
 	* inc/ms-w32.h (EOPNOTSUPP): New macro.
 
@@ -598,7 +655,7 @@
 
 2012-09-01  Daniel Colascione  <dancol@dancol.org>
 
-	* inc/ms-w32.h (TERM_HEADER): Add for refactoring
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring.
 
 2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -896,8 +953,8 @@
 	(install-other-dirs-nmake, install-other-dirs-gmake): Depend on `all'.
 	(install-shortcuts): Depend on $(INSTALL_DIR)/bin.  Copy addpm.exe
 	here.
-	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist): Depend
-	on create-tmp-dist-dir.
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist):
+	Depend on create-tmp-dist-dir.
 
 	* nmake.defs (DIRNAME): New variable.
 	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of

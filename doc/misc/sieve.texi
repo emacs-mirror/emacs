@@ -149,7 +149,7 @@ When a server has been successfully contacted, the Manage Sieve buffer
 looks something like:
 
 @example
-Server  : mailserver:2000
+Server  : mailserver:sieve
 
 2 scripts on server, press RET on a script name edits it, or
 press RET on <new script> to create a new script.
@@ -213,6 +213,11 @@ Bury the Manage Sieve buffer without closing the connection.
 @kindex h
 @findex sieve-help
 Displays help in the minibuffer.
+
+@item Q
+@kindex Q
+@findex sieve-manage-quit
+Quit Manage Sieve and close the connection.
 
 @end table
 
@@ -342,7 +347,7 @@ lists the relevant ones.  They can all be fetched from
 @item RFC3028
 Sieve: A Mail Filtering Language.
 
-@item draft-martin-managesieve-03
+@item RFC5804
 A Protocol for Remotely Managing Sieve Scripts
 
 @end table

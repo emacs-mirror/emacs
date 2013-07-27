@@ -438,8 +438,8 @@ when you specify a relative directory name.
 @item DBUS_SESSION_BUS_ADDRESS
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
 need to change it.  Setting it to a dummy address, like
-@samp{unix:path=/tmp/foo}, suppresses connections to the D-Bus session
-bus.
+@samp{unix:path=/dev/null}, suppresses connections to the D-Bus session
+bus as well as autolaunching the D-Bus session bus if not running yet.
 @item EMACSDATA
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the variable @code{data-directory}.

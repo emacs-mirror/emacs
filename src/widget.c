@@ -656,7 +656,6 @@ resize_cb (Widget widget,
            XEvent* event,
            Boolean* continue_to_dispatch)
 {
-  EmacsFrame ew = (EmacsFrame) widget;
   EmacsFrameResize (widget);
 }
 

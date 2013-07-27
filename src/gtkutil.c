@@ -1650,10 +1650,10 @@ xg_dialog_response_cb (GtkDialog *w,
 
 /*  Destroy the dialog.  This makes it pop down.  */
 
-static Lisp_Object
-pop_down_dialog (Lisp_Object arg)
+static void
+pop_down_dialog (void *arg)
 {
-  struct xg_dialog_data *dd = XSAVE_POINTER (arg, 0);
+  struct xg_dialog_data *dd = arg;
 
   block_input ();
   if (dd->w) gtk_widget_destroy (dd->w);
@@ -1663,8 +1663,6 @@ pop_down_dialog (Lisp_Object arg)
   g_main_loop_unref (dd->loop);
 
   unblock_input ();
-
-  return Qnil;
 }
 
 /* If there are any emacs timers pending, add a timeout to main loop in DATA.
@@ -1719,7 +1717,7 @@ xg_dialog_run (FRAME_PTR f, GtkWidget *w)
   g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
   gtk_widget_show (w);
 
-  record_unwind_protect (pop_down_dialog, make_save_pointer (&dd));
+  record_unwind_protect_ptr (pop_down_dialog, &dd);
 
   (void) xg_maybe_add_timer (&dd);
   g_main_loop_run (dd.loop);

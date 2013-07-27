@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    return, and watch_worker then issues another call to
    ReadDirectoryChangesW.  (Except when it does not, see below.)
 
-   In a GUI session, The WM_EMACS_FILENOTIFY message, posted to the
+   In a GUI session, the WM_EMACS_FILENOTIFY message posted to the
    message queue gets dispatched to the main Emacs window procedure,
    which queues it for processing by w32_read_socket.  When
    w32_read_socket sees this message, it accesses the buffer with file
@@ -59,7 +59,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    When the FILE_NOTIFY_EVENT event is processed by keyboard.c's
    kbd_buffer_get_event, it is converted to a Lispy event that can be
-   bound to a command.  The default binding is w32notify-handle-event,
+   bound to a command.  The default binding is file-notify-handle-event,
    defined on subr.el.
 
    After w32_read_socket or w32_console_read_socket are done

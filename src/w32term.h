@@ -683,7 +683,7 @@ extern Lisp_Object w32_get_watch_object (void *);
 extern Lisp_Object lispy_file_action (DWORD);
 
 extern void w32_initialize_display_info (Lisp_Object);
-extern void initialize_w32_display (struct terminal *);
+extern void initialize_w32_display (struct terminal *, int *, int *);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard
@@ -750,6 +750,9 @@ extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
 extern int w32_system_caret_y;
+extern struct window *w32_system_caret_window;
+extern int w32_system_caret_hdr_height;
+extern int w32_system_caret_mode_height;
 
 #ifdef _MSC_VER
 #ifndef EnumSystemLocales

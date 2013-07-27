@@ -2176,7 +2176,7 @@ Please contact your system administrator. "
 	  (goto-char beg)
 	  (set-mark end)
 	  (viper-enlarge-region (point) (mark t))
-	  (shell-command-on-region (point) (mark t) command t))
+	  (shell-command-on-region (point) (mark t) command t t))
 	(goto-char beg)))))
 
 (defun ex-compile ()

@@ -123,7 +123,11 @@ int sys_sendto (int s, const char * buf, int len, int flags,
    an fcntl function, for setting sockets to non-blocking mode.  */
 int fcntl (int s, int cmd, int options);
 #define F_SETFL   4
+#define F_SETFD   2
 #define O_NONBLOCK  04000
+#define O_CLOEXEC O_NOINHERIT
+#define F_DUPFD_CLOEXEC 0x40000000
+#define FD_CLOEXEC 1
 
 /* we are providing a real h_errno variable */
 #undef h_errno

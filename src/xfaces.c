@@ -200,10 +200,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    used to fill in unspecified attributes of the default face.  */
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdio.h>              /* This needs to be before termchar.h */
 
 #include "lisp.h"
 #include "character.h"
@@ -3389,7 +3388,7 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 	  ASET (lface, LFACE_FONT_INDEX, font);
 	}
       f->default_face_done_p = 0;
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font), Qnil));
+      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, font)));
     }
 }
 
@@ -3710,14 +3709,10 @@ Value is nil if ATTR doesn't have a discrete set of valid values.  */)
 
   CHECK_SYMBOL (attr);
 
-  if (EQ (attr, QCunderline))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCoverline))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCstrike_through))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
-  else if (EQ (attr, QCinverse_video) || EQ (attr, QCreverse_video))
-    result = Fcons (Qt, Fcons (Qnil, Qnil));
+  if (EQ (attr, QCunderline) || EQ (attr, QCoverline)
+      || EQ (attr, QCstrike_through)
+      || EQ (attr, QCinverse_video) || EQ (attr, QCreverse_video))
+    result = list2 (Qt, Qnil);
 
   return result;
 }
@@ -3780,21 +3775,18 @@ Default face attributes override any local face attributes.  */)
 	      && newface->font)
 	    {
 	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
-	      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
-						      Qnil));
+	      Fmodify_frame_parameters (frame, list1 (Fcons (Qfont, name)));
 	    }
 
 	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
 	    Fmodify_frame_parameters (frame,
-				      Fcons (Fcons (Qforeground_color,
-						    gvec[LFACE_FOREGROUND_INDEX]),
-					     Qnil));
+				      list1 (Fcons (Qforeground_color,
+						    gvec[LFACE_FOREGROUND_INDEX])));
 
 	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
 	    Fmodify_frame_parameters (frame,
-				      Fcons (Fcons (Qbackground_color,
-						    gvec[LFACE_BACKGROUND_INDEX]),
-					     Qnil));
+				      list1 (Fcons (Qbackground_color,
+						    gvec[LFACE_BACKGROUND_INDEX])));
 	}
     }
 
@@ -6291,36 +6283,32 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SSDATA (abspath), "rt");
+  block_input ();
+  fp = emacs_fopen (SSDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];
       int red, green, blue;
       int num;
 
-      block_input ();
-
       while (fgets (buf, sizeof (buf), fp) != NULL) {
 	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
 	  {
-	    char *name = buf + num;
-	    num = strlen (name) - 1;
-	    if (num >= 0 && name[num] == '\n')
-	      name[num] = 0;
-	    cmap = Fcons (Fcons (build_string (name),
 #ifdef HAVE_NTGUI
-				 make_number (RGB (red, green, blue))),
+	    int color = RGB (red, green, blue);
 #else
-				 make_number ((red << 16) | (green << 8) | blue)),
+	    int color = (red << 16) | (green << 8) | blue;
 #endif
+	    char *name = buf + num;
+	    ptrdiff_t len = strlen (name);
+	    len -= 0 < len && name[len - 1] == '\n';
+	    cmap = Fcons (Fcons (make_string (name, len), make_number (color)),
 			  cmap);
 	  }
       }
       fclose (fp);
-
-      unblock_input ();
     }
-
+  unblock_input ();
   return cmap;
 }
 #endif
@@ -6484,7 +6472,7 @@ syms_of_xfaces (void)
   DEFSYM (Qtty_color_alist, "tty-color-alist");
   DEFSYM (Qscalable_fonts_allowed, "scalable-fonts-allowed");
 
-  Vparam_value_alist = Fcons (Fcons (Qnil, Qnil), Qnil);
+  Vparam_value_alist = list1 (Fcons (Qnil, Qnil));
   staticpro (&Vparam_value_alist);
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);

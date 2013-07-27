@@ -71,9 +71,8 @@ static Lisp_Object Qunmount;       /* IN_UNMOUNT */
 # define IN_ONLYDIR 0
 #endif
 
-enum { uninitialized = -100 };
 /* File handle for inotify.  */
-static int inotifyfd = uninitialized;
+static int inotifyfd = -1;
 
 /* Assoc list of files being watched.
    Format:
@@ -139,8 +138,8 @@ inotifyevent_to_event (Lisp_Object watch_object, struct inotify_event const *ev)
 
   return list2 (list4 (make_watch_descriptor (ev->wd),
                        mask_to_aspects (ev->mask),
-                       make_number (ev->cookie),
-                       name),
+                       name,
+                       make_number (ev->cookie)),
                 XCDR (watch_object));
 }
 
@@ -158,15 +157,17 @@ inotify_callback (int fd, void *_)
 
   to_read = 0;
   if (ioctl (fd, FIONREAD, &to_read) == -1)
-    report_file_error ("Error while trying to retrieve file system events",
-                       Qnil);
+    xsignal1
+      (Qfile_notify_error,
+       build_string ("Error while trying to retrieve file system events"));
   buffer = xmalloc (to_read);
   n = read (fd, buffer, to_read);
   if (n < 0)
     {
       xfree (buffer);
-      report_file_error ("Error while trying to read file system events",
-                         Qnil);
+      xsignal1
+      (Qfile_notify_error,
+       build_string ("Error while trying to read file system events"));
     }
 
   EVENT_INIT (event);
@@ -242,7 +243,7 @@ symbol_to_inotifymask (Lisp_Object symb)
   else if (EQ (symb, Qt) || EQ (symb, Qall_events))
     return IN_ALL_EVENTS;
   else
-    signal_error ("Unknown aspect", symb);
+      xsignal2 (Qfile_notify_error, build_string ("Unknown aspect"), symb);
 }
 
 static uint32_t
@@ -266,8 +267,10 @@ aspect_to_inotifymask (Lisp_Object aspect)
 DEFUN ("inotify-add-watch", Finotify_add_watch, Sinotify_add_watch, 3, 3, 0,
        doc: /* Add a watch for FILE-NAME to inotify.
 
-A WATCH-DESCRIPTOR is returned on success.  ASPECT might be one of the following
-symbols or a list of those symbols:
+Return a watch descriptor.  The watch will look for ASPECT events and
+invoke CALLBACK when an event occurs.
+
+ASPECT might be one of the following symbols or a list of those symbols:
 
 access
 attrib
@@ -286,7 +289,7 @@ all-events or t
 move
 close
 
-The following symbols can also be added to a list of aspects
+The following symbols can also be added to a list of aspects:
 
 dont-follow
 excl-unlink
@@ -294,11 +297,10 @@ mask-add
 oneshot
 onlydir
 
-Watching a directory is not recursive.  CALLBACK gets called in case of an
-event.  It gets passed a single argument EVENT which contains an event structure
-of the format
+Watching a directory is not recursive.  CALLBACK is passed a single argument
+EVENT which contains an event structure of the format
 
-(WATCH-DESCRIPTOR ASPECTS COOKIE NAME)
+(WATCH-DESCRIPTOR ASPECTS NAME COOKIE)
 
 WATCH-DESCRIPTOR is the same object that was returned by this function.  It can
 be tested for equality using `equal'.  ASPECTS describes the event.  It is a
@@ -310,10 +312,10 @@ isdir
 q-overflow
 unmount
 
+If a directory is watched then NAME is the name of file that caused the event.
+
 COOKIE is an object that can be compared using `equal' to identify two matching
 renames (moved-from and moved-to).
-
-If a directory is watched then NAME is the name of file that caused the event.
 
 See inotify(7) and inotify_add_watch(2) for further information.  The inotify fd
 is managed internally and there is no corresponding inotify_init.  Use
@@ -329,15 +331,13 @@ is managed internally and there is no corresponding inotify_init.  Use
 
   CHECK_STRING (file_name);
 
-  if (inotifyfd == uninitialized)
+  if (inotifyfd < 0)
     {
       inotifyfd = inotify_init1 (IN_NONBLOCK|IN_CLOEXEC);
-      if (inotifyfd == -1)
-        {
-          inotifyfd = uninitialized;
-          report_file_error ("File watching feature (inotify) is not available",
-                             Qnil);
-        }
+      if (inotifyfd < 0)
+	xsignal1
+	  (Qfile_notify_error,
+	   build_string ("File watching feature (inotify) is not available"));
       watch_list = Qnil;
       add_read_fd (inotifyfd, &inotify_callback, NULL);
     }
@@ -346,7 +346,8 @@ is managed internally and there is no corresponding inotify_init.  Use
   encoded_file_name = ENCODE_FILE (file_name);
   watchdesc = inotify_add_watch (inotifyfd, SSDATA (encoded_file_name), mask);
   if (watchdesc == -1)
-    report_file_error ("Could not add watch for file", Fcons (file_name, Qnil));
+    xsignal2 (Qfile_notify_error,
+	      build_string ("Could not add watch for file"), file_name);
 
   watch_descriptor = make_watch_descriptor (watchdesc);
 
@@ -375,8 +376,8 @@ See inotify_rm_watch(2) for more information.
   int wd = XINT (watch_descriptor);
 
   if (inotify_rm_watch (inotifyfd, wd) == -1)
-    report_file_error ("Could not rm watch", Fcons (watch_descriptor,
-                                                    Qnil));
+    xsignal2 (Qfile_notify_error,
+	      build_string ("Could not rm watch"), watch_descriptor);
 
   /* Remove watch descriptor from watch list. */
   watch_object = Fassoc (watch_descriptor, watch_list);
@@ -386,9 +387,9 @@ See inotify_rm_watch(2) for more information.
   /* Cleanup if no more files are watched. */
   if (NILP (watch_list))
     {
-      close (inotifyfd);
+      emacs_close (inotifyfd);
       delete_read_fd (inotifyfd);
-      inotifyfd = uninitialized;
+      inotifyfd = -1;
     }
 
   return Qt;

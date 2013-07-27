@@ -38,9 +38,11 @@
 ;;
 ;; - localname is a string.  This are temporary properties, which are
 ;;   related to the file localname is referring to.  Examples:
-;;   "file-exists-p" is t or nile, depending on the file existence, or
+;;   "file-exists-p" is t or nil, depending on the file existence, or
 ;;   "file-attributes" caches the result of the function
-;;  `file-attributes'.
+;;   `file-attributes'.  These entries have a timestamp, and they
+;;   expire after `remote-file-name-inhibit-cache' seconds if this
+;;   variable is set.
 ;;
 ;; - The key is a process.  This are temporary properties related to
 ;;   an open connection.  Examples: "scripts" keeps shell script
@@ -64,7 +66,7 @@
 Every entry has the form (REGEXP PROPERTY VALUE).  The regexp
 matches remote file names.  It can be nil.  PROPERTY is a string,
 and VALUE the corresponding value.  They are used, if there is no
-matching entry in for PROPERTY in `tramp-cache-data'."
+matching entry for PROPERTY in `tramp-cache-data'."
   :group 'tramp
   :version "24.4"
   :type '(repeat (list (choice :tag "File Name regexp" regexp (const nil))

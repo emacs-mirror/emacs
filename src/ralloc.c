@@ -43,8 +43,6 @@ extern size_t __malloc_extra_blocks;
 #else /* not emacs */
 
 #include <stddef.h>
-
-#include <unistd.h>
 #include <malloc.h>
 
 #endif	/* not emacs */

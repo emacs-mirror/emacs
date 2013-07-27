@@ -137,13 +137,6 @@ choose_minibuf_frame (void)
   }
 }
 
-static Lisp_Object
-choose_minibuf_frame_1 (Lisp_Object ignore)
-{
-  choose_minibuf_frame ();
-  return Qnil;
-}
-
 DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
        Sactive_minibuffer_window, 0, 0, 0,
        doc: /* Return the currently active minibuffer window, or nil if none.  */)
@@ -171,8 +164,8 @@ without invoking the usual minibuffer commands.  */)
 
 /* Actual minibuffer invocation.  */
 
-static Lisp_Object read_minibuf_unwind (Lisp_Object);
-static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
+static void read_minibuf_unwind (void);
+static void run_exit_minibuf_hook (void);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
@@ -474,20 +467,20 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Prepare for restoring the current buffer since choose_minibuf_frame
      calling Fset_frame_selected_window may change it (Bug#12766).  */
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_protect (restore_buffer, Fcurrent_buffer ());
 
   choose_minibuf_frame ();
 
-  record_unwind_protect (choose_minibuf_frame_1, Qnil);
+  record_unwind_protect_void (choose_minibuf_frame);
 
-  record_unwind_protect (Fset_window_configuration,
+  record_unwind_protect (restore_window_configuration,
 			 Fcurrent_window_configuration (Qnil));
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   if (!EQ (mini_frame, selected_frame))
-    record_unwind_protect (Fset_window_configuration,
+    record_unwind_protect (restore_window_configuration,
 			   Fcurrent_window_configuration (mini_frame));
 
   /* If the minibuffer is on an iconified or invisible frame,
@@ -518,14 +511,14 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
 
-  record_unwind_protect (read_minibuf_unwind, Qnil);
+  record_unwind_protect_void (read_minibuf_unwind);
   minibuf_level++;
   /* We are exiting the minibuffer one way or the other, so run the hook.
      It should be run before unwinding the minibuf settings.  Do it
      separately from read_minibuf_unwind because we need to make sure that
      read_minibuf_unwind is fully executed even if exit-minibuffer-hook
      signals an error.  --Stef  */
-  record_unwind_protect (run_exit_minibuf_hook, Qnil);
+  record_unwind_protect_void (run_exit_minibuf_hook);
 
   /* Now that we can restore all those variables, start changing them.  */
 
@@ -786,7 +779,7 @@ get_minibuffer (EMACS_INT depth)
   tail = Fnthcdr (num, Vminibuffer_list);
   if (NILP (tail))
     {
-      tail = Fcons (Qnil, Qnil);
+      tail = list1 (Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
@@ -821,18 +814,17 @@ get_minibuffer (EMACS_INT depth)
   return buf;
 }
 
-static Lisp_Object
-run_exit_minibuf_hook (Lisp_Object data)
+static void
+run_exit_minibuf_hook (void)
 {
   safe_run_hooks (Qminibuffer_exit_hook);
-  return Qnil;
 }
 
 /* This function is called on exiting minibuffer, whether normally or
    not, and it restores the current window, buffer, etc.  */
 
-static Lisp_Object
-read_minibuf_unwind (Lisp_Object data)
+static void
+read_minibuf_unwind (void)
 {
   Lisp_Object old_deactivate_mark;
   Lisp_Object window;
@@ -895,7 +887,6 @@ read_minibuf_unwind (Lisp_Object data)
      to make sure we don't leave around bindings and stuff which only
      made sense during the read_minibuf invocation.  */
   call0 (intern ("minibuffer-inactive-mode"));
-  return Qnil;
 }
 
 
@@ -1862,7 +1853,7 @@ If FLAG is nil, invoke `try-completion'; if it is t, invoke
   else if (EQ (flag, Qlambda))
     return Ftest_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qmetadata))
-    return Fcons (Qmetadata, Fcons (Fcons (Qcategory, Qbuffer), Qnil));
+    return list2 (Qmetadata, Fcons (Qcategory, Qbuffer));
   else
     return Qnil;
 }
@@ -2106,8 +2097,7 @@ These are in addition to the basic `field' property, and stickiness
 properties.  */);
   /* We use `intern' here instead of Qread_only to avoid
      initialization-order problems.  */
-  Vminibuffer_prompt_properties
-    = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
+  Vminibuffer_prompt_properties = list2 (intern_c_string ("read-only"), Qt);
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);

@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(require 'ert)
+
 (ert-deftest advice-tests-nadvice ()
   "Test nadvice code."
   (defun sm-test1 (x) (+ x 4))

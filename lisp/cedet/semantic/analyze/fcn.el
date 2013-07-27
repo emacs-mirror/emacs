@@ -245,6 +245,8 @@ used by the analyzer debugger."
 	  (semantic-scope-set-typecache scope nil)
 	  )))))
 
+(autoload 'semantic-tag-similar-p "semantic/tag-ls")
+
 (defun semantic-analyze-dereference-metatype-stack (type scope &optional type-declaration)
   "Dereference metatypes repeatedly until we hit a real TYPE.
 Uses `semantic-analyze-dereference-metatype'.

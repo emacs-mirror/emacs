@@ -3591,6 +3591,8 @@ Cross references (Xref: header) of articles are ignored."
   (interactive "P")
   (gnus-group-catchup-current n 'all))
 
+(declare-function gnus-sequence-of-unread-articles "gnus-sum" (group))
+
 (defun gnus-group-catchup (group &optional all)
   "Mark all articles in GROUP as read.
 If ALL is non-nil, all articles are marked as read.
@@ -3652,6 +3654,10 @@ Uses the process/prefix convention."
 	   (expirable (if (gnus-group-total-expirable-p group)
 			  (cons nil (gnus-list-of-read-articles group))
 			(assq 'expire (gnus-info-marks info))))
+	   (articles-to-expire
+	    (gnus-list-range-difference
+	     (gnus-uncompress-sequence (cdr expirable))
+	     (cdr (assq 'unexist (gnus-info-marks info)))))
 	   (expiry-wait (gnus-group-find-parameter group 'expiry-wait))
 	   (nnmail-expiry-target
 	    (or (gnus-group-find-parameter group 'expiry-target)
@@ -3666,11 +3672,9 @@ Uses the process/prefix convention."
 	      ;; parameter.
 	      (let ((nnmail-expiry-wait-function nil)
 		    (nnmail-expiry-wait expiry-wait))
-		(gnus-request-expire-articles
-		 (gnus-uncompress-sequence (cdr expirable)) group))
+		(gnus-request-expire-articles articles-to-expire group))
 	    ;; Just expire using the normal expiry values.
-	    (gnus-request-expire-articles
-	     (gnus-uncompress-sequence (cdr expirable)) group))))
+	    (gnus-request-expire-articles articles-to-expire group))))
 	(gnus-close-group group))
       (gnus-message 6 "Expiring articles in %s...done"
 		    (gnus-group-decoded-name group))
@@ -4493,6 +4497,8 @@ and the second element is the address."
 		     (sort (nconc (gnus-uncompress-range (cdr m))
 				  (copy-sequence articles)) '<) t))))))
 
+(declare-function gnus-summary-add-mark "gnus-sum" (article type))
+
 (defun gnus-add-mark (group mark article)
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
   (let ((buffer (gnus-summary-buffer-name group)))
@@ -4656,6 +4662,9 @@ you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))
+
+(declare-function gnus-mark-article-as-read "gnus-sum" (article &optional mark))
+(declare-function gnus-group-make-articles-read "gnus-sum" (group articles))
 
 (defun gnus-group-mark-article-read (group article)
   "Mark ARTICLE read."

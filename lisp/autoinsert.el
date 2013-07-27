@@ -164,7 +164,10 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("\\.el\\'" . "Emacs Lisp header")
      "Short description: "
-     ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
+     ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str
+     (make-string (max 2 (- 80 (current-column) 27)) ?\s)
+     "-*- lexical-binding: t; -*-"
+     "
 
 ;; Copyright (C) " (format-time-string "%Y") "  "
  (getenv "ORGANIZATION") | (progn user-full-name) "

@@ -45,26 +45,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct prop_location;
 struct selection_data;
 
-static Lisp_Object x_atom_to_symbol (Display *dpy, Atom atom);
-static Atom symbol_to_x_atom (struct x_display_info *, Lisp_Object);
-static void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object);
-static Lisp_Object x_get_local_selection (Lisp_Object, Lisp_Object, int,
-					  struct x_display_info *);
 static void x_decline_selection_request (struct input_event *);
-static Lisp_Object x_selection_request_lisp_error (Lisp_Object);
-static Lisp_Object queue_selection_requests_unwind (Lisp_Object);
-static Lisp_Object x_catch_errors_unwind (Lisp_Object);
-static void x_reply_selection_request (struct input_event *, struct x_display_info *);
 static int x_convert_selection (struct input_event *, Lisp_Object, Lisp_Object,
 				Atom, int, struct x_display_info *);
 static int waiting_for_other_props_on_window (Display *, Window);
 static struct prop_location *expect_property_change (Display *, Window,
                                                      Atom, int);
 static void unexpect_property_change (struct prop_location *);
-static Lisp_Object wait_for_property_change_unwind (Lisp_Object);
 static void wait_for_property_change (struct prop_location *);
-static Lisp_Object x_get_foreign_selection (Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object);
 static Lisp_Object x_get_window_property_as_lisp_data (Display *,
                                                        Window, Atom,
                                                        Lisp_Object, Atom);
@@ -74,7 +62,6 @@ static Lisp_Object selection_data_to_lisp_data (Display *,
 static void lisp_data_to_selection_data (Display *, Lisp_Object,
                                          unsigned char **, Atom *,
 					 ptrdiff_t *, int *, int *);
-static Lisp_Object clean_local_selection_data (Lisp_Object);
 
 /* Printing traces to stderr.  */
 
@@ -513,8 +500,8 @@ static Atom conversion_fail_tag;
    an error, we tell the requestor that we were unable to do what they wanted
    before we throw to top-level or go into the debugger or whatever.  */
 
-static Lisp_Object
-x_selection_request_lisp_error (Lisp_Object ignore)
+static void
+x_selection_request_lisp_error (void)
 {
   struct selection_data *cs, *next;
 
@@ -530,16 +517,14 @@ x_selection_request_lisp_error (Lisp_Object ignore)
   if (x_selection_current_request != 0
       && selection_request_dpyinfo->display)
     x_decline_selection_request (x_selection_current_request);
-  return Qnil;
 }
 
-static Lisp_Object
-x_catch_errors_unwind (Lisp_Object dummy)
+static void
+x_catch_errors_unwind (void)
 {
   block_input ();
   x_uncatch_errors ();
   unblock_input ();
-  return Qnil;
 }
 
 
@@ -560,11 +545,6 @@ struct prop_location
   struct prop_location *next;
 };
 
-static struct prop_location *expect_property_change (Display *display, Window window, Atom property, int state);
-static void wait_for_property_change (struct prop_location *location);
-static void unexpect_property_change (struct prop_location *location);
-static int waiting_for_other_props_on_window (Display *display, Window window);
-
 static int prop_location_identifier;
 
 static Lisp_Object property_change_reply;
@@ -572,13 +552,6 @@ static Lisp_Object property_change_reply;
 static struct prop_location *property_change_reply_object;
 
 static struct prop_location *property_change_wait_list;
-
-static Lisp_Object
-queue_selection_requests_unwind (Lisp_Object tem)
-{
-  x_stop_queuing_selection_requests ();
-  return Qnil;
-}
 
 
 /* Send the reply to a selection request event EVENT.  */
@@ -614,7 +587,7 @@ x_reply_selection_request (struct input_event *event,
   /* The protected block contains wait_for_property_change, which can
      run random lisp code (process handlers) or signal.  Therefore, we
      put the x_uncatch_errors call in an unwind.  */
-  record_unwind_protect (x_catch_errors_unwind, Qnil);
+  record_unwind_protect_void (x_catch_errors_unwind);
   x_catch_errors (display);
 
   /* Loop over converted selections, storing them in the requested
@@ -805,12 +778,12 @@ x_handle_selection_request (struct input_event *event)
 
   x_selection_current_request = event;
   selection_request_dpyinfo = dpyinfo;
-  record_unwind_protect (x_selection_request_lisp_error, Qnil);
+  record_unwind_protect_void (x_selection_request_lisp_error);
 
   /* We might be able to handle nested x_handle_selection_requests,
      but this is difficult to test, and seems unimportant.  */
   x_start_queuing_selection_requests ();
-  record_unwind_protect (queue_selection_requests_unwind, Qnil);
+  record_unwind_protect_void (x_stop_queuing_selection_requests);
 
   TRACE2 ("x_handle_selection_request: selection=%s, target=%s",
 	  SDATA (SYMBOL_NAME (selection_symbol)),
@@ -1117,15 +1090,14 @@ unexpect_property_change (struct prop_location *location)
 
 /* Remove the property change expectation element for IDENTIFIER.  */
 
-static Lisp_Object
-wait_for_property_change_unwind (Lisp_Object loc)
+static void
+wait_for_property_change_unwind (void *loc)
 {
-  struct prop_location *location = XSAVE_POINTER (loc, 0);
+  struct prop_location *location = loc;
 
   unexpect_property_change (location);
   if (location == property_change_reply_object)
     property_change_reply_object = 0;
-  return Qnil;
 }
 
 /* Actually wait for a property change.
@@ -1140,8 +1112,7 @@ wait_for_property_change (struct prop_location *location)
     emacs_abort ();
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
-  record_unwind_protect (wait_for_property_change_unwind,
-			 make_save_pointer (location));
+  record_unwind_protect_ptr (wait_for_property_change_unwind, location);
 
   XSETCAR (property_change_reply, Qnil);
   property_change_reply_object = location;
@@ -1254,7 +1225,7 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
      SelectionNotify. */
 #if 0
   x_start_queuing_selection_requests ();
-  record_unwind_protect (queue_selection_requests_unwind, Qnil);
+  record_unwind_protect_void (x_stop_queuing_selection_requests);
 #endif
 
   unblock_input ();

@@ -624,7 +624,12 @@ in which case you might want to use `image-default-frame-delay'."
 	  (setq delay image-default-frame-delay))
       (cons images delay))))
 
-(define-obsolete-function-alias 'image-animated-p 'image-multi-frame-p "24.4")
+(defun image-animated-p (image)
+  "Like `image-multi-frame-p', but returns nil if no delay is specified."
+  (let ((multi (image-multi-frame-p image)))
+    (and (cdr multi) multi)))
+
+(make-obsolete 'image-animated-p 'image-multi-frame-p "24.4")
 
 ;; "Destructively"?
 (defun image-animate (image &optional index limit)

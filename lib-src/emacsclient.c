@@ -630,7 +630,7 @@ print_help_and_exit (void)
      Please try to preserve them; otherwise the output is very hard to read
      when using emacsclientw.  */
   message (FALSE,
-	   "Usage: %s [OPTIONS] FILE...\n\
+	   "Usage: %s [OPTIONS] FILE...\n%s%s%s", progname, "\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 \n\
@@ -640,6 +640,7 @@ The following OPTIONS are accepted:\n\
 -nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
+", "\
 -F ALIST, --frame-parameters=ALIST\n\
 			Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
@@ -647,6 +648,7 @@ The following OPTIONS are accepted:\n\
 -q, --quiet		Don't display messages on success\n\
 -d DISPLAY, --display=DISPLAY\n\
 			Visit the file in the given display\n\
+", "\
 --parent-id=ID          Open in parent window ID, via XEmbed\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s SOCKET, --socket-name=SOCKET\n\
@@ -661,7 +663,7 @@ The following OPTIONS are accepted:\n\
 			mode and try connecting again\n"
 #endif /* not WINDOWSNT */
 "\n\
-Report bugs with M-x report-emacs-bug.\n", progname);
+Report bugs with M-x report-emacs-bug.\n");
   exit (EXIT_SUCCESS);
 }
 
@@ -1509,7 +1511,10 @@ start_daemon_and_retry_set_socket (void)
     {
       char emacs[] = "emacs";
       char daemon_option[] = "--daemon";
-      char *d_argv[] = {emacs, daemon_option, 0 };
+      char *d_argv[3];
+      d_argv[0] = emacs;
+      d_argv[1] = daemon_option;
+      d_argv[2] = 0;
       if (socket_name != NULL)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */

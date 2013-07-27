@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <stdio.h>
+#include "sysstdio.h"
 
 #include "lisp.h"
 #include "character.h"
@@ -199,11 +199,10 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 /* This is used to restore the saved contents of print_buffer
    when there is a recursive call to print.  */
 
-static Lisp_Object
+static void
 print_unwind (Lisp_Object saved_text)
 {
   memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
-  return Qnil;
 }
 
 
@@ -765,13 +764,12 @@ append to existing target file.  */)
     {
       file = Fexpand_file_name (file, Qnil);
       initial_stderr_stream = stderr;
-      stderr = fopen (SSDATA (file), NILP (append) ? "w" : "a");
+      stderr = emacs_fopen (SSDATA (file), NILP (append) ? "w" : "a");
       if (stderr == NULL)
 	{
 	  stderr = initial_stderr_stream;
 	  initial_stderr_stream = NULL;
-	  report_file_error ("Cannot open debugging output stream",
-			     Fcons (file, Qnil));
+	  report_file_error ("Cannot open debugging output stream", file);
 	}
     }
   return Qnil;
@@ -1301,7 +1299,7 @@ print_prune_string_charset (Lisp_Object string)
       if (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND)
 	{
 	  if (NILP (print_prune_charset_plist))
-	    print_prune_charset_plist = Fcons (Qcharset, Qnil);
+	    print_prune_charset_plist = list1 (Qcharset);
 	  Fremove_text_properties (make_number (0),
 				   make_number (SCHARS (string)),
 				   print_prune_charset_plist, string);
@@ -1765,9 +1763,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	}
       else if (WINDOWP (obj))
 	{
-	  int len;
-	  strout ("#<window ", -1, -1, printcharfun);
-	  len = sprintf (buf, "%p", XWINDOW (obj));
+	  void *ptr = XWINDOW (obj);
+	  int len = sprintf (buf, "#<window %p", ptr);
 	  strout (buf, len, len, printcharfun);
 	  if (BUFFERP (XWINDOW (obj)->contents))
 	    {
@@ -1798,6 +1795,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  ptrdiff_t real_size, size;
 	  int len;
 #if 0
+	  void *ptr = h;
 	  strout ("#<hash-table", -1, -1, printcharfun);
 	  if (SYMBOLP (h->test))
 	    {
@@ -1810,9 +1808,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      len = sprintf (buf, "%"pD"d/%"pD"d", h->count, ASIZE (h->next));
 	      strout (buf, len, len, printcharfun);
 	    }
-	  len = sprintf (buf, " %p", h);
+	  len = sprintf (buf, " %p>", ptr);
 	  strout (buf, len, len, printcharfun);
-	  PRINTCHAR ('>');
 #endif
 	  /* Implement a readable output, e.g.:
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
@@ -1892,6 +1889,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       else if (FRAMEP (obj))
 	{
 	  int len;
+	  void *ptr = XFRAME (obj);
 	  Lisp_Object frame_name = XFRAME (obj)->name;
 
 	  strout ((FRAME_LIVE_P (XFRAME (obj))
@@ -1907,9 +1905,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		frame_name = build_string ("*INVALID*FRAME*NAME*");
 	    }
 	  print_string (frame_name, printcharfun);
-	  len = sprintf (buf, " %p", XFRAME (obj));
+	  len = sprintf (buf, " %p>", ptr);
 	  strout (buf, len, len, printcharfun);
-	  PRINTCHAR ('>');
 	}
       else if (FONTP (obj))
 	{
@@ -2103,6 +2100,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 				     v->data[index].pointer);
 			break;
 
+		      case SAVE_FUNCPOINTER:
+			i = sprintf (buf, "<funcpointer %p>",
+				     ((void *) (intptr_t)
+				      v->data[index].funcpointer));
+			break;
+
 		      case SAVE_INTEGER:
 			i = sprintf (buf, "<integer %"pD"d>",
 				     v->data[index].integer);
@@ -2112,6 +2115,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			print_object (v->data[index].object, printcharfun,
 				      escapeflag);
 			continue;
+
+		      default:
+			emacs_abort ();
 		      }
 
 		    strout (buf, i, i, printcharfun);

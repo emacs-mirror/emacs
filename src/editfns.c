@@ -838,9 +838,8 @@ This function does not move point.  */)
 Lisp_Object
 save_excursion_save (void)
 {
-  return make_save_value
-    (SAVE_TYPE_OBJ_OBJ_OBJ_OBJ,
-     Fpoint_marker (),
+  return make_save_obj_obj_obj_obj
+    (Fpoint_marker (),
      /* Do not copy the mark if it points to nowhere.  */
      (XMARKER (BVAR (current_buffer, mark))->buffer
       ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
@@ -853,7 +852,7 @@ save_excursion_save (void)
 
 /* Restore saved buffer before leaving `save-excursion' special form.  */
 
-Lisp_Object
+void
 save_excursion_restore (Lisp_Object info)
 {
   Lisp_Object tem, tem1, omark, nmark;
@@ -927,7 +926,6 @@ save_excursion_restore (Lisp_Object info)
  out:
 
   free_misc (info);
-  return Qnil;
 }
 
 DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
@@ -2809,18 +2807,16 @@ determines whether case is significant or ignored.  */)
   return make_number (0);
 }
 
-static Lisp_Object
+static void
 subst_char_in_region_unwind (Lisp_Object arg)
 {
   bset_undo_list (current_buffer, arg);
-  return arg;
 }
 
-static Lisp_Object
+static void
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
   bset_filename (current_buffer, arg);
-  return arg;
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -3331,7 +3327,7 @@ save_restriction_save (void)
     }
 }
 
-Lisp_Object
+void
 save_restriction_restore (Lisp_Object data)
 {
   struct buffer *cur = NULL;
@@ -3398,8 +3394,6 @@ save_restriction_restore (Lisp_Object data)
 
   if (cur)
     set_buffer_internal (cur);
-
-  return Qnil;
 }
 
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
@@ -3492,7 +3486,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       {
 	Lisp_Object pane, menu;
 	struct gcpro gcpro1;
-	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
+	pane = list1 (Fcons (build_string ("OK"), Qt));
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
 	Fx_popup_dialog (Qt, menu, Qt);
@@ -3627,7 +3621,7 @@ usage: (format STRING &rest OBJECTS)  */)
   ptrdiff_t bufsize = sizeof initial_buffer;
   ptrdiff_t max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
-  Lisp_Object buf_save_value IF_LINT (= {0});
+  ptrdiff_t buf_save_value_index IF_LINT (= 0);
   char *format, *end, *format_start;
   ptrdiff_t formatlen, nchars;
   /* True if the format is multibyte.  */
@@ -4236,14 +4230,14 @@ usage: (format STRING &rest OBJECTS)  */)
 	  {
 	    buf = xmalloc (bufsize);
 	    sa_must_free = 1;
-	    buf_save_value = make_save_pointer (buf);
-	    record_unwind_protect (safe_alloca_unwind, buf_save_value);
+	    buf_save_value_index = SPECPDL_INDEX ();
+	    record_unwind_protect_ptr (xfree, buf);
 	    memcpy (buf, initial_buffer, used);
 	  }
 	else
 	  {
 	    buf = xrealloc (buf, bufsize);
-	    set_save_pointer (buf_save_value, 0, buf);
+	    set_unwind_protect_ptr (buf_save_value_index, xfree, buf);
 	  }
 
 	p = buf + used;

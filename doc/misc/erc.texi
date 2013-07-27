@@ -234,9 +234,8 @@ forwards.
 
 Different channels and servers may have different language encodings.
 
-In addition, it is possible to translate the messages that ERC uses
-into multiple languages.  Please contact the developers of Emacs at
-@email{emacs-devel@@gnu.org} if you are interested in helping with the
+multiple languages.  Please contact the Emacs developers
+if you are interested in helping with the
 translation effort.
 
 @item user scripting
@@ -784,9 +783,9 @@ To report a bug in ERC, use @kbd{M-x report-emacs-bug}.
 @chapter History
 @cindex history, of ERC
 
-ERC was originally written by Alexander L. Belikoff
-@email{abel@@bfr.co.il} and Sergey Berezin
-@email{sergey.berezin@@cs.cmu.edu}.  They stopped development around
+@c abel@@bfr.co.il, sergey.berezin@@cs.cmu.edu
+ERC was originally written by Alexander L. Belikoff and Sergey Berezin.
+They stopped development around
 December 1999.  Their last released version was ERC 2.0.
 
 P.S.: If one of the original developers of ERC reads this, we'd like to
@@ -796,8 +795,9 @@ general.
 @itemize
 @item 2001
 
-In June 2001, Mario Lang @email{mlang@@delysid.org} and Alex Schroeder
-@email{alex@@gnu.org} took over development and created a ERC Project at
+@c mlang@@delysid.org, alex@@gnu.org
+In June 2001, Mario Lang and Alex Schroeder
+took over development and created a ERC Project at
 @uref{http://sourceforge.net/projects/erc}.
 
 In reaction to a mail about the new ERC development effort, Sergey
@@ -825,7 +825,8 @@ ERC 4.0 was released.
 
 @item 2005
 
-ERC 5.0 was released.  Michael Olson @email{mwolson@@gnu.org} became
+@c mwolson@@gnu.org
+ERC 5.0 was released.  Michael Olson became
 the release manager and eventually the maintainer.
 
 After some discussion between him and the Emacs developers, it was

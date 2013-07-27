@@ -77,6 +77,6 @@ void do_pending_atimers (void);
 void init_atimer (void);
 void turn_on_atimers (bool);
 void stop_other_atimers (struct atimer *);
-Lisp_Object unwind_stop_other_atimers (Lisp_Object);
+void run_all_atimers (void);
 
 #endif /* EMACS_ATIMER_H */

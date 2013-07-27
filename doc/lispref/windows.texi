@@ -1355,10 +1355,9 @@ within that frame.  @var{frame} should be a live frame; if omitted or
 
 @defun set-frame-selected-window frame window &optional norecord
 This function makes @var{window} the window selected within the frame
-@var{frame}.  @var{frame} should be a live frame; if omitted or
-@code{nil}, it defaults to the selected frame.  @var{window} should be
-a live window; if omitted or @code{nil}, it defaults to the selected
-window.
+@var{frame}.  @var{frame} should be a live frame; if @code{nil}, it
+defaults to the selected frame.  @var{window} should be a live window;
+if @code{nil}, it defaults to the selected window.
 
 If @var{frame} is the selected frame, this makes @var{window} the
 selected window.
@@ -1924,6 +1923,10 @@ frames to search for a reusable window:
 @item
 A frame means consider windows on that frame only.
 @end itemize
+
+Note that these meanings differ slightly from those of the
+@var{all-frames} argument to @code{next-window} (@pxref{Cyclic Window
+Ordering}).
 
 If @var{alist} contains no @code{reusable-frames} entry, this function
 normally searches just the selected frame; however, if the variable

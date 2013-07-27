@@ -105,10 +105,7 @@ version of Emacs.  It was developed primarily on various versions of
 Microsoft Windows, but has also been tested on MS-DOS, and various
 versions of UNIX and GNU/Linux.
 
-WoMan is distributed with GNU Emacs.  In addition, the current source
-code and documentation files are available from
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, the WoMan web
-server}.
+WoMan is distributed with GNU Emacs.
 
 WoMan implements a subset of the formatting performed by the Emacs
 @code{man} (or @code{manual-entry}) command to format a Unix-style
@@ -148,11 +145,7 @@ which begin with the prefix @code{woman-} (or occasionally
 either running the command @code{woman-mini-help} or selecting the WoMan
 menu option @samp{Mini Help}.
 
-WoMan is (of course) still under development!  Please
-@email{F.J.Wright@@qmw.ac.uk, let me know} what doesn't work---I am
-adding and improving functionality as testing shows that it is
-necessary.  Guidance on reporting bugs is given below.  @xref{Bugs, ,
-Reporting Bugs}.
+Guidance on reporting bugs is given below.  @xref{Bugs, , Reporting Bugs}.
 
 @c ===================================================================
 
@@ -276,6 +269,7 @@ of the facilities implemented in the Emacs @code{man} library.  WoMan
 and man can happily co-exist, which is very useful for comparison and
 debugging purposes.
 
+@ignore
 @code{nroff} simulates non-@acronym{ASCII} characters by using one or more
 @acronym{ASCII} characters.  WoMan should be able to do much better than
 this.  I have recently begun to add support for WoMan to use more of the
@@ -284,6 +278,7 @@ aspect that I intend to develop further in the near future.  It should
 be possible to move WoMan from an emulation of @code{nroff} to an
 emulation of @code{troff} as GNU Emacs moves to providing bit-mapped
 display facilities.
+@end ignore
 
 @node Finding
 @chapter Finding and Formatting Man Pages
@@ -1290,8 +1285,8 @@ try the latest version of @file{woman.el} from the Emacs repository
 on @uref{http://savannah.gnu.org/projects/emacs/}.  If it still fails, please
 
 @item
-send a bug report to @email{bug-gnu-emacs@@gnu.org} and to
-@email{F.J.Wright@@qmw.ac.uk}.  Please include the entry from the
+use @kbd{M-x report-emacs-bug} to send a bug report.
+Please include the entry from the
 @code{*WoMan-Log*} buffer relating to the problem file, together with
 a brief description of the problem.  Please indicate where you got the
 man source file from, but do not send it unless asked to send it.
@@ -1310,43 +1305,80 @@ I also thank the following for helpful suggestions, bug reports, code
 fragments, general interest, etc.:
 
 @quotation
-Jari Aalto, @email{jari.aalto@@cs.tpu.fi}@*
-Dean Andrews, @email{dean@@dra.com}@*
-Juanma Barranquero, @email{barranquero@@laley-actualidad.es}@*
-Karl Berry, @email{kb@@cs.umb.edu}@*
-Jim Chapman, @email{jchapman@@netcomuk.co.uk}@*
-Frederic Corne, @email{frederic.corne@@erli.fr}@*
-Peter Craft, @email{craft@@alacritech.com}@*
-Charles Curley, @email{ccurley@@trib.com}@*
-Jim Davidson, @email{jdavidso@@teknowledge.com}@*
-Kevin D'Elia, @email{Kevin.DElia@@mci.com}@*
-John Fitch, @email{jpff@@maths.bath.ac.uk}@*
-Hans Frosch, @email{jwfrosch@@rish.b17c.ingr.com}@*
-Guy Gascoigne-Piggford, @email{ggp@@informix.com}@*
-Brian Gorka, @email{gorkab@@sanchez.com}@*
-Nicolai Henriksen, @email{nhe@@lyngso-industri.dk}@*
-Thomas Herchenroeder, @email{the@@software-ag.de}@*
-Alexander Hinds, @email{ahinds@@thegrid.net}@*
-Stefan Hornburg, @email{sth@@hacon.de}@*
-Theodore Jump, @email{tjump@@cais.com}@*
-Paul Kinnucan, @email{paulk@@mathworks.com}@*
-Jonas Linde, @email{jonas@@init.se}@*
-Andrew McRae, @email{andrewm@@optimation.co.nz}@*
-Howard Melman, @email{howard@@silverstream.com}@*
-Dennis Pixton, @email{dennis@@math.binghamton.edu}@*
-T. V. Raman, @email{raman@@Adobe.com}@*
-Bruce Ravel, @email{bruce.ravel@@nist.gov}@*
-Benjamin Riefenstahl, @email{benny@@crocodial.de}@*
-Kevin Ruland, @email{kruland@@seistl.com}@*
-Tom Schutter, @email{tom@@platte.com}@*
-Wei-Xue Shi, @email{wxshi@@ma.neweb.ne.jp}@*
-Fabio Somenzi, @email{fabio@@joplin.colorado.edu}@*
-Karel Sprenger, @email{ks@@ic.uva.nl}@*
-Chris Szurgot, @email{szurgot@@itribe.net}@*
-Paul A. Thompson, @email{pat@@po.cwru.edu}@*
-Arrigo Triulzi, @email{arrigo@@maths.qmw.ac.uk}@*
-Geoff Voelker, @email{voelker@@cs.washington.edu}@*
-Eli Zaretskii, @email{eliz@@is.elta.co.il}
+@c jari.aalto@@cs.tpu.fi
+Jari Aalto,
+@c dean@@dra.com
+Dean Andrews,
+@c barranquero@@laley-actualidad.es
+Juanma Barranquero,
+@c kb@@cs.umb.edu
+Karl Berry,
+@c jchapman@@netcomuk.co.uk
+Jim Chapman,
+@c frederic.corne@@erli.fr
+Frederic Corne,
+@c craft@@alacritech.com
+Peter Craft,
+@c ccurley@@trib.com
+Charles Curley,
+@c jdavidso@@teknowledge.com
+Jim Davidson,
+@c Kevin.DElia@@mci.com
+Kevin D'Elia,
+@c jpff@@maths.bath.ac.uk
+John Fitch,
+@c jwfrosch@@rish.b17c.ingr.com
+Hans Frosch,
+@c ggp@@informix.com
+Guy Gascoigne-Piggford,
+@c gorkab@@sanchez.com
+Brian Gorka,
+@c nhe@@lyngso-industri.dk
+Nicolai Henriksen,
+@c the@@software-ag.de
+Thomas Herchenroeder,
+@c ahinds@@thegrid.net
+Alexander Hinds,
+@c sth@@hacon.de
+Stefan Hornburg,
+@c tjump@@cais.com
+Theodore Jump,
+@c paulk@@mathworks.com
+Paul Kinnucan,
+@c jonas@@init.se
+Jonas Linde,
+@c andrewm@@optimation.co.nz
+Andrew McRae,
+@c howard@@silverstream.com
+Howard Melman,
+@c dennis@@math.binghamton.edu
+Dennis Pixton,
+@c raman@@Adobe.com
+T. V. Raman,
+@c bruce.ravel@@nist.gov
+Bruce Ravel,
+@c benny@@crocodial.de
+Benjamin Riefenstahl,
+@c kruland@@seistl.com
+Kevin Ruland,
+@c tom@@platte.com
+Tom Schutter,
+@c wxshi@@ma.neweb.ne.jp
+Wei-Xue Shi,
+@c fabio@@joplin.colorado.edu
+Fabio Somenzi,
+@c ks@@ic.uva.nl
+Karel Sprenger,
+@c szurgot@@itribe.net
+Chris Szurgot,
+@c pat@@po.cwru.edu
+Paul A. Thompson,
+@c arrigo@@maths.qmw.ac.uk
+Arrigo Triulzi,
+@c voelker@@cs.washington.edu
+Geoff Voelker,
+@c eliz@@is.elta.co.il
+Eli Zaretskii
 @end quotation
 
 @c ===================================================================

@@ -1804,4 +1804,6 @@ jump when point traverses reordered bidirectional text.  Similarly, a
 highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
 normal and similar to the behavior of other programs that support
-bidirectional text.
+bidirectional text.  If you set @code{visual-order-cursor-movement} to
+a non-@code{nil} value, cursor motion by the arrow keys follows the
+visual order on screen (@pxref{Moving Point, visual-order movement}).

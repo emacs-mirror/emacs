@@ -209,7 +209,6 @@ Lisp_Object Qchar_table_extra_slots;
 
 static Lisp_Object Qpost_gc_hook;
 
-static void free_save_value (Lisp_Object);
 static void mark_terminals (void);
 static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
@@ -246,10 +245,6 @@ enum mem_type
 };
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
-
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-#include <stdio.h>		/* For fprintf.  */
-#endif
 
 /* A unique object in pure space used to make some Lisp objects
    on free lists recognizable in O(1).  */
@@ -346,7 +341,7 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
 
-#define NSTATICS 0x800
+enum { NSTATICS = 2048 };
 static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
@@ -363,6 +358,11 @@ static void *pure_alloc (size_t, int);
   ((void *) (((uintptr_t) (ptr) + (ALIGNMENT) - 1) \
 	     & ~ ((ALIGNMENT) - 1)))
 
+static void
+XFLOAT_INIT (Lisp_Object f, double n)
+{
+  XFLOAT (f)->u.data = n;
+}
 
 
 /************************************************************************
@@ -812,22 +812,13 @@ xputenv (char const *string)
     memory_full (0);
 }
 
-/* Unwind for SAFE_ALLOCA */
-
-Lisp_Object
-safe_alloca_unwind (Lisp_Object arg)
-{
-  free_save_value (arg);
-  return Qnil;
-}
-
 /* Return a newly allocated memory block of SIZE bytes, remembering
    to free it when unwinding.  */
 void *
 record_xmalloc (size_t size)
 {
   void *p = xmalloc (size);
-  record_unwind_protect (safe_alloca_unwind, make_save_pointer (p));
+  record_unwind_protect_ptr (xfree, p);
   return p;
 }
 
@@ -1255,7 +1246,7 @@ mark_interval (register INTERVAL i, Lisp_Object dummy)
    When a Lisp_String is freed during GC, it is put back on
    string_free_list, and its `data' member and its sdata's `string'
    pointer is set to null.  The size of the string is recorded in the
-   `u.nbytes' member of the sdata.  So, sdata structures that are no
+   `n.nbytes' member of the sdata.  So, sdata structures that are no
    longer used, can be easily recognized, and it's easy to compact the
    sblocks of small strings which we do in compact_small_strings.  */
 
@@ -1269,10 +1260,12 @@ mark_interval (register INTERVAL i, Lisp_Object dummy)
 
 #define LARGE_STRING_BYTES 1024
 
-/* Structure describing string memory sub-allocated from an sblock.
+/* Struct or union describing string memory sub-allocated from an sblock.
    This is where the contents of Lisp strings are stored.  */
 
-struct sdata
+#ifdef GC_CHECK_STRING_BYTES
+
+typedef struct
 {
   /* Back-pointer to the string this sdata belongs to.  If null, this
      structure is free, and the NBYTES member of the union below
@@ -1282,34 +1275,42 @@ struct sdata
      contents.  */
   struct Lisp_String *string;
 
-#ifdef GC_CHECK_STRING_BYTES
-
   ptrdiff_t nbytes;
-  unsigned char data[1];
+  unsigned char data[FLEXIBLE_ARRAY_MEMBER];
+} sdata;
 
 #define SDATA_NBYTES(S)	(S)->nbytes
 #define SDATA_DATA(S)	(S)->data
 #define SDATA_SELECTOR(member) member
 
-#else /* not GC_CHECK_STRING_BYTES */
+#else
 
-  union
+typedef union
+{
+  struct Lisp_String *string;
+
+  /* When STRING is non-null.  */
+  struct
   {
-    /* When STRING is non-null.  */
-    unsigned char data[1];
-
-    /* When STRING is null.  */
-    ptrdiff_t nbytes;
+    struct Lisp_String *string;
+    unsigned char data[FLEXIBLE_ARRAY_MEMBER];
   } u;
 
-#define SDATA_NBYTES(S)	(S)->u.nbytes
+  /* When STRING is null.  */
+  struct
+  {
+    struct Lisp_String *string;
+    ptrdiff_t nbytes;
+  } n;
+} sdata;
+
+#define SDATA_NBYTES(S)	(S)->n.nbytes
 #define SDATA_DATA(S)	(S)->u.data
 #define SDATA_SELECTOR(member) u.member
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
-#define SDATA_DATA_OFFSET offsetof (struct sdata, SDATA_SELECTOR (data))
-};
+#define SDATA_DATA_OFFSET offsetof (sdata, SDATA_SELECTOR (data))
 
 
 /* Structure describing a block of memory which is sub-allocated to
@@ -1324,10 +1325,10 @@ struct sblock
 
   /* Pointer to the next free sdata block.  This points past the end
      of the sblock if there isn't any space left in this block.  */
-  struct sdata *next_free;
+  sdata *next_free;
 
   /* Start of data.  */
-  struct sdata first_data;
+  sdata first_data;
 };
 
 /* Number of Lisp strings in a string_block structure.  The 1020 is
@@ -1383,7 +1384,7 @@ static EMACS_INT total_string_bytes;
    a pointer to the `u.data' member of its sdata structure; the
    structure starts at a constant offset in front of that.  */
 
-#define SDATA_OF_STRING(S) ((struct sdata *) ((S)->data - SDATA_DATA_OFFSET))
+#define SDATA_OF_STRING(S) ((sdata *) ((S)->data - SDATA_DATA_OFFSET))
 
 
 #ifdef GC_CHECK_STRING_OVERRUN
@@ -1482,7 +1483,7 @@ string_bytes (struct Lisp_String *s)
 static void
 check_sblock (struct sblock *b)
 {
-  struct sdata *from, *end, *from_end;
+  sdata *from, *end, *from_end;
 
   end = b->next_free;
 
@@ -1496,7 +1497,7 @@ check_sblock (struct sblock *b)
 	 same as the one recorded in the sdata structure.  */
       nbytes = SDATA_SIZE (from->string ? string_bytes (from->string)
 			   : SDATA_NBYTES (from));
-      from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
+      from_end = (sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
     }
 }
 
@@ -1626,7 +1627,7 @@ void
 allocate_string_data (struct Lisp_String *s,
 		      EMACS_INT nchars, EMACS_INT nbytes)
 {
-  struct sdata *data, *old_data;
+  sdata *data, *old_data;
   struct sblock *b;
   ptrdiff_t needed, old_nbytes;
 
@@ -1696,7 +1697,7 @@ allocate_string_data (struct Lisp_String *s,
     b = current_sblock;
 
   data = b->next_free;
-  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
+  b->next_free = (sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
   MALLOC_UNBLOCK_INPUT;
 
@@ -1767,7 +1768,7 @@ sweep_strings (void)
 	      else
 		{
 		  /* String is dead.  Put it on the free-list.  */
-		  struct sdata *data = SDATA_OF_STRING (s);
+		  sdata *data = SDATA_OF_STRING (s);
 
 		  /* Save the size of S in its sdata so that we know
 		     how large that is.  Reset the sdata's string
@@ -1776,7 +1777,7 @@ sweep_strings (void)
 		  if (string_bytes (s) != SDATA_NBYTES (data))
 		    emacs_abort ();
 #else
-		  data->u.nbytes = STRING_BYTES (s);
+		  data->n.nbytes = STRING_BYTES (s);
 #endif
 		  data->string = NULL;
 
@@ -1857,13 +1858,13 @@ static void
 compact_small_strings (void)
 {
   struct sblock *b, *tb, *next;
-  struct sdata *from, *to, *end, *tb_end;
-  struct sdata *to_end, *from_end;
+  sdata *from, *to, *end, *tb_end;
+  sdata *to_end, *from_end;
 
   /* TB is the sblock we copy to, TO is the sdata within TB we copy
      to, and TB_END is the end of TB.  */
   tb = oldest_sblock;
-  tb_end = (struct sdata *) ((char *) tb + SBLOCK_SIZE);
+  tb_end = (sdata *) ((char *) tb + SBLOCK_SIZE);
   to = &tb->first_data;
 
   /* Step through the blocks from the oldest to the youngest.  We
@@ -1892,7 +1893,7 @@ compact_small_strings (void)
 	  eassert (nbytes <= LARGE_STRING_BYTES);
 
 	  nbytes = SDATA_SIZE (nbytes);
-	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
+	  from_end = (sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
 
 #ifdef GC_CHECK_STRING_OVERRUN
 	  if (memcmp (string_overrun_cookie,
@@ -1905,14 +1906,14 @@ compact_small_strings (void)
 	  if (s)
 	    {
 	      /* If TB is full, proceed with the next sblock.  */
-	      to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
+	      to_end = (sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 	      if (to_end > tb_end)
 		{
 		  tb->next_free = to;
 		  tb = tb->next;
-		  tb_end = (struct sdata *) ((char *) tb + SBLOCK_SIZE);
+		  tb_end = (sdata *) ((char *) tb + SBLOCK_SIZE);
 		  to = &tb->first_data;
-		  to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
+		  to_end = (sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 		}
 
 	      /* Copy, and update the string's `data' pointer.  */
@@ -2576,7 +2577,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Size of the minimal vector allocated from block.  */
 
-#define VBLOCK_BYTES_MIN vroundup (sizeof (struct Lisp_Vector))
+#define VBLOCK_BYTES_MIN vroundup (header_size + sizeof (Lisp_Object))
 
 /* Size of the largest vector allocated from block.  */
 
@@ -2933,7 +2934,8 @@ allocate_vectorlike (ptrdiff_t len)
       else
 	{
 	  struct large_vector *lv
-	    = lisp_malloc (sizeof (*lv) + (len - 1) * word_size,
+	    = lisp_malloc ((offsetof (struct large_vector, v.contents)
+			    + len * word_size),
 			   MEM_TYPE_VECTORLIKE);
 	  lv->next.vector = large_vectors;
 	  large_vectors = lv;
@@ -3189,6 +3191,12 @@ static int symbol_block_index = SYMBOL_BLOCK_SIZE;
 
 static struct Lisp_Symbol *symbol_free_list;
 
+static void
+set_symbol_name (Lisp_Object sym, Lisp_Object name)
+{
+  XSYMBOL (sym)->name = name;
+}
+
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
 Its value is void, and its function definition and property list are nil.  */)
@@ -3309,7 +3317,7 @@ allocate_misc (enum Lisp_Misc_Type type)
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
-  XMISCTYPE (val) = type;
+  XMISCANY (val)->type = type;
   XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
@@ -3319,7 +3327,7 @@ allocate_misc (enum Lisp_Misc_Type type)
 void
 free_misc (Lisp_Object misc)
 {
-  XMISCTYPE (misc) = Lisp_Misc_Free;
+  XMISCANY (misc)->type = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
   consing_since_gc -= sizeof (union Lisp_Misc);
@@ -3330,65 +3338,105 @@ free_misc (Lisp_Object misc)
    that are assumed here and elsewhere.  */
 
 verify (SAVE_UNUSED == 0);
-verify ((SAVE_INTEGER | SAVE_POINTER | SAVE_OBJECT) >> SAVE_SLOT_BITS == 0);
+verify (((SAVE_INTEGER | SAVE_POINTER | SAVE_FUNCPOINTER | SAVE_OBJECT)
+	 >> SAVE_SLOT_BITS)
+	== 0);
 
-/* Return a Lisp_Save_Value object with the data saved according to
-   DATA_TYPE.  DATA_TYPE should be one of SAVE_TYPE_INT_INT, etc.  */
+/* Return Lisp_Save_Value objects for the various combinations
+   that callers need.  */
 
 Lisp_Object
-make_save_value (enum Lisp_Save_Type save_type, ...)
+make_save_int_int_int (ptrdiff_t a, ptrdiff_t b, ptrdiff_t c)
 {
-  va_list ap;
-  int i;
   Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
   struct Lisp_Save_Value *p = XSAVE_VALUE (val);
-
-  eassert (0 < save_type
-	   && (save_type < 1 << (SAVE_TYPE_BITS - 1)
-	       || save_type == SAVE_TYPE_MEMORY));
-  p->save_type = save_type;
-  va_start (ap, save_type);
-  save_type &= ~ (1 << (SAVE_TYPE_BITS - 1));
-
-  for (i = 0; save_type; i++, save_type >>= SAVE_SLOT_BITS)
-    switch (save_type & ((1 << SAVE_SLOT_BITS) - 1))
-      {
-      case SAVE_POINTER:
-	p->data[i].pointer = va_arg (ap, void *);
-	break;
-
-      case SAVE_INTEGER:
-	p->data[i].integer = va_arg (ap, ptrdiff_t);
-	break;
-
-      case SAVE_OBJECT:
-	p->data[i].object = va_arg (ap, Lisp_Object);
-	break;
-
-      default:
-	emacs_abort ();
-      }
-
-  va_end (ap);
+  p->save_type = SAVE_TYPE_INT_INT_INT;
+  p->data[0].integer = a;
+  p->data[1].integer = b;
+  p->data[2].integer = c;
   return val;
 }
 
-/* The most common task it to save just one C pointer.  */
-
 Lisp_Object
-make_save_pointer (void *pointer)
+make_save_obj_obj_obj_obj (Lisp_Object a, Lisp_Object b, Lisp_Object c,
+			   Lisp_Object d)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_OBJ_OBJ_OBJ_OBJ;
+  p->data[0].object = a;
+  p->data[1].object = b;
+  p->data[2].object = c;
+  p->data[3].object = d;
+  return val;
+}
+
+#if defined HAVE_NS || defined HAVE_NTGUI
+Lisp_Object
+make_save_ptr (void *a)
 {
   Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
   struct Lisp_Save_Value *p = XSAVE_VALUE (val);
   p->save_type = SAVE_POINTER;
-  p->data[0].pointer = pointer;
+  p->data[0].pointer = a;
+  return val;
+}
+#endif
+
+Lisp_Object
+make_save_ptr_int (void *a, ptrdiff_t b)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_PTR_INT;
+  p->data[0].pointer = a;
+  p->data[1].integer = b;
+  return val;
+}
+
+#if defined HAVE_MENUS && ! (defined USE_X_TOOLKIT || defined USE_GTK)
+Lisp_Object
+make_save_ptr_ptr (void *a, void *b)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_PTR_PTR;
+  p->data[0].pointer = a;
+  p->data[1].pointer = b;
+  return val;
+}
+#endif
+
+Lisp_Object
+make_save_funcptr_ptr_obj (void (*a) (void), void *b, Lisp_Object c)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_FUNCPTR_PTR_OBJ;
+  p->data[0].funcpointer = a;
+  p->data[1].pointer = b;
+  p->data[2].object = c;
+  return val;
+}
+
+/* Return a Lisp_Save_Value object that represents an array A
+   of N Lisp objects.  */
+
+Lisp_Object
+make_save_memory (Lisp_Object *a, ptrdiff_t n)
+{
+  Lisp_Object val = allocate_misc (Lisp_Misc_Save_Value);
+  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+  p->save_type = SAVE_TYPE_MEMORY;
+  p->data[0].pointer = a;
+  p->data[1].integer = n;
   return val;
 }
 
 /* Free a Lisp_Save_Value object.  Do not use this function
    if SAVE contains pointer other than returned by xmalloc.  */
 
-static void
+void
 free_save_value (Lisp_Object save)
 {
   xfree (XSAVE_POINTER (save, 0));
@@ -4717,7 +4765,7 @@ valid_pointer_p (void *p)
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if (pipe (fd) == 0)
+  if (emacs_pipe (fd) == 0)
     {
       bool valid = emacs_write (fd[1], (char *) p, 16) == 16;
       emacs_close (fd[1]);
@@ -5101,9 +5149,9 @@ Does not copy symbols.  Copies strings without text properties.  */)
 void
 staticpro (Lisp_Object *varaddress)
 {
-  staticvec[staticidx++] = varaddress;
   if (staticidx >= NSTATICS)
     fatal ("NSTATICS too small; try increasing and recompiling Emacs.");
+  staticvec[staticidx++] = varaddress;
 }
 
 
@@ -5165,7 +5213,6 @@ returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
-  struct specbinding *bind;
   struct buffer *nextb;
   char stack_top_variable;
   ptrdiff_t i;
@@ -5174,7 +5221,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   EMACS_TIME start;
   Lisp_Object retval = Qnil;
   size_t tot_before = 0;
-  struct backtrace backtrace;
 
   if (abort_on_gc)
     emacs_abort ();
@@ -5185,12 +5231,7 @@ See Info node `(elisp)Garbage Collection'.  */)
     return Qnil;
 
   /* Record this function, so it appears on the profiler's backtraces.  */
-  backtrace.next = backtrace_list;
-  backtrace.function = Qautomatic_gc;
-  backtrace.args = &Qnil;
-  backtrace.nargs = 0;
-  backtrace.debug_on_exit = 0;
-  backtrace_list = &backtrace;
+  record_in_backtrace (Qautomatic_gc, &Qnil, 0);
 
   check_cons_list ();
 
@@ -5210,7 +5251,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Save what's currently displayed in the echo area.  */
   message_p = push_message ();
-  record_unwind_protect (pop_message_unwind, Qnil);
+  record_unwind_protect_void (pop_message_unwind);
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
@@ -5257,11 +5298,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
-  for (bind = specpdl; bind != specpdl_ptr; bind++)
-    {
-      mark_object (bind->symbol);
-      mark_object (bind->old_value);
-    }
+  mark_specpdl ();
   mark_terminals ();
   mark_kboards ();
 
@@ -5295,7 +5332,6 @@ See Info node `(elisp)Garbage Collection'.  */)
       mark_object (handler->var);
     }
   }
-  mark_backtrace ();
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5417,7 +5453,8 @@ See Info node `(elisp)Garbage Collection'.  */)
     total[4] = list3 (Qstring_bytes, make_number (1),
 		      bounded_number (total_string_bytes));
 
-    total[5] = list3 (Qvectors, make_number (sizeof (struct Lisp_Vector)),
+    total[5] = list3 (Qvectors,
+		      make_number (header_size + sizeof (Lisp_Object)),
 		      bounded_number (total_vectors));
 
     total[6] = list4 (Qvector_slots, make_number (word_size),
@@ -5486,7 +5523,6 @@ See Info node `(elisp)Garbage Collection'.  */)
       malloc_probe (swept);
     }
 
-  backtrace_list = backtrace.next;
   return retval;
 }
 
@@ -5660,7 +5696,7 @@ mark_discard_killed_buffers (Lisp_Object list)
 	{
 	  CONS_MARK (XCONS (tail));
 	  mark_object (XCAR (tail));
-	  prev = &XCDR_AS_LVALUE (tail);
+	  prev = xcdr_addr (tail);
 	}
     }
   mark_object (tail);
@@ -6517,7 +6553,7 @@ bool suppress_checking;
 void
 die (const char *msg, const char *file, int line)
 {
-  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
+  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: assertion failed: %s\r\n",
 	   file, line, msg);
   terminate_due_to_signal (SIGABRT, INT_MAX);
 }
@@ -6702,8 +6738,5 @@ union
   enum MAX_ALLOCA MAX_ALLOCA;
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
-#if USE_LSB_TAG
-  enum lsb_bits lsb_bits;
-#endif
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

@@ -76,6 +76,14 @@ enum define_coding_ccl_arg_index
     coding_arg_ccl_max
   };
 
+enum define_coding_undecided_arg_index
+  {
+    coding_arg_undecided_inhibit_null_byte_detection = coding_arg_max,
+    coding_arg_undecided_inhibit_iso_escape_detection,
+    coding_arg_undecided_prefer_utf_8,
+    coding_arg_undecided_max
+  };
+
 /* Hash table for all coding systems.  Keys are coding system symbols
    and values are spec vectors of the corresponding coding system.  A
    spec vector has the form [ ATTRS ALIASES EOL-TYPE ].  ATTRS is a
@@ -157,6 +165,10 @@ enum coding_attr_index
     coding_attr_utf_16_endian,
 
     coding_attr_emacs_mule_full,
+
+    coding_attr_undecided_inhibit_null_byte_detection,
+    coding_attr_undecided_inhibit_iso_escape_detection,
+    coding_attr_undecided_prefer_utf_8,
 
     coding_attr_last_index
   };
@@ -368,6 +380,19 @@ struct emacs_mule_spec
 
 struct ccl_spec;
 
+struct undecided_spec
+{
+  /* Inhibit null byte detection.  1 means always inhibit,
+     -1 means do not inhibit, 0 means rely on user variable.  */
+  int inhibit_nbd;
+
+  /* Inhibit ISO escape detection.  -1, 0, 1 as above.  */
+  int inhibit_ied;
+
+  /* Prefer UTF-8 when the input could be other encodings.  */
+  bool prefer_utf_8;
+};
+
 enum utf_bom_type
   {
     utf_detect_bom,
@@ -425,6 +450,7 @@ struct coding_system
       struct utf_16_spec utf_16;
       enum utf_bom_type utf_8_bom;
       struct emacs_mule_spec emacs_mule;
+      struct undecided_spec undecided;
     } spec;
 
   int max_charset_id;

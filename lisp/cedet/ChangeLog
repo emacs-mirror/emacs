@@ -1,7 +1,26 @@
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* semantic/edit.el (semantic-change-function): Use
-	`save-match-data' around running hooks.
+	* data-debug.el, cedet-idutils.el: Neuter the "Version:" header.
+
+2013-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/idle.el (define-semantic-idle-service):
+	No need to use eval-and-compile, progn will do.
+
+	* semantic/decorate/mode.el (define-semantic-decoration-style):
+	Doc fix.
+	(define-semantic-decoration-style): 'function is not an accepted
+	value for autoload's "type" argument.  Might as well use the default.
+
+2013-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/ctxt.el (semantic-ctxt-end-of-symbol-default):
+	Remove unused free variable `symlist'.
+
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic/edit.el (semantic-change-function):
+	Use `save-match-data' around running hooks.
 
 	* semantic/decorate/mode.el
 	(semantic-decorate-style-predicate-default)
@@ -47,7 +66,7 @@
 	of code tags.
 
 	* srecode/compile.el (srecode-compile-templates): Fix warning
-	punctuation.  Remove status messages to clean up testing output
+	punctuation.  Remove status messages to clean up testing output.
 
 	* ede/base.el (ede-project-placeholder-cache-file): Update doc to
 	mention 'nil' value.
@@ -65,7 +84,7 @@
 	custom symbols representing a compiler or linker instead of
 	restricting things to only the predefined compilers and linkers.
 
-2013-06-02  David Engster <dengste@eml.cc>
+2013-06-02  David Engster  <dengste@eml.cc>
 
 	* semantic.el (semantic-mode-map): To avoid showing showing
 	Development menu twice, only disable menu item if menu-bar is
@@ -79,6 +98,17 @@
 	* semantic/complete.el
 	(semantic-displayor-show-request): Fix which slot in obj is set to
 	the max tags.
+
+2013-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/grammar.el (semantic-grammar-complete):
+	Replace the obsolete function lisp-complete-symbol.
+
+	* semantic/analyze/fcn.el (semantic-tag-similar-p): Autoload.
+
+	* srecode/args.el, srecode/java.el: Require ede.
+
+	* semantic/lex.el (semantic-lex-make-type-table): Fix transposed args.
 
 2013-05-24  Glenn Morris  <rgm@gnu.org>
 
@@ -160,7 +190,7 @@
 	(semantic-analyze-dereference-metatype-stack): Use
 	`semantic-tag-similar-p' instead of 'eq' when comparing two tags
 	during metatype evaluation in case they are the same, but not the
-	same node. (Tweaked patch from Tomasz Gajewski) (Tiny change)
+	same node.  (Tweaked patch from Tomasz Gajewski) (Tiny change)
 
 	* semantic/db-find.el (semanticdb-partial-synchronize): Fix
 	require to semantic/db-typecache to be correct.
@@ -193,7 +223,7 @@
 	no spp symbols from it, say so.
 
 	* srecode/args.el (srecode-semantic-handle-:project): New argument
-	handler. Provide variable values if not in an EDE project.
+	handler.  Provide variable values if not in an EDE project.
 
 	* srecode/srt-mode.el (srecode-template-mode): Fix typo on srecode
 	name.
@@ -207,11 +237,11 @@
 
 	* srecode/srt.el: Add local variables for setting the autoload
 	file name.
-	(srecode-semantic-handle-:srt): New autoload cookie
+	(srecode-semantic-handle-:srt): New autoload cookie.
 
 	* ede.el (ede-apply-preprocessor-map): Apply map to
 	`semantic-lex-spp-project-macro-symbol-obarray' instead of the
-	system one. Add require for semantic.
+	system one.  Add require for semantic.
 
 	* ede/proj-elisp.el (ede-update-version-in-source): In case a file
 	has both a version variable and a Version: comment, always use
@@ -275,19 +305,19 @@
 	`class-parents' to `eieio-class-parents', `class-children' to
 	`eieio-class-children', `object-name-string' to
 	`eieio-object-name-string', `object-class-fast' to
-	`eieio--object-class'. Also replace direct access with new
+	`eieio--object-class'.  Also replace direct access with new
 	accessor functions.
 
-2013-03-21  Tomasz Gajewski <tomga@wp.pl> (tiny change)
+2013-03-21  Tomasz Gajewski  <tomga@wp.pl>  (tiny change)
 
 	* ede/cpp-root.el (ede-project-autoload, initialize-instance): Fix
 	EDE file symbol to match rename.  Fix ede-cpp-root symbol to
 	include -project in name.
 
-2013-03-21  Alex Ott <alexott@gmail.com>
+2013-03-21  Alex Ott  <alexott@gmail.com>
 
 	* cedet-files.el (cedet-files-list-recursively): New.  Recursively
-	find files whose names are matching to given regex
+	find files whose names are matching to given regex.
 
 	* ede.el (ede-current-project): Rewrite to avoid imperative style.
 
@@ -303,7 +333,7 @@
 	Value of slot or local variable could be string or function that
 	receives project and should return string that will be invoked as
 	command.
-	(project-compile-target): Invokes compilation of whole project
+	(project-compile-target): Invokes compilation of whole project.
 
 	* ede/files.el (ede-find-project-root): New function to
 	find root of project that contains specific file.
@@ -385,7 +415,7 @@
 	* semantic/db-el.el:
 	* semantic/chart.el: Fix requires.
 
-	* ede/locate.el: Remove useless requires. Declare functions
+	* ede/locate.el: Remove useless requires.  Declare functions
 	instead and require in functions when needed.
 
 2012-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -702,7 +732,7 @@
 	(srecode-mode-table): Add new modetables slot.
 	(srecode-get-mode-table): Find the mode, but also find all parent
 	modes, and merge the tables together in :tables from :modetables.
-	(srecode-make-mode-table): Init :modetables
+	(srecode-make-mode-table): Init :modetables.
 	(srecode-mode-table-find): Search in modetables.
 	(srecode-mode-table-new): Merge the differet files into the
 	modetables slot.
@@ -760,7 +790,7 @@
 	regular expression parsing.
         (semantic-cpp-lexer): Add semantic-lex-c-ifdef.
 	(semantic-expand-c-tag): Check if tag is non-nil before adding it
-	to return list
+	to return list.
 	(semantic-expand-c-extern-C, semantic-expand-c-complex-type):
 	New functions, copied from semantic-expand-c-tag.
 	(semantic-find-tags-included): New override which also searches
@@ -1271,9 +1301,9 @@
 2010-09-29  Eric Ludlam  <zappo@gnu.org>
 
 	* semantic/lex-spp.el (semantic-lex-spp-debug-symbol): New var.
-	(semantic-lex-spp-enable-debug-symbol): New command
+	(semantic-lex-spp-enable-debug-symbol): New command.
 	(semantic-lex-spp-value-valid-p)
-	(semantic-lex-spp-validate-value): New functions
+	(semantic-lex-spp-validate-value): New functions.
 	(semantic-lex-spp-symbol-set)
 	(semantic-lex-spp-symbol-push): Add call to validate value.
 	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
@@ -1441,7 +1471,7 @@
 	(project-am-expand-subdirlist): New function.
 	(project-am-makefile::project-rescan): Use it.  Combine SUBDIRS
 	and DIST_SUBDIRS.
-	(project-am-meta-type-alist): A list to scan better Makefile.am
+	(project-am-meta-type-alist): A list to scan better Makefile.am.
 	(project-am-scan-for-targets): Scan also over
 	project-am-meta-type-alist.
 	(ede-system-include-path): Simple implementation.

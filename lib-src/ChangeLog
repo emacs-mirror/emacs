@@ -1,3 +1,38 @@
+2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to C89.
+	* ebrowse.c (USAGE): Remove macro with too-long string literal ...
+	(usage_message): ... and replace it with this new static constant
+	containing multiple literals.  All uses changed.
+	* emacsclient.c (print_help_and_exit):
+	Rewrite to avoid string literals longer than the C89 limits.
+	(start_daemon_and_retry_set_socket):
+	Rewrite to avoid non-constant array initializer.
+	* make-docfile.c (enum global_type): Omit trailing comma.
+
+2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer plain 'static' to 'static inline' (Bug#12541).
+	I missed these instances of 'static inline' in an earlier sweep.
+	* ebrowse.c (putstr):
+	* etags.c (hash):
+	* make-docfile.c (put_char): No longer inline.
+	* etags.c (hash): Prefer int to unsigned when either will do.
+
+2013-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style flexible array members if available.
+	* ebrowse.c: Include <stddef.h>, for offsetof.
+	(struct member, struct alias, struct sym):
+	Use FLEXIBLE_ARRAY_MEMBER.
+	(add_sym, add_member, make_namespace, register_namespace_alias):
+	Use offsetof (struct, flex_array_member), not sizeof (struct), as
+	that ports better to pre-C99 non-GCC.
+
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove *.res files.
+
 2013-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port --enable-gcc-warnings to clang.
@@ -713,7 +748,7 @@
 	to avoid potential buffer overflow issues on typical 64-bit hosts.
 	(whatlen_max): New static var.
 	(main): Avoid buffer overflow if subsidiary command length is
-	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
+	greater than BUFSIZ or 2*BUFSIZ + 20.  Do not use sprintf when its
 	result might not fit in 'int'.
 
 	* movemail.c (main): Do not use sprintf when its result might not fit
@@ -6111,7 +6146,7 @@
 
 1995-06-13  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* etags.c (process_file,absolute_filename): Handle filenames
+	* etags.c (process_file, absolute_filename): Handle filenames
 	starting with a drive letter.
 
 	* makefile.nt (install): Copy wakeup.exe properly.
@@ -6138,12 +6173,12 @@
 1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt (LIBS): Use BASE_LIBS.
-	(make-docfile.exe,hexl.exe,wakeup.exe,etags.exe): Don't depend
+	(make-docfile.exe, hexl.exe, wakeup.exe, etags.exe): Don't depend
 	upon LIBS.
 	(DOC): Use del instead of rm.
 	(DOC) [WINDOWS95]: Use DOC.
 	(clean): Handle MSVC aux files.
-	(config.h,paths.h): Use $(CP) instead of cp.
+	(config.h, paths.h): Use $(CP) instead of cp.
 	(config.h): Use $(CONFIG_H)
 	(make-docfile.obj): Depend upon config.h.
 	Clean up comments.
@@ -8404,7 +8439,7 @@
 
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
-	* env.c: Add decl for my-index
+	* env.c: Add decl for my-index.
 	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)

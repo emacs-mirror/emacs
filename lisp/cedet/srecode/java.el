@@ -27,6 +27,7 @@
 
 (require 'srecode/dictionary)
 (require 'semantic/find)
+(require 'ede)
 
 ;;;###autoload
 (defun srecode-semantic-handle-:java (dict)

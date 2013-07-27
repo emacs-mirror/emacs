@@ -143,6 +143,15 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define WS_EX_LAYERED 0x80000
 #endif
 
+/* SM_CXVIRTUALSCREEN and SM_CYVIRTUALSCREEN are not defined on 95 and
+   NT4.  */
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+
 /* This is a frame waiting to be autoraised, within w32_read_socket.  */
 struct frame *pending_autoraise_frame;
 
@@ -151,6 +160,9 @@ HWND w32_system_caret_hwnd;
 int w32_system_caret_height;
 int w32_system_caret_x;
 int w32_system_caret_y;
+struct window *w32_system_caret_window;
+int w32_system_caret_hdr_height;
+int w32_system_caret_mode_height;
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
@@ -516,18 +528,24 @@ x_set_frame_alpha (struct frame *f)
 int
 x_display_pixel_height (struct w32_display_info *dpyinfo)
 {
-  HDC dc = GetDC (NULL);
-  int pixels = GetDeviceCaps (dc, VERTRES);
-  ReleaseDC (NULL, dc);
+  int pixels = GetSystemMetrics (SM_CYVIRTUALSCREEN);
+
+  if (pixels == 0)
+    /* Fallback for Windows 95 or NT 4.0.  */
+    pixels = GetSystemMetrics (SM_CYSCREEN);
+
   return pixels;
 }
 
 int
 x_display_pixel_width (struct w32_display_info *dpyinfo)
 {
-  HDC dc = GetDC (NULL);
-  int pixels = GetDeviceCaps (dc, HORZRES);
-  ReleaseDC (NULL, dc);
+  int pixels = GetSystemMetrics (SM_CXVIRTUALSCREEN);
+
+  if (pixels == 0)
+    /* Fallback for Windows 95 or NT 4.0.  */
+    pixels = GetSystemMetrics (SM_CXSCREEN);
+
   return pixels;
 }
 
@@ -2894,9 +2912,15 @@ x_focus_changed (int type, int state, struct w32_display_info *dpyinfo,
               && CONSP (Vframe_list)
               && !NILP (XCDR (Vframe_list)))
             {
-              bufp->kind = FOCUS_IN_EVENT;
-              XSETFRAME (bufp->frame_or_window, frame);
+              bufp->arg = Qt;
             }
+          else
+            {
+              bufp->arg = Qnil;
+            }
+
+          bufp->kind = FOCUS_IN_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
         }
 
       frame->output_data.x->focus_state |= state;
@@ -2911,7 +2935,10 @@ x_focus_changed (int type, int state, struct w32_display_info *dpyinfo,
         {
           dpyinfo->w32_focus_event_frame = 0;
           x_new_focus_frame (dpyinfo, 0);
-        }
+
+          bufp->kind = FOCUS_OUT_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
+      }
 
       /* TODO: IME focus?  */
     }
@@ -3210,6 +3237,8 @@ construct_drag_n_drop (struct input_event *result, W32Msg *msg, struct frame *f)
 }
 
 
+#if HAVE_W32NOTIFY
+
 /* File event notifications (see w32notify.c).  */
 
 Lisp_Object
@@ -3325,7 +3354,8 @@ queue_notifications (struct input_event *event, W32Msg *msg, struct frame *f,
   /* We've stuffed all the events ourselves, so w32_read_socket shouldn't.  */
   event->kind = NO_EVENT;
 }
-#endif
+#endif	/* WINDOWSNT */
+#endif	/* HAVE_W32NOTIFY */
 
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -4330,8 +4360,9 @@ w32_read_socket (struct terminal *terminal,
 		  SET_FRAME_VISIBLE (f, 1);
 		  SET_FRAME_ICONIFIED (f, 0);
 		  SET_FRAME_GARBAGED (f);
-		  DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
-			     SDATA (f->name)));
+		  if (!f->output_data.w32->asked_for_visible)
+		    DebPrint (("frame %p (%s) reexposed by WM_PAINT\n", f,
+			       SDATA (f->name)));
 
 		  /* WM_PAINT serves as MapNotify as well, so report
 		     visibility changes properly.  */
@@ -4789,7 +4820,8 @@ w32_read_socket (struct terminal *terminal,
 		  {
 		    bool iconified = FRAME_ICONIFIED_P (f);
 
-		    SET_FRAME_VISIBLE (f, 1);
+		    if (iconified)
+		      SET_FRAME_VISIBLE (f, 1);
 		    SET_FRAME_ICONIFIED (f, 0);
 
 		    /* wait_reading_process_output will notice this
@@ -4891,16 +4923,11 @@ w32_read_socket (struct terminal *terminal,
 	  break;
 
 	case WM_KILLFOCUS:
+	  w32_detect_focus_change (dpyinfo, &msg, &inev);
 	  f = x_top_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           if (f)
             {
-              if (f == dpyinfo->w32_focus_event_frame)
-                dpyinfo->w32_focus_event_frame = 0;
-
-              if (f == dpyinfo->w32_focus_frame)
-                x_new_focus_frame (dpyinfo, 0);
-
               if (f == hlinfo->mouse_face_mouse_frame)
                 {
                   /* If we move outside the frame, then we're
@@ -4968,7 +4995,7 @@ w32_read_socket (struct terminal *terminal,
 	  check_visibility = 1;
 	  break;
 
-#ifdef WINDOWSNT
+#if HAVE_W32NOTIFY
 	case WM_EMACS_FILENOTIFY:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
@@ -5153,7 +5180,10 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
      the current matrix is invalid or such, give up.  */
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph == NULL)
-    return;
+    {
+      DeleteObject (hb);
+      return;
+    }
 
   /* Compute frame-relative coordinates for phys cursor.  */
   get_phys_cursor_geometry (w, row, cursor_glyph, &left, &top, &h);
@@ -5325,6 +5355,9 @@ w32_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 	  w32_system_caret_y
 	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
 	       + glyph_row->ascent - w->phys_cursor_ascent);
+	  w32_system_caret_window = w;
+	  w32_system_caret_hdr_height = WINDOW_HEADER_LINE_HEIGHT (w);
+	  w32_system_caret_mode_height = WINDOW_MODE_LINE_HEIGHT (w);
 
 	  PostMessage (hwnd, WM_IME_STARTCOMPOSITION, 0, 0);
 
@@ -6093,6 +6126,9 @@ x_iconify_frame (struct frame *f)
   /* Simulate the user minimizing the frame.  */
   SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, SC_MINIMIZE, 0);
 
+  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_ICONIFIED (f, 1);
+
   unblock_input ();
 }
 
@@ -6597,7 +6633,7 @@ w32_initialize (void)
     }
 
 #ifdef CYGWIN
-  if ((w32_message_fd = open ("/dev/windows", O_RDWR | O_CLOEXEC)) == -1)
+  if ((w32_message_fd = emacs_open ("/dev/windows", O_RDWR, 0)) == -1)
     fatal ("opening /dev/windows: %s", strerror (errno));
 #endif /* CYGWIN */
 

@@ -1,3 +1,25 @@
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (status): Remove, unused.
+	(success): Remove var.
+	(url-http-handle-authentication): Return the value that `success'
+	should take instead of setting `success' directly.  Don't set `status'
+	since it's not used.
+	(url-http-parse-headers): Avoid unneeded setq.
+	Move the `setq success'.
+	(url-http): Use pcase.
+	(url-http-file-exists-p): Simplify.
+
+2013-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cookie.el: Implement a command and mode for displaying and
+	editing cookies.
+	(url-cookie-mode): Fix mode name.
+
+2013-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* url-future.el (url-future-call): Remove useless value call.
+
 2013-05-23  Glenn Morris  <rgm@gnu.org>
 
 	* url.el (mm-dissect-buffer, mm-display-part): Declare.

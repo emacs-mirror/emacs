@@ -1628,7 +1628,7 @@ slower."
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
-    ("nnrss" none)
+    ("nnrss" none global)
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address respool
      server-marks)
@@ -2636,10 +2636,11 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (seen . seen)))
+    (seen . seen) (unexist . unexist)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
+    (unexist range)
     (killed range)
     (bookmark tuple)
     (uid tuple)
@@ -2654,7 +2655,7 @@ a string, be sure to use a valid format, see RFC 2616."
 ;; `score' is not a proper mark
 ;; `bookmark': don't propagated it, or fix the bug in update-mark.
 (defconst gnus-article-unpropagated-mark-lists
-  '(seen cache download unsend score bookmark)
+  '(seen cache download unsend score bookmark unexist)
   "Marks that shouldn't be propagated to back ends.
 Typical marks are those that make no sense in a standalone back end,
 such as a mark that says whether an article is stored in the cache
@@ -3006,7 +3007,7 @@ with some simple extensions.
             summary just like information from any other summary
             specifier.
 &user-date; Age sensitive date format. Various date format is
-            defined in `gnus-summary-user-date-format-alist'.
+            defined in `gnus-user-date-format-alist'.
 
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
@@ -3245,9 +3246,9 @@ If ARG, insert string at point."
 		    0))
       (string-to-number
        (if (zerop major)
-	     (format "%s00%02d%02d"
+	     (format "%1.2f00%02d%02d"
 		     (if (member alpha '("(ding)" "d"))
-			 "4.99"
+			 4.99
 		       (+ 5 (* 0.02
 			       (abs
 				(- (mm-char-int (aref (downcase alpha) 0))
@@ -4243,8 +4244,7 @@ parameters."
       (setq valids (cdr valids)))
     outs))
 
-(eval-and-compile
-  (autoload 'message-y-or-n-p "message" nil nil 'macro))
+(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.

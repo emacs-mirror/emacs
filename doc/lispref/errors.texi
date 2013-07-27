@@ -123,6 +123,11 @@ This is a subcategory of @code{file-error}.  @xref{File Locks}.
 @item file-supersession
 This is a subcategory of @code{file-error}.  @xref{Modification Time}.
 
+@c filenotify.el
+@item file-notify-error
+This is a subcategory of @code{file-error}.  It happens, when a file
+could not be watched for changes.  @xref{File Notifications}.
+
 @c net/ange-ftp.el
 @item ftp-error
 This is a subcategory of @code{file-error}, which results from

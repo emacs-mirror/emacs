@@ -4,7 +4,8 @@
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.2
+;; Old-Version: 0.2 (using "Version:" made Emacs think this is package
+;;                   eieio-0.2).
 ;; Keywords: OO, lisp
 ;; Package: eieio
 

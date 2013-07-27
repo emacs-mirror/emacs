@@ -437,7 +437,7 @@ PROPSPECS must be a list of (TYPE PROPERTY VALUE)."
           (if default
               (message
                "*Warning* default value of <%s> tokens changed to %S, was %S"
-               type default token))
+               type token default))
           (setq default token)))
       ;; Ensure the default matching spec is the first one.
       (semantic-lex-type-set type (cons default (nreverse alist))))

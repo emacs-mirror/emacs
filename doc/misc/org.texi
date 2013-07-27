@@ -10393,7 +10393,7 @@ view type is a @emph{folding} view much like Org provides inside Emacs.  The
 script is available at @url{http://orgmode.org/org-info.js} and you can find
 the documentation for it at @url{http://orgmode.org/worg/code/org-info-js/}.
 We host the script at our site, but if you use it a lot, you might
-not want to be dependent on @url{orgmode.org} and prefer to install a local
+not want to be dependent on @url{http://orgmode.org} and prefer to install a local
 copy on your own web server.
 
 To use the script, you need to make sure that the @file{org-jsinfo.el} module

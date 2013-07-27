@@ -1194,8 +1194,7 @@ Argument INPUT icalendar event string."
 	      (should (string= org-input cycled)))))
       ;; clean up
       (kill-buffer (find-buffer-visiting temp-diary))
-      (save-excursion
-	(set-buffer (find-buffer-visiting temp-ics))
+      (with-current-buffer (find-buffer-visiting temp-ics)
 	(set-buffer-modified-p nil)
 	(kill-buffer (current-buffer)))
       (delete-file temp-diary)

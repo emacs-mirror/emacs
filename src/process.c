@@ -78,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_RES_INIT
-#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
 #endif
@@ -124,13 +123,47 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+#ifdef HAVE_GLIB
 #include "xgselect.h"
+#ifndef WINDOWSNT
+#include <glib.h>
+#endif
 #endif
 
 #ifdef WINDOWSNT
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
+#endif
+
+#ifndef SOCK_CLOEXEC
+# define SOCK_CLOEXEC 0
+#endif
+
+#ifndef HAVE_ACCEPT4
+
+/* Emulate GNU/Linux accept4 and socket well enough for this module.  */
+
+static int
+close_on_exec (int fd)
+{
+  if (0 <= fd)
+    fcntl (fd, F_SETFD, FD_CLOEXEC);
+  return fd;
+}
+
+static int
+accept4 (int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
+{
+  return close_on_exec (accept (sockfd, addr, addrlen));
+}
+
+static int
+process_socket (int domain, int type, int protocol)
+{
+  return close_on_exec (socket (domain, type, protocol));
+}
+# undef socket
+# define socket(domain, type, protocol) process_socket (domain, type, protocol)
 #endif
 
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
@@ -607,19 +640,16 @@ status_message (struct Lisp_Process *p)
     return Fcopy_sequence (Fsymbol_name (symbol));
 }
 
-#ifdef HAVE_PTYS
-
-/* The file name of the pty opened by allocate_pty.  */
-static char pty_name[24];
+enum { PTY_NAME_SIZE = 24 };
 
 /* Open an available pty, returning a file descriptor.
-   Return -1 on failure.
-   The file name of the terminal corresponding to the pty
-   is left in the variable pty_name.  */
+   Store into PTY_NAME the file name of the terminal corresponding to the pty.
+   Return -1 on failure.  */
 
 static int
-allocate_pty (void)
+allocate_pty (char pty_name[PTY_NAME_SIZE])
 {
+#ifdef HAVE_PTYS
   int fd;
 
 #ifdef PTY_ITERATION
@@ -664,9 +694,9 @@ allocate_pty (void)
 	    return fd;
 	  }
       }
+#endif /* HAVE_PTYS */
   return -1;
 }
-#endif /* HAVE_PTYS */
 
 static Lisp_Object
 make_process (Lisp_Object name)
@@ -808,7 +838,7 @@ nil, indicating the current buffer's process.  */)
   p->raw_status_new = 0;
   if (NETCONN1_P (p) || SERIALCONN1_P (p))
     {
-      pset_status (p, Fcons (Qexit, Fcons (make_number (0), Qnil)));
+      pset_status (p, list2 (Qexit, make_number (0)));
       p->tick = ++process_tick;
       status_notify (p);
       redisplay_preserve_echo_area (13);
@@ -1173,11 +1203,11 @@ list of keywords.  */)
   if ((!NETCONN_P (process) && !SERIALCONN_P (process)) || EQ (key, Qt))
     return contact;
   if (NILP (key) && NETCONN_P (process))
-    return Fcons (Fplist_get (contact, QChost),
-		  Fcons (Fplist_get (contact, QCservice), Qnil));
+    return list2 (Fplist_get (contact, QChost),
+		  Fplist_get (contact, QCservice));
   if (NILP (key) && SERIALCONN_P (process))
-    return Fcons (Fplist_get (contact, QCport),
-		  Fcons (Fplist_get (contact, QCspeed), Qnil));
+    return list2 (Fplist_get (contact, QCport),
+		  Fplist_get (contact, QCspeed));
   return Fplist_get (contact, key);
 }
 
@@ -1300,7 +1330,7 @@ Returns nil if format of ADDRESS is invalid.  */)
 }
 
 DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
-       doc: /* Return a list of all processes.  */)
+       doc: /* Return a list of all processes that are Emacs sub-processes.  */)
   (void)
 {
   return Fmapcar (Qcdr, Vprocess_alist);
@@ -1308,7 +1338,7 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
 
 /* Starting asynchronous inferior processes.  */
 
-static Lisp_Object start_process_unwind (Lisp_Object proc);
+static void start_process_unwind (Lisp_Object proc);
 
 DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
        doc: /* Start a program in a subprocess.  Return the process object for it.
@@ -1364,7 +1394,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (BVAR (current_buffer, directory), Qnil));
+			 BVAR (current_buffer, directory));
 
     UNGCPRO;
   }
@@ -1486,7 +1516,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK));
 	  UNGCPRO;
 	  if (NILP (tem))
-	    report_file_error ("Searching for program", Fcons (program, Qnil));
+	    report_file_error ("Searching for program", program);
 	  tem = Fexpand_file_name (tem, Qnil);
 	}
       else
@@ -1509,7 +1539,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
 	/* Encode the file name and put it in NEW_ARGV.
 	   That's where the child will use it to execute the program.  */
-	tem = Fcons (ENCODE_FILE (tem), Qnil);
+	tem = list1 (ENCODE_FILE (tem));
 
 	/* Here we encode arguments by the coding system used for sending
 	   data to the process.  We don't support using different coding
@@ -1557,7 +1587,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
    PROC doesn't have its pid set, then we know someone has signaled
    an error and the process wasn't started successfully, so we should
    remove it from the process list.  */
-static Lisp_Object
+static void
 start_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
@@ -1567,14 +1597,6 @@ start_process_unwind (Lisp_Object proc)
      -2 is used for a pty with no process, eg for gdb.  */
   if (XPROCESS (proc)->pid <= 0 && XPROCESS (proc)->pid != -2)
     remove_process (proc);
-
-  return Qnil;
-}
-
-static void
-create_process_1 (struct atimer *timer)
-{
-  /* Nothing to do.  */
 }
 
 
@@ -1583,22 +1605,21 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   int inchannel, outchannel;
   pid_t pid;
+  int vfork_errno;
   int sv[2];
 #ifndef WINDOWSNT
   int wait_child_setup[2];
 #endif
-  sigset_t blocked;
-  /* Use volatile to protect variables from being clobbered by vfork.  */
-  volatile int forkin, forkout;
-  volatile bool pty_flag = 0;
-  volatile Lisp_Object lisp_pty_name = Qnil;
-  volatile Lisp_Object encoded_current_dir;
+  int forkin, forkout;
+  bool pty_flag = 0;
+  char pty_name[PTY_NAME_SIZE];
+  Lisp_Object lisp_pty_name = Qnil;
+  Lisp_Object encoded_current_dir;
 
   inchannel = outchannel = -1;
 
-#ifdef HAVE_PTYS
   if (!NILP (Vprocess_connection_type))
-    outchannel = inchannel = allocate_pty ();
+    outchannel = inchannel = allocate_pty (pty_name);
 
   if (inchannel >= 0)
     {
@@ -1617,49 +1638,31 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       lisp_pty_name = build_string (pty_name);
     }
   else
-#endif /* HAVE_PTYS */
     {
-      int tem;
-      tem = pipe (sv);
-      if (tem < 0)
+      if (emacs_pipe (sv) != 0)
 	report_file_error ("Creating pipe", Qnil);
       inchannel = sv[0];
       forkout = sv[1];
-      tem = pipe (sv);
-      if (tem < 0)
+      if (emacs_pipe (sv) != 0)
 	{
+	  int pipe_errno = errno;
 	  emacs_close (inchannel);
 	  emacs_close (forkout);
-	  report_file_error ("Creating pipe", Qnil);
+	  report_file_errno ("Creating pipe", Qnil, pipe_errno);
 	}
       outchannel = sv[1];
       forkin = sv[0];
     }
 
 #ifndef WINDOWSNT
-    {
-      int tem;
-
-      tem = pipe (wait_child_setup);
-      if (tem < 0)
-	report_file_error ("Creating pipe", Qnil);
-      tem = fcntl (wait_child_setup[1], F_GETFD, 0);
-      if (tem >= 0)
-	tem = fcntl (wait_child_setup[1], F_SETFD, tem | FD_CLOEXEC);
-      if (tem < 0)
-	{
-	  emacs_close (wait_child_setup[0]);
-	  emacs_close (wait_child_setup[1]);
-	  report_file_error ("Setting file descriptor flags", Qnil);
-	}
-    }
+  if (emacs_pipe (wait_child_setup) != 0)
+    report_file_error ("Creating pipe", Qnil);
 #endif
 
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 
-  /* Record this as an active process, with its channels.
-     As a result, child_setup will close Emacs's side of the pipes.  */
+  /* Record this as an active process, with its channels.  */
   chan_process[inchannel] = process;
   XPROCESS (process)->infd = inchannel;
   XPROCESS (process)->outfd = outchannel;
@@ -1683,15 +1686,34 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   encoded_current_dir = ENCODE_FILE (current_dir);
 
   block_input ();
-
-  /* Block SIGCHLD until we have a chance to store the new fork's
-     pid in its process structure.  */
-  sigemptyset (&blocked);
-  sigaddset (&blocked, SIGCHLD);
-  pthread_sigmask (SIG_BLOCK, &blocked, 0);
+  block_child_signal ();
 
 #ifndef WINDOWSNT
-  pid = vfork ();
+  /* vfork, and prevent local vars from being clobbered by the vfork.  */
+  {
+    Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
+    Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
+    Lisp_Object volatile process_volatile = process;
+    char **volatile new_argv_volatile = new_argv;
+    int volatile forkin_volatile = forkin;
+    int volatile forkout_volatile = forkout;
+    int volatile wait_child_setup_0_volatile = wait_child_setup[0];
+    int volatile wait_child_setup_1_volatile = wait_child_setup[1];
+
+    pid = vfork ();
+
+    encoded_current_dir = encoded_current_dir_volatile;
+    lisp_pty_name = lisp_pty_name_volatile;
+    process = process_volatile;
+    new_argv = new_argv_volatile;
+    forkin = forkin_volatile;
+    forkout = forkout_volatile;
+    wait_child_setup[0] = wait_child_setup_0_volatile;
+    wait_child_setup[1] = wait_child_setup_1_volatile;
+
+    pty_flag = XPROCESS (process)->pty_flag;
+  }
+
   if (pid == 0)
 #endif /* not WINDOWSNT */
     {
@@ -1720,7 +1742,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  tcgetattr (xforkin, &t);
 	  t.c_lflag = LDISC1;
 	  if (tcsetattr (xforkin, TCSANOW, &t) < 0)
-	    emacs_write (1, "create_process/tcsetattr LDISC1 failed\n", 39);
+	    emacs_perror ("create_process/tcsetattr LDISC1");
 	}
 #else
 #if defined (NTTYDISC) && defined (TIOCSETD)
@@ -1759,18 +1781,16 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       if (pty_flag)
 	{
 
-	  /* I wonder if emacs_close (emacs_open (pty_name, ...))
+	  /* I wonder if emacs_close (emacs_open (SSDATA (lisp_pty_name), ...))
 	     would work?  */
 	  if (xforkin >= 0)
 	    emacs_close (xforkin);
-	  xforkout = xforkin = emacs_open (pty_name, O_RDWR, 0);
+	  xforkout = xforkin = emacs_open (SSDATA (lisp_pty_name), O_RDWR, 0);
 
 	  if (xforkin < 0)
 	    {
-	      emacs_write (1, "Couldn't open the pty terminal ", 31);
-	      emacs_write (1, pty_name, strlen (pty_name));
-	      emacs_write (1, "\n", 1);
-	      _exit (1);
+	      emacs_perror (SSDATA (lisp_pty_name));
+	      _exit (EXIT_CANCELED);
 	    }
 
 	}
@@ -1782,12 +1802,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  SETUP_SLAVE_PTY;
 	}
 #endif /* SETUP_SLAVE_PTY */
-#ifdef AIX
-      /* On AIX, we've disabled SIGHUP above once we start a child on a pty.
-	 Now reenable it in the child, so it will die when we want it to.  */
-      if (pty_flag)
-	signal (SIGHUP, SIG_DFL);
-#endif
 #endif /* HAVE_PTYS */
 
       signal (SIGINT, SIG_DFL);
@@ -1796,8 +1810,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
 
-	/* Stop blocking signals in the child.  */
-      pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+      /* Stop blocking SIGCHLD in the child.  */
+      unblock_child_signal ();
 
       if (pty_flag)
 	child_setup_tty (xforkout);
@@ -1805,7 +1819,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       pid = child_setup (xforkin, xforkout, xforkout,
 			 new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
-      emacs_close (wait_child_setup[0]);
       child_setup (xforkin, xforkout, xforkout,
 		   new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */
@@ -1813,21 +1826,22 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* Back in the parent process.  */
 
+  vfork_errno = errno;
   XPROCESS (process)->pid = pid;
   if (pid >= 0)
     XPROCESS (process)->alive = 1;
 
-  /* Stop blocking signals in the parent.  */
-  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
+  /* Stop blocking in the parent.  */
+  unblock_child_signal ();
   unblock_input ();
 
+  if (forkin >= 0)
+    emacs_close (forkin);
+  if (forkin != forkout && forkout >= 0)
+    emacs_close (forkout);
+
   if (pid < 0)
-    {
-      if (forkin >= 0)
-	emacs_close (forkin);
-      if (forkin != forkout && forkout >= 0)
-	emacs_close (forkout);
-    }
+    report_file_errno ("Doing vfork", Qnil, vfork_errno);
   else
     {
       /* vfork succeeded.  */
@@ -1835,26 +1849,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #ifdef WINDOWSNT
       register_child (pid, inchannel);
 #endif /* WINDOWSNT */
-
-      /* If the subfork execv fails, and it exits,
-	 this close hangs.  I don't know why.
-	 So have an interrupt jar it loose.  */
-      {
-	struct atimer *timer;
-	EMACS_TIME offset = make_emacs_time (1, 0);
-
-	stop_polling ();
-	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
-
-	if (forkin >= 0)
-	  emacs_close (forkin);
-
-	cancel_atimer (timer);
-	start_polling ();
-      }
-
-      if (forkin != forkout && forkout >= 0)
-	emacs_close (forkout);
 
       pset_tty_name (XPROCESS (process), lisp_pty_name);
 
@@ -1872,23 +1866,18 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       }
 #endif
     }
-
-  /* Now generate the error if vfork failed.  */
-  if (pid < 0)
-    report_file_error ("Doing vfork", Qnil);
 }
 
-void
+static void
 create_pty (Lisp_Object process)
 {
+  char pty_name[PTY_NAME_SIZE];
   int inchannel, outchannel;
-  bool pty_flag = 0;
 
   inchannel = outchannel = -1;
 
-#ifdef HAVE_PTYS
   if (!NILP (Vprocess_connection_type))
-    outchannel = inchannel = allocate_pty ();
+    outchannel = inchannel = allocate_pty (pty_name);
 
   if (inchannel >= 0)
     {
@@ -1907,40 +1896,34 @@ create_pty (Lisp_Object process)
       child_setup_tty (forkout);
 #endif /* DONT_REOPEN_PTY */
 #endif /* not USG, or USG_SUBTTY_WORKS */
-      pty_flag = 1;
+
+      fcntl (inchannel, F_SETFL, O_NONBLOCK);
+      fcntl (outchannel, F_SETFL, O_NONBLOCK);
+
+      /* Record this as an active process, with its channels.
+	 As a result, child_setup will close Emacs's side of the pipes.  */
+      chan_process[inchannel] = process;
+      XPROCESS (process)->infd = inchannel;
+      XPROCESS (process)->outfd = outchannel;
+
+      /* Previously we recorded the tty descriptor used in the subprocess.
+	 It was only used for getting the foreground tty process, so now
+	 we just reopen the device (see emacs_get_tty_pgrp) as this is
+	 more portable (see USG_SUBTTY_WORKS above).  */
+
+      XPROCESS (process)->pty_flag = 1;
+      pset_status (XPROCESS (process), Qrun);
+      setup_process_coding_systems (process);
+
+      FD_SET (inchannel, &input_wait_mask);
+      FD_SET (inchannel, &non_keyboard_wait_mask);
+      if (inchannel > max_process_desc)
+	max_process_desc = inchannel;
+
+      pset_tty_name (XPROCESS (process), build_string (pty_name));
     }
-#endif /* HAVE_PTYS */
-
-  fcntl (inchannel, F_SETFL, O_NONBLOCK);
-  fcntl (outchannel, F_SETFL, O_NONBLOCK);
-
-  /* Record this as an active process, with its channels.
-     As a result, child_setup will close Emacs's side of the pipes.  */
-  chan_process[inchannel] = process;
-  XPROCESS (process)->infd = inchannel;
-  XPROCESS (process)->outfd = outchannel;
-
-  /* Previously we recorded the tty descriptor used in the subprocess.
-     It was only used for getting the foreground tty process, so now
-     we just reopen the device (see emacs_get_tty_pgrp) as this is
-     more portable (see USG_SUBTTY_WORKS above).  */
-
-  XPROCESS (process)->pty_flag = pty_flag;
-  pset_status (XPROCESS (process), Qrun);
-  setup_process_coding_systems (process);
-
-  FD_SET (inchannel, &input_wait_mask);
-  FD_SET (inchannel, &non_keyboard_wait_mask);
-  if (inchannel > max_process_desc)
-    max_process_desc = inchannel;
 
   XPROCESS (process)->pid = -2;
-#ifdef HAVE_PTYS
-  if (pty_flag)
-    pset_tty_name (XPROCESS (process), build_string (pty_name));
-  else
-#endif
-    pset_tty_name (XPROCESS (process), Qnil);
 }
 
 
@@ -2300,8 +2283,12 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
     }
 
   if (ret < 0)
-    report_file_error ("Cannot set network option",
-		       Fcons (opt, Fcons (val, Qnil)));
+    {
+      int setsockopt_errno = errno;
+      report_file_errno ("Cannot set network option", list2 (opt, val),
+			 setsockopt_errno);
+    }
+
   return (1 << sopt->optbit);
 }
 
@@ -2433,16 +2420,6 @@ usage: (serial-process-configure &rest ARGS)  */)
   return Qnil;
 }
 
-/* Used by make-serial-process to recover from errors.  */
-static Lisp_Object
-make_serial_process_unwind (Lisp_Object proc)
-{
-  if (!PROCESSP (proc))
-    emacs_abort ();
-  remove_process (proc);
-  return Qnil;
-}
-
 DEFUN ("make-serial-process", Fmake_serial_process, Smake_serial_process,
        0, MANY, 0,
        doc: /* Create and return a serial port process.
@@ -2524,7 +2501,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   struct gcpro gcpro1;
   Lisp_Object name, buffer;
   Lisp_Object tem, val;
-  ptrdiff_t specpdl_count = -1;
+  ptrdiff_t specpdl_count;
 
   if (nargs == 0)
     return Qnil;
@@ -2548,10 +2525,10 @@ usage:  (make-serial-process &rest ARGS)  */)
   CHECK_STRING (name);
   proc = make_process (name);
   specpdl_count = SPECPDL_INDEX ();
-  record_unwind_protect (make_serial_process_unwind, proc);
+  record_unwind_protect (remove_process, proc);
   p = XPROCESS (proc);
 
-  fd = serial_open (SSDATA (port));
+  fd = serial_open (port);
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_process_desc)
@@ -2574,7 +2551,7 @@ usage:  (make-serial-process &rest ARGS)  */)
     p->kill_without_query = 1;
   if (tem = Fplist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
-  p->pty_flag = 0;
+  eassert (! p->pty_flag);
 
   if (!EQ (p->command, Qt))
     {
@@ -2984,7 +2961,7 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef POLL_FOR_INPUT
   if (socktype != SOCK_DGRAM)
     {
-      record_unwind_protect (unwind_stop_other_atimers, Qnil);
+      record_unwind_protect_void (run_all_atimers);
       bind_polling_period (10);
     }
 #endif
@@ -3116,7 +3093,8 @@ usage: (make-network-process &rest ARGS)  */)
     retry_connect:
 #endif
 
-      s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
+      s = socket (lres->ai_family, lres->ai_socktype | SOCK_CLOEXEC,
+		  lres->ai_protocol);
       if (s < 0)
 	{
 	  xerrno = errno;
@@ -3143,7 +3121,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 
       /* Make us close S if quit.  */
-      record_unwind_protect (close_file_unwind, make_number (s));
+      record_unwind_protect_int (close_file_unwind, s);
 
       /* Parse network options in the arg list.
 	 We simply ignore anything which isn't a known option (including other keywords).
@@ -3234,18 +3212,17 @@ usage: (make-network-process &rest ARGS)  */)
 	      if (errno == EINTR)
 		goto retry_select;
 	      else
-		report_file_error ("select failed", Qnil);
+		report_file_error ("Failed select", Qnil);
 	    }
 	  eassert (sc > 0);
 
 	  len = sizeof xerrno;
 	  eassert (FD_ISSET (s, &fdset));
-	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
-	    report_file_error ("getsockopt failed", Qnil);
+	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) < 0)
+	    report_file_error ("Failed getsockopt", Qnil);
 	  if (xerrno)
-	    errno = xerrno, report_file_error ("error during connect", Qnil);
-	  else
-	    break;
+	    report_file_errno ("Failed connect", Qnil, xerrno);
+	  break;
 	}
 #endif /* !WINDOWSNT */
 
@@ -3329,11 +3306,10 @@ usage: (make-network-process &rest ARGS)  */)
       if (is_non_blocking_client)
 	  return Qnil;
 
-      errno = xerrno;
-      if (is_server)
-	report_file_error ("make server process failed", contact);
-      else
-	report_file_error ("make client process failed", contact);
+      report_file_errno ((is_server
+			  ? "make server process failed"
+			  : "make client process failed"),
+			 contact, xerrno);
     }
 
   inch = s;
@@ -3512,10 +3488,13 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   ptrdiff_t buf_size = 512;
   int s;
   Lisp_Object res;
+  ptrdiff_t count;
 
-  s = socket (AF_INET, SOCK_STREAM, 0);
+  s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   do
     {
@@ -3524,16 +3503,14 @@ format; see the description of ADDRESS in `make-network-process'.  */)
       ifconf.ifc_len = buf_size;
       if (ioctl (s, SIOCGIFCONF, &ifconf))
 	{
-	  close (s);
+	  emacs_close (s);
 	  xfree (buf);
 	  return Qnil;
 	}
     }
   while (ifconf.ifc_len == buf_size);
 
-  close (s);
-
-  res = Qnil;
+  res = unbind_to (count, Qnil);
   ifreq = ifconf.ifc_req;
   while ((char *) ifreq < (char *) ifconf.ifc_req + ifconf.ifc_len)
     {
@@ -3658,6 +3635,7 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object elt;
   int s;
   bool any = 0;
+  ptrdiff_t count;
 #if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
      && defined HAVE_GETIFADDRS && defined LLADDR)
   struct ifaddrs *ifap;
@@ -3669,9 +3647,11 @@ FLAGS is the current flags of the interface.  */)
     error ("interface name too long");
   strcpy (rq.ifr_name, SSDATA (ifname));
 
-  s = socket (AF_INET, SOCK_STREAM, 0);
+  s = socket (AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return Qnil;
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   elt = Qnil;
 #if defined (SIOCGIFFLAGS) && defined (HAVE_STRUCT_IFREQ_IFR_FLAGS)
@@ -3788,9 +3768,7 @@ FLAGS is the current flags of the interface.  */)
 #endif
   res = Fcons (elt, res);
 
-  close (s);
-
-  return any ? res : Qnil;
+  return unbind_to (count, any ? res : Qnil);
 }
 #endif
 #endif	/* defined (HAVE_NET_IF_H) */
@@ -3964,8 +3942,9 @@ server_accept_connection (Lisp_Object server, int channel)
 #endif
   } saddr;
   socklen_t len = sizeof saddr;
+  ptrdiff_t count;
 
-  s = accept (channel, &saddr.sa, &len);
+  s = accept4 (channel, &saddr.sa, &len, SOCK_CLOEXEC);
 
   if (s < 0)
     {
@@ -3985,6 +3964,9 @@ server_accept_connection (Lisp_Object server, int channel)
 			build_string ("\n")));
       return;
     }
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, s);
 
   connect_counter++;
 
@@ -4102,6 +4084,10 @@ server_accept_connection (Lisp_Object server, int channel)
   pset_filter (p, ps->filter);
   pset_command (p, Qnil);
   p->pid = 0;
+
+  /* Discard the unwind protect for closing S.  */
+  specpdl_ptr = specpdl + count;
+
   p->infd  = s;
   p->outfd = s;
   pset_status (p, Qrun);
@@ -4155,11 +4141,10 @@ server_accept_connection (Lisp_Object server, int channel)
    when not inside wait_reading_process_output.  */
 static int waiting_for_user_input_p;
 
-static Lisp_Object
-wait_reading_process_output_unwind (Lisp_Object data)
+static void
+wait_reading_process_output_unwind (int data)
 {
-  waiting_for_user_input_p = XINT (data);
-  return Qnil;
+  waiting_for_user_input_p = data;
 }
 
 /* This is here so breakpoints can be put on it.  */
@@ -4237,8 +4222,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   if (wait_proc != NULL)
     wait_channel = wait_proc->infd;
 
-  record_unwind_protect (wait_reading_process_output_unwind,
-			 make_number (waiting_for_user_input_p));
+  record_unwind_protect_int (wait_reading_process_output_unwind,
+			     waiting_for_user_input_p);
   waiting_for_user_input_p = read_kbd;
 
   if (time_limit < 0)
@@ -4404,7 +4389,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  && ! EQ (wait_proc->status, Qrun)
 	  && ! EQ (wait_proc->status, Qconnect))
 	{
-	  int nread, total_nread = 0;
+	  bool read_some_bytes = 0;
 
 	  clear_waiting_for_input ();
 	  XSETPROCESS (proc, wait_proc);
@@ -4412,16 +4397,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* Read data from the process, until we exhaust it.  */
 	  while (wait_proc->infd >= 0)
 	    {
-	      nread = read_process_output (proc, wait_proc->infd);
+	      int nread = read_process_output (proc, wait_proc->infd);
 
 	      if (nread == 0)
 		break;
 
 	      if (nread > 0)
-		{
-		  total_nread += nread;
-		  got_some_input = 1;
-		}
+		got_some_input = read_some_bytes = 1;
 	      else if (nread == -1 && (errno == EIO || errno == EAGAIN))
 		break;
 #ifdef EWOULDBLOCK
@@ -4429,7 +4411,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		break;
 #endif
 	    }
-	  if (total_nread > 0 && do_display)
+	  if (read_some_bytes && do_display)
 	    redisplay_preserve_echo_area (10);
 
 	  break;
@@ -4528,10 +4510,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-          nfds = xg_select
-#elif defined (HAVE_NS)
-	  nfds = ns_select
+#if defined (HAVE_NS)
+          nfds = ns_select
+#elif defined (HAVE_GLIB)
+	  nfds = xg_select
 #else
 	  nfds = pselect
 #endif
@@ -4604,22 +4586,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  if (xerrno == EINTR)
 	    no_avail = 1;
 	  else if (xerrno == EBADF)
-	    {
-#ifdef AIX
-	      /* AIX doesn't handle PTY closure the same way BSD does.  On AIX,
-		 the child's closure of the pts gives the parent a SIGHUP, and
-		 the ptc file descriptor is automatically closed,
-		 yielding EBADF here or at select() call above.
-		 So, SIGHUP is ignored (see def of PTY_TTY_NAME_SPRINTF
-		 in m/ibmrt-aix.h), and here we just ignore the select error.
-		 Cleanup occurs c/o status_notify after SIGCHLD. */
-	      no_avail = 1; /* Cannot depend on values returned */
-#else
-	      emacs_abort ();
-#endif
-	    }
+	    emacs_abort ();
 	  else
-	    error ("select error: %s", emacs_strerror (xerrno));
+	    report_file_errno ("Failed select", Qnil, xerrno);
 	}
 
       if (no_avail)
@@ -5118,9 +5087,7 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
        sometimes it's simply wrong to wrap (e.g. when called from
        accept-process-output).  */
     internal_condition_case_1 (read_process_output_call,
-			       Fcons (outstream,
-				      Fcons (make_lisp_proc (p),
-					     Fcons (text, Qnil))),
+			       list3 (outstream, make_lisp_proc (p), text),
 			       !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			       read_process_output_error_handler);
 
@@ -5290,7 +5257,7 @@ write_queue_push (struct Lisp_Process *p, Lisp_Object input_obj,
   if (front)
     pset_write_queue (p, Fcons (entry, p->write_queue));
   else
-    pset_write_queue (p, nconc2 (p->write_queue, Fcons (entry, Qnil)));
+    pset_write_queue (p, nconc2 (p->write_queue, list1 (entry)));
 }
 
 /* Remove the first element in the write_queue of process P, put its
@@ -5463,7 +5430,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	      if (rv >= 0)
 		written = rv;
 	      else if (errno == EMSGSIZE)
-		report_file_error ("sending datagram", Fcons (proc, Qnil));
+		report_file_error ("Sending datagram", proc);
 	    }
 	  else
 #endif
@@ -5473,7 +5440,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		written = emacs_gnutls_write (p, cur_buf, cur_len);
 	      else
 #endif
-		written = emacs_write (outfd, cur_buf, cur_len);
+		written = emacs_write_sig (outfd, cur_buf, cur_len);
 	      rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 	      if (p->read_output_delay > 0
@@ -5540,7 +5507,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		}
 	      else
 		/* This is a real error.  */
-		report_file_error ("writing to process", Fcons (proc, Qnil));
+		report_file_error ("Writing to process", proc);
 	    }
 	  cur_buf += written;
 	  cur_len -= written;
@@ -6034,7 +6001,7 @@ process has been transmitted to the serial port.  */)
     {
 #ifndef WINDOWSNT
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
-	error ("tcdrain() failed: %s", emacs_strerror (errno));
+	report_file_error ("Failed tcdrain", Qnil);
 #endif /* not WINDOWSNT */
       /* Do nothing on Windows because writes are blocking.  */
     }
@@ -6100,6 +6067,13 @@ process has been transmitted to the serial port.  */)
    might inadvertently reap a GTK-created process that happened to
    have the same process ID.  */
 
+/* LIB_CHILD_HANDLER is a SIGCHLD handler that Emacs calls while doing
+   its own SIGCHLD handling.  On POSIXish systems, glib needs this to
+   keep track of its own children.  GNUstep is similar.  */
+
+static void dummy_handler (int sig) {}
+static signal_handler_t volatile lib_child_handler;
+
 /* Handle a SIGCHLD signal by looking for known child processes of
    Emacs whose status have changed.  For each one found, record its
    new status.
@@ -6159,7 +6133,8 @@ handle_child_signal (int sig)
       struct Lisp_Process *p = XPROCESS (proc);
       int status;
 
-      if (p->alive && child_status_changed (p->pid, &status, WUNTRACED))
+      if (p->alive
+	  && child_status_changed (p->pid, &status, WUNTRACED | WCONTINUED))
 	{
 	  /* Change the status of the process that was found.  */
 	  p->tick = ++process_tick;
@@ -6183,6 +6158,13 @@ handle_child_signal (int sig)
 	    }
 	}
     }
+
+  lib_child_handler (sig);
+#ifdef NS_IMPL_GNUSTEP
+  /* NSTask in GNUStep sets its child handler each time it is called.
+     So we must re-set ours.  */
+  catch_child_signal();
+#endif
 }
 
 static void
@@ -6251,8 +6233,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   running_asynch_code = 1;
 
   internal_condition_case_1 (read_process_output_call,
-			     Fcons (sentinel,
-				    Fcons (proc, Fcons (reason, Qnil))),
+			     list3 (sentinel, proc, reason),
 			     !NILP (Vdebug_on_error) ? Qnil : Qerror,
 			     exec_sentinel_error_handler);
 
@@ -6716,7 +6697,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  if (xerrno == EINTR)
 	    FD_ZERO (&waitchannels);
 	  else
-	    error ("select error: %s", emacs_strerror (xerrno));
+	    report_file_errno ("Failed select", Qnil, xerrno);
 	}
 
       /* Check for keyboard input */
@@ -6824,32 +6805,6 @@ setup_process_coding_systems (Lisp_Object process)
     proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
-#endif
-}
-
-/* Close all descriptors currently in use for communication
-   with subprocess.  This is used in a newly-forked subprocess
-   to get rid of irrelevant descriptors.  */
-
-void
-close_process_descs (void)
-{
-#ifndef DOS_NT
-  int i;
-  for (i = 0; i < MAXDESC; i++)
-    {
-      Lisp_Object process;
-      process = chan_process[i];
-      if (!NILP (process))
-	{
-	  int in  = XPROCESS (process)->infd;
-	  int out = XPROCESS (process)->outfd;
-	  if (in >= 0)
-	    emacs_close (in);
-	  if (out >= 0 && in != out)
-	    emacs_close (out);
-	}
-    }
 #endif
 }
 
@@ -7028,6 +6983,31 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+/* Arrange to catch SIGCHLD if this hasn't already been arranged.
+   Invoke this after init_process_emacs, and after glib and/or GNUstep
+   futz with the SIGCHLD handler, but before Emacs forks any children.
+   This function's caller should block SIGCHLD.  */
+
+#ifndef NS_IMPL_GNUSTEP
+static
+#endif
+void
+catch_child_signal (void)
+{
+  struct sigaction action, old_action;
+  emacs_sigaction_init (&action, deliver_child_signal);
+  block_child_signal ();
+  sigaction (SIGCHLD, &action, &old_action);
+  eassert (! (old_action.sa_flags & SA_SIGINFO));
+
+  if (old_action.sa_handler != deliver_child_signal)
+    lib_child_handler
+      = (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN
+	 ? dummy_handler
+	 : old_action.sa_handler);
+  unblock_child_signal ();
+}
+
 
 /* This is not called "init_process" because that is the name of a
    Mach system call, so it would cause problems on Darwin systems.  */
@@ -7043,9 +7023,14 @@ init_process_emacs (void)
   if (! noninteractive || initialized)
 #endif
     {
-      struct sigaction action;
-      emacs_sigaction_init (&action, deliver_child_signal);
-      sigaction (SIGCHLD, &action, 0);
+#if defined HAVE_GLIB && !defined WINDOWSNT
+      /* Tickle glib's child-handling code.  Ask glib to wait for Emacs itself;
+	 this should always fail, but is enough to initialize glib's
+	 private SIGCHLD handler, allowing catch_child_signal to copy
+	 it into lib_child_handler.  */
+      g_source_unref (g_child_watch_source_new (getpid ()));
+#endif
+      catch_child_signal ();
     }
 
   FD_ZERO (&input_wait_mask);

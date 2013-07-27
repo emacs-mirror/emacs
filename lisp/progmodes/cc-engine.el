@@ -147,9 +147,6 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 
-;; Silence the compiler.
-(cc-bytecomp-defun buffer-syntactic-context) ; XEmacs
-
 
 ;; Make declarations for all the `c-lang-defvar' variables in cc-langs.
 
@@ -1138,9 +1135,13 @@ comment at the start of cc-engine.el for more info."
 		   (not (memq sym '(boundary ignore nil))))
 	  ;; Need to investigate closer whether we've crossed
 	  ;; between a substatement and its containing statement.
-	  (if (setq saved (if (looking-at c-block-stmt-1-key)
-			      ptok
-			    pptok))
+	  (if (setq saved
+		    (cond ((and (looking-at c-block-stmt-1-2-key)
+				(eq (char-after ptok) ?\())
+			   pptok)
+			  ((looking-at c-block-stmt-1-key)
+			   ptok)
+			  (t pptok)))
 	      (cond ((> start saved) (setq pos saved))
 		    ((= start saved) (setq ret 'up)))))
 
@@ -6895,7 +6896,7 @@ comment at the start of cc-engine.el for more info."
       (while (and (looking-at c-type-decl-prefix-key)
 		  (if (and (c-major-mode-is 'c++-mode)
 			   (match-beginning 3))
-		      ;; If the second submatch matches in C++ then
+		      ;; If the third submatch matches in C++ then
 		      ;; we're looking at an identifier that's a
 		      ;; prefix only if it specifies a member pointer.
 		      (when (setq got-identifier (c-forward-name))
@@ -7196,19 +7197,23 @@ comment at the start of cc-engine.el for more info."
 	;; uncommon (e.g. some placements of "const" in C++) it's not worth
 	;; the effort to look for them.)
 
-	(unless (or at-decl-end (looking-at "=[^=]"))
-	  ;; If this is a declaration it should end here or its initializer(*)
-	  ;; should start here, so check for allowed separation tokens.  Note
-	  ;; that this rule doesn't work e.g. with a K&R arglist after a
-	  ;; function header.
-	  ;;
-	  ;; *) Don't check for C++ style initializers using parens
-	  ;; since those already have been matched as suffixes.
-	  ;;
-	  ;; If `at-decl-or-cast' is then we've found some other sign that
-	  ;; it's a declaration or cast, so then it's probably an
-	  ;; invalid/unfinished one.
-	  (throw 'at-decl-or-cast at-decl-or-cast))
+;;; 2008-04-16: commented out the next form, to allow the function to recognize
+;;; "foo (int bar)" in CC (an implicit type (in class foo) without a semicolon)
+;;; as a(n almost complete) declaration, enabling it to be fontified.
+	;; CASE 13
+	;; (unless (or at-decl-end (looking-at "=[^=]"))
+	;; If this is a declaration it should end here or its initializer(*)
+	;; should start here, so check for allowed separation tokens.  Note
+	;; that this rule doesn't work e.g. with a K&R arglist after a
+	;; function header.
+	;;
+	;; *) Don't check for C++ style initializers using parens
+	;; since those already have been matched as suffixes.
+	;;
+	;; If `at-decl-or-cast' is then we've found some other sign that
+	;; it's a declaration or cast, so then it's probably an
+	;; invalid/unfinished one.
+	;;  (throw 'at-decl-or-cast at-decl-or-cast))
 
 	;; Below are tests that only should be applied when we're certain to
 	;; not have parsed halfway through an expression.
@@ -7987,7 +7992,8 @@ comment at the start of cc-engine.el for more info."
 	 (or (looking-at c-block-stmt-1-key)
 	     (and (eq (char-after) ?\()
 		  (zerop (c-backward-token-2 1 t lim))
-		  (looking-at c-block-stmt-2-key)))
+		  (or (looking-at c-block-stmt-2-key)
+		      (looking-at c-block-stmt-1-2-key))))
 	 (point))))
 
 (defun c-after-special-operator-id (&optional lim)
@@ -9358,10 +9364,6 @@ comment at the start of cc-engine.el for more info."
 			  containing-sexp nil)))
 	      (setq lim (1+ containing-sexp))))
 	(setq lim (point-min)))
-      (when (c-beginning-of-macro)
-	(goto-char indent-point)
-	(let ((lim1 (c-determine-limit 2000)))
-	  (setq lim (max lim lim1))))
 
       ;; If we're in a parenthesis list then ',' delimits the
       ;; "statements" rather than being an operator (with the

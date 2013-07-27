@@ -1655,26 +1655,26 @@ if it becomes empty (i.e., if its length becomes zero).  If you give
 an empty overlay a non-@code{nil} @code{evaporate} property, that deletes
 it immediately.
 
-@item local-map
-@cindex keymap of character (and overlays)
-@kindex local-map @r{(overlay property)}
-If this property is non-@code{nil}, it specifies a keymap for a portion
-of the text.  The property's value replaces the buffer's local map, when
-the character after point is within the overlay.  @xref{Active Keymaps}.
-
 @item keymap
+@cindex keymap of character (and overlays)
 @kindex keymap @r{(overlay property)}
-The @code{keymap} property is similar to @code{local-map} but overrides the
-buffer's local map (and the map specified by the @code{local-map}
-property) rather than replacing it.
+If this property is non-@code{nil}, it specifies a keymap for a portion of the
+text.  This keymap is used when the character after point is within the
+overlay, and takes precedence over most other keymaps.  @xref{Active Keymaps}.
+
+@item local-map
+@kindex local-map @r{(overlay property)}
+The @code{local-map} property is similar to @code{keymap} but replaces the
+buffer's local map rather than augmenting existing keymaps.  This also means it
+has lower precedence than minor mode keymaps.
 @end table
 
-The @code{local-map} and @code{keymap} properties do not affect a
+The @code{keymap} and @code{local-map} properties do not affect a
 string displayed by the @code{before-string}, @code{after-string}, or
 @code{display} properties.  This is only relevant for mouse clicks and
 other mouse events that fall on the string, since point is never on
 the string.  To bind special mouse events for the string, assign it a
-@code{local-map} or @code{keymap} text property.  @xref{Special
+@code{keymap} or @code{local-map} text property.  @xref{Special
 Properties}.
 
 @node Finding Overlays
@@ -2126,7 +2126,8 @@ used automatically to handle certain shades of gray.
 
 @item :font
 The font used to display the face.  Its value should be a font object.
-@xref{Font Selection}, for information about font objects.
+@xref{Low-Level Font}, for information about font objects, font specs,
+and font entities.
 
 When specifying this attribute using @code{set-face-attribute}
 (@pxref{Attribute Functions}), you may also supply a font spec, a font
@@ -3260,7 +3261,9 @@ to @var{value}.
 properties are intermediate between a font object and a font spec:
 like a font object, and unlike a font spec, it refers to a single,
 specific font.  Unlike a font object, creating a font entity does not
-load the contents of that font into computer memory.
+load the contents of that font into computer memory.  Emacs may open
+multiple font objects of different sizes from a single font entity
+referring to a scalable font.
 
 @defun find-font font-spec &optional frame
 This function returns a font entity that best matches the font spec
@@ -4649,6 +4652,15 @@ The @code{:width} and @code{:height} keywords are used for scaling the
 image.  If only one of them is specified, the other one will be
 calculated so as to preserve the aspect ratio.  If both are specified,
 aspect ratio may not be preserved.
+
+@item :max-width, :max-height
+The @code{:max-width} and @code{:max-height} keywords are used for
+scaling if the size of the image of the image exceeds these values.
+If @code{:width} is set it will have precedence over @code{max-width},
+and if @code{:height} is set it will have precedence over
+@code{max-height}, but you can otherwise mix these keywords as you
+wish.  @code{:max-width} and @code{:max-height} will always preserve
+the aspect ratio.
 
 @item :rotation
 Specifies a rotation angle in degrees.
@@ -6417,6 +6429,26 @@ otherwise, the returned value reflects the paragraph direction
 determined dynamically by Emacs.  For buffers whose value of
 @code{bidi-display-reordering} is @code{nil} as well as unibyte
 buffers, this function always returns @code{left-to-right}.
+@end defun
+
+@cindex visual-order cursor motion
+  Sometimes there's a need to move point in strict visual order,
+either to the left or to the right of its current screen position.
+Emacs provides a primitive to do that.
+
+@defun move-point-visually direction
+This function moves point of the currently selected window to the
+buffer position that appears immediately to the right or to the left
+of point on the screen.  If @var{direction} is positive, point will
+move one screen position to the right, otherwise it will move one
+screen position to the left.  Note that, depending on the surrounding
+bidirectional context, this could potentially move point many buffer
+positions away.  If invoked at the end of a screen line, the function
+moves point to the rightmost or leftmost screen position of the next
+or previous screen line, as appropriate for the value of
+@var{direction}.
+
+The function returns the new buffer position as its value.
 @end defun
 
 @cindex layout on display, and bidirectional text

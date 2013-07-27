@@ -69,7 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "keymap.h"
 #include "font.h"
-#include "fontset.h"
 #include "xsettings.h"
 #include "xgselect.h"
 #include "sysselect.h"
@@ -2648,7 +2647,10 @@ x_draw_underwave (struct glyph_string *s)
 
   /* Find and set clipping rectangle */
 
-  wave_clip = (XRectangle){ x0, y0, width, wave_height };
+  wave_clip.x = x0;
+  wave_clip.y = y0;
+  wave_clip.width = width;
+  wave_clip.height = wave_height;
   get_glyph_string_clip_rect (s, &string_clip);
 
   if (!x_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
@@ -3433,13 +3435,12 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
           /* When run as a daemon, Vterminal_frame is always NIL.  */
-          if ((NILP (Vterminal_frame) || EQ (Fdaemonp(), Qt))
-              && CONSP (Vframe_list)
-              && !NILP (XCDR (Vframe_list)))
-            {
-              bufp->kind = FOCUS_IN_EVENT;
-              XSETFRAME (bufp->frame_or_window, frame);
-            }
+          bufp->arg = (((NILP (Vterminal_frame) || EQ (Fdaemonp (), Qt))
+			&& CONSP (Vframe_list)
+			&& !NILP (XCDR (Vframe_list)))
+		       ? Qt : Qnil);
+          bufp->kind = FOCUS_IN_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
         }
 
       frame->output_data.x->focus_state |= state;
@@ -3457,6 +3458,9 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
         {
           dpyinfo->x_focus_event_frame = 0;
           x_new_focus_frame (dpyinfo, 0);
+
+          bufp->kind = FOCUS_OUT_EVENT;
+          XSETFRAME (bufp->frame_or_window, frame);
         }
 
 #ifdef HAVE_X_I18N
@@ -7824,7 +7828,7 @@ static void x_error_quitter (Display *, XErrorEvent *);
 static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
-#ifdef HAVE_GTK3
+#if defined USE_GTK && defined HAVE_GTK3
   if (event->error_code == BadMatch
       && event->request_code == X_SetInputFocus
       && event->minor_code == 0)
@@ -8370,9 +8374,9 @@ set_wm_state (Lisp_Object frame, int add, Atom atom, Atom value)
                        (make_number (add ? 1 : 0),
                         Fcons
                         (make_fixnum_or_float (atom),
-                         value != 0
-                         ? Fcons (make_fixnum_or_float (value), Qnil)
-                         : Qnil)));
+                         (value != 0
+			  ? list1 (make_fixnum_or_float (value))
+			  : Qnil))));
 }
 
 void
@@ -10192,71 +10196,73 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   {
-    const struct
+    static const struct
     {
       const char *name;
-      Atom *atom;
+      int offset;
     } atom_refs[] = {
-      { "WM_PROTOCOLS", &dpyinfo->Xatom_wm_protocols  },
-      { "WM_TAKE_FOCUS", &dpyinfo->Xatom_wm_take_focus },
-      { "WM_SAVE_YOURSELF", &dpyinfo->Xatom_wm_save_yourself },
-      { "WM_DELETE_WINDOW", &dpyinfo->Xatom_wm_delete_window },
-      { "WM_CHANGE_STATE", &dpyinfo->Xatom_wm_change_state },
-      { "WM_CONFIGURE_DENIED", &dpyinfo->Xatom_wm_configure_denied },
-      { "WM_MOVED", &dpyinfo->Xatom_wm_window_moved },
-      { "WM_CLIENT_LEADER", &dpyinfo->Xatom_wm_client_leader },
-      { "Editres", &dpyinfo->Xatom_editres },
-      { "CLIPBOARD", &dpyinfo->Xatom_CLIPBOARD },
-      { "TIMESTAMP", &dpyinfo->Xatom_TIMESTAMP },
-      { "TEXT", &dpyinfo->Xatom_TEXT },
-      { "COMPOUND_TEXT", &dpyinfo->Xatom_COMPOUND_TEXT },
-      { "UTF8_STRING", &dpyinfo->Xatom_UTF8_STRING },
-      { "DELETE", &dpyinfo->Xatom_DELETE },
-      { "MULTIPLE", &dpyinfo->Xatom_MULTIPLE },
-      { "INCR", &dpyinfo->Xatom_INCR },
-      { "_EMACS_TMP_",  &dpyinfo->Xatom_EMACS_TMP },
-      { "TARGETS", &dpyinfo->Xatom_TARGETS },
-      { "NULL", &dpyinfo->Xatom_NULL },
-      { "ATOM", &dpyinfo->Xatom_ATOM },
-      { "ATOM_PAIR", &dpyinfo->Xatom_ATOM_PAIR },
-      { "CLIPBOARD_MANAGER", &dpyinfo->Xatom_CLIPBOARD_MANAGER },
-      { "_XEMBED_INFO", &dpyinfo->Xatom_XEMBED_INFO },
+#define ATOM_REFS_INIT(string, member) \
+      { string, offsetof (struct x_display_info, member) },
+      ATOM_REFS_INIT ("WM_PROTOCOLS", Xatom_wm_protocols)
+      ATOM_REFS_INIT ("WM_TAKE_FOCUS", Xatom_wm_take_focus)
+      ATOM_REFS_INIT ("WM_SAVE_YOURSELF", Xatom_wm_save_yourself)
+      ATOM_REFS_INIT ("WM_DELETE_WINDOW", Xatom_wm_delete_window)
+      ATOM_REFS_INIT ("WM_CHANGE_STATE", Xatom_wm_change_state)
+      ATOM_REFS_INIT ("WM_CONFIGURE_DENIED", Xatom_wm_configure_denied)
+      ATOM_REFS_INIT ("WM_MOVED", Xatom_wm_window_moved)
+      ATOM_REFS_INIT ("WM_CLIENT_LEADER", Xatom_wm_client_leader)
+      ATOM_REFS_INIT ("Editres", Xatom_editres)
+      ATOM_REFS_INIT ("CLIPBOARD", Xatom_CLIPBOARD)
+      ATOM_REFS_INIT ("TIMESTAMP", Xatom_TIMESTAMP)
+      ATOM_REFS_INIT ("TEXT", Xatom_TEXT)
+      ATOM_REFS_INIT ("COMPOUND_TEXT", Xatom_COMPOUND_TEXT)
+      ATOM_REFS_INIT ("UTF8_STRING", Xatom_UTF8_STRING)
+      ATOM_REFS_INIT ("DELETE", Xatom_DELETE)
+      ATOM_REFS_INIT ("MULTIPLE", Xatom_MULTIPLE)
+      ATOM_REFS_INIT ("INCR", Xatom_INCR)
+      ATOM_REFS_INIT ("_EMACS_TMP_",  Xatom_EMACS_TMP)
+      ATOM_REFS_INIT ("TARGETS", Xatom_TARGETS)
+      ATOM_REFS_INIT ("NULL", Xatom_NULL)
+      ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
+      ATOM_REFS_INIT ("ATOM_PAIR", Xatom_ATOM_PAIR)
+      ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
+      ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
       /* For properties of font.  */
-      { "PIXEL_SIZE", &dpyinfo->Xatom_PIXEL_SIZE },
-      { "AVERAGE_WIDTH", &dpyinfo->Xatom_AVERAGE_WIDTH },
-      { "_MULE_BASELINE_OFFSET", &dpyinfo->Xatom_MULE_BASELINE_OFFSET },
-      { "_MULE_RELATIVE_COMPOSE", &dpyinfo->Xatom_MULE_RELATIVE_COMPOSE },
-      { "_MULE_DEFAULT_ASCENT", &dpyinfo->Xatom_MULE_DEFAULT_ASCENT },
+      ATOM_REFS_INIT ("PIXEL_SIZE", Xatom_PIXEL_SIZE)
+      ATOM_REFS_INIT ("AVERAGE_WIDTH", Xatom_AVERAGE_WIDTH)
+      ATOM_REFS_INIT ("_MULE_BASELINE_OFFSET", Xatom_MULE_BASELINE_OFFSET)
+      ATOM_REFS_INIT ("_MULE_RELATIVE_COMPOSE", Xatom_MULE_RELATIVE_COMPOSE)
+      ATOM_REFS_INIT ("_MULE_DEFAULT_ASCENT", Xatom_MULE_DEFAULT_ASCENT)
       /* Ghostscript support.  */
-      { "DONE", &dpyinfo->Xatom_DONE },
-      { "PAGE", &dpyinfo->Xatom_PAGE },
-      { "SCROLLBAR", &dpyinfo->Xatom_Scrollbar },
-      { "_XEMBED", &dpyinfo->Xatom_XEMBED },
+      ATOM_REFS_INIT ("DONE", Xatom_DONE)
+      ATOM_REFS_INIT ("PAGE", Xatom_PAGE)
+      ATOM_REFS_INIT ("SCROLLBAR", Xatom_Scrollbar)
+      ATOM_REFS_INIT ("_XEMBED", Xatom_XEMBED)
       /* EWMH */
-      { "_NET_WM_STATE", &dpyinfo->Xatom_net_wm_state },
-      { "_NET_WM_STATE_FULLSCREEN", &dpyinfo->Xatom_net_wm_state_fullscreen },
-      { "_NET_WM_STATE_MAXIMIZED_HORZ",
-        &dpyinfo->Xatom_net_wm_state_maximized_horz },
-      { "_NET_WM_STATE_MAXIMIZED_VERT",
-        &dpyinfo->Xatom_net_wm_state_maximized_vert },
-      { "_NET_WM_STATE_STICKY", &dpyinfo->Xatom_net_wm_state_sticky },
-      { "_NET_WM_STATE_HIDDEN", &dpyinfo->Xatom_net_wm_state_hidden },
-      { "_NET_WM_WINDOW_TYPE", &dpyinfo->Xatom_net_window_type },
-      { "_NET_WM_WINDOW_TYPE_TOOLTIP",
-        &dpyinfo->Xatom_net_window_type_tooltip },
-      { "_NET_WM_ICON_NAME", &dpyinfo->Xatom_net_wm_icon_name },
-      { "_NET_WM_NAME", &dpyinfo->Xatom_net_wm_name },
-      { "_NET_SUPPORTED",  &dpyinfo->Xatom_net_supported },
-      { "_NET_SUPPORTING_WM_CHECK", &dpyinfo->Xatom_net_supporting_wm_check },
-      { "_NET_WM_WINDOW_OPACITY", &dpyinfo->Xatom_net_wm_window_opacity },
-      { "_NET_ACTIVE_WINDOW", &dpyinfo->Xatom_net_active_window },
-      { "_NET_FRAME_EXTENTS", &dpyinfo->Xatom_net_frame_extents },
-      { "_NET_CURRENT_DESKTOP", &dpyinfo->Xatom_net_current_desktop },
-      { "_NET_WORKAREA", &dpyinfo->Xatom_net_workarea },
+      ATOM_REFS_INIT ("_NET_WM_STATE", Xatom_net_wm_state)
+      ATOM_REFS_INIT ("_NET_WM_STATE_FULLSCREEN", Xatom_net_wm_state_fullscreen)
+      ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_HORZ",
+		      Xatom_net_wm_state_maximized_horz)
+      ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_VERT",
+		      Xatom_net_wm_state_maximized_vert)
+      ATOM_REFS_INIT ("_NET_WM_STATE_STICKY", Xatom_net_wm_state_sticky)
+      ATOM_REFS_INIT ("_NET_WM_STATE_HIDDEN", Xatom_net_wm_state_hidden)
+      ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE", Xatom_net_window_type)
+      ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE_TOOLTIP",
+		      Xatom_net_window_type_tooltip)
+      ATOM_REFS_INIT ("_NET_WM_ICON_NAME", Xatom_net_wm_icon_name)
+      ATOM_REFS_INIT ("_NET_WM_NAME", Xatom_net_wm_name)
+      ATOM_REFS_INIT ("_NET_SUPPORTED",  Xatom_net_supported)
+      ATOM_REFS_INIT ("_NET_SUPPORTING_WM_CHECK", Xatom_net_supporting_wm_check)
+      ATOM_REFS_INIT ("_NET_WM_WINDOW_OPACITY", Xatom_net_wm_window_opacity)
+      ATOM_REFS_INIT ("_NET_ACTIVE_WINDOW", Xatom_net_active_window)
+      ATOM_REFS_INIT ("_NET_FRAME_EXTENTS", Xatom_net_frame_extents)
+      ATOM_REFS_INIT ("_NET_CURRENT_DESKTOP", Xatom_net_current_desktop)
+      ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
       /* Session management */
-      { "SM_CLIENT_ID", &dpyinfo->Xatom_SM_CLIENT_ID },
-      { "_XSETTINGS_SETTINGS", &dpyinfo->Xatom_xsettings_prop },
-      { "MANAGER", &dpyinfo->Xatom_xsettings_mgr },
+      ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
+      ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)
+      ATOM_REFS_INIT ("MANAGER", Xatom_xsettings_mgr)
     };
 
     int i;
@@ -10281,7 +10287,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
                   False, atoms_return);
 
     for (i = 0; i < atom_count; i++)
-      *atom_refs[i].atom = atoms_return[i];
+      *(Atom *) ((char *) dpyinfo + atom_refs[i].offset) = atoms_return[i];
 
     /* Manual copy of last atom */
     dpyinfo->Xatom_xsettings_sel = atoms_return[i];

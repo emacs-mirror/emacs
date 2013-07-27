@@ -1,3 +1,198 @@
+2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify--test-local-enabled): New defconst.  Replaces all
+	`file-notify-support' occurences.
+	(file-notify--test-remote-enabled): New defun.
+	(file-notify--deftest-remote): Use it.
+	(file-notify-test00-availability): Rewrite.
+	(file-notify-test00-availability-remote): New defun.
+	(file-notify-test01-add-watch): Rewrite first erroneous check.
+
+2013-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* automated/inotify-test.el (inotify-file-watch-simple):
+	Delete temp-file when done.
+
+	* automated/subword-tests.el: Require subword.
+
+2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/subword-tests.el: New file.
+
+2013-07-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-2)
+	(python-imenu-create-index-3): New tests.
+
+2013-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* automated/ert-tests.el: Require cl-lib at runtime too.
+	(ert-test-special-operator-p): Use cl-gensym rather than ert-- version.
+	(ert-test-remprop, ert-test-remove-if-not, ert-test-remove*)
+	(ert-test-set-functions, ert-test-gensym)
+	(ert-test-coerce-to-vector, ert-test-string-position)
+	(ert-test-mismatch): Remove tests.
+	* automated/cl-lib.el: New, split from ert-tests.el.
+
+	* automated/ruby-mode-tests.el (ruby-deftest-move-to-block):
+	Goto point-min.
+	(works-on-do, zero-is-noop, ok-with-three, ok-with-minus-two)
+	(ruby-move-to-block-skips-percent-literal)
+	(ruby-move-to-block-skips-heredoc)
+	(ruby-move-to-block-moves-from-else-to-if)
+	(ruby-beginning-of-defun-does-not-fold-case)
+	(ruby-end-of-defun-skips-to-next-line-after-the-method):
+	Replace goto-line with forward-line/goto-char.
+	(ruby-move-to-block-does-not-fold-case): Remove unneeded end-of-buffer.
+
+	* automated/package-test.el (makeinfo-buffer): Autoload.
+	(compilation-in-progress, tar-parse-info, tar-header-name): Declare.
+	(package-test-install-texinfo): Don't require makeinfo.
+
+	* automated/files.el: Stop "local variables" confusion.
+
+	* automated/flymake-tests.el (flymake-tests): Remove unused group.
+
+	* automated/icalendar-tests.el (icalendar-tests--do-test-cycle):
+	Use with-current-buffer.
+
+	* automated/undo-tests.el (undo-test-buffer-modified)
+	(undo-test-file-modified): New tests.
+
+2013-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el (file-notify-test00-availability):
+	Set :expected-result.
+	(file-notify-test01-add-watch, file-notify-test01-add-watch-remote)
+	(file-notify-test02-events, file-notify-test02-events-remote)
+	(file-notify-test03-autorevert, file-notify-test03-autorevert-remote):
+	Skip when `file-notify-support' is nil.  (Bug#14823)
+
+2013-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* automated/inotify-test.el (inotify-add-watch, inotify-rm-watch):
+	Declare.
+	(inotify-file-watch-simple): Silence compiler.
+
+	* automated/python-tests.el (python-indent-block-enders):
+	Make it actually test something.
+
+	* automated/package-x-test.el: Require package-test when compiling.
+
+	* automated/add-log-tests.el, automated/advice-tests.el:
+	* automated/imenu-test.el, automated/package-x-test.el:
+	* automated/python-tests.el, automated/ruby-mode-tests.el:
+	* automated/xml-parse-tests.el: Explictly require ert.
+
+2013-07-08  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-prefer-utf-8-read):
+	Use with-ccoding-priority to avoid side-effect (Bug#14781).
+
+2013-07-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el
+	(file-notify-test-remote-temporary-file-directory): Use
+	`null-device' on w32.
+	(file-notify--test-tmpfile, file-notify--test-tmpfile1)
+	(file-notify--test-results, file-notify--test-event)
+	(file-notify--deftest-remote, file-notify--event-test)
+	(file-notify--test-event-handler)
+	(file-notify--test-make-temp-name): Renamed, in order to mark them
+	internal.
+	(tramp-message-show-message, tramp-read-passwd): Tweak them for
+	better fitting in noninteractive tests.
+	(file-notify-test00-availability): Renamed from `file-notify-test0'.
+	(file-notify-test01-add-watch): Renamed from `file-notify-test1'.
+	Use `temporary-file-directory '.
+	(file-notify-test01-add-watch-remote): New test.
+	(file-notify-test02-events): Renamed from `file-notify-test2'.
+	(file-notify-test02-events-remote): Renamed from `file-notify-test3'.
+	(file-notify-test03-autorevert): Renamed from
+	`file-notify-test4'.  Use timeouts.
+	(file-notify-test03-autorevert-remote): Renamed from
+	`file-notify-test5'.
+
+2013-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/file-notify-tests.el: New package.
+
+2013-06-28  Kenichi Handa  <handa@gnu.org>
+
+	* automated/decoder-tests.el (decoder-tests-gen-file): New arg FILE.
+	(decoder-tests-ao-gen-file): Renamed from decoder-tests-filename.
+	Callers changed.
+	(decoder-tests-filename): New function.
+	(decoder-tests-prefer-utf-8-read)
+	(decoder-tests-prefer-utf-8-write): New function.
+	(ert-test-decoder-prefer-utf-8): New test.
+
+2013-06-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/package-x-test.el: Change the commentary.
+	(package-x-test--single-archive-entry-1-3)
+	(package-x-test--single-archive-entry-1-4): Fix the tests, by
+	using the appropriate data structure.
+
+2013-06-27  Daniel Hackney  <dan@haxney.org>
+
+	* automated/Makefile.in (setwins): Include the 'data' subdirectory.
+
+	* automated/package-x-test.el: New file.
+
+	* automated/package-test.el: New file.
+
+	* automated/data/package: New directory, with test examples.
+
+2013-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* automated/python-tests.el (python-tests-with-temp-file):
+	Clean up after ourself.
+
+	* automated/undo-tests.el (undo-test3): Remove test that seems to
+	do nothing that the previous one doesn't, except leave a tempfile.
+
+2013-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* automated/info-xref.el: New file.
+
+2013-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-test-create): New function.
+	Use it to create separate tests for each element, so we run them
+	all rather than stopping at the first error.
+
+2013-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* automated/occur-tests.el (occur-tests):
+	Update for 2013-05-29 change to occur header line.
+
+2013-06-21  Eduard Wiebe  <usenet@pusto.de>
+
+	Test suite for flymake.
+	* automated/flymake-tests.el:
+	* automated/flymake/warnpred/Makefile
+	* automated/flymake/warnpred/test.c
+	* automated/flymake/warnpred/test.pl: New files.
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el (reftex-parse-from-file-test): Fix test.
+
+2013-06-12  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
+
+	* automated/reftex-tests.el: New test suite for reftex.
+
+2013-05-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/ruby-mode-tests.el: New tests, for percent literals
+	and expression expansion.
+
+2013-05-29  Leo Liu  <sdl.web@gmail.com>
+
+	* indent/octave.m: Tweak.
+
 2013-05-26  Aidan Gauland  <aidalgol@amuri.net>
 
 	* tests/eshell.el: Rewrite tests using ERT.

@@ -138,7 +138,7 @@ Given a parsed URI, this function returns the corresponding URI string.
   The return value of @code{url-generic-parse-url}, and the argument
 expected by @code{url-recreate-url}, is a @dfn{parsed URI}: a CL
 structure whose slots hold the various components of the URI@.
-@xref{top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
+@xref{Top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
 details about CL structures.  Most of the other functions in the
 @code{url} library act on parsed URIs.
 

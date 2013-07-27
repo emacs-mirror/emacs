@@ -420,6 +420,9 @@ This manual corresponds to Gnus v5.13
 * Index::                    Variable, function and concept index.
 * Key Index::                Key Index.
 
+@c Doesn't work right in html.
+@c FIXME Do this in a more standard way.
+@ifinfo
 Other related manuals
 
 * Message:(message).         Composing messages.
@@ -427,6 +430,7 @@ Other related manuals
 * Sieve:(sieve).             Managing Sieve scripts in Emacs.
 * EasyPG:(epa).              @acronym{PGP/MIME} with Gnus.
 * SASL:(sasl).               @acronym{SASL} authentication in Emacs.
+@end ifinfo
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -2712,11 +2716,11 @@ the article range.
 This command is similar to @code{gnus-read-ephemeral-gmane-group}, but
 the group name and the article number and range are constructed from a
 given @acronym{URL}.  Supported @acronym{URL} formats include:
-@url{http://thread.gmane.org/gmane.foo.bar/12300/focus=12399},
-@url{http://thread.gmane.org/gmane.foo.bar/12345/},
-@url{http://article.gmane.org/gmane.foo.bar/12345/},
-@url{http://permalink.gmane.org/gmane.foo.bar/12345/}, and
-@url{http://news.gmane.org/group/gmane.foo.bar/thread=12345}.
+@indicateurl{http://thread.gmane.org/gmane.foo.bar/12300/focus=12399},
+@indicateurl{http://thread.gmane.org/gmane.foo.bar/12345/},
+@indicateurl{http://article.gmane.org/gmane.foo.bar/12345/},
+@indicateurl{http://permalink.gmane.org/gmane.foo.bar/12345/}, and
+@indicateurl{http://news.gmane.org/group/gmane.foo.bar/thread=12345}.
 
 @item gnus-read-ephemeral-emacs-bug-group
 @findex gnus-read-ephemeral-emacs-bug-group
@@ -3085,6 +3089,12 @@ like the following is generated:
 if address "sender" ["name@@one.org", "else@@two.org"] @{
         fileinto "INBOX.list.sieve";
 @}
+@end example
+
+You can also use regexp expansions in the rules:
+
+@example
+(sieve header :regex "list-id" "<c++std-\\1.accu.org>")
 @end example
 
 See @pxref{Sieve Commands} for commands and variables that might be of
@@ -6376,10 +6386,10 @@ The default is @code{t}.
 @node Generic Marking Commands
 @subsection Generic Marking Commands
 
-Some people would like the command that ticks an article (@kbd{!}) go to
-the next article.  Others would like it to go to the next unread
-article.  Yet others would like it to stay on the current article.  And
-even though I haven't heard of anybody wanting it to go to the
+Some people would like the command that ticks an article (@kbd{!}) to
+go to the next article.  Others would like it to go to the next unread
+article.  Yet others would like it to stay on the current article.
+And even though I haven't heard of anybody wanting it to go to the
 previous (unread) article, I'm sure there are people that want that as
 well.
 
@@ -7383,6 +7393,11 @@ say something like:
       '((not gnus-thread-sort-by-number)
         gnus-thread-sort-by-score))
 @end lisp
+
+By default, threads are sorted recursively, that is, first the roots,
+then all subthreads, and so on.  If you feel more like sorting only
+the roots, so that inside a thread the original chronological order is
+retained, you can set @code{gnus-sort-threads-recursively} to nil.
 
 @vindex gnus-thread-score-function
 The function in the @code{gnus-thread-score-function} variable (default
@@ -9517,18 +9532,9 @@ Say how much time has elapsed between the article was posted and now
 Date: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
 
-This line is updated continually by default.  The frequency (in
-seconds) is controlled by the @code{gnus-article-update-date-headers}
-variable.
-
-If you wish to switch updating off, say:
-
-@vindex gnus-article-update-date-headers
-@lisp
-(setq gnus-article-update-date-headers nil)
-@end lisp
-
-in your @file{~/.gnus.el} file.
+To make this line updated continually, set the
+@code{gnus-article-update-date-headers} variable to the frequency in
+seconds (the default is @code{nil}).
 
 @item W T o
 @kindex W T o (Summary)
@@ -11857,6 +11863,11 @@ predicate.  The following predicates are recognized: @code{or},
     (typep "text/x-vcard"))
 @end lisp
 
+@item
+A function: the function is called with no arguments and should return
+@code{nil} or non-@code{nil}.  The current article is available in the
+buffer named by @code{gnus-article-buffer}.
+
 @end enumerate
 
 You may have noticed that the word @dfn{part} is used here.  This refers
@@ -13818,9 +13829,12 @@ installed.  You then define a server as follows:
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{http://www.openssl.org, OpenSSL} or
-@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay} installed.  You
-then define a server as follows:
+this you must have @uref{http://www.openssl.org, OpenSSL}
+@ignore
+@c Defunct URL, ancient package, so don't mention it.
+or @uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay}
+@end ignore
+installed.  You then define a server as follows:
 
 @lisp
 ;; @r{"snews" is port 563 and is predefined in our @file{/etc/services}}
@@ -14249,7 +14263,8 @@ variables are relevant:
 
 @table @code
 @item nnimap-inbox
-This is the @acronym{IMAP} mail box that will be scanned for new mail.
+This is the @acronym{IMAP} mail box that will be scanned for new
+mail.  This can also be a list of mail box names.
 
 @item nnimap-split-methods
 Uses the same syntax as @code{nnmail-split-methods} (@pxref{Splitting
@@ -16961,7 +16976,7 @@ Some web sites have an RDF Site Summary (@acronym{RSS}).
 @acronym{RSS} is a format for summarizing headlines from news related
 sites (such as BBC or CNN).  But basically anything list-like can be
 presented as an @acronym{RSS} feed: weblogs, changelogs or recent
-changes to a wiki (e.g., @url{http://cliki.net/recent-changes.rdf}).
+changes to a wiki (e.g., @url{http://cliki.net/site/recent-changes}).
 
 @acronym{RSS} has a quite regular and nice interface, and it's
 possible to get the information Gnus needs to keep groups updated.
@@ -26001,9 +26016,13 @@ following variables.
 
 @defvar gnus-registry-track-extra
 This is a list of symbols, so it's best to change it from the
-Customize interface.  By default it's @code{(subject sender)}, which
-may work for you.  It can be annoying if your mail flow is large and
-people don't stick to the same groups.
+Customize interface.  By default it's @code{(subject sender recipient)},
+which may work for you.  It can be annoying if your mail flow is large
+and people don't stick to the same groups.
+
+When you decide to stop tracking any of those extra data, you can use
+the command @code{gnus-registry-remove-extra-data} to purge it from
+the existing registry entries.
 @end defvar
 
 @defvar gnus-registry-split-strategy
@@ -26576,7 +26595,7 @@ This version of Gnus should work on:
 @itemize @bullet
 
 @item
-Emacs 21.1 and up.
+Emacs 23.1 and up.
 
 @item
 XEmacs 21.4 and up.

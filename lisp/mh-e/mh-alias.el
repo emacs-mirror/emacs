@@ -141,7 +141,7 @@ Exclude all aliases already in `mh-alias-alist' from \"ali\""
             (insert-file-contents "/etc/passwd")))
        ((stringp mh-alias-local-users)
         (insert mh-alias-local-users "\n")
-        (shell-command-on-region (point-min) (point-max) mh-alias-local-users t)
+        (shell-command-on-region (point-min) (point-max) mh-alias-local-users t t)
         (goto-char (point-min))))
       (while  (< (point) (point-max))
         (cond

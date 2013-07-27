@@ -93,11 +93,11 @@
 (defvar subword-backward-function 'subword-backward-internal
   "Function to call for backward subword movement.")
 
-(defvar subword-forward-regexp
-  "\\W*\\(\\([[:upper:]]*\\W?\\)[[:lower:][:digit:]]*\\)"
+(defconst subword-forward-regexp
+  "\\W*\\(\\([[:upper:]]*\\(\\W\\)?\\)[[:lower:][:digit:]]*\\)"
   "Regexp used by `subword-forward-internal'.")
 
-(defvar subword-backward-regexp
+(defconst subword-backward-regexp
   "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
   "Regexp used by `subword-backward-internal'.")
 
@@ -319,7 +319,11 @@ edit them as words.
          (> (match-end 0) (point)))
         (goto-char
          (cond
-          ((< 1 (- (match-end 2) (match-beginning 2)))
+          ((and (< 1 (- (match-end 2) (match-beginning 2)))
+                ;; If we have an all-caps word with no following lower-case or
+                ;; non-word letter, don't leave the last char (bug#13758).
+                (not (and (null (match-beginning 3))
+                          (eq (match-end 2) (match-end 1)))))
            (1- (match-end 2)))
           (t
            (match-end 0))))

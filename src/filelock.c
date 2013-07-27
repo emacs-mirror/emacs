@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #ifdef WINDOWSNT
 #include <share.h>
+#include <sys/socket.h>	/* for fcntl */
 #include "w32.h"	/* for dostounix_filename */
 #endif
 
@@ -256,17 +257,13 @@ void
 get_boot_time_1 (const char *filename, bool newest)
 {
   struct utmp ut, *utp;
-  int desc;
 
   if (filename)
     {
       /* On some versions of IRIX, opening a nonexistent file name
 	 is likely to crash in the utmp routines.  */
-      desc = emacs_open (filename, O_RDONLY, 0);
-      if (desc < 0)
+      if (faccessat (AT_FDCWD, filename, R_OK, AT_EACCESS) != 0)
 	return;
-
-      emacs_close (desc);
 
       utmpname (filename);
     }
@@ -380,9 +377,9 @@ rename_lock_file (char const *old, char const *new, bool force)
 #endif
 }
 
-/* Create the lock file FILE with contents CONTENTS.  Return 0 if
+/* Create the lock file LFNAME with contents LOCK_INFO_STR.  Return 0 if
    successful, an errno value on failure.  If FORCE, remove any
-   existing FILE if necessary.  */
+   existing LFNAME if necessary.  */
 
 static int
 create_lock_file (char *lfname, char *lock_info_str, bool force)
@@ -411,31 +408,37 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       USE_SAFE_ALLOCA;
       char *nonce = SAFE_ALLOCA (lfdirlen + sizeof nonce_base);
       int fd;
-      bool need_fchmod;
-      mode_t world_readable = S_IRUSR | S_IRGRP | S_IROTH;
       memcpy (nonce, lfname, lfdirlen);
       strcpy (nonce + lfdirlen, nonce_base);
 
-#if HAVE_MKSTEMP
-      /* Prefer mkstemp if available, as it avoids a race between
+#if HAVE_MKOSTEMP
+      /* Prefer mkostemp to mkstemp, as it avoids a window where FD is
+	 temporarily open without close-on-exec.  */
+      fd = mkostemp (nonce, O_BINARY | O_CLOEXEC);
+#elif HAVE_MKSTEMP
+      /* Prefer mkstemp to mktemp, as it avoids a race between
 	 mktemp and emacs_open.  */
       fd = mkstemp (nonce);
-      need_fchmod = 1;
 #else
       mktemp (nonce);
       fd = emacs_open (nonce, O_WRONLY | O_CREAT | O_EXCL | O_BINARY,
-		       world_readable);
-      need_fchmod = 0;
+		       S_IRUSR | S_IWUSR);
 #endif
 
       if (fd < 0)
 	err = errno;
       else
 	{
-	  ptrdiff_t lock_info_len = strlen (lock_info_str);
+	  ptrdiff_t lock_info_len;
+#if ! (HAVE_MKOSTEMP && O_CLOEXEC)
+	  fcntl (fd, F_SETFD, FD_CLOEXEC);
+#endif
+	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
-	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len
-	      || (need_fchmod && fchmod (fd, world_readable) != 0))
+	  /* Use 'write', not 'emacs_write', as garbage collection
+	     might signal an error, which would leak FD.  */
+	  if (write (fd, lock_info_str, lock_info_len) != lock_info_len
+	      || fchmod (fd, S_IRUSR | S_IRGRP | S_IROTH) != 0)
 	    err = errno;
 	  /* There is no need to call fsync here, as the contents of
 	     the lock file need not survive system crashes.  */
@@ -507,7 +510,8 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
       int fd = emacs_open (lfname, O_RDONLY | O_BINARY | O_NOFOLLOW, 0);
       if (0 <= fd)
 	{
-	  ptrdiff_t read_bytes = emacs_read (fd, lfinfo, MAX_LFINFO + 1);
+	  /* Use read, not emacs_read, since FD isn't unwind-protected.  */
+	  ptrdiff_t read_bytes = read (fd, lfinfo, MAX_LFINFO + 1);
 	  int read_errno = errno;
 	  if (emacs_close (fd) != 0)
 	    return -1;

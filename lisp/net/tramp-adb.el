@@ -108,6 +108,8 @@
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-modes . tramp-handle-file-modes)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . ignore)
     (expand-file-name . tramp-adb-handle-expand-file-name)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     (directory-files . tramp-handle-directory-files)
@@ -374,16 +376,6 @@ pass to the OPERATION."
 	;; when possible.
 	"ls --color=never"
       "ls")))
-
-(defun tramp-adb-get-toolbox (vec)
-  "Get shell toolbox implementation: `toolbox' for original distributions
-or `busybox' for CyanogenMod based distributions"
-  (with-tramp-connection-property vec "toolbox"
-    (tramp-message vec 5 "Checking shell toolbox implementation")
-    (cond
-     ((zerop (tramp-adb-command-exit-status vec "busybox")) 'busybox)
-     ((zerop (tramp-adb-command-exit-status vec "toolbox")) 'toolbox)
-     (t 'unknown))))
 
 (defun tramp-adb--gnu-switches-to-ash
   (switches)

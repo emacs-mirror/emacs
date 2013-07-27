@@ -25,7 +25,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* C89 requires only the following math.h functions, and Emacs omits
    the starred functions since we haven't found a use for them:
    acos, asin, atan, atan2, ceil, cos, *cosh, exp, fabs, floor, fmod,
-   frexp, ldexp, log, log10, *modf, pow, sin, *sinh, sqrt, tan, *tanh.
+   frexp, ldexp, log, log10 [via (log X 10)], *modf, pow, sin, *sinh,
+   sqrt, tan, *tanh.
+
+   C99 and C11 require the following math.h functions in addition to
+   the C89 functions.  Of these, Emacs currently exports only the
+   starred ones to Lisp, since we haven't found a use for the others:
+   acosh, atanh, cbrt, *copysign, erf, erfc, exp2, expm1, fdim, fma,
+   fmax, fmin, fpclassify, hypot, ilogb, isfinite, isgreater,
+   isgreaterequal, isinf, isless, islessequal, islessgreater, *isnan,
+   isnormal, isunordered, lgamma, log1p, *log2 [via (log X 2)], *logb
+   (approximately), lrint/llrint, lround/llround, nan, nearbyint,
+   nextafter, nexttoward, remainder, remquo, *rint, round, scalbln,
+   scalbn, signbit, tgamma, trunc.
  */
 
 #include <config.h>
@@ -40,6 +52,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef isnan
 # define isnan(x) ((x) != (x))
 #endif
+
+/* Check that X is a floating point number.  */
+
+static void
+CHECK_FLOAT (Lisp_Object x)
+{
+  CHECK_TYPE (FLOATP (x), Qfloatp, x);
+}
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -233,18 +253,13 @@ If the optional argument BASE is given, return log ARG using that base.  */)
 
       if (b == 10.0)
 	d = log10 (d);
+#if HAVE_LOG2
+      else if (b == 2.0)
+	d = log2 (d);
+#endif
       else
 	d = log (d) / log (b);
     }
-  return make_float (d);
-}
-
-DEFUN ("log10", Flog10, Slog10, 1, 1, 0,
-       doc: /* Return the logarithm base 10 of ARG.  */)
-  (Lisp_Object arg)
-{
-  double d = extract_float (arg);
-  d = log10 (d);
   return make_float (d);
 }
 
@@ -545,7 +560,6 @@ syms_of_floatfns (void)
   defsubr (&Sexp);
   defsubr (&Sexpt);
   defsubr (&Slog);
-  defsubr (&Slog10);
   defsubr (&Ssqrt);
 
   defsubr (&Sabs);

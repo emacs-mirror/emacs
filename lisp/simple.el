@@ -372,34 +372,6 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
-;; Major mode meant to be the parent of programming modes.
-
-(defvar prog-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-\M-q] 'prog-indent-sexp)
-    map)
-  "Keymap used for programming modes.")
-
-(defun prog-indent-sexp (&optional defun)
-  "Indent the expression after point.
-When interactively called with prefix, indent the enclosing defun
-instead."
-  (interactive "P")
-  (save-excursion
-    (when defun
-      (end-of-line)
-      (beginning-of-defun))
-    (let ((start (point))
-	  (end (progn (forward-sexp 1) (point))))
-      (indent-region start end nil))))
-
-(define-derived-mode prog-mode fundamental-mode "Prog"
-  "Major mode for editing programming language source code."
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  ;; Any programming language is always written left to right.
-  (setq bidi-paragraph-direction 'left-to-right))
-
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
@@ -2877,10 +2849,11 @@ output is inserted in the current buffer, the buffer `*Shell
 Command Output*' is deleted.
 
 Optional fourth arg OUTPUT-BUFFER specifies where to put the
-command's output.  If the value is a buffer or buffer name, put
-the output there.  Any other value, excluding nil, means to
-insert the output in the current buffer.  In either case, the
-output is inserted after point (leaving mark after it).
+command's output.  If the value is a buffer or buffer name,
+put the output there.  If the value is nil, use the buffer
+`*Shell Command Output*'.  Any other value, excluding nil,
+means to insert the output in the current buffer.  In either case,
+the output is inserted after point (leaving mark after it).
 
 Optional fifth arg REPLACE, if non-nil, means to insert the
 output in place of text from START to END, putting point and mark
@@ -3168,14 +3141,17 @@ Also, delete any process that is exited or signaled."
   (display-buffer (button-get button 'process-buffer)))
 
 (defun list-processes (&optional query-only buffer)
-  "Display a list of all processes.
+  "Display a list of all processes that are Emacs sub-processes.
 If optional argument QUERY-ONLY is non-nil, only processes with
 the query-on-exit flag set are listed.
 Any process listed as exited or signaled is actually eliminated
 after the listing is made.
 Optional argument BUFFER specifies a buffer to use, instead of
 \"*Process List*\".
-The return value is always nil."
+The return value is always nil.
+
+This function lists only processes that were launched by Emacs.  To
+see other processes running on the system, use `list-system-processes'."
   (interactive)
   (or (fboundp 'process-list)
       (error "Asynchronous subprocesses are not supported on this system"))
@@ -4629,6 +4605,12 @@ for it.")
 (defun next-line (&optional arg try-vscroll)
   "Move cursor vertically down ARG lines.
 Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
+Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
+lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
+function will not vscroll.
+
+ARG defaults to 1.
+
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -4673,6 +4655,12 @@ and more reliable (no dependence on goal column, etc.)."
 (defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
 Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
+Non-interactively, use TRY-VSCROLL to control whether to vscroll tall
+lines: if either `auto-window-vscroll' or TRY-VSCROLL is nil, this
+function will not vscroll.
+
+ARG defaults to 1.
+
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -4752,61 +4740,156 @@ lines."
   :group 'editing-basics
   :version "23.1")
 
+(defun default-font-height ()
+  "Return the height in pixels of the current buffer's default face font."
+  (let ((default-font (face-font 'default)))
+    (cond
+     ((and (display-multi-font-p)
+	   ;; Avoid calling font-info if the frame's default font was
+	   ;; not changed since the frame was created.  That's because
+	   ;; font-info is expensive for some fonts, see bug #14838.
+	   (not (string= (frame-parameter nil 'font) default-font)))
+      (aref (font-info default-font) 3))
+     (t (frame-char-height)))))
+
+(defun default-line-height ()
+  "Return the pixel height of current buffer's default-face text line.
+
+The value includes `line-spacing', if any, defined for the buffer
+or the frame."
+  (let ((dfh (default-font-height))
+	(lsp (if (display-graphic-p)
+		 (or line-spacing
+		     (default-value 'line-spacing)
+		     (frame-parameter nil 'line-spacing)
+		     0)
+	       0)))
+    (if (floatp lsp)
+	(setq lsp (* dfh lsp)))
+    (+ dfh lsp)))
+
+(defun window-screen-lines ()
+  "Return the number of screen lines in the text area of the selected window.
+
+This is different from `window-text-height' in that this function counts
+lines in units of the height of the font used by the default face displayed
+in the window, not in units of the frame's default font, and also accounts
+for `line-spacing', if any, defined for the window's buffer or frame.
+
+The value is a floating-point number."
+  (let ((canonical (window-text-height))
+	(fch (frame-char-height))
+	(dlh (default-line-height)))
+    (/ (* (float canonical) fch) dlh)))
+
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
   (if (< arg 0)
       ;; Move backward (up).
       ;; If already vscrolled, reduce vscroll
-      (let ((vs (window-vscroll nil t)))
-	(when (> vs (frame-char-height))
-	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
+      (let ((vs (window-vscroll nil t))
+	    (dlh (default-line-height)))
+	(when (> vs dlh)
+	  (set-window-vscroll nil (- vs dlh) t)))
 
     ;; Move forward (down).
     (let* ((lh (window-line-height -1))
+	   (rowh (car lh))
 	   (vpos (nth 1 lh))
 	   (ypos (nth 2 lh))
 	   (rbot (nth 3 lh))
-	   py vs)
+	   (this-lh (window-line-height))
+	   (this-height (car this-lh))
+	   (this-ypos (nth 2 this-lh))
+	   (dlh (default-line-height))
+	   (wslines (window-screen-lines))
+	   (edges (window-inside-pixel-edges))
+	   (winh (- (nth 3 edges) (nth 1 edges) 1))
+	   py vs last-line)
+      (if (> (mod wslines 1.0) 0.0)
+	  (setq wslines (round (+ wslines 0.5))))
       (when (or (null lh)
-		(>= rbot (frame-char-height))
-		(<= ypos (- (frame-char-height))))
+		(>= rbot dlh)
+		(<= ypos (- dlh))
+		(null this-lh)
+		(<= this-ypos (- dlh)))
 	(unless lh
 	  (let ((wend (pos-visible-in-window-p t nil t)))
 	    (setq rbot (nth 3 wend)
+		  rowh  (nth 4 wend)
 		  vpos (nth 5 wend))))
+	(unless this-lh
+	  (let ((wstart (pos-visible-in-window-p nil nil t)))
+	    (setq this-ypos (nth 2 wstart)
+		  this-height (nth 4 wstart))))
+	(setq py
+	      (or (nth 1 this-lh)
+		  (let ((ppos (posn-at-point))
+			col-row)
+		    (setq col-row (posn-actual-col-row ppos))
+		    (if col-row
+			(- (cdr col-row) (window-vscroll))
+		      (cdr (posn-col-row ppos))))))
+	;; VPOS > 0 means the last line is only partially visible.
+	;; But if the part that is visible is at least as tall as the
+	;; default font, that means the line is actually fully
+	;; readable, and something like line-spacing is hidden.  So in
+	;; that case we accept the last line in the window as still
+	;; visible, and consider the margin as starting one line
+	;; later.
+	(if (and vpos (> vpos 0))
+	    (if (and rowh
+		     (>= rowh (default-font-height))
+		     (< rowh dlh))
+		(setq last-line (min (- wslines scroll-margin) vpos))
+	      (setq last-line (min (- wslines scroll-margin 1) (1- vpos)))))
 	(cond
-	 ;; If last line of window is fully visible, move forward.
-	 ((or (null rbot) (= rbot 0))
+	 ;; If last line of window is fully visible, and vscrolling
+	 ;; more would make this line invisible, move forward.
+	 ((and (or (< (setq vs (window-vscroll nil t)) dlh)
+		   (null this-height)
+		   (<= this-height dlh))
+	       (or (null rbot) (= rbot 0)))
 	  nil)
-	 ;; If cursor is not in the bottom scroll margin, move forward.
-	 ((and (> vpos 0)
-	       (< (setq py
-			(or (nth 1 (window-line-height))
-			    (let ((ppos (posn-at-point)))
-			      (cdr (or (posn-actual-col-row ppos)
-				       (posn-col-row ppos))))))
-		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
+	 ;; If cursor is not in the bottom scroll margin, and the
+	 ;; current line is is not too tall, move forward.
+	 ((and (or (null this-height) (<= this-height winh))
+	       vpos
+	       (> vpos 0)
+	       (< py last-line))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
-	 ((> (setq vs (window-vscroll nil t)) 0)
-	  (when (> rbot 0)
-	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
+	 ((> vs 0)
+	  (when (or (and rbot (> rbot 0))
+		    (and this-height (> this-height dlh)))
+	    (set-window-vscroll nil (+ vs dlh) t)))
 	 ;; If cursor just entered the bottom scroll margin, move forward,
-	 ;; but also vscroll one line so redisplay won't recenter.
-	 ((and (> vpos 0)
-	       (= py (min (- (window-text-height) scroll-margin 1)
-			  (1- vpos))))
-	  (set-window-vscroll nil (frame-char-height) t)
+	 ;; but also optionally vscroll one line so redisplay won't recenter.
+	 ((and vpos
+	       (> vpos 0)
+	       (= py last-line))
+	  ;; Don't vscroll if the partially-visible line at window
+	  ;; bottom is not too tall (a.k.a. "just one more text
+	  ;; line"): in that case, we do want redisplay to behave
+	  ;; normally, i.e. recenter or whatever.
+	  ;;
+	  ;; Note: ROWH + RBOT from the value returned by
+	  ;; pos-visible-in-window-p give the total height of the
+	  ;; partially-visible glyph row at the end of the window.  As
+	  ;; we are dealing with floats, we disregard sub-pixel
+	  ;; discrepancies between that and DLH.
+	  (if (and rowh rbot (>= (- (+ rowh rbot) winh) 1))
+	      (set-window-vscroll nil dlh t))
 	  (line-move-1 arg noerror to-end)
 	  t)
 	 ;; If there are lines above the last line, scroll-up one line.
-	 ((> vpos 0)
+	 ((and vpos (> vpos 0))
 	  (scroll-up 1)
 	  t)
 	 ;; Finally, start vscroll.
 	 (t
-	  (set-window-vscroll nil (frame-char-height) t)))))))
+	  (set-window-vscroll nil dlh t)))))))
 
 
 ;; This is like line-move-1 except that it also performs
@@ -4836,7 +4919,20 @@ lines."
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
 	       (not (> (window-hscroll) 0)))
-	  (line-move-visual arg noerror)
+	  (prog1 (line-move-visual arg noerror)
+	    ;; If we moved into a tall line, set vscroll to make
+	    ;; scrolling through tall images more smooth.
+	    (let ((lh (line-pixel-height))
+		  (edges (window-inside-pixel-edges))
+		  (dlh (default-line-height))
+		  winh)
+	      (setq winh (- (nth 3 edges) (nth 1 edges) 1))
+	      (if (and (< arg 0)
+		       (< (point) (window-start))
+		       (> lh winh))
+		  (set-window-vscroll
+		   nil
+		   (- lh dlh) t))))
 	(line-move-1 arg noerror to-end)))))
 
 ;; Display-based alternative to line-move-1.
@@ -5437,8 +5533,7 @@ Mode' for details."
   (visual-line-mode 1))
 
 (define-globalized-minor-mode global-visual-line-mode
-  visual-line-mode turn-on-visual-line-mode
-  :lighter " vl")
+  visual-line-mode turn-on-visual-line-mode)
 
 
 (defun transpose-chars (arg)
@@ -6448,10 +6543,10 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
                      (call-interactively `(lambda (arg)
                                             (interactive ,prop)
                                             arg))
-                   (read
-                    (read-string prompt nil
-                                 'set-variable-value-history
-				 (format "%S" (symbol-value var))))))))
+                   (read-from-minibuffer prompt nil
+                                         read-expression-map t
+                                         'set-variable-value-history
+                                         (format "%S" (symbol-value var)))))))
      (list var val current-prefix-arg)))
 
   (and (custom-variable-p variable)
@@ -7323,8 +7418,7 @@ version and use the one distributed with Emacs."))
   "Alist of packages known to cause problems in this version of Emacs.
 Each element has the form (PACKAGE SYMBOL REGEXP STRING).
 PACKAGE is either a regular expression to match file names, or a
-symbol (a feature name); see the documentation of
-`after-load-alist', to which this variable adds functions.
+symbol (a feature name), like for `with-eval-after-load'.
 SYMBOL is either the name of a string variable, or `t'.  Upon
 loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
 warning using STRING as the message.")
@@ -7342,10 +7436,70 @@ warning using STRING as the message.")
              (display-warning package (nth 3 list) :warning)))
     (error nil)))
 
-(mapc (lambda (elem)
-        (eval-after-load (car elem) `(bad-package-check ',(car elem))))
-      bad-packages-alist)
+(dolist (elem bad-packages-alist)
+  (let ((pkg (car elem)))
+    (with-eval-after-load pkg
+      (bad-package-check pkg))))
 
+
+;;; Generic dispatcher commands
+
+;; Macro `define-alternatives' is used to create generic commands.
+;; Generic commands are these (like web, mail, news, encrypt, irc, etc.)
+;; that can have different alternative implementations where choosing
+;; among them is exclusively a matter of user preference.
+
+;; (define-alternatives COMMAND) creates a new interactive command
+;; M-x COMMAND and a customizable variable COMMAND-alternatives.
+;; Typically, the user will not need to customize this variable; packages
+;; wanting to add alternative implementations should use
+;;
+;; ;;;###autoload (push '("My impl name" . my-impl-symbol) COMMAND-alternatives
+
+(defmacro define-alternatives (command &rest customizations)
+  "Define new command `COMMAND'.
+The variable `COMMAND-alternatives' will contain alternative
+implementations of COMMAND, so that running `C-u M-x COMMAND'
+will allow the user to chose among them.
+CUSTOMIZATIONS, if non-nil, should be composed of alternating
+`defcustom' keywords and values to add to the declaration of
+`COMMAND-alternatives' (typically :group and :version)."
+  (let* ((command-name (symbol-name command))
+         (varalt-name (concat command-name "-alternatives"))
+         (varalt-sym (intern varalt-name))
+         (varimp-sym (intern (concat command-name "--implementation"))))
+    `(progn
+
+       (defcustom ,varalt-sym nil
+         ,(format "Alist of alternative implementations for the `%s' command.
+
+Each entry must be a pair (ALTNAME . ALTFUN), where:
+ALTNAME - The name shown at user to describe the alternative implementation.
+ALTFUN  - The function called to implement this alternative."
+                  command-name)
+         :type '(alist :key-type string :value-type function)
+         ,@customizations)
+
+       (defvar ,varimp-sym nil "Internal use only.")
+
+       (defun ,command (&optional arg)
+         ,(format "Run generic command `%s'.
+If used for the first time, or with interactive ARG, ask the user which
+implementation to use for `%s'.  The variable `%s'
+contains the list of implementations currently supported for this command."
+                  command-name command-name varalt-name)
+         (interactive "P")
+         (when (or arg (null ,varimp-sym))
+           (let ((val (completing-read
+                       ,(format "Select implementation for command `%s': " command-name)
+                       ,varalt-sym nil t)))
+             (unless (string-equal val "")
+               (customize-save-variable ',varimp-sym
+                                        (cdr (assoc-string val ,varalt-sym))))))
+         (if ,varimp-sym
+             (funcall ,varimp-sym)
+           (message ,(format "No implementation selected for command `%s'"
+                             command-name)))))))
 
 (provide 'simple)
 

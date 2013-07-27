@@ -342,31 +342,18 @@ You may want to include buffer names such as *Help*, *Apropos*,
     map)
   "Keymap for Winner mode.")
 
-;; Check if `window-configuration-change-hook' is working.
-(defun winner-hook-installed-p ()
-  (save-window-excursion
-    (let ((winner-var nil)
-	  (window-configuration-change-hook
-	   '((lambda () (setq winner-var t)))))
-      (split-window)
-      winner-var)))
-
 
 ;;;###autoload
 (define-minor-mode winner-mode nil :global t ; let d-m-m make the doc
   (if winner-mode
       (progn
-        (if (winner-hook-installed-p)
-            (progn
-              (add-hook 'window-configuration-change-hook 'winner-change-fun)
-              (add-hook 'post-command-hook 'winner-save-old-configurations))
-          (add-hook 'post-command-hook 'winner-save-conditionally))
+        (add-hook 'window-configuration-change-hook 'winner-change-fun)
+        (add-hook 'post-command-hook 'winner-save-old-configurations)
         (add-hook 'minibuffer-setup-hook 'winner-save-unconditionally)
         (setq winner-modified-list (frame-list))
         (winner-save-old-configurations))
     (remove-hook 'window-configuration-change-hook 'winner-change-fun)
     (remove-hook 'post-command-hook 'winner-save-old-configurations)
-    (remove-hook 'post-command-hook 'winner-save-conditionally)
     (remove-hook 'minibuffer-setup-hook 'winner-save-unconditionally)))
 
 ;; Inspired by undo (simple.el)

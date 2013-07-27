@@ -90,9 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Name of the default sound device. */
 #undef DEFAULT_SOUND_DEVICE
 
-/* Character that separates a device in a file name. */
-#undef DEVICE_SEP
-
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
 
@@ -122,6 +119,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if expensive run-time data type and consistency checks are
    enabled. */
 #undef ENABLE_CHECKING
+
+/* Define this to 1 if F_DUPFD behavior does not match POSIX */
+#undef FCNTL_DUPFD_BUGGY
 
 /* Letter to use in finding device name of first PTY, if PTYs are supported.
    */
@@ -209,6 +209,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    startup, if using GTK. */
 #undef G_SLICE_ALWAYS_MALLOC
 
+/* Define to 1 if you have the `accept4' function. */
+#undef HAVE_ACCEPT4
+
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
 
@@ -280,9 +283,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if the ACL type ACL_TYPE_EXTENDED exists. */
 #undef HAVE_ACL_TYPE_EXTENDED
-
-/* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
-#undef HAVE_AIX_SMT_EXP
 
 /* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
    may be supplied by this distribution. */
@@ -412,12 +412,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL___SYS_SIGLIST
 
-/* Define to 1 if you have the <des.h> header file. */
-#undef HAVE_DES_H
-
-/* Define to 1 if dynamic ptys are supported. */
-#undef HAVE_DEV_PTMX
-
 /* Define to 1 if you have the `difftime' function. */
 #undef HAVE_DIFFTIME
 
@@ -450,6 +444,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `facl' function. */
 #undef HAVE_FACL
+
+/* Define to 1 if you have the `fcntl' function. */
+#undef HAVE_FCNTL
 
 /* Define to 1 if you have the `fdatasync' function. */
 #undef HAVE_FDATASYNC
@@ -499,6 +496,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getdelim' function. */
 #undef HAVE_GETDELIM
 
+/* Define to 1 if you have the `getdtablesize' function. */
+#undef HAVE_GETDTABLESIZE
+
 /* Define to 1 if you have the `getgrent' function. */
 #undef HAVE_GETGRENT
 
@@ -547,18 +547,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME
 
+/* Define to 1 if using GFile. */
+#undef HAVE_GFILENOTIFY
+
 /* Define to 1 if you have a gif (or ungif) library. */
 #undef HAVE_GIF
 
+/* Define to 1 if GLib is linked in. */
+#undef HAVE_GLIB
+
 /* Define if using GnuTLS. */
 #undef HAVE_GNUTLS
-
-/* Define if using GnuTLS certificate verification callbacks. */
-#undef HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY
-
-/* Define to 1 if you have the `gnutls_certificate_set_verify_function'
-   function. */
-#undef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
 
 /* Define to 1 if you have the gpm library (-lgpm). */
 #undef HAVE_GPM
@@ -583,9 +582,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gtk_handle_box_new' function. */
 #undef HAVE_GTK_HANDLE_BOX_NEW
-
-/* Define to 1 if you have the `gtk_main' function. */
-#undef HAVE_GTK_MAIN
 
 /* Define to 1 if you have the `gtk_orientable_set_orientation' function. */
 #undef HAVE_GTK_ORIENTABLE_SET_ORIENTATION
@@ -632,14 +628,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
 
-/* Define to 1 if you have the <kerberosIV/des.h> header file. */
-#undef HAVE_KERBEROSIV_DES_H
-
 /* Define to 1 if you have the <kerberosIV/krb.h> header file. */
 #undef HAVE_KERBEROSIV_KRB_H
-
-/* Define to 1 if you have the <kerberos/des.h> header file. */
-#undef HAVE_KERBEROS_DES_H
 
 /* Define to 1 if you have the <kerberos/krb.h> header file. */
 #undef HAVE_KERBEROS_KRB_H
@@ -659,18 +649,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
 
-/* Define to 1 if you have the `com_err' library (-lcom_err). */
-#undef HAVE_LIBCOM_ERR
-
-/* Define to 1 if you have the `crypto' library (-lcrypto). */
-#undef HAVE_LIBCRYPTO
-
-/* Define to 1 if you have the `des' library (-ldes). */
-#undef HAVE_LIBDES
-
-/* Define to 1 if you have the `des425' library (-ldes425). */
-#undef HAVE_LIBDES425
-
 /* Define to 1 if you have the `dgc' library (-ldgc). */
 #undef HAVE_LIBDGC
 
@@ -679,21 +657,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #undef HAVE_LIBGEN_H
-
-/* Define to 1 if you have the hesiod library (-lhesiod). */
-#undef HAVE_LIBHESIOD
-
-/* Define to 1 if you have the `k5crypto' library (-lk5crypto). */
-#undef HAVE_LIBK5CRYPTO
-
-/* Define to 1 if you have the `krb' library (-lkrb). */
-#undef HAVE_LIBKRB
-
-/* Define to 1 if you have the `krb4' library (-lkrb4). */
-#undef HAVE_LIBKRB4
-
-/* Define to 1 if you have the `krb5' library (-lkrb5). */
-#undef HAVE_LIBKRB5
 
 /* Define to 1 if you have the `kstat' library (-lkstat). */
 #undef HAVE_LIBKSTAT
@@ -719,9 +682,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `pthreads' library (-lpthreads). */
 #undef HAVE_LIBPTHREADS
 
-/* Define to 1 if you have the resolv library (-lresolv). */
-#undef HAVE_LIBRESOLV
-
 /* Define to 1 if using SELinux. */
 #undef HAVE_LIBSELINUX
 
@@ -734,11 +694,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
 
-/* Define to 1 if you have the <linux/version.h> header file. */
-#undef HAVE_LINUX_VERSION_H
-
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
+
+/* Define to 1 if you have the `log2' function. */
+#undef HAVE_LOG2
 
 /* Define to 1 if you support file names longer than 14 characters. */
 #undef HAVE_LONG_FILE_NAMES
@@ -790,14 +750,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    systems that support xmenu.c. */
 #undef HAVE_MENUS
 
+/* Define to 1 if you have the `mkostemp' function. */
+#undef HAVE_MKOSTEMP
+
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
-
-/* Define to 1 if you have the <mmsystem.h> header file. */
-#undef HAVE_MMSYSTEM_H
 
 /* Define to 1 if you have the `nanotime' function. */
 #undef HAVE_NANOTIME
@@ -823,6 +783,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if personality LINUX32 can be set. */
 #undef HAVE_PERSONALITY_LINUX32
+
+/* Define to 1 if you have the `pipe2' function. */
+#undef HAVE_PIPE2
 
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
@@ -933,9 +896,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <soundcard.h> header file. */
 #undef HAVE_SOUNDCARD_H
 
-/* Define to 1 if `speed_t' is declared by <termios.h>. */
-#undef HAVE_SPEED_T
-
 /* Define to 1 if you have the `statacl' function. */
 #undef HAVE_STATACL
 
@@ -1033,9 +993,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 #undef HAVE_SYS_BITYPES_H
 
-/* Define to 1 if you have the <sys/inotify.h> header file. */
-#undef HAVE_SYS_INOTIFY_H
-
 /* Define to 1 if you have the <sys/inttypes.h> header file. */
 #undef HAVE_SYS_INTTYPES_H
 
@@ -1125,9 +1082,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `utimensat' function. */
 #undef HAVE_UTIMENSAT
 
-/* Define to 1 if you have the `utimes' function. */
-#undef HAVE_UTIMES
-
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
 
@@ -1139,6 +1093,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
+
+/* Define to 1 to use w32notify. */
+#undef HAVE_W32NOTIFY
 
 /* Define to 1 if you have the <wchar.h> header file. */
 #undef HAVE_WCHAR_H
@@ -1496,6 +1453,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to nonzero if you want access control list support. */
 #undef USE_ACL
 
+/* Define to 1 if using file notifications. */
+#undef USE_FILE_NOTIFY
+
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
@@ -1507,6 +1467,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF
+
+/* Define to 1 if you use ncurses. */
+#undef USE_NCURSES
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -1551,9 +1514,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system is compatible with System III. */
 #undef USG
-
-/* Define if the system is compatible with System V. */
-#undef USG5
 
 /* Define if the system is compatible with System V Release 4. */
 #undef USG5_4
@@ -1668,15 +1628,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    configuration information. */
 #undef config_opsysfile
 
-/* _GL_INLINE is a portable alternative to ISO C99 plain 'inline'.
-   _GL_EXTERN_INLINE is a portable alternative to 'extern inline'.
-   _GL_INLINE_HEADER_BEGIN contains useful stuff to put
-     in an include file, before uses of _GL_INLINE.
-     It suppresses GCC's bogus "no previous prototype for 'FOO'" diagnostic,
-     when FOO is an inline function in the header; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.
-   _GL_INLINE_HEADER_END contains useful stuff to put
-     in the same include file, after uses of _GL_INLINE.
+/* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
    <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
@@ -1699,7 +1651,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      && !defined __APPLE__)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline
-#elif 2 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __APPLE__
+#elif (2 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __STRICT_ANSI__ \
+       && !defined __APPLE__)
 # if __GNUC_GNU_INLINE__
    /* __gnu_inline__ suppresses a GCC 4.2 diagnostic.  */
 #  define _GL_INLINE extern inline __attribute__ ((__gnu_inline__))
@@ -1719,6 +1672,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define _GL_INLINE_HEADER_CONST_PRAGMA \
      _Pragma ("GCC diagnostic ignored \"-Wsuggest-attribute=const\"")
 # endif
+  /* Suppress GCC's bogus "no previous prototype for 'FOO'"
+     and "no previous declaration for 'FOO'"  diagnostics,
+     when FOO is an inline function in the header; see
+     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
 # define _GL_INLINE_HEADER_BEGIN \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
@@ -1790,9 +1747,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to enable asynchronous subprocesses. */
 #undef subprocesses
-
-/* Define to any substitute for sys_siglist. */
-#undef sys_siglist
 
 /* Define as a marker that can be attached to declarations that might not
     be used.  This helps to reduce warnings, such as from

@@ -20,8 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
+#include "lisp.h"
 
-#include <lisp.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <a.out.h>
@@ -298,9 +298,9 @@ unexec (const char *outfile, const char *infile)
   infile = add_exe_suffix_if_necessary (infile, infile_buffer);
   outfile = add_exe_suffix_if_necessary (outfile, outfile_buffer);
 
-  fd_in = open (infile, O_RDONLY | O_BINARY);
+  fd_in = emacs_open (infile, O_RDONLY | O_BINARY, 0);
   assert (fd_in >= 0);
-  fd_out = open (outfile, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 0755);
+  fd_out = emacs_open (outfile, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 0755);
   assert (fd_out >= 0);
   for (;;)
     {
@@ -316,13 +316,13 @@ unexec (const char *outfile, const char *infile)
       ret2 = write (fd_out, buffer, ret);
       assert (ret2 == ret);
     }
-  ret = close (fd_in);
+  ret = emacs_close (fd_in);
   assert (ret == 0);
 
   bss_sbrk_did_unexec = 1;
   fixup_executable (fd_out);
   bss_sbrk_did_unexec = 0;
 
-  ret = close (fd_out);
+  ret = emacs_close (fd_out);
   assert (ret == 0);
 }

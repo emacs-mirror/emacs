@@ -18,7 +18,7 @@
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
 
 #ifndef _GL_VERIFY_H
-# define _GL_VERIFY_H
+#define _GL_VERIFY_H
 
 
 /* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert works as per C11.
@@ -31,14 +31,24 @@
    Use this only with GCC.  If we were willing to slow 'configure'
    down we could also use it with other compilers, but since this
    affects only the quality of diagnostics, why bother?  */
-# if (4 < __GNUC__ || (__GNUC__ == 4 && 6 <= __GNUC_MINOR__)) && !defined __cplusplus
-#  define _GL_HAVE__STATIC_ASSERT 1
-# endif
+#if (4 < __GNUC__ + (6 <= __GNUC_MINOR__) \
+     && (201112L <= __STDC_VERSION__  || !defined __STRICT_ANSI__) \
+     && !defined __cplusplus)
+# define _GL_HAVE__STATIC_ASSERT 1
+#endif
 /* The condition (99 < __GNUC__) is temporary, until we know about the
    first G++ release that supports static_assert.  */
-# if (99 < __GNUC__) && defined __cplusplus
-#  define _GL_HAVE_STATIC_ASSERT 1
-# endif
+#if (99 < __GNUC__) && defined __cplusplus
+# define _GL_HAVE_STATIC_ASSERT 1
+#endif
+
+/* FreeBSD 9.1 <sys/cdefs.h>, included by <stddef.h> and lots of other
+   system headers, defines a conflicting _Static_assert that is no
+   better than ours; override it.  */
+#ifndef _GL_HAVE_STATIC_ASSERT
+# include <stddef.h>
+# undef _Static_assert
+#endif
 
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
@@ -141,50 +151,50 @@
      Use a template type to work around the problem.  */
 
 /* Concatenate two preprocessor tokens.  */
-# define _GL_CONCAT(x, y) _GL_CONCAT0 (x, y)
-# define _GL_CONCAT0(x, y) x##y
+#define _GL_CONCAT(x, y) _GL_CONCAT0 (x, y)
+#define _GL_CONCAT0(x, y) x##y
 
 /* _GL_COUNTER is an integer, preferably one that changes each time we
    use it.  Use __COUNTER__ if it works, falling back on __LINE__
    otherwise.  __LINE__ isn't perfect, but it's better than a
    constant.  */
-# if defined __COUNTER__ && __COUNTER__ != __COUNTER__
-#  define _GL_COUNTER __COUNTER__
-# else
-#  define _GL_COUNTER __LINE__
-# endif
+#if defined __COUNTER__ && __COUNTER__ != __COUNTER__
+# define _GL_COUNTER __COUNTER__
+#else
+# define _GL_COUNTER __LINE__
+#endif
 
 /* Generate a symbol with the given prefix, making it unique if
    possible.  */
-# define _GL_GENSYM(prefix) _GL_CONCAT (prefix, _GL_COUNTER)
+#define _GL_GENSYM(prefix) _GL_CONCAT (prefix, _GL_COUNTER)
 
 /* Verify requirement R at compile-time, as an integer constant expression
    that returns 1.  If R is false, fail at compile-time, preferably
    with a diagnostic that includes the string-literal DIAGNOSTIC.  */
 
-# define _GL_VERIFY_TRUE(R, DIAGNOSTIC) \
-    (!!sizeof (_GL_VERIFY_TYPE (R, DIAGNOSTIC)))
+#define _GL_VERIFY_TRUE(R, DIAGNOSTIC) \
+   (!!sizeof (_GL_VERIFY_TYPE (R, DIAGNOSTIC)))
 
-# ifdef __cplusplus
-#  if !GNULIB_defined_struct__gl_verify_type
+#ifdef __cplusplus
+# if !GNULIB_defined_struct__gl_verify_type
 template <int w>
   struct _gl_verify_type {
     unsigned int _gl_verify_error_if_negative: w;
   };
-#   define GNULIB_defined_struct__gl_verify_type 1
-#  endif
-#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
-    _gl_verify_type<(R) ? 1 : -1>
-# elif defined _GL_HAVE__STATIC_ASSERT
-#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
-     struct {                                   \
-       _Static_assert (R, DIAGNOSTIC);          \
-       int _gl_dummy;                          \
-     }
-# else
-#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
-     struct { unsigned int _gl_verify_error_if_negative: (R) ? 1 : -1; }
+#  define GNULIB_defined_struct__gl_verify_type 1
 # endif
+# define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+    _gl_verify_type<(R) ? 1 : -1>
+#elif defined _GL_HAVE__STATIC_ASSERT
+# define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+    struct {                                   \
+      _Static_assert (R, DIAGNOSTIC);          \
+      int _gl_dummy;                          \
+    }
+#else
+# define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+    struct { unsigned int _gl_verify_error_if_negative: (R) ? 1 : -1; }
+#endif
 
 /* Verify requirement R at compile-time, as a declaration without a
    trailing ';'.  If R is false, fail at compile-time, preferably
@@ -193,23 +203,23 @@ template <int w>
    Unfortunately, unlike C11, this implementation must appear as an
    ordinary declaration, and cannot appear inside struct { ... }.  */
 
-# ifdef _GL_HAVE__STATIC_ASSERT
-#  define _GL_VERIFY _Static_assert
-# else
-#  define _GL_VERIFY(R, DIAGNOSTIC)				       \
-     extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
-       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
-# endif
+#ifdef _GL_HAVE__STATIC_ASSERT
+# define _GL_VERIFY _Static_assert
+#else
+# define _GL_VERIFY(R, DIAGNOSTIC)				       \
+    extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
+      [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
+#endif
 
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
-# ifdef _GL_STATIC_ASSERT_H
-#  if !defined _GL_HAVE__STATIC_ASSERT && !defined _Static_assert
-#   define _Static_assert(R, DIAGNOSTIC) _GL_VERIFY (R, DIAGNOSTIC)
-#  endif
-#  if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
-#   define static_assert _Static_assert /* C11 requires this #define.  */
-#  endif
+#ifdef _GL_STATIC_ASSERT_H
+# if !defined _GL_HAVE__STATIC_ASSERT && !defined _Static_assert
+#  define _Static_assert(R, DIAGNOSTIC) _GL_VERIFY (R, DIAGNOSTIC)
 # endif
+# if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
+#  define static_assert _Static_assert /* C11 requires this #define.  */
+# endif
+#endif
 
 /* @assert.h omit start@  */
 
@@ -227,18 +237,18 @@ template <int w>
 
    verify_true is obsolescent; please use verify_expr instead.  */
 
-# define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
+#define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
 
 /* Verify requirement R at compile-time.  Return the value of the
    expression E.  */
 
-# define verify_expr(R, E) \
-    (_GL_VERIFY_TRUE (R, "verify_expr (" #R ", " #E ")") ? (E) : (E))
+#define verify_expr(R, E) \
+   (_GL_VERIFY_TRUE (R, "verify_expr (" #R ", " #E ")") ? (E) : (E))
 
 /* Verify requirement R at compile-time, as a declaration without a
    trailing ';'.  */
 
-# define verify(R) _GL_VERIFY (R, "verify (" #R ")")
+#define verify(R) _GL_VERIFY (R, "verify (" #R ")")
 
 /* @assert.h omit end@  */
 

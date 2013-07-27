@@ -1365,7 +1365,11 @@ frame's display)."
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
-For character terminals, each character counts as a single pixel."
+For character terminals, each character counts as a single pixel.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the pixel height for all physical monitors associated
+with DISPLAY.  To get information for each physical monitor, use
+`display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1377,7 +1381,11 @@ For character terminals, each character counts as a single pixel."
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
-For character terminals, each character counts as a single pixel."
+For character terminals, each character counts as a single pixel.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the pixel width for all physical monitors associated
+with DISPLAY.  To get information for each physical monitor, use
+`display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
      ((memq frame-type '(x w32 ns))
@@ -1408,7 +1416,11 @@ displays not explicitly specified."
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
-If the information is unavailable, value is nil."
+If the information is unavailable, value is nil.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the height in millimeters for all physical monitors
+associated with DISPLAY.  To get information for each physical
+monitor, use `display-monitor-attributes-list'."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1420,7 +1432,11 @@ If the information is unavailable, value is nil."
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
-If the information is unavailable, value is nil."
+If the information is unavailable, value is nil.
+For graphical terminals, note that on \"multi-monitor\" setups this
+refers to the width in millimeters for all physical monitors
+associated with DISPLAY.  To get information for each physical
+monitor, use `display-monitor-attributes-list'."
   (and (memq (framep-on-display display) '(x w32 ns))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
@@ -1495,6 +1511,8 @@ The value is one of the symbols `static-gray', `gray-scale',
 
 (declare-function x-display-monitor-attributes-list "xfns.c"
 		  (&optional terminal))
+(declare-function w32-display-monitor-attributes-list "w32fns.c"
+		  (&optional display))
 (declare-function ns-display-monitor-attributes-list "nsfns.m"
 		  (&optional terminal))
 
@@ -1530,6 +1548,8 @@ monitors."
     (cond
      ((eq frame-type 'x)
       (x-display-monitor-attributes-list display))
+     ((eq frame-type 'w32)
+      (w32-display-monitor-attributes-list display))
      ((eq frame-type 'ns)
       (ns-display-monitor-attributes-list display))
      (t
@@ -1651,6 +1671,16 @@ left untouched.  FRAME nil or omitted means use the selected frame."
   :type 'number
   :group 'cursor)
 
+(defcustom blink-cursor-blinks 10
+  "How many times to blink before using a solid cursor on NS and X.
+Use 0 or negative value to blink forever."
+  :version "24.4"
+  :type 'integer
+  :group 'cursor)
+
+(defvar blink-cursor-blinks-done 1
+  "Number of blinks done since we started blinking on NS and X")
+
 (defvar blink-cursor-idle-timer nil
   "Timer started after `blink-cursor-delay' seconds of Emacs idle time.
 The function `blink-cursor-start' is called when the timer fires.")
@@ -1668,6 +1698,7 @@ command starts, by installing a pre-command hook."
   (when (null blink-cursor-timer)
     ;; Set up the timer first, so that if this signals an error,
     ;; blink-cursor-end is not added to pre-command-hook.
+    (setq blink-cursor-blinks-done 1)
     (setq blink-cursor-timer
 	  (run-with-timer blink-cursor-interval blink-cursor-interval
 			  'blink-cursor-timer-function))
@@ -1676,7 +1707,15 @@ command starts, by installing a pre-command hook."
 
 (defun blink-cursor-timer-function ()
   "Timer function of timer `blink-cursor-timer'."
-  (internal-show-cursor nil (not (internal-show-cursor-p))))
+  (internal-show-cursor nil (not (internal-show-cursor-p)))
+  ;; Each blink is two calls to this function.
+  (when (memq window-system '(x ns w32))
+    (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done))
+    (when (and (> blink-cursor-blinks 0)
+	       (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
+      (blink-cursor-suspend)
+      (add-hook 'post-command-hook 'blink-cursor-check))))
+
 
 (defun blink-cursor-end ()
   "Stop cursor blinking.
@@ -1688,6 +1727,29 @@ itself as a pre-command hook."
   (when blink-cursor-timer
     (cancel-timer blink-cursor-timer)
     (setq blink-cursor-timer nil)))
+
+(defun blink-cursor-suspend ()
+  "Suspend cursor blinking on NS, X and W32.
+This is called when no frame has focus and timers can be suspended.
+Timers are restarted by `blink-cursor-check', which is called when a
+frame receives focus."
+  (when (memq window-system '(x ns w32))
+    (blink-cursor-end)
+    (when blink-cursor-idle-timer
+      (cancel-timer blink-cursor-idle-timer)
+      (setq blink-cursor-idle-timer nil))))
+
+(defun blink-cursor-check ()
+  "Check if cursor blinking shall be restarted.
+This is done when a frame gets focus.  Blink timers may be stopped by
+`blink-cursor-suspend'."
+  (when (and blink-cursor-mode
+	     (not blink-cursor-idle-timer))
+    (remove-hook 'post-command-hook 'blink-cursor-check)
+    (setq blink-cursor-idle-timer
+          (run-with-idle-timer blink-cursor-delay
+                               blink-cursor-delay
+                               'blink-cursor-start))))
 
 (define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
 

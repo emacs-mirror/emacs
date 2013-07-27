@@ -52,7 +52,7 @@ Windows 9X as well).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=d:/usr/emacs --enable-checking
+       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=/d/usr/emacs --enable-checking
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -92,9 +92,9 @@ Windows 9X as well).
 
 ** Installing MinGW and MSYS using mingw-get
 
-  A nice GUI installer, called mingw-get, is available for those who
-  don't like to mess with manual installations.  You can download it
-  from here:
+  A nice installer, called mingw-get, is available for those who don't
+  like to mess with manual installations.  You can download it from
+  here:
 
     https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
 
@@ -110,7 +110,6 @@ Windows 9X as well).
 
    . msys-base
    . mingw-developer-toolkit
-   . msys-automake
 
   (We recommend that you refrain from installing the MSYS Texinfo
   package, which is part of msys-base, because it might produce mixed
@@ -188,11 +187,11 @@ Windows 9X as well).
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
-  well.  (Using the GUI installer mingw-get will fetch those
-  prerequisites automatically for you.)  A missing prerequisite will
-  manifest itself by the program failing to run and presenting a
-  pop-up dialog that states the missing or incompatible DLL; be sure
-  to find and install these missing DLLs.
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
 
   Once you think you have MinGW installed, test the installation by
   building a trivial "hello, world!" program, and make sure that it
@@ -228,8 +227,8 @@ Windows 9X as well).
      repository): Automake and Autoconf.  They are available from
      here:
 
-     http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
-     http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
+       http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
+       http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
 
   MSYS packages are distributed as .tar.lzma compressed archives.  To
   install the packages manually, we recommend to use the Windows port
@@ -244,7 +243,11 @@ Windows 9X as well).
   These are snapshot builds of many packages, but you only need
   make.exe from there.  The advantage of this make.exe is that it
   supports parallel builds, so you can use "make -j N" to considerably
-  speed up your builds
+  speed up your builds.
+
+  Several users reported that MSYS 1.0.18 causes Make to hang in
+  parallel builds.  If you bump into this, we suggest to downgrade to
+  MSYS 1.0.17, which doesn't have that problem.
 
   For each of these packages, install the 'bin' and 'dll' tarballs of
   their latest stable releases.  If there's an 'ext' tarball (e.g.,
@@ -252,11 +255,11 @@ Windows 9X as well).
 
   Each package might list other packages as prerequisites on its
   download page (under "Runtime requirements"); download those as
-  well.  (Using the GUI installer mingw-get will fetch those
-  prerequisites automatically for you.)  A missing prerequisite will
-  manifest itself by the program failing to run and presenting a
-  pop-up dialog that states the missing or incompatible DLL; be sure
-  to find and install these missing DLLs.
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
 
   MSYS packages should be installed in a separate tree from MinGW.
   For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
@@ -325,17 +328,24 @@ Windows 9X as well).
      ./nt/msysconfig.sh --prefix=PREFIX ...
 
   Here PREFIX is the place where you eventually want to install Emacs
-  once built, e.g. d:/usr.  We recommend to always use --prefix when
+  once built, e.g. /d/usr.  We recommend to always use --prefix when
   building Emacs on Windows, because the default '/usr/local' is not
   appropriate for Windows: it will be mapped by MSYS to something like
   C:\MSYS\local, and it will defeat the purpose of PREFIX, which is to
   install programs in a single coherent tree resembling Posix systems.
   Such a single-tree installation makes sure all the other programs
-  and packages ported from GNU or Unix systems will work seemlessly
+  and packages ported from GNU or Unix systems will work seamlessly
   together.  Where exactly is the root of that tree on your system is
   something only you, the user who builds Emacs, can know, and the
   Emacs build process cannot guess, because usually there's no
   '/usr/local' directory on any drive on Windows systems.
+
+  Do NOT use Windows-style x:/foo/bar file names on the configure
+  script command line; use the MSYS-style /x/foo/bar instead.  Using
+  Windows-style file names was reported to cause subtle and hard to
+  figure out problems during the build.  This applies both to the
+  command switches, such as --prefix=, and to the absolute file name
+  of msysconfig.sh, if you are building outside of the source tree.
 
   You can pass additional options to the configure script, for the
   full list type
@@ -353,11 +363,20 @@ Windows 9X as well).
   headers in C:\emacs\libs\jpeg-6b-4-lib\include, you will need to say
   something like this:
 
-    CPPFLAGS='-Ic:/emacs/libs/libpng-1.2.37-lib/include -Ic:/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
+    CPPFLAGS='-I/c/emacs/libs/libpng-1.2.37-lib/include -I/c/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
 
   which is quite a mouth-full, especially if you have more directories
   to specify...  Perhaps you may wish to revisit your installation
   decisions now.
+
+  If you have a global site-lisp directory from previous Emacs
+  installation, and you want Emacs to continue using it, specify it
+  via the --enable-locallisppath switch to msysconfig.sh, like this:
+
+   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
+
+  Use the normal MSYS /d/foo/bar style to specify directories by their
+  absolute file names.
 
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
@@ -418,10 +437,11 @@ Windows 9X as well).
 
   This is simple: just type "make" and sit back, watching the fun.
 
-  If you installed a snapshot build of Make, the build will be much
-  faster if you type "make -j N" instead, where N is the number of
-  independent processing units on your machine.  E.g., on a core i7
-  system try using N of 6 or even 8.
+  If you  installed a snapshot build  of Make, the build  will be much
+  faster if  you type "make  -j N" instead, where  N is the  number of
+  independent processing  units on your  machine.  E.g., on a  core i7
+  system try using  N of 6 or  even 8.  (If this hangs,  see the notes
+  above about downgrading to MSYS 1.0.17.)
 
   When Make finishes, you can install the produced binaries:
 
@@ -520,12 +540,12 @@ Windows 9X as well).
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  PNG, JPEG and TIFF libraries are also
-  included with GTK, which is installed along with other Free Software
-  that requires it.  Note specifically that, due to some packaging
-  snafus in the GnuWin32-supplied image libraries, you will need to
-  download _source_ packages for some of the libraries in order to get
-  the header files necessary for building Emacs with image support.
+  the GnuWin32 project.  The PNG libraries are also included with GTK,
+  which is installed along with other Free Software that requires it.
+  Note specifically that, due to some packaging snafus in the
+  GnuWin32-supplied image libraries, you will need to download
+  _source_ packages for some of the libraries in order to get the
+  header files necessary for building Emacs with image support.
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find

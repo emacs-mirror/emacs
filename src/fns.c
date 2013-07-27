@@ -91,6 +91,12 @@ enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
 
 /* Random data-structure functions.  */
 
+static void
+CHECK_LIST_END (Lisp_Object x, Lisp_Object y)
+{
+  CHECK_TYPE (NILP (x), Qlistp, y);
+}
+
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
@@ -445,7 +451,7 @@ with the original.  */)
   if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
     wrong_type_argument (Qsequencep, arg);
 
-  return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
+  return concat (1, &arg, XTYPE (arg), 0);
 }
 
 /* This structure holds information of an argument of `concat' that is
@@ -1956,7 +1962,7 @@ The PLIST is modified by side effects.  */)
       prev = tail;
       QUIT;
     }
-  newcell = Fcons (prop, Fcons (val, Qnil));
+  newcell = list2 (prop, val);
   if (NILP (prev))
     return newcell;
   else
@@ -2449,9 +2455,8 @@ is nil, and `use-dialog-box' is non-nil.  */)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
-      pane = Fcons (Fcons (build_string ("Yes"), Qt),
-		    Fcons (Fcons (build_string ("No"), Qnil),
-			   Qnil));
+      pane = list2 (Fcons (build_string ("Yes"), Qt),
+		    Fcons (build_string ("No"), Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, pane);
       obj = Fx_popup_dialog (Qt, menu, Qnil);
@@ -2545,6 +2550,8 @@ SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
   return (NILP (tem)) ? Qnil : Qt;
 }
 
+static Lisp_Object Qfuncall;
+
 DEFUN ("provide", Fprovide, Sprovide, 1, 2, 0,
        doc: /* Announce that FEATURE is a feature of the current Emacs.
 The optional argument SUBFEATURES should be a list of symbols listing
@@ -2567,7 +2574,7 @@ particular subfeatures supported in this version of FEATURE.  */)
   /* Run any load-hooks for this file.  */
   tem = Fassq (feature, Vafter_load_alist);
   if (CONSP (tem))
-    Fprogn (XCDR (tem));
+    Fmapc (Qfuncall, XCDR (tem));
 
   return feature;
 }
@@ -2578,10 +2585,10 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 static Lisp_Object require_nesting_list;
 
-static Lisp_Object
+static void
 require_unwind (Lisp_Object old_value)
 {
-  return require_nesting_list = old_value;
+  require_nesting_list = old_value;
 }
 
 DEFUN ("require", Frequire, Srequire, 1, 3, 0,
@@ -3335,7 +3342,8 @@ static struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
-static Lisp_Object Qhash_table_p, Qkey, Qvalue, Qeql;
+static Lisp_Object Qhash_table_p;
+static Lisp_Object Qkey, Qvalue, Qeql;
 Lisp_Object Qeq, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
@@ -3344,6 +3352,48 @@ static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 /***********************************************************************
 			       Utilities
  ***********************************************************************/
+
+static void
+CHECK_HASH_TABLE (Lisp_Object x)
+{
+  CHECK_TYPE (HASH_TABLE_P (x), Qhash_table_p, x);
+}
+
+static void
+set_hash_key_and_value (struct Lisp_Hash_Table *h, Lisp_Object key_and_value)
+{
+  h->key_and_value = key_and_value;
+}
+static void
+set_hash_next (struct Lisp_Hash_Table *h, Lisp_Object next)
+{
+  h->next = next;
+}
+static void
+set_hash_next_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->next, idx, val);
+}
+static void
+set_hash_hash (struct Lisp_Hash_Table *h, Lisp_Object hash)
+{
+  h->hash = hash;
+}
+static void
+set_hash_hash_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->hash, idx, val);
+}
+static void
+set_hash_index (struct Lisp_Hash_Table *h, Lisp_Object index)
+{
+  h->index = index;
+}
+static void
+set_hash_index_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
+{
+  gc_aset (h->index, idx, val);
+}
 
 /* If OBJ is a Lisp hash table, return a pointer to its struct
    Lisp_Hash_Table.  Otherwise, signal an error.  */
@@ -4864,8 +4914,9 @@ syms_of_fns (void)
   DEFVAR_LISP ("features", Vfeatures,
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
-  Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
+  Vfeatures = list1 (intern_c_string ("emacs"));
   DEFSYM (Qsubfeatures, "subfeatures");
+  DEFSYM (Qfuncall, "funcall");
 
 #ifdef HAVE_LANGINFO_CODESET
   DEFSYM (Qcodeset, "codeset");
@@ -4959,13 +5010,21 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
 
-  {
-    struct hash_table_test
-      eq = { Qeq, Qnil, Qnil, NULL, hashfn_eq },
-      eql = { Qeql, Qnil, Qnil, cmpfn_eql, hashfn_eql },
-      equal = { Qequal, Qnil, Qnil, cmpfn_equal, hashfn_equal };
-    hashtest_eq = eq;
-    hashtest_eql = eql;
-    hashtest_equal = equal;
-  }
+  hashtest_eq.name = Qeq;
+  hashtest_eq.user_hash_function = Qnil;
+  hashtest_eq.user_cmp_function = Qnil;
+  hashtest_eq.cmpfn = 0;
+  hashtest_eq.hashfn = hashfn_eq;
+
+  hashtest_eql.name = Qeql;
+  hashtest_eql.user_hash_function = Qnil;
+  hashtest_eql.user_cmp_function = Qnil;
+  hashtest_eql.cmpfn = cmpfn_eql;
+  hashtest_eql.hashfn = hashfn_eql;
+
+  hashtest_equal.name = Qequal;
+  hashtest_equal.user_hash_function = Qnil;
+  hashtest_equal.user_cmp_function = Qnil;
+  hashtest_equal.cmpfn = cmpfn_equal;
+  hashtest_equal.hashfn = hashfn_equal;
 }

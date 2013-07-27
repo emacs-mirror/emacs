@@ -60,7 +60,7 @@
 (defsubst read-zippyism (prompt &optional require-match)
   "Read a Zippyism from the minibuffer with completion, prompting with PROMPT.
 If optional second arg is non-nil, require input to match a completion."
-  (read-cookie prompt yow-file yow-load-message yow-after-load-message
+  (cookie-read prompt yow-file yow-load-message yow-after-load-message
 	       require-match))
 
 ;;;###autoload
@@ -74,33 +74,7 @@ If optional second arg is non-nil, require input to match a completion."
   "Return a list of all Zippy quotes matching REGEXP.
 If called interactively, display a list of matches."
   (interactive "sApropos Zippy (regexp): ")
-  ;; Make sure yows are loaded
-  (cookie yow-file yow-load-message yow-after-load-message)
-  (let* ((case-fold-search t)
-         (cookie-table-symbol (intern yow-file cookie-cache))
-         (string-table (symbol-value cookie-table-symbol))
-         (matches nil)
-         (len (length string-table))
-         (i 0))
-    (save-match-data
-      (while (< i len)
-        (and (string-match regexp (aref string-table i))
-             (setq matches (cons (aref string-table i) matches)))
-        (setq i (1+ i))))
-    (and matches
-         (setq matches (sort matches 'string-lessp)))
-    (and (called-interactively-p 'interactive)
-         (cond ((null matches)
-                (message "No matches found."))
-               (t
-                (let ((l matches))
-                  (with-output-to-temp-buffer "*Zippy Apropos*"
-                    (while l
-                      (princ (car l))
-                      (setq l (cdr l))
-                      (and l (princ "\n\n")))
-		    (help-print-return-message))))))
-    matches))
+  (cookie-apropos regexp yow-file (called-interactively-p 'interactive)))
 
 
 ;; Yowza!! Feed zippy quotes to the doctor. Watch results.
@@ -114,15 +88,7 @@ If called interactively, display a list of matches."
 (defun psychoanalyze-pinhead ()
   "Zippy goes to the analyst."
   (interactive)
-  (doctor)				; start the psychotherapy
-  (message "")
-  (switch-to-buffer "*doctor*")
-  (sit-for 0)
-  (while (not (input-pending-p))
-    (insert (yow))
-    (sit-for 0)
-    (doctor-ret-or-read 1)
-    (doctor-ret-or-read 1)))
+  (cookie-doctor yow-file))
 
 (provide 'yow)
 

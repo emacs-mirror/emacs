@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Version: 2.02
+;; Old-Version: 2.02
 ;; Keywords: extensions
 ;; Package: emacs
 
@@ -584,7 +584,7 @@ If `load' is in WHEN, BODY is evaluated when loaded after top-level compile.
 If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 
 \(fn (WHEN...) BODY...)"
-  (declare (indent 1) (debug ((&rest &or "compile" "load" "eval") body)))
+  (declare (indent 1) (debug (sexp body)))
   (if (and (fboundp 'cl--compiling-file) (cl--compiling-file)
 	   (not cl--not-toplevel) (not (boundp 'for-effect))) ;Horrible kludge.
       (let ((comp (or (memq 'compile when) (memq :compile-toplevel when)))
@@ -1957,7 +1957,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
   "Collect multiple return values.
 FORM must return a list; the BODY is then executed with the first N elements
 of this list bound (`let'-style) to each of the symbols SYM in turn.  This
-is analogous to the Common Lisp `cl-multiple-value-bind' macro, using lists to
+is analogous to the Common Lisp `multiple-value-bind' macro, using lists to
 simulate true multiple return values.  For compatibility, (cl-values A B C) is
 a synonym for (list A B C).
 
@@ -1975,7 +1975,7 @@ a synonym for (list A B C).
   "Collect multiple return values.
 FORM must return a list; the first N elements of this list are stored in
 each of the symbols SYM in turn.  This is analogous to the Common Lisp
-`cl-multiple-value-setq' macro, using lists to simulate true multiple return
+`multiple-value-setq' macro, using lists to simulate true multiple return
 values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 
 \(fn (SYM...) FORM)"
@@ -2002,7 +2002,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
   (cons 'progn body))
 ;;;###autoload
 (defmacro cl-the (_type form)
-  "At present this ignores _TYPE and is simply equivalent to FORM."
+  "At present this ignores TYPE and is simply equivalent to FORM."
   (declare (indent 1) (debug (cl-type-spec form)))
   form)
 
@@ -2059,7 +2059,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
   "Declare SPECS about the current function while compiling.
 For instance
 
-  \(cl-declare (warn 0))
+  (cl-declare (warn 0))
 
 will turn off byte-compile warnings in the function.
 See Info node `(cl)Declarations' for details."
@@ -2276,10 +2276,11 @@ OPTION is either a single keyword or (KEYWORD VALUE) where
 KEYWORD can be one of :conc-name, :constructor, :copier, :predicate,
 :type, :named, :initial-offset, :print-function, or :include.
 
-Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
-SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
-one keyword is supported, `:read-only'.  If this has a non-nil
-value, that slot cannot be set via `setf'.
+Each SLOT may instead take the form (SNAME SDEFAULT SOPTIONS...), where
+SDEFAULT is the default value of that slot and SOPTIONS are keyword-value
+pairs for that slot.
+Currently, only one keyword is supported, `:read-only'.  If this has a
+non-nil value, that slot cannot be set via `setf'.
 
 \(fn NAME SLOTS...)"
   (declare (doc-string 2) (indent 1)
@@ -2574,8 +2575,15 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 (defun cl-typep (object type)   ; See compiler macro below.
   "Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier."
+  (declare (compiler-macro cl--compiler-macro-typep))
   (let ((cl--object object)) ;; Yuck!!
     (eval (cl--make-type-test 'cl--object type))))
+
+(defun cl--compiler-macro-typep (form val type)
+  (if (macroexp-const-p type)
+      (macroexp-let2 macroexp-copyable-p temp val
+        (cl--make-type-test temp (cl--const-expr-val type)))
+    form))
 
 ;;;###autoload
 (defmacro cl-check-type (form type &optional string)
@@ -2635,19 +2643,13 @@ and then returning foo."
   (let ((p args) (res nil))
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))
-  `(cl-eval-when (compile load eval)
-     (put ',func 'compiler-macro
-          (cl-function (lambda ,(if (memq '&whole args) (delq '&whole args)
-                             (cons '_cl-whole-arg args))
-                         ,@body)))
-     ;; This is so that describe-function can locate
-     ;; the macro definition.
-     (let ((file ,(or buffer-file-name
-                      (and (boundp 'byte-compile-current-file)
-                           (stringp byte-compile-current-file)
-                           byte-compile-current-file))))
-       (if file (put ',func 'compiler-macro-file
-                     (purecopy (file-name-nondirectory file)))))))
+  (let ((fname (make-symbol (concat (symbol-name func) "--cmacro"))))
+    `(eval-and-compile
+       ;; Name the compiler-macro function, so that `symbol-file' can find it.
+       (cl-defun ,fname ,(if (memq '&whole args) (delq '&whole args)
+                           (cons '_cl-whole-arg args))
+         ,@body)
+       (put ',func 'compiler-macro #',fname))))
 
 ;;;###autoload
 (defun cl-compiler-macroexpand (form)
@@ -2737,9 +2739,17 @@ surrounded by (cl-block NAME ...).
       (setq body (cond ((null substs) body)
                        ((null (cdr substs))
                         (cl-subst (cdar substs) (caar substs) body))
-                       (t (cl-sublis substs body))))
+                       (t (cl--sublis substs body))))
       (if lets `(let ,lets ,body) body))))
 
+(defun cl--sublis (alist tree)
+  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
+  (let ((x (assq tree alist)))
+    (cond
+     (x (cdr x))
+     ((consp tree)
+      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
+     (t tree))))
 
 ;; Compile-time optimizations for some functions defined in this package.
 
@@ -2763,21 +2773,15 @@ surrounded by (cl-block NAME ...).
 
 ;;;###autoload
 (defun cl--compiler-macro-adjoin (form a list &rest keys)
-  (if (and (cl--simple-expr-p a) (cl--simple-expr-p list)
-	   (not (memq :key keys)))
-      `(if (cl-member ,a ,list ,@keys) ,list (cons ,a ,list))
-    form))
+  (if (memq :key keys) form
+    (macroexp-let2 macroexp-copyable-p va a
+      (macroexp-let2 macroexp-copyable-p vlist list
+        `(if (cl-member ,va ,vlist ,@keys) ,vlist (cons ,va ,vlist))))))
 
 (defun cl--compiler-macro-get (_form sym prop &optional def)
   (if def
       `(cl-getf (symbol-plist ,sym) ,prop ,def)
     `(get ,sym ,prop)))
-
-(cl-define-compiler-macro cl-typep (&whole form val type)
-  (if (macroexp-const-p type)
-      (macroexp-let2 macroexp-copyable-p temp val
-        (cl--make-type-test temp (cl--const-expr-val type)))
-    form))
 
 (dolist (y '(cl-first cl-second cl-third cl-fourth
              cl-fifth cl-sixth cl-seventh

@@ -115,7 +115,12 @@ Options in CLOS not supported in EIEIO:
 
 Due to the way class options are set up, you can add any tags you wish,
 and reference them using the function `class-option'."
-  `(eieio-defclass ',name ',superclass ',slots ',options-and-doc))
+  ;; This is eval-and-compile only to silence spurious compiler warnings
+  ;; about functions and variables not known to be defined.
+  ;; When eieio-defclass code is merged here and this becomes
+  ;; transparent to the compiler, the eval-and-compile can be removed.
+  `(eval-and-compile
+     (eieio-defclass ',name ',superclass ',slots ',options-and-doc)))
 
 
 ;;; CLOS style implementation of object creators.

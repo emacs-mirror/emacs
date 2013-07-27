@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'ert)
 (require 'add-log)
 
 (defmacro add-log-current-defun-deftest (name doc major-mode

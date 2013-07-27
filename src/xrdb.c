@@ -634,10 +634,7 @@ member (char *elt, List list)
 static void
 fatal (char *msg, char *prog)
 {
-  if (errno)
-    perror (prog);
-
-  (void) fprintf (stderr, msg, prog);
+  fprintf (stderr, msg, prog);
   exit (1);
 }
 

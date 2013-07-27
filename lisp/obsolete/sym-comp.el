@@ -139,12 +139,13 @@ to be set buffer-locally.  Variables `symbol-completion-symbol-function',
                                pattern))
          ;; In case the transform needs to access it.
          (symbol-completion-predicate predicate)
-         (completion-annotate-function
+         (completion-extra-properties
           (if (functionp symbol-completion-transform-function)
-              (lambda (str)
-                (car-safe (cdr-safe
-                           (funcall symbol-completion-transform-function
-                                    str)))))))
+              '(:annotation-function
+                (lambda (str)
+                  (car-safe (cdr-safe
+                             (funcall symbol-completion-transform-function
+                                      str))))))))
     (completion-in-region (- (point) (length pattern)) (point)
                           completions predicate)))
 

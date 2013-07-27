@@ -3639,8 +3639,8 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex @code{http}, @RefTeX{} home page
 @cindex @code{ftp}, @RefTeX{} site
 
-@RefTeX{} was written by @i{Carsten Dominik}
-@email{dominik@@science.uva.nl}, with contributions by @i{Stephen
+@c dominik@@science.uva.nl
+@RefTeX{} was written by @i{Carsten Dominik}, with contributions by @i{Stephen
 Eglen}.  @RefTeX{} is currently maintained by @value{MAINTAINER}, see
 the @value{MAINTAINERSITE} for detailed information.
 

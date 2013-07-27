@@ -290,9 +290,8 @@ discard all handlers having a token number less than TOKEN-NUMBER."
              (lambda (handler)
                "Discard any HANDLER with a token number `<=' than TOKEN-NUMBER."
                (when (< (gdb-handler-token-number handler) token-number)
-                 (message (format
-                           "WARNING! Discarding GDB handler with token #%d\n"
-                           (gdb-handler-token-number handler))))
+                 (message "WARNING! Discarding GDB handler with token #%d\n"
+			  (gdb-handler-token-number handler)))
                (<= (gdb-handler-token-number handler) token-number))
              gdb-handler-list))
 
@@ -345,7 +344,7 @@ triggers in `gdb-handler-list'."
   `(run-with-timer
     0.5 nil
     '(lambda ()
-       (if (not (gdb-find-if (lambda (handler)
+       (if (not (cl-find-if (lambda (handler)
                                (gdb-handler-pending-trigger handler))
                              gdb-handler-list))
 	   (progn ,@body)
@@ -1490,7 +1489,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 					       split-horizontal)
   `(defun ,name (&optional thread)
      ,(when doc doc)
-     (message thread)
+     (message "%s" thread)
      (gdb-preempt-existing-or-display-buffer
       (gdb-get-buffer-create ,buffer thread)
       ,split-horizontal)))
@@ -1759,6 +1758,9 @@ static char *magick[] = {
 As long as GDB is in the recursive reading loop, it does not expect
 commands to be prefixed by \"-interpreter-exec console\".")
 
+(defun gdb-strip-string-backslash (string)
+  (replace-regexp-in-string "\\\\$" "" string))
+
 (defun gdb-send (proc string)
   "A comint send filter for gdb."
   (with-current-buffer gud-comint-buffer
@@ -1766,10 +1768,15 @@ commands to be prefixed by \"-interpreter-exec console\".")
       (remove-text-properties (point-min) (point-max) '(face))))
   ;; mimic <RET> key to repeat previous command in GDB
   (if (not (string= "" string))
-      (setq gdb-last-command string)
-    (if gdb-last-command (setq string gdb-last-command)))
-  (if (or (string-match "^-" string)
-	  (> gdb-control-level 0))
+      (if gdb-continuation
+	  (setq gdb-last-command (concat gdb-continuation
+					 (gdb-strip-string-backslash string)
+					 " "))
+	(setq gdb-last-command (gdb-strip-string-backslash string)))
+    (if gdb-last-command (setq string gdb-last-command))
+    (setq gdb-continuation nil))
+  (if (and (not gdb-continuation) (or (string-match "^-" string)
+	  (> gdb-control-level 0)))
       ;; Either MI command or we are feeding GDB's recursive reading loop.
       (progn
 	(setq gdb-first-done-or-error t)
@@ -1779,10 +1786,13 @@ commands to be prefixed by \"-interpreter-exec console\".")
 	    (setq gdb-control-level (1- gdb-control-level))))
     ;; CLI command
     (if (string-match "\\\\$" string)
-	(setq gdb-continuation (concat gdb-continuation string "\n"))
+	(setq gdb-continuation
+	      (concat gdb-continuation (gdb-strip-string-backslash
+					string)
+		      " "))
       (setq gdb-first-done-or-error t)
       (let ((to-send (concat "-interpreter-exec console "
-                             (gdb-mi-quote string)
+                             (gdb-mi-quote (concat gdb-continuation string " "))
                              "\n")))
         (if gdb-enable-debug
             (push (cons 'mi-send to-send) gdb-debug-log))
@@ -2434,9 +2444,9 @@ current thread and update GDB buffers."
         (if (or (eq gdb-switch-reasons t)
                 (member reason gdb-switch-reasons))
             (when (not (string-equal gdb-thread-number thread-id))
-              (message (concat "Switched to thread " thread-id))
+              (message "Switched to thread %s" thread-id)
               (gdb-setq-thread-number thread-id))
-          (message (format "Thread %s stopped" thread-id)))))
+          (message "Thread %s stopped" thread-id))))
 
     ;; Print "(gdb)" to GUD console
     (when gdb-first-done-or-error
@@ -2489,7 +2499,7 @@ current thread and update GDB buffers."
 	;; MI error - send to minibuffer
 	(when (eq type 'error)
           ;; Skip "msg=" from `output-field'
-          (message (read (substring output-field 4)))
+          (message "%s" (read (substring output-field 4)))
           ;; Don't send to the console twice.  (If it is a console error
           ;; it is also in the console stream.)
           (setq output-field nil)))
@@ -2642,20 +2652,6 @@ Return position where LINE begins."
   (row-properties nil)
   (right-align nil))
 
-(defun gdb-mapcar* (function &rest seqs)
-  "Apply FUNCTION to each element of SEQS, and make a list of the results.
-If there are several SEQS, FUNCTION is called with that many
-arguments, and mapping stops as soon as the shortest list runs
-out."
-  (let ((shortest (apply #'min (mapcar #'length seqs))))
-    (mapcar (lambda (i)
-              (apply function
-                     (mapcar
-                      (lambda (seq)
-                        (nth i seq))
-                      seqs)))
-            (number-sequence 0 (1- shortest)))))
-
 (defun gdb-table-add-row (table row &optional properties)
   "Add ROW of string to TABLE and recalculate column sizes.
 
@@ -2673,7 +2669,7 @@ calling `gdb-table-string'."
     (setf (gdb-table-row-properties table)
           (append row-properties (list properties)))
     (setf (gdb-table-column-sizes table)
-          (gdb-mapcar* (lambda (x s)
+          (cl-mapcar (lambda (x s)
                          (let ((new-x
                                 (max (abs x) (string-width (or s "")))))
                            (if right-align new-x (- new-x))))
@@ -2688,11 +2684,11 @@ calling `gdb-table-string'."
   (let ((column-sizes (gdb-table-column-sizes table)))
     (mapconcat
      'identity
-     (gdb-mapcar*
+     (cl-mapcar
       (lambda (row properties)
         (apply 'propertize
                (mapconcat 'identity
-                          (gdb-mapcar* (lambda (s x) (gdb-pad-string s x))
+                          (cl-mapcar (lambda (s x) (gdb-pad-string s x))
                                        row column-sizes)
                           sep)
                properties))

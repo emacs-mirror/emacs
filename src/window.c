@@ -55,7 +55,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_valid_p;
-static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
+static Lisp_Object Qwindow_configuration_p;
+static Lisp_Object Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
@@ -130,6 +131,12 @@ static int window_scroll_pixel_based_preserve_y;
 static EMACS_INT window_scroll_preserve_hpos;
 static EMACS_INT window_scroll_preserve_vpos;
 
+static void
+CHECK_WINDOW_CONFIGURATION (Lisp_Object x)
+{
+  CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x);
+}
+
 /* These setters are used only in this file, so they can be private.  */
 static void
 wset_combination_limit (struct window *w, Lisp_Object val)
@@ -1620,12 +1627,13 @@ specifies the position of the last visible glyph in WINDOW.  POS
 defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+the return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
 where X and Y are the pixel coordinates relative to the top left corner
 of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
-off-window at the top and bottom of the row, ROWH is the height of the
-display row, and VPOS is the row number (0-based) containing POS.  */)
+off-window at the top and bottom of the screen line ("row") containing
+POS, ROWH is the visible height of that row, and VPOS is the row number
+\(zero-based).  */)
   (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   register struct window *w;
@@ -3078,18 +3086,18 @@ run_funs (Lisp_Object funs)
       call0 (XCAR (funs));
 }
 
-static Lisp_Object
+static void
 select_window_norecord (Lisp_Object window)
 {
-  return WINDOW_LIVE_P (window)
-    ? Fselect_window (window, Qt) : selected_window;
+  if (WINDOW_LIVE_P (window))
+    Fselect_window (window, Qt);
 }
 
-static Lisp_Object
+static void
 select_frame_norecord (Lisp_Object frame)
 {
-  return FRAME_LIVE_P (XFRAME (frame))
-    ? Fselect_frame (frame, Qt) : selected_frame;
+  if (FRAME_LIVE_P (XFRAME (frame)))
+    Fselect_frame (frame, Qt);
 }
 
 void
@@ -3402,7 +3410,7 @@ temp_output_buffer_show (register Lisp_Object buf)
            Note: Both Fselect_window and select_window_norecord may
            set-buffer to the buffer displayed in the window,
            so we need to save the current buffer.  --stef  */
-        record_unwind_protect (Fset_buffer, prev_buffer);
+        record_unwind_protect (restore_buffer, prev_buffer);
         record_unwind_protect (select_window_norecord, prev_window);
         Fselect_window (window, Qt);
         Fset_buffer (w->contents);
@@ -4360,6 +4368,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   int vscrolled = 0;
   int x, y, rtop, rbot, rowh, vpos;
   void *itdata = NULL;
+  int window_total_lines;
+  int frame_line_height = default_line_pixel_height (w);
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
   /* Scrolling a minibuffer window via scroll bar when the echo area
@@ -4403,7 +4413,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       if (rtop || rbot)		/* partially visible */
 	{
 	  int px;
-	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+	  int dy = frame_line_height;
 	  if (whole)
 	    dy = max ((window_box_height (w)
 		       - next_screen_context_lines * dy),
@@ -4489,7 +4499,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   if (whole)
     {
       ptrdiff_t start_pos = IT_CHARPOS (it);
-      int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+      int dy = frame_line_height;
       dy = max ((window_box_height (w)
 		 - next_screen_context_lines * dy),
 		dy) * n;
@@ -4606,10 +4616,12 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   /* Move PT out of scroll margins.
      This code wants current_y to be zero at the window start position
      even if there is a header line.  */
+  window_total_lines
+    = w->total_lines * WINDOW_FRAME_LINE_HEIGHT (w) / frame_line_height;
   this_scroll_margin = max (0, scroll_margin);
   this_scroll_margin
-    = min (this_scroll_margin, w->total_lines / 4);
-  this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
+    = min (this_scroll_margin, window_total_lines / 4);
+  this_scroll_margin *= frame_line_height;
 
   if (n > 0)
     {
@@ -5859,6 +5871,12 @@ the return value is nil.  Otherwise the value is t.  */)
   minibuf_selected_window = data->minibuf_selected_window;
 
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
+}
+
+void
+restore_window_configuration (Lisp_Object configuration)
+{
+  Fset_window_configuration (configuration);
 }
 
 

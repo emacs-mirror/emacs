@@ -128,7 +128,7 @@ See also variable `vc-consult-headers'."
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
-If value is the symbol `only-file' `vc-dir' will connect to the
+If value is the symbol `only-file', `vc-dir' will connect to the
 server, but heuristics will be used to determine the status for
 all other VC operations.
 

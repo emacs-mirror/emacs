@@ -72,7 +72,7 @@
    :font :inherit :fontset :vector])
 
 (defun face-attrs-more-relative-p (attrs1 attrs2)
-"Return true if ATTRS1 contains a greater number of relative
+  "Return true if ATTRS1 contains a greater number of relative
 face-attributes than ATTRS2.  A face attribute is considered
 relative if `face-attribute-relative-p' returns non-nil.
 
@@ -395,9 +395,9 @@ one face is listed, that specifies an aggregate face, like in a
 `face' text property.
 
 If `buffer-face-mode' is already enabled, and is currently using
-the face specs SPECS, then it is disabled; if buffer-face-mode is
-disabled, or is enabled and currently displaying some other face,
-then is left enabled, but the face changed to reflect SPECS.
+the face specs SPECS, then it is disabled; if `buffer-face-mode'
+is disabled, or is enabled and currently displaying some other
+face, then is left enabled, but the face changed to reflect SPECS.
 
 This function will make the variable `buffer-face-mode-face'
 buffer local, and set it to SPECS."
@@ -411,13 +411,13 @@ buffer local, and set it to SPECS."
     (buffer-face-mode t)))
 
 (defun buffer-face-mode-invoke (specs arg &optional interactive)
-  "Enable or disable `buffer-face-mode' using face specs SPECS, and argument ARG.
+  "Enable or disable `buffer-face-mode' using face specs SPECS.
 ARG controls whether the mode is enabled or disabled, and is
 interpreted in the usual manner for minor-mode commands.
 
 SPECS can be any value suitable for a `face' text property,
-including a face name, a plist of face attributes and values, or
-a list of faces.
+including a face name, a plist of face attributes and values,
+or a list of faces.
 
 If INTERACTIVE is non-nil, display a message describing the
 result.

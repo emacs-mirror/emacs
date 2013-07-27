@@ -86,8 +86,8 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
-(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
+(cc-require-when-compile 'cc-langs)
 (cc-require 'cc-engine)
 (cc-require 'cc-styles)
 (cc-require 'cc-cmds)
@@ -97,7 +97,6 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
-(cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
 
 ;; We set these variables during mode init, yet we don't require
@@ -212,7 +211,7 @@ control).  See \"cc-mode.el\" for more info."
      ((cc-bytecomp-fboundp 'set-keymap-parent)
       (set-keymap-parent map c-mode-base-map))
      ;; XEmacs
-     ((cc-bytecomp-fboundp 'set-keymap-parents)
+     ((fboundp 'set-keymap-parents)
       (set-keymap-parents map c-mode-base-map))
      ;; incompatible
      (t (error "CC Mode is incompatible with this version of Emacs")))

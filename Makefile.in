@@ -1,6 +1,4 @@
-# DIST: This is the distribution Makefile for Emacs.  configure can
-# DIST: make most of the changes to this file you might want, so try
-# DIST: that first.
+### @configure_input@
 
 # Copyright (C) 1992-2013 Free Software Foundation, Inc.
 
@@ -293,7 +291,7 @@ all: ${SUBDIR}
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 FRC
 
-removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
+removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
 # See comments in configure.ac for why it is done this way, as opposed
@@ -318,14 +316,37 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
-# Convert MSYS-style /x/foo file name into x:/foo that Windows can grok.
-msys_to_w32=sed -e 's,^/\([A-Za-z]\)/,\1:/,'
+# Convert MSYS-style /x/foo or Windows-style x:\foo file names
+# into x:/foo that Windows can grok.
+msys_to_w32=sed -e 's,\\\\,/,g' -e 's,^/\([A-Za-z]\)/,\1:/,'
+
+# Transform directory search path and its components.  Original can
+# be MSYS or Windows style.  Set path separator to ";", directory
+# separator to "/" and transform MSYS-style "/c/" to "c:/".
+# Remove empty path components and escape semicolons.
+msys_lisppath_to_w32=sed -e 's,\\\\,/,g' 			\
+	-e 's,\(^\|[:;]\)\([A-Za-z]\):/,\1/\2/,g'		\
+	-e 's/:/;/g' -e 's,\(^\|;\)/\([A-Za-z]\)/,\1\2:/,g'	\
+	-e 's/;\+/;/g' -e 's/^;//' -e 's/;$$//' -e 's/;/\\\\;/g'
+
+# Replace "${prefix}" with '%emacs_dir%' (which expands to install
+# directory at runtime).
+msys_prefix_subst=sed -e 's!\(^\|;\)'"$${prefixpattern}"'\([;/]\|$$\)!\1%emacs_dir%\2!g'
+
+# Quote Sed special characters (except backslash and newline) with
+# a double backslash.
+msys_sed_sh_escape=sed -e 's/[];$$*.^[]/\\\\&/g'
 
 # The w32 build needs a slightly different editing, and it uses
 # nt/epaths.nt as the template.
+# Use the value of ${locallisppath} supplied by `configure',
+# to support the --enable-locallisppath argument.
 epaths-force-w32: FRC
 	@(w32srcdir=`echo "${srcdir}" | ${msys_to_w32}` ; 	\
+	  prefixpattern=`echo '${prefix}' | ${msys_to_w32} | ${msys_sed_sh_escape}` ; \
+	  locallisppath=`echo '${locallisppath}' | ${msys_lisppath_to_w32} | ${msys_prefix_subst}` ; \
 	  sed < ${srcdir}/nt/epaths.nt > epaths.h.$$$$		\
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
 	  -e '/^.*#/s/@VER@/${version}/g' 			\
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
@@ -525,13 +546,9 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## I'm not sure creating locallisppath here serves any useful purpose.
-## If it has the default value, then the later write_subdir commands
-## will ensure all these components exist.
-## This will only do something if locallisppath has a non-standard value.
-## Is it really Emacs's job to create those directories?
-## Should we also be ensuring they contain subdirs.el files?
-## It would be easy to do, just use write_subdir.
+## We used to create locallisppath, but if it points to non-standard
+## locations, is not really Emacs's job to create these directories,
+## so it is no longer done.
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
@@ -541,12 +558,6 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## See also these comments from 2004 about cp -r working fine:
 ## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
-	umask 022 ; \
-	locallisppath='${locallisppath}'; \
-	IFS=:; \
-	for d in $$locallisppath; do \
-	  ${MKDIR_P} "$(DESTDIR)$$d"; \
-	done
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \

@@ -386,9 +386,8 @@ temacs:
    Instead we read the whole file, modify it, and write it out.  */
 
 #include <config.h>
-#include <unexec.h>
-
-extern _Noreturn void fatal (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+#include "unexec.h"
+#include "lisp.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -672,7 +671,7 @@ unexec (const char *new_name, const char *old_name)
   /* Open the old file, allocate a buffer of the right size, and read
      in the file contents.  */
 
-  old_file = open (old_name, O_RDONLY);
+  old_file = emacs_open (old_name, O_RDONLY, 0);
 
   if (old_file < 0)
     fatal ("Can't open %s for reading: %s", old_name, strerror (errno));
@@ -681,7 +680,7 @@ unexec (const char *new_name, const char *old_name)
     fatal ("Can't fstat (%s): %s", old_name, strerror (errno));
 
 #if MAP_ANON == 0
-  mmap_fd = open ("/dev/zero", O_RDONLY);
+  mmap_fd = emacs_open ("/dev/zero", O_RDONLY, 0);
   if (mmap_fd < 0)
     fatal ("Can't open /dev/zero for reading: %s", strerror (errno));
 #endif
@@ -801,7 +800,7 @@ unexec (const char *new_name, const char *old_name)
      the image of the new file.  Set pointers to various interesting
      objects.  */
 
-  new_file = open (new_name, O_RDWR | O_CREAT, 0666);
+  new_file = emacs_open (new_name, O_RDWR | O_CREAT, 0666);
   if (new_file < 0)
     fatal ("Can't creat (%s): %s", new_name, strerror (errno));
 
@@ -1313,13 +1312,13 @@ temacs:
   /* Close the files and make the new file executable.  */
 
 #if MAP_ANON == 0
-  close (mmap_fd);
+  emacs_close (mmap_fd);
 #endif
 
-  if (close (old_file) != 0)
+  if (emacs_close (old_file) != 0)
     fatal ("Can't close (%s): %s", old_name, strerror (errno));
 
-  if (close (new_file) != 0)
+  if (emacs_close (new_file) != 0)
     fatal ("Can't close (%s): %s", new_name, strerror (errno));
 
   if (stat (new_name, &stat_buf) != 0)

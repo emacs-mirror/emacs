@@ -199,21 +199,28 @@ through VC@.  Most later systems (including CVS, Subversion, bzr, git,
 and hg) have a native tag facility, and VC uses it where available;
 those tags will be visible even when you bypass VC.
 
-  In a file-oriented VCS, when you rename a registered file you need
-to rename its master along with it; the command @code{vc-rename-file}
-will do this automatically.  If you are using SCCS, you must also
-update the records of the tag, to mention the file by its new name
-(@code{vc-rename-file} does this, too).  An old tag that refers to a
-master file that no longer exists under the recorded name is invalid;
-VC can no longer retrieve it.  It would be beyond the scope of this
-manual to explain enough about RCS and SCCS to explain how to update
-the tags by hand.  Using @code{vc-rename-file} makes the tag remain
-valid for retrieval, but it does not solve all problems.  For example,
-some of the files in your program probably refer to others by name.
-At the very least, the makefile probably mentions the file that you
-renamed.  If you retrieve an old tag, the renamed file is retrieved
-under its new name, which is not the name that the makefile expects.
-So the program won't really work as retrieved.
+  In file-based version control systems, when you rename a registered
+file you need to rename its master along with it; the command
+@code{vc-rename-file} will do this automatically
+@iftex
+(@pxref{VC Delete/Rename,,,emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{VC Delete/Rename}).
+@end ifnottex
+If you are using SCCS, you must also update the records of the tag, to
+mention the file by its new name (@code{vc-rename-file} does this,
+too).  An old tag that refers to a master file that no longer exists
+under the recorded name is invalid; VC can no longer retrieve it.  It
+would be beyond the scope of this manual to explain enough about RCS
+and SCCS to explain how to update the tags by hand.  Using
+@code{vc-rename-file} makes the tag remain valid for retrieval, but it
+does not solve all problems.  For example, some of the files in your
+program probably refer to others by name.  At the very least, the
+makefile probably mentions the file that you renamed.  If you retrieve
+an old tag, the renamed file is retrieved under its new name, which is
+not the name that the makefile expects.  So the program won't really
+work as retrieved.
 
 @node Version Headers
 @subsubsection Inserting Version Control Headers
@@ -377,12 +384,12 @@ ends that support it, including CVS@.  In the following, we will talk
 only about @code{vc-cvs-stay-local}, but everything applies to
 @code{vc-stay-local} as well.
 
-  If @code{vc-cvs-stay-local} is @code{t} (the default), VC determines
-the version control status of each file using only the entry in the
-local CVS subdirectory and the information returned by previous CVS
-commands.  As a consequence, if you have modified a file and somebody
-else has checked in other changes, you will not be notified of the
-conflict until you try to commit.
+  If @code{vc-cvs-stay-local} is @code{only-file} (the default), VC
+determines the version control status of each file using only the
+entry in the local CVS subdirectory and the information returned by
+previous CVS commands.  As a consequence, if you have modified a file
+and somebody else has checked in other changes, you will not be
+notified of the conflict until you try to commit.
 
   If you change @code{vc-cvs-stay-local} to @code{nil}, VC queries the
 remote repository @emph{before} it decides what to do in

@@ -972,7 +972,7 @@ It is highly recommended to fix it before writing to a file."
 
 	;; Classify the defaults into safe, rejected, and unsafe.
 	(dolist (elt default-coding-system)
-	  (if (or (eq (car codings) 'undecided)
+	  (if (or (eq (coding-system-type (car elt)) 'undecided)
 		  (memq (cdr elt) codings))
 	      (if (and (functionp accept-default-p)
 		       (not (funcall accept-default-p (cdr elt))))
@@ -1029,6 +1029,14 @@ and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
       (when (and tick (/= tick (buffer-chars-modified-tick)))
 	(error "Canceled because the buffer was modified"))
+      (if (and (eq (coding-system-type coding-system) 'undecided)
+	       (coding-system-get coding-system :prefer-utf-8)
+	       (or (multibyte-string-p from)
+		   (and (number-or-marker-p from)
+			(< (- to from)
+			   (- (position-bytes to) (position-bytes from))))))
+	  (setq coding-system
+		(coding-system-change-text-conversion coding-system 'utf-8)))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)

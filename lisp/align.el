@@ -906,15 +906,8 @@ on the format of these lists."
 ;;;###autoload
 (defun align-regexp (beg end regexp &optional group spacing repeat)
   "Align the current region using an ad-hoc rule read from the minibuffer.
-BEG and END mark the limits of the region.  This function will prompt
-for the REGEXP to align with.  If no prefix arg was specified, you
-only need to supply the characters to be lined up and any preceding
-whitespace is replaced.  If a prefix arg was specified, the full
-regexp with parenthesized whitespace should be supplied; it will also
-prompt for which parenthesis GROUP within REGEXP to modify, the amount
-of SPACING to use, and whether or not to REPEAT the rule throughout
-the line.  See `align-rules-list' for more information about these
-options.
+BEG and END mark the limits of the region.  Interactively, this function
+prompts for the regular expression REGEXP to align with.
 
 For example, let's say you had a list of phone numbers, and wanted to
 align them so that the opening parentheses would line up:
@@ -925,8 +918,29 @@ align them so that the opening parentheses would line up:
     Joe (123) 456-7890
 
 There is no predefined rule to handle this, but you could easily do it
-using a REGEXP like \"(\".  All you would have to do is to mark the
-region, call `align-regexp' and type in that regular expression."
+using a REGEXP like \"(\".  Interactively, all you would have to do is
+to mark the region, call `align-regexp' and enter that regular expression.
+
+REGEXP must contain at least one parenthesized subexpression, typically
+whitespace of the form \"\\\\(\\\\s-*\\\\)\".  In normal interactive use,
+this is automatically added to the start of your regular expression after
+you enter it.  You only need to supply the characters to be lined up, and
+any preceding whitespace is replaced.
+
+If you specify a prefix argument (or use this function non-interactively),
+you must enter the full regular expression, including the subexpression.
+The function also then prompts for which subexpression parenthesis GROUP
+\(default 1) within REGEXP to modify, the amount of SPACING (default
+`align-default-spacing') to use, and whether or not to REPEAT the rule
+throughout the line.
+
+See `align-rules-list' for more information about these options.
+
+The non-interactive form of the previous example would look something like:
+  \(align-regexp (point-min) (point-max) \"\\\\(\\\\s-*\\\\)(\")
+
+This function is a nothing more than a small wrapper that helps you
+construct a rule to pass to `align-region', which does the real work."
   (interactive
    (append
     (list (region-beginning) (region-end))
@@ -1497,6 +1511,9 @@ aligner would have dealt with are."
 			;; section separation, might alter it
 			(setq rule-beg (match-beginning first)
 			      save-match-data (match-data))
+
+			(or rule-beg
+			    (error "No match for subexpression %s" first))
 
 			;; unless the `valid' attribute is set, and tells
 			;; us that the rule is not valid at this point in

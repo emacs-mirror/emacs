@@ -349,6 +349,95 @@ to run the `url-cookie-setup-save-timer' function manually."
 					  url-cookie-save-interval
 					  #'url-cookie-write-file))))
 
+;;; Mode for listing and editing cookies.
+
+(defun url-cookie-list ()
+  "List the URL cookies."
+  (interactive)
+
+  (when (and (null url-cookie-secure-storage)
+	     (null url-cookie-storage))
+    (error "No cookies are defined"))
+
+  (pop-to-buffer "*url cookies*")
+  (let ((inhibit-read-only t)
+	(domains (sort
+		  (copy-sequence
+		   (append url-cookie-secure-storage
+			   url-cookie-storage))
+		  (lambda (e1 e2)
+		    (string< (car e1) (car e2)))))
+	(domain-length 0)
+	start name format domain)
+    (erase-buffer)
+    (url-cookie-mode)
+    (dolist (elem domains)
+      (setq domain-length (max domain-length (length (car elem)))))
+    (setq format (format "%%-%ds %%-20s %%s" domain-length)
+	  header-line-format
+	  (concat " " (format format "Domain" "Name" "Value")))
+    (dolist (elem domains)
+      (setq domain (car elem))
+      (dolist (cookie (sort (copy-sequence (cdr elem))
+			    (lambda (c1 c2)
+			      (string< (url-cookie-name c1)
+				       (url-cookie-name c2)))))
+	(setq start (point)
+	      name (url-cookie-name cookie))
+	(when (> (length name) 20)
+	  (setq name (substring name 0 20)))
+	(insert (format format domain name
+			(url-cookie-value cookie))
+		"\n")
+	(setq domain "")
+	(put-text-property start (1+ start) 'url-cookie cookie)))
+    (goto-char (point-min))))
+
+(defun url-cookie-delete ()
+  "Delete the cookie on the current line."
+  (interactive)
+  (let ((cookie (get-text-property (line-beginning-position) 'url-cookie))
+	(inhibit-read-only t)
+	variable)
+    (unless cookie
+      (error "No cookie on the current line"))
+    (setq variable (if (url-cookie-secure cookie)
+		       'url-cookie-secure-storage
+		     'url-cookie-storage))
+    (let* ((list (symbol-value variable))
+	   (elem (assoc (url-cookie-domain cookie) list)))
+      (setq elem (delq cookie elem))
+      (when (zerop (length (cdr elem)))
+	(setq list (delq elem list)))
+      (set variable list))
+    (setq url-cookies-changed-since-last-save t)
+    (url-cookie-write-file)
+    (delete-region (line-beginning-position)
+		   (progn
+		     (forward-line 1)
+		     (point)))))
+
+(defun url-cookie-quit ()
+  "Kill the current buffer."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defvar url-cookie-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'url-cookie-quit)
+    (define-key map [delete] 'url-cookie-delete)
+    (define-key map [(control k)] 'url-cookie-delete)
+    map))
+
+(define-derived-mode url-cookie-mode nil "URL Cookie"
+  "Mode for listing cookies.
+
+\\{url-cookie-mode-map}"
+  (buffer-disable-undo)
+  (setq buffer-read-only t
+	truncate-lines t))
+
 (provide 'url-cookie)
 
 ;;; url-cookie.el ends here

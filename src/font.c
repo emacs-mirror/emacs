@@ -472,7 +472,7 @@ font_registry_charsets (Lisp_Object registry, struct charset **encoding, struct 
 	goto invalid_entry;
       val = Fcons (make_number (encoding_id), make_number (repertory_id));
       font_charset_alist
-	= nconc2 (font_charset_alist, Fcons (Fcons (registry, val), Qnil));
+	= nconc2 (font_charset_alist, list1 (Fcons (registry, val)));
     }
 
   if (encoding)
@@ -483,7 +483,7 @@ font_registry_charsets (Lisp_Object registry, struct charset **encoding, struct 
 
  invalid_entry:
   font_charset_alist
-    = nconc2 (font_charset_alist, Fcons (Fcons (registry, Qnil), Qnil));
+    = nconc2 (font_charset_alist, list1 (Fcons (registry, Qnil)));
   return -1;
 }
 
@@ -1453,7 +1453,7 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 		  else
                     {
                       extra_props = nconc2 (extra_props,
-                                            Fcons (Fcons (key, val), Qnil));
+                                            list1 (Fcons (key, val)));
                     }
 		}
 	      p = q;
@@ -1861,7 +1861,7 @@ otf_open (Lisp_Object file)
   else
     {
       otf = STRINGP (file) ? OTF_open (SSDATA (file)) : NULL;
-      val = make_save_pointer (otf);
+      val = make_save_ptr (otf);
       otf_list = Fcons (Fcons (file, val), otf_list);
     }
   return otf;
@@ -2519,7 +2519,7 @@ font_prepare_cache (FRAME_PTR f, struct font_driver *driver)
     val = XCDR (val);
   if (NILP (val))
     {
-      val = Fcons (driver->type, Fcons (make_number (1), Qnil));
+      val = list2 (driver->type, make_number (1));
       XSETCDR (cache, Fcons (val, XCDR (cache)));
     }
   else
@@ -3517,8 +3517,7 @@ font_update_drivers (FRAME_PTR f, Lisp_Object new_drivers)
 
   for (list = f->font_driver_list; list; list = list->next)
     if (list->on)
-      active_drivers = nconc2 (active_drivers,
-			       Fcons (list->driver->type, Qnil));
+      active_drivers = nconc2 (active_drivers, list1 (list->driver->type));
   return active_drivers;
 }
 
@@ -3863,7 +3862,8 @@ usage: (font-spec ARGS...)  */)
       if (EQ (key, QCname))
 	{
 	  CHECK_STRING (val);
-	  font_parse_name (SSDATA (val), SBYTES (val), spec);
+	  if (font_parse_name (SSDATA (val), SBYTES (val), spec) < 0)
+	    error ("Invalid font name: %s", SSDATA (val));
 	  font_put_extra (spec, key, val);
 	}
       else
@@ -4132,7 +4132,7 @@ how close they are to PREFER.  */)
     return Qnil;
   if (NILP (XCDR (list))
       && ASIZE (XCAR (list)) == 1)
-    return Fcons (AREF (XCAR (list), 0), Qnil);
+    return list1 (AREF (XCAR (list), 0));
 
   if (! NILP (prefer))
     vec = font_sort_entities (list, prefer, frame, 0);

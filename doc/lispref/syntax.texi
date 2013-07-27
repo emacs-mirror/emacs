@@ -506,6 +506,11 @@ This function returns the current syntax table, which is the table for
 the current buffer.
 @end defun
 
+@deffn Command describe-syntax &optional buffer
+This command displays the contents of the syntax table of
+@var{buffer} (by default, the current buffer) in a help buffer.
+@end deffn
+
 @defmac with-syntax-table table body@dots{}
 This macro executes @var{body} using @var{table} as the current syntax
 table.  It returns the value of the last form in @var{body}, after

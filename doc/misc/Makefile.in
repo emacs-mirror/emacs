@@ -1,4 +1,4 @@
-#### Makefile for documentation other than the Emacs manual.
+### @configure_input@
 
 # Copyright (C) 1994, 1996-2013 Free Software Foundation, Inc.
 
@@ -24,6 +24,8 @@ SHELL = /bin/sh
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 
+version=@version@
+
 ## Where the output files go.
 buildinfodir = $(srcdir)/../../info
 ## Directory with emacsver.texi.
@@ -43,7 +45,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
-	flymake forms gnus emacs-gnutls htmlfontify idlwave info.info \
+	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode tramp \
@@ -77,6 +79,7 @@ DVI_TARGETS = \
 	emacs-gnutls.dvi \
 	htmlfontify.dvi \
 	idlwave.dvi \
+	ido.dvi \
 	info.dvi \
 	mairix-el.dvi \
 	message.dvi \
@@ -133,6 +136,7 @@ PDF_TARGETS = \
 	htmlfontify.pdf \
 	emacs-gnutls.pdf \
 	idlwave.pdf \
+	ido.pdf \
 	info.pdf \
 	mairix-el.pdf \
 	message.pdf \
@@ -160,8 +164,6 @@ PDF_TARGETS = \
 	widget.pdf \
 	wisent.pdf \
 	woman.pdf
-
-HTML_TARGETS = emacs-faq.html
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
@@ -191,8 +193,6 @@ webhack: clean
 	$(MAKE) pdf MAKEINFO_OPTS="-DWEBHACKDEVEL $(MAKEINFO_OPTS)"
 
 dvi: $(DVI_TARGETS)
-
-html: $(HTML_TARGETS)
 
 pdf: $(PDF_TARGETS)
 
@@ -400,15 +400,6 @@ faq.dvi: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
 faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/faq.texi
-## This is the name used on the Emacs web-page.
-## sed fixes up links to point to split version of the manual.
-emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-	$(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
-	  --css-ref='/layout.css' --html -o $@ ${srcdir}/faq.texi
-	sed -i -e 's|a href="\([a-z]*\)\.html#\([^"]*\)"|a href="manual/html_node/\1/\2.html"|g' \
-	  -e 's|/Top\.html|/|g' $@
-emacs-faq.text: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-	$(MAKEINFO) $(MAKEINFO_OPTS) --plaintext -o $@ ${srcdir}/faq.texi
 
 flymake : $(buildinfodir)/flymake$(INFO_EXT)
 $(buildinfodir)/flymake$(INFO_EXT): ${srcdir}/flymake.texi ${gfdl}
@@ -462,6 +453,15 @@ idlwave.dvi: ${srcdir}/idlwave.texi ${gfdl}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/idlwave.texi
 idlwave.pdf: ${srcdir}/idlwave.texi ${gfdl}
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/idlwave.texi
+
+ido : $(buildinfodir)/ido$(INFO_EXT)
+$(buildinfodir)/ido$(INFO_EXT): ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/ido.texi
+ido.dvi: ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ido.texi
+ido.pdf: ${srcdir}/ido.texi $(emacsdir)/emacsver.texi ${gfdl}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/ido.texi
 
 # NB this one needs --no-split even without a .info extension.
 # Avoid name clash with overall "info" target.
@@ -718,16 +718,39 @@ mostlyclean:
 	rm -f gnustmp.*
 
 clean: mostlyclean
-	rm -f $(DVI_TARGETS) $(PDF_TARGETS) $(HTML_TARGETS) emacs-faq.text
+	rm -f $(DVI_TARGETS) $(PDF_TARGETS)
+	rm -f emacs-misc-${version}.tar*
 
 distclean: clean
 #	rm -f Makefile
 
 ## buildinfodir is relative to srcdir.
-maintainer-clean: distclean
+infoclean:
 	cd $(buildinfodir); for file in $(INFO_TARGETS); do \
 	  file=`echo $${file} | sed 's/\.info$$//'`${INFO_EXT}; \
 	  rm -f $${file} $${file}-[1-9] $${file}-[1-9][0-9]; \
 	done
+
+maintainer-clean: distclean infoclean
+
+dist:
+	rm -rf emacs-misc-${version}
+	mkdir emacs-misc-${version}
+	cp ${srcdir}/*.texi ${srcdir}/texinfo.tex \
+	  $(emacsdir)/emacsver.texi ${srcdir}/ChangeLog* \
+	  emacs-misc-${version}/
+	sed -e 's/@sr[c]dir@/./' \
+	  -e 's/^\(emacsdir *=\).*/\1 ./' \
+	  -e 's/^\(buildinfodir *=\).*/\1 ./' \
+	  -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e "s/@ver[s]ion@/${version}/" \
+	  -e 's/@MAKE[I]NFO@/makeinfo/' -e 's/@MK[D]IR_P@/mkdir -p/' \
+	  -e 's/@IN[F]O_EXT@/.info/' -e 's/@IN[F]O_OPTS@//' \
+	  ${srcdir}/Makefile.in > emacs-misc-${version}/Makefile
+	@if grep '@[a-zA-Z_]*@' emacs-misc-${version}/Makefile; then \
+	  echo "Unexpanded configure variables in Makefile?" 1>&2; exit 1; \
+	fi
+	tar -cf emacs-misc-${version}.tar emacs-misc-${version}
+	rm -rf emacs-misc-${version}
 
 ### Makefile ends here

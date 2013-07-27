@@ -1,4 +1,5 @@
-# Maintenance productions for the automated test directory
+### @configure_input@
+
 # Copyright (C) 2010-2013 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -50,7 +51,7 @@ emacs = EMACSLOADPATH=$(lispsrc):$(test) LC_ALL=C $(EMACS) $(EMACSOPT)
 # Common command to find subdirectories
 setwins=subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */.* | */.*/* | */=* ) ;; \
+	   case $$file in */.* | */.*/* | */=* | ./data* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done

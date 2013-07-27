@@ -41,7 +41,7 @@
 ;; major mode, switch back, and have the original Tabulated List data
 ;; still valid.  See, for example, ebuff-menu.el.
 
-(defvar tabulated-list-format nil
+(defvar-local tabulated-list-format nil
   "The format of the current Tabulated List mode buffer.
 This should be a vector of elements (NAME WIDTH SORT . PROPS),
 where:
@@ -58,17 +58,15 @@ where:
    of `tabulated-list-entries'.
  - PROPS is a plist of additional column properties.
    Currently supported properties are:
-   - `:right-align': if non-nil, the column should be right-aligned.
+   - `:right-align': If non-nil, the column should be right-aligned.
    - `:pad-right': Number of additional padding spaces to the
      right of the column (defaults to 1 if omitted).")
-(make-variable-buffer-local 'tabulated-list-format)
 (put 'tabulated-list-format 'permanent-local t)
 
-(defvar tabulated-list-use-header-line t
+(defvar-local tabulated-list-use-header-line t
   "Whether the Tabulated List buffer should use a header line.")
-(make-variable-buffer-local 'tabulated-list-use-header-line)
 
-(defvar tabulated-list-entries nil
+(defvar-local tabulated-list-entries nil
   "Entries displayed in the current Tabulated List buffer.
 This should be either a function, or a list.
 If a list, each element has the form (ID [DESC1 ... DESCN]),
@@ -86,28 +84,25 @@ where:
 
 If `tabulated-list-entries' is a function, it is called with no
 arguments and must return a list of the above form.")
-(make-variable-buffer-local 'tabulated-list-entries)
 (put 'tabulated-list-entries 'permanent-local t)
 
-(defvar tabulated-list-padding 0
+(defvar-local tabulated-list-padding 0
   "Number of characters preceding each Tabulated List mode entry.
 By default, lines are padded with spaces, but you can use the
 function `tabulated-list-put-tag' to change this.")
-(make-variable-buffer-local 'tabulated-list-padding)
 (put 'tabulated-list-padding 'permanent-local t)
 
 (defvar tabulated-list-revert-hook nil
   "Hook run before reverting a Tabulated List buffer.
 This is commonly used to recompute `tabulated-list-entries'.")
 
-(defvar tabulated-list-printer 'tabulated-list-print-entry
+(defvar-local tabulated-list-printer 'tabulated-list-print-entry
   "Function for inserting a Tabulated List entry at point.
 It is called with two arguments, ID and COLS.  ID is a Lisp
 object identifying the entry, and COLS is a vector of column
 descriptors, as documented in `tabulated-list-entries'.")
-(make-variable-buffer-local 'tabulated-list-printer)
 
-(defvar tabulated-list-sort-key nil
+(defvar-local tabulated-list-sort-key nil
   "Sort key for the current Tabulated List mode buffer.
 If nil, no additional sorting is performed.
 Otherwise, this should be a cons cell (NAME . FLIP).
@@ -115,7 +110,6 @@ NAME is a string matching one of the column names in
 `tabulated-list-format' (the corresponding SORT entry in
 `tabulated-list-format' then specifies how to sort).  FLIP, if
 non-nil, means to invert the resulting sort.")
-(make-variable-buffer-local 'tabulated-list-sort-key)
 (put 'tabulated-list-sort-key 'permanent-local t)
 
 (defsubst tabulated-list-get-id (&optional pos)
@@ -236,7 +230,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
                                             `(space :align-to ,(+ x shift)))
                                 (cdr cols))))
               (setq x (+ x shift)))))
-	(if (> pad-right 0)
+	(if (>= pad-right 0)
 	    (push (propertize " "
 			      'display `(space :align-to ,next-x)
 			      'face 'fixed-pitch)
@@ -246,7 +240,7 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     (if tabulated-list-use-header-line
 	(setq header-line-format cols)
       (setq header-line-format nil)
-      (set (make-local-variable 'tabulated-list--header-string) cols))))
+      (setq-local tabulated-list--header-string cols))))
 
 (defun tabulated-list-print-fake-header ()
   "Insert a fake Tabulated List \"header line\" at the start of the buffer."
@@ -255,8 +249,8 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     (insert tabulated-list--header-string "\n")
     (if tabulated-list--header-overlay
 	(move-overlay tabulated-list--header-overlay (point-min) (point))
-      (set (make-local-variable 'tabulated-list--header-overlay)
-	   (make-overlay (point-min) (point))))
+      (setq-local tabulated-list--header-overlay
+                  (make-overlay (point-min) (point))))
     (overlay-put tabulated-list--header-overlay 'face 'underline)))
 
 (defun tabulated-list-revert (&rest ignored)
@@ -351,7 +345,7 @@ of column descriptors."
 
 (defun tabulated-list-print-col (n col-desc x)
   "Insert a specified Tabulated List entry at point.
-N is the column number, COL-DESC is a column descriptor \(see
+N is the column number, COL-DESC is a column descriptor (see
 `tabulated-list-entries'), and X is the column number at point.
 Return the column number after insertion."
   ;; TODO: don't truncate to `width' if the next column is align-right

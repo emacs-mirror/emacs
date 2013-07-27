@@ -748,6 +748,10 @@ if you've redefined white, (esp. if you've redefined it to have a triplet
 member lower than that of the color you are processing) strange things
 may happen."
   ;;(message "hfy-colour-vals");;DBUG
+  ;; TODO?  Can we do somehow do better than this?
+  (cond
+   ((equal colour "unspecified-fg") (setq colour "black"))
+   ((equal colour "unspecified-bg") (setq colour "white")))
   (let ((white (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals "white")))
         (rgb16 (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals  colour))))
     (if rgb16
@@ -773,6 +777,8 @@ may happen."
   "Derive a CSS font-size specifier from an Emacs font :height attribute HEIGHT.
 Does not cope with the case where height is a function to be applied to
 the height of the underlying font."
+  ;; In ttys, the default face has :height == 1.
+  (and (not (display-graphic-p)) (equal 1 height) (setq height 100))
   (list
    (cond
     ;;(t                 (cons "font-size" ": 1em"))

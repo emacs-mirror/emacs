@@ -341,7 +341,7 @@ uses this transliteration to allow you to produce the IPA in your editor
 with a keyboard that's limited to ASCII.
 
 See http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
-of the mapping. A caveat with regard to that document; while XEmacs
+of the mapping.  A caveat with regard to that document; while XEmacs
 currently preserves Unicode diacritics on reading and emitting them, it
 displays them, incorrectly, as separate from the modified glyphs.")
 

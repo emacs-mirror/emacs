@@ -1,9 +1,58 @@
-2013-06-02  Eric Ludlam <zappo@gnu.org>
+2013-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-style-string): Use non-abbreviated url.
+
+2013-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent close-on-exec changes to Cygwin (Bug#14821).
+	* merge-gnulib (GNULIB_TOOL_FLAGS): Don't avoid binary-io.
+
+	Handle error numbers a bit more reliably.
+	* merge-gnulib (GNULIB_MODULES): Remove ignore-value.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* merge-gnulib (GNULIB_MODULES): Add fcntl, pipe2.
+	(GNULIB_TOOL_FLAGS): Avoid binary-io, close.  Do not avoid fcntl.
+
+2013-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-misc-manuals): New function.
+	(make-manuals): Avoid hard-coding list of misc manuals.
+	Add the option to only make certain type(s) of output.
+	(manual-misc-html): Special-case ccmode and efaq.
+	(manual-html-mono, manual-html-node, manual-pdf, manual-ps):
+	Move creation of output directory here from make-manuals.
+	(manual-html-fix-index-2): Avoid dynamic reference to `f'.
+
+2013-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Use a standard location for lispintro.
+	Use a pdf/ subdirectory for pdf versions.
+
+2013-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (make-manuals): Don't bother with txt or dvi any more.
+	(manual-txt): Remove.
+	(manual-pdf): Doc fix.
+	(manual-ps): Rename from manual-dvi.
+	(manual-pdf, manual-ps): Work in the directory with the texi file,
+	so that TeX intermediate files go there rather than to PWD.
+
+2013-06-15  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* notes/changelogs: Mention trivial changes in Change Log.
+
+2013-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-style-string): Use new file manual.css.
+
+2013-06-02  Eric Ludlam  <zappo@gnu.org>
 
 	* grammars/srecode-template.wy (variable): Accept a single number
 	as a variable value.  Allows the 'priority' to be set to a number.
-	(wisent-srecode-template-lexer): Move number up so it can be
-	created.
+	(wisent-srecode-template-lexer): Move number up so it can be created.
 
 2013-05-16  Glenn Morris  <rgm@gnu.org>
 
@@ -151,7 +200,7 @@
 
 2012-12-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix permissions bugs with setgid directories etc. (Bug#13125)
+	Fix permissions bugs with setgid directories etc.  (Bug#13125)
 	* CPP-DEFINES (BSD4_2): Remove.
 
 2012-12-08  Paul Eggert  <eggert@cs.ucla.edu>
@@ -283,7 +332,7 @@
 
 	* grammars/grammar.wy (semantic-grammar-lexer): Remove, since it
 	was copied to grammar.el.  New %provide token to generate prefix
-	which conforms with Emacs conventions.	Remove lexer definition,
+	which conforms with Emacs conventions.  Remove lexer definition,
 	which is now in grammar.el.
 
 2012-09-27  Glenn Morris  <rgm@gnu.org>

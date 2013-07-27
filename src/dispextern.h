@@ -22,6 +22,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef DISPEXTERN_H_INCLUDED
 #define DISPEXTERN_H_INCLUDED
 
+#include "character.h"
+
 #ifdef HAVE_X_WINDOWS
 
 #include <X11/Xlib.h>
@@ -270,6 +272,55 @@ struct display_pos
 				Glyphs
  ***********************************************************************/
 
+/* The glyph datatype, used to represent characters on the display.
+   It consists of a char code and a face id.  */
+
+typedef struct {
+  int ch;
+  int face_id;
+} GLYPH;
+
+/* Return a glyph's character code.  */
+DISPEXTERN_INLINE int GLYPH_CHAR (GLYPH glyph) { return glyph.ch; }
+
+/* Return a glyph's face ID.  */
+DISPEXTERN_INLINE int GLYPH_FACE (GLYPH glyph) { return glyph.face_id; }
+
+#define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
+#define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
+#define SET_GLYPH(glyph, char, face) \
+  ((glyph).ch = (char), (glyph).face_id = (face))
+
+/* The following are valid only if GLYPH_CODE_P (gc).  */
+
+DISPEXTERN_INLINE int
+GLYPH_CODE_CHAR (Lisp_Object gc)
+{
+  return (CONSP (gc)
+	  ? XINT (XCAR (gc))
+	  : XINT (gc) & MAX_CHAR);
+}
+
+DISPEXTERN_INLINE int
+GLYPH_CODE_FACE (Lisp_Object gc)
+{
+  return CONSP (gc) ? XINT (XCDR (gc)) : XINT (gc) >> CHARACTERBITS;
+}
+
+#define SET_GLYPH_FROM_GLYPH_CODE(glyph, gc)				\
+  do									\
+    {									\
+      if (CONSP (gc))							\
+	SET_GLYPH (glyph, XINT (XCAR (gc)), XINT (XCDR (gc)));		\
+      else								\
+	SET_GLYPH (glyph, (XINT (gc) & ((1 << CHARACTERBITS)-1)),	\
+		   (XINT (gc) >> CHARACTERBITS));			\
+    }									\
+  while (0)
+
+/* The ID of the mode line highlighting face.  */
+enum { GLYPH_MODE_LINE_FACE = 1 };
+
 /* Enumeration of glyph types.  Glyph structures contain a type field
    containing one of the enumerators defined here.  */
 
@@ -314,21 +365,26 @@ struct glyph_slice
 struct glyph
 {
   /* Position from which this glyph was drawn.  If `object' below is a
-     Lisp string, this is a position in that string.  If it is a
-     buffer, this is a position in that buffer.  A value of -1
-     together with a null object means glyph is a truncation glyph at
-     the start of a row.  Right truncation and continuation glyphs at
-     the right edge of a row have their position set to the next
-     buffer position that is not shown on this row.  Glyphs inserted
-     by redisplay, such as the empty space after the end of a line on
-     TTYs, or the overlay-arrow on a TTY, have this set to -1.  */
+     Lisp string, this is an index into that string.  If it is a
+     buffer, this is a position in that buffer.  In addition, some
+     special glyphs have special values for this:
+
+      glyph standing for newline at end of line    0
+      empty space after the end of the line       -1
+      overlay arrow on a TTY                      -1
+      glyph at EOB that ends in a newline         -1
+      left truncation glyphs:                     -1
+      right truncation/continuation glyphs        next buffer position
+      glyph standing for newline of an empty line buffer position of newline
+      stretch glyph at left edge of R2L lines     buffer position of newline  */
   ptrdiff_t charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or a
      string, if the glyph was produced from characters which came from
-     a buffer or a string; or 0 if the glyph was inserted by redisplay
-     for its own purposes, such as padding or truncation/continuation
-     glyphs, or the overlay-arrow glyphs on TTYs.  */
+     a buffer or a string; or Lisp integer zero (a.k.a. "null object")
+     if the glyph was inserted by redisplay for its own purposes, such
+     as padding or truncation/continuation glyphs, or the
+     overlay-arrow glyphs on TTYs.  */
   Lisp_Object object;
 
   /* Width in pixels.  */
@@ -1774,6 +1830,30 @@ struct face_cache
 
 #endif /* not HAVE_WINDOW_SYSTEM */
 
+/* Return true if G contains a valid character code.  */
+DISPEXTERN_INLINE bool
+GLYPH_CHAR_VALID_P (GLYPH g)
+{
+  return CHAR_VALID_P (GLYPH_CHAR (g));
+}
+
+/* The glyph code from a display vector may either be an integer which
+   encodes a char code in the lower CHARACTERBITS bits and a (very small)
+   face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
+
+DISPEXTERN_INLINE bool
+GLYPH_CODE_P (Lisp_Object gc)
+{
+  return (CONSP (gc)
+	  ? (CHARACTERP (XCAR (gc))
+	     && RANGED_INTEGERP (0, XCDR (gc), MAX_FACE_ID))
+	  : (RANGED_INTEGERP
+	     (0, gc,
+	      (MAX_FACE_ID < TYPE_MAXIMUM (EMACS_INT) >> CHARACTERBITS
+	       ? ((EMACS_INT) MAX_FACE_ID << CHARACTERBITS) | MAX_CHAR
+	       : TYPE_MAXIMUM (EMACS_INT)))));
+}
+
 /* Non-zero means face attributes have been changed since the last
    redisplay.  Used in redisplay_internal.  */
 
@@ -1881,6 +1961,7 @@ struct bidi_it {
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
   struct bidi_string_data string;	/* string to reorder */
+  struct window *w;		/* the window being displayed */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   ptrdiff_t separator_limit;	/* where paragraph separator should end */
   unsigned prev_was_pdf : 1;	/* if non-zero, previous char was PDF */
@@ -2794,6 +2875,14 @@ struct image
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
 
+#ifdef HAVE_X_WINDOWS
+  /* X images of the image, corresponding to the above Pixmaps.
+     Non-NULL means it and its Pixmap counterpart may be out of sync
+     and the latter is outdated.  NULL means the X image has been
+     synchronized to Pixmap.  */
+  XImagePtr ximg, mask_img;
+#endif
+
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
   unsigned long *colors;
   int ncolors;
@@ -3027,6 +3116,7 @@ struct glyph_row *row_containing_pos (struct window *, ptrdiff_t,
                                       struct glyph_row *,
                                       struct glyph_row *, int);
 int line_bottom_y (struct it *);
+int default_line_pixel_height (struct window *);
 int display_prop_intangible_p (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
@@ -3077,7 +3167,7 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
-					     int, int *);
+					     struct window *, int, int *);
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
@@ -3208,7 +3298,7 @@ int image_ascent (struct image *, struct face *, struct glyph_slice *);
 void get_tty_size (int, int *, int *);
 void request_sigio (void);
 void unrequest_sigio (void);
-int tabs_safe_p (int);
+bool tabs_safe_p (int);
 void init_baud_rate (int);
 void init_sigio (int);
 void ignore_sigio (void);
@@ -3380,11 +3470,12 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
+extern bool tty_capable_p (struct tty_display_info *, unsigned,
+			   unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 extern void create_tty_output (struct frame *);
-extern struct terminal *init_tty (const char *, const char *, int);
+extern struct terminal *init_tty (const char *, const char *, bool);
 extern void tty_append_glyph (struct it *);
 
 

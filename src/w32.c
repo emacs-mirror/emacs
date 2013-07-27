@@ -234,6 +234,8 @@ extern int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
 		       EMACS_TIME *, void *);
+extern int sys_dup (int);
+
 
 
 
@@ -2452,7 +2454,7 @@ get_emacs_configuration_options (void)
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
 int
-gettimeofday (struct timeval *restrict tv, struct timezone *restrict tz)
+gettimeofday (struct timeval *__restrict tv, struct timezone *__restrict tz)
 {
   struct _timeb tb;
   _ftime (&tb);
@@ -3784,12 +3786,6 @@ get_rid (PSID sid)
 }
 
 /* Caching SID and account values for faster lokup.  */
-
-#ifdef __GNUC__
-# define FLEXIBLE_ARRAY_MEMBER
-#else
-# define FLEXIBLE_ARRAY_MEMBER 1
-#endif
 
 struct w32_id {
   unsigned rid;
@@ -6725,10 +6721,16 @@ sys_sendto (int s, const char * buf, int len, int flags,
 }
 
 /* Windows does not have an fcntl function.  Provide an implementation
-   solely for making sockets non-blocking.  */
+   good enough for Emacs.  */
 int
 fcntl (int s, int cmd, int options)
 {
+  /* In the w32 Emacs port, fcntl (fd, F_DUPFD_CLOEXEC, fd1) is always
+     invoked in a context where fd1 is closed and all descriptors less
+     than fd1 are open, so sys_dup is an adequate implementation.  */
+  if (cmd == F_DUPFD_CLOEXEC)
+    return sys_dup (s);
+
   if (winsock_lib == NULL)
     {
       errno = ENETDOWN;
@@ -6870,12 +6872,13 @@ sys_dup2 (int src, int dst)
   return rc;
 }
 
-/* Unix pipe() has only one arg */
 int
-sys_pipe (int * phandles)
+pipe2 (int * phandles, int pipe2_flags)
 {
   int rc;
   unsigned flags;
+
+  eassert (pipe2_flags == O_CLOEXEC);
 
   /* make pipe handles non-inheritable; when we spawn a child, we
      replace the relevant handle with an inheritable one.  Also put
@@ -7704,8 +7707,9 @@ globals_of_w32 (void)
 
 /* For make-serial-process  */
 int
-serial_open (char *port)
+serial_open (Lisp_Object port_obj)
 {
+  char *port = SSDATA (port_obj);
   HANDLE hnd;
   child_process *cp;
   int fd = -1;

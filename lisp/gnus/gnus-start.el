@@ -2301,7 +2301,12 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Reading %s...done" newsrc-file)))
 
       ;; Convert old to new.
-      (gnus-convert-old-newsrc))))
+      (gnus-convert-old-newsrc)
+      (gnus-clean-old-newsrc))))
+
+(defun gnus-clean-old-newsrc (&optional force)
+  ;; Currently no cleanups.
+  )
 
 (defun gnus-convert-old-newsrc ()
   "Convert old newsrc formats into the current format, if needed."

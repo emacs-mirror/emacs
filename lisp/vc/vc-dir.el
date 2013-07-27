@@ -237,9 +237,11 @@ See `run-hooks'."
     ;; VC commands
     (define-key map "v" 'vc-next-action)   ;; C-x v v
     (define-key map "=" 'vc-diff)	   ;; C-x v =
+    (define-key map "D" 'vc-root-diff)	   ;; C-x v D
     (define-key map "i" 'vc-register)	   ;; C-x v i
     (define-key map "+" 'vc-update)	   ;; C-x v +
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
+    (define-key map "L" 'vc-print-root-log) ;; C-x v L
     ;; More confusing than helpful, probably
     ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer

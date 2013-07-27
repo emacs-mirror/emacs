@@ -198,8 +198,18 @@ extern Lisp_Object QCspeed;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
+/* Exit statuses for GNU programs that exec other programs.  */
+enum
+{
+  EXIT_CANCELED = 125, /* Internal error prior to exec attempt.  */
+  EXIT_CANNOT_INVOKE = 126, /* Program located, but not usable.  */
+  EXIT_ENOENT = 127 /* Could not find program to exec.  */
+};
+
 /* Defined in callproc.c.  */
 
+extern void block_child_signal (void);
+extern void unblock_child_signal (void);
 extern void record_kill_process (struct Lisp_Process *);
 
 /* Defined in process.c.  */
@@ -217,5 +227,8 @@ extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
+#ifdef NS_IMPL_GNUSTEP
+extern void catch_child_signal (void);
+#endif
 
 INLINE_HEADER_END

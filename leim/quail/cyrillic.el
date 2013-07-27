@@ -1242,7 +1242,7 @@ Unicode based."
  "Bulgarian alternative Phonetic keyboard layout, producing Unicode.
 
 This phonetic layout replaces all the Latin letters with Bulgarian
-\(Cyrillic\) letters based on similarities in their pronunciation or look.
+\(Cyrillic) letters based on similarities in their pronunciation or look.
 
 Note that, since the letters 'щ', 'ь', 'ю' and 'я' are attached to the
 ']', '\', '`' and '[' keys respectively, Caps Lock does not affect them."

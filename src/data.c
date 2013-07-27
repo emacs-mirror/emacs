@@ -76,7 +76,8 @@ static Lisp_Object Qprocess, Qmarker;
 static Lisp_Object Qcompiled_function, Qframe;
 Lisp_Object Qbuffer;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
-static Lisp_Object Qsubrp, Qmany, Qunevalled;
+static Lisp_Object Qsubrp;
+static Lisp_Object Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 static Lisp_Object Qdefun;
 
@@ -85,6 +86,94 @@ static Lisp_Object Qdefalias_fset_function;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
+static bool
+BOOLFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Bool;
+}
+static bool
+INTFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Int;
+}
+static bool
+KBOARD_OBJFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Kboard_Obj;
+}
+static bool
+OBJFWDP (union Lisp_Fwd *a)
+{
+  return XFWDTYPE (a) == Lisp_Fwd_Obj;
+}
+
+static struct Lisp_Boolfwd *
+XBOOLFWD (union Lisp_Fwd *a)
+{
+  eassert (BOOLFWDP (a));
+  return &a->u_boolfwd;
+}
+static struct Lisp_Kboard_Objfwd *
+XKBOARD_OBJFWD (union Lisp_Fwd *a)
+{
+  eassert (KBOARD_OBJFWDP (a));
+  return &a->u_kboard_objfwd;
+}
+static struct Lisp_Intfwd *
+XINTFWD (union Lisp_Fwd *a)
+{
+  eassert (INTFWDP (a));
+  return &a->u_intfwd;
+}
+static struct Lisp_Objfwd *
+XOBJFWD (union Lisp_Fwd *a)
+{
+  eassert (OBJFWDP (a));
+  return &a->u_objfwd;
+}
+
+static void
+CHECK_SUBR (Lisp_Object x)
+{
+  CHECK_TYPE (SUBRP (x), Qsubrp, x);
+}
+
+static void
+set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
+{
+  eassert (found == !EQ (blv->defcell, blv->valcell));
+  blv->found = found;
+}
+
+static Lisp_Object
+blv_value (struct Lisp_Buffer_Local_Value *blv)
+{
+  return XCDR (blv->valcell);
+}
+
+static void
+set_blv_value (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  XSETCDR (blv->valcell, val);
+}
+
+static void
+set_blv_where (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->where = val;
+}
+
+static void
+set_blv_defcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->defcell = val;
+}
+
+static void
+set_blv_valcell (struct Lisp_Buffer_Local_Value *blv, Lisp_Object val)
+{
+  blv->valcell = val;
+}
 
 Lisp_Object
 wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
@@ -100,9 +189,9 @@ wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 }
 
 void
-pure_write_error (void)
+pure_write_error (Lisp_Object obj)
 {
-  error ("Attempt to modify read-only object");
+  xsignal2 (Qerror, build_string ("Attempt to modify read-only object"), obj);
 }
 
 void
@@ -288,7 +377,8 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0,
 
 DEFUN ("multibyte-string-p", Fmultibyte_string_p, Smultibyte_string_p,
        1, 1, 0,
-       doc: /* Return t if OBJECT is a multibyte string.  */)
+       doc: /* Return t if OBJECT is a multibyte string.
+Return nil if OBJECT is either a unibyte string, or not a string.  */)
   (Lisp_Object object)
 {
   if (STRINGP (object) && STRING_MULTIBYTE (object))
@@ -1069,40 +1159,6 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   return newval;
 }
 
-/* Return true if SYMBOL currently has a let-binding
-   which was made in the buffer that is now current.  */
-
-static bool
-let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
-{
-  struct specbinding *p;
-
-  for (p = specpdl_ptr; p > specpdl; )
-    if ((--p)->func == NULL
-	&& CONSP (p->symbol))
-      {
-	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (XCAR (p->symbol));
-	eassert (let_bound_symbol->redirect != SYMBOL_VARALIAS);
-	if (symbol == let_bound_symbol
-	    && XBUFFER (XCDR (XCDR (p->symbol))) == current_buffer)
-	  return 1;
-      }
-
-  return 0;
-}
-
-static bool
-let_shadows_global_binding_p (Lisp_Object symbol)
-{
-  struct specbinding *p;
-
-  for (p = specpdl_ptr; p > specpdl; )
-    if ((--p)->func == NULL && EQ (p->symbol, symbol))
-      return 1;
-
-  return 0;
-}
-
 /* Store the value NEWVAL into SYMBOL.
    If buffer/frame-locality is an issue, WHERE specifies which context to use.
    (nil stands for the current buffer/frame).
@@ -1422,24 +1478,19 @@ of previous VARs.
 usage: (setq-default [VAR VALUE]...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object args_left;
-  register Lisp_Object val, symbol;
+  Lisp_Object args_left, symbol, val;
   struct gcpro gcpro1;
 
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
+  args_left = val = args;
   GCPRO1 (args);
 
-  do
+  while (CONSP (args_left))
     {
-      val = eval_sub (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (XCDR (args_left)));
       symbol = XCAR (args_left);
       Fset_default (symbol, val);
       args_left = Fcdr (XCDR (args_left));
     }
-  while (!NILP (args_left));
 
   UNGCPRO;
   return val;
@@ -1841,17 +1892,18 @@ BUFFER defaults to the current buffer.  */)
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
-	for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
-	  {
-	    elt = XCAR (tail);
-	    if (EQ (variable, XCAR (elt)))
-	      {
-		eassert (!blv->frame_local);
-		eassert (blv_found (blv) || !EQ (blv->where, tmp));
-		return Qt;
-	      }
-	  }
-	eassert (!blv_found (blv) || !EQ (blv->where, tmp));
+	if (EQ (blv->where, tmp)) /* The binding is already loaded.  */
+	  return blv_found (blv) ? Qt : Qnil;
+	else
+	  for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
+	    {
+	      elt = XCAR (tail);
+	      if (EQ (variable, XCAR (elt)))
+		{
+		  eassert (!blv->frame_local);
+		  return Qt;
+		}
+	    }
 	return Qnil;
       }
     case SYMBOL_FORWARDED:

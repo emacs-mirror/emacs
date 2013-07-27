@@ -25,7 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 
+#ifdef __x86_64__
+#define STATIC_HEAP_SIZE	(18 * 1024 * 1024)
+#else
 #define STATIC_HEAP_SIZE	(13 * 1024 * 1024)
+#endif
 
 int debug_sheap = 0;
 

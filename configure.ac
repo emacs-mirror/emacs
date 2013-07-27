@@ -86,7 +86,7 @@ AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
 ])dnl
 
 dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
-dnl Create a new --with option that defaults to $enable_features.
+dnl Create a new --with option that defaults to $with_features.
 dnl NAME is the base name of the option.  The shell variable with_NAME
 dnl   will be set either to 'no' (for a plain --without-NAME) or to
 dnl   'yes' (if the option is not specified).  Note that the shell
@@ -141,7 +141,18 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
     [string giving default POP mail host])],
     AC_DEFINE_UNQUOTED(MAILHOST, ["$withval"], [String giving fallback POP mail host.]))
 
-OPTION_DEFAULT_ON([sound],[don't compile with sound support])
+AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
+  [compile with sound support (VALUE one of: yes, ossaudio, alsa, no;
+default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
+  [ case "${withval}" in
+      yes|no|ossaudio|alsa) val=$withval ;;
+      *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
+this option's value should be `yes', `no', `ossaudio', or `alsa'.])
+      ;;
+    esac
+    with_sound=$val
+  ],
+  [with_sound=$with_features])
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
@@ -200,7 +211,24 @@ OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
-OPTION_DEFAULT_ON([inotify],[don't compile with inotify (file-watch) support])
+
+AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
+ [use a file notification library (LIB one of: yes, gfile, inotify, w32, no)])],
+ [ case "${withval}" in
+    y | ye | yes )	val=yes ;;
+    n | no )		val=no  ;;
+    g | gf | gfi | gfil | gfile )	val=gfile ;;
+    i | in | ino | inot | inoti | inotif | inotify )	val=inotify ;;
+    w | w3 | w32 )	val=w32 ;;
+    * ) AC_MSG_ERROR([`--with-file-notification=$withval' is invalid;
+this option's value should be `yes', `no', `gfile', `inotify' or `w32'.
+`yes' is a synonym for `w32' on MS-Windows, for `no' on Nextstep,
+otherwise for the first of `gfile' or `inotify' that is usable.])
+    ;;
+   esac
+   with_file_notification=$val
+ ],
+ [with_file_notification=$with_features])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -760,6 +788,7 @@ else
                                     # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
+  nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -1235,56 +1264,71 @@ AC_DEFUN([PKG_CHECK_MODULES], [
   fi
 ])
 
+HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h mmsystem.h,
+  AC_CHECK_HEADERS([machine/soundcard.h sys/soundcard.h soundcard.h],
     have_sound_header=yes, [], [
     #ifdef __MINGW32__
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     #endif
     ])
-  # Emulation library used on NetBSD.
-  AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+  if test "${with_sound}" = "ossaudio" || test "${with_sound}" = "yes"; then
+    # Emulation library used on NetBSD.
+    AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+    test "${with_sound}" = "ossaudio" && test -z "$LIBSOUND" && \
+      AC_MSG_ERROR([ossaudio sound support requested but not found.])
+    dnl FIXME?  If we did find ossaudio, should we set with_sound=ossaudio?
+    dnl Traditionally, we go on to check for alsa too.  Does that make sense?
+  fi
   AC_SUBST(LIBSOUND)
 
-  ALSA_REQUIRED=1.0.0
-  ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-  PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
-  if test $HAVE_ALSA = yes; then
-    SAVE_CFLAGS="$CFLAGS"
-    SAVE_LIBS="$LIBS"
-    CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LIBS="$ALSA_LIBS $LIBS"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
-                    emacs_alsa_normal=yes,
-	            emacs_alsa_normal=no)
-    if test "$emacs_alsa_normal" != yes; then
-      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <alsa/asoundlib.h>]],
-                     [[snd_lib_error_set_handler (0);]])],
-                     emacs_alsa_subdir=yes,
-	             emacs_alsa_subdir=no)
-      if test "$emacs_alsa_subdir" != yes; then
-        AC_MSG_ERROR([pkg-config found alsa, but it does not compile.  See config.log for error messages.])
+  if test "${with_sound}" = "alsa" || test "${with_sound}" = "yes"; then
+    ALSA_REQUIRED=1.0.0
+    ALSA_MODULES="alsa >= $ALSA_REQUIRED"
+    PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
+    if test $HAVE_ALSA = yes; then
+      SAVE_CFLAGS="$CFLAGS"
+      SAVE_LIBS="$LIBS"
+      CFLAGS="$ALSA_CFLAGS $CFLAGS"
+      LIBS="$ALSA_LIBS $LIBS"
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
+                      emacs_alsa_normal=yes,
+  	            emacs_alsa_normal=no)
+      if test "$emacs_alsa_normal" != yes; then
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <alsa/asoundlib.h>]],
+                       [[snd_lib_error_set_handler (0);]])],
+                       emacs_alsa_subdir=yes,
+  	             emacs_alsa_subdir=no)
+        if test "$emacs_alsa_subdir" != yes; then
+          AC_MSG_ERROR([pkg-config found alsa, but it does not compile.  See config.log for error messages.])
+        fi
+        ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
       fi
-      ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
-    fi
 
-    CFLAGS="$SAVE_CFLAGS"
-    LIBS="$SAVE_LIBS"
-    LIBSOUND="$LIBSOUND $ALSA_LIBS"
-    CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
-    AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
-  fi
+      CFLAGS="$SAVE_CFLAGS"
+      LIBS="$SAVE_LIBS"
+      LIBSOUND="$LIBSOUND $ALSA_LIBS"
+      CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
+      AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
+    elif test "${with_sound}" = "alsa"; then
+      AC_MSG_ERROR([ALSA sound support requested but not found.])
+    fi
+  fi                            dnl with_sound = alsa|yes
 
   dnl Define HAVE_SOUND if we have sound support.  We know it works and
   dnl compiles only on the specified platforms.  For others, it
   dnl probably doesn't make sense to try.
+  dnl FIXME So surely we should bypass this whole section if not using
+  dnl one of these platforms?
   if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
        dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
+       dnl Adjust the --with-sound help text if you change this.
        gnu-linux|freebsd|netbsd|mingw32)
          AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
+         HAVE_SOUND=yes
          ;;
      esac
   fi
@@ -1294,7 +1338,7 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
-  linux/version.h sys/systeminfo.h
+  sys/systeminfo.h
   coff.h pty.h
   sys/resource.h
   sys/utsname.h pwd.h utmp.h util.h)
@@ -1320,21 +1364,8 @@ if test $ac_cv_have_decl_sys_siglist != yes; then
   # For Tru64, at least:
   AC_CHECK_DECLS([__sys_siglist], [], [], [[#include <signal.h>
 			                  ]])
-  if test $ac_cv_have_decl___sys_siglist = yes; then
-    AC_DEFINE(sys_siglist, __sys_siglist,
-              [Define to any substitute for sys_siglist.])
-  fi
 fi
 AC_HEADER_SYS_WAIT
-
-dnl Check for speed_t typedef.
-AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
-    emacs_cv_speed_t=yes, emacs_cv_speed_t=no)])
-if test $emacs_cv_speed_t = yes; then
-  AC_DEFINE(HAVE_SPEED_T, 1,
-  	   [Define to 1 if `speed_t' is declared by <termios.h>.])
-fi
 
 AC_CHECK_HEADERS_ONCE(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
@@ -1631,8 +1662,8 @@ if test "${opsys}" = "mingw32"; then
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
      #include <windows.h>
      #include <usp10.h>]],
-   [[void test(PIMAGE_NT_HEADERS pHeader)
-     {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}]])],
+   [[PIMAGE_NT_HEADERS pHeader;
+     PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader)]])],
    [emacs_cv_w32api=yes
     HAVE_W32=yes],
    emacs_cv_w32api=no)
@@ -1668,7 +1699,6 @@ if test "${HAVE_W32}" = "yes"; then
     W32_RES_LINK="-Wl,emacs.res"
   else
     W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
-    W32_OBJ="$W32_OBJ w32notify.o"
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32 -lusp10"
     W32_RES_LINK="\$(EMACSRES)"
@@ -1854,8 +1884,7 @@ fi
 
 LIBS="$LIBS_SYSTEM $LIBS"
 
-dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
-dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
+dnl If found, this adds -ldnet to LIBS, which Autoconf uses for checks.
 AC_CHECK_LIB(dnet, dnet_ntoa)
 dnl This causes -lresolv to get used in subsequent tests,
 dnl which causes failures on some systems such as HPUX 9.
@@ -2039,7 +2068,7 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = 
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     ## 6.2.8 is the earliest version known to work, but earlier versions
     ## might work - let us know if you find one.
@@ -2062,6 +2091,7 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
+gtk_term_header=$term_header
 check_gtk2=no
 gtk3_pkg_errors=
 if test "${opsys}" != "mingw32"; then
@@ -2078,7 +2108,7 @@ if test "${opsys}" != "mingw32"; then
     if test "$pkg_check_gtk" = "yes"; then
        AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
        GTK_OBJ=emacsgtkfixed.o
-       term_header=gtkutil.h
+       gtk_term_header=gtkutil.h
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
        	  GTK_CFLAGS="$GTK_CFLAGS -DGDK_DISABLE_DEPRECATION_WARNINGS"
@@ -2114,9 +2144,30 @@ if test x"$pkg_check_gtk" = xyes; then
   CFLAGS="$CFLAGS $GTK_CFLAGS"
   LIBS="$GTK_LIBS $LIBS"
   dnl Try to compile a simple GTK program.
+  AC_MSG_CHECKING([whether GTK compiles])
   GTK_COMPILES=no
-  AC_CHECK_FUNCS(gtk_main, GTK_COMPILES=yes)
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM(
+       [[/* Check the Gtk and Glib APIs.  */
+	 #include <gtk/gtk.h>
+	 #include <glib-object.h>
+	 static void
+	 callback (GObject *go, GParamSpec *spec, gpointer user_data)
+	 {}
+       ]],
+       [[
+	 GtkSettings *gs = 0;
+	 /* Use G_CALLBACK to make sure function pointers can be cast to void *;
+	    strict C prohibits this.  Use gtk_main_iteration to test that the
+	    libraries are there.  */
+	 if (g_signal_handler_find (G_OBJECT (gs), G_SIGNAL_MATCH_FUNC,
+				    0, 0, 0, G_CALLBACK (callback), 0))
+	   gtk_main_iteration ();
+       ]])],
+    [GTK_COMPILES=yes])
+  AC_MSG_RESULT([$GTK_COMPILES])
   if test "${GTK_COMPILES}" != "yes"; then
+    GTK_OBJ=
     if test "$USE_X_TOOLKIT" != "maybe"; then
       AC_MSG_ERROR([Gtk+ wanted, but it does not compile, see config.log.  Maybe some x11-devel files missing?]);
     fi
@@ -2124,6 +2175,7 @@ if test x"$pkg_check_gtk" = xyes; then
     HAVE_GTK=yes
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     GTK_OBJ="gtkutil.o $GTK_OBJ"
+    term_header=$gtk_term_header
     USE_X_TOOLKIT=none
     if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
       :
@@ -2266,44 +2318,84 @@ fi
 AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
-HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.6], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
 
-  OLD_CFLAGS=$CFLAGS
-  OLD_LIBS=$LIBS
-  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
-  LIBS="$LIBGNUTLS_LIBS $LIBS"
-  AC_CHECK_FUNCS(gnutls_certificate_set_verify_function, HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes)
-
-  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
-    AC_DEFINE(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY, 1, [Define if using GnuTLS certificate verification callbacks.])
-  fi
-
   # Windows loads GnuTLS dynamically
   if test "${opsys}" = "mingw32"; then
-    CFLAGS=$OLD_CFLAGS
-    LIBS=$OLD_LIBS
     LIBGNUTLS_LIBS=
+  else
+    CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+    LIBS="$LIBGNUTLS_LIBS $LIBS"
   fi
 fi
 
 AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_CFLAGS)
 
+NOTIFY_OBJ=
+NOTIFY_SUMMARY=no
+
+dnl FIXME?  Don't auto-detect on NS, but do allow someone to specify
+dnl a particular library.  This doesn't make much sense?
+if test "${with_ns}" = yes && test ${with_file_notification} = yes; then
+  with_file_notification=no
+fi
+
+dnl MS Windows native file monitor is available for mingw32 only.
+case $with_file_notification,$opsys in
+  w32,* | yes,mingw32)
+    AC_CHECK_HEADER(windows.h)
+    if test "$ac_cv_header_windows_h" = yes ; then
+       AC_DEFINE(HAVE_W32NOTIFY, 1, [Define to 1 to use w32notify.])
+       NOTIFY_OBJ=w32notify.o
+       NOTIFY_SUMMARY="yes (w32)"
+    fi ;;
+esac
+
+dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
+dnl has been added in glib 2.24.  It has been tested under
+dnl GNU/Linux only.  We take precedence over inotify, but this makes
+dnl only sense when glib has been compiled with inotify support.  How
+dnl to check?
+case $with_file_notification,$NOTIFY_OBJ in
+  gfile, | yes,)
+    PKG_CHECK_MODULES(GFILENOTIFY, gio-2.0 >= 2.24, HAVE_GFILENOTIFY=yes, HAVE_GFILENOTIFY=no)
+    if test "$HAVE_GFILENOTIFY" = "yes"; then
+       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
+       NOTIFY_OBJ=gfilenotify.o
+       NOTIFY_SUMMARY="yes -lgio (gfile)"
+    fi ;;
+esac
+
 dnl inotify is only available on GNU/Linux.
-if test "${with_inotify}" = "yes"; then
-   AC_CHECK_HEADERS(sys/inotify.h)
-   if test "$ac_cv_header_sys_inotify_h" = yes ; then
-     AC_CHECK_FUNC(inotify_init1)
-   fi
+case $with_file_notification,$NOTIFY_OBJ in
+  inotify, | yes,)
+    AC_CHECK_HEADER(sys/inotify.h)
+    if test "$ac_cv_header_sys_inotify_h" = yes ; then
+	AC_CHECK_FUNC(inotify_init1)
+	if test "$ac_cv_func_inotify_init1" = yes; then
+	  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
+	  NOTIFY_OBJ=inotify.o
+	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
+       fi
+    fi ;;
+esac
+
+case $with_file_notification,$NOTIFY_OBJ in
+  yes,* | no,* | *,?*) ;;
+  *) AC_MSG_ERROR([File notification `$with_file_notification' requested but requirements not found.]) ;;
+esac
+
+if test -n "$NOTIFY_OBJ"; then
+   AC_DEFINE(USE_FILE_NOTIFY, 1, [Define to 1 if using file notifications.])
 fi
-if test "$ac_cv_func_inotify_init1" = yes; then
-  AC_DEFINE(HAVE_INOTIFY, 1, [Define to 1 to use inotify.])
-fi
+AC_SUBST(NOTIFY_OBJ)
+AC_SUBST(GFILENOTIFY_CFLAGS)
+AC_SUBST(GFILENOTIFY_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
@@ -2584,7 +2676,8 @@ if test "${HAVE_X11}" = "yes"; then
 	XFT_LIBS="-lXrender $XFT_LIBS"
 	LIBS="$XFT_LIBS $LIBS"
 	AC_CHECK_HEADER(X11/Xft/Xft.h,
-	  AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+	  AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS) , ,
+          [[#include <X11/X.h>]])
 
 	if test "${HAVE_XFT}" = "yes"; then
 	  AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
@@ -3046,6 +3139,19 @@ HAVE_LIBXML2=no
 if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.6.17, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+  # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
+  if test "${HAVE_LIBXML2}" != "yes" -a "$opsys" = "darwin"; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
+    AC_CHECK_HEADER(libxml/HTMLparser.h,
+      [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
+      		     [#include <libxml/HTMLparser.h>])])
+    CPPFLAGS="$SAVE_CPPFLAGS"
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      LIBXML2_LIBS="-lxml2"
+      LIBXML2_CFLAGS="-I/usr/include/libxml2"
+    fi
+  fi
   if test "${HAVE_LIBXML2}" = "yes"; then
     if test "${opsys}" != "mingw32"; then
       LIBS="$LIBXML2_LIBS $LIBS"
@@ -3164,18 +3270,18 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS(gethostname \
+AC_CHECK_FUNCS(accept4 gethostname \
 getrusage get_current_dir_name \
 lrand48 \
 select getpagesize setlocale \
-utimes getrlimit setrlimit shutdown getaddrinfo \
+getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkstemp getline getdelim sync \
+gai_strerror mkostemp mkstemp getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-cfmakeraw cfsetspeed copysign __executable_start)
+cfmakeraw cfsetspeed copysign __executable_start log2)
 
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
@@ -3326,6 +3432,9 @@ if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
   TERMCAP_OBJ=terminfo.o
 fi
+if test "X$LIBS_TERMCAP" = "X-lncurses"; then
+  AC_DEFINE(USE_NCURSES, 1, [Define to 1 if you use ncurses.])
+fi
 AC_SUBST(LIBS_TERMCAP)
 AC_SUBST(TERMCAP_OBJ)
 
@@ -3380,8 +3489,6 @@ if test "$with_hesiod" != no ; then
 	hesiod=yes, :, $RESOLVLIB)])
 
   if test x"$hesiod" = xyes; then
-    AC_DEFINE(HAVE_LIBHESIOD, 1,
-              [Define to 1 if you have the hesiod library (-lhesiod).])
     LIBHESIOD=-lhesiod
   fi
 fi
@@ -3389,8 +3496,6 @@ AC_SUBST(LIBHESIOD)
 
 # Do we need libresolv (due to res_init or Hesiod)?
 if test "$resolv" = yes && test $opsys != darwin; then
-  AC_DEFINE(HAVE_LIBRESOLV, 1,
-            [Define to 1 if you have the resolv library (-lresolv).])
   LIBRESOLV=-lresolv
 else
   LIBRESOLV=
@@ -3409,25 +3514,21 @@ if test "${with_kerberos}" != no; then
   if test $have_com_err = yes; then
     COM_ERRLIB=-lcom_err
     LIBS="$COM_ERRLIB $LIBS"
-    AC_DEFINE(HAVE_LIBCOM_ERR, 1, [Define to 1 if you have the `com_err' library (-lcom_err).])
   fi
   AC_CHECK_LIB(crypto, mit_des_cbc_encrypt, have_crypto=yes, have_crypto=no)
   if test $have_crypto = yes; then
     CRYPTOLIB=-lcrypto
     LIBS="$CRYPTOLIB $LIBS"
-    AC_DEFINE(HAVE_LIBCRYPTO, 1, [Define to 1 if you have the `crypto' library (-lcrypto).])
   fi
   AC_CHECK_LIB(k5crypto, mit_des_cbc_encrypt, have_k5crypto=yes, have_k5crypto=no)
   if test $have_k5crypto = yes; then
     CRYPTOLIB=-lk5crypto
     LIBS="$CRYPTOLIB $LIBS"
-    AC_DEFINE(HAVE_LIBK5CRYPTO, 1, [Define to 1 if you have the `k5crypto' library (-lk5crypto).])
   fi
   AC_CHECK_LIB(krb5, krb5_init_context, have_krb5=yes, have_krb5=no)
   if test $have_krb5=yes; then
     KRB5LIB=-lkrb5
     LIBS="$KRB5LIB $LIBS"
-    AC_DEFINE(HAVE_LIBKRB5, 1, [Define to 1 if you have the `krb5' library (-lkrb5).])
   fi
   dnl FIXME Simplify.  Does not match 22 logic, thanks to default_off?
   if test "${with_kerberos5}" = no; then
@@ -3435,26 +3536,22 @@ if test "${with_kerberos}" != no; then
     if test $have_des425 = yes; then
       DESLIB=-ldes425
       LIBS="$DESLIB $LIBS"
-      AC_DEFINE(HAVE_LIBDES425, 1, [Define to 1 if you have the `des425' library (-ldes425).])
     else
       AC_CHECK_LIB(des, des_cbc_encrypt, have_des=yes, have_des=no)
       if test $have_des = yes; then
         DESLIB=-ldes
         LIBS="$DESLIB $LIBS"
-        AC_DEFINE(HAVE_LIBDES, 1, [Define to 1 if you have the `des' library (-ldes).])
       fi
     fi
     AC_CHECK_LIB(krb4, krb_get_cred, have_krb4=yes, have_krb4=no)
     if test $have_krb4 = yes; then
       KRB4LIB=-lkrb4
       LIBS="$KRB4LIB $LIBS"
-      AC_DEFINE(HAVE_LIBKRB4, 1, [Define to 1 if you have the `krb4' library (-lkrb4).])
     else
       AC_CHECK_LIB(krb, krb_get_cred, have_krb=yes, have_krb=no)
       if test $have_krb = yes; then
         KRB4LIB=-lkrb
         LIBS="$KRB4LIB $LIBS"
-        AC_DEFINE(HAVE_LIBKRB, 1, [Define to 1 if you have the `krb' library (-lkrb).])
       fi
     fi
   fi
@@ -3464,9 +3561,6 @@ if test "${with_kerberos}" != no; then
       [AC_CHECK_MEMBERS([krb5_error.text, krb5_error.e_text],,,
 		        [#include <krb5.h>])])
   else
-    AC_CHECK_HEADERS(des.h,,
-		     [AC_CHECK_HEADERS(kerberosIV/des.h,,
-				       [AC_CHECK_HEADERS(kerberos/des.h)])])
     AC_CHECK_HEADERS(krb.h,,
 		     [AC_CHECK_HEADERS(kerberosIV/krb.h,,
 				       [AC_CHECK_HEADERS(kerberos/krb.h)])])
@@ -3532,19 +3626,6 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
-if test -f /usr/lpp/X11/bin/smt.exp; then
-  AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
-	    [Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists.])
-fi
-
-AC_MSG_CHECKING(whether system supports dynamic ptys)
-if test -d /dev/pts && ls -d /dev/ptmx > /dev/null 2>&1 ; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(HAVE_DEV_PTMX, 1, [Define to 1 if dynamic ptys are supported.])
-else
-  AC_MSG_RESULT(no)
-fi
-
 dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
 dnl This can be removed once we assume Autoconf 2.70.
 case $canonical in
@@ -3556,6 +3637,25 @@ esac
 AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
+
+dnl Check this late.  It depends on what other libraries (lrsvg, Gtk+ etc)
+dnl Emacs uses.
+XGSELOBJ=
+AC_MSG_CHECKING([whether GLib is linked in])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[[#include <glib.h>
+ 	]],
+	[[g_print ("Hello world");]])],
+     [links_glib=yes],
+     [links_glib=no])
+AC_MSG_RESULT([$links_glib])
+if test "${links_glib}" = "yes"; then
+  AC_DEFINE(HAVE_GLIB, 1, [Define to 1 if GLib is linked in.])
+  if test "$HAVE_NS" = no;then
+    XGSELOBJ=xgselect.o
+  fi
+fi
+AC_SUBST(XGSELOBJ)
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
@@ -3645,11 +3745,8 @@ AC_DEFINE(USER_FULL_NAME, [pw->pw_gecos], [How to get a user's full name.])
 AC_DEFINE(DIRECTORY_SEP, ['/'],
   [Character that separates directories in a file name.])
 
-AH_TEMPLATE(DEVICE_SEP, [Character that separates a device in a file name.])
 if test "${opsys}" = "mingw32"; then
-  dnl Only used on MS platforms.
-  AC_DEFINE(DEVICE_SEP, ':')
-  AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == DEVICE_SEP)],
+  AC_DEFINE(IS_DEVICE_SEP(_c_), [((_c_) == ':')],
     [Returns true if character is a device separator.])
 
   AC_DEFINE(IS_DIRECTORY_SEP(_c_), [((_c_) == '/' || (_c_) == '\\')],
@@ -3701,7 +3798,7 @@ emacs_broken_SIGIO=no
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
   dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
-  hpux* | irix6-5 | openbsd | sol2* | unixware )
+  hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -3870,10 +3967,10 @@ case $opsys in
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
-      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+      AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
       dnl if HAVE_POSIX_OPENPT
       if test "x$ac_cv_func_posix_openpt" = xyes; then
-        AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_NOCTTY)])
+        AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_CLOEXEC | O_NOCTTY)])
         AC_DEFINE(PTY_NAME_SPRINTF, [])
       dnl if HAVE_GETPT
       elif test "x$ac_cv_func_getpt" = xyes; then
@@ -3918,12 +4015,12 @@ case $opsys in
     dnl On SysVr4, grantpt(3) forks a subprocess, so keep sigchld_handler()
     dnl from intercepting that death.  If any child but grantpt's should die
     dnl within, it should be caught after sigrelse(2).
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 
   unixware )
     dnl Comments are as per sol2*.
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, sizeof pty_name, "%s", ptyname); }])
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 esac
 
@@ -4113,13 +4210,11 @@ dnl Define all the symbols that apply correctly.
 AH_TEMPLATE(DOS_NT, [Define if the system is MS DOS or MS Windows.])
 AH_TEMPLATE(MSDOS, [Define if the system is MS DOS.])
 AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
-AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
 AH_TEMPLATE(USG5_4, [Define if the system is compatible with System V Release 4.])
 
 case $opsys in
   aix4-2)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     dnl This symbol should be defined on AIX Version 3  ???????
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #ifndef _AIX
@@ -4146,13 +4241,11 @@ case $opsys in
 
   hpux*)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
     ;;
 
   irix6-5)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
     ;;
@@ -4167,14 +4260,12 @@ case $opsys in
 
   sol2*)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
     ;;
 
   unixware)
     AC_DEFINE(USG, [])
-    AC_DEFINE(USG5, [])
     AC_DEFINE(USG5_4, [])
     ;;
 esac
@@ -4343,7 +4434,7 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o"
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o"
   FONT_OBJ=xfont.o
   if test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
@@ -4647,6 +4738,12 @@ if test "${HAVE_GTK}" = "yes"; then
   USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
+if test $USE_ACL -ne 0; then
+  acl_summary="yes $LIB_ACL"
+else
+  acl_summary=no
+fi
+
 echo "
 Configured for \`${canonical}'.
 
@@ -4678,10 +4775,14 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 
+echo "  Does Emacs support sound?                               ${HAVE_SOUND}"
+
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
+echo "  Does Emacs use a file notification library?             ${NOTIFY_SUMMARY}"
+echo "  Does Emacs use access control lists?                    ${acl_summary}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
@@ -4781,13 +4882,6 @@ SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e
 
 AC_SUBST(SUBDIR_MAKEFILES_IN)
 
-dnl Make the necessary directories, if they don't exist.
-AC_CONFIG_COMMANDS([mkdirs], [
-for dir in etc lisp ; do
-  test -d ${dir} || mkdir ${dir}
-done
-])
-
 dnl You might wonder (I did) why epaths.h is generated by running make,
 dnl rather than just letting configure generate it from epaths.in.
 dnl One reason is that the various paths are not fully expanded (see above);
@@ -4796,8 +4890,7 @@ dnl Secondly, the GNU Coding standards require that one should be able
 dnl to run `make prefix=/some/where/else' and override the values set
 dnl by configure.  This also explains the `move-if-change' test and
 dnl the use of force in the `epaths-force' rule in Makefile.in.
-AC_CONFIG_COMMANDS([epaths], [
-echo creating src/epaths.h
+AC_CONFIG_COMMANDS([src/epaths.h], [
 if test "${opsys}" = "mingw32"; then
   ${MAKE-make} MAKEFILE_NAME=do-not-make-Makefile epaths-force-w32
 else
@@ -4805,9 +4898,8 @@ else
 fi
 ], [GCC="$GCC" CPPFLAGS="$CPPFLAGS" opsys="$opsys"])
 
-AC_CONFIG_COMMANDS([gdbinit], [
+AC_CONFIG_COMMANDS([src/.gdbinit], [
 if test ! -f src/.gdbinit && test -f "$srcdir/src/.gdbinit"; then
-  echo creating src/.gdbinit
   echo "source $srcdir/src/.gdbinit" > src/.gdbinit
 fi
 ])

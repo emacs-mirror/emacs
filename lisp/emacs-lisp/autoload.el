@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
+(require 'lisp-mnt)
 (require 'help-fns)			;for help-add-fundoc-usage.
 (eval-when-compile (require 'cl-lib))
 
@@ -435,6 +436,57 @@ Return non-nil in the case where no autoloads were added at point."
 
 (defvar print-readably)
 
+
+(defun autoload--setup-output (otherbuf outbuf absfile load-name)
+  (let ((outbuf
+         (or (if otherbuf
+                 ;; A file-local setting of
+                 ;; autoload-generated-file says we
+                 ;; should ignore OUTBUF.
+                 nil
+               outbuf)
+             (autoload-find-destination absfile load-name)
+             ;; The file has autoload cookies, but they're
+             ;; already up-to-date. If OUTFILE is nil, the
+             ;; entries are in the expected OUTBUF,
+             ;; otherwise they're elsewhere.
+             (throw 'done otherbuf))))
+    (with-current-buffer outbuf
+      (point-marker))))
+
+(defun autoload--print-cookie-text (output-start load-name file)
+  (let ((standard-output (marker-buffer output-start)))
+     (search-forward generate-autoload-cookie)
+     (skip-chars-forward " \t")
+     (if (eolp)
+         (condition-case-unless-debug err
+             ;; Read the next form and make an autoload.
+             (let* ((form (prog1 (read (current-buffer))
+                            (or (bolp) (forward-line 1))))
+                    (autoload (make-autoload form load-name)))
+               (if autoload
+                   nil
+                 (setq autoload form))
+               (let ((autoload-print-form-outbuf
+                      standard-output))
+                 (autoload-print-form autoload)))
+           (error
+            (message "Autoload cookie error in %s:%s %S"
+                     file (count-lines (point-min) (point)) err)))
+
+       ;; Copy the rest of the line to the output.
+       (princ (buffer-substring
+               (progn
+                 ;; Back up over whitespace, to preserve it.
+                 (skip-chars-backward " \f\t")
+                 (if (= (char-after (1+ (point))) ? )
+                     ;; Eat one space.
+                     (forward-char 1))
+                 (point))
+              (progn (forward-line 1) (point)))))))
+
+(defvar autoload-builtin-package-versions nil)
+
 ;; When called from `generate-file-autoloads' we should ignore
 ;; `generated-autoload-file' altogether.  When called from
 ;; `update-file-autoloads' we don't know `outbuf'.  And when called from
@@ -456,8 +508,7 @@ different from OUTFILE, then OUTBUF is ignored.
 Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil)."
   (catch 'done
-    (let ((autoloads-done '())
-	  load-name
+    (let (load-name
           (print-length nil)
 	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
@@ -466,7 +517,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (otherbuf nil)
           (absfile (expand-file-name file))
           ;; nil until we found a cookie.
-          output-start ostart)
+          output-start)
       (with-current-buffer (or visited
                                ;; It is faster to avoid visiting the file.
                                (autoload-find-file file))
@@ -487,6 +538,23 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (save-excursion
             (save-restriction
               (widen)
+              (when autoload-builtin-package-versions
+                (let ((version (lm-header "version"))
+                      package)
+                  (and version
+                       (setq version (ignore-errors (version-to-list version)))
+                       (setq package (or (lm-header "package")
+                                         (file-name-sans-extension
+                                          (file-name-nondirectory file))))
+                       (setq output-start (autoload--setup-output
+                                           otherbuf outbuf absfile load-name))
+                       (let ((standard-output (marker-buffer output-start))
+                             (print-quoted t))
+                          (princ `(push (purecopy
+                                             ',(cons (intern package) version))
+                                        package--builtin-versions))
+                         (newline)))))
+
               (goto-char (point-min))
               (while (not (eobp))
                 (skip-chars-forward " \t\n\f")
@@ -494,51 +562,9 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                  ((looking-at (regexp-quote generate-autoload-cookie))
                   ;; If not done yet, figure out where to insert this text.
                   (unless output-start
-                    (let ((outbuf
-                           (or (if otherbuf
-                                   ;; A file-local setting of
-                                   ;; autoload-generated-file says we
-                                   ;; should ignore OUTBUF.
-                                   nil
-                                 outbuf)
-                               (autoload-find-destination absfile load-name)
-                               ;; The file has autoload cookies, but they're
-                               ;; already up-to-date. If OUTFILE is nil, the
-                               ;; entries are in the expected OUTBUF,
-                               ;; otherwise they're elsewhere.
-                               (throw 'done otherbuf))))
-                      (with-current-buffer outbuf
-                        (setq output-start (point-marker)
-                              ostart (point)))))
-                  (search-forward generate-autoload-cookie)
-                  (skip-chars-forward " \t")
-                  (if (eolp)
-                      (condition-case-unless-debug err
-                          ;; Read the next form and make an autoload.
-                          (let* ((form (prog1 (read (current-buffer))
-                                         (or (bolp) (forward-line 1))))
-                                 (autoload (make-autoload form load-name)))
-                            (if autoload
-                                (push (nth 1 form) autoloads-done)
-                              (setq autoload form))
-                            (let ((autoload-print-form-outbuf
-                                   (marker-buffer output-start)))
-                              (autoload-print-form autoload)))
-                        (error
-                         (message "Autoload cookie error in %s:%s %S"
-                                  file (count-lines (point-min) (point)) err)))
-
-                    ;; Copy the rest of the line to the output.
-                    (princ (buffer-substring
-                            (progn
-                              ;; Back up over whitespace, to preserve it.
-                              (skip-chars-backward " \f\t")
-                              (if (= (char-after (1+ (point))) ? )
-                                  ;; Eat one space.
-                                  (forward-char 1))
-                              (point))
-                            (progn (forward-line 1) (point)))
-                           (marker-buffer output-start))))
+                    (setq output-start (autoload--setup-output
+                                        otherbuf outbuf absfile load-name)))
+                  (autoload--print-cookie-text output-start load-name file))
                  ((looking-at ";")
                   ;; Don't read the comment.
                   (forward-line 1))
@@ -553,12 +579,11 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                 (save-excursion
                   ;; Insert the section-header line which lists the file name
                   ;; and which functions are in it, etc.
-                  (cl-assert (= ostart output-start))
                   (goto-char output-start)
                   (let ((relfile (file-relative-name absfile)))
                     (autoload-insert-section-header
                      (marker-buffer output-start)
-                     autoloads-done load-name relfile
+                     () load-name relfile
                      (if secondary-autoloads-file-buf
                          ;; MD5 checksums are much better because they do not
                          ;; change unless the file changes (so they'll be

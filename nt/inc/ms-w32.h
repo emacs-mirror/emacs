@@ -211,7 +211,6 @@ extern struct tm * sys_localtime (const time_t *);
 #define mktemp  sys_mktemp
 #undef open
 #define open    sys_open
-#define pipe    sys_pipe
 #undef read
 #define read    sys_read
 #define rename  sys_rename

@@ -153,10 +153,17 @@ Move forward one character (@code{forward-char}).
 @item @key{right}
 @kindex RIGHT
 @findex right-char
+@vindex visual-order-cursor-movement
+@cindex cursor, visual-order motion
 This command (@code{right-char}) behaves like @kbd{C-f}, with one
 exception: when editing right-to-left scripts such as Arabic, it
 instead moves @emph{backward} if the current paragraph is a
-right-to-left paragraph.  @xref{Bidirectional Editing}.
+right-to-left paragraph.  @xref{Bidirectional Editing}.  If
+@code{visual-order-cursor-movement} is non-@code{nil}, this command
+moves to the character that is to the right of the current screen
+position, moving to the next or previous screen line as appropriate.
+Note that this might potentially move point many buffer positions
+away, depending on the surrounding bidirectional context.
 
 @item C-b
 @kindex C-b
@@ -168,7 +175,10 @@ Move backward one character (@code{backward-char}).
 @findex left-char
 This command (@code{left-char}) behaves like @kbd{C-b}, except it
 moves @emph{forward} if the current paragraph is right-to-left.
-@xref{Bidirectional Editing}.
+@xref{Bidirectional Editing}.  If @code{visual-order-cursor-movement}
+is non-@code{nil}, this command moves to the character that is to the
+left of the current screen position, moving to the previous or next
+screen line as appropriate.
 
 @item C-n
 @itemx @key{down}

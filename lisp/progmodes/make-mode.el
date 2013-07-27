@@ -712,7 +712,9 @@ The function must satisfy this calling convention:
     (modify-syntax-entry ?\` "\"    " st)
     (modify-syntax-entry ?#  "<     " st)
     (modify-syntax-entry ?\n ">     " st)
-    st))
+    (modify-syntax-entry ?= "." st)
+    st)
+  "Syntax table used in `makefile-mode'.")
 
 (defvar makefile-imake-mode-syntax-table
   (let ((st (make-syntax-table makefile-mode-syntax-table)))

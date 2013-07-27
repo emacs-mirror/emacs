@@ -32,7 +32,7 @@ program.
 
 @item
 You can use the ERT package to write regression tests for the program.
-@xref{Top,the ERT manual,, ERT, ERT: Emacs Lisp Regression Testing}.
+@xref{Top,the ERT manual,, ert, ERT: Emacs Lisp Regression Testing}.
 
 @item
 You can profile the program to get hints about how to make it more efficient.

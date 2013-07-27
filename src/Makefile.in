@@ -1,4 +1,4 @@
-# src/Makefile for GNU Emacs.
+### @configure_input@
 
 # Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2013 Free Software
 # Foundation, Inc.
@@ -156,6 +156,13 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 ## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
+## gfilenotify.o if HAVE_GFILENOTIFY.
+## inotify.o if HAVE_INOTIFY.
+## w32notify.o if HAVE_W32NOTIFY.
+NOTIFY_OBJ = @NOTIFY_OBJ@
+GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
+GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
 ## terminfo.o if TERMINFO, else tparam.o.
@@ -200,9 +207,12 @@ LIBXMENU=@LIBXMENU@
 
 ## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
-## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o xgselect.o if
+## xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o if
 ## HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
+
+# xgselect.o if linking with GLib, else empty
+XGSELOBJ=@XGSELOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
 
@@ -337,7 +347,7 @@ ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBGNUTLS_CFLAGS) \
+  $(LIBGNUTLS_CFLAGS) $(GFILENOTIFY_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
@@ -363,10 +373,10 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o inotify.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
 	profiler.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -419,7 +429,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(LIB_PTHREAD_SIGMASK) \
-   $(LIB_MATH)
+   $(GFILENOTIFY_LIBS) $(LIB_MATH)
 
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
@@ -459,6 +469,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(ADDSECTION) \
 ## in the contents of the DOC file.
 ##
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
+	$(MKDIR_P) $(etc)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
 	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
@@ -467,16 +478,19 @@ $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
 
 buildobj.h: Makefile
-	echo "#define BUILDOBJ \"$(ALLOBJS) " "\"" >$@
+	for i in $(ALLOBJS); do \
+	  echo "$$i" | sed 's,.*/,,; s/\.obj$$/\.o/; s/^/"/; s/$$/",/' \
+	    || exit; \
+	done >$@.tmp
+	mv $@.tmp $@
 
 globals.h: gl-stamp; @true
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	@rm -f gl-tmp
-	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl-tmp
-	$(srcdir)/../build-aux/move-if-change gl-tmp globals.h
+	$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > gl.tmp
+	$(srcdir)/../build-aux/move-if-change gl.tmp globals.h
 	echo timestamp > $@
 
 $(ALLOBJS): globals.h
@@ -484,10 +498,15 @@ $(ALLOBJS): globals.h
 $(lib)/libgnu.a: $(config_h)
 	cd $(lib) && $(MAKE) libgnu.a
 
+## We have to create $(etc) here because init_cmdargs tests its
+## existence when setting Vinstallation_directory (FIXME?).
+## This goes on to affect various things, and the emacs binary fails
+## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): stamp-oldxmenu $(ALLOBJS) \
 	         $(lib)/libgnu.a $(EMACSRES)
 	$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	$(MKDIR_P) $(etc)
 	$(TEMACS_POST_LINK)
 	test "$(CANNOT_DUMP)" = "yes" || \
 	  test "X$(PAXCTL)" = X || $(PAXCTL) -r temacs$(EXEEXT)
@@ -547,6 +566,7 @@ mostlyclean:
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
+	rm -f *.res *.tmp
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)
@@ -577,13 +597,16 @@ extraclean: distclean
 ## Arrange to make a tags table TAGS-LISP for ../lisp,
 ## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
 
-ctagsfiles1 = [xyzXYZ]*.[hcm]
-ctagsfiles2 = [a-wA-W]*.[hcm]
+ctagsfiles1 = [xyzXYZ]*.[hc]
+ctagsfiles2 = [a-wA-W]*.[hc]
+ctagsfiles3 = [a-zA-Z]*.m
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
-	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE)
+	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(S_FILE) \
+	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  $(srcdir)/$(ctagsfiles3)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags
