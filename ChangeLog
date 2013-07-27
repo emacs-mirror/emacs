@@ -1,3 +1,8 @@
+2013-07-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac: Extend the --with-sound option to allow
+	specification of OSS or ALSA (see bug#14812#64).
+
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add ido.
