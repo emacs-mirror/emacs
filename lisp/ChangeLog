@@ -1,6 +1,7 @@
 2013-07-26  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-root-diff.
+	(Bug#14948)
 
 2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -35,7 +36,8 @@
 
 2013-07-26  Matthias Meulien  <orontee@gmail.com>
 
-	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-print-root-log.
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for
+	vc-print-root-log.  (Bug#14948)
 
 2013-07-26  Richard Stallman  <rms@gnu.org>
 

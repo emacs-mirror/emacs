@@ -1,6 +1,7 @@
 2013-07-27  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* maintaining.texi (VC Directory Commands): Mention `D' and `L' in vc-dir.
+	* maintaining.texi (VC Directory Commands): Mention `D' and `L' in
+	vc-dir.  (Bug#14948)
 
 2013-07-26  Eli Zaretskii  <eliz@gnu.org>
 
