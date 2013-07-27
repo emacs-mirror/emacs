@@ -1,3 +1,13 @@
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Make Java try-with-resources statement parse properly.
+	* progmodes/cc-langs.el (c-block-stmt-1-2-kwds)
+	(c-block-stmt-1-2-key): New language constants/variables.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-after-conditional): Adapt to deal with c-block-stmt-1-2-key.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Adapt to deal
+	with c-block-stmet-1-2-key.
+
 2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--make-frame): Apply most frame parameters after
