@@ -882,8 +882,9 @@ pre-positioned to a convenient location."
 	    ;; reparse
 	    (semantic-parse-changes-failed "Splice-remove failed.  Empty buffer?")
 	    ))
-      (message "To Remove Middle Tag: (%s)"
-	       (semantic-format-tag-name first)))
+      (when semantic-edits-verbose-flag
+	(message "To Remove Middle Tag: (%s)"
+		 (semantic-format-tag-name first))))
     ;; Find in the cache the preceding tag
     (while (and cachestart (not (eq first (car (cdr cachestart)))))
       (setq cachestart (cdr cachestart)))
