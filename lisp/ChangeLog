@@ -1,3 +1,8 @@
+2013-07-27  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-annotate-function):
+	Handle read-only text properties in the source.  (Bug#14887)
+
 2013-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-mark-extension): Convert comment to doc string.
