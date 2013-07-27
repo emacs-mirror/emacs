@@ -1,3 +1,9 @@
+2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Apply most frame parameters after
+	creating the frame to force (partially or totally) offscreen frames to
+	be restored as such.
+
 2013-07-26  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-root-diff.
@@ -15,7 +21,7 @@
 2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--select-frame):
-	Try harder to reuse the initial frame.
+	Try harder to reuse existing frames.
 
 2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1311,14 +1311,22 @@ its window state.  Internal use only."
 	(push visible alt-cfg)
 	(push (cons 'fullscreen fullscreen) alt-cfg)))
 
-    ;; Time to select or create a frame an apply the big bunch of parameters
-    (if (setq frame (desktop--select-frame display filtered-cfg))
-	(modify-frame-parameters frame
-				 (if (eq (frame-parameter frame 'fullscreen) fullscreen)
-				     ;; Workaround for bug#14949
-				     (assq-delete-all 'fullscreen filtered-cfg)
-				   filtered-cfg))
-      (setq frame (make-frame-on-display display filtered-cfg)))
+    ;; Time to find or create a frame an apply the big bunch of parameters.
+    ;; If a frame needs to be created and it falls partially or wholly offscreen,
+    ;; sometimes it gets "pushed back" onscreen; however, moving it afterwards is
+    ;; allowed.  So we create the frame as invisible and then reapply the full
+    ;; parameter list (including position and size parameters).
+    (setq frame (or (desktop--select-frame display filtered-cfg)
+		    (make-frame-on-display display
+					   (cons '(visibility)
+						 (cl-loop
+						  for param in '(left top width height)
+						  collect (assq param filtered-cfg))))))
+    (modify-frame-parameters frame
+			     (if (eq (frame-parameter frame 'fullscreen) fullscreen)
+				 ;; Workaround for bug#14949
+				 (assq-delete-all 'fullscreen filtered-cfg)
+			       filtered-cfg))
 
     ;; Let's give the finishing touches (visibility, tool-bar, maximization).
     (when lines (push lines alt-cfg))
