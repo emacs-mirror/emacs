@@ -4473,9 +4473,9 @@ ns_term_shutdown (int sig)
 
 #ifdef NS_IMPL_COCOA
   /* If no dialog and none of our frames have focus and it is a move, skip it.
-     It is a mouse move in an auxillary menu, i.e. on the top right on OSX,
+     It is a mouse move in an auxiliary menu, i.e. on the top right on OSX,
      such as Wifi, sound, date or similar.
-     This prevents "spooky" highlightning in the frame under the menu.  */
+     This prevents "spooky" highlighting in the frame under the menu.  */
   if (type == NSMouseMoved && [NSApp modalWindow] == nil)
     {
       struct ns_display_info *di;

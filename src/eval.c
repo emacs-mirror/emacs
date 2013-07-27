@@ -3481,7 +3481,7 @@ nearest activation frame.  */)
    directly in the pre-existing specpdl elements (i.e. we swap the current
    value and the old value stored in the specpdl), kind of like the inplace
    pointer-reversal trick.  As it turns out, the rewind does the same as the
-   unwind, except it starts from the other end of the spepdl stack, so we use
+   unwind, except it starts from the other end of the specpdl stack, so we use
    the same function for both unwind and rewind.  */
 static void
 backtrace_eval_unrewind (int distance)
