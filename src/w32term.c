@@ -4923,16 +4923,11 @@ w32_read_socket (struct terminal *terminal,
 	  break;
 
 	case WM_KILLFOCUS:
+	  w32_detect_focus_change (dpyinfo, &msg, &inev);
 	  f = x_top_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           if (f)
             {
-              if (f == dpyinfo->w32_focus_event_frame)
-                dpyinfo->w32_focus_event_frame = 0;
-
-              if (f == dpyinfo->w32_focus_frame)
-                x_new_focus_frame (dpyinfo, 0);
-
               if (f == hlinfo->mouse_face_mouse_frame)
                 {
                   /* If we move outside the frame, then we're

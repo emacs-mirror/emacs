@@ -1,3 +1,10 @@
+2013-07-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_KILLFOCUS>: Call
+	w32_detect_focus_change instead of doing part of its job by hand.
+	This fixes the problem whereby FOCUS_OUT events were not sent to
+	the event queue.
+
 2013-07-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (Fprocess_list): Doc fix.
