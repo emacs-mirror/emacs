@@ -1,3 +1,12 @@
+2013-07-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Add command to rename todo files.
+	(todo-rename-file): New command.
+	(todo-key-bindings-t): Add key binding for it.  Change the
+	bindings of todo-filter-regexp-items(-multifile) to use `x'
+	instead of `r', since the latter is better suited to the new
+	renaming command.
+
 2013-07-27  Alan Mackenzie  <acm@muc.de>
 
 	Make Java try-with-resources statement parse properly.

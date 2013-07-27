@@ -1099,6 +1099,44 @@ Noninteractively, return the name of the new file."
 	  (todo-show))
       file)))
 
+(defun todo-rename-file (&optional arg)
+  "Rename the current todo file.
+With prefix ARG, prompt for a todo file and rename it.
+If there are corresponding archive or filtered items files,
+rename these accordingly.  If there are live buffers visiting
+these files, also rename them accordingly."
+  (interactive "P")
+  (let* ((oname (or (and arg
+			 (todo-read-file-name "Choose a file to rename: "
+					      nil t))
+		    (buffer-file-name)))
+	 (soname (todo-short-file-name oname))
+	 (nname (todo-read-file-name "New name for this file: "))
+	 (snname (todo-short-file-name nname))
+	 (files (directory-files todo-directory t
+				 (concat ".*" (regexp-quote soname)
+					 ".*\.tod[aorty]$") t)))
+    (dolist (f files)
+      (let ((sfname (todo-short-file-name f))
+	    (fext (file-name-extension f t))
+	    (fbuf (find-buffer-visiting f)))
+	(when (string-match (regexp-quote soname) sfname)
+	  (let* ((snfname (replace-match snname t t sfname))
+		 (nfname (concat todo-directory snfname fext)))
+	    (rename-file f nfname)
+	    (when fbuf
+	      (with-current-buffer fbuf
+		(set-visited-file-name nfname t t)
+		(cond ((member fext '(".todo" ".toda"))
+		       (setq todo-current-todo-file (buffer-file-name))
+		       (setq mode-line-buffer-identification
+			     (funcall todo-mode-line-function
+				      (todo-current-category))))
+		      (t
+		       (rename-buffer
+			(replace-regexp-in-string
+			 (regexp-quote soname) snfname))))))))))))
+
 (defun todo-delete-file ()
   "Delete the current todo, archive or filtered items file.
 If the todo file has a corresponding archive file, or vice versa,
@@ -6163,6 +6201,7 @@ Filtered Items mode following todo (not done) items."
     ("Cey"	     todo-edit-category-diary-inclusion)
     ("Cek"	     todo-edit-category-diary-nonmarking)
     ("Fa"	     todo-add-file)
+    ("Fr"	     todo-rename-file)
     ("Ff"	     todo-find-filtered-items-file)
     ("FV"	     todo-toggle-view-done-only)
     ("V"	     todo-toggle-view-done-only)
@@ -6171,8 +6210,8 @@ Filtered Items mode following todo (not done) items."
     ("Fts"	     todo-set-top-priorities-in-file)
     ("Fyy"	     todo-filter-diary-items)
     ("Fym"	     todo-filter-diary-items-multifile)
-    ("Frr"	     todo-filter-regexp-items)
-    ("Frm"	     todo-filter-regexp-items-multifile)
+    ("Fxx"	     todo-filter-regexp-items)
+    ("Fxm"	     todo-filter-regexp-items-multifile)
     ("ee"	     todo-edit-item)
     ("em"	     todo-edit-multiline-item)
     ("edt"	     todo-edit-item-header)
