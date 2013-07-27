@@ -1,3 +1,9 @@
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Fontify a Java generic method as a function.
+	* progmodes/cc-langs.el (c-recognize-<>-arglists): Set the Java
+	value to t.
+
 2013-07-27  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el: Add command to rename todo files.
