@@ -2233,7 +2233,9 @@ Optional Packages:
   --with-mail-unlink      unlink, rather than empty, mail spool after reading
   --with-mailhost=HOSTNAME
                           string giving default POP mail host
-  --without-sound         don't compile with sound support
+  --with-sound=VALUE      compile with sound support (VALUE one of: yes,
+                          ossaudio, alsa, no; default yes). Only for
+                          GNU/Linux, FreeBSD, NetBSD, MinGW.
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk2,
                           gtk3, lucid or athena, motif, no)
   --with-wide-int         prefer wide Emacs integers (typically 62-bit)
@@ -4116,9 +4118,16 @@ fi
 
 # Check whether --with-sound was given.
 if test "${with_sound+set}" = set; then :
-  withval=$with_sound;
+  withval=$with_sound;  case "${withval}" in
+      yes|no|ossaudio|alsa) val=$withval ;;
+      *) as_fn_error "\`--with-sound=$withval' is invalid;
+this option's value should be \`yes', \`no', \`ossaudio', or \`alsa'." "$LINENO" 5
+      ;;
+    esac
+    with_sound=$val
+
 else
-     with_sound=$with_features
+  with_sound=$with_features
 fi
 
 
@@ -8995,6 +9004,7 @@ fi
 
 
 
+HAVE_SOUND=no
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux, the free BSDs, and MinGW.
   for ac_header in machine/soundcard.h sys/soundcard.h soundcard.h
@@ -9017,8 +9027,9 @@ fi
 
 done
 
-  # Emulation library used on NetBSD.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _oss_ioctl in -lossaudio" >&5
+  if test "${with_sound}" = "ossaudio" || test "${with_sound}" = "yes"; then
+    # Emulation library used on NetBSD.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _oss_ioctl in -lossaudio" >&5
 $as_echo_n "checking for _oss_ioctl in -lossaudio... " >&6; }
 if test "${ac_cv_lib_ossaudio__oss_ioctl+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -9060,10 +9071,14 @@ else
   LIBSOUND=
 fi
 
+    test "${with_sound}" = "ossaudio" && test -z "$LIBSOUND" && \
+      as_fn_error "ossaudio sound support requested but not found." "$LINENO" 5
+          fi
 
 
-  ALSA_REQUIRED=1.0.0
-  ALSA_MODULES="alsa >= $ALSA_REQUIRED"
+  if test "${with_sound}" = "alsa" || test "${with_sound}" = "yes"; then
+    ALSA_REQUIRED=1.0.0
+    ALSA_MODULES="alsa >= $ALSA_REQUIRED"
 
   succeeded=no
 
@@ -9115,12 +9130,12 @@ $as_echo "no" >&6; }
      HAVE_ALSA=no
   fi
 
-  if test $HAVE_ALSA = yes; then
-    SAVE_CFLAGS="$CFLAGS"
-    SAVE_LIBS="$LIBS"
-    CFLAGS="$ALSA_CFLAGS $CFLAGS"
-    LIBS="$ALSA_LIBS $LIBS"
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    if test $HAVE_ALSA = yes; then
+      SAVE_CFLAGS="$CFLAGS"
+      SAVE_LIBS="$LIBS"
+      CFLAGS="$ALSA_CFLAGS $CFLAGS"
+      LIBS="$ALSA_LIBS $LIBS"
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <asoundlib.h>
 int
@@ -9137,8 +9152,8 @@ else
   emacs_alsa_normal=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    if test "$emacs_alsa_normal" != yes; then
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      if test "$emacs_alsa_normal" != yes; then
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <alsa/asoundlib.h>
 int
@@ -9155,27 +9170,30 @@ else
   emacs_alsa_subdir=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-      if test "$emacs_alsa_subdir" != yes; then
-        as_fn_error "pkg-config found alsa, but it does not compile.  See config.log for error messages." "$LINENO" 5
+        if test "$emacs_alsa_subdir" != yes; then
+          as_fn_error "pkg-config found alsa, but it does not compile.  See config.log for error messages." "$LINENO" 5
+        fi
+        ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
       fi
-      ALSA_CFLAGS="$ALSA_CFLAGS -DALSA_SUBDIR_INCLUDE"
-    fi
 
-    CFLAGS="$SAVE_CFLAGS"
-    LIBS="$SAVE_LIBS"
-    LIBSOUND="$LIBSOUND $ALSA_LIBS"
-    CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
+      CFLAGS="$SAVE_CFLAGS"
+      LIBS="$SAVE_LIBS"
+      LIBSOUND="$LIBSOUND $ALSA_LIBS"
+      CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
 
 $as_echo "#define HAVE_ALSA 1" >>confdefs.h
 
+    elif test "${with_sound}" = "alsa"; then
+      as_fn_error "ALSA sound support requested but not found." "$LINENO" 5
+    fi
   fi
-
-        if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
+            if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
      case "$opsys" in
-              gnu-linux|freebsd|netbsd|mingw32)
+                     gnu-linux|freebsd|netbsd|mingw32)
 
 $as_echo "#define HAVE_SOUND 1" >>confdefs.h
 
+         HAVE_SOUND=yes
          ;;
      esac
   fi
@@ -28678,6 +28696,8 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIB
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
+
+echo "  Does Emacs support sound?                               ${HAVE_SOUND}"
 
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
