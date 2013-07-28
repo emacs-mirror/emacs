@@ -1158,12 +1158,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       FOR_EACH_FRAME (frames, this)
 	{
 	  Lisp_Object fminiw;
-	  struct frame *this_f;
 
-	  if (! EQ (this, frame)
-	      && (this_f = XFRAME (this))
-	      && WINDOWP (fminiw = FRAME_MINIBUF_WINDOW (this_f))
-	      && EQ (frame, WINDOW_FRAME (XWINDOW (fminiw))))
+	  if (EQ (this, frame))
+	    continue;
+
+	  fminiw = FRAME_MINIBUF_WINDOW (XFRAME (this));
+
+	  if (WINDOWP (fminiw) && EQ (frame, WINDOW_FRAME (XWINDOW (fminiw))))
 	    {
 	      /* If we MUST delete this frame, delete the other first.
 		 But do this only if FORCE equals `noelisp'.  */
