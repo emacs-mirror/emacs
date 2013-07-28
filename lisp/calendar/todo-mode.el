@@ -1117,9 +1117,10 @@ these files, also rename them accordingly."
 				 (concat ".*" (regexp-quote soname)
 					 ".*\.tod[aorty]$") t)))
     (dolist (f files)
-      (let ((sfname (todo-short-file-name f))
-	    (fext (file-name-extension f t))
-	    (fbuf (find-buffer-visiting f)))
+      (let* ((sfname (todo-short-file-name f))
+	     (fext (file-name-extension f t))
+	     (fbuf (find-buffer-visiting f))
+	     (fbname (buffer-name fbuf)))
 	(when (string-match (regexp-quote soname) sfname)
 	  (let* ((snfname (replace-match snname t t sfname))
 		 (nfname (concat todo-directory snfname fext)))
@@ -1135,7 +1136,14 @@ these files, also rename them accordingly."
 		      (t
 		       (rename-buffer
 			(replace-regexp-in-string
-			 (regexp-quote soname) snfname))))))))))))
+			 (regexp-quote soname) snname fbname))))))))))
+    (setq todo-files (funcall todo-files-function)
+	  todo-archives (funcall todo-files-function t))
+    (when (string= todo-default-todo-file soname)
+      (setq todo-default-todo-file snname))
+    (when (string= todo-global-current-todo-file oname)
+      (setq todo-global-current-todo-file nname))
+    (todo-reevaluate-filelist-defcustoms)))
 
 (defun todo-delete-file ()
   "Delete the current todo, archive or filtered items file.
@@ -4159,7 +4167,8 @@ multifile commands for further details."
 				(regexp ".todr")))))
 	 (rxfiles (when regexp
 		    (directory-files todo-directory t ".*\\.todr$" t)))
-	 (file-exists (or (file-exists-p fname) rxfiles)))
+	 (file-exists (or (file-exists-p fname) rxfiles))
+	 bufname)
     (cond ((and top new (natnump new))
 	   (todo-filter-items-1 (cons 'top new) flist))
 	  ((and (not new) file-exists)
@@ -4173,10 +4182,15 @@ multifile commands for further details."
 	   (todo-check-filtered-items-file))
 	  (t
 	   (todo-filter-items-1 filter flist)))
-    (setq fname (replace-regexp-in-string "-" ", "
-					  (todo-short-file-name fname)))
+    (dolist (s (split-string (todo-short-file-name fname) "-"))
+      (setq bufname (if bufname
+			(concat bufname (if (member s (mapcar
+						       'todo-short-file-name
+						       todo-files))
+					    ", " "-") s)
+		      s)))
     (rename-buffer (format (concat "%s for file" (if multi "s" "")
-				   " \"%s\"") buf fname))))
+				   " \"%s\"") buf bufname))))
 
 (defun todo-filter-items-1 (filter file-list)
   "Build a list of items by applying FILTER to FILE-LIST.
