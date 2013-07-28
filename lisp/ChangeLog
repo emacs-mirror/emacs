@@ -9,7 +9,7 @@
 	* calendar/todo-mode.el (todo-rename-file): Fix incorrect use of
 	replace-regexp-in-string and inadvertent omissions in previous change.
 	(todo-filter-items): Ensure only file names are comma-separated in
-	renamed filtered items buffer.
+	name of filtered items buffer.
 
 2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
