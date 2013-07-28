@@ -1394,7 +1394,7 @@ its window state.  Internal use only."
 		    (make-frame-on-display display
 					   (cons '(visibility)
 						 (cl-loop
-						  for param in '(left top width height)
+						  for param in '(left top width height minibuffer)
 						  collect (assq param filtered-cfg))))))
     (modify-frame-parameters frame
 			     (if (eq (frame-parameter frame 'fullscreen) fullscreen)

@@ -1,3 +1,9 @@
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Include `minibuffer' in the
+	minimal set of parameters passed when creating a frame, because
+	the minibuffer status of a frame cannot be changed later.
+
 2013-07-28  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-rename-file): Fix incorrect use of
