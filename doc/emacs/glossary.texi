@@ -20,7 +20,7 @@ commands @kbd{C-]} and @kbd{M-x top-level} are used for this.
 @xref{Quitting}.
 
 @item Active Region
-Setting the mark (q.v.) at a position in the text also activates it.
+Setting the mark (q.v.@:) at a position in the text also activates it.
 When the mark is active, we call the region an active region.
 @xref{Mark}.
 
@@ -186,11 +186,6 @@ particular alphabet or script.  @xref{International}.
 
 @item Character Terminal
 @xref{Glossary---Text Terminal}.
-
-@item Chord
-A chord is a key sequence (q.v.) in which the keys are pressed at the
-same time.  For example: @kbd{S-M-C-a}.  You can hold down a chord to
-repeat its command.
 
 @item Click Event
 A click event is the kind of input event (q.v.@:) generated when you
@@ -1375,9 +1370,10 @@ are not in a recursive editing level (q.v.@:) or the minibuffer
 level by aborting (q.v.@:) and quitting (q.v.).  @xref{Quitting}.
 
 @item Transient Mark Mode
-Transient Mark mode gives you much of the standard
-selection-highlighting behavior of other editors.  In GNU Emacs 23 and
-onwards, it is enabled by default.  @xref{Disabled Transient Mark}.
+The default behavior of the mark (q.v.@:) and region (q.v.), in which
+setting the mark activates it and highlights the region, is called
+Transient Mark mode.  In GNU Emacs 23 and onwards, it is enabled by
+default.  @xref{Disabled Transient Mark}.
 
 @item Transposition
 Transposing two units of text means putting each one into the place
