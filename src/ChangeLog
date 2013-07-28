@@ -1,3 +1,12 @@
+2013-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_IME_STARTCOMPOSITION>: Make sure the
+	frame which got the message is still alive, before dereferencing
+	its pointer.  (Bug#14970)
+
+	* frame.c (delete_frame): Test "this" frame's minibuffer window to
+	be a live window, before using it as such.  (Bug#14970)
+
 2013-07-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (w32_read_socket) <WM_KILLFOCUS>: Call

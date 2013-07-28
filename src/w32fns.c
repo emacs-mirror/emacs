@@ -3213,6 +3213,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	     described by W was deleted, as indicated by its buffer
 	     field being reset to nil.  */
 	  f = x_window_to_frame (dpyinfo, hwnd);
+	  if (!(f && FRAME_LIVE_P (f)))
+	    break;
 	  w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 	  /* Punt if someone changed the frame's selected window
 	     behind our back. */
