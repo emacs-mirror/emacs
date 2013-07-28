@@ -1,4 +1,4 @@
-;;; bind-key --- A simple way to manage personal keybindings
+;;; bind-key.el --- A simple way to manage personal keybindings
 
 ;; Copyright (C) 2012 John Wiegley
 
