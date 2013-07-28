@@ -1,3 +1,7 @@
+2013-07-28  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* glossary.texi (Glossary): Add some entries.
+
 2013-07-27  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* maintaining.texi (VC Directory Commands): Mention `D' and `L' in

@@ -4,6 +4,7 @@
 @c See file emacs.texi for copying conditions.
 @node Glossary
 @unnumbered Glossary
+@cindex glossary
 
 @table @asis
 @anchor{Glossary---Abbrev}
@@ -18,7 +19,10 @@ Aborting means getting out of a recursive edit (q.v.).  The
 commands @kbd{C-]} and @kbd{M-x top-level} are used for this.
 @xref{Quitting}.
 
-@c FIXME?  Active Region
+@item Active Region
+Setting the mark (q.v.) at a position in the text also activates it.
+When the mark is active, we call the region an active region.
+@xref{Mark}.
 
 @item Alt
 Alt is the name of a modifier bit that a keyboard input character may
@@ -182,6 +186,11 @@ particular alphabet or script.  @xref{International}.
 
 @item Character Terminal
 @xref{Glossary---Text Terminal}.
+
+@item Chord
+A chord is a key sequence (q.v.) in which the keys are pressed at the
+same time.  For example: @kbd{S-M-C-a}.  You can hold down a chord to
+repeat its command.
 
 @item Click Event
 A click event is the kind of input event (q.v.@:) generated when you
@@ -1365,7 +1374,10 @@ are not in a recursive editing level (q.v.@:) or the minibuffer
 (q.v.), and not in the middle of a command.  You can get back to top
 level by aborting (q.v.@:) and quitting (q.v.).  @xref{Quitting}.
 
-@c FIXME?  Transient Mark Mode
+@item Transient Mark Mode
+Transient Mark mode gives you much of the standard
+selection-highlighting behavior of other editors.  In GNU Emacs 23 and
+onwards, it is enabled by default.  @xref{Disabled Transient Mark}.
 
 @item Transposition
 Transposing two units of text means putting each one into the place
