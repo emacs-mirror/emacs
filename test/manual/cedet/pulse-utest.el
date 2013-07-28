@@ -36,11 +36,11 @@ When optional NO-ERROR Don't throw an error if we can't run tests."
         (error (concat "Pulse test only works on versions of Emacs"
                        " that support pulsing")))
     ;; Run the tests
-    (when (cedet-called-interactively-p)
+    (when (called-interactively-p 'any)
       (message "<Press a key> Pulse one line.")
       (read-char))
     (pulse-momentary-highlight-one-line (point))
-    (when (cedet-called-interactively-p)
+    (when (called-interactively-p 'any)
       (message "<Press a key> Pulse a region.")
       (read-char))
     (pulse-momentary-highlight-region (point)
@@ -49,11 +49,11 @@ When optional NO-ERROR Don't throw an error if we can't run tests."
                                             (forward-char 30)
                                           (error nil))
                                         (point)))
-    (when (cedet-called-interactively-p)
+    (when (called-interactively-p 'any)
       (message "<Press a key> Pulse line a specific color.")
       (read-char))
     (pulse-momentary-highlight-one-line (point) 'modeline)
-    (when (cedet-called-interactively-p)
+    (when (called-interactively-p 'any)
       (message "<Press a key> Pulse a pre-existing overlay.")
       (read-char))
     (let* ((start (point-at-bol))
@@ -69,7 +69,7 @@ When optional NO-ERROR Don't throw an error if we can't run tests."
           (delete-overlay o)
         (error "Non-temporary overlay was deleted!"))
       )
-    (when (cedet-called-interactively-p)
+    (when (called-interactively-p 'any)
       (message "Done!"))))
 
 
