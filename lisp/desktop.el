@@ -387,6 +387,18 @@ If `delete', frames on other displays are deleted instead of restored."
   :group 'desktop
   :version "24.4")
 
+(defcustom desktop-restore-forces-onscreen t
+  "If t, offscreen frames are restored onscreen instead.
+If `all', frames that are partially offscreen are also forced onscren.
+NOTE: Checking of frame boundaries is only approximate and can fail
+to reliably detect frames whose onscreen/offscreen state depends on a
+few pixels, especially near the right / bottom borders of the screen."
+  :type '(choice (const :tag "Only fully offscreen frames" t)
+		 (const :tag "Also partially offscreen frames" 'all)
+		 (const :tag "Do not force frames onscreen" nil))
+  :group 'desktop
+  :version "24.4")
+
 (defcustom desktop-restoring-reuses-frames t
   "If t, restoring frames reuses existing frames.
 If nil, existing frames are deleted.
@@ -1201,6 +1213,68 @@ This function also sets `desktop-dirname' to nil."
 (defvar desktop--reuse-list nil
   "Internal use only.")
 
+(defun desktop--compute-pos (value left/top right/bottom)
+  (pcase value
+    (`(+ ,val) (+ left/top val))
+    (`(- ,val) (+ right/bottom val))
+    (val val)))
+
+(defun desktop--move-onscreen (frame)
+  "If FRAME is offscreen, move it back onscreen and, if necessary, resize it.
+When forced onscreen, frames wider than the monitor's workarea are converted
+to fullwidth, and frames taller than the workarea are converted to fullheight.
+NOTE: This only works for non-iconified frames."
+  (pcase-let* ((`(,left ,top ,width ,height) (cl-cdadr (frame-monitor-attributes frame)))
+  	       (right (+ left width -1))
+  	       (bottom (+ top height -1))
+  	       (fr-left (desktop--compute-pos (frame-parameter frame 'left) left right))
+  	       (fr-top (desktop--compute-pos (frame-parameter frame 'top) top bottom))
+	       (ch-width (frame-char-width frame))
+	       (ch-height (frame-char-height frame))
+  	       (fr-width (max (frame-pixel-width frame) (* ch-width (frame-width frame))))
+  	       (fr-height (max (frame-pixel-height frame) (* ch-height (frame-height frame))))
+  	       (fr-right (+ fr-left fr-width -1))
+  	       (fr-bottom (+ fr-top fr-height -1)))
+    (when (pcase desktop-restore-forces-onscreen
+	    ;; Any corner is outside the screen.
+	    (`all (or (< fr-bottom top)  (> fr-bottom bottom)
+		      (< fr-left   left) (> fr-left   right)
+		      (< fr-right  left) (> fr-right  right)
+		      (< fr-top    top)  (> fr-top    bottom)))
+	    ;; Displaced to the left, right, above or below the screen.
+	    (`t   (or (> fr-left   right)
+		      (< fr-right  left)
+		      (> fr-top    bottom)
+		      (< fr-bottom top)))
+	    (_ nil))
+      (let ((fullwidth (> fr-width width))
+	    (fullheight (> fr-height height))
+	    (params nil))
+	;; Position frame horizontally.
+	(cond (fullwidth
+	       (push `(left . ,left) params))
+	      ((> fr-right right)
+	       (push `(left . ,(+ left (- width fr-width))) params))
+	      ((< fr-left left)
+	       (push `(left . ,left) params)))
+	;; Position frame vertically.
+	(cond (fullheight
+	       (push `(top . ,top) params))
+	      ((> fr-bottom bottom)
+	       (push `(top . ,(+ top (- height fr-height))) params))
+	      ((< fr-top top)
+	       (push `(top . ,top) params)))
+	;; Compute fullscreen state, if required.
+	(when (or fullwidth fullheight)
+	  (push (cons 'fullscreen
+		      (cond ((not fullwidth) 'fullheight)
+			    ((not fullheight) 'fullwidth)
+			    (t 'maximized)))
+		params))
+	;; Finally, move the frame back onscreen.
+	(when params
+	  (modify-frame-parameters frame params))))))
+
 (defun desktop--find-frame (predicate display &rest args)
   "Find a suitable frame in `desktop--reuse-list'.
 Look through frames whose display property matches DISPLAY and
@@ -1327,6 +1401,13 @@ its window state.  Internal use only."
 				 ;; Workaround for bug#14949
 				 (assq-delete-all 'fullscreen filtered-cfg)
 			       filtered-cfg))
+
+    ;; If requested, force frames to be onscreen.
+    (when (and desktop-restore-forces-onscreen
+	       ;; FIXME: iconified frames should be checked too,
+	       ;; but it is impossible without deiconifying them.
+	       (not (eq (frame-parameter frame 'visibility) 'icon)))
+      (desktop--move-onscreen frame))
 
     ;; Let's give the finishing touches (visibility, tool-bar, maximization).
     (when lines (push lines alt-cfg))

@@ -1,3 +1,10 @@
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Optionally force offscreen frames back onscreen.
+	(desktop-restoring-reuses-frames): New option.
+	(desktop--compute-pos, desktop--move-onscreen): New functions.
+	(desktop--make-frame): Use desktop--move-onscreen.
+
 2013-07-27  Alan Mackenzie  <acm@muc.de>
 
 	Fontify a Java generic method as a function.
