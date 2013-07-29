@@ -146,3 +146,19 @@ namespace d {
 
   } // namespace f
 } // namespace d
+
+// Fully qualified const struct function arguments
+class ContainsStruct
+{
+  struct TheStruct
+  {
+    int memberOne;
+    int memberTwo;
+  };
+};
+
+void someFunc(const struct ContainsStruct::TheStruct *foo)
+{
+  foo->// -9-
+    // #9# ("memberOne" "memberTwo")
+}
