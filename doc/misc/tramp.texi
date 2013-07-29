@@ -3186,13 +3186,13 @@ for example:
 @end lisp
 
 Note, that "%r", "%h" and "%p" must be encoded as "%%r", "%%h" and
-"%%p", respectively.  The entries of @code{ControlPath},
-@code{ControlMaster} and @code{ControlPersist} can be removed from
-this setting, if they are configured properly in your
-@file{~/.ssh/config}:
+"%%p", respectively.
+
+These settings can be suppressed, if they are configured properly in
+your @file{~/.ssh/config}:
 
 @lisp
-(setq tramp-ssh-controlmaster-options "")
+(setq tramp-use-ssh-controlmaster-options nil)
 @end lisp
 
 
