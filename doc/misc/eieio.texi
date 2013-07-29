@@ -46,10 +46,10 @@ modify this GNU manual.''
 @comment  node-name,  next,  previous,  up
 @top EIEIO
 
-@eieio{} (``Enhanced Implementation of Emacs Interpreted Objects'') is
-a CLOS (Common Lisp Object System) compatibility layer for Emacs Lisp.
-It provides a framework for writing object-oriented applications in
-Emacs.
+@eieio{} (``Enhanced Implementation of Emacs Interpreted Objects'')
+provides an Object Oriented layer for Emacs Lisp, following the basic
+concepts of the Common Lisp Object System (CLOS).  It provides a
+framework for writing object-oriented applications in Emacs.
 
 @ifnottex
 @insertcopying
@@ -201,8 +201,6 @@ Byte compilation support of methods.
 @item
 Help system extensions for classes and methods.
 @item
-Automatic texinfo documentation generator.
-@item
 Several base classes for interesting tasks.
 @item
 Simple test suite.
@@ -212,20 +210,31 @@ Public and private classifications for slots (extensions to CLOS)
 Customization support in a class (extension to CLOS)
 @end enumerate
 
-Here are some CLOS features that @eieio{} presently lacks:
+Here are some important CLOS features that @eieio{} presently lacks:
 
 @table @asis
-@item Complete @code{defclass} tag support
-All CLOS tags are currently supported, but the following are not
-currently implemented correctly:
 
-@table @code
-@item :metaclass
-There is only one base superclass for all @eieio{} classes, which is
-the @code{eieio-default-superclass}.
-@item :default-initargs
+@item Method dispatch
+EIEO does not support method dispatch for built-in types and multiple
+arguments types.  In other words, method dispatch only looks at the
+first argument, and this one must be an @eieio{} type.
+
+@item Support for metaclasses
+There is just one default metaclass, @code{eieio-default-superclass},
+and you cannot define your own.  The @code{:metaclass} tag in
+@code{defclass} is ignored.  Also, functions like `class-of' and
+`find-class', which should return instances of the metaclass, behave
+differently in @eieio{} in that they return symbols or plain structures
+instead.
+
+@item EQL specialization
+EIEIO does not support it.
+
+@item @code{:around} method tag
+This CLOS method tag is non-functional.
+
+@item :default-initargs in @code{defclass}
 Each slot has an @code{:initarg} tag, so this is not really necessary.
-@end table
 
 @item Mock object initializers
 Each class contains a mock object used for fast initialization of
@@ -233,14 +242,22 @@ instantiated objects.  Using functions with side effects on object slot
 values can potentially cause modifications in the mock object.  @eieio{}
 should use a deep copy but currently does not.
 
-@item @code{:around} method tag
-This CLOS method tag is non-functional.
-
 @end table
 
 @node Building Classes
 @comment  node-name,  next,  previous,  up
 @chapter Building Classes
+
+First off, please note that this manual cannot serve as a complete
+introduction to object oriented programming and generic functions in
+LISP.  Although EIEIO is not a complete CLOS implementation and also
+differs from CLOS in several aspects, it follows the same basic
+concepts.  Therefore, it is highly recommended to learn these from a
+textbook or tutorial first, especially if you only know OOP from
+languages like C++ or Java.  If on the other hand you are already
+familiar with CLOS, you should be aware that @eieio{} does not implement
+the full CLOS specificiation and also differs in some other aspects
+(@xref{Introduction}, and @ref{CLOS compatibility}).
 
 A @dfn{class} is a definition for organizing data and methods
 together.  An @eieio{} class has structures similar to the classes
@@ -1930,8 +1947,9 @@ Some important compatibility features that would be good to add are:
 
 @enumerate
 @item
+Support for metaclasses and EQL specialization.
+@item
 @code{:around} method key.
-
 @item
 Method dispatch for built-in types.
 @item
