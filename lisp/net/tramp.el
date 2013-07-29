@@ -305,6 +305,14 @@ useful only in combination with `tramp-default-proxies-alist'.")
     "Call ssh to detect whether it supports the Control* arguments.
 Return a string to be used in `tramp-methods'.")
 
+;;;###tramp-autoload
+(defcustom tramp-use-ssh-controlmaster-options
+  (not (zerop (length tramp-ssh-controlmaster-options)))
+  "Whether to use `tramp-ssh-controlmaster-options'."
+  :group 'tramp
+  :version "24.4"
+  :type 'boolean)
+
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
   ;; much better for large files, and it hasn't too serious delays

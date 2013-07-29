@@ -1,3 +1,11 @@
+2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-use-ssh-controlmaster-options): New customer
+	option.
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it.
+
 2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop--make-frame): Include `minibuffer' in the

@@ -2248,7 +2248,10 @@ The method used must be an out-of-band method."
 	      spec (format-spec-make
 		    ?t (tramp-get-connection-property
 			(tramp-get-connection-process v) "temp-file" ""))
-	      options (format-spec tramp-ssh-controlmaster-options spec)
+	      options (format-spec
+		       (if tramp-use-ssh-controlmaster-options
+			   tramp-ssh-controlmaster-options "")
+		       spec)
 	      spec (format-spec-make
 		    ?h host ?u user ?p port ?c options
 		    ?k (if keep-date " " ""))
@@ -4416,7 +4419,8 @@ connection if a previous connection has died for some reason."
 	      (let* ((target-alist (tramp-compute-multi-hops vec))
 		     ;; We will apply `tramp-ssh-controlmaster-options'
 		     ;; only for the first hop.
-		     (options tramp-ssh-controlmaster-options)
+		     (options (if tramp-use-ssh-controlmaster-options
+				  tramp-ssh-controlmaster-options ""))
 		     (process-connection-type tramp-process-connection-type)
 		     (process-adaptive-read-buffering nil)
 		     (coding-system-for-read nil)
