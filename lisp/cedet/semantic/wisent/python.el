@@ -39,6 +39,7 @@
 (require 'semantic/find)
 (require 'semantic/dep)
 (require 'semantic/ctxt)
+(require 'semantic/format)
 
 (eval-when-compile
   (require 'cl))

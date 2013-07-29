@@ -1,3 +1,11 @@
+2013-07-29  David Engster <deng@randomsample.de>
+
+	* eieio.texi (top): Make clear that EIEIO is not a full CLOS
+	implementation.
+	(Introduction): Add further missing features.
+	(Building Classes): Add introductory paragraph.
+	(Wish List): Add metaclasses and EQL specialization.
+
 2013-07-26  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (Sorting the Summary Buffer): Document new defcustom

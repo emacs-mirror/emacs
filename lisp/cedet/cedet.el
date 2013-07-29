@@ -46,9 +46,6 @@
     (semantic      "2.2"           nil       "semantic/doc")
     (srecode       "1.2"           nil       "srecode"     )
     (ede           "1.2"           nil       "ede"         )
-    (speedbar      "1.0.4"         nil       "speedbar"    )
-    (cogre         "1.2"           nil       "cogre"       )
-    (cedet-contrib "1.2"           "contrib" nil           )
     )
   "Table of CEDET packages to install.")
 
