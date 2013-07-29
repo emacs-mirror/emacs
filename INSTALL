@@ -98,7 +98,6 @@ sections if you need to.
   first clean the source directories:
 
 		make distclean
-		./configure
 
   Note that the install automatically saves space by compressing
   (provided you have the `gzip' program) those installed Lisp source (.el)
