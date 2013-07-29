@@ -1,3 +1,8 @@
+2013-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (toplevel): Remove comment before Fsafe_length because
+	it checks for QUIT.
+
 2013-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (delete_frame): Avoid unnecessary 'this_f' test (Bug#14970).
