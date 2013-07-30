@@ -947,7 +947,7 @@ extern int x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
-extern int x_had_errors_p (Display *);
+extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, int, int, int);

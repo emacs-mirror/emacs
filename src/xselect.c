@@ -654,7 +654,7 @@ x_reply_selection_request (struct input_event *event,
     if (cs->wait_object)
       {
 	int format_bytes = cs->format / 8;
-	int had_errors = x_had_errors_p (display);
+	bool had_errors_p = x_had_errors_p (display);
 	unblock_input ();
 
 	bytes_remaining = cs->size;
@@ -662,7 +662,7 @@ x_reply_selection_request (struct input_event *event,
 
 	/* Wait for the requestor to ack by deleting the property.
 	   This can run Lisp code (process handlers) or signal.  */
-	if (! had_errors)
+	if (! had_errors_p)
 	  {
 	    TRACE1 ("Waiting for ACK (deletion of %s)",
 		    XGetAtomName (display, cs->property));
@@ -694,10 +694,10 @@ x_reply_selection_request (struct input_event *event,
 	    cs->data += i * ((cs->format == 32) ? sizeof (long)
 			     : format_bytes);
 	    XFlush (display);
-	    had_errors = x_had_errors_p (display);
+	    had_errors_p = x_had_errors_p (display);
 	    unblock_input ();
 
-	    if (had_errors) break;
+	    if (had_errors_p) break;
 
 	    /* Wait for the requestor to ack this chunk by deleting
 	       the property.  This can run Lisp code or signal.  */
@@ -2427,17 +2427,17 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
   Atom atom;
-  int had_errors;
+  bool had_errors_p;
 
   CONS_TO_INTEGER (value, Atom, atom);
 
   block_input ();
   x_catch_errors (dpy);
   name = atom ? XGetAtomName (dpy, atom) : empty;
-  had_errors = x_had_errors_p (dpy);
+  had_errors_p = x_had_errors_p (dpy);
   x_uncatch_errors ();
 
-  if (!had_errors)
+  if (!had_errors_p)
     ret = build_string (name);
 
   if (atom && name) XFree (name);

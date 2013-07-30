@@ -890,31 +890,32 @@ draw_row_fringe_bitmaps (struct window *w, struct glyph_row *row)
 /* Draw the fringes of window W.  Only fringes for rows marked for
    update in redraw_fringe_bitmaps_p are drawn.
 
-   Return >0 if left or right fringe was redrawn in any way.
+   Return nonzero if left or right fringe was redrawn in any way.
 
-   If NO_FRINGE is non-zero, also return >0 if either fringe has zero width.
+   If NO_FRINGE_P is non-zero, also return nonzero if either fringe
+   has zero width.
 
-   A return value >0 indicates that the vertical line between windows
-   needs update (as it may be drawn in the fringe).
+   A return nonzero value indicates that the vertical line between
+   windows needs update (as it may be drawn in the fringe).
 */
 
-int
-draw_window_fringes (struct window *w, int no_fringe)
+bool
+draw_window_fringes (struct window *w, bool no_fringe_p)
 {
   struct glyph_row *row;
   int yb = window_text_bottom_y (w);
   int nrows = w->current_matrix->nrows;
   int y, rn;
-  int updated = 0;
+  bool updated_p = 0;
 
   if (w->pseudo_window_p)
-    return 0;
+    return updated_p;
 
   /* Must draw line if no fringe */
-  if (no_fringe
+  if (no_fringe_p
       && (WINDOW_LEFT_FRINGE_WIDTH (w) == 0
 	  || WINDOW_RIGHT_FRINGE_WIDTH (w) == 0))
-    updated++;
+    updated_p = 1;
 
   for (y = w->vscroll, rn = 0, row = w->current_matrix->rows;
        y < yb && rn < nrows;
@@ -924,10 +925,10 @@ draw_window_fringes (struct window *w, int no_fringe)
 	continue;
       draw_row_fringe_bitmaps (w, row);
       row->redraw_fringe_bitmaps_p = 0;
-      updated++;
+      updated_p = 1;
     }
 
-  return updated;
+  return updated_p;
 }
 
 
@@ -936,14 +937,14 @@ draw_window_fringes (struct window *w, int no_fringe)
 
    If KEEP_CURRENT_P is 0, update current_matrix too.  */
 
-int
-update_window_fringes (struct window *w, int keep_current_p)
+bool
+update_window_fringes (struct window *w, bool keep_current_p)
 {
   struct glyph_row *row, *cur = 0;
   int yb = window_text_bottom_y (w);
   int rn, nrows = w->current_matrix->nrows;
   int y;
-  int redraw_p = 0;
+  bool redraw_p = 0;
   Lisp_Object boundary_top = Qnil, boundary_bot = Qnil;
   Lisp_Object arrow_top = Qnil, arrow_bot = Qnil;
   Lisp_Object empty_pos;
@@ -1169,7 +1170,7 @@ update_window_fringes (struct window *w, int keep_current_p)
       int left, right;
       unsigned left_face_id, right_face_id;
       int left_offset, right_offset;
-      int periodic_p;
+      bool periodic_p;
 
       row = w->desired_matrix->rows + rn;
       cur = w->current_matrix->rows + rn;
@@ -1285,7 +1286,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	  || periodic_p != cur->fringe_bitmap_periodic_p
 	  || cur->redraw_fringe_bitmaps_p)
 	{
-	  redraw_p = row->redraw_fringe_bitmaps_p = 1;
+	  redraw_p = 1, row->redraw_fringe_bitmaps_p = 1;
 	  if (!keep_current_p)
 	    {
 	      cur->redraw_fringe_bitmaps_p = 1;
@@ -1304,7 +1305,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 
       if (row->overlay_arrow_bitmap != cur->overlay_arrow_bitmap)
 	{
-	  redraw_p = row->redraw_fringe_bitmaps_p = 1;
+	  redraw_p = 1, row->redraw_fringe_bitmaps_p = 1;
 	  if (!keep_current_p)
 	    {
 	      cur->redraw_fringe_bitmaps_p = 1;
@@ -1339,7 +1340,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 */
 
 void
-compute_fringe_widths (struct frame *f, int redraw)
+compute_fringe_widths (struct frame *f, bool redraw_p)
 {
   int o_left = FRAME_LEFT_FRINGE_WIDTH (f);
   int o_right = FRAME_RIGHT_FRINGE_WIDTH (f);
@@ -1410,7 +1411,7 @@ compute_fringe_widths (struct frame *f, int redraw)
       FRAME_FRINGE_COLS (f) = 0;
     }
 
-  if (redraw && FRAME_VISIBLE_P (f))
+  if (redraw_p && FRAME_VISIBLE_P (f))
     if (o_left != FRAME_LEFT_FRINGE_WIDTH (f) ||
 	o_right != FRAME_RIGHT_FRINGE_WIDTH (f) ||
 	o_cols != FRAME_FRINGE_COLS (f))

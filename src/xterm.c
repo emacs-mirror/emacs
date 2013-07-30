@@ -2691,7 +2691,7 @@ x_draw_underwave (struct glyph_string *s)
 static void
 x_draw_glyph_string (struct glyph_string *s)
 {
-  int relief_drawn_p = 0;
+  bool relief_drawn_p = 0;
 
   /* If S draws into the background of its successors, draw the
      background of the successors first so that S can draw into it.
@@ -6854,7 +6854,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       {
         /* If we decide we want to generate an event to be seen
            by the rest of Emacs, we put it here.  */
-        int tool_bar_p = 0;
+        bool tool_bar_p = 0;
 
         memset (&compose_status, 0, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
@@ -7663,7 +7663,7 @@ x_check_errors (Display *dpy, const char *format)
 /* Nonzero if we had any X protocol errors
    since we did x_catch_errors on DPY.  */
 
-int
+bool
 x_had_errors_p (Display *dpy)
 {
   /* Make sure to catch any errors incurred so far.  */

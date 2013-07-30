@@ -2360,7 +2360,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 static void
 x_draw_glyph_string (struct glyph_string *s)
 {
-  int relief_drawn_p = 0;
+  bool relief_drawn_p = 0;
 
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
@@ -4629,7 +4629,7 @@ w32_read_socket (struct terminal *terminal,
 	  {
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
-            int tool_bar_p = 0;
+	    bool tool_bar_p = 0;
 	    int button;
 	    int up;
 

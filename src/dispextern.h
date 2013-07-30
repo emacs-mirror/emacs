@@ -3235,9 +3235,9 @@ extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 int lookup_fringe_bitmap (Lisp_Object);
 void draw_fringe_bitmap (struct window *, struct glyph_row *, int);
 void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);
-int draw_window_fringes (struct window *, int);
-int update_window_fringes (struct window *, int);
-void compute_fringe_widths (struct frame *, int);
+bool draw_window_fringes (struct window *, bool);
+bool update_window_fringes (struct window *, bool);
+void compute_fringe_widths (struct frame *, bool);
 
 #ifdef HAVE_NTGUI
 void w32_init_fringe (struct redisplay_interface *);

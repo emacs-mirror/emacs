@@ -1,5 +1,25 @@
 2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* fringe.c (draw_window_fringes, update_window_fringes)
+	(compute_fringe_widths):
+	* w32term.c (x_draw_glyph_string):
+	* window.c (candidate_window_p, Frecenter):
+	* xfaces.c (realize_basic_faces, realize_default_face)
+	(Fbitmap_space_p, Finternal_set_lisp_face_attribute)
+	(x_update_menu_appearance, face_attr_equal_p, lface_equal_p):
+	* xfns.c (x_set_cursor_color, xic_free_xfontset):
+	* xmenu.c (Fx_menu_bar_open_internal):
+	* xselect.c (x_reply_selection_request, Fx_get_atom_name):
+	* xsettings.c (xft_settings_event):
+	* xterm.c (x_draw_glyph_string, x_had_errors_p):
+	Use bool for booleans.  Adjust style and comments where
+	appropriate.
+	* dispextern.h (draw_window_fringes, update_window_fringes)
+	(compute_fringe_widths):
+	* xterm.h (x_had_errors_p): Adjust prototype.
+
+2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (Fmodify_frame_parameters): Always check 2nd arg with
 	CHECK_LIST.  Rewrite the loop to avoid useless local variable.
 

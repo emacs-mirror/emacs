@@ -493,7 +493,7 @@ If FRAME is nil or not given, use the selected frame.  */)
   if (menubar)
     {
       Window child;
-      int error_p = 0;
+      bool error_p = 0;
 
       x_catch_errors (FRAME_X_DISPLAY (f));
       memset (&ev, 0, sizeof ev);

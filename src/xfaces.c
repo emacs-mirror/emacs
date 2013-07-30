@@ -448,8 +448,8 @@ static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
 					    struct face *);
 static struct face *realize_x_face (struct face_cache *, Lisp_Object *);
 static struct face *realize_tty_face (struct face_cache *, Lisp_Object *);
-static int realize_basic_faces (struct frame *);
-static int realize_default_face (struct frame *);
+static bool realize_basic_faces (struct frame *);
+static bool realize_default_face (struct frame *);
 static void realize_named_face (struct frame *, Lisp_Object, int);
 static struct face_cache *make_face_cache (struct frame *);
 static void clear_face_gcs (struct face_cache *);
@@ -819,7 +819,7 @@ the pixmap.  Bits are stored row by row, each row occupies
 \(WIDTH + 7)/8 bytes.  */)
   (Lisp_Object object)
 {
-  int pixmap_p = 0;
+  bool pixmap_p = 0;
 
   if (STRINGP (object))
     /* If OBJECT is a string, it's a file name.  */
@@ -2854,7 +2854,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCunderline))
     {
-      int valid_p = 0;
+      bool valid_p = 0;
 
       if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
 	valid_p = 1;
@@ -2941,7 +2941,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCbox))
     {
-      int valid_p;
+      bool valid_p;
 
       /* Allow t meaning a simple box of width 1 in foreground color
 	 of the face.  */
@@ -3510,7 +3510,7 @@ x_update_menu_appearance (struct frame *f)
       Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
       const char *myname = SSDATA (Vx_resource_name);
-      int changed_p = 0;
+      bool changed_p = 0;
 #ifdef USE_MOTIF
       const char *popup_path = "popup_menu";
 #else
@@ -3858,7 +3858,7 @@ return the font name used for CHARACTER.  */)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static int
+static bool
 face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 {
   /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
@@ -3891,10 +3891,11 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static int
+static bool
 lface_equal_p (Lisp_Object *v1, Lisp_Object *v2)
 {
-  int i, equal_p = 1;
+  int i;
+  bool equal_p = 1;
 
   for (i = 1; i < LFACE_VECTOR_SIZE && equal_p; ++i)
     equal_p = face_attr_equal_p (v1[i], v2[i]);
@@ -5201,10 +5202,10 @@ face_fontset (Lisp_Object attrs[LFACE_VECTOR_SIZE])
    of F don't contain enough information needed to realize the default
    face.  */
 
-static int
+static bool
 realize_basic_faces (struct frame *f)
 {
-  int success_p = 0;
+  bool success_p = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Block input here so that we won't be surprised by an X expose
@@ -5249,7 +5250,7 @@ realize_basic_faces (struct frame *f)
    specified, make it fully-specified.  Attributes of the default face
    that are not explicitly specified are taken from frame parameters.  */
 
-static int
+static bool
 realize_default_face (struct frame *f)
 {
   struct face_cache *c = FRAME_FACE_CACHE (f);

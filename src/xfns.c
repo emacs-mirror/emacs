@@ -942,7 +942,7 @@ static void
 x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fore_pixel, pixel;
-  int fore_pixel_allocated_p = 0, pixel_allocated_p = 0;
+  bool fore_pixel_allocated_p = 0, pixel_allocated_p = 0;
   struct x_output *x = f->output_data.x;
 
   if (!NILP (Vx_cursor_fore_pixel))
@@ -2066,7 +2066,7 @@ void
 xic_free_xfontset (struct frame *f)
 {
   Lisp_Object rest, frame;
-  int shared_p = 0;
+  bool shared_p = 0;
 
   if (!FRAME_XIC_FONTSET (f))
     return;

@@ -72,8 +72,6 @@ static void window_scroll_line_based (Lisp_Object, int, int, int);
 static int freeze_window_start (struct window *, void *);
 static Lisp_Object window_list (void);
 static int add_window_to_list (struct window *, void *);
-static int candidate_window_p (Lisp_Object, Lisp_Object, Lisp_Object,
-                               Lisp_Object);
 static Lisp_Object next_window (Lisp_Object, Lisp_Object,
                                 Lisp_Object, int);
 static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
@@ -2213,12 +2211,13 @@ window_list (void)
 		a window means search the frame that window belongs to,
 		a frame means consider windows on that frame, only.  */
 
-static int
-candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf, Lisp_Object all_frames)
+static bool
+candidate_window_p (Lisp_Object window, Lisp_Object owindow,
+		    Lisp_Object minibuf, Lisp_Object all_frames)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  int candidate_p = 1;
+  bool candidate_p = 1;
 
   if (!BUFFERP (w->contents))
     candidate_p = 0;
@@ -5172,7 +5171,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct window *w = XWINDOW (selected_window);
   struct buffer *buf = XBUFFER (w->contents);
   struct buffer *obuf = current_buffer;
-  int center_p = 0;
+  bool center_p = 0;
   ptrdiff_t charpos, bytepos;
   EMACS_INT iarg IF_LINT (= 0);
   int this_scroll_margin;
