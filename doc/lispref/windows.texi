@@ -2244,8 +2244,9 @@ window and defaults to the selected one.
 
 Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
-the window, @var{window-start} is the window start position when that
-buffer was last shown, and @var{window-pos} is the point position when
+the window, @var{window-start} is the window start position
+(@pxref{Window Start and End}) when that buffer was last shown, and
+@var{window-pos} is the point position (@pxref{Window Point}) when
 that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
@@ -2363,6 +2364,7 @@ showing another buffer in that frame's only window.  The function
 @code{replace-buffer-in-windows} (@pxref{Buffers and Windows}) which is
 called when a buffer gets killed, deletes the window in case (1) and
 behaves like @code{delete-windows-on} otherwise.
+@c FIXME: Does replace-buffer-in-windows _delete_ a window in case (1)?
 
    When @code{bury-buffer} (@pxref{The Buffer List}) operates on the
 selected window (which shows the buffer that shall be buried), it

@@ -1,7 +1,7 @@
 2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* windows.texi (Window History): Mention the default value of
-	switch-to-visible-buffer.
+	switch-to-visible-buffer.  Add cross-references.
 
 2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
