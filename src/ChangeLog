@@ -1,5 +1,11 @@
 2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xfaces.c (make_face_cache): For struct face_cache, prefer
+	xmalloc to xzalloc and so avoid redundant call to memset.
+	(Finternal_set_lisp_face_attribute): Fix comment typo and style.
+
+2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* fringe.c (draw_window_fringes, update_window_fringes)
 	(compute_fringe_widths):
 	* w32term.c (x_draw_glyph_string):

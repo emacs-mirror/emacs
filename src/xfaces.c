@@ -3247,10 +3247,9 @@ FRAME 0 means change the face on all frames, and change the default
 #endif /* HAVE_WINDOW_SYSTEM */
       else if (EQ (face, Qmenu))
 	{
-	  /* Indicate that we have to update the menu bar when
-	     realizing faces on FRAME.  FRAME t change the
-	     default for new frames.  We do this by setting
-	     setting the flag in new face caches   */
+	  /* Indicate that we have to update the menu bar when realizing
+	     faces on FRAME.  FRAME t change the default for new frames.
+	     We do this by setting the flag in new face caches.  */
 	  if (FRAMEP (frame))
 	    {
 	      struct frame *f = XFRAME (frame);
@@ -4167,13 +4166,11 @@ If FRAME is unspecified or nil, the current frame is used.  */)
 static struct face_cache *
 make_face_cache (struct frame *f)
 {
-  struct face_cache *c;
-  int size;
+  struct face_cache *c = xmalloc (sizeof *c);
 
-  c = xzalloc (sizeof *c);
-  size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = xzalloc (size);
+  c->buckets = xzalloc (FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   c->size = 50;
+  c->used = 0;
   c->faces_by_id = xmalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
   c->menu_face_changed_p = menu_face_changed_default;
