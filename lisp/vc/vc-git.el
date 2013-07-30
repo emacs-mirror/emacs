@@ -682,15 +682,14 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
 
 (defun vc-git-ignore (file)
   "Ignore FILE under Git."
-  (interactive)
   (with-temp-buffer
     (insert-file-contents
-     (let (gitignore (concat (file-name-as-directory (vc-git-root
-						      default-directory)) ".gitignore"))
-       (unless (search-forward file nil t)
+     (let ((gitignore (concat (file-name-as-directory (vc-git-root
+						      default-directory)) ".gitignore")))
+       (unless (search-forward (concat "\n" file "\n") nil t)
 	 (goto-char (point-max))
 	 (insert (concat "\n" file "\n"))
-	 (write-region 1 (point-max) gitignore))))))
+	 (write-region (point-min) (point-max) gitignore))))))
 
 (defun vc-git-checkout (file &optional _editable rev)
   (vc-git-command nil 0 file "checkout" (or rev "HEAD")))

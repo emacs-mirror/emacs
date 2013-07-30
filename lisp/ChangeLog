@@ -1,3 +1,19 @@
+2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-svn.el (vc-svn-ignore): Remove `interactive'.  Use `*vc*'
+	buffer for output.
+
+	* vc/vc-hg.el (vc-hg-ignore): Remove `interactive'; do not assume
+	point-min==1; fix search string; fix parentheses missing.
+
+	* vc/vc-git.el (vc-git-ignore): Remove `interactive'; do not
+	assume point-min==1; fix search string; fix parentheses missing.
+
+	* vc/vc-cvs.el (vc-cvs-ignore): Remove `interactive'.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): Remove `interactive'.  Use `*vc*'
+	buffer for output.
+
 2013-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.el (frame-notice-user-settings): Avoid inflooping when the

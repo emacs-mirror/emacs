@@ -354,9 +354,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-ignore (file)
   "Ignore FILE under Subversion."
-  (interactive)
-  (vc-svn-command (get-buffer-create "*vc-ignore*") 0
-		  file "propedit" "svn:ignore"))
+  (vc-svn-command t 0 file "propedit" "svn:ignore"))
 
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)

@@ -1228,7 +1228,6 @@ is non-nil."
 
 (defun vc-cvs-ignore (file)
   "Ignore FILE under CVS."
-  (interactive)
   (cvs-append-to-ignore (file-name-directory file) file))
 
 (defun cvs-append-to-ignore (dir str &optional old-dir)

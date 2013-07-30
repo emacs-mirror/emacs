@@ -461,15 +461,14 @@ REV is ignored."
 
 (defun vc-hg-ignore (file)
   "Ignore FILE under Mercurial."
-  (interactive)
   (with-temp-buffer
     (insert-file-contents 
-     (let (hgignore (concat (file-name-as-directory (vc-hg-root
-						     default-directory)) ".hgignore"))
-       (unless (search-forward file nil t)
+     (let ((hgignore (concat (file-name-as-directory (vc-hg-root
+						     default-directory)) ".hgignore")))
+       (unless (search-forward (concat "\n" file "\n") nil t)
 	 (goto-char (point-max))
 	 (insert (concat "\n" file "\n"))
-	 (write-region 1 (point-max) hgignore))))))
+	 (write-region (point-min) (point-max) hgignore))))))
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional _editable rev)
