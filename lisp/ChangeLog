@@ -1,3 +1,8 @@
+2013-07-30  Stephen Berman  <stephen.berman@gmx.net>
+
+	* minibuffer.el (completion--twq-all): Try and preserve each
+	completion's case choice (bug#14907).
+
 2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Mention the new
