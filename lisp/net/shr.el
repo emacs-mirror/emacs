@@ -143,7 +143,7 @@ cid: URL as the argument.")
     (define-key map [tab] 'shr-next-link)
     (define-key map [backtab] 'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'shr-mouse-browse-url)
+    (define-key map [mouse-2] 'shr-browse-url)
     (define-key map "I" 'shr-insert-image)
     (define-key map "w" 'shr-copy-url)
     (define-key map "u" 'shr-copy-url)
@@ -664,10 +664,11 @@ size, and full-buffer size."
   (mouse-set-point ev)
   (shr-browse-url))
 
-(defun shr-browse-url (&optional external)
+(defun shr-browse-url (&optional external mouse-event)
   "Browse the URL under point.
 If EXTERNAL, browse the URL using `shr-external-browser'."
-  (interactive "P")
+  (interactive (list current-prefix-arg last-nonmenu-event))
+  (mouse-set-point mouse-event)
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
      ((not url)
