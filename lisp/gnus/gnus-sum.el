@@ -2359,7 +2359,8 @@ increase the score of each group you read."
 	   ["Mark above" gnus-summary-mark-above t]
 	   ["Tick above" gnus-summary-tick-above t]
 	   ["Clear above" gnus-summary-clear-above t])
-	  ["Current score" gnus-summary-current-score t]
+	  ["Current article score" gnus-summary-current-score t]
+	  ["Current thread score" (gnus-summary-current-score 'total) t]
 	  ["Set score" gnus-summary-set-score t]
 	  ["Switch current score file..." gnus-score-change-score-file t]
 	  ["Set mark below..." gnus-score-set-mark-below t]

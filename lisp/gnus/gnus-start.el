@@ -1807,6 +1807,9 @@ backend check whether the group actually exists."
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
+      ;; We may have altered the data now, so mark the dribble buffer
+      ;; as dirty so that it gets saved.
+      (gnus-dribble-touch)
       (gnus-agent-save-active method))
      ;; Most backends have -retrieve-groups.
      ((gnus-check-backend-function 'retrieve-groups (car method))

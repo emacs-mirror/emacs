@@ -1,4 +1,16 @@
+2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Always mark the data as
+	dirty to ensure nnimap data being saved.
+
 2013-07-30  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add "Current thread score"
+	menu entry.
+
+	* gnus-score.el (gnus-summary-current-score): Use prefix arg to show
+	the current thread's total score instead of the current article's
+	score.
 
 	* gnus-sum.el (gnus-subthread-sort-functions): New defcustom.
 	(gnus-sort-threads-recursively): Delete defcustom.
