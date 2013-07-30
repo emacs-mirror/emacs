@@ -25,6 +25,7 @@
 
 (require 'semantic)
 (require 'semantic/bovine)
+(require 'semantic/db-el)
 (require 'find-func)
 
 (require 'semantic/ctxt)

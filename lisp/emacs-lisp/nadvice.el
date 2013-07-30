@@ -425,7 +425,7 @@ of the piece of advice."
          (get-next-frame
           (lambda ()
             (setq frame1 frame2)
-            (setq frame2 (internal--called-interactively-p--get-frame i))
+            (setq frame2 (backtrace-frame i #'called-interactively-p))
             ;; (message "Advice Frame %d = %S" i frame2)
             (setq i (1+ i)))))
     (when (and (eq (nth 1 frame2) 'apply)

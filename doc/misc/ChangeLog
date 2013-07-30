@@ -1,3 +1,47 @@
+2013-07-29  David Engster <deng@randomsample.de>
+
+	* eieio.texi (top): Make clear that EIEIO is not a full CLOS
+	implementation.
+	(Introduction): Add further missing features.
+	(Building Classes): Add introductory paragraph.
+	(Wish List): Add metaclasses and EQL specialization.
+
+2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	`tramp-use-ssh-controlmaster-options'.
+
+2013-07-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.texi (Sorting the Summary Buffer): Document new defcustom
+	`gnus-sort-threads-recursively'.
+
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add ido.
+	(ido, $(buildinfodir)/ido$(INFO_EXT), ido.dvi, ido.pdf): New rules.
+
+	* erc.texi (Special Features): Update contact information.
+	(History): Avoid using @email.
+
+	* eshell.texi (Bugs and ideas): Minor updates.
+
+	* faq.texi (Reporting bugs, Origin of the term Emacs)
+	(Setting up a customization file)
+	(Using an already running Emacs process, Turning off beeping)
+	(Packages that do not come with Emacs)
+	(Replying to the sender of a message): Avoid using @email.
+
+	* pcl-cvs.texi (Contributors, Bugs): Avoid using @email.
+
+	* reftex.texi (Imprint): Avoid using @email.
+
+	* ses.texi (Top): Update bug reporting instructions.
+	(Acknowledgments): Avoid using @email.
+
+	* woman.texi (Introduction, Background): Remove outdated information.
+	(Bugs, Acknowledgments): Avoid using @email.
+
 2013-07-24  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ido.texi: New file.
@@ -1096,7 +1140,7 @@
 	corresponding function names, according to
 	`org-agenda-view-mode-dispatch'.
 
-2012-09-30  Jan Bäcker  <jan.boecker@jboecker.de>
+2012-09-30  Jan Böcker  <jan.boecker@jboecker.de>
 
 	* org.texi (The spreadsheet): Fix typo.
 

@@ -444,9 +444,9 @@ mail-to-news gateway).
 
 The correct way to report Emacs bugs is to use the command
 @kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
-essential information and the correct e-mail address, which is
-@email{bug-gnu-emacs@@gnu.org} for the released versions of Emacs.
-Anything sent to @email{bug-gnu-emacs@@gnu.org} also appears in the
+essential information and the correct e-mail address,
+@email{bug-gnu-emacs@@gnu.org}.
+Anything sent there also appears in the
 newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
 news to submit the bug report.  This ensures a reliable return address
 so you can be contacted for further details.
@@ -459,13 +459,17 @@ report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
 RMS says:
 
 @quotation
-Sending bug reports to @email{help-gnu-emacs@@gnu.org} (which has the
-effect of posting on @uref{news:gnu.emacs.help}) is undesirable because
-it takes the time of an unnecessarily large group of people, most of
-whom are just users and have no idea how to fix these problem.
-@email{bug-gnu-emacs@@gnu.org} reaches a much smaller group of people
-who are more likely to know what to do and have expressed a wish to
-receive more messages about Emacs than the others.
+Sending bug reports to
+@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+the help-gnu-emacs mailing list}
+(which has the effect of posting on @uref{news:gnu.emacs.help}) is
+undesirable because it takes the time of an unnecessarily large group
+of people, most of whom are just users and have no idea how to fix
+these problem.
+@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
+bug-gnu-emacs list} reaches a much smaller group of people who are
+more likely to know what to do and have expressed a wish to receive
+more messages about Emacs than the others.
 @end quotation
 
 RMS says it is sometimes fine to post to @uref{news:gnu.emacs.help}:
@@ -960,7 +964,8 @@ by RMS for the editor TECO (Text Editor and COrrector, originally Tape
 Editor and COrrector) under ITS (the Incompatible Timesharing System) on
 a PDP-10.  RMS had already extended TECO with a ``real-time''
 full-screen mode with reprogrammable keys.  Emacs was started by
-@email{gls@@east.sun.com, Guy Steele} as a project to unify the many
+@c gls@@east.sun.com
+Guy Steele as a project to unify the many
 divergent TECO command sets and key bindings at MIT, and completed by
 RMS.
 
@@ -1340,7 +1345,9 @@ of files from Macintosh, Microsoft, and Unix platforms.
 
 In general, new Emacs users should not be provided with @file{.emacs}
 files, because this can cause confusing non-standard behavior.  Then
-they send questions to @email{help-gnu-emacs@@gnu.org} asking why Emacs
+they send questions to
+@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+the help-gnu-emacs mailing list} asking why Emacs
 isn't behaving as documented.
 
 Emacs includes the Customize facility (@pxref{Using Customize}).  This
@@ -1805,7 +1812,8 @@ requested by @code{emacsclient}, Emacs will switch to it; otherwise
 
 @cindex @code{gnuserv}
 There is an alternative version of @samp{emacsclient} called
-@samp{gnuserv}, written by @email{ange@@hplb.hpl.hp.com, Andy Norman}
+@c ange@@hplb.hpl.hp.com
+@samp{gnuserv}, written by Andy Norman
 (@pxref{Packages that do not come with Emacs}).  @samp{gnuserv} uses
 Internet domain sockets, so it can work across most network connections.
 
@@ -1973,7 +1981,8 @@ On some systems, @key{Insert} toggles @code{overwrite-mode} on and off.
 @cindex Visible bell
 @cindex Bell, visible
 
-@email{martin@@cc.gatech.edu, Martin R. Frank} writes:
+@c martin@@cc.gatech.edu
+Martin R. Frank writes:
 
 Tell Emacs to use the @dfn{visible bell} instead of the audible bell,
 and set the visible bell to nothing.
@@ -3304,7 +3313,7 @@ to get more details about the features that it offers, and then if you
 wish, Emacs can download and automatically install it for you.
 
 @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs Lisp
-List (ELL)}, maintained by @email{S.J.Eglen@@damtp.cam.ac.uk, Stephen Eglen},
+List (ELL)}, maintained by Stephen Eglen,
 aims to provide one compact list with links to all of the current Emacs
 Lisp files on the Internet.  The ELL can be browsed over the web, or
 from Emacs with @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.el,
@@ -4313,7 +4322,8 @@ these systems, you should configure @code{movemail} to use @code{flock}.
 @cindex Sender, replying only to
 @cindex Rmail, replying to the sender of a message in
 
-@email{isaacson@@seas.upenn.edu, Ron Isaacson} says: When you hit
+@c isaacson@@seas.upenn.edu
+Ron Isaacson says: When you hit
 @key{r} to reply in Rmail, by default it CCs all of the original
 recipients (everyone on the original @samp{To} and @samp{CC}
 lists). With a prefix argument (i.e., typing @kbd{C-u} before @key{r}),

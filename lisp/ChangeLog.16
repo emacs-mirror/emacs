@@ -4569,7 +4569,7 @@
 	* bookmark.el (bookmark-completing-read): Set the completion category
 	to `bookmark' (bug#11131).
 
-2012-10-26  Bastien  <bzg@altern.org>
+2012-10-26  Bastien Guerry  <bzg@altern.org>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* face-remap.el: Use lexical-binding.
@@ -9712,7 +9712,7 @@
 	* international/mule-cmds.el (mule-menu-keymap)
 	(set-language-environment, set-locale-environment): Doc tweaks.
 
-2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+2012-06-16  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	* cus-face.el (custom-face-attributes): Add wave-style underline
 	attribute.

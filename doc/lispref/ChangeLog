@@ -1080,7 +1080,7 @@
 	* display.texi (Face Attributes): Copyedits.  Add a few cindex entries.
 	Overlining no longer behaves exactly like underlining.
 
-2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+2012-06-16  Aurélien Aptel  <aurelien.aptel@gmail.com>
 
 	* display.texi (Face Attributes):
 	Document wave-style underline face attribute.

@@ -7394,6 +7394,11 @@ say something like:
         gnus-thread-sort-by-score))
 @end lisp
 
+By default, threads are sorted recursively, that is, first the roots,
+then all subthreads, and so on.  If you feel more like sorting only
+the roots, so that inside a thread the original chronological order is
+retained, you can set @code{gnus-sort-threads-recursively} to nil.
+
 @vindex gnus-thread-score-function
 The function in the @code{gnus-thread-score-function} variable (default
 @code{+}) is used for calculating the total score of a thread.  Useful

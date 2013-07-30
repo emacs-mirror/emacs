@@ -1099,6 +1099,52 @@ Noninteractively, return the name of the new file."
 	  (todo-show))
       file)))
 
+(defun todo-rename-file (&optional arg)
+  "Rename the current todo file.
+With prefix ARG, prompt for a todo file and rename it.
+If there are corresponding archive or filtered items files,
+rename these accordingly.  If there are live buffers visiting
+these files, also rename them accordingly."
+  (interactive "P")
+  (let* ((oname (or (and arg
+			 (todo-read-file-name "Choose a file to rename: "
+					      nil t))
+		    (buffer-file-name)))
+	 (soname (todo-short-file-name oname))
+	 (nname (todo-read-file-name "New name for this file: "))
+	 (snname (todo-short-file-name nname))
+	 (files (directory-files todo-directory t
+				 (concat ".*" (regexp-quote soname)
+					 ".*\.tod[aorty]$") t)))
+    (dolist (f files)
+      (let* ((sfname (todo-short-file-name f))
+	     (fext (file-name-extension f t))
+	     (fbuf (find-buffer-visiting f))
+	     (fbname (buffer-name fbuf)))
+	(when (string-match (regexp-quote soname) sfname)
+	  (let* ((snfname (replace-match snname t t sfname))
+		 (nfname (concat todo-directory snfname fext)))
+	    (rename-file f nfname)
+	    (when fbuf
+	      (with-current-buffer fbuf
+		(set-visited-file-name nfname t t)
+		(cond ((member fext '(".todo" ".toda"))
+		       (setq todo-current-todo-file (buffer-file-name))
+		       (setq mode-line-buffer-identification
+			     (funcall todo-mode-line-function
+				      (todo-current-category))))
+		      (t
+		       (rename-buffer
+			(replace-regexp-in-string
+			 (regexp-quote soname) snname fbname))))))))))
+    (setq todo-files (funcall todo-files-function)
+	  todo-archives (funcall todo-files-function t))
+    (when (string= todo-default-todo-file soname)
+      (setq todo-default-todo-file snname))
+    (when (string= todo-global-current-todo-file oname)
+      (setq todo-global-current-todo-file nname))
+    (todo-reevaluate-filelist-defcustoms)))
+
 (defun todo-delete-file ()
   "Delete the current todo, archive or filtered items file.
 If the todo file has a corresponding archive file, or vice versa,
@@ -4121,7 +4167,8 @@ multifile commands for further details."
 				(regexp ".todr")))))
 	 (rxfiles (when regexp
 		    (directory-files todo-directory t ".*\\.todr$" t)))
-	 (file-exists (or (file-exists-p fname) rxfiles)))
+	 (file-exists (or (file-exists-p fname) rxfiles))
+	 bufname)
     (cond ((and top new (natnump new))
 	   (todo-filter-items-1 (cons 'top new) flist))
 	  ((and (not new) file-exists)
@@ -4135,10 +4182,15 @@ multifile commands for further details."
 	   (todo-check-filtered-items-file))
 	  (t
 	   (todo-filter-items-1 filter flist)))
-    (setq fname (replace-regexp-in-string "-" ", "
-					  (todo-short-file-name fname)))
+    (dolist (s (split-string (todo-short-file-name fname) "-"))
+      (setq bufname (if bufname
+			(concat bufname (if (member s (mapcar
+						       'todo-short-file-name
+						       todo-files))
+					    ", " "-") s)
+		      s)))
     (rename-buffer (format (concat "%s for file" (if multi "s" "")
-				   " \"%s\"") buf fname))))
+				   " \"%s\"") buf bufname))))
 
 (defun todo-filter-items-1 (filter file-list)
   "Build a list of items by applying FILTER to FILE-LIST.
@@ -6163,6 +6215,7 @@ Filtered Items mode following todo (not done) items."
     ("Cey"	     todo-edit-category-diary-inclusion)
     ("Cek"	     todo-edit-category-diary-nonmarking)
     ("Fa"	     todo-add-file)
+    ("Fr"	     todo-rename-file)
     ("Ff"	     todo-find-filtered-items-file)
     ("FV"	     todo-toggle-view-done-only)
     ("V"	     todo-toggle-view-done-only)
@@ -6171,8 +6224,8 @@ Filtered Items mode following todo (not done) items."
     ("Fts"	     todo-set-top-priorities-in-file)
     ("Fyy"	     todo-filter-diary-items)
     ("Fym"	     todo-filter-diary-items-multifile)
-    ("Frr"	     todo-filter-regexp-items)
-    ("Frm"	     todo-filter-regexp-items-multifile)
+    ("Fxx"	     todo-filter-regexp-items)
+    ("Fxm"	     todo-filter-regexp-items-multifile)
     ("ee"	     todo-edit-item)
     ("em"	     todo-edit-multiline-item)
     ("edt"	     todo-edit-item-header)

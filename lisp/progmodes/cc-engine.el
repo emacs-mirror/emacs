@@ -1135,9 +1135,13 @@ comment at the start of cc-engine.el for more info."
 		   (not (memq sym '(boundary ignore nil))))
 	  ;; Need to investigate closer whether we've crossed
 	  ;; between a substatement and its containing statement.
-	  (if (setq saved (if (looking-at c-block-stmt-1-key)
-			      ptok
-			    pptok))
+	  (if (setq saved
+		    (cond ((and (looking-at c-block-stmt-1-2-key)
+				(eq (char-after ptok) ?\())
+			   pptok)
+			  ((looking-at c-block-stmt-1-key)
+			   ptok)
+			  (t pptok)))
 	      (cond ((> start saved) (setq pos saved))
 		    ((= start saved) (setq ret 'up)))))
 
@@ -7988,7 +7992,8 @@ comment at the start of cc-engine.el for more info."
 	 (or (looking-at c-block-stmt-1-key)
 	     (and (eq (char-after) ?\()
 		  (zerop (c-backward-token-2 1 t lim))
-		  (looking-at c-block-stmt-2-key)))
+		  (or (looking-at c-block-stmt-2-key)
+		      (looking-at c-block-stmt-1-2-key))))
 	 (point))))
 
 (defun c-after-special-operator-id (&optional lim)

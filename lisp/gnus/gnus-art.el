@@ -7177,15 +7177,17 @@ groups."
 	  "\\(?:"
 	  ;; Match paired parentheses, e.g. in Wikipedia URLs:
 	  ;; http://thread.gmane.org/47B4E3B2.3050402@gmail.com
-	  "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)" "[" chars "]*"
+	  "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)"
+	  "\\(?:" "[" chars punct "]+" "[" chars "]" "\\)?"
 	  "\\|"
-	  "[" chars punct     "]+" "[" chars "]"
+	  "[" chars punct "]+" "[" chars "]"
 	  "\\)"))
      (concat ;; XEmacs 21.4 doesn't support POSIX.
       "\\([-a-z0-9_=!?#$@~%&*+\\/:;.,]\\|\\w\\)+"
       "\\([-a-z0-9_=#$@~%&*+\\/]\\|\\w\\)"))
    "\\)")
   "Regular expression that matches URLs."
+  :version "24.4"
   :group 'gnus-article-buttons
   :type 'regexp)
 

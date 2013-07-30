@@ -273,7 +273,7 @@ To go to the root directory (on the current drive), enter two slashes.
 On MS-DOS or Windows, to select the root of another drive, enter
 @samp{X:/} where @samp{X} is the drive letter.  To go to the home
 directory, enter @samp{~/}.  To enter Dired for this directory, use
-@kbd{C-d}.  
+@kbd{C-d}.
 
 @c TODO: a new node for ftp hosts
 @cindex ftp hosts
@@ -587,14 +587,14 @@ if you type a dot as first char (even if @code{ido-enable-prefix} is
 @c @defvr {User Option} ido-rotate-file-list-default
 @c @defvr {User Option} ido-enter-matching-directory
 @c @defvr {User Option} ido-create-new-buffer
-@c @defvr {User Option} ido-setup-hook 
+@c @defvr {User Option} ido-setup-hook
 @c @defvr {User Option} ido-separator
 @c @defvr {User Option} ido-decorations
 @c @defvr {User Option} ido-use-virtual-buffers
 @c @defvr {User Option} ido-use-faces
-@c @defvr {User Option} ido-make-file-list-hook 
-@c @defvr {User Option} ido-make-dir-list-hook 
-@c @defvr {User Option} ido-make-buffer-list-hook 
+@c @defvr {User Option} ido-make-file-list-hook
+@c @defvr {User Option} ido-make-dir-list-hook
+@c @defvr {User Option} ido-make-buffer-list-hook
 @c @defvr {User Option} ido-rewrite-file-prompt-functions
 @c @defvr {User Option} ido-completion-buffer
 @c @defvr {User Option} ido-completion-buffer-all-completions
@@ -689,7 +689,7 @@ If you don't want to rely on the @code{ido-everywhere} functionality,
 @code{ido-read-directory-name} can be used by other packages to read a
 buffer name, a file name, or a directory name in the @emph{Ido} way.
 
-@c @node Cheetsheet
+@c @node Cheatsheet
 
 @c * History and Acknowledgments::     How Ido came into being
 @c @node History and Acknowledgments

@@ -317,6 +317,9 @@ there (in decreasing order of priority)."
 		   t))
 	  ;; Create the new frame.
 	  (let (parms new)
+	    ;; MS-Windows needs this to avoid inflooping below.
+	    (if (eq system-type 'windows-nt)
+		(sit-for 0 t))
 	    ;; If the frame isn't visible yet, wait till it is.
 	    ;; If the user has to position the window,
 	    ;; Emacs doesn't know its real position until

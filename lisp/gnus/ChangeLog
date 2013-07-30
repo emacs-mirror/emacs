@@ -1,3 +1,13 @@
+2013-07-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-sum.el (gnus-sort-threads-recursively): New defcustom.
+	(gnus-sort-threads): Use it.
+
+2013-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-art.el (gnus-button-url-regexp): Make it match url in which
+	punctuation characters follow parentheses (bug#14950).
+
 2013-07-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.el (gnus-continuum-version):
@@ -1892,7 +1902,7 @@
 
 	* nnmail.el (mail-send-and-exit): Silence the byte compiler.
 
-2012-06-26  Peter Munster  <pmrb@free.fr>
+2012-06-26  Peter Münster  <pmrb@free.fr>
 
 	* gnus-demon.el (gnus-demon-timers): Now a plist (function -> timer).
 	(gnus-demon-cancel): Ditto.
@@ -2119,7 +2129,7 @@
 	(spam-check-BBDB): Use it.
 	(spam-enter-ham-BBDB): Use it.
 
-2012-06-26  Peter Munster  <pmrb@free.fr>  (tiny change)
+2012-06-26  Peter Münster  <pmrb@free.fr>  (tiny change)
 
 	* gnus-group.el (gnus-group-get-new-news):
 	New parameter `one-level' for scanning exactly one level.
@@ -8482,7 +8492,7 @@
 	* nnimap.el (nnimap-request-group): Low higher than high to signal no
 	messages in empty groups.
 
-2010-10-01  Ted Zlatanov  <tzz@lifelogs.com>
+2010-10-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnimap.el (nnimap-request-group): Don't bug out when there's an empty
 	non-UIDNEXT group.
@@ -8623,7 +8633,7 @@
 	* nndraft.el (nndraft-request-expire-articles): Use the group name
 	instead if "nndraft".  Fix found by Nils Ackermann.
 
-2010-09-29  Ludovic Courtes  <ludo@gnu.org>
+2010-09-29  Ludovic Courtès  <ludo@gnu.org>
 
 	* nnregistry.el: Add.
 

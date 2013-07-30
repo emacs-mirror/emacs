@@ -158,6 +158,10 @@ You can pick the name of the function and the variables with `C-x 4 a'.
 
 * Changes in Specialized Modes and Packages in Emacs 24.4
 
+** The debugger's `e' command evaluates the code in the context at point.
+This includes using the lexical environment at point, which means that
+`e' now lets you access lexical variables as well.
+
 ** `eshell' now supports visual subcommands and options
 Eshell has been able to handle "visual" commands (interactive,
 non-line oriented commands such as top that require display
@@ -277,6 +281,22 @@ restoring the window/frame configuration.  Additional options
 *** New option `erc-accidental-paste-threshold-seconds'.
 If set to a number, this can be used to avoid accidentally paste large
 amounts of data into the ERC input.
+
+** EPA
+
+*** New option `epa-mail-aliases'.
+
+You can set this to a list of alias expansions for keys to use
+in `epa-mail-encrypt'.
+
+If one element of the variable's value is ("foo@bar.com" "foo@hello.org"),
+that means: when one of the recipients of the message being encrypted
+is `foo@bar.com', encrypt the message for `foo@hello.org' instead.
+
+If one element of the variable's value is ("foo@bar.com"),
+that means: when one of the recipients of the message being encrypted
+is `foo@bar.com', ignore that name as regards encryption.
+This is useful to avoid a query when you have no key for that name.
 
 ---
 ** New F90 mode option `f90-smart-end-names'.

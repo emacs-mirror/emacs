@@ -1222,7 +1222,7 @@ Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
 
   The VC Directory buffer also defines some single-key shortcuts for
 VC commands with the @kbd{C-x v} prefix: @kbd{=}, @kbd{+}, @kbd{l},
-@kbd{i}, and @kbd{v}.
+@kbd{i}, @kbd{D}, @kbd{L} and @kbd{v}.
 
   For example, you can commit a set of edited files by opening a VC
 Directory buffer, where the files are listed with the @samp{edited}

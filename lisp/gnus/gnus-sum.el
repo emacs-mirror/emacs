@@ -847,6 +847,13 @@ controls how articles are sorted."
                           (function :tag "other"))
                   (boolean :tag "Reverse order"))))
 
+(defcustom gnus-sort-threads-recursively t
+  "If non-nil, `gnus-thread-sort-functions' are applied recursively.
+Setting this to nil allows sorting high-score, recent,
+etc. threads to the top of the summary buffer while still
+retaining chronological old to new sorting order inside threads."
+  :group 'gnus-summary-sort
+  :type 'boolean)
 
 (defcustom gnus-thread-sort-functions '(gnus-thread-sort-by-number)
   "*List of functions used for sorting threads in the summary buffer.
@@ -4876,9 +4883,11 @@ If LINE, insert the rebuilt thread starting on line LINE."
     (gnus-message 8 "Sorting threads...")
     (prog1
 	(condition-case nil
-	    (let ((max-lisp-eval-depth (max max-lisp-eval-depth 5000)))
-	      (gnus-sort-threads-recursive
-	       threads (gnus-make-sort-function gnus-thread-sort-functions)))
+	    (let ((max-lisp-eval-depth (max max-lisp-eval-depth 5000))
+		  (sort-func (gnus-make-sort-function gnus-thread-sort-functions)))
+	      (if gnus-sort-threads-recursively
+		  (gnus-sort-threads-recursive threads sort-func)
+		(sort threads sort-func)))
 	  ;; Even after binding max-lisp-eval-depth, the recursive
 	  ;; sorter might fail for very long threads.  In that case,
 	  ;; try using a (less well-tested) non-recursive sorter.

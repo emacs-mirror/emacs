@@ -1,3 +1,168 @@
+2013-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (frame-notice-user-settings): Avoid inflooping when the
+	initial frame is minibuffer-less.  (Bug#14841)
+
+2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-use-ssh-controlmaster-options): New customer
+	option.
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it.
+
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Include `minibuffer' in the
+	minimal set of parameters passed when creating a frame, because
+	the minibuffer status of a frame cannot be changed later.
+
+2013-07-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-rename-file): Fix incorrect use of
+	replace-regexp-in-string and inadvertent omissions in previous change.
+	(todo-filter-items): Ensure only file names are comma-separated in
+	name of filtered items buffer.
+
+2013-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Optionally force offscreen frames back onscreen.
+	(desktop-restoring-reuses-frames): New option.
+	(desktop--compute-pos, desktop--move-onscreen): New functions.
+	(desktop--make-frame): Use desktop--move-onscreen.
+
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Fontify a Java generic method as a function.
+	* progmodes/cc-langs.el (c-recognize-<>-arglists): Set the Java
+	value to t.
+
+2013-07-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el: Add command to rename todo files.
+	(todo-rename-file): New command.
+	(todo-key-bindings-t): Add key binding for it.  Change the
+	bindings of todo-filter-regexp-items(-multifile) to use `x'
+	instead of `r', since the latter is better suited to the new
+	renaming command.
+
+2013-07-27  Alan Mackenzie  <acm@muc.de>
+
+	Make Java try-with-resources statement parse properly.
+	* progmodes/cc-langs.el (c-block-stmt-1-2-kwds)
+	(c-block-stmt-1-2-key): New language constants/variables.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1)
+	(c-after-conditional): Adapt to deal with c-block-stmt-1-2-key.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Adapt to deal
+	with c-block-stmet-1-2-key.
+
+2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Apply most frame parameters after
+	creating the frame to force (partially or totally) offscreen frames to
+	be restored as such.
+
+2013-07-26  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for vc-root-diff.
+	(Bug#14948)
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice--called-interactively-skip): Use the new
+	`base' arg of backtrace-frame.
+
+2013-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (list-processes): Doc fix.
+
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--select-frame):
+	Try harder to reuse existing frames.
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el: Use backtrace-eval to handle lexical variables.
+	(edebug-eval): Use backtrace-eval.
+	(edebug--display, edebug--recursive-edit): Don't let-bind the
+	edebug-outer-* vars that keep track of variables we locally let-bind.
+	(edebug-outside-excursion): Don't restore outside values of locally
+	let-bound vars.
+	(edebug--display): Use user-error.
+	(cl-lexical-debug, cl-debug-env): Remove.
+
+2013-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-frames): Call `sit-for' once all frames
+	are restored to be sure that they are visible before deleting any
+	remaining ones.
+
+2013-07-26  Matthias Meulien  <orontee@gmail.com>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add binding for
+	vc-print-root-log.  (Bug#14948)
+
+2013-07-26  Richard Stallman  <rms@gnu.org>
+
+	Add aliases for encrypting mail.
+	* epa.el (epa-mail-aliases): New option.
+	* epa-mail.el (epa-mail-encrypt): Rewrite to be callable from programs.
+	Bind inhibit-read-only so read-only text doesn't ruin everything.
+	(epa-mail-default-recipients): New subroutine broken out.
+	Handle epa-mail-aliases.
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add support for lexical variables to the debugger's `e' command.
+	* emacs-lisp/debug.el (debug): Don't let-bind the debugger-outer-*
+	vars, except for debugger-outer-match-data.
+	(debugger-frame-number): Move check for "on a function call" from
+	callers into it.  Add `skip-base' argument.
+	(debugger-frame, debugger-frame-clear): Simplify accordingly.
+	(debugger-env-macro): Only reset the state stored in non-variables,
+	i.e. current-buffer and match-data.
+	(debugger-eval-expression): Rewrite using backtrace-eval.
+	* subr.el (internal--called-interactively-p--get-frame): Remove.
+	(called-interactively-p):
+	* emacs-lisp/edebug.el (edebug--called-interactively-skip): Use the new
+	`base' arg of backtrace-frame instead.
+
+2013-07-26  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align-regexp): Doc fix.  (Bug#14857)
+	(align-region): Explicit error if subexpression missing/does not match.
+
+	* simple.el (global-visual-line-mode):
+	Do not duplicate the mode lighter.  (Bug#14858)
+
+2013-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): In display-buffer bind
+	split-window-keep-point to t, bug#14829.
+
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el: Rename internal "desktop-X" frame params to "desktop--X".
+	(desktop-filter-parameters-alist, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--process-minibuffer-frames)
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Change accordingly.
+	(desktop--select-frame, desktop--sort-states, desktop-restore-frames):
+	Use pcase-let, pcase-let* to deobfuscate access to desktop--mini values.
+
+2013-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-mark-extension): Convert comment to doc string.
+
+2013-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop--make-frame): Do not pass the `fullscreen'
+	parameter to modify-frame-parameters if the value has not changed;
+	this is a workaround for bug#14949.
+	(desktop--make-frame): On cl-delete-if call, check parameter name,
+	not full parameter.
+
 2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc.el (vc-ignore): New function.

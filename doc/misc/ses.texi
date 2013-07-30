@@ -60,7 +60,7 @@ by formulas that can refer to the values of other cells.
 @end display
 @end ifnottex
 
-To report bugs, send email to @email{jyavner@@member.fsf.org}.
+To report bugs, use @kbd{M-x report-emacs-bug}.
 
 @insertcopying
 
@@ -997,39 +997,62 @@ cell.
 
 Coding by:
 @quotation
-Jonathan Yavner @email{jyavner@@member.fsf.org}@*
-Stefan Monnier @email{monnier@@gnu.org}@*
-Shigeru Fukaya @email{shigeru.fukaya@@gmail.com}
+@c jyavner@@member.fsf.org
+Jonathan Yavner,
+@c monnier@@gnu.org
+Stefan Monnier,
+@c shigeru.fukaya@@gmail.com
+Shigeru Fukaya
 @end quotation
 
 @noindent
 Texinfo manual by:
 @quotation
-Jonathan Yavner @email{jyavner@@member.fsf.org}@*
-Brad Collins <brad@@chenla.org>
+@c jyavner@@member.fsf.org
+Jonathan Yavner,
+@c brad@@chenla.org
+Brad Collins
 @end quotation
 
 @noindent
 Ideas from:
 @quotation
-Christoph Conrad @email{christoph.conrad@@gmx.de}@*
-CyberBob @email{cyberbob@@redneck.gacracker.org}@*
-Syver Enstad @email{syver-en@@online.no}@*
-Ami Fischman @email{fischman@@zion.bpnetworks.com}@*
-Thomas Gehrlein @email{Thomas.Gehrlein@@t-online.de}@*
-Chris F.A. Johnson @email{c.f.a.johnson@@rogers.com}@*
-Yusong Li @email{lyusong@@hotmail.com}@*
-Juri Linkov @email{juri@@jurta.org}@*
-Harald Maier @email{maierh@@myself.com}@*
-Alan Nash @email{anash@@san.rr.com}@*
-François Pinard @email{pinard@@iro.umontreal.ca}@*
-Pedro Pinto @email{ppinto@@cs.cmu.edu}@*
-Stefan Reichör @email{xsteve@@riic.at}@*
-Oliver Scholz @email{epameinondas@@gmx.de}@*
-Richard M. Stallman @email{rms@@gnu.org}@*
-Luc Teirlinck @email{teirllm@@dms.auburn.edu}@*
-J. Otto Tennant @email{jotto@@pobox.com}@*
-Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
+@c christoph.conrad@@gmx.de
+Christoph Conrad,
+@c cyberbob@@redneck.gacracker.org
+CyberBob,
+@c syver-en@@online.no
+Syver Enstad,
+@c fischman@@zion.bpnetworks.com
+Ami Fischman,
+@c Thomas.Gehrlein@@t-online.de
+Thomas Gehrlein,
+@c c.f.a.johnson@@rogers.com
+Chris F.A. Johnson,
+@c lyusong@@hotmail.com
+Yusong Li,
+@c juri@@jurta.org
+Juri Linkov,
+@c maierh@@myself.com
+Harald Maier,
+@c anash@@san.rr.com
+Alan Nash,
+@c pinard@@iro.umontreal.ca
+François Pinard,
+@c ppinto@@cs.cmu.edu
+Pedro Pinto,
+@c xsteve@@riic.at
+Stefan Reichör,
+@c epameinondas@@gmx.de
+Oliver Scholz,
+@c rms@@gnu.org
+Richard M. Stallman,
+@c teirllm@@dms.auburn.edu
+Luc Teirlinck,
+@c jotto@@pobox.com
+J. Otto Tennant,
+@c jphil@@acs.pagesjaunes.fr
+Jean-Philippe Theberge
 @end quotation
 
 @c ===================================================================

@@ -5470,6 +5470,9 @@ argument, ACTION is t."
   (let ((buffer (if (bufferp buffer-or-name)
 		    buffer-or-name
 		  (get-buffer buffer-or-name)))
+	;; Make sure that when we split windows the old window keeps
+	;; point, bug#14829.
+	(split-window-keep-point t)
 	;; Handle the old form of the first argument.
 	(inhibit-same-window (and action (not (listp action)))))
     (unless (listp action) (setq action nil))

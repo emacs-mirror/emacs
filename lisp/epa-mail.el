@@ -109,94 +109,127 @@ If no one is selected, default secret key is used.  "
 	     (if verbose
 		 (epa--read-signature-type)
 	       'clear)))))
-  (epa-sign-region start end signers mode))
+  (let ((inhibit-read-only t))
+    (epa-sign-region start end signers mode)))
+
+(defun epa-mail-default-recipients ()
+  "Return the default list of encryption recipients for a mail buffer."
+  (let ((config (epg-configuration))
+	recipients-string real-recipients)
+    (save-excursion
+      (goto-char (point-min))
+      (save-restriction
+	(narrow-to-region (point)
+			  (if (search-forward mail-header-separator nil 0)
+			      (match-beginning 0)
+			    (point)))
+	(setq recipients-string
+	      (mapconcat #'identity
+			 (nconc (mail-fetch-field "to" nil nil t)
+				(mail-fetch-field "cc" nil nil t)
+				(mail-fetch-field "bcc" nil nil t))
+			 ","))
+	(setq recipients-string
+	      (mail-strip-quoted-names
+	       (with-temp-buffer
+		 (insert "to: " recipients-string "\n")
+		 (expand-mail-aliases (point-min) (point-max))
+		 (car (mail-fetch-field "to" nil nil t))))))
+
+      (setq real-recipients
+	    (split-string recipients-string "," t "[ \t\n]*"))
+
+      ;; Process all the recipients thru the list of GnuPG groups.
+      ;; Expand GnuPG group names to what they stand for.
+      (setq real-recipients
+	    (apply #'nconc
+		   (mapcar
+		    (lambda (recipient)
+		      (or (epg-expand-group config recipient)
+			  (list recipient)))
+		    real-recipients)))
+
+      ;; Process all the recipients thru the user's list
+      ;; of encryption aliases.
+      (setq real-recipients
+	    (apply #'nconc
+		   (mapcar
+		    (lambda (recipient)
+		      (let ((tem (assoc recipient epa-mail-aliases)))
+			(if tem (cdr tem)
+			  (list recipient))))
+		    real-recipients)))
+      )))
 
 ;;;###autoload
-(defun epa-mail-encrypt (start end recipients sign signers)
-  "Encrypt the current buffer.
-The buffer is expected to contain a mail message.
+(defun epa-mail-encrypt (&optional recipients signers)
+  "Encrypt the outgoing mail message in the current buffer.
+Takes the recipients from the text in the header in the buffer
+and translates them through `epa-mail-aliases'.
+With prefix argument, asks you to select among them interactively
+and also whether and how to sign.
 
-Don't use this command in Lisp programs!"
+Called from Lisp, the optional argument RECIPIENTS is a list
+of recipient addresses, t to perform symmetric encryption,
+or nil meaning use the defaults.
+
+SIGNERS is a list of keys to sign the message with."
   (interactive
-   (save-excursion
-     (let ((verbose current-prefix-arg)
-	   (config (epg-configuration))
-	   (context (epg-make-context epa-protocol))
-	   recipients-string recipients recipient-key sign)
-       (goto-char (point-min))
-       (save-restriction
-	 (narrow-to-region (point)
-			   (if (search-forward mail-header-separator nil 0)
-			       (match-beginning 0)
-			     (point)))
-	 (setq recipients-string
-	       (mapconcat #'identity
-			  (nconc (mail-fetch-field "to" nil nil t)
-				 (mail-fetch-field "cc" nil nil t)
-				 (mail-fetch-field "bcc" nil nil t))
-			  ","))
-	 (setq recipients
-	       (mail-strip-quoted-names
-		(with-temp-buffer
-		  (insert "to: " recipients-string "\n")
-		  (expand-mail-aliases (point-min) (point-max))
-		  (car (mail-fetch-field "to" nil nil t))))))
-       (if recipients
-	   (setq recipients (delete ""
-				    (split-string recipients
-						  "[ \t\n]*,[ \t\n]*"))))
-
-       ;; Process all the recipients thru the list of GnuPG groups.
-       ;; Expand GnuPG group names to what they stand for.
-       (setq recipients
-	     (apply #'nconc
-		    (mapcar
-		     (lambda (recipient)
-		       (or (epg-expand-group config recipient)
-			   (list recipient)))
-		     recipients)))
-
-       (goto-char (point-min))
-       (if (search-forward mail-header-separator nil t)
-	   (forward-line))
-       (setq epa-last-coding-system-specified
-	     (or coding-system-for-write
-		 (epa--select-safe-coding-system (point) (point-max))))
-       (list (point) (point-max)
-	     (if verbose
-		 (epa-select-keys
-		  context
-		  "Select recipients for encryption.
+   (let ((verbose current-prefix-arg)
+	 (context (epg-make-context epa-protocol)))
+     (list (if verbose
+	       (or (epa-select-keys
+		    context
+		    "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
-		  recipients)
-	       (if recipients
+		    (epa-mail-default-recipients))
+		   t))
+	   (and verbose (y-or-n-p "Sign? ")
+		(epa-select-keys context
+				 "Select keys for signing.  ")))))
+  (let (start recipient-keys default-recipients)
+    (save-excursion
+      (setq recipient-keys
+	    (cond ((eq recipients t)
+		   nil)
+		  (recipients recipients)
+		  (t
+		   (setq default-recipients
+			 (epa-mail-default-recipients))
+		   ;; Convert recipients to keys.
 		   (apply
 		    'nconc
 		    (mapcar
 		     (lambda (recipient)
-		       (setq recipient-key
-			     (epa-mail--find-usable-key
-			      (epg-list-keys
-			       (epg-make-context epa-protocol)
-			       (if (string-match "@" recipient)
-				   (concat "<" recipient ">")
-				 recipient))
-			      'encrypt))
-		       (unless (or recipient-key
-				   (y-or-n-p
-				    (format
-				     "No public key for %s; skip it? "
-				     recipient)))
-			 (error "No public key for %s" recipient))
-		       (if recipient-key (list recipient-key)))
-		     recipients))))
-	     (setq sign (if verbose (y-or-n-p "Sign? ")))
-	     (if sign
-		 (epa-select-keys context
-				  "Select keys for signing.  "))))))
-  ;; Don't let some read-only text stop us from encrypting.
-  (let ((inhibit-read-only t))
-    (epa-encrypt-region start end recipients sign signers)))
+		       (let ((recipient-key
+			      (epa-mail--find-usable-key
+			       (epg-list-keys
+				(epg-make-context epa-protocol)
+				(if (string-match "@" recipient)
+				    (concat "<" recipient ">")
+				  recipient))
+			       'encrypt)))
+			 (unless (or recipient-key
+				     (y-or-n-p
+				      (format
+				       "No public key for %s; skip it? "
+				       recipient)))
+			   (error "No public key for %s" recipient))
+			 (if recipient-key (list recipient-key))))
+		       default-recipients)))))
+
+      (goto-char (point-min))
+      (if (search-forward mail-header-separator nil t)
+	  (forward-line))
+      (setq start (point))
+
+      (setq epa-last-coding-system-specified
+	    (or coding-system-for-write
+		(epa--select-safe-coding-system (point) (point-max)))))
+
+    ;; Don't let some read-only text stop us from encrypting.
+    (let ((inhibit-read-only t))
+      (epa-encrypt-region start (point-max) recipient-keys signers signers))))
 
 ;;;###autoload
 (defun epa-mail-import-keys ()

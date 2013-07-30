@@ -1,3 +1,58 @@
+2013-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fns.c (toplevel): Remove comment before Fsafe_length because
+	it checks for QUIT.
+
+2013-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (delete_frame): Avoid unnecessary 'this_f' test (Bug#14970).
+
+2013-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_IME_STARTCOMPOSITION>: Make sure the
+	frame which got the message is still alive, before dereferencing
+	its pointer.  (Bug#14970)
+
+	* frame.c (delete_frame): Test "this" frame's minibuffer window to
+	be a live window, before using it as such.  (Bug#14970)
+
+2013-07-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_KILLFOCUS>: Call
+	w32_detect_focus_change instead of doing part of its job by hand.
+	This fixes the problem whereby FOCUS_OUT events were not sent to
+	the event queue.
+
+2013-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Fprocess_list): Doc fix.
+
+	* w32term.c (w32_read_socket) <WM_EMACS_PAINT>: Warn about frame
+	being re-exposed only if it didn't ask to become visible.
+	<WM_SIZE>: Under SIZE_RESTORED, only set the frame visible if it
+	was previously iconified.  (Bug#14841)
+	(x_iconify_frame): Mark the frame iconified.
+
+2013-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* eval.c (get_backtrace_frame, backtrace_eval_unrewind): Now static.
+	(backtrace_eval_unrewind): ';' -> '{}' to pacify GCC.
+
+2013-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (set_specpdl_old_value): New function.
+	(unbind_to): Minor simplification.
+	(get_backtrace_frame): New function.
+	(Fbacktrace_frame): Use it.  Add `base' argument.
+	(backtrace_eval_unrewind, Fbacktrace_eval): New functions.
+	(syms_of_eval): Export backtrace-eval.
+	* xterm.c (x_focus_changed): Simplify.
+
+2013-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Finsert_file_contents): Avoid double-close (Bug#14936).
+
 2013-07-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): Instead of moving point out of
