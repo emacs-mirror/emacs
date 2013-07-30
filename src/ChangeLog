@@ -1,3 +1,8 @@
+2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (Fmodify_frame_parameters): Always check 2nd arg with
+	CHECK_LIST.  Rewrite the loop to avoid useless local variable.
+
 2013-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* fns.c (toplevel): Remove comment before Fsafe_length because

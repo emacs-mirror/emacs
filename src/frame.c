@@ -2253,7 +2253,9 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
   (Lisp_Object frame, Lisp_Object alist)
 {
   struct frame *f = decode_live_frame (frame);
-  register Lisp_Object tail, prop, val;
+  register Lisp_Object prop, val;
+
+  CHECK_LIST (alist);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2278,12 +2280,11 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 
       /* Extract parm names and values into those vectors.  */
 
-      i = 0;
-      for (tail = alist; CONSP (tail); tail = XCDR (tail))
+      for (i = 0; CONSP (alist); alist = XCDR (alist))
 	{
 	  Lisp_Object elt;
 
-	  elt = XCAR (tail);
+	  elt = XCAR (alist);
 	  parms[i] = Fcar (elt);
 	  values[i] = Fcdr (elt);
 	  i++;
