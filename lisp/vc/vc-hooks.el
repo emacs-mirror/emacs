@@ -918,6 +918,7 @@ current, and kill the buffer that visits the link."
     (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
+    (define-key map "G" 'vc-ignore)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)

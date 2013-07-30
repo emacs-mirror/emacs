@@ -5,6 +5,10 @@
 
 2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* vc/vc-hooks.el (vc-prefix-map): Add key binding for vc-ignore.
+
+	* vc/vc-dir.el (vc-dir-mode-map): Change key binding for vc-dir-ignore.
+
 	* vc/vc-svn.el (vc-svn-ignore): Remove `interactive'.  Use `*vc*'
 	buffer for output.
 

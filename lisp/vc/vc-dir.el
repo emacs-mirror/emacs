@@ -279,7 +279,7 @@ See `run-hooks'."
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
-    (define-key map "I" 'vc-dir-ignore)
+    (define-key map "G" 'vc-dir-ignore)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]

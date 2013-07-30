@@ -237,7 +237,7 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 *** `D' displays diffs between VC-controlled whole tree revisions.
 *** `L' lists the change log for the current VC controlled tree in a window.
-*** `I' ignores the file under current version control system.
+*** `G' ignores the file under current version control system.
 
 ** cl-lib
 
