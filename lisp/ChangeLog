@@ -193,7 +193,7 @@
 	(vc-dir-ignore): New function.
 
 	* vc/vc-cvs.el (vc-cvs-ignore): New function.
-	(cvs-append-to-ignore): Moved from pcvs.el.
+	(cvs-append-to-ignore): Move here from pcvs.el.
 
 	* vc/vc-bzr.el (vc-bzr-ignore): New function.
 
