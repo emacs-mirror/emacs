@@ -1,5 +1,8 @@
 2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/eww.el (eww-setup-buffer): Switching to the buffer seems
+	more natural than popping.
+
 	* net/shr.el (shr-urlify): Put `follow-link' on URLs (bug#14815).
 	(shr-urlify): Highlight under mouse.
 
