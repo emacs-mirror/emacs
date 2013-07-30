@@ -1018,13 +1018,14 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args)
 #else
       errno = EEXIST;
       mktemp (tempfile);
-      /* INT_MAX denotes success, because close (INT_MAX) does nothing.  */
-      fd = *tempfile ? INT_MAX : -1;
+      fd = *tempfile ? 0 : -1;
 #endif
       if (fd < 0)
 	report_file_error ("Failed to open temporary file using pattern",
 			   pattern);
+#if defined HAVE_MKOSTEMP || defined HAVE_MKSTEMP
       emacs_close (fd);
+#endif
     }
 
     record_unwind_protect (delete_temp_file, filename_string);

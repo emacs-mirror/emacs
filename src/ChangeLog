@@ -1,3 +1,9 @@
+2013-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix tempfile bug on platforms lacking mkostemp and mkstemp (Bug#14986).
+	* callproc.c (create_temp_file) [! (HAVE_MKOSTEMP || HAVE_MKSTEMP)]:
+	Do not assume that emacs_close (INT_MAX) is a no-op.
+
 2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfaces.c (make_face_cache): For struct face_cache, prefer
