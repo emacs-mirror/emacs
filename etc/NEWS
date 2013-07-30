@@ -229,6 +229,12 @@ The default separator is changed to allow surrounding spaces around the comma.
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.
 
+** VC Directory Mode
+
+*** `D' displays diffs between VC-controlled whole tree revisions.
+*** `L' lists the change log for the current VC controlled tree in a window.
+*** `I' ignores the file under current version control system.
+
 ** cl-lib
 
 *** New macro cl-tagbody.

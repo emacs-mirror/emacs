@@ -651,6 +651,12 @@ REV non-nil gets an error."
           (vc-bzr-command "cat" t 0 file "-r" rev)
         (vc-bzr-command "cat" t 0 file))))
 
+(defun vc-bzr-ignore (file)
+  "Ignore FILE under Bazaar."
+  (interactive)
+  (vc-bzr-command "ignore" (get-buffer-create "*vc-ignore*") 0
+		  file))
+
 (defun vc-bzr-checkout (_file &optional _editable rev)
   (if rev (error "Operation not supported")
     ;; Else, there's nothing to do.

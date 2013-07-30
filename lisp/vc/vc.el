@@ -1332,6 +1332,12 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
+(defun vc-ignore (file)
+  "Ignore FILE under the current VCS."
+  (interactive "fIgnore file: ")
+  (let ((backend (vc-backend file)))
+    (vc-call-backend backend 'ignore file)))
+
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
