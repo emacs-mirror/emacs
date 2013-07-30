@@ -798,6 +798,7 @@ Version Control
 * Old Revisions::       Examining and comparing old versions.
 * VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after committing.
+* VC Ignore::           Ignore files under version control system.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
