@@ -1,4 +1,10 @@
-2013-07-29  David Engster <deng@randomsample.de>
+2013-07-30  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus.texi (Sorting the Summary Buffer): Document new defcustom
+	`gnus-subthread-sort-functions' and remove the obsolete documentation
+	of `gnus-sort-threads-recursively'.
+
+2013-07-29  David Engster  <deng@randomsample.de>
 
 	* eieio.texi (top): Make clear that EIEIO is not a full CLOS
 	implementation.

@@ -1,3 +1,16 @@
+2013-07-30  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-sum.el (gnus-subthread-sort-functions): New defcustom.
+	(gnus-sort-threads-recursively): Delete defcustom.
+	(gnus-sort-threads-recursive): Adapt accordingly.
+
+2013-07-30  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-sum.el (gnus-sort-subthreads-recursive): New function.
+	(gnus-sort-threads-recursive): Use it.
+	(gnus-sort-threads): Unconditionally call `gnus-sort-threads-recursive'
+	again.  Now that determines how to sort subthreads.
+
 2013-07-26  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus-sum.el (gnus-sort-threads-recursively): New defcustom.

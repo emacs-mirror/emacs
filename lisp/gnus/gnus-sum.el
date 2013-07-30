@@ -847,14 +847,6 @@ controls how articles are sorted."
                           (function :tag "other"))
                   (boolean :tag "Reverse order"))))
 
-(defcustom gnus-sort-threads-recursively t
-  "If non-nil, `gnus-thread-sort-functions' are applied recursively.
-Setting this to nil allows sorting high-score, recent,
-etc. threads to the top of the summary buffer while still
-retaining chronological old to new sorting order inside threads."
-  :group 'gnus-summary-sort
-  :type 'boolean)
-
 (defcustom gnus-thread-sort-functions '(gnus-thread-sort-by-number)
   "*List of functions used for sorting threads in the summary buffer.
 By default, threads are sorted by article number.
@@ -880,7 +872,11 @@ and `gnus-thread-sort-by-total-score' (see
 `gnus-thread-score-function').
 
 When threading is turned off, the variable
-`gnus-article-sort-functions' controls how articles are sorted."
+`gnus-article-sort-functions' controls how articles are sorted.
+
+By default, threads and their subthreads are sorted according to
+the value of this variable.  To use a different sorting order for
+subthreads, customize `gnus-subthread-sort-functions'."
   :group 'gnus-summary-sort
   :type '(repeat
           (gnus-widget-reversible
@@ -896,6 +892,28 @@ When threading is turned off, the variable
                    (function-item gnus-thread-sort-by-total-score)
                    (function :tag "other"))
            (boolean :tag "Reverse order"))))
+
+(defcustom gnus-subthread-sort-functions 'gnus-thread-sort-functions
+  "*List of functions used for sorting subthreads in the summary buffer.
+By default, subthreads are sorted the same as threads, i.e.,
+according to the value of `gnus-thread-sort-functions'."
+  :group 'gnus-summary-sort
+  :type '(choice
+	  (const :tag "Sort subthreads like threads" gnus-thread-sort-functions)
+	  (repeat
+	   (gnus-widget-reversible
+	    (choice (function-item gnus-thread-sort-by-number)
+		    (function-item gnus-thread-sort-by-author)
+		    (function-item gnus-thread-sort-by-recipient)
+		    (function-item gnus-thread-sort-by-subject)
+		    (function-item gnus-thread-sort-by-date)
+		    (function-item gnus-thread-sort-by-score)
+		    (function-item gnus-thread-sort-by-most-recent-number)
+		    (function-item gnus-thread-sort-by-most-recent-date)
+		    (function-item gnus-thread-sort-by-random)
+		    (function-item gnus-thread-sort-by-total-score)
+		    (function :tag "other"))
+	    (boolean :tag "Reverse order")))))
 
 (defcustom gnus-thread-score-function '+
   "*Function used for calculating the total score of a thread.
@@ -4854,10 +4872,25 @@ If LINE, insert the rebuilt thread starting on line LINE."
 	    (gnus-delete-line)))))))
 
 (defun gnus-sort-threads-recursive (threads func)
+  ;; Responsible for sorting the root articles of threads.
+  (let ((subthread-sort-func (if (eq gnus-subthread-sort-functions
+				     'gnus-thread-sort-functions)
+				 func
+			       (gnus-make-sort-function
+				gnus-subthread-sort-functions))))
+    (sort (mapcar (lambda (thread)
+		    (cons (car thread)
+			  (and (cdr thread)
+			       (gnus-sort-subthreads-recursive
+				(cdr thread) subthread-sort-func))))
+		  threads) func)))
+
+(defun gnus-sort-subthreads-recursive (threads func)
+  ;; Responsible for sorting subthreads.
   (sort (mapcar (lambda (thread)
 		  (cons (car thread)
 			(and (cdr thread)
-			     (gnus-sort-threads-recursive (cdr thread) func))))
+			     (gnus-sort-subthreads-recursive (cdr thread) func))))
 		threads) func))
 
 (defun gnus-sort-threads-loop (threads func)
@@ -4885,9 +4918,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
 	(condition-case nil
 	    (let ((max-lisp-eval-depth (max max-lisp-eval-depth 5000))
 		  (sort-func (gnus-make-sort-function gnus-thread-sort-functions)))
-	      (if gnus-sort-threads-recursively
-		  (gnus-sort-threads-recursive threads sort-func)
-		(sort threads sort-func)))
+	      (gnus-sort-threads-recursive threads sort-func))
 	  ;; Even after binding max-lisp-eval-depth, the recursive
 	  ;; sorter might fail for very long threads.  In that case,
 	  ;; try using a (less well-tested) non-recursive sorter.
