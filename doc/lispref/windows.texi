@@ -2328,10 +2328,11 @@ same frame.  The following option can be used to override this behavior.
 @defopt switch-to-visible-buffer
 If this variable is non-@code{nil}, @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} may switch to a buffer that is already
-visible on the same frame, provided the buffer was shown in the relevant
-window before.  If it is @code{nil}, @code{switch-to-prev-buffer} and
-@code{switch-to-next-buffer} always try to avoid switching to a buffer
-that is already visible in another window on the same frame.
+visible on the same frame, provided the buffer was shown in the
+relevant window before.  If it is @code{nil},
+@code{switch-to-prev-buffer} and @code{switch-to-next-buffer} always
+try to avoid switching to a buffer that is already visible in another
+window on the same frame.  The default is @code{t}.
 @end defopt
 
 
