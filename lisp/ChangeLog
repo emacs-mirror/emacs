@@ -1,5 +1,10 @@
 2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/network-stream.el (open-network-stream): Mention the new
+	:nogreeting parameter.
+	(network-stream-open-starttls): Use the :nogreeting parameter
+	(bug#14938).
+
 	* net/shr.el (shr-mouse-browse-url): Remove and use `shr-browse-url'.
 
 	* net/eww.el (eww-setup-buffer): Switching to the buffer seems
