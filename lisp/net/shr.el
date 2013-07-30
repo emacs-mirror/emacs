@@ -832,6 +832,7 @@ START, and END.  Note that START and END should be markers."
    start (point)
    (list 'shr-url url
 	 'help-echo (if title (format "%s (%s)" url title) url)
+	 'follow-link t
 	 'keymap shr-map)))
 
 (defun shr-encode-url (url)
