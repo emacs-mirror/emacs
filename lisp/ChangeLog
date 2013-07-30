@@ -163,6 +163,26 @@
 	(desktop--make-frame): On cl-delete-if call, check parameter name,
 	not full parameter.
 
+2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): New function.
+
+	* vc/vc-svn.el (vc-svn-ignore): New function.
+
+	* vc/vc-hg.el (vc-hg-ignore): New function.
+
+	* vc/vc-git.el (vc-git-ignore): New function.
+
+	* vc/vc-dir.el (vc-dir-mode-map): Add key binding for vc-dir-ignore
+	(vc-dir-ignore): New function.
+
+	* vc/vc-cvs.el (vc-cvs-ignore): New function.
+	(cvs-append-to-ignore): Moved from pcvs.el.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): New function.
+
+	* vc/pcvs.el (vc-cvs): Require 'vc-cvs.
+
 2013-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restoring-frames-p): Return a true boolean.

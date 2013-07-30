@@ -279,6 +279,7 @@ See `run-hooks'."
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
+    (define-key map "I" 'vc-dir-ignore)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -790,6 +791,11 @@ with the command \\[tags-loop-continue]."
 	  (error "File `%s' is visited read-only" file))))
   (tags-query-replace from to delimited
 		      '(mapcar 'car (vc-dir-marked-only-files-and-states))))
+
+(defun vc-dir-ignore ()
+  "Ignore the current file."
+  (interactive)
+  (vc-ignore (vc-dir-current-file)))
 
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))

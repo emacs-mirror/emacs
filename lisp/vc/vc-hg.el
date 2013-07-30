@@ -459,6 +459,18 @@ REV is ignored."
         (vc-hg-command buffer 0 file "cat" "-r" rev)
       (vc-hg-command buffer 0 file "cat"))))
 
+(defun vc-hg-ignore (file)
+  "Ignore FILE under Mercurial."
+  (interactive)
+  (with-temp-buffer
+    (insert-file-contents 
+     (let (hgignore (concat (file-name-as-directory (vc-hg-root
+						     default-directory)) ".hgignore"))
+       (unless (search-forward file nil t)
+	 (goto-char (point-max))
+	 (insert (concat "\n" file "\n"))
+	 (write-region 1 (point-max) hgignore))))))
+
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional _editable rev)
   "Retrieve a revision of FILE.
