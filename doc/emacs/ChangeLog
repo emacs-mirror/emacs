@@ -1,5 +1,7 @@
 2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* rmail.texi (Rmail Coding): Move here from mule.texi.
+
 	* custom.texi (Specifying File Variables): Fix cross-references.
 
 	* mule.texi (Unibyte Mode): Fix cross-references.

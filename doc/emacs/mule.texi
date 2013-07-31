@@ -845,18 +845,6 @@ pattern, are decoded correctly.
 Unlike the previous two, this variable does not override any
 @samp{-*-coding:-*-} tag.
 
-@c FIXME?  This seems somewhat out of place.  Move to the Rmail section?
-@vindex rmail-file-coding-system
-  When you get new mail in Rmail, each message is translated
-automatically from the coding system it is written in, as if it were a
-separate file.  This uses the priority list of coding systems that you
-have specified.  If a MIME message specifies a character set, Rmail
-obeys that specification.  For reading and saving Rmail files
-themselves, Emacs uses the coding system specified by the variable
-@code{rmail-file-coding-system}.  The default value is @code{nil},
-which means that Rmail files are not translated (they are read and
-written in the Emacs internal character code).
-
 @node Specify Coding
 @section Specifying a File's Coding System
 
