@@ -1,5 +1,7 @@
 2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* macos.texi (Mac / GNUstep Basics): Mention `ns-alternate-modifier'.
+
 	* cal-xtra.texi (Advanced Calendar/Diary Usage): Update menu.
 	(Mayan Calendar): Move here from calendar.texi.
 	* emacs.texi (Top): Update menu.
