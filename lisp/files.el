@@ -6479,7 +6479,7 @@ With prefix ARG, silently save all file-visiting buffers, then kill.
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
   (interactive "P")
-  (if (frame-parameter (selected-frame) 'client)
+  (if (frame-parameter nil 'client)
       (server-save-buffers-kill-terminal arg)
     (save-buffers-kill-emacs arg)))
 

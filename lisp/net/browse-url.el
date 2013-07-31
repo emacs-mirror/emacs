@@ -816,8 +816,8 @@ first, if that exists."
     ;; When connected to various displays, be careful to use the display of
     ;; the currently selected frame, rather than the original start display,
     ;; which may not even exist any more.
-    (if (stringp (frame-parameter (selected-frame) 'display))
-        (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
+    (if (stringp (frame-parameter nil 'display))
+        (setenv "DISPLAY" (frame-parameter nil 'display)))
     (if (and (consp function)
 	     (not (functionp function)))
 	;; The `function' can be an alist; look down it for first match

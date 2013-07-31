@@ -1611,7 +1611,7 @@ With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (let ((proc (frame-parameter (selected-frame) 'client)))
+  (let ((proc (frame-parameter nil 'client)))
     (cond ((eq proc 'nowait)
 	   ;; Nowait frames have no client buffer list.
 	   (if (cdr (frame-list))

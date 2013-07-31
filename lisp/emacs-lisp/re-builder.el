@@ -319,7 +319,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (eq 'color
       ;; emacs/xemacs compatibility
       (if (fboundp 'frame-parameter)
-	  (frame-parameter (selected-frame) 'display-type)
+	  (frame-parameter nil 'display-type)
 	(if (fboundp 'frame-property)
 	    (frame-property (selected-frame) 'display-type)))))
 

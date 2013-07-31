@@ -1,3 +1,12 @@
+2013-07-31  Dmitry Antipov <dmantipov@yandex.ru>
+
+	* emacs-lisp/re-builder.el (reb-color-display-p):
+	* files.el (save-buffers-kill-terminal):
+	* net/browse-url.el (browse-url):
+	* server.el (server-save-buffers-kill-terminal):
+	* textmodes/reftex-toc.el (reftex-toc, reftex-toc-revert):
+	Prefer nil to selected-frame for the first arg of frame-parameter.
+
 2013-07-30  Stephen Berman  <stephen.berman@gmx.net>
 
 	* minibuffer.el (completion--twq-all): Try and preserve each
