@@ -724,16 +724,13 @@ affects all frames on the same terminal device.  */)
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
+
+  store_in_alist (&parms, Qtty_type, build_string (t->display_info.tty->type));
+  store_in_alist (&parms, Qtty, 
+		  (t->display_info.tty->name
+		   ? build_string (t->display_info.tty->name)
+		   : Qnil));
   Fmodify_frame_parameters (frame, parms);
-  Fmodify_frame_parameters
-    (frame, list1 (Fcons (Qtty_type,
-			  build_string (t->display_info.tty->type))));
-  if (t->display_info.tty->name != NULL)
-    Fmodify_frame_parameters
-      (frame, list1 (Fcons (Qtty,
-			    build_string (t->display_info.tty->name))));
-  else
-    Fmodify_frame_parameters (frame, list1 (Fcons (Qtty, Qnil)));
 
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */

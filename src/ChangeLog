@@ -1,5 +1,10 @@
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.c (Fmake_terminal_frame): Use store_in_alist to setup
+	frame parameters and call to Fmodify_frame_parameters just once.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (make_frame, x_set_frame_parameters): Use bool for boolean.
 	(x_figure_window_size): Likewise.  Adjust to return long.
 	(syms_of_frame): Do not DEFSYM Qterminal_live_p.
