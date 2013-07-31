@@ -1068,7 +1068,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object frame, tem;
   Lisp_Object name;
   int minibuffer_only = 0;
-  int window_prompting = 0;
+  long window_prompting = 0;
   int width, height;
   ptrdiff_t count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;

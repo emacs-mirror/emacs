@@ -952,7 +952,7 @@ typedef struct frame *FRAME_PTR;
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qtty_color_mode;
-extern Lisp_Object Qterminal, Qterminal_live_p;
+extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
 
 extern struct frame *last_nonminibuf_frame;
@@ -962,7 +962,7 @@ extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
-extern struct frame *make_frame (int);
+extern struct frame *make_frame (bool);
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
@@ -1242,7 +1242,7 @@ extern void x_set_scroll_bar_width (struct frame *, Lisp_Object,
 
 extern Lisp_Object x_icon_type (struct frame *);
 
-extern int x_figure_window_size (struct frame *, Lisp_Object, int);
+extern long x_figure_window_size (struct frame *, Lisp_Object, bool);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 

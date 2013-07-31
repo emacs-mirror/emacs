@@ -69,7 +69,6 @@ Lisp_Object Qnoelisp;
 static Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
 Lisp_Object Qterminal;
-Lisp_Object Qterminal_live_p;
 
 /* Frame parameters (set or reported).  */
 
@@ -310,7 +309,7 @@ predicates which report frame's specific UI-related capabilities.  */)
 }
 
 struct frame *
-make_frame (int mini_p)
+make_frame (bool mini_p)
 {
   Lisp_Object frame;
   register struct frame *f;
@@ -2633,9 +2632,9 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   Lisp_Object *parms;
   Lisp_Object *values;
   ptrdiff_t i, p;
-  int left_no_change = 0, top_no_change = 0;
-  int icon_left_no_change = 0, icon_top_no_change = 0;
-  int size_changed = 0;
+  bool left_no_change = 0, top_no_change = 0;
+  bool icon_left_no_change = 0, icon_top_no_change = 0;
+  bool size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
@@ -3939,8 +3938,8 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
 #define DEFAULT_ROWS 35
 #define DEFAULT_COLS 80
 
-int
-x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
+long
+x_figure_window_size (struct frame *f, Lisp_Object parms, bool toolbar_p)
 {
   register Lisp_Object tem0, tem1, tem2;
   long window_prompting = 0;
@@ -4291,7 +4290,6 @@ syms_of_frame (void)
   DEFSYM (Qx_frame_parameter, "x-frame-parameter");
 
   DEFSYM (Qterminal, "terminal");
-  DEFSYM (Qterminal_live_p, "terminal-live-p");
 
   DEFSYM (Qgeometry, "geometry");
   DEFSYM (Qworkarea, "workarea");

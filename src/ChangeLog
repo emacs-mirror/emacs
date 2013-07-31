@@ -1,3 +1,15 @@
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (make_frame, x_set_frame_parameters): Use bool for boolean.
+	(x_figure_window_size): Likewise.  Adjust to return long.
+	(syms_of_frame): Do not DEFSYM Qterminal_live_p.
+	(toplevel): Move Qterminal_live_p to...
+	* terminal.c (toplevel): ...here, make it static, and...
+	(syms_of_terminal): ...DEFSYM here.
+	* frame.h (Qterminal_live_p): Remove declaration.
+	(make_frame, x_figure_window_size): Adjust prototype.
+	* nsfns.m (Fx_create_frame): Use long for window flags.
+
 2013-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix tempfile bug on platforms lacking mkostemp and mkstemp (Bug#14986).
