@@ -1003,6 +1003,9 @@ current, and kill the buffer that visits the link."
     (bindings--define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
+    (bindings--define-key map [vc-ignore]
+      '(menu-item "Register" vc-ignore
+		  :help "Ignore a file under current version control system"))
     (bindings--define-key map [vc-dir]
       '(menu-item "VC Dir"  vc-dir
 		  :help "Show the VC status of files in a directory"))

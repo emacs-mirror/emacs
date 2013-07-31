@@ -7,6 +7,10 @@
 	* textmodes/reftex-toc.el (reftex-toc, reftex-toc-revert):
 	Prefer nil to selected-frame for the first arg of frame-parameter.
 
+2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Add menu entry for vc-ignore.
+
 2013-07-30  Stephen Berman  <stephen.berman@gmx.net>
 
 	* minibuffer.el (completion--twq-all): Try and preserve each
