@@ -2403,8 +2403,9 @@ is used.  */)
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
        doc: /* Specify that the frame FRAME has LINES lines.
-Optional third arg non-nil means that redisplay should use LINES lines
-but that the idea of the actual height of the frame should not be changed.  */)
+If FRAME is nil, the selected frame is used.  Optional third arg
+non-nil means that redisplay should use LINES lines but that the
+idea of the actual height of the frame should not be changed.  */)
   (Lisp_Object frame, Lisp_Object lines, Lisp_Object pretend)
 {
   register struct frame *f = decode_live_frame (frame);
@@ -2427,8 +2428,9 @@ but that the idea of the actual height of the frame should not be changed.  */)
 
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
        doc: /* Specify that the frame FRAME has COLS columns.
-Optional third arg non-nil means that redisplay should use COLS columns
-but that the idea of the actual width of the frame should not be changed.  */)
+If FRAME is nil, the selected frame is used.  Optional third arg
+non-nil means that redisplay should use COLS columns but that the
+idea of the actual width of the frame should not be changed.  */)
   (Lisp_Object frame, Lisp_Object cols, Lisp_Object pretend)
 {
   register struct frame *f = decode_live_frame (frame);
@@ -2450,15 +2452,14 @@ but that the idea of the actual width of the frame should not be changed.  */)
 }
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
-       doc: /* Sets size of FRAME to COLS by ROWS, measured in characters.  */)
+       doc: /* Sets size of FRAME to COLS by ROWS, measured in characters.
+If FRAME is nil, the selected frame is used.  */)
   (Lisp_Object frame, Lisp_Object cols, Lisp_Object rows)
 {
-  register struct frame *f;
+  register struct frame *f = decode_live_frame (frame);
 
-  CHECK_LIVE_FRAME (frame);
   CHECK_TYPE_RANGED_INTEGER (int, cols);
   CHECK_TYPE_RANGED_INTEGER (int, rows);
-  f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2480,17 +2481,16 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 DEFUN ("set-frame-position", Fset_frame_position,
        Sset_frame_position, 3, 3, 0,
        doc: /* Sets position of FRAME in pixels to XOFFSET by YOFFSET.
-This is actually the position of the upper left corner of the frame.
-Negative values for XOFFSET or YOFFSET are interpreted relative to
-the rightmost or bottommost possible position (that stays within the screen).  */)
+If FRAME is nil, the selected frame is used.  XOFFSET and YOFFSET are
+actually the position of the upper left corner of the frame.  Negative
+values for XOFFSET or YOFFSET are interpreted relative to the rightmost
+or bottommost possible position (that stays within the screen).  */)
   (Lisp_Object frame, Lisp_Object xoffset, Lisp_Object yoffset)
 {
-  register struct frame *f;
+  register struct frame *f = decode_live_frame (frame);
 
-  CHECK_LIVE_FRAME (frame);
   CHECK_TYPE_RANGED_INTEGER (int, xoffset);
   CHECK_TYPE_RANGED_INTEGER (int, yoffset);
-  f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM

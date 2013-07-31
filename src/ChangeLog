@@ -2,6 +2,9 @@
 
 	* frame.c (Fmake_terminal_frame): Use store_in_alist to setup
 	frame parameters and call to Fmodify_frame_parameters just once.
+	(Fset_frame_height, Fset_frame_width): Mention nil frame in docstring.
+	(Fset_frame_size, Fset_frame_position): Use decode_live_frame
+	and mention nil frame in docstring.
 
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
