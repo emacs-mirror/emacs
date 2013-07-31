@@ -206,8 +206,8 @@ otherwise it is "Question". */)
 	   in the middle of frame F.  */
 	Lisp_Object x, y, frame, newpos;
 	XSETFRAME (frame, f);
-	XSETINT (x, x_pixel_width (f) / 2);
-	XSETINT (y, x_pixel_height (f) / 2);
+	XSETINT (x, FRAME_PIXEL_WIDTH (f) / 2);
+	XSETINT (y, FRAME_PIXEL_HEIGHT (f) / 2);
 	newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
 	return Fx_popup_menu (newpos,
 			      Fcons (Fcar (contents), Fcons (contents, Qnil)));

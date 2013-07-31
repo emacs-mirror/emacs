@@ -3320,18 +3320,6 @@ XMenuDestroy (Display *foo, XMenu *menu)
   xfree (menu);
   menu_help_message = prev_menu_help_message = NULL;
 }
-
-int
-x_pixel_width (struct frame *f)
-{
-  return FRAME_COLS (f);
-}
-
-int
-x_pixel_height (struct frame *f)
-{
-  return FRAME_LINES (f);
-}
 #endif /* !HAVE_X_WINDOWS */
 
 /* ----------------------- DOS / UNIX conversion --------------------- */

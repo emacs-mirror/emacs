@@ -2231,21 +2231,6 @@ x_get_focus_frame (struct frame *frame)
   return nsfocus;
 }
 
-
-int
-x_pixel_width (struct frame *f)
-{
-  return FRAME_PIXEL_WIDTH (f);
-}
-
-
-int
-x_pixel_height (struct frame *f)
-{
-  return FRAME_PIXEL_HEIGHT (f);
-}
-
-
 void
 x_sync (struct frame *f)
 {

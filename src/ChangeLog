@@ -1,5 +1,18 @@
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Drop unnecessary functions that deals with frame pixel size.
+	* frame.h, msdos.h, w32term.h, xterm.h (x_pixel_width)
+	(x_pixel_height): Drop prototypes.
+	* msdos.c, nsfns.m, w32fns.c, xfns.c (x_pixel_width)
+	(x_pixel_height): Drop implementations.
+	* frame.c (Fframe_pixel_height): Use FRAME_PIXEL_HEIGHT
+	which should be always valid for window frame.
+	(Frame_pixel_width): Likewise with FRAME_PIXEL_WIDTH.
+	* w32menu.c (Fx_popup_dialog):
+	* xmenu.c (Fx_popup_dialog): Likewise for both.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.c (Fmake_terminal_frame): Use store_in_alist to setup
 	frame parameters and call to Fmodify_frame_parameters just once.
 	(Fset_frame_height, Fset_frame_width): Mention nil frame in docstring.

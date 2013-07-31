@@ -2361,7 +2361,7 @@ to `frame-height'). */)
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
-    return make_number (x_pixel_height (f));
+    return make_number (FRAME_PIXEL_HEIGHT (f));
   else
 #endif
     return make_number (FRAME_LINES (f));
@@ -2378,7 +2378,7 @@ If FRAME is omitted or nil, the selected frame is used.  */)
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
-    return make_number (x_pixel_width (f));
+    return make_number (FRAME_PIXEL_WIDTH (f));
   else
 #endif
     return make_number (FRAME_COLS (f));

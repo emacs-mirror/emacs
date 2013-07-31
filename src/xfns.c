@@ -4325,19 +4325,6 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   return attributes_list;
 }
 
-
-int
-x_pixel_width (register struct frame *f)
-{
-  return FRAME_PIXEL_WIDTH (f);
-}
-
-int
-x_pixel_height (register struct frame *f)
-{
-  return FRAME_PIXEL_HEIGHT (f);
-}
-
 /************************************************************************
 			      X Displays
  ************************************************************************/

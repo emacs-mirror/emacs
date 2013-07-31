@@ -1031,8 +1031,6 @@ extern void destroy_frame_xic (struct frame *);
 extern void xic_set_preeditarea (struct window *, int, int);
 extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
-extern int x_pixel_width (struct frame *);
-extern int x_pixel_height (struct frame *);
 extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);

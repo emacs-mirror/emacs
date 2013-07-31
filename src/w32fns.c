@@ -5139,19 +5139,6 @@ SOUND is nil to use the normal beep.  */)
   return sound;
 }
 
-
-int
-x_pixel_width (register struct frame *f)
-{
-  return FRAME_PIXEL_WIDTH (f);
-}
-
-int
-x_pixel_height (register struct frame *f)
-{
-  return FRAME_PIXEL_HEIGHT (f);
-}
-
 int
 x_screen_planes (register struct frame *f)
 {

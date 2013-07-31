@@ -294,8 +294,8 @@ for instance using the window manager, then this produces a quit and
   {
     Lisp_Object x, y, frame, newpos;
     XSETFRAME (frame, f);
-    XSETINT (x, x_pixel_width (f) / 2);
-    XSETINT (y, x_pixel_height (f) / 2);
+    XSETINT (x, FRAME_PIXEL_WIDTH (f) / 2);
+    XSETINT (y, FRAME_PIXEL_HEIGHT (f) / 2);
     newpos = list2 (list2 (x, y), frame);
 
     return Fx_popup_menu (newpos,
