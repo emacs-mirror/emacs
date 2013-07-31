@@ -1,3 +1,8 @@
+2013-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.texi (Top): Remove menu item for the removed "Disabling
+	Multibyte" node.
+
 2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* rmail.texi (Rmail Coding): Move here from mule.texi.
@@ -5,6 +10,7 @@
 	* custom.texi (Specifying File Variables): Fix cross-references.
 
 	* mule.texi (Unibyte Mode): Fix cross-references.
+	(Disabling Multibyte): Remove.
 
 	* macos.texi (Mac / GNUstep Basics): Mention `ns-alternate-modifier'.
 
