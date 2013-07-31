@@ -562,19 +562,7 @@ file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
-  (let ((fr (log-view-current-tag beg))
-        (to (log-view-current-tag end)))
-    (when (string-equal fr to)
-      (save-excursion
-        (goto-char end)
-        (log-view-msg-next)
-        (setq to (log-view-current-tag))))
-    (vc-diff-internal
-     t (list log-view-vc-backend
-	     (if log-view-per-file-logs
-		 (list (log-view-current-file))
-	       log-view-vc-fileset))
-     to fr)))
+  (log-view-diff-common beg end))
 
 (defun log-view-diff-changeset (beg end)
   "Get the diff between two revisions.
@@ -589,20 +577,29 @@ considered file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
-  (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
+  (log-view-diff-common beg end t))
+
+(defun log-view-diff-common (beg end &optional whole-changeset)
+  (when (and whole-changeset
+             (eq (vc-call-backend log-view-vc-backend 'revision-granularity)
+                 'file))
     (error "The %s backend does not support changeset diffs" log-view-vc-backend))
-  (let ((fr (log-view-current-tag beg))
-        (to (log-view-current-tag end)))
+  (let ((to (log-view-current-tag beg))
+        (fr (log-view-current-tag end)))
     (when (string-equal fr to)
       ;; TO and FR are the same, look at the previous revision.
-      (setq to (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
+      (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
-     t
-     ;; We want to see the diff for all the files in the changeset, so
-     ;; pass NIL for the file list.  The value passed here should
-     ;; follow what `vc-deduce-fileset' returns.
-     (list log-view-vc-backend nil)
-     to fr)))
+     t (list log-view-vc-backend
+             ;; The value passed here should follow what
+             ;; `vc-deduce-fileset' returns.  If we want to see the
+             ;; diff for all the files in the changeset, pass NIL for
+             ;; the file list.
+             (unless whole-changeset
+               (if log-view-per-file-logs
+                   (list (log-view-current-file))
+                 log-view-vc-fileset)))
+     fr to)))
 
 (provide 'log-view)
 

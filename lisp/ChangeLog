@@ -1,3 +1,13 @@
+2013-07-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-view.el (log-view-diff): Extract `log-view-diff-common',
+	use it.
+	(log-view-diff-changeset): Same.
+	(log-view-diff-common): Call backend command `previous-revision'
+	to find out the previous revision, in both cases.  Swap the
+	variables `to' and `fr', so that `fr' usually refers to the
+	earlier revision (Bug#14989).
+
 2013-07-31  Kan-Ru Chen  <kanru@kanru.info>
 
 	* ibuf-ext.el (ibuffer-filter-by-filename):
