@@ -1,3 +1,9 @@
+2013-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* macos.texi (GNUstep Support):
+	* trouble.texi (Checklist, Contributing, Service):
+	Avoid mailto: in html output.
+
 2013-07-02  Glenn Morris  <rgm@gnu.org>
 
 	* maintaining.texi (EDE): Fix cross-reference.

@@ -1070,7 +1070,12 @@ encouragement.  My mistakes are my own.
 
 @flushright
 Robert J. Chassell
+@ifnothtml
 @email{bob@@gnu.org}
+@end ifnothtml
+@ifhtml
+bob@@gnu.org
+@end ifhtml
 @end flushright
 
 @c ================ Beginning of main text ================

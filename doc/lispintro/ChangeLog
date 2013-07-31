@@ -1,3 +1,7 @@
+2013-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Thank You): Avoid mailto: in html output.
+
 2013-07-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi (Top):
