@@ -1,3 +1,8 @@
+2013-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-name-completion)
+	(url-file-name-all-completions): Don't signal errors (bug#14806).
+
 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (status): Remove, unused.
