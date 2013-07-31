@@ -1,3 +1,8 @@
+2013-07-31  Kan-Ru Chen  <kanru@kanru.info>
+
+	* ibuf-ext.el (ibuffer-filter-by-filename):
+	Make it work with dired buffers too.
+
 2013-07-31  Dmitry Antipov <dmantipov@yandex.ru>
 
 	* emacs-lisp/re-builder.el (reb-color-display-p):
