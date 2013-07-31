@@ -957,7 +957,6 @@ Conversion To and From Other Calendars
                              (aside from Gregorian).
 * To Other Calendar::      Converting the selected date to various calendars.
 * From Other Calendar::    Moving to a date specified in another calendar.
-* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 
 The Diary
 
@@ -972,6 +971,7 @@ More advanced features of the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
