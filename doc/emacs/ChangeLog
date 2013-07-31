@@ -1,5 +1,9 @@
 2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* custom.texi (Specifying File Variables): Fix cross-references.
+
+	* mule.texi (Unibyte Mode): Fix cross-references.
+
 	* macos.texi (Mac / GNUstep Basics): Mention `ns-alternate-modifier'.
 
 	* cal-xtra.texi (Advanced Calendar/Diary Usage): Update menu.
