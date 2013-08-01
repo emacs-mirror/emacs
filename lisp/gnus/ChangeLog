@@ -1,3 +1,7 @@
+2013-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-emacs-completing-read): Isolate XEmacs stuff.
+
 2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-read-active-for-groups): Always mark the data as
