@@ -1,3 +1,9 @@
+2013-08-01  Tassilo Horn  <tsdh@gnu.org>
+
+	* whitespace.el (whitespace-ensure-local-variables): New function.
+	(whitespace-cleanup-region): Call it.
+	(whitespace-turn-on): Call it.
+
 2013-08-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	Complete file name handlers.

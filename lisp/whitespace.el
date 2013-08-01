@@ -1471,6 +1471,12 @@ documentation."
     ;; PROBLEM 6: 8 or more SPACEs after TAB
     (whitespace-cleanup-region (point-min) (point-max)))))
 
+(defun whitespace-ensure-local-variables ()
+  "Set `whitespace-indent-tabs-mode' and `whitespace-tab-width' locally."
+  (set (make-local-variable 'whitespace-indent-tabs-mode)
+       indent-tabs-mode)
+  (set (make-local-variable 'whitespace-tab-width)
+       tab-width))
 
 ;;;###autoload
 (defun whitespace-cleanup-region (start end)
@@ -1517,6 +1523,7 @@ documentation."
       ;; read-only buffer
       (whitespace-warn-read-only "cleanup region")
     ;; non-read-only buffer
+    (whitespace-ensure-local-variables)
     (let ((rstart           (min start end))
 	  (rend             (copy-marker (max start end)))
 	  (indent-tabs-mode whitespace-indent-tabs-mode)
@@ -2095,7 +2102,6 @@ resultant list will be returned."
 (defvar whitespace-display-table-was-local nil
   "Used to remember whether a buffer initially had a local display table.")
 
-
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
   ;; prepare local hooks
@@ -2108,10 +2114,7 @@ resultant list will be returned."
        (if (listp whitespace-style)
 	   whitespace-style
 	 (list whitespace-style)))
-  (set (make-local-variable 'whitespace-indent-tabs-mode)
-       indent-tabs-mode)
-  (set (make-local-variable 'whitespace-tab-width)
-       tab-width)
+  (whitespace-ensure-local-variables)
   ;; turn on whitespace
   (when whitespace-active-style
     (whitespace-color-on)
