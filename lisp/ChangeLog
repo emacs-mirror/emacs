@@ -1,3 +1,50 @@
+2013-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Complete file name handlers.
+
+	* net/tramp.el (tramp-handle-set-visited-file-modtime)
+	(tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-file-notify-rm-watch): New functions.
+	(tramp-call-process): Do not bind `default-directory'.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist): Order
+	alphabetically.
+	[access-file, add-name-to-file, dired-call-process]:
+	[dired-compress-file, file-acl, file-notify-rm-watch]:
+	[file-ownership-preserved-p, file-selinux-context]:
+	[make-directory-internal, make-symbolic-link, set-file-acl]:
+	[set-file-selinux-context, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-adb-handle-write-region): Apply `set-visited-file-modtime'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
+	[file-notify-add-watch, file-notify-rm-watch]:
+	[set-file-times, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(with-tramp-gvfs-error-message)
+	(tramp-gvfs-handle-set-visited-file-modtime)
+	(tramp-gvfs-fuse-file-name): Remove.
+	(tramp-gvfs-handle-file-notify-add-watch)
+	(tramp-gvfs-file-gvfs-monitor-file-process-filter): New defuns.
+	(tramp-gvfs-handle-write-region): Fix error in moving tmpfile.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Order
+	alphabetically.
+	[file-notify-rm-watch ]: Use default Tramp handler.
+	[executable-find]: Remove private handler.
+	(tramp-do-copy-or-rename-file-out-of-band): Do not bind
+	`default-directory'.
+	(tramp-sh-handle-executable-find)
+	(tramp-sh-handle-file-notify-rm-watch): Remove functions.
+	(tramp-sh-file-gvfs-monitor-dir-process-filter)
+	(tramp-sh-file-inotifywait-process-filter, tramp-set-remote-path):
+	Do not use `format' in `tramp-message'.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist)
+	[file-notify-rm-watch, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-smb-call-winexe): Do not bind `default-directory'.
+
 2013-08-01  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* vc/vc-hooks.el (vc-menu-map): Fix menu entry for vc-ignore.

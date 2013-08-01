@@ -177,8 +177,7 @@ See `tramp-actions-before-shell' for more info.")
 
 ;; New handlers should be added here.
 (defconst tramp-smb-file-name-handler-alist
-  '(
-    ;; `access-file' performed by default handler.
+  '(;; `access-file' performed by default handler.
     (add-name-to-file . tramp-smb-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-smb-handle-copy-directory)
@@ -198,8 +197,10 @@ See `tramp-actions-before-shell' for more info.")
     (file-acl . tramp-smb-handle-file-acl)
     (file-attributes . tramp-smb-handle-file-attributes)
     (file-directory-p .  tramp-smb-handle-file-directory-p)
+    ;; `file-equal-p' performed by default handler.
     (file-executable-p . tramp-handle-file-exists-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    ;; `file-in-directory-p' performed by default handler.
     (file-local-copy . tramp-smb-handle-file-local-copy)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-smb-handle-file-name-all-completions)
@@ -210,7 +211,7 @@ See `tramp-actions-before-shell' for more info.")
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-notify-add-watch . tramp-handle-file-notify-add-watch)
-    (file-notify-rm-watch . ignore)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-handle-file-exists-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -225,6 +226,7 @@ See `tramp-actions-before-shell' for more info.")
     (insert-directory . tramp-smb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
+    ;; `make-auto-save-file-name' performed by default handler.
     (make-directory . tramp-smb-handle-make-directory)
     (make-directory-internal . tramp-smb-handle-make-directory-internal)
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
@@ -234,15 +236,14 @@ See `tramp-actions-before-shell' for more info.")
     (set-file-modes . tramp-smb-handle-set-file-modes)
     (set-file-selinux-context . ignore)
     (set-file-times . ignore)
-    (set-visited-file-modtime . ignore)
+    (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (shell-command . tramp-handle-shell-command)
     (start-file-process . tramp-smb-handle-start-file-process)
     (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (vc-registered . ignore)
-    (verify-visited-file-modtime . ignore)
-    (write-region . tramp-smb-handle-write-region)
-)
+    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (write-region . tramp-smb-handle-write-region))
   "Alist of handler functions for Tramp SMB method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
@@ -1786,9 +1787,7 @@ Returns nil if an error message has appeared."
   (tramp-get-buffer vec)
 
   ;; Check for program.
-  (unless (let ((default-directory
-		  (tramp-compat-temporary-file-directory)))
-	    (executable-find tramp-smb-winexe-program))
+  (unless (executable-find tramp-smb-winexe-program)
     (tramp-error
      vec 'file-error "Cannot find program: %s" tramp-smb-winexe-program))
 
