@@ -5096,8 +5096,6 @@ This calls `write-region-annotate-functions' at the start, and
   return Qnil;
 }
 
-Lisp_Object merge (Lisp_Object, Lisp_Object, Lisp_Object);
-
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
        doc: /* Return t if (car A) is numerically less than (car B).  */)
   (Lisp_Object a, Lisp_Object b)

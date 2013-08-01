@@ -1,3 +1,8 @@
+2013-08-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c, fns.c (merge): Move extern decl from here ...
+	* lisp.h (merge): ... to here.
+
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix last font-related change.
