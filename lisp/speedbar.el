@@ -250,7 +250,7 @@ frame."
 
 (defcustom speedbar-query-confirmation-method 'all
   "Query control for file operations.
-The 'always flag means to always query before file operations.
+The 'all flag means to always query before file operations.
 The 'none-but-delete flag means to not query before any file
 operations, except before a file deletion."
   :group 'speedbar

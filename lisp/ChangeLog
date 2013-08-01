@@ -1,5 +1,7 @@
 2013-08-01  Tassilo Horn  <tsdh@gnu.org>
 
+	* speedbar.el (speedbar-query-confirmation-method): Doc fix.
+
 	* whitespace.el (whitespace-ensure-local-variables): New function.
 	(whitespace-cleanup-region): Call it.
 	(whitespace-turn-on): Call it.
