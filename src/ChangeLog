@@ -1,5 +1,15 @@
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix last font-related change.
+	* w32font.h (w32font_list_internal, w32font_match_internal):
+	Fix prototype.
+	* w32uniscribe.c (uniscribe_list, uniscribe_match):
+	(uniscribe_list_family): Adjust to match font API change.
+	MS-Windows breakage reported by Juanma Barranquero <lekktu@gmail.com>
+	at http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00006.html.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* frame.h (FRAME_MOUSE_UPDATE):
 	* nsterm.m (ns_frame_up_to_date): Omit redundant check
 	whether hlinfo->mouse_face_mouse_frame is non-NULL.

@@ -69,28 +69,27 @@ memq_no_quit (Lisp_Object elt, Lisp_Object list)
 
 /* Font backend interface implementation.  */
 static Lisp_Object
-uniscribe_list (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-list", font_spec, fonts);
   return fonts;
 }
 
 static Lisp_Object
-uniscribe_match (Lisp_Object frame, Lisp_Object font_spec)
+uniscribe_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-match", font_spec, entity);
   return entity;
 }
 
 static Lisp_Object
-uniscribe_list_family (Lisp_Object frame)
+uniscribe_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   /* Limit enumerated fonts to outline fonts to save time.  */

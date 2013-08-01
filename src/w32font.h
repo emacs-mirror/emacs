@@ -64,10 +64,10 @@ struct w32font_info
 #define CACHE_BLOCKSIZE 128
 
 Lisp_Object w32font_get_cache (FRAME_PTR fe);
-Lisp_Object w32font_list_internal (Lisp_Object frame,
+Lisp_Object w32font_list_internal (struct frame *f,
                                    Lisp_Object font_spec,
                                    int opentype_only);
-Lisp_Object w32font_match_internal (Lisp_Object frame,
+Lisp_Object w32font_match_internal (struct frame *f,
                                     Lisp_Object font_spec,
                                     int opentype_only);
 int w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
