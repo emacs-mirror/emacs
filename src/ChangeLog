@@ -3,6 +3,10 @@
 	* xterm.c (last_mouse_press_frame): Remove the
 	leftover which is not really used any more.
 	(handle_one_xevent, syms_of_xterm): Adjust users.
+	(x_flush): Call XFlush once per each X display, not frame.
+	This is better because this code always unconditionally skips
+	non-X frames in Vframe_list and issues the only	XFlush if we
+	have more than one X frame on the same X display.
 
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 

@@ -287,8 +287,6 @@ enum xembed_message
     XEMBED_ACTIVATE_ACCELERATOR   = 14
   };
 
-/* Used in x_flush.  */
-
 static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
 static void x_raise_frame (struct frame *);
@@ -356,15 +354,18 @@ x_flush (struct frame *f)
     return;
 
   block_input ();
-  if (f == NULL)
+  if (f)
     {
-      Lisp_Object rest, frame;
-      FOR_EACH_FRAME (rest, frame)
-        if (FRAME_X_P (XFRAME (frame)))
-          x_flush (XFRAME (frame));
+      eassert (FRAME_X_P (f));
+      XFlush (FRAME_X_DISPLAY (f));
     }
-  else if (FRAME_X_P (f))
-    XFlush (FRAME_X_DISPLAY (f));
+  else
+    {
+      /* Flush all displays and so all frames on them.  */
+      struct x_display_info *xdi;
+      for (xdi = x_display_list; xdi; xdi = xdi->next)
+	XFlush (xdi->display);
+    }
   unblock_input ();
 }
 
