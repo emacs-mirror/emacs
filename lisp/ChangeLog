@@ -15,8 +15,8 @@
 	(tramp-handle-file-notify-rm-watch): New functions.
 	(tramp-call-process): Do not bind `default-directory'.
 
-	* net/tramp-adb.el (tramp-adb-file-name-handler-alist): Order
-	alphabetically.
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	Order alphabetically.
 	[access-file, add-name-to-file, dired-call-process]:
 	[dired-compress-file, file-acl, file-notify-rm-watch]:
 	[file-ownership-preserved-p, file-selinux-context]:
@@ -36,8 +36,8 @@
 	(tramp-gvfs-file-gvfs-monitor-file-process-filter): New defuns.
 	(tramp-gvfs-handle-write-region): Fix error in moving tmpfile.
 
-	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Order
-	alphabetically.
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Order alphabetically.
 	[file-notify-rm-watch ]: Use default Tramp handler.
 	[executable-find]: Remove private handler.
 	(tramp-do-copy-or-rename-file-out-of-band): Do not bind
@@ -72,7 +72,7 @@
 	* ibuf-ext.el (ibuffer-filter-by-filename):
 	Make it work with dired buffers too.
 
-2013-07-31  Dmitry Antipov <dmantipov@yandex.ru>
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* emacs-lisp/re-builder.el (reb-color-display-p):
 	* files.el (save-buffers-kill-terminal):
@@ -117,7 +117,7 @@
 	* vc/vc-hg.el (vc-hg-ignore): Remove `interactive'.  Do not assume
 	point-min==1.  Fix search string.  Fix parentheses missing.
 
-	* vc/vc-git.el (vc-git-ignore): Remove `interactive'. Do not
+	* vc/vc-git.el (vc-git-ignore): Remove `interactive'.  Do not
 	assume point-min==1.  Fix search string.  Fix parentheses missing.
 
 	* vc/vc-cvs.el (vc-cvs-ignore): Remove `interactive'.
@@ -181,7 +181,7 @@
 	* progmodes/cc-engine.el (c-beginning-of-statement-1)
 	(c-after-conditional): Adapt to deal with c-block-stmt-1-2-key.
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Adapt to deal
-	with c-block-stmet-1-2-key.
+	with c-block-stmt-1-2-key.
 
 2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
 

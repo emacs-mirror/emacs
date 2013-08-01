@@ -429,7 +429,7 @@
 	code a bit.  It makes no difference on POSIXish platforms but
 	apparently it fixes a bug on w32.
 
-	Fix bug where insert-file-contents closes a file twice. (Bug#14839).
+	Fix bug where insert-file-contents closes a file twice (Bug#14839).
 	* fileio.c (close_file_unwind): Don't close if FD is negative;
 	this can happen when unwinding a zapped file descriptor.
 	(Finsert_file_contents): Unwind-protect the fd before the point marker,
@@ -582,7 +582,7 @@
 	(make_lispy_focus_in, make_lispy_focus_out): Declare and define.
 	(kbd_buffer_get_event): For FOCUS_IN, make a focus_in event if no
 	switch frame event is made.  Check ! NILP (event->arg) if X11 (moved
-	from xterm.c). Make focus_out event for FOCUS_OUT_EVENT if NS or X11
+	from xterm.c).  Make focus_out event for FOCUS_OUT_EVENT if NS or X11
 	and there is a focused frame.
 	(head_table): Add focus-in and focus-out.
 	(keys_of_keyboard): Add focus-in and focus-out to Vspecial_event_map,
@@ -955,7 +955,7 @@
 	(emacswrite_sig, emacs_perror): New functions.
 	* xrdb.c (fatal): Don't invoke perror, since errno might be garbage.
 
-2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change).
+2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change)
 
 	* image.c (imagemagick_load_image): Do not use MagickExportImagePixels
 	on NS even if it is present.  Pixmap on NS is a void*.
@@ -1630,7 +1630,7 @@
 	Now static.
 	* lisp.h: Remove the abovementioned defns and decls.
 
-	Use functions, not macros, for XINT etc. (Bug#11935).
+	Use functions, not macros, for XINT etc (Bug#11935).
 	In lisp.h, prefer functions to function-like macros, and
 	constants to object-like macros, when either will do.  This:
 	 . simplifies use, as there's no more need to worry about
