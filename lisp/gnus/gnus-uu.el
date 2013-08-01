@@ -640,7 +640,7 @@ When called interactively, prompt for REGEXP."
     (let ((level (gnus-summary-thread-level)))
       (while (and (gnus-summary-set-process-mark
 		   (gnus-summary-article-number))
-		  (zerop (gnus-summary-next-subject 1 nil t))
+		  (zerop (forward-line 1))
 		  (> (gnus-summary-thread-level) level)))))
   (gnus-summary-position-point))
 
@@ -650,7 +650,7 @@ When called interactively, prompt for REGEXP."
   (let ((level (gnus-summary-thread-level)))
     (while (and (gnus-summary-remove-process-mark
 		 (gnus-summary-article-number))
-		(zerop (gnus-summary-next-subject 1))
+		(zerop (forward-line 1))
 		(> (gnus-summary-thread-level) level))))
   (gnus-summary-position-point))
 

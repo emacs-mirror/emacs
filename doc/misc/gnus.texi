@@ -21109,17 +21109,17 @@ the articles that match this query, and takes you to a summary buffer
 showing these articles. Articles may then be read, moved and deleted
 using the usual commands.
 
-The @code{nnir} group made in this way is an @code{ephemeral} group, and
-some changes are not permanent: aside from reading, moving, and
+The @code{nnir} group made in this way is an @code{ephemeral} group,
+and some changes are not permanent: aside from reading, moving, and
 deleting, you can't act on the original article. But there is an
-alternative: you can @emph{warp} to the original group for the article
-on the current line with @kbd{A W}, aka
+alternative: you can @emph{warp} (i.e., jump) to the original group
+for the article on the current line with @kbd{A W}, aka
 @code{gnus-warp-to-article}. Even better, the function
-@code{gnus-summary-refer-thread}, bound by default in summary buffers to
-@kbd{A T}, will first warp to the original group before it works its
-magic and includes all the articles in the thread. From here you can
-read, move and delete articles, but also copy them, alter article marks,
-whatever. Go nuts.
+@code{gnus-summary-refer-thread}, bound by default in summary buffers
+to @kbd{A T}, will first warp to the original group before it works
+its magic and includes all the articles in the thread. From here you
+can read, move and delete articles, but also copy them, alter article
+marks, whatever. Go nuts.
 
 You say you want to search more than just the group on the current line?
 No problem: just process-mark the groups you want to search. You want
@@ -21161,6 +21161,7 @@ query language anyway.
 * The swish++ Engine::                  Swish++ configuration and usage.
 * The swish-e Engine::                  Swish-e configuration and usage.
 * The namazu Engine::                   Namazu configuration and usage.
+* The notmuch Engine::                  Notmuch configuration and usage.
 * The hyrex Engine::                    Hyrex configuration and usage.
 * Customizations::                      User customizable settings.
 @end menu
@@ -21389,6 +21390,26 @@ mknmz --mailnews ~/Mail/archive/ ~/Mail/mail/ ~/Mail/lists/
 
 For maximum searching efficiency you might want to have a cron job run
 this command periodically, say every four hours.
+
+
+@node The notmuch Engine
+@subsubsection The notmuch Engine
+
+@table @code
+@item nnir-notmuch-program
+The name of the notmuch search executable.  Defaults to
+@samp{notmuch}.
+
+@item nnir-notmuch-additional-switches
+A list of strings, to be given as additional arguments to notmuch.
+
+@item nnir-notmuch-remove-prefix
+The prefix to remove from each file name returned by notmuch in order
+to get a group name (albeit with @samp{/} instead of @samp{.}).  This
+is a regular expression.
+
+@end table
+
 
 @node The hyrex Engine
 @subsubsection The hyrex Engine

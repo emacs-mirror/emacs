@@ -63,6 +63,18 @@
   :group 'news
   :group 'multimedia)
 
+(defface mm-command-output
+  '((((class color)
+      (background dark))
+     (:foreground "ForestGreen"))
+    (((class color)
+      (background light))
+     (:foreground "red3"))
+    (t
+     (:italic t)))
+  "Face used for displaying output from commands."
+  :group 'mime-display)
+
 ;;; Convenience macros.
 
 (defmacro mm-handle-buffer (handle)
@@ -983,9 +995,12 @@ external if displayed external."
 			       (let ((buffer-read-only nil)
 				     (point (point)))
 				 (forward-line 2)
-				 (mm-insert-inline
-				  handle (with-current-buffer buffer
-					   (buffer-string)))
+				 (let ((start (point)))
+				   (mm-insert-inline
+				    handle (with-current-buffer buffer
+					     (buffer-string)))
+				   (put-text-property start (point)
+						      'face 'mm-command-output))
 				 (goto-char point))))
 			   (when (buffer-live-p buffer)
 			     (kill-buffer buffer)))

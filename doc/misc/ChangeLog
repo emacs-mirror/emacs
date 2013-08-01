@@ -1,3 +1,8 @@
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Basic Usage): Mention that warp means jump here.
+	(The notmuch Engine): Mention notmuch.
+
 2013-07-30  Tassilo Horn  <tsdh@gnu.org>
 
 	* gnus.texi (Sorting the Summary Buffer): Document new defcustom

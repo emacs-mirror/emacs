@@ -944,7 +944,8 @@ If REGEXP is given, lines that match it will be deleted."
   (when (and gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (with-current-buffer gnus-dribble-buffer
-      (save-buffer))))
+      (when (> (buffer-size) 0)
+	(save-buffer)))))
 
 (defun gnus-dribble-clear ()
   (when (gnus-buffer-exists-p gnus-dribble-buffer)

@@ -1,5 +1,44 @@
 2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* message.el (message-ignored-news-headers): Delete X-Gnus-Delayed
+	before sending.
+
+	* dgnushack.el (dgnushack-compile): Add a temporary check for
+	gnus-icalendar.
+
+	* mm-decode.el (mm-command-output): New face.
+	(mm-display-external): Use it.
+
+2013-08-01  Kan-Ru Chen (陳侃如)  <kanru@kanru.info>  (tiny change)
+
+	* nnmbox.el (nnmbox-request-article): Don't change point.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event:inline-reply-buttons):
+	Include `handle' parameter.
+
+2013-08-01  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el: New file.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-warp-to-article): Mention that warp means jump.
+
+	* gnus-uu.el (gnus-uu-mark-thread, gnus-uu-unmark-thread): Work with
+	dummy roots, too.
+
+2013-08-01  David Edmondson  <dme@dme.org>
+
+	* mml2015.el (mml2015-epg-key-image-to-string): Protect against bugging
+	out on ttys.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-dribble-save): Only save the dribble file if it's
+	not empty.
+
 	* nnrss.el (nnrss-discover-feed): Indent.
 
 2013-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
