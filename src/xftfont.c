@@ -139,9 +139,9 @@ xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *
 struct font_driver xftfont_driver;
 
 static Lisp_Object
-xftfont_list (Lisp_Object frame, Lisp_Object spec)
+xftfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
+  Lisp_Object list = ftfont_driver.list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qxft);
@@ -149,9 +149,9 @@ xftfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-xftfont_match (Lisp_Object frame, Lisp_Object spec)
+xftfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (frame, spec);
+  Lisp_Object entity = ftfont_driver.match (f, spec);
 
   if (! NILP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qxft);

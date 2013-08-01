@@ -527,7 +527,7 @@ struct font_driver
 
      This and the following `match' are the only APIs that allocate
      font-entities.  */
-  Lisp_Object (*list) (Lisp_Object frame, Lisp_Object font_spec);
+  Lisp_Object (*list) (struct frame *frame, Lisp_Object font_spec);
 
   /* Return a font-entity most closely matching with FONT_SPEC on
      FRAME.  Which font property to consider, and how to calculate the
@@ -536,12 +536,12 @@ struct font_driver
 
      The properties that the font-entity has is the same as `list'
      method.  */
-  Lisp_Object (*match) (Lisp_Object frame, Lisp_Object font_spec);
+  Lisp_Object (*match) (struct frame *f, Lisp_Object spec);
 
   /* Optional.
      List available families.  The value is a list of family names
      (symbols).  */
-  Lisp_Object (*list_family) (Lisp_Object frame);
+  Lisp_Object (*list_family) (struct frame *f);
 
   /* Optional (if FONT_EXTRA_INDEX is not Lisp_Save_Value).
      Free FONT_EXTRA_INDEX field of FONT_ENTITY.  */
@@ -742,8 +742,7 @@ extern Lisp_Object font_style_symbolic (Lisp_Object font,
                                         bool for_face);
 
 extern bool font_match_p (Lisp_Object spec, Lisp_Object font);
-extern Lisp_Object font_list_entities (Lisp_Object frame,
-                                       Lisp_Object spec);
+extern Lisp_Object font_list_entities (struct frame *, Lisp_Object);
 
 extern Lisp_Object font_get_name (Lisp_Object font_object);
 extern Lisp_Object font_spec_from_name (Lisp_Object font_name);

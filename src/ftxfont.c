@@ -226,9 +226,9 @@ ftxfont_draw_background (FRAME_PTR f, struct font *font, GC gc, int x, int y,
 }
 
 static Lisp_Object
-ftxfont_list (Lisp_Object frame, Lisp_Object spec)
+ftxfont_list (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
+  Lisp_Object list = ftfont_driver.list (f, spec), tail;
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
@@ -236,9 +236,9 @@ ftxfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftxfont_match (Lisp_Object frame, Lisp_Object spec)
+ftxfont_match (struct frame *f, Lisp_Object spec)
 {
-  Lisp_Object entity = ftfont_driver.match (frame, spec);
+  Lisp_Object entity = ftfont_driver.match (f, spec);
 
   if (VECTORP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qftx);

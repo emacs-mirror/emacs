@@ -309,9 +309,9 @@ w32font_get_cache (FRAME_PTR f)
    is a vector of font-entities.  This is the sole API that
    allocates font-entities.  */
 static Lisp_Object
-w32font_list (Lisp_Object frame, Lisp_Object font_spec)
+w32font_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 0);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-list", font_spec, fonts);
   return fonts;
 }
@@ -321,9 +321,9 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
    FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
-w32font_match (Lisp_Object frame, Lisp_Object font_spec)
+w32font_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 0);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-match", font_spec, entity);
   return entity;
 }
@@ -332,12 +332,11 @@ w32font_match (Lisp_Object frame, Lisp_Object font_spec)
    List available families.  The value is a list of family names
    (symbols).  */
 static Lisp_Object
-w32font_list_family (Lisp_Object frame)
+w32font_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   font_match_pattern.lfCharSet = DEFAULT_CHARSET;
@@ -811,15 +810,14 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_list_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
   match_data.list = Qnil;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
@@ -864,14 +862,13 @@ w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_on
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_match_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
   match_data.list = Qnil;
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
@@ -2114,7 +2111,7 @@ static void
 list_all_matching_fonts (struct font_callback_data *match_data)
 {
   HDC dc;
-  Lisp_Object families = w32font_list_family (match_data->frame);
+  Lisp_Object families = w32font_list_family (XFRAME (match_data->frame));
   struct frame *f = XFRAME (match_data->frame);
 
   dc = get_frame_dc (f);

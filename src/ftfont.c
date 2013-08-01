@@ -494,9 +494,9 @@ ftfont_get_otf (struct ftfont_info *ftfont_info)
 #endif	/* HAVE_LIBOTF */
 
 static Lisp_Object ftfont_get_cache (FRAME_PTR);
-static Lisp_Object ftfont_list (Lisp_Object, Lisp_Object);
-static Lisp_Object ftfont_match (Lisp_Object, Lisp_Object);
-static Lisp_Object ftfont_list_family (Lisp_Object);
+static Lisp_Object ftfont_list (struct frame *, Lisp_Object);
+static Lisp_Object ftfont_match (struct frame *, Lisp_Object);
+static Lisp_Object ftfont_list_family (struct frame *);
 static Lisp_Object ftfont_open (FRAME_PTR, Lisp_Object, int);
 static void ftfont_close (FRAME_PTR, struct font *);
 static int ftfont_has_char (Lisp_Object, int);
@@ -884,7 +884,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 }
 
 static Lisp_Object
-ftfont_list (Lisp_Object frame, Lisp_Object spec)
+ftfont_list (struct frame *f, Lisp_Object spec)
 {
   Lisp_Object val = Qnil, family, adstyle;
   int i;
@@ -1080,7 +1080,7 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftfont_match (Lisp_Object frame, Lisp_Object spec)
+ftfont_match (struct frame *f, Lisp_Object spec)
 {
   Lisp_Object entity = Qnil;
   FcPattern *pattern, *match = NULL;
@@ -1130,7 +1130,7 @@ ftfont_match (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-ftfont_list_family (Lisp_Object frame)
+ftfont_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   FcPattern *pattern = NULL;

@@ -1,5 +1,24 @@
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Avoid redundant Lisp_Object <-> struct frame conversions in font API.
+	* font.h (struct font_driver): Change list, match, and list_family
+	functions to accept struct frame * as first arg.
+	* font.c (font_score, font_compare, font_sort_entities): Remove
+	prototypes.
+	(font_sort_entities, font_list_entities, font_select_entity):
+	(font_find_for_lface, Flist_fonts, Ffont_family_list): Adjust to
+	match font API change.
+	* xfont.c (xfont_list, xfont_match, xfont_list_family):
+	* ftfont.c (ftfont_list, ftfont_match, ftfont_list_family):
+	* ftxfont.c (ftxfont_list, ftxfont_match):
+	* xftfont.c (xftfont_list, xftfont_match):
+	* nsfont.m (nsfont_list, nsfont_match, nsfont_list_family):
+	* w32font.c (w32font_list, w32font_match, w32font_list):
+	(w32font_list_internal, w32_font_match_internal): Likewise.
+	* xfaces.c (Fx_family_fonts): Adjust user.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not use pure Xism x_wm_set_icon_position in non-X ports.
 	* frame.c (x_set_frame_parameters): Call to x_wm_set_icon_position
 	only if HAVE_X_WINDOWS is in use.

@@ -115,9 +115,9 @@ xfont_get_pcm (XFontStruct *xfont, XChar2b *char2b)
 }
 
 static Lisp_Object xfont_get_cache (FRAME_PTR);
-static Lisp_Object xfont_list (Lisp_Object, Lisp_Object);
-static Lisp_Object xfont_match (Lisp_Object, Lisp_Object);
-static Lisp_Object xfont_list_family (Lisp_Object);
+static Lisp_Object xfont_list (struct frame *, Lisp_Object);
+static Lisp_Object xfont_match (struct frame *, Lisp_Object);
+static Lisp_Object xfont_list_family (struct frame *);
 static Lisp_Object xfont_open (FRAME_PTR, Lisp_Object, int);
 static void xfont_close (FRAME_PTR, struct font *);
 static int xfont_prepare_face (FRAME_PTR, struct face *);
@@ -486,9 +486,8 @@ xfont_list_pattern (Display *display, const char *pattern,
 }
 
 static Lisp_Object
-xfont_list (Lisp_Object frame, Lisp_Object spec)
+xfont_list (struct frame *f, Lisp_Object spec)
 {
-  FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
   Lisp_Object registry, list, val, extra, script;
   int len;
@@ -565,9 +564,8 @@ xfont_list (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-xfont_match (Lisp_Object frame, Lisp_Object spec)
+xfont_match (struct frame *f, Lisp_Object spec)
 {
-  FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
   Lisp_Object extra, val, entity;
   char name[512];
@@ -622,9 +620,8 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
 }
 
 static Lisp_Object
-xfont_list_family (Lisp_Object frame)
+xfont_list_family (struct frame *f)
 {
-  FRAME_PTR f = XFRAME (frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   char **names;
   int num_fonts, i;

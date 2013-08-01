@@ -620,9 +620,9 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
 
 static Lisp_Object nsfont_get_cache (FRAME_PTR frame);
-static Lisp_Object nsfont_list (Lisp_Object frame, Lisp_Object font_spec);
-static Lisp_Object nsfont_match (Lisp_Object frame, Lisp_Object font_spec);
-static Lisp_Object nsfont_list_family (Lisp_Object frame);
+static Lisp_Object nsfont_list (struct frame *, Lisp_Object);
+static Lisp_Object nsfont_match (struct frame *, Lisp_Object);
+static Lisp_Object nsfont_list_family (struct frame *);
 static Lisp_Object nsfont_open (FRAME_PTR f, Lisp_Object font_entity,
                                  int pixel_size);
 static void nsfont_close (FRAME_PTR f, struct font *font);
@@ -679,9 +679,9 @@ nsfont_get_cache (FRAME_PTR frame)
    weight, slant, width, size (0 if scalable),
    dpi, spacing, avgwidth (0 if scalable)  */
 static Lisp_Object
-nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
+nsfont_list (struct frame *f, Lisp_Object font_spec)
 {
-    return ns_findfonts (font_spec, NO);
+  return ns_findfonts (font_spec, NO);
 }
 
 
@@ -690,16 +690,16 @@ nsfont_list (Lisp_Object frame, Lisp_Object font_spec)
    `face-font-selection-order' is ignored here.
    Properties to be considered are same as for list(). */
 static Lisp_Object
-nsfont_match (Lisp_Object frame, Lisp_Object font_spec)
+nsfont_match (struct frame *f, Lisp_Object font_spec)
 {
-    return ns_findfonts(font_spec, YES);
+  return ns_findfonts (font_spec, YES);
 }
 
 
 /* List available families.  The value is a list of family names
    (symbols). */
 static Lisp_Object
-nsfont_list_family (Lisp_Object frame)
+nsfont_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   NSEnumerator *families;
