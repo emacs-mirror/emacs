@@ -43,6 +43,7 @@
 (defvar file-notify--test-event nil)
 
 (require 'tramp)
+(require 'tramp-sh)
 (setq tramp-verbose 0
       tramp-message-show-message nil)
 (when noninteractive (defalias 'tramp-read-passwd 'ignore))
@@ -57,7 +58,18 @@
   (ignore-errors
     (and (file-remote-p file-notify-test-remote-temporary-file-directory)
 	 (file-directory-p file-notify-test-remote-temporary-file-directory)
-	 (file-writable-p file-notify-test-remote-temporary-file-directory))))
+	 (file-writable-p file-notify-test-remote-temporary-file-directory)
+	 ;; Extracted from tramp-sh-handle-file-notify-add-watch.
+	 ;; Even though the "remote" system is just ssh@localhost,
+	 ;; the PATH might not be the same as the "local" PATH.
+	 ;; Eg this seems to be the case on hydra.nixos.org.
+	 ;; Without this, tests fail with:
+	 ;; "No file notification program found on /ssh:localhost:"
+	 ;; Try to fix PATH instead?
+	 (with-parsed-tramp-file-name
+	     file-notify-test-remote-temporary-file-directory nil
+	     (or (tramp-get-remote-gvfs-monitor-dir v)
+		 (tramp-get-remote-inotifywait v))))))
 
 (defmacro file-notify--deftest-remote (test docstring)
   "Define ert `TEST-remote' for remote files."

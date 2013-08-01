@@ -1,3 +1,8 @@
+2013-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/file-notify-tests.el (file-notify--test-remote-enabled):
+	Try to check that the remote system has a notification program.
+
 2013-07-31  Glenn Morris  <rgm@gnu.org>
 
 	* automated/undo-tests.el (undo-test2, undo-test5): Be quieter.
