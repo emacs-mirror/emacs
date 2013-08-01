@@ -1,3 +1,9 @@
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (last_mouse_press_frame): Remove the
+	leftover which is not really used any more.
+	(handle_one_xevent, syms_of_xterm): Adjust users.
+
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Drop unnecessary functions that deals with frame pixel size.

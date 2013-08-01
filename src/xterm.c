@@ -213,7 +213,6 @@ static unsigned long ignore_next_mouse_click_timeout;
 
 static XRectangle last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
-static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -6975,13 +6974,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             && event.xbutton.same_screen)
           {
             SET_SAVED_BUTTON_EVENT;
-            XSETFRAME (last_mouse_press_frame, f);
             *finish = X_EVENT_DROP;
-          }
-        else if (event.type == ButtonPress)
-          {
-            last_mouse_press_frame = Qnil;
-            goto OTHER;
           }
         else
           goto OTHER;
@@ -10727,9 +10720,6 @@ syms_of_xterm (void)
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
-
-  staticpro (&last_mouse_press_frame);
-  last_mouse_press_frame = Qnil;
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
