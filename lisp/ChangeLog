@@ -1,3 +1,7 @@
+2013-08-01  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Fix menu entry for vc-ignore.
+
 2013-07-31  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/log-view.el (log-view-diff): Extract `log-view-diff-common',
