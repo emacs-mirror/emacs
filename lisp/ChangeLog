@@ -1,3 +1,20 @@
+2013-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Use lexical-binding.
+	(dir-locals-read-from-file): Remove unused `err' variable.
+	(hack-dir-local-variables--warned-coding): New var.
+	(hack-dir-local-variables): Use it to avoid repeated warnings.
+	(make-backup-file-name--default-function): New function.
+	(make-backup-file-name-function): Use it as default.
+	(buffer-stale--default-function): New function.
+	(buffer-stale-function): Use it as default.
+	(revert-buffer-insert-file-contents--default-function): New function.
+	(revert-buffer-insert-file-contents-function): Use it as default.
+	(insert-directory): Avoid add-to-list.
+
+	* autorevert.el (auto-revert-handler): Simplify.
+	Use buffer-stale--default-function.
+
 2013-08-01  Tassilo Horn  <tsdh@gnu.org>
 
 	* speedbar.el (speedbar-query-confirmation-method): Doc fix.
