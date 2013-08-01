@@ -145,7 +145,7 @@ int use_xim = 0;  /* configure --without-xim */
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
-static int any_help_event_p;
+static bool any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
@@ -877,8 +877,6 @@ XTreset_terminal_modes (struct terminal *terminal)
 
 static void x_set_glyph_string_clipping (struct glyph_string *);
 static void x_set_glyph_string_gc (struct glyph_string *);
-static void x_draw_glyph_string_background (struct glyph_string *,
-                                            int);
 static void x_draw_glyph_string_foreground (struct glyph_string *);
 static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
 static void x_draw_glyph_string_box (struct glyph_string *);
@@ -1163,7 +1161,7 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
    contains the first component of a composition.  */
 
 static void
-x_draw_glyph_string_background (struct glyph_string *s, int force_p)
+x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 {
   /* Nothing to do if background has already been drawn or if it
      shouldn't be drawn in the first place.  */
@@ -1412,11 +1410,6 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 }
 
 #ifdef USE_X_TOOLKIT
-
-static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
-                                    XrmValue *, XrmValue *, XtPointer *);
-static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
-                            XrmValue *, Cardinal *);
 
 #ifdef USE_LUCID
 
@@ -9811,18 +9804,11 @@ get_bits_and_offset (long unsigned int mask, int *bits, int *offset)
 /* Return 1 if display DISPLAY is available for use, 0 otherwise.
    But don't permanently open it, just test its availability.  */
 
-int
+bool
 x_display_ok (const char *display)
 {
-    int dpy_ok = 1;
-    Display *dpy;
-
-    dpy = XOpenDisplay (display);
-    if (dpy)
-      XCloseDisplay (dpy);
-    else
-      dpy_ok = 0;
-    return dpy_ok;
+  Display *dpy = XOpenDisplay (display);
+  return dpy ? (XCloseDisplay (dpy), 1) : 0;
 }
 
 #ifdef USE_GTK

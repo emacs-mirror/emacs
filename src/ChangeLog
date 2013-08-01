@@ -17,6 +17,11 @@
 	This is better because this code always unconditionally skips
 	non-X frames in Vframe_list and issues the only	XFlush if we
 	have more than one X frame on the same X display.
+	(any_help_event_p, x_draw_glyph_string_background, x_display_ok):
+	Use bool for booleans.
+	(x_draw_glyph_string_background, cvt_string_to_pixel):
+	(cvt_pixel_dtor): Drop unnecessary prototypes.
+	* xterm.h (x_display_ok): Adjust prototype.
 
 2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
 

@@ -403,7 +403,7 @@ extern Lisp_Object x_display_name_list;
 extern struct x_display_info *x_display_info_for_display (Display *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
-extern int x_display_ok  (const char *);
+extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
 
