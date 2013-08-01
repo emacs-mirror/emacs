@@ -929,10 +929,9 @@ typedef struct frame *FRAME_PTR;
     if (frame == hlinfo->mouse_face_mouse_frame)		\
       {								\
 	block_input ();						\
-	if (hlinfo->mouse_face_mouse_frame)			\
-	  note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
-				hlinfo->mouse_face_mouse_x,	\
-				hlinfo->mouse_face_mouse_y);	\
+	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
+			      hlinfo->mouse_face_mouse_x,	\
+			      hlinfo->mouse_face_mouse_y);	\
 	unblock_input ();					\
       }								\
   } while (0)

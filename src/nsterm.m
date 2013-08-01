@@ -1883,10 +1883,9 @@ ns_frame_up_to_date (struct frame *f)
 	{
 	  block_input ();
 	  ns_update_begin(f);
-	  if (hlinfo->mouse_face_mouse_frame)
-	    note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
-				  hlinfo->mouse_face_mouse_x,
-				  hlinfo->mouse_face_mouse_y);
+	  note_mouse_highlight (hlinfo->mouse_face_mouse_frame,
+				hlinfo->mouse_face_mouse_x,
+				hlinfo->mouse_face_mouse_y);
 	  ns_update_end(f);
 	  unblock_input ();
 	}

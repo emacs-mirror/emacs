@@ -1,5 +1,11 @@
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* frame.h (FRAME_MOUSE_UPDATE):
+	* nsterm.m (ns_frame_up_to_date): Omit redundant check
+	whether hlinfo->mouse_face_mouse_frame is non-NULL.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Avoid redundant Lisp_Object <-> struct frame conversions in font API.
 	* font.h (struct font_driver): Change list, match, and list_family
 	functions to accept struct frame * as first arg.
