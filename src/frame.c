@@ -2867,10 +2867,11 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 	/* Actually set that position, and convert to absolute.  */
 	x_set_offset (f, leftpos, toppos, -1);
       }
-
+#ifdef HAVE_X_WINDOWS
     if ((!NILP (icon_left) || !NILP (icon_top))
 	&& ! (icon_left_no_change && icon_top_no_change))
       x_wm_set_icon_position (f, XINT (icon_left), XINT (icon_top));
+#endif /* HAVE_X_WINDOWS */
   }
 
   UNGCPRO;

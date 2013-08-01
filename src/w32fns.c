@@ -4182,9 +4182,6 @@ x_icon (struct frame *f, Lisp_Object parms)
 
   block_input ();
 
-  if (! EQ (icon_x, Qunbound))
-    x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
-
 #if 0 /* TODO */
   /* Start up iconic or window? */
   x_wm_set_window_state

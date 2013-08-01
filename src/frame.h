@@ -1207,7 +1207,6 @@ extern Lisp_Object Qrun_hook_with_args;
 
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
-extern void x_wm_set_icon_position (struct frame *, int, int);
 extern void x_wm_set_size_hint (FRAME_PTR f, long flags, bool user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
@@ -1278,8 +1277,11 @@ extern void x_set_menu_bar_lines (struct frame *,
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 
-#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+#if defined HAVE_X_WINDOWS
+extern void x_wm_set_icon_position (struct frame *, int, int);
+#if !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
+#endif
 #endif
 
 extern void x_query_colors (struct frame *f, XColor *, int);

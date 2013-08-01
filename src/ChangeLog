@@ -1,5 +1,15 @@
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not use pure Xism x_wm_set_icon_position in non-X ports.
+	* frame.c (x_set_frame_parameters): Call to x_wm_set_icon_position
+	only if HAVE_X_WINDOWS is in use.
+	* frame.h (x_set_frame_parameters): Move under HAVE_X_WINDOWS.
+	* nsterm.m (x_wm_set_icon_position): Remove no-op.
+	* w32term.c (x_wm_set_icon_position): Likewise.
+	* w32fns.c (x_icon): Adjust user.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.c (last_mouse_press_frame): Remove the
 	leftover which is not really used any more.
 	(handle_one_xevent, syms_of_xterm): Adjust users.

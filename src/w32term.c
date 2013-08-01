@@ -6225,22 +6225,6 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   leave_crit ();
 }
 
-/* Window manager things */
-void
-x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
-{
-#if 0
-  Window window = FRAME_W32_WINDOW (f);
-
-  f->display.x->wm_hints.flags |= IconPositionHint;
-  f->display.x->wm_hints.icon_x = icon_x;
-  f->display.x->wm_hints.icon_y = icon_y;
-
-  XSetWMHints (FRAME_X_DISPLAY (f), window, &f->display.x->wm_hints);
-#endif
-}
-
-
 /***********************************************************************
 				Fonts
  ***********************************************************************/

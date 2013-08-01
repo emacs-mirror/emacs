@@ -3863,15 +3863,6 @@ ns_judge_scroll_bars (struct frame *f)
     [eview updateFrameSize: NO];
 }
 
-
-void
-x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
-{
-  /* XXX irrelevant under NS */
-}
-
-
-
 /* ==========================================================================
 
     Initialization
