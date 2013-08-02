@@ -1012,6 +1012,7 @@ The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
+@cindex alias, for coding systems
 @defun coding-system-aliases coding-system
 This function returns the list of aliases of @var{coding-system}.
 @end defun

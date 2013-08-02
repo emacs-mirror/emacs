@@ -1838,6 +1838,7 @@ updates this list.
 @node Variable Aliases
 @section Variable Aliases
 @cindex variable aliases
+@cindex alias, for variables
 
   It is sometimes useful to make two variables synonyms, so that both
 variables always have the same value, and changing either one also

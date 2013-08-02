@@ -1,3 +1,13 @@
+2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* display.texi (Face Functions): Add an index.
+
+	* variables.texi (Variable Aliases): Add an index.
+
+	* functions.texi (Defining Functions): Add an index.
+
+	* nonascii.texi (Coding System Basics): Add an index.
+
 2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* nonascii.texi (Non-ASCII Characters): Update menu.

@@ -2738,6 +2738,7 @@ differently from the default face.
 @end defun
 
 @cindex face alias
+@cindex alias, for faces
 A @dfn{face alias} provides an equivalent name for a face.  You can
 define a face alias by giving the alias symbol the @code{face-alias}
 property, with a value of the target face name.  The following example
