@@ -1,5 +1,11 @@
 2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* insdel.c (adjust_after_replace, replace_range, del_range_2):
+	Do not check whether undo is enabled because record_insert and
+	record_delete does that themselves.
+
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.h (struct x_output) [HAVE_X_I18N]: Remove xic_base_fontname
 	member which is not really used any more.
 	(FRAME_XIC_BASE_FONTNAME): Remove.
