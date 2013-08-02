@@ -3,9 +3,6 @@
 	* message.el (message-ignored-news-headers): Delete X-Gnus-Delayed
 	before sending.
 
-	* dgnushack.el (dgnushack-compile): Add a temporary check for
-	gnus-icalendar.
-
 	* mm-decode.el (mm-command-output): New face.
 	(mm-display-external): Use it.
 
