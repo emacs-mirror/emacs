@@ -1,3 +1,13 @@
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix X GC leak in GTK and raw (no toolkit) X ports.
+	* xterm.c (x_free_frame_resources): If white and black relief
+	GCs are allocated, always free them here.
+	* xfns.c (x_make_gc): Omit redundant initialization.
+	* widget.c (create_frame_gcs): Remove the leftover.
+	(EmacsFrameDestroy): Do nothing because all GCs are now freed
+	in x_free_frame_resources.
+
 2013-08-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (windowWillResize:toSize:): Only change title if

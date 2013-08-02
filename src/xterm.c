@@ -9439,6 +9439,19 @@ x_free_frame_resources (struct frame *f)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
       x_free_gcs (f);
+
+      /* Free extra GCs allocated by x_setup_relief_colors.  */
+      if (f->output_data.x->white_relief.gc)
+	{
+	  XFreeGC (dpyinfo->display, f->output_data.x->white_relief.gc);
+	  f->output_data.x->white_relief.gc = 0;
+	}
+      if (f->output_data.x->black_relief.gc)
+	{
+	  XFreeGC (dpyinfo->display, f->output_data.x->black_relief.gc);
+	  f->output_data.x->black_relief.gc = 0;
+	}
+
       XFlush (FRAME_X_DISPLAY (f));
     }
 

@@ -2788,10 +2788,6 @@ x_make_gc (struct frame *f)
 		  | GCFillStyle | GCLineWidth),
 		 &gc_values);
 
-  /* Reliefs.  */
-  f->output_data.x->white_relief.gc = 0;
-  f->output_data.x->black_relief.gc = 0;
-
   /* Create the gray border tile used when the pointer is not in
      the frame.  Since this depends on the frame's pixel values,
      this must be done on a per-frame basis.  */
