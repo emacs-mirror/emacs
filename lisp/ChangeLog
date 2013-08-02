@@ -1,5 +1,8 @@
 2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode)
+	(easy-mmode-define-navigation): Avoid ((lambda (..) ..) ...).
+
 	* custom.el (custom-initialize-default, custom-initialize-set)
 	(custom-initialize-reset, custom-initialize-changed): Affect the
 	toplevel-default-value (bug#6275, bug#14586).
