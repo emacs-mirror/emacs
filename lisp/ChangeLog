@@ -1,3 +1,31 @@
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move code related to saving frames to frameset.el.
+	* desktop.el: Require frameset.
+	(desktop-restore-frames): Doc fix.
+	(desktop-restore-reuses-frames): Rename from
+	desktop-restoring-reuses-frames.
+	(desktop-saved-frameset): Rename from desktop-saved-frame-states.
+	(desktop-clear): Clear frames too.
+	(desktop-filter-parameters-alist): Set from frameset-filter-alist.
+	(desktop--filter-tty*, desktop-save, desktop-read):
+	Use frameset functions.
+	(desktop-before-saving-frames-functions, desktop--filter-*-color)
+	(desktop--filter-minibuffer, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--filter-iconified-position)
+	(desktop-restore-in-original-display-p, desktop--filter-frame-parms)
+	(desktop--process-minibuffer-frames, desktop-save-frames)
+	(desktop--reuse-list, desktop--compute-pos, desktop--move-onscreen)
+	(desktop--find-frame, desktop--select-frame, desktop--make-frame)
+	(desktop--sort-states, desktop-restoring-frames-p)
+	(desktop-restore-frames): Remove.  Most code moved to frameset.el.
+	(desktop-restoring-frameset-p, desktop-restore-frameset)
+	(desktop--check-dont-save, desktop-save-frameset): New functions.
+	(desktop--app-id): New constant.
+	(desktop-first-buffer, desktop-buffer-ok-count)
+	(desktop-buffer-fail-count): Move before first use.
+	* frameset.el: New file.
+
 2013-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el: Use lexical-binding.
