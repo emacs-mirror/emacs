@@ -1,3 +1,13 @@
+2013-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-delay.el (gnus-delay-article): Fix typo.
+
+	* gnus-group.el (gnus-group-delete-articles): Allow deleting only "old"
+	articles.
+
+	* gnus-delay.el (gnus-delay-article): Run `message-send-hook' so that
+	we can get spell-checking etc.
+
 2013-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-encode-message-header): Unify charsets into
