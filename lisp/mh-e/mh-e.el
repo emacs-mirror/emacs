@@ -1019,6 +1019,7 @@ windows in the frame are removed."
   (when delete-other-windows-flag
     (delete-other-windows)))
 
+;; FIXME: Maybe out of date?  --xfq
 (if (boundp 'customize-package-emacs-version-alist)
     (add-to-list 'customize-package-emacs-version-alist
                  '(MH-E ("6.0" . "22.1") ("6.1" . "22.1") ("7.0" . "22.1")
