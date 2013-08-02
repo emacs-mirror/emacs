@@ -5889,11 +5889,6 @@ x_focus_on_frame (struct frame *f)
   unblock_input ();
 }
 
-void
-x_unfocus_frame (struct frame *f)
-{
-}
-
 /* Raise frame F.  */
 void
 x_raise_frame (struct frame *f)

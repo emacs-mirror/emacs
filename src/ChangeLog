@@ -8,6 +8,7 @@
 	(update_frame_menubar, set_frame_menubar, free_frame_menubar)
 	(create_and_show_popup_menu, xmenu_show, create_and_show_dialog)
 	(xdialog_show): Use eassert for debugging check.
+	* w32term.c (x_unfocus_frame): Remove unused dummy function.
 
 2013-08-01  Paul Eggert  <eggert@cs.ucla.edu>
 
