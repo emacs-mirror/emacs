@@ -1,3 +1,7 @@
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typos (bug#15000).
+
 2013-07-26  Micah Anderson  <micah@riseup.net>  (tiny change)
 
 	* spook.lines: Additions.  (Bug#14658)
