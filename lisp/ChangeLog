@@ -1,3 +1,11 @@
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* custom.el (custom-initialize-default, custom-initialize-set)
+	(custom-initialize-reset, custom-initialize-changed): Affect the
+	toplevel-default-value (bug#6275, bug#14586).
+	* emacs-lisp/advice.el (ad-compile-function): Undo previous workaround
+	for bug#6275.
+
 2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):

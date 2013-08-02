@@ -2280,7 +2280,6 @@ For that it has to be fbound with a non-autoload definition."
 (defun ad-compile-function (function)
   "Byte-compile the assembled advice function."
   (require 'bytecomp)
-  (require 'warnings)  ;To define warning-suppress-types before we let-bind it.
   (let ((byte-compile-warnings byte-compile-warnings)
         ;; Don't pop up windows showing byte-compiler warnings.
         (warning-suppress-types '((bytecomp))))

@@ -1,3 +1,13 @@
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (default_toplevel_binding): New function.
+	(Fdefvar): Use it.
+	(unbind_to, backtrace_eval_unrewind): Do a bit of CSE simplification.
+	(Fdefault_toplevel_value, Fset_default_toplevel_value): New subrs.
+	(syms_of_eval): Export them.
+	* data.c (Fdefault_value): Micro cleanup.
+	* term.c (init_tty): Use "false".
+
 2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix X GC leak in GTK and raw (no toolkit) X ports.
