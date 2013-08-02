@@ -162,3 +162,21 @@ void someFunc(const struct ContainsStruct::TheStruct *foo)
   foo->// -9-
     // #9# ("memberOne" "memberTwo")
 }
+
+// Class with structure tag
+class ContainsNamedStruct
+{
+  struct _fooStruct
+  {
+    int memberOne;
+    int memberTwo;
+  } member;
+};
+
+void someOtherFunc(void)
+{
+  ContainsNamedStruct *someClass;
+  // This has to find ContainsNamedStruct::_fooStruct
+  someClass->member.// -10-
+    // #10# ("memberOne" "memberTwo")
+}
