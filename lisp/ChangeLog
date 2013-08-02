@@ -1,5 +1,8 @@
 2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Add cl-def* expressions.
+
 	* frameset.el (frameset-filter-params): Fix order of arguments.
 
 2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
