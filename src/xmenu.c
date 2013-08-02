@@ -159,8 +159,7 @@ mouse_position_for_popup (FRAME_PTR f, int *x, int *y)
   Window root, dummy_window;
   int dummy;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   block_input ();
 
@@ -623,8 +622,7 @@ popup_widget_loop (int do_timers, GtkWidget *widget)
 void
 x_activate_menubar (FRAME_PTR f)
 {
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   if (!f->output_data.x->saved_menu_event->type)
     return;
@@ -839,8 +837,7 @@ update_frame_menubar (FRAME_PTR f)
   struct x_output *x;
   int columns, rows;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   x = f->output_data.x;
 
@@ -927,8 +924,7 @@ set_frame_menubar (FRAME_PTR f, bool first_time, bool deep_p)
   bool *submenu_top_level_items;
   int *submenu_n_panes;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   menubar_widget = f->output_data.x->menubar_widget;
 
@@ -1286,8 +1282,7 @@ free_frame_menubar (FRAME_PTR f)
 {
   Widget menubar_widget;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   menubar_widget = f->output_data.x->menubar_widget;
 
@@ -1434,8 +1429,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
   use_pos_func = 1;
 #endif
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   xg_crazy_callback_abort = 1;
   menu = xg_create_widget ("popup", first_wv->name, f, first_wv,
@@ -1539,8 +1533,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
   LWLIB_ID menu_id;
   Widget menu;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
 #ifdef USE_LUCID
   apply_systemfont_to_menu (f, f->output_data.x->widget);
@@ -1623,8 +1616,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
 
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   *error_name = NULL;
 
@@ -1906,8 +1898,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   GtkWidget *menu;
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   menu = xg_create_widget ("dialog", first_wv->name, f, first_wv,
                            G_CALLBACK (dialog_selection_callback),
@@ -1953,8 +1944,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   LWLIB_ID dialog_id;
 
-  if (!FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   dialog_id = widget_id_tick++;
 #ifdef USE_LUCID
@@ -2012,8 +2002,7 @@ xdialog_show (FRAME_PTR f,
 
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
-  if (! FRAME_X_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f));
 
   *error_name = NULL;
 
@@ -2269,8 +2258,7 @@ xmenu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
   unsigned int dummy_uint;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
 
-  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
-    emacs_abort ();
+  eassert (FRAME_X_P (f) || FRAME_MSDOS_P (f));
 
   *error_name = 0;
   if (menu_items_n_panes == 0)

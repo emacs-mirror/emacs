@@ -1,3 +1,14 @@
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_output) [HAVE_X_I18N]: Remove xic_base_fontname
+	member which is not really used any more.
+	(FRAME_XIC_BASE_FONTNAME): Remove.
+	* xfns.c (xic_free_fontset): Adjust user.
+	* xmenu.c (mouse_position_for_popup, x_activate_menubar)
+	(update_frame_menubar, set_frame_menubar, free_frame_menubar)
+	(create_and_show_popup_menu, xmenu_show, create_and_show_dialog)
+	(xdialog_show): Use eassert for debugging check.
+
 2013-08-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c, fns.c (merge): Move extern decl from here ...

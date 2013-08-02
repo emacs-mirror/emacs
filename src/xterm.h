@@ -590,7 +590,6 @@ struct x_output
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
-  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -754,7 +753,6 @@ enum
 #define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
-#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 

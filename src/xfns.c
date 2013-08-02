@@ -2088,9 +2088,6 @@ xic_free_xfontset (struct frame *f)
     /* The fontset is not used anymore.  It is safe to free it.  */
     XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
 
-  if (FRAME_XIC_BASE_FONTNAME (f))
-    xfree (FRAME_XIC_BASE_FONTNAME (f));
-  FRAME_XIC_BASE_FONTNAME (f) = NULL;
   FRAME_XIC_FONTSET (f) = NULL;
 }
 
