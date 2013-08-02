@@ -230,7 +230,7 @@ nil while the filtering is done to restore it."
 	(:restore
 	 (when saving (push current filtered)))
 	((or `(,fun . ,args) (and fun (pred fboundp)))
-	 (let ((this (apply fun filtered current parameters saving args)))
+	 (let ((this (apply fun current filtered parameters saving args)))
 	   (when this
 	     (push (if (eq this t) current this) filtered))))
 	(other

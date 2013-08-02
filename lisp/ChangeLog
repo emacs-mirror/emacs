@@ -1,5 +1,9 @@
 2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset-filter-params): Fix order of arguments.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
 	Move code related to saving frames to frameset.el.
 	* desktop.el: Require frameset.
 	(desktop-restore-frames): Doc fix.
