@@ -1,3 +1,8 @@
+2013-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-encode-message-header): Unify charsets into
+	a single one used for encoding the whole text in a header.
+
 2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-ignored-news-headers): Delete X-Gnus-Delayed
