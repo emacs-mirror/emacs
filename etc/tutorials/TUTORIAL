@@ -372,13 +372,15 @@ the text between the two positions.
 
 The difference between "killing" and "deleting" is that "killed" text
 can be reinserted (at any position), whereas "deleted" things cannot
-be reinserted in this way (you can, however, undo a deletion--see below).
-Reinsertion of killed text is called "yanking".  Generally, the
-commands that can remove a lot of text kill the text (they are set up so
-that you can yank the text), while the commands that remove just one
-character, or only remove blank lines and spaces, do deletion (so you
-cannot yank that text).  <DEL> and C-d do deletion in the simplest
-case, with no argument.  When given an argument, they kill instead.
+be reinserted in this way (you can, however, undo a deletion--see
+below).  Reinsertion of killed text is called "yanking".  (Think of it
+as yanking back, or pulling back, some text that was taken away.)
+Generally, the commands that can remove a lot of text kill the text
+(they are set up so that you can yank the text), while the commands
+that remove just one character, or only remove blank lines and spaces,
+do deletion (so you cannot yank that text).  <DEL> and C-d do deletion
+in the simplest case, with no argument.  When given an argument, they
+kill instead.
 
 >> Move the cursor to the beginning of a line which is not empty.
    Then type C-k to kill the text on that line.
@@ -391,13 +393,12 @@ treats a numeric argument specially: it kills that many lines AND
 their contents.  This is not mere repetition.  C-u 2 C-k kills two
 lines and their newlines; typing C-k twice would not do that.
 
-Reinserting killed text is called "yanking".  (Think of it as yanking
-back, or pulling back, some text that was taken away.)  You can yank
-the killed text either at the same place where it was killed, or at
-some other place in the text you are editing, or even in a different
-file.  You can yank the same text several times; that makes multiple
-copies of it.  Some other editors call killing and yanking "cutting"
-and "pasting" (see the Glossary in the Emacs manual).
+You can yank the killed text either at the same place where it was
+killed, or at some other place in the text you are editing, or even in
+a different file.  You can yank the same text several times; that
+makes multiple copies of it.  Some other editors call killing and
+yanking "cutting" and "pasting" (see the Glossary in the Emacs
+manual).
 
 The command for yanking is C-y.  It reinserts the last killed text,
 at the current cursor position.
