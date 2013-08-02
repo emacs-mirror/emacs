@@ -109,7 +109,10 @@ typedef float EmacsCGFloat;
 @interface EmacsView : NSView <NSTextInput>
 #endif
    {
+#ifdef NS_IMPL_COCOA
    char *old_title;
+   BOOL maximizing_resize;
+#endif
    BOOL windowClosing;
    NSString *workingText;
    BOOL processingCompose;

@@ -1,3 +1,13 @@
+2013-08-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowWillResize:toSize:): Only change title if
+	! maximizing_resize && FULLSCREEN_NONE (Bug#15005).  strdup title before
+	modifying it.
+	(viewDidEndLiveResize): New method.
+
+	* nsterm.h (EmacsView): Add maximizing_resize, put it and old_title
+	inside NS_IMPL_COCOA.
+
 2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* insdel.c (adjust_after_replace, replace_range, del_range_2):

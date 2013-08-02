@@ -5663,17 +5663,17 @@ not_in_argv (NSString *arg)
             old_title = 0;
           }
       }
-    else
+    else if (fs_state == FULLSCREEN_NONE && ! maximizing_resize)
       {
         char *size_title;
         NSWindow *window = [self window];
         if (old_title == 0)
           {
-            const char *t = [[[self window] title] UTF8String];
+            char *t = strdup ([[[self window] title] UTF8String]);
             char *pos = strstr (t, "  —  ");
             if (pos)
               *pos = '\0';
-            old_title = xstrdup (t);
+            old_title = t;
           }
         size_title = xmalloc (strlen (old_title) + 40);
 	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
@@ -5712,21 +5712,27 @@ not_in_argv (NSString *arg)
   NSTRACE (windowDidResize);
 /*fprintf (stderr,"windowDidResize: %.0f\n",[theWindow frame].size.height); */
 
-#ifdef NS_IMPL_COCOA
-  if (old_title != 0)
-    {
-      xfree (old_title);
-      old_title = 0;
-    }
-#endif /* NS_IMPL_COCOA */
-
-  if (cols > 0 && rows > 0)
+if (cols > 0 && rows > 0)
     {
       [self updateFrameSize: YES];
     }
 
   ns_send_appdefined (-1);
 }
+
+#ifdef NS_IMPL_COCOA
+- (void)viewDidEndLiveResize
+{
+  [super viewDidEndLiveResize];
+  if (old_title != 0)
+    {
+      [[self window] setTitle: [NSString stringWithUTF8String: old_title]];
+      xfree (old_title);
+      old_title = 0;
+    }
+  maximizing_resize = NO;
+}
+#endif /* NS_IMPL_COCOA */
 
 
 - (void)windowDidBecomeKey: (NSNotification *)notification
@@ -5831,7 +5837,10 @@ not_in_argv (NSString *arg)
 
   FRAME_NS_VIEW (f) = self;
   emacsframe = f;
+#ifdef NS_IMPL_COCOA
   old_title = 0;
+  maximizing_resize = NO;
+#endif
 
   win = [[EmacsWindow alloc]
             initWithContentRect: r
@@ -5974,6 +5983,9 @@ not_in_argv (NSString *arg)
       maximized_width = -1;
       result.origin.y = defaultFrame.origin.y;
       [self setFSValue: FULLSCREEN_HEIGHT];
+#ifdef NS_IMPL_COCOA
+      maximizing_resize = YES;
+#endif
     }
   else if (next_maximized == FULLSCREEN_WIDTH)
     {
@@ -5992,12 +6004,18 @@ not_in_argv (NSString *arg)
       maximized_width = result.size.width;
       maximized_height = result.size.height;
       [self setFSValue: FULLSCREEN_MAXIMIZED];
+#ifdef NS_IMPL_COCOA
+      maximizing_resize = YES;
+#endif
     }
   else
     {
       /* restore */
       result = ns_userRect.size.height ? ns_userRect : result;
       ns_userRect = NSMakeRect (0, 0, 0, 0);
+#ifdef NS_IMPL_COCOA
+      maximizing_resize = fs_state != FULLSCREEN_NONE;
+#endif
       [self setFSValue: FULLSCREEN_NONE];
       maximized_width = maximized_height = -1;
     }
