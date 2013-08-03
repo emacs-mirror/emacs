@@ -49,34 +49,38 @@ enum composition_method {
 /* Maximum number of components a single composition can have.  */
 #define MAX_COMPOSITION_COMPONENTS 16
 
-/* These macros access information about a composition that
+/* These operations access information about a composition that
    has `composition' property PROP.  PROP is:
 	((LENGTH . COMPONENTS) . MODIFICATION-FUNC)
    or
 	(COMPOSITION-ID . (LENGTH COMPONENTS . MODIFICATION-FUNC))
    They don't check validity of PROP.  */
 
-/* Return 1 if the composition is already registered.  */
-#define COMPOSITION_REGISTERD_P(prop) INTEGERP (XCAR (prop))
+/* Return true if PROP is already registered.  */
+COMPOSITE_INLINE bool
+composition_registered_p (Lisp_Object prop)
+{
+  return INTEGERP (XCAR (prop));
+}
 
 /* Return ID number of the already registered composition.  */
 #define COMPOSITION_ID(prop) XINT (XCAR (prop))
 
 /* Return length of the composition.  */
 #define COMPOSITION_LENGTH(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)	\
+  (composition_registered_p (prop)	\
    ? XINT (XCAR (XCDR (prop)))		\
    : XINT (XCAR (XCAR (prop))))
 
 /* Return components of the composition.  */
 #define COMPOSITION_COMPONENTS(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)	\
+  (composition_registered_p (prop)	\
    ? XCAR (XCDR (XCDR (prop)))		\
    : XCDR (XCAR (prop)))
 
 /* Return modification function of the composition.  */
 #define COMPOSITION_MODIFICATION_FUNC(prop)	\
-  (COMPOSITION_REGISTERD_P (prop)		\
+  (composition_registered_p (prop)		\
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
 
@@ -199,43 +203,42 @@ extern void syms_of_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
 
-/* Return the method of composition.  */
+/* Return the method of a composition with property PROP.  */
+
 COMPOSITE_INLINE enum composition_method
 composition_method (Lisp_Object prop)
 {
-  Lisp_Object temp;
-
-  return (COMPOSITION_REGISTERD_P (prop)
-	  ? composition_table[COMPOSITION_ID (prop)]->method
-	  : (temp = XCDR (XCAR (prop)),
-	     (NILP (temp)
+  if (composition_registered_p (prop))
+    return composition_table[COMPOSITION_ID (prop)]->method;
+  else
+    {
+      Lisp_Object temp = XCDR (XCAR (prop));
+      return (NILP (temp)
 	      ? COMPOSITION_RELATIVE
-	      : (INTEGERP (temp) || STRINGP (temp))
+	      : INTEGERP (temp) || STRINGP (temp)
 	      ? COMPOSITION_WITH_ALTCHARS
-	      : COMPOSITION_WITH_RULE_ALTCHARS)));
+	      : COMPOSITION_WITH_RULE_ALTCHARS);
+    }
 }
 
-/* Return 1 if the composition is valid.  It is valid if
-   length of the composition equals to (END - START).  */
+/* Given offsets START and END, return true if PROP is a valid composition
+   property with length END - START.  */
+
 COMPOSITE_INLINE bool
 composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
 {
-  Lisp_Object temp;
-
   return (CONSP (prop)
-	  && (COMPOSITION_REGISTERD_P (prop)
+	  && (composition_registered_p (prop)
 	      ? (COMPOSITION_ID (prop) >= 0
 		 && COMPOSITION_ID (prop) <= n_compositions
 		 && CONSP (XCDR (prop)))
-	      : (temp = XCAR (prop),
-		 (CONSP (temp)
-		  && (temp = XCDR (temp),
-		      (NILP (temp)
-		       || STRINGP (temp)
-		       || VECTORP (temp)
-		       || INTEGERP (temp)
-		       || CONSP (temp))))))
-	  && (end - start) == COMPOSITION_LENGTH (prop));
+	      : (CONSP (XCAR (prop))
+		  && (NILP (XCDR (XCAR (prop)))
+		      || STRINGP (XCDR (XCAR (prop)))
+		      || VECTORP (XCDR (XCAR (prop)))
+		      || INTEGERP (XCDR (XCAR (prop)))
+		      || CONSP (XCDR (XCAR (prop))))))
+	  && COMPOSITION_LENGTH (prop) == end - start);
 }
 
 /* Macros for lispy glyph-string.  This is completely different from

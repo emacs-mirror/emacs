@@ -1,3 +1,12 @@
+2013-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* composite.h: Minor fixups.
+	(composition_registered_p): Rename from COMPOSITION_REGISTERD_P
+	to fix a misspelling, and change it to an inline function while
+	we're at it (it need not be a macro).  All uses changed.
+	(composition_method, composition_valid_p):
+	Rewrite to avoid assignments in if-conditions.
+
 2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not use global Lisp_Object in composition macros.

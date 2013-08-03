@@ -1873,7 +1873,7 @@ See `find-composition' for more details.  */)
   if (NILP (detail_p))
     return list3 (make_number (start), make_number (end), Qt);
 
-  if (COMPOSITION_REGISTERD_P (prop))
+  if (composition_registered_p (prop))
     id = COMPOSITION_ID (prop);
   else
     {
