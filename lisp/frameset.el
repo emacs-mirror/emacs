@@ -87,11 +87,13 @@ Properties other than :version can be set with
   (setf (frameset-prop FRAMESET PROP) NEW-VALUE)"
   (plist-get (frameset-properties frameset) prop))
 
-(gv-define-setter frameset-prop (v fs prop)
-  `(progn
-     (cl-assert (not (eq ,prop :version)) t ":version can not be set")
-     (setf (frameset-properties ,fs)
-	 (plist-put (frameset-properties ,fs) ,prop ,v))))
+(gv-define-setter frameset-prop (val fs prop)
+  (macroexp-let2 nil v val
+    `(progn
+       (cl-assert (not (eq ,prop :version)) t ":version can not be set")
+       (setf (frameset-properties ,fs)
+	     (plist-put (frameset-properties ,fs) ,prop ,v))
+       ,v)))
 
 
 ;; Filtering
