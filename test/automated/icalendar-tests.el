@@ -433,7 +433,9 @@ and ISO style input data must use english month names."
 	(icalendar-recurring-start-year 2000))
     (unwind-protect
 	(progn
+	  (message "Current time zone: %s" (current-time-zone))
 	  (setenv "TZ" "CET")
+	  (message "Current time zone: %s" (current-time-zone))
 	  (when input-iso
 	    (let ((calendar-month-name-array
 		   ["January" "February" "March" "April" "May" "June" "July" "August"
@@ -674,7 +676,9 @@ Argument EXPECTED-AMERICAN expected american style diary string."
   (let ((timezone (getenv "TZ")))
     (unwind-protect
 	(progn
+	  (message "Current time zone: %s" (current-time-zone))
 	  (setenv "TZ" "CET")
+	  (message "Current time zone: %s" (current-time-zone))
 	  (with-temp-buffer
 	    (if (string-match "^BEGIN:VCALENDAR" input)
 		(insert input)

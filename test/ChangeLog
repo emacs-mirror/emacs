@@ -4,7 +4,7 @@
 
 	* automated/icalendar-tests.el (icalendar-tests--test-export)
 	(icalendar-tests--test-import):
-	Use getenv/setenv rather than set-time-zone-rule.
+	Use getenv/setenv rather than set-time-zone-rule.  Add debug messages.
 	(icalendar-tests--test-import): Reset zone even if error occurred.
 
 2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
