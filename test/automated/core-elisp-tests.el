@@ -32,7 +32,7 @@
     (should (equal (list (let ((c-e-x 1)) (defvar c-e-x 2) c-e-x) c-e-x)
                    '(1 2)))
     (should (equal (list (let ((c-e-x 1))
-                           (defcustom c-e-x "doc" 2 :group 'blah) c-e-x)
+                           (defcustom c-e-x 2 "doc" :group 'blah) c-e-x)
                          c-e-x)
                    '(1 2)))))
 
