@@ -56,9 +56,6 @@ enum composition_method {
 	(COMPOSITION-ID . (LENGTH COMPONENTS . MODIFICATION-FUNC))
    They don't check validity of PROP.  */
 
-/* Temporary variable used only in the following macros.  */
-extern Lisp_Object composition_temp;
-
 /* Return 1 if the composition is already registered.  */
 #define COMPOSITION_REGISTERD_P(prop) INTEGERP (XCAR (prop))
 
@@ -82,35 +79,6 @@ extern Lisp_Object composition_temp;
   (COMPOSITION_REGISTERD_P (prop)		\
    ? XCDR (XCDR (XCDR (prop)))			\
    : CONSP (prop) ? XCDR (prop) : Qnil)
-
-/* Return the method of composition.  */
-#define COMPOSITION_METHOD(prop)					\
-  (COMPOSITION_REGISTERD_P (prop)					\
-   ? composition_table[COMPOSITION_ID (prop)]->method			\
-   : (composition_temp = XCDR (XCAR (prop)),				\
-      (NILP (composition_temp)						\
-       ? COMPOSITION_RELATIVE						\
-       : (INTEGERP (composition_temp) || STRINGP (composition_temp))	\
-       ? COMPOSITION_WITH_ALTCHARS					\
-       : COMPOSITION_WITH_RULE_ALTCHARS)))
-
-/* Return 1 if the composition is valid.  It is valid if length of
-   the composition equals to (END - START).  */
-#define COMPOSITION_VALID_P(start, end, prop)			\
-  (CONSP (prop)							\
-   && (COMPOSITION_REGISTERD_P (prop)				\
-       ? (COMPOSITION_ID (prop) >= 0				\
-	  && COMPOSITION_ID (prop) <= n_compositions		\
-	  && CONSP (XCDR (prop)))				\
-       : (composition_temp = XCAR (prop),			\
-	  (CONSP (composition_temp)				\
-	   && (composition_temp = XCDR (composition_temp),	\
-	       (NILP (composition_temp)				\
-		|| STRINGP (composition_temp)			\
-		|| VECTORP (composition_temp)			\
-		|| INTEGERP (composition_temp)			\
-		|| CONSP (composition_temp))))))		\
-   && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
    pointer to `struct composition'.  */
@@ -232,6 +200,45 @@ extern void compose_region (int, int, Lisp_Object, Lisp_Object,
 extern void syms_of_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
+
+/* Return the method of composition.  */
+COMPOSITE_INLINE enum composition_method
+composition_method (Lisp_Object prop)
+{
+  Lisp_Object temp;
+
+  return (COMPOSITION_REGISTERD_P (prop)
+	  ? composition_table[COMPOSITION_ID (prop)]->method
+	  : (temp = XCDR (XCAR (prop)),
+	     (NILP (temp)
+	      ? COMPOSITION_RELATIVE
+	      : (INTEGERP (temp) || STRINGP (temp))
+	      ? COMPOSITION_WITH_ALTCHARS
+	      : COMPOSITION_WITH_RULE_ALTCHARS)));
+}
+
+/* Return 1 if the composition is valid.  It is valid if
+   length of the composition equals to (END - START).  */
+COMPOSITE_INLINE bool
+composition_valid_p (ptrdiff_t start, ptrdiff_t end, Lisp_Object prop)
+{
+  Lisp_Object temp;
+
+  return (CONSP (prop)
+	  && (COMPOSITION_REGISTERD_P (prop)
+	      ? (COMPOSITION_ID (prop) >= 0
+		 && COMPOSITION_ID (prop) <= n_compositions
+		 && CONSP (XCDR (prop)))
+	      : (temp = XCAR (prop),
+		 (CONSP (temp)
+		  && (temp = XCDR (temp),
+		      (NILP (temp)
+		       || STRINGP (temp)
+		       || VECTORP (temp)
+		       || INTEGERP (temp)
+		       || CONSP (temp))))))
+	  && (end - start) == COMPOSITION_LENGTH (prop));
+}
 
 /* Macros for lispy glyph-string.  This is completely different from
    struct glyph_string.  */

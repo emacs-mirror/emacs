@@ -7497,7 +7497,7 @@ handle_composition_annotation (ptrdiff_t pos, ptrdiff_t limit,
 	  /* We found a composition.  Store the corresponding
 	     annotation data in BUF.  */
 	  int *head = buf;
-	  enum composition_method method = COMPOSITION_METHOD (prop);
+	  enum composition_method method = composition_method (prop);
 	  int nchars = COMPOSITION_LENGTH (prop);
 
 	  ADD_COMPOSITION_DATA (buf, nchars, 0, method);

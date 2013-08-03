@@ -1,5 +1,19 @@
 2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Do not use global Lisp_Object in composition macros.
+	* composite.h (composition_temp): Remove declaration.
+	(COMPOSITION_METHOD, COMPOSITION_VALID_P): Replace with...
+	(composition_method, composition_valid_p): ...inline functions.
+	* composite.c (composition_temp): Remove.
+	(run_composition_function, update_compositions)
+	(composition_compute_stop_pos, composition_adjust_point)
+	(Ffind_composition_internal):
+	* coding.c (handle_composition_annotation):
+	* xdisp.c (handle_composition_prop, check_point_in_composition):
+	Related users changed.
+
+2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Drop FRAME_PTR typedef.
 	* composite.c, font.c, font.h, fontset.c, fontset.h, frame.c, frame.h:
 	* ftfont.c, ftxfont.c, gtkutil.c, gtkutil.h, image.c, keyboard.c:

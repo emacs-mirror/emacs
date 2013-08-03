@@ -5346,7 +5346,7 @@ handle_composition_prop (struct it *it)
      composition (in the case that the composition is from the current
      buffer), draw a glyph composed from the composition components.  */
   if (find_composition (pos, -1, &start, &end, &prop, string)
-      && COMPOSITION_VALID_P (start, end, prop)
+      && composition_valid_p (start, end, prop)
       && (STRINGP (it->string) || (PT <= start || PT >= end)))
     {
       if (start < pos)
@@ -12852,7 +12852,7 @@ check_point_in_composition (struct buffer *prev_buf, ptrdiff_t prev_pt,
 
       if (prev_pt > BUF_BEGV (buf) && prev_pt < BUF_ZV (buf)
 	  && find_composition (prev_pt, -1, &start, &end, &prop, buffer)
-	  && COMPOSITION_VALID_P (start, end, prop)
+	  && composition_valid_p (start, end, prop)
 	  && start < prev_pt && end > prev_pt)
 	/* The last point was within the composition.  Return 1 iff
             point moved out of the composition.  */
@@ -12862,7 +12862,7 @@ check_point_in_composition (struct buffer *prev_buf, ptrdiff_t prev_pt,
   /* Check a composition at the current point.  */
   return (pt > BUF_BEGV (buf) && pt < BUF_ZV (buf)
 	  && find_composition (pt, -1, &start, &end, &prop, buffer)
-	  && COMPOSITION_VALID_P (start, end, prop)
+	  && composition_valid_p (start, end, prop)
 	  && start < pt && end > pt);
 }
 
