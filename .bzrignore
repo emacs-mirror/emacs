@@ -24,7 +24,8 @@ conftest*
 core
 DOC
 DOC-*
-emacs-*/
+# make-dist output.
+./emacs-*
 makefile
 Makefile
 Makefile.c
@@ -81,9 +82,9 @@ leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
-lib/.deps/
+lib/.deps
 lib/Makefile.in
-lib/deps/
+lib/deps
 lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
@@ -95,7 +96,7 @@ lib/stdbool.h
 lib/stdio.h
 lib/stdint.h
 lib/stdlib.h
-lib/sys/
+lib/sys
 lib/SYS
 lib/time.h
 lib/unistd.h
