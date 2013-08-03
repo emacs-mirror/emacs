@@ -4,6 +4,7 @@
 	* composite.h (composition_temp): Remove declaration.
 	(COMPOSITION_METHOD, COMPOSITION_VALID_P): Replace with...
 	(composition_method, composition_valid_p): ...inline functions.
+	(compose_region): Remove the leftover.
 	* composite.c (composition_temp): Remove.
 	(run_composition_function, update_compositions)
 	(composition_compute_stop_pos, composition_adjust_point)

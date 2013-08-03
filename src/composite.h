@@ -195,8 +195,6 @@ extern bool find_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t *, ptrdiff_t *,
 			      Lisp_Object *, Lisp_Object);
 extern void update_compositions (ptrdiff_t, ptrdiff_t, int);
 extern void make_composition_value_copy (Lisp_Object);
-extern void compose_region (int, int, Lisp_Object, Lisp_Object,
-                            Lisp_Object);
 extern void syms_of_composite (void);
 extern void compose_text (ptrdiff_t, ptrdiff_t, Lisp_Object, Lisp_Object,
                           Lisp_Object);
