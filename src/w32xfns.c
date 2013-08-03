@@ -90,7 +90,7 @@ signal_quit (void)
 }
 
 void
-select_palette (FRAME_PTR f, HDC hdc)
+select_palette (struct frame *f, HDC hdc)
 {
   struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
 
@@ -117,7 +117,7 @@ select_palette (FRAME_PTR f, HDC hdc)
 }
 
 void
-deselect_palette (FRAME_PTR f, HDC hdc)
+deselect_palette (struct frame *f, HDC hdc)
 {
   if (f->output_data.w32->old_palette)
     SelectPalette (hdc, f->output_data.w32->old_palette, FALSE);
@@ -126,7 +126,7 @@ deselect_palette (FRAME_PTR f, HDC hdc)
 /* Get a DC for frame and select palette for drawing; force an update of
    all frames if palette's mapping changes.  */
 HDC
-get_frame_dc (FRAME_PTR f)
+get_frame_dc (struct frame *f)
 {
   HDC hdc;
 
@@ -146,7 +146,7 @@ get_frame_dc (FRAME_PTR f)
 }
 
 int
-release_frame_dc (FRAME_PTR f, HDC hdc)
+release_frame_dc (struct frame *f, HDC hdc)
 {
   int ret;
 

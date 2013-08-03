@@ -136,7 +136,7 @@ static GdkDisplay *gdpy_def;
    W can be a GtkMenu or a GtkWindow widget.  */
 
 static void
-xg_set_screen (GtkWidget *w, FRAME_PTR f)
+xg_set_screen (GtkWidget *w, struct frame *f)
 {
   if (FRAME_X_DISPLAY (f) != DEFAULT_GDK_DISPLAY ())
     {
@@ -280,7 +280,7 @@ xg_create_default_cursor (Display *dpy)
 }
 
 static GdkPixbuf *
-xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
+xg_get_pixbuf_from_pixmap (struct frame *f, Pixmap pix)
 {
   int iunused;
   GdkPixbuf *tmp_buf;
@@ -311,7 +311,7 @@ xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
 /* Apply GMASK to GPIX and return a GdkPixbuf with an alpha channel.  */
 
 static GdkPixbuf *
-xg_get_pixbuf_from_pix_and_mask (FRAME_PTR f,
+xg_get_pixbuf_from_pix_and_mask (struct frame *f,
                                  Pixmap pix,
                                  Pixmap mask)
 {
@@ -387,7 +387,7 @@ file_for_image (Lisp_Object image)
    If OLD_WIDGET is not NULL, that widget is modified.  */
 
 static GtkWidget *
-xg_get_image_for_pixmap (FRAME_PTR f,
+xg_get_image_for_pixmap (struct frame *f,
                          struct image *img,
                          GtkWidget *widget,
                          GtkImage *old_widget)
@@ -641,7 +641,7 @@ hierarchy_ch_cb (GtkWidget *widget,
                  GtkWidget *previous_toplevel,
                  gpointer   user_data)
 {
-  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct frame *f = (struct frame *) user_data;
   struct x_output *x = f->output_data.x;
   GtkWidget *top = gtk_widget_get_toplevel (x->ttip_lbl);
 
@@ -663,7 +663,7 @@ qttip_cb (GtkWidget  *widget,
           GtkTooltip *tooltip,
           gpointer    user_data)
 {
-  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct frame *f = (struct frame *) user_data;
   struct x_output *x = f->output_data.x;
   if (x->ttip_widget == NULL)
     {
@@ -707,7 +707,7 @@ qttip_cb (GtkWidget  *widget,
    Return true if a system tooltip is available.  */
 
 bool
-xg_prepare_tooltip (FRAME_PTR f,
+xg_prepare_tooltip (struct frame *f,
                     Lisp_Object string,
                     int *width,
                     int *height)
@@ -764,7 +764,7 @@ xg_prepare_tooltip (FRAME_PTR f,
    xg_prepare_tooltip must have been called before this function.  */
 
 void
-xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
+xg_show_tooltip (struct frame *f, int root_x, int root_y)
 {
 #ifdef USE_GTK_TOOLTIP
   struct x_output *x = f->output_data.x;
@@ -783,7 +783,7 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
    system tooltips).  */
 
 bool
-xg_hide_tooltip (FRAME_PTR f)
+xg_hide_tooltip (struct frame *f)
 {
   bool ret = 0;
 #ifdef USE_GTK_TOOLTIP
@@ -827,7 +827,7 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
    F is the frame we shall set geometry for.  */
 
 static void
-xg_set_geometry (FRAME_PTR f)
+xg_set_geometry (struct frame *f)
 {
   if (f->size_hint_flags & (USPosition | PPosition))
     {
@@ -865,7 +865,7 @@ xg_set_geometry (FRAME_PTR f)
    and use a GtkFixed widget, this doesn't happen automatically.  */
 
 static void
-xg_clear_under_internal_border (FRAME_PTR f)
+xg_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
@@ -903,7 +903,7 @@ xg_clear_under_internal_border (FRAME_PTR f)
    PIXELWIDTH, PIXELHEIGHT is the new size in pixels.  */
 
 void
-xg_frame_resized (FRAME_PTR f, int pixelwidth, int pixelheight)
+xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
 {
   int rows, columns;
 
@@ -939,7 +939,7 @@ xg_frame_resized (FRAME_PTR f, int pixelwidth, int pixelheight)
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
-xg_frame_set_char_size (FRAME_PTR f, int cols, int rows)
+xg_frame_set_char_size (struct frame *f, int cols, int rows)
 {
   int pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
@@ -1002,7 +1002,7 @@ xg_frame_set_char_size (FRAME_PTR f, int cols, int rows)
    The policy is to keep the number of editable lines.  */
 
 static void
-xg_height_or_width_changed (FRAME_PTR f)
+xg_height_or_width_changed (struct frame *f)
 {
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      FRAME_TOTAL_PIXEL_WIDTH (f),
@@ -1042,7 +1042,7 @@ xg_win_to_widget (Display *dpy, Window wdesc)
 /* Set the background of widget W to PIXEL.  */
 
 static void
-xg_set_widget_bg (FRAME_PTR f, GtkWidget *w, long unsigned int pixel)
+xg_set_widget_bg (struct frame *f, GtkWidget *w, long unsigned int pixel)
 {
 #ifdef HAVE_GTK3
   GdkRGBA bg;
@@ -1093,7 +1093,7 @@ style_changed_cb (GObject *go,
       Lisp_Object rest, frame;
       FOR_EACH_FRAME (rest, frame)
         {
-          FRAME_PTR f = XFRAME (frame);
+          struct frame *f = XFRAME (frame);
           if (FRAME_LIVE_P (f)
               && FRAME_X_P (f)
               && FRAME_X_DISPLAY (f) == dpy)
@@ -1115,7 +1115,7 @@ delete_cb (GtkWidget *widget,
 #ifdef HAVE_GTK3
   /* The event doesn't arrive in the normal event loop.  Send event
      here.  */
-  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct frame *f = (struct frame *) user_data;
   struct input_event ie;
 
   EVENT_INIT (ie);
@@ -1131,7 +1131,7 @@ delete_cb (GtkWidget *widget,
    Return true if creation succeeded.  */
 
 bool
-xg_create_frame_widgets (FRAME_PTR f)
+xg_create_frame_widgets (struct frame *f)
 {
   GtkWidget *wtop;
   GtkWidget *wvbox, *whbox;
@@ -1300,7 +1300,7 @@ xg_create_frame_widgets (FRAME_PTR f)
 }
 
 void
-xg_free_frame_widgets (FRAME_PTR f)
+xg_free_frame_widgets (struct frame *f)
 {
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
@@ -1332,7 +1332,7 @@ xg_free_frame_widgets (FRAME_PTR f)
    flag (this is useful when FLAGS is 0).  */
 
 void
-x_wm_set_size_hint (FRAME_PTR f, long int flags, bool user_position)
+x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 {
   /* Must use GTK routines here, otherwise GTK resets the size hints
      to its own defaults.  */
@@ -1432,7 +1432,7 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, bool user_position)
    BG is the pixel value to change to.  */
 
 void
-xg_set_background_color (FRAME_PTR f, long unsigned int bg)
+xg_set_background_color (struct frame *f, long unsigned int bg)
 {
   if (FRAME_GTK_WIDGET (f))
     {
@@ -1447,7 +1447,7 @@ xg_set_background_color (FRAME_PTR f, long unsigned int bg)
    functions so GTK does not overwrite the icon.  */
 
 void
-xg_set_frame_icon (FRAME_PTR f, Pixmap icon_pixmap, Pixmap icon_mask)
+xg_set_frame_icon (struct frame *f, Pixmap icon_pixmap, Pixmap icon_mask)
 {
   GdkPixbuf *gp = xg_get_pixbuf_from_pix_and_mask (f,
                                                    icon_pixmap,
@@ -1693,7 +1693,7 @@ xg_maybe_add_timer (gpointer data)
    The dialog W is not destroyed when this function returns.  */
 
 static int
-xg_dialog_run (FRAME_PTR f, GtkWidget *w)
+xg_dialog_run (struct frame *f, GtkWidget *w)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   struct xg_dialog_data dd;
@@ -1813,7 +1813,7 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_chooser (FRAME_PTR f,
+xg_get_file_with_chooser (struct frame *f,
 			  char *prompt,
 			  char *default_filename,
 			  bool mustmatch_p, bool only_dir_p,
@@ -1935,7 +1935,7 @@ xg_get_file_name_from_selector (GtkWidget *w)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_selection (FRAME_PTR f,
+xg_get_file_with_selection (struct frame *f,
                             char *prompt,
                             char *default_filename,
                             bool mustmatch_p, bool only_dir_p,
@@ -1977,7 +1977,7 @@ xg_get_file_with_selection (FRAME_PTR f,
    The returned string must be freed by the caller.  */
 
 char *
-xg_get_file_name (FRAME_PTR f,
+xg_get_file_name (struct frame *f,
                   char *prompt,
                   char *default_filename,
                   bool mustmatch_p,
@@ -2051,7 +2051,7 @@ extern Lisp_Object Qxft;
    DEFAULT_NAME, if non-zero, is the default font name.  */
 
 Lisp_Object
-xg_get_font (FRAME_PTR f, const char *default_name)
+xg_get_font (struct frame *f, const char *default_name)
 {
   GtkWidget *w;
   int done = 0;
@@ -2169,7 +2169,7 @@ static xg_list_node xg_menu_item_cb_list;
    allocated xg_menu_cb_data if CL_DATA is NULL.  */
 
 static xg_menu_cb_data *
-make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
+make_cl_data (xg_menu_cb_data *cl_data, struct frame *f, GCallback highlight_cb)
 {
   if (! cl_data)
     {
@@ -2201,7 +2201,7 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
 
 static void
 update_cl_data (xg_menu_cb_data *cl_data,
-                FRAME_PTR f,
+                struct frame *f,
                 GCallback highlight_cb)
 {
   if (cl_data)
@@ -2251,7 +2251,7 @@ xg_mark_data (void)
 
   FOR_EACH_FRAME (rest, frame)
     {
-      FRAME_PTR f = XFRAME (frame);
+      struct frame *f = XFRAME (frame);
 
       if (FRAME_X_P (f) && FRAME_GTK_OUTER_WIDGET (f))
         {
@@ -2480,7 +2480,7 @@ xg_have_tear_offs (void)
 
 static GtkWidget *
 xg_create_one_menuitem (widget_value *item,
-                        FRAME_PTR f,
+                        struct frame *f,
                         GCallback select_cb,
                         GCallback highlight_cb,
                         xg_menu_cb_data *cl_data,
@@ -2551,7 +2551,7 @@ xg_create_one_menuitem (widget_value *item,
 
 static GtkWidget *
 create_menus (widget_value *data,
-              FRAME_PTR f,
+              struct frame *f,
               GCallback select_cb,
               GCallback deactivate_cb,
               GCallback highlight_cb,
@@ -2694,9 +2694,9 @@ create_menus (widget_value *data,
    Returns the widget created.  */
 
 GtkWidget *
-xg_create_widget (const char *type, const char *name, FRAME_PTR f, widget_value *val,
-                  GCallback select_cb, GCallback deactivate_cb,
-		  GCallback highlight_cb)
+xg_create_widget (const char *type, const char *name, struct frame *f,
+		  widget_value *val, GCallback select_cb,
+		  GCallback deactivate_cb, GCallback highlight_cb)
 {
   GtkWidget *w = 0;
   bool menu_bar_p = strcmp (type, "menubar") == 0;
@@ -2802,7 +2802,7 @@ xg_destroy_widgets (GList *list)
 
 static void
 xg_update_menubar (GtkWidget *menubar,
-		   FRAME_PTR f,
+		   struct frame *f,
 		   GList **list,
 		   GList *iter,
 		   int pos,
@@ -3119,7 +3119,7 @@ xg_update_radio_item (widget_value *val, GtkWidget *w)
 
 static GtkWidget *
 xg_update_submenu (GtkWidget *submenu,
-		   FRAME_PTR f,
+		   struct frame *f,
 		   widget_value *val,
 		   GCallback select_cb,
 		   GCallback deactivate_cb,
@@ -3261,8 +3261,8 @@ xg_update_submenu (GtkWidget *submenu,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.  */
 
 void
-xg_modify_menubar_widgets (GtkWidget *menubar, FRAME_PTR f, widget_value *val,
-			   bool deep_p,
+xg_modify_menubar_widgets (GtkWidget *menubar, struct frame *f,
+			   widget_value *val, bool deep_p,
                            GCallback select_cb, GCallback deactivate_cb,
 			   GCallback highlight_cb)
 {
@@ -3336,7 +3336,7 @@ static void
 menubar_map_cb (GtkWidget *w, gpointer user_data)
 {
   GtkRequisition req;
-  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct frame *f = (struct frame *) user_data;
   gtk_widget_get_preferred_size (w, NULL, &req);
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
@@ -3349,7 +3349,7 @@ menubar_map_cb (GtkWidget *w, gpointer user_data)
    changed.  */
 
 void
-xg_update_frame_menubar (FRAME_PTR f)
+xg_update_frame_menubar (struct frame *f)
 {
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
@@ -3387,7 +3387,7 @@ xg_update_frame_menubar (FRAME_PTR f)
    This is used when deleting a frame, and when turning off the menu bar.  */
 
 void
-free_frame_menubar (FRAME_PTR f)
+free_frame_menubar (struct frame *f)
 {
   struct x_output *x = f->output_data.x;
 
@@ -3406,7 +3406,7 @@ free_frame_menubar (FRAME_PTR f)
 }
 
 bool
-xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
+xg_event_is_for_menubar (struct frame *f, XEvent *event)
 {
   struct x_output *x = f->output_data.x;
   GList *iter;
@@ -3619,7 +3619,7 @@ xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
    to set resources for the widget.  */
 
 void
-xg_create_scroll_bar (FRAME_PTR f,
+xg_create_scroll_bar (struct frame *f,
                       struct scroll_bar *bar,
                       GCallback scroll_callback,
                       GCallback end_callback,
@@ -3681,7 +3681,7 @@ xg_create_scroll_bar (FRAME_PTR f,
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
 
 void
-xg_remove_scroll_bar (FRAME_PTR f, ptrdiff_t scrollbar_id)
+xg_remove_scroll_bar (struct frame *f, ptrdiff_t scrollbar_id)
 {
   GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
   if (w)
@@ -3699,7 +3699,7 @@ xg_remove_scroll_bar (FRAME_PTR f, ptrdiff_t scrollbar_id)
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
 
 void
-xg_update_scrollbar_pos (FRAME_PTR f,
+xg_update_scrollbar_pos (struct frame *f,
                          ptrdiff_t scrollbar_id,
                          int top,
                          int left,
@@ -3781,7 +3781,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 {
   GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
 
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
   if (wscroll && NILP (bar->dragging))
     {
@@ -3861,7 +3861,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
    frame.  This function does additional checks.  */
 
 bool
-xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event)
+xg_event_is_for_scrollbar (struct frame *f, XEvent *event)
 {
   bool retval = 0;
 
@@ -3946,7 +3946,8 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
   intptr_t mod = (intptr_t) gmod;
 
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
+  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (w),
+							XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
   EVENT_INIT (event);
@@ -4149,7 +4150,7 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox,
                              GtkWidget *w,
                              gpointer client_data)
 {
-  FRAME_PTR f = (FRAME_PTR) client_data;
+  struct frame *f = (struct frame *) client_data;
 
   g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
 		NULL);
@@ -4186,7 +4187,7 @@ xg_tool_bar_attach_callback (GtkHandleBox *wbox,
                              GtkWidget *w,
                              gpointer client_data)
 {
-  FRAME_PTR f = (FRAME_PTR) client_data;
+  struct frame *f = (struct frame *) client_data;
   g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
 
   if (f)
@@ -4224,7 +4225,8 @@ xg_tool_bar_help_callback (GtkWidget *w,
                            gpointer client_data)
 {
   intptr_t idx = (intptr_t) client_data;
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
+  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (w),
+							XG_FRAME_DATA);
   Lisp_Object help, frame;
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
@@ -4297,7 +4299,7 @@ xg_tool_bar_item_expose_callback (GtkWidget *w,
 /* Attach a tool bar to frame F.  */
 
 static void
-xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
+xg_pack_tool_bar (struct frame *f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
   bool into_hbox = EQ (pos, Qleft) || EQ (pos, Qright);
@@ -4354,7 +4356,7 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
   x->toolbar_is_packed = true;
 }
 
-static bool xg_update_tool_bar_sizes (FRAME_PTR f);
+static bool xg_update_tool_bar_sizes (struct frame *f);
 
 static void
 tb_size_cb (GtkWidget    *widget,
@@ -4364,7 +4366,7 @@ tb_size_cb (GtkWidget    *widget,
   /* When tool bar is created it has one preferred size.  But when size is
      allocated between widgets, it may get another.  So we must update
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
-  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct frame *f = (struct frame *) user_data;
   if (xg_update_tool_bar_sizes (f))
     x_wm_set_size_hint (f, 0, 0);
 }
@@ -4372,7 +4374,7 @@ tb_size_cb (GtkWidget    *widget,
 /* Create a tool bar for frame F.  */
 
 static void
-xg_create_tool_bar (FRAME_PTR f)
+xg_create_tool_bar (struct frame *f)
 {
   struct x_output *x = f->output_data.x;
 #if GTK_CHECK_VERSION (3, 3, 6)
@@ -4415,7 +4417,7 @@ xg_create_tool_bar (FRAME_PTR f)
    Returns IMAGE if RTL is not found.  */
 
 static Lisp_Object
-find_rtl_image (FRAME_PTR f, Lisp_Object image, Lisp_Object rtl)
+find_rtl_image (struct frame *f, Lisp_Object image, Lisp_Object rtl)
 {
   int i;
   Lisp_Object file, rtl_name;
@@ -4443,7 +4445,7 @@ find_rtl_image (FRAME_PTR f, Lisp_Object image, Lisp_Object rtl)
 }
 
 static GtkToolItem *
-xg_make_tool_item (FRAME_PTR f,
+xg_make_tool_item (struct frame *f,
                    GtkWidget *wimage,
                    GtkWidget **wbutton,
                    const char *label,
@@ -4606,7 +4608,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
 }
 
 static bool
-xg_update_tool_bar_sizes (FRAME_PTR f)
+xg_update_tool_bar_sizes (struct frame *f)
 {
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
@@ -4654,7 +4656,7 @@ xg_update_tool_bar_sizes (FRAME_PTR f)
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
 void
-update_frame_tool_bar (FRAME_PTR f)
+update_frame_tool_bar (struct frame *f)
 {
   int i, j;
   struct x_output *x = f->output_data.x;
@@ -4929,7 +4931,7 @@ update_frame_tool_bar (FRAME_PTR f)
    Remove the tool bar.  */
 
 void
-free_frame_tool_bar (FRAME_PTR f)
+free_frame_tool_bar (struct frame *f)
 {
   struct x_output *x = f->output_data.x;
 
@@ -4976,7 +4978,7 @@ free_frame_tool_bar (FRAME_PTR f)
 }
 
 void
-xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos)
+xg_change_toolbar_position (struct frame *f, Lisp_Object pos)
 {
   struct x_output *x = f->output_data.x;
   GtkWidget *top_widget = TOOLBAR_TOP_WIDGET (x);

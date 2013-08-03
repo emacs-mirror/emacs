@@ -114,19 +114,19 @@ xfont_get_pcm (XFontStruct *xfont, XChar2b *char2b)
 	  ? NULL : pcm);
 }
 
-static Lisp_Object xfont_get_cache (FRAME_PTR);
+static Lisp_Object xfont_get_cache (struct frame *);
 static Lisp_Object xfont_list (struct frame *, Lisp_Object);
 static Lisp_Object xfont_match (struct frame *, Lisp_Object);
 static Lisp_Object xfont_list_family (struct frame *);
-static Lisp_Object xfont_open (FRAME_PTR, Lisp_Object, int);
-static void xfont_close (FRAME_PTR, struct font *);
-static int xfont_prepare_face (FRAME_PTR, struct face *);
+static Lisp_Object xfont_open (struct frame *, Lisp_Object, int);
+static void xfont_close (struct frame *, struct font *);
+static int xfont_prepare_face (struct frame *, struct face *);
 static int xfont_has_char (Lisp_Object, int);
 static unsigned xfont_encode_char (struct font *, int);
 static int xfont_text_extents (struct font *, unsigned *, int,
                                struct font_metrics *);
 static int xfont_draw (struct glyph_string *, int, int, int, int, bool);
-static int xfont_check (FRAME_PTR, struct font *);
+static int xfont_check (struct frame *, struct font *);
 
 struct font_driver xfont_driver =
   {
@@ -152,7 +152,7 @@ struct font_driver xfont_driver =
   };
 
 static Lisp_Object
-xfont_get_cache (FRAME_PTR f)
+xfont_get_cache (struct frame *f)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -676,7 +676,7 @@ xfont_list_family (struct frame *f)
 }
 
 static Lisp_Object
-xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
+xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
@@ -892,7 +892,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-xfont_close (FRAME_PTR f, struct font *font)
+xfont_close (struct frame *f, struct font *font)
 {
   block_input ();
   XFreeFont (FRAME_X_DISPLAY (f), ((struct xfont_info *) font)->xfont);
@@ -900,7 +900,7 @@ xfont_close (FRAME_PTR f, struct font *font)
 }
 
 static int
-xfont_prepare_face (FRAME_PTR f, struct face *face)
+xfont_prepare_face (struct frame *f, struct face *face)
 {
   block_input ();
   XSetFont (FRAME_X_DISPLAY (f), face->gc,
@@ -1089,7 +1089,7 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 }
 
 static int
-xfont_check (FRAME_PTR f, struct font *font)
+xfont_check (struct frame *f, struct font *font)
 {
   struct xfont_info *xfont = (struct xfont_info *) font;
 

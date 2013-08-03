@@ -205,7 +205,7 @@ extern void x_focus_on_frame (struct frame *f);
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-extern int w32_defined_color (FRAME_PTR f, const char *color,
+extern int w32_defined_color (struct frame *f, const char *color,
                               XColor *color_def, int alloc);
 extern void x_set_window_size (struct frame *f, int change_grav,
                               int cols, int rows);

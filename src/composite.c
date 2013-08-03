@@ -901,7 +901,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  FRAME_PTR f = XFRAME (win->frame);
+  struct frame *f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;

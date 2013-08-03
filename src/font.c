@@ -204,9 +204,9 @@ font_make_object (int size, Lisp_Object entity, int pixelsize)
 
 
 
-static int font_pixel_size (FRAME_PTR f, Lisp_Object);
-static Lisp_Object font_open_entity (FRAME_PTR, Lisp_Object, int);
-static Lisp_Object font_matching_entity (FRAME_PTR, Lisp_Object *,
+static int font_pixel_size (struct frame *f, Lisp_Object);
+static Lisp_Object font_open_entity (struct frame *, Lisp_Object, int);
+static Lisp_Object font_matching_entity (struct frame *, Lisp_Object *,
                                          Lisp_Object);
 static unsigned font_encode_char (Lisp_Object, int);
 
@@ -269,7 +269,7 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 /* Return a pixel size of font-spec SPEC on frame F.  */
 
 static int
-font_pixel_size (FRAME_PTR f, Lisp_Object spec)
+font_pixel_size (struct frame *f, Lisp_Object spec)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object size = AREF (spec, FONT_SIZE_INDEX);
@@ -2497,14 +2497,14 @@ font_match_p (Lisp_Object spec, Lisp_Object font)
    is a number frames sharing this cache, and FONT-CACHE-DATA is a
    cons (FONT-SPEC FONT-ENTITY ...).  */
 
-static void font_prepare_cache (FRAME_PTR, struct font_driver *);
-static void font_finish_cache (FRAME_PTR, struct font_driver *);
-static Lisp_Object font_get_cache (FRAME_PTR, struct font_driver *);
-static void font_clear_cache (FRAME_PTR, Lisp_Object,
+static void font_prepare_cache (struct frame *, struct font_driver *);
+static void font_finish_cache (struct frame *, struct font_driver *);
+static Lisp_Object font_get_cache (struct frame *, struct font_driver *);
+static void font_clear_cache (struct frame *, Lisp_Object,
                               struct font_driver *);
 
 static void
-font_prepare_cache (FRAME_PTR f, struct font_driver *driver)
+font_prepare_cache (struct frame *f, struct font_driver *driver)
 {
   Lisp_Object cache, val;
 
@@ -2526,7 +2526,7 @@ font_prepare_cache (FRAME_PTR f, struct font_driver *driver)
 
 
 static void
-font_finish_cache (FRAME_PTR f, struct font_driver *driver)
+font_finish_cache (struct frame *f, struct font_driver *driver)
 {
   Lisp_Object cache, val, tmp;
 
@@ -2547,7 +2547,7 @@ font_finish_cache (FRAME_PTR f, struct font_driver *driver)
 
 
 static Lisp_Object
-font_get_cache (FRAME_PTR f, struct font_driver *driver)
+font_get_cache (struct frame *f, struct font_driver *driver)
 {
   Lisp_Object val = driver->get_cache (f);
   Lisp_Object type = driver->type;
@@ -2562,7 +2562,7 @@ font_get_cache (FRAME_PTR f, struct font_driver *driver)
 
 
 static void
-font_clear_cache (FRAME_PTR f, Lisp_Object cache, struct font_driver *driver)
+font_clear_cache (struct frame *f, Lisp_Object cache, struct font_driver *driver)
 {
   Lisp_Object tail, elt;
   Lisp_Object tail2, entity;
@@ -2760,7 +2760,7 @@ font_list_entities (struct frame *f, Lisp_Object spec)
    font-related attributes.  */
 
 static Lisp_Object
-font_matching_entity (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
+font_matching_entity (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 {
   struct font_driver_list *driver_list = f->font_driver_list;
   Lisp_Object ftype, size, entity;
@@ -2806,7 +2806,7 @@ font_matching_entity (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
    opened font object.  */
 
 static Lisp_Object
-font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
+font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
 {
   struct font_driver_list *driver_list;
   Lisp_Object objlist, size, val, font_object;
@@ -2884,7 +2884,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 /* Close FONT_OBJECT that is opened on frame F.  */
 
 static void
-font_close_object (FRAME_PTR f, Lisp_Object font_object)
+font_close_object (struct frame *f, Lisp_Object font_object)
 {
   struct font *font = XFONT_OBJECT (font_object);
 
@@ -2904,7 +2904,7 @@ font_close_object (FRAME_PTR f, Lisp_Object font_object)
    FONT is a font-entity and it must be opened to check.  */
 
 int
-font_has_char (FRAME_PTR f, Lisp_Object font, int c)
+font_has_char (struct frame *f, Lisp_Object font, int c)
 {
   struct font *fontp;
 
@@ -3075,7 +3075,7 @@ font_select_entity (struct frame *f, Lisp_Object entities,
    character that the entity must support.  */
 
 Lisp_Object
-font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
+font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int c)
 {
   Lisp_Object work;
   Lisp_Object entities, val;
@@ -3222,7 +3222,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 
 
 Lisp_Object
-font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_Object spec)
+font_open_for_lface (struct frame *f, Lisp_Object entity, Lisp_Object *attrs, Lisp_Object spec)
 {
   int size;
 
@@ -3269,7 +3269,7 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
    font-object.  */
 
 Lisp_Object
-font_load_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
+font_load_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
 {
   Lisp_Object entity, name;
 
@@ -3298,7 +3298,7 @@ font_load_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
 /* Make FACE on frame F ready to use the font opened for FACE.  */
 
 void
-font_prepare_for_face (FRAME_PTR f, struct face *face)
+font_prepare_for_face (struct frame *f, struct face *face)
 {
   if (face->font->driver->prepare_face)
     face->font->driver->prepare_face (f, face);
@@ -3308,7 +3308,7 @@ font_prepare_for_face (FRAME_PTR f, struct face *face)
 /* Make FACE on frame F stop using the font opened for FACE.  */
 
 void
-font_done_for_face (FRAME_PTR f, struct face *face)
+font_done_for_face (struct frame *f, struct face *face)
 {
   if (face->font->driver->done_face)
     face->font->driver->done_face (f, face);
@@ -3320,7 +3320,7 @@ font_done_for_face (FRAME_PTR f, struct face *face)
    font is found, return Qnil.  */
 
 Lisp_Object
-font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
+font_open_by_spec (struct frame *f, Lisp_Object spec)
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
@@ -3344,7 +3344,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, Lisp_Object name)
+font_open_by_name (struct frame *f, Lisp_Object name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
@@ -3374,7 +3374,7 @@ font_open_by_name (FRAME_PTR f, Lisp_Object name)
    (e.g. syms_of_xfont).  */
 
 void
-register_font_driver (struct font_driver *driver, FRAME_PTR f)
+register_font_driver (struct font_driver *driver, struct frame *f)
 {
   struct font_driver_list *root = f ? f->font_driver_list : font_driver_list;
   struct font_driver_list *prev, *list;
@@ -3402,7 +3402,7 @@ register_font_driver (struct font_driver *driver, FRAME_PTR f)
 }
 
 void
-free_font_driver_list (FRAME_PTR f)
+free_font_driver_list (struct frame *f)
 {
   struct font_driver_list *list, *next;
 
@@ -3424,7 +3424,7 @@ free_font_driver_list (FRAME_PTR f)
    F.  */
 
 Lisp_Object
-font_update_drivers (FRAME_PTR f, Lisp_Object new_drivers)
+font_update_drivers (struct frame *f, Lisp_Object new_drivers)
 {
   Lisp_Object active_drivers = Qnil;
   struct font_driver_list *list;
@@ -3513,7 +3513,7 @@ font_update_drivers (FRAME_PTR f, Lisp_Object new_drivers)
 }
 
 int
-font_put_frame_data (FRAME_PTR f, struct font_driver *driver, void *data)
+font_put_frame_data (struct frame *f, struct font_driver *driver, void *data)
 {
   struct font_data_list *list, *prev;
 
@@ -3547,7 +3547,7 @@ font_put_frame_data (FRAME_PTR f, struct font_driver *driver, void *data)
 
 
 void *
-font_get_frame_data (FRAME_PTR f, struct font_driver *driver)
+font_get_frame_data (struct frame *f, struct font_driver *driver)
 {
   struct font_data_list *list;
 
@@ -3621,7 +3621,7 @@ static Lisp_Object
 font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 	 Lisp_Object string)
 {
-  FRAME_PTR f;
+  struct frame *f;
   bool multibyte;
   Lisp_Object font_object;
 
@@ -4234,7 +4234,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 
   FOR_EACH_FRAME (list, frame)
     {
-      FRAME_PTR f = XFRAME (frame);
+      struct frame *f = XFRAME (frame);
       struct font_driver_list *driver_list = f->font_driver_list;
 
       for (; driver_list; driver_list = driver_list->next)
@@ -4782,7 +4782,7 @@ Type C-l to recover what previously shown.  */)
   (Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object frame = selected_frame;
-  FRAME_PTR f = XFRAME (frame);
+  struct frame *f = XFRAME (frame);
   struct font *font;
   struct face *face;
   int i, len, width;

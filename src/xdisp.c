@@ -1854,7 +1854,7 @@ estimate_mode_line_height (struct frame *f, enum face_id face_id)
    not force the value into range.  */
 
 void
-pixel_to_glyph_coords (FRAME_PTR f, register int pix_x, register int pix_y,
+pixel_to_glyph_coords (struct frame *f, register int pix_x, register int pix_y,
 		       int *x, int *y, NativeRectangle *bounds, int noclip)
 {
 
@@ -11449,7 +11449,7 @@ x_cursor_to (int vpos, int hpos, int y, int x)
 
 /* Where the mouse was last time we reported a mouse event.  */
 
-FRAME_PTR last_mouse_frame;
+struct frame *last_mouse_frame;
 
 /* Tool-bar item index of the item on which a mouse button was pressed
    or -1.  */

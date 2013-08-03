@@ -806,7 +806,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
    ========================================================================== */
 
 Lisp_Object
-ns_menu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
+ns_menu_show (struct frame *f, int x, int y, bool for_click, bool keymaps,
 	      Lisp_Object title, const char **error)
 {
   EmacsMenu *pmenu;
@@ -1028,7 +1028,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, bool for_click, bool keymaps,
    ========================================================================== */
 
 void
-free_frame_tool_bar (FRAME_PTR f)
+free_frame_tool_bar (struct frame *f)
 /* --------------------------------------------------------------------------
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
@@ -1040,7 +1040,7 @@ free_frame_tool_bar (FRAME_PTR f)
 }
 
 void
-update_frame_tool_bar (FRAME_PTR f)
+update_frame_tool_bar (struct frame *f)
 /* --------------------------------------------------------------------------
     Update toolbar contents
    -------------------------------------------------------------------------- */

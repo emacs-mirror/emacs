@@ -806,7 +806,7 @@ void
 widget_store_internal_border (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  FRAME_PTR f = ew->emacs_frame.frame;
+  struct frame *f = ew->emacs_frame.frame;
 
   ew->emacs_frame.internal_border_width = f->internal_border_width;
 }

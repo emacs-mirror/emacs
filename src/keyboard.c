@@ -1281,7 +1281,7 @@ static
 #endif
 bool ignore_mouse_drag_p;
 
-static FRAME_PTR
+static struct frame *
 some_mouse_moved (void)
 {
   Lisp_Object tail, frame;
@@ -2163,7 +2163,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 	 This causes trouble if we are trying to read a mouse motion
 	 event (i.e., if we are inside a `track-mouse' form), so we
 	 restore the mouse_moved flag.  */
-      FRAME_PTR f = NILP (do_mouse_tracking) ? NULL : some_mouse_moved ();
+      struct frame *f = NILP (do_mouse_tracking) ? NULL : some_mouse_moved ();
       help = call1 (Qmouse_fixup_help_message, help);
       if (f)
       	f->mouse_moved = 1;
@@ -4152,7 +4152,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   /* Try generating a mouse motion event.  */
   else if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     {
-      FRAME_PTR f = some_mouse_moved ();
+      struct frame *f = some_mouse_moved ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
@@ -5898,7 +5898,7 @@ make_lispy_event (struct input_event *event)
 
     case DRAG_N_DROP_EVENT:
       {
-	FRAME_PTR f;
+	struct frame *f;
 	Lisp_Object head, position;
 	Lisp_Object files;
 
@@ -5977,7 +5977,7 @@ make_lispy_event (struct input_event *event)
 #ifdef HAVE_GPM
     case GPM_CLICK_EVENT:
       {
-	FRAME_PTR f = XFRAME (event->frame_or_window);
+	struct frame *f = XFRAME (event->frame_or_window);
 	Lisp_Object head, position;
 	Lisp_Object *start_pos_ptr;
 	Lisp_Object start_pos;
@@ -6031,7 +6031,7 @@ make_lispy_event (struct input_event *event)
 }
 
 static Lisp_Object
-make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_part part,
+make_lispy_movement (struct frame *frame, Lisp_Object bar_window, enum scroll_bar_part part,
 		     Lisp_Object x, Lisp_Object y, Time t)
 {
   /* Is it a scroll bar movement?  */

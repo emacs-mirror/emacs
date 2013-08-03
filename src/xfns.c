@@ -176,7 +176,7 @@ check_x_display_info (Lisp_Object object)
     dpyinfo = x_display_info_for_name (object);
   else
     {
-      FRAME_PTR f = decode_window_system_frame (object);
+      struct frame *f = decode_window_system_frame (object);
       dpyinfo = FRAME_X_DISPLAY_INFO (f);
     }
 
@@ -369,7 +369,7 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
    not Emacs's own window.  */
 
 void
-x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
+x_real_positions (struct frame *f, int *xptr, int *yptr)
 {
   int win_x, win_y, outer_x IF_LINT (= 0), outer_y IF_LINT (= 0);
   int real_x = 0, real_y = 0;
@@ -565,7 +565,7 @@ x_defined_color (struct frame *f, const char *color_name,
    Signal an error if color can't be allocated.  */
 
 static int
-x_decode_color (FRAME_PTR f, Lisp_Object color_name, int mono_color)
+x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color)
 {
   XColor cdef;
 
@@ -626,7 +626,7 @@ x_set_tool_bar_position (struct frame *f,
    may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
 
 int
-xg_set_icon (FRAME_PTR f, Lisp_Object file)
+xg_set_icon (struct frame *f, Lisp_Object file)
 {
   int result = 0;
   Lisp_Object found;
@@ -660,7 +660,7 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 }
 
 int
-xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
+xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 {
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
@@ -1050,7 +1050,7 @@ x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 
@@ -1449,7 +1449,7 @@ x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp,
    icon name to NAME.  */
 
 static void
-x_set_name_internal (FRAME_PTR f, Lisp_Object name)
+x_set_name_internal (struct frame *f, Lisp_Object name)
 {
   if (FRAME_X_WINDOW (f))
     {
@@ -1608,7 +1608,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
 static void
-x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   x_set_name (f, arg, 1);
 }
@@ -1617,7 +1617,7 @@ x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
    name; names set this way will never override names set by the user's
    lisp code.  */
 void
-x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   x_set_name (f, arg, 0);
 }
@@ -1730,7 +1730,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
    for example, but Xt doesn't).  */
 
 static void
-hack_wm_protocols (FRAME_PTR f, Widget widget)
+hack_wm_protocols (struct frame *f, Widget widget)
 {
   Display *dpy = XtDisplay (widget);
   Window w = XtWindow (widget);
@@ -2538,7 +2538,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 #else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
 static void
-x_window (FRAME_PTR f)
+x_window (struct frame *f)
 {
   if (! xg_create_frame_widgets (f))
     error ("Unable to create window");
@@ -3485,7 +3485,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = decode_window_system_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -3500,7 +3500,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
-  FRAME_PTR f = decode_window_system_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
 
   CHECK_STRING (color);
 
@@ -4586,7 +4586,7 @@ If TERMINAL is omitted or nil, that stands for the selected frame's display.  */
 /* Wait for responses to all X commands issued so far for frame F.  */
 
 void
-x_sync (FRAME_PTR f)
+x_sync (struct frame *f)
 {
   block_input ();
   XSync (FRAME_X_DISPLAY (f), False);
@@ -5770,7 +5770,8 @@ or directory must exist.
 This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
-  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename,
+   Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   int result;
   struct frame *f = SELECTED_FRAME ();
@@ -5943,7 +5944,7 @@ Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
-  FRAME_PTR f = SELECTED_FRAME ();
+  struct frame *f = SELECTED_FRAME ();
   char *fn;
   Lisp_Object file = Qnil;
   Lisp_Object decoded_file;
@@ -6006,7 +6007,7 @@ FRAME is the frame on which to pop up the font chooser.  If omitted or
 nil, it defaults to the selected frame. */)
   (Lisp_Object frame, Lisp_Object ignored)
 {
-  FRAME_PTR f = decode_window_system_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;

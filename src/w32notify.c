@@ -129,7 +129,7 @@ send_notifications (BYTE *info, DWORD info_size, void *desc,
 		    volatile int *terminate)
 {
   int done = 0;
-  FRAME_PTR f = SELECTED_FRAME ();
+  struct frame *f = SELECTED_FRAME ();
 
   /* A single buffer is used to communicate all notifications to the
      main thread.  Since both the main thread and several watcher

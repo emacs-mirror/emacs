@@ -1,3 +1,15 @@
+2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop FRAME_PTR typedef.
+	* composite.c, font.c, font.h, fontset.c, fontset.h, frame.c, frame.h:
+	* ftfont.c, ftxfont.c, gtkutil.c, gtkutil.h, image.c, keyboard.c:
+	* menu.c, menu.h, msdos.c, nsfns.m, nsfont.m, nsmenu.m, nsterm.h:
+	* nsterm.m, scroll.c, term.c, w32fns.c, w32font.c, w32font.h:
+	* w32inevt.c, w32inevt.h, w32menu.c, w32notify.c, w32term.c, w32term.h:
+	* w32uniscribe.c, w32xfns.c, widget.c, window.c, xdisp.c, xfaces.c:
+	* xfns.c, xfont.c, xftfont.c, xmenu.c, xselect.c, xterm.c:
+	All related users changed.
+
 2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (default_toplevel_binding): New function.

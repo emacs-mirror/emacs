@@ -106,7 +106,7 @@ uniscribe_list_family (struct frame *f)
 }
 
 static Lisp_Object
-uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct uniscribe_font_info),
@@ -135,7 +135,7 @@ uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 }
 
 static void
-uniscribe_close (FRAME_PTR f, struct font *font)
+uniscribe_close (struct frame *f, struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
@@ -599,8 +599,8 @@ uniscribe_encode_char (struct font *font, int c)
                        int x, int y, int with_background);
 
    Unused:
-   int uniscribe_prepare_face (FRAME_PTR f, struct face *face);
-   void uniscribe_done_face (FRAME_PTR f, struct face *face);
+   int uniscribe_prepare_face (struct frame *f, struct face *face);
+   void uniscribe_done_face (struct frame *f, struct face *face);
    int uniscribe_get_bitmap (struct font *font, unsigned code,
                              struct font_bitmap *bitmap, int bits_per_pixel);
    void uniscribe_free_bitmap (struct font *font, struct font_bitmap *bitmap);
@@ -608,8 +608,8 @@ uniscribe_encode_char (struct font *font, int c)
    void uniscribe_free_outline (struct font *font, void *outline);
    int uniscribe_anchor_point (struct font *font, unsigned code,
                                int index, int *x, int *y);
-   int uniscribe_start_for_frame (FRAME_PTR f);
-   int uniscribe_end_for_frame (FRAME_PTR f);
+   int uniscribe_start_for_frame (struct frame *f);
+   int uniscribe_end_for_frame (struct frame *f);
 
 */
 

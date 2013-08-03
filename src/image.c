@@ -164,20 +164,20 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 /* Functions to access the contents of a bitmap, given an id.  */
 
 int
-x_bitmap_height (FRAME_PTR f, ptrdiff_t id)
+x_bitmap_height (struct frame *f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
 int
-x_bitmap_width (FRAME_PTR f, ptrdiff_t id)
+x_bitmap_width (struct frame *f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
 ptrdiff_t
-x_bitmap_pixmap (FRAME_PTR f, ptrdiff_t id)
+x_bitmap_pixmap (struct frame *f, ptrdiff_t id)
 {
   /* HAVE_NTGUI needs the explicit cast here.  */
   return (ptrdiff_t) FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
@@ -186,7 +186,7 @@ x_bitmap_pixmap (FRAME_PTR f, ptrdiff_t id)
 
 #ifdef HAVE_X_WINDOWS
 int
-x_bitmap_mask (FRAME_PTR f, ptrdiff_t id)
+x_bitmap_mask (struct frame *f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
 }
@@ -195,7 +195,7 @@ x_bitmap_mask (FRAME_PTR f, ptrdiff_t id)
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
 static ptrdiff_t
-x_allocate_bitmap_record (FRAME_PTR f)
+x_allocate_bitmap_record (struct frame *f)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   ptrdiff_t i;
@@ -216,7 +216,7 @@ x_allocate_bitmap_record (FRAME_PTR f)
 /* Add one reference to the reference count of the bitmap with id ID.  */
 
 void
-x_reference_bitmap (FRAME_PTR f, ptrdiff_t id)
+x_reference_bitmap (struct frame *f, ptrdiff_t id)
 {
   ++FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
@@ -384,7 +384,7 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 /* Remove reference to bitmap with id number ID.  */
 
 void
-x_destroy_bitmap (FRAME_PTR f, ptrdiff_t id)
+x_destroy_bitmap (struct frame *f, ptrdiff_t id)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 

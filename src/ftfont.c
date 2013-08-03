@@ -493,12 +493,12 @@ ftfont_get_otf (struct ftfont_info *ftfont_info)
 }
 #endif	/* HAVE_LIBOTF */
 
-static Lisp_Object ftfont_get_cache (FRAME_PTR);
+static Lisp_Object ftfont_get_cache (struct frame *);
 static Lisp_Object ftfont_list (struct frame *, Lisp_Object);
 static Lisp_Object ftfont_match (struct frame *, Lisp_Object);
 static Lisp_Object ftfont_list_family (struct frame *);
-static Lisp_Object ftfont_open (FRAME_PTR, Lisp_Object, int);
-static void ftfont_close (FRAME_PTR, struct font *);
+static Lisp_Object ftfont_open (struct frame *, Lisp_Object, int);
+static void ftfont_close (struct frame *, struct font *);
 static int ftfont_has_char (Lisp_Object, int);
 static unsigned ftfont_encode_char (struct font *, int);
 static int ftfont_text_extents (struct font *, unsigned *, int,
@@ -568,7 +568,7 @@ struct font_driver ftfont_driver =
   };
 
 static Lisp_Object
-ftfont_get_cache (FRAME_PTR f)
+ftfont_get_cache (struct frame *f)
 {
   return freetype_font_cache;
 }
@@ -1173,7 +1173,7 @@ ftfont_list_family (struct frame *f)
 
 
 static Lisp_Object
-ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
+ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 {
   struct ftfont_info *ftfont_info;
   struct font *font;
@@ -1317,7 +1317,7 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 }
 
 static void
-ftfont_close (FRAME_PTR f, struct font *font)
+ftfont_close (struct frame *f, struct font *font)
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   Lisp_Object val, cache;

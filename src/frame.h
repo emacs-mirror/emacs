@@ -591,8 +591,6 @@ default_pixels_per_inch_y (void)
 /* Return a pointer to the image cache of frame F.  */
 #define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
 
-typedef struct frame *FRAME_PTR;
-
 #define XFRAME(p) \
   (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
@@ -1206,7 +1204,7 @@ extern Lisp_Object Qrun_hook_with_args;
 
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
-extern void x_wm_set_size_hint (FRAME_PTR f, long flags, bool user_position);
+extern void x_wm_set_size_hint (struct frame *f, long flags, bool user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 

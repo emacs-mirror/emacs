@@ -1093,7 +1093,7 @@ Otherwise, include all frames.  */)
    (Exception: if F is the terminal frame, and we are using X, return 1.)  */
 
 static int
-other_visible_frames (FRAME_PTR f)
+other_visible_frames (struct frame *f)
 {
   Lisp_Object frames, this;
 
@@ -1467,7 +1467,7 @@ passing the normal return value to that function as an argument,
 and returns whatever that function returns.  */)
   (void)
 {
-  FRAME_PTR f;
+  struct frame *f;
   Lisp_Object lispy_dummy;
   Lisp_Object x, y, retval;
   struct gcpro gcpro1;
@@ -1513,7 +1513,7 @@ to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.  */)
   (void)
 {
-  FRAME_PTR f;
+  struct frame *f;
   Lisp_Object lispy_dummy;
   Lisp_Object x, y;
 
@@ -2610,7 +2610,7 @@ x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int
    to store the new value in the parameter alist.  */
 
 void
-x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
+x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 {
   Lisp_Object tail;
 
@@ -3348,7 +3348,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 /* Return non-nil if frame F wants a bitmap icon.  */
 
 Lisp_Object
-x_icon_type (FRAME_PTR f)
+x_icon_type (struct frame *f)
 {
   Lisp_Object tem;
 

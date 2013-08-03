@@ -869,7 +869,7 @@ the pixmap.  Bits are stored row by row, each row occupies
    if these pointers are not null.  */
 
 static ptrdiff_t
-load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
+load_pixmap (struct frame *f, Lisp_Object name, unsigned int *w_ptr,
 	     unsigned int *h_ptr)
 {
   ptrdiff_t bitmap_id;
@@ -3075,7 +3075,7 @@ FRAME 0 means change the face on all frames, and change the default
 	{
 	  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
-	      FRAME_PTR f;
+	      struct frame *f;
 
 	      old_value = LFACE_FONT (lface);
 	      if (! FONTP (value))

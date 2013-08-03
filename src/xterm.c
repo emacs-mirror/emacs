@@ -212,7 +212,7 @@ static unsigned long ignore_next_mouse_click_timeout;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static XRectangle last_mouse_glyph;
-static FRAME_PTR last_mouse_glyph_frame;
+static struct frame *last_mouse_glyph_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -3188,7 +3188,7 @@ XTflash (struct frame *f)
 
 
 static void
-XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
+XTtoggle_invisible_pointer (struct frame *f, int invisible)
 {
   block_input ();
   if (invisible)
@@ -3797,7 +3797,7 @@ static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
 static int
-note_mouse_movement (FRAME_PTR frame, XMotionEvent *event)
+note_mouse_movement (struct frame *frame, XMotionEvent *event)
 {
   last_mouse_movement_time = event->time;
   last_mouse_motion_event = *event;
@@ -3873,11 +3873,11 @@ redo_mouse_highlight (void)
    movement.  */
 
 static void
-XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		  Time *timestamp)
 {
-  FRAME_PTR f1;
+  struct frame *f1;
 
   block_input ();
 
@@ -4416,7 +4416,8 @@ xg_scroll_callback (GtkRange     *range,
   gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
+  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (range),
+							XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
   position = gtk_adjustment_get_value (adj);
@@ -5033,7 +5034,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
 {
   int dragging = ! NILP (bar->dragging);
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
 
   /* If the display is already accurate, do nothing.  */
@@ -5374,7 +5375,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
    `*redeem_scroll_bar_hook' is applied to its window before the judgment.  */
 
 static void
-XTcondemn_scroll_bars (FRAME_PTR frame)
+XTcondemn_scroll_bars (struct frame *frame)
 {
   /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
   while (! NILP (FRAME_SCROLL_BARS (frame)))
@@ -5442,7 +5443,7 @@ XTredeem_scroll_bar (struct window *window)
    last call to `*condemn_scroll_bars_hook'.  */
 
 static void
-XTjudge_scroll_bars (FRAME_PTR f)
+XTjudge_scroll_bars (struct frame *f)
 {
   Lisp_Object bar, next;
 
@@ -5478,7 +5479,7 @@ static void
 x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 {
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
   int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
@@ -5577,7 +5578,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
 static void
 x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
-  FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
+  struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
 
   last_mouse_movement_time = event->xmotion.time;
 
@@ -5605,13 +5606,13 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
    on the scroll bar.  */
 
 static void
-x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
+x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part, Lisp_Object *x,
 			    Lisp_Object *y, Time *timestamp)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int win_x, win_y;
   Window dummy_window;
   int dummy_coord;
@@ -5679,7 +5680,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
    redraw them.  */
 
 static void
-x_scroll_bar_clear (FRAME_PTR f)
+x_scroll_bar_clear (struct frame *f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
   Lisp_Object bar;
@@ -8524,7 +8525,7 @@ do_ewmh_fullscreen (struct frame *f)
 }
 
 static void
-XTfullscreen_hook (FRAME_PTR f)
+XTfullscreen_hook (struct frame *f)
 {
   if (FRAME_VISIBLE_P (f))
     {
@@ -8925,7 +8926,7 @@ x_lower_frame (struct frame *f)
 /* Request focus with XEmbed */
 
 void
-xembed_request_focus (FRAME_PTR f)
+xembed_request_focus (struct frame *f)
 {
   /* See XEmbed Protocol Specification at
      http://freedesktop.org/wiki/Specifications/xembed-spec  */
@@ -8937,7 +8938,7 @@ xembed_request_focus (FRAME_PTR f)
 /* Activate frame with Extended Window Manager Hints */
 
 void
-x_ewmh_activate_frame (FRAME_PTR f)
+x_ewmh_activate_frame (struct frame *f)
 {
   /* See Window Manager Specification/Extended Window Manager Hints at
      http://freedesktop.org/wiki/Specifications/wm-spec  */
@@ -8955,7 +8956,7 @@ x_ewmh_activate_frame (FRAME_PTR f)
 }
 
 static void
-XTframe_raise_lower (FRAME_PTR f, int raise_flag)
+XTframe_raise_lower (struct frame *f, int raise_flag)
 {
   if (raise_flag)
     x_raise_frame (f);

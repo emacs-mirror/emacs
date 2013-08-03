@@ -1353,7 +1353,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
 
 static void
-ns_fullscreen_hook (FRAME_PTR f)
+ns_fullscreen_hook (struct frame *f)
 {
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
 

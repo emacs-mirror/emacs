@@ -2522,7 +2522,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 }
 
 static bool
-term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
+term_mouse_movement (struct frame *frame, Gpm_Event *event)
 {
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (event->x != last_mouse_x || event->y != last_mouse_y)
@@ -2563,7 +2563,7 @@ timeval_to_Time (struct timeval const *t)
    This clears mouse_moved until the next motion
    event arrives.  */
 static void
-term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
 		     Lisp_Object *y, Time *timeptr)
 {

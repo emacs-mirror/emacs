@@ -619,13 +619,13 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
    ========================================================================== */
 
 
-static Lisp_Object nsfont_get_cache (FRAME_PTR frame);
+static Lisp_Object nsfont_get_cache (struct frame *frame);
 static Lisp_Object nsfont_list (struct frame *, Lisp_Object);
 static Lisp_Object nsfont_match (struct frame *, Lisp_Object);
 static Lisp_Object nsfont_list_family (struct frame *);
-static Lisp_Object nsfont_open (FRAME_PTR f, Lisp_Object font_entity,
+static Lisp_Object nsfont_open (struct frame *f, Lisp_Object font_entity,
                                  int pixel_size);
-static void nsfont_close (FRAME_PTR f, struct font *font);
+static void nsfont_close (struct frame *f, struct font *font);
 static int nsfont_has_char (Lisp_Object entity, int c);
 static unsigned int nsfont_encode_char (struct font *font, int c);
 static int nsfont_text_extents (struct font *font, unsigned int *code,
@@ -659,7 +659,7 @@ struct font_driver nsfont_driver =
 /* Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
 static Lisp_Object
-nsfont_get_cache (FRAME_PTR frame)
+nsfont_get_cache (struct frame *frame)
 {
   Display_Info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
   return (dpyinfo->name_list_element);
@@ -724,7 +724,7 @@ nsfont_list_family (struct frame *f)
 /* Open a font specified by FONT_ENTITY on frame F.  If the font is
    scalable, open it with PIXEL_SIZE.  */
 static Lisp_Object
-nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   BOOL synthItal;
   unsigned int traits = 0;
@@ -931,7 +931,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 
 /* Close FONT on frame F. */
 static void
-nsfont_close (FRAME_PTR f, struct font *font)
+nsfont_close (struct frame *f, struct font *font)
 {
   struct nsfont_info *font_info = (struct nsfont_info *)font;
   int i;
