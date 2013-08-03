@@ -78,6 +78,21 @@ Else return nil."
   (and (eq (car-safe frameset) 'frameset)
        (plist-get (cl-second frameset) :version)))
 
+;; A setf'able accessor to the frameset's properties
+(defun frameset-prop (frameset prop)
+  "Return the value of the PROP property of FRAMESET.
+
+Properties other than :version can be set with
+
+  (setf (frameset-prop FRAMESET PROP) NEW-VALUE)"
+  (plist-get (frameset-properties frameset) prop))
+
+(gv-define-setter frameset-prop (v fs prop)
+  `(progn
+     (cl-assert (not (eq ,prop :version)) t ":version can not be set")
+     (setf (frameset-properties ,fs)
+	 (plist-put (frameset-properties ,fs) ,prop ,v))))
+
 
 ;; Filtering
 
@@ -294,8 +309,9 @@ PREDICATE is a predicate function, which must return non-nil for frames that
 should be saved; it defaults to saving all frames from FRAME-LIST.
 PROPERTIES is a user-defined property list to add to the frameset."
   (let ((frames (cl-delete-if-not #'frame-live-p
-				  (cl-remove-if-not (or predicate #'framep)
-						    (or frame-list (frame-list))))))
+				  (cl-delete-if-not (or predicate #'framep)
+						    (or (copy-sequence frame-list)
+							(frame-list))))))
     (frameset--process-minibuffer-frames frames)
     (make-frameset :properties (append '(:version 1) properties)
 		   :states (mapcar
