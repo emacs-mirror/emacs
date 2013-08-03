@@ -8437,7 +8437,7 @@ As usual, this function can be divided into its component parts:
 
 The arguments are @code{beg} and @code{end} and the function is
 interactive with @code{"r"}, so the two arguments must refer to the
-beginning and end of the region.  If you have been reading though this
+beginning and end of the region.  If you have been reading through this
 document from the beginning, understanding these parts of a function is
 almost becoming routine.
 
