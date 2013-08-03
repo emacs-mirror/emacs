@@ -1,3 +1,7 @@
+2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new package frameset.el.
+
 2013-08-03  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* TODO: Adjust entry about bug reporting.

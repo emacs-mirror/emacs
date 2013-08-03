@@ -516,6 +516,12 @@ It is layered as:
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
+** New frameset.el package.
+It provides a set of operations to save a frameset (the state of all
+or a subset of the existing frames and windows, somewhat similar to a
+frame configuration), both in-session and persistently, and restore it
+at some point in the future.
+
 +++
 ** The package filenotify.el provides an interface for file system
 notifications.  It requires, that Emacs is compiled with one of the
