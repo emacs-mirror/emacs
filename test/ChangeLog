@@ -1,5 +1,7 @@
 2013-08-03  Glenn Morris  <rgm@gnu.org>
 
+	* automated/core-elisp-tests.el (core-elisp-tests): Fix defcustom.
+
 	* automated/icalendar-tests.el (icalendar-tests--test-export)
 	(icalendar-tests--test-import):
 	Use getenv/setenv rather than set-time-zone-rule.
