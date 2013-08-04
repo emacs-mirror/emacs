@@ -3,6 +3,9 @@
 	* frameset.el (frameset-p, frameset-save): Fix autoload cookies.
 	(frameset-filter-minibuffer): Doc fix.
 	(frameset-restore): Fix autoload cookie.  Fix typo in docstring.
+	(frameset--set-id, frameset--process-minibuffer-frames)
+	(frameset-restore): Rename parameter `frameset-id' to `frame-id'.
+	(frameset--reuse-frame): Pass correct frame-id to frameset--find-frame.
 
 	* desktop.el (desktop-clear): Only delete frames when called
 	interactively and desktop-restore-frames is non-nil.  Doc fix.
