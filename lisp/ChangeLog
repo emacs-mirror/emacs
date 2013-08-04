@@ -1,3 +1,29 @@
+2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-restore-forces-onscreen)
+	(desktop-restore-reuses-frames): Document :keyword constant values.
+	(desktop-filter-parameters-alist): Remove, now identical to
+	frameset-filter-alist.
+	(desktop--filter-tty*): Remove, moved to frameset.el.
+	(desktop-save-frameset, desktop-restore-frameset):
+	Do not pass :filters argument.
+
+	* frameset.el (frameset-live-filter-alist)
+	(frameset-persistent-filter-alist): New variables.
+	(frameset-filter-alist): Use them.  Add autoload cookie.
+	(frameset-filter-tty-to-GUI): Move from desktop.el and rename.
+	(frameset--set-id, frameset--reuse-frame): Rename `frame-id' to
+	`frameset--id' (it's supposed to be internal to frameset.el).
+	(frameset--process-minibuffer-frames): Ditto.  Doc fix.
+	(frameset--initial-params): New function.
+	(frameset--get-frame): Use it.  Doc fix.
+	(frameset--move-onscreen): Accept new PRED value for FORCE-ONSCREEN.
+	Accept :all, not 'all.
+	(frameset-restore): Add new predicate values for FORCE-ONSCREEN and
+	FORCE-DISPLAY.  Use :keywords for constant arguments to avoid collision
+	with fbound symbols.  Fix frame id matching, and remove matching ids if
+	the frame being restored is deleted.  Obey :delete.
+
 2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (macrop): New function.

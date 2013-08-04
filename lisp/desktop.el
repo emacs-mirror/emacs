@@ -390,12 +390,12 @@ If `delete', frames on other displays are deleted instead of restored."
 
 (defcustom desktop-restore-forces-onscreen t
   "If t, offscreen frames are restored onscreen instead.
-If `all', frames that are partially offscreen are also forced onscren.
+If `:all', frames that are partially offscreen are also forced onscren.
 NOTE: Checking of frame boundaries is only approximate and can fail
 to reliably detect frames whose onscreen/offscreen state depends on a
 few pixels, especially near the right / bottom borders of the screen."
   :type '(choice (const :tag "Only fully offscreen frames" t)
-		 (const :tag "Also partially offscreen frames" 'all)
+		 (const :tag "Also partially offscreen frames" :all)
 		 (const :tag "Do not force frames onscreen" nil))
   :group 'desktop
   :version "24.4")
@@ -403,10 +403,10 @@ few pixels, especially near the right / bottom borders of the screen."
 (defcustom desktop-restore-reuses-frames t
   "If t, restoring frames reuses existing frames.
 If nil, existing frames are deleted.
-If `keep', existing frames are kept and not reused."
+If `:keep', existing frames are kept and not reused."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
-		 (const :tag "Keep existing frames" 'keep))
+		 (const :tag "Keep existing frames" :keep))
   :group 'desktop
   :version "24.4")
 
@@ -900,25 +900,6 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 
 ;; ----------------------------------------------------------------------------
-(defvar desktop-filter-parameters-alist
-  (append '((font-backend	 . t)
-	    (name		 . t)
-	    (outer-window-id	 . t)
-	    (parent-id		 . t)
-	    (tty		 . desktop--filter-tty*)
-	    (tty-type		 . desktop--filter-tty*)
-	    (window-id		 . t)
-	    (window-system	 . t))
-	  frameset-filter-alist)
-  "Alist of frame parameters and filtering functions.
-Its format is identical to `frameset-filter-alist' (which see).")
-
-(defun desktop--filter-tty* (_current parameters saving)
-  ;; Remove tty and tty-type parameters when switching
-  ;; to a GUI frame.
-  (or saving
-      (not (frameset-switch-to-gui-p parameters))))
-
 (defun desktop--check-dont-save (frame)
   (not (frame-parameter frame 'desktop-dont-save)))
 
@@ -932,7 +913,6 @@ Frames with a non-nil `desktop-dont-save' parameter are not saved."
 	     (let ((name (concat user-login-name "@" system-name
 				 (format-time-string " %Y-%m-%d %T"))))
 	       (frameset-save nil
-			      :filters desktop-filter-parameters-alist
 			      :predicate #'desktop--check-dont-save
 			      :properties (list :app desktop--app-id
 						:name name))))))
@@ -1049,7 +1029,6 @@ This function depends on the value of `desktop-saved-frameset'
 being set (usually, by reading it from the desktop)."
   (when (desktop-restoring-frameset-p)
     (frameset-restore desktop-saved-frameset
-		      :filters desktop-filter-parameters-alist
 		      :reuse-frames desktop-restore-reuses-frames
 		      :force-display desktop-restore-in-current-display
 		      :force-onscreen desktop-restore-forces-onscreen)))
