@@ -1,3 +1,16 @@
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/nadvice.el (advice-function-mapc): Rename from advice-mapc.
+	(advice-mapc): New function, using it.
+	(advice-function-member-p): New function.
+	(advice--normalize): Store the cdr in advice--saved-rewrite since
+	that's the part that will be changed.
+	(advice--symbol-function): New function.
+	(advice-remove): Handle removal before the function is defined.
+	Adjust to new advice--saved-rewrite.
+	(advice-member-p): Use advice-function-member-p and
+	advice--symbol-function.
+
 2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-p, frameset-save): Fix autoload cookies.
