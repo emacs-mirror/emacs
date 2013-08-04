@@ -1,3 +1,12 @@
+2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor races in hosts lacking mkostemp (Bug#15015).
+	* movemail.c (main):
+	* update-game-score.c (write_scores):
+	Use mkostemp (which now works on all platforms, due to changes
+	in the portability layer) rather than mktemp (which has a race)
+	or mkstemp (which we no longer bother with).
+
 2013-07-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to C89.

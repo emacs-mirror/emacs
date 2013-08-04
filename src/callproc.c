@@ -1009,23 +1009,11 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args)
     tempfile = SSDATA (filename_string);
 
     {
-      int fd;
-
-#ifdef HAVE_MKOSTEMP
-      fd = mkostemp (tempfile, O_CLOEXEC);
-#elif defined HAVE_MKSTEMP
-      fd = mkstemp (tempfile);
-#else
-      errno = EEXIST;
-      mktemp (tempfile);
-      fd = *tempfile ? 0 : -1;
-#endif
+      int fd = mkostemp (tempfile, O_CLOEXEC);
       if (fd < 0)
 	report_file_error ("Failed to open temporary file using pattern",
 			   pattern);
-#if defined HAVE_MKOSTEMP || defined HAVE_MKSTEMP
       emacs_close (fd);
-#endif
     }
 
     record_unwind_protect (delete_temp_file, filename_string);

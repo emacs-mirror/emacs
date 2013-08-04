@@ -383,6 +383,7 @@ sort_scores (struct score_entry *scores, int count, int reverse)
 static int
 write_scores (const char *filename, const struct score_entry *scores, int count)
 {
+  int fd;
   FILE *f;
   int i;
   char *tempfile = malloc (strlen (filename) + strlen (".tempXXXXXX") + 1);
@@ -390,12 +391,11 @@ write_scores (const char *filename, const struct score_entry *scores, int count)
     return -1;
   strcpy (tempfile, filename);
   strcat (tempfile, ".tempXXXXXX");
-#ifdef HAVE_MKSTEMP
-  if (mkstemp (tempfile) < 0
-#else
-  if (mktemp (tempfile) != tempfile
-#endif
-      || !(f = fopen (tempfile, "w")))
+  fd = mkostemp (tempfile, 0);
+  if (fd < 0)
+    return -1;
+  f = fdopen (fd, "w");
+  if (! f)
     return -1;
   for (i = 0; i < count; i++)
     if (fprintf (f, "%ld %s %s\n", scores[i].score, scores[i].username,

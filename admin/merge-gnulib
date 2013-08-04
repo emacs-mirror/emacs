@@ -32,7 +32,7 @@ GNULIB_MODULES='
   fcntl fcntl-h fdatasync fdopendir filemode fstatat fsync
   getloadavg getopt-gnu gettime gettimeofday
   intprops largefile lstat
-  manywarnings memrchr mktime
+  manywarnings memrchr mkostemp mktime
   pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
   sig2str socklen stat-time stdalign stdarg stdbool stdio
   strftime strtoimax strtoumax symlink sys_stat

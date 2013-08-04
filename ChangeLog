@@ -1,3 +1,15 @@
+2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor races in hosts lacking mkostemp (Bug#15015).
+	Gnulib's emulation of mkostemp doesn't have races that Emacs's does.
+	* configure.ac (mkostemp): Remove check for this function;
+	gnulib does the check now.
+	(mkstemp): Remove check for this no-longer-used function.
+	* lib/mkostemp.c, lib/secure_getenv.c, lib/tempname.c, lib/tempname.h:
+	* m4/mkostemp.m4, m4/secure_getenv.m4, m4/tempname.m4:
+	New files, copied from Gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
 2013-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add

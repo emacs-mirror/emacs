@@ -304,24 +304,13 @@ main (int argc, char **argv)
 
 	  memcpy (tempname, inname, inname_dirlen);
 	  strcpy (tempname + inname_dirlen, "EXXXXXX");
-#ifdef HAVE_MKSTEMP
-	  desc = mkstemp (tempname);
-#else
-	  mktemp (tempname);
-	  if (!*tempname)
-	    desc = -1;
-	  else
-	    {
-	      unlink (tempname);
-	      desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0600);
-	    }
-#endif
+	  desc = mkostemp (tempname, 0);
 	  if (desc < 0)
 	    {
-	      int mkstemp_errno = errno;
+	      int mkostemp_errno = errno;
 	      error ("error while creating what would become the lock file",
 		     0, 0);
-	      errno = mkstemp_errno;
+	      errno = mkostemp_errno;
 	      pfatal_with_name (tempname);
 	    }
 	  close (desc);

@@ -1,3 +1,10 @@
+2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor races in hosts lacking mkostemp (Bug#15015).
+	* callproc.c (create_temp_file):
+	* filelock.c (create_lock_file):
+	Assume mkostemp, since it's now provided by Gnulib.
+
 2013-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (mkostemp): New function.

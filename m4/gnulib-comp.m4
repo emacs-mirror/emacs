@@ -89,6 +89,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module lstat:
   # Code from module manywarnings:
   # Code from module memrchr:
+  # Code from module mkostemp:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -102,6 +103,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
+  # Code from module secure_getenv:
   # Code from module sig2str:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
@@ -134,6 +136,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_select:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module tempname:
   # Code from module time:
   # Code from module time_r:
   # Code from module timer-time:
@@ -274,6 +277,13 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_MEMRCHR
   fi
   gl_STRING_MODULE_INDICATOR([memrchr])
+  gl_FUNC_MKOSTEMP
+  if test $HAVE_MKOSTEMP = 0; then
+    AC_LIBOBJ([mkostemp])
+    gl_PREREQ_MKOSTEMP
+  fi
+  gl_MODULE_INDICATOR([mkostemp])
+  gl_STDLIB_MODULE_INDICATOR([mkostemp])
   gl_FUNC_MKTIME
   if test $REPLACE_MKTIME = 1; then
     AC_LIBOBJ([mktime])
@@ -381,9 +391,11 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
+  gl_gnulib_enabled_secure_getenv=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
+  gl_gnulib_enabled_tempname=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
@@ -485,6 +497,18 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=true
     fi
   }
+  func_gl_gnulib_m4code_secure_getenv ()
+  {
+    if ! $gl_gnulib_enabled_secure_getenv; then
+      gl_FUNC_SECURE_GETENV
+      if test $HAVE_SECURE_GETENV = 0; then
+        AC_LIBOBJ([secure_getenv])
+        gl_PREREQ_SECURE_GETENV
+      fi
+      gl_STDLIB_MODULE_INDICATOR([secure_getenv])
+      gl_gnulib_enabled_secure_getenv=true
+    fi
+  }
   func_gl_gnulib_m4code_stat ()
   {
     if ! $gl_gnulib_enabled_stat; then
@@ -525,6 +549,14 @@ AC_DEFUN([gl_INIT],
       fi
       gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_strtoull=true
+    fi
+  }
+  func_gl_gnulib_m4code_tempname ()
+  {
+    if ! $gl_gnulib_enabled_tempname; then
+      gl_FUNC_GEN_TEMPNAME
+      gl_gnulib_enabled_tempname=true
+      func_gl_gnulib_m4code_secure_getenv
     fi
   }
   func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec ()
@@ -569,6 +601,9 @@ AC_DEFUN([gl_INIT],
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
   fi
+  if test $HAVE_MKOSTEMP = 0; then
+    func_gl_gnulib_m4code_tempname
+  fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
@@ -598,9 +633,11 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_secure_getenv], [$gl_gnulib_enabled_secure_getenv])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoull], [$gl_gnulib_enabled_strtoull])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_tempname], [$gl_gnulib_enabled_tempname])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec], [$gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec])
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
@@ -806,6 +843,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/md5.c
   lib/md5.h
   lib/memrchr.c
+  lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
   lib/openat-priv.h
@@ -821,6 +859,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/readlinkat.c
   lib/root-uid.h
+  lib/secure_getenv.c
   lib/sha1.c
   lib/sha1.h
   lib/sha256.c
@@ -853,6 +892,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_select.in.h
   lib/sys_stat.in.h
   lib/sys_time.in.h
+  lib/tempname.c
+  lib/tempname.h
   lib/time.in.h
   lib/time_r.c
   lib/timespec-add.c
@@ -908,6 +949,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/manywarnings.m4
   m4/md5.m4
   m4/memrchr.m4
+  m4/mkostemp.m4
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
@@ -919,6 +961,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/putenv.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/secure_getenv.m4
   m4/setenv.m4
   m4/sha1.m4
   m4/sha256.m4
@@ -948,6 +991,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
   m4/sys_time_h.m4
+  m4/tempname.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/timer_time.m4
