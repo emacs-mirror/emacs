@@ -22,7 +22,200 @@
 	(vc-bzr-ignore-completion-table):
 	(vc-bzr-find-ignore-file): New functions.
 
+2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-p, frameset-save): Fix autoload cookies.
+	(frameset-filter-minibuffer): Doc fix.
+	(frameset-restore): Fix autoload cookie.  Fix typo in docstring.
+
+	* desktop.el (desktop-clear): Only delete frames when called
+	interactively and desktop-restore-frames is non-nil.  Doc fix.
+	(desktop-read): Set desktop-saved-frameset to nil.
+
+2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-prop): New function and setter.
+	(frameset-save): Do not modify frame list passed by the caller.
+
+2013-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-desc-from-define): Ignore unknown keys.
+
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode)
+	(easy-mmode-define-navigation): Avoid ((lambda (..) ..) ...).
+
+	* custom.el (custom-initialize-default, custom-initialize-set)
+	(custom-initialize-reset, custom-initialize-changed): Affect the
+	toplevel-default-value (bug#6275, bug#14586).
+	* emacs-lisp/advice.el (ad-compile-function): Undo previous workaround
+	for bug#6275.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Add cl-def* expressions.
+
+	* frameset.el (frameset-filter-params): Fix order of arguments.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move code related to saving frames to frameset.el.
+	* desktop.el: Require frameset.
+	(desktop-restore-frames): Doc fix.
+	(desktop-restore-reuses-frames): Rename from
+	desktop-restoring-reuses-frames.
+	(desktop-saved-frameset): Rename from desktop-saved-frame-states.
+	(desktop-clear): Clear frames too.
+	(desktop-filter-parameters-alist): Set from frameset-filter-alist.
+	(desktop--filter-tty*, desktop-save, desktop-read):
+	Use frameset functions.
+	(desktop-before-saving-frames-functions, desktop--filter-*-color)
+	(desktop--filter-minibuffer, desktop--filter-restore-desktop-parm)
+	(desktop--filter-save-desktop-parm, desktop--filter-iconified-position)
+	(desktop-restore-in-original-display-p, desktop--filter-frame-parms)
+	(desktop--process-minibuffer-frames, desktop-save-frames)
+	(desktop--reuse-list, desktop--compute-pos, desktop--move-onscreen)
+	(desktop--find-frame, desktop--select-frame, desktop--make-frame)
+	(desktop--sort-states, desktop-restoring-frames-p)
+	(desktop-restore-frames): Remove.  Most code moved to frameset.el.
+	(desktop-restoring-frameset-p, desktop-restore-frameset)
+	(desktop--check-dont-save, desktop-save-frameset): New functions.
+	(desktop--app-id): New constant.
+	(desktop-first-buffer, desktop-buffer-ok-count)
+	(desktop-buffer-fail-count): Move before first use.
+	* frameset.el: New file.
+
+2013-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Use lexical-binding.
+	(dir-locals-read-from-file): Remove unused `err' variable.
+	(hack-dir-local-variables--warned-coding): New var.
+	(hack-dir-local-variables): Use it to avoid repeated warnings.
+	(make-backup-file-name--default-function): New function.
+	(make-backup-file-name-function): Use it as default.
+	(buffer-stale--default-function): New function.
+	(buffer-stale-function): Use it as default.
+	(revert-buffer-insert-file-contents--default-function): New function.
+	(revert-buffer-insert-file-contents-function): Use it as default.
+	(insert-directory): Avoid add-to-list.
+
+	* autorevert.el (auto-revert-handler): Simplify.
+	Use buffer-stale--default-function.
+
+2013-08-01  Tassilo Horn  <tsdh@gnu.org>
+
+	* speedbar.el (speedbar-query-confirmation-method): Doc fix.
+
+	* whitespace.el (whitespace-ensure-local-variables): New function.
+	(whitespace-cleanup-region): Call it.
+	(whitespace-turn-on): Call it.
+
+2013-08-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Complete file name handlers.
+
+	* net/tramp.el (tramp-handle-set-visited-file-modtime)
+	(tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-file-notify-rm-watch): New functions.
+	(tramp-call-process): Do not bind `default-directory'.
+
+	* net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	Order alphabetically.
+	[access-file, add-name-to-file, dired-call-process]:
+	[dired-compress-file, file-acl, file-notify-rm-watch]:
+	[file-ownership-preserved-p, file-selinux-context]:
+	[make-directory-internal, make-symbolic-link, set-file-acl]:
+	[set-file-selinux-context, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-adb-handle-write-region): Apply `set-visited-file-modtime'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist)
+	[file-notify-add-watch, file-notify-rm-watch]:
+	[set-file-times, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(with-tramp-gvfs-error-message)
+	(tramp-gvfs-handle-set-visited-file-modtime)
+	(tramp-gvfs-fuse-file-name): Remove.
+	(tramp-gvfs-handle-file-notify-add-watch)
+	(tramp-gvfs-file-gvfs-monitor-file-process-filter): New defuns.
+	(tramp-gvfs-handle-write-region): Fix error in moving tmpfile.
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Order alphabetically.
+	[file-notify-rm-watch ]: Use default Tramp handler.
+	[executable-find]: Remove private handler.
+	(tramp-do-copy-or-rename-file-out-of-band): Do not bind
+	`default-directory'.
+	(tramp-sh-handle-executable-find)
+	(tramp-sh-handle-file-notify-rm-watch): Remove functions.
+	(tramp-sh-file-gvfs-monitor-dir-process-filter)
+	(tramp-sh-file-inotifywait-process-filter, tramp-set-remote-path):
+	Do not use `format' in `tramp-message'.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist)
+	[file-notify-rm-watch, set-visited-file-modtime]:
+	[verify-visited-file-modtime]: Add handler.
+	(tramp-smb-call-winexe): Do not bind `default-directory'.
+
+2013-08-01  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Fix menu entry for vc-ignore.
+
+2013-07-31  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/log-view.el (log-view-diff): Extract `log-view-diff-common',
+	use it.
+	(log-view-diff-changeset): Same.
+	(log-view-diff-common): Call backend command `previous-revision'
+	to find out the previous revision, in both cases.  Swap the
+	variables `to' and `fr', so that `fr' usually refers to the
+	earlier revision (Bug#14989).
+
+2013-07-31  Kan-Ru Chen  <kanru@kanru.info>
+
+	* ibuf-ext.el (ibuffer-filter-by-filename):
+	Make it work with dired buffers too.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* emacs-lisp/re-builder.el (reb-color-display-p):
+	* files.el (save-buffers-kill-terminal):
+	* net/browse-url.el (browse-url):
+	* server.el (server-save-buffers-kill-terminal):
+	* textmodes/reftex-toc.el (reftex-toc, reftex-toc-revert):
+	Prefer nil to selected-frame for the first arg of frame-parameter.
+
+2013-07-31  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-menu-map): Add menu entry for vc-ignore.
+
+2013-07-30  Stephen Berman  <stephen.berman@gmx.net>
+
+	* minibuffer.el (completion--twq-all): Try and preserve each
+	completion's case choice (bug#14907).
+
+2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Mention the new
+	:nogreeting parameter.
+	(network-stream-open-starttls): Use the :nogreeting parameter
+	(bug#14938).
+
+	* net/shr.el (shr-mouse-browse-url): Remove and use `shr-browse-url'.
+
+	* net/eww.el (eww-setup-buffer): Switching to the buffer seems
+	more natural than popping.
+
+	* net/shr.el (shr-urlify): Put `follow-link' on URLs (bug#14815).
+	(shr-urlify): Highlight under mouse.
+
 2013-07-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc-hooks.el (vc-prefix-map): Add key binding for vc-ignore.
+
+	* vc/vc-dir.el (vc-dir-mode-map): Change key binding for vc-dir-ignore.
 
 	* vc/vc-svn.el (vc-svn-ignore): Remove `interactive'.  Use `*vc*'
 	buffer for output.
@@ -30,7 +223,7 @@
 	* vc/vc-hg.el (vc-hg-ignore): Remove `interactive'.  Do not assume
 	point-min==1.  Fix search string.  Fix parentheses missing.
 
-	* vc/vc-git.el (vc-git-ignore): Remove `interactive'. Do not
+	* vc/vc-git.el (vc-git-ignore): Remove `interactive'.  Do not
 	assume point-min==1.  Fix search string.  Fix parentheses missing.
 
 	* vc/vc-cvs.el (vc-cvs-ignore): Remove `interactive'.
@@ -94,7 +287,7 @@
 	* progmodes/cc-engine.el (c-beginning-of-statement-1)
 	(c-after-conditional): Adapt to deal with c-block-stmt-1-2-key.
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Adapt to deal
-	with c-block-stmet-1-2-key.
+	with c-block-stmt-1-2-key.
 
 2013-07-27  Juanma Barranquero  <lekktu@gmail.com>
 

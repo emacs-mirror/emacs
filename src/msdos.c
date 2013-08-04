@@ -298,7 +298,7 @@ mouse_button_depressed (int b, int *xp, int *yp)
 }
 
 void
-mouse_get_pos (FRAME_PTR *f, int insist, Lisp_Object *bar_window,
+mouse_get_pos (struct frame **f, int insist, Lisp_Object *bar_window,
 	       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 	       Time *time)
 {
@@ -1158,7 +1158,7 @@ IT_display_cursor (int on)
    to put the cursor at the end of the text displayed there.  */
 
 static void
-IT_cmgoto (FRAME_PTR f)
+IT_cmgoto (struct frame *f)
 {
   /* Only set the cursor to where it should be if the display is
      already in sync with the window contents.  */
@@ -1760,7 +1760,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
     }
 }
 
-extern void init_frame_faces (FRAME_PTR);
+extern void init_frame_faces (struct frame *);
 
 #endif /* !HAVE_X_WINDOWS */
 
@@ -3319,18 +3319,6 @@ XMenuDestroy (Display *foo, XMenu *menu)
     }
   xfree (menu);
   menu_help_message = prev_menu_help_message = NULL;
-}
-
-int
-x_pixel_width (struct frame *f)
-{
-  return FRAME_COLS (f);
-}
-
-int
-x_pixel_height (struct frame *f)
-{
-  return FRAME_LINES (f);
 }
 #endif /* !HAVE_X_WINDOWS */
 

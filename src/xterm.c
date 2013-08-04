@@ -145,7 +145,7 @@ int use_xim = 0;  /* configure --without-xim */
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
-static int any_help_event_p;
+static bool any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
@@ -212,8 +212,7 @@ static unsigned long ignore_next_mouse_click_timeout;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static XRectangle last_mouse_glyph;
-static FRAME_PTR last_mouse_glyph_frame;
-static Lisp_Object last_mouse_press_frame;
+static struct frame *last_mouse_glyph_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -288,8 +287,6 @@ enum xembed_message
     XEMBED_ACTIVATE_ACCELERATOR   = 14
   };
 
-/* Used in x_flush.  */
-
 static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
 static void x_raise_frame (struct frame *);
@@ -357,15 +354,18 @@ x_flush (struct frame *f)
     return;
 
   block_input ();
-  if (f == NULL)
+  if (f)
     {
-      Lisp_Object rest, frame;
-      FOR_EACH_FRAME (rest, frame)
-        if (FRAME_X_P (XFRAME (frame)))
-          x_flush (XFRAME (frame));
+      eassert (FRAME_X_P (f));
+      XFlush (FRAME_X_DISPLAY (f));
     }
-  else if (FRAME_X_P (f))
-    XFlush (FRAME_X_DISPLAY (f));
+  else
+    {
+      /* Flush all displays and so all frames on them.  */
+      struct x_display_info *xdi;
+      for (xdi = x_display_list; xdi; xdi = xdi->next)
+	XFlush (xdi->display);
+    }
   unblock_input ();
 }
 
@@ -877,8 +877,6 @@ XTreset_terminal_modes (struct terminal *terminal)
 
 static void x_set_glyph_string_clipping (struct glyph_string *);
 static void x_set_glyph_string_gc (struct glyph_string *);
-static void x_draw_glyph_string_background (struct glyph_string *,
-                                            int);
 static void x_draw_glyph_string_foreground (struct glyph_string *);
 static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
 static void x_draw_glyph_string_box (struct glyph_string *);
@@ -1163,7 +1161,7 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
    contains the first component of a composition.  */
 
 static void
-x_draw_glyph_string_background (struct glyph_string *s, int force_p)
+x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 {
   /* Nothing to do if background has already been drawn or if it
      shouldn't be drawn in the first place.  */
@@ -1412,11 +1410,6 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 }
 
 #ifdef USE_X_TOOLKIT
-
-static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
-                                    XrmValue *, XrmValue *, XtPointer *);
-static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
-                            XrmValue *, Cardinal *);
 
 #ifdef USE_LUCID
 
@@ -3195,7 +3188,7 @@ XTflash (struct frame *f)
 
 
 static void
-XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
+XTtoggle_invisible_pointer (struct frame *f, int invisible)
 {
   block_input ();
   if (invisible)
@@ -3804,7 +3797,7 @@ static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
 static int
-note_mouse_movement (FRAME_PTR frame, XMotionEvent *event)
+note_mouse_movement (struct frame *frame, XMotionEvent *event)
 {
   last_mouse_movement_time = event->time;
   last_mouse_motion_event = *event;
@@ -3880,11 +3873,11 @@ redo_mouse_highlight (void)
    movement.  */
 
 static void
-XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		  Time *timestamp)
 {
-  FRAME_PTR f1;
+  struct frame *f1;
 
   block_input ();
 
@@ -4423,7 +4416,8 @@ xg_scroll_callback (GtkRange     *range,
   gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
+  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (range),
+							XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
   position = gtk_adjustment_get_value (adj);
@@ -5040,7 +5034,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
 {
   int dragging = ! NILP (bar->dragging);
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
 
   /* If the display is already accurate, do nothing.  */
@@ -5381,7 +5375,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
    `*redeem_scroll_bar_hook' is applied to its window before the judgment.  */
 
 static void
-XTcondemn_scroll_bars (FRAME_PTR frame)
+XTcondemn_scroll_bars (struct frame *frame)
 {
   /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
   while (! NILP (FRAME_SCROLL_BARS (frame)))
@@ -5449,7 +5443,7 @@ XTredeem_scroll_bar (struct window *window)
    last call to `*condemn_scroll_bars_hook'.  */
 
 static void
-XTjudge_scroll_bars (FRAME_PTR f)
+XTjudge_scroll_bars (struct frame *f)
 {
   Lisp_Object bar, next;
 
@@ -5485,7 +5479,7 @@ static void
 x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 {
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
   int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
@@ -5584,7 +5578,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
 static void
 x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
-  FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
+  struct frame *f = XFRAME (XWINDOW (bar->window)->frame);
 
   last_mouse_movement_time = event->xmotion.time;
 
@@ -5612,13 +5606,13 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
    on the scroll bar.  */
 
 static void
-x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
+x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part, Lisp_Object *x,
 			    Lisp_Object *y, Time *timestamp)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int win_x, win_y;
   Window dummy_window;
   int dummy_coord;
@@ -5686,7 +5680,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
    redraw them.  */
 
 static void
-x_scroll_bar_clear (FRAME_PTR f)
+x_scroll_bar_clear (struct frame *f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
   Lisp_Object bar;
@@ -6975,13 +6969,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
             && event.xbutton.same_screen)
           {
             SET_SAVED_BUTTON_EVENT;
-            XSETFRAME (last_mouse_press_frame, f);
             *finish = X_EVENT_DROP;
-          }
-        else if (event.type == ButtonPress)
-          {
-            last_mouse_press_frame = Qnil;
-            goto OTHER;
           }
         else
           goto OTHER;
@@ -8537,7 +8525,7 @@ do_ewmh_fullscreen (struct frame *f)
 }
 
 static void
-XTfullscreen_hook (FRAME_PTR f)
+XTfullscreen_hook (struct frame *f)
 {
   if (FRAME_VISIBLE_P (f))
     {
@@ -8938,7 +8926,7 @@ x_lower_frame (struct frame *f)
 /* Request focus with XEmbed */
 
 void
-xembed_request_focus (FRAME_PTR f)
+xembed_request_focus (struct frame *f)
 {
   /* See XEmbed Protocol Specification at
      http://freedesktop.org/wiki/Specifications/xembed-spec  */
@@ -8950,7 +8938,7 @@ xembed_request_focus (FRAME_PTR f)
 /* Activate frame with Extended Window Manager Hints */
 
 void
-x_ewmh_activate_frame (FRAME_PTR f)
+x_ewmh_activate_frame (struct frame *f)
 {
   /* See Window Manager Specification/Extended Window Manager Hints at
      http://freedesktop.org/wiki/Specifications/wm-spec  */
@@ -8968,7 +8956,7 @@ x_ewmh_activate_frame (FRAME_PTR f)
 }
 
 static void
-XTframe_raise_lower (FRAME_PTR f, int raise_flag)
+XTframe_raise_lower (struct frame *f, int raise_flag)
 {
   if (raise_flag)
     x_raise_frame (f);
@@ -9452,6 +9440,19 @@ x_free_frame_resources (struct frame *f)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
       x_free_gcs (f);
+
+      /* Free extra GCs allocated by x_setup_relief_colors.  */
+      if (f->output_data.x->white_relief.gc)
+	{
+	  XFreeGC (dpyinfo->display, f->output_data.x->white_relief.gc);
+	  f->output_data.x->white_relief.gc = 0;
+	}
+      if (f->output_data.x->black_relief.gc)
+	{
+	  XFreeGC (dpyinfo->display, f->output_data.x->black_relief.gc);
+	  f->output_data.x->black_relief.gc = 0;
+	}
+
       XFlush (FRAME_X_DISPLAY (f));
     }
 
@@ -9817,18 +9818,11 @@ get_bits_and_offset (long unsigned int mask, int *bits, int *offset)
 /* Return 1 if display DISPLAY is available for use, 0 otherwise.
    But don't permanently open it, just test its availability.  */
 
-int
+bool
 x_display_ok (const char *display)
 {
-    int dpy_ok = 1;
-    Display *dpy;
-
-    dpy = XOpenDisplay (display);
-    if (dpy)
-      XCloseDisplay (dpy);
-    else
-      dpy_ok = 0;
-    return dpy_ok;
+  Display *dpy = XOpenDisplay (display);
+  return dpy ? (XCloseDisplay (dpy), 1) : 0;
 }
 
 #ifdef USE_GTK
@@ -10727,9 +10721,6 @@ syms_of_xterm (void)
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
-
-  staticpro (&last_mouse_press_frame);
-  last_mouse_press_frame = Qnil;
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");

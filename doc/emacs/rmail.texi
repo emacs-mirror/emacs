@@ -1274,6 +1274,17 @@ It reads the name of a coding system, and then redecodes the message
 using the coding system you specified.  If you specified the right
 coding system, the result should be readable.
 
+@vindex rmail-file-coding-system
+  When you get new mail in Rmail, each message is translated
+automatically from the coding system it is written in, as if it were a
+separate file.  This uses the priority list of coding systems that you
+have specified.  If a MIME message specifies a character set, Rmail
+obeys that specification.  For reading and saving Rmail files
+themselves, Emacs uses the coding system specified by the variable
+@code{rmail-file-coding-system}.  The default value is @code{nil},
+which means that Rmail files are not translated (they are read and
+written in the Emacs internal character code).
+
 @node Rmail Editing
 @section Editing Within a Message
 

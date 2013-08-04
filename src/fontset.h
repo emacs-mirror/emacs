@@ -28,12 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct face;
 
-extern void free_face_fontset (FRAME_PTR, struct face *);
-extern int face_for_char (FRAME_PTR, struct face *, int,
+extern void free_face_fontset (struct frame *, struct face *);
+extern int face_for_char (struct frame *, struct face *, int,
                           int, Lisp_Object);
 extern Lisp_Object font_for_char (struct face *, int, int, Lisp_Object);
 
-extern int make_fontset_for_ascii_face (FRAME_PTR, int, struct face *);
+extern int make_fontset_for_ascii_face (struct frame *, int, struct face *);
 extern int fontset_from_font (Lisp_Object);
 extern int fs_query_fontset (Lisp_Object, int);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);

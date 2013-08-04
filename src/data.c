@@ -1384,9 +1384,7 @@ for this variable.  The default value is meaningful for variables with
 local bindings in certain buffers.  */)
   (Lisp_Object symbol)
 {
-  register Lisp_Object value;
-
-  value = default_value (symbol);
+  Lisp_Object value = default_value (symbol);
   if (!EQ (value, Qunbound))
     return value;
 

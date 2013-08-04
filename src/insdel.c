@@ -1211,12 +1211,9 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
     adjust_markers_for_insert (from, from_byte,
 			       from + len, from_byte + len_byte, 0);
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
-    {
-      if (nchars_del > 0)
-	record_delete (from, prev_text);
-      record_insert (from, len);
-    }
+  if (nchars_del > 0)
+    record_delete (from, prev_text);
+  record_insert (from, len);
 
   if (len > nchars_del)
     adjust_overlays_for_insert (from, len - nchars_del);
@@ -1373,12 +1370,12 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
     emacs_abort ();
 #endif
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
+  /* Record the insertion first, so that when we undo,
+     the deletion will be undone first.  Thus, undo
+     will insert before deleting, and thus will keep
+     the markers before and after this text separate.  */
+  if (!NILP (deletion))
     {
-      /* Record the insertion first, so that when we undo,
-	 the deletion will be undone first.  Thus, undo
-	 will insert before deleting, and thus will keep
-	 the markers before and after this text separate.  */
       record_insert (from + SCHARS (deletion), inschars);
       record_delete (from, deletion);
     }
@@ -1718,8 +1715,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  if (! EQ (BVAR (current_buffer, undo_list), Qt))
-    record_delete (from, deletion);
+  record_delete (from, deletion);
   MODIFF++;
   CHARS_MODIFF = MODIFF;
 

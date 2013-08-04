@@ -110,7 +110,9 @@ It has `lisp-mode-abbrev-table' as its parent."
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
-				"defgeneric" "defmethod") t))
+				"defgeneric" "defmethod"
+				"cl-defun" "cl-defsubst" "cl-defmacro"
+				"cl-define-compiler-macro") t))
 			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
@@ -132,7 +134,8 @@ It has `lisp-mode-abbrev-table' as its parent."
 			     (regexp-opt
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
-				"defface" "defpackage") t))
+				"defface" "defpackage" "cl-deftype"
+				"cl-defstruct") t))
 			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 

@@ -103,10 +103,10 @@ fill_queue (BOOL block)
 }
 
 /* In a generic, multi-frame world this should take a console handle
-   and return the frame for it
+   and return the frame for it.
 
    Right now, there's only one frame so return it.  */
-static FRAME_PTR
+static struct frame *
 get_frame (void)
 {
   return SELECTED_FRAME ();
@@ -394,7 +394,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 
 /* Mouse position hook.  */
 void
-w32_console_mouse_position (FRAME_PTR *f,
+w32_console_mouse_position (struct frame **f,
 			    int insist,
 			    Lisp_Object *bar_window,
 			    enum scroll_bar_part *part,
@@ -461,7 +461,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 
   if (event->dwEventFlags == MOUSE_MOVED)
     {
-      FRAME_PTR f = SELECTED_FRAME ();
+      struct frame *f = SELECTED_FRAME ();
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
       int mx = event->dwMousePosition.X, my = event->dwMousePosition.Y;
 
@@ -555,7 +555,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 static void
 resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 {
-  FRAME_PTR f = get_frame ();
+  struct frame *f = get_frame ();
 
   change_frame_size (f, event->dwSize.Y, event->dwSize.X, 0, 1, 0);
   SET_FRAME_GARBAGED (f);
@@ -565,7 +565,7 @@ static void
 maybe_generate_resize_event (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO info;
-  FRAME_PTR f = get_frame ();
+  struct frame *f = get_frame ();
 
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 

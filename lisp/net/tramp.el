@@ -1975,11 +1975,11 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-compress-file 'dired-uncache
 		  'file-accessible-directory-p 'file-attributes
 		  'file-directory-p 'file-executable-p 'file-exists-p
-		  'file-local-copy 'file-remote-p 'file-modes
+		  'file-local-copy 'file-modes
 		  'file-name-as-directory 'file-name-directory
 		  'file-name-nondirectory 'file-name-sans-versions
 		  'file-ownership-preserved-p 'file-readable-p
-		  'file-regular-p 'file-symlink-p 'file-truename
+		  'file-regular-p 'file-remote-p 'file-symlink-p 'file-truename
 		  'file-writable-p 'find-backup-file-name 'find-file-noselect
 		  'get-file-buffer 'insert-directory 'insert-file-contents
 		  'load 'make-directory 'make-directory-internal
@@ -2008,7 +2008,7 @@ ARGS are the arguments OPERATION has been called with."
 		  ;; Emacs 23+ only.
 		  'copy-directory
 		  ;; Emacs 24+ only.
-		  'file-in-directory-p 'file-equal-p
+		  'file-equal-p 'file-in-directory-p
 		  ;; XEmacs only.
 		  'dired-make-relative-symlink
 		  'vm-imap-move-mail 'vm-pop-move-mail 'vm-spool-move-mail))
@@ -3287,13 +3287,77 @@ beginning of local filename are not substituted."
   ;; for backward compatibility.
   (expand-file-name "~/"))
 
+(defun tramp-handle-set-visited-file-modtime (&optional time-list)
+  "Like `set-visited-file-modtime' for Tramp files."
+  (unless (buffer-file-name)
+    (error "Can't set-visited-file-modtime: buffer `%s' not visiting a file"
+	   (buffer-name)))
+  (unless time-list
+    (let ((remote-file-name-inhibit-cache t))
+      ;; '(-1 65535) means file doesn't exists yet.
+      (setq time-list
+	    (or (nth 5 (file-attributes (buffer-file-name))) '(-1 65535)))))
+  ;; We use '(0 0) as a don't-know value.
+  (unless (equal time-list '(0 0))
+    (tramp-run-real-handler 'set-visited-file-modtime (list time-list))))
+
+(defun tramp-handle-verify-visited-file-modtime (&optional buf)
+  "Like `verify-visited-file-modtime' for Tramp files.
+At the time `verify-visited-file-modtime' calls this function, we
+already know that the buffer is visiting a file and that
+`visited-file-modtime' does not return 0.  Do not call this
+function directly, unless those two cases are already taken care
+of."
+  (with-current-buffer (or buf (current-buffer))
+    (let ((f (buffer-file-name)))
+      ;; There is no file visiting the buffer, or the buffer has no
+      ;; recorded last modification time, or there is no established
+      ;; connection.
+      (if (or (not f)
+	      (eq (visited-file-modtime) 0)
+	      (not (tramp-file-name-handler 'file-remote-p f nil 'connected)))
+	  t
+	(with-parsed-tramp-file-name f nil
+	  (let* ((remote-file-name-inhibit-cache t)
+		 (attr (file-attributes f))
+		 (modtime (nth 5 attr))
+		 (mt (visited-file-modtime)))
+
+	    (cond
+	     ;; File exists, and has a known modtime.
+	     ((and attr (not (equal modtime '(0 0))))
+	      (< (abs (tramp-time-diff
+		       modtime
+		       ;; For compatibility, deal with both the old
+		       ;; (HIGH . LOW) and the new (HIGH LOW) return
+		       ;; values of `visited-file-modtime'.
+		       (if (atom (cdr mt))
+			   (list (car mt) (cdr mt))
+			 mt)))
+		 2))
+	     ;; Modtime has the don't know value.
+	     (attr t)
+	     ;; If file does not exist, say it is not modified if and
+	     ;; only if that agrees with the buffer's record.
+	     (t (equal mt '(-1 65535))))))))))
+
 (defun tramp-handle-file-notify-add-watch (filename flags callback)
   "Like `file-notify-add-watch' for Tramp files."
-  ;; This is the default handler.  Some packages might have its own one.
+  ;; This is the default handler.  tramp-gvfs.el and tramp-sh.el have
+  ;; its own one.
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-error
      v 'file-notify-error "File notification not supported for `%s'" filename)))
+
+(defvar file-notify-descriptors)
+(defun tramp-handle-file-notify-rm-watch (proc)
+  "Like `file-notify-rm-watch' for Tramp files."
+  ;; The descriptor must be a process object.
+  (unless (and (processp proc) (gethash proc file-notify-descriptors))
+    (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
+  (tramp-message proc 6 "Kill %S" proc)
+  (kill-process proc))
 
 ;;; Functions for establishing connection:
 
@@ -3951,16 +4015,12 @@ This is needed because for some Emacs flavors Tramp has
 defadvised `call-process' to behave like `process-file'.  The
 Lisp error raised when PROGRAM is nil is trapped also, returning 1.
 Furthermore, traces are written with verbosity of 6."
-  (let ((default-directory
-	  (if (file-remote-p default-directory)
-	      (tramp-compat-temporary-file-directory)
-	    default-directory)))
-    (tramp-message
-     (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
-     6 "%s %s %s" program infile args)
-    (if (executable-find program)
-	(apply 'call-process program infile destination display args)
-      1)))
+  (tramp-message
+   (vector tramp-current-method tramp-current-user tramp-current-host nil nil)
+   6 "%s %s %s" program infile args)
+  (if (executable-find program)
+      (apply 'call-process program infile destination display args)
+    1))
 
 ;;;###tramp-autoload
 (defun tramp-read-passwd (proc &optional prompt)

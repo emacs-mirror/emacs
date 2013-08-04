@@ -403,7 +403,7 @@ extern Lisp_Object x_display_name_list;
 extern struct x_display_info *x_display_info_for_display (Display *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
-extern int x_display_ok  (const char *);
+extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
 
@@ -590,7 +590,6 @@ struct x_output
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
-  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -754,7 +753,6 @@ enum
 #define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
-#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -1031,8 +1029,6 @@ extern void destroy_frame_xic (struct frame *);
 extern void xic_set_preeditarea (struct window *, int, int);
 extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
-extern int x_pixel_width (struct frame *);
-extern int x_pixel_height (struct frame *);
 extern bool x_defined_color (struct frame *, const char *, XColor *, bool);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);

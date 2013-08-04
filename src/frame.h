@@ -591,8 +591,6 @@ default_pixels_per_inch_y (void)
 /* Return a pointer to the image cache of frame F.  */
 #define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
 
-typedef struct frame *FRAME_PTR;
-
 #define XFRAME(p) \
   (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
@@ -929,10 +927,9 @@ typedef struct frame *FRAME_PTR;
     if (frame == hlinfo->mouse_face_mouse_frame)		\
       {								\
 	block_input ();						\
-	if (hlinfo->mouse_face_mouse_frame)			\
-	  note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
-				hlinfo->mouse_face_mouse_x,	\
-				hlinfo->mouse_face_mouse_y);	\
+	note_mouse_highlight (hlinfo->mouse_face_mouse_frame,	\
+			      hlinfo->mouse_face_mouse_x,	\
+			      hlinfo->mouse_face_mouse_y);	\
 	unblock_input ();					\
       }								\
   } while (0)
@@ -952,7 +949,7 @@ typedef struct frame *FRAME_PTR;
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qtty_color_mode;
-extern Lisp_Object Qterminal, Qterminal_live_p;
+extern Lisp_Object Qterminal;
 extern Lisp_Object Qnoelisp;
 
 extern struct frame *last_nonminibuf_frame;
@@ -962,7 +959,7 @@ extern struct frame *decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
-extern struct frame *make_frame (int);
+extern struct frame *make_frame (bool);
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
@@ -1207,8 +1204,7 @@ extern Lisp_Object Qrun_hook_with_args;
 
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_offset (struct frame *, int, int, int);
-extern void x_wm_set_icon_position (struct frame *, int, int);
-extern void x_wm_set_size_hint (FRAME_PTR f, long flags, bool user_position);
+extern void x_wm_set_size_hint (struct frame *f, long flags, bool user_position);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
@@ -1242,7 +1238,7 @@ extern void x_set_scroll_bar_width (struct frame *, Lisp_Object,
 
 extern Lisp_Object x_icon_type (struct frame *);
 
-extern int x_figure_window_size (struct frame *, Lisp_Object, int);
+extern long x_figure_window_size (struct frame *, Lisp_Object, bool);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 
@@ -1264,8 +1260,6 @@ extern void x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);
-extern int x_pixel_width (struct frame *f);
-extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_tool_bar_lines (struct frame *f,
@@ -1280,8 +1274,11 @@ extern void x_set_menu_bar_lines (struct frame *,
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 
-#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+#if defined HAVE_X_WINDOWS
+extern void x_wm_set_icon_position (struct frame *, int, int);
+#if !defined USE_X_TOOLKIT
 extern char *x_get_resource_string (const char *, const char *);
+#endif
 #endif
 
 extern void x_query_colors (struct frame *f, XColor *, int);

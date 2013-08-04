@@ -1,3 +1,191 @@
+2013-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* composite.h: Minor fixups.
+	(composition_registered_p): Rename from COMPOSITION_REGISTERD_P
+	to fix a misspelling, and change it to an inline function while
+	we're at it (it need not be a macro).  All uses changed.
+	(composition_method, composition_valid_p):
+	Rewrite to avoid assignments in if-conditions.
+
+2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use global Lisp_Object in composition macros.
+	* composite.h (composition_temp): Remove declaration.
+	(COMPOSITION_METHOD, COMPOSITION_VALID_P): Replace with...
+	(composition_method, composition_valid_p): ...inline functions.
+	(compose_region): Remove the leftover.
+	* composite.c (composition_temp): Remove.
+	(run_composition_function, update_compositions)
+	(composition_compute_stop_pos, composition_adjust_point)
+	(Ffind_composition_internal):
+	* coding.c (handle_composition_annotation):
+	* xdisp.c (handle_composition_prop, check_point_in_composition):
+	Related users changed.
+
+2013-08-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop FRAME_PTR typedef.
+	* composite.c, font.c, font.h, fontset.c, fontset.h, frame.c, frame.h:
+	* ftfont.c, ftxfont.c, gtkutil.c, gtkutil.h, image.c, keyboard.c:
+	* menu.c, menu.h, msdos.c, nsfns.m, nsfont.m, nsmenu.m, nsterm.h:
+	* nsterm.m, scroll.c, term.c, w32fns.c, w32font.c, w32font.h:
+	* w32inevt.c, w32inevt.h, w32menu.c, w32notify.c, w32term.c, w32term.h:
+	* w32uniscribe.c, w32xfns.c, widget.c, window.c, xdisp.c, xfaces.c:
+	* xfns.c, xfont.c, xftfont.c, xmenu.c, xselect.c, xterm.c:
+	All related users changed.
+
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (default_toplevel_binding): New function.
+	(Fdefvar): Use it.
+	(unbind_to, backtrace_eval_unrewind): Do a bit of CSE simplification.
+	(Fdefault_toplevel_value, Fset_default_toplevel_value): New subrs.
+	(syms_of_eval): Export them.
+	* data.c (Fdefault_value): Micro cleanup.
+	* term.c (init_tty): Use "false".
+
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix X GC leak in GTK and raw (no toolkit) X ports.
+	* xterm.c (x_free_frame_resources): If white and black relief
+	GCs are allocated, always free them here.
+	* xfns.c (x_make_gc): Omit redundant initialization.
+	* widget.c (create_frame_gcs): Remove the leftover.
+	(EmacsFrameDestroy): Do nothing because all GCs are now freed
+	in x_free_frame_resources.
+
+2013-08-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (windowWillResize:toSize:): Only change title if
+	! maximizing_resize && FULLSCREEN_NONE (Bug#15005).  strdup title before
+	modifying it.
+	(viewDidEndLiveResize): New method.
+
+	* nsterm.h (EmacsView): Add maximizing_resize, put it and old_title
+	inside NS_IMPL_COCOA.
+
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* insdel.c (adjust_after_replace, replace_range, del_range_2):
+	Do not check whether undo is enabled because record_insert and
+	record_delete does that themselves.
+
+2013-08-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.h (struct x_output) [HAVE_X_I18N]: Remove xic_base_fontname
+	member which is not really used any more.
+	(FRAME_XIC_BASE_FONTNAME): Remove.
+	* xfns.c (xic_free_fontset): Adjust user.
+	* xmenu.c (mouse_position_for_popup, x_activate_menubar)
+	(update_frame_menubar, set_frame_menubar, free_frame_menubar)
+	(create_and_show_popup_menu, xmenu_show, create_and_show_dialog)
+	(xdialog_show): Use eassert for debugging check.
+	* w32term.c (x_unfocus_frame): Remove unused dummy function.
+
+2013-08-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c, fns.c (merge): Move extern decl from here ...
+	* lisp.h (merge): ... to here.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix last font-related change.
+	* w32font.h (w32font_list_internal, w32font_match_internal):
+	Fix prototype.
+	* w32uniscribe.c (uniscribe_list, uniscribe_match):
+	(uniscribe_list_family): Adjust to match font API change.
+	MS-Windows breakage reported by Juanma Barranquero <lekktu@gmail.com>
+	at http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00006.html.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.h (FRAME_MOUSE_UPDATE):
+	* nsterm.m (ns_frame_up_to_date): Omit redundant check
+	whether hlinfo->mouse_face_mouse_frame is non-NULL.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid redundant Lisp_Object <-> struct frame conversions in font API.
+	* font.h (struct font_driver): Change list, match, and list_family
+	functions to accept struct frame * as first arg.
+	* font.c (font_score, font_compare, font_sort_entities): Remove
+	prototypes.
+	(font_sort_entities, font_list_entities, font_select_entity):
+	(font_find_for_lface, Flist_fonts, Ffont_family_list): Adjust to
+	match font API change.
+	* xfont.c (xfont_list, xfont_match, xfont_list_family):
+	* ftfont.c (ftfont_list, ftfont_match, ftfont_list_family):
+	* ftxfont.c (ftxfont_list, ftxfont_match):
+	* xftfont.c (xftfont_list, xftfont_match):
+	* nsfont.m (nsfont_list, nsfont_match, nsfont_list_family):
+	* w32font.c (w32font_list, w32font_match, w32font_list):
+	(w32font_list_internal, w32_font_match_internal): Likewise.
+	* xfaces.c (Fx_family_fonts): Adjust user.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use pure Xism x_wm_set_icon_position in non-X ports.
+	* frame.c (x_set_frame_parameters): Call to x_wm_set_icon_position
+	only if HAVE_X_WINDOWS is in use.
+	* frame.h (x_set_frame_parameters): Move under HAVE_X_WINDOWS.
+	* nsterm.m (x_wm_set_icon_position): Remove no-op.
+	* w32term.c (x_wm_set_icon_position): Likewise.
+	* w32fns.c (x_icon): Adjust user.
+
+2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* xterm.c (last_mouse_press_frame): Remove the
+	leftover which is not really used any more.
+	(handle_one_xevent, syms_of_xterm): Adjust users.
+	(x_flush): Call XFlush once per each X display, not frame.
+	This is better because this code always unconditionally skips
+	non-X frames in Vframe_list and issues the only	XFlush if we
+	have more than one X frame on the same X display.
+	(any_help_event_p, x_draw_glyph_string_background, x_display_ok):
+	Use bool for booleans.
+	(x_draw_glyph_string_background, cvt_string_to_pixel):
+	(cvt_pixel_dtor): Drop unnecessary prototypes.
+	* xterm.h (x_display_ok): Adjust prototype.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop unnecessary functions that deals with frame pixel size.
+	* frame.h, msdos.h, w32term.h, xterm.h (x_pixel_width)
+	(x_pixel_height): Drop prototypes.
+	* msdos.c, nsfns.m, w32fns.c, xfns.c (x_pixel_width)
+	(x_pixel_height): Drop implementations.
+	* frame.c (Fframe_pixel_height): Use FRAME_PIXEL_HEIGHT
+	which should be always valid for window frame.
+	(Frame_pixel_width): Likewise with FRAME_PIXEL_WIDTH.
+	* w32menu.c (Fx_popup_dialog):
+	* xmenu.c (Fx_popup_dialog): Likewise for both.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (Fmake_terminal_frame): Use store_in_alist to setup
+	frame parameters and call to Fmodify_frame_parameters just once.
+	(Fset_frame_height, Fset_frame_width): Mention nil frame in docstring.
+	(Fset_frame_size, Fset_frame_position): Use decode_live_frame
+	and mention nil frame in docstring.
+
+2013-07-31  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.c (make_frame, x_set_frame_parameters): Use bool for boolean.
+	(x_figure_window_size): Likewise.  Adjust to return long.
+	(syms_of_frame): Do not DEFSYM Qterminal_live_p.
+	(toplevel): Move Qterminal_live_p to...
+	* terminal.c (toplevel): ...here, make it static, and...
+	(syms_of_terminal): ...DEFSYM here.
+	* frame.h (Qterminal_live_p): Remove declaration.
+	(make_frame, x_figure_window_size): Adjust prototype.
+	* nsfns.m (Fx_create_frame): Use long for window flags.
+
+2013-07-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix tempfile bug on platforms lacking mkostemp and mkstemp (Bug#14986).
+	* callproc.c (create_temp_file) [! (HAVE_MKOSTEMP || HAVE_MKSTEMP)]:
+	Do not assume that emacs_close (INT_MAX) is a no-op.
+
 2013-07-30  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xfaces.c (make_face_cache): For struct face_cache, prefer
@@ -325,7 +513,7 @@
 	code a bit.  It makes no difference on POSIXish platforms but
 	apparently it fixes a bug on w32.
 
-	Fix bug where insert-file-contents closes a file twice. (Bug#14839).
+	Fix bug where insert-file-contents closes a file twice (Bug#14839).
 	* fileio.c (close_file_unwind): Don't close if FD is negative;
 	this can happen when unwinding a zapped file descriptor.
 	(Finsert_file_contents): Unwind-protect the fd before the point marker,
@@ -478,7 +666,7 @@
 	(make_lispy_focus_in, make_lispy_focus_out): Declare and define.
 	(kbd_buffer_get_event): For FOCUS_IN, make a focus_in event if no
 	switch frame event is made.  Check ! NILP (event->arg) if X11 (moved
-	from xterm.c). Make focus_out event for FOCUS_OUT_EVENT if NS or X11
+	from xterm.c).  Make focus_out event for FOCUS_OUT_EVENT if NS or X11
 	and there is a focused frame.
 	(head_table): Add focus-in and focus-out.
 	(keys_of_keyboard): Add focus-in and focus-out to Vspecial_event_map,
@@ -851,7 +1039,7 @@
 	(emacswrite_sig, emacs_perror): New functions.
 	* xrdb.c (fatal): Don't invoke perror, since errno might be garbage.
 
-2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change).
+2013-07-08  Magnus Henoch  <magnus.henoch@gmail.com>  (tiny change)
 
 	* image.c (imagemagick_load_image): Do not use MagickExportImagePixels
 	on NS even if it is present.  Pixmap on NS is a void*.
@@ -1526,7 +1714,7 @@
 	Now static.
 	* lisp.h: Remove the abovementioned defns and decls.
 
-	Use functions, not macros, for XINT etc. (Bug#11935).
+	Use functions, not macros, for XINT etc (Bug#11935).
 	In lisp.h, prefer functions to function-like macros, and
 	constants to object-like macros, when either will do.  This:
 	 . simplifies use, as there's no more need to worry about

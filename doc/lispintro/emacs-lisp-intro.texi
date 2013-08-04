@@ -7537,20 +7537,7 @@ retrieved.  @xref{Yanking, , Yanking Text Back}.
 @section @code{zap-to-char}
 @findex zap-to-char
 
-@c FIXME remove obsolete stuff
-The @code{zap-to-char} function changed little between GNU Emacs
-version 19 and GNU Emacs version 22.  However, @code{zap-to-char}
-calls another function, @code{kill-region}, which enjoyed a major
-rewrite.
-
-The @code{kill-region} function in Emacs 19 is complex, but does not
-use code that is important at this time.  We will skip it.
-
-The @code{kill-region} function in Emacs 22 is easier to read than the
-same function in Emacs 19 and introduces a very important concept,
-that of error handling.  We will walk through the function.
-
-But first, let us look at the interactive @code{zap-to-char} function.
+Let us look at the interactive @code{zap-to-char} function.
 
 @menu
 * Complete zap-to-char::        The complete implementation.

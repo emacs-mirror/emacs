@@ -309,7 +309,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (goto-char (point-min))))
 
 (defun eww-setup-buffer ()
-  (pop-to-buffer (get-buffer-create "*eww*"))
+  (switch-to-buffer (get-buffer-create "*eww*"))
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))

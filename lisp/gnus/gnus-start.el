@@ -944,7 +944,8 @@ If REGEXP is given, lines that match it will be deleted."
   (when (and gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (with-current-buffer gnus-dribble-buffer
-      (save-buffer))))
+      (when (> (buffer-size) 0)
+	(save-buffer)))))
 
 (defun gnus-dribble-clear ()
   (when (gnus-buffer-exists-p gnus-dribble-buffer)
@@ -1807,6 +1808,9 @@ backend check whether the group actually exists."
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
+      ;; We may have altered the data now, so mark the dribble buffer
+      ;; as dirty so that it gets saved.
+      (gnus-dribble-touch)
       (gnus-agent-save-active method))
      ;; Most backends have -retrieve-groups.
      ((gnus-check-backend-function 'retrieve-groups (car method))

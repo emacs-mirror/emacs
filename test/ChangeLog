@@ -1,3 +1,30 @@
+2013-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import): Try more precise TZ specification.
+
+2013-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* automated/core-elisp-tests.el (core-elisp-tests): Fix defcustom.
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import):
+	Use getenv/setenv rather than set-time-zone-rule.  Add debug messages.
+	(icalendar-tests--test-import): Reset zone even if error occurred.
+
+2013-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/core-elisp-tests.el: New file.
+
+2013-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* automated/file-notify-tests.el (file-notify--test-remote-enabled):
+	Try to check that the remote system has a notification program.
+
+2013-07-31  Glenn Morris  <rgm@gnu.org>
+
+	* automated/undo-tests.el (undo-test2, undo-test5): Be quieter.
+
 2013-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* automated/file-notify-tests.el

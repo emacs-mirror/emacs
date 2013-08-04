@@ -3019,7 +3019,7 @@ replace_buffer_in_windows_safely (Lisp_Object buffer)
    minimum allowable size.  */
 
 void
-check_frame_size (FRAME_PTR frame, int *rows, int *cols)
+check_frame_size (struct frame *frame, int *rows, int *cols)
 {
   /* For height, we have to see:
      how many windows the frame has at minimum (one or two),
@@ -5516,7 +5516,7 @@ the return value is nil.  Otherwise the value is t.  */)
   struct Lisp_Vector *saved_windows;
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
-  FRAME_PTR f;
+  struct frame *f;
   ptrdiff_t old_point = -1;
 
   CHECK_WINDOW_CONFIGURATION (configuration);

@@ -176,6 +176,15 @@ where <device> is the network device found under the first key.
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
+*** Related functions:
+**** gnus-bug
+**** report-calc-bug
+**** org-submit-bug-report
+**** lm-report-bug
+**** tramp-bug
+**** c-submit-bug-report
+**** ffap-bug and ffap-submit-bug (obsoleted)
+[Do all of them need changing?]
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 

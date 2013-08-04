@@ -181,7 +181,7 @@ int w32_keyboard_codepage;
 
 /* Where the mouse was last time we reported a mouse event.  */
 static RECT last_mouse_glyph;
-static FRAME_PTR last_mouse_glyph_frame;
+static struct frame *last_mouse_glyph_frame;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -249,7 +249,7 @@ static void my_set_focus (struct frame *, HWND);
 #endif
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
-static void w32fullscreen_hook (FRAME_PTR);
+static void w32fullscreen_hook (struct frame *);
 
 #ifdef GLYPH_DEBUG
 static void x_check_font (struct frame *, struct font *);
@@ -450,7 +450,7 @@ w32_draw_rectangle (HDC hdc, XGCValues *gc, int x, int y,
 
 /* Draw a filled rectangle at the specified position. */
 void
-w32_fill_rect (FRAME_PTR f, HDC hdc, COLORREF pix, RECT *lprect)
+w32_fill_rect (struct frame *f, HDC hdc, COLORREF pix, RECT *lprect)
 {
   HBRUSH hb;
 
@@ -460,7 +460,7 @@ w32_fill_rect (FRAME_PTR f, HDC hdc, COLORREF pix, RECT *lprect)
 }
 
 void
-w32_clear_window (FRAME_PTR f)
+w32_clear_window (struct frame *f)
 {
   RECT rect;
   HDC hdc = get_frame_dc (f);
@@ -3370,7 +3370,7 @@ static MSG last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
 static int
-note_mouse_movement (FRAME_PTR frame, MSG *msg)
+note_mouse_movement (struct frame *frame, MSG *msg)
 {
   int mouse_x = LOWORD (msg->lParam);
   int mouse_y = HIWORD (msg->lParam);
@@ -3419,7 +3419,7 @@ note_mouse_movement (FRAME_PTR frame, MSG *msg)
  ************************************************************************/
 
 static struct scroll_bar *x_window_to_scroll_bar (Window);
-static void x_scroll_bar_report_motion (FRAME_PTR *, Lisp_Object *,
+static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
 					enum scroll_bar_part *,
 					Lisp_Object *, Lisp_Object *,
 					unsigned long *);
@@ -3461,11 +3461,11 @@ w32_define_cursor (Window window, Cursor cursor)
    movement.  */
 
 static void
-w32_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		    unsigned long *time)
 {
-  FRAME_PTR f1;
+  struct frame *f1;
 
   block_input ();
 
@@ -3696,7 +3696,7 @@ my_create_scrollbar (struct frame * f, struct scroll_bar * bar)
 /*#define ATTACH_THREADS*/
 
 static BOOL
-my_show_window (FRAME_PTR f, HWND hwnd, int how)
+my_show_window (struct frame *f, HWND hwnd, int how)
 {
 #ifndef ATTACH_THREADS
   return SendMessage (FRAME_W32_WINDOW (f), WM_EMACS_SHOWWINDOW,
@@ -3816,7 +3816,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 static void
 x_scroll_bar_remove (struct scroll_bar *bar)
 {
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
   block_input ();
 
@@ -3979,7 +3979,7 @@ w32_set_vertical_scroll_bar (struct window *w,
    `*redeem_scroll_bar_hook' is applied to its window before the judgment.  */
 
 static void
-w32_condemn_scroll_bars (FRAME_PTR frame)
+w32_condemn_scroll_bars (struct frame *frame)
 {
   /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
   while (! NILP (FRAME_SCROLL_BARS (frame)))
@@ -4047,7 +4047,7 @@ w32_redeem_scroll_bar (struct window *window)
    last call to `*condemn_scroll_bars_hook'.  */
 
 static void
-w32_judge_scroll_bars (FRAME_PTR f)
+w32_judge_scroll_bars (struct frame *f)
 {
   Lisp_Object bar, next;
 
@@ -4185,14 +4185,14 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
    on the scroll bar.  */
 
 static void
-x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
+x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x, Lisp_Object *y,
 			    unsigned long *time)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = SCROLL_BAR_W32_WINDOW (bar);
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int pos;
   int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
   SCROLLINFO si;
@@ -4244,7 +4244,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
    redraw them.  */
 
 void
-x_scroll_bar_clear (FRAME_PTR f)
+x_scroll_bar_clear (struct frame *f)
 {
   Lisp_Object bar;
 
@@ -4974,7 +4974,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (f)
 	    {
 	      extern void menubar_selection_callback
-		(FRAME_PTR f, void * client_data);
+		(struct frame *f, void * client_data);
 	      menubar_selection_callback (f, (void *)msg.msg.wParam);
 	    }
 
@@ -5071,7 +5071,7 @@ w32_read_socket (struct terminal *terminal,
 
       FOR_EACH_FRAME (tail, frame)
       {
-	FRAME_PTR f = XFRAME (frame);
+	struct frame *f = XFRAME (frame);
 	/* The tooltip has been drawn already.  Avoid the
 	   SET_FRAME_GARBAGED below.  */
 	if (EQ (frame, tip_frame))
@@ -5692,7 +5692,7 @@ x_check_fullscreen (struct frame *f)
 }
 
 static void
-w32fullscreen_hook (FRAME_PTR f)
+w32fullscreen_hook (struct frame *f)
 {
   if (FRAME_VISIBLE_P (f))
     {
@@ -5889,11 +5889,6 @@ x_focus_on_frame (struct frame *f)
   unblock_input ();
 }
 
-void
-x_unfocus_frame (struct frame *f)
-{
-}
-
 /* Raise frame F.  */
 void
 x_raise_frame (struct frame *f)
@@ -5969,7 +5964,7 @@ x_lower_frame (struct frame *f)
 }
 
 static void
-w32_frame_raise_lower (FRAME_PTR f, int raise_flag)
+w32_frame_raise_lower (struct frame *f, int raise_flag)
 {
   if (! FRAME_W32_P (f))
     return;
@@ -6225,22 +6220,6 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   leave_crit ();
 }
 
-/* Window manager things */
-void
-x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
-{
-#if 0
-  Window window = FRAME_W32_WINDOW (f);
-
-  f->display.x->wm_hints.flags |= IconPositionHint;
-  f->display.x->wm_hints.icon_x = icon_x;
-  f->display.x->wm_hints.icon_y = icon_y;
-
-  XSetWMHints (FRAME_X_DISPLAY (f), window, &f->display.x->wm_hints);
-#endif
-}
-
-
 /***********************************************************************
 				Fonts
  ***********************************************************************/

@@ -13,6 +13,7 @@ how they are stored in strings and buffers.
 
 @menu
 * Text Representations::    How Emacs represents text.
+* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Converting Representations::  Converting unibyte to multibyte and vice versa.
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
@@ -139,6 +140,55 @@ If @var{string} is a multibyte string, this can be greater than
 This function concatenates all its argument @var{bytes} and makes the
 result a unibyte string.
 @end defun
+
+@node Disabling Multibyte
+@section Disabling Multibyte Characters
+@cindex disabling multibyte
+
+  By default, Emacs starts in multibyte mode: it stores the contents
+of buffers and strings using an internal encoding that represents
+non-@acronym{ASCII} characters using multi-byte sequences.  Multibyte
+mode allows you to use all the supported languages and scripts without
+limitations.
+
+@cindex turn multibyte support on or off
+  Under very special circumstances, you may want to disable multibyte
+character support, for a specific buffer.
+When multibyte characters are disabled in a buffer, we call
+that @dfn{unibyte mode}.  In unibyte mode, each character in the
+buffer has a character code ranging from 0 through 255 (0377 octal); 0
+through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
+(0200 octal) through 255 (0377 octal) represent non-@acronym{ASCII}
+characters.
+
+  To edit a particular file in unibyte representation, visit it using
+@code{find-file-literally}.  @xref{Visiting Functions}.  You can
+convert a multibyte buffer to unibyte by saving it to a file, killing
+the buffer, and visiting the file again with
+@code{find-file-literally}.  Alternatively, you can use @kbd{C-x
+@key{RET} c} (@code{universal-coding-system-argument}) and specify
+@samp{raw-text} as the coding system with which to visit or save a
+file.  @xref{Text Coding, , Specifying a Coding System for File Text,
+emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
+a file as @samp{raw-text} doesn't disable format conversion,
+uncompression, or auto mode selection.
+
+@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@vindex enable-multibyte-characters
+The buffer-local variable @code{enable-multibyte-characters} is
+non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
+The mode line also indicates whether a buffer is multibyte or not.
+With a graphical display, in a multibyte buffer, the portion of the
+mode line that indicates the character set has a tooltip that (amongst
+other things) says that the buffer is multibyte.  In a unibyte buffer,
+the character set indicator is absent.  Thus, in a unibyte buffer
+(when using a graphical display) there is normally nothing before the
+indication of the visited file's end-of-line convention (colon,
+backslash, etc.), unless you are using an input method.
+
+@findex toggle-enable-multibyte-characters
+You can turn off multibyte support in a specific buffer by invoking the
+command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Converting Representations
 @section Converting Text Representations
@@ -962,6 +1012,7 @@ The value of the @code{:mime-charset} property is also defined
 as an alias for the coding system.
 @end defun
 
+@cindex alias, for coding systems
 @defun coding-system-aliases coding-system
 This function returns the list of aliases of @var{coding-system}.
 @end defun

@@ -544,7 +544,6 @@ Frames and Graphical Displays
 International Character Set Support
 
 * International Chars::     Basic concepts of multibyte characters.
-* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
@@ -798,6 +797,7 @@ Version Control
 * Old Revisions::       Examining and comparing old versions.
 * VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after committing.
+* VC Ignore::           Ignore files under version control system.
 * VC Directory Mode::   Listing files managed by version control.
 * Branches::            Multiple lines of development.
 @ifnottex
@@ -956,7 +956,6 @@ Conversion To and From Other Calendars
                              (aside from Gregorian).
 * To Other Calendar::      Converting the selected date to various calendars.
 * From Other Calendar::    Moving to a date specified in another calendar.
-* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 
 The Diary
 
@@ -971,6 +970,7 @@ More advanced features of the Calendar and Diary
 
 * Calendar Customizing::   Calendar layout and hooks.
 * Holiday Customizing::    Defining your own holidays.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 * Date Display Format::    Changing the format.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.

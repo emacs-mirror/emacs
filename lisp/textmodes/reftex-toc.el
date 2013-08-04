@@ -229,7 +229,7 @@ When called with a raw C-u prefix, rescan the document first."
                       (car (reftex-where-am-I))))
          (unsplittable (if (fboundp 'frame-property)
                            (frame-property (selected-frame) 'unsplittable)
-                         (frame-parameter (selected-frame) 'unsplittable)))
+                         (frame-parameter nil 'unsplittable)))
          offset toc-window)
 
     (if (setq toc-window (get-buffer-window
@@ -587,7 +587,7 @@ With prefix arg 1, restrict index to the section at point."
   (let ((unsplittable
          (if (fboundp 'frame-property)
              (frame-property (selected-frame) 'unsplittable)
-           (frame-parameter (selected-frame) 'unsplittable)))
+           (frame-parameter nil 'unsplittable)))
         (reftex-rebuilding-toc t))
     (if unsplittable
         (switch-to-buffer

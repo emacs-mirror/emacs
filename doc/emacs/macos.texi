@@ -40,13 +40,16 @@ Emacs provides a set of key bindings using this modifier key that mimic
 other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
 can change these bindings in the usual way (@pxref{Key Bindings}).
 
-@c FIXME mention ns-alternate-modifier?
+@vindex ns-alternate-modifier
+@vindex ns-right-alternate-modifier
   The variable @code{ns-right-alternate-modifier} controls the
 behavior of the right @key{alt} and @key{option} keys.  These keys
 behave like the left-hand keys if the value is @code{left} (the
 default).  A value of @code{control}, @code{meta}, @code{alt},
 @code{super}, or @code{hyper} makes them behave like the corresponding
-modifier keys; a value of @code{none} tells Emacs to ignore them.
+modifier keys; a value to @code{left} means be the same key as
+@code{ns-alternate-modifier}; a value of @code{none} tells Emacs to
+ignore them.
 
   @kbd{S-Mouse-1} adjusts the region to the click position,
 just like @kbd{Mouse-3} (@code{mouse-save-then-kill}); it does not pop

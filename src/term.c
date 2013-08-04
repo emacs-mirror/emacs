@@ -2522,7 +2522,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 }
 
 static bool
-term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
+term_mouse_movement (struct frame *frame, Gpm_Event *event)
 {
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (event->x != last_mouse_x || event->y != last_mouse_y)
@@ -2563,7 +2563,7 @@ timeval_to_Time (struct timeval const *t)
    This clears mouse_moved until the next motion
    event arrives.  */
 static void
-term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
 		     Lisp_Object *y, Time *timeptr)
 {
@@ -2933,7 +2933,7 @@ dissociate_if_controlling_tty (int fd)
 
    TERMINAL_TYPE is the termcap type of the device, e.g. "vt100".
 
-   If MUST_SUCCEED is true, then all errors are fatal. */
+   If MUST_SUCCEED is true, then all errors are fatal.  */
 
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
@@ -2944,7 +2944,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
-  bool ctty = 0;  /* True if asked to open controlling tty.  */
+  bool ctty = false;  /* True if asked to open controlling tty.  */
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0,
@@ -3031,7 +3031,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
   tty->termcap_term_buffer = xmalloc (buffer_size);
 
   /* On some systems, tgetent tries to access the controlling
-     terminal. */
+     terminal.  */
   block_tty_out_signal ();
   status = tgetent (tty->termcap_term_buffer, terminal_type);
   unblock_tty_out_signal ();
@@ -3101,13 +3101,13 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   Right (tty) = tgetstr ("nd", address);
   Down (tty) = tgetstr ("do", address);
   if (!Down (tty))
-    Down (tty) = tgetstr ("nl", address); /* Obsolete name for "do" */
+    Down (tty) = tgetstr ("nl", address); /* Obsolete name for "do".  */
   if (tgetflag ("bs"))
-    Left (tty) = "\b";		  /* can't possibly be longer! */
-  else				  /* (Actually, "bs" is obsolete...) */
+    Left (tty) = "\b";		  /* Can't possibly be longer!  */
+  else				  /* (Actually, "bs" is obsolete...)  */
     Left (tty) = tgetstr ("le", address);
   if (!Left (tty))
-    Left (tty) = tgetstr ("bc", address); /* Obsolete name for "le" */
+    Left (tty) = tgetstr ("bc", address); /* Obsolete name for "le".  */
   tty->TS_pad_char = tgetstr ("pc", address);
   tty->TS_repeat = tgetstr ("rp", address);
   tty->TS_end_standout_mode = tgetstr ("se", address);
@@ -3229,7 +3229,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
      don't think we're losing anything by turning it off.  */
   terminal->line_ins_del_ok = 0;
 
-  tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
+  tty->TN_max_colors = 16;  /* Must be non-zero for tty-display-color-p.  */
 #endif	/* DOS_NT */
 
 #ifdef HAVE_GPM
@@ -3325,16 +3325,16 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
       tty->Wcm->cm_tab = 0;
       /* We can't support standout mode, because it uses magic cookies.  */
       tty->TS_standout_mode = 0;
-      /* But that means we cannot rely on ^M to go to column zero! */
+      /* But that means we cannot rely on ^M to go to column zero!  */
       CR (tty) = 0;
-      /* LF can't be trusted either -- can alter hpos */
-      /* if move at column 0 thru a line with TS_standout_mode */
+      /* LF can't be trusted either -- can alter hpos.  */
+      /* If move at column 0 thru a line with TS_standout_mode.  */
       Down (tty) = 0;
     }
 
   tty->specified_window = FrameRows (tty);
 
-  if (Wcm_init (tty) == -1)	/* can't do cursor motion */
+  if (Wcm_init (tty) == -1)	/* Can't do cursor motion.  */
     {
       maybe_fatal (must_succeed, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",

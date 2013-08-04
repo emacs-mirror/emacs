@@ -1,3 +1,27 @@
+2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new package frameset.el.
+
+2013-08-03  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* TODO: Adjust entry about bug reporting.
+
+2013-08-02  Bastien Guerry  <bzg@gnu.org>
+
+	* DEVEL.HUMOR: New entry.
+
+2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* tutorials/TUTORIAL: Remove a redundant sentence about yanking.
+
+	* tutorials/TUTORIAL.cn: Update; synchronize with TUTORIAL.
+
+	* tutorials/TUTORIAL.translators (Maintainer): Update the maintainer.
+
+2013-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typos (bug#15000).
+
 2013-07-26  Micah Anderson  <micah@riseup.net>  (tiny change)
 
 	* spook.lines: Additions.  (Bug#14658)

@@ -124,7 +124,7 @@
     (undo-boundary)
     (insert " Zero")
     (undo-boundary)
-    (push-mark)
+    (push-mark nil t)
     (delete-region (save-excursion
                      (forward-word -1)
                      (point)) (point))
@@ -172,7 +172,7 @@
     (insert " BEE")
     (undo-boundary)
     (setq buffer-undo-list (cons '(0.0 bogus) buffer-undo-list))
-    (push-mark)
+    (push-mark nil t)
     (delete-region (save-excursion
                      (forward-word -1)
                      (point)) (point))

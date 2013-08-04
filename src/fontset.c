@@ -539,8 +539,9 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 {
   Lisp_Object vec, font_group;
   int i, charset_matched = 0, found_index;
-  FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset))
-		 ? XFRAME (FONTSET_FRAME (fontset)) : XFRAME (selected_frame));
+  struct frame *f = (FRAMEP (FONTSET_FRAME (fontset))
+		     ? XFRAME (FONTSET_FRAME (fontset))
+		     : XFRAME (selected_frame));
   Lisp_Object rfont_def;
 
   font_group = fontset_get_font_group (fontset, fallback ? -1 : c);
@@ -859,7 +860,7 @@ fontset_ascii (int id)
 }
 
 static void
-free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
+free_realized_fontset (struct frame *f, Lisp_Object fontset)
 {
 #if 0
   Lisp_Object tail;
@@ -877,7 +878,7 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
    free_realized_face.  */
 
 void
-free_face_fontset (FRAME_PTR f, struct face *face)
+free_face_fontset (struct frame *f, struct face *face)
 {
   Lisp_Object fontset;
 
@@ -930,7 +931,7 @@ face_suitable_for_char_p (struct face *face, int c)
    the macro FACE_FOR_CHAR.  */
 
 int
-face_for_char (FRAME_PTR f, struct face *face, int c, int pos, Lisp_Object object)
+face_for_char (struct frame *f, struct face *face, int c, int pos, Lisp_Object object)
 {
   Lisp_Object fontset, rfont_def, charset;
   int face_id;
@@ -1048,7 +1049,7 @@ font_for_char (struct face *face, int c, int pos, Lisp_Object object)
    Called from realize_x_face.  */
 
 int
-make_fontset_for_ascii_face (FRAME_PTR f, int base_fontset_id, struct face *face)
+make_fontset_for_ascii_face (struct frame *f, int base_fontset_id, struct face *face)
 {
   Lisp_Object base_fontset, fontset, frame;
 
@@ -1227,7 +1228,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
 /* Return a list of base fontset names matching PATTERN on frame F.  */
 
 Lisp_Object
-list_fontsets (FRAME_PTR f, Lisp_Object pattern, int size)
+list_fontsets (struct frame *f, Lisp_Object pattern, int size)
 {
   Lisp_Object frame, regexp, val;
   int id;
@@ -1284,7 +1285,7 @@ free_realized_fontsets (Lisp_Object base)
 	  for (tail = FONTSET_FACE_ALIST (this); CONSP (tail);
 	       tail = XCDR (tail))
 	    {
-	      FRAME_PTR f = XFRAME (FONTSET_FRAME (this));
+	      struct frame *f = XFRAME (FONTSET_FRAME (this));
 	      int face_id = XINT (XCDR (XCAR (tail)));
 	      struct face *face = FACE_FROM_ID (f, face_id);
 
@@ -1612,7 +1613,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
       name = FONTSET_NAME (fontset);
       FOR_EACH_FRAME (tail, fr)
 	{
-	  FRAME_PTR f = XFRAME (fr);
+	  struct frame *f = XFRAME (fr);
 	  Lisp_Object font_object;
 	  struct face *face;
 
@@ -2140,7 +2141,7 @@ dump_fontset (Lisp_Object fontset)
       frame = FONTSET_FRAME (fontset);
       if (FRAMEP (frame))
 	{
-	  FRAME_PTR f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
 
 	  if (FRAME_LIVE_P (f))
 	    ASET (vec, 1,

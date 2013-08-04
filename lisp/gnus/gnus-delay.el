@@ -80,6 +80,8 @@ DELAY is a string, giving the length of the time.  Possible values are:
    (list (read-string
 	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
 	  gnus-delay-default-delay)))
+  ;; Allow spell checking etc.
+  (run-hooks 'message-send-hook)
   (let (num unit days year month day hour minute deadline)
     (cond ((string-match
 	    "\\([0-9][0-9][0-9]?[0-9]?\\)-\\([0-9]+\\)-\\([0-9]+\\)"

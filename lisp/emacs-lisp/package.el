@@ -296,7 +296,7 @@ contrast, `package-user-dir' contains packages for personal use."
                (:constructor
                 package-desc-from-define
                 (name-string version-string &optional summary requirements
-                 &key kind archive
+                 &key kind archive &allow-other-keys
                  &aux
                  (name (intern name-string))
                  (version (version-to-list version-string))

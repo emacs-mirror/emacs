@@ -867,7 +867,8 @@ update_submenu_strings (widget_value *first_wv)
    VECTOR is an array of menu events for the whole menu.  */
 
 void
-find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object vector, void *client_data)
+find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
+			      Lisp_Object vector, void *client_data)
 {
   Lisp_Object prefix, entry;
   Lisp_Object *subprefix_stack;
@@ -950,7 +951,7 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
 /* As above, but return the menu selection instead of storing in kb buffer.
    If KEYMAPS, return full prefixes to selection. */
 Lisp_Object
-find_and_return_menu_selection (FRAME_PTR f, bool keymaps, void *client_data)
+find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data)
 {
   Lisp_Object prefix, entry;
   int i;
@@ -1060,7 +1061,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object title;
   const char *error_name = NULL;
   Lisp_Object selection = Qnil;
-  FRAME_PTR f = NULL;
+  struct frame *f = NULL;
   Lisp_Object x, y, window;
   bool keymaps = 0;
   bool for_click = 0;
@@ -1116,7 +1117,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
     if (get_current_pos_p)
       {
 	/* Use the mouse's current position.  */
-	FRAME_PTR new_f = SELECTED_FRAME ();
+	struct frame *new_f = SELECTED_FRAME ();
 #ifdef HAVE_X_WINDOWS
 	/* Can't use mouse_position_hook for X since it returns
 	   coordinates relative to the window the mouse is in,

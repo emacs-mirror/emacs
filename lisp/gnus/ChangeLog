@@ -1,4 +1,75 @@
+2013-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-delay.el (gnus-delay-article): Fix typo.
+
+	* gnus-group.el (gnus-group-delete-articles): Allow deleting only "old"
+	articles.
+
+	* gnus-delay.el (gnus-delay-article): Run `message-send-hook' so that
+	we can get spell-checking etc.
+
+2013-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-encode-message-header): Unify charsets into
+	a single one used for encoding the whole text in a header.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-ignored-news-headers): Delete X-Gnus-Delayed
+	before sending.
+
+	* mm-decode.el (mm-command-output): New face.
+	(mm-display-external): Use it.
+
+2013-08-01  Kan-Ru Chen (陳侃如)  <kanru@kanru.info>  (tiny change)
+
+	* nnmbox.el (nnmbox-request-article): Don't change point.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-icalendar.el (gnus-icalendar-event:inline-reply-buttons):
+	Include `handle' parameter.
+
+2013-08-01  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el: New file.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-warp-to-article): Mention that warp means jump.
+
+	* gnus-uu.el (gnus-uu-mark-thread, gnus-uu-unmark-thread): Work with
+	dummy roots, too.
+
+2013-08-01  David Edmondson  <dme@dme.org>
+
+	* mml2015.el (mml2015-epg-key-image-to-string): Protect against bugging
+	out on ttys.
+
+2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-dribble-save): Only save the dribble file if it's
+	not empty.
+
+	* nnrss.el (nnrss-discover-feed): Indent.
+
+2013-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-emacs-completing-read): Isolate XEmacs stuff.
+
+2013-07-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Always mark the data as
+	dirty to ensure nnimap data being saved.
+
 2013-07-30  Tassilo Horn  <tsdh@gnu.org>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add "Current thread score"
+	menu entry.
+
+	* gnus-score.el (gnus-summary-current-score): Use prefix arg to show
+	the current thread's total score instead of the current article's
+	score.
 
 	* gnus-sum.el (gnus-subthread-sort-functions): New defcustom.
 	(gnus-sort-threads-recursively): Delete defcustom.

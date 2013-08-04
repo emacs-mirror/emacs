@@ -993,7 +993,7 @@ x_handle_selection_event (struct input_event *event)
    We do this when about to delete a frame.  */
 
 void
-x_clear_frame_selections (FRAME_PTR f)
+x_clear_frame_selections (struct frame *f)
 {
   Lisp_Object frame;
   Lisp_Object rest;
@@ -2377,7 +2377,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 /* Get the mouse position in frame relative coordinates.  */
 
 static void
-mouse_position_for_drop (FRAME_PTR f, int *x, int *y)
+mouse_position_for_drop (struct frame *f, int *x, int *y)
 {
   Window root, dummy_window;
   int dummy;

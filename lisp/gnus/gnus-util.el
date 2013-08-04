@@ -1558,12 +1558,15 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
     (completing-read prompt
-                     ;; Old XEmacs (at least 21.4) expect an alist,
-		     ;; in which the car of each element is a string,
-		     ;; for collection.
-                     (mapcar (lambda (elem)
-			       (list (format "%s" (or (car-safe elem) elem))))
-			     collection)
+		     (if (featurep 'xemacs)
+			 ;; Old XEmacs (at least 21.4) expect an alist,
+			 ;; in which the car of each element is a string,
+			 ;; for collection.
+			 (mapcar
+			  (lambda (elem)
+			    (list (format "%s" (or (car-safe elem) elem))))
+			  collection)
+		       collection)
                      nil require-match initial-input history def)))
 
 (autoload 'ido-completing-read "ido")

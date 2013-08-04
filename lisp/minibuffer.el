@@ -568,6 +568,17 @@ for use at QPOS."
                  (cl-assert (string-prefix-p prefix completion 'ignore-case) t)
                  (let* ((new (substring completion (length prefix)))
                         (qnew (funcall qfun new))
+ 			(qprefix
+                         (if (not completion-ignore-case)
+                             qprefix
+                           ;; Make qprefix inherit the case from `completion'.
+                           (let* ((rest (substring completion
+                                                   0 (length prefix)))
+                                  (qrest (funcall qfun rest)))
+                             (if (completion--string-equal-p qprefix qrest)
+                                 (propertize qrest 'face
+                                             'completions-common-part)
+                               qprefix))))
                         (qcompletion (concat qprefix qnew)))
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.

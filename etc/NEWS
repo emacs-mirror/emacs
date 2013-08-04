@@ -233,11 +233,16 @@ The default separator is changed to allow surrounding spaces around the comma.
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.
 
-** VC Directory Mode
+** VC and related modes
 
-*** `D' displays diffs between VC-controlled whole tree revisions.
-*** `L' lists the change log for the current VC controlled tree in a window.
-*** `I' ignores the file under current version control system.
+*** In VC directory mode, `D' displays diffs between VC-controlled
+whole tree revisions.
+
+*** In VC directory mode, `L' lists the change log for the current VC
+controlled tree in a window.
+
+*** `C-x v G' (globally) and `G' (in VC directory mode) ignores a
+file under current version control system.
 
 ** cl-lib
 
@@ -269,8 +274,8 @@ auto-saves of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the window/frame configuration.  Additional options
-`desktop-restore-in-current-display' and
-`desktop-restoring-reuses-frames' allow further customization.
+`desktop-restore-in-current-display', `desktop-restore-reuses-frames'
+and `desktop-restore-forces-onscreen' allow further customization.
 
 ** Dired
 
@@ -511,6 +516,12 @@ It is layered as:
 - advice-add/advice-remove to add/remove a piece of advice on a named function,
   much like `defadvice' does.
 
+** New frameset.el package.
+It provides a set of operations to save a frameset (the state of all
+or a subset of the existing frames and windows, somewhat similar to a
+frame configuration), both in-session and persistently, and restore it
+at some point in the future.
+
 +++
 ** The package filenotify.el provides an interface for file system
 notifications.  It requires, that Emacs is compiled with one of the
@@ -518,6 +529,8 @@ low-level libraries gfilenotify.c, inotify.c or w32notify.c.
 
 
 * Incompatible Lisp Changes in Emacs 24.4
+
+** `defvar' and `defcustom' in a let-binding affect the "external" default.
 
 ** The syntax of ?» and ?« is now punctuation instead of matched parens.
 Some languages match those as »...« and others as «...» so better stay neutral.

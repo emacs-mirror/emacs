@@ -582,8 +582,8 @@ This is the string that Gnus uses to identify the group."
    (gnus-group-method group)))
 
 (defun gnus-warp-to-article ()
-  "Warps from an article in a virtual group to the article in its
-real group. Does nothing on a real group."
+  "Jump from an article in a virtual group to the article in its real group.
+Does nothing in a real group."
   (interactive)
   (when (gnus-virtual-group-p gnus-newsgroup-name)
     (let ((gnus-command-method

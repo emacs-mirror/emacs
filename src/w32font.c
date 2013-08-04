@@ -99,7 +99,7 @@ static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
 
-static void fill_in_logfont (FRAME_PTR, LOGFONT *, Lisp_Object);
+static void fill_in_logfont (struct frame *, LOGFONT *, Lisp_Object);
 
 static BYTE w32_antialias_type (Lisp_Object);
 static Lisp_Object lispy_antialias_type (BYTE);
@@ -297,7 +297,7 @@ intern_font_name (char * string)
    Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
 Lisp_Object
-w32font_get_cache (FRAME_PTR f)
+w32font_get_cache (struct frame *f)
 {
   struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -309,9 +309,9 @@ w32font_get_cache (FRAME_PTR f)
    is a vector of font-entities.  This is the sole API that
    allocates font-entities.  */
 static Lisp_Object
-w32font_list (Lisp_Object frame, Lisp_Object font_spec)
+w32font_list (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 0);
+  Lisp_Object fonts = w32font_list_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-list", font_spec, fonts);
   return fonts;
 }
@@ -321,9 +321,9 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
    FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
-w32font_match (Lisp_Object frame, Lisp_Object font_spec)
+w32font_match (struct frame *f, Lisp_Object font_spec)
 {
-  Lisp_Object entity = w32font_match_internal (frame, font_spec, 0);
+  Lisp_Object entity = w32font_match_internal (f, font_spec, 0);
   FONT_ADD_LOG ("w32font-match", font_spec, entity);
   return entity;
 }
@@ -332,12 +332,11 @@ w32font_match (Lisp_Object frame, Lisp_Object font_spec)
    List available families.  The value is a list of family names
    (symbols).  */
 static Lisp_Object
-w32font_list_family (Lisp_Object frame)
+w32font_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   font_match_pattern.lfCharSet = DEFAULT_CHARSET;
@@ -356,7 +355,7 @@ w32font_list_family (Lisp_Object frame)
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
 static Lisp_Object
-w32font_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
+w32font_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct w32font_info),
@@ -380,7 +379,7 @@ w32font_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 /* w32 implementation of close for font_backend.
    Close FONT on frame F.  */
 void
-w32font_close (FRAME_PTR f, struct font *font)
+w32font_close (struct frame *f, struct font *font)
 {
   int i;
   struct w32font_info *w32_font = (struct w32font_info *) font;
@@ -732,13 +731,13 @@ w32font_free_entity (Lisp_Object entity);
    storing some data in FACE->extra.  If successful, return 0.
    Otherwise, return -1.
 static int
-w32font_prepare_face (FRAME_PTR f, struct face *face);
+w32font_prepare_face (struct frame *f, struct face *face);
   */
 /* w32 implementation of done_face for font backend.
    Optional.
    Done FACE for displaying characters by FACE->font on frame F.
 static void
-w32font_done_face (FRAME_PTR f, struct face *face);  */
+w32font_done_face (struct frame *f, struct face *face);  */
 
 /* w32 implementation of get_bitmap for font backend.
    Optional.
@@ -811,15 +810,14 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_list_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
   match_data.list = Qnil;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
@@ -864,14 +862,13 @@ w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_on
    Additional parameter opentype_only restricts the returned fonts to
    opentype fonts, which can be used with the Uniscribe backend.  */
 Lisp_Object
-w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_only)
+w32font_match_internal (struct frame *f, Lisp_Object font_spec, int opentype_only)
 {
   struct font_callback_data match_data;
   HDC dc;
-  FRAME_PTR f = XFRAME (frame);
 
   match_data.orig_font_spec = font_spec;
-  match_data.frame = frame;
+  XSETFRAME (match_data.frame, f);
   match_data.list = Qnil;
 
   memset (&match_data.pattern, 0, sizeof (LOGFONT));
@@ -892,7 +889,7 @@ w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_o
 }
 
 int
-w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
+w32font_open_internal (struct frame *f, Lisp_Object font_entity,
 		       int pixel_size, Lisp_Object font_object)
 {
   int len, size;
@@ -1964,7 +1961,7 @@ w32_to_fc_weight (int n)
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
 static void
-fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
+fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 {
   Lisp_Object tmp, extra;
   int dpi = FRAME_RES_Y (f);
@@ -2114,7 +2111,7 @@ static void
 list_all_matching_fonts (struct font_callback_data *match_data)
 {
   HDC dc;
-  Lisp_Object families = w32font_list_family (match_data->frame);
+  Lisp_Object families = w32font_list_family (XFRAME (match_data->frame));
   struct frame *f = XFRAME (match_data->frame);
 
   dc = get_frame_dc (f);
@@ -2467,7 +2464,7 @@ If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
   (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
-  FRAME_PTR f = decode_window_system_frame (frame);
+  struct frame *f = decode_window_system_frame (frame);
   CHOOSEFONT cf;
   LOGFONT lf;
   TEXTMETRIC tm;

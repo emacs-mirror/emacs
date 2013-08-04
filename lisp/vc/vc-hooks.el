@@ -918,6 +918,7 @@ current, and kill the buffer that visits the link."
     (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
+    (define-key map "G" 'vc-ignore)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
@@ -1002,6 +1003,9 @@ current, and kill the buffer that visits the link."
     (bindings--define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
+    (bindings--define-key map [vc-ignore]
+      '(menu-item "Ignore File..." vc-ignore
+		  :help "Ignore a file under current version control system"))
     (bindings--define-key map [vc-dir]
       '(menu-item "VC Dir"  vc-dir
 		  :help "Show the VC status of files in a directory"))

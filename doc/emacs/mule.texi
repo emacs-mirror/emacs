@@ -90,7 +90,6 @@ value to make sure Emacs interprets keyboard input correctly; see
 
 @menu
 * International Chars::     Basic concepts of multibyte characters.
-* Disabling Multibyte::     Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
@@ -243,79 +242,6 @@ Character code properties: customize what to show
   general-category: Lu (Letter, Uppercase)
   decomposition: (65 768) ('A' '`')
 @end smallexample
-
-@c FIXME?  Does this section even belong in the user manual?
-@c Seems more appropriate to the lispref?
-@node Disabling Multibyte
-@section Disabling Multibyte Characters
-
-  By default, Emacs starts in multibyte mode: it stores the contents
-of buffers and strings using an internal encoding that represents
-non-@acronym{ASCII} characters using multi-byte sequences.  Multibyte
-mode allows you to use all the supported languages and scripts without
-limitations.
-
-@cindex turn multibyte support on or off
-  Under very special circumstances, you may want to disable multibyte
-character support, for a specific buffer.
-When multibyte characters are disabled in a buffer, we call
-that @dfn{unibyte mode}.  In unibyte mode, each character in the
-buffer has a character code ranging from 0 through 255 (0377 octal); 0
-through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
-(0200 octal) through 255 (0377 octal) represent non-@acronym{ASCII}
-characters.
-
-  To edit a particular file in unibyte representation, visit it using
-@code{find-file-literally}.  @xref{Visiting}.  You can convert a
-multibyte buffer to unibyte by saving it to a file, killing the
-buffer, and visiting the file again with @code{find-file-literally}.
-Alternatively, you can use @kbd{C-x @key{RET} c}
-(@code{universal-coding-system-argument}) and specify @samp{raw-text}
-as the coding system with which to visit or save a file.  @xref{Text
-Coding}.  Unlike @code{find-file-literally}, finding a file as
-@samp{raw-text} doesn't disable format conversion, uncompression, or
-auto mode selection.
-
-@c Not a single file in Emacs uses this feature.  Is it really worth
-@c mentioning in the _user_ manual?  Also, this duplicates somewhat
-@c "Loading Non-ASCII" from the lispref.
-@cindex Lisp files, and multibyte operation
-@cindex multibyte operation, and Lisp files
-@cindex unibyte operation, and Lisp files
-@cindex init file, and non-@acronym{ASCII} characters
-  Emacs normally loads Lisp files as multibyte.
-This includes the Emacs initialization
-file, @file{.emacs}, and the initialization files of packages
-such as Gnus.  However, you can specify unibyte loading for a
-particular Lisp file, by adding an entry @samp{coding: raw-text} in a file
-local variables section.  @xref{Specify Coding}.
-Then that file is always loaded as unibyte text.
-@ignore
-@c I don't see the point of this statement:
-The motivation for these conventions is that it is more reliable to
-always load any particular Lisp file in the same way.
-@end ignore
-You can also load a Lisp file as unibyte, on any one occasion, by
-typing @kbd{C-x @key{RET} c raw-text @key{RET}} immediately before
-loading it.
-
-@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
-@vindex enable-multibyte-characters
-The buffer-local variable @code{enable-multibyte-characters} is
-non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
-The mode line also indicates whether a buffer is multibyte or not.
-@xref{Mode Line}.  With a graphical display, in a multibyte buffer,
-the portion of the mode line that indicates the character set has a
-tooltip that (amongst other things) says that the buffer is multibyte.
-In a unibyte buffer, the character set indicator is absent.  Thus, in
-a unibyte buffer (when using a graphical display) there is normally
-nothing before the indication of the visited file's end-of-line
-convention (colon, backslash, etc.), unless you are using an input
-method.
-
-@findex toggle-enable-multibyte-characters
-You can turn off multibyte support in a specific buffer by invoking the
-command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Language Environments
 @section Language Environments
@@ -918,18 +844,6 @@ pattern, are decoded correctly.
 @code{auto-coding-functions} detects the encoding for XML files.
 Unlike the previous two, this variable does not override any
 @samp{-*-coding:-*-} tag.
-
-@c FIXME?  This seems somewhat out of place.  Move to the Rmail section?
-@vindex rmail-file-coding-system
-  When you get new mail in Rmail, each message is translated
-automatically from the coding system it is written in, as if it were a
-separate file.  This uses the priority list of coding systems that you
-have specified.  If a MIME message specifies a character set, Rmail
-obeys that specification.  For reading and saving Rmail files
-themselves, Emacs uses the coding system specified by the variable
-@code{rmail-file-coding-system}.  The default value is @code{nil},
-which means that Rmail files are not translated (they are read and
-written in the Emacs internal character code).
 
 @node Specify Coding
 @section Specifying a File's Coding System
@@ -1591,15 +1505,13 @@ the range 0240 to 0377 octal (160 to 255 decimal) to handle the
 accented letters and punctuation needed by various European languages
 (and some non-European ones).  Note that Emacs considers bytes with
 codes in this range as raw bytes, not as characters, even in a unibyte
-buffer, i.e., if you disable multibyte characters.  However, Emacs
-can still handle these character codes as if they belonged to
-@emph{one} of the single-byte character sets at a time.  To specify
-@emph{which} of these codes to use, invoke @kbd{M-x
-set-language-environment} and specify a suitable language environment
-such as @samp{Latin-@var{n}}.
-
-  For more information about unibyte operation, see
-@ref{Disabling Multibyte}.
+buffer, i.e., if you disable multibyte characters.  However, Emacs can
+still handle these character codes as if they belonged to @emph{one}
+of the single-byte character sets at a time.  To specify @emph{which}
+of these codes to use, invoke @kbd{M-x set-language-environment} and
+specify a suitable language environment such as @samp{Latin-@var{n}}.
+@xref{Disabling Multibyte, , Disabling Multibyte Characters, elisp,
+GNU Emacs Lisp Reference Manual}.
 
 @vindex unibyte-display-via-language-environment
   Emacs can also display bytes in the range 160 to 255 as readable

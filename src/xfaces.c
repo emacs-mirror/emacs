@@ -869,7 +869,7 @@ the pixmap.  Bits are stored row by row, each row occupies
    if these pointers are not null.  */
 
 static ptrdiff_t
-load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr,
+load_pixmap (struct frame *f, Lisp_Object name, unsigned int *w_ptr,
 	     unsigned int *h_ptr)
 {
   ptrdiff_t bitmap_id;
@@ -1530,14 +1530,11 @@ the face font sort order.  */)
   (Lisp_Object family, Lisp_Object frame)
 {
   Lisp_Object font_spec, list, *drivers, vec;
+  struct frame *f = decode_live_frame (frame);
   ptrdiff_t i, nfonts;
   EMACS_INT ndrivers;
   Lisp_Object result;
   USE_SAFE_ALLOCA;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
 
   font_spec = Ffont_spec (0, NULL);
   if (!NILP (family))
@@ -1546,7 +1543,7 @@ the face font sort order.  */)
       font_parse_family_registry (family, Qnil, font_spec);
     }
 
-  list = font_list_entities (frame, font_spec);
+  list = font_list_entities (f, font_spec);
   if (NILP (list))
     return Qnil;
 
@@ -1589,7 +1586,7 @@ the face font sort order.  */)
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      FRAME_RES_Y (XFRAME (frame)));
+			      FRAME_RES_Y (f));
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
@@ -3078,7 +3075,7 @@ FRAME 0 means change the face on all frames, and change the default
 	{
 	  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
-	      FRAME_PTR f;
+	      struct frame *f;
 
 	      old_value = LFACE_FONT (lface);
 	      if (! FONTP (value))

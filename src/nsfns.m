@@ -143,7 +143,7 @@ check_ns_display_info (Lisp_Object object)
     dpyinfo = ns_display_info_for_name (object);
   else
     {
-      FRAME_PTR f = decode_window_system_frame (object);
+      struct frame *f = decode_window_system_frame (object);
       dpyinfo = FRAME_NS_DISPLAY_INFO (f);
     }
 
@@ -431,7 +431,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 static void
-ns_set_name_internal (FRAME_PTR f, Lisp_Object name)
+ns_set_name_internal (struct frame *f, Lisp_Object name)
 {
   struct gcpro gcpro1;
   Lisp_Object encoded_name, encoded_icon_name;
@@ -503,7 +503,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
 static void
-x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE (x_explicitly_set_name);
   ns_set_name (f, arg, 1);
@@ -514,7 +514,7 @@ x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
    name; names set this way will never override names set by the user's
    lisp code.  */
 void
-x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE (x_implicitly_set_name);
 
@@ -857,7 +857,7 @@ ns_cursor_type_to_lisp (int arg)
 
 /* This is the same as the xfns.c definition.  */
 static void
-x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 
@@ -1068,7 +1068,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object frame, tem;
   Lisp_Object name;
   int minibuffer_only = 0;
-  int window_prompting = 0;
+  long window_prompting = 0;
   int width, height;
   ptrdiff_t count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -2230,21 +2230,6 @@ x_get_focus_frame (struct frame *frame)
   XSETFRAME (nsfocus, dpyinfo->x_focus_frame);
   return nsfocus;
 }
-
-
-int
-x_pixel_width (struct frame *f)
-{
-  return FRAME_PIXEL_WIDTH (f);
-}
-
-
-int
-x_pixel_height (struct frame *f)
-{
-  return FRAME_PIXEL_HEIGHT (f);
-}
-
 
 void
 x_sync (struct frame *f)
