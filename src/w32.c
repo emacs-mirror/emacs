@@ -47,7 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef fopen
 #undef link
 #undef mkdir
-#undef mktemp
 #undef open
 #undef rename
 #undef rmdir

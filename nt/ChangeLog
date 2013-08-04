@@ -4,6 +4,7 @@
 	"yes".
 
 	* inc/ms-w32.h (mkostemp): Declare prototype.
+	(mktemp): Don't redirect to sys_mktemp.
 
 	* config.nt (HAVE_MKOSTEMP): Define to 1.  (Bug#15015)
 
