@@ -450,6 +450,8 @@ extern int getpagesize (void);
 
 extern void * memrchr (void const *, int, size_t);
 
+extern int mkostemp (char *, int);
+
 
 #if defined (__MINGW32__)
 

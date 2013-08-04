@@ -1,3 +1,9 @@
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (mkostemp): New function.
+	(mktemp): Remove, no longer used.  Most of the code reused in
+	mkostemp.  (Bug#15015)
+
 2013-08-04  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispnew.c (glyph_matrix_count, glyph_pool_count):

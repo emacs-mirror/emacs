@@ -1,3 +1,12 @@
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of
+	"yes".
+
+	* inc/ms-w32.h (mkostemp): Declare prototype.
+
+	* config.nt (HAVE_MKOSTEMP): Define to 1.  (Bug#15015)
+
 2013-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
