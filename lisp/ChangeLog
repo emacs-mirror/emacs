@@ -11,6 +11,30 @@
 	interactively and desktop-restore-frames is non-nil.  Doc fix.
 	(desktop-read): Set desktop-saved-frameset to nil.
 
+2013-08-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* vc/vc.el (vc-ignore): Rewrite.
+	(vc-default-ignore-completion-table):
+	(vc--read-lines):
+	(vc--add-line, vc--remove-regexp): New functions.
+
+	* vc/vc-svn.el (vc-svn-ignore): Doc fix.
+	(vc-svn-ignore-completion-table): New function.
+
+	* vc/vc-hg.el (vc-hg-ignore): Rewrite.
+	(vc-hg-ignore-completion-table):
+	(vc-hg-find-ignore-file): New functions.
+
+	* vc/vc-git.el (vc-git-ignore): Rewrite.
+	(vc-git-ignore-completion-table):
+	(vc-git-find-ignore-file): New functions.
+
+	* vc/vc-dir.el (vc-dir-menu-map): Add menu for vc-dir-ignore.
+
+	* vc/vc-bzr.el (vc-bzr-ignore): Rewrite.
+	(vc-bzr-ignore-completion-table):
+	(vc-bzr-find-ignore-file): New functions.
+
 2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-prop): New function and setter.
