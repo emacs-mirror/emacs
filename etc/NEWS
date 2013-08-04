@@ -274,8 +274,8 @@ auto-saves of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
 restoring the window/frame configuration.  Additional options
-`desktop-restore-in-current-display' and
-`desktop-restoring-reuses-frames' allow further customization.
+`desktop-restore-in-current-display', `desktop-restore-reuses-frames'
+and `desktop-restore-forces-onscreen' allow further customization.
 
 ** Dired
 
