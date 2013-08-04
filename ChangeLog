@@ -1,3 +1,7 @@
+2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* info/dir: Add todo-mode.
+
 2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some minor races in hosts lacking mkostemp (Bug#15015).

@@ -1,3 +1,11 @@
+2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add todo-mode.
+	(todo-mode, $(buildinfodir)/todo-mode$(INFO_EXT)):
+	(todo-mode.dvi, todo-mode.pdf): New rules.
+
+	* todo-mode.texi: New file.
+
 2013-08-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Basic Usage): Mention that warp means jump here.

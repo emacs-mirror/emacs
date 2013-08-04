@@ -48,7 +48,7 @@ INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e newsticker nxml-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
-	sc semantic ses sieve smtpmail speedbar srecode tramp \
+	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
 	url vip viper widget wisent woman
 
 DVI_TARGETS = \
@@ -100,6 +100,7 @@ DVI_TARGETS = \
 	smtpmail.dvi \
 	speedbar.dvi \
 	srecode.dvi \
+	todo-mode.dvi \
 	tramp.dvi \
 	url.dvi \
 	vip.dvi \
@@ -157,6 +158,7 @@ PDF_TARGETS = \
 	smtpmail.pdf \
 	speedbar.pdf \
 	srecode.pdf \
+	todo-mode.pdf \
 	tramp.pdf \
 	url.pdf \
 	vip.pdf \
@@ -644,6 +646,15 @@ srecode.dvi: ${srcdir}/srecode.texi ${gfdl}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/srecode.texi
 srecode.pdf: ${srcdir}/srecode.texi ${gfdl}
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/srecode.texi
+
+todo-mode : $(buildinfodir)/todo-mode$(INFO_EXT)
+$(buildinfodir)/todo-mode$(INFO_EXT): ${srcdir}/todo-mode.texi ${gfdl}
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/todo-mode.texi
+todo-mode.dvi: ${srcdir}/todo-mode.texi ${gfdl}
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/todo-mode.texi
+todo-mode.pdf: ${srcdir}/todo-mode.texi ${gfdl}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/todo-mode.texi
 
 tramp : $(buildinfodir)/tramp$(INFO_EXT)
 $(buildinfodir)/tramp$(INFO_EXT): ${srcdir}/tramp.texi ${srcdir}/trampver.texi ${gfdl}
