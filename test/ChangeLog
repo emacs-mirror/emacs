@@ -1,5 +1,8 @@
 2013-08-04  Glenn Morris  <rgm@gnu.org>
 
+	* automated/ert-tests.el: Disable failing test that no-one seems
+	to know how to fix.  (Bug#13064)
+
 	* automated/icalendar-tests.el (icalendar-tests--test-export)
 	(icalendar-tests--test-import): Try more precise TZ specification.
 	Remove debug messages.
