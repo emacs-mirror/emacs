@@ -1,3 +1,11 @@
+2013-08-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispnew.c (glyph_matrix_count, glyph_pool_count):
+	Move under GLYPH_DEBUG and ENABLE_CHECKING.
+	(new_glyph_matrix, free_glyph_matrix, new_glyph_pool)
+	(free_glyph_pool, check_glyph_memory): Likewise for
+	all users.  Adjust comments where appropriate.
+
 2013-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* composite.h: Minor fixups.

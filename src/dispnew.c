@@ -148,11 +148,15 @@ int updated_area;
 
 struct glyph space_glyph;
 
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
+
 /* Counts of allocated structures.  These counts serve to diagnose
    memory leaks and double frees.  */
 
 static int glyph_matrix_count;
 static int glyph_pool_count;
+
+#endif /* GLYPH_DEBUG and ENABLE_CHECKING */
 
 /* If non-null, the frame whose frame matrices are manipulated.  If
    null, window matrices are worked on.  */
@@ -307,9 +311,11 @@ new_glyph_matrix (struct glyph_pool *pool)
 {
   struct glyph_matrix *result = xzalloc (sizeof *result);
 
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
   /* Increment number of allocated matrices.  This count is used
      to detect memory leaks.  */
   ++glyph_matrix_count;
+#endif
 
   /* Set pool and return.  */
   result->pool = pool;
@@ -319,10 +325,10 @@ new_glyph_matrix (struct glyph_pool *pool)
 
 /* Free glyph matrix MATRIX.  Passing in a null MATRIX is allowed.
 
-   The global counter glyph_matrix_count is decremented when a matrix
-   is freed.  If the count gets negative, more structures were freed
-   than allocated, i.e. one matrix was freed more than once or a bogus
-   pointer was passed to this function.
+   If GLYPH_DEBUG and ENABLE_CHECKING are in effect, the global counter
+   glyph_matrix_count is decremented when a matrix is freed.  If the count
+   gets negative, more structures were freed than allocated, i.e. one matrix
+   was freed more than once or a bogus pointer was passed to this function.
 
    If MATRIX->pool is null, this means that the matrix manages its own
    glyph memory---this is done for matrices on X frames.  Freeing the
@@ -335,10 +341,12 @@ free_glyph_matrix (struct glyph_matrix *matrix)
     {
       int i;
 
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Detect the case that more matrices are freed than were
 	 allocated.  */
-      if (--glyph_matrix_count < 0)
-	emacs_abort ();
+      --glyph_matrix_count;
+      eassert (glyph_matrix_count >= 0);
+#endif
 
       /* Free glyph memory if MATRIX owns it.  */
       if (matrix->pool == NULL)
@@ -1310,38 +1318,41 @@ row_equal_p (struct glyph_row *a, struct glyph_row *b, bool mouse_face_p)
      See dispextern.h for an overall explanation of glyph pools.
  ***********************************************************************/
 
-/* Allocate a glyph_pool structure.  The structure returned is
-   initialized with zeros.  The global variable glyph_pool_count is
-   incremented for each pool allocated.  */
+/* Allocate a glyph_pool structure.  The structure returned is initialized
+   with zeros.  If GLYPH_DEBUG and ENABLE_CHECKING are in effect, the global
+   variable glyph_pool_count is incremented for each pool allocated.  */
 
 static struct glyph_pool *
 new_glyph_pool (void)
 {
   struct glyph_pool *result = xzalloc (sizeof *result);
 
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
   /* For memory leak and double deletion checking.  */
   ++glyph_pool_count;
+#endif
 
   return result;
 }
 
 
 /* Free a glyph_pool structure POOL.  The function may be called with
-   a null POOL pointer.  The global variable glyph_pool_count is
-   decremented with every pool structure freed.  If this count gets
-   negative, more structures were freed than allocated, i.e. one
-   structure must have been freed more than once or a bogus pointer
-   was passed to free_glyph_pool.  */
+   a null POOL pointer.  If GLYPH_DEBUG and ENABLE_CHECKING are in effect,
+   global variable glyph_pool_count is decremented with every pool structure
+   freed.  If this count gets negative, more structures were freed than
+   allocated, i.e. one structure must have been freed more than once or
+   a bogus pointer was passed to free_glyph_pool.  */
 
 static void
 free_glyph_pool (struct glyph_pool *pool)
 {
   if (pool)
     {
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* More freed than allocated?  */
       --glyph_pool_count;
       eassert (glyph_pool_count >= 0);
-
+#endif
       xfree (pool->glyphs);
       xfree (pool);
     }
@@ -2254,11 +2265,11 @@ check_glyph_memory (void)
   FOR_EACH_FRAME (tail, frame)
     free_glyphs (XFRAME (frame));
 
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
   /* Check that nothing is left allocated.  */
-  if (glyph_matrix_count)
-    emacs_abort ();
-  if (glyph_pool_count)
-    emacs_abort ();
+  eassert (glyph_matrix_count == 0);
+  eassert (glyph_pool_count == 0);
+#endif
 }
 
 
