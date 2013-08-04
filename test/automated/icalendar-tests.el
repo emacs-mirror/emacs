@@ -434,7 +434,7 @@ and ISO style input data must use english month names."
     (unwind-protect
 	(progn
 	  (message "Current time zone: %s" (current-time-zone))
-	  (setenv "TZ" "CET")
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
 	  (message "Current time zone: %s" (current-time-zone))
 	  (when input-iso
 	    (let ((calendar-month-name-array
@@ -677,7 +677,7 @@ Argument EXPECTED-AMERICAN expected american style diary string."
     (unwind-protect
 	(progn
 	  (message "Current time zone: %s" (current-time-zone))
-	  (setenv "TZ" "CET")
+	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
 	  (message "Current time zone: %s" (current-time-zone))
 	  (with-temp-buffer
 	    (if (string-match "^BEGIN:VCALENDAR" input)

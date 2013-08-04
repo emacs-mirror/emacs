@@ -1,3 +1,8 @@
+2013-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import): Try more precise TZ specification.
+
 2013-08-03  Glenn Morris  <rgm@gnu.org>
 
 	* automated/core-elisp-tests.el (core-elisp-tests): Fix defcustom.
