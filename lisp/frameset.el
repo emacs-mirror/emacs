@@ -71,7 +71,7 @@
 This is a deep copy done with `copy-tree'."
   (copy-tree frameset t))
 
-;;;autoload
+;;;###autoload
 (defun frameset-p (frameset)
   "If FRAMESET is a frameset, return its :version.
 Else return nil."
@@ -179,7 +179,7 @@ Useful as a filter function for tty-specific parameters."
       (not (string-match-p "^unspecified-[fb]g$" (cdr current)))))
 
 (defun frameset-filter-minibuffer (current _filtered _parameters saving)
-  "Convert (minibuffer . #<window>) parameter to (minibuffer . t)."
+  "When saving, convert (minibuffer . #<window>) parameter to (minibuffer . t)."
   (or (not saving)
       (if (windowp (cdr current))
 	  '(minibuffer . t)
@@ -302,7 +302,7 @@ FRAME-LIST is a list of frames."
 			       'frameset--mini
 			       (cons nil id)))))))
 
-;;;autoload
+;;;###autoload
 (cl-defun frameset-save (frame-list &key filters predicate properties)
   "Return the frameset of FRAME-LIST, a list of frames.
 If nil, FRAME-LIST defaults to all live frames.
@@ -547,11 +547,11 @@ Minibufferless frames must go first to avoid errors when attempting
 to delete a frame whose minibuffer window is used by another frame."
   (not (frame-parameter frame1 'minibuffer)))
 
-;;;autoload
+;;;###autoload
 (cl-defun frameset-restore (frameset &key filters reuse-frames force-display force-onscreen)
   "Restore a FRAMESET into the current display(s).
 
-FILTERS is a list of parameter filters; defaults to `frameset-filter-alist'.
+FILTERS is an alist of parameter filters; defaults to `frameset-filter-alist'.
 
 REUSE-FRAMES describes how to reuse existing frames while restoring a frameset:
   t       Reuse any existing frame if possible; delete leftover frames.
