@@ -680,16 +680,26 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
      nil
      "cat-file" "blob" (concat (if rev rev "HEAD") ":" fullname))))
 
-(defun vc-git-ignore (file)
-  "Ignore FILE under Git."
-  (with-temp-buffer
-    (insert-file-contents
-     (let ((gitignore (concat (file-name-as-directory (vc-git-root
-						      default-directory)) ".gitignore")))
-       (unless (search-forward (concat "\n" file "\n") nil t)
-	 (goto-char (point-max))
-	 (insert (concat "\n" file "\n"))
-	 (write-region (point-min) (point-max) gitignore))))))
+(defun vc-git-ignore (file &optional directory remove)
+  "Ignore FILE under Git.
+If DIRECTORY is non-nil, the repository to use will be deduced by
+DIRECTORY; if REMOVE is non-nil, remove FILE from ignored files."
+  (let (gitignore)
+    (if directory
+	(setq gitignore (vc-git-find-ignore-file directory))
+      (setq gitignore (vc-git-find-ignore-file default-directory)))
+    (if remove
+	(vc--remove-regexp file gitignore)
+      (vc--add-line file gitignore))))
+
+(defun vc-git-ignore-completion-table (file)
+  "Return the list of ignored files."
+  (vc--read-lines (vc-git-find-ignore-file file)))
+
+(defun vc-git-find-ignore-file (file)
+  "Return the root directory of the repository of FILE."
+  (expand-file-name ".gitignore"
+		    (vc-git-root file)))
 
 (defun vc-git-checkout (file &optional _editable rev)
   (vc-git-command nil 0 file "checkout" (or rev "HEAD")))

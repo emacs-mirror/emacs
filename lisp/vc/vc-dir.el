@@ -215,6 +215,9 @@ See `run-hooks'."
     (define-key map [register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into the version control system"))
+    (define-key map [ignore]
+      '(menu-item "Ignore Current File" vc-dir-ignore
+		  :help "Ignore the current file under current version control system"))
     map)
   "Menu for VC dir.")
 
