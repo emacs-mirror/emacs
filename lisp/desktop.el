@@ -643,7 +643,10 @@ DIRNAME omitted or nil means use `desktop-dirname'."
   "Empty the Desktop.
 This kills all buffers except for internal ones and those with names matched by
 a regular expression in the list `desktop-clear-preserve-buffers'.
-Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
+Furthermore, it clears the variables listed in `desktop-globals-to-clear'.
+When called interactively and `desktop-restore-frames' is non-nil, it also
+deletes all frames except the selected one (and its minibuffer frame,
+if different)."
   (interactive)
   (desktop-lazy-abort)
   (dolist (var desktop-globals-to-clear)
@@ -662,16 +665,20 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
 		    (string-match-p preserve-regexp bufname))
 	  (kill-buffer buffer)))))
   (delete-other-windows)
-  (let* ((this (selected-frame))
-	 (mini (window-frame (minibuffer-window this)))) ; in case they difer
-    (dolist (frame (sort (frame-list) #'frameset-sort-frames-for-deletion))
-      (condition-case err
-	  (unless (or (eq frame this)
-		      (eq frame mini)
-		      (frame-parameter frame 'desktop-dont-clear))
-	    (delete-frame frame))
-	(error
-	 (delay-warning 'desktop (error-message-string err)))))))
+  (when (and desktop-restore-frames
+	     ;; Non-interactive calls to desktop-clear happen before desktop-read
+	     ;; which already takes care of frame restoration and deletion.
+	     (called-interactively-p 'any))
+    (let* ((this (selected-frame))
+	   (mini (window-frame (minibuffer-window this)))) ; in case they difer
+      (dolist (frame (sort (frame-list) #'frameset-sort-frames-for-deletion))
+	(condition-case err
+	    (unless (or (eq frame this)
+			(eq frame mini)
+			(frame-parameter frame 'desktop-dont-clear))
+	      (delete-frame frame))
+	  (error
+	 (delay-warning 'desktop (error-message-string err))))))))
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
@@ -1152,6 +1159,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	      (walk-window-tree (lambda (window)
 				  (set-window-prev-buffers window nil)
 				  (set-window-next-buffers window nil))))
+ 	    (setq desktop-saved-frameset nil)
 	    t))
       ;; No desktop file found.
       (desktop-clear)
