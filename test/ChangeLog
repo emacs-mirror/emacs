@@ -1,3 +1,11 @@
+2013-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* automated/icalendar-tests.el (icalendar-tests--test-export)
+	(icalendar-tests--test-import):
+	Use getenv/setenv rather than set-time-zone-rule.
+	(icalendar-tests--test-import): Reset zone even if error occurred.
+	(icalendar-tests--do-test-cycle): Use with-current-buffer.
+
 2013-03-26  Fabián Ezequiel Gallina  <fabian@anue.biz>
 
 	* automated/python-tests.el
