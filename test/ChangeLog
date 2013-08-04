@@ -2,6 +2,7 @@
 
 	* automated/icalendar-tests.el (icalendar-tests--test-export)
 	(icalendar-tests--test-import): Try more precise TZ specification.
+	Remove debug messages.
 
 2013-08-03  Glenn Morris  <rgm@gnu.org>
 

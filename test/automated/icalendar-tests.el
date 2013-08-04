@@ -433,9 +433,11 @@ and ISO style input data must use english month names."
 	(icalendar-recurring-start-year 2000))
     (unwind-protect
 	(progn
-	  (message "Current time zone: %s" (current-time-zone))
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
 	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
-	  (message "Current time zone: %s" (current-time-zone))
+;;;	  (message "Current time zone: %s" (current-time-zone))
 	  (when input-iso
 	    (let ((calendar-month-name-array
 		   ["January" "February" "March" "April" "May" "June" "July" "August"
@@ -676,9 +678,11 @@ Argument EXPECTED-AMERICAN expected american style diary string."
   (let ((timezone (getenv "TZ")))
     (unwind-protect
 	(progn
-	  (message "Current time zone: %s" (current-time-zone))
+;;;	  (message "Current time zone: %s" (current-time-zone))
+	  ;; Use this form so as not to rely on system tz database.
+	  ;; Eg hydra.nixos.org.
 	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
-	  (message "Current time zone: %s" (current-time-zone))
+;;;	  (message "Current time zone: %s" (current-time-zone))
 	  (with-temp-buffer
 	    (if (string-match "^BEGIN:VCALENDAR" input)
 		(insert input)
