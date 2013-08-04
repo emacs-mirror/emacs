@@ -1121,7 +1121,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (apropos-print-doc 2
 			     (if (commandp symbol)
 				 'apropos-command
-			       (if (apropos-macrop symbol)
+			       (if (macrop symbol)
 				   'apropos-macro
 				 'apropos-function))
 			     (not nosubst))
@@ -1138,17 +1138,6 @@ If non-nil TEXT is a string that will be printed as a heading."
         (set (make-local-variable 'truncate-lines) t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
-
-(defun apropos-macrop (symbol)
-  "Return t if SYMBOL is a Lisp macro."
-  (and (fboundp symbol)
-       (consp (setq symbol
-		    (symbol-function symbol)))
-       (or (eq (car symbol) 'macro)
-	   (if (autoloadp symbol)
-	       (memq (nth 4 symbol)
-		     '(macro t))))))
-
 
 (defun apropos-print-doc (i type do-keys)
   (let ((doc (nth i apropos-item)))

@@ -691,7 +691,7 @@ These attributes are only meaningful for coding-systems of type
 with the same interpretation as the returned value of `visited-file-modtime'.
 
 ** time-to-seconds is not obsolete any more.
-** New function special-form-p.
+** New functions special-form-p and macrop.
 ** Docstrings can be made dynamic by adding a `dynamic-docstring-function'
 text-property on the first char.
 

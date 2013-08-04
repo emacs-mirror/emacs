@@ -295,19 +295,6 @@ A lambda list keyword is a symbol that starts with `&'."
        (eq (selected-window)
 	   (next-window (next-window (selected-window))))))
 
-(defsubst edebug-lookup-function (object)
-  (while (and (symbolp object) (fboundp object))
-    (setq object (symbol-function object)))
-  object)
-
-(defun edebug-macrop (object)
-  "Return the macro named by OBJECT, or nil if it is not a macro."
-  (setq object (edebug-lookup-function object))
-  (if (and (listp object)
-	   (eq 'macro (car object))
-	   (functionp (cdr object)))
-      object))
-
 (defun edebug-sort-alist (alist function)
   ;; Return the ALIST sorted with comparison function FUNCTION.
   ;; This uses 'sort so the sorting is destructive.
@@ -1416,7 +1403,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 					; but leave it in for compatibility.
        ))
      ;; No edebug-form-spec provided.
-     ((edebug-macrop head)
+     ((macrop head)
       (if edebug-eval-macro-args
 	  (edebug-forms cursor)
 	(edebug-sexps cursor)))

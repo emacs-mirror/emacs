@@ -314,9 +314,8 @@ of the piece of advice."
    ((special-form-p def)
     ;; Not worth the trouble trying to handle this, I think.
     (error "Advice impossible: %S is a special form" symbol))
-   ((and (symbolp def)
-	 (eq 'macro (car-safe (ignore-errors (indirect-function def)))))
-    (let ((newval (cons 'macro (cdr (indirect-function def)))))
+   ((and (symbolp def) (macrop def))
+    (let ((newval `(macro . ,(lambda (&rest r) (macroexpand `(,def . ,r))))))
       (put symbol 'advice--saved-rewrite (cons def (cdr newval)))
       newval))
    ;; `f' might be a pure (hence read-only) cons!
@@ -351,19 +350,7 @@ of the piece of advice."
   (when (get symbol 'advice--saved-rewrite)
     (put symbol 'advice--saved-rewrite nil))
   (setq newdef (advice--normalize symbol newdef))
-  (let* ((olddef (advice--strip-macro (symbol-function symbol)))
-         (oldadv
-          (cond
-	   ((null (get symbol 'advice--pending))
-	    (or olddef
-		(progn
-		  (message "Delayed advice activation failed for %s: no data"
-			   symbol)
-		  nil)))
-	   ((or (not olddef) (autoloadp olddef))
-            (get symbol 'advice--pending))
-           (t (message "Dropping left-over advice--pending for %s" symbol)
-              olddef))))
+  (let ((oldadv (advice--symbol-function symbol)))
     (if (and newdef (not (autoloadp newdef)))
         (let* ((snewdef (advice--strip-macro newdef))
                (snewadv (advice--subst-main oldadv snewdef)))
@@ -383,7 +370,6 @@ is defined as a macro, alias, command, ..."
   ;; TODO:
   ;; - record the advice location, to display in describe-function.
   ;; - change all defadvice in lisp/**/*.el.
-  ;; - rewrite advice.el on top of this.
   ;; - obsolete advice.el.
   (let* ((f (symbol-function symbol))
 	 (nf (advice--normalize symbol f)))
@@ -420,8 +406,7 @@ of the piece of advice."
                       ((eq (car-safe f) 'macro) (cdr f))
                       (t (symbol-function symbol)))
                      function)
-    (unless (advice--p
-             (if (eq (car-safe f) 'macro) (cdr f) (symbol-function symbol)))
+    (unless (advice--p (advice--symbol-function symbol))
       ;; Not advised any more.
       (remove-function (get symbol 'defalias-fset-function)
                        #'advice--defalias-fset)

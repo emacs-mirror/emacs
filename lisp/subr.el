@@ -2750,6 +2750,13 @@ Otherwise, return nil."
       (setq object (indirect-function object t)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
+(defun macrop (object)
+  "Non-nil if and only if OBJECT is a macro."
+  (let ((def (indirect-function object t)))
+    (when (consp def)
+      (or (eq 'macro (car def))
+          (and (eq 'autoload (car def)) (memq (nth 4 def) '(macro t)))))))
+
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))
@@ -4050,10 +4057,14 @@ backwards ARG times if negative."
 
 ;;;; Text clones
 
-(defun text-clone-maintain (ol1 after beg end &optional _len)
+(defvar text-clone--maintaining nil)
+
+(defun text-clone--maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
-  (when (and after (not undo-in-progress) (overlay-start ol1))
+  (when (and after (not undo-in-progress)
+             (not text-clone--maintaining)
+             (overlay-start ol1))
     (let ((margin (if (overlay-get ol1 'text-clone-spreadp) 1 0)))
       (setq beg (max beg (+ (overlay-start ol1) margin)))
       (setq end (min end (- (overlay-end ol1) margin)))
@@ -4084,7 +4095,7 @@ This is used on the `modification-hooks' property of text clones."
 		(tail (- (overlay-end ol1) end))
 		(str (buffer-substring beg end))
 		(nothing-left t)
-		(inhibit-modification-hooks t))
+		(text-clone--maintaining t))
 	    (dolist (ol2 (overlay-get ol1 'text-clones))
 	      (let ((oe (overlay-end ol2)))
 		(unless (or (eq ol1 ol2) (null oe))
@@ -4095,7 +4106,7 @@ This is used on the `modification-hooks' property of text clones."
 		    (unless (> mod-beg (point))
 		      (save-excursion (insert str))
 		      (delete-region mod-beg (point)))
-		    ;;(overlay-put ol2 'modification-hooks '(text-clone-maintain))
+		    ;;(overlay-put ol2 'modification-hooks '(text-clone--maintain))
 		    ))))
 	    (if nothing-left (delete-overlay ol1))))))))
 
@@ -4126,17 +4137,18 @@ clone should be incorporated in the clone."
 			     (>= pt-end (point-max))
   			     (>= start (point-max)))
   			 0 1))
+         ;; FIXME: Reuse overlays at point to extend dups!
   	 (ol1 (make-overlay (- start start-margin) (+ end end-margin) nil t))
   	 (ol2 (make-overlay (- (point) start-margin) (+ pt-end end-margin) nil t))
 	 (dups (list ol1 ol2)))
-    (overlay-put ol1 'modification-hooks '(text-clone-maintain))
+    (overlay-put ol1 'modification-hooks '(text-clone--maintain))
     (when spreadp (overlay-put ol1 'text-clone-spreadp t))
     (when syntax (overlay-put ol1 'text-clone-syntax syntax))
     ;;(overlay-put ol1 'face 'underline)
     (overlay-put ol1 'evaporate t)
     (overlay-put ol1 'text-clones dups)
     ;;
-    (overlay-put ol2 'modification-hooks '(text-clone-maintain))
+    (overlay-put ol2 'modification-hooks '(text-clone--maintain))
     (when spreadp (overlay-put ol2 'text-clone-spreadp t))
     (when syntax (overlay-put ol2 'text-clone-syntax syntax))
     ;;(overlay-put ol2 'face 'underline)

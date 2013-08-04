@@ -1,3 +1,9 @@
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/advice-tests.el (advice-tests-nadvice): Test removal
+	before definition.
+	(advice-tests-macroaliases): New test.
+
 2013-08-04  Glenn Morris  <rgm@gnu.org>
 
 	* automated/ert-tests.el: Disable failing test that no-one seems

@@ -1,5 +1,30 @@
 2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (macrop): New function.
+	(text-clone--maintaining): New var.
+	(text-clone--maintain): Rename from text-clone-maintain.  Use it
+	instead of inhibit-modification-hooks.
+
+	* emacs-lisp/nadvice.el (advice--normalize): For aliases to macros, use
+	a proxy, so as handle autoloads and redefinitions of the target.
+	(advice--defalias-fset, advice-remove): Use advice--symbol-function.
+
+	* emacs-lisp/pcase.el (pcase-mutually-exclusive-predicates):
+	Remove bogus (arrayp . stringp) pair.  Add entries for `vectorp'.
+	(pcase--mutually-exclusive-p): New function.
+	(pcase--split-consp): Use it.
+	(pcase--split-pred): Use it.  Optimize the case where `pat' is a qpat
+	mutually exclusive with the current predicate.
+
+	* emacs-lisp/edebug.el (edebug-lookup-function): Remove function.
+	(edebug-macrop): Remove.  Use `macrop' instead.
+	* emacs-lisp/advice.el (ad-subr-p): Remove.  Use `subrp' instead.
+	(ad-macro-p):
+	* eshell/esh-cmd.el (eshell-macrop):
+	* apropos.el (apropos-macrop): Remove.  Use `macrop' instead.
+
+2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/nadvice.el (advice-function-mapc): Rename from advice-mapc.
 	(advice-mapc): New function, using it.
 	(advice-function-member-p): New function.
