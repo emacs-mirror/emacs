@@ -1,3 +1,11 @@
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h: Include fcntl.h.
+	(mkostemp): Declare prototype.
+	(mktemp): Don't redefine.
+
+	* ntlib.c (mkostemp): New function.  (Bug#15015)
+
 2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some minor races in hosts lacking mkostemp (Bug#15015).

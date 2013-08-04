@@ -422,3 +422,58 @@ lstat (const char * path, struct stat * buf)
 {
   return stat (path, buf);
 }
+
+/* Implementation of mkostemp for MS-Windows, to avoid race conditions
+   when using mktemp.
+
+   Standard algorithm for generating a temporary file name seems to be
+   use pid or tid with a letter on the front (in place of the 6 X's)
+   and cycle through the letters to find a unique name.  We extend
+   that to allow any reasonable character as the first of the 6 X's,
+   so that the number of simultaneously used temporary files will be
+   greater.  */
+
+int
+mkostemp (char * template, int flags)
+{
+  char * p;
+  int i, fd = -1;
+  unsigned uid = GetCurrentThreadId ();
+  int save_errno = errno;
+  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
+
+  errno = EINVAL;
+  if (template == NULL)
+    return -1;
+
+  p = template + strlen (template);
+  i = 5;
+  /* replace up to the last 5 X's with uid in decimal */
+  while (--p >= template && p[0] == 'X' && --i >= 0)
+    {
+      p[0] = '0' + uid % 10;
+      uid /= 10;
+    }
+
+  if (i < 0 && p[0] == 'X')
+    {
+      i = 0;
+      do
+	{
+	  p[0] = first_char[i];
+	  if ((fd = open (template,
+			  flags | _O_CREAT | _O_EXCL | _O_RDWR,
+			  S_IRUSR | S_IWUSR)) >= 0
+	      || errno != EEXIST)
+	    {
+	      if (fd >= 0)
+		errno = save_errno;
+	      return fd;
+	    }
+	}
+      while (++i < sizeof (first_char));
+    }
+
+  /* Template is badly formed or else we can't generate a unique name.  */
+  return -1;
+}
