@@ -1486,7 +1486,7 @@ This function changes neither the order of recently selected
 windows nor the buffer list."
   ;; If we start from the minibuffer window, don't fail to come
   ;; back to it.
-  (when (window-minibuffer-p (selected-window))
+  (when (window-minibuffer-p)
     (setq minibuf t))
   ;; Make sure to not mess up the order of recently selected
   ;; windows.  Use `save-selected-window' and `select-window'
@@ -6676,7 +6676,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
        ;; minibuffer.  Use `unread-command-events' in order to execute pre-
        ;; and post-command hooks and trigger idle timers.  To avoid delaying
        ;; autoselection again, set `mouse-autoselect-window-state'."
-       (unless (window-minibuffer-p (selected-window))
+       (unless (window-minibuffer-p)
 	 (setq mouse-autoselect-window-state 'select)
 	 (setq unread-command-events
 	       (cons (list 'select-window (list window))
@@ -6702,7 +6702,7 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
 		;; minibuffer gets unselected unexpectedly, and where
 		;; you then have to move your mouse all the way down to
 		;; the minibuffer to select it.
-		(window-minibuffer-p (selected-window))
+		(window-minibuffer-p)
 		;; Don't switch to minibuffer window unless it's active.
 		(and (window-minibuffer-p window)
 		     (not (minibuffer-window-active-p window)))

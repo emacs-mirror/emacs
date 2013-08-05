@@ -860,7 +860,7 @@ changes are made, so \\[highlight-changes-next-change] and
     (get-buffer (read-buffer "buffer-a " (current-buffer) t))
     (get-buffer
      (read-buffer "buffer-b "
-		  (window-buffer (next-window (selected-window))) t))))
+		  (window-buffer (next-window)) t))))
   (let ((file-a (buffer-file-name buf-a))
 	(file-b (buffer-file-name buf-b)))
     (highlight-markup-buffers buf-a file-a buf-b file-b)

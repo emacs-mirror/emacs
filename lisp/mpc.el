@@ -1513,7 +1513,7 @@ when constructing the set of constraints."
   (let* ((newbuf (mpc-tagbrowser-buf tag))
          (win (get-buffer-window newbuf 0)))
     (if win (select-window win)
-      (if (with-current-buffer (window-buffer (selected-window))
+      (if (with-current-buffer (window-buffer)
             (derived-mode-p 'mpc-tagbrowser-mode))
           (setq win (selected-window))
         ;; Find a tagbrowser-mode buffer.
@@ -2618,8 +2618,7 @@ This is used so that they can be compared with `eq', which is needed for
          (song-win (get-buffer-window song-buf 0)))
     (if song-win
         (select-window song-win)
-      (if (or (window-dedicated-p (selected-window))
-              (window-minibuffer-p))
+      (if (or (window-dedicated-p) (window-minibuffer-p))
           (ignore-errors (select-frame (make-frame mpc-frame-alist)))
         (with-current-buffer song-buf
           (setq-local mpc-previous-window-config

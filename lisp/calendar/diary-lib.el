@@ -1011,8 +1011,7 @@ Entries that do not apply are made invisible.  Holidays are shown
 in the mode line.  This is an option for `diary-display-function'."
   ;; If selected window is dedicated (to the calendar), need a new one
   ;; to display the diary.
-  (let* ((pop-up-frames (or pop-up-frames
-                            (window-dedicated-p (selected-window))))
+  (let* ((pop-up-frames (or pop-up-frames (window-dedicated-p)))
          (dbuff (find-buffer-visiting diary-file))
          (empty (diary-display-no-entries)))
     ;; This may be too wide, but when simple diary is used there is
@@ -1216,8 +1215,7 @@ all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
   (let* ((d-file (diary-check-diary-file))
-         (pop-up-frames (or pop-up-frames
-                            (window-dedicated-p (selected-window))))
+         (pop-up-frames (or pop-up-frames (window-dedicated-p)))
          (win (selected-window))
          (height (window-height)))
     (with-current-buffer (or (find-buffer-visiting d-file)
@@ -2116,8 +2114,7 @@ calendar."
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
-  (let ((pop-up-frames (or pop-up-frames
-                           (window-dedicated-p (selected-window)))))
+  (let ((pop-up-frames (or pop-up-frames (window-dedicated-p))))
     (find-file-other-window (or file diary-file)))
   (when (eq major-mode (default-value 'major-mode)) (diary-mode))
   (widen)

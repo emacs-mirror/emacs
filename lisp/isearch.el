@@ -1015,7 +1015,7 @@ NOPUSH is t and EDIT is t."
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
   (isearch-dehighlight)
   (lazy-highlight-cleanup lazy-highlight-cleanup)
-  (let ((found-start (window-start (selected-window)))
+  (let ((found-start (window-start))
 	(found-point (point)))
     (when isearch-window-configuration
       (set-window-configuration isearch-window-configuration)

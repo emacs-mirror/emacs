@@ -1736,7 +1736,7 @@ Only intended for interactive use."
   ;; Preserve selected buffer, but do not do save-window-excursion,
   ;; since we want to see any window created by the form.  Temporarily
   ;; select the article buffer, so we can see any point movement.
-  (let ((sb (window-buffer (selected-window))))
+  (let ((sb (window-buffer)))
     (gnus-configure-windows 'article)
     (pop-to-buffer gnus-article-buffer)
     (widen)

@@ -1262,7 +1262,7 @@ ARGS is a list of image descriptors."
 					    (car (image-size image 'pixels)))
 					 img-width)
 				    img-width))
-	     (window-width (window-width (selected-window))))
+	     (window-width (window-width)))
 	(setf (doc-view-current-image) image)
 	(move-overlay ol (point-min) (point-max))
 	;; In case the window is wider than the image, center the image

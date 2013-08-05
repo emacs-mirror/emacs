@@ -2492,7 +2492,7 @@ displays at the top of the window; there is no arrow."
 All arguments are markers.  If END-MK is non-nil, mark is set there
 and overlay is highlighted between MK and END-MK."
   ;; Show compilation buffer in other window, scrolled to this error.
-  (let* ((from-compilation-buffer (eq (window-buffer (selected-window))
+  (let* ((from-compilation-buffer (eq (window-buffer)
                                       (marker-buffer msg)))
          ;; Use an existing window if it is in a visible frame.
          (pre-existing (get-buffer-window (marker-buffer msg) 0))

@@ -1605,7 +1605,7 @@ specifies where to find/view the result."
   ;; Get the source file to view or find.
   (setf file (ebrowse-find-source-file file tags-file))
   ;; If current window is dedicated, use another frame.
-  (when (window-dedicated-p (selected-window))
+  (when (window-dedicated-p)
     (setf where 'other-window))
   (cond (view
 	 (setf ebrowse-temp-position-to-view struc

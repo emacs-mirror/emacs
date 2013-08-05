@@ -740,7 +740,7 @@ This is done after all necessary filtering has been done."
 	      (if (<= (point) oend)
 		  (setq oend (+ oend nchars)))
 	      (insert-before-markers string)
-	      (if (= (window-start (selected-window)) (point))
+	      (if (= (window-start) (point))
 		  (set-window-start (selected-window)
 				    (- (point) nchars)))
 	      (if (= (point) eshell-last-input-end)

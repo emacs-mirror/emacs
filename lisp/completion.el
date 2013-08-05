@@ -1626,7 +1626,7 @@ Prefix args ::
   ;; Get the next completion
   (let* ((print-status-p
 	  (and (>= baud-rate completion-prompt-speed-threshold)
-	       (not (window-minibuffer-p (selected-window)))))
+	       (not (window-minibuffer-p))))
 	 (insert-point (point))
 	 (entry (completion-search-next cmpl-current-index))
 	 string)

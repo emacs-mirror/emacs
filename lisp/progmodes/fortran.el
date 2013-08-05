@@ -1080,8 +1080,7 @@ The next key typed is executed unless it is SPC."
      fortran-column-ruler-fixed)
    (save-excursion
      (beginning-of-line)
-     (if (eq (window-start (selected-window))
-             (window-point (selected-window)))
+     (if (eq (window-start) (window-point))
          (line-beginning-position 2)
        (point)))
    nil "Type SPC or any command to erase ruler."))

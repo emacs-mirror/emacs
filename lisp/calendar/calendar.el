@@ -1422,7 +1422,7 @@ Optional integers MON and YR are used instead of today's date."
          (year (calendar-extract-year today))
          (today-visible (or (not mon)
                             (<= (abs (calendar-interval mon yr month year)) 1)))
-         (in-calendar-window (eq (window-buffer (selected-window))
+         (in-calendar-window (eq (window-buffer)
                                  (get-buffer calendar-buffer))))
     (calendar-generate (or mon month) (or yr year))
     (calendar-update-mode-line)

@@ -1288,7 +1288,7 @@ advance to the next message."
 		(prog1
 		    ;; Is EOB visible in the buffer?
 		    (save-excursion
-		      (let ((ht (window-height (selected-window))))
+		      (let ((ht (window-height)))
 			(move-to-window-line (- ht 2))
 			(end-of-line)
 			(eobp)))

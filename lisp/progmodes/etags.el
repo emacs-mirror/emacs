@@ -982,7 +982,7 @@ See documentation of variable `tags-file-name'."
   ;; selected window's buffer; without the hair, point is moved in both
   ;; windows.  To prevent this, we save the selected window's point before
   ;; doing find-tag-noselect, and restore it after.
-  (let* ((window-point (window-point (selected-window)))
+  (let* ((window-point (window-point))
 	 (tagbuf (find-tag-noselect tagname next-p regexp-p))
 	 (tagpoint (progn (set-buffer tagbuf) (point))))
     (set-window-point (prog1

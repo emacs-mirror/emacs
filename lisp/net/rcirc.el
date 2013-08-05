@@ -1331,7 +1331,7 @@ if ARG is omitted or nil."
   "Return a buffer for PROCESS, either the one selected or the process buffer."
   (if rcirc-always-use-server-buffer-flag
       (process-buffer process)
-    (let ((buffer (window-buffer (selected-window))))
+    (let ((buffer (window-buffer)))
       (if (and buffer
 	       (with-current-buffer buffer
 		 (and (eq major-mode 'rcirc-mode)

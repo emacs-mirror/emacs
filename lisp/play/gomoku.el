@@ -948,13 +948,13 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-max-width ()
   "Largest possible board width for the current window."
-  (1+ (/ (- (window-width (selected-window))
+  (1+ (/ (- (window-width)
 	    gomoku-x-offset gomoku-x-offset 1)
 	 gomoku-square-width)))
 
 (defun gomoku-max-height ()
   "Largest possible board height for the current window."
-  (1+ (/ (- (window-height (selected-window))
+  (1+ (/ (- (window-height)
 	    gomoku-y-offset gomoku-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
 	 gomoku-square-height)))

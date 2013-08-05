@@ -1557,7 +1557,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		(setq next-buffer (car (process-get proc 'buffers))))
 	      (setq rest (cdr rest)))))
 	(and next-buffer (server-switch-buffer next-buffer killed-one))
-	(unless (or next-buffer killed-one (window-dedicated-p (selected-window)))
+	(unless (or next-buffer killed-one (window-dedicated-p))
 	  ;; (switch-to-buffer (other-buffer))
 	  (message "No server buffers remain to edit")))
     (if (not (buffer-live-p next-buffer))
@@ -1584,10 +1584,10 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		   (unless (frame-live-p server-window)
 		     (setq server-window (make-frame)))
 		   (select-window (frame-selected-window server-window))))
-	    (when (window-minibuffer-p (selected-window))
+	    (when (window-minibuffer-p)
 	      (select-window (next-window nil 'nomini 0)))
 	    ;; Move to a non-dedicated window, if we have one.
-	    (when (window-dedicated-p (selected-window))
+	    (when (window-dedicated-p)
 	      (select-window
 	       (get-window-with-predicate
 		(lambda (w)
@@ -1601,7 +1601,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))
     (when server-raise-frame
-      (select-frame-set-input-focus (window-frame (selected-window))))))
+      (select-frame-set-input-focus (window-frame)))))
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)

@@ -1,3 +1,75 @@
+2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not call to `selected-window' where it is assumed by default.
+	Affected functions are `window-minibuffer-p', `window-dedicated-p',
+	`window-hscroll', `window-width', `window-height', `window-buffer',
+	`window-frame', `window-start', `window-point', `next-window'
+	and `window-display-table'.
+	* abbrev.el (abbrev--default-expand):
+	* bs.el (bs--show-with-configuration):
+	* buff-menu.el (Buffer-menu-mouse-select):
+	* calc/calc.el (calc):
+	* calendar/calendar.el (calendar-generate-window):
+	* calendar/diary-lib.el (diary-simple-display, diary-show-all-entries)
+	(diary-make-entry):
+	* comint.el (send-invisible, comint-dynamic-complete-filename)
+	(comint-dynamic-simple-complete, comint-dynamic-list-completions):
+	* completion.el (complete):
+	* dabbrev.el (dabbrev-expand, dabbrev--make-friend-buffer-list):
+	* disp-table.el (describe-current-display-table):
+	* doc-view.el (doc-view-insert-image):
+	* ebuff-menu.el (Electric-buffer-menu-mouse-select):
+	* ehelp.el (with-electric-help):
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	* emacs-lisp/edebug.el (edebug-two-window-p, edebug-pop-to-buffer):
+	* emacs-lisp/helper.el (Helper-help-scroller):
+	* emulation/cua-base.el (cua--post-command-handler-1):
+	* eshell/esh-mode.el (eshell-output-filter):
+	* ffap.el (ffap-gnus-wrapper):
+	* help-macro.el (make-help-screen):
+	* hilit-chg.el (highlight-compare-buffers):
+	* hippie-exp.el (hippie-expand, try-expand-dabbrev-visible):
+	* hl-line.el (global-hl-line-highlight):
+	* icomplete.el (icomplete-simple-completing-p):
+	* isearch.el (isearch-done):
+	* jit-lock.el (jit-lock-stealth-fontify):
+	* mail/rmailsum.el (rmail-summary-scroll-msg-up):
+	* lisp/mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* mpc.el (mpc-tagbrowser, mpc):
+	* net/rcirc.el (rcirc-any-buffer):
+	* play/gomoku.el (gomoku-max-width, gomoku-max-height):
+	* play/landmark.el (landmark-max-width, landmark-max-height):
+	* play/zone.el (zone):
+	* progmodes/compile.el (compilation-goto-locus):
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern):
+	* progmodes/etags.el (find-tag-other-window):
+	* progmodes/fortran.el (fortran-column-ruler):
+	* progmodes/gdb-mi.el (gdb-mouse-toggle-breakpoint-fringe):
+	* progmodes/verilog-mode.el (verilog-point-text):
+	* reposition.el (reposition-window):
+	* rot13.el (toggle-rot13-mode):
+	* server.el (server-switch-buffer):
+	* shell.el (shell-dynamic-complete-command)
+	(shell-dynamic-complete-environment-variable):
+	* simple.el (insert-buffer, set-selective-display)
+	(delete-completion-window):
+	* speedbar.el (speedbar-timer-fn, speedbar-center-buffer-smartly)
+	(speedbar-recenter):
+	* startup.el (fancy-splash-head):
+	* textmodes/ispell.el (ispell-command-loop):
+	* textmodes/makeinfo.el (makeinfo-compilation-sentinel-region):
+	* tutorial.el (help-with-tutorial):
+	* vc/add-log.el (add-change-log-entry):
+	* vc/compare-w.el (compare-windows):
+	* vc/ediff-help.el (ediff-indent-help-message):
+	* vc/ediff-util.el (ediff-setup-control-buffer, ediff-position-region):
+	* vc/ediff-wind.el (ediff-skip-unsuitable-frames)
+	(ediff-setup-control-frame):
+	* vc/emerge.el (emerge-position-region):
+	* vc/pcvs-util.el (cvs-bury-buffer):
+	* window.el (walk-windows, mouse-autoselect-window-select):
+	* winner.el (winner-set-conf, winner-undo): Related users changed.
+
 2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--set-id): Doc fix.

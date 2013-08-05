@@ -1441,7 +1441,7 @@ commands given here will actually operate on the *Calculator* stack."
 	    (calc-keypad))))
     (when (get-buffer-window "*Calc Keypad*")
       (calc-keypad)
-      (set-buffer (window-buffer (selected-window))))
+      (set-buffer (window-buffer)))
     (if (eq major-mode 'calc-mode)
 	(calc-quit)
       (let ((oldbuf (current-buffer)))

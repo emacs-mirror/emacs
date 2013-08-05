@@ -146,7 +146,7 @@ BUFFER is put back into its original major mode."
     (unwind-protect
          (save-excursion
            (when one
-	     (goto-char (window-start (selected-window))))
+	     (goto-char (window-start)))
            (let ((pop-up-windows t))
              (pop-to-buffer buffer))
            (with-current-buffer buffer

@@ -896,7 +896,7 @@ Run the Viper tutorial? "))
           ;; inserted at the start of the buffer, the "type C-v to
           ;; move to the next screen" might not be visible on the
           ;; first screen (n < 0).  How will the novice know what to do?
-          (let ((n (- (window-height (selected-window))
+          (let ((n (- (window-height)
                       (count-lines (point-min) (point))
                       6)))
             (if (< n 8)

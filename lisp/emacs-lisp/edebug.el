@@ -293,7 +293,7 @@ A lambda list keyword is a symbol that starts with `&'."
   "Return t if there are two windows."
   (and (not (one-window-p))
        (eq (selected-window)
-	   (next-window (next-window (selected-window))))))
+	   (next-window (next-window)))))
 
 (defun edebug-sort-alist (alist function)
   ;; Return the ALIST sorted with comparison function FUNCTION.
@@ -334,7 +334,7 @@ Return the result of the last expression in BODY."
 	 ((and (edebug-window-live-p window)
 	       (eq (window-buffer window) buffer))
 	  window)
-	 ((eq (window-buffer (selected-window)) buffer)
+	 ((eq (window-buffer) buffer)
 	  ;; Selected window already displays BUFFER.
 	  (selected-window))
 	 ((get-buffer-window buffer 0))

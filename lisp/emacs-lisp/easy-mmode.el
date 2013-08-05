@@ -604,7 +604,7 @@ BODY is executed after moving to the destination location."
                       (goto-char (or ,(if endfun `(funcall #',endfun)) (point-max)))
                     (user-error "No next %s" ,name))
                 (goto-char (match-beginning 0))
-                (when (and (eq (current-buffer) (window-buffer (selected-window)))
+                (when (and (eq (current-buffer) (window-buffer))
                            (called-interactively-p 'interactive))
                   (let ((endpt (or (save-excursion
                                      ,(if endfun `(funcall #',endfun)

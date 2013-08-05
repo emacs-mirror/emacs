@@ -1122,7 +1122,7 @@ Returns t if successful."
   (interactive)
   (let ((data (shell-command-completion)))
     (if data
-	(prog2 (unless (window-minibuffer-p (selected-window))
+	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing command name..."))
 	    (apply #'completion-in-region data)))))
 
@@ -1232,7 +1232,7 @@ Returns non-nil if successful."
   (interactive)
   (let ((data (shell-environment-variable-completion)))
     (if data
-	(prog2 (unless (window-minibuffer-p (selected-window))
+	(prog2 (unless (window-minibuffer-p)
 		 (message "Completing variable name..."))
 	    (apply #'completion-in-region data)))))
 

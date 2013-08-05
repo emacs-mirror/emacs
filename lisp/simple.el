@@ -4098,9 +4098,9 @@ Don't call it from programs: use `insert-buffer-substring' instead!"
     (progn
       (barf-if-buffer-read-only)
       (read-buffer "Insert buffer: "
-		   (if (eq (selected-window) (next-window (selected-window)))
+		   (if (eq (selected-window) (next-window))
 		       (other-buffer (current-buffer))
-		     (window-buffer (next-window (selected-window))))
+		     (window-buffer (next-window)))
 		   t))))
   (push-mark
    (save-excursion
@@ -5965,7 +5965,7 @@ The variable `selective-display' has a separate value for each buffer."
     (setq selective-display
 	  (and arg (prefix-numeric-value arg)))
     (recenter current-vpos))
-  (set-window-start (selected-window) (window-start (selected-window)))
+  (set-window-start (selected-window) (window-start))
   (princ "selective-display set to " t)
   (prin1 selective-display t)
   (princ "." t))
@@ -6629,8 +6629,7 @@ Go to the window from which completion was requested."
   (interactive)
   (let ((buf completion-reference-buffer))
     (if (one-window-p t)
-	(if (window-dedicated-p (selected-window))
-	    (delete-frame))
+	(if (window-dedicated-p) (delete-frame))
       (delete-window (selected-window))
       (if (get-buffer-window buf)
 	  (select-window (get-buffer-window buf))))))

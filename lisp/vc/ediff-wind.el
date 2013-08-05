@@ -861,7 +861,7 @@ into icons, regardless of the window manager."
 ;; create a new splittable frame if none is found
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   (if (ediff-window-display-p)
-      (let ((wind-frame (window-frame (selected-window)))
+      (let ((wind-frame (window-frame))
 	     seen-windows)
 	(while (and (not (memq (selected-window) seen-windows))
 		    (or
@@ -877,7 +877,7 @@ into icons, regardless of the window manager."
 	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
 	  (other-window 1 t)
-	  (setq wind-frame (window-frame (selected-window)))
+	  (setq wind-frame (window-frame))
 	  )
 	(if (memq (selected-window) seen-windows)
 	    ;; fed up, no appropriate frames
@@ -939,7 +939,7 @@ into icons, regardless of the window manager."
 
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
-    (if (window-dedicated-p (selected-window))
+    (if (window-dedicated-p)
 	()
       (delete-other-windows)
       (switch-to-buffer ctl-buffer))

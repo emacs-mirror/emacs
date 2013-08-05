@@ -2296,7 +2296,7 @@ Security bug: your string can still be temporarily recovered with
   (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer)))
 	(prefix
-	 (if (eq (window-buffer (selected-window)) (current-buffer))
+	 (if (eq (window-buffer) (current-buffer))
 	     ""
 	   (format "(In buffer %s) "
 		   (current-buffer)))))
@@ -3108,7 +3108,7 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 Returns t if successful."
   (interactive)
   (when (comint--match-partial-filename)
-    (unless (window-minibuffer-p (selected-window))
+    (unless (window-minibuffer-p)
       (message "Completing file name..."))
     (let ((data (comint--complete-file-name-data)))
       (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
@@ -3211,7 +3211,7 @@ Return `listed' if a completion listing was shown.
 See also `comint-dynamic-complete-filename'."
   (declare (obsolete completion-in-region "24.1"))
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
-	 (minibuffer-p (window-minibuffer-p (selected-window)))
+	 (minibuffer-p (window-minibuffer-p))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
@@ -3308,7 +3308,7 @@ Typing SPC flushes the completions buffer."
 	    (current-window-configuration))
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list completions common-substring))
-      (if (window-minibuffer-p (selected-window))
+      (if (window-minibuffer-p)
 	  (minibuffer-message "Type space to flush; repeat completion command to scroll")
 	(message "Type space to flush; repeat completion command to scroll")))
 
