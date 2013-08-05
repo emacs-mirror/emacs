@@ -1,3 +1,7 @@
+2013-08-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* cl.texi (Blocks and Exits): Add an index.
+
 2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS, PDF_TARGETS): Add todo-mode.

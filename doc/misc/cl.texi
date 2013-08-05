@@ -1492,6 +1492,7 @@ simply returning @code{nil}.
 
 @node Blocks and Exits
 @section Blocks and Exits
+@cindex block 
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very
