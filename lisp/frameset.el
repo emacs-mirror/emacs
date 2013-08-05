@@ -340,10 +340,10 @@ nil while the filtering is done to restore it."
     filtered))
 
 
-;; Saving framesets
+;; Frame ids
 
 (defun frameset--set-id (frame)
-  "Set FRAME's `frameset--id' if not yet set.
+  "Set FRAME's id if not yet set.
 Internal use only."
   (unless (frame-parameter frame 'frameset--id)
     (set-frame-parameter frame
@@ -351,6 +351,33 @@ Internal use only."
 			 (mapconcat (lambda (n) (format "%04X" n))
 				    (cl-loop repeat 4 collect (random 65536))
 				    "-"))))
+;;;###autoload
+(defun frameset-frame-id (frame)
+  "Return the frame id of FRAME, if it has one; else, return nil.
+A frame id is a string that uniquely identifies a frame.
+It is persistent across `frameset-save' / `frameset-restore'
+invocations, and once assigned is never changed unless the same
+frame is duplicated (via `frameset-restore'), in which case the
+newest frame keeps the id and the old frame's is set to nil."
+  (frame-parameter frame 'frameset--id))
+
+;;;###autoload
+(defun frameset-frame-id-equal-p (frame id)
+  "Return non-nil if FRAME's id matches ID."
+  (string= (frameset-frame-id frame) id))
+
+;;;###autoload
+(defun frameset-locate-frame-id (id &optional frame-list)
+  "Return the live frame with id ID, if exists; else nil.
+If FRAME-LIST is a list of frames, check these frames only.
+If nil, check all live frames."
+  (cl-find-if (lambda (f)
+		(and (frame-live-p f)
+		     (frameset-frame-id-equal-p f id)))
+	      (or frame-list (frame-list))))
+
+
+;; Saving framesets
 
 (defun frameset--process-minibuffer-frames (frame-list)
   "Process FRAME-LIST and record minibuffer relationships.
@@ -370,7 +397,7 @@ FRAME-LIST is a list of frames.  Internal use only."
     (unless (frame-parameter frame 'frameset--mini)
       (frameset--set-id frame)
       (let* ((mb-frame (window-frame (minibuffer-window frame)))
-	     (id (and mb-frame (frame-parameter mb-frame 'frameset--id))))
+	     (id (and mb-frame (frameset-frame-id mb-frame))))
 	(if (null id)
 	    (error "Minibuffer frame %S for %S is not being saved" mb-frame frame)
 	  ;; For minibufferless frames, frameset--mini is a cons
@@ -516,7 +543,7 @@ is the parameter list of the frame being restored.  Internal use only."
 	   ;; M-x desktop-read).
 	   (setq frame (frameset--find-frame
 			(lambda (f id)
-			  (string= (frame-parameter f 'frameset--id) id))
+			  (frameset-frame-id-equal-p f id))
 			display (cdr (assq 'frameset--id frame-cfg))))
 	   ;; If it has not been loaded, and it is not a minibuffer-only frame,
 	   ;; let's look for an existing non-minibuffer-only frame to reuse.
@@ -533,10 +560,10 @@ is the parameter list of the frame being restored.  Internal use only."
 	   ;; and that they are linked to the right minibuffer frame.
 	   (setq frame (frameset--find-frame
 			(lambda (f id mini-id)
-			  (and (string= (frame-parameter f 'frameset--id) id)
-			       (string= (frame-parameter (window-frame (minibuffer-window f))
-							 'frameset--id)
-					mini-id)))
+			  (and (frameset-frame-id-equal-p f id)
+			       (frameset-frame-id-equal-p (window-frame
+							   (minibuffer-window f))
+							  mini-id)))
 			display (cdr (assq 'frameset--id frame-cfg)) (cdr mini))))
 	  (t
 	   ;; Default to just finding a frame in the same display.
@@ -740,11 +767,8 @@ All keywords default to nil."
 	      ;; frameset--id from the non-reusable frame, which is not useful anymore.
 	      (when (and other-frames
 			 (or (eq reuse-frames :keep) (consp reuse-frames)))
-		(let ((dup (cl-find (cdr (assq 'frameset--id frame-cfg))
-				    other-frames
-				    :key (lambda (frame)
-					   (frame-parameter frame 'frameset--id))
-				    :test #'string=)))
+		(let ((dup (frameset-locate-frame-id (cdr (assq 'frameset--id frame-cfg))
+						     other-frames)))
 		  (when dup
 		    (set-frame-parameter dup 'frameset--id nil))))
 	      ;; Restore minibuffers.  Some of this stuff could be done in a filter
@@ -759,11 +783,7 @@ All keywords default to nil."
 		  (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
 					  frame-cfg))))
 	       (t ;; Frame depends on other frame's minibuffer window.
-		(let* ((mb-frame (or (cl-find-if
-				      (lambda (f)
-					(string= (frame-parameter f 'frameset--id)
-						 mb-id))
-				      (frame-list))
+		(let* ((mb-frame (or (frameset-locate-frame-id mb-id)
 				     (error "Minibuffer frame %S not found" mb-id)))
 		       (mb-param (assq 'minibuffer frame-cfg))
 		       (mb-window (minibuffer-window mb-frame)))

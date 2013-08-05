@@ -1,3 +1,11 @@
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--set-id): Doc fix.
+	(frameset-frame-id, frameset-frame-id-equal-p)
+	(frameset-locate-frame-id): New functions.
+	(frameset--process-minibuffer-frames, frameset--reuse-frame)
+	(frameset-restore): Use them.
+
 2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not call to `selected-frame' where it is assumed by default.
