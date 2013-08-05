@@ -1544,15 +1544,16 @@ line."
    (dotimes (i last)
      (setq day (1+ i))
      ;; TODO should numbers be left-justified, centered...?
-     (insert (format (format "%%%dd%%s" calendar-day-digit-width) day
-                     (make-string
-                      (- calendar-column-width calendar-day-digit-width) ?\s)))
-     ;; 'date property prevents intermonth text confusing re-searches.
-     ;; (Tried intangible, it did not really work.)
-     (set-text-properties
-      (- (point) (1+ calendar-day-digit-width)) (1- (point))
-      `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)
-                   date t))
+     (insert (propertize
+              (format (format "%%%dd" calendar-day-digit-width) day)
+              'mouse-face 'highlight
+              'help-echo (eval calendar-date-echo-text)
+              ;; 'date property prevents intermonth text confusing
+              ;; re-searches.  (Tried intangible, it did not
+              ;; really work.)
+              'date t)
+             (make-string
+              (- calendar-column-width calendar-day-digit-width) ?\s))
      (when (and (zerop (mod (+ day blank-days) 7))
                 (/= day last))
        (calendar-ensure-newline)
