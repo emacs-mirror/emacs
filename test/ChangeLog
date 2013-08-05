@@ -1,3 +1,8 @@
+2013-08-05  Glenn Morris  <rgm@gnu.org>
+
+	* automated/mule-util.el: New file, with tests extracted from
+	lisp/international/mule-util.el.
+
 2013-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/advice-tests.el (advice-tests-nadvice): Test removal

@@ -125,59 +125,6 @@ defaults to \"...\"."
       (concat head-padding (substring str from-idx idx)
 	      tail-padding ellipsis))))
 
-;;; Test suite for truncate-string-to-width
-;; (dolist (test '((("" 0) . "")
-;; 		(("x" 1) . "x")
-;; 		(("xy" 1) . "x")
-;; 		(("xy" 2 1) . "y")
-;; 		(("xy" 0) . "")
-;; 		(("xy" 3) . "xy")
-;; 		(("中" 0) . "")
-;; 		(("中" 1) . "")
-;; 		(("中" 2) . "中")
-;; 		(("中" 1 nil ? ) . " ")
-;; 		(("中文" 3 1 ? ) . "  ")
-;; 		(("x中x" 2) . "x")
-;; 		(("x中x" 3) . "x中")
-;; 		(("x中x" 3) . "x中")
-;; 		(("x中x" 4 1) . "中x")
-;; 		(("kor한e글an" 8 1 ? ) . "or한e글")
-;; 		(("kor한e글an" 7 2 ? ) . "r한e ")
-;; 		(("" 0 nil nil "...") . "")
-;; 		(("x" 3 nil nil "...") . "x")
-;; 		(("中" 3 nil nil "...") . "中")
-;; 		(("foo" 3 nil nil "...") . "foo")
-;; 		(("foo" 2 nil nil "...") . "fo") ;; XEmacs failure?
-;; 		(("foobar" 6 0 nil "...") . "foobar")
-;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
-;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
-;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
-;; 		(("こhんeにlちlはo" 15 1 ?  t) . " hんeにlちlはo")
-;; 		(("こhんeにlちlはo" 14 1 ?  t) . " hんeにlち...")
-;; 		(("x" 3 nil nil "粵語") . "x")
-;; 		(("中" 2 nil nil "粵語") . "中")
-;; 		(("中" 1 nil ?x "粵語") . "x") ;; XEmacs error
-;; 		(("中文" 3 nil ?  "粵語") . "中 ") ;; XEmacs error
-;; 		(("foobarbaz" 4 nil nil  "粵語") . "粵語")
-;; 		(("foobarbaz" 5 nil nil  "粵語") . "f粵語")
-;; 		(("foobarbaz" 6 nil nil  "粵語") . "fo粵語")
-;; 		(("foobarbaz" 8 3 nil "粵語") . "b粵語")
-;; 		(("こhんeにlちlはo" 14 4 ?x "日本語") . "xeに日本語")
-;; 		(("こhんeにlちlはo" 13 4 ?x "日本語") . "xex日本語")
-;; 		))
-;;   (let (ret)
-;;     (condition-case e
-;; 	(setq ret (apply #'truncate-string-to-width (car test)))
-;;       (error (setq ret e)))
-;;     (unless (equal ret (cdr test))
-;;       (error "%s: expected %s, got %s"
-;; 	     (prin1-to-string (cons 'truncate-string-to-width (car test)))
-;; 	     (prin1-to-string (cdr test))
-;; 	     (if (consp ret)
-;; 		 (format "error: %s: %s" (car ret)
-;; 			 (prin1-to-string (cdr ret)))
-;; 	       (prin1-to-string ret))))))
-
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
 ;;; also nested alist.
