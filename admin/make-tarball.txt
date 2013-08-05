@@ -144,6 +144,8 @@ General steps (for each step, check for possible errors):
     Download them and check the signatures.  Check they build.
 
 12. For a pretest, announce it on emacs-devel and info-gnu-emacs@gnu.org.
+    Probably should also include the platform-testers list:
+    https://lists.gnu.org/mailman/listinfo/platform-testers
     For a release, also announce it on info-gnu@gnu.org.  (Probably
     bcc the info- addresses to make it less likely that people will
     followup on those lists.)
