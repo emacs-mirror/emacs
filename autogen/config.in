@@ -192,6 +192,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    whether the gnulib module fscanf shall be considered present. */
 #undef GNULIB_FSCANF
 
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module mkostemp shall be considered present. */
+#undef GNULIB_MKOSTEMP
+
 /* enable some gnulib portability checks */
 #undef GNULIB_PORTCHECK
 
@@ -625,6 +629,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `issetugid' function. */
+#undef HAVE_ISSETUGID
+
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
 
@@ -753,9 +760,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `mkostemp' function. */
 #undef HAVE_MKOSTEMP
 
-/* Define to 1 if you have the `mkstemp' function. */
-#undef HAVE_MKSTEMP
-
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
@@ -846,6 +850,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using librsvg. */
 #undef HAVE_RSVG
+
+/* Define to 1 if you have the `secure_getenv' function. */
+#undef HAVE_SECURE_GETENV
 
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
@@ -1200,6 +1207,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `__fpending' function. */
 #undef HAVE___FPENDING
+
+/* Define to 1 if you have the `__secure_getenv' function. */
+#undef HAVE___SECURE_GETENV
 
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD

@@ -614,12 +614,16 @@ LIBGNU_LIBDEPS
 gltests_WITNESS
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE
+gl_GNULIB_ENABLED_tempname_FALSE
+gl_GNULIB_ENABLED_tempname_TRUE
 gl_GNULIB_ENABLED_strtoull_FALSE
 gl_GNULIB_ENABLED_strtoull_TRUE
 gl_GNULIB_ENABLED_strtoll_FALSE
 gl_GNULIB_ENABLED_strtoll_TRUE
 gl_GNULIB_ENABLED_stat_FALSE
 gl_GNULIB_ENABLED_stat_TRUE
+gl_GNULIB_ENABLED_secure_getenv_FALSE
+gl_GNULIB_ENABLED_secure_getenv_TRUE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_FALSE
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_TRUE
 gl_GNULIB_ENABLED_pathmax_FALSE
@@ -3390,6 +3394,7 @@ as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
+as_fn_append ac_func_list " mkostemp"
 as_fn_append ac_func_list " pipe2"
 as_fn_append ac_header_list " sys/select.h"
 as_fn_append ac_func_list " pselect"
@@ -3407,6 +3412,7 @@ as_fn_append ac_func_list " futimens"
 as_fn_append ac_func_list " utimensat"
 as_fn_append ac_func_list " lutimes"
 as_fn_append ac_func_list " getdtablesize"
+as_fn_append ac_func_list " secure_getenv"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -7286,6 +7292,7 @@ esac
   # Code from module lstat:
   # Code from module manywarnings:
   # Code from module memrchr:
+  # Code from module mkostemp:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module nocrash:
@@ -7299,6 +7306,7 @@ esac
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
+  # Code from module secure_getenv:
   # Code from module sig2str:
   # Code from module signal-h:
   # Code from module snippet/_Noreturn:
@@ -7329,6 +7337,7 @@ esac
   # Code from module sys_select:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module tempname:
   # Code from module time:
   # Code from module time_r:
   # Code from module timer-time:
@@ -14692,7 +14701,7 @@ select getpagesize setlocale \
 getrlimit setrlimit shutdown getaddrinfo \
 strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
-gai_strerror mkostemp mkstemp getline getdelim sync \
+gai_strerror getline getdelim sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
@@ -20703,6 +20712,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+
   GNULIB_MKTIME=0;
   GNULIB_NANOSLEEP=0;
   GNULIB_STRPTIME=0;
@@ -21926,6 +21937,8 @@ $as_echo "$ac_cv_type_getgroups" >&6; }
 cat >>confdefs.h <<_ACEOF
 #define GETGROUPS_T $ac_cv_type_getgroups
 _ACEOF
+
+
 
 
 
@@ -24079,6 +24092,48 @@ done
 
 
           GNULIB_MEMRCHR=1
+
+
+
+
+
+
+
+
+
+
+
+  if test $ac_cv_func_mkostemp != yes; then
+    HAVE_MKOSTEMP=0
+  fi
+
+  if test $HAVE_MKOSTEMP = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS mkostemp.$ac_objext"
+
+
+
+  fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define GNULIB_MKOSTEMP 1
+_ACEOF
+
+
+
+
+
+
+
+          GNULIB_MKOSTEMP=1
 
 
 
@@ -27493,9 +27548,11 @@ $as_echo "#define FUTIMESAT_NULL_BUG 1" >>confdefs.h
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
+  gl_gnulib_enabled_secure_getenv=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
+  gl_gnulib_enabled_tempname=false
   gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec=false
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
   {
@@ -28096,6 +28153,70 @@ fi
       gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=true
     fi
   }
+  func_gl_gnulib_m4code_secure_getenv ()
+  {
+    if ! $gl_gnulib_enabled_secure_getenv; then
+
+
+
+
+
+  if test $ac_cv_func_secure_getenv = no; then
+    HAVE_SECURE_GETENV=0
+  fi
+
+      if test $HAVE_SECURE_GETENV = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS secure_getenv.$ac_objext"
+
+
+  for ac_func in __secure_getenv
+do :
+  ac_fn_c_check_func "$LINENO" "__secure_getenv" "ac_cv_func___secure_getenv"
+if test "x$ac_cv_func___secure_getenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE___SECURE_GETENV 1
+_ACEOF
+
+fi
+done
+
+  if test $ac_cv_func___secure_getenv = no; then
+    for ac_func in issetugid
+do :
+  ac_fn_c_check_func "$LINENO" "issetugid" "ac_cv_func_issetugid"
+if test "x$ac_cv_func_issetugid" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ISSETUGID 1
+_ACEOF
+
+fi
+done
+
+  fi
+
+      fi
+
+
+
+
+
+          GNULIB_SECURE_GETENV=1
+
+
+
+
+
+      gl_gnulib_enabled_secure_getenv=true
+    fi
+  }
   func_gl_gnulib_m4code_stat ()
   {
     if ! $gl_gnulib_enabled_stat; then
@@ -28340,6 +28461,18 @@ done
       gl_gnulib_enabled_strtoull=true
     fi
   }
+  func_gl_gnulib_m4code_tempname ()
+  {
+    if ! $gl_gnulib_enabled_tempname; then
+
+
+  :
+
+
+      gl_gnulib_enabled_tempname=true
+      func_gl_gnulib_m4code_secure_getenv
+    fi
+  }
   func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec ()
   {
     if ! $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28381,6 +28514,9 @@ done
   fi
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
+  fi
+  if test $HAVE_MKOSTEMP = 0; then
+    func_gl_gnulib_m4code_tempname
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
@@ -28481,6 +28617,14 @@ else
   gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_FALSE=
 fi
 
+   if $gl_gnulib_enabled_secure_getenv; then
+  gl_GNULIB_ENABLED_secure_getenv_TRUE=
+  gl_GNULIB_ENABLED_secure_getenv_FALSE='#'
+else
+  gl_GNULIB_ENABLED_secure_getenv_TRUE='#'
+  gl_GNULIB_ENABLED_secure_getenv_FALSE=
+fi
+
    if $gl_gnulib_enabled_stat; then
   gl_GNULIB_ENABLED_stat_TRUE=
   gl_GNULIB_ENABLED_stat_FALSE='#'
@@ -28503,6 +28647,14 @@ fi
 else
   gl_GNULIB_ENABLED_strtoull_TRUE='#'
   gl_GNULIB_ENABLED_strtoull_FALSE=
+fi
+
+   if $gl_gnulib_enabled_tempname; then
+  gl_GNULIB_ENABLED_tempname_TRUE=
+  gl_GNULIB_ENABLED_tempname_FALSE='#'
+else
+  gl_GNULIB_ENABLED_tempname_TRUE='#'
+  gl_GNULIB_ENABLED_tempname_FALSE=
 fi
 
    if $gl_gnulib_enabled_682e609604ccaac6be382e4ee3a4eaec; then
@@ -28993,6 +29145,10 @@ if test -z "${gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_TRUE}" && test 
   as_fn_error "conditional \"gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${gl_GNULIB_ENABLED_secure_getenv_TRUE}" && test -z "${gl_GNULIB_ENABLED_secure_getenv_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_secure_getenv\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${gl_GNULIB_ENABLED_stat_TRUE}" && test -z "${gl_GNULIB_ENABLED_stat_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_stat\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -29003,6 +29159,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_strtoull_TRUE}" && test -z "${gl_GNULIB_ENABLED_strtoull_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_strtoull\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${gl_GNULIB_ENABLED_tempname_TRUE}" && test -z "${gl_GNULIB_ENABLED_tempname_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_tempname\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_TRUE}" && test -z "${gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec_FALSE}"; then
