@@ -2491,18 +2491,21 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
   :group 'dired
   :version "23.1")
 
-(defun dired-isearch-filenames-toggle ()
+(define-minor-mode dired-isearch-filenames-mode
   "Toggle file names searching on or off.
 When on, Isearch skips matches outside file names using the predicate
 `dired-isearch-filter-filenames' that matches only at file names.
 When off, it uses the original predicate."
-  (interactive)
-  (setq isearch-filter-predicates
-	(if (memq 'dired-isearch-filter-filenames isearch-filter-predicates)
-	    (delq 'dired-isearch-filter-filenames isearch-filter-predicates)
-	  (cons 'dired-isearch-filter-filenames isearch-filter-predicates)))
-  (setq isearch-success t isearch-adjusted t)
-  (isearch-update))
+  nil nil nil
+  (if dired-isearch-filenames-mode
+      (add-function :before-while (local 'isearch-filter-predicate)
+                  #'dired-isearch-filter-filenames
+                  '((isearch-message-prefix . "filename ")))
+    (remove-function (local 'isearch-filter-predicate)
+                     #'dired-isearch-filter-filenames))
+  (when isearch-mode
+    (setq isearch-success t isearch-adjusted t)
+    (isearch-update)))
 
 ;;;###autoload
 (defun dired-isearch-filenames-setup ()
@@ -2511,15 +2514,14 @@ Intended to be added to `isearch-mode-hook'."
   (when (or (eq dired-isearch-filenames t)
 	    (and (eq dired-isearch-filenames 'dwim)
 		 (get-text-property (point) 'dired-filename)))
-    (define-key isearch-mode-map "\M-sff" 'dired-isearch-filenames-toggle)
-    (add-hook 'isearch-filter-predicates 'dired-isearch-filter-filenames nil t)
+    (define-key isearch-mode-map "\M-sff" 'dired-isearch-filenames-mode)
+    (dired-isearch-filenames-mode 1)
     (add-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end nil t)))
 
 (defun dired-isearch-filenames-end ()
   "Clean up the Dired file name search after terminating isearch."
-  (setq isearch-message-prefix-add nil)
   (define-key isearch-mode-map "\M-sff" nil)
-  (remove-hook 'isearch-filter-predicates 'dired-isearch-filter-filenames t)
+  (dired-isearch-filenames-mode -1)
   (remove-hook 'isearch-mode-end-hook 'dired-isearch-filenames-end t))
 
 (defun dired-isearch-filter-filenames (beg end)
@@ -2530,8 +2532,6 @@ name (has the text property `dired-filename')."
       (text-property-not-all (min beg end) (max beg end)
 			     'dired-filename nil)
     t))
-
-(put 'dired-isearch-filter-filenames 'isearch-message-prefix "filename ")
 
 ;;;###autoload
 (defun dired-isearch-filenames ()

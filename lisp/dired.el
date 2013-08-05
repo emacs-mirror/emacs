@@ -3849,22 +3849,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads (dired-show-file-type dired-do-query-replace-regexp
-;;;;;;  dired-do-search dired-do-isearch-regexp dired-do-isearch
-;;;;;;  dired-isearch-filenames-regexp dired-isearch-filenames dired-isearch-filenames-setup
-;;;;;;  dired-hide-all dired-hide-subdir dired-tree-down dired-tree-up
-;;;;;;  dired-kill-subdir dired-mark-subdir-files dired-goto-subdir
-;;;;;;  dired-prev-subdir dired-insert-subdir dired-maybe-insert-subdir
-;;;;;;  dired-downcase dired-upcase dired-do-symlink-regexp dired-do-hardlink-regexp
-;;;;;;  dired-do-copy-regexp dired-do-rename-regexp dired-do-rename
-;;;;;;  dired-do-hardlink dired-do-symlink dired-do-copy dired-create-directory
-;;;;;;  dired-rename-file dired-copy-file dired-relist-file dired-remove-file
-;;;;;;  dired-add-file dired-do-redisplay dired-do-load dired-do-byte-compile
-;;;;;;  dired-do-compress dired-query dired-compress-file dired-do-kill-lines
-;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
-;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
-;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "8f5af3aa4eee1b3448525896fa6f39a3")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "555c067fcab27f5a377536db407803ab")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

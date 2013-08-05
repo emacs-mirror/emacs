@@ -1,3 +1,32 @@
+2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Revert introduction of isearch-filter-predicates (bug#14714).
+	Rely on add-function instead.
+	* isearch.el (isearch-filter-predicates): Rename it back to
+	isearch-filter-predicate.
+	(isearch-message-prefix): Use advice-function-mapc and advice
+	properties to get the isearch-message-prefix.
+	(isearch-search, isearch-lazy-highlight-search): Revert to funcall
+	instead of run-hook-with-args-until-failure.
+	(isearch-filter-visible): Not obsolete any more.
+	* loadup.el: Preload nadvice.
+	* replace.el (perform-replace): Revert to funcall
+	instead of run-hook-with-args-until-failure.
+	* wdired.el (wdired-change-to-wdired-mode): Use add-function.
+	* dired-aux.el (dired-isearch-filenames-mode): Rename from
+	dired-isearch-filenames-toggle; make it into a proper minor mode.
+	Use add/remove-function.
+	(dired-isearch-filenames-setup, dired-isearch-filenames-end):
+	Call the minor-mode rather than add/remove-hook.
+	(dired-isearch-filter-filenames):
+	Remove isearch-message-prefix property.
+	* info.el (Info--search-loop): New function, extracted from Info-search.
+	Funcall isearch-filter-predicate instead of
+	run-hook-with-args-until-failure isearch-filter-predicates.
+	(Info-search): Use it.
+	(Info-mode): Use isearch-filter-predicate instead of
+	isearch-filter-predicates.
+
 2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Do not call to `selected-window' where it is assumed by default.

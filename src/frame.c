@@ -710,7 +710,7 @@ affects all frames on the same terminal device.  */)
           type[SBYTES (tty_type)] = 0;
         }
 
-      t = init_tty (name, type, 0); /* Errors are not fatal. */
+      t = init_tty (name, type, 0); /* Errors are not fatal.  */
     }
 
   f = make_terminal_frame (t);
