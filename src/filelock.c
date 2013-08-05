@@ -745,16 +745,15 @@ unlock_file (Lisp_Object fn)
 void
 unlock_all_files (void)
 {
-  register Lisp_Object tail;
+  register Lisp_Object tail, buf;
   register struct buffer *b;
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      b = XBUFFER (XCDR (XCAR (tail)));
-      if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
-	{
-	  unlock_file (BVAR (b, file_truename));
-	}
+      b = XBUFFER (buf);
+      if (STRINGP (BVAR (b, file_truename))
+	  && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+	unlock_file (BVAR (b, file_truename));
     }
 }
 

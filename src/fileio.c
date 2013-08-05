@@ -5618,9 +5618,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
      couldn't handle some ange-ftp'd file.  */
 
   for (do_handled_files = 0; do_handled_files < 2; do_handled_files++)
-    for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+    FOR_EACH_LIVE_BUFFER (tail, buf)
       {
-	buf = XCDR (XCAR (tail));
 	b = XBUFFER (buf);
 
 	/* Record all the buffers that have auto save mode

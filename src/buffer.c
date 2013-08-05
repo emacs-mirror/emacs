@@ -108,9 +108,9 @@ static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
 static void swap_out_buffer_local_variables (struct buffer *b);
 static void reset_buffer_local_variables (struct buffer *, bool);
 
-/* Alist of all buffer names vs the buffers.  */
-/* This used to be a variable, but is no longer,
- to prevent lossage due to user rplac'ing this alist or its elements.  */
+/* Alist of all buffer names vs the buffers.  This used to be
+   a Lisp-visible variable, but is no longer, to prevent lossage
+   due to user rplac'ing this alist or its elements.  */
 Lisp_Object Vbuffer_alist;
 
 static Lisp_Object Qkill_buffer_query_functions;
@@ -478,8 +478,7 @@ If there is no such live buffer, return nil.
 See also `find-buffer-visiting'.  */)
   (register Lisp_Object filename)
 {
-  register Lisp_Object tail, buf, tem;
-  Lisp_Object handler;
+  register Lisp_Object tail, buf, handler;
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -494,13 +493,10 @@ See also `find-buffer-visiting'.  */)
       return BUFFERP (handled_buf) ? handled_buf : Qnil;
     }
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      buf = Fcdr (XCAR (tail));
-      if (!BUFFERP (buf)) continue;
       if (!STRINGP (BVAR (XBUFFER (buf), filename))) continue;
-      tem = Fstring_equal (BVAR (XBUFFER (buf), filename), filename);
-      if (!NILP (tem))
+      if (!NILP (Fstring_equal (BVAR (XBUFFER (buf), filename), filename)))
 	return buf;
     }
   return Qnil;
@@ -509,15 +505,12 @@ See also `find-buffer-visiting'.  */)
 Lisp_Object
 get_truename_buffer (register Lisp_Object filename)
 {
-  register Lisp_Object tail, buf, tem;
+  register Lisp_Object tail, buf;
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      buf = Fcdr (XCAR (tail));
-      if (!BUFFERP (buf)) continue;
       if (!STRINGP (BVAR (XBUFFER (buf), file_truename))) continue;
-      tem = Fstring_equal (BVAR (XBUFFER (buf), file_truename), filename);
-      if (!NILP (tem))
+      if (!NILP (Fstring_equal (BVAR (XBUFFER (buf), file_truename), filename)))
 	return buf;
     }
   return Qnil;
@@ -1581,10 +1574,8 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
     }
 
   /* Consider alist of all buffers next.  */
-  tail = Vbuffer_alist;
-  for (; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      buf = Fcdr (XCAR (tail));
       if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
@@ -1621,12 +1612,9 @@ other_buffer_safely (Lisp_Object buffer)
 {
   Lisp_Object tail, buf;
 
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      buf = Fcdr (XCAR (tail));
-      if (candidate_buffer (buf, buffer))
-	return buf;
-    }
+  FOR_EACH_LIVE_BUFFER (tail, buf)
+    if (candidate_buffer (buf, buffer))
+      return buf;
 
   buf = Fget_buffer (build_string ("*scratch*"));
   if (NILP (buf))

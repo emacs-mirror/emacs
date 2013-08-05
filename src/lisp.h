@@ -734,6 +734,7 @@ extern Lisp_Object Qarrayp, Qbufferp, Qbuffer_or_string_p, Qchar_table_p;
 extern Lisp_Object Qconsp, Qfloatp, Qintegerp, Qlambda, Qlistp, Qmarkerp, Qnil;
 extern Lisp_Object Qnumberp, Qstringp, Qsymbolp, Qvectorp;
 extern Lisp_Object Qvector_or_char_table_p, Qwholenump;
+extern Lisp_Object Qwindow;
 extern Lisp_Object Ffboundp (Lisp_Object);
 extern _Noreturn Lisp_Object wrong_type_argument (Lisp_Object, Lisp_Object);
 
@@ -3797,9 +3798,7 @@ extern void fix_start_end_in_overlays (ptrdiff_t, ptrdiff_t);
 extern void report_overlay_modification (Lisp_Object, Lisp_Object, bool,
                                          Lisp_Object, Lisp_Object, Lisp_Object);
 extern bool overlay_touches_p (ptrdiff_t);
-extern Lisp_Object Vbuffer_alist;
 extern Lisp_Object other_buffer_safely (Lisp_Object);
-extern Lisp_Object Qpriority, Qwindow, Qbefore_string, Qafter_string;
 extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern void init_buffer_once (void);
 extern void init_buffer (void);

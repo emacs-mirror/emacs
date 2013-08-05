@@ -5895,9 +5895,8 @@ pass nil for VARIABLE.  */)
 	goto changed;
     }
   /* Check that the buffer info matches.  */
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
       if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
@@ -5927,7 +5926,7 @@ pass nil for VARIABLE.  */)
   n = 1;
   FOR_EACH_FRAME (tail, frame)
     n += 2;
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     n += 3;
   /* Reallocate the vector if data has grown to need it,
      or if it has shrunk a lot.  */
@@ -5952,9 +5951,8 @@ pass nil for VARIABLE.  */)
       ASET (state, idx, XFRAME (frame)->name);
       idx++;
     }
-  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_LIVE_BUFFER (tail, buf)
     {
-      buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
       if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;

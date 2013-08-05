@@ -1,3 +1,18 @@
+2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	New macro to iterate over live buffers similar to frames.
+	* buffer.h (FOR_EACH_LIVE_BUFFER): New macro.
+	(Vbuffer_alist, Qpriority, Qbefore_string, Qafter_string):
+	Declare buffer-related variables here to offload lisp.h.
+	* buffer.c (Vbuffer_alist): Adjust comment.
+	(Fget_file_buffer, get_truename_buffer, Fother_buffer)
+	(other_buffer_safely):
+	* data.c (store_symval_forwarding):
+	* dispnew.c (Fframe_or_buffer_changed_p):
+	* fileio.c (Fdo_auto_save):
+	* filelock.c (unlock_all_files):
+	* minibuf.c (read_minibuf): Use FOR_EACH_LIVE_BUFFER.
+
 2013-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some minor races in hosts lacking mkostemp (Bug#15015).
