@@ -1,3 +1,7 @@
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typo (bug#15027).
+
 2013-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document new package frameset.el.

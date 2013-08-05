@@ -974,7 +974,7 @@ diferentes:
 
 >> Teclee C-x 4 C-f seguido del nombre de uno de sus archivos.
    Finalice con <Return>.  Vea que el archivo especificado aparece en
-   la ventana inferior.  El cursor vá allá también.
+   la ventana inferior.  El cursor va allá también.
 
 >> Teclee C-x o para regresar a la ventana superior, y C-x 1 para
    borrar la ventana inferior.
