@@ -2,6 +2,8 @@
 
 	* calendar/calendar.el (calendar-generate-month):
 	Fix for calendar-column-width != 1 + calendar-day-digit-width.
+	(calendar-generate-month, calendar-font-lock-keywords):
+	Fix for calendar-day-header-width > length of any day name.
 
 2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
 

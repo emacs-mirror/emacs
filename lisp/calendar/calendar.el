@@ -1532,9 +1532,7 @@ line."
       (progn
         (setq string
               (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t))
-        (if enable-multibyte-characters
-            (truncate-string-to-width string calendar-day-header-width)
-          (substring string 0 calendar-day-header-width)))
+        (truncate-string-to-width string calendar-day-header-width nil ?\s))
       (make-string (- calendar-column-width calendar-day-header-width) ?\s)))
    (calendar-ensure-newline)
    (calendar-insert-at-column indent calendar-intermonth-text trunc)
@@ -1548,9 +1546,8 @@ line."
               (format (format "%%%dd" calendar-day-digit-width) day)
               'mouse-face 'highlight
               'help-echo (eval calendar-date-echo-text)
-              ;; 'date property prevents intermonth text confusing
-              ;; re-searches.  (Tried intangible, it did not
-              ;; really work.)
+              ;; 'date property prevents intermonth text confusing re-searches.
+              ;; (Tried intangible, it did not really work.)
               'date t)
              (make-string
               (- calendar-column-width calendar-day-digit-width) ?\s))
@@ -2292,14 +2289,15 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
               " -?[0-9]+")
      . font-lock-function-name-face)
     (,(regexp-opt
-       (list (substring (aref calendar-day-name-array 6)
-                        0 calendar-day-header-width)
-             (substring (aref calendar-day-name-array 0)
-                        0 calendar-day-header-width)))
+       (list (truncate-string-to-width (aref calendar-day-name-array 6)
+                                       calendar-day-header-width)
+             (truncate-string-to-width (aref calendar-day-name-array 0)
+                                       calendar-day-header-width)))
      ;; Saturdays and Sundays are highlighted differently.
      . font-lock-comment-face)
     ;; First two chars of each day are used in the calendar.
-    (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
+    (,(regexp-opt (mapcar (lambda (x) (truncate-string-to-width
+                                       x calendar-day-header-width))
                           calendar-day-name-array))
      . font-lock-constant-face))
   "Default keywords to highlight in Calendar mode.")
