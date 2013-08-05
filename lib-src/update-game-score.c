@@ -228,10 +228,11 @@ static int
 read_score (FILE *f, struct score_entry *score)
 {
   int c;
+  if ((c = getc (f)) != EOF)
+    ungetc (c, f);
   if (feof (f))
     return 1;
-  while ((c = getc (f)) != EOF
-	 && isdigit (c))
+  for (score->score = 0; (c = getc (f)) != EOF && isdigit (c); )
     {
       score->score *= 10;
       score->score += (c-48);
@@ -311,34 +312,38 @@ read_score (FILE *f, struct score_entry *score)
 static int
 read_scores (const char *filename, struct score_entry **scores, int *count)
 {
-  int readval, scorecount, cursize;
+  int readval = -1, scorecount, cursize;
   struct score_entry *ret;
   FILE *f = fopen (filename, "r");
+  int retval = -1;
   if (!f)
     return -1;
   scorecount = 0;
   cursize = 16;
   ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
-  if (!ret)
-    return -1;
-  while ((readval = read_score (f, &ret[scorecount])) == 0)
+  if (ret)
     {
-      /* We encountered an error.  */
-      if (readval < 0)
-	return -1;
-      scorecount++;
-      if (scorecount >= cursize)
+      while ((readval = read_score (f, &ret[scorecount])) == 0)
 	{
-	  cursize *= 2;
-	  ret = (struct score_entry *)
-	    realloc (ret, (sizeof (struct score_entry) * cursize));
-	  if (!ret)
-	    return -1;
+	  scorecount++;
+	  if (scorecount >= cursize)
+	    {
+	      cursize *= 2;
+	      ret = (struct score_entry *)
+		realloc (ret, (sizeof (struct score_entry) * cursize));
+	      if (!ret)
+		break;
+	    }
 	}
     }
-  *count = scorecount;
-  *scores = ret;
-  return 0;
+  if (readval > 0)
+    {
+      *count = scorecount;
+      *scores = ret;
+      retval = 0;
+    }
+  fclose (f);
+  return retval;
 }
 
 static int
@@ -460,6 +465,5 @@ unlock_file (const char *filename, void *state)
   errno = saved_errno;
   return ret;
 }
-
 
 /* update-game-score.c ends here */

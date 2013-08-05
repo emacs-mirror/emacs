@@ -1,3 +1,18 @@
+2013-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.c (read_score): Try reading a character before
+	probing the stream for EOF.  Initialize score->score to zero,
+	before reading and accumulating the score.
+	(read_scores): Fix logic that determines which value to return.
+	Close the input stream when finished reading the scores (avoids
+	failures in overwriting the file with a new one on MS-Windows,
+	since a file that is open cannot be deleted).
+
+	* ntlib.h (rename): Don't undefine.
+
+	* ntlib.c (sys_rename): New function, needed for
+	update-game-score.
+
 2013-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* ntlib.h: Include fcntl.h.

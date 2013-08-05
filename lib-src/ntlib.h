@@ -69,7 +69,6 @@ int mkostemp (char * template, int flags);
 #define pipe    _pipe
 #undef read
 #define read    _read
-#undef rename
 #undef rmdir
 #define rmdir   _rmdir
 #undef unlink

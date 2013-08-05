@@ -424,14 +424,14 @@ lstat (const char * path, struct stat * buf)
 }
 
 /* Implementation of mkostemp for MS-Windows, to avoid race conditions
-   when using mktemp.
+   when using mktemp.  Copied from w32.c.
 
-   Standard algorithm for generating a temporary file name seems to be
-   use pid or tid with a letter on the front (in place of the 6 X's)
-   and cycle through the letters to find a unique name.  We extend
-   that to allow any reasonable character as the first of the 6 X's,
-   so that the number of simultaneously used temporary files will be
-   greater.  */
+   This is used only in update-game-score.c.  It is overkill for that
+   use case, since update-game-score renames the temporary file into
+   the game score file, which isn't atomic on MS-Windows anyway, when
+   the game score already existed before running the program, which it
+   almost always does.  But using a simpler implementation just to
+   make a point is uneconomical...  */
 
 int
 mkostemp (char * template, int flags)
@@ -476,4 +476,18 @@ mkostemp (char * template, int flags)
 
   /* Template is badly formed or else we can't generate a unique name.  */
   return -1;
+}
+
+/* On Windows, you cannot rename into an existing file.  */
+int
+sys_rename (const char *from, const char *to)
+{
+  int retval = rename (from, to);
+
+  if (retval < 0 && errno == EEXIST)
+    {
+      if (unlink (to) == 0)
+	retval = rename (from, to);
+    }
+  return retval;
 }
