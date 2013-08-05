@@ -1,3 +1,32 @@
+2013-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-clear): Use new name of sort predicate.
+
+	* frameset.el (frameset): Add docstring.  Move :version property to its
+	own `version' slot.
+	(frameset-copy): Rename from copy-frameset.
+	(frameset-p): Check more thoroughly.
+	(frameset-prop): Do not check for :version, which is no longer a prop.
+	(frameset-live-filter-alist, frameset-persistent-filter-alist):
+	Use new :never value instead of t.
+	(frameset-filter-alist): Expand and clarify docstring.
+	(frameset-filter-tty-to-GUI, frameset-filter-sanitize-color)
+	(frameset-filter-minibuffer, frameset-filter-save-param)
+	(frameset-filter-restore-param, frameset-filter-iconified):
+	Add pointer to docstring of frameset-filter-alist.
+	(frameset-filter-params): Rename filter values to be more meaningful:
+	:never instead of t, and reverse the meanings of :save and :restore.
+	(frameset--process-minibuffer-frames): Clarify error message.
+	(frameset-save): Avoid unnecessary and confusing call to framep.
+	Use new BOA constructor for framesets.
+	(frameset--reuse-list): Doc fix.
+	(frameset--restore-frame): Rename from frameset--get-frame.  Doc fix.
+	(frameset--minibufferless-last-p): Rename from frameset--sort-states.
+	(frameset-minibufferless-first-p): Doc fix.
+	Rename from frameset-sort-frames-for-deletion.
+	(frameset-restore): Doc fixes.  Use new function names.
+	Most changes suggested by Drew Adams <drew.adams@oracle.com>.
+
 2013-08-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-restore-forces-onscreen)

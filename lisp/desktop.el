@@ -671,7 +671,7 @@ if different)."
 	     (called-interactively-p 'any))
     (let* ((this (selected-frame))
 	   (mini (window-frame (minibuffer-window this)))) ; in case they difer
-      (dolist (frame (sort (frame-list) #'frameset-sort-frames-for-deletion))
+      (dolist (frame (sort (frame-list) #'frameset-minibufferless-first-p))
 	(condition-case err
 	    (unless (or (eq frame this)
 			(eq frame mini)
