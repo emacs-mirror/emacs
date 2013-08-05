@@ -1,3 +1,26 @@
+2013-08-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not call to `selected-frame' where it is assumed by default.
+	Affected functions are `raise-frame', `redraw-frame',
+	`frame-first-window', `frame-terminal' and `delete-frame'.
+	* calendar/appt.el (appt-disp-window):
+	* epg.el (epg-wait-for-completion):
+	* follow.el (follow-delete-other-windows-and-split)
+	(follow-avoid-tail-recenter):
+	* international/mule.el (set-terminal-coding-system):
+	* mail/rmail.el (rmail-mail-return):
+	* net/newst-plainview.el (newsticker--buffer-set-uptodate):
+	* progmodes/f90.el (f90-add-imenu-menu):
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-toggle):
+	* server.el (server-switch-buffer):
+	* simple.el (delete-completion-window):
+	* talk.el (talk):
+	* term/xterm.el (terminal-init-xterm-modify-other-keys)
+	(xterm-turn-on-modify-other-keys, xterm-remove-modify-other-keys):
+	* vc/ediff-util.el (ediff-status-info, ediff-show-diff-output):
+	* vc/ediff.el (ediff-documentation): Related users changed.
+	* frame.el (selected-terminal): Remove the leftover.
+
 2013-08-05  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-generate-month):

@@ -1346,7 +1346,7 @@ graphical terminals."
   (if coding-system
       (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system terminal)
-  (redraw-frame (selected-frame)))
+  (redraw-frame))
 
 (defvar default-keyboard-coding-system nil
   "Default value of the keyboard coding system.

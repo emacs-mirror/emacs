@@ -1026,7 +1026,7 @@ Set subexpression 1 in the match-data to the name of the type."
   (if (lookup-key (current-local-map) [menu-bar index])
       (message "%s" "F90-imenu already exists.")
     (imenu-add-to-menubar "F90-imenu")
-    (redraw-frame (selected-frame))))
+    (redraw-frame)))
 
 
 ;; Abbrevs have generally two letters, except standard types `c, `i, `r, `t.

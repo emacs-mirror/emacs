@@ -962,7 +962,7 @@ static char * file[] = {
   (if (featurep 'xemacs)
       nil ; no action necessary, toolbar gets updated automatically
     ;; On Emacs, redraw the frame to make sure the Toolbar is updated.
-    (redraw-frame (selected-frame))))
+    (redraw-frame)))
 
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)

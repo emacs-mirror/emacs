@@ -2818,7 +2818,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (with-output-to-temp-buffer ediff-msg-buffer
     (ediff-with-current-buffer standard-output
       (fundamental-mode))
-    (raise-frame (selected-frame))
+    (raise-frame)
     (princ (ediff-version))
     (princ "\n\n")
     (ediff-with-current-buffer ediff-buffer-A
@@ -3468,7 +3468,7 @@ Without an argument, it saves customized diff argument, if available
 	  (ediff-with-current-buffer buf
 	    (goto-char (point-min)))
 	  (switch-to-buffer buf)
-	  (raise-frame (selected-frame)))))
+	  (raise-frame))))
   (if (frame-live-p ediff-control-frame)
       (ediff-reset-mouse ediff-control-frame))
   (if (window-live-p ediff-control-window)

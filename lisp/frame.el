@@ -1278,9 +1278,6 @@ keys and their meanings."
 
 
 ;;;; Frame/display capabilities.
-(defun selected-terminal ()
-  "Return the terminal that is now selected."
-  (frame-terminal (selected-frame)))
 
 (declare-function msdos-mouse-p "dosfns.c")
 

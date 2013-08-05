@@ -1593,7 +1593,7 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 		(lambda (w)
 		  (and (not (window-dedicated-p w))
 		       (equal (frame-terminal (window-frame w))
-			      (frame-terminal (selected-frame)))))
+			      (frame-terminal))))
 		'nomini 'visible (selected-window))))
 	    (condition-case nil
 		(switch-to-buffer next-buffer)

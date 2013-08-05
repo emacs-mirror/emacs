@@ -6630,7 +6630,7 @@ Go to the window from which completion was requested."
   (let ((buf completion-reference-buffer))
     (if (one-window-p t)
 	(if (window-dedicated-p (selected-window))
-	    (delete-frame (selected-frame)))
+	    (delete-frame))
       (delete-window (selected-window))
       (if (get-buffer-window buf)
 	  (select-window (get-buffer-window buf))))))

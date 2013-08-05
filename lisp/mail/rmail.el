@@ -3725,7 +3725,7 @@ to switch to."
    ;; If the frame was probably made for this buffer, the user
    ;; probably wants to delete it now.
    ((display-multi-frame-p)
-    (delete-frame (selected-frame)))
+    (delete-frame))
    ;; The previous frame is where normally they have the Rmail buffer
    ;; displayed.
    (t (other-frame -1))))

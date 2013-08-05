@@ -1346,7 +1346,7 @@ This function is for internal use only."
 	     (> (float-time (or (nth 5 (file-attributes epg-agent-file))
 				'(0 0 0 0)))
 		(float-time epg-agent-mtime))))
-      (redraw-frame (selected-frame)))
+      (redraw-frame))
   (epg-context-set-result-for
    context 'error
    (nreverse (epg-context-result-for context 'error))))

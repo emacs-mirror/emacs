@@ -572,7 +572,7 @@ selected if the original window is the first one in the frame."
   (interactive "P")
   (let ((other (or (and (null arg)
 			(not (eq (selected-window)
-				 (frame-first-window (selected-frame)))))
+				 (frame-first-window))))
 		   (and arg
 			(< (prefix-numeric-value arg) 0))))
 	(start (window-start)))
@@ -1083,7 +1083,7 @@ should be a member of WINDOWS, starts at position START."
 This is done by reading and rewriting the start position of
 non-first windows in Follow mode."
   (let* ((orig-buffer (current-buffer))
-	 (top (frame-first-window (selected-frame)))
+	 (top (frame-first-window))
 	 (win top)
 	 who) ; list of (buffer . frame)
     ;; If the only window in the frame is a minibuffer
