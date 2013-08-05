@@ -1,3 +1,8 @@
+2013-08-05  Dave Abrahams  <dave@boostpro.com>
+
+	* gnus-int.el (gnus-warp-to-article): Allow warping in all groups so
+	that we can create nndoc groups that excerpt other groups.
+
 2013-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-delay.el (gnus-delay-article): Fix typo.
