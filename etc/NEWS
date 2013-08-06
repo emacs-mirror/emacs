@@ -432,6 +432,7 @@ New features include:
   archive files, undoing or unarchiving done items;
 - reprioritizing items by inputting a numerical priority;
 - extensive customizability of operation and display, including numerous faces.
+The Todo mode user manual describes all commands and most user options.
 To support some of these features, a new file format is used, which is
 incompatible with the old format; however, you can convert old todo and done
 item files to the new format on initializing the first new todo file, or at any
