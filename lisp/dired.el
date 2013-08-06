@@ -1225,7 +1225,7 @@ see `dired-use-ls-dired' for more details.")
       (save-excursion
 	(goto-char opoint)
 	(when (and (or hdr wildcard)
-		   (not (and (looking-at-p "^  \\(.*\\):$")
+		   (not (and (looking-at "^  \\(.*\\):$")
 			     (file-name-absolute-p (match-string 1)))))
 	  ;; Note that dired-build-subdir-alist will replace the name
 	  ;; by its expansion, so it does not matter whether what we insert

@@ -1,3 +1,8 @@
+2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.el (dired-insert-directory): Revert change in revno:113117
+	to use looking-at-p instead of looking-at.  (Bug#15028)
+
 2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Revert introduction of isearch-filter-predicates (bug#14714).
