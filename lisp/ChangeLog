@@ -1,5 +1,16 @@
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset-p): Don't check non-nullness of the `properties'
+	slot , which can indeed be nil.
+	(frameset-live-filter-alist, frameset-persistent-filter-alist):
+	Move entry for `left' from persistent to live filter alist.
+	(frameset-filter-alist, frameset--minibufferless-last-p, frameset-save):
+	Doc fixes.
+	(frameset-filter-params): When restoring a frame, copy items added to
+	`filtered', to avoid unwittingly modifying the original parameters.
+	(frameset-move-onscreen): Rename from frameset--move-onscreen.  Doc fix.
+	(frameset--restore-frame): Fix reference to frameset-move-onscreen.
+
 	* dired.el (dired-insert-directory): Revert change in revno:113117
 	to use looking-at-p instead of looking-at.  (Bug#15028)
 

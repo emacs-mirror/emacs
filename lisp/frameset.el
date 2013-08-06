@@ -103,7 +103,6 @@ This is a deep copy done with `copy-tree'."
 Else return nil."
   (and (eq (car-safe frameset) 'frameset) ; is a list
        (integerp (nth 1 frameset)) ; version is an int
-       (nth 2 frameset)            ; properties is non-null
        (nth 3 frameset)            ; states is non-null
        (nth 1 frameset)))          ; return version
 
@@ -129,6 +128,7 @@ Properties can be set with
 ;;;###autoload
 (defvar frameset-live-filter-alist
   '((name	     . :never)
+    (left            . frameset-filter-iconified)
     (minibuffer	     . frameset-filter-minibuffer)
     (top	     . frameset-filter-iconified))
   "Minimum set of parameters to filter for live (on-session) framesets.
@@ -149,7 +149,6 @@ See `frameset-filter-alist' for a full description.")
      (GUI:height	 . frameset-filter-restore-param)
      (GUI:width		 . frameset-filter-restore-param)
      (height		 . frameset-filter-save-param)
-     (left		 . frameset-filter-iconified)
      (outer-window-id	 . :never)
      (parent-id		 . :never)
      (tty		 . frameset-filter-tty-to-GUI)
@@ -194,7 +193,8 @@ SAVING, plus any additional ARGS:
  SAVING	     Non-nil if filtering before saving state, nil if filtering
                before restoring it.
 
-FILTER-FUN must return:
+FILTER-FUN is allowed to modify items in FILTERED, but no other arguments.
+It must return:
  nil		          Skip CURRENT (do not add it to FILTERED).
  t		          Add CURRENT to FILTERED as is.
  (NEW-PARAM . NEW-VALUE)  Add this to FILTERED instead of CURRENT.
@@ -315,19 +315,24 @@ SAVING is non-nil while filtering parameters to save a frameset,
 nil while the filtering is done to restore it."
   (let ((filtered nil))
     (dolist (current parameters)
+      ;; When saving, the parameter list is temporary, so modifying it
+      ;; is not a problem.  When restoring, the parameter list is part
+      ;; of a frameset, so we must copy parameters to avoid inadvertent
+      ;; modifications.
       (pcase (cdr (assq (car current) filter-alist))
 	(`nil
-	 (push current filtered))
+	 (push (if saving current (copy-tree current)) filtered))
 	(:never
 	 nil)
 	(:restore
-	 (unless saving (push current filtered)))
+	 (unless saving (push (copy-tree current) filtered)))
 	(:save
 	 (when saving (push current filtered)))
 	((or `(,fun . ,args) (and fun (pred fboundp)))
-	 (let ((this (apply fun current filtered parameters saving args)))
-	   (when this
-	     (push (if (eq this t) current this) filtered))))
+	 (let* ((this (apply fun current filtered parameters saving args))
+		(val (if (eq this t) current this)))
+	   (when val
+	     (push (if saving val (copy-tree val)) filtered))))
 	(other
 	 (delay-warning 'frameset (format "Unknown filter %S" other) :error))))
     ;; Set the display parameter after filtering, so that filter functions
@@ -410,7 +415,8 @@ FRAME-LIST is a list of frames.  Internal use only."
 ;;;###autoload
 (cl-defun frameset-save (frame-list &key filters predicate properties)
   "Return the frameset of FRAME-LIST, a list of frames.
-If nil, FRAME-LIST defaults to all live frames.
+Dead frames and non-frame objects are silently removed from the list.
+If nil, FRAME-LIST defaults to the output of `frame-list' (all live frames).
 FILTERS is an alist of parameter filters; defaults to `frameset-filter-alist'.
 PREDICATE is a predicate function, which must return non-nil for frames that
 should be saved; it defaults to saving all frames from FRAME-LIST.
@@ -445,12 +451,12 @@ Internal use only.")
     (`(- ,val) (+ right/bottom val))
     (val val)))
 
-(defun frameset--move-onscreen (frame force-onscreen)
+(defun frameset-move-onscreen (frame force-onscreen)
   "If FRAME is offscreen, move it back onscreen and, if necessary, resize it.
 For the description of FORCE-ONSCREEN, see `frameset-restore'.
 When forced onscreen, frames wider than the monitor's workarea are converted
 to fullwidth, and frames taller than the workarea are converted to fullheight.
-NOTE: This only works for non-iconified frames.  Internal use only."
+NOTE: This only works for non-iconified frames."
   (pcase-let* ((`(,left ,top ,width ,height) (cl-cdadr (frame-monitor-attributes frame)))
 	       (right (+ left width -1))
 	       (bottom (+ top height -1))
@@ -642,7 +648,7 @@ Internal use only."
 	       ;; FIXME: iconified frames should be checked too,
 	       ;; but it is impossible without deiconifying them.
 	       (not (eq (frame-parameter frame 'visibility) 'icon)))
-      (frameset--move-onscreen frame force-onscreen))
+      (frameset-move-onscreen frame force-onscreen))
 
     ;; Let's give the finishing touches (visibility, tool-bar, maximization).
     (when lines (push lines alt-cfg))
@@ -652,7 +658,7 @@ Internal use only."
     frame))
 
 (defun frameset--minibufferless-last-p (state1 state2)
-  "Predicate to sort frame states in a suitable order to be created.
+  "Predicate to sort frame states in an order suitable for creating frames.
 It sorts minibuffer-owning frames before minibufferless ones."
   (pcase-let ((`(,hasmini1 ,id-def1) (assq 'frameset--mini (car state1)))
 	      (`(,hasmini2 ,id-def2) (assq 'frameset--mini (car state2))))
@@ -665,7 +671,7 @@ It sorts minibuffer-owning frames before minibufferless ones."
 (defun frameset-keep-original-display-p (force-display)
   "True if saved frames' displays should be honored."
   (cond ((daemonp) t)
-	((eq system-type 'windows-nt) nil)
+	((eq system-type 'windows-nt) nil) ;; Does ns support more than one display?
 	(t (not force-display))))
 
 (defun frameset-minibufferless-first-p (frame1 _frame2)
