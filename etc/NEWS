@@ -233,6 +233,13 @@ The default separator is changed to allow surrounding spaces around the comma.
 
 ** Calendar and Diary
 
+*** New faces: `calendar-weekday-header', `calendar-weekend-header',
+`calendar-month-header'.
+
+*** New option `calendar-day-header-array'.
+
+*** The variable `calendar-font-lock-keywords' is obsolete.
+
 +++
 *** New variable `diary-from-outlook-function', used by the command
 `diary-from-outlook'.

@@ -1,3 +1,25 @@
+2013-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el: Add new faces, and day-header-array.
+	(calendar-weekday-header, calendar-weekend-header)
+	(calendar-month-header): New faces.
+	(calendar-day-header-construct): New function.
+	(calendar-day-header-width): Also :set calendar-day-header-array.
+	(calendar-american-month-header, calendar-european-month-header)
+	(calendar-iso-month-header): Use calendar- faces.
+	(calendar-generate-month):
+	Use calendar-day-header-array for day headers; apply faces to them.
+	(calendar-mode): Check calendar-font-lock-keywords non-nil.
+	(calendar-abbrev-construct): Add optional maxlen argument.
+	(calendar-day-name-array): Doc fix.
+	(calendar-day-name-array, calendar-abbrev-length)
+	(calendar-day-abbrev-array):
+	Also :set calendar-day-header-array, and maybe redraw.
+	(calendar-day-header-array): New option.  (Bug#15007)
+	(calendar-font-lock-keywords): Use calendar-day-header-array,
+	and calendar- faces.  Make obsolete.
+	(calendar-day-name): Add option to use header array.
+
 2013-08-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-render-td): Remove debugging.
