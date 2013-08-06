@@ -1,3 +1,10 @@
+2013-08-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-render-td): Remove debugging.
+	(shr-render-td): Make width computation consistent by defaulting
+	all zero-width columns to 10 characters.  This may not be optimal,
+	but it's at least consistent.
+
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* files.el (cache-long-line-scans): Make

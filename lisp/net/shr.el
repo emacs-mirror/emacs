@@ -1496,11 +1496,11 @@ ones, in case fg and bg are nil."
 				   shr-table-separator-length
 				   (aref widths (+ i 1 j))))))
 		(setq width-column (+ width-column (1- colspan))))
+	      ;; Sanity check for degenerate tables.
+	      (when (zerop width)
+		(setq width 10))
 	      (when (or column
 			(not fill))
-		;; Sanity check for degenerate tables.
-		(when (zerop width)
-		  (setq width 10))
 		(push (shr-render-td (cdr column) width fill)
 		      tds))
 	      (setq i (1+ i)
@@ -1509,7 +1509,6 @@ ones, in case fg and bg are nil."
     (nreverse trs)))
 
 (defun shr-render-td (cont width fill)
-  (when (= width 0) (debug))
   (with-temp-buffer
     (let ((bgcolor (cdr (assq :bgcolor cont)))
 	  (fgcolor (cdr (assq :fgcolor cont)))
@@ -1577,7 +1576,7 @@ ones, in case fg and bg are nil."
 		  (split-string (buffer-string) "\n")
 		  nil
 		  (car actual-colors))
-	  max)))))
+	  (max max 10))))))
 
 (defun shr-buffer-width ()
   (goto-char (point-min))
