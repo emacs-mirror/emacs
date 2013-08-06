@@ -598,14 +598,14 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
 
 /* The newline cache: remembering which sections of text have no newlines.  */
 
-/* If the user has requested newline caching, make sure it's on.
+/* If the user has requested the long scans caching, make sure it's on.
    Otherwise, make sure it's off.
    This is our cheezy way of associating an action with the change of
    state of a buffer-local variable.  */
 static void
 newline_cache_on_off (struct buffer *buf)
 {
-  if (NILP (BVAR (buf, cache_long_line_scans)))
+  if (NILP (BVAR (buf, cache_long_scans)))
     {
       /* It should be off.  */
       if (buf->newline_cache)

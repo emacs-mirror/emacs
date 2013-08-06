@@ -1,5 +1,24 @@
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Use region cache to speedup bidi_find_paragraph_start.
+	* buffer.h (struct buffer): New member bidi_paragraph_cache.
+	Rename cache_long_line_scans to cache_long_scans.
+	* buffer.c (bset_cache_long_line_scans): Rename to
+	bset_cache_long_scans.
+	(Fget_buffer_create, Fmake_indirect_buffer, Fkill_buffer)
+	(Fbuffer_swap_text, init_buffer_once): Take bidi_paragraph_cache
+	into account.
+	(syms_of_buffer): Rename cache-long-line-scans to
+	cache-long-scans.  Adjust docstring.
+	* search.c (newline_cache_on_off):
+	* indent.c (width_run_cache_on_off): Adjust users.
+	* bidi.c (bidi_paragraph_cache_on_off): New function.
+	(bidi_find_paragraph_start): Use bidi_paragraph_cache if needed.
+	* insdel.c (prepare_to_modify_buffer): Invalidate
+	bidi_paragraph_cache if enabled.
+
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Invalidate region caches only if buffer text is going to be changed.
 	* lisp.h (modify_region_1): Remove 3rd arg and rename to...
 	(modify_text): ...new prototype.

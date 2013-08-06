@@ -141,13 +141,13 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
     XSETFASTINT (widthtab->contents[i], character_width (i, disptab));
 }
 
-/* Allocate or free the width run cache, as requested by the current
-   state of current_buffer's cache_long_line_scans variable.  */
+/* Allocate or free the width run cache, as requested by the
+   current state of current_buffer's cache_long_scans variable.  */
 
 static void
 width_run_cache_on_off (void)
 {
-  if (NILP (BVAR (current_buffer, cache_long_line_scans))
+  if (NILP (BVAR (current_buffer, cache_long_scans))
       /* And, for the moment, this feature doesn't work on multibyte
          characters.  */
       || !NILP (BVAR (current_buffer, enable_multibyte_characters)))

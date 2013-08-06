@@ -1879,6 +1879,10 @@ prepare_to_modify_buffer (ptrdiff_t start, ptrdiff_t end,
     invalidate_region_cache (current_buffer,
                              current_buffer->width_run_cache,
                              start - BEG, Z - end);
+  if (current_buffer->bidi_paragraph_cache)
+    invalidate_region_cache (current_buffer,
+                             current_buffer->bidi_paragraph_cache,
+                             start - BEG, Z - end);
 }
 
 /* These macros work with an argument named `preserve_ptr'

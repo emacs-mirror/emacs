@@ -61,6 +61,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "dispextern.h"
+#include "region-cache.h"
 
 static bool bidi_initialized = 0;
 
@@ -1085,6 +1086,29 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
   return val;
 }
 
+/* If the user has requested the long scans caching, make sure that
+   BIDI cache is enabled.  Otherwise, make sure it's disabled.  */
+
+static struct region_cache *
+bidi_paragraph_cache_on_off (void)
+{
+  if (NILP (BVAR (current_buffer, cache_long_scans)))
+    {
+      if (current_buffer->bidi_paragraph_cache)
+	{
+	  free_region_cache (current_buffer->bidi_paragraph_cache);
+	  current_buffer->bidi_paragraph_cache = 0;
+	}
+      return NULL;
+    }
+  else
+    {
+      if (!current_buffer->bidi_paragraph_cache)
+	current_buffer->bidi_paragraph_cache = new_region_cache ();
+      return current_buffer->bidi_paragraph_cache;
+    }
+}
+
 /* On my 2005-vintage machine, searching back for paragraph start
    takes ~1 ms per line.  And bidi_paragraph_init is called 4 times
    when user types C-p.  The number below limits each call to
@@ -1100,7 +1124,8 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 {
   Lisp_Object re = paragraph_start_re;
   ptrdiff_t limit = ZV, limit_byte = ZV_BYTE;
-  ptrdiff_t n = 0;
+  struct region_cache *bpc = bidi_paragraph_cache_on_off ();
+  ptrdiff_t n = 0, oldpos = pos, next;
 
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
@@ -1111,10 +1136,18 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 	 of the text over which we scan back includes
 	 paragraph_start_re?  */
       DEC_BOTH (pos, pos_byte);
-      pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
+      if (bpc && region_cache_backward (current_buffer, bpc, pos, &next))
+	{
+	  pos = next, pos_byte = CHAR_TO_BYTE (pos);
+	  break;
+	}
+      else
+	pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
     }
   if (n >= MAX_PARAGRAPH_SEARCH)
-    pos_byte = BEGV_BYTE;
+    pos = BEGV, pos_byte = BEGV_BYTE;
+  if (bpc)
+    know_region_cache (current_buffer, bpc, pos, oldpos);
   return pos_byte;
 }
 
