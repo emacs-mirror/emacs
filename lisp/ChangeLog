@@ -4,6 +4,8 @@
 	(shr-render-td): Make width computation consistent by defaulting
 	all zero-width columns to 10 characters.  This may not be optimal,
 	but it's at least consistent.
+	(shr-make-table-1): Redo last change to fix the real problem in
+	colspan handling.
 
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 

@@ -1488,7 +1488,11 @@ ones, in case fg and bg are nil."
 		      10))
 	      (when (and fill
 			 (setq colspan (cdr (assq :colspan (cdr column)))))
-		(setq colspan (string-to-number colspan))
+		(setq colspan (min (string-to-number colspan)
+				   ;; The colspan may be wrong, so
+				   ;; truncate it to the length of the
+				   ;; remaining columns.
+				   (- (length widths) i)))
 		(dotimes (j (1- colspan))
 		  (if (> (+ i 1 j) (1- (length widths)))
 		      (setq width (aref widths (1- (length widths))))
@@ -1496,9 +1500,6 @@ ones, in case fg and bg are nil."
 				   shr-table-separator-length
 				   (aref widths (+ i 1 j))))))
 		(setq width-column (+ width-column (1- colspan))))
-	      ;; Sanity check for degenerate tables.
-	      (when (zerop width)
-		(setq width 10))
 	      (when (or column
 			(not fill))
 		(push (shr-render-td (cdr column) width fill)
@@ -1576,7 +1577,7 @@ ones, in case fg and bg are nil."
 		  (split-string (buffer-string) "\n")
 		  nil
 		  (car actual-colors))
-	  (max max 10))))))
+	  max)))))
 
 (defun shr-buffer-width ()
   (goto-char (point-min))
