@@ -1,3 +1,10 @@
+2013-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Bind process-connection-type to
+	nil; don't delete a temp file immediately even if a viewer finishes,
+	since it may be a shell script, like xdg-open, that launches a real
+	viewer program belatedly.
+
 2013-08-05  Dave Abrahams  <dave@boostpro.com>
 
 	* gnus-int.el (gnus-warp-to-article): Allow warping in all groups so

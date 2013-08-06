@@ -962,7 +962,7 @@ external if displayed external."
 	    (let ((command (mm-mailcap-command
 			    method file (mm-handle-type handle))))
 	      (unwind-protect
-		  (progn
+		  (let ((process-connection-type nil))
 		    (start-process "*display*"
 				   (setq buffer
 					 (generate-new-buffer " *mm*"))
@@ -984,12 +984,13 @@ external if displayed external."
 			    (delete-directory (file-name-directory file)))))
 		       (lambda (process state)
 			 (when (eq (process-status process) 'exit)
-			   (condition-case nil
-			       (delete-file file)
-			     (error))
-			   (condition-case nil
-			       (delete-directory (file-name-directory file))
-			     (error))
+			   (run-at-time
+			    10.0 nil
+			    (lambda ()
+			      (ignore-errors
+				(delete-file file))
+			      (ignore-errors
+				(delete-directory (file-name-directory file)))))
 			   (when (buffer-live-p outbuf)
 			     (with-current-buffer outbuf
 			       (let ((buffer-read-only nil)
