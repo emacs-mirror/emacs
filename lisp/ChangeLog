@@ -1,3 +1,8 @@
+2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-lisp.el (find-lisp-line-indent, find-lisp-find-dired-filter):
+	Fix typos in docstrings.
+
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* frame.el (get-other-frame): Tiny cleanup.
