@@ -1,3 +1,21 @@
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Invalidate region caches only if buffer text is going to be changed.
+	* lisp.h (modify_region_1): Remove 3rd arg and rename to...
+	(modify_text): ...new prototype.
+	(prepare_to_modify_buffer_1): New prototype.
+	* textprop.c (modify_region): Rename to...
+	(modify_text_properties): ...new function.
+	(add_text_properties_1, set_text_properties, Fremove_text_properties)
+	(Fremove_list_of_text_properties): Adjust users.
+	* insdel.c (modify_region_1): Remove 3rd arg and reimplement as...
+	(modify_text): ...new function.
+	(prepare_to_modify_buffer): Reimplement mostly as a wrapper for...
+	(prepare_to_modify_buffer_1): ...new function.
+	* casefiddle.c (casify_region):
+	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
+	(Ftranspose_regions): Use modify_text.
+
 2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.mk (lisp): Add nadvice.elc.

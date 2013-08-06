@@ -3370,8 +3370,9 @@ extern void del_range_byte (ptrdiff_t, ptrdiff_t, bool);
 extern void del_range_both (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object del_range_2 (ptrdiff_t, ptrdiff_t,
 				ptrdiff_t, ptrdiff_t, bool);
-extern void modify_region_1 (ptrdiff_t, ptrdiff_t, bool);
+extern void modify_text (ptrdiff_t, ptrdiff_t);
 extern void prepare_to_modify_buffer (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
+extern void prepare_to_modify_buffer_1 (ptrdiff_t, ptrdiff_t, ptrdiff_t *);
 extern void signal_after_change (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void adjust_after_insert (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				 ptrdiff_t, ptrdiff_t);
