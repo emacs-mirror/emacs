@@ -6690,7 +6690,9 @@ based on existing mode bits, as in \"og+rX-w\"."
 	  (string-to-number value 8)
 	(file-modes-symbolic-to-number value modes)))))
 
-
+(define-obsolete-variable-alias 'cache-long-line-scans
+  'cache-long-scans "24.4")
+
 ;; Trashcan handling.
 (defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.

@@ -54,6 +54,10 @@ pkg-config is required to find ImageMagick libraries.
 ** Key ? also describes prefix bindings like C-h.
 
 +++
+** `cache-long-line-scans' has been renamed to `cache-long-scans'
+because it affects caching of paragraph scanning results as well.
+
++++
 ** `apropos-variable' is now `apropos-user-option'
 `apropos-user-option' shows all user options while `apropos-variable'
 shows all variables.  When called with a universal prefix argument,

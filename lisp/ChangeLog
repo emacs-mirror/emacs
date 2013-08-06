@@ -1,3 +1,8 @@
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* files.el (cache-long-line-scans): Make
+	obsolete alias to `cache-long-scans'.
+
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset, frameset-filter-alist)
