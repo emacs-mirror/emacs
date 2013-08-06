@@ -1,5 +1,8 @@
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc/vc.el (vc-default-ignore-completion-table):
+	Silence byte-compiler warning.
+
 	* frameset.el (frameset-p): Don't check non-nullness of the `properties'
 	slot , which can indeed be nil.
 	(frameset-live-filter-alist, frameset-persistent-filter-alist):

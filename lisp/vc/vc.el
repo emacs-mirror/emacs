@@ -486,7 +486,7 @@
 ;;   default implementation always returns nil.
 ;;
 ;; - root (file)
-;; 
+;;
 ;;   Return the root of the VC controlled hierarchy for file.
 ;;
 ;; - repository-hostname (dirname)
@@ -502,13 +502,13 @@
 ;;   Ignore FILE under the current VCS.  When called interactively and
 ;;   with a prefix argument, remove an ignored file.  When called from
 ;;   Lisp code, if REMOVE is non-nil, remove FILE from ignored files."
-;; 
+;;
 ;; - ignore-completion-table
-;; 
+;;
 ;;   Return the completion table for files ignored by the current
 ;;   version control system, e.g., the entries in `.gitignore' and
 ;;   `.bzrignore'.
-;; 
+;;
 ;; - previous-revision (file rev)
 ;;
 ;;   Return the revision number that precedes REV for FILE, or nil if no such
@@ -1365,7 +1365,7 @@ non-nil, remove FILE from ignored files."
       (setq backend (vc-backend directory))
       (vc-call-backend backend 'ignore file default-directory remove))))
 
-(defun vc-default-ignore-completion-table (file)
+(defun vc-default-ignore-completion-table (_file)
   "Return the list of ignored files."
   ;; Unused lexical argument `file'
   nil)
