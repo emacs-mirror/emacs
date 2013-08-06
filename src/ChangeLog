@@ -1,3 +1,15 @@
+2013-08-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c: Fix minor off-by-one issues in descriptor counts.
+	This shouldn't fix any real bugs, but it cleans up the code a bit.
+	(max_process_desc, max_input_desc): -1, not 0, means none.
+	All uses changed.
+	(delete_input_desc): New function.
+	(delete_write_fd, delete_keyboard_wait_descriptor): Use it.
+	(deactivate_process): Scan backwards when recomuting max_process_desc;
+	that should be faster.
+	(init_process_emacs): Initialize max_input_desc.
+
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use region cache to speedup bidi_find_paragraph_start.

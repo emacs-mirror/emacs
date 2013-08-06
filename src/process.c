@@ -323,10 +323,10 @@ static SELECT_TYPE connect_wait_mask;
 static int num_pending_connects;
 #endif	/* NON_BLOCKING_CONNECT */
 
-/* The largest descriptor currently in use for a process object.  */
+/* The largest descriptor currently in use for a process object; -1 if none.  */
 static int max_process_desc;
 
-/* The largest descriptor currently in use for input.  */
+/* The largest descriptor currently in use for input; -1 if none.  */
 static int max_input_desc;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
@@ -500,13 +500,27 @@ add_write_fd (int fd, fd_callback func, void *data)
   fd_callback_info[fd].condition |= FOR_WRITE;
 }
 
+/* FD is no longer an input descriptor; update max_input_desc accordingly.  */
+
+static void
+delete_input_desc (int fd)
+{
+  if (fd == max_input_desc)
+    {
+      do
+	fd--;
+      while (0 <= fd && ! (FD_ISSET (fd, &input_wait_mask)
+			   || FD_ISSET (fd, &write_mask)));
+
+      max_input_desc = fd;
+    }
+}
+
 /* Stop monitoring file descriptor FD for when write is possible.  */
 
 void
 delete_write_fd (int fd)
 {
-  int lim = max_input_desc;
-
   eassert (fd < MAXDESC);
   FD_CLR (fd, &write_mask);
   fd_callback_info[fd].condition &= ~FOR_WRITE;
@@ -514,15 +528,7 @@ delete_write_fd (int fd)
     {
       fd_callback_info[fd].func = 0;
       fd_callback_info[fd].data = 0;
-
-      if (fd == max_input_desc)
-        for (fd = lim; fd >= 0; fd--)
-          if (FD_ISSET (fd, &input_wait_mask) || FD_ISSET (fd, &write_mask))
-            {
-              max_input_desc = fd;
-              break;
-            }
-
+      delete_input_desc (fd);
     }
 }
 
@@ -3831,13 +3837,14 @@ deactivate_process (Lisp_Object proc)
 #endif
       if (inchannel == max_process_desc)
 	{
-	  int i;
 	  /* We just closed the highest-numbered process input descriptor,
 	     so recompute the highest-numbered one now.  */
-	  max_process_desc = 0;
-	  for (i = 0; i < MAXDESC; i++)
-	    if (!NILP (chan_process[i]))
-	      max_process_desc = i;
+	  int i = inchannel;
+	  do
+	    i--;
+	  while (0 <= i && NILP (chan_process[i]));
+
+	  max_process_desc = i;
 	}
     }
 }
@@ -6763,16 +6770,9 @@ void
 delete_keyboard_wait_descriptor (int desc)
 {
 #ifdef subprocesses
-  int fd;
-  int lim = max_input_desc;
-
   FD_CLR (desc, &input_wait_mask);
   FD_CLR (desc, &non_process_wait_mask);
-
-  if (desc == max_input_desc)
-    for (fd = 0; fd < lim; fd++)
-      if (FD_ISSET (fd, &input_wait_mask) || FD_ISSET (fd, &write_mask))
-        max_input_desc = fd;
+  delete_input_desc (desc);
 #endif
 }
 
@@ -7037,7 +7037,7 @@ init_process_emacs (void)
   FD_ZERO (&non_keyboard_wait_mask);
   FD_ZERO (&non_process_wait_mask);
   FD_ZERO (&write_mask);
-  max_process_desc = 0;
+  max_process_desc = max_input_desc = -1;
   memset (fd_callback_info, 0, sizeof (fd_callback_info));
 
 #ifdef NON_BLOCKING_CONNECT
