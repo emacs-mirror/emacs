@@ -66,9 +66,9 @@ static Lisp_Object Qsafe, Qabove, Qbelow, Qwindow_size, Qclone_of;
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
 static int get_leaf_windows (struct window *, struct window **, int);
-static void window_scroll (Lisp_Object, EMACS_INT, int, int);
-static void window_scroll_pixel_based (Lisp_Object, int, int, int);
-static void window_scroll_line_based (Lisp_Object, int, int, int);
+static void window_scroll (Lisp_Object, EMACS_INT, bool, int);
+static void window_scroll_pixel_based (Lisp_Object, int, bool, int);
+static void window_scroll_line_based (Lisp_Object, int, bool, int);
 static int freeze_window_start (struct window *, void *);
 static Lisp_Object window_list (void);
 static int add_window_to_list (struct window *, void *);
@@ -4336,7 +4336,7 @@ window_internal_height (struct window *w)
    respectively.  */
 
 static void
-window_scroll (Lisp_Object window, EMACS_INT n, int whole, int noerror)
+window_scroll (Lisp_Object window, EMACS_INT n, bool whole, int noerror)
 {
   immediate_quit = 1;
   n = clip_to_bounds (INT_MIN, n, INT_MAX);
@@ -4357,7 +4357,7 @@ window_scroll (Lisp_Object window, EMACS_INT n, int whole, int noerror)
    descriptions.  */
 
 static void
-window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
+window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
 {
   struct it it;
   struct window *w = XWINDOW (window);
@@ -4725,7 +4725,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
    See the comment of window_scroll for parameter descriptions.  */
 
 static void
-window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
+window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
 {
   register struct window *w = XWINDOW (window);
   /* Fvertical_motion enters redisplay, which can trigger
@@ -4737,7 +4737,7 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
   register ptrdiff_t pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
-  int lose;
+  bool lose;
   Lisp_Object bolp;
   ptrdiff_t startpos = marker_position (w->start);
   ptrdiff_t startbyte = marker_byte_position (w->start);
