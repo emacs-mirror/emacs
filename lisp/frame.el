@@ -500,10 +500,7 @@ See help of `modify-frame-parameters' for more information."
   "Return some frame other than the current frame.
 Create one if necessary.  Note that the minibuffer frame, if separate,
 is not considered (see `next-frame')."
-  (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
-	       (make-frame)
-	     (next-frame (selected-frame)))))
-    s))
+  (if (equal (next-frame) (selected-frame)) (make-frame) (next-frame)))
 
 (defun next-multiframe-window ()
   "Select the next window, regardless of which frame it is on."

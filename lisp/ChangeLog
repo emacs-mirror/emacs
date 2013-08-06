@@ -1,3 +1,7 @@
+2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* frame.el (get-other-frame): Tiny cleanup.
+
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc.el (vc-default-ignore-completion-table):
