@@ -1,5 +1,13 @@
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset, frameset-filter-alist)
+	(frameset-filter-params, frameset-save, frameset--reuse-frame)
+	(frameset--minibufferless-last-p, frameset-restore): Doc fixes.
+	(frameset-compute-pos): Rename from frameset--compute-pos,
+	and add docstring.
+	(frameset-move-onscreen): Use frameset-compute-pos.
+	Most changes suggested by Drew Adams <drew.adams@oracle.com>.
+
 	* find-lisp.el (find-lisp-line-indent, find-lisp-find-dired-filter):
 	Fix typos in docstrings.
 
