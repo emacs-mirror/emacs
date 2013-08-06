@@ -183,11 +183,11 @@
                      :end (gnus-icalendar-event--decode-datefield event 'DTEND zone-map)
                      :rsvp (string= (plist-get (cadr attendee) 'RSVP)
                                     "TRUE")))
-         (event-class (pcase method
-                        ("REQUEST" 'gnus-icalendar-event-request)
-                        ("CANCEL" 'gnus-icalendar-event-cancel)
-                        ("REPLY" 'gnus-icalendar-event-reply)
-                        (_ 'gnus-icalendar-event))))
+         (event-class (cond
+                       ((string= method "REQUEST") 'gnus-icalendar-event-request)
+                       ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
+                       ((string= method "REPLY") 'gnus-icalendar-event-reply)
+                       (t 'gnus-icalendar-event))))
 
     (labels ((map-property (prop)
                    (let ((value (icalendar--get-event-property event prop)))
@@ -252,14 +252,15 @@ status will be retrieved from the first matching attendee record."
                             ;; NOTE: not all of the below fields are mandatory,
                             ;; but they are often present in other clients'
                             ;; replies. Can be helpful for debugging, too.
-                            (new-line (pcase key
-                                        ("ATTENDEE" (update-attendee-status line))
-                                        ("SUMMARY" (update-summary line))
-                                        ("DTSTAMP" (update-dtstamp))
-                                        ((or "ORGANIZER" "DTSTART" "DTEND"
-                                             "LOCATION" "DURATION" "SEQUENCE"
-                                             "RECURRENCE-ID" "UID") line)
-                                        (_ nil))))
+                            (new-line
+                             (cond
+                              ((string= key "ATTENDEE") (update-attendee-status line))
+                              ((string= key "SUMMARY") (update-summary line))
+                              ((string= key "DTSTAMP") (update-dtstamp))
+                              ((find key '("ORGANIZER" "DTSTART" "DTEND"
+                                           "LOCATION" "DURATION" "SEQUENCE"
+                                           "RECURRENCE-ID" "UID")) line)
+                              (t nil))))
                        (when new-line
                          (push new-line reply-event-lines))))))
 
@@ -405,7 +406,8 @@ Return nil for non-recurring EVENT."
 
 (defun gnus-icalendar--deactivate-org-timestamp (ts)
   (replace-regexp-in-string "[<>]"
-                            (lambda (m) (pcase m ("<" "[") (">" "]")))
+                            (lambda (m) (cond ((string= m "<") "[")
+                                              ((string= m ">") "]")))
                             ts))
 
 (defun gnus-icalendar-find-org-event-file (event &optional org-file)

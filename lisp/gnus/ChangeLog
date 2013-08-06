@@ -1,3 +1,8 @@
+2013-08-06  Jan Tatarik  <jan.tatarik@gmail.com>
+
+	* gnus-icalendar.el (gnus-icalendar-event-from-ical): Replace pcase
+	with cond for backwards compatability.
+
 2013-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-display-external): Bind process-connection-type to
