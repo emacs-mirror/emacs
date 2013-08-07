@@ -1,5 +1,7 @@
 2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* newsticker.texi (Usage): Use @key for RET.
+
 	* cl.texi (Argument Lists):
 	(For Clauses):
 	(Macros): Add indexes.

@@ -76,7 +76,8 @@ to use it.
 ** Convert all defvars with leading `*' in the doc-strings into defcustoms
 of appropriate :type and :group.
 
-** Remove any leading `*'s from defcustom doc-strings.  [done?]
+** Remove any leading `*'s from defcustom doc-strings.
+[done?] [A lot of them are in CC Mode.]
 
 ** Remove unnecessary autoload cookies from defcustoms.
 This needs a bit of care, since often people have become used to
