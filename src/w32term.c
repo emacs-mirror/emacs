@@ -5717,7 +5717,9 @@ w32fullscreen_hook (struct frame *f)
       w32_fullscreen_rect (hwnd, f->want_fullscreen,
                            FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
       FRAME_PREV_FSMODE (f) = f->want_fullscreen;
-      if (f->want_fullscreen == FULLSCREEN_BOTH)
+      if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
+	PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, 0xf030, 0);
+      else if (f->want_fullscreen == FULLSCREEN_BOTH)
         {
           SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,

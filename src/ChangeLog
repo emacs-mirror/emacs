@@ -1,3 +1,8 @@
+2013-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32term.c (w32fullscreen_hook): Really maximize frame when
+	asked for (Bug#14841).
+
 2013-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Prefer selected_window to Fselected_window, likewise for frames.
