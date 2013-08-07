@@ -11169,7 +11169,18 @@ prepare_menu_bars (void)
 	{
 	  f = XFRAME (frame);
 	  if (!EQ (frame, tooltip_frame)
-	      && (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f)))
+	      && (FRAME_ICONIFIED_P (f)
+		  || FRAME_VISIBLE_P (f) == 1
+		  /* Exclude TTY frames that are obscured because they
+		     are not the top frame on their console.  This is
+		     because x_consider_frame_title actually swit6ches
+		     to the frame, which for TTY frames means it is
+		     marked as garbaged, and will be completely
+		     redrawn on the next redisplay cycle.  This causes
+		     TTY frames to be completely redrawn, when there
+		     are more than one of them, even though nothing
+		     should be changed on display.  */
+		  || (FRAME_VISIBLE_P (f) == 2 && FRAME_WINDOW_P (f))))
 	    x_consider_frame_title (frame);
 	}
     }
