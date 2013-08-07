@@ -53,14 +53,14 @@
 ;; 1  Preamble
 
 (defgroup dos nil
-  "Major mode for editing Dos scripts."
+  "Major mode for editing DOS/Windows batch files."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 ;; 2  User variables
 
 (defface dos-label-face '((t :weight bold))
-  "Font Lock mode face used to highlight Dos labels."
+  "Font Lock mode face used to highlight labels in batch files."
   :group 'dos)
 
 ;; 3  Internal variables
@@ -77,8 +77,8 @@
           (CONTROLFLOW
            '("call" "cmd" "defined" "do" "else" "equ" "exist" "exit" "for" "geq"
              "goto" "gtr" "if" "in" "leq" "lss" "neq" "not" "start"))
-          (LINUX
-           '("cat" "cp" "ls" "mv" "rm")))
+          (UNIX
+           '("bash" "cat" "cp" "fgrep" "grep" "ls" "sed" "sh" "mv" "rm")))
       `(("\\<_\\(call\\|goto\\)\\_>[ \t]+%?\\([A-Za-z0-9-_\\:.]+\\)%?"
          (2 font-lock-constant-face t))
         ("^[ \t]*\\(@?rem\\_>\\|::\\).*"
@@ -96,7 +96,7 @@
         (,(concat "\\_<" (regexp-opt COMMANDS) "\\_>") . font-lock-builtin-face)
         (,(concat "\\_<" (regexp-opt CONTROLFLOW) "\\_>")
          . font-lock-keyword-face)
-        (,(concat "\\_<" (regexp-opt LINUX) "\\_>")
+        (,(concat "\\_<" (regexp-opt UNIX) "\\_>")
          . font-lock-warning-face)))))
 
 (defvar dos-menu
@@ -138,7 +138,7 @@
 ;; 4  User functions
 
 (defun dos-cmd-help (cmd)
-  "Show help for Dos command CMD."
+  "Show help for batch file command CMD."
   (interactive "sHelp: ")
   (if (string-equal cmd "net")
       ;; FIXME: liable to quoting nightmare.  Use call-process?
@@ -151,19 +151,19 @@
   (switch-to-buffer "*Help*") (delete-other-windows) (message nil))
 
 (defun dos-run ()
-  "Run Dos script."
+  "Run a batch file."
   (interactive)
   ;; FIXME: liable to quoting nightmare.  Use call/start-process?
   (save-buffer) (shell-command buffer-file-name))
 
 (defun dos-run-args (args)
-  "Run Dos script with ARGS."
+  "Run a batch file with ARGS."
   (interactive "sArgs: ")
   ;; FIXME: Use `compile'?
   (shell-command (concat buffer-file-name " " args)))
 
 (defun dos-template ()
-  "Insert minimal Dos template."
+  "Insert minimal batch file template."
   (interactive)
   (goto-char (point-min)) (insert "@echo off\nsetlocal\n\n"))
 
@@ -174,11 +174,11 @@
 
 ;;;###autoload
 (define-derived-mode dos-mode prog-mode "Dos"
-  "Major mode for editing Dos scripts.\n
+  "Major mode for editing DOS/Windows batch files.\n
 The `dos-mode-help' command shows this page.\n
-Start a new script from `dos-template'. Read help pages for Dos commands with
-`dos-cmd-help'. Navigate between sections using `imenu'. Run script using
-`dos-run' and `dos-run-args'.\n
+Start a new script from `dos-template'.  Read help pages for Dos commands
+with `dos-cmd-help'.  Navigate between sections using `imenu'.
+Run script using `dos-run' and `dos-run-args'.\n
 \\{dos-mode-map}"
   (setq-local comment-start "rem ")
   (setq-local font-lock-defaults

@@ -1,3 +1,10 @@
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/dos.el (dos-font-lock-keywords): Rename LINUX to UNIX
+	and add a few popular commands found in batch files.
+	(dos, dos-label-face, dos-cmd-help, dos-run, dos-run-args)
+	(dos-mode): Doc fixes.
+
 2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/dos.el (auto-mode-alist): Add entries for dos-mode.
