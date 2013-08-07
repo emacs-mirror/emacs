@@ -1,3 +1,9 @@
+2013-08-07  Arni Magnusson  <arnima@hafro.is>
+
+	* progmodes/dos.el: New file.
+	* generic-x.el (bat-generic-mode): Redefine as an obsolete alias to
+	dos-mode.
+
 2013-08-06  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el: Add new faces, and day-header-array.

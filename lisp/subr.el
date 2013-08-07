@@ -2755,7 +2755,7 @@ Otherwise, return nil."
   (let ((def (indirect-function object t)))
     (when (consp def)
       (or (eq 'macro (car def))
-          (and (eq 'autoload (car def)) (memq (nth 4 def) '(macro t)))))))
+          (and (autoloadp def) (memq (nth 4 def) '(macro t)))))))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
