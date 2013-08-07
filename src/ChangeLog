@@ -1,3 +1,21 @@
+2013-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Be more careful if selected window shows the buffer other than current,
+	use window_outdated only if this is not so.  This change should also
+	address some weird issues discussed in Bug#13012.
+	* window.h (window_outdated): New prototype.
+	* window.c (window_outdated): Now here.  Convert from static and
+	always assume window's buffer.
+	(Fwindow_end, Fwindow_line_height): Use it.
+	* xdisp.c (reconsider_clip_changes): Remove prototype, drop 2nd arg
+	and always assume window's buffer.
+	(redisplay_window): Adjust user.
+	(redisplay_internal): Call to reconsider_clip_change once and
+	check whether mode line should be updated only if selected window
+	shows current buffer.
+	(run_window_scroll_functions): Use eassert for debugging check.
+	(Fmove_point_visually, note_mouse_highlight): Use window_outdated.
+
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.c (window_scroll, window_scroll_pixel_based)

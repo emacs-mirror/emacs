@@ -973,6 +973,7 @@ extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
+extern bool window_outdated (struct window *);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

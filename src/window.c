@@ -239,6 +239,17 @@ wset_combination (struct window *w, bool horflag, Lisp_Object val)
     w->horizontal = horflag;
 }
 
+/* Nonzero if leaf window W doesn't reflect the actual state
+   of displayed buffer due to its text or overlays change.  */
+
+bool
+window_outdated (struct window *w)
+{
+  struct buffer *b = XBUFFER (w->contents);
+  return (w->last_modified < BUF_MODIFF (b)
+	  || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b));
+}
+
 struct window *
 decode_live_window (register Lisp_Object window)
 {
@@ -1506,8 +1517,7 @@ if it isn't already recorded.  */)
 	  || !w->window_end_valid
 	  || b->clip_changed
 	  || b->prevent_redisplay_optimizations_p
-	  || w->last_modified < BUF_MODIFF (b)
-	  || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
+	  || window_outdated (w))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -1720,8 +1730,7 @@ Return nil if window display is not up-to-date.  In that case, use
       || windows_or_buffers_changed
       || b->clip_changed
       || b->prevent_redisplay_optimizations_p
-      || w->last_modified < BUF_MODIFF (b)
-      || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
+      || window_outdated (w))
     return Qnil;
 
   if (NILP (line))
