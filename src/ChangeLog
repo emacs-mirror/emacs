@@ -36,7 +36,7 @@
 	* xdisp.c (reconsider_clip_changes): Remove prototype, drop 2nd arg
 	and always assume window's buffer.
 	(redisplay_window): Adjust user.
-	(redisplay_internal): Call to reconsider_clip_change once and
+	(redisplay_internal): Call to reconsider_clip_changes once and
 	check whether mode line should be updated only if selected window
 	shows current buffer.
 	(run_window_scroll_functions): Use eassert for debugging check.
