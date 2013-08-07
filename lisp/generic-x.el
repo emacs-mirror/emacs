@@ -460,7 +460,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
 
 ;;; DOS/Windows BAT files
 (when (memq 'bat-generic-mode generic-extras-enable-list)
-  (define-obsolete-function-alias 'bat-generic-mode 'dos-mode "24.4"))
+  (define-obsolete-function-alias 'bat-generic-mode 'bat-mode "24.4"))
 
 ;;; Mailagent
 ;; Mailagent is a Unix mail filtering program.  Anyone wanna do a
