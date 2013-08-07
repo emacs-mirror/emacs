@@ -1,3 +1,43 @@
+2013-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save-frameset): Use new frameset-save args.
+	Use lexical-binding.
+
+	* frameset.el (frameset): Use type vector, not list (incompatible
+	change).  Do not declare a new constructor, use the default one.
+	Upgrade suggested properties `app', `name' and `desc' to slots `app',
+	`name' and `description', respectively, and add read-only slot
+	`timestamp'.  Doc fixes.
+	(frameset-copy, frameset-persistent-filter-alist)
+	(frameset-filter-alist, frameset-switch-to-gui-p)
+	(frameset-switch-to-tty-p, frameset-filter-tty-to-GUI)
+	(frameset-filter-sanitize-color, frameset-filter-minibuffer)
+	(frameset-filter-iconified, frameset-keep-original-display-p):
+	Doc fixes.
+	(frameset-filter-shelve-param, frameset-filter-unshelve-param):
+	Rename from frameset-filter-(save|restore)-param.  All callers changed.
+	Doc fix.
+	(frameset-p): Adapt to change to vector and be more thorough.
+	Change arg name to OBJECT.  Doc fix.
+	(frameset-prop): Rename arg PROP to PROPERTY.  Doc fix.
+	(frameset-session-filter-alist): Rename from frameset-live-filter-alist.
+	All callers changed.
+	(frameset-frame-with-id): Rename from frameset-locate-frame-id.
+	All callers changed.
+	(frameset--record-minibuffer-relationships): Rename from
+	frameset--process-minibuffer-frames.  All callers changed.
+	(frameset-save): Add new keyword arguments APP, NAME and DESCRIPTION.
+	Use new default constructor (again).  Doc fix.
+	(frameset--find-frame-if): Rename from `frameset--find-frame.
+	All callers changed.
+	(frameset--reuse-frame): Rename arg FRAME-CFG to PARAMETERS.
+	(frameset--initial-params): Rename arg FRAME-CFG to PARAMETERS.
+	Doc fix.
+	(frameset--restore-frame): Rename args FRAME-CFG and WINDOW-CFG to
+	PARAMETERS and WINDOW-STATE, respectively.
+	(frameset-restore): Add new keyword argument PREDICATE.
+	Reset frameset--target-display to nil.  Doc fix.
+
 2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/bat-mode.el (bat--syntax-propertize): New var.

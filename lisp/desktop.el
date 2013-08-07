@@ -1,4 +1,4 @@
-;;; desktop.el --- save partial status of Emacs when killed
+;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1995, 1997, 2000-2013 Free Software Foundation,
 ;; Inc.
@@ -910,12 +910,10 @@ DIRNAME must be the directory in which the desktop file will be saved."
 Frames with a non-nil `desktop-dont-save' parameter are not saved."
   (setq desktop-saved-frameset
 	(and desktop-restore-frames
-	     (let ((name (concat user-login-name "@" system-name
-				 (format-time-string " %Y-%m-%d %T"))))
-	       (frameset-save nil
-			      :predicate #'desktop--check-dont-save
-			      :properties (list :app desktop--app-id
-						:name name))))))
+	     (frameset-save nil
+			    :app desktop--app-id
+			    :name (concat user-login-name "@" system-name)
+			    :predicate #'desktop--check-dont-save))))
 
 ;;;###autoload
 (defun desktop-save (dirname &optional release auto-save)
