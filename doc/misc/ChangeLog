@@ -1,5 +1,20 @@
 2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* sc.texi (Introduction): Fix index.
+	(Usage Overview):
+	(Citations, Citation Elements, Recognizing Citations)
+	(Information Keys and the Info Alist, Reference Headers)
+	(The Built-in Header Rewrite Functions)
+	(Electric References, Reply Buffer Initialization)
+	(Filling Cited Text, Selecting an Attribution)
+	(Attribution Preferences)
+	(Anonymous Attributions, Author Names)
+	(Using Regi, Post-yank Formatting Commands)
+	(Citing Commands, Insertion Commands)
+	(Mail Field Commands)
+	(Hints to MUA Authors, Thanks and History): Change from one space
+	between sentences to two.
+
 	* newsticker.texi (Usage): Use @key for RET.
 
 	* cl.texi (Argument Lists):
@@ -205,7 +220,7 @@
 
 2013-05-25  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* flymake.texi: Changing from one space between sentences to two.
+	* flymake.texi: Change from one space between sentences to two.
 
 2013-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
