@@ -80,8 +80,6 @@
            '("bash" "cat" "cp" "fgrep" "grep" "ls" "sed" "sh" "mv" "rm")))
       `(("\\<_\\(call\\|goto\\)\\_>[ \t]+%?\\([A-Za-z0-9-_\\:.]+\\)%?"
          (2 font-lock-constant-face t))
-        ("^[ \t]*\\(@?rem\\_>\\|::\\).*"
-         (0 font-lock-comment-face t))
         ("^:[^:].*"
          . 'bat-label-face)
         ("\\<_\\(defined\\|set\\)\\_>[ \t]*\\(\\w+\\)"
@@ -121,6 +119,7 @@
 
 (defvar bat-mode-syntax-table
   (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\n ">" table)
     ;; Beware: `w' should not be used for non-alphabetic chars.
     (modify-syntax-entry ?~ "_" table)
     (modify-syntax-entry ?% "." table)
@@ -131,6 +130,10 @@
     (modify-syntax-entry ?} "_" table)
     (modify-syntax-entry ?\\ "." table)
     table))
+
+(defconst bat--syntax-propertize
+  (syntax-propertize-rules
+   ("^[ \t]*\\(?:\\(@?r\\)em\\_>\\|\\(?1::\\):\\).*" (1 "<"))))
 
 ;; 4  User functions
 
@@ -171,6 +174,7 @@ with `bat-cmd-help'.  Navigate between sections using `imenu'.
 Run script using `bat-run' and `bat-run-args'.\n
 \\{bat-mode-map}"
   (setq-local comment-start "rem ")
+  (setq-local syntax-propertize-function bat--syntax-propertize)
   (setq-local font-lock-defaults
        '(bat-font-lock-keywords nil t)) ; case-insensitive keywords
   (setq-local imenu-generic-expression '((nil "^:[^:].*" 0)))

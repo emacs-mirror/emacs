@@ -1,5 +1,10 @@
 2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/bat-mode.el (bat--syntax-propertize): New var.
+	(bat-mode): Use it.
+	(bat-mode-syntax-table): Mark \n as end-of-comment.
+	(bat-font-lock-keywords): Remove comment rule.
+
 	* progmodes/bat-mode.el: Rename from dos.el.  Use "bat-" prefix.
 	(dos-mode-help): Remove.  Use describe-mode (C-h m) instead.
 
