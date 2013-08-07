@@ -2506,6 +2506,8 @@ if @var{expr} returns a list of the wrong number of arguments
 or with incorrect keyword arguments.
 @end defmac
 
+@cindex compiler macros
+@cindex define compiler macros
 This package also includes the Common Lisp @code{define-compiler-macro}
 facility, which allows you to define compile-time expansions and
 optimizations for your functions.

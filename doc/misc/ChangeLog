@@ -1,7 +1,8 @@
 2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* cl.texi (Argument Lists):
-	(For Clauses): Add indexes.
+	(For Clauses):
+	(Macros): Add indexes.
 
 2013-08-05  Xue Fuqiao  <xfq.free@gmail.com>
 
