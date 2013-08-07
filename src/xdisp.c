@@ -11173,7 +11173,7 @@ prepare_menu_bars (void)
 		  || FRAME_VISIBLE_P (f) == 1
 		  /* Exclude TTY frames that are obscured because they
 		     are not the top frame on their console.  This is
-		     because x_consider_frame_title actually swit6ches
+		     because x_consider_frame_title actually switches
 		     to the frame, which for TTY frames means it is
 		     marked as garbaged, and will be completely
 		     redrawn on the next redisplay cycle.  This causes
