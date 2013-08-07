@@ -1243,6 +1243,7 @@ Type RET when done reading
 @node Overlays
 @section Overlays
 @cindex overlays
+@c FIXME: mention intervals in this section?
 
 You can use @dfn{overlays} to alter the appearance of a buffer's text on
 the screen, for the sake of presentation features.  An overlay is an
