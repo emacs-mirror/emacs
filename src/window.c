@@ -3128,7 +3128,7 @@ run_window_configuration_change_hook (struct frame *f)
 
   if (SELECTED_FRAME () != f)
     {
-      record_unwind_protect (select_frame_norecord, Fselected_frame ());
+      record_unwind_protect (select_frame_norecord, selected_frame);
       select_frame_norecord (frame);
     }
 
@@ -3143,7 +3143,7 @@ run_window_configuration_change_hook (struct frame *f)
 				      buffer)))
 	  {
 	    ptrdiff_t inner_count = SPECPDL_INDEX ();
-	    record_unwind_protect (select_window_norecord, Fselected_window ());
+	    record_unwind_protect (select_window_norecord, selected_window);
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
 					   buffer));

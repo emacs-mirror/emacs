@@ -452,11 +452,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   CHECK_STRING (string);
 
-  if (NILP (frame))
-    frame = Fselected_frame ();
-
-  CHECK_LIVE_FRAME (frame);
-  if ( !FRAME_MSDOS_P (XFRAME (frame)))
+  if (!FRAME_MSDOS_P (decode_live_frame (frame)))
     goto done;
 
   block_input ();
@@ -558,11 +554,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   Lisp_Object ret = Qnil;
   int require_decoding = 0;
 
-  if (NILP (frame))
-    frame = Fselected_frame ();
-
-  CHECK_LIVE_FRAME (frame);
-  if ( !FRAME_MSDOS_P (XFRAME (frame)))
+  if (!FRAME_MSDOS_P (decode_live_frame (frame)))
     goto done;
 
   block_input ();

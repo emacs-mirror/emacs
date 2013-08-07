@@ -2409,7 +2409,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
        live window points to that window's buffer.  So since we
        just swapped the markers between the two buffers, we need
        to undo the effect of this swap for window markers.  */
-    Lisp_Object w = Fselected_window (), ws = Qnil;
+    Lisp_Object w = selected_window, ws = Qnil;
     Lisp_Object buf1, buf2;
     XSETBUFFER (buf1, current_buffer); XSETBUFFER (buf2, other_buffer);
 

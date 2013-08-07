@@ -1,5 +1,14 @@
 2013-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Prefer selected_window to Fselected_window, likewise for frames.
+	* buffer.c (Fbuffer_swap_text):
+	* data.c (Fvariable_binding_locus):
+	* window.c (run_window_configuration_change_hook): Adjust users.
+	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
+	Use decode_live_frame.
+
+2013-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Be more careful if selected window shows the buffer other than current,
 	use window_outdated only if this is not so.  This change should also
 	address some weird issues discussed in Bug#13012.

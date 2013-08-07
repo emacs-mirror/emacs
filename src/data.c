@@ -1975,7 +1975,7 @@ If the current binding is global (the default), the value is nil.  */)
       {
 	union Lisp_Fwd *valcontents = SYMBOL_FWD (sym);
 	if (KBOARD_OBJFWDP (valcontents))
-	  return Fframe_terminal (Fselected_frame ());
+	  return Fframe_terminal (selected_frame);
 	else if (!BUFFER_OBJFWDP (valcontents))
 	  return Qnil;
       }
