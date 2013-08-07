@@ -23,7 +23,7 @@ modify this GNU manual.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Todo Mode: (todo-mode).             Make and maintain todo lists.
 @end direntry
@@ -138,7 +138,7 @@ are subsidiary to and accessible from Todo mode.
 
 This version of Todo mode greatly expands on, and in significant ways
 differs from, the original version; for details and consequences of the
-most important differences, @xref{Legacy Todo Mode Files}.
+most important differences, @ref{Legacy Todo Mode Files}.
 
 @menu
 * Levels of Organization::
@@ -192,8 +192,8 @@ file in the Emacs diary file (@pxref{Fancy Diary Display,,, emacs}), the
 Fancy Diary display will show those todo items that are not marked with
 @code{todo-nondiary-marker}.  This effectively augments the Emacs diary
 with categorized diary entries.  For the various options available for
-making a todo item a diary entry, @ref{Inserting New Items} and
-@xref{Editing Item Headers and Text}.
+making a todo item a diary entry, see @ref{Inserting New Items} and
+@ref{Editing Item Headers and Text}.
 
 To ensure the proper display of todo items in the Fancy Diary display,
 they must have the format of diary entries, i.e., they have to begin
@@ -244,9 +244,9 @@ default todo file.
 
 If you want to enter Todo mode and go directly to a specific category
 instead the first or current category in the current or default todo
-file, use the command @code{todo-jump-to-category}; @ref{Navigation} for
+file, use the command @code{todo-jump-to-category}; @ref{Navigation}, for
 details.  You can also enter Todo mode by invoking a todo item insertion
-command; @ref{Inserting New Items} for details.
+command; @ref{Inserting New Items}, for details.
 
 The most convenient way to use these commands to enter Todo mode is to
 define global key bindings for them in your init file.  Good choices are
@@ -421,7 +421,7 @@ name and creates the file in @code{todo-directory}, adding the
 @samp{.todo} extension (so you should not include the extension in the
 name you enter).  The command also prompts for the file's first category and, if
 option @code{todo-add-item-if-new-category} is enabled (the default),
-for that category's first item.  
+for that category's first item.
 
 @item F r
 Rename the current todo file (@code{todo-rename-file}).  If called with
@@ -461,7 +461,7 @@ Using @kbd{C-x C-q} to quit Todo Edit mode provides a measure of safety,
 since it runs a file format check, signaling an error if the format has
 become invalid.  However, this check cannot tell if the number of items
 changed, which could result in the file containing inconsistent
-information (see the cautionary note in @ref{Reordering Categories} for
+information (see the cautionary note in @ref{Reordering Categories}, for
 more details).  For this reason @kbd{F e} should be used with caution.
 @end table
 
@@ -1139,7 +1139,7 @@ Mark the item at point if it is unmarked, and remove the mark it is
 already marked (@code{todo-toggle-mark-item}).  The mark is a string
 specified by the option @code{todo-item-mark} (by default @samp{*})
 appended in front of the item header (more precisely, in front of the
-item's priority number or prefix; @pxref{Todo Display Features} for
+item's priority number or prefix; see @ref{Todo Display Features}, for
 details of the latter).  After marking the current item, the command
 advances point to the next item.  It also accepts a numeric prefix
 argument, which allows toggling the mark of multiple consecutive items.
@@ -1332,7 +1332,7 @@ way to do this in Todo mode is by sequentially searching in the file:
 @table @kbd
 
 @item S
-This command (@code{todo-search}; the key is capital `S') prompts for a
+This command (@code{todo-search}; the key is capital @kbd{S}) prompts for a
 regular expression, searches from the beginning of the current todo file
 and displays the category containing the first match it finds, with the
 match highlighted.  If there are further matches, a message saying how
@@ -1355,7 +1355,7 @@ These commands are also available in Todo Archive mode.
 A more powerful alternative to sequential searching is item filtering,
 by which items from different categories that match specified criteria
 are gathered and displayed in a new buffer as a kind of virtual
-category in a distinct mode, Todo Filtered Items mode.  
+category in a distinct mode, Todo Filtered Items mode.
 
 @menu
 * Filtering Items::
@@ -1612,7 +1612,7 @@ buffers of filtered items that have not yet been written to a file.)
 
 In the todo items section of each Todo mode category, the item prefix
 (whether a priority number or a fixed string) of the top priority items
-(determined as specified in @ref{Filtering Items}) is displayed in a
+(determined as specified in @pxref{Filtering Items}) is displayed in a
 different face from the prefix of the other items, so you see at a
 glance how many items in the category are top priorities.
 

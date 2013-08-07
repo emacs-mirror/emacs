@@ -1,3 +1,10 @@
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* todo-mode.texi: Update @dircategory.
+	(Overview, Todo Items as Diary Entries, Todo Mode Entry Points)
+	(File Editing, Marked Items, Item Prefix): Fix usage of @xref and
+	@ref.
+
 2013-08-07  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* sc.texi (Introduction): Fix index.
