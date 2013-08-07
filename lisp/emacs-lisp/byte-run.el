@@ -83,7 +83,6 @@ The return value of this function is not used."
                    (list 'quote f) (list 'quote new-name) (list 'quote when))))
    (list 'compiler-macro
          #'(lambda (f args compiler-function)
-             ;; FIXME: Make it possible to just reuse `args'.
              `(eval-and-compile
                 (put ',f 'compiler-macro
                      ,(if (eq (car-safe compiler-function) 'lambda)

@@ -1273,7 +1273,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	      (n (length (cdr form))))
 	  (if cons
 	      (or (memq n (cdr cons))
-		  (setcdr cons (cons n (cdr cons))))
+		  (push n (cdr cons)))
 	    (push (list (car form) n)
 		  byte-compile-unresolved-functions))))))
 
@@ -1364,7 +1364,10 @@ extra args."
       ;; This is the first definition.  See if previous calls are compatible.
       (let ((calls (assq name byte-compile-unresolved-functions))
 	    nums sig min max)
-	(when calls
+        (setq byte-compile-unresolved-functions
+              (delq calls byte-compile-unresolved-functions))
+        (setq calls (delq t calls))  ;Ignore higher-order uses of the function.
+	(when (cdr calls)
           (when (and (symbolp name)
                      (eq (function-get name 'byte-optimizer)
                          'byte-compile-inline-expand))
@@ -1382,10 +1385,7 @@ extra args."
              name
              (byte-compile-arglist-signature-string sig)
              (if (equal sig '(1 . 1)) " arg" " args")
-             (byte-compile-arglist-signature-string (cons min max))))
-
-          (setq byte-compile-unresolved-functions
-                (delq calls byte-compile-unresolved-functions)))))))
+             (byte-compile-arglist-signature-string (cons min max)))))))))
 
 (defvar byte-compile-cl-functions nil
   "List of functions defined in CL.")
@@ -2214,37 +2214,33 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-autoload (form)
   (and (let ((form form))
 	 (while (if (setq form (cdr form)) (macroexp-const-p (car form))))
-	 (null form))			;Constants only
+	 (null form))                        ;Constants only
        (memq (eval (nth 5 form)) '(t macro)) ;Macro
-       (eval form))			;Define the autoload.
+       (eval form))                          ;Define the autoload.
   ;; Avoid undefined function warnings for the autoload.
-  (when (and (consp (nth 1 form))
-	   (eq (car (nth 1 form)) 'quote)
-	   (consp (cdr (nth 1 form)))
-	   (symbolp (nth 1 (nth 1 form))))
-    ;; Don't add it if it's already defined.  Otherwise, it might
-    ;; hide the actual definition.  However, do remove any entry from
-    ;; byte-compile-noruntime-functions, in case we have an autoload
-    ;; of foo-func following an (eval-when-compile (require 'foo)).
-    (unless (fboundp (nth 1 (nth 1 form)))
-      (push (cons (nth 1 (nth 1 form))
-		  (cons 'autoload (cdr (cdr form))))
-	    byte-compile-function-environment))
-    ;; If an autoload occurs _before_ the first call to a function,
-    ;; byte-compile-callargs-warn does not add an entry to
-    ;; byte-compile-unresolved-functions.  Here we mimic the logic
-    ;; of byte-compile-callargs-warn so as not to warn if the
-    ;; autoload comes _after_ the function call.
-    ;; Alternatively, similar logic could go in
-    ;; byte-compile-warn-about-unresolved-functions.
-    (if (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	(setq byte-compile-noruntime-functions
-	      (delq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
-	      byte-compile-noruntime-functions)
-      (setq byte-compile-unresolved-functions
-	    (delq (assq (nth 1 (nth 1 form))
-			byte-compile-unresolved-functions)
-		  byte-compile-unresolved-functions))))
+  (pcase (nth 1 form)
+    (`',(and (pred symbolp) funsym)
+     ;; Don't add it if it's already defined.  Otherwise, it might
+     ;; hide the actual definition.  However, do remove any entry from
+     ;; byte-compile-noruntime-functions, in case we have an autoload
+     ;; of foo-func following an (eval-when-compile (require 'foo)).
+     (unless (fboundp funsym)
+       (push (cons funsym (cons 'autoload (cdr (cdr form))))
+             byte-compile-function-environment))
+     ;; If an autoload occurs _before_ the first call to a function,
+     ;; byte-compile-callargs-warn does not add an entry to
+     ;; byte-compile-unresolved-functions.  Here we mimic the logic
+     ;; of byte-compile-callargs-warn so as not to warn if the
+     ;; autoload comes _after_ the function call.
+     ;; Alternatively, similar logic could go in
+     ;; byte-compile-warn-about-unresolved-functions.
+     (if (memq funsym byte-compile-noruntime-functions)
+         (setq byte-compile-noruntime-functions
+               (delq funsym byte-compile-noruntime-functions)
+               byte-compile-noruntime-functions)
+       (setq byte-compile-unresolved-functions
+             (delq (assq funsym byte-compile-unresolved-functions)
+                   byte-compile-unresolved-functions)))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -3574,10 +3570,32 @@ discarding."
 ;; and (funcall (function foo)) will lose with autoloads.
 
 (defun byte-compile-function-form (form)
-  (byte-compile-constant (if (eq 'lambda (car-safe (nth 1 form)))
-                             (byte-compile-lambda (nth 1 form))
-                           (nth 1 form))))
+  (let ((f (nth 1 form)))
+    (when (and (symbolp f)
+               (byte-compile-warning-enabled-p 'callargs))
+      (when (get f 'byte-obsolete-info)
+        (byte-compile-warn-obsolete (car form)))
 
+      ;; Check to see if the function will be available at runtime
+      ;; and/or remember its arity if it's unknown.
+      (or (and (or (fboundp f)          ; Might be a subr or autoload.
+                   (byte-compile-fdefinition (car form) nil))
+               (not (memq f byte-compile-noruntime-functions)))
+          (eq f byte-compile-current-form) ; ## This doesn't work
+                                           ; with recursion.
+          ;; It's a currently-undefined function.
+          ;; Remember number of args in call.
+          (let ((cons (assq f byte-compile-unresolved-functions)))
+            (if cons
+                (or (memq t (cdr cons))
+                    (push t (cdr cons)))
+              (push (list f t)
+                    byte-compile-unresolved-functions)))))
+
+    (byte-compile-constant (if (eq 'lambda (car-safe f))
+                               (byte-compile-lambda f)
+                             f))))
+  
 (defun byte-compile-indent-to (form)
   (let ((len (length form)))
     (cond ((= len 2)
