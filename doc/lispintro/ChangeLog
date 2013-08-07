@@ -1,3 +1,11 @@
+2013-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp-intro.texi (Beginning init File): Rename from
+	"Beginning a .emacs File", since a node name cannot include a
+	period.
+	(Top, Emacs Initialization, Change a defun): All references
+	changed.  (Bug#15038)
+
 2013-08-02  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* emacs-lisp-intro.texi (zap-to-char): Remove obsolete stuff.

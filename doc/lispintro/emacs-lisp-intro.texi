@@ -648,7 +648,7 @@ Your @file{.emacs} File
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -3260,7 +3260,7 @@ line that follows a semicolon is a comment.  The end of the line is the
 end of the comment.  To stretch a comment over two or more lines, begin
 each line with a semicolon.
 
-@xref{Beginning a .emacs File, , Beginning a @file{.emacs}
+@xref{Beginning init File, , Beginning a @file{.emacs}
 File}, and @ref{Comments, , Comments, elisp, The GNU Emacs Lisp
 Reference Manual}, for more about comments.
 
@@ -16706,7 +16706,7 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Default Configuration::
 * Site-wide Init::              You can write site-wide init files.
 * defcustom::                   Emacs will write code for you.
-* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Beginning init File::         How to write a @file{.emacs} init file.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
@@ -16977,7 +16977,7 @@ intent is that neither programs nor users should ever change a value
 set by @code{defconst}.  (You can change it; the value set is a
 variable; but please do not.)
 
-@node Beginning a .emacs File
+@node Beginning init File
 @section Beginning a @file{.emacs} File
 @cindex @file{.emacs} file, beginning of
 
