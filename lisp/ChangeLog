@@ -16,8 +16,7 @@
 	(calendar-day-abbrev-array):
 	Also :set calendar-day-header-array, and maybe redraw.
 	(calendar-day-header-array): New option.  (Bug#15007)
-	(calendar-font-lock-keywords): Use calendar-day-header-array,
-	and calendar- faces.  Make obsolete.
+	(calendar-font-lock-keywords): Set to nil and make obsolete.
 	(calendar-day-name): Add option to use header array.
 
 2013-08-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>

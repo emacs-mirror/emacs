@@ -2360,26 +2360,7 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defvar calendar-font-lock-keywords
-  ;; Month and year.  Not really needed now that calendar-month-header
-  ;; contains propertize, and not correct for non-american forms
-  ;; of that variable.
-  `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
-              " -?[0-9]+")
-     . 'calendar-month-header)
-    ;; Day headers.
-    ;; Also not needed now that calendar-generate-month uses propertize.
-    (,(regexp-opt
-       (list (truncate-string-to-width (aref calendar-day-header-array 6)
-                                       calendar-day-header-width)
-             (truncate-string-to-width (aref calendar-day-header-array 0)
-                                       calendar-day-header-width)))
-     ;; Saturdays and Sundays are highlighted differently.
-     . 'calendar-weekend-header)
-     (,(regexp-opt (mapcar (lambda (x) (truncate-string-to-width
-                                        x calendar-day-header-width))
-                           calendar-day-header-array))
-      . 'calendar-day-header))
+(defvar calendar-font-lock-keywords nil
   "Default keywords to highlight in Calendar mode.")
 
 (make-obsolete-variable 'calendar-font-lock-keywords
