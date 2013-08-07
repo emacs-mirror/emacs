@@ -1,3 +1,9 @@
+2013-08-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_send_client_event): Set send_event and serial, memset
+	data.l as it might be bigger than data.b.   Use 24 bit mask to
+	XSendEvent (Bug#15034).
+
 2013-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (prepare_menu_bars): Don't call x_consider_frame_title

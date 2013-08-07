@@ -2628,6 +2628,8 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
   block_input ();
 
+  event.xclient.send_event = True;
+  event.xclient.serial = 0;
   event.xclient.message_type = message_type;
   event.xclient.display = dpyinfo->display;
 
@@ -2635,19 +2637,19 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
      when sending to the root window.  */
   event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
 
-
-  memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
+  memset (event.xclient.data.l, 0, sizeof (event.xclient.data.l));
   x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
                         event.xclient.format);
 
   /* If event mask is 0 the event is sent to the client that created
      the destination window.  But if we are sending to the root window,
-     there is no such client.  Then we set the event mask to 0xffff.  The
+     there is no such client.  Then we set the event mask to 0xffffff.  The
      event then goes to clients selecting for events on the root window.  */
   x_catch_errors (dpyinfo->display);
   {
     int propagate = to_root ? False : True;
-    unsigned mask = to_root ? 0xffff : 0;
+    long mask = to_root ? 0xffffff : 0;
+
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }
