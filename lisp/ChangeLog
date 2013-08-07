@@ -1,3 +1,10 @@
+2013-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/dos.el (auto-mode-alist): Add entries for dos-mode.
+	(dos-mode): Use setq-local.  Add space after "rem".
+	(dos-mode-syntax-table): Don't use "w" for symbol chars.
+	(dos-font-lock-keywords): Try to adjust font-lock rules accordingly.
+
 2013-08-07  Arni Magnusson  <arnima@hafro.is>
 
 	* progmodes/dos.el: New file.

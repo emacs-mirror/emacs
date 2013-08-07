@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 ;;
-;; Major mode for editing Dos scripts (batch files). Provides syntax
+;; Major mode for editing Dos scripts (batch files).  Provides syntax
 ;; highlighting, a basic template, access to Dos help pages, imenu/outline
-;; navigation, and the ability to run scripts from within Emacs. The syntax
+;; navigation, and the ability to run scripts from within Emacs.  The syntax
 ;; groups for highlighting are:
 ;;
 ;; Face                          Example
@@ -79,24 +79,25 @@
              "goto" "gtr" "if" "in" "leq" "lss" "neq" "not" "start"))
           (LINUX
            '("cat" "cp" "ls" "mv" "rm")))
-      (list
-       '("\\<\\(call\\|goto\\)\\>[ \t]+%?\\([A-Za-z0-9-_\\:.]+\\)%?"
+      `(("\\<_\\(call\\|goto\\)\\_>[ \t]+%?\\([A-Za-z0-9-_\\:.]+\\)%?"
          (2 font-lock-constant-face t))
-       '("^[ \t]*\\(@?rem\\>\\|::\\).*"
+        ("^[ \t]*\\(@?rem\\_>\\|::\\).*"
          (0 font-lock-comment-face t))
-       '("^:[^:].*"
+        ("^:[^:].*"
          . 'dos-label-face)
-       '("\\<\\(defined\\|set\\)\\>[ \t]*\\(\\w+\\)"
+        ("\\<_\\(defined\\|set\\)\\_>[ \t]*\\(\\w+\\)"
          (2 font-lock-variable-name-face))
-       '("%\\(\\w+\\)%?"
+        ("%\\(\\w+\\)%?"
          (1 font-lock-variable-name-face))
-       '("!\\(\\w+\\)!?" ; delayed-expansion !variable!
+        ("!\\(\\w+\\)!?"                ; delayed-expansion !variable!
          (1 font-lock-variable-name-face))
-       '("[ =][-/]+\\(\\w+\\)"
+        ("[ =][-/]+\\(\\w+\\)"
          (1 font-lock-type-face append))
-       (cons (regexp-opt COMMANDS 'words) font-lock-builtin-face)
-       (cons (regexp-opt CONTROLFLOW 'words) font-lock-keyword-face)
-       (cons (regexp-opt LINUX 'words) font-lock-warning-face)))))
+        (,(concat "\\_<" (regexp-opt COMMANDS) "\\_>") . font-lock-builtin-face)
+        (,(concat "\\_<" (regexp-opt CONTROLFLOW) "\\_>")
+         . font-lock-keyword-face)
+        (,(concat "\\_<" (regexp-opt LINUX) "\\_>")
+         . font-lock-warning-face)))))
 
 (defvar dos-menu
   '("Dos"
@@ -114,7 +115,7 @@
   (let ((map (make-sparse-keymap)))
     (easy-menu-define nil map nil dos-menu)
     (define-key map [?\C-c ?\C-.] 'dos-mode-help)
-    (define-key map [?\C-c ?\C-/] 'dos-cmd-help)
+    (define-key map [?\C-c ?\C-/] 'dos-cmd-help) ;FIXME: Why not C-c C-? ?
     (define-key map [?\C-c ?\C-a] 'dos-run-args)
     (define-key map [?\C-c ?\C-c] 'dos-run)
     (define-key map [?\C-c ?\C-t] 'dos-template)
@@ -123,21 +124,24 @@
 
 (defvar dos-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?~ "w" table)
+    ;; Beware: `w' should not be used for non-alphabetic chars.
+    (modify-syntax-entry ?~ "_" table)
     (modify-syntax-entry ?% "." table)
-    (modify-syntax-entry ?- "w" table)
-    (modify-syntax-entry ?_ "w" table)
-    (modify-syntax-entry ?{ "w" table)
-    (modify-syntax-entry ?} "w" table)
+    (modify-syntax-entry ?- "_" table)
+    (modify-syntax-entry ?_ "_" table)
+    ;; FIXME: { and } can appear in identifiers?  Really?
+    (modify-syntax-entry ?{ "_" table)
+    (modify-syntax-entry ?} "_" table)
     (modify-syntax-entry ?\\ "." table)
     table))
 
 ;; 4  User functions
 
 (defun dos-cmd-help (cmd)
-  "Show help for Dos command."
+  "Show help for Dos command CMD."
   (interactive "sHelp: ")
   (if (string-equal cmd "net")
+      ;; FIXME: liable to quoting nightmare.  Use call-process?
       (shell-command "net /?") (shell-command (concat "help " cmd))))
 
 (defun dos-mode-help ()
@@ -149,17 +153,22 @@
 (defun dos-run ()
   "Run Dos script."
   (interactive)
+  ;; FIXME: liable to quoting nightmare.  Use call/start-process?
   (save-buffer) (shell-command buffer-file-name))
 
 (defun dos-run-args (args)
   "Run Dos script with ARGS."
   (interactive "sArgs: ")
+  ;; FIXME: Use `compile'?
   (shell-command (concat buffer-file-name " " args)))
 
 (defun dos-template ()
   "Insert minimal Dos template."
   (interactive)
   (goto-char (point-min)) (insert "@echo off\nsetlocal\n\n"))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.\\(bat\\|cmd\\)\\'" . dos-mode))
 
 ;; 5  Main function
 
@@ -171,12 +180,11 @@ Start a new script from `dos-template'. Read help pages for Dos commands with
 `dos-cmd-help'. Navigate between sections using `imenu'. Run script using
 `dos-run' and `dos-run-args'.\n
 \\{dos-mode-map}"
-  (set (make-local-variable 'comment-start) "rem")
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local comment-start "rem ")
+  (setq-local font-lock-defaults
        '(dos-font-lock-keywords nil t)) ; case-insensitive keywords
-  (set (make-local-variable 'imenu-generic-expression) '((nil "^:[^:].*" 0)))
-  (set (make-local-variable 'outline-regexp) ":[^:]")
-  (set-syntax-table dos-mode-syntax-table))
+  (setq-local imenu-generic-expression '((nil "^:[^:].*" 0)))
+  (setq-local outline-regexp ":[^:]"))
 
 (provide 'dos)
 
