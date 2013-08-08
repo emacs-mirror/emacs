@@ -2314,8 +2314,7 @@ MSG is printed after `::::} '."
 	    (if edebug-global-break-condition
 		(condition-case nil
 		    (setq edebug-global-break-result
-                          ;; FIXME: lexbind.
-			  (eval edebug-global-break-condition))
+			  (edebug-eval edebug-global-break-condition))
 		  (error nil))))
 	   (edebug-break))
 
@@ -2326,8 +2325,7 @@ MSG is printed after `::::} '."
 		(and edebug-break-data
 		     (or (not edebug-break-condition)
 			 (setq edebug-break-result
-                               ;; FIXME: lexbind.
-			       (eval edebug-break-condition))))))
+			       (edebug-eval edebug-break-condition))))))
       (if (and edebug-break
 	       (nth 2 edebug-break-data)) ; is it temporary?
 	  ;; Delete the breakpoint.

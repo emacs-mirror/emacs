@@ -1,3 +1,8 @@
+2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-debugger): Use edebug-eval to run the
+	break-condition in the context of the debugged code (bug#12685).
+
 2013-08-08  Christopher Schmidt  <christopher@ch.ristopher.com>
 
 	* comint.el:
@@ -6,8 +11,8 @@
 	(comint-last-prompt): New variable.
 	(comint-last-prompt-overlay): Remove.  Superseded by
 	comint-last-prompt.
-	(comint-snapshot-last-prompt, comint-output-filter): Use
-	comint-last-prompt.
+	(comint-snapshot-last-prompt, comint-output-filter):
+	Use comint-last-prompt.
 
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -164,8 +169,8 @@
 
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* files.el (cache-long-line-scans): Make
-	obsolete alias to `cache-long-scans'.
+	* files.el (cache-long-line-scans):
+	Make obsolete alias to `cache-long-scans'.
 
 2013-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
