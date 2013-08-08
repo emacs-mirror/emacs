@@ -577,8 +577,7 @@ x_update_begin (struct frame *f)
 }
 
 
-/* Start update of window W.  Set the global variable updated_window
-   to the window being updated and set output_cursor to the cursor
+/* Start update of window W.  Set output_cursor to the cursor
    position of W.  */
 
 static void
@@ -593,7 +592,6 @@ x_update_window_begin (struct window *w)
       SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
     }
 
-  updated_window = w;
   set_output_cursor (&w->cursor);
 
   block_input ();
@@ -664,7 +662,7 @@ w32_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 }
 
 
-/* End update of window W (which is equal to updated_window).
+/* End update of window W.
 
    Draw vertical borders between horizontally adjacent windows, and
    display W's cursor if CURSOR_ON_P is non-zero.
@@ -714,8 +712,6 @@ x_update_window_end (struct window *w, int cursor_on_p,
     {
       SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
     }
-
-  updated_window = NULL;
 }
 
 
@@ -733,9 +729,8 @@ x_update_end (struct frame *f)
 }
 
 
-/* This function is called from various places in xdisp.c whenever a
-   complete update has been performed.  The global variable
-   updated_window is not available here.  */
+/* This function is called from various places in xdisp.c
+   whenever a complete update has been performed.  */
 
 static void
 w32_frame_up_to_date (struct frame *f)
@@ -747,15 +742,13 @@ w32_frame_up_to_date (struct frame *f)
 
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
    arrow bitmaps, or clear the fringes if no bitmaps are required
-   before DESIRED_ROW is made current.  The window being updated is
-   found in updated_window.  This function is called from
+   before DESIRED_ROW is made current.  This function is called from
    update_window_line only if it is known that there are differences
    between bitmaps to be drawn between current row and DESIRED_ROW.  */
 
 static void
-x_after_update_window_line (struct glyph_row *desired_row)
+x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 {
-  struct window *w = updated_window;
   struct frame *f;
   int width, height;
 
@@ -766,7 +759,7 @@ x_after_update_window_line (struct glyph_row *desired_row)
 
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
-     check here if updated_window is the leftmost/rightmost window,
+     check here if updated window is the leftmost/rightmost window,
      but I guess it's not worth doing since vertically split windows
      are almost never used, internal border is rarely set, and the
      overhead is very small.  */
@@ -2806,7 +2799,6 @@ x_scroll_run (struct window *w, struct run *run)
   block_input ();
 
   /* Cursor off.  Will be switched on again in x_update_window_end.  */
-  updated_window = w;
   x_clear_cursor (w);
 
   {

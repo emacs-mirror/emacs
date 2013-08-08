@@ -11385,7 +11385,7 @@ struct cursor_pos output_cursor;
 
 /* EXPORT:
    Set the global variable output_cursor to CURSOR.  All cursor
-   positions are relative to updated_window.  */
+   positions are relative to currently updated window.  */
 
 void
 set_output_cursor (struct cursor_pos *cursor)
@@ -11400,41 +11400,24 @@ set_output_cursor (struct cursor_pos *cursor)
 /* EXPORT for RIF:
    Set a nominal cursor position.
 
-   HPOS and VPOS are column/row positions in a window glyph matrix.  X
-   and Y are window text area relative pixel positions.
+   HPOS and VPOS are column/row positions in a window glyph matrix.
+   X and Y are window text area relative pixel positions.
 
-   If this is done during an update, updated_window will contain the
-   window that is being updated and the position is the future output
-   cursor position for that window.  If updated_window is null, use
-   selected_window and display the cursor at the given position.  */
+   This is always done during window update, so the position is the
+   future output cursor position for currently updated window W.
+   NOTE: W is used only to check whether this function is called
+   in a consistent manner via the redisplay interface.  */
 
 void
-x_cursor_to (int vpos, int hpos, int y, int x)
+x_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
 {
-  struct window *w;
-
-  /* If updated_window is not set, work on selected_window.  */
-  if (updated_window)
-    w = updated_window;
-  else
-    w = XWINDOW (selected_window);
+  eassert (w);
 
   /* Set the output cursor.  */
   output_cursor.hpos = hpos;
   output_cursor.vpos = vpos;
   output_cursor.x = x;
   output_cursor.y = y;
-
-  /* If not called as part of an update, really display the cursor.
-     This will also set the cursor position of W.  */
-  if (updated_window == NULL)
-    {
-      block_input ();
-      display_and_set_cursor (w, 1, hpos, vpos, x, y);
-      if (FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
-	FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (SELECTED_FRAME ());
-      unblock_input ();
-    }
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -25745,16 +25728,15 @@ x_produce_glyphs (struct it *it)
 /* EXPORT for RIF:
    Output LEN glyphs starting at START at the nominal cursor position.
    Advance the nominal cursor over the text.  The global variable
-   updated_window contains the window being updated, updated_row is
-   the glyph row being updated, and updated_area is the area of that
-   row being updated.  */
+   updated_row is the glyph row being updated, and updated_area is the
+   area of that row being updated.  */
 
 void
-x_write_glyphs (struct glyph *start, int len)
+x_write_glyphs (struct window *w, struct glyph *start, int len)
 {
-  int x, hpos, chpos = updated_window->phys_cursor.hpos;
+  int x, hpos, chpos = w->phys_cursor.hpos;
 
-  eassert (updated_window && updated_row);
+  eassert (updated_row);
   /* When the window is hscrolled, cursor hpos can legitimately be out
      of bounds, but we draw the cursor at the corresponding window
      margin in that case.  */
@@ -25768,18 +25750,18 @@ x_write_glyphs (struct glyph *start, int len)
   /* Write glyphs.  */
 
   hpos = start - updated_row->glyphs[updated_area];
-  x = draw_glyphs (updated_window, output_cursor.x,
+  x = draw_glyphs (w, output_cursor.x,
 		   updated_row, updated_area,
 		   hpos, hpos + len,
 		   DRAW_NORMAL_TEXT, 0);
 
   /* Invalidate old phys cursor if the glyph at its hpos is redrawn.  */
   if (updated_area == TEXT_AREA
-      && updated_window->phys_cursor_on_p
-      && updated_window->phys_cursor.vpos == output_cursor.vpos
+      && w->phys_cursor_on_p
+      && w->phys_cursor.vpos == output_cursor.vpos
       && chpos >= hpos
       && chpos < hpos + len)
-    updated_window->phys_cursor_on_p = 0;
+    w->phys_cursor_on_p = 0;
 
   unblock_input ();
 
@@ -25793,19 +25775,17 @@ x_write_glyphs (struct glyph *start, int len)
    Insert LEN glyphs from START at the nominal cursor position.  */
 
 void
-x_insert_glyphs (struct glyph *start, int len)
+x_insert_glyphs (struct window *w, struct glyph *start, int len)
 {
   struct frame *f;
-  struct window *w;
   int line_height, shift_by_width, shifted_region_width;
   struct glyph_row *row;
   struct glyph *glyph;
   int frame_x, frame_y;
   ptrdiff_t hpos;
 
-  eassert (updated_window && updated_row);
+  eassert (updated_row);
   block_input ();
-  w = updated_window;
   f = XFRAME (WINDOW_FRAME (w));
 
   /* Get the height of the line we are in.  */
@@ -25847,18 +25827,17 @@ x_insert_glyphs (struct glyph *start, int len)
    (inclusive) to pixel column TO_X (exclusive).  The idea is that
    everything from TO_X onward is already erased.
 
-   TO_X is a pixel position relative to updated_area of
-   updated_window.  TO_X == -1 means clear to the end of this area.  */
+   TO_X is a pixel position relative to updated_area of currently
+   updated window W.  TO_X == -1 means clear to the end of this area.  */
 
 void
-x_clear_end_of_line (int to_x)
+x_clear_end_of_line (struct window *w, int to_x)
 {
   struct frame *f;
-  struct window *w = updated_window;
   int max_x, min_y, max_y;
   int from_x, from_y, to_y;
 
-  eassert (updated_window && updated_row);
+  eassert (updated_row);
   f = XFRAME (w->frame);
 
   if (updated_row->full_width_p)
@@ -28820,7 +28799,7 @@ expose_window (struct window *w, XRectangle *fr)
   /* When we're currently updating the window, display and current
      matrix usually don't agree.  Arrange for a thorough display
      later.  */
-  if (w == updated_window)
+  if (w->must_be_updated_p)
     {
       SET_FRAME_GARBAGED (f);
       return 0;

@@ -135,10 +135,6 @@ struct frame *last_nonminibuf_frame;
 
 static bool delayed_size_change;
 
-/* Updated window if != 0.  Set by update_window.  */
-
-struct window *updated_window;
-
 /* Glyph row updated in update_window_line, and area that is updated.  */
 
 struct glyph_row *updated_row;
@@ -2286,7 +2282,7 @@ check_glyph_memory (void)
    screen.  We build such a view by constructing a frame matrix from
    window matrices in this section.
 
-   Windows that must be updated have their must_be_update_p flag set.
+   Windows that must be updated have their must_be_updated_p flag set.
    For all such windows, their desired matrix is made part of the
    desired frame matrix.  For other windows, their current matrix is
    made part of the desired frame matrix.
@@ -3243,12 +3239,12 @@ redraw_overlapped_rows (struct window *w, int yb)
 	    {
 	      updated_row = row;
 	      updated_area = area;
-	      FRAME_RIF (f)->cursor_to (i, 0, row->y,
+	      FRAME_RIF (f)->cursor_to (w, i, 0, row->y,
                                         area == TEXT_AREA ? row->x : 0);
 	      if (row->used[area])
-		FRAME_RIF (f)->write_glyphs (row->glyphs[area],
+		FRAME_RIF (f)->write_glyphs (w, row->glyphs[area],
                                              row->used[area]);
-	      FRAME_RIF (f)->clear_end_of_line (-1);
+	      FRAME_RIF (f)->clear_end_of_line (w, -1);
 	    }
 
 	  row->overlapped_p = 0;
@@ -3534,10 +3530,10 @@ update_marginal_area (struct window *w, int area, int vpos)
   /* Set cursor to start of glyphs, write them, and clear to the end
      of the area.  I don't think that something more sophisticated is
      necessary here, since marginal areas will not be the default.  */
-  rif->cursor_to (vpos, 0, desired_row->y, 0);
+  rif->cursor_to (w, vpos, 0, desired_row->y, 0);
   if (desired_row->used[area])
-    rif->write_glyphs (desired_row->glyphs[area], desired_row->used[area]);
-  rif->clear_end_of_line (-1);
+    rif->write_glyphs (w, desired_row->glyphs[area], desired_row->used[area]);
+  rif->clear_end_of_line (w, -1);
 }
 
 
@@ -3575,14 +3571,14 @@ update_text_area (struct window *w, int vpos)
 	  && !(current_row->mode_line_p && vpos > 0))
       || current_row->x != desired_row->x)
     {
-      rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
+      rif->cursor_to (w, vpos, 0, desired_row->y, desired_row->x);
 
       if (desired_row->used[TEXT_AREA])
-	rif->write_glyphs (desired_row->glyphs[TEXT_AREA],
+	rif->write_glyphs (w, desired_row->glyphs[TEXT_AREA],
 			   desired_row->used[TEXT_AREA]);
 
       /* Clear to end of window.  */
-      rif->clear_end_of_line (-1);
+      rif->clear_end_of_line (w, -1);
       changed_p = 1;
 
       /* This erases the cursor.  We do this here because
@@ -3718,8 +3714,8 @@ update_text_area (struct window *w, int vpos)
 		  break;
 		}
 
-	      rif->cursor_to (vpos, start_hpos, desired_row->y, start_x);
-	      rif->write_glyphs (start, i - start_hpos);
+	      rif->cursor_to (w, vpos, start_hpos, desired_row->y, start_x);
+	      rif->write_glyphs (w, start, i - start_hpos);
 	      changed_p = 1;
 	    }
 	}
@@ -3727,8 +3723,8 @@ update_text_area (struct window *w, int vpos)
       /* Write the rest.  */
       if (i < desired_row->used[TEXT_AREA])
 	{
-	  rif->cursor_to (vpos, i, desired_row->y, x);
-	  rif->write_glyphs (desired_glyph, desired_row->used[TEXT_AREA] - i);
+	  rif->cursor_to (w, vpos, i, desired_row->y, x);
+	  rif->write_glyphs (w, desired_glyph, desired_row->used[TEXT_AREA] - i);
 	  changed_p = 1;
 	}
 
@@ -3748,9 +3744,9 @@ update_text_area (struct window *w, int vpos)
 	{
 	  /* If old row extends to the end of the text area, clear.  */
 	  if (i >= desired_row->used[TEXT_AREA])
-	    rif->cursor_to (vpos, i, desired_row->y,
+	    rif->cursor_to (w, vpos, i, desired_row->y,
 			    desired_row->pixel_width);
-	  rif->clear_end_of_line (-1);
+	  rif->clear_end_of_line (w, -1);
 	  changed_p = 1;
 	}
       else if (desired_row->pixel_width < current_row->pixel_width)
@@ -3760,7 +3756,7 @@ update_text_area (struct window *w, int vpos)
 	  int xlim;
 
 	  if (i >= desired_row->used[TEXT_AREA])
-	    rif->cursor_to (vpos, i, desired_row->y,
+	    rif->cursor_to (w, vpos, i, desired_row->y,
 			    desired_row->pixel_width);
 
 	  /* If cursor is displayed at the end of the line, make sure
@@ -3778,7 +3774,7 @@ update_text_area (struct window *w, int vpos)
 	    }
 	  else
 	    xlim = current_row->pixel_width;
-	  rif->clear_end_of_line (xlim);
+	  rif->clear_end_of_line (w, xlim);
 	  changed_p = 1;
 	}
     }
@@ -3850,7 +3846,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	  || desired_row->exact_window_width_line_p != current_row->exact_window_width_line_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (desired_row)
 	      != MATRIX_ROW_CONTINUATION_LINE_P (current_row)))
-	rif->after_update_window_line_hook (desired_row);
+	rif->after_update_window_line_hook (w, desired_row);
     }
 
   /* Update current_row from desired_row.  */
@@ -3939,7 +3935,7 @@ set_window_cursor_after_update (struct window *w)
      Horizontal position is -1 when cursor is on the left fringe.   */
   hpos = clip_to_bounds (-1, hpos, w->current_matrix->matrix_w - 1);
   vpos = clip_to_bounds (0, vpos, w->current_matrix->nrows - 1);
-  rif->cursor_to (vpos, hpos, cy, cx);
+  rif->cursor_to (w, vpos, hpos, cy, cx);
 }
 
 

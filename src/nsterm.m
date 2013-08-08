@@ -711,9 +711,9 @@ ns_update_window_begin (struct window *w)
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
- Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+
   NSTRACE (ns_update_window_begin);
-  updated_window = w;
   set_output_cursor (&w->cursor);
 
   block_input ();
@@ -770,7 +770,6 @@ ns_update_window_end (struct window *w, int cursor_on_p,
       hlinfo->mouse_face_window = Qnil;
     }
 
-  updated_window = NULL;
   NSTRACE (update_window_end);
 }
 
@@ -2084,7 +2083,6 @@ ns_scroll_run (struct window *w, struct run *run)
 
   block_input ();
 
-  updated_window = w;
   x_clear_cursor (w);
 
   {
@@ -2102,12 +2100,11 @@ ns_scroll_run (struct window *w, struct run *run)
 
 
 static void
-ns_after_update_window_line (struct glyph_row *desired_row)
+ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 /* --------------------------------------------------------------------------
     External (RIF): preparatory to fringe update after text was updated
    -------------------------------------------------------------------------- */
 {
-  struct window *w = updated_window;
   struct frame *f;
   int width, height;
 

@@ -1,5 +1,31 @@
 2013-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Redesign redisplay interface to drop global variable updated_window.
+	Always pass currently updated window as a parameter to update routines.
+	* dispextern.h (updated_window): Remove declaration.
+	(struct redisplay_interface): Pass window parameter to
+	write_glyphs, insert_glyphs, clear_end_of_line, cursor_to
+	and after_update_window_hook.
+	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line, x_cursor_to):
+	Adjust prototypes.
+	* dispnew.c (updated_window): Remove.
+	(redraw_overlapped_rows, update_marginal_area, update_text_area)
+	(update_window_line): Adjust to match redisplay interface changes.
+	* nsterm.m (ns_update_window_begin, ns_update_window_end)
+	(ns_scroll_run, ns_after_update_window_line):
+	* w32term.c (x_update_window_begin, x_update_window_end)
+	(x_after_update_window_line, x_scroll_run):
+	* xterm.c (x_update_window_begin, x_update_window_end)
+	(x_after_update_window_line, x_scroll_run):
+	* xdisp.c (x_write_glyphs, x_insert_glyphs, x_clear_end_of_line):
+	Likewise.  Adjust comments where appropriate.
+	(x_cursor_to): Simplify because this is always called during window
+	update (but install debugging check anyway).
+	(expose_window): Check must_be_updated_p flag to see whether this
+	function is called during window update.
+
+2013-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Do not reset window modification event counters excessively.
 	These leftovers and poor man's tricky methods to catch extra
 	redisplay's attention are no longer needed.
