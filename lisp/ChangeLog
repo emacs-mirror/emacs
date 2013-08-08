@@ -1,6 +1,6 @@
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
-	* frameset.el (frameset-valid-p): Doc fix.
+	* frameset.el (frameset-valid-p): Check vector length.  Doc fix.
 	(frameset-save): Check validity of the resulting frameset.
 
 2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
