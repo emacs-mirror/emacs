@@ -474,6 +474,9 @@ To modify the keybindings, use the @code{ido-setup-hook}.  For example:
  (define-key ido-completion-map " " 'ido-next-match))
 @end example
 
+@c @defvr {User Option} ido-setup-hook
+@c a new node for Ido hooks?
+
 @menu
 * Changing List Order::         Changing the list of files.
 * Find File At Point::          Make Ido guess the context.
@@ -645,11 +648,29 @@ commands in the variable @code{command-history}.  Note that non-Ido
 equivalent is recorded.
 @end defvr
 
-@c @defvr {User Option} ido-enable-last-directory-history
+@defvr {User Option} ido-all-frames
+This user option will be passed to @code{walk-windows} as its
+@var{all-frames} argument when Ido is finding buffers.  @xref{Cyclic
+Window Ordering, , Cyclic Ordering of Windows, elisp, GNU Emacs Lisp
+Reference Manual}.
+@end defvr
+
+@defvr {User Option} ido-minibuffer-setup-hook
+This hook variable contains Ido-specific customization of minibuffer
+setup.  It is run during minibuffer setup if Ido is active, and is
+intended for use in customizing ido for interoperation with other
+packages.
+@end defvr
+
 @c @defvr {User Option} ido-enable-tramp-completion
+@c cross-reference to tramp.texi
+
+@c @cindex UNC host names, completion
 @c @defvr {User Option} ido-unc-hosts
 @c @defvr {User Option} ido-downcase-unc-hosts
 @c @defvr {User Option} ido-cache-unc-host-shares-time
+
+@c @defvr {User Option} ido-enable-last-directory-history
 @c @defvr {User Option} ido-max-work-file-list
 @c @defvr {User Option} ido-work-directory-match-only
 @c @defvr {User Option} ido-auto-merge-work-directories-length
@@ -660,7 +681,6 @@ equivalent is recorded.
 @c @defvr {User Option} ido-rotate-file-list-default
 @c @defvr {User Option} ido-enter-matching-directory
 @c @defvr {User Option} ido-create-new-buffer
-@c @defvr {User Option} ido-setup-hook
 @c @defvr {User Option} ido-separator
 @c @defvr {User Option} ido-decorations
 @c @defvr {User Option} ido-use-virtual-buffers
@@ -671,8 +691,6 @@ equivalent is recorded.
 @c @defvr {User Option} ido-rewrite-file-prompt-functions
 @c @defvr {User Option} ido-completion-buffer
 @c @defvr {User Option} ido-completion-buffer-all-completions
-@c @defvr {User Option} ido-all-frames
-@c @defvr {User Option} ido-minibuffer-setup-hook
 @c @defvr {User Option} ido-save-directory-list-file
 @c @defvr {User Option} ido-read-file-name-as-directory-commands
 @c @defvr {User Option} ido-read-file-name-non-ido
