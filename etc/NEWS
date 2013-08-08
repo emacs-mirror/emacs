@@ -131,6 +131,11 @@ You can change the default by customizing the variable blink-cursor-blinks.
 Also timers for blinking are stopped when no blinking is done, so Emacs does
 not consume CPU cycles.
 
+** New command `frameset-to-register' is now bound to `C-x r f', replacing
+`frame-configuration-to-register'.  It offers similar functionality, plus
+some enhancements, like the ability to restore deleted frames.  Command
+`frame-configuration-to-register' is still available, but unbound.
+
 
 * Editing Changes in Emacs 24.4
 
@@ -284,9 +289,9 @@ on the given date.
 auto-saves of the desktop.
 
 *** `desktop-restore-frames', enabled by default, allows saving and
-restoring the window/frame configuration.  Additional options
+restoring the frame/window configuration (frameset).  Additional options
 `desktop-restore-in-current-display', `desktop-restore-reuses-frames'
-and `desktop-restore-forces-onscreen' allow further customization.
+and `desktop-restore-forces-onscreen' offer further customization.
 
 ** Dired
 
