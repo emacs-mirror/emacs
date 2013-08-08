@@ -55,21 +55,21 @@ It contains the following slots, which can be accessed with
 		 of the frameset struct.  Currently its value is 1.
   timestamp    A read-only timestamp, the output of `current-time'.
   app          A symbol, or a list whose first element is a symbol, which
-                 identifies the creator of the frameset and related info;
-                 for example, desktop.el sets this slot to a list
-                 `(desktop . ,desktop-file-version).
+		 identifies the creator of the frameset and related info;
+		 for example, desktop.el sets this slot to a list
+		 `(desktop . ,desktop-file-version).
   name         A string, the name of the frameset instance.
   description  A string, a description for user consumption (to show in
-                 menus, messages, etc).
+		 menus, messages, etc).
   properties   A property list, to store both frameset-specific and
 		 user-defined serializable data.
   states       A list of items (FRAME-PARAMETERS . WINDOW-STATE), in no
 		 particular order.  Each item represents a frame to be
 		 restored.  FRAME-PARAMETERS is a frame's parameter alist,
 		 extracted with (frame-parameters FRAME) and filtered
-                 through `frameset-filter-params'.
+		 through `frameset-filter-params'.
 		 WINDOW-STATE is the output of `window-state-get' applied
-                 to the root window of the frame.
+		 to the root window of the frame.
 
 To avoid collisions, it is recommended that applications wanting to add
 private serializable data to `properties' either store all info under a
@@ -969,7 +969,7 @@ For the meaning of FORCE-DISPLAY, see `frameset-restore'."
 ;;;###autoload
 (cl-defun frameset-restore (frameset
 			    &key predicate filters reuse-frames
-			         force-display force-onscreen)
+				 force-display force-onscreen)
   "Restore a FRAMESET into the current display(s).
 
 PREDICATE is a function called with two arguments, the parameter alist
@@ -1009,8 +1009,8 @@ FORCE-ONSCREEN can be:
 	   It must return non-nil to force the frame onscreen, nil otherwise.
 
 Note the timing and scope of the operations described above: REUSE-FRAMES
-affects existing frames, FILTERS and FORCE-DISPLAY affect the frame being
-restored before that happens, and FORCE-ONSCREEN affects the frame once
+affects existing frames; PREDICATE, FILTERS and FORCE-DISPLAY affect the frame
+being restored before that happens; and FORCE-ONSCREEN affects the frame once
 it has been restored.
 
 All keyword parameters default to nil."

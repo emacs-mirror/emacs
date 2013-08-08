@@ -1,5 +1,7 @@
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset-restore): Doc fix.
+
 	* register.el (frameset-frame-id, frameset-frame-with-id)
 	(frameset-p, frameset-restore, frameset-save): Declare.
 	(register-alist): Document framesets.
