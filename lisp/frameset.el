@@ -104,8 +104,7 @@ FRAMESET is copied with `copy-tree'."
 
 ;;;###autoload
 (defun frameset-p (object)
-  "If OBJECT is a frameset, return its version number.
-Else return nil."
+  "Return non-nil if OBJECT is a frameset, nil otherwise."
   (and (vectorp object)                   ; a vector
        (eq (aref object 0) 'frameset)     ; tagged as `frameset'
        (integerp (aref object 1))         ; version is an int
@@ -122,7 +121,7 @@ Else return nil."
 
 Properties can be set with
 
-  (setf (frameset-prop FRAMESET PROP) NEW-VALUE)"
+  (setf (frameset-prop FRAMESET PROPERTY) NEW-VALUE)"
   (plist-get (frameset-properties frameset) property))
 
 (gv-define-setter frameset-prop (val fs prop)
