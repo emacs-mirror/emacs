@@ -432,7 +432,7 @@ Properties can be set with
     (minibuffer      . frameset-filter-minibuffer)
     (top             . frameset-filter-iconified))
   "Minimum set of parameters to filter for live (on-session) framesets.
-See `frameset-filter-alist' for a full description.")
+DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
 ;;;###autoload
 (defvar frameset-persistent-filter-alist
@@ -458,7 +458,7 @@ See `frameset-filter-alist' for a full description.")
      (window-system      . :never))
    frameset-session-filter-alist)
   "Parameters to filter for persistent framesets.
-See `frameset-filter-alist' for a full description.")
+DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
 ;;;###autoload
 (defvar frameset-filter-alist frameset-persistent-filter-alist
@@ -466,6 +466,15 @@ See `frameset-filter-alist' for a full description.")
 
 This alist is the default value of the FILTERS argument of
 `frameset-save' and `frameset-restore' (which see).
+
+Initially, `frameset-filter-alist' is set to, and shares the value of,
+`frameset-persistent-filter-alist'.  You can override any item in
+this alist by `push'ing a new item onto it.  If, for some reason, you
+intend to modify existing values, do
+
+  (setq frameset-filter-alist (copy-tree frameset-filter-alist))
+
+before changing anything.
 
 On saving, PARAMETERS is the parameter alist of each frame processed,
 and FILTERED is the parameter alist that gets saved to the frameset.

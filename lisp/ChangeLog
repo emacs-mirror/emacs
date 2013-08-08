@@ -8,6 +8,8 @@
 	(frameset-p, frameset-version, frameset-timestamp, frameset-app)
 	(frameset-name, frameset-description, frameset-properties)
 	(frameset-states): Add docstring.
+	(frameset-session-filter-alist, frameset-persistent-filter-alist)
+	(frameset-filter-alist): Doc fixes.
 
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
