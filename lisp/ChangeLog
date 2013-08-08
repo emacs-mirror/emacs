@@ -1,3 +1,8 @@
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-valid-p): Doc fix.
+	(frameset-save): Check validity of the resulting frameset.
+
 2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ido.el (ido-record-command): Add doc string.

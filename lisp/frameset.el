@@ -136,8 +136,12 @@ FRAMESET is copied with `copy-tree'."
 
 ;;;###autoload
 (defun frameset-valid-p (object)
-  "Return non-nil if OBJECT is a valid frameset, nil otherwise."
+  "Return non-nil if OBJECT is a valid frameset, nil otherwise.
+
+The return value is nil if OBJECT is not a frameset, or not
+a valid one, and the frameset version if it is valid."
   (and (vectorp object)                   ; a vector
+       (>= (length object) 8)             ; of the right length (future-proof)
        (eq (aref object 0) 'frameset)     ; tagged as `frameset'
        (integerp (aref object 1))         ; VERSION is an int
        (consp (aref object 2))            ; TIMESTAMP is a non-null list
@@ -307,7 +311,7 @@ Properties can be set with
 ;; the roundtrip though tty-land.  The answer is to add "stashing
 ;; parameters", working in pairs, to shelve the GUI-specific contents and
 ;; restore it once we're back in pixel country.  That's what functions
-;; `frameset-filter-shelve-param' and `frameset-unshelve-param' do.
+;; `frameset-filter-shelve-param' and `frameset-filter-unshelve-param' do.
 ;;
 ;; Basically, if you set `frameset-filter-shelve-param' as the filter for
 ;; a parameter P, it will detect when it is restoring a GUI frame into a
@@ -346,8 +350,8 @@ Properties can be set with
 ;; URL).  So the probability of a collision with existing or future
 ;; symbols is quite insignificant.
 ;;
-;; Now, what about the filter alists? There are three of them, though
-;; only two sets of parameters:
+;; Now, what about the filter alist variables? There are three of them,
+;; though only two sets of parameters:
 ;;
 ;; - `frameset-session-filter-alist' contains these filters that allow to
 ;;   save and restore framesets in-session, without the need to serialize
@@ -361,7 +365,7 @@ Properties can be set with
 ;;   disk without loss of information.  That's the format used by the
 ;;   desktop.el package, for example.
 ;;
-;; IMPORTANT: These variables share structure and should never be modified.
+;; IMPORTANT: These variables share structure and should NEVER be modified.
 ;;
 ;; - `frameset-filter-alist': The value of this variable is the default
 ;;   value for the FILTERS arguments of `frameset-save' and
@@ -745,21 +749,25 @@ PROPERTIES is a user-defined property list to add to the frameset."
 	 (frames (cl-delete-if-not #'frame-live-p
 				   (if predicate
 				       (cl-delete-if-not predicate list)
-				     list))))
+				     list)))
+	 fs)
     (frameset--record-minibuffer-relationships frames)
-    (make-frameset :app app
-		   :name name
-		   :description description
-		   :properties properties
-		   :states (mapcar
-			    (lambda (frame)
-			      (cons
-			       (frameset-filter-params (frame-parameters frame)
-						       (or filters
-							   frameset-filter-alist)
-						       t)
-			       (window-state-get (frame-root-window frame) t)))
-			    frames))))
+    (setq fs (make-frameset
+	      :app app
+	      :name name
+	      :description description
+	      :properties properties
+	      :states (mapcar
+		       (lambda (frame)
+			 (cons
+			  (frameset-filter-params (frame-parameters frame)
+						  (or filters
+						      frameset-filter-alist)
+						  t)
+			  (window-state-get (frame-root-window frame) t)))
+		       frames)))
+    (cl-assert (frameset-valid-p fs))
+    fs))
 
 
 ;; Restoring framesets
