@@ -1,3 +1,15 @@
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* register.el (frameset-frame-id, frameset-frame-with-id)
+	(frameset-p, frameset-restore, frameset-save): Declare.
+	(register-alist): Document framesets.
+	(frameset-session-filter-alist): Declare.
+	(frameset-to-register): New function.
+	(jump-to-register): Implement jumping to framesets.  Doc fix.
+	(describe-register-1): Describe framesets.
+
+	* bindings.el (ctl-x-r-map): Bind ?f to frameset-to-register.
+
 2013-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-save-frameset): Use new frameset-save args.

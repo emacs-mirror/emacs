@@ -1220,7 +1220,7 @@ if `inhibit-field-text-motion' is non-nil."
     (define-key map "n" 'number-to-register)
     (define-key map "+" 'increment-register)
     (define-key map "w" 'window-configuration-to-register)
-    (define-key map "f" 'frame-configuration-to-register)
+    (define-key map "f" 'frameset-to-register)
     map)
   "Keymap for subcommands of C-x r.")
 (define-key ctl-x-map "r" ctl-x-r-map)

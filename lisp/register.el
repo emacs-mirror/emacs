@@ -31,6 +31,12 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function frameset-frame-id "frameset" (frame))
+(declare-function frameset-frame-with-id "frameset" (id &optional frame-list))
+(declare-function frameset-p "frameset" (frameset))
+(declare-function frameset-restore "frameset" (frameset &rest keys) t)
+(declare-function frameset-save "frameset" (frame-list &rest keys) t)
+
 ;;; Code:
 
 (cl-defstruct
@@ -71,7 +77,9 @@ A list of the form (file-query FILE-NAME POSITION) represents
 A list of the form (WINDOW-CONFIGURATION POSITION)
  represents a saved window configuration plus a saved value of point.
 A list of the form (FRAME-CONFIGURATION POSITION)
- represents a saved frame configuration plus a saved value of point.")
+ represents a saved frame configuration plus a saved value of point.
+A list of the form (FRAMESET FRAME-ID POSITION)
+ represents a saved frameset plus the value of point in frame FRAME-ID.")
 
 (defgroup register nil
   "Register commands."
@@ -132,16 +140,32 @@ Argument is a character, naming the register."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-frame-configuration) (point-marker))))
 
+(defvar frameset-session-filter-alist)
+
+(defun frameset-to-register (register &optional _arg)
+  "Store the current frameset in register REGISTER.
+Use \\[jump-to-register] to restore the frameset.
+Argument is a character, naming the register."
+  (interactive "cFrameset to register: \nP")
+  (set-register register
+		(list (frameset-save nil
+				     :app 'register
+				     :filters frameset-session-filter-alist)
+		      ;; frameset-save does not include the value of point
+		      ;; in the current buffer, so record that separately.
+		      (frameset-frame-id nil)
+		      (point-marker))))
+
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)
   "Move point to location stored in a register.
 If the register contains a file name, find that file.
 \(To put a file name in a register, you must use `set-register'.)
-If the register contains a window configuration (one frame) or a frame
-configuration (all frames), restore that frame or all frames accordingly.
+If the register contains a window configuration (one frame) or a frameset
+\(all frames), restore that frame or all frames accordingly.
 First argument is a character, naming the register.
 Optional second arg non-nil (interactively, prefix argument) says to
-delete any existing frames that the frame configuration doesn't mention.
+delete any existing frames that the frameset doesn't mention.
 \(Otherwise, these frames are iconified.)"
   (interactive "cJump to register: \nP")
   (let ((val (get-register register)))
@@ -157,6 +181,16 @@ delete any existing frames that the frame configuration doesn't mention.
      ((and (consp val) (window-configuration-p (car val)))
       (set-window-configuration (car val))
       (goto-char (cadr val)))
+     ((and (consp val) (frameset-p (car val)))
+      (let ((iconify-list (if delete nil (frame-list)))
+	    frame)
+	(frameset-restore (car val)
+			  :filters frameset-session-filter-alist
+			  :reuse-frames (if delete t :keep))
+	(mapc #'iconify-frame iconify-list)
+	(when (setq frame (frameset-frame-with-id (cadr val)))
+	  (select-frame-set-input-focus frame)
+	  (goto-char (nth 2 val)))))
      ((markerp val)
       (or (marker-buffer val)
 	  (error "That register's buffer no longer exists"))
@@ -268,6 +302,9 @@ The Lisp value REGISTER is a character."
 
      ((and (consp val) (frame-configuration-p (car val)))
       (princ "a frame configuration."))
+
+     ((and (consp val) (frameset-p (car val)))
+      (princ "a frameset."))
 
      ((and (consp val) (eq (car val) 'file))
       (princ "the file ")
