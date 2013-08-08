@@ -691,9 +691,18 @@ ns_update_begin (struct frame *f)
   {
     NSBezierPath *bp;
     NSRect r = [view frame];
-  bp = [[NSBezierPath bezierPathWithRect: r] retain];
-  [bp setClip];
-  [bp release];
+    NSRect cr = [[view window] frame];
+    /* If a large frame size is set, r may be larger than the window frame
+       before constrained.  In that case don't change the clip path, as we
+       will clear in to the tool bar and title bar.  */
+    if (r.size.height
+        + FRAME_NS_TITLEBAR_HEIGHT (f)
+        + FRAME_TOOLBAR_HEIGHT (f) <= cr.size.height)
+      {
+        bp = [[NSBezierPath bezierPathWithRect: r] retain];
+        [bp setClip];
+        [bp release];
+      }
   }
 #endif
 
@@ -784,9 +793,9 @@ ns_update_end (struct frame *f)
   EmacsView *view = FRAME_NS_VIEW (f);
 
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
-    MOUSE_HL_INFO (f)->mouse_face_defer = 0;
+  MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
-    block_input ();
+  block_input ();
 
   [view unlockFocus];
   [[view window] flushWindow];

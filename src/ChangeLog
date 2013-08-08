@@ -1,3 +1,8 @@
+2013-08-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_begin): Don't change clip path if it would be
+	larger than the NSWindow (Bug#14934).
+
 2013-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Redesign redisplay interface to drop global variable updated_window.
