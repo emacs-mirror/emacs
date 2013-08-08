@@ -1,3 +1,10 @@
+2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-function-warn): New function,
+	extracted from byte-compile-callargs-warn and byte-compile-normal-call.
+	(byte-compile-callargs-warn, byte-compile-function-form): Use it.
+	(byte-compile-normal-call): Remove obsolescence check.
+
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-restore): Doc fix.

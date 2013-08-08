@@ -1224,6 +1224,24 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (format "%d" (car signature)))
 	(t (format "%d-%d" (car signature) (cdr signature)))))
 
+(defun byte-compile-function-warn (f nargs def)
+  (when (get f 'byte-obsolete-info)
+    (byte-compile-warn-obsolete f))
+
+  ;; Check to see if the function will be available at runtime
+  ;; and/or remember its arity if it's unknown.
+  (or (and (or def (fboundp f))         ; might be a subr or autoload.
+           (not (memq f byte-compile-noruntime-functions)))
+      (eq f byte-compile-current-form)  ; ## This doesn't work
+                                        ; with recursion.
+      ;; It's a currently-undefined function.
+      ;; Remember number of args in call.
+      (let ((cons (assq f byte-compile-unresolved-functions)))
+        (if cons
+            (or (memq nargs (cdr cons))
+                (push nargs (cdr cons)))
+          (push (list f nargs)
+                byte-compile-unresolved-functions)))))
 
 ;; Warn if the form is calling a function with the wrong number of arguments.
 (defun byte-compile-callargs-warn (form)
@@ -1261,21 +1279,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	     "accepts only")
 	   (byte-compile-arglist-signature-string sig))))
     (byte-compile-format-warn form)
-    ;; Check to see if the function will be available at runtime
-    ;; and/or remember its arity if it's unknown.
-    (or (and (or def (fboundp (car form))) ; might be a subr or autoload.
-	     (not (memq (car form) byte-compile-noruntime-functions)))
-	(eq (car form) byte-compile-current-form) ; ## This doesn't work
-                                                  ; with recursion.
-	;; It's a currently-undefined function.
-	;; Remember number of args in call.
-	(let ((cons (assq (car form) byte-compile-unresolved-functions))
-	      (n (length (cdr form))))
-	  (if cons
-	      (or (memq n (cdr cons))
-		  (push n (cdr cons)))
-	    (push (list (car form) n)
-		  byte-compile-unresolved-functions))))))
+    (byte-compile-function-warn (car form) (length (cdr form)) def)))
 
 (defun byte-compile-format-warn (form)
   "Warn if FORM is `format'-like with inconsistent args.
@@ -2960,8 +2964,6 @@ That command is designed for interactive use only" fn))
               '(custom-declare-group custom-declare-variable
                                      custom-declare-face))
         (byte-compile-nogroup-warn form))
-    (when (get (car form) 'byte-obsolete-info)
-      (byte-compile-warn-obsolete (car form)))
     (byte-compile-callargs-warn form))
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
@@ -3573,24 +3575,7 @@ discarding."
   (let ((f (nth 1 form)))
     (when (and (symbolp f)
                (byte-compile-warning-enabled-p 'callargs))
-      (when (get f 'byte-obsolete-info)
-        (byte-compile-warn-obsolete (car form)))
-
-      ;; Check to see if the function will be available at runtime
-      ;; and/or remember its arity if it's unknown.
-      (or (and (or (fboundp f)          ; Might be a subr or autoload.
-                   (byte-compile-fdefinition (car form) nil))
-               (not (memq f byte-compile-noruntime-functions)))
-          (eq f byte-compile-current-form) ; ## This doesn't work
-                                           ; with recursion.
-          ;; It's a currently-undefined function.
-          ;; Remember number of args in call.
-          (let ((cons (assq f byte-compile-unresolved-functions)))
-            (if cons
-                (or (memq t (cdr cons))
-                    (push t (cdr cons)))
-              (push (list f t)
-                    byte-compile-unresolved-functions)))))
+      (byte-compile-function-warn f t (byte-compile-fdefinition f nil)))
 
     (byte-compile-constant (if (eq 'lambda (car-safe f))
                                (byte-compile-lambda f)
