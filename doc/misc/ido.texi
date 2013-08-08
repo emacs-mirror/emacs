@@ -631,7 +631,7 @@ fraction of the frame width.
 @end defvr
 
 @defvr {User Option} ido-max-window-height
-If the value of this user option is non@code{nil}, its value will
+If the value of this user option is non-@code{nil}, its value will
 override the variable @code{max-mini-window-height}, which is the
 maximum height for resizing mini-windows (the minibuffer and the echo
 area).  If it's a floating point number, it specifies a fraction of
@@ -639,7 +639,12 @@ the mini-window frame's height.  If it's an integer, it specifies the
 number of lines.
 @end defvr
 
-@c @defvr {User Option} ido-record-commands
+@defvr {User Option} ido-record-commands
+If the value of this user option is non-@code{nil}, Ido will record
+commands in the variable @code{command-history}.  Note that non-Ido
+equivalent is recorded.
+@end defvr
+
 @c @defvr {User Option} ido-enable-last-directory-history
 @c @defvr {User Option} ido-enable-tramp-completion
 @c @defvr {User Option} ido-unc-hosts

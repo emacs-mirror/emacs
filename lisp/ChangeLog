@@ -1,3 +1,7 @@
+2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.el (ido-record-command): Add doc string.
+
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset): Do not disable creation of the default

@@ -523,8 +523,8 @@ window with completion alternatives, or `ido-next-match' or
 
 
 (defcustom ido-record-commands t
-  "Non-nil means that `ido' will record commands in command history.
-Note that the non-ido equivalent command is recorded."
+  "Non-nil means that Ido will record commands in command history.
+Note that the non-Ido equivalent command is recorded."
   :type 'boolean
   :group 'ido)
 
@@ -1789,10 +1789,10 @@ This function also adds a hook to the minibuffer."
   (ido-set-current-directory (expand-file-name (or dir "~/"))))
 
 (defun ido-record-command (command arg)
-  ;; Add (command arg) to command-history if ido-record-commands is t
-  (if ido-record-commands
+  "Add (COMMAND ARG) to `command-history' if `ido-record-commands' is non-nil."
+  (if ido-record-commands		; FIXME: use `when' instead of `if'?
       (let ((cmd (list command arg)))
-	(if (or (not command-history)
+	(if (or (not command-history)	; FIXME: ditto
 		(not (equal cmd (car command-history))))
 	    (setq command-history (cons cmd command-history))))))
 
