@@ -1,3 +1,62 @@
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout-widgets.el (allout-widgets-pre-command-business)
+	(allout-widgets-post-command-business)
+	(allout-widgets-after-change-handler)
+	(allout-decorate-item-and-context, allout-set-boundary-marker)
+	(allout-body-modification-handler)
+	(allout-graphics-modification-handler): Mark ignored arguments.
+	(allout-widgets-post-command-business)
+	(allout-widgets-exposure-change-processor)
+	(allout-widgets-exposure-undo-processor)
+	(allout-decorate-item-and-context, allout-redecorate-visible-subtree)
+	(allout-parse-item-at-point, allout-decorate-item-guides)
+	(allout-decorate-item-cue, allout-item-span): Remove unused variables.
+	* allout.el (epa-passphrase-callback-function): Declare.
+	(allout-overlay-insert-in-front-handler)
+	(allout-overlay-interior-modification-handler)
+	(allout-isearch-end-handler, allout-chart-siblings)
+	(allout-up-current-level, allout-end-of-level, allout-reindent-body)
+	(allout-yank-processing, allout-process-exposed)
+	(allout-latex-verb-quote, allout-latexify-one-item, outlineify-sticky)
+	(allout-latex-verbatim-quote-curr-line): Removed unused variables.
+	* emacs-lisp/lisp-mode.el (lisp-eval-defun, last-sexp-toggle-display)
+	(lisp-indent-defform): Mark ignored arguments.
+	(lisp-indent-line): Mark ignored arguments.  Remove unused variables.
+	(calculate-lisp-indent): Remove unused variables.
+	* international/characters.el (indian-2-column, arabic-2-column)
+	(tibetan): Mark ignored arguments.
+	(use-cjk-char-width-table): Mark ignored arguments.
+	Remove unused variables.
+	* international/fontset.el (build-default-fontset-data)
+	(x-compose-font-name, create-fontset-from-fontset-spec):
+	Mark ignored arguments.
+	(fontset-plain-name): Remove unused variables.
+	* international/mule.el (charset-id, charset-bytes, generic-char-p)
+	(keyboard-coding-system): Mark ignored arguments.
+	(find-auto-coding): Remove unused variables.  Use `ignore-errors'.
+	* help.el (resize-temp-buffer-window):
+	* window.el (display-buffer-in-major-side-window)
+	(display-buffer-in-side-window, display-buffer-in-previous-window):
+	Remove unused variables.
+	* isearch.el (isearch-forward-symbol):
+	* version.el (emacs-bzr-version-bzr):
+	* international/mule-cmds.el (current-language-environment):
+	* term/common-win.el (x-handle-iconic, x-handle-geometry)
+	(x-handle-display):
+	* term/pc-win.el (x-list-fonts, x-display-planes)
+	(x-display-color-cells, x-server-max-request-size, x-server-vendor)
+	(x-server-version, x-display-screens, x-display-mm-height)
+	(x-display-mm-width, x-display-backing-store, x-display-visual-class)
+	(x-selection-owner-p, x-own-selection-internal)
+	(x-disown-selection-internal, x-get-selection-internal)
+	(msdos-initialize-window-system):
+	* term/tty-colors.el (tty-color-alist, tty-color-clear):
+	* term/x-win.el (x-handle-no-bitmap-icon):
+	* vc/vc-hooks.el (vc-mode, vc-default-make-version-backups-p)
+	(vc-default-find-file-hook, vc-default-extra-menu):
+	Mark ignored arguments.
+
 2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-debugger): Use edebug-eval to run the

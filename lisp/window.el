@@ -685,10 +685,8 @@ symbols and values as passed to `display-buffer-in-side-window'.
 This function may be called only if no window on SIDE exists yet.
 The new window automatically becomes the \"major\" side window on
 SIDE.  Return the new window, nil if its creation window failed."
-  (let* ((root (frame-root-window))
-	 (left-or-right (memq side '(left right)))
+  (let* ((left-or-right (memq side '(left right)))
 	 (major (window--major-side-window side))
-	 (selected-window (selected-window))
 	 (on-side (cond
 		   ((eq side 'top) 'above)
 		   ((eq side 'bottom) 'below)
@@ -698,8 +696,7 @@ SIDE.  Return the new window, nil if its creation window failed."
 	 ;; parent window unless needed.
 	 (window-combination-resize 'side)
 	 (window-combination-limit nil)
-	 (new (split-window major nil on-side))
-	 fun)
+	 (new (split-window major nil on-side)))
     (when new
       ;; Initialize `window-side' parameter of new window to SIDE.
       (set-window-parameter new 'window-side side)
@@ -749,8 +746,7 @@ following symbols can be used:
   A positive value means use a slot following (that is, below or
   on the right of) the middle slot.  The default is zero."
   (let ((side (or (cdr (assq 'side alist)) 'bottom))
-	(slot (or (cdr (assq 'slot alist)) 0))
-	new)
+	(slot (or (cdr (assq 'slot alist)) 0)))
     (cond
      ((not (memq side '(top bottom left right)))
       (error "Invalid side %s specified" side))
@@ -776,9 +772,8 @@ following symbols can be used:
 		  ((eq side 'right) 2)
 		  ((eq side 'bottom) 3))
 		 window-sides-slots))
-	   (selected-window (selected-window))
 	   window this-window this-slot prev-window next-window
-	   best-window best-slot abs-slot new-window)
+	   best-window best-slot abs-slot)
 
       (cond
        ((and (numberp max-slots) (<= max-slots 0))
@@ -5730,7 +5725,7 @@ above, even if that window never showed BUFFER before."
 		   0)
 		  (display-buffer-reuse-frames 0)
 		  (t (last-nonminibuffer-frame))))
-	 entry best-window second-best-window window)
+	 best-window second-best-window window)
     ;; Scan windows whether they have shown the buffer recently.
     (catch 'best
       (dolist (window (window-list-1 (frame-first-window) 'nomini frames))

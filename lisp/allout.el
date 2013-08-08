@@ -74,6 +74,9 @@
 
 ;;; Code:
 
+(declare-function epa-passphrase-callback-function
+		  "epa" (context key-id handback))
+
 ;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
@@ -2121,8 +2124,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 
 ;;;_  > allout-overlay-insert-in-front-handler (ol after beg end
 ;;;                                                &optional prelen)
-(defun allout-overlay-insert-in-front-handler (ol after beg end
-                                                  &optional prelen)
+(defun allout-overlay-insert-in-front-handler (ol after beg _end
+                                                  &optional _prelen)
   "Shift the overlay so stuff inserted in front of it is excluded."
   (if after
       ;; ??? Shouldn't moving the overlay should be unnecessary, if overlay
@@ -2131,7 +2134,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 ;;;_  > allout-overlay-interior-modification-handler (ol after beg end
 ;;;                                                      &optional prelen)
 (defun allout-overlay-interior-modification-handler (ol after beg end
-                                                        &optional prelen)
+                                                        &optional _prelen)
   "Get confirmation before making arbitrary changes to invisible text.
 
 We expose the invisible text and ask for confirmation.  Refusal or
@@ -2194,7 +2197,7 @@ See `allout-overlay-interior-modification-handler' for details."
             (allout-overlay-interior-modification-handler
              overlay nil beg end nil))))))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
-(defun allout-isearch-end-handler (&optional overlay)
+(defun allout-isearch-end-handler (&optional _overlay)
   "Reconcile allout outline exposure on arriving in hidden text after isearch.
 
 Optional OVERLAY parameter is for when this function is used by
@@ -2733,7 +2736,7 @@ starting point, and PREV-DEPTH is depth of prior topic."
 					; and maybe not preferable.
     ))
 ;;;_   > allout-chart-siblings (&optional start end)
-(defun allout-chart-siblings (&optional start end)
+(defun allout-chart-siblings (&optional _start _end)
   "Produce a list of locations of this and succeeding sibling topics.
 Effectively a top-level chart of siblings.  See `allout-chart-subtree'
 for an explanation of charts."
@@ -3051,7 +3054,7 @@ Returning depth if successful, nil if not."
       nil))
   )
 ;;;_   > allout-up-current-level (arg)
-(defun allout-up-current-level (arg)
+(defun allout-up-current-level (_arg)
   "Move out ARG levels from current visible topic."
   (interactive "p")
   (let ((start-point (point)))
@@ -3198,7 +3201,7 @@ Presumes point is at the start of a topic prefix."
   "Go back to the first sibling at this level, visible or not."
   (allout-end-of-level 'backward))
 ;;;_   > allout-end-of-level (&optional backward)
-(defun allout-end-of-level (&optional backward)
+(defun allout-end-of-level (&optional _backward)
   "Go to the last sibling at this level, visible or not."
 
   (let ((depth (allout-depth)))
@@ -3930,7 +3933,7 @@ Maintains outline hanging topic indentation if
       (if (or allout-former-auto-filler allout-use-hanging-indents)
           (funcall use-auto-fill-function)))))
 ;;;_    > allout-reindent-body (old-depth new-depth &optional number)
-(defun allout-reindent-body (old-depth new-depth &optional number)
+(defun allout-reindent-body (old-depth new-depth &optional _number)
   "Reindent body lines which were indented at OLD-DEPTH to NEW-DEPTH.
 
 Optional arg NUMBER indicates numbering is being added, and it must
@@ -4559,7 +4562,7 @@ Topic exposure is marked with text-properties, to be used by
             (if next (goto-char next)))))
       (set-buffer-modified-p was-modified))))
 ;;;_    > allout-yank-processing ()
-(defun allout-yank-processing (&optional arg)
+(defun allout-yank-processing (&optional _arg)
 
   "Incidental allout-specific business to be done just after text yanks.
 
@@ -5521,7 +5524,7 @@ header and body.  The elements of that list are:
 ;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
 (defun allout-process-exposed (&optional func from to frombuf tobuf
-					  format start-num)
+					 format _start-num)
   "Map function on exposed parts of current topic; results to another buffer.
 
 All args are options; default values itemized below.
@@ -5685,7 +5688,7 @@ used verbatim."
 
 ;;;_  - LaTeX formatting
 ;;;_   > allout-latex-verb-quote (string &optional flow)
-(defun allout-latex-verb-quote (string &optional flow)
+(defun allout-latex-verb-quote (string &optional _flow)
   "Return copy of STRING for literal reproduction across LaTeX processing.
 Expresses the original characters (including carriage returns) of the
 string across LaTeX processing."
@@ -5706,7 +5709,7 @@ across LaTeX processing, within the context of a `verbatim'
 environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line)
-    (let ((beg (point))
+    (let (;(beg (point))
           (end (point-at-eol)))
       (save-match-data
         (while (re-search-forward "\\\\"
@@ -5790,7 +5793,7 @@ environment.  Leaves point at the end of the line."
   (set-buffer buffer)
   (insert "\n\\end{document}\n"))
 ;;;_   > allout-latexify-one-item (depth prefix bullet text)
-(defun allout-latexify-one-item (depth prefix bullet text)
+(defun allout-latexify-one-item (depth _prefix bullet text)
   "Insert LaTeX commands for formatting one outline item.
 
 Args are the topics numeric DEPTH, the header PREFIX lead string, the
@@ -6359,7 +6362,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 ;;;###autoload
 (defalias 'outlinify-sticky 'outlineify-sticky)
 ;;;###autoload
-(defun outlineify-sticky (&optional arg)
+(defun outlineify-sticky (&optional _arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
 See `allout-layout' and customization of `allout-auto-activation'

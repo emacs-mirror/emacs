@@ -720,17 +720,17 @@ icon/bullet.")
 ;;;_  . Hooks and hook helpers
 ;;;_   , major command-loop business:
 ;;;_    > allout-widgets-pre-command-business (&optional recursing)
-(defun allout-widgets-pre-command-business (&optional recursing)
+(defun allout-widgets-pre-command-business (&optional _recursing)
   "Handle actions pending before `allout-mode' activity."
 )
 ;;;_    > allout-widgets-post-command-business (&optional recursing)
-(defun allout-widgets-post-command-business (&optional recursing)
+(defun allout-widgets-post-command-business (&optional _recursing)
   "Handle actions pending after any `allout-mode' commands.
 
 Optional RECURSING is for internal use, to limit recursion."
   ;; - check changed text for nesting discontinuities and escape anything
   ;;   that's: (1) asterisks at bol or (2) excessively nested.
-  (condition-case failure
+  (condition-case nil
 
       (when (and (boundp 'allout-mode) allout-mode)
 
@@ -811,7 +811,7 @@ Optional RECURSING is for internal use, to limit recursion."
                      (goto-char (widget-get this-widget :from))
                      (not (bolp)))
                 (if (not
-                     (condition-case err
+                     (condition-case nil
                          (yes-or-no-p
                           (concat "Misplaced item won't be recognizable "
                                   " as part of outline - rectify? "))
@@ -873,7 +873,7 @@ Optional RECURSING is for internal use, to limit recursion."
     (error
      (substitute-command-keys allout-structure-unruly-deletion-message)))))
 ;;;_    > allout-widgets-after-change-handler
-(defun allout-widgets-after-change-handler (beg end prelength)
+(defun allout-widgets-after-change-handler (_beg _end _prelength)
   "Reconcile what needs to be reconciled for allout widgets after edits."
   )
 ;;;_   > allout-current-decorated-p ()
@@ -999,7 +999,6 @@ Generally invoked via `allout-exposure-change-functions'."
         ;; have to distinguish between concealing and exposing so that, eg,
         ;; `allout-expose-topic's mix is handled properly.
         handled-expose
-        handled-conceal
         covered
         deactivate-mark)
 
@@ -1188,7 +1187,7 @@ Dispatched by `allout-widgets-post-command-business' in response to
   (let* ((allout-undo-exposure-in-progress t)
          ;; inhibit undo recording while twiddling exposure to track undo:
          (widgets allout-widgets-undo-exposure-record)
-         widget widget-start-marker widget-end-marker
+         widget-start-marker widget-end-marker
          from-state icon-start-point to-state
          handled covered)
     (setq allout-widgets-undo-exposure-record nil)
@@ -1552,7 +1551,7 @@ recursive operation."
 ;;;_   > allout-decorate-item-and-context (item-widget &optional redecorate
 ;;;                                                   blank-container parent)
 (defun allout-decorate-item-and-context (item-widget &optional redecorate
-                                                     blank-container parent)
+                                                     blank-container _parent)
   "Create or adjust widget decorations for ITEM-WIDGET and neighbors at point.
 
 The neighbors include its siblings and parent.
@@ -1593,12 +1592,8 @@ We return the item-widget corresponding to the item at point."
                                 steady-point))
            (parent (and (not is-container)
                         (allout-get-or-create-parent-widget)))
-           parent-flags parent-depth
            successor-sibling
-           body
            doing-item
-           sub-item-widget
-           depth
            reverse-siblings-chart
            (buffer-undo-list t))
 
@@ -1615,7 +1610,6 @@ We return the item-widget corresponding to the item at point."
             ;; `allout-goto-prefix' will go to first non-container item:
             (allout-goto-prefix)
           (allout-next-heading))
-        (setq depth (allout-recent-depth))
         (setq reverse-siblings-chart (list allout-recent-prefix-beginning))
         (while (allout-next-sibling)
           (push allout-recent-prefix-beginning reverse-siblings-chart)))
@@ -1702,7 +1696,6 @@ Point is left at the last sibling in the visible subtree."
         (pending-chart (or chart (allout-chart-subtree nil 'visible)))
         item-widget
         previous-sibling-point
-        previous-sibling
         recent-sibling-point)
     (setq pending-chart (nreverse pending-chart))
     (dolist (sibling-point pending-chart)
@@ -1753,9 +1746,7 @@ may have subitems.)"
          (icon-start (1- icon-end))
          body-start
          body-end
-         bullet
          has-subitems
-         (contents-depth (1+ depth))
          )
     (widget-put item-widget :depth depth)
     (if is-container
@@ -1783,7 +1774,7 @@ may have subitems.)"
 
       ;; cue area:
       (setq body-start icon-end)
-      (widget-put item-widget :bullet (setq bullet (allout-get-bullet)))
+      (widget-put item-widget :bullet (allout-get-bullet))
       (if (equal (char-after body-start) ? )
           (setq body-start (1+ body-start)))
       (widget-put item-widget :body-start body-start)
@@ -1809,7 +1800,7 @@ may have subitems.)"
                        ;; has a subsequent item:
                        (not (= body-end (point-max)))
                        ;; subsequent item is deeper:
-                       (< depth (setq contents-depth (allout-recent-depth))))))
+                       (< depth (allout-recent-depth)))))
     ;; note :expanded - true if widget item's content is currently visible?
     (widget-put item-widget :expanded
                 (and has-subitems
@@ -1818,7 +1809,7 @@ may have subitems.)"
                        (goto-char allout-recent-prefix-beginning)
                        (not (allout-hidden-p)))))))
 ;;;_   > allout-set-boundary-marker (boundary position &optional current-marker)
-(defun allout-set-boundary-marker (boundary position &optional current-marker)
+(defun allout-set-boundary-marker (_boundary position &optional current-marker)
   "Set or create item widget BOUNDARY type marker at POSITION.
 
 Optional CURRENT-MARKER is the marker currently being used for
@@ -1872,8 +1863,8 @@ reapplying this method will rectify the glyphs."
 
   (when (not (widget-get item-widget :is-container))
     (let* ((depth (widget-get item-widget :depth))
-           (parent-depth (and parent-widget
-                              (widget-get parent-widget :depth)))
+           ;; (parent-depth (and parent-widget
+           ;;                    (widget-get parent-widget :depth)))
            (parent-flags (and parent-widget
                               (widget-get parent-widget :guide-column-flags)))
            (parent-flags-depth (length parent-flags))
@@ -1894,7 +1885,7 @@ reapplying this method will rectify the glyphs."
            (increment (length allout-header-prefix))
            reverse-flags
            guide-name
-           extenders paint-extenders
+           extenders
            (inhibit-read-only t))
 
       (when (not (equal was-flags flags))
@@ -2017,8 +2008,8 @@ reapplying this method will rectify the glyphs."
     (let* ((cue-start (or (widget-get item-widget :distinctive-end)
                           (widget-get item-widget :icon-end)))
            (body-start (widget-get item-widget :body-start))
-           (expanded (widget-get item-widget :expanded))
-           (has-subitems (widget-get item-widget :has-subitems))
+           ;(expanded (widget-get item-widget :expanded))
+           ;(has-subitems (widget-get item-widget :has-subitems))
            (inhibit-read-only t))
 
       (allout-item-element-span-is item-widget :cue-span cue-start body-start)
@@ -2032,7 +2023,6 @@ Optional FORCE means force reassignment of the region property."
   (let* ((allout-inhibit-body-modification-hook t)
          (body-start (widget-get item-widget :body-start))
          (body-end (widget-get item-widget :body-end))
-         (body-text-end body-end)
          (inhibit-read-only t))
 
     (allout-item-element-span-is item-widget :body-span
@@ -2135,9 +2125,7 @@ of the current span, if established, or nil if not yet set.
 When the START and END are passed, return the distance that the
 start of the item moved.  We return 0 if the span was not
 previously established or is not moved."
-  (let ((overlay (widget-get item-widget :span-overlay))
-        was-start was-end
-        changed)
+  (let ((overlay (widget-get item-widget :span-overlay)))
     (cond ((not overlay) (when start
                            (setq overlay (make-overlay start end nil t nil))
                            (overlay-put overlay 'button item-widget)
@@ -2259,7 +2247,7 @@ of the buffer."
     (allout-get-or-create-item-widget redecorate)))
 ;;;_  : X- Item ancillaries
 ;;;_   >X allout-body-modification-handler (beg end)
-(defun allout-body-modification-handler (beg end)
+(defun allout-body-modification-handler (_beg _end)
   "Do routine processing of body text before and after modification.
 
 Operation is inhibited by `allout-inhibit-body-modification-handler'."
@@ -2281,7 +2269,7 @@ Operation is inhibited by `allout-inhibit-body-modification-handler'."
 ;; operation.
   (cond (allout-inhibit-body-modification-hook nil)))
 ;;;_   >X allout-graphics-modification-handler (beg end)
-(defun allout-graphics-modification-handler (beg end)
+(defun allout-graphics-modification-handler (beg _end)
   "Protect against incoherent deletion of decoration graphics.
 
 Deletes allowed only when `inhibit-read-only' is t."

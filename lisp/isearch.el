@@ -777,7 +777,7 @@ See the command `isearch-forward' for more information."
   (interactive "P\np")
   (isearch-mode t nil nil (not no-recursive-edit) (null not-word)))
 
-(defun isearch-forward-symbol (&optional not-symbol no-recursive-edit)
+(defun isearch-forward-symbol (&optional _not-symbol no-recursive-edit)
   "Do incremental search forward for a symbol.
 The prefix argument is currently unused.
 Like ordinary incremental search except that your input is treated
