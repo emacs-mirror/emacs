@@ -186,7 +186,7 @@ string carrying details about the citation it is about to perform.
 
 @cindex modeline
 Next, Supercite visits each line in the reply, transforming the line
-according to a customizable ``script.''  Lines which were not previously
+according to a customizable ``script''.  Lines which were not previously
 cited in the original message are given a citation, while already cited
 lines remain untouched, or are coerced to your preferred style.
 Finally, Supercite installs a keymap into the reply buffer so that you

@@ -53,45 +53,46 @@ modify this GNU manual.''
 @end ifnottex
 
 @menu
-* Overview::                       Basics, activation.
-* Matching::                       Interactivity, matching, scrolling.
-* Highlighting::                   Highlighting of matching items.
-* Hidden Buffers and Files::       Hidden buffers, files, and directories.
-* Customization::                  Change the Ido functionality.
-* Misc::                           Various other features.
+* Overview::                    Basics, activation.
+* Matching::                    Interactivity, matching, scrolling.
+* Highlighting::                Highlighting of matching items.
+* Hidden Buffers and Files::    Hidden buffers, files, and directories.
+* Customization::               Change the Ido functionality.
+* Misc::                        Various other features.
 
 Appendices
-* GNU Free Documentation License:: The license for this documentation.
+* GNU Free Documentation License::  The license for this documentation.
 
 Indexes
-* Variable Index::                 An entry for each documented variable.
+* Variable Index::              An entry for each documented variable.
 
 @detailmenu
  --- The Detailed Node Listing ---
 
 Overview
 
-* Activation::                     How to use this package.
+* Activation::                  How to use this package.
+* Working Directories::         Where files have most recently been opened.
 
 Matching
 
-* Interactive Substring Matching:: Interactivity, matching, scrolling.
-* Prefix Matching::                Standard completion.
-* Flexible Matching::              More flexible matching.
-* Regexp Matching::                Matching using regular expression.
+* Interactive Substring Matching::  Interactivity, matching, scrolling.
+* Prefix Matching::             Standard completion.
+* Flexible Matching::           More flexible matching.
+* Regexp Matching::             Matching using regular expression.
 
 Customization
 
-* Changing List Order::            Changing the list of files.
-* Find File At Point::             Make Ido guess the context.
-* Ignoring::                       Ignorance is bliss.
-* Misc Customization::             Miscellaneous customization for Ido.
+* Changing List Order::         Changing the list of files.
+* Find File At Point::          Make Ido guess the context.
+* Ignoring::                    Ignorance is bliss.
+* Misc Customization::          Miscellaneous customization for Ido.
 
 Miscellaneous
 
-* All Matching::                   Seeing all the matching buffers or files.
-* Replacement::                    Replacement for @code{read-buffer} and @code{read-file-name}.
-* Other Packages::                 Don't want to depend on @code{ido-everywhere}?
+* All Matching::                Seeing all the matching buffers or files.
+* Replacement::                 Replacement for @code{read-buffer} and @code{read-file-name}.
+* Other Packages::              Don't want to depend on @code{ido-everywhere}?
 
 @end detailmenu
 @end menu
@@ -116,7 +117,8 @@ This package was originally written by Kim F. Storm, based on the
  @file{iswitchb.el} package by Stephen Eglen.
 
 @menu
-* Activation::                          How to use this package.
+* Activation::                  How to use this package.
+* Working Directories::         Where files have most recently been opened.
 @end menu
 
 @node Activation
@@ -140,9 +142,56 @@ package.
 (ido-mode t)
 @end example
 
-@c @node Working Directories
-@c @section Working Directories
-@c @cindex working directories
+@node Working Directories
+@section Working Directories
+@cindex working directories
+
+@vindex ido-work-directory-list
+@noindent
+@dfn{Working directories} are directories where files have most
+recently been opened.  The current directory is inserted at the front
+of this @code{ido-work-directory-list} whenever a file is opened with
+@code{ido-find-file} and other file-related functions.
+
+@c @cindex merge
+@c or maybe a new node for ``merge''
+
+@c @findex ido-merge-work-directories
+@c @defun ido-merge-work-directories
+@c @end defun
+
+@c @findex ido-prev-work-directory
+@c @defun ido-prev-work-directory
+@c @end defun
+
+@c @findex ido-next-work-directory
+@c @defun ido-next-work-directory
+@c @end defun
+
+@c @findex ido-forget-work-directory
+@c @defun ido-forget-work-directory
+@c @end defun
+
+@c @vindex ido-use-merged-list
+@c @vindex ido-try-merged-list
+@c @vindex ido-pre-merge-state
+
+@defvr {User Option} ido-max-work-directory-list
+This user option specifies maximum number of working directories to
+record.
+@end defvr
+
+@c see (info "(elisp) File Name Completion")
+@defvr {User Option} ido-max-dir-file-cache
+This user option specifies maximum number of working directories to be
+cached.  This is the size of the cache of
+@code{file-name-all-completions} results.  Each cache entry is time
+stamped with the modification time of the directory.  Some systems,
+like MS-Windows, have unreliable directory modification times, so you
+may choose to disable caching on such systems, or explicitly refresh
+the cache contents using the command @code{ido-reread-directory}
+(usually @kbd{C-l}) in the minibuffer.
+@end defvr
 
 @node Matching
 @chapter Matching
@@ -153,10 +202,10 @@ This section describes features of this package that have to
 do with various kinds of @emph{matching}: among buffers, files, and directories.
 
 @menu
-* Interactive Substring Matching:: Interactivity, matching, scrolling.
-* Prefix Matching::                Standard completion.
-* Flexible Matching::              More flexible matching.
-* Regexp Matching::                Matching using regular expression.
+* Interactive Substring Matching::  Interactivity, matching, scrolling.
+* Prefix Matching::             Standard completion.
+* Flexible Matching::           More flexible matching.
+* Regexp Matching::             Matching using regular expression.
 @end menu
 
 @node Interactive Substring Matching
@@ -521,6 +570,7 @@ to ignore.  The letter case will be ignored if
 @code{ido-downcase-unc-hosts} is non-@code{nil}.
 @end defvr
 
+@c FIXME: Where to add this variable?  This node or ``working directory''?
 @c @defvr {User Option} ido-work-directory-list-ignore-regexps
 
 To make Ido use @code{completion-ignored-extensions} you need to
@@ -571,7 +621,6 @@ if you type a dot as first char (even if @code{ido-enable-prefix} is
 @c @defvr {User Option} ido-max-file-prompt-width
 @c @defvr {User Option} ido-max-window-height
 @c @defvr {User Option} ido-enable-last-directory-history
-@c @defvr {User Option} ido-max-work-directory-list
 @c @defvr {User Option} ido-enable-tramp-completion
 @c @defvr {User Option} ido-unc-hosts
 @c @defvr {User Option} ido-downcase-unc-hosts
@@ -582,7 +631,6 @@ if you type a dot as first char (even if @code{ido-enable-prefix} is
 @c @defvr {User Option} ido-auto-merge-delay-time
 @c @defvr {User Option} ido-auto-merge-inhibit-characters-regexp
 @c @defvr {User Option} ido-merged-indicator
-@c @defvr {User Option} ido-max-dir-file-cache
 @c @defvr {User Option} ido-max-directory-size
 @c @defvr {User Option} ido-rotate-file-list-default
 @c @defvr {User Option} ido-enter-matching-directory

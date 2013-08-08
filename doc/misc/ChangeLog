@@ -1,3 +1,8 @@
+2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi (Top): Insert node "Working Directories" in menu.
+	(Working Directories): New node.
+
 2013-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* todo-mode.texi: Update @dircategory.
@@ -21,6 +26,7 @@
 	(Mail Field Commands)
 	(Hints to MUA Authors, Thanks and History): Change from one space
 	between sentences to two.
+	(What Supercite Does): Typo fix.
 
 	* newsticker.texi (Usage): Use @key for RET.
 
