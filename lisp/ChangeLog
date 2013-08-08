@@ -1,3 +1,14 @@
+2013-08-08  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* comint.el:
+	Do not use an overlay to highlight the last prompt.  (Bug#14744)
+	(comint-mode): Make comint-last-prompt buffer local.
+	(comint-last-prompt): New variable.
+	(comint-last-prompt-overlay): Remove.  Superseded by
+	comint-last-prompt.
+	(comint-snapshot-last-prompt, comint-output-filter): Use
+	comint-last-prompt.
+
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-valid-p): Check vector length.  Doc fix.

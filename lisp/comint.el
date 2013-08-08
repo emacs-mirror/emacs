@@ -636,7 +636,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq-local comint-last-input-start (point-min-marker))
   (setq-local comint-last-input-end (point-min-marker))
   (setq-local comint-last-output-start (make-marker))
-  (make-local-variable 'comint-last-prompt-overlay)
+  (make-local-variable 'comint-last-prompt)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
   (make-local-variable 'comint-input-ring)
@@ -1902,21 +1902,24 @@ either globally or locally.")
   "If nil, Comint will interpret `carriage control' characters in output.
 See `comint-carriage-motion' for details.")
 
-;; When non-nil, this is an overlay over the last recognized prompt in
-;; the buffer; it is used when highlighting the prompt.
-(defvar comint-last-prompt-overlay nil)
+(defvar comint-last-prompt nil
+  "Markers pointing to the last prompt.
+If non-nil, a cons cell containing markers.  The car points to
+the start, the cdr to the end of the last prompt recognized.")
 
 (defun comint-snapshot-last-prompt ()
-  "`snapshot' any current `comint-last-prompt-overlay'.
-Freeze its attributes in place, even when more input comes along
-and moves the prompt overlay."
-  (when comint-last-prompt-overlay
-    (let ((inhibit-read-only t))
-      (with-silent-modifications
-        (add-text-properties
-         (overlay-start comint-last-prompt-overlay)
-         (overlay-end comint-last-prompt-overlay)
-         (overlay-properties comint-last-prompt-overlay))))))
+  "Snapshot the current `comint-last-prompt'.
+Freezes the `font-lock-face' text property in place."
+  (when comint-last-prompt
+    (with-silent-modifications
+      (add-text-properties
+       (car comint-last-prompt)
+       (cdr comint-last-prompt)
+       '(font-lock-face comint-highlight-prompt)))
+    ;; Reset comint-last-prompt so later on comint-output-filter does
+    ;; not remove the font-lock-face text property of the previous
+    ;; (this) prompt.
+    (setq comint-last-prompt nil)))
 
 (defun comint-carriage-motion (start end)
   "Interpret carriage control characters in the region from START to END.
@@ -2063,20 +2066,15 @@ Make backspaces delete the previous character."
                   (add-text-properties
                    prompt-start (point)
                    '(read-only t rear-nonsticky t front-sticky (read-only)))))
-	      (unless (and (bolp) (null comint-last-prompt-overlay))
-		;; Need to create or move the prompt overlay (in the case
-		;; where there is no prompt ((bolp) == t), we still do
-		;; this if there's already an existing overlay).
-		(if comint-last-prompt-overlay
-		    ;; Just move an existing overlay
-		    (move-overlay comint-last-prompt-overlay
-				  prompt-start (point))
-		  ;; Need to create the overlay
-		  (setq comint-last-prompt-overlay
-			(make-overlay prompt-start (point)))
-		  (overlay-put comint-last-prompt-overlay
-			       'font-lock-face 'comint-highlight-prompt))))
-
+	      (when comint-last-prompt
+		(remove-text-properties (car comint-last-prompt)
+					(cdr comint-last-prompt)
+					'(font-lock-face)))
+	      (setq comint-last-prompt
+		    (cons (copy-marker prompt-start) (point-marker)))
+	      (add-text-properties (car comint-last-prompt)
+				   (cdr comint-last-prompt)
+				   '(font-lock-face comint-highlight-prompt)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
