@@ -870,10 +870,8 @@ read_minibuf_unwind (void)
   if (minibuf_level == 0)
     resize_mini_window (XWINDOW (window), 0);
 
-  /* Make sure minibuffer window is erased, not ignored.  */
+  /* Enforce full redisplay.  FIXME: make it more selective.  */
   windows_or_buffers_changed++;
-  XWINDOW (window)->last_modified = 0;
-  XWINDOW (window)->last_overlay_modified = 0;
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,

@@ -1614,9 +1614,8 @@ overriding motion of point in order to display at this exact start.  */)
   if (NILP (noforce))
     w->force_start = 1;
   w->update_mode_line = 1;
-  w->last_modified = 0;
-  w->last_overlay_modified = 0;
   if (!EQ (window, selected_window))
+    /* Enforce full redisplay.  FIXME: make it more selective.  */
     windows_or_buffers_changed++;
 
   return pos;
@@ -3215,8 +3214,6 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 			     buffer);
       w->start_at_line_beg = 0;
       w->force_start = 0;
-      w->last_modified = 0;
-      w->last_overlay_modified = 0;
     }
   /* Maybe we could move this into the `if' but it's not obviously safe and
      I doubt it's worth the trouble.  */
@@ -3677,10 +3674,6 @@ window_resize_apply (struct window *w, bool horflag)
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	}
     }
-
-  /* Clear out some redisplay caches.  */
-  w->last_modified = 0;
-  w->last_overlay_modified = 0;
 }
 
 
@@ -4199,9 +4192,7 @@ grow_mini_window (struct window *w, int delta)
       /* Grow the mini-window.  */
       w->top_line = r->top_line + r->total_lines;
       w->total_lines -= XINT (value);
-      w->last_modified = 0;
-      w->last_overlay_modified = 0;
-
+      /* Enforce full redisplay.  FIXME: make it more selective.  */
       windows_or_buffers_changed++;
       adjust_glyphs (f);
       unblock_input ();
@@ -4235,10 +4226,7 @@ shrink_mini_window (struct window *w)
 	  /* Shrink the mini-window.  */
 	  w->top_line = r->top_line + r->total_lines;
 	  w->total_lines = 1;
-
-	  w->last_modified = 0;
-	  w->last_overlay_modified = 0;
-
+	  /* Enforce full redisplay.  FIXME: make it more selective.  */
 	  windows_or_buffers_changed++;
 	  adjust_glyphs (f);
 	  unblock_input ();
@@ -4464,8 +4452,6 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
 					 w->contents);
 		  w->start_at_line_beg = 1;
 		  w->update_mode_line = 1;
-		  w->last_modified = 0;
-		  w->last_overlay_modified = 0;
 		  /* Set force_start so that redisplay_window will run the
 		     window-scroll-functions.  */
 		  w->force_start = 1;
@@ -4610,8 +4596,6 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, int noerror)
       bytepos = marker_byte_position (w->start);
       w->start_at_line_beg = (pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n');
       w->update_mode_line = 1;
-      w->last_modified = 0;
-      w->last_overlay_modified = 0;
       /* Set force_start so that redisplay_window will run the
 	 window-scroll-functions.  */
       w->force_start = 1;
@@ -4810,8 +4794,6 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, int noerror)
       set_marker_restricted_both (w->start, w->contents, pos, pos_byte);
       w->start_at_line_beg = !NILP (bolp);
       w->update_mode_line = 1;
-      w->last_modified = 0;
-      w->last_overlay_modified = 0;
       /* Set force_start so that redisplay_window will run
 	 the window-scroll-functions.  */
       w->force_start = 1;
@@ -5742,9 +5724,6 @@ the return value is nil.  Otherwise the value is t.  */)
 		    Fset_window_parameter (window, XCAR (pers), XCDR (pers));
 		}
 	    }
-
-	  w->last_modified = 0;
-	  w->last_overlay_modified = 0;
 
 	  if (BUFFERP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
 	    /* If saved buffer is alive, install it.  */

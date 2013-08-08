@@ -185,7 +185,6 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
 {
   struct window *w = XWINDOW (window);
 
-  w->last_modified = 0;
   w->top_line += n;
   w->total_lines -= n;
 

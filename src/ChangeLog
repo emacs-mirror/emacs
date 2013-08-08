@@ -1,3 +1,16 @@
+2013-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not reset window modification event counters excessively.
+	These leftovers and poor man's tricky methods to catch extra
+	redisplay's attention are no longer needed.
+	* frame.c (set_menu_bar_lines_1):
+	* minibuf.c (read_minibuf_unwind):
+	* window.c (Fset_window_start, set_window_buffer, window_resize_apply)
+	(grow_mini_window, shrink_mini_window, window_scroll_pixel_based)
+	(window_scroll_line_based, Fset_window_configuration):
+	* xdisp.c (redisplay_window): Do not reset last_modified and
+	last_overlay_modified counters.
+
 2013-08-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_send_client_event): Set send_event and serial, memset

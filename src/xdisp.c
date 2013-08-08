@@ -15555,8 +15555,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  startp = run_window_scroll_functions (window, startp);
 	}
 
-      w->last_modified = 0;
-      w->last_overlay_modified = 0;
       if (CHARPOS (startp) < BEGV)
 	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
       else if (CHARPOS (startp) > ZV)
@@ -15801,9 +15799,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     }
 
  try_to_scroll:
-
-  w->last_modified = 0;
-  w->last_overlay_modified = 0;
 
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
