@@ -1,5 +1,16 @@
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
+	* frameset.el (frameset): Do not disable creation of the default
+	frameset-p predicate.  Doc fix.
+	(frameset-valid-p): New function, copied from the old predicate-p.
+	Add additional checks.
+	(frameset-restore): Check with frameset-valid-p.
+	(frameset-p, frameset-version, frameset-timestamp, frameset-app)
+	(frameset-name, frameset-description, frameset-properties)
+	(frameset-states): Add docstring.
+
+2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
 	* frameset.el (frameset-p, frameset-prop): Doc fixes.
 
 2013-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
