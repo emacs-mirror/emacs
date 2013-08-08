@@ -156,25 +156,17 @@ of this @code{ido-work-directory-list} whenever a file is opened with
 @c @cindex merge
 @c or maybe a new node for ``merge''
 
-@c @findex ido-merge-work-directories
-@c @defun ido-merge-work-directories
-@c @end defun
+@c @deffn Command ido-merge-work-directories
 
-@c @findex ido-prev-work-directory
-@c @defun ido-prev-work-directory
-@c @end defun
+@c @deffn Command ido-prev-work-directory
 
-@c @findex ido-next-work-directory
-@c @defun ido-next-work-directory
-@c @end defun
+@c @deffn Command ido-next-work-directory
 
-@c @findex ido-forget-work-directory
-@c @defun ido-forget-work-directory
-@c @end defun
+@c @deffn Command ido-forget-work-directory
 
-@c @vindex ido-use-merged-list
-@c @vindex ido-try-merged-list
-@c @vindex ido-pre-merge-state
+@c @defvar ido-use-merged-list
+@c @defvar ido-try-merged-list
+@c @defvar ido-pre-merge-state
 
 @defvr {User Option} ido-max-work-directory-list
 This user option specifies maximum number of working directories to
@@ -314,7 +306,7 @@ of the list and hit @key{RET}.
 To go up to the parent directory, delete any partial file name already
 specified (e.g. using @key{DEL}) and hit @key{DEL}.
 
-@c @defun ido-delete-backward-updir
+@c @deffn Command ido-delete-backward-updir
 
 @cindex root directory
 @cindex home directory
@@ -344,22 +336,20 @@ If for some reason you cannot specify the proper file using
 @code{ido-switch-buffer}.
 
 @c @kindex C-x b
-@c @findex ido-switch-buffer
-@c @defun ido-switch-buffer
+@c @deffn Command ido-switch-buffer
 @c This command switch to another buffer interactively.
-@c @end defun
+@c @end deffn
 
 @c @kindex C-x C-f
-@c @findex ido-find-file
-@c @defun ido-find-file
+@c @deffn Command ido-find-file
 @c Edit file with name obtained via minibuffer.
-@c @end defun
+@c @end deffn
 
 @c @kindex C-x d
 @c @findex ido-dired
-@c @defun ido-dired
+@c @deffn Command ido-dired
 @c Call Dired the Ido way.
-@c @end defun
+@c @end deffn
 
 @node Prefix Matching
 @section Prefix Matching
@@ -454,7 +444,7 @@ buffers or files.
 You can toggle display of the hidden buffers and files with @kbd{C-a}
 (@code{ido-toggle-ignore}).
 
-@c @defun ido-toggle-ignore
+@c @deffn Command ido-toggle-ignore
 
 @node Customization
 @chapter Customization
@@ -603,7 +593,7 @@ buffer and file names should ignore case.
 @end defvr
 
 @defvr {User Option} ido-show-dot-for-dired
-If the value of this user option is non-@code{nil} , always put
+If the value of this user option is non-@code{nil}, always put
 @samp{.}  as the first item in file name lists.  This allows the
 current directory to be opened immediately with Dired
 @end defvr
@@ -615,7 +605,13 @@ if you type a dot as first char (even if @code{ido-enable-prefix} is
 @code{nil}).
 @end defvr
 
-@c @defvr {User Option} ido-confirm-unique-completion
+@defvr {User Option} ido-confirm-unique-completion
+If the value of this user option is non-@code{nil} , even a unique
+completion must be confirmed.  This means that @code{ido-complete}
+(@key{TAB}) must always be followed by @code{ido-exit-minibuffer}
+(@key{RET}) even when there is only one unique completion.
+@end defvr
+
 @c @defvr {User Option} ido-cannot-complete-command
 @c @defvr {User Option} ido-record-commands
 @c @defvr {User Option} ido-max-file-prompt-width
@@ -672,8 +668,8 @@ and you find that the file you are after is not in any buffer, you can
 press @kbd{C-f} to immediately drop into @code{ido-find-file}.  And
 you can switch back to buffer selection with @kbd{C-b}.
 
-@c @defun ido-magic-forward-char
-@c @defun ido-magic-backward-char
+@c @deffn Command ido-magic-forward-char
+@c @deffn Command ido-magic-backward-char
 
 You can also use Ido in your Emacs Lisp programs:
 
@@ -723,7 +719,7 @@ functions @code{read-buffer} and @code{read-file-name}.
 To use ido for all buffer and file selections in Emacs, customize the
 variable @code{ido-everywhere}.
 
-@c @defun ido-everywhere
+@c @deffn Command ido-everywhere
 @c @defvr {User Option} ido-everywhere
 
 @node Other Packages
