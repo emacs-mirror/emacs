@@ -582,6 +582,9 @@ the name of an ignored file, Ido will still let you open it just fine.
 @section Miscellaneous Customization
 @cindex miscellaneous customization for Ido
 
+@c Variables described in this sections may be moved to new nodes in
+@c the future.
+
 @defvr {User Option} ido-mode
 This user option determines for which functional group (buffer and
 files) Ido behavior should be enabled.
@@ -606,16 +609,37 @@ if you type a dot as first char (even if @code{ido-enable-prefix} is
 @end defvr
 
 @defvr {User Option} ido-confirm-unique-completion
-If the value of this user option is non-@code{nil} , even a unique
+If the value of this user option is non-@code{nil}, even a unique
 completion must be confirmed.  This means that @code{ido-complete}
 (@key{TAB}) must always be followed by @code{ido-exit-minibuffer}
 (@key{RET}) even when there is only one unique completion.
 @end defvr
 
-@c @defvr {User Option} ido-cannot-complete-command
+@defvr {User Option} ido-cannot-complete-command
+When @code{ido-complete} can't complete any more, it will run the
+command specified by this user option.  The most useful values are
+@code{ido-completion-help}, which pops up a window with completion
+alternatives, or @code{ido-next-match} or @code{ido-prev-match}, which
+cycle the buffer list.
+@end defvr
+
+@defvr {User Option} ido-max-file-prompt-width
+This user option specifies the upper limit of the prompt string.  If
+its value is an integer, it specifies the number of characters of the
+string.  If its value is a floating point number, it specifies a
+fraction of the frame width.
+@end defvr
+
+@defvr {User Option} ido-max-window-height
+If the value of this user option is non@code{nil}, its value will
+override the variable @code{max-mini-window-height}, which is the
+maximum height for resizing mini-windows (the minibuffer and the echo
+area).  If it's a floating point number, it specifies a fraction of
+the mini-window frame's height.  If it's an integer, it specifies the
+number of lines.
+@end defvr
+
 @c @defvr {User Option} ido-record-commands
-@c @defvr {User Option} ido-max-file-prompt-width
-@c @defvr {User Option} ido-max-window-height
 @c @defvr {User Option} ido-enable-last-directory-history
 @c @defvr {User Option} ido-enable-tramp-completion
 @c @defvr {User Option} ido-unc-hosts

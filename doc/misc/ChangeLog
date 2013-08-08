@@ -2,7 +2,8 @@
 
 	* ido.texi (Top): Insert node "Working Directories" in menu.
 	(Working Directories): New node.
-	(Misc Customization): Add documentation of `ido-confirm-unique-completion'.
+	(Misc Customization): Add documentation of
+	`ido-confirm-unique-completion' and some other user options.
 
 2013-08-07  Eli Zaretskii  <eliz@gnu.org>
 
