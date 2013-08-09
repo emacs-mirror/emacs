@@ -402,13 +402,8 @@ expected `%s'"
 (defun nxml-scan-error (&rest args)
   (signal 'nxml-scan-error args))
 
-(put 'nxml-scan-error
-     'error-conditions
-     '(error nxml-error nxml-scan-error))
-
-(put 'nxml-scan-error
-     'error-message
-     "Scan over element that is not well-formed")
+(define-error 'nxml-scan-error
+  "Scan over element that is not well-formed" 'nxml-error)
 
 (provide 'nxml-rap)
 

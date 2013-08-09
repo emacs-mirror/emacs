@@ -101,13 +101,8 @@ This is the inverse of `nxml-make-namespace'."
   (signal (or error-symbol 'nxml-file-parse-error)
 	  (list file pos message)))
 
-(put 'nxml-file-parse-error
-     'error-conditions
-     '(error nxml-file-parse-error))
-
-(put 'nxml-parse-file-error
-     'error-message
-     "Error parsing file")
+(define-error 'nxml-error nil)
+(define-error 'nxml-file-parse-error "Error parsing file" 'nxml-error)
 
 (provide 'nxml-util)
 

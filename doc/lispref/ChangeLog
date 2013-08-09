@@ -1,3 +1,10 @@
+2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* errors.texi (Standard Errors): Don't refer to `error-conditions'.
+
+	* control.texi (Signaling Errors): Refer to define-error.
+	(Error Symbols): Add `define-error'.
+
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* positions.texi (Motion by Screen Lines):

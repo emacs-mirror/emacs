@@ -1,5 +1,40 @@
 2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (define-error): New function.
+	* progmodes/ada-xref.el (ada-error-file-not-found): Rename from
+	error-file-not-found and define with define-error.
+	* emacs-lisp/cl-lib.el (cl-assertion-failed): Move here from subr.el
+	and define with define-error.
+	* userlock.el (file-locked, file-supersession):
+	* simple.el (mark-inactive):
+	* progmodes/js.el (js-moz-bad-rpc, js-js-error):
+	* progmodes/ada-mode.el (ada-mode-errors):
+	* play/life.el (life-extinct):
+	* nxml/xsd-regexp.el (xsdre-invalid-regexp, xsdre-parse-error):
+	* nxml/xmltok.el (xmltok-markup-declaration-parse-error):
+	* nxml/rng-util.el (rng-error):
+	* nxml/rng-uri.el (rng-uri-error):
+	* nxml/rng-match.el (rng-compile-error):
+	* nxml/rng-cmpct.el (rng-c-incorrect-schema):
+	* nxml/nxml-util.el (nxml-error, nxml-file-parse-error):
+	* nxml/nxml-rap.el (nxml-scan-error):
+	* nxml/nxml-outln.el (nxml-outline-error):
+	* net/soap-client.el (soap-error):
+	* net/gnutls.el (gnutls-error):
+	* net/ange-ftp.el (ftp-error):
+	* mpc.el (mpc-proc-error):
+	* json.el (json-error, json-readtable-error, json-unknown-keyword)
+	(json-number-format, json-string-escape, json-string-format)
+	(json-key-format, json-object-format):
+	* jka-compr.el (compression-error):
+	* international/quail.el (quail-error):
+	* international/kkc.el (kkc-error):
+	* emacs-lisp/ert.el (ert-test-failed):
+	* calc/calc.el (calc-error, inexact-result, math-overflow)
+	(math-underflow):
+	* bookmark.el (bookmark-error-no-filename):
+	* epg.el (epg-error): Define with define-error.
+
 	* time.el (display-time-event-handler)
 	(display-time-next-load-average): Don't call sit-for since it seems
 	unnecessary (bug#15045).

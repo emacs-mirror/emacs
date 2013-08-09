@@ -209,8 +209,7 @@ defaults to 6600 and HOST defaults to localhost."
 
 (defconst mpc--proc-end-re "^\\(?:OK\\(?: MPD .*\\)?\\|ACK \\(.*\\)\\)\n")
 
-(put 'mpc-proc-error 'error-conditions '(mpc-proc-error error))
-(put 'mpc-proc-error 'error-message "MPD error")
+(define-error 'mpc-proc-error "MPD error")
 
 (defun mpc--debug (format &rest args)
   (if (get-buffer "*MPC-debug*")

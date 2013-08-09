@@ -130,6 +130,8 @@
 (defvar ispell-check-comments)
 (defvar skeleton-further-elements)
 
+(define-error 'ada-mode-errors nil)
+
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)

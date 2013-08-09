@@ -1097,8 +1097,7 @@ All HOST values should be in lower case.")
 (defvar ange-ftp-trample-marker)
 
 ;; New error symbols.
-(put 'ftp-error 'error-conditions '(ftp-error file-error error))
-;; (put 'ftp-error 'error-message "FTP error")
+(define-error 'ftp-error nil 'file-error) ;"FTP error"
 
 ;;; ------------------------------------------------------------
 ;;; Enhanced message support.

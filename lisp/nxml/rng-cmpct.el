@@ -45,13 +45,8 @@ Return a pattern."
 
 ;;; Error handling
 
-(put 'rng-c-incorrect-schema
-     'error-conditions
-     '(error rng-error nxml-file-parse-error rng-c-incorrect-schema))
-
-(put 'rng-c-incorrect-schema
-     'error-message
-     "Incorrect schema")
+(define-error 'rng-c-incorrect-schema
+  "Incorrect schema" '(rng-error nxml-file-parse-error))
 
 (defun rng-c-signal-incorrect-schema (filename pos message)
   (nxml-signal-file-parse-error filename

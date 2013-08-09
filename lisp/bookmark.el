@@ -1112,12 +1112,9 @@ then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
     (setq bookmark-current-bookmark bookmark-name-or-record))
   nil)
 
-(put 'bookmark-error-no-filename
-     'error-conditions
-     '(error bookmark-errors bookmark-error-no-filename))
-(put 'bookmark-error-no-filename
-     'error-message
-     "Bookmark has no associated file (or directory)")
+(define-error 'bookmark-errors nil)
+(define-error 'bookmark-error-no-filename
+  "Bookmark has no associated file (or directory)" 'bookmark-errors)
 
 (defun bookmark-default-handler (bmk-record)
   "Default handler to jump to a particular bookmark location.

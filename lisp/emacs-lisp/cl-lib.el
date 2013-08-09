@@ -714,6 +714,9 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;;;###autoload
 (progn
+  ;; The `assert' macro from the cl package signals
+  ;; `cl-assertion-failed' at runtime so always define it.
+  (define-error 'cl-assertion-failed (purecopy "Assertion failed"))
   ;; Make sure functions defined with cl-defsubst can be inlined even in
   ;; packages which do not require CL.  We don't put an autoload cookie
   ;; directly on that function, since those cookies only go to cl-loaddefs.

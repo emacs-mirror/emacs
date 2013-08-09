@@ -1142,7 +1142,7 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
     (condition-case err
 	(ada-find-in-ali identlist other-frame)
       ;; File not found: print explicit error message
-      (error-file-not-found
+      (ada-error-file-not-found
        (message (concat (error-message-string err)
 			(nthcdr 1 err))))
 
@@ -1637,7 +1637,7 @@ Search in project file for possible paths."
     (let ((filename (ada-find-src-file-in-dir file)))
       (if filename
 	  (expand-file-name filename)
-	(signal 'error-file-not-found (file-name-nondirectory file)))
+	(signal 'ada-error-file-not-found (file-name-nondirectory file)))
       )))
 
 (defun ada-find-file-number-in-ali (file)
@@ -1828,7 +1828,7 @@ Information is extracted from the ali file."
 					  (ada-file-of identlist)))
 
 		;;  Else clean up the ali file
-		(error-file-not-found
+		(ada-error-file-not-found
 		 (signal (car err) (cdr err)))
 		(error
 		 (kill-buffer ali-buffer)
@@ -2127,7 +2127,7 @@ the declaration and documentation of the subprograms one is using."
 				  (string-to-number (nth 2 (nth choice list)))
 				  identlist
 				  other-frame)
-	(signal 'error-file-not-found (car (nth choice list))))
+	(signal 'ada-error-file-not-found (car (nth choice list))))
       (message "This is only a (good) guess at the cross-reference.")
       ))))
 
@@ -2362,12 +2362,8 @@ For instance, it creates the gnat-specific menus, sets some hooks for
 (add-hook 'ada-mode-hook 'ada-xref-initialize)
 
 ;;  Define a new error type
-(put 'error-file-not-found
-     'error-conditions
-     '(error ada-mode-errors error-file-not-found))
-(put 'error-file-not-found
-     'error-message
-     "File not found in src-dir (check project file): ")
+(define-error 'ada-error-file-not-found
+  "File not found in src-dir (check project file): " 'ada-mode-errors)
 
 (provide 'ada-xref)
 

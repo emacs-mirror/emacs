@@ -312,6 +312,26 @@ result of an actual problem."
   (while t
     (signal 'user-error (list (apply #'format format args)))))
 
+(defun define-error (name message &optional parent)
+  "Define NAME as a new error signal.
+MESSAGE is a string that will be output to the echo area if such an error
+is signaled without being caught by a `condition-case'.
+PARENT is either a signal or a list of signals from which it inherits.
+Defaults to `error'."
+  (unless parent (setq parent 'error))
+  (let ((conditions
+         (if (consp parent)
+             (apply #'nconc
+                    (mapcar (lambda (parent)
+                              (cons parent
+                                    (or (get parent 'error-conditions)
+                                        (error "Unknown signal `%s'" parent))))
+                            parent))
+           (cons parent (get parent 'error-conditions)))))
+    (put name 'error-conditions
+         (delete-dups (copy-sequence (cons name conditions))))
+    (when message (put name 'error-message message))))
+
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
 (defun frame-configuration-p (object)
@@ -2525,11 +2545,6 @@ was displayed in is selected.")
 When the hook runs, the temporary buffer is current.
 This hook is normally set up with a function to put the buffer in Help
 mode.")
-
-;; The `assert' macro from the cl package signals
-;; `cl-assertion-failed' at runtime so always define it.
-(put 'cl-assertion-failed 'error-conditions '(error))
-(put 'cl-assertion-failed 'error-message (purecopy "Assertion failed"))
 
 (defconst user-emacs-directory
   (if (eq system-type 'ms-dos)

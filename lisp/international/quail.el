@@ -1301,7 +1301,7 @@ The returned value is a Quail map specific to KEY."
 	(setcdr map (funcall (cdr map) key len)))
     map))
 
-(put 'quail-error 'error-conditions '(quail-error error))
+(define-error 'quail-error nil)
 (defun quail-error (&rest args)
   (signal 'quail-error (apply 'format args)))
 

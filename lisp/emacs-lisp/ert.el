@@ -236,8 +236,7 @@ description of valid values for RESULT-TYPE.
   "The regexp the `find-function' mechanisms use for finding test definitions.")
 
 
-(put 'ert-test-failed 'error-conditions '(error ert-test-failed))
-(put 'ert-test-failed 'error-message "Test failed")
+(define-error 'ert-test-failed "Test failed")
 
 (defun ert-pass ()
   "Terminate the current test and mark it passed.  Does not return."

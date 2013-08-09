@@ -1008,13 +1008,8 @@ immediately after the section's start-tag."
 (defun nxml-outline-error (&rest args)
   (signal 'nxml-outline-error args))
 
-(put 'nxml-outline-error
-     'error-conditions
-     '(error nxml-error nxml-outline-error))
-
-(put 'nxml-outline-error
-     'error-message
-     "Cannot create outline of buffer that is not well-formed")
+(define-error 'nxml-outline-error
+  "Cannot create outline of buffer that is not well-formed" 'nxml-error)
 
 ;;; Debugging
 
