@@ -1,5 +1,17 @@
 2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/checkdoc.el: Remove redundant :group keywords.
+	Use #' instead of ' to quote functions.
+	(checkdoc-output-mode): Use setq-local.
+	(checkdoc-spellcheck-documentation-flag, checkdoc-ispell-lisp-words)
+	(checkdoc-verb-check-experimental-flag, checkdoc-proper-noun-regexp)
+	(checkdoc-common-verbs-regexp): Mark safe-local-variable (bug#15010).
+	(checkdoc-ispell, checkdoc-ispell-current-buffer)
+	(checkdoc-ispell-interactive, checkdoc-ispell-message-interactive)
+	(checkdoc-ispell-message-text, checkdoc-ispell-start)
+	(checkdoc-ispell-continue, checkdoc-ispell-comments)
+	(checkdoc-ispell-defun): Remove unused arg `take-notes'.
+
 	* ido.el (ido-completion-help): Fix up compiler warning.
 
 2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
