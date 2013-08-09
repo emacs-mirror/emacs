@@ -1,3 +1,11 @@
+2013-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (PEXCEPTION_POINTERS, PEXCEPTION_RECORD, PCONTEXT): Define
+	variables of these types so that GDB would know about them, as aid
+	for debugging fatal exceptions.  (Bug#15024)  See also
+	http://sourceware.org/ml/gdb/2013-08/msg00010.html for related
+	discussions.
+
 2013-08-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_update_begin): Don't change clip path if it would be

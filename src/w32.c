@@ -89,6 +89,21 @@ typedef struct _MEMORY_STATUS_EX {
   DWORDLONG ullAvailExtendedVirtual;
 } MEMORY_STATUS_EX,*LPMEMORY_STATUS_EX;
 
+/* These are here so that GDB would know about these data types.  This
+   allows to attach GDB to Emacs when a fatal exception is triggered
+   and Windows pops up the "application needs to be closed" dialog.
+   At that point, _gnu_exception_handler, the top-level exception
+   handler installed by the MinGW startup code, is somewhere on the
+   call-stack of the main thread, so going to that call frame and
+   looking at the argument to _gnu_exception_handler, which is a
+   PEXCEPTION_POINTERS pointer, can reveal the exception code
+   (excptr->ExceptionRecord->ExceptionCode) and the address where the
+   exception happened (excptr->ExceptionRecord->ExceptionAddress), as
+   well as some additional information specific to the exception.  */
+PEXCEPTION_POINTERS excptr;
+PEXCEPTION_RECORD excprec;
+PCONTEXT ctxrec;
+
 #include <lmcons.h>
 #include <shlobj.h>
 
