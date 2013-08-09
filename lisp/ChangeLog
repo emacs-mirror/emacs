@@ -1,5 +1,9 @@
 2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* time.el (display-time-event-handler)
+	(display-time-next-load-average): Don't call sit-for since it seems
+	unnecessary (bug#15045).
+
 	* emacs-lisp/checkdoc.el: Remove redundant :group keywords.
 	Use #' instead of ' to quote functions.
 	(checkdoc-output-mode): Use setq-local.
