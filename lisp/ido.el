@@ -3972,12 +3972,11 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 	    (if (featurep 'xemacs)
 		;; XEmacs extents are put on by default, doesn't seem to be
 		;; any way of switching them off.
-		;; This obscure code avoids a byte compiler warning in Emacs.
-		(let ((f 'display-completion-list))
-		  (funcall f completion-list
-			   :help-string "ido "
-			   :activate-callback
-			   (lambda (x y z) (message "Doesn't work yet, sorry!"))))
+                (display-completion-list
+                 completion-list
+                 :help-string "ido "
+                 :activate-callback
+                 (lambda (&rest _) (message "Doesn't work yet, sorry!")))
 	      ;; else running Emacs
 	      ;;(add-hook 'completion-setup-hook 'completion-setup-function)
 	      (display-completion-list completion-list)))))))

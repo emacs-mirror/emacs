@@ -1,3 +1,7 @@
+2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-completion-help): Fix up compiler warning.
+
 2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset-p): Add autoload cookie.
