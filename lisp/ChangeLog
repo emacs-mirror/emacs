@@ -1,3 +1,17 @@
+2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-p): Add autoload cookie.
+	(frameset--jump-to-register): New function, based on code moved from
+	register.el.
+	(frameset-to-register): Move from register.el.  Adapt to `registerv'.
+
+	* register.el (frameset-frame-id, frameset-frame-with-id, frameset-p)
+	(frameset-restore, frameset-save, frameset-session-filter-alist):
+	Remove declarations.
+	(register-alist): Doc fix.
+	(frameset-to-register): Move to frameset.el.
+	(jump-to-register, describe-register-1): Remove frameset-specific code.
+
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout-widgets.el (allout-widgets-pre-command-business)

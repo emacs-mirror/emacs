@@ -129,6 +129,9 @@ root window of the frame.\n
 IMPORTANT: Modifying this slot may cause frameset functions to fail,
 unless the type constraints defined above are respected.\n\n(fn FRAMESET)")
 
+;;;###autoload (autoload 'frameset-p "frameset"
+;;;###autoload   "Return non-nil if OBJECT is a frameset, nil otherwise." nil)
+
 (defun frameset-copy (frameset)
   "Return a deep copy of FRAMESET.
 FRAMESET is copied with `copy-tree'."
@@ -1183,6 +1186,41 @@ All keyword parameters default to nil."
     ;; Make sure there's at least one visible frame.
     (unless (or (daemonp) (visible-frame-list))
       (make-frame-visible (car (frame-list))))))
+
+
+;; Register support
+
+(defun frameset--jump-to-register (data)
+  "Restore frameset from DATA stored in register.
+Called from `jump-to-register'.  Internal use only."
+  (let* ((delete (and current-prefix-arg t))
+	 (iconify-list (if delete nil (frame-list))))
+    (frameset-restore (aref data 0)
+		      :filters frameset-session-filter-alist
+		      :reuse-frames (if delete t :keep))
+    (mapc #'iconify-frame iconify-list)
+    (let ((frame (frameset-frame-with-id (aref data 1))))
+      (when frame
+	(select-frame-set-input-focus frame)
+	(goto-char (aref data 2))))))
+
+;;;###autoload
+(defun frameset-to-register (register &optional _arg)
+  "Store the current frameset in register REGISTER.
+Use \\[jump-to-register] to restore the frameset.
+Argument is a character, naming the register."
+  (interactive "cFrameset to register: \nP")
+  (set-register register
+		(registerv-make
+		 (vector (frameset-save nil
+					:app 'register
+					:filters frameset-session-filter-alist)
+			 ;; frameset-save does not include the value of point
+			 ;; in the current buffer, so record that separately.
+			 (frameset-frame-id nil)
+			 (point-marker))
+		 :print-func (lambda (_data) (princ "a frameset."))
+		 :jump-func #'frameset--jump-to-register)))
 
 (provide 'frameset)
 
