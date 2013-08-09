@@ -47,6 +47,7 @@
 (defvar gnus-current-window-configuration)
 
 (add-hook 'gnus-exit-gnus-hook 'mm-destroy-postponed-undisplay-list)
+(add-hook 'gnus-exit-gnus-hook 'mm-temp-files-delete)
 
 (defgroup mime-display ()
   "Display of MIME in mail and news articles."
@@ -470,6 +471,11 @@ If not set, `default-directory' will be used."
 (defvar mm-content-id-alist nil)
 (defvar mm-postponed-undisplay-list nil)
 (defvar mm-inhibit-auto-detect-attachment nil)
+(defvar mm-temp-files-to-be-deleted nil
+  "List of temporary files scheduled to be deleted.")
+(defvar mm-temp-files-cache-file (concat ".mm-temp-files-" (user-login-name))
+  "Name of a file that caches a list of temporary files to be deleted.
+The file will be saved in the directory `mm-tmp-directory'.")
 
 ;; According to RFC2046, in particular, in a digest, the default
 ;; Content-Type value for a body part is changed from "text/plain" to
@@ -585,6 +591,45 @@ Postpone undisplaying of viewers for types in
   (when mm-postponed-undisplay-list
     (message "Destroying external MIME viewers")
     (mm-destroy-parts mm-postponed-undisplay-list)))
+
+(defun mm-temp-files-delete ()
+  "Delete temporary files and those parent directories.
+Note that the deletion may fail if a program is catching hold of a file
+under Windows or Cygwin.  In that case, it schedules the deletion of
+files left at the next time."
+  (let* ((coding-system-for-read mm-universal-coding-system)
+	 (coding-system-for-write mm-universal-coding-system)
+	 (cache-file (expand-file-name mm-temp-files-cache-file
+				       mm-tmp-directory))
+	 (cache (when (file-exists-p cache-file)
+		  (mm-with-multibyte-buffer
+		    (insert-file-contents cache-file)
+		    (split-string (buffer-string) "\n" t))))
+	 fails)
+    (dolist (temp (append cache mm-temp-files-to-be-deleted))
+      (unless (and (file-exists-p temp)
+		   (if (file-directory-p temp)
+		       ;; A parent directory left at the previous time.
+		       (progn
+			 (ignore-errors (delete-directory temp))
+			 (not (file-exists-p temp)))
+		     ;; Delete a temporary file and its parent directory.
+		     (ignore-errors (delete-file temp))
+		     (and (not (file-exists-p temp))
+			  (progn
+			    (setq temp (file-name-directory temp))
+			    (ignore-errors (delete-directory temp))
+			    (not (file-exists-p temp))))))
+	(push temp fails)))
+    (if fails
+	;; Schedule the deletion of the files left at the next time.
+	(progn
+	  (write-region (concat (mapconcat 'identity (nreverse fails) "\n")
+				"\n")
+			nil cache-file nil 'silent)
+	  (set-file-modes cache-file #o600))
+      (when (file-exists-p cache-file)
+	(ignore-errors (delete-file cache-file))))))
 
 (autoload 'message-fetch-field "message")
 
@@ -975,22 +1020,8 @@ external if displayed external."
 				   (buffer buffer)
 				   (command command)
 				   (handle handle))
-		       (run-at-time
-			30.0 nil
-			(lambda ()
-			  (ignore-errors
-			    (delete-file file))
-			  (ignore-errors
-			    (delete-directory (file-name-directory file)))))
 		       (lambda (process state)
 			 (when (eq (process-status process) 'exit)
-			   (run-at-time
-			    10.0 nil
-			    (lambda ()
-			      (ignore-errors
-				(delete-file file))
-			      (ignore-errors
-				(delete-directory (file-name-directory file)))))
 			   (when (buffer-live-p outbuf)
 			     (with-current-buffer outbuf
 			       (let ((buffer-read-only nil)
@@ -1007,7 +1038,8 @@ external if displayed external."
 			     (kill-buffer buffer)))
 			 (message "Displaying %s...done" command)))))
 		(mm-handle-set-external-undisplayer
-		 handle (cons file buffer)))
+		 handle (cons file buffer))
+		(add-to-list 'mm-temp-files-to-be-deleted file t))
 	      (message "Displaying %s..." command))
 	    'external)))))))
 

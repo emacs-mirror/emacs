@@ -1,3 +1,11 @@
+2013-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-temp-files-to-be-deleted, mm-temp-files-cache-file):
+	New internal variables.
+	(mm-temp-files-delete): New function; add it to gnus-exit-gnus-hook.
+	(mm-display-external): Use it to delete temporary files instead of
+	using timers.
+
 2013-08-06  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event-from-ical): Replace pcase
