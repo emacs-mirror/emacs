@@ -1,3 +1,8 @@
+2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ffap.el (ffap-url-at-point): Fix reference to variable
+	thing-at-point-default-mail-uri-scheme.
+
 2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (define-error): New function.
