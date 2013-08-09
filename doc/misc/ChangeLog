@@ -1,7 +1,7 @@
 2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* htmlfontify.texi (Customization): Remove documentation of
-	`hfy-fast-lock-save'.
+	`hfy-fast-lock-save'.  Minor fixes.
 
 2013-08-08  Xue Fuqiao  <xfq.free@gmail.com>
 

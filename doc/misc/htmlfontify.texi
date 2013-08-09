@@ -1359,7 +1359,7 @@ be large and take a long time to render or be difficult to navigate.
 @vindex hfy-extn
 @anchor{hfy-extn}
 
-File extension used for output files
+File extension used for output files.
 
 @item hfy-default-face-def
 @vindex hfy-default-face-def
@@ -1440,7 +1440,7 @@ which can never slow you down, but may result in incomplete fontification.
 @vindex hfy-src-doc-link-unstyle
 @anchor{hfy-src-doc-link-unstyle}
 
-Regex to remove from the <style> a variant of an Htmlfontify CSS class.
+Regex to remove from the @samp{<style> a} variant of an Htmlfontify CSS class.
 
 @item hfy-link-extn
 @vindex hfy-link-extn
