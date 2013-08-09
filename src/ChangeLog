@@ -1,3 +1,9 @@
+2013-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (draw_glyphs): Don't compare row pointers, compare row
+	vertical positions instead.  This avoids calling MATRIX_ROW with
+	row numbers that are possibly beyond valid limits.  (Bug#15064)
+
 2013-08-09  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Use xstrdup and build_unibyte_string where applicable.

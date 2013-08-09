@@ -23826,17 +23826,15 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 	  && hlinfo->mouse_face_beg_row >= 0
 	  && hlinfo->mouse_face_end_row >= 0)
 	{
-	  struct glyph_row *mouse_beg_row, *mouse_end_row;
+	  ptrdiff_t row_vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
 
-	  mouse_beg_row = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_beg_row);
-	  mouse_end_row = MATRIX_ROW (w->current_matrix, hlinfo->mouse_face_end_row);
-
-	  if (row >= mouse_beg_row && row <= mouse_end_row)
+	  if (row_vpos >= hlinfo->mouse_face_beg_row
+	      && row_vpos <= hlinfo->mouse_face_end_row)
 	    {
 	      check_mouse_face = 1;
-	      mouse_beg_col = (row == mouse_beg_row)
+	      mouse_beg_col = (row_vpos == hlinfo->mouse_face_beg_row)
 		? hlinfo->mouse_face_beg_col : 0;
-	      mouse_end_col = (row == mouse_end_row)
+	      mouse_end_col = (row_vpos == hlinfo->mouse_face_end_row)
 		? hlinfo->mouse_face_end_col
 		: row->used[TEXT_AREA];
 	    }
