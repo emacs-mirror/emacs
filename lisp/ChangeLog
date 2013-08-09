@@ -1,5 +1,9 @@
 2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* filecache.el (file-cache-delete-file-list):
+	Print message only when told so.
+	(file-cache-files-matching): Use #' in mapconcat argument.
+
 	* ffap.el (ffap-url-at-point): Fix reference to variable
 	thing-at-point-default-mail-uri-scheme.
 
