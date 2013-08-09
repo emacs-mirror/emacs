@@ -75,17 +75,8 @@ x_get_customization_string (XrmDatabase db, const char *name,
   sprintf (full_class, "%s.%s", class, "Customization");
 
   result = x_get_string_resource (db, full_name, full_class);
-
-  if (result)
-    {
-      char *copy = xmalloc (strlen (result) + 1);
-      strcpy (copy, result);
-      return copy;
-    }
-  else
-    return 0;
+  return result ? xstrdup (result) : NULL;
 }
-
 
 /* Expand all the Xt-style %-escapes in STRING, whose length is given
    by STRING_LEN.  Here are the escapes we're supposed to recognize:

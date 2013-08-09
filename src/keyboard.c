@@ -8431,7 +8431,7 @@ read_char_minibuf_menu_prompt (int commandflag,
     return Qnil;
 
 #define PUSH_C_STR(str, listvar) \
-  listvar = Fcons (make_unibyte_string (str, strlen (str)), listvar)
+  listvar = Fcons (build_unibyte_string (str), listvar)
 
   /* Prompt string always starts with map's prompt, and a space.  */
   prompt_strings = Fcons (name, prompt_strings);

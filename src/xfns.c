@@ -2313,12 +2313,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
      for the window manager, so GC relocation won't bother it.
 
      Elsewhere we specify the window name for the window manager.  */
-
-  {
-    char *str = SSDATA (Vx_resource_name);
-    f->namebuf = xmalloc (strlen (str) + 1);
-    strcpy (f->namebuf, str);
-  }
+  f->namebuf = xstrdup (SSDATA (Vx_resource_name));
 
   ac = 0;
   XtSetArg (al[ac], XtNallowShellResize, 1); ac++;

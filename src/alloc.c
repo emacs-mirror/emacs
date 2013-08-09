@@ -796,10 +796,8 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 char *
 xstrdup (const char *s)
 {
-  size_t len = strlen (s) + 1;
-  char *p = xmalloc (len);
-  memcpy (p, s, len);
-  return p;
+  eassert (s);
+  return strcpy (xmalloc (strlen (s) + 1), s);
 }
 
 /* Like putenv, but (1) use the equivalent of xmalloc and (2) the

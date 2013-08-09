@@ -4124,12 +4124,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
      for the window manager, so GC relocation won't bother it.
 
      Elsewhere we specify the window name for the window manager.  */
-
-  {
-    char *str = SSDATA (Vx_resource_name);
-    f->namebuf = xmalloc (strlen (str) + 1);
-    strcpy (f->namebuf, str);
-  }
+  f->namebuf = xstrdup (SSDATA (Vx_resource_name));
 
   my_create_window (f);
 
@@ -4992,8 +4987,8 @@ w32_display_monitor_attributes_list (void)
       attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
 			  attributes);
 
-      name = DECODE_SYSTEM (make_unibyte_string (mi.szDevice,
-						 strlen (mi.szDevice)));
+      name = DECODE_SYSTEM (build_unibyte_string (mi.szDevice));
+
       attributes = Fcons (Fcons (Qname, name), attributes);
 
       attributes = Fcons (Fcons (Qmm_size, list2i (width_mm, height_mm)),

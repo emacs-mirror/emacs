@@ -1,3 +1,19 @@
+2013-08-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use xstrdup and build_unibyte_string where applicable.
+	* alloc.c (xstrdup): Tiny cleanup.  Add eassert.
+	* xfns.c (x_window):
+	* xrdb.c (x_get_customization_string):
+	* xterm.c (xim_initialize):
+	* w32fns.c (w32_window): Use xstrdup.
+	(w32_display_monitor_attributes_list):
+	* emacs.c (init_cmdargs):
+	* keyboard.c (PUSH_C_STR):
+	* nsfont.m (nsfont_open):
+	* sysdep.c (system_process_attributes):
+	* w32.c (system_process_attributes):
+	* xdisp.c (message1, message1_nolog): Use build_unibyte_string.
+
 2013-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (PEXCEPTION_POINTERS, PEXCEPTION_RECORD, PCONTEXT): Define

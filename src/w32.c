@@ -5769,8 +5769,8 @@ system_process_attributes (Lisp_Object pid)
 		{
 		  /* Decode the command name from locale-specific
 		     encoding.  */
-		  cmd_str = make_unibyte_string (pe.szExeFile,
-						 strlen (pe.szExeFile));
+		  cmd_str = build_unibyte_string (pe.szExeFile);
+
 		  decoded_cmd =
 		    code_convert_string_norecord (cmd_str,
 						  Vlocale_coding_system, 0);

@@ -8081,13 +8081,10 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
-      ptrdiff_t len;
 
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
-      len = strlen (resource_name);
-      xim_inst->resource_name = xmalloc (len + 1);
-      memcpy (xim_inst->resource_name, resource_name, len + 1);
+      xim_inst->resource_name = xstrdup (resource_name);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, emacs_class,
 				      xim_instantiate_callback,

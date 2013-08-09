@@ -9789,7 +9789,7 @@ message3_nolog (Lisp_Object m)
 void
 message1 (const char *m)
 {
-  message3 (m ? make_unibyte_string (m, strlen (m)) : Qnil);
+  message3 (m ? build_unibyte_string (m) : Qnil);
 }
 
 
@@ -9798,7 +9798,7 @@ message1 (const char *m)
 void
 message1_nolog (const char *m)
 {
-  message3_nolog (m ? make_unibyte_string (m, strlen (m)) : Qnil);
+  message3_nolog (m ? build_unibyte_string (m) : Qnil);
 }
 
 /* Display a message M which contains a single %s
