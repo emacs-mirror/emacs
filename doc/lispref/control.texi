@@ -1282,9 +1282,10 @@ This parent defines the conditions that this kind of error belongs to.
 The transitive set of parents always includes the error symbol itself, and the
 symbol @code{error}.  Because quitting is not considered an error, the set of
 parents of @code{quit} is just @code{(quit)}.
+@end defun
 
 @cindex peculiar error
-  In addition to its parents, the error symbol has a var{message} which
+  In addition to its parents, the error symbol has a @var{message} which
 is a string to be printed when that error is signaled but not handled.  If that
 message is not valid, the error message @samp{peculiar error} is used.
 @xref{Definition of signal}.

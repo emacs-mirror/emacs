@@ -1,3 +1,7 @@
+2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* control.texi (Error Symbols): Minor fix for previous change.
+
 2013-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* errors.texi (Standard Errors): Don't refer to `error-conditions'.
