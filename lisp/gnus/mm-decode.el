@@ -629,7 +629,8 @@ files left at the next time."
 			nil cache-file nil 'silent)
 	  (set-file-modes cache-file #o600))
       (when (file-exists-p cache-file)
-	(ignore-errors (delete-file cache-file))))))
+	(ignore-errors (delete-file cache-file))))
+    (setq mm-temp-files-to-be-deleted nil)))
 
 (autoload 'message-fetch-field "message")
 
