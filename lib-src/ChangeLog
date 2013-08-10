@@ -1,3 +1,10 @@
+2013-08-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* update-game-score.exe.manifest: New file.
+
+	* Makefile.in (UPDATE_MANIFEST): New variable.
+	(SCRIPTS): Add $(UPDATE_MANIFEST).
+
 2013-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* makefile.w32-in (lisp2): Add nadvice.elc.

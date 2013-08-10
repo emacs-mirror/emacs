@@ -1,3 +1,7 @@
+2013-08-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac: Define and substitute UPDATE_MANIFEST.
+
 2013-08-04  Stephen Berman  <stephen.berman@gmx.net>
 
 	* info/dir: Add todo-mode.
