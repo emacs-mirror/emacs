@@ -1368,6 +1368,7 @@ FIRSTFILE_OBJ
 W32_RES_LINK
 CLIENTW
 CLIENTRES
+UPDATE_MANIFEST
 EMACS_MANIFEST
 EMACSRES
 W32_LIBS
@@ -10080,6 +10081,7 @@ CLIENTRES=
 CLIENTW=
 W32_RES_LINK=
 EMACS_MANIFEST=
+UPDATE_MANIFEST=
 if test "${with_w32}" != no; then
   case "${opsys}" in
     cygwin)
@@ -10243,6 +10245,7 @@ fi
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
     *) EMACS_MANIFEST="emacs-x86.manifest" ;;
   esac
+  UPDATE_MANIFEST=update-game-score.exe.manifest
   if test "${opsys}" = "cygwin"; then
     W32_LIBS="$W32_LIBS -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lusp10 -lcomctl32 -lwinspool"
@@ -10265,6 +10268,7 @@ fi
     XARGS_LIMIT="-s 10000"
   fi
 fi
+
 
 
 
