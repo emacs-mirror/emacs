@@ -1,3 +1,12 @@
+2013-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* completion.el: Remove stuff unused since revno:3176 (1993-05-27).
+	(*record-cmpl-statistics-p*): Remove (was commented out ).
+	(cmpl-statistics-block): Remove (body was commented out).
+	All callers changed.
+	(add-completions-from-buffer, load-completions-from-file):
+	Remove unused variables.
+
 2013-08-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* filecache.el (file-cache-delete-file-list):
