@@ -53,6 +53,8 @@
 (defvar ibuffer-tmp-hide-regexps)
 (defvar ibuffer-tmp-show-regexps)
 
+(declare-function ibuffer-ext-visible-p "ibuf-ext"
+		  (buf all &optional ibuffer-buf))
 (declare-function ibuffer-mark-on-buffer "ibuf-ext"
 		  (func &optional ibuffer-mark-on-buffer-mark group))
 (declare-function ibuffer-generate-filter-groups "ibuf-ext"
@@ -1198,7 +1200,7 @@ a new window in the current frame, splitting vertically."
 			     (and (stringp (cadr err))
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
-				  (not (string-match "too small" (cadr err)))))
+				  (not (string-match-p "too small" (cadr err)))))
 			 (signal (car err) (cdr err))
 		       (enlarge-window 3))))))
 	      (select-window (next-window))

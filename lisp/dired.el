@@ -34,6 +34,9 @@
 
 ;;; Code:
 
+(declare-function dired-buffer-more-recently-used-p
+		  "dired-x" (buffer1 buffer2))
+
 ;;; Customizable variables
 
 (defgroup dired nil
@@ -1242,26 +1245,25 @@ see `dired-use-ls-dired' for more details.")
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
-      (condition-case nil
-	  (if (not (dired-move-to-filename))
-	      (put-text-property (line-beginning-position)
-				 (1+ (line-end-position))
-				 'invisible 'dired-hide-details-information)
-	    (put-text-property (+ (line-beginning-position) 1) (1- (point))
-			       'invisible 'dired-hide-details-detail)
-	    (add-text-properties
-	     (point)
-	     (progn
-	       (dired-move-to-end-of-filename)
-	       (point))
-	     '(mouse-face
-	       highlight
-	       dired-filename t
-	       help-echo "mouse-2: visit this file in other window"))
-	    (when (< (+ (point) 4) (line-end-position))
-	      (put-text-property (+ (point) 4) (line-end-position)
-				 'invisible 'dired-hide-details-link)))
-	(error nil))
+      (ignore-errors
+	(if (not (dired-move-to-filename))
+	    (put-text-property (line-beginning-position)
+			       (1+ (line-end-position))
+			       'invisible 'dired-hide-details-information)
+	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
+			     'invisible 'dired-hide-details-detail)
+	  (add-text-properties
+	   (point)
+	   (progn
+	     (dired-move-to-end-of-filename)
+	     (point))
+	   '(mouse-face
+	     highlight
+	     dired-filename t
+	     help-echo "mouse-2: visit this file in other window"))
+	  (when (< (+ (point) 4) (line-end-position))
+	    (put-text-property (+ (point) 4) (line-end-position)
+			       'invisible 'dired-hide-details-link))))
       (forward-line 1))))
 
 ;; Reverting a dired buffer
@@ -1401,11 +1403,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 	  (setq elt (car old-subdir-alist)
 		old-subdir-alist (cdr old-subdir-alist)
 		dir (car elt))
-	  (condition-case ()
-	      (progn
-		(dired-uncache dir)
-		(dired-insert-subdir dir))
-	    (error nil))))))
+	  (ignore-errors
+	    (dired-uncache dir)
+	    (dired-insert-subdir dir))))))
 
 (defun dired-uncache (dir)
   "Remove directory DIR from any directory cache."
@@ -3849,7 +3849,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "dired-aux" "dired-aux.el" "555c067fcab27f5a377536db407803ab")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "04b4cb6bde3220f55574eb1d99ac0d29")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

@@ -708,7 +708,7 @@ See the documentation for `calculator-mode' for more information."
                ;; can't use 'noprompt, bug in electric.el
                (lambda () 'noprompt)
                nil
-               (lambda (x y) (calculator-update-display))))
+               (lambda (_x _y) (calculator-update-display))))
           (and calculator-buffer
                (catch 'calculator-done (calculator-quit)))
           (use-local-map old-l-map)
@@ -905,9 +905,9 @@ The string is set not to exceed the screen width."
       value)
     (car (read-from-string
           (cond ((equal "." str) "0.0")
-                ((string-match "[eE][+-]?$" str) (concat str "0"))
-                ((string-match "\\.[0-9]\\|[eE]" str) str)
-                ((string-match "\\." str)
+                ((string-match-p "[eE][+-]?$" str) (concat str "0"))
+                ((string-match-p "\\.[0-9]\\|[eE]" str) str)
+                ((string-match-p "\\." str)
                  ;; do this because Emacs reads "23." as an integer
                  (concat str "0"))
                 ((stringp str) (concat str ".0"))
@@ -1366,7 +1366,7 @@ OP is the operator (if any) that caused this call."
            (or calculator-display-fragile
                (not (numberp (car calculator-stack))))
            (not (and calculator-curnum
-                     (string-match "[.eE]" calculator-curnum))))
+                     (string-match-p "[.eE]" calculator-curnum))))
     ;; enter the period on the same condition as a digit, only if no
     ;; period or exponent entered yet
     (progn
@@ -1382,7 +1382,7 @@ OP is the operator (if any) that caused this call."
     (if (and (or calculator-display-fragile
                  (not (numberp (car calculator-stack))))
              (not (and calculator-curnum
-                       (string-match "[eE]" calculator-curnum))))
+                       (string-match-p "[eE]" calculator-curnum))))
       ;; same condition as above, also no E so far
       (progn
         (calculator-clear-fragile)
@@ -1452,7 +1452,7 @@ no need for negative numbers since these are handled by unary operators)."
   (interactive)
   (if (and (not calculator-display-fragile)
            calculator-curnum
-           (string-match "[eE]$" calculator-curnum))
+           (string-match-p "[eE]$" calculator-curnum))
     (calculator-digit)
     (calculator-op)))
 
@@ -1661,8 +1661,7 @@ Used by `calculator-paste' and `get-register'."
           (setq str (concat (or (match-string 1 str) "0")
                             (or (match-string 2 str) ".0")
                             (or (match-string 3 str) ""))))
-     (condition-case nil (calculator-string-to-number str)
-       (error nil)))))
+     (ignore-errors (calculator-string-to-number str)))))
 
 (defun calculator-get-register (reg)
   "Get a value from a register REG."
@@ -1728,13 +1727,11 @@ Used by `calculator-paste' and `get-register'."
   (interactive)
   (set-buffer calculator-buffer)
   (let ((inhibit-read-only t)) (erase-buffer))
-  (if (not calculator-electric-mode)
-    (progn
-      (condition-case nil
-          (while (get-buffer-window calculator-buffer)
-            (delete-window (get-buffer-window calculator-buffer)))
-        (error nil))
-      (kill-buffer calculator-buffer)))
+  (unless calculator-electric-mode
+    (ignore-errors
+      (while (get-buffer-window calculator-buffer)
+	(delete-window (get-buffer-window calculator-buffer))))
+    (kill-buffer calculator-buffer))
   (setq calculator-buffer nil)
   (message "Calculator done.")
   (if calculator-electric-mode (throw 'calculator-done nil)))
@@ -1768,14 +1765,11 @@ To use this, apply a binary operator (evaluate it), then call this."
 
 (defun calculator-integer-p (x)
   "Non-nil if X is equal to an integer."
-  (condition-case nil
-      (= x (ftruncate x))
-    (error nil)))
+  (ignore-errors (= x (ftruncate x))))
 
 (defun calculator-expt (x y)
   "Compute X^Y, dealing with errors appropriately."
-  (condition-case
-      nil
+  (condition-case nil
       (expt x y)
     (domain-error 0.0e+NaN)
     (range-error

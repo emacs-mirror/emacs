@@ -84,48 +84,47 @@ positions of the thing found."
   (if (get thing 'bounds-of-thing-at-point)
       (funcall (get thing 'bounds-of-thing-at-point))
     (let ((orig (point)))
-      (condition-case nil
-	  (save-excursion
-	    ;; Try moving forward, then back.
-            (funcall ;; First move to end.
-             (or (get thing 'end-op)
-                 (lambda () (forward-thing thing 1))))
-            (funcall ;; Then move to beg.
-             (or (get thing 'beginning-op)
-                 (lambda () (forward-thing thing -1))))
-	    (let ((beg (point)))
-	      (if (<= beg orig)
-		  ;; If that brings us all the way back to ORIG,
-		  ;; it worked.  But END may not be the real end.
-		  ;; So find the real end that corresponds to BEG.
-                  ;; FIXME: in which cases can `real-end' differ from `end'?
-		  (let ((real-end
-			 (progn
-			   (funcall
-			    (or (get thing 'end-op)
-                                (lambda () (forward-thing thing 1))))
-			   (point))))
-		    (when (and (<= orig real-end) (< beg real-end))
-                      (cons beg real-end)))
-		(goto-char orig)
-		;; Try a second time, moving backward first and then forward,
-		;; so that we can find a thing that ends at ORIG.
-                (funcall ;; First, move to beg.
-                 (or (get thing 'beginning-op)
-                     (lambda () (forward-thing thing -1))))
-                (funcall ;; Then move to end.
-                 (or (get thing 'end-op)
-                     (lambda () (forward-thing thing 1))))
-		(let ((end (point))
-                      (real-beg
+      (ignore-errors
+	(save-excursion
+	  ;; Try moving forward, then back.
+	  (funcall ;; First move to end.
+	   (or (get thing 'end-op)
+	       (lambda () (forward-thing thing 1))))
+	  (funcall ;; Then move to beg.
+	   (or (get thing 'beginning-op)
+	       (lambda () (forward-thing thing -1))))
+	  (let ((beg (point)))
+	    (if (<= beg orig)
+		;; If that brings us all the way back to ORIG,
+		;; it worked.  But END may not be the real end.
+		;; So find the real end that corresponds to BEG.
+		;; FIXME: in which cases can `real-end' differ from `end'?
+		(let ((real-end
 		       (progn
 			 (funcall
-			  (or (get thing 'beginning-op)
-                              (lambda () (forward-thing thing -1))))
+			  (or (get thing 'end-op)
+			      (lambda () (forward-thing thing 1))))
 			 (point))))
-		  (if (and (<= real-beg orig) (<= orig end) (< real-beg end))
-		      (cons real-beg end))))))
-	(error nil)))))
+		  (when (and (<= orig real-end) (< beg real-end))
+		    (cons beg real-end)))
+	      (goto-char orig)
+	      ;; Try a second time, moving backward first and then forward,
+	      ;; so that we can find a thing that ends at ORIG.
+	      (funcall ;; First, move to beg.
+	       (or (get thing 'beginning-op)
+		   (lambda () (forward-thing thing -1))))
+	      (funcall ;; Then move to end.
+	       (or (get thing 'end-op)
+		   (lambda () (forward-thing thing 1))))
+	      (let ((end (point))
+		    (real-beg
+		     (progn
+		       (funcall
+			(or (get thing 'beginning-op)
+			    (lambda () (forward-thing thing -1))))
+		       (point))))
+		(if (and (<= real-beg orig) (<= orig end) (< real-beg end))
+		    (cons real-beg end))))))))))
 
 ;;;###autoload
 (defun thing-at-point (thing &optional no-properties)
@@ -217,21 +216,19 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
     (let ((opoint (point))
-	  (beg (condition-case nil
-		   (progn (up-list -1)
-			  (point))
-		 (error nil))))
-      (condition-case nil
-	  (if beg
-	      (progn (forward-sexp)
-		     (cons beg (point)))
-	    ;; Are we are at the beginning of a top-level sexp?
-	    (forward-sexp)
-	    (let ((end (point)))
-	      (backward-sexp)
-	      (if (>= opoint (point))
-		  (cons opoint end))))
-	(error nil)))))
+	  (beg (ignore-errors
+		 (up-list -1)
+		 (point))))
+      (ignore-errors
+	(if beg
+	    (progn (forward-sexp)
+		   (cons beg (point)))
+	  ;; Are we are at the beginning of a top-level sexp?
+	  (forward-sexp)
+	  (let ((end (point)))
+	    (backward-sexp)
+	    (if (>= opoint (point))
+		(cons opoint end))))))))
 
 ;; Defuns
 
@@ -358,7 +355,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       (if found
 	  (cons (match-beginning 1) (match-end 1))))))
 
-(defun thing-at-point--bounds-of-well-formed-url (beg end pt)
+(defun thing-at-point--bounds-of-well-formed-url (beg end _pt)
   (save-excursion
     (goto-char beg)
     (let (url-beg paren-end regexp)
@@ -453,16 +450,14 @@ looks like an email address, \"ftp://\" if it starts with
 	 htb ret)
      (while htbs
        (setq htb (car htbs) htbs (cdr htbs))
-       (condition-case nil
-	   (progn
-	     ;; errs: htb symbol may be unbound, or not a hash-table.
-	     ;; gnus-gethash is just a macro for intern-soft.
-	     (and (symbol-value htb)
-		  (intern-soft string (symbol-value htb))
-		  (setq ret string htbs nil))
-	     ;; If we made it this far, gnus is running, so ignore "heads":
-	     (setq heads nil))
-	 (error nil)))
+       (ignore-errors
+	 ;; errs: htb symbol may be unbound, or not a hash-table.
+	 ;; gnus-gethash is just a macro for intern-soft.
+	 (and (symbol-value htb)
+	      (intern-soft string (symbol-value htb))
+	      (setq ret string htbs nil))
+	 ;; If we made it this far, gnus is running, so ignore "heads":
+	 (setq heads nil)))
      (or ret (not heads)
 	 (let ((head (string-match "\\`\\([[:lower:]]+\\)\\." string)))
 	   (and head (setq head (substring string 0 (match-end 1)))
@@ -566,9 +561,8 @@ Signal an error if the entire string was not used."
       (car read-data))))
 
 (defun form-at-point (&optional thing pred)
-  (let ((sexp (condition-case nil
-		  (read-from-whole-string (thing-at-point (or thing 'sexp)))
-		(error nil))))
+  (let ((sexp (ignore-errors
+		(read-from-whole-string (thing-at-point (or thing 'sexp))))))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload

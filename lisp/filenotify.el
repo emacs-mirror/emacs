@@ -92,7 +92,7 @@ car of that event, which is the symbol `file-notify'."
 	 (pending-event (assoc desc file-notify--pending-events))
 	 (actions (nth 1 event))
 	 (file (file-notify--event-file-name event))
-	 file1 cookie callback)
+	 file1 callback)
 
     ;; Make actions a list.
     (unless (consp actions) (setq actions (cons actions nil)))

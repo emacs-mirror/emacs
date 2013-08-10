@@ -1,5 +1,69 @@
 2013-08-10  Juanma Barranquero  <lekktu@gmail.com>
 
+	* calculator.el (calculator): Mark unused argument.
+	(calculator-paste, calculator-quit, calculator-integer-p):
+	Use ignore-errors.
+	(calculator-string-to-number, calculator-decimal, calculator-exp)
+	(calculator-op-or-exp): Use string-match-p.
+
+	* dired.el (dired-buffer-more-recently-used-p): Declare.
+	(dired-insert-set-properties, dired-insert-old-subdirs):
+	Use ignore-errors.
+
+	* dired-aux.el (dired-compress): Use ignore-errors.
+	(dired-do-chxxx, dired-do-chmod, dired-trample-file-versions)
+	(dired-do-async-shell-command, dired-do-shell-command)
+	(dired-shell-stuff-it, dired-compress-file, dired-insert-subdir)
+	(dired-insert-subdir-validate): Use string-match-p.
+	(dired-map-dired-file-lines, dired-subdir-hidden-p): Use looking-at-p.
+	(dired-add-entry): Use string-match-p, looking-at-p.
+	(dired-insert-subdir-newpos): Remove unused local variable.
+
+	* filenotify.el (file-notify-callback): Remove unused local variable.
+
+	* filesets.el (filesets-error): Mark unused argument.
+	(filesets-which-command-p, filesets-filter-dir-names)
+	(filesets-directory-files, filesets-get-external-viewer)
+	(filesets-ingroup-get-data): Use string-match-p.
+
+	* find-file.el (ff-other-file-name, ff-other-file-name)
+	(ff-find-the-other-file, ff-cc-hh-converter):
+	Remove unused local variables.
+	(ff-get-file-name): Use string-match-p.
+	(ff-all-dirs-under): Use ignore-errors.
+
+	* follow.el (follow-comint-scroll-to-bottom): Mark unused argument.
+	(follow-select-if-visible): Remove unused local variable.
+
+	* forms.el (read-file-filter): Move declaration.
+	(forms--make-format, forms--make-parser, forms-insert-record):
+	Quote function with #'.
+	(forms--update): Use string-match-p.  Quote function with #'.
+
+	* help-mode.el (help-dir-local-var-def): Mark unused argument.
+	(help-make-xrefs): Use looking-at-p.
+	(help-xref-on-pp): Use looking-at-p, ignore-errors.
+
+	* ibuffer.el (ibuffer-ext-visible-p): Declare.
+	(ibuffer-confirm-operation-on): Use string-match-p.
+
+	* msb.el (msb-item-handler, msb-dired-item-handler):
+	Mark unused arguments.
+
+	* ses.el (ses-decode-cell-symbol)
+	(ses-kill-override): Remove unused local variable.
+	(ses-create-cell-variable, ses-relocate-formula): Use string-match-p.
+	(ses-load): Use ignore-errors, looking-at-p.
+	(ses-jump-safe): Use ignore-errors.
+	(ses-export-tsv, ses-export-tsf, ses-unsafe): Mark unused arguments.
+
+	* tabify.el (untabify, tabify): Mark unused arguments.
+
+	* thingatpt.el (thing-at-point--bounds-of-well-formed-url):
+	Mark unused argument.
+	(bounds-of-thing-at-point, thing-at-point-bounds-of-list-at-point)
+	(thing-at-point-newsgroup-p, form-at-point): Use ignore-errors.
+
 	* emacs-lisp/timer.el (timer--time): Define setter with
 	gv-define-setter to avoid deprecation warning.
 
