@@ -7808,9 +7808,8 @@ static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
 #if defined USE_GTK && defined HAVE_GTK3
-  if (event->error_code == BadMatch
-      && event->request_code == X_SetInputFocus
-      && event->minor_code == 0)
+  if ((event->error_code == BadMatch || event->error_code == BadWindow)
+      && event->request_code == X_SetInputFocus)
     {
       return 0;
     }

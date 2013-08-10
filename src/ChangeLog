@@ -1,3 +1,8 @@
+2013-08-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_error_handler): Also ignore BadWindow for X_SetInputFocus,
+	don't check minor_code (Bug#14417).
+
 2013-08-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (draw_glyphs): Don't compare row pointers, compare row
