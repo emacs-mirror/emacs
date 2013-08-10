@@ -62,23 +62,22 @@
 	(timer--usecs timer)
 	(timer--psecs timer)))
 
-(gv-define-simple-setter timer--time
-  (lambda (timer time)
-    (timer--check timer)
-    (setf (timer--high-seconds timer) (pop time))
-    (let ((low time) (usecs 0) (psecs 0))
-      (if (consp time)
-          (progn
-            (setq low (pop time))
-            (if time
-                (progn
-                  (setq usecs (pop time))
-                  (if time
-                      (setq psecs (car time)))))))
-      (setf (timer--low-seconds timer) low)
-      (setf (timer--usecs timer) usecs)
-      (setf (timer--psecs timer) psecs))))
-
+(gv-define-setter timer--time (time timer)
+  (macroexp-let2 nil val time
+    `(progn
+       (timer--check ,timer)
+       (setf (timer--high-seconds ,timer) (pop ,val))
+       (let ((low ,val) (usecs 0) (psecs 0))
+	 (when (consp ,val)
+	   (setq low (pop ,val))
+	   (when ,val
+	     (setq usecs (pop ,val))
+	     (when ,val
+	       (setq psecs (car ,val)))))
+	 (setf (timer--low-seconds ,timer) low)
+	 (setf (timer--usecs ,timer) usecs)
+	 (setf (timer--psecs ,timer) psecs))
+       ,val)))
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
