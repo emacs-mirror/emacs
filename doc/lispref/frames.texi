@@ -446,7 +446,7 @@ default parameters by supplying their own parameters.
 If you invoke Emacs with command-line options that specify frame
 appearance, those options take effect by adding elements to either
 @code{initial-frame-alist} or @code{default-frame-alist}.  Options
-which affect just the initial frame, such as @samp{-geometry} and
+which affect just the initial frame, such as @samp{--geometry} and
 @samp{--maximized}, add to @code{initial-frame-alist}; the others add
 to @code{default-frame-alist}.  @pxref{Emacs Invocation,, Command Line
 Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.

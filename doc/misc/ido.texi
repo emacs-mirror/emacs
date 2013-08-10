@@ -168,13 +168,13 @@ of this @code{ido-work-directory-list} whenever a file is opened with
 @c @defvar ido-try-merged-list
 @c @defvar ido-pre-merge-state
 
-@defvr {User Option} ido-max-work-directory-list
+@defopt ido-max-work-directory-list
 This user option specifies maximum number of working directories to
 record.
-@end defvr
+@end defopt
 
 @c see (info "(elisp) File Name Completion")
-@defvr {User Option} ido-max-dir-file-cache
+@defopt ido-max-dir-file-cache
 This user option specifies maximum number of working directories to be
 cached.  This is the size of the cache of
 @code{file-name-all-completions} results.  Each cache entry is time
@@ -183,7 +183,7 @@ like MS-Windows, have unreliable directory modification times, so you
 may choose to disable caching on such systems, or explicitly refresh
 the cache contents using the command @code{ido-reread-directory}
 (usually @kbd{C-l}) in the minibuffer.
-@end defvr
+@end defopt
 
 @node Matching
 @chapter Matching
@@ -320,11 +320,11 @@ directory, enter @samp{~/}.  To enter Dired for this directory, use
 @cindex ftp hosts
 You can also visit files on other hosts using the ange-ftp
 notations @samp{/host:} and @samp{/user@@host:}.
-@c @defvr {User Option} ido-record-ftp-work-directories
-@c @defvr {User Option} ido-merge-ftp-work-directories
-@c @defvr {User Option} ido-cache-ftp-work-directory-time
-@c @defvr {User Option} ido-slow-ftp-hosts
-@c @defvr {User Option} ido-slow-ftp-host-regexps
+@c @defopt ido-record-ftp-work-directories
+@c @defopt ido-merge-ftp-work-directories
+@c @defopt ido-cache-ftp-work-directory-time
+@c @defopt ido-slow-ftp-hosts
+@c @defopt ido-slow-ftp-host-regexps
 
 You can type @kbd{M-p} and @kbd{M-n} to change to previous/next
 directories from the history, @kbd{M-s} to search for a file matching
@@ -377,12 +377,12 @@ of the buffer names.
 @section Flexible Matching
 @cindex flexible matching
 
-@defvr {User Option} ido-enable-flex-matching
+@defopt ido-enable-flex-matching
 If non-@code{nil}, Ido will do flexible string matching.  Flexible
 matching means that if the entered string does not match any item, any
 item containing the entered characters in the given sequence will
 match.
-@end defvr
+@end defopt
 
 @noindent
 If @code{ido-enable-flex-matching} is non-@code{nil}, Ido will do a
@@ -410,11 +410,11 @@ through @code{ido-enable-regexp} (toggle with @kbd{C-t}).  This allows
 you to type @samp{[ch]$} for example and see all file names ending in
 @samp{c} or @samp{h}.
 
-@defvr {User Option} ido-enable-regexp
+@defopt ido-enable-regexp
 If the value of this user option is non-@code{nil}, Ido will do regexp
 matching.  The value of this user option can be toggled within
 ido-mode using @code{ido-toggle-regexp}.
-@end defvr
+@end defopt
 
 @strong{Please notice:} Ido-style completion is inhibited when you
 enable regexp matching.
@@ -474,7 +474,7 @@ To modify the keybindings, use the @code{ido-setup-hook}.  For example:
  (define-key ido-completion-map " " 'ido-next-match))
 @end example
 
-@c @defvr {User Option} ido-setup-hook
+@c @defopt ido-setup-hook
 @c a new node for Ido hooks?
 
 @menu
@@ -521,17 +521,17 @@ The following expression will make Ido guess the context:
 (setq ido-use-filename-at-point 'guess)
 @end example
 
-@c @defvr {User Option} ido-use-filename-at-point
+@c @defopt ido-use-filename-at-point
 @c If the value of this user option is non-@code{nil}, ...
-@c @end defvr
+@c @end defopt
 
 You can disable URL ffap support by toggling
 @code{ido-use-url-at-point}.
 
-@defvr {User Option} ido-use-url-at-point
+@defopt ido-use-url-at-point
 If the value of this user option is non-@code{nil}, Ido will look for
 a URL at point.  If found, call @code{find-file-at-point} to visit it.
-@end defvr
+@end defopt
 
 @node Ignoring
 @section Ignoring Buffers and Files
@@ -542,29 +542,29 @@ a URL at point.  If found, call @code{find-file-at-point} to visit it.
 Ido is capable of ignoring buffers, directories, files and extensions
 using regular expression.
 
-@defvr {User Option} ido-ignore-buffers
+@defopt ido-ignore-buffers
 This variable takes a list of regular expressions for buffers to
 ignore in @code{ido-switch-buffer}.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-ignore-directories
+@defopt ido-ignore-directories
 This variable takes a list of regular expressions for (sub)directories
 names to ignore in @code{ido-dired} and @code{ido-find-file}.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-ignore-files
+@defopt ido-ignore-files
 This variable takes a list of regular expressions for files to ignore
 in @code{ido-find-file}.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-ignore-unc-host-regexps
+@defopt ido-ignore-unc-host-regexps
 This variable takes a list of regular expressions matching UNC hosts
 to ignore.  The letter case will be ignored if
 @code{ido-downcase-unc-hosts} is non-@code{nil}.
-@end defvr
+@end defopt
 
 @c FIXME: Where to add this variable?  This node or ``working directory''?
-@c @defvr {User Option} ido-work-directory-list-ignore-regexps
+@c @defopt ido-work-directory-list-ignore-regexps
 
 To make Ido use @code{completion-ignored-extensions} you need to
 enable it:
@@ -588,114 +588,114 @@ the name of an ignored file, Ido will still let you open it just fine.
 @c Variables described in this sections may be moved to new nodes in
 @c the future.
 
-@defvr {User Option} ido-mode
+@defopt ido-mode
 This user option determines for which functional group (buffer and
 files) Ido behavior should be enabled.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-case-fold
+@defopt ido-case-fold
 If the value of this user option is non-@code{nil}, searching of
 buffer and file names should ignore case.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-show-dot-for-dired
+@defopt ido-show-dot-for-dired
 If the value of this user option is non-@code{nil}, always put
 @samp{.}  as the first item in file name lists.  This allows the
 current directory to be opened immediately with Dired
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-enable-dot-prefix
+@defopt ido-enable-dot-prefix
 If the value of this user option is non-@code{nil}, Ido will match
 leading dot as prefix.  I.e., hidden files and buffers will match only
 if you type a dot as first char (even if @code{ido-enable-prefix} is
 @code{nil}).
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-confirm-unique-completion
+@defopt ido-confirm-unique-completion
 If the value of this user option is non-@code{nil}, even a unique
 completion must be confirmed.  This means that @code{ido-complete}
 (@key{TAB}) must always be followed by @code{ido-exit-minibuffer}
 (@key{RET}) even when there is only one unique completion.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-cannot-complete-command
+@defopt ido-cannot-complete-command
 When @code{ido-complete} can't complete any more, it will run the
 command specified by this user option.  The most useful values are
 @code{ido-completion-help}, which pops up a window with completion
 alternatives, or @code{ido-next-match} or @code{ido-prev-match}, which
 cycle the buffer list.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-max-file-prompt-width
+@defopt ido-max-file-prompt-width
 This user option specifies the upper limit of the prompt string.  If
 its value is an integer, it specifies the number of characters of the
 string.  If its value is a floating point number, it specifies a
 fraction of the frame width.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-max-window-height
+@defopt ido-max-window-height
 If the value of this user option is non-@code{nil}, its value will
 override the variable @code{max-mini-window-height}, which is the
 maximum height for resizing mini-windows (the minibuffer and the echo
 area).  If it's a floating point number, it specifies a fraction of
 the mini-window frame's height.  If it's an integer, it specifies the
 number of lines.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-record-commands
+@defopt ido-record-commands
 If the value of this user option is non-@code{nil}, Ido will record
 commands in the variable @code{command-history}.  Note that non-Ido
 equivalent is recorded.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-all-frames
+@defopt ido-all-frames
 This user option will be passed to @code{walk-windows} as its
 @var{all-frames} argument when Ido is finding buffers.  @xref{Cyclic
 Window Ordering, , Cyclic Ordering of Windows, elisp, GNU Emacs Lisp
 Reference Manual}.
-@end defvr
+@end defopt
 
-@defvr {User Option} ido-minibuffer-setup-hook
+@defopt ido-minibuffer-setup-hook
 This hook variable contains Ido-specific customization of minibuffer
 setup.  It is run during minibuffer setup if Ido is active, and is
 intended for use in customizing ido for interoperation with other
 packages.
-@end defvr
+@end defopt
 
-@c @defvr {User Option} ido-enable-tramp-completion
+@c @defopt ido-enable-tramp-completion
 @c cross-reference to tramp.texi
 
 @c @cindex UNC host names, completion
-@c @defvr {User Option} ido-unc-hosts
-@c @defvr {User Option} ido-downcase-unc-hosts
-@c @defvr {User Option} ido-cache-unc-host-shares-time
+@c @defopt ido-unc-hosts
+@c @defopt ido-downcase-unc-hosts
+@c @defopt ido-cache-unc-host-shares-time
 
-@c @defvr {User Option} ido-enable-last-directory-history
-@c @defvr {User Option} ido-max-work-file-list
-@c @defvr {User Option} ido-work-directory-match-only
-@c @defvr {User Option} ido-auto-merge-work-directories-length
-@c @defvr {User Option} ido-auto-merge-delay-time
-@c @defvr {User Option} ido-auto-merge-inhibit-characters-regexp
-@c @defvr {User Option} ido-merged-indicator
-@c @defvr {User Option} ido-max-directory-size
-@c @defvr {User Option} ido-rotate-file-list-default
-@c @defvr {User Option} ido-enter-matching-directory
-@c @defvr {User Option} ido-create-new-buffer
-@c @defvr {User Option} ido-separator
-@c @defvr {User Option} ido-decorations
-@c @defvr {User Option} ido-use-virtual-buffers
-@c @defvr {User Option} ido-use-faces
-@c @defvr {User Option} ido-make-file-list-hook
-@c @defvr {User Option} ido-make-dir-list-hook
-@c @defvr {User Option} ido-make-buffer-list-hook
-@c @defvr {User Option} ido-rewrite-file-prompt-functions
-@c @defvr {User Option} ido-completion-buffer
-@c @defvr {User Option} ido-completion-buffer-all-completions
-@c @defvr {User Option} ido-save-directory-list-file
-@c @defvr {User Option} ido-read-file-name-as-directory-commands
-@c @defvr {User Option} ido-read-file-name-non-ido
-@c @defvr {User Option} ido-before-fallback-functions
-@c @defvr {User Option} ido-buffer-disable-smart-matches
+@c @defopt ido-enable-last-directory-history
+@c @defopt ido-max-work-file-list
+@c @defopt ido-work-directory-match-only
+@c @defopt ido-auto-merge-work-directories-length
+@c @defopt ido-auto-merge-delay-time
+@c @defopt ido-auto-merge-inhibit-characters-regexp
+@c @defopt ido-merged-indicator
+@c @defopt ido-max-directory-size
+@c @defopt ido-rotate-file-list-default
+@c @defopt ido-enter-matching-directory
+@c @defopt ido-create-new-buffer
+@c @defopt ido-separator
+@c @defopt ido-decorations
+@c @defopt ido-use-virtual-buffers
+@c @defopt ido-use-faces
+@c @defopt ido-make-file-list-hook
+@c @defopt ido-make-dir-list-hook
+@c @defopt ido-make-buffer-list-hook
+@c @defopt ido-rewrite-file-prompt-functions
+@c @defopt ido-completion-buffer
+@c @defopt ido-completion-buffer-all-completions
+@c @defopt ido-save-directory-list-file
+@c @defopt ido-read-file-name-as-directory-commands
+@c @defopt ido-read-file-name-non-ido
+@c @defopt ido-before-fallback-functions
+@c @defopt ido-buffer-disable-smart-matches
 
 @node Misc
 @chapter Miscellaneous
@@ -748,7 +748,7 @@ Also, to improve the responsiveness of Ido, the maximum number of
 matching items is limited to 12, but you can increase or removed this
 limit via the @code{ido-max-prospects} user option.
 
-@c @defvr {User Option} ido-max-prospects
+@c @defopt ido-max-prospects
 
 To see a full list of all matching buffers in a separate buffer, hit
 @kbd{?} or press @key{TAB} when there are no further completions to
@@ -767,7 +767,7 @@ To use ido for all buffer and file selections in Emacs, customize the
 variable @code{ido-everywhere}.
 
 @c @deffn Command ido-everywhere
-@c @defvr {User Option} ido-everywhere
+@c @defopt ido-everywhere
 
 @node Other Packages
 @section Other Packages

@@ -1,3 +1,9 @@
+2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* ido.texi (Working Directories):
+	(Flexible Matching, Regexp Matching, Find File At Point)
+	(Ignoring, Misc Customization): Use @defopt for user options.
+
 2013-08-09  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* htmlfontify.texi (Customization): Remove documentation of
