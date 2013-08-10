@@ -1,3 +1,10 @@
+2013-08-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor string-length refactoring.
+	* alloc.c (xstrdup): Use memcpy, not strcpy, since the length's known.
+	* frame.c (make_monitor_attribute_list):
+	Prefer build_string to strlen + make_string.
+
 2013-08-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_error_handler): Also ignore BadWindow for X_SetInputFocus,

@@ -725,7 +725,7 @@ affects all frames on the same terminal device.  */)
   XSETFRAME (frame, f);
 
   store_in_alist (&parms, Qtty_type, build_string (t->display_info.tty->type));
-  store_in_alist (&parms, Qtty, 
+  store_in_alist (&parms, Qtty,
 		  (t->display_info.tty->name
 		   ? build_string (t->display_info.tty->name)
 		   : Qnil));
@@ -4203,8 +4203,7 @@ make_monitor_attribute_list (struct MonitorInfo *monitors,
 			 mi->work.width, mi->work.height);
       geometry = list4i (mi->geom.x, mi->geom.y,
 			 mi->geom.width, mi->geom.height);
-      attributes = Fcons (Fcons (Qsource,
-                                 make_string (source, strlen (source))),
+      attributes = Fcons (Fcons (Qsource, build_string (source)),
                           attributes);
       attributes = Fcons (Fcons (Qframes, AREF (monitor_frames, i)),
 			  attributes);
