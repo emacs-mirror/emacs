@@ -468,7 +468,7 @@ init_syntax_once (void)
 
 /* Assumes a `char *destination' variable.  */
 # define REGEX_REALLOCATE(source, osize, nsize)				\
-  (destination = (char *) alloca (nsize),				\
+  (destination = alloca (nsize),					\
    memcpy (destination, source, osize))
 
 /* No need to do anything to free, after alloca.  */
@@ -4208,7 +4208,7 @@ re_set_registers (struct re_pattern_buffer *bufp, struct re_registers *regs, uns
     {
       bufp->regs_allocated = REGS_UNALLOCATED;
       regs->num_regs = 0;
-      regs->start = regs->end = (regoff_t *) 0;
+      regs->start = regs->end = 0;
     }
 }
 WEAK_ALIAS (__re_set_registers, re_set_registers)
@@ -6395,8 +6395,7 @@ weak_function
 re_exec (const char *s)
 {
   const size_t len = strlen (s);
-  return (re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0)
-	  >= 0);
+  return re_search (&re_comp_buf, s, len, 0, len, 0) >= 0;
 }
 #endif /* _REGEX_RE_COMP */
 
@@ -6560,7 +6559,7 @@ regexec (const regex_t *_Restrict_ preg, const char *_Restrict_ string,
   /* Perform the searching operation.  */
   ret = re_search (&private_preg, string, len,
 		   /* start: */ 0, /* range: */ len,
-		   want_reg_info ? &regs : (struct re_registers *) 0);
+		   want_reg_info ? &regs : 0);
 
   /* Copy the register information to the POSIX structure.  */
   if (want_reg_info)

@@ -529,7 +529,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 			      make_number (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
-	  message1_nolog ((char *) 0);
+	  message1_nolog (0);
 	  /* Passing args[i] directly stimulates compiler bug.  */
 	  teml = args[i];
 	  /* See bug#8479.  */

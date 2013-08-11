@@ -3249,8 +3249,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     length_needed++;
 
-  vect = ((struct describe_map_elt *)
-	  alloca (sizeof (struct describe_map_elt) * length_needed));
+  vect = alloca (length_needed * sizeof *vect);
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {

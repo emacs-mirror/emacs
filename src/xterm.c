@@ -1366,7 +1366,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	}
       else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
 	{
-	  sprintf ((char *) buf, "%0*X",
+	  sprintf (buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
 		   glyph->u.glyphless.ch);
 	  str = buf;
@@ -4328,8 +4328,8 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 static void
 xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) client_data;
-  XmScrollBarCallbackStruct *cs = (XmScrollBarCallbackStruct *) call_data;
+  struct scroll_bar *bar = client_data;
+  XmScrollBarCallbackStruct *cs = call_data;
   int part = -1, whole = 0, portion = 0;
 
   switch (cs->reason)
@@ -4403,12 +4403,11 @@ xg_scroll_callback (GtkRange     *range,
                     gdouble       value,
                     gpointer      user_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) user_data;
+  struct scroll_bar *bar = user_data;
   gdouble position;
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
-  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (range),
-							XG_FRAME_DATA);
+  struct frame *f = g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
   if (xg_ignore_gtk_scrollbar) return FALSE;
   position = gtk_adjustment_get_value (adj);
@@ -4463,7 +4462,7 @@ xg_end_scroll_callback (GtkWidget *widget,
                         GdkEventButton *event,
                         gpointer user_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) user_data;
+  struct scroll_bar *bar = user_data;
   bar->dragging = Qnil;
   if (WINDOWP (window_being_scrolled))
     {
@@ -4486,8 +4485,9 @@ xg_end_scroll_callback (GtkWidget *widget,
 static void
 xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) client_data;
-  float top = *(float *) call_data;
+  struct scroll_bar *bar = client_data;
+  float *top_addr = call_data;
+  float top = *top_addr;
   float shown;
   int whole, portion, height;
   int part;
@@ -4528,9 +4528,9 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 static void
 xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) client_data;
+  struct scroll_bar *bar = client_data;
   /* The position really is stored cast to a pointer.  */
-  int position = (long) call_data;
+  int position = (intptr_t) call_data;
   Dimension height;
   int part;
 

@@ -3146,8 +3146,8 @@ struct sortvec
 static int
 compare_overlays (const void *v1, const void *v2)
 {
-  const struct sortvec *s1 = (const struct sortvec *) v1;
-  const struct sortvec *s2 = (const struct sortvec *) v2;
+  const struct sortvec *s1 = v1;
+  const struct sortvec *s2 = v2;
   if (s1->priority != s2->priority)
     return s1->priority < s2->priority ? -1 : 1;
   if (s1->beg != s2->beg)
@@ -3253,8 +3253,8 @@ static ptrdiff_t overlay_str_len;
 static int
 cmp_for_strings (const void *as1, const void *as2)
 {
-  struct sortstr *s1 = (struct sortstr *)as1;
-  struct sortstr *s2 = (struct sortstr *)as2;
+  struct sortstr const *s1 = as1;
+  struct sortstr const *s2 = as2;
   if (s1->size != s2->size)
     return s2->size < s1->size ? -1 : 1;
   if (s1->priority != s2->priority)
@@ -4752,7 +4752,7 @@ static struct mmap_region *
 mmap_find (void *start, void *end)
 {
   struct mmap_region *r;
-  char *s = (char *) start, *e = (char *) end;
+  char *s = start, *e = end;
 
   for (r = mmap_regions; r; r = r->next)
     {
@@ -4911,7 +4911,7 @@ mmap_alloc (void **var, size_t nbytes)
     }
   else
     {
-      struct mmap_region *r = (struct mmap_region *) p;
+      struct mmap_region *r = p;
 
       r->nbytes_specified = nbytes;
       r->nbytes_mapped = map;
@@ -5051,7 +5051,7 @@ alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
       memory_full (nbytes);
     }
 
-  b->text->beg = (unsigned char *) p;
+  b->text->beg = p;
   unblock_input ();
 }
 
@@ -5079,7 +5079,7 @@ enlarge_buffer_text (struct buffer *b, ptrdiff_t delta)
       memory_full (nbytes);
     }
 
-  BUF_BEG_ADDR (b) = (unsigned char *) p;
+  BUF_BEG_ADDR (b) = p;
   unblock_input ();
 }
 
@@ -5397,11 +5397,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   bo_fwd->predicate = predicate;
   sym->declared_special = 1;
   sym->redirect = SYMBOL_FORWARDED;
-  {
-    /* I tried to do the job without a cast, but it seems impossible.
-       union Lisp_Fwd *fwd; &(fwd->u_buffer_objfwd) = bo_fwd;  */
-    SET_SYMBOL_FWD (sym, (union Lisp_Fwd *)bo_fwd);
-  }
+  SET_SYMBOL_FWD (sym, (union Lisp_Fwd *) bo_fwd);
   XSETSYMBOL (PER_BUFFER_SYMBOL (offset), sym);
 
   if (PER_BUFFER_IDX (offset) == 0)

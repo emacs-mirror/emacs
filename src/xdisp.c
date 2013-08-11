@@ -5508,8 +5508,8 @@ next_overlay_string (struct it *it)
 static int
 compare_overlay_entries (const void *e1, const void *e2)
 {
-  struct overlay_entry *entry1 = (struct overlay_entry *) e1;
-  struct overlay_entry *entry2 = (struct overlay_entry *) e2;
+  struct overlay_entry const *entry1 = e1;
+  struct overlay_entry const *entry2 = e2;
   int result;
 
   if (entry1->after_string_p != entry2->after_string_p)
@@ -9908,7 +9908,7 @@ vmessage (const char *m, va_list ap)
 	      ptrdiff_t maxsize = FRAME_MESSAGE_BUF_SIZE (f);
 	      char *message_buf = alloca (maxsize + 1);
 
-	      len = doprnt (message_buf, maxsize, m, (char *)0, ap);
+	      len = doprnt (message_buf, maxsize, m, 0, ap);
 
 	      message3 (make_string (message_buf, len));
 	    }

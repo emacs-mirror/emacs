@@ -2447,7 +2447,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   if (n_monitors == 0)
     return Qnil;
 
-  monitors = (struct MonitorInfo *) xzalloc (n_monitors * sizeof (*monitors));
+  monitors = xzalloc (n_monitors * sizeof *monitors);
 
   for (i = 0; i < [screens count]; ++i)
     {

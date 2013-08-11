@@ -4058,7 +4058,7 @@ live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
     {
-      struct string_block *b = (struct string_block *) m->start;
+      struct string_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->strings[0];
 
       /* P must point to the start of a Lisp_String structure, and it
@@ -4081,7 +4081,7 @@ live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
     {
-      struct cons_block *b = (struct cons_block *) m->start;
+      struct cons_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->conses[0];
 
       /* P must point to the start of a Lisp_Cons, not be
@@ -4107,7 +4107,7 @@ live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
     {
-      struct symbol_block *b = (struct symbol_block *) m->start;
+      struct symbol_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->symbols[0];
 
       /* P must point to the start of a Lisp_Symbol, not be
@@ -4133,7 +4133,7 @@ live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
     {
-      struct float_block *b = (struct float_block *) m->start;
+      struct float_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->floats[0];
 
       /* P must point to the start of a Lisp_Float and not be
@@ -4157,7 +4157,7 @@ live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
     {
-      struct marker_block *b = (struct marker_block *) m->start;
+      struct marker_block *b = m->start;
       ptrdiff_t offset = (char *) p - (char *) &b->markers[0];
 
       /* P must point to the start of a Lisp_Misc, not be
@@ -4184,7 +4184,7 @@ live_vector_p (struct mem_node *m, void *p)
   if (m->type == MEM_TYPE_VECTOR_BLOCK)
     {
       /* This memory node corresponds to a vector block.  */
-      struct vector_block *block = (struct vector_block *) m->start;
+      struct vector_block *block = m->start;
       struct Lisp_Vector *vector = (struct Lisp_Vector *) block->data;
 
       /* P is in the block's allocation range.  Scan the block

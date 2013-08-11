@@ -344,8 +344,8 @@ hold_event (struct input_event *event)
     {
       if (hold_event_q.cap == 0) hold_event_q.cap = 10;
       else hold_event_q.cap *= 2;
-      hold_event_q.q = (struct input_event *)
-        xrealloc (hold_event_q.q, hold_event_q.cap * sizeof (*hold_event_q.q));
+      hold_event_q.q =
+        xrealloc (hold_event_q.q, hold_event_q.cap * sizeof *hold_event_q.q);
     }
 
   hold_event_q.q[hold_event_q.nr++] = *event;

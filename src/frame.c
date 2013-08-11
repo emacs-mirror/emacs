@@ -3544,7 +3544,7 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   value = x_get_string_resource (rdb, name_key, class_key);
 
-  if (value != (char *) 0 && *value)
+  if (value && *value)
     return build_string (value);
   else
     return Qnil;

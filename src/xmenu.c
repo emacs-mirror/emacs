@@ -373,7 +373,7 @@ x_menu_wait_for_event (void *data)
 #elif defined USE_GTK
          ! gtk_events_pending ()
 #else
-         ! XPending ((Display*) data)
+         ! XPending (data)
 #endif
          )
     {
@@ -722,8 +722,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
   xg_menu_item_cb_data *cb_data;
   Lisp_Object help;
 
-  cb_data = (xg_menu_item_cb_data*) g_object_get_data (G_OBJECT (widget),
-                                                       XG_ITEM_DATA);
+  cb_data = g_object_get_data (G_OBJECT (widget), XG_ITEM_DATA);
   if (! cb_data) return;
 
   help = call_data ? cb_data->help : Qnil;
@@ -741,15 +740,11 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 static void
 menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
-  struct frame *f;
-  Lisp_Object help;
-
-  widget_value *wv = (widget_value *) call_data;
-
-  help = wv ? wv->help : Qnil;
+  widget_value *wv = call_data;
+  Lisp_Object help = wv ? wv->help : Qnil;
 
   /* Determine the frame for the help event.  */
-  f = menubar_id_to_frame (id);
+  struct frame *f = menubar_id_to_frame (id);
 
   show_help_event (f, widget, help);
 }
@@ -769,7 +764,7 @@ static int xg_crazy_callback_abort;
 static void
 menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
+  xg_menu_item_cb_data *cb_data = client_data;
 
   if (xg_crazy_callback_abort)
     return;
@@ -1370,7 +1365,7 @@ struct next_popup_x_y
 static void
 menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 {
-  struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
+  struct next_popup_x_y *data = user_data;
   GtkRequisition req;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (data->f);
   int disp_width = x_display_pixel_width (dpyinfo);
@@ -1391,10 +1386,10 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 static void
 popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
+  xg_menu_item_cb_data *cb_data = client_data;
 
   if (xg_crazy_callback_abort) return;
-  if (cb_data) menu_item_selection = (Lisp_Object *) cb_data->call_data;
+  if (cb_data) menu_item_selection = cb_data->call_data;
 }
 
 static void
@@ -1497,7 +1492,7 @@ LWLIB_ID widget_id_tick;
 static void
 popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
-  menu_item_selection = (Lisp_Object *) client_data;
+  menu_item_selection = client_data;
 }
 
 /* ARG is the LWLIB ID of the dialog box, represented
@@ -1583,7 +1578,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
                                   make_number (menu_id & ~(-1 << (fact)))));
 
     /* Process events that apply to the menu.  */
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1);
+    popup_get_selection (0, FRAME_X_DISPLAY_INFO (f), menu_id, 1);
 
     unbind_to (specpdl_count, Qnil);
   }
@@ -1882,7 +1877,7 @@ dialog_selection_callback (GtkWidget *widget, gpointer client_data)
   /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
   if ((intptr_t) client_data != -1)
-    menu_item_selection = (Lisp_Object *) client_data;
+    menu_item_selection = client_data;
 
   popup_activated_flag = 0;
 }
@@ -1924,7 +1919,7 @@ dialog_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
   /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
   if ((intptr_t) client_data != -1)
-    menu_item_selection = (Lisp_Object *) client_data;
+    menu_item_selection = client_data;
 
   block_input ();
   lw_destroy_all_widgets (id);
@@ -1967,8 +1962,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
                            Fcons (make_number (dialog_id >> (fact)),
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f),
-                         dialog_id, 1);
+    popup_get_selection (0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
 
     unbind_to (count, Qnil);
   }

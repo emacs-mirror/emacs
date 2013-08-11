@@ -1364,7 +1364,7 @@ struct check_window_data
 static int
 check_window_containing (struct window *w, void *user_data)
 {
-  struct check_window_data *cw = (struct check_window_data *) user_data;
+  struct check_window_data *cw = user_data;
   enum window_part found;
   int continue_p = 1;
 
@@ -2164,7 +2164,7 @@ delete_deletable_window (Lisp_Object window)
 static int
 add_window_to_list (struct window *w, void *user_data)
 {
-  Lisp_Object *list = (Lisp_Object *) user_data;
+  Lisp_Object *list = user_data;
   Lisp_Object window;
   XSETWINDOW (window, w);
   *list = Fcons (window, *list);
@@ -6481,7 +6481,7 @@ freeze_window_start (struct window *w, void *freeze_p)
 void
 freeze_window_starts (struct frame *f, bool freeze_p)
 {
-  foreach_window (f, freeze_window_start, (void *) (freeze_p ? f : 0));
+  foreach_window (f, freeze_window_start, freeze_p ? f : 0);
 }
 
 

@@ -1,3 +1,57 @@
+2013-08-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit some unnecessary casts.
+	Many of these go back to the old pre-C89 days, when they may have
+	been needed, but we've been assuming C89 or later for a while now.
+	* alloc.c (live_string_p, live_cons_p, live_symbol_p)
+	(live_float_p, live_misc_p, live_vector_p):
+	* buffer.c (compare_overlays, cmp_for_strings, mmap_find)
+	(mmap_alloc, alloc_buffer_text, enlarge_buffer_text)
+	(defvar_per_buffer):
+	* callint.c (Fcall_interactively):
+	* doc.c (Fsubstitute_command_keys):
+	* filelock.c (get_boot_time):
+	* frame.c (xrdb_get_resource):
+	* gtkutil.c (hierarchy_ch_cb, qttip_cb, style_changed_cb)
+	(delete_cb, xg_dialog_response_cb, xg_maybe_add_timer)
+	(xg_get_file_name_from_selector, menuitem_destroy_callback)
+	(menuitem_highlight_callback, menu_destroy_callback)
+	(xg_update_menu_item, xg_modify_menubar_widgets, menubar_map_cb)
+	(xg_tool_bar_callback, xg_get_tool_bar_widgets)
+	(xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
+	(xg_tool_bar_help_callback, tb_size_cb):
+	* image.c (xpm_alloc_color, png_read_from_memory)
+	(png_read_from_file, png_load_body, our_memory_skip_input_data)
+	(jpeg_memory_src, jpeg_file_src, imagemagick_load_image)
+	(syms_of_image):
+	* keymap.c (describe_map):
+	* nsfns.m (Fns_display_monitor_attributes_list):
+	* nsmenu.m (process_dialog:):
+	* nsterm.m (hold_event):
+	* process.c (wait_reading_process_output):
+	* regex.c (REGEX_REALLOCATE, re_set_registers, re_exec, regexec):
+	* scroll.c (do_direct_scrolling, scrolling_1):
+	* termcap.c (tgetent):
+	* window.c (check_window_containing, add_window_to_list)
+	(freeze_window_starts):
+	* xdisp.c (compare_overlay_entries, vmessage):
+	* xfns.c (x_window, x_get_monitor_attributes_xinerama)
+	(x_get_monitor_attributes_xrandr)
+	(Fx_display_monitor_attributes_list, x_display_info_for_name)
+	(Fx_open_connection, file_dialog_cb, file_dialog_unmap_cb):
+	* xfont.c (xfont_match, xfont_open):
+	* xmenu.c (x_menu_wait_for_event, menu_highlight_callback)
+	(menubar_selection_callback, menu_position_func)
+	(popup_selection_callback, create_and_show_popup_menu)
+	(dialog_selection_callback, create_and_show_dialog):
+	* xrdb.c (x_get_string_resource):
+	(main) [TESTRM]:
+	* xsmfns.c (x_session_check_input):
+	* xterm.c (x_draw_glyphless_glyph_string_foreground)
+	(xm_scroll_callback, xg_scroll_callback, xg_end_scroll_callback)
+	(xaw_jump_callback, xaw_scroll_callback):
+	Omit unnecessary casts.
+
 2013-08-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor string-length refactoring.

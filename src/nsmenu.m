@@ -1665,7 +1665,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     }
 
   if (buttons > 0)
-    button_values = (Lisp_Object *) xmalloc (buttons * sizeof (*button_values));
+    button_values = xmalloc (buttons * sizeof *button_values);
 
   for (; XTYPE (list) == Lisp_Cons; list = XCDR (list))
     {

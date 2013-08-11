@@ -641,7 +641,7 @@ hierarchy_ch_cb (GtkWidget *widget,
                  GtkWidget *previous_toplevel,
                  gpointer   user_data)
 {
-  struct frame *f = (struct frame *) user_data;
+  struct frame *f = user_data;
   struct x_output *x = f->output_data.x;
   GtkWidget *top = gtk_widget_get_toplevel (x->ttip_lbl);
 
@@ -663,7 +663,7 @@ qttip_cb (GtkWidget  *widget,
           GtkTooltip *tooltip,
           gpointer    user_data)
 {
-  struct frame *f = (struct frame *) user_data;
+  struct frame *f = user_data;
   struct x_output *x = f->output_data.x;
   if (x->ttip_widget == NULL)
     {
@@ -1073,7 +1073,7 @@ style_changed_cb (GObject *go,
                   gpointer user_data)
 {
   struct input_event event;
-  GdkDisplay *gdpy = (GdkDisplay *) user_data;
+  GdkDisplay *gdpy = user_data;
   const char *display_name = gdk_display_get_name (gdpy);
   Display *dpy = GDK_DISPLAY_XDISPLAY (gdpy);
 
@@ -1115,7 +1115,7 @@ delete_cb (GtkWidget *widget,
 #ifdef HAVE_GTK3
   /* The event doesn't arrive in the normal event loop.  Send event
      here.  */
-  struct frame *f = (struct frame *) user_data;
+  struct frame *f = user_data;
   struct input_event ie;
 
   EVENT_INIT (ie);
@@ -1642,7 +1642,7 @@ xg_dialog_response_cb (GtkDialog *w,
 		       gint response,
 		       gpointer user_data)
 {
-  struct xg_dialog_data *dd = (struct xg_dialog_data *)user_data;
+  struct xg_dialog_data *dd = user_data;
   dd->response = response;
   g_main_loop_quit (dd->loop);
 }
@@ -1671,7 +1671,7 @@ pop_down_dialog (void *arg)
 static gboolean
 xg_maybe_add_timer (gpointer data)
 {
-  struct xg_dialog_data *dd = (struct xg_dialog_data *) data;
+  struct xg_dialog_data *dd = data;
   EMACS_TIME next_time = timer_check ();
 
   dd->timerid = 0;
@@ -1921,7 +1921,7 @@ static char *
 xg_get_file_name_from_selector (GtkWidget *w)
 {
   GtkFileSelection *filesel = GTK_FILE_SELECTION (w);
-  return xstrdup ((char*) gtk_file_selection_get_filename (filesel));
+  return xstrdup (gtk_file_selection_get_filename (filesel));
 }
 
 /* Create a file selection dialog.
@@ -2277,7 +2277,7 @@ menuitem_destroy_callback (GtkWidget *w, gpointer client_data)
 {
   if (client_data)
     {
-      xg_menu_item_cb_data *data = (xg_menu_item_cb_data*) client_data;
+      xg_menu_item_cb_data *data = client_data;
       xg_list_remove (&xg_menu_item_cb_list, &data->ptrs);
       xfree (data);
     }
@@ -2301,8 +2301,7 @@ menuitem_highlight_callback (GtkWidget *w,
 
   ev.crossing = *event;
   subwidget = gtk_get_event_widget (&ev);
-  data = (xg_menu_item_cb_data *) g_object_get_data (G_OBJECT (subwidget),
-                                                     XG_ITEM_DATA);
+  data = g_object_get_data (G_OBJECT (subwidget), XG_ITEM_DATA);
   if (data)
     {
       if (! NILP (data->help) && data->cl_data->highlight_cb)
@@ -2323,7 +2322,7 @@ menuitem_highlight_callback (GtkWidget *w,
 static void
 menu_destroy_callback (GtkWidget *w, gpointer client_data)
 {
-  unref_cl_data ((xg_menu_cb_data*) client_data);
+  unref_cl_data (client_data);
 }
 
 /* Make a GTK widget that contains both UTF8_LABEL and UTF8_KEY (both
@@ -3064,8 +3063,7 @@ xg_update_menu_item (widget_value *val,
   else if (val->enabled && ! gtk_widget_get_sensitive (w))
     gtk_widget_set_sensitive (w, TRUE);
 
-  cb_data = (xg_menu_item_cb_data*) g_object_get_data (G_OBJECT (w),
-                                                       XG_ITEM_DATA);
+  cb_data = g_object_get_data (G_OBJECT (w), XG_ITEM_DATA);
   if (cb_data)
     {
       cb_data->call_data = val->call_data;
@@ -3271,8 +3269,7 @@ xg_modify_menubar_widgets (GtkWidget *menubar, struct frame *f,
 
   if (! list) return;
 
-  cl_data = (xg_menu_cb_data*) g_object_get_data (G_OBJECT (menubar),
-                                                  XG_FRAME_DATA);
+  cl_data = g_object_get_data (G_OBJECT (menubar), XG_FRAME_DATA);
 
   xg_update_menubar (menubar, f, &list, list, 0, val->contents,
                      select_cb, deactivate_cb, highlight_cb, cl_data);
@@ -3336,7 +3333,7 @@ static void
 menubar_map_cb (GtkWidget *w, gpointer user_data)
 {
   GtkRequisition req;
-  struct frame *f = (struct frame *) user_data;
+  struct frame *f = user_data;
   gtk_widget_get_preferred_size (w, NULL, &req);
   if (FRAME_MENUBAR_HEIGHT (f) != req.height)
     {
@@ -3946,8 +3943,7 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
   gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
   intptr_t mod = (intptr_t) gmod;
 
-  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (w),
-							XG_FRAME_DATA);
+  struct frame *f = g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
   EVENT_INIT (event);
@@ -4020,8 +4016,8 @@ static GtkWidget *
 xg_get_tool_bar_widgets (GtkWidget *vb, GtkWidget **wimage)
 {
   GList *clist = gtk_container_get_children (GTK_CONTAINER (vb));
-  GtkWidget *c1 = (GtkWidget *) clist->data;
-  GtkWidget *c2 = clist->next ? (GtkWidget *) clist->next->data : NULL;
+  GtkWidget *c1 = clist->data;
+  GtkWidget *c2 = clist->next ? clist->next->data : NULL;
 
   *wimage = GTK_IS_IMAGE (c1) ? c1 : c2;
   g_list_free (clist);
@@ -4150,7 +4146,7 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox,
                              GtkWidget *w,
                              gpointer client_data)
 {
-  struct frame *f = (struct frame *) client_data;
+  struct frame *f = client_data;
 
   g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
 		NULL);
@@ -4187,7 +4183,7 @@ xg_tool_bar_attach_callback (GtkHandleBox *wbox,
                              GtkWidget *w,
                              gpointer client_data)
 {
-  struct frame *f = (struct frame *) client_data;
+  struct frame *f = client_data;
   g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
 
   if (f)
@@ -4225,8 +4221,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
                            gpointer client_data)
 {
   intptr_t idx = (intptr_t) client_data;
-  struct frame *f = (struct frame *) g_object_get_data (G_OBJECT (w),
-							XG_FRAME_DATA);
+  struct frame *f = g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
@@ -4366,7 +4361,7 @@ tb_size_cb (GtkWidget    *widget,
   /* When tool bar is created it has one preferred size.  But when size is
      allocated between widgets, it may get another.  So we must update
      size hints if tool bar size changes.  Seen on Fedora 18 at least.  */
-  struct frame *f = (struct frame *) user_data;
+  struct frame *f = user_data;
   if (xg_update_tool_bar_sizes (f))
     x_wm_set_size_hint (f, 0, 0);
 }

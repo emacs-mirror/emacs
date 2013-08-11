@@ -4526,7 +4526,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif
             (max (max_process_desc, max_input_desc) + 1,
              &Available,
-             (check_write ? &Writeok : (SELECT_TYPE *)0),
+             (check_write ? &Writeok : 0),
              NULL, &timeout, NULL);
 
 #ifdef HAVE_GNUTLS

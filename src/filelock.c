@@ -181,7 +181,7 @@ get_boot_time (void)
      since utmp is typically much smaller than wtmp.
      Passing a null pointer causes get_boot_time_1
      to inspect the default file, namely utmp.  */
-  get_boot_time_1 ((char *) 0, 0);
+  get_boot_time_1 (0, 0);
   if (boot_time)
     return boot_time;
 
