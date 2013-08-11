@@ -1,5 +1,8 @@
 2013-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfns.m (Fns_convert_utf8_nfd_to_nfc): Allocate and release pool to
+	remove memory leak warnings.
+
 	* nsterm.m (menu_pending_title, ns_get_pending_menu_title): Remove.
 	(ns_check_menu_open): Handle menu == nil.  Remove assignment to
 	menu_pending_title.
