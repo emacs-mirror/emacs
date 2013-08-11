@@ -250,9 +250,6 @@ static int menu_will_open_state = MENU_NONE;
 
 /* Saved position for menu click.  */
 static CGPoint menu_mouse_point;
-
-/* Title for the menu to open.  */
-static char *menu_pending_title = 0;
 #endif
 
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
@@ -3397,12 +3394,6 @@ check_native_fs ()
 /* GNUStep and OSX <= 10.4 does not have cancelTracking.  */
 #if defined (NS_IMPL_COCOA) && \
   MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-const char *
-ns_get_pending_menu_title ()
-{
-  return menu_pending_title;
-}
-
 /* Check if menu open should be cancelled or continued as normal.  */
 void
 ns_check_menu_open (NSMenu *menu)
@@ -3411,6 +3402,14 @@ ns_check_menu_open (NSMenu *menu)
   NSArray *a = [[NSApp mainMenu] itemArray];
   int i;
   BOOL found = NO;
+
+  if (menu == nil) // Menu tracking ended.
+    {
+      if (menu_will_open_state == MENU_OPENING)
+        menu_will_open_state = MENU_NONE;
+      return;
+    }
+
   for (i = 0; ! found && i < [a count]; i++)
     found = menu == [[a objectAtIndex:i] submenu];
   if (found)
@@ -3428,8 +3427,6 @@ ns_check_menu_open (NSMenu *menu)
           CGEventRef ourEvent = CGEventCreate (NULL);
           menu_mouse_point = CGEventGetLocation (ourEvent);
           CFRelease (ourEvent);
-          xfree (menu_pending_title);
-          menu_pending_title = xstrdup ([[menu title] UTF8String]);
         }
       else if (menu_will_open_state == MENU_OPENING)
         {

@@ -1,3 +1,21 @@
+2013-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (menu_pending_title, ns_get_pending_menu_title): Remove.
+	(ns_check_menu_open): Handle menu == nil.  Remove assignment to
+	menu_pending_title.
+
+	* nsmenu.m (ns_update_menubar): Call fillWithWidgetValue:setDelegate.
+	(x_activate_menubar): Update the whole menu.
+	(trackingNotification:): Call ns_check_menu_open if tracking ends.
+	(menuWillOpen:): Increment trackingMenu.  For OSX <= 10.6, exit if
+	current event is not NSSystemDefined (Bug#15001).
+	Call ns_check_menu_open only if trackingMenu is 2.
+	(menuDidClose:): New method, decrease trackingMenu.
+	(fillWithWidgetValue:setDelegate:): New method.
+	(fillWithWidgetValue:): Call the above.
+
+	* nsterm.h (EmacsMenu): Add fillWithWidgetValue:setDelegate:
+
 2013-08-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Omit some unnecessary casts.

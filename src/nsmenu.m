@@ -366,7 +366,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
         }
       else
         {
-          [menu fillWithWidgetValue: first_wv->contents];
+          [menu fillWithWidgetValue: first_wv->contents setDelegate:YES];
         }
 
     }
@@ -504,21 +504,7 @@ void
 x_activate_menubar (struct frame *f)
 {
 #ifdef NS_IMPL_COCOA
-  NSArray *a = [[NSApp mainMenu] itemArray];
-  /* Update each submenu separately so ns_update_menubar doesn't reset
-     the delegate.  */
-  int i = 0;
-  while (i < [a count])
-    {
-      EmacsMenu *menu = (EmacsMenu *)[[a objectAtIndex:i] submenu];
-      const char *title = [[menu title] UTF8String];
-      if (strcmp (title, ns_get_pending_menu_title ()) == 0)
-        {
-          ns_update_menubar (f, true, menu);
-          break;
-        }
-      ++i;
-    }
+  ns_update_menubar (f, true, nil);
   ns_check_pending_open_menu ();
 #endif
 }
@@ -576,16 +562,33 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   /* Update menu in menuNeedsUpdate only while tracking menus.  */
   trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
                   ? 1 : 0);
+  if (! trackingMenu) ns_check_menu_open (nil);
 }
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
 - (void)menuWillOpen:(NSMenu *)menu
 {
-  ns_check_menu_open (menu);
-}
+  ++trackingMenu;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_6
+  // On 10.6 we get repeated calls, only the one for NSSystemDefined is "real".
+  if ([[NSApp currentEvent] type] != NSSystemDefined) return;
 #endif
 
-#endif
+  /* When dragging from one menu to another, we get willOpen followed by didClose,
+     i.e. trackingMenu == 3 in willOpen and then 2 after didClose.
+     We have updated all menus, so avoid doing it when trackingMenu == 3.  */
+  if (trackingMenu == 2)
+    ns_check_menu_open (menu);
+}
+
+- (void)menuDidClose:(NSMenu *)menu
+{
+  --trackingMenu;
+}
+#endif /* OSX >= 10.5 */
+
+#endif /* NS_IMPL_COCOA */
 
 /* delegate method called when a submenu is being opened: run a 'deep' call
    to set_frame_menubar */
@@ -722,6 +725,11 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 
 - (void)fillWithWidgetValue: (void *)wvptr
 {
+  [self fillWithWidgetValue: wvptr setDelegate:NO];
+}
+
+- (void)fillWithWidgetValue: (void *)wvptr setDelegate: (BOOL)set
+{
   widget_value *wv = (widget_value *)wvptr;
 
   /* clear existing contents */
@@ -737,6 +745,9 @@ extern NSString *NSMenuDidBeginTrackingNotification;
         {
           EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
 
+#ifdef NS_IMPL_COCOA
+          if (set) [submenu setDelegate: submenu];
+#endif
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
           [submenu release];
