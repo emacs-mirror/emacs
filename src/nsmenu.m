@@ -366,7 +366,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
         }
       else
         {
-          [menu fillWithWidgetValue: first_wv->contents setDelegate:YES];
+          [menu fillWithWidgetValue: first_wv->contents frame: f];
         }
 
     }
@@ -527,6 +527,7 @@ x_activate_menubar (struct frame *f)
 /* override designated initializer */
 - initWithTitle: (NSString *)title
 {
+  frame = 0;
   if ((self = [super initWithTitle: title]))
     [self setAutoenablesItems: NO];
   return self;
@@ -725,10 +726,10 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 
 - (void)fillWithWidgetValue: (void *)wvptr
 {
-  [self fillWithWidgetValue: wvptr setDelegate:NO];
+  [self fillWithWidgetValue: wvptr frame:nil];
 }
 
-- (void)fillWithWidgetValue: (void *)wvptr setDelegate: (BOOL)set
+- (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f
 {
   widget_value *wv = (widget_value *)wvptr;
 
@@ -743,11 +744,13 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 
       if (wv->contents)
         {
-          EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
+          EmacsMenu *submenu;
 
-#ifdef NS_IMPL_COCOA
-          if (set) [submenu setDelegate: submenu];
-#endif
+          if (f)
+            submenu = [[EmacsMenu alloc] initWithTitle: [item title] frame:f];
+          else
+            submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
+
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
           [submenu release];

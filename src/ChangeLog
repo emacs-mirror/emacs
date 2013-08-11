@@ -1,5 +1,14 @@
 2013-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsmenu.m (ns_update_menubar): Call fillWithWidgetValue:frame:
+	(initWithTitle:): Initialize frame to 0.
+	(fillWithWidgetValue:): Call fillWithWidgetValue:frame.
+	(fillWithWidgetValue:frame:): Renamed from
+	fillWithWidgetValue:setDelegate, call initWithTile:frame: if f.
+
+	* nsterm.h (EmacsMenu): fillWithWidgetValue:setDelegate renamed to
+	fillWithWidgetValue:frame:
+
 	* nsfns.m (Fns_convert_utf8_nfd_to_nfc): Allocate and release pool to
 	remove memory leak warnings.
 
