@@ -1,3 +1,10 @@
+2013-08-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add --with-zlib to 'configure'.
+	* configure.ac: Add --with-zlib option to 'configure', so that Emacs
+	can be built without zlib.  Don't assume that -lz is needed on
+	non-PNG hosts.  Mention zlib configuration status in 'configure' output.
+
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.ac: Test for zlib.

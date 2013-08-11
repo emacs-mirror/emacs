@@ -211,6 +211,7 @@ OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
+OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, gfile, inotify, w32, no)])],
@@ -2944,18 +2945,22 @@ AC_SUBST(LIBPNG)
 
 HAVE_ZLIB=no
 LIBZ=
-if test "${HAVE_PNG}" = "yes"; then
-  ### PNG depends on zlib, so if we have PNG, we have zlib.
-  HAVE_ZLIB=yes
-  AC_DEFINE(HAVE_ZLIB, 1, [Define to 1 if you have the zlib library (-lz).])
-else
-  ### No PNG, so check zlib ourselves.
-  LIBS="-lz $LIBS"
-  AC_CHECK_LIB(z, inflateEnd, HAVE_ZLIB=yes, HAVE_ZLIB=no)
-  if test "${HAVE_ZLIB}" = "yes"; then
-    AC_DEFINE(HAVE_ZLIB, 1, [Define to 1 if you have the zlib library (-lz).])
-    LIBZ=-lz
+if test "${with_zlib}" != "no"; then
+  if test "${HAVE_PNG}" = "yes"; then
+    ### PNG depends on zlib, so if we have PNG, we have zlib.
+    HAVE_ZLIB=yes
+  else
+    ### No PNG, so check zlib ourselves.
+    OLIBS=$LIBS
+    AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
+    LIBS=$OLIBS
+    case $ac_cv_search_inflateEnd in
+      -*) LIBZ=$ac_cv_search_inflateEnd ;;
+    esac
   fi
+fi
+if test "${HAVE_ZLIB}" = "yes"; then
+  AC_DEFINE([HAVE_ZLIB], 1, [Define to 1 if you have the zlib library (-lz).])
 fi
 AC_SUBST(LIBZ)
 
@@ -4812,6 +4817,7 @@ echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
 echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
 echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+echo "  Does Emacs directly use zlib?                           ${HAVE_ZLIB}"
 
 echo "  Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}"
 echo
