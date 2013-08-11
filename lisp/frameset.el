@@ -156,7 +156,7 @@ a valid one, and the frameset version if it is valid."
        (stringp (or (aref object 4) ""))  ; NAME is a string or nil
        (stringp (or (aref object 5) ""))  ; DESCRIPTION is a string or nil
        (listp (aref object 6))            ; PROPERTIES is a list
-       (consp (aref object 7))            ; and STATES is non-nil
+       (listp (aref object 7))            ; and STATES is, too
        (cl-every #'consp (aref object 7)) ; and an alist
        (aref object 1)))                  ; return VERSION
 

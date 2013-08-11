@@ -1,3 +1,7 @@
+2013-08-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset-valid-p): Fix check; STATES can indeed be nil.
+
 2013-08-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tutorial.el (tutorial--describe-nonstandard-key): Use string-match-p.
