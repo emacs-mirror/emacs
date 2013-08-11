@@ -199,7 +199,9 @@ word(s) will be searched for via `eww-search-prefix'."
 
 (defun eww-display-html (charset url)
   (unless (eq charset 'utf8)
-    (decode-coding-region (point) (point-max) charset))
+    (condition-case nil
+	(decode-coding-region (point) (point-max) charset)
+      (coding-system-error nil)))
   (let ((document
 	 (list
 	  'base (list (cons 'href url))
