@@ -660,7 +660,7 @@ For full documentation. please see commentary.
 (put 'use-package 'lisp-indent-function 1)
 
 (defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\)\\> *\\(\\sw+\\)?"
+  '(("(\\(use-package\\)\\_>[\n[:space:]]+\\(\\(?:\\s_\\|\\sw\\)+\\)"
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face))))
 
