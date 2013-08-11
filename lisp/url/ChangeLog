@@ -1,3 +1,11 @@
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-vars.el (url-mime-encoding-string): If we have built-in gzip
+	support, say that we accept gzipped content.
+
+	* url-http.el (url-handle-content-transfer-encoding): Support
+	decompressing gzipped content.
+
 2013-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-name-completion)

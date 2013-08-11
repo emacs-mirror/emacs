@@ -210,8 +210,8 @@ Should be an assoc list of headers/contents.")
 
 (defvar url-request-method nil "The method to use for the next request.")
 
-;; FIXME!!  (RFC 2616 gives examples like `compress, gzip'.)
-(defvar url-mime-encoding-string nil
+(defvar url-mime-encoding-string (and (fboundp 'decompress-gzipped-region)
+				      "gzip")
   "String to send in the Accept-encoding: field in HTTP requests.")
 
 (defvar mm-mime-mule-charset-alist)
