@@ -63,7 +63,6 @@ This function can only be called in unibyte buffers.*/)
   ptrdiff_t count = SPECPDL_INDEX ();
 
   validate_region (&start, &end);
-  move_gap_both (iend, iend);
 
   if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     error ("This function can only be called in unibyte buffers");
@@ -72,6 +71,7 @@ This function can only be called in unibyte buffers.*/)
      the same. */
   istart = XINT (start);
   iend = XINT (end);
+  move_gap_both (iend, iend);
 
   stream.zalloc = Z_NULL;
   stream.zfree = Z_NULL;
@@ -99,13 +99,11 @@ This function can only be called in unibyte buffers.*/)
 
   /* Run inflate() on input until the output buffer isn't full. */
   do {
+    int result;
     stream.avail_out = BUFFER_SIZE;
     stream.next_out = out;
-    switch (inflate (&stream, Z_NO_FLUSH)) {
-    case Z_STREAM_ERROR:
-    case Z_NEED_DICT:
-    case Z_DATA_ERROR:
-    case Z_MEM_ERROR:
+    result = inflate (&stream, Z_NO_FLUSH);
+    if (result < 0) {
       unbind_to (count, Qnil);
       return Qnil;
     }

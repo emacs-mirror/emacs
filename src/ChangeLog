@@ -1,5 +1,8 @@
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* decompress.c (Fdecompress_gzipped_region): Respect all zlib
+	errors, and really move the gap to where we want it.
+
 	* lisp.h: Include decompress.c support.
 
 	* emacs.c (main): Include decompress.c support.
