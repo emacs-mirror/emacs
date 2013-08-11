@@ -1,3 +1,14 @@
+2013-08-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* decompress.c: Fix bugs with large buffers and weird inputs.
+	Tune a bit.  Reindent as per usual Emacs style.
+	(BUFFER_SIZE): Remove.
+	(Fdecompress_gzipped_region): Do not mishandle input buffers with
+	more than UINT_MAX bytes.  Decompress into the gap instead of into
+	an auto buffer, as this should avoid copying.  Return nil if
+	'inflate' returns Z_NEED_DICT, as we have no dictionary.  Do not
+	set immediate_quit; we shouldn't trust zlib code that much.
+
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* decompress.c (Fdecompress_gzipped_region): Respect all zlib

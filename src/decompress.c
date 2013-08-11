@@ -27,48 +27,48 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 
 
-#define BUFFER_SIZE 16384
-
-struct decompress_unwind_data {
+struct decompress_unwind_data
+{
   ptrdiff_t old_point, start;
   z_stream *stream;
 };
 
 static void
-unwind_decompress (void *ddata) {
+unwind_decompress (void *ddata)
+{
   struct decompress_unwind_data *data = ddata;
   inflateEnd (data->stream);
-  /* Delete any uncompressed data already inserted and restore
-     point. */
-  if (data->start) {
-    del_range (data->start, PT);
-    SET_PT (data->old_point);
-  }
+
+  /* Delete any uncompressed data already inserted and restore point.  */
+  if (data->start)
+    {
+      del_range (data->start, PT);
+      SET_PT (data->old_point);
+    }
 }
 
 DEFUN ("decompress-gzipped-region", Fdecompress_gzipped_region,
        Sdecompress_gzipped_region,
        2, 2, 0,
        doc: /* Decompress a gzip-compressed region.
-The text in the region will be replaced by the decompressed data.
-On failure, nil is returned and the data is left in place.
-This function can only be called in unibyte buffers.*/)
+Replace the text in the region by the decompressed data.
+On failure, return nil and leave the data in place.
+This function can be called only in unibyte buffers.  */)
   (Lisp_Object start, Lisp_Object end)
 {
-  ptrdiff_t istart, iend, point = PT;
+  ptrdiff_t istart, iend, pos_byte;
   z_stream stream;
-  int decompressed;
-  char out[16384];
+  int inflate_status;
   struct decompress_unwind_data unwind_data;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   validate_region (&start, &end);
 
   if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
-    error ("This function can only be called in unibyte buffers");
+    error ("This function can be called only in unibyte buffers");
 
   /* This is a unibyte buffer, so character positions and bytes are
-     the same. */
+     the same.  */
   istart = XINT (start);
   iend = XINT (end);
   move_gap_both (iend, iend);
@@ -79,49 +79,55 @@ This function can only be called in unibyte buffers.*/)
   stream.avail_in = 0;
   stream.next_in = Z_NULL;
 
-  /* This magic number apparently means "this is gzip". */
+  /* This magic number apparently means "this is gzip".  */
   if (inflateInit2 (&stream, 16 + MAX_WBITS) != Z_OK)
     return Qnil;
 
-  /* We're inserting the decompressed data at the end of the
-     compressed data. */
-  SET_PT (iend);
-
-  stream.avail_in = iend - istart;
-  stream.next_in = (char *) BYTE_POS_ADDR (istart);
-
   unwind_data.start = iend;
   unwind_data.stream = &stream;
-  unwind_data.old_point = point;
+  unwind_data.old_point = PT;
+
   record_unwind_protect_ptr (unwind_decompress, &unwind_data);
 
-  immediate_quit = 1;
+  /* Insert the decompressed data at the end of the compressed data.  */
+  SET_PT (iend);
 
-  /* Run inflate() on input until the output buffer isn't full. */
-  do {
-    int result;
-    stream.avail_out = BUFFER_SIZE;
-    stream.next_out = out;
-    result = inflate (&stream, Z_NO_FLUSH);
-    if (result < 0) {
-      unbind_to (count, Qnil);
-      return Qnil;
+  pos_byte = istart;
+
+  /* Keep calling 'inflate' until it reports an error or end-of-input.  */
+  do
+    {
+      /* Maximum number of bytes that one 'inflate' call should read and write.
+	 zlib requires that these values not exceed UINT_MAX.
+	 Do not make avail_out too large, as that might unduly delay C-g.  */
+      ptrdiff_t avail_in = min (iend - pos_byte, UINT_MAX);
+      ptrdiff_t avail_out = min (1 << 14, UINT_MAX);
+
+      ptrdiff_t decompressed;
+
+      if (GAP_SIZE < avail_out)
+	make_gap (avail_out - GAP_SIZE);
+      stream.next_in = BYTE_POS_ADDR (pos_byte);
+      stream.avail_in = avail_in;
+      stream.next_out = GPT_ADDR;
+      stream.avail_out = avail_out;
+      inflate_status = inflate (&stream, Z_NO_FLUSH);
+      pos_byte += avail_in - stream.avail_in;
+      decompressed = avail_out - stream.avail_out;
+      insert_from_gap (decompressed, decompressed, 0);
+      QUIT;
     }
+  while (inflate_status == Z_OK);
 
-    decompressed = BUFFER_SIZE - stream.avail_out;
-    insert_1_both (out, decompressed, decompressed, 0, 0, 0);
-    QUIT;
-  } while (stream.avail_out == 0);
-
-  immediate_quit = 0;
+  if (inflate_status != Z_STREAM_END)
+    return unbind_to (count, Qnil);
 
   unwind_data.start = 0;
-  unbind_to (count, Qnil);
 
-  /* Delete the compressed data. */
+  /* Delete the compressed data.  */
   del_range (istart, iend);
 
-  return Qt;
+  return unbind_to (count, Qt);
 }
 
 
