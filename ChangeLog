@@ -1,3 +1,7 @@
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.ac: Test for zlib.
+
 2013-08-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac: Define and substitute UPDATE_MANIFEST.

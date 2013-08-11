@@ -1,3 +1,7 @@
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention -lz and `decompress-gzipped-region'.
+
 2013-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document new keybinding of `C-x r f' to frameset-to-register.

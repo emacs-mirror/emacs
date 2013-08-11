@@ -1,3 +1,11 @@
+2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lisp.h: Include decompress.c support.
+
+	* emacs.c (main): Include decompress.c support.
+
+	* Makefile.in: Include -lz if present.
+
 2013-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (ns_update_menubar): Call fillWithWidgetValue:frame:

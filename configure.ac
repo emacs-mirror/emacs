@@ -2942,6 +2942,24 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
 fi
 AC_SUBST(LIBPNG)
 
+HAVE_ZLIB=no
+LIBZ=
+if test "${HAVE_PNG}" = "yes"; then
+  ### PNG depends on zlib, so if we have PNG, we have zlib.
+  HAVE_ZLIB=yes
+  AC_DEFINE(HAVE_ZLIB, 1, [Define to 1 if you have the zlib library (-lz).])
+else
+  ### No PNG, so check zlib ourselves.
+  LIBS="-lz $LIBS"
+  AC_CHECK_LIB(z, inflateEnd, HAVE_ZLIB=yes, HAVE_ZLIB=no)
+  if test "${HAVE_ZLIB}" = "yes"; then
+    AC_DEFINE(HAVE_ZLIB, 1, [Define to 1 if you have the zlib library (-lz).])
+    LIBZ=-lz
+  fi
+fi
+AC_SUBST(LIBZ)
+
+
 ### Use -ltiff if available, unless `--with-tiff=no'.
 ### mingw32 doesn't use -ltiff, since it loads the library dynamically.
 HAVE_TIFF=no

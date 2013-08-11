@@ -4213,6 +4213,11 @@ extern void syms_of_xml (void);
 extern void xml_cleanup_parser (void);
 #endif
 
+#ifdef HAVE_ZLIB
+/* Defined in decompress.c.  */
+extern void syms_of_decompress (void);
+#endif
+
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c.  */
 void syms_of_dbusbind (void);

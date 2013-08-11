@@ -1406,6 +1406,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_xml ();
 #endif
 
+#ifdef HAVE_ZLIB
+      syms_of_decompress ();
+#endif
+
       syms_of_menu ();
 
 #ifdef HAVE_NTGUI
