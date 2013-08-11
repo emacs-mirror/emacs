@@ -1,5 +1,25 @@
 2013-08-10  Juanma Barranquero  <lekktu@gmail.com>
 
+	* tutorial.el (tutorial--describe-nonstandard-key): Use string-match-p.
+	(tutorial--detailed-help): Remove unused local variables.
+	(tutorial--save-tutorial-to): Use ignore-errors.
+	(help-with-tutorial): Use looking-at-p.
+
+	* view.el (view-buffer-other-window, view-buffer-other-frame):
+	Mark unused arguments.
+
+	* woman.el (woman-parse-colon-path, woman-parse-colon-path)
+	(woman-select-symbol-fonts, woman, woman-find-file)
+	(woman-insert-file-contents, woman-non-underline-faces):
+	Use string-match-p.
+	(woman1-unquote): Move declaration.
+
+	* xml.el (xml-parse-tag-1, xml-parse-string): Use looking-at-p.
+	(xml-parse-dtd): Use looking-at-p, string-match-p.  Mark unused
+	argument.  Remove unused local variable.
+	(xml-parse-elem-type): Use string-match-p.
+	(xml-substitute-numeric-entities): Use ignore-errors.
+
 	* calculator.el (calculator): Mark unused argument.
 	(calculator-paste, calculator-quit, calculator-integer-p):
 	Use ignore-errors.
