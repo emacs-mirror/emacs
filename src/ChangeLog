@@ -1,3 +1,17 @@
+2013-08-12  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid looping over all frame windows to freeze and unfreeze.
+	* window.h (struct window): Drop frozen_window_start_p.
+	(freeze_window_starts): Drop prototype.
+	* frame.h (struct frame): New frozen_window_starts flag.
+	(FRAME_WINDOWS_FROZEN): New macro.
+	* window.c (freeze_window_start, freeze_window_starts):
+	Remove.
+	(select_window, replace_window): Adjust users.
+	* xdisp.c (resize_mini_window): Use FRAME_WINDOWS_FROZEN.
+	(window_frozen_p): New function.
+	(redisplay_window): Use it.
+
 2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some fd issues when running subprocesses (Bug#15035).

@@ -410,6 +410,10 @@ struct frame
   /* Nonzero means that the pointer is invisible. */
   unsigned pointer_invisible :1;
 
+  /* Nonzero means that all windows except mini-window and
+     selected window on this frame have frozen window starts.  */
+  unsigned frozen_window_starts : 1;
+
   /* Nonzero if we should actually display the scroll bars on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
 
@@ -760,6 +764,10 @@ default_pixels_per_inch_y (void)
 
 /* Not really implemented.  */
 #define FRAME_WANTS_MODELINE_P(f) (f)->wants_modeline
+
+/* Nonzero if all windows except selected window and mini window
+   are frozen on frame F.  */
+#define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
 /* Nonzero if a size change has been requested for frame F
    but not yet really put into effect.  This can be true temporarily

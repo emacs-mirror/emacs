@@ -10460,7 +10460,8 @@ resize_mini_window (struct window *w, int exact_p)
 	  if (height > WINDOW_TOTAL_LINES (w))
 	    {
 	      int old_height = WINDOW_TOTAL_LINES (w);
-	      freeze_window_starts (f, 1);
+
+	      FRAME_WINDOWS_FROZEN (f) = 1;
 	      grow_mini_window (w, height - WINDOW_TOTAL_LINES (w));
 	      window_height_changed_p = WINDOW_TOTAL_LINES (w) != old_height;
 	    }
@@ -10468,7 +10469,8 @@ resize_mini_window (struct window *w, int exact_p)
 		   && (exact_p || BEGV == ZV))
 	    {
 	      int old_height = WINDOW_TOTAL_LINES (w);
-	      freeze_window_starts (f, 0);
+
+	      FRAME_WINDOWS_FROZEN (f) = 0;
 	      shrink_mini_window (w);
 	      window_height_changed_p = WINDOW_TOTAL_LINES (w) != old_height;
 	    }
@@ -10479,19 +10481,21 @@ resize_mini_window (struct window *w, int exact_p)
 	  if (height > WINDOW_TOTAL_LINES (w))
 	    {
 	      int old_height = WINDOW_TOTAL_LINES (w);
-	      freeze_window_starts (f, 1);
+
+	      FRAME_WINDOWS_FROZEN (f) = 1;
 	      grow_mini_window (w, height - WINDOW_TOTAL_LINES (w));
 	      window_height_changed_p = WINDOW_TOTAL_LINES (w) != old_height;
 	    }
 	  else if (height < WINDOW_TOTAL_LINES (w))
 	    {
 	      int old_height = WINDOW_TOTAL_LINES (w);
-	      freeze_window_starts (f, 0);
+
+	      FRAME_WINDOWS_FROZEN (f) = 0;
 	      shrink_mini_window (w);
 
 	      if (height)
 		{
-		  freeze_window_starts (f, 1);
+		  FRAME_WINDOWS_FROZEN (f) = 1;
 		  grow_mini_window (w, height - WINDOW_TOTAL_LINES (w));
 		}
 
@@ -10872,6 +10876,31 @@ mode_line_update_needed (struct window *w)
   return (w->column_number_displayed != -1
 	  && !(PT == w->last_point && !window_outdated (w))
 	  && (w->column_number_displayed != current_column ()));
+}
+
+/* Nonzero if window start of W is frozen and may not be changed during
+   redisplay.  */
+
+static bool
+window_frozen_p (struct window *w)
+{
+  if (FRAME_WINDOWS_FROZEN (XFRAME (WINDOW_FRAME (w))))
+    {
+      Lisp_Object window;
+
+      XSETWINDOW (window, w);
+      if (MINI_WINDOW_P (w))
+	return 0;
+      else if (EQ (window, selected_window))
+	return 0;
+      else if (MINI_WINDOW_P (XWINDOW (selected_window))
+	       && EQ (window, Vminibuf_scroll_window))
+	/* This special window can't be frozen too.  */
+	return 0;
+      else
+	return 1;
+    }
+  return 0;
 }
 
 /***********************************************************************
@@ -15510,7 +15539,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
-  if (w->force_start || w->frozen_window_start_p)
+  if (w->force_start || window_frozen_p (w))
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
@@ -15555,7 +15584,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  goto need_larger_matrices;
 	}
 
-      if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
+      if (w->cursor.vpos < 0 && !window_frozen_p (w))
 	{
 	  /* If point does not appear, try to move point so it does
 	     appear. The desired matrix has been built above, so we

@@ -69,7 +69,6 @@ static int get_leaf_windows (struct window *, struct window **, int);
 static void window_scroll (Lisp_Object, EMACS_INT, bool, int);
 static void window_scroll_pixel_based (Lisp_Object, int, bool, int);
 static void window_scroll_line_based (Lisp_Object, int, bool, int);
-static int freeze_window_start (struct window *, void *);
 static Lisp_Object window_list (void);
 static int add_window_to_list (struct window *, void *);
 static Lisp_Object next_window (Lisp_Object, Lisp_Object,
@@ -499,7 +498,6 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
   CHECK_LIVE_WINDOW (window);
 
   w = XWINDOW (window);
-  w->frozen_window_start_p = 0;
 
   /* Make the selected window's buffer current.  */
   Fset_buffer (w->contents);
@@ -2055,7 +2053,6 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       wset_window_end_vpos (n, make_number (0));
       wset_window_end_pos (n, make_number (0));
       n->window_end_valid = 0;
-      n->frozen_window_start_p = 0;
     }
 
   tem = o->next;
@@ -6453,38 +6450,6 @@ foreach_window_1 (struct window *w, int (*fn) (struct window *, void *), void *u
   return cont;
 }
 
-
-/* Freeze or unfreeze the window start of W unless it is a
-   mini-window or the selected window.  FREEZE_P non-null means freeze
-   the window start.  */
-
-static int
-freeze_window_start (struct window *w, void *freeze_p)
-{
-  if (MINI_WINDOW_P (w)
-      || (WINDOWP (selected_window) /* Can be nil in corner cases.  */
-         && (w == XWINDOW (selected_window)
-             || (MINI_WINDOW_P (XWINDOW (selected_window))
-                 && ! NILP (Vminibuf_scroll_window)
-                 && w == XWINDOW (Vminibuf_scroll_window)))))
-    freeze_p = NULL;
-
-  w->frozen_window_start_p = freeze_p != NULL;
-  return 1;
-}
-
-
-/* Freeze or unfreeze the window starts of all leaf windows on frame
-   F, except the selected window and a mini-window.  FREEZE_P non-zero
-   means freeze the window start.  */
-
-void
-freeze_window_starts (struct frame *f, bool freeze_p)
-{
-  foreach_window (f, freeze_window_start, freeze_p ? f : 0);
-}
-
-
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
