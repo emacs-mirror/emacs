@@ -1,3 +1,8 @@
+2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* decompress.c (Fzlib_decompress_region): Support zlib
+	decompression, too, and rename.
+
 2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor zlib configuration tweaks.

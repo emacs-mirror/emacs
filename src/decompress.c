@@ -119,10 +119,10 @@ DEFUN ("zlib-available-p", Fzlib_available_p, Szlib_available_p, 0, 0, 0,
 #endif
 }
 
-DEFUN ("zlib-decompress-gzipped-region", Fzlib_decompress_gzipped_region,
-       Szlib_decompress_gzipped_region,
+DEFUN ("zlib-decompress-region", Fzlib_decompress_region,
+       Szlib_decompress_region,
        2, 2, 0,
-       doc: /* Decompress a gzip-compressed region.
+       doc: /* Decompress a gzip- or zlib-compressed region.
 Replace the text in the region by the decompressed data.
 On failure, return nil and leave the data in place.
 This function can be called only in unibyte buffers.  */)
@@ -151,8 +151,9 @@ This function can be called only in unibyte buffers.  */)
   stream.avail_in = 0;
   stream.next_in = Z_NULL;
 
-  /* This magic number apparently means "this is gzip".  */
-  if (fn_inflateInit2 (&stream, 16 + MAX_WBITS) != Z_OK)
+  /* The magic number 32 apparently means "autodect both the gzip and
+     zlib formats" according to zlib.h.  */
+  if (fn_inflateInit2 (&stream, MAX_WBITS + 32) != Z_OK)
     return Qnil;
 
   unwind_data.start = iend;
@@ -210,7 +211,7 @@ void
 syms_of_decompress (void)
 {
   DEFSYM (Qzlib_dll, "zlib");
-  defsubr (&Szlib_decompress_gzipped_region);
+  defsubr (&Szlib_decompress_region);
   defsubr (&Szlib_available_p);
 }
 

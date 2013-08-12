@@ -3,6 +3,8 @@
 	* url-http.el (url-handle-content-transfer-encoding): Renamed
 	`zlib-decompress-gzipped-region' and check whether it's available,
 	too.
+	(url-handle-content-transfer-encoding): Renamed
+	`zlib-decompress-region' again.
 
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

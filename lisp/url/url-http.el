@@ -860,14 +860,14 @@ should be shown to the user."
 (defun url-handle-content-transfer-encoding ()
   (let ((encoding (mail-fetch-field "content-encoding")))
     (when (and encoding
-	       (fboundp 'zlib-decompress-gzipped-region)
+	       (fboundp 'zlib-decompress-region)
 	       (zlib-available-p)
 	       (equal (downcase encoding) "gzip"))
       (save-restriction
 	(widen)
 	(goto-char (point-min))
 	(when (search-forward "\n\n")
-	  (zlib-decompress-gzipped-region (point) (point-max)))))))
+	  (zlib-decompress-region (point) (point-max)))))))
 
 ;; Miscellaneous
 (defun url-http-activate-callback ()
