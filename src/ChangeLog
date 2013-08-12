@@ -1,3 +1,9 @@
+2013-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* decompress.c <zlib_initialized> [WINDOWSNT]: New static variable.
+	(Fzlib_decompress_region) [WINDOWSNT]: Call init_zlib_functions if
+	not yet initialized.
+
 2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* decompress.c (Fzlib_decompress_region): Support zlib

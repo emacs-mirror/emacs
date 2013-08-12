@@ -1,3 +1,7 @@
+2013-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (HAVE_ZLIB): Don't use -lz on MinGW.
+
 2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor zlib configuration tweaks.

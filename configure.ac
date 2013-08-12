@@ -2955,6 +2955,10 @@ if test "${with_zlib}" != "no"; then
 fi
 if test "${HAVE_ZLIB}" = "yes"; then
   AC_DEFINE([HAVE_ZLIB], 1, [Define to 1 if you have the zlib library (-lz).])
+  ### mingw32 doesn't use -lz, since it loads the library dynamically.
+  if test "${opsys}" = "mingw32"; then
+     LIBZ=
+  fi
 fi
 AC_SUBST(LIBZ)
 

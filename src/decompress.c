@@ -38,7 +38,7 @@ static Lisp_Object Qzlib_dll;
 /* Macro for loading zlib functions from the library.  */
 #define LOAD_ZLIB_FN(lib,func) {					\
     fn_##func = (void *) GetProcAddress (lib, #func);			\
-    if (!fn_##func) return 0;						\
+    if (!fn_##func) return false;					\
   }
 
 DEF_ZLIB_FN (int, inflateInit2_,
@@ -50,6 +50,8 @@ DEF_ZLIB_FN (int, inflate,
 DEF_ZLIB_FN (int, inflateEnd,
 	     (z_streamp strm));
 
+static bool zlib_initialized;
+
 static bool
 init_zlib_functions (void)
 {
@@ -58,13 +60,13 @@ init_zlib_functions (void)
   if (!library)
     {
       message1 ("zlib library not found");
-      return 0;
+      return false;
     }
 
   LOAD_ZLIB_FN (library, inflateInit2_);
   LOAD_ZLIB_FN (library, inflate);
   LOAD_ZLIB_FN (library, inflateEnd);
-  return 1;
+  return true;
 }
 
 #define fn_inflateInit2(strm, windowBits) \
@@ -138,6 +140,11 @@ This function can be called only in unibyte buffers.  */)
 
   if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     error ("This function can be called only in unibyte buffers");
+
+#ifdef WINDOWSNT
+  if (!zlib_initialized)
+    zlib_initialized = init_zlib_functions ();
+#endif
 
   /* This is a unibyte buffer, so character positions and bytes are
      the same.  */
