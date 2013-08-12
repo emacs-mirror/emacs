@@ -233,8 +233,8 @@ etcdir=@etcdir@
 # once.
 archlibdir=@archlibdir@
 
-# Where to put the docstring file.
-docdir=@docdir@
+# Where to put the etc/DOC file.
+etcdocdir=@etcdocdir@
 
 # Where to install Emacs game score files.
 gamedir=@gamedir@
@@ -313,7 +313,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
 # Convert MSYS-style /x/foo or Windows-style x:\foo file names
@@ -453,7 +453,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 
 # ==================== Installation ====================
 
-.PHONY: install install-arch-dep install-arch-indep install-doc install-info
+.PHONY: install install-arch-dep install-arch-indep install-etcdoc install-info
 .PHONY: install-man install-etc install-strip install-$(NTDIR)
 .PHONY: uninstall uninstall-$(NTDIR)
 
@@ -461,7 +461,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-doc install-arch-dep install-$(NTDIR) blessmail
+install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -482,7 +482,7 @@ write_subdir=if [ -f $${subdir}/subdirs.el ]; \
 ### Install the executables that were compiled specifically for this machine.
 ### We do install-arch-indep first because the executable needs the
 ### Lisp files and DOC file to work properly.
-install-arch-dep: src install-arch-indep install-doc install-$(NTDIR)
+install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	umask 022; ${MKDIR_P} $(DESTDIR)${bindir}
 	cd lib-src && \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
@@ -541,7 +541,7 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## We delete etc/DOC* because there may be irrelevant DOC files from
 ## other builds in the source directory.  This is ok because we just
 ## deleted the entire installed etc/ directory and recreated it.
-## install-doc installs the relevant DOC.
+## install-etcdoc installs the relevant DOC.
 
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
@@ -621,16 +621,16 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 
 ## Note that install-arch-indep deletes and recreates the entire
 ## installed etc/ directory, so we need it to run before this does.
-install-doc: src install-arch-indep
+install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
-	umask 022; ${MKDIR_P} $(DESTDIR)${docdir} ; \
-	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${docdir}; /bin/pwd` ]; \
+	umask 022; ${MKDIR_P} $(DESTDIR)${etcdocdir} ; \
+	if [ `cd ./etc; /bin/pwd` != `cd $(DESTDIR)${etcdocdir}; /bin/pwd` ]; \
 	then \
 	   docfile="DOC"; \
-	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
-	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${docdir}/$${docfile}; \
+	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
+	   ${INSTALL_DATA} etc/$${docfile} $(DESTDIR)${etcdocdir}/$${docfile}; \
 	   $(set_installuser); \
-	     chown $${installuser} $(DESTDIR)${docdir}/$${docfile} || true ; \
+	     chown $${installuser} $(DESTDIR)${etcdocdir}/$${docfile} || true ; \
 	else true; fi
 
 install-info: info
@@ -716,7 +716,7 @@ install-strip:
 ### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
-uninstall: uninstall-$(NTDIR)
+uninstall: uninstall-$(NTDIR) uninstall-doc
 	cd lib-src && 					\
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
@@ -921,7 +921,7 @@ DVIS  = lispref-dvi  lispintro-dvi  emacs-dvi  misc-dvi
 HTMLS = lispref-html lispintro-html emacs-html misc-html
 INFOS = lispref-info lispintro-info emacs-info misc-info
 PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
-PSS   = lispref-ps   lispintro-ps   emacs-ps # no misc-ps
+PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
 $(DOCS):
@@ -930,12 +930,62 @@ $(DOCS):
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist check html info-real force-info check-info-dir
 
+## TODO add etc/refcards.
 docs: $(DOCS)
 dvi: $(DVIS)
 html: $(HTMLS)
 info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
+
+
+INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
+	install-lispintro-dvi install-misc-dvi
+INSTALL_HTML = install-emacs-html install-lispref-html \
+	install-lispintro-html install-misc-html
+INSTALL_PDF = install-emacs-pdf install-lispref-pdf \
+	install-lispintro-pdf install-misc-pdf
+INSTALL_PS = install-emacs-ps install-lispref-ps \
+	install-lispintro-ps install-misc-ps
+INSTALL_DOC = $(INSTALL_DVI) $(INSTALL_HTML) $(INSTALL_PDF) $(INSTALL_PS)
+
+## Install non .info forms of the documentation.
+## TODO add etc/refcards.
+$(INSTALL_DOC):
+	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $(MFLAGS) $$1-$$3
+
+.PHONY: $(INSTALL_DOC) install-doc
+.PHONY: install-dvi install-html install-pdf install-ps
+
+install-doc: $(INSTALL_DOC)
+install-dvi: $(INSTALL_DVI)
+install-html: $(INSTALL_HTML)
+install-pdf: $(INSTALL_PDF)
+install-ps: $(INSTALL_PS)
+
+
+UNINSTALL_DVI = uninstall-emacs-dvi uninstall-lispref-dvi \
+	uninstall-lispintro-dvi uninstall-misc-dvi
+UNINSTALL_HTML = uninstall-emacs-html uninstall-lispref-html \
+	uninstall-lispintro-html uninstall-misc-html
+UNINSTALL_PDF = uninstall-emacs-pdf uninstall-lispref-pdf \
+	uninstall-lispintro-pdf uninstall-misc-pdf
+UNINSTALL_PS = uninstall-emacs-ps uninstall-lispref-ps \
+	uninstall-lispintro-ps uninstall-misc-ps
+UNINSTALL_DOC = $(UNINSTALL_DVI) $(UNINSTALL_HTML) $(UNINSTALL_PDF) $(UNINSTALL_PS)
+
+$(UNINSTALL_DOC):
+	t=$@; IFS=-; set $$t; IFS=; cd doc/$$2 && $(MAKE) $(MFLAGS) $$1-$$3
+
+.PHONY: $(UNINSTALL_DOC) uninstall-doc
+.PHONY: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
+
+uninstall-doc: $(UNINSTALL_DOC)
+uninstall-dvi: $(UNINSTALL_DVI)
+uninstall-html: $(UNINSTALL_HTML)
+uninstall-pdf: $(UNINSTALL_PDF)
+uninstall-ps: $(UNINSTALL_PS)
+
 
 force-info:
 # Note that man/Makefile knows how to put the info files in $(srcdir),

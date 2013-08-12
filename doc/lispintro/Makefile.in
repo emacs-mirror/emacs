@@ -30,11 +30,28 @@ texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
+prefix = @prefix@
+datarootdir = @datarootdir@
+datadir = @datadir@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+docdir = @docdir@
+dvidir = @dvidir@
+htmldir = @htmldir@
+pdfdir = @pdfdir@
+psdir = @psdir@
+
 MKDIR_P = @MKDIR_P@
+
+GZIP_PROG = @GZIP_PROG@
+
+HTML_OPTS = --no-split --html
 
 INFO_EXT=@INFO_EXT@
 # Options used only when making info output.
 INFO_OPTS=@INFO_OPTS@
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
 
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I $(emacsdir) -I $(srcdir)
@@ -45,6 +62,11 @@ DVIPS = dvips
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
+DVI_TARGETS = emacs-lisp-intro.dvi
+HTML_TARGETS = emacs-lisp-intro.html
+PDF_TARGETS = emacs-lisp-intro.pdf
+PS_TARGETS = emacs-lisp-intro.ps
+
 mkinfodir = @${MKDIR_P} ${buildinfodir}
 
 srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
@@ -52,12 +74,17 @@ srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
 
 .PHONY: info dvi html pdf ps
 
+.SUFFIXES: .ps .dvi
+
+.dvi.ps:
+	$(DVIPS) -o $@ $<
+
 info: ${buildinfodir}/eintr$(INFO_EXT)
 
-dvi: emacs-lisp-intro.dvi
-html: emacs-lisp-intro.html
-pdf: emacs-lisp-intro.pdf
-ps: emacs-lisp-intro.ps
+dvi: $(DVI_TARGETS)
+html: $(HTML_TARGETS)
+pdf: $(PDF_TARGETS)
+ps: $(PS_TARGETS)
 
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
@@ -69,14 +96,11 @@ ${buildinfodir}/eintr$(INFO_EXT): ${srcs}
 emacs-lisp-intro.dvi: ${srcs}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-lisp-intro.texi
 
-emacs-lisp-intro.ps: emacs-lisp-intro.dvi
-	$(DVIPS) -o $@ emacs-lisp-intro.dvi
-
 emacs-lisp-intro.pdf: ${srcs}
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: ${srcs}
-	$(MAKEINFO) $(MAKEINFO_OPTS) --html -o $@ ${srcdir}/emacs-lisp-intro.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/emacs-lisp-intro.texi
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
@@ -85,8 +109,7 @@ mostlyclean:
 	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
 
 clean: mostlyclean
-	rm -f emacs-lisp-intro.dvi emacs-lisp-intro.pdf emacs-lisp-intro.ps
-	rm -rf emacs-lisp-intro.html/
+	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
 	rm -f emacs-lispintro-${version}.tar*
 
 distclean: clean
@@ -117,5 +140,53 @@ dist:
 	fi
 	tar -cf emacs-lispintro-${version}.tar emacs-lispintro-${version}
 	rm -rf emacs-lispintro-${version}
+
+
+.PHONY: install-dvi install-html install-pdf install-ps install-doc
+
+install-dvi: dvi
+	umask 022; $(MKDIR_P) $(DESTDIR)$(dvidir)
+	$(INSTALL_DATA) $(DVI_TARGETS) $(DESTDIR)$(dvidir)
+install-html: html
+	umask 022; $(MKDIR_P) $(DESTDIR)$(htmldir)
+	$(INSTALL_DATA) $(HTML_TARGETS) $(DESTDIR)$(htmldir)
+install-pdf: pdf
+	 umask 022;$(MKDIR_P) $(DESTDIR)$(pdfdir)
+	$(INSTALL_DATA) $(PDF_TARGETS) $(DESTDIR)$(pdfdir)
+install-ps: ps
+	umask 022; $(MKDIR_P) $(DESTDIR)$(psdir)
+	for file in $(PS_TARGETS); do \
+	  $(INSTALL_DATA) $${file} $(DESTDIR)$(psdir); \
+	  [ -n "${GZIP_PROG}" ] || continue; \
+	  rm -f $(DESTDIR)$(psdir)/$${file}.gz; \
+	  ${GZIP_PROG} -9n $(DESTDIR)$(psdir)/$${file}; \
+	done
+
+## Top-level Makefile installs the info pages.
+install-doc: install-dvi install-html install-pdf install-ps
+
+
+.PHONY: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps uninstall-doc
+
+uninstall-dvi:
+	for file in $(DVI_TARGETS); do \
+	  rm -f $(DESTDIR)$(dvidir)/$${file}; \
+	done
+uninstall-html:
+	for file in $(HTML_TARGETS); do \
+	  rm -f $(DESTDIR)$(htmldir)/$${file}; \
+	done
+uninstall-ps:
+	ext= ; [ -n "${GZIP_PROG}" ] && ext=.gz; \
+	for file in $(PS_TARGETS); do \
+	  rm -f $(DESTDIR)$(psdir)/$${file}$${ext}; \
+	done
+uninstall-pdf:
+	for file in $(PDF_TARGETS); do \
+	  rm -f $(DESTDIR)$(pdfdir)/$${file}; \
+	done
+
+uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
+
 
 ### Makefile ends here

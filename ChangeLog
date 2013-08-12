@@ -1,3 +1,18 @@
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (etcdocdir): Rename from docdir, to avoid confusion
+	with configure's standard --docdir argument.  All uses updated.
+	* Makefile.in (etcdocdir): Rename from docdir.  All uses updated.
+	(install-etcdoc): Rename from install-doc.  All uses updated.
+	(uninstall): Run uninstall-doc.
+	(PSS): Add misc-ps.
+	(INSTALL_DVI, INSTALL_HTML, INSTALL_PDF, INSTALL_PS)
+	(INSTALL_DOC, UNINSTALL_DVI, UNINSTALL_HTML, UNINSTALL_PDF)
+	(UNINSTALL_PS, UNINSTALL_DOC): New variables.
+	($(INSTALL_DOC), install-doc, install-dvi, install-html, install-pdf)
+	(install-ps, $(UNINSTALL_DOC), uninstall-doc, uninstall-dvi)
+	(uninstall-html, uninstall-pdf, uninstall-ps): New .PHONY rules.
+
 2013-08-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add --with-zlib to 'configure'.

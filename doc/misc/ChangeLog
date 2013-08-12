@@ -1,3 +1,31 @@
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, HTML_TARGETS, PS_TARGETS, DVIPS): New variables.
+	(.PHONY): Add html, ps, install-dvi, install-html, install-pdf,
+	install-ps ,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(html, ps, ada-mode.html, auth.html, autotype.html, bovine.html)
+	(calc.html, cc-mode.html, cl.html, dbus.html, dired-x.html)
+	(ebrowse.html, ede.html, ediff.html, edt.html, eieio.html)
+	(emacs-gnutls.html, emacs-mime.html, epa.html, erc.html)
+	(ert.html, eshell.html, eudc.html, faq.html, flymake.html)
+	(forms.html, gnus.html, htmlfontify.html, idlwave.html)
+	(ido.html, mairix-el.html, message.html, mh-e.html)
+	(newsticker.html, nxml-mode.html, org.html, pgg.html)
+	(rcirc.html, reftex.html, remember.html, sasl.html, sc.html)
+	(semantic.html, sieve.html, smtpmail.html, speedbar.html)
+	(srecode.html, todo-mode.html, tramp.html, url.html, vip.html)
+	(viper.html, widget.html, wisent.html, woman.html, install-dvi)
+	(install-html, install-pdf, install-ps, install-doc, uninstall-dvi)
+	(uninstall-html, uninstall-ps, uninstall-pdf, uninstall-doc):
+	New rules.
+	(clean): Remove HTML_TARGETS and PS_TARGETS.
+
 2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* ido.texi (Working Directories):

@@ -1,3 +1,23 @@
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
+	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
+	(INSTALL_DATA): New, set by configure.
+	(HTML_OPTS, DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS):
+	New variables.
+	(.SUFFIXES): Add .ps and .dvi.
+	(.dvi.ps): New suffix rule.
+	(dvi, html, pdf, ps): Use *_TARGETS variables.
+	(elisp.html): Use HTML_OPTS.
+	(elisp.ps): Remove explicit rule.
+	(.PHONY): install-dvi, install-html, install-pdf, install-ps
+	,install-doc, uninstall-dvi, uninstall-html, uninstall-pdf,
+	uninstall-ps, and uninstall-doc.
+	(install-dvi, install-html, install-pdf, install-ps, install-doc)
+	(uninstall-dvi, uninstall-html, uninstall-ps, uninstall-pdf)
+	(uninstall-doc): New rules.
+	(clean): Use DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS.
+
 2013-08-10  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* edebug.texi (Instrumenting Macro Calls): Use @defmac for macros.
