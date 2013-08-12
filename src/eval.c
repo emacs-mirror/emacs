@@ -3302,6 +3302,16 @@ clear_unwind_protect (ptrdiff_t count)
    previous value without invoking it.  */
 
 void
+set_unwind_protect (ptrdiff_t count, void (*func) (Lisp_Object),
+		    Lisp_Object arg)
+{
+  union specbinding *p = specpdl + count;
+  p->unwind.kind = SPECPDL_UNWIND;
+  p->unwind.func = func;
+  p->unwind.arg = arg;
+}
+
+void
 set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
 {
   union specbinding *p = specpdl + count;

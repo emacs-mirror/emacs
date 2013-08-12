@@ -92,6 +92,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <c-ctype.h>
 #include <sig2str.h>
+#include <verify.h>
 
 #endif	/* subprocesses */
 
@@ -722,6 +723,8 @@ make_process (Lisp_Object name)
      non-Lisp data, so do it only for slots which should not be zero.  */
   p->infd = -1;
   p->outfd = -1;
+  for (i = 0; i < PROCESS_OPEN_FDS; i++)
+    p->open_fd[i] = -1;
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
@@ -818,13 +821,17 @@ get_process (register Lisp_Object name)
    treated by the SIGCHLD handler and waitpid has been invoked on them;
    otherwise they might fill up the kernel's process table.
 
-   Some processes created by call-process are also put onto this list.  */
+   Some processes created by call-process are also put onto this list.
+
+   Members of this list are (process-ID . filename) pairs.  The
+   process-ID is a number; the filename, if a string, is a file that
+   needs to be removed after the process exits.  */
 static Lisp_Object deleted_pid_list;
 
 void
-record_deleted_pid (pid_t pid)
+record_deleted_pid (pid_t pid, Lisp_Object filename)
 {
-  deleted_pid_list = Fcons (make_fixnum_or_float (pid),
+  deleted_pid_list = Fcons (Fcons (make_fixnum_or_float (pid), filename),
 			    /* GC treated elements set to nil.  */
 			    Fdelq (Qnil, deleted_pid_list));
 
@@ -852,7 +859,7 @@ nil, indicating the current buffer's process.  */)
   else
     {
       if (p->alive)
-	record_kill_process (p);
+	record_kill_process (p, Qnil);
 
       if (p->infd >= 0)
 	{
@@ -1605,17 +1612,45 @@ start_process_unwind (Lisp_Object proc)
     remove_process (proc);
 }
 
+/* If *FD_ADDR is nonnegative, close it, and mark it as closed.  */
+
+static void
+close_process_fd (int *fd_addr)
+{
+  int fd = *fd_addr;
+  if (0 <= fd)
+    {
+      *fd_addr = -1;
+      emacs_close (fd);
+    }
+}
+
+/* Indexes of file descriptors in open_fds.  */
+enum
+  {
+    /* The pipe from Emacs to its subprocess.  */
+    SUBPROCESS_STDIN,
+    WRITE_TO_SUBPROCESS,
+
+    /* The main pipe from the subprocess to Emacs.  */
+    READ_FROM_SUBPROCESS,
+    SUBPROCESS_STDOUT,
+
+    /* The pipe from the subprocess to Emacs that is closed when the
+       subprocess execs.  */
+    READ_FROM_EXEC_MONITOR,
+    EXEC_MONITOR_OUTPUT
+  };
+
+verify (PROCESS_OPEN_FDS == EXEC_MONITOR_OUTPUT + 1);
 
 static void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
+  struct Lisp_Process *p = XPROCESS (process);
   int inchannel, outchannel;
   pid_t pid;
   int vfork_errno;
-  int sv[2];
-#ifndef WINDOWSNT
-  int wait_child_setup[2];
-#endif
   int forkin, forkout;
   bool pty_flag = 0;
   char pty_name[PTY_NAME_SIZE];
@@ -1629,6 +1664,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   if (inchannel >= 0)
     {
+      p->open_fd[READ_FROM_SUBPROCESS] = inchannel;
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
@@ -1637,6 +1673,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
+      p->open_fd[SUBPROCESS_STDIN] = forkin;
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
@@ -1645,23 +1682,17 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     }
   else
     {
-      if (emacs_pipe (sv) != 0)
+      if (emacs_pipe (p->open_fd + SUBPROCESS_STDIN) != 0
+	  || emacs_pipe (p->open_fd + READ_FROM_SUBPROCESS) != 0)
 	report_file_error ("Creating pipe", Qnil);
-      inchannel = sv[0];
-      forkout = sv[1];
-      if (emacs_pipe (sv) != 0)
-	{
-	  int pipe_errno = errno;
-	  emacs_close (inchannel);
-	  emacs_close (forkout);
-	  report_file_errno ("Creating pipe", Qnil, pipe_errno);
-	}
-      outchannel = sv[1];
-      forkin = sv[0];
+      forkin = p->open_fd[SUBPROCESS_STDIN];
+      outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
+      inchannel = p->open_fd[READ_FROM_SUBPROCESS];
+      forkout = p->open_fd[SUBPROCESS_STDOUT];
     }
 
 #ifndef WINDOWSNT
-  if (emacs_pipe (wait_child_setup) != 0)
+  if (emacs_pipe (p->open_fd + READ_FROM_EXEC_MONITOR) != 0)
     report_file_error ("Creating pipe", Qnil);
 #endif
 
@@ -1670,16 +1701,16 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* Record this as an active process, with its channels.  */
   chan_process[inchannel] = process;
-  XPROCESS (process)->infd = inchannel;
-  XPROCESS (process)->outfd = outchannel;
+  p->infd = inchannel;
+  p->outfd = outchannel;
 
   /* Previously we recorded the tty descriptor used in the subprocess.
      It was only used for getting the foreground tty process, so now
      we just reopen the device (see emacs_get_tty_pgrp) as this is
      more portable (see USG_SUBTTY_WORKS above).  */
 
-  XPROCESS (process)->pty_flag = pty_flag;
-  pset_status (XPROCESS (process), Qrun);
+  p->pty_flag = pty_flag;
+  pset_status (p, Qrun);
 
   FD_SET (inchannel, &input_wait_mask);
   FD_SET (inchannel, &non_keyboard_wait_mask);
@@ -1699,25 +1730,21 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   {
     Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
     Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
-    Lisp_Object volatile process_volatile = process;
     char **volatile new_argv_volatile = new_argv;
     int volatile forkin_volatile = forkin;
     int volatile forkout_volatile = forkout;
-    int volatile wait_child_setup_0_volatile = wait_child_setup[0];
-    int volatile wait_child_setup_1_volatile = wait_child_setup[1];
+    struct Lisp_Process *p_volatile = p;
 
     pid = vfork ();
 
     encoded_current_dir = encoded_current_dir_volatile;
     lisp_pty_name = lisp_pty_name_volatile;
-    process = process_volatile;
     new_argv = new_argv_volatile;
     forkin = forkin_volatile;
     forkout = forkout_volatile;
-    wait_child_setup[0] = wait_child_setup_0_volatile;
-    wait_child_setup[1] = wait_child_setup_1_volatile;
+    p = p_volatile;
 
-    pty_flag = XPROCESS (process)->pty_flag;
+    pty_flag = p->pty_flag;
   }
 
   if (pid == 0)
@@ -1833,18 +1860,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Back in the parent process.  */
 
   vfork_errno = errno;
-  XPROCESS (process)->pid = pid;
+  p->pid = pid;
   if (pid >= 0)
-    XPROCESS (process)->alive = 1;
+    p->alive = 1;
 
   /* Stop blocking in the parent.  */
   unblock_child_signal ();
   unblock_input ();
-
-  if (forkin >= 0)
-    emacs_close (forkin);
-  if (forkin != forkout && forkout >= 0)
-    emacs_close (forkout);
 
   if (pid < 0)
     report_file_errno ("Doing vfork", Qnil, vfork_errno);
@@ -1852,23 +1874,28 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     {
       /* vfork succeeded.  */
 
+      /* Close the pipe ends that the child uses, or the child's pty.  */
+      close_process_fd (&p->open_fd[SUBPROCESS_STDIN]);
+      close_process_fd (&p->open_fd[SUBPROCESS_STDOUT]);
+
 #ifdef WINDOWSNT
       register_child (pid, inchannel);
 #endif /* WINDOWSNT */
 
-      pset_tty_name (XPROCESS (process), lisp_pty_name);
+      pset_tty_name (p, lisp_pty_name);
 
 #ifndef WINDOWSNT
       /* Wait for child_setup to complete in case that vfork is
-	 actually defined as fork.  The descriptor wait_child_setup[1]
+	 actually defined as fork.  The descriptor
+	 XPROCESS (proc)->open_fd[EXEC_MOINTOR_OUTPUT]
 	 of a pipe is closed at the child side either by close-on-exec
 	 on successful execve or the _exit call in child_setup.  */
       {
 	char dummy;
 
-	emacs_close (wait_child_setup[1]);
-	emacs_read (wait_child_setup[0], &dummy, 1);
-	emacs_close (wait_child_setup[0]);
+	close_process_fd (&p->open_fd[EXEC_MONITOR_OUTPUT]);
+	emacs_read (p->open_fd[READ_FROM_EXEC_MONITOR], &dummy, 1);
+	close_process_fd (&p->open_fd[READ_FROM_EXEC_MONITOR]);
       }
 #endif
     }
@@ -1877,16 +1904,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 static void
 create_pty (Lisp_Object process)
 {
+  struct Lisp_Process *p = XPROCESS (process);
   char pty_name[PTY_NAME_SIZE];
-  int inchannel, outchannel;
+  int pty_fd = NILP (Vprocess_connection_type) ? -1 : allocate_pty (pty_name);
 
-  inchannel = outchannel = -1;
-
-  if (!NILP (Vprocess_connection_type))
-    outchannel = inchannel = allocate_pty (pty_name);
-
-  if (inchannel >= 0)
+  if (pty_fd >= 0)
     {
+      p->open_fd[SUBPROCESS_STDIN] = pty_fd;
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
@@ -1895,6 +1919,7 @@ create_pty (Lisp_Object process)
       int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
       if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
+      p->open_fd[WRITE_TO_SUBPROCESS] = forkout;
 #if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
 	 (Emacs) may send some data before the child process completes
@@ -1903,33 +1928,32 @@ create_pty (Lisp_Object process)
 #endif /* DONT_REOPEN_PTY */
 #endif /* not USG, or USG_SUBTTY_WORKS */
 
-      fcntl (inchannel, F_SETFL, O_NONBLOCK);
-      fcntl (outchannel, F_SETFL, O_NONBLOCK);
+      fcntl (pty_fd, F_SETFL, O_NONBLOCK);
 
       /* Record this as an active process, with its channels.
 	 As a result, child_setup will close Emacs's side of the pipes.  */
-      chan_process[inchannel] = process;
-      XPROCESS (process)->infd = inchannel;
-      XPROCESS (process)->outfd = outchannel;
+      chan_process[pty_fd] = process;
+      p->infd = pty_fd;
+      p->outfd = pty_fd;
 
       /* Previously we recorded the tty descriptor used in the subprocess.
 	 It was only used for getting the foreground tty process, so now
 	 we just reopen the device (see emacs_get_tty_pgrp) as this is
 	 more portable (see USG_SUBTTY_WORKS above).  */
 
-      XPROCESS (process)->pty_flag = 1;
-      pset_status (XPROCESS (process), Qrun);
+      p->pty_flag = 1;
+      pset_status (p, Qrun);
       setup_process_coding_systems (process);
 
-      FD_SET (inchannel, &input_wait_mask);
-      FD_SET (inchannel, &non_keyboard_wait_mask);
-      if (inchannel > max_process_desc)
-	max_process_desc = inchannel;
+      FD_SET (pty_fd, &input_wait_mask);
+      FD_SET (pty_fd, &non_keyboard_wait_mask);
+      if (pty_fd > max_process_desc)
+	max_process_desc = pty_fd;
 
-      pset_tty_name (XPROCESS (process), build_string (pty_name));
+      pset_tty_name (p, build_string (pty_name));
     }
 
-  XPROCESS (process)->pid = -2;
+  p->pid = -2;
 }
 
 
@@ -2535,6 +2559,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   p = XPROCESS (proc);
 
   fd = serial_open (port);
+  p->open_fd[SUBPROCESS_STDIN] = fd;
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_process_desc)
@@ -3297,12 +3322,6 @@ usage: (make-network-process &rest ARGS)  */)
     }
 #endif
 
-  /* Discard the unwind protect for closing S, if any.  */
-  specpdl_ptr = specpdl + count1;
-
-  /* Unwind bind_polling_period and request_sigio.  */
-  unbind_to (count, Qnil);
-
   if (s < 0)
     {
       /* If non-blocking got this far - and failed - assume non-blocking is
@@ -3344,8 +3363,17 @@ usage: (make-network-process &rest ARGS)  */)
   if ((tem = Fplist_get (contact, QCstop), !NILP (tem)))
     pset_command (p, Qt);
   p->pid = 0;
+
+  p->open_fd[SUBPROCESS_STDIN] = inch;
   p->infd  = inch;
   p->outfd = outch;
+
+  /* Discard the unwind protect for closing S, if any.  */
+  specpdl_ptr = specpdl + count1;
+
+  /* Unwind bind_polling_period and request_sigio.  */
+  unbind_to (count, Qnil);
+
   if (is_server && socktype != SOCK_DGRAM)
     pset_status (p, Qlisten);
 
@@ -3784,16 +3812,14 @@ FLAGS is the current flags of the interface.  */)
 static void
 deactivate_process (Lisp_Object proc)
 {
-  register int inchannel, outchannel;
-  register struct Lisp_Process *p = XPROCESS (proc);
+  int inchannel;
+  struct Lisp_Process *p = XPROCESS (proc);
+  int i;
 
 #ifdef HAVE_GNUTLS
   /* Delete GnuTLS structures in PROC, if any.  */
   emacs_gnutls_deinit (proc);
 #endif /* HAVE_GNUTLS */
-
-  inchannel  = p->infd;
-  outchannel = p->outfd;
 
 #ifdef ADAPTIVE_READ_BUFFERING
   if (p->read_output_delay > 0)
@@ -3805,16 +3831,17 @@ deactivate_process (Lisp_Object proc)
     }
 #endif
 
+  inchannel = p->infd;
+
+  /* Beware SIGCHLD hereabouts. */
+  if (inchannel >= 0)
+    flush_pending_output (inchannel);
+
+  for (i = 0; i < PROCESS_OPEN_FDS; i++)
+    close_process_fd (&p->open_fd[i]);
+
   if (inchannel >= 0)
     {
-      /* Beware SIGCHLD hereabouts. */
-      flush_pending_output (inchannel);
-      emacs_close (inchannel);
-      if (outchannel >= 0 && outchannel != inchannel)
- 	emacs_close (outchannel);
-
-      p->infd  = -1;
-      p->outfd = -1;
 #ifdef DATAGRAM_SOCKETS
       if (DATAGRAM_CHAN_P (inchannel))
 	{
@@ -4095,6 +4122,7 @@ server_accept_connection (Lisp_Object server, int channel)
   /* Discard the unwind protect for closing S.  */
   specpdl_ptr = specpdl + count;
 
+  p->open_fd[SUBPROCESS_STDIN] = s;
   p->infd  = s;
   p->outfd = s;
   pset_status (p, Qrun);
@@ -6014,7 +6042,8 @@ process has been transmitted to the serial port.  */)
     }
   else
     {
-      int old_outfd, new_outfd;
+      int old_outfd = XPROCESS (proc)->outfd;
+      int new_outfd;
 
 #ifdef HAVE_SHUTDOWN
       /* If this is a network connection, or socketpair is used
@@ -6022,18 +6051,15 @@ process has been transmitted to the serial port.  */)
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
       if (EQ (XPROCESS (proc)->type, Qnetwork)
-	  || XPROCESS (proc)->outfd == XPROCESS (proc)->infd)
-	shutdown (XPROCESS (proc)->outfd, 1);
-      /* In case of socketpair, outfd == infd, so don't close it.  */
-      if (XPROCESS (proc)->outfd != XPROCESS (proc)->infd)
-	emacs_close (XPROCESS (proc)->outfd);
-#else /* not HAVE_SHUTDOWN */
-      emacs_close (XPROCESS (proc)->outfd);
-#endif /* not HAVE_SHUTDOWN */
+	  || XPROCESS (proc)->infd == old_outfd)
+	shutdown (old_outfd, 1);
+#endif
+      close_process_fd (&XPROCESS (proc)->open_fd[WRITE_TO_SUBPROCESS]);
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       if (new_outfd < 0)
-	emacs_abort ();
-      old_outfd = XPROCESS (proc)->outfd;
+	report_file_error ("Opening null device", Qnil);
+      XPROCESS (proc)->open_fd[WRITE_TO_SUBPROCESS] = new_outfd;
+      XPROCESS (proc)->outfd = new_outfd;
 
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
@@ -6042,8 +6068,6 @@ process has been transmitted to the serial port.  */)
 	= *proc_encode_coding_system[old_outfd];
       memset (proc_encode_coding_system[old_outfd], 0,
 	      sizeof (struct coding_system));
-
-      XPROCESS (proc)->outfd = new_outfd;
     }
   return process;
 }
@@ -6120,7 +6144,8 @@ handle_child_signal (int sig)
       bool all_pids_are_fixnums
 	= (MOST_NEGATIVE_FIXNUM <= TYPE_MINIMUM (pid_t)
 	   && TYPE_MAXIMUM (pid_t) <= MOST_POSITIVE_FIXNUM);
-      Lisp_Object xpid = XCAR (tail);
+      Lisp_Object head = XCAR (tail);
+      Lisp_Object xpid = XCAR (head);
       if (all_pids_are_fixnums ? INTEGERP (xpid) : NUMBERP (xpid))
 	{
 	  pid_t deleted_pid;
@@ -6129,7 +6154,11 @@ handle_child_signal (int sig)
 	  else
 	    deleted_pid = XFLOAT_DATA (xpid);
 	  if (child_status_changed (deleted_pid, 0, 0))
-	    XSETCAR (tail, Qnil);
+	    {
+	      if (STRINGP (XCDR (head)))
+		unlink (SSDATA (XCDR (head)));
+	      XSETCAR (tail, Qnil);
+	    }
 	}
     }
 

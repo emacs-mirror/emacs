@@ -31,6 +31,11 @@ INLINE_HEADER_BEGIN
 # define PROCESS_INLINE INLINE
 #endif
 
+/* Bound on number of file descriptors opened on behalf of a process,
+   that need to be closed.  */
+
+enum { PROCESS_OPEN_FDS = 6 };
+
 /* This structure records information about a subprocess
    or network connection.  */
 
@@ -115,6 +120,9 @@ struct Lisp_Process
     int infd;
     /* Descriptor by which we write to this process */
     int outfd;
+    /* Descriptors that were created for this process and that need
+       closing.  Unused entries are negative.  */
+    int open_fd[PROCESS_OPEN_FDS];
     /* Event-count of last event in which this process changed status.  */
     EMACS_INT tick;
     /* Event-count of last such event reported.  */
@@ -210,13 +218,16 @@ enum
 
 extern void block_child_signal (void);
 extern void unblock_child_signal (void);
-extern void record_kill_process (struct Lisp_Process *);
+extern void record_kill_process (struct Lisp_Process *, Lisp_Object);
 
-/* Defined in process.c.  */
+/* Defined in sysdep.c.  */
 
 extern Lisp_Object list_system_processes (void);
 extern Lisp_Object system_process_attributes (Lisp_Object);
 
+/* Defined in process.c.  */
+
+extern void record_deleted_pid (pid_t, Lisp_Object);
 extern void hold_keyboard_input (void);
 extern void unhold_keyboard_input (void);
 extern bool kbd_on_hold_p (void);
