@@ -1,3 +1,8 @@
+2013-08-12  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-annotate-function):
+	Handle read-only text properties in the source.  (Bug#14887)
+
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/eww.el (eww-display-html): Ignore coding system errors.  One

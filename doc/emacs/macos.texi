@@ -210,4 +210,10 @@ restart Emacs to access newly-available services.
 
 Emacs can be built and run under GNUstep, but there are still
 issues to be addressed.  Interested developers should contact
+@ifnothtml
 @email{emacs-devel@@gnu.org}.
+@end ifnothtml
+@ifhtml
+@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, the
+emacs-devel mailing list}.
+@end ifhtml

@@ -29,7 +29,8 @@ configure.lineno
 conftest*
 core
 DOC
-emacs-*/
+# make-dist output.
+./emacs-*
 GPATH
 GRTAGS
 GTAGS
@@ -95,9 +96,9 @@ leim/quail/*.el
 leim/changed.misc
 leim/changed.tit
 leim/stamp-subdir
-lib/.deps/
+lib/.deps
 lib/Makefile.in
-lib/deps/
+lib/deps
 lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
@@ -113,7 +114,7 @@ lib/stdio.h
 lib/stdint.h
 lib/stdlib.h
 lib/string.h
-lib/sys/
+lib/sys
 lib/SYS
 lib/time.h
 lib/unistd.h

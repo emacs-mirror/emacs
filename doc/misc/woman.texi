@@ -67,7 +67,12 @@ modify this GNU manual.''
 @display
 As distributed with Emacs @value{EMACSVER}.
 
+@ifnothtml
 @email{F.J.Wright@@qmw.ac.uk, Francis J. Wright}
+@end ifnothtml
+@ifhtml
+Francis J. Wright
+@end ifhtml
 @uref{http://centaur.maths.qmw.ac.uk/, School of Mathematical Sciences}
 Queen Mary and Westfield College (University of London)
 Mile End Road, London E1 4NS, UK

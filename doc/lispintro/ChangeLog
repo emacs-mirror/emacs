@@ -1,5 +1,9 @@
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp-intro.texi (Complete copy-region-as-kill): Fix typo.
+
+	* emacs-lisp-intro.texi (Thank You): Avoid mailto: in html output.
+
 	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
 	(docdir, dvidir, htmldir, pdfdir, psdir, GZIP_PROG, INSTALL)
 	(INSTALL_DATA): New, set by configure.

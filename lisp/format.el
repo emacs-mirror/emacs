@@ -225,10 +225,12 @@ For most purposes, consider using `format-encode-region' instead."
 		(setq selective-display sel-disp)
 		(set-buffer-multibyte multibyte)
 		(setq buffer-file-coding-system coding-system))
-	      (copy-to-buffer copy-buf from to)
-	      (set-buffer copy-buf)
-	      (format-insert-annotations write-region-annotations-so-far from)
-	      (format-encode-run-method to-fn (point-min) (point-max) orig-buf)
+	      (let ((inhibit-read-only t)) ; bug#14887
+		(copy-to-buffer copy-buf from to)
+		(set-buffer copy-buf)
+		(format-insert-annotations write-region-annotations-so-far from)
+		(format-encode-run-method to-fn (point-min) (point-max)
+					  orig-buf))
               (when (buffer-live-p copy-buf)
                 (with-current-buffer copy-buf
                   ;; Set write-region-post-annotation-function to
