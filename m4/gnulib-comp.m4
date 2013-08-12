@@ -216,7 +216,7 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([fdopendir])
   gl_FILEMODE
   gl_FUNC_FPENDING
-  if test $ac_cv_func___fpending = no; then
+  if test $gl_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
     gl_PREREQ_FPENDING
   fi

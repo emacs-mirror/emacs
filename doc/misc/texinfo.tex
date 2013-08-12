@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2013-06-23.10}
+\def\texinfoversion{2013-08-09.09}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -2377,8 +2377,10 @@ end
   \ifx\next,%
   \else\ifx\next-%
   \else\ifx\next.%
+  \else\ifx\next\.%
+  \else\ifx\next\comma%
   \else\ptexslash
-  \fi\fi\fi
+  \fi\fi\fi\fi\fi
   \aftersmartic
 }
 
@@ -2519,7 +2521,9 @@ end
       \ifx\codedashprev\codedash 
       \else \discretionary{}{}{}\fi
     \fi
-    \global\let\codedashprev=\next
+    % we need the space after the = for the case when \next itself is a
+    % space token; it would get swallowed otherwise.  As in @code{- a}.
+    \global\let\codedashprev= \next
   }
 }
 \def\normaldash{-}
