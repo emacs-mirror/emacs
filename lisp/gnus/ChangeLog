@@ -1,5 +1,9 @@
 2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-decode.el (mm-display-external): Run a timer for the temp files
+	deletion after a viwer exits; add a deletion timer for the needsterm
+	case, too.
+
 	* mm-decode.el (mm-display-external): Try to delete temporary files by
 	using a 1-min. timer.
 

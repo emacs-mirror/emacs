@@ -954,10 +954,20 @@ external if displayed external."
 			    method file (mm-handle-type handle))))
 	      (unwind-protect
 		  (if window-system
-		      (start-process "*display*" nil
-				     mm-external-terminal-program
-				     "-e" shell-file-name
-				     shell-command-switch command)
+		      (set-process-sentinel
+		       (start-process "*display*" nil
+				      mm-external-terminal-program
+				      "-e" shell-file-name
+				      shell-command-switch command)
+		       `(lambda (process state)
+			  (if (eq 'exit (process-status process))
+			      (run-at-time
+			       60.0 nil
+			       (lambda ()
+				 (ignore-errors (delete-file ,file))
+				 (ignore-errors (delete-directory
+						 ,(file-name-directory
+						   file))))))))
 		    (require 'term)
 		    (require 'gnus-win)
 		    (set-buffer
@@ -971,11 +981,15 @@ external if displayed external."
 		    (set-process-sentinel
 		     (get-buffer-process buffer)
 		     `(lambda (process state)
-			(if (eq 'exit (process-status process))
-			    (gnus-configure-windows
-			     ',gnus-current-window-configuration))))
+			(when (eq 'exit (process-status process))
+			  (ignore-errors (delete-file ,file))
+			  (ignore-errors
+			    (delete-directory ,(file-name-directory file)))
+			  (gnus-configure-windows
+			   ',gnus-current-window-configuration))))
 		    (gnus-configure-windows 'display-term))
-		(mm-handle-set-external-undisplayer handle (cons file buffer)))
+		(mm-handle-set-external-undisplayer handle (cons file buffer))
+		(add-to-list 'mm-temp-files-to-be-deleted file t))
 	      (message "Displaying %s..." command))
 	    'external)
 	   (copiousoutput
@@ -1021,15 +1035,14 @@ external if displayed external."
 				   (buffer buffer)
 				   (command command)
 				   (handle handle))
-		       (run-at-time
-			60.0 nil
-			(lambda ()
-			  (ignore-errors
-			    (delete-file file))
-			  (ignore-errors
-			    (delete-directory (file-name-directory file)))))
 		       (lambda (process state)
 			 (when (eq (process-status process) 'exit)
+			   (run-at-time
+			    60.0 nil
+			    (lambda ()
+			      (ignore-errors (delete-file file))
+			      (ignore-errors (delete-directory
+					      (file-name-directory file)))))
 			   (when (buffer-live-p outbuf)
 			     (with-current-buffer outbuf
 			       (let ((buffer-read-only nil)
