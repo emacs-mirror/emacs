@@ -1021,6 +1021,13 @@ external if displayed external."
 				   (buffer buffer)
 				   (command command)
 				   (handle handle))
+		       (run-at-time
+			60.0 nil
+			(lambda ()
+			  (ignore-errors
+			    (delete-file file))
+			  (ignore-errors
+			    (delete-directory (file-name-directory file)))))
 		       (lambda (process state)
 			 (when (eq (process-status process) 'exit)
 			   (when (buffer-live-p outbuf)

@@ -1,3 +1,8 @@
+2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Try to delete temporary files by
+	using a 1-min. timer.
+
 2013-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-temp-files-to-be-deleted, mm-temp-files-cache-file):
