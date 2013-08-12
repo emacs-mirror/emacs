@@ -408,10 +408,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL__PUTENV
 
-/* Define to 1 if you have the declaration of `__fpending', and to 0 if you
-   don't. */
-#undef HAVE_DECL___FPENDING
-
 /* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL___SYS_SIGLIST
@@ -1190,6 +1186,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
 
+/* Define to 1 if you have the zlib library (-lz). */
+#undef HAVE_ZLIB
+
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
@@ -1204,9 +1203,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `__executable_start' function. */
 #undef HAVE___EXECUTABLE_START
-
-/* Define to 1 if you have the `__fpending' function. */
-#undef HAVE___FPENDING
 
 /* Define to 1 if you have the `__secure_getenv' function. */
 #undef HAVE___SECURE_GETENV
