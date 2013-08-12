@@ -538,7 +538,7 @@ Return one of:
 	  (forward-char 1)
 	  ;; Now check that we have the right end-tag.
 	  (let ((end (concat "</" node-name "\\s-*>")))
-	    (while (not (looking-at-p end))
+	    (while (not (looking-at end))
 	      (cond
 	       ((eobp)
 		(error "XML: (Not Well-Formed) End of document while reading element `%s'"

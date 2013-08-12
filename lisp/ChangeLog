@@ -1,3 +1,9 @@
+2013-08-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xml.el (xml-parse-tag-1): Use looking-at (this reverts change in
+	revno:113793, which breaks the test suite).
+	https://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00263.html
+
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* term/w32-win.el (dynamic-library-alist): Add DLLs for zlib.
