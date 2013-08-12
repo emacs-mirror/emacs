@@ -146,4 +146,12 @@ viperCard.ps: %.ps: %.dvi
 clean:
 	-rm -f *.dvi *.log *.aux
 
+## For the Emacs website.
+dist:
+	rm -rf emacs-refcards
+	mkdir emacs-refcards
+	cp Makefile README *.tex gnus-logo.* pdflayout.sty emacs-refcards/
+	tar -cf emacs-refcards.tar emacs-refcards
+	rm -rf emacs-refcards
+
 ### Makefile ends here

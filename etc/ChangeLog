@@ -1,6 +1,7 @@
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
-	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps): New targets.
+	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps, dist):
+	New rules.
 	(SURVIVAL_CARDS_PDF): Add fr_survival.pdf.
 
 2013-03-11  Glenn Morris  <rgm@gnu.org>
