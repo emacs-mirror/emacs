@@ -1,3 +1,7 @@
+2013-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (dynamic-library-alist): Add DLLs for zlib.
+
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
 	* format.el (format-annotate-function):

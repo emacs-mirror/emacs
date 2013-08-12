@@ -1,3 +1,7 @@
+2013-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.ac (LIBZ): Comment on w32 peculiarities regarding LIBZ.
+
 2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, incorporating:
