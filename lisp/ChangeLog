@@ -1,3 +1,8 @@
+2013-08-12  Grégoire Jadi  <daimrod@gmail.com>
+
+	* mail/sendmail.el (sendmail-send-it): Don't kill the error buffer
+	if sending fails.  This makes debugging easier.
+
 2013-08-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xml.el (xml-parse-tag-1): Use looking-at (this reverts change in
