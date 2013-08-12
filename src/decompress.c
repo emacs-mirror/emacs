@@ -119,8 +119,8 @@ DEFUN ("zlib-available-p", Fzlib_available_p, Szlib_available_p, 0, 0, 0,
 #endif
 }
 
-DEFUN ("decompress-gzipped-region", Fdecompress_gzipped_region,
-       Sdecompress_gzipped_region,
+DEFUN ("zlib-decompress-gzipped-region", Fzlib_decompress_gzipped_region,
+       Szlib_decompress_gzipped_region,
        2, 2, 0,
        doc: /* Decompress a gzip-compressed region.
 Replace the text in the region by the decompressed data.
@@ -210,7 +210,7 @@ void
 syms_of_decompress (void)
 {
   DEFSYM (Qzlib_dll, "zlib");
-  defsubr (&Sdecompress_gzipped_region);
+  defsubr (&Szlib_decompress_gzipped_region);
   defsubr (&Szlib_available_p);
 }
 

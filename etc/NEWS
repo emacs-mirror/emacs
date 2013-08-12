@@ -43,7 +43,7 @@ no longer created during installation.
 
 ** Emacs can be compiled with zlib support.  If this library is present
 (which it normally is on most systems), the function
-`decompress-gzipped-region' becomes available.
+`zlib-decompress-gzipped-region' becomes available.
 
 ---
 ** Emacs for NS (OSX, GNUStep) can be built with ImageMagick support.

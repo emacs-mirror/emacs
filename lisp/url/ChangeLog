@@ -1,3 +1,9 @@
+2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-handle-content-transfer-encoding): Renamed
+	`zlib-decompress-gzipped-region' and check whether it's available,
+	too.
+
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-vars.el (url-mime-encoding-string): If we have built-in gzip

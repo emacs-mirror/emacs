@@ -210,7 +210,7 @@ Should be an assoc list of headers/contents.")
 
 (defvar url-request-method nil "The method to use for the next request.")
 
-(defvar url-mime-encoding-string (and (fboundp 'decompress-gzipped-region)
+(defvar url-mime-encoding-string (and (fboundp 'zlib-decompress-gzipped-region)
 				      "gzip")
   "String to send in the Accept-encoding: field in HTTP requests.")
 

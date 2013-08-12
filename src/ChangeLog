@@ -1,3 +1,8 @@
+2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* decompress.c (Fzlib_decompress_gzipped_region): Rename to
+	include the zlib prefix.
+
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* decompress.c [WINDOWSNT]: Include windows.h and w32.h.
