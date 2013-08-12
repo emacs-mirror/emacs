@@ -1,3 +1,9 @@
+2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (deactivate_process): Reset fds to -1 (Bug#15035).
+	This fixes a problem introduced by the Bug#15035 patch
+	when using GPG.  Reported by Herbert J. Skuhra.
+
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* decompress.c <zlib_initialized> [WINDOWSNT]: New static variable.

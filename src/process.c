@@ -3842,6 +3842,8 @@ deactivate_process (Lisp_Object proc)
 
   if (inchannel >= 0)
     {
+      p->infd  = -1;
+      p->outfd = -1;
 #ifdef DATAGRAM_SOCKETS
       if (DATAGRAM_CHAN_P (inchannel))
 	{
