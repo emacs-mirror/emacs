@@ -1,5 +1,19 @@
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (ada_mode_deps, auth_deps, autotype_deps)
+	(bovine_deps, calc_deps, ccmode_deps, cl_deps, dbus_deps)
+	(dired_x_deps, ebrowse_deps, ede_deps, ediff_deps, edt_deps)
+	(eieio_deps, emacs_gnutls_deps, emacs_mime_deps, epa_deps)
+	(erc_deps, ert_deps, eshell_deps, eudc_deps, faq_deps)
+	(flymake_deps, forms_deps, gnus_deps, htmlfontify_deps)
+	(idlwave_deps, ido_deps, info_deps, mairix_el_deps, message_deps)
+	(mh_e_deps, newsticker_deps, nxml_mode_deps, org_deps)
+	(pcl_cvs_deps, pgg_deps, rcirc_deps, reftex_deps, remember_deps)
+	(sasl_deps, sc_deps, semantic_deps, ses_deps, sieve_deps)
+	(smtpmail_deps, speedbar_deps, srecode_deps, todo_mode_deps)
+	(tramp_deps, url_deps, vip_deps, viper_deps, widget_deps)
+	(wisent_deps, woman_deps): New variables.  Use to reduce duplication.
+
 	* woman.texi (Top): Avoid mailto: in html output.
 
 	* Makefile.in (prefix, datarootdir, datadir, PACKAGE_TARNAME)
