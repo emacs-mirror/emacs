@@ -2946,21 +2946,12 @@ AC_SUBST(LIBPNG)
 HAVE_ZLIB=no
 LIBZ=
 if test "${with_zlib}" != "no"; then
-  if test "${HAVE_PNG}" = "yes"; then
-    ### PNG depends on zlib, so if we have PNG, we have zlib.
-    ### Note: w32 does not link against libpng, but instead loads it
-    ### dynamically, but it also does the same with zlib.  So it is OK
-    ### not to have -lz in LIBZ on w32.
-    HAVE_ZLIB=yes
-  else
-    ### No PNG, so check zlib ourselves.
-    OLIBS=$LIBS
-    AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
-    LIBS=$OLIBS
-    case $ac_cv_search_inflateEnd in
-      -*) LIBZ=$ac_cv_search_inflateEnd ;;
-    esac
-  fi
+  OLIBS=$LIBS
+  AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
+  LIBS=$OLIBS
+  case $ac_cv_search_inflateEnd in
+    -*) LIBZ=$ac_cv_search_inflateEnd ;;
+  esac
 fi
 if test "${HAVE_ZLIB}" = "yes"; then
   AC_DEFINE([HAVE_ZLIB], 1, [Define to 1 if you have the zlib library (-lz).])

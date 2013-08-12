@@ -67,16 +67,16 @@ init_zlib_functions (void)
   return 1;
 }
 
+#define fn_inflateInit2(strm, windowBits) \
+        fn_inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
+
 #else /* !WINDOWSNT */
 
-#define fn_inflateInit2_	inflateInit2_
+#define fn_inflateInit2		inflateInit2
 #define fn_inflate		inflate
 #define fn_inflateEnd		inflateEnd
 
 #endif	/* WINDOWSNT */
-
-#define fn_inflateInit2(strm, windowBits) \
-        fn_inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
 
 
 struct decompress_unwind_data

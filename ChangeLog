@@ -1,3 +1,8 @@
+2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor zlib configuration tweaks.
+	* configure.ac (HAVE_ZLIB): Don't assume zlib is linked if PNG is.
+
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (LIBZ): Comment on w32 peculiarities regarding LIBZ.

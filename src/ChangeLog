@@ -1,3 +1,9 @@
+2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor zlib configuration tweaks.
+	* decompress.c (fn_inflateInit2) [!WINDOWSNT]:
+	Don't assume presence of fn_inflateInit2_ zlib internal function.
+
 2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* decompress.c (Fzlib_decompress_gzipped_region): Rename to
