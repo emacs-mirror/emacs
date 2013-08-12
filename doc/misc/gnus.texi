@@ -14796,14 +14796,16 @@ and says what authentication scheme to use.  The default is
 
 @item :leave
 Non-@code{nil} if the mail is to be left on the @acronym{POP} server
-after fetching.  Mails once fetched will never be fetched again by the
-@acronym{UIDL} control.  Only the built-in @code{pop3-movemail} program
-(the default) supports this keyword.
+after fetching.  Only the built-in @code{pop3-movemail} program (the
+default) supports this keyword.
 
-If this is neither @code{nil} nor a number, all mails will be left on
-the server.  If this is a number, leave mails on the server for this
-many days since you first checked new mails.  If this is @code{nil}
-(the default), mails will be deleted on the server right after fetching.
+If this is a number, leave mails on the server for this many days since
+you first checked new mails.  In that case, mails once fetched will
+never be fetched again by the @acronym{UIDL} control.  If this is
+@code{nil} (the default), mails will be deleted on the server right
+after fetching.  If this is neither @code{nil} nor a number, all mails
+will be left on the server, and you will end up getting the same mails
+again and again.
 
 @vindex pop3-uidl-file
 The @code{pop3-uidl-file} variable specifies the file to which the

@@ -1,3 +1,7 @@
+2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail Source Specifiers): Fix description for pop3's :leave.
+
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ada_mode_deps, auth_deps, autotype_deps)
