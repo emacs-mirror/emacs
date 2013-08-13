@@ -1,3 +1,11 @@
+2013-08-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* decompress.c: Minor simplifications.
+	(Fzlib_decompress_region): Don't bother verifying
+	that avail_out <= UINT_MAX, as that was confusing.
+	Mention the restriction in a comment instead.
+	Prefer 'int' to 'ptrdiff_t' when 'int' is wide enough.
+
 2013-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (x_activate_menubar): Check for OSX >= 10.5

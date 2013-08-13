@@ -183,12 +183,10 @@ This function can be called only in unibyte buffers.  */)
     {
       /* Maximum number of bytes that one 'inflate' call should read and write.
 	 Do not make avail_out too large, as that might unduly delay C-g.
-	 In any case zlib requires that these values not exceed UINT_MAX.  */
+	 zlib requires that avail_in and avail_out not exceed UINT_MAX.  */
       ptrdiff_t avail_in = min (iend - pos_byte, UINT_MAX);
-      enum { avail_out = 1 << 14 };
-      verify (avail_out <= UINT_MAX);
-
-      ptrdiff_t decompressed;
+      int avail_out = 16 * 1024;
+      int decompressed;
 
       if (GAP_SIZE < avail_out)
 	make_gap (avail_out - GAP_SIZE);
