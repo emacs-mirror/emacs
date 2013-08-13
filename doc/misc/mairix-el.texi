@@ -55,15 +55,15 @@ database.
 @end ifnottex
 
 @menu
-* About mairix and mairix.el::  About the mairix search engine and mairix.el
-* Configuring mairix::          How to configure mairix
-* Setting up mairix.el::        Set up mairix.el
-* Using mairix.el::             List of interactive functions
-* Extending mairix.el::         Support your favorite mail reader!
+* About::                       About the mairix search engine and mairix.el.
+* Configuring mairix::          How to configure mairix.
+* Setting up the mairix interface:: Set up mairix.el.
+* Using::                       List of interactive functions
+* Extending::                   Support your favorite mail reader!
 * GNU Free Documentation License::  The license for this documentation.
 @end menu
 
-@node About mairix and mairix.el
+@node About
 @chapter About mairix and mairix.el
 
 Mairix is a tool for indexing and searching words in locally stored
@@ -98,7 +98,7 @@ Currently, @code{mairix.el} is only tested with mbox output together
 with RMail, Gnus, or VM as the Emacs mail program.  However, it should
 also work with Maildir or MH, and it should be very easy to integrate
 other Emacs mail programs into @code{mairix.el}
-(@pxref{Extending mairix.el}).
+(@pxref{Extending}).
 
 If you use Gnus with maildir or MH, you should really use the native
 Gnus back end @code{nnmairix} instead, since it is more tightly
@@ -165,8 +165,8 @@ Now simply call @code{mairix} to create the index for the first time.
 Note that this may take a few minutes, but every following index will do
 the updates incrementally and hence is very fast.
 
-@node Setting up mairix.el
-@chapter Setting up mairix.el
+@node Setting up the mairix interface
+@chapter Setting up the mairix interface
 
 First, put @code{mairix.el} in your Emacs search path and put
 @code{(require 'mairix)} into your @file{.emacs} file.  Then, use
@@ -179,13 +179,12 @@ If you use Gnus with maildir or mh, use the native Gnus back end
 nnmairix instead.
 
 If you use another Emacs mail program which is not yet supported by
-mairix.el, it is pretty easy to integrate it.  @xref{Extending
-mairix.el}, on how to integrate it into mairix.el.
+mairix.el, it is pretty easy to integrate it.  @xref{Extending},
+on how to integrate it into mairix.el.
 
-Now you should be ready to go. @xref{Using mairix.el}, for the available
-commands.
+Now you should be ready to go. @xref{Using}, for the available commands.
 
-@node Using mairix.el
+@node Using
 @chapter Using mairix.el
 
 There are currently no default key bindings for mairix.el, since those
@@ -314,7 +313,7 @@ will still be usable while the update is done.
 @end table
 
 
-@node Extending mairix.el
+@node Extending
 @chapter Extending mairix.el
 
 Your favorite Emacs mail program is not supported?  Shame on me.  But
