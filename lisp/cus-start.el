@@ -457,7 +457,12 @@ since it could result in memory overflow and make Emacs crash."
 	     (scroll-margin windows integer)
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
-	     (truncate-partial-width-windows display boolean "23.1")
+	     (truncate-partial-width-windows
+	      display
+	      (choice (integer :tag "Truncate if narrower than")
+		      (const :tag "Respect `truncate-lines'" nil)
+		      (other :tag "Truncate if not full-width" t))
+	      "23.1")
 	     (make-cursor-line-fully-visible windows boolean)
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
