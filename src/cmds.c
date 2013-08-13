@@ -86,6 +86,7 @@ DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
        doc: /* Move point N characters forward (backward if N is negative).
 On reaching end or beginning of buffer, stop and signal error.
 Interactively, N is the numeric prefix argument.
+If N is omitted or nil, move point 1 character forward.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
@@ -99,6 +100,7 @@ DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "^p",
        doc: /* Move point N characters backward (forward if N is negative).
 On attempt to pass beginning or end of buffer, stop and signal error.
 Interactively, N is the numeric prefix argument.
+If N is omitted or nil, move point 1 character backward.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
