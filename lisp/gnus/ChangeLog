@@ -1,3 +1,9 @@
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-valid-select-methods): Fix type.
+
+	* nnimap.el (nnimap-request-articles-find-limit): Fix type, version.
+
 2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-display-external): Run a timer for the temp files

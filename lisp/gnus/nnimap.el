@@ -130,8 +130,8 @@ textual parts.")
 
 (defcustom nnimap-request-articles-find-limit nil
   "Limit the number of articles to look for after moving an article."
-  :type 'integer
-  :version "24.3"
+  :type '(choice (const nil) integer)
+  :version "24.4"
   :group 'nnimap)
 
 (defvar nnimap-process nil)

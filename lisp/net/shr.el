@@ -59,7 +59,7 @@ fit these criteria."
   "Character used to draw horizontal table lines.
 If nil, don't draw horizontal table lines."
   :group 'shr
-  :type 'character)
+  :type '(choice (const nil) character))
 
 (defcustom shr-table-vertical-line ?\s
   "Character used to draw vertical table lines."
