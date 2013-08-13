@@ -26003,6 +26003,9 @@ set_frame_cursor_types (struct frame *f, Lisp_Object arg)
     }
   else
     FRAME_BLINK_OFF_CURSOR (f) = DEFAULT_CURSOR;
+
+  /* Make sure the cursor gets redrawn.  */
+  cursor_type_changed = 1;
 }
 
 

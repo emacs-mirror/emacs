@@ -1,6 +1,10 @@
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* keyboard.c (Fdiscard_input): Do not increment update_mode_lines.
+	* nsfns.m (x_set_cursor_type):
+	* w32fns.c (x_set_cursor_type):
+	* xfns.m (x_set_cursor_type): Do not set cursor_type_changed here...
+	* xdisp.c (set_frame_cursor_types): ...but in common code.
 
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 

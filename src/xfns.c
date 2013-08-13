@@ -1053,11 +1053,8 @@ static void
 x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
-
-  /* Make sure the cursor gets redrawn.  */
-  cursor_type_changed = 1;
 }
-
+
 static void
 x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
