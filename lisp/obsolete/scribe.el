@@ -144,7 +144,9 @@ Interesting variables:
   (set (make-local-variable 'sentence-end)
        "\\([.?!]\\|@:\\)[]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
   (set (make-local-variable 'compile-command)
-       (concat "scribe " (buffer-file-name))))
+       (concat "scribe "
+	       (if buffer-file-name
+		   (shell-quote-argument (buffer-file-name))))))
 
 (defun scribe-tab ()
   (interactive)

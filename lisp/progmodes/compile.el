@@ -624,7 +624,9 @@ You might also use mode hooks to specify it in certain modes, like this:
 		     (file-exists-p \"Makefile\"))
 	   (set (make-local-variable 'compile-command)
 		(concat \"make -k \"
-			(file-name-sans-extension buffer-file-name))))))"
+			(if buffer-file-name
+			  (shell-quote-argument
+			    (file-name-sans-extension buffer-file-name))))))))"
   :type 'string
   :group 'compilation)
 ;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command)) compilation-read-command))))

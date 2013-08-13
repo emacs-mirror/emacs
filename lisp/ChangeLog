@@ -1,5 +1,9 @@
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/compile.el (compile-command): Tweak example in doc.
+	* obsolete/scribe.el (scribe-mode):
+	* progmodes/mixal-mode.el (mixal-mode): Quote buffer name.  (Bug#15053)
+
 	* mail/feedmail.el (feedmail-confirm-outgoing)
 	(feedmail-display-full-frame, feedmail-deduce-bcc-where): Fix types.
 
