@@ -759,11 +759,6 @@ clear_face_cache (int clear_fonts_p)
   if (clear_fonts_p
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
     {
-#if 0
-      /* Not yet implemented.  */
-      clear_font_cache (frame);
-#endif
-
       /* From time to time see if we can unload some fonts.  This also
 	 frees all realized faces on all frames.  Fonts needed by
 	 faces will be loaded again when faces are realized again.  */
@@ -774,7 +769,10 @@ clear_face_cache (int clear_fonts_p)
 	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
 	      && FRAME_X_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
-	    free_all_realized_faces (frame);
+	    {
+	      clear_font_cache (f);
+	      free_all_realized_faces (frame);
+	    }
 	}
     }
   else

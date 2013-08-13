@@ -760,6 +760,7 @@ extern Lisp_Object font_load_for_lface (struct frame *f, Lisp_Object *lface,
                                         Lisp_Object spec);
 extern void font_prepare_for_face (struct frame *f, struct face *face);
 extern void font_done_for_face (struct frame *f, struct face *face);
+extern void clear_font_cache (struct frame *);
 
 extern Lisp_Object font_open_by_spec (struct frame *f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (struct frame *f, Lisp_Object name);

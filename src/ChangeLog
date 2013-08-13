@@ -1,5 +1,13 @@
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* font.c (clear_font_cache): New function, stripped from...
+	(Fclear_font_cache): ...here, which now uses the function
+	above.  Adjust comment.
+	* font.h (clear_font_cache): Add prototype.
+	* xfaces.c (clear_face_cache): Use clear_font_cache.
+
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.c (Fset_window_start): Compare `w', not `window' because
 	`w' might not be equal to `window' after call to decode_live_window.
 
