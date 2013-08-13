@@ -1,3 +1,17 @@
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (WINDOW_FRINGE_EXTENDED_P): New macro.
+	* nsterm.m (ns_set_vertical_scroll_bar): Use it.  Use convenient
+	bool instead of BOOL.
+	* w32term.h (struct scroll_bar): Convert fringe_extended_p
+	from Lisp_Object to bitfield.  Adjust comment.
+	* w32term.c (x_scroll_bar_create): Adjust user.
+	Use WINDOW_FRINGE_EXTENDED_P and bool for boolean.
+	* xterm.c (XTset_vertical_scroll_bar): Likewise.
+	Use bool for boolean.
+	* xterm.h (struct scroll_bar): Prefer commonly used `unsigned'
+	to `unsigned int' when defining a bitfield.
+
 2013-08-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* decompress.c (Fzlib_decompress_region): Try to clarify 'avail_out'.

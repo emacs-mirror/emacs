@@ -5155,7 +5155,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  int fringe_extended_p;
+  bool fringe_extended_p;
 #endif
 
   /* Get window dimensions.  */
@@ -5188,16 +5188,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #endif
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
-    fringe_extended_p = (WINDOW_LEFTMOST_P (w)
-			 && WINDOW_LEFT_FRINGE_WIDTH (w)
-			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-			     || WINDOW_LEFT_MARGIN_COLS (w) == 0));
-  else
-    fringe_extended_p = (WINDOW_RIGHTMOST_P (w)
-			 && WINDOW_RIGHT_FRINGE_WIDTH (w)
-			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-			     || WINDOW_RIGHT_MARGIN_COLS (w) == 0));
+  fringe_extended_p = WINDOW_FRINGE_EXTENDED_P (w);
 #endif
 
   /* Does the scroll bar exist yet?  */

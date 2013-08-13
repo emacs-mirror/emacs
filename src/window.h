@@ -828,13 +828,25 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #define WINDOW_TEXT_TO_FRAME_PIXEL_X(W, X)	\
   (window_box_left ((W), TEXT_AREA) + (X))
 
-/* This is the window in which the terminal's cursor should
-   be left when nothing is being done with it.  This must
-   always be a leaf window, and its buffer is selected by
-   the top level editing loop at the end of each command.
+/* Nonzero if the background of the window W's fringe that is adjacent to
+   a scroll bar is extended to the gap between the fringe and the bar.  */
 
-   This value is always the same as
-    FRAME_SELECTED_WINDOW (selected_frame).  */
+#define WINDOW_FRINGE_EXTENDED_P(w)			\
+  (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)		\
+   ? (WINDOW_LEFTMOST_P (w)				\
+      && WINDOW_LEFT_FRINGE_WIDTH (w)			\
+      && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)	\
+	  || WINDOW_LEFT_MARGIN_COLS (w) == 0))		\
+   : (WINDOW_RIGHTMOST_P (w)				\
+      && WINDOW_RIGHT_FRINGE_WIDTH (w)			\
+      && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)	\
+	  || WINDOW_RIGHT_MARGIN_COLS (w) == 0)))
+
+/* This is the window in which the terminal's cursor should be left when
+   nothing is being done with it.  This must always be a leaf window, and its
+   buffer is selected by the top level editing loop at the end of each command.
+
+   This value is always the same as FRAME_SELECTED_WINDOW (selected_frame).  */
 
 extern Lisp_Object selected_window;
 

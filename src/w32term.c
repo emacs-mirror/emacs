@@ -3770,7 +3770,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   XSETINT (bar->start, 0);
   XSETINT (bar->end, 0);
   bar->dragging = Qnil;
-  bar->fringe_extended_p = Qnil;
+  bar->fringe_extended_p = 0;
 
   /* Requires geometry to be set before call to create the real window */
 
@@ -3834,7 +3834,7 @@ w32_set_vertical_scroll_bar (struct window *w,
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
-  int fringe_extended_p;
+  bool fringe_extended_p;
 
   /* Get window dimensions.  */
   window_box (w, -1, 0, &window_y, 0, &window_height);
@@ -3858,16 +3858,7 @@ w32_set_vertical_scroll_bar (struct window *w,
   else
     sb_left = left + (WINDOW_LEFTMOST_P (w) ? 0 : width - sb_width);
 
-  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
-    fringe_extended_p = (WINDOW_LEFTMOST_P (w)
-			 && WINDOW_LEFT_FRINGE_WIDTH (w)
-			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-			     || WINDOW_LEFT_MARGIN_COLS (w) == 0));
-  else
-    fringe_extended_p = (WINDOW_RIGHTMOST_P (w)
-			 && WINDOW_RIGHT_FRINGE_WIDTH (w)
-			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-			     || WINDOW_RIGHT_MARGIN_COLS (w) == 0));
+  fringe_extended_p = WINDOW_FRINGE_EXTENDED_P (w);
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
@@ -3896,11 +3887,11 @@ w32_set_vertical_scroll_bar (struct window *w,
       hwnd = SCROLL_BAR_W32_WINDOW (bar);
 
       /* If already correctly positioned, do nothing.  */
-      if ( XINT (bar->left) == sb_left
-           && XINT (bar->top) == top
-           && XINT (bar->width) ==  sb_width
-           && XINT (bar->height) == height
-	   && !NILP (bar->fringe_extended_p) == fringe_extended_p )
+      if (XINT (bar->left) == sb_left
+	  && XINT (bar->top) == top
+	  && XINT (bar->width) == sb_width
+	  && XINT (bar->height) == height
+	  && bar->fringe_extended_p == fringe_extended_p)
         {
           /* Redraw after clear_frame. */
           if (!my_show_window (f, hwnd, SW_NORMAL))
@@ -3950,7 +3941,7 @@ w32_set_vertical_scroll_bar (struct window *w,
           unblock_input ();
         }
     }
-  bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
+  bar->fringe_extended_p = fringe_extended_p;
 
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
   XSETVECTOR (barobj, bar);
