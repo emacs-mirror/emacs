@@ -897,8 +897,8 @@ treated as images.
 keywords.
 
 *** Some data types aren't auto-detected by ImageMagick.  Adding
-:content-type to `create-image' may help if the content type is in the
-new variable `image-content-type-suffixes'.
+:format to `create-image' may help if the content type is in the
+new variable `image-format-suffixes'.
 
 ** Minibuffer
 

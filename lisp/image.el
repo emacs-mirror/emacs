@@ -99,11 +99,11 @@ AUTODETECT can be
  - maybe  auto-detect only if the image type is available
 	    (see `image-type-available-p').")
 
-(defvar image-content-type-suffixes
+(defvar image-format-suffixes
   '((image/x-icon "ico"))
   "Alist of MIME Content-Type headers to file name suffixes.
 This is used as a hint by the ImageMagick library when detecting
-image types.  If `create-image' is called with a :content-type
+image types.  If `create-image' is called with a :format
 matching found in this alist, the ImageMagick library will be
 told that the data would have this suffix if saved to a file.")
 

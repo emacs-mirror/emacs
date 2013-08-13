@@ -747,7 +747,7 @@ element is the data blob and the second element is the content-type."
 	     (image (cond
 		     ((eq size 'original)
 		      (create-image data nil t :ascent 100
-				    :content-type content-type))
+				    :format content-type))
 		     ((eq size 'full)
 		      (ignore-errors
 			(shr-rescale-image data t content-type)))
@@ -791,7 +791,7 @@ If FORCE, rescale the image anyway."
 			       (- (nth 2 edges) (nth 0 edges))))
        :max-height (truncate (* shr-max-image-proportion
 				(- (nth 3 edges) (nth 1 edges))))
-       :content-type content-type))))
+       :format content-type))))
 
 ;; url-cache-extract autoloads url-cache.
 (declare-function url-cache-create-filename "url-cache" (url))

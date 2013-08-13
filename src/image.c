@@ -551,7 +551,6 @@ static Lisp_Object QCheuristic_mask;
 static Lisp_Object QCcolor_symbols;
 static Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry;
 static Lisp_Object QCcrop, QCrotation;
-static Lisp_Object QCcontent_type;
 
 /* Other symbols.  */
 
@@ -7741,7 +7740,7 @@ enum imagemagick_keyword_index
     IMAGEMAGICK_WIDTH,
     IMAGEMAGICK_MAX_HEIGHT,
     IMAGEMAGICK_MAX_WIDTH,
-    IMAGEMAGICK_CONTENT_TYPE,
+    IMAGEMAGICK_FORMAT,
     IMAGEMAGICK_ROTATION,
     IMAGEMAGICK_CROP,
     IMAGEMAGICK_LAST
@@ -7766,7 +7765,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":width",		IMAGE_INTEGER_VALUE,			0},
     {":max-height",	IMAGE_INTEGER_VALUE,			0},
     {":max-width",	IMAGE_INTEGER_VALUE,			0},
-    {":content-type",	IMAGE_SYMBOL_VALUE,			0},
+    {":format",		IMAGE_SYMBOL_VALUE,			0},
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
@@ -7851,15 +7850,15 @@ imagemagick_error (MagickWand *wand)
 static char*
 imagemagick_filename_hint (Lisp_Object spec)
 {
-  Lisp_Object content_type = image_spec_value (spec, QCcontent_type, NULL);
-  Lisp_Object symbol = intern ("image-content-type-suffixes");
+  Lisp_Object format = image_spec_value (spec, intern (":format"), NULL);
+  Lisp_Object symbol = intern ("image-format-suffixes");
   Lisp_Object val;
   char *name, *prefix = "/tmp/foo.";
 
   if (NILP (Fboundp (symbol)))
     return NULL;
 
-  val = Fassq (content_type, Fsymbol_value (symbol));
+  val = Fassq (format, Fsymbol_value (symbol));
   if (! CONSP (val))
     return NULL;
 
@@ -9155,7 +9154,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qpostscript, "postscript");
   DEFSYM (QCmax_width, ":max-width");
   DEFSYM (QCmax_height, ":max-height");
-  DEFSYM (QCcontent_type, ":content-type");
 #ifdef HAVE_GHOSTSCRIPT
   ADD_IMAGE_TYPE (Qpostscript);
   DEFSYM (QCloader, ":loader");
