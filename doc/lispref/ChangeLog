@@ -1,3 +1,8 @@
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (List Elements):
+	Undocument behavior of nth and nthcdr with n < 0.  (Bug#15059)
+
 2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* frames.texi (Display Feature Testing): Add indexes.
