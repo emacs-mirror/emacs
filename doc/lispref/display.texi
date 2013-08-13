@@ -4664,6 +4664,14 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
+@item :content-type
+ImageMagick tries to auto-detect the image type, but it isn't always
+able to.  By using @code{:content-type}, we can give ImageMagick a
+hint to try to help it.  It's used in conjuction with the
+@code{image-content-type-suffixes} variable, which provides a mapping
+from content types to file name suffixes.  This is then given to
+ImageMagick as a file name hint.
+
 @item :rotation
 Specifies a rotation angle in degrees.
 

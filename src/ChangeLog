@@ -1,3 +1,9 @@
+2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_filename_hint): New function to possibly
+	apply `image-content-type-suffixes'.
+	(imagemagick_load_image): Use it.
+
 2013-08-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* decompress.c (Fzlib_decompress_region) [WINDOWSNT]: Return Qnil

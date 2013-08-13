@@ -1,3 +1,7 @@
+2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.el (image-content-type-suffixes): New variable.
+
 2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-imenu--build-tree)

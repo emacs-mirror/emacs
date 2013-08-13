@@ -551,6 +551,7 @@ static Lisp_Object QCheuristic_mask;
 static Lisp_Object QCcolor_symbols;
 static Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry;
 static Lisp_Object QCcrop, QCrotation;
+static Lisp_Object QCcontent_type;
 
 /* Other symbols.  */
 
@@ -7740,6 +7741,7 @@ enum imagemagick_keyword_index
     IMAGEMAGICK_WIDTH,
     IMAGEMAGICK_MAX_HEIGHT,
     IMAGEMAGICK_MAX_WIDTH,
+    IMAGEMAGICK_CONTENT_TYPE,
     IMAGEMAGICK_ROTATION,
     IMAGEMAGICK_CROP,
     IMAGEMAGICK_LAST
@@ -7764,6 +7766,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":width",		IMAGE_INTEGER_VALUE,			0},
     {":max-height",	IMAGE_INTEGER_VALUE,			0},
     {":max-width",	IMAGE_INTEGER_VALUE,			0},
+    {":content-type",	IMAGE_SYMBOL_VALUE,			0},
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
@@ -7842,6 +7845,30 @@ imagemagick_error (MagickWand *wand)
   description = (char *) MagickRelinquishMemory (description);
 }
 
+/* Possibly give ImageMagick some extra help to determine the image
+   type by supplying a "dummy" filename based on the Content-Type. */
+
+static char*
+imagemagick_filename_hint (Lisp_Object spec)
+{
+  Lisp_Object content_type = image_spec_value (spec, QCcontent_type, NULL);
+  Lisp_Object symbol = intern ("image-content-type-suffixes");
+  Lisp_Object suffix;
+  char *name, *prefix = "/tmp/foo.";
+
+  if (NILP (Fboundp (symbol)))
+    return NULL;
+
+  suffix = Fcar (Fcdr (Fassq (content_type, Fsymbol_value (symbol))));
+  if (! STRINGP (suffix))
+    return NULL;
+
+  name = xmalloc (strlen (prefix) + SBYTES (suffix) + 1);
+  strcpy(name, prefix);
+  strcat(name, SDATA (suffix));
+  return name;
+}
+
 /* Helper function for imagemagick_load, which does the actual loading
    given contents and size, apart from frame and image structures,
    passed from imagemagick_load.  Uses librimagemagick to do most of
@@ -7875,6 +7902,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   int desired_width, desired_height;
   double rotation;
   int pixelwidth;
+  char *filename_hint = NULL;
 
   /* Handle image index for image types who can contain more than one image.
      Interface :index is same as for GIF.  First we "ping" the image to see how
@@ -7887,6 +7915,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand = NewMagickWand ();
   /* MagickSetResolution (ping_wand, 2, 2);   (Bug#10112)  */
+
+  if (! filename)
+    filename_hint = imagemagick_filename_hint (img->spec);
+
+  if (filename_hint)
+    MagickSetFilename (ping_wand, filename_hint);
 
   status = filename
     ? MagickPingImage (ping_wand, filename)
@@ -7919,6 +7953,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
      bundle, the number is one.  Load the image data.  */
 
   image_wand = NewMagickWand ();
+
+  if (filename_hint)
+    MagickSetFilename (image_wand, filename_hint);
 
   if ((filename
        ? MagickReadImage (image_wand, filename)
@@ -8163,11 +8200,16 @@ imagemagick_load_image (struct frame *f, struct image *img,
   /* `MagickWandTerminus' terminates the imagemagick environment.  */
   MagickWandTerminus ();
 
+  if (filename_hint)
+    free (filename_hint);
+
   return 1;
 
  imagemagick_error:
   DestroyMagickWand (image_wand);
   if (bg_wand) DestroyPixelWand (bg_wand);
+  if (filename_hint)
+    free (filename_hint);
 
   MagickWandTerminus ();
   /* TODO more cleanup.  */
@@ -9105,6 +9147,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qpostscript, "postscript");
   DEFSYM (QCmax_width, ":max-width");
   DEFSYM (QCmax_height, ":max-height");
+  DEFSYM (QCcontent_type, ":content-type");
 #ifdef HAVE_GHOSTSCRIPT
   ADD_IMAGE_TYPE (Qpostscript);
   DEFSYM (QCloader, ":loader");

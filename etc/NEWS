@@ -896,6 +896,10 @@ treated as images.
 *** ImageMagick images now support the :max-width and :max-height
 keywords.
 
+*** Some data types aren't auto-detected by ImageMagick.  Adding
+:content-type to `create-image' may help if the content type is in the
+new variable `image-content-type-suffixes'.
+
 ** Minibuffer
 
 *** In minibuffer filename prompts, `C-M-f' and `C-M-b' now move to the
