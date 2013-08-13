@@ -23,6 +23,10 @@
 ## PDF files that are included with Emacs.
 all: refcards_pdf dired-refcards_pdf misc-refcards_pdf
 
+all_pdf: all survival-cards_pdf viper-cards_pdf
+all_ps: refcards_ps dired-refcards_ps misc-refcards_ps survival-cards_ps \
+	viper-cards_ps
+
 REFCARDS_PDF = refcard.pdf cs-refcard.pdf de-refcard.pdf fr-refcard.pdf \
             pl-refcard.pdf pt-br-refcard.pdf ru-refcard.pdf sk-refcard.pdf
 refcards_pdf: ${REFCARDS_PDF}
@@ -39,7 +43,7 @@ misc-refcards_ps: ${MISC_REFCARDS_PDF:.pdf=.ps}
 
 
 ## The following files are not included with Emacs.
-SURVIVAL_CARDS_PDF = survival.pdf cs-survival.pdf sk-survival.pdf
+SURVIVAL_CARDS_PDF = survival.pdf cs-survival.pdf fr-survival.pdf sk-survival.pdf
 survival-cards_pdf: ${SURVIVAL_CARDS_PDF}
 survival-cards_ps: ${SURVIVAL_CARDS_PDF:.pdf=.ps}
 
@@ -118,7 +122,7 @@ gnus-booklet.dvi: gnus-refcard.tex
 ## FIXME orgcard.ps does not fit on letter (see orgcard.tex).
 
 ## A4, landscape.
-de-refcard.ps fr-refcard.ps pt-br-refcard.ps orgcard.ps: %.ps: %.dvi
+de-refcard.ps fr-refcard.ps fr-survival.ps pt-br-refcard.ps orgcard.ps: %.ps: %.dvi
 	dvips -t a4 -t landscape $< -o $@
 
 ## A4, portrait.
@@ -141,5 +145,13 @@ viperCard.ps: %.ps: %.dvi
 
 clean:
 	-rm -f *.dvi *.log *.aux
+
+## For the Emacs website.
+dist:
+	rm -rf emacs-refcards
+	mkdir emacs-refcards
+	cp Makefile README *.tex gnus-logo.* pdflayout.sty emacs-refcards/
+	tar -cf emacs-refcards.tar emacs-refcards
+	rm -rf emacs-refcards
 
 ### Makefile ends here

@@ -153,7 +153,7 @@ Labels and References
 * Defining Label Environments::        ... and environments it doesn't.
 * Reference Info::                   View the label corresponding to a \ref.
 * Reference Styles::                 Macros to be used instead of \ref.
-* xr (LaTeX package)::               References to external documents.
+* LaTeX xr Package::                 References to external documents.
 
 Defining Label Environments
 
@@ -196,17 +196,17 @@ AUCTeX
 
 Options, Keymaps, Hooks
 
-* Options (Table of Contents)::
-* Options (Defining Label Environments)::
-* Options (Creating Labels)::
-* Options (Referencing Labels)::
-* Options (Creating Citations)::
-* Options (Index Support)::
-* Options (Viewing Cross-References)::
-* Options (Finding Files)::
-* Options (Optimizations)::
-* Options (Fontification)::
-* Options (Misc)::
+* Options - Table of Contents::
+* Options - Defining Label Environments::
+* Options - Creating Labels::
+* Options - Referencing Labels::
+* Options - Creating Citations::
+* Options - Index Support::
+* Options - Viewing Cross-References::
+* Options - Finding Files::
+* Options - Optimizations::
+* Options - Fontification::
+* Options - Misc::
 
 @end detailmenu
 @end menu
@@ -581,8 +581,8 @@ called.
 @item mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a line has the same effect as @key{RET}.
-See also variable @code{reftex-highlight-selection}, @ref{Options
-(Fontification)}.
+See also variable @code{reftex-highlight-selection},
+@ref{Options - Fontification}.
 
 @item f
 @vindex reftex-toc-follow-mode
@@ -701,9 +701,8 @@ buffer.
 
 @item x
 Switch to the @file{*toc*} buffer of an external document.  When the
-current document is using the @code{xr} package (@pxref{xr (LaTeX
-package)}), @RefTeX{} will switch to one of the external
-documents.
+current document is using the @code{xr} package (@pxref{LaTeX xr Package}),
+@RefTeX{} will switch to one of the external documents.
 
 
 @tablesubheading{Automatic recentering}
@@ -796,7 +795,7 @@ equation counter.
 * Defining Label Environments::        ... and environments it doesn't.
 * Reference Info::                   View the label corresponding to a \ref.
 * Reference Styles::                 Macros to be used instead of \ref.
-* xr (LaTeX package)::               References to external documents.
+* LaTeX xr Package::                 References to external documents.
 @end menu
 
 @node Creating Labels
@@ -859,8 +858,8 @@ this label later.
 
 @vindex reftex-insert-label-flags
 If you want to change the way certain labels are created, check out the
-variable @code{reftex-insert-label-flags} (@pxref{Options (Creating
-Labels)}).
+variable @code{reftex-insert-label-flags} (@pxref{Options - Creating
+Labels}).
 
 If you are using @AUCTeX{} to write your @LaTeX{} documents, you can
 set it up to delegate the creation of labels to
@@ -981,7 +980,7 @@ references all marked labels.
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a label will accept it like @key{RET}
 would.  See also variable @code{reftex-highlight-selection},
-@ref{Options (Misc)}.
+@ref{Options - Misc}.
 
 @vindex reftex-multiref-punctuation
 @item m - + ,
@@ -1034,7 +1033,7 @@ buffer.
 @tablesubheading{Controlling what gets displayed}
 @vindex reftex-label-menu-flags
 The defaults for the following flags can be configured with the variable
-@code{reftex-label-menu-flags} (@pxref{Options (Referencing Labels)}).
+@code{reftex-label-menu-flags} (@pxref{Options - Referencing Labels}).
 
 @item c
 Toggle the display of the one-line label definition context in the
@@ -1082,8 +1081,7 @@ a menu for that category will be shown.
 Reference a label from an external document.  With the @LaTeX{} package
 @code{xr} it is possible to reference labels defined in another
 document.  This key will switch to the label menu of an external
-document and let you select a label from there (@pxref{xr (LaTeX
-package),,xr}).
+document and let you select a label from there (@pxref{LaTeX xr Package,,xr}).
 
 @end table
 
@@ -1203,8 +1201,8 @@ them (@pxref{Defining Label Environments}).
 @vindex reftex-label-alist
 @RefTeX{} can be configured to recognize additional labeled
 environments and macros.  This is done with the variable
-@code{reftex-label-alist} (@pxref{Options (Defining Label
-Environments)}).  If you are not familiar with Lisp, you can use the
+@code{reftex-label-alist} (@pxref{Options - Defining Label
+Environments}).  If you are not familiar with Lisp, you can use the
 @code{custom} library to configure this rather complex variable.  To do
 this, use
 
@@ -1302,8 +1300,7 @@ a @code{\macro} or after the @code{\begin} statement).  @code{t} is
 @code{nil} means to use the text right after the label definition.
 @item
 For more complex ways of getting context, see the variable
-@code{reftex-label-alist} (@ref{Options (Defining Label
-Environments)}).
+@code{reftex-label-alist} (@ref{Options - Defining Label Environments}).
 @end itemize
 
 The following list of strings is used to guess the correct label type
@@ -1356,9 +1353,8 @@ Reftex Label Alist: [Hide]
 Depending on how you would like the label insertion and selection for
 the new environments to work, you might want to add the letters @samp{a}
 and @samp{h} to some of the flags in the variables
-@code{reftex-insert-label-flags} (@pxref{Options (Creating Labels)})
-and @code{reftex-label-menu-flags} (@pxref{Options (Referencing
-Labels)}).
+@code{reftex-insert-label-flags} (@pxref{Options - Creating Labels})
+and @code{reftex-label-menu-flags} (@pxref{Options - Referencing Labels}).
 
 
 @node Quick Equation
@@ -1749,7 +1745,7 @@ and @code{reftex-fref-is-default} respectively.  While still working,
 these variables are deprecated now.  Instead of setting them, the
 variable @code{reftex-ref-style-default-list} should be adapted now.
 
-@node xr (LaTeX package)
+@node LaTeX xr Package
 @section @code{xr}: Cross-Document References
 @cindex @code{xr}, LaTeX package
 @cindex LaTeX packages, @code{xr}
@@ -1883,8 +1879,8 @@ which the selection process was started.
 @item mouse-2
 @vindex reftex-highlight-selection
 Clicking with mouse button 2 on a citation will accept it like @key{RET}
-would.  See also variable @code{reftex-highlight-selection}, @ref{Options
-(Misc)}.
+would.  See also variable @code{reftex-highlight-selection},
+@ref{Options - Misc}.
 
 @item m
 Mark the current entry.  When one or several entries are marked,
@@ -2403,8 +2399,9 @@ Abort the indexing process.
 
 The @samp{Find and Index in Document} menu in the phrases buffer also
 lists a few options for the indexing process.  The options have
-associated customization variables to set the defaults (@pxref{Options
-(Index Support)}).  Here is a short explanation of what the options do:
+associated customization variables to set the defaults
+(@pxref{Options - Index Support}).  Here is a short explanation of
+what the options do:
 
 @table @i
 @item Match Whole Words
@@ -2759,7 +2756,7 @@ variants@footnote{all macros that start with @samp{ref} or end with
 @samp{ref} or @samp{refrange}} of the @code{\ref} macro are active for
 cross-reference display.  This works also for labels defined in an
 external document when the current document refers to them through the
-@code{xr} interface (@pxref{xr (LaTeX package)}).
+@code{xr} interface (@pxref{LaTeX xr Package}).
 
 @item @code{\label}
 @cindex @code{\label}
@@ -2908,7 +2905,7 @@ the ones defined in @file{font-lock.el}.  Therefore, @RefTeX{} will
 use faces only when @code{font-lock} is loaded.  This seems to be
 reasonable because people who like faces will very likely have it
 loaded.  If you wish to turn off fontification or change the involved
-faces, see @ref{Options (Fontification)}.
+faces, see @ref{Options - Fontification}.
 
 @node Multifile Documents
 @section Multifile Documents
@@ -3894,21 +3891,21 @@ Lisp (and even if you are) you might find it more comfortable to use
 reftex-customize} will get you there.
 
 @menu
-* Options (Table of Contents)::
-* Options (Defining Label Environments)::
-* Options (Creating Labels)::
-* Options (Referencing Labels)::
-* Options (Creating Citations)::
-* Options (Index Support)::
-* Options (Viewing Cross-References)::
-* Options (Finding Files)::
-* Options (Optimizations)::
-* Options (Fontification)::
-* Options (Misc)::
+* Options - Table of Contents::
+* Options - Defining Label Environments::
+* Options - Creating Labels::
+* Options - Referencing Labels::
+* Options - Creating Citations::
+* Options - Index Support::
+* Options - Viewing Cross-References::
+* Options - Finding Files::
+* Options - Optimizations::
+* Options - Fontification::
+* Options - Misc::
 * Keymaps and Hooks::
 @end menu
 
-@node Options (Table of Contents)
+@node Options - Table of Contents
 @section Table of Contents
 @cindex Options, table of contents
 @cindex Table of contents, options
@@ -4032,7 +4029,7 @@ The keymap which is active in the @file{*toc*} buffer.
 (@pxref{Table of Contents}).
 @end deffn
 
-@node Options (Defining Label Environments)
+@node Options - Defining Label Environments
 @section Defining Label Environments
 @cindex Options, defining label environments
 @cindex Defining label environments, options
@@ -4259,7 +4256,7 @@ labels fn:xxx, you may want to set this variable to the value "^fn:$" or
 non-footnote labels.
 @end defopt
 
-@node Options (Creating Labels)
+@node Options - Creating Labels
 @section Creating Labels
 @cindex Options, creating labels
 @cindex Creating labels, options
@@ -4375,7 +4372,7 @@ Character class after  abbrev point in word.
 @end table
 @end defopt
 
-@node Options (Referencing Labels)
+@node Options - Referencing Labels
 @section Referencing Labels
 @cindex Options, referencing labels
 @cindex Referencing labels, options
@@ -4497,7 +4494,7 @@ The keymap which is active in the labels selection process
 (@pxref{Referencing Labels}).
 @end deffn
 
-@node Options (Creating Citations)
+@node Options - Creating Citations
 @section Creating Citations
 @cindex Options, creating citations
 @cindex Creating citations, options
@@ -4676,7 +4673,7 @@ Footer to insert in BibTeX files generated by
 @end defopt
 
 
-@node Options (Index Support)
+@node Options - Index Support, Options - Viewing Cross-References, Options - Creating Citations,  Options
 @section Index Support
 @cindex Options, Index support
 @cindex Index support, options
@@ -4896,7 +4893,7 @@ The keymap which is active in the @file{*Index*} buffer
 (@pxref{Index Support}).
 @end deffn
 
-@node Options (Viewing Cross-References)
+@node Options - Viewing Cross-References
 @section Viewing Cross-References
 @cindex Options, viewing cross-references
 @cindex Viewing cross-references, options
@@ -4955,7 +4952,7 @@ saved along with the parsing information.  The cache survives document
 scans.  In order to clear it, use @kbd{M-x reftex-reset-mode}.
 @end defopt
 
-@node Options (Finding Files)
+@node Options - Finding Files
 @section Finding Files
 @cindex Options, Finding Files
 @cindex Finding files, options
@@ -5045,7 +5042,7 @@ non-@code{nil}.
 @end defopt
 
 @page
-@node Options (Optimizations)
+@node Options - Optimizations
 @section Optimizations
 @cindex Options, optimizations
 @cindex Optimizations, options
@@ -5154,7 +5151,7 @@ effect when @code{reftex-use-multiple-selection-buffers} is
 non-@code{nil}.
 @end defopt
 
-@node Options (Fontification)
+@node Options - Fontification
 @section Fontification
 @cindex Options, fontification
 @cindex Fontification, options
@@ -5252,7 +5249,7 @@ Face name for index names (for multiple indices).
 Face name for index entries.
 @end defopt
 
-@node Options (Misc)
+@node Options - Misc
 @section Miscellaneous
 @cindex Options, misc
 

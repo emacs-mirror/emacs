@@ -1,3 +1,9 @@
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps, dist):
+	New rules.
+	(SURVIVAL_CARDS_PDF): Add fr_survival.pdf.
+
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention -lz and `decompress-gzipped-region'.

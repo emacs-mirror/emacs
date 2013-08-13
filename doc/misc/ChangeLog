@@ -1,3 +1,18 @@
+2013-08-13  Glenn Morris  <rgm@gnu.org>
+
+	* reftex.texi (LaTeX xr Package, Options - Table of Contents)
+	(Options - Defining Label Environments, Options - Creating Labels)
+	(Options - Referencing Labels, Options - Creating Citations)
+	(Options - Index Support, Options - Viewing Cross-References)
+	(Options - Finding Files, Options - Optimizations)
+	(Options - Fontification, Options - Misc):
+	* cc-mode.texi (Sample Init File):
+	* edt.texi (Init file):
+	* epa.texi (Encrypting/decrypting gpg files):
+	* mairix-el.texi (About, Setting up the mairix interface, Using)
+	(Extending):
+	Rename nodes to avoid characters that can cause Texinfo problems.
+
 2013-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Mail Source Specifiers): Fix description for pop3's :leave.

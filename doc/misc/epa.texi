@@ -106,7 +106,7 @@ This chapter introduces various commands for typical use cases.
 * Cryptographic operations on files::
 * Dired integration::
 * Mail-mode integration::
-* Encrypting/decrypting *.gpg files::
+* Encrypting/decrypting gpg files::
 @end menu
 
 @node Key management
@@ -346,8 +346,8 @@ key in the recipient list, use @samp{encrypt-to} option in
 
 @end table
 
-@node Encrypting/decrypting *.gpg files
-@section Encrypting/decrypting *.gpg files
+@node Encrypting/decrypting gpg files
+@section Encrypting/decrypting gpg files
 By default, every file whose name ends with @samp{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
 decrypted text is inserted in the buffer rather than encrypted one.
@@ -464,7 +464,7 @@ To set up gpg-agent, follow the instruction in GnuPG manual.
 
 To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
-@xref{Encrypting/decrypting *.gpg files}.
+@xref{Encrypting/decrypting gpg files}.
 
 @node Bug Reports
 @chapter Bug Reports
