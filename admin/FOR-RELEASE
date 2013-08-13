@@ -3,6 +3,10 @@ Tasks needed before the next release.
 * TO BE DONE SHORTLY BEFORE RELEASE
 
 ** Manuals
+Check for node names using problematic characters:
+  find doc -name '*.texi' -exec grep '^@node[^,]*[:.()]' {} +
+Sadly makeinfo does not warn about such characters.
+
 Check cross-references between the manuals (eg from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
