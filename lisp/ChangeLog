@@ -1,3 +1,9 @@
+2013-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frameset.el (frameset--make): Rename constructor from make-frameset.
+	(frameset-p, frameset-valid-p): Don't autoload.
+	(frameset-valid-p): Use normal accessors.
+
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compile-command): Tweak example in doc.

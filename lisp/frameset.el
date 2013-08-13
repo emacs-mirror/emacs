@@ -42,6 +42,7 @@
 
 
 (cl-defstruct (frameset (:type vector) :named
+                        (:constructor frameset--make)
 			;; Copier is defined below.
 			(:copier nil))
 
@@ -129,36 +130,33 @@ root window of the frame.\n
 IMPORTANT: Modifying this slot may cause frameset functions to fail,
 unless the type constraints defined above are respected.\n\n(fn FRAMESET)")
 
-;;;###autoload (autoload 'frameset-p "frameset"
-;;;###autoload   "Return non-nil if OBJECT is a frameset, nil otherwise." nil)
+;; We autoloaded this for use in register.el, but now that we use registerv
+;; objects, this autoload is not useful any more.
+;; ;;;###autoload (autoload 'frameset-p "frameset"
+;; ;;;###autoload   "Return non-nil if OBJECT is a frameset, nil otherwise." nil)
 
 (defun frameset-copy (frameset)
   "Return a deep copy of FRAMESET.
 FRAMESET is copied with `copy-tree'."
   (copy-tree frameset t))
 
-;;;###autoload
 (defun frameset-valid-p (object)
-  "Return non-nil if OBJECT is a valid frameset, nil otherwise.
-
-The return value is nil if OBJECT is not a frameset, or not
-a valid one, and the frameset version if it is valid."
-  (and (vectorp object)                   ; a vector
-       (>= (length object) 8)             ; of the right length (future-proof)
-       (eq (aref object 0) 'frameset)     ; tagged as `frameset'
-       (integerp (aref object 1))         ; VERSION is an int
-       (consp (aref object 2))            ; TIMESTAMP is a non-null list
-       (let ((app (aref object 3)))
+  "Return non-nil if OBJECT is a valid frameset, nil otherwise."
+  (and (frameset-p object)
+       (integerp (frameset-version object))
+       (consp (frameset-timestamp object))
+       (let ((app (frameset-app object)))
 	 (or (null app)                   ; APP is nil
 	     (symbolp app)                ; or a symbol
 	     (and (consp app)             ; or a list
 		  (symbolp (car app)))))  ; starting with a symbol
-       (stringp (or (aref object 4) ""))  ; NAME is a string or nil
-       (stringp (or (aref object 5) ""))  ; DESCRIPTION is a string or nil
-       (listp (aref object 6))            ; PROPERTIES is a list
-       (listp (aref object 7))            ; and STATES is, too
-       (cl-every #'consp (aref object 7)) ; and an alist
-       (aref object 1)))                  ; return VERSION
+       (stringp (or (frameset-name object) ""))
+       (stringp (or (frameset-description object) ""))
+       (listp (frameset-properties object))
+       (let ((states (frameset-states object)))
+         (and (listp states)
+              (cl-every #'consp (frameset-states object))))
+       (frameset-version object)))                 ; And VERSION is non-nil.
 
 ;; A setf'able accessor to the frameset's properties
 (defun frameset-prop (frameset property)
@@ -755,7 +753,7 @@ PROPERTIES is a user-defined property list to add to the frameset."
 				     list)))
 	 fs)
     (frameset--record-minibuffer-relationships frames)
-    (setq fs (make-frameset
+    (setq fs (frameset--make
 	      :app app
 	      :name name
 	      :description description
