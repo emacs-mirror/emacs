@@ -7853,19 +7853,27 @@ imagemagick_filename_hint (Lisp_Object spec)
 {
   Lisp_Object content_type = image_spec_value (spec, QCcontent_type, NULL);
   Lisp_Object symbol = intern ("image-content-type-suffixes");
-  Lisp_Object suffix;
+  Lisp_Object val;
   char *name, *prefix = "/tmp/foo.";
 
   if (NILP (Fboundp (symbol)))
     return NULL;
 
-  suffix = Fcar (Fcdr (Fassq (content_type, Fsymbol_value (symbol))));
-  if (! STRINGP (suffix))
+  val = Fassq (content_type, Fsymbol_value (symbol));
+  if (! CONSP (val))
     return NULL;
 
-  name = xmalloc (strlen (prefix) + SBYTES (suffix) + 1);
+  val = Fcdr (val);
+  if (! CONSP (val))
+    return NULL;
+  
+  val = Fcar (val);
+  if (! STRINGP (val))
+    return NULL;
+
+  name = xmalloc (strlen (prefix) + SBYTES (val) + 1);
   strcpy(name, prefix);
-  strcat(name, SDATA (suffix));
+  strcat(name, SDATA (val));
   return name;
 }
 

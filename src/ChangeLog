@@ -1,3 +1,8 @@
+2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_filename_hint): Check for errors in the
+	alist structure.
+
 2013-08-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fwindow_margins): Return nil when there's no marginal
