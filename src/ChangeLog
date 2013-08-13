@@ -1,3 +1,8 @@
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.c (Fset_window_start): Compare `w', not `window' because
+	`w' might not be equal to `window' after call to decode_live_window.
+
 2013-08-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (deactivate_process): Reset fds to -1 (Bug#15035).

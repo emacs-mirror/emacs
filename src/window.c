@@ -1612,7 +1612,7 @@ overriding motion of point in order to display at this exact start.  */)
   if (NILP (noforce))
     w->force_start = 1;
   w->update_mode_line = 1;
-  if (!EQ (window, selected_window))
+  if (w != XWINDOW (selected_window))
     /* Enforce full redisplay.  FIXME: make it more selective.  */
     windows_or_buffers_changed++;
 
