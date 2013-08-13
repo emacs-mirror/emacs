@@ -7866,7 +7866,7 @@ imagemagick_filename_hint (Lisp_Object spec)
   val = Fcdr (val);
   if (! CONSP (val))
     return NULL;
-  
+
   val = Fcar (val);
   if (! STRINGP (val))
     return NULL;
