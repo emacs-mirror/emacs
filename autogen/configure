@@ -13640,13 +13640,8 @@ fi
 HAVE_ZLIB=no
 LIBZ=
 if test "${with_zlib}" != "no"; then
-  if test "${HAVE_PNG}" = "yes"; then
-    ### PNG depends on zlib, so if we have PNG, we have zlib.
-    HAVE_ZLIB=yes
-  else
-    ### No PNG, so check zlib ourselves.
-    OLIBS=$LIBS
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing inflateEnd" >&5
+  OLIBS=$LIBS
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing inflateEnd" >&5
 $as_echo_n "checking for library containing inflateEnd... " >&6; }
 if test "${ac_cv_search_inflateEnd+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -13702,16 +13697,19 @@ if test "$ac_res" != no; then :
   HAVE_ZLIB=yes
 fi
 
-    LIBS=$OLIBS
-    case $ac_cv_search_inflateEnd in
-      -*) LIBZ=$ac_cv_search_inflateEnd ;;
-    esac
-  fi
+  LIBS=$OLIBS
+  case $ac_cv_search_inflateEnd in
+    -*) LIBZ=$ac_cv_search_inflateEnd ;;
+  esac
 fi
 if test "${HAVE_ZLIB}" = "yes"; then
 
 $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
 
+  ### mingw32 doesn't use -lz, since it loads the library dynamically.
+  if test "${opsys}" = "mingw32"; then
+     LIBZ=
+  fi
 fi
 
 
