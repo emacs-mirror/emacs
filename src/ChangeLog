@@ -1,5 +1,9 @@
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* keyboard.c (Fdiscard_input): Do not increment update_mode_lines.
+
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* font.c (clear_font_cache): New function, stripped from...
 	(Fclear_font_cache): ...here, which now uses the function
 	above.  Adjust comment.

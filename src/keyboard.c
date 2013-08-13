@@ -10124,8 +10124,6 @@ Also end any kbd macro being defined.  */)
       end_kbd_macro ();
     }
 
-  update_mode_lines++;
-
   Vunread_command_events = Qnil;
 
   discard_tty_input ();
