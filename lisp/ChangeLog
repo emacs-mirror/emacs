@@ -1,3 +1,11 @@
+2013-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer--time-setter): New function.
+	(timer--time): Use it as gv-setter.
+
+	* emacs-lisp/gv.el (gv-define-simple-setter): Output warning when
+	setter is not a symbol.
+
 2013-08-12  Grégoire Jadi  <daimrod@gmail.com>
 
 	* mail/sendmail.el (sendmail-send-it): Don't kill the error buffer
@@ -20,8 +28,8 @@
 
 2013-08-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/eww.el (eww-display-html): Ignore coding system errors.  One
-	web site uses "utf-8lias" as the coding system.
+	* net/eww.el (eww-display-html): Ignore coding system errors.
+	One web site uses "utf-8lias" as the coding system.
 
 2013-08-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -222,7 +230,7 @@
 	(allout-up-current-level, allout-end-of-level, allout-reindent-body)
 	(allout-yank-processing, allout-process-exposed)
 	(allout-latex-verb-quote, allout-latexify-one-item, outlineify-sticky)
-	(allout-latex-verbatim-quote-curr-line): Removed unused variables.
+	(allout-latex-verbatim-quote-curr-line): Remove unused variables.
 	* emacs-lisp/lisp-mode.el (lisp-eval-defun, last-sexp-toggle-display)
 	(lisp-indent-defform): Mark ignored arguments.
 	(lisp-indent-line): Mark ignored arguments.  Remove unused variables.

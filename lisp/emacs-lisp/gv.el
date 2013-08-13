@@ -217,13 +217,15 @@ instead the assignment is turned into something equivalent to
     temp)
 so as to preserve the semantics of `setf'."
   (declare (debug (sexp (&or symbolp lambda-expr) &optional sexp)))
+  (when (eq 'lambda (car-safe setter))
+    (message "Use `gv-define-setter' or name %s's setter function" name))
   `(gv-define-setter ,name (val &rest args)
      ,(if fix-return
           `(macroexp-let2 nil v val
              `(progn
-                (,',setter ,@(append args (list v)))
+                (,',setter ,@args ,v)
                 ,v))
-        `(cons ',setter (append args (list val))))))
+        ``(,',setter ,@args ,val))))
 
 ;;; Typical operations on generalized variables.
 

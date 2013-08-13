@@ -616,7 +616,7 @@ The result of the body appears to the compiler as a quoted constant."
   (declare (debug (form &optional sexp)))
   (if (cl--compiling-file)
       (let* ((temp (cl-gentemp "--cl-load-time--"))
-	     (set `(set ',temp ,form)))
+	     (set `(setq ,temp ,form)))
 	(if (and (fboundp 'byte-compile-file-form-defmumble)
 		 (boundp 'this-kind) (boundp 'that-one))
 	    (fset 'byte-compile-file-form
