@@ -3703,7 +3703,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   int window_y, window_height;
   int top, left, height, width, sb_width, sb_left;
   EmacsScroller *bar;
-  bool fringe_extended_p;
+  BOOL fringe_extended_p;
 
   /* optimization; display engine sends WAY too many of these.. */
   if (!NILP (window->vertical_scroll_bar))
@@ -3740,7 +3740,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   v = [view frame];
   r.origin.y = (v.size.height - r.size.height - r.origin.y);
 
-  fringe_extended_p = WINDOW_FRINGE_EXTENDED_P (w);
+  fringe_extended_p = WINDOW_FRINGE_EXTENDED_P (window);
 
   XSETWINDOW (win, window);
   block_input ();

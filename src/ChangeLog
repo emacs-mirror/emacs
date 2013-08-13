@@ -1,5 +1,9 @@
 2013-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (ns_set_vertical_scroll_bar): Fix breakage intruduced by
+	2013-08-13 checkin below.  Change bool to BOOL, rule is:
+	All Obj-C code uses BOOL, except for interfaces callable from C.
+
 	* nsterm.h: Fix CGFloat for OSX 10.4 (Bug#15086).
 
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
