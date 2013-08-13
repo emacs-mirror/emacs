@@ -1,3 +1,7 @@
+2013-08-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* decompress.c (Fzlib_decompress_region): Try to clarify 'avail_out'.
+
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Convert left_margin_cols and
