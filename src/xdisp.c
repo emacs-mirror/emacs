@@ -982,22 +982,18 @@ window_box_width (struct window *w, int area)
 
       if (area == TEXT_AREA)
 	{
-	  if (INTEGERP (w->left_margin_cols))
-	    cols -= XFASTINT (w->left_margin_cols);
-	  if (INTEGERP (w->right_margin_cols))
-	    cols -= XFASTINT (w->right_margin_cols);
+	  cols -= max (0, w->left_margin_cols);
+	  cols -= max (0, w->right_margin_cols);
 	  pixels = -WINDOW_TOTAL_FRINGE_WIDTH (w);
 	}
       else if (area == LEFT_MARGIN_AREA)
 	{
-	  cols = (INTEGERP (w->left_margin_cols)
-		   ? XFASTINT (w->left_margin_cols) : 0);
+	  cols = max (0, w->left_margin_cols);
 	  pixels = 0;
 	}
       else if (area == RIGHT_MARGIN_AREA)
 	{
-	  cols = (INTEGERP (w->right_margin_cols)
-		   ? XFASTINT (w->right_margin_cols) : 0);
+	  cols = max (0, w->right_margin_cols);
 	  pixels = 0;
 	}
     }

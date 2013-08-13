@@ -666,7 +666,7 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
 		     and OTOH leaving out that one pixel leaves behind
 		     traces of the cursor, if it was in column zero
 		     before drawing non-empty margin area.  */
-		  && NILP (w->left_margin_cols))
+		  && w->left_margin_cols == 0)
 		 ? 1 : 0);
 	  p.bx = x - wd;
 	  p.nx = wd;

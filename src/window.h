@@ -141,11 +141,6 @@ struct window
        it yet, or if the frame doesn't have any scroll bars, this is nil.  */
     Lisp_Object vertical_scroll_bar;
 
-    /* Width of left and right marginal areas.  A value of nil means
-       no margin.  */
-    Lisp_Object left_margin_cols;
-    Lisp_Object right_margin_cols;
-
     /* Pixel width of scroll bars.
        A value of nil or t means use frame values.  */
     Lisp_Object scroll_bar_width;
@@ -268,6 +263,11 @@ struct window
        A value of -1 means use frame values.  */
     int left_fringe_width;
     int right_fringe_width;
+
+    /* Width of left and right marginal areas in columns.
+       A value of 0 means no margin.  */
+    int left_margin_cols;
+    int right_margin_cols;
 
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
@@ -600,33 +600,21 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 
 /* Width of left margin area in columns.  */
 
-#define WINDOW_LEFT_MARGIN_COLS(W)	\
-  (NILP (W->left_margin_cols)		\
-   ? 0					\
-   : XINT (W->left_margin_cols))
+#define WINDOW_LEFT_MARGIN_COLS(W) (W->left_margin_cols)
 
 /* Width of right marginal area in columns.  */
 
-#define WINDOW_RIGHT_MARGIN_COLS(W)	\
-  (NILP (W->right_margin_cols)		\
-   ? 0					\
-   : XINT (W->right_margin_cols))
+#define WINDOW_RIGHT_MARGIN_COLS(W) (W->right_margin_cols)
 
 /* Width of left margin area in pixels.  */
 
-#define WINDOW_LEFT_MARGIN_WIDTH(W)	\
-  (NILP (W->left_margin_cols)		\
-   ? 0					\
-   : (XINT (W->left_margin_cols)	\
-      * WINDOW_FRAME_COLUMN_WIDTH (W)))
+#define WINDOW_LEFT_MARGIN_WIDTH(W)			\
+  (W->left_margin_cols * WINDOW_FRAME_COLUMN_WIDTH (W))
 
 /* Width of right marginal area in pixels.  */
 
-#define WINDOW_RIGHT_MARGIN_WIDTH(W)	\
-  (NILP (W->right_margin_cols)		\
-   ? 0					\
-   : (XINT (W->right_margin_cols)	\
-      * WINDOW_FRAME_COLUMN_WIDTH (W)))
+#define WINDOW_RIGHT_MARGIN_WIDTH(W)			\
+  (W->right_margin_cols * WINDOW_FRAME_COLUMN_WIDTH (W))
 
 /* Total width of fringes reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char

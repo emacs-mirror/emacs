@@ -1,3 +1,23 @@
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Convert left_margin_cols and
+	right_margin_cols from Lisp_Objects to integers.  Adjust comment.
+	(WINDOW_LEFT_MARGIN_COLS, WINDOW_RIGHT_MARGIN_COLS)
+	(WINDOW_LEFT_MARGIN_WIDTH, WINDOW_RIGHT_MARGIN_WIDTH):
+	Adjust users.
+	* dispnew.c (margin_glyphs_to_reserve): Convert 3rd arg to int.
+	Adjust comment.
+	(showing_window_margins_p, update_window_line, update_frame_1):
+	* fringe.c (draw_fringe_bitmap_1):
+	* xdisp.c (window_box_width): Adjust users.
+	* window.c (wset_left_margin_cols, wset_right_margin_cols): Remove.
+	(adjust_window_margins, set_window_buffer, Fsplit_window_internal):
+	Use direct assignment.
+	(Fset_window_configuration, save_window_save, Fwindow_margins):
+	Convert Lisp_Object to integer and back where appropriate.
+	(Fset_window_margins): Adjust user.  Return t if any margin
+	was actually changed, and mention this in docstring.
+
 2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* syntax.c (forward_word):

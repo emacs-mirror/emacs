@@ -359,25 +359,19 @@ free_glyph_matrix (struct glyph_matrix *matrix)
 /* Return the number of glyphs to reserve for a marginal area of
    window W.  TOTAL_GLYPHS is the number of glyphs in a complete
    display line of window W.  MARGIN gives the width of the marginal
-   area in canonical character units.  MARGIN should be an integer
-   or a float.  */
+   area in canonical character units.  */
 
 static int
-margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin)
+margin_glyphs_to_reserve (struct window *w, int total_glyphs, int margin)
 {
-  int n;
-
-  if (NUMBERP (margin))
+  if (margin > 0)
     {
       int width = w->total_cols;
-      double d = max (0, XFLOATINT (margin));
+      double d = max (0, margin);
       d = min (width / 2 - 1, d);
-      n = (int) ((double) total_glyphs / width * d);
+      return (int) ((double) total_glyphs / width * d);
     }
-  else
-    n = 0;
-
-  return n;
+  return 0;
 }
 
 /* Return true if ROW's hash value is correct.
@@ -1867,7 +1861,7 @@ showing_window_margins_p (struct window *w)
 	  if (showing_window_margins_p (XWINDOW (w->contents)))
 	    return 1;
 	}
-      else if (!NILP (w->left_margin_cols) || !NILP (w->right_margin_cols))
+      else if (w->left_margin_cols > 0 || w->right_margin_cols > 0)
 	return 1;
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
@@ -3807,8 +3801,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
       eassert (desired_row->enabled_p);
 
       /* Update display of the left margin area, if there is one.  */
-      if (!desired_row->full_width_p
-	  && !NILP (w->left_margin_cols))
+      if (!desired_row->full_width_p && w->left_margin_cols > 0)
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
@@ -3828,8 +3821,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	}
 
       /* Update display of the right margin area, if there is one.  */
-      if (!desired_row->full_width_p
-	  && !NILP (w->right_margin_cols))
+      if (!desired_row->full_width_p && w->right_margin_cols > 0)
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, RIGHT_MARGIN_AREA, vpos);
@@ -4606,10 +4598,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p)
 	      int x = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
 	      int y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
 
-	      if (INTEGERP (w->left_margin_cols))
-		x += XFASTINT (w->left_margin_cols);
-
-	      /* x = max (min (x, FRAME_TOTAL_COLS (f) - 1), 0); */
+	      x += max (0, w->left_margin_cols);
 	      cursor_to (f, y, x);
 	    }
 	}

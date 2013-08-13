@@ -151,11 +151,6 @@ wset_display_table (struct window *w, Lisp_Object val)
   w->display_table = val;
 }
 static void
-wset_left_margin_cols (struct window *w, Lisp_Object val)
-{
-  w->left_margin_cols = val;
-}
-static void
 wset_new_normal (struct window *w, Lisp_Object val)
 {
   w->new_normal = val;
@@ -184,11 +179,6 @@ static void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
-}
-static void
-wset_right_margin_cols (struct window *w, Lisp_Object val)
-{
-  w->right_margin_cols = val;
 }
 static void
 wset_scroll_bar_width (struct window *w, Lisp_Object val)
@@ -3058,15 +3048,12 @@ adjust_window_margins (struct window *w)
   if (WINDOW_RIGHT_MARGIN_COLS (w) > 0)
     {
       if (WINDOW_LEFT_MARGIN_COLS (w) > 0)
-	{
-	  wset_left_margin_cols (w, make_number (margin_cols / 2));
-	  wset_right_margin_cols (w, make_number (margin_cols / 2));
-	}
+	w->left_margin_cols = w->right_margin_cols = margin_cols / 2;
       else
-	wset_right_margin_cols (w, make_number (margin_cols));
+	w->right_margin_cols = margin_cols;
     }
   else
-    wset_left_margin_cols (w, make_number (margin_cols));
+    w->left_margin_cols = margin_cols;
   return 1;
 }
 
@@ -3223,11 +3210,11 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 
       /* This may call adjust_window_margins three times, so
 	 temporarily disable window margins.  */
-      Lisp_Object save_left = w->left_margin_cols;
-      Lisp_Object save_right = w->right_margin_cols;
+      int save_left = w->left_margin_cols;
+      int save_right = w->right_margin_cols;
 
-      wset_left_margin_cols (w, Qnil);
-      wset_right_margin_cols (w, Qnil);
+      w->left_margin_cols = 0;
+      w->right_margin_cols = 0;
 
       Fset_window_fringes (window,
 			   BVAR (b, left_fringe_width), BVAR (b, right_fringe_width),
@@ -3237,8 +3224,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 			       BVAR (b, scroll_bar_width),
 			       BVAR (b, vertical_scroll_bar_type), Qnil);
 
-      wset_left_margin_cols (w, save_left);
-      wset_right_margin_cols (w, save_right);
+      w->left_margin_cols = save_left;
+      w->right_margin_cols = save_right;
 
       Fset_window_margins (window,
 			   BVAR (b, left_margin_cols), BVAR (b, right_margin_cols));
@@ -3939,8 +3926,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   memset (&n->last_cursor, 0, sizeof n->last_cursor);
 
   /* Get special geometry settings from reference window.  */
-  wset_left_margin_cols (n, r->left_margin_cols);
-  wset_right_margin_cols (n, r->right_margin_cols);
+  n->left_margin_cols = r->left_margin_cols;
+  n->right_margin_cols = r->right_margin_cols;
   n->left_fringe_width = r->left_fringe_width;
   n->right_fringe_width = r->right_fringe_width;
   n->fringes_outside_margins = r->fringes_outside_margins;
@@ -5682,8 +5669,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->hscroll = XFASTINT (p->hscroll);
 	  w->min_hscroll = XFASTINT (p->min_hscroll);
 	  wset_display_table (w, p->display_table);
-	  wset_left_margin_cols (w, p->left_margin_cols);
-	  wset_right_margin_cols (w, p->right_margin_cols);
+	  w->left_margin_cols = XINT (p->left_margin_cols);
+	  w->right_margin_cols = XINT (p->right_margin_cols);
 	  w->left_fringe_width = XINT (p->left_fringe_width);
 	  w->right_fringe_width = XINT (p->right_fringe_width);
 	  w->fringes_outside_margins = !NILP (p->fringes_outside_margins);
@@ -5983,8 +5970,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       XSETFASTINT (p->hscroll, w->hscroll);
       XSETFASTINT (p->min_hscroll, w->min_hscroll);
       p->display_table = w->display_table;
-      p->left_margin_cols = w->left_margin_cols;
-      p->right_margin_cols = w->right_margin_cols;
+      p->left_margin_cols = make_number (w->left_margin_cols);
+      p->right_margin_cols = make_number (w->right_margin_cols);
       p->left_fringe_width = make_number (w->left_fringe_width);
       p->right_fringe_width = make_number (w->right_fringe_width);
       p->fringes_outside_margins = w->fringes_outside_margins ? Qt : Qnil;
@@ -6142,38 +6129,31 @@ WINDOW must be a live window and defaults to the selected one.
 Second arg LEFT-WIDTH specifies the number of character cells to
 reserve for the left marginal area.  Optional third arg RIGHT-WIDTH
 does the same for the right marginal area.  A nil width parameter
-means no margin.  */)
+means no margin.
+
+Return t if any margin was actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width)
 {
   struct window *w = decode_live_window (window);
+  int left, right;
 
-  /* Translate negative or zero widths to nil.
-     Margins that are too wide have to be checked elsewhere.  */
+  /* FIXME: what about margins that are too wide?  */
 
-  if (!NILP (left_width))
+  left = (NILP (left_width) ? 0
+	  : (CHECK_NATNUM (left_width), XINT (left_width)));
+  right = (NILP (right_width) ? 0
+	   : (CHECK_NATNUM (right_width), XINT (right_width)));
+
+  if (w->left_margin_cols != left || w->right_margin_cols != right)
     {
-      CHECK_NUMBER (left_width);
-      if (XINT (left_width) <= 0)
-	left_width = Qnil;
-    }
-
-  if (!NILP (right_width))
-    {
-      CHECK_NUMBER (right_width);
-      if (XINT (right_width) <= 0)
-	right_width = Qnil;
-    }
-
-  if (!EQ (w->left_margin_cols, left_width)
-      || !EQ (w->right_margin_cols, right_width))
-    {
-      wset_left_margin_cols (w, left_width);
-      wset_right_margin_cols (w, right_width);
+      w->left_margin_cols = left;
+      w->right_margin_cols = right;
 
       adjust_window_margins (w);
 
       ++windows_or_buffers_changed;
       adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
+      return Qt;
     }
 
   return Qnil;
@@ -6191,7 +6171,8 @@ as nil.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
-  return Fcons (w->left_margin_cols, w->right_margin_cols);
+  return Fcons (make_number (w->left_margin_cols),
+		make_number (w->right_margin_cols));
 }
 
 
