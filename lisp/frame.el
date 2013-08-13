@@ -1442,6 +1442,8 @@ monitor, use `display-monitor-attributes-list'."
 
 (declare-function x-display-backing-store "xfns.c" (&optional terminal))
 
+;; In NS port, the return value may be `buffered', `retained', or
+;; `non-retained'.  See src/nsfns.m.
 (defun display-backing-store (&optional display)
   "Return the backing store capability of DISPLAY's screen.
 The value may be `always', `when-mapped', `not-useful', or nil if
