@@ -6171,8 +6171,8 @@ as nil.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
-  return Fcons (make_number (w->left_margin_cols),
-		make_number (w->right_margin_cols));
+  return Fcons (w->left_margin_cols ? make_number (w->left_margin_cols) : Qnil,
+		w->right_margin_cols ? make_number (w->right_margin_cols) : Qnil);
 }
 
 

@@ -453,7 +453,9 @@ struct scroll_bar {
 
   /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
-  unsigned fringe_extended_p : 1;
+  /* Note: this could be a bit field, but we need to take its address
+     in ALLOCATE_PSEUDOVECTOR (see x_scroll_bar_create).  */
+  bool fringe_extended_p;
 };
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */

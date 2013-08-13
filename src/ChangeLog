@@ -1,3 +1,15 @@
+2013-08-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (Fwindow_margins): Return nil when there's no marginal
+	area, as per the documented API.
+
+	* w32term.c (x_scroll_bar_create): Use ALLOCATE_PSEUDOVECTOR, not
+	Fmake_vector, as scroll bar's struct members are not all Lisp
+	objects now.  This avoids crashes in GC.
+
+	* w32term.h (struct scroll_bar): Convert fringe_extended_p to a
+	bool, so its address could be taken.
+
 2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_filename_hint): New function to possibly
