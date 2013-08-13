@@ -323,7 +323,7 @@ on the IDENTITIES list."
 
 (defcustom gnus-icalendar-org-capture-file nil
   "Target Org file for storing captured calendar events."
-  :type 'file
+  :type '(choice (const nil) file)
   :group 'gnus-icalendar-org)
 
 (defcustom gnus-icalendar-org-capture-headline nil

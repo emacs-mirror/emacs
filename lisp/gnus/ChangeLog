@@ -1,5 +1,7 @@
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-icalendar.el (gnus-icalendar-org-capture-file): Fix type.
+
 	* gnus.el (gnus-valid-select-methods): Fix type.
 
 	* nnimap.el (nnimap-request-articles-find-limit): Fix type, version.
