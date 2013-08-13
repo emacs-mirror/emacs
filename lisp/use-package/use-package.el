@@ -581,7 +581,7 @@ For full documentation. please see commentary.
                   (t
                    pkg-load-path)))
 
-         (when byte-compile-current-file
+         (eval-when-compile
            ,@defines-eval
            ,(if (stringp name)
                 `(load ,name t)
