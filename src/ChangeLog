@@ -1,3 +1,7 @@
+2013-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h: Fix CGFloat for OSX 10.4 (Bug#15086).
+
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (WINDOW_FRINGE_EXTENDED_P): New macro.

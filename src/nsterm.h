@@ -53,9 +53,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* CGFloat on GNUStep may be 4 or 8 byte, but functions expect float* for some
    versions.
-   On Cocoa, functions expect CGFloat*. Make compatible type.  */
-#if defined (NS_IMPL_COCOA) || GNUSTEP_GUI_MAJOR_VERSION > 0 || \
-    GNUSTEP_GUI_MINOR_VERSION >= 22
+   On Cocoa >= 10.5, functions expect CGFloat*. Make compatible type.  */
+#ifdef NS_IMPL_COCOA
+
+#ifndef NS_HAVE_NSINTEGER
+#if defined (__LP64__) && __LP64__
+typedef double CGFloat;
+typedef long NSInteger;
+typedef unsigned long NSUInteger;
+#else
+typedef float CGFloat;
+typedef int NSInteger;
+typedef unsigned int NSUInteger;
+#endif /* not LP64 */
+#endif /* not NS_HAVE_NSINTEGER */
+
+typedef CGFloat EmacsCGFloat;
+
+#elif GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION >= 22
 typedef CGFloat EmacsCGFloat;
 #else
 typedef float EmacsCGFloat;
@@ -423,18 +438,6 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
 #endif
-
-#ifndef NS_HAVE_NSINTEGER
-#if defined (__LP64__) && __LP64__
-typedef double CGFloat;
-typedef long NSInteger;
-typedef unsigned long NSUInteger;
-#else
-typedef float CGFloat;
-typedef int NSInteger;
-typedef unsigned int NSUInteger;
-#endif /* not LP64 */
-#endif /* not NS_HAVE_NSINTEGER */
 
 #endif  /* __OBJC__ */
 
