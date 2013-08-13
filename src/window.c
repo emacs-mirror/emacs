@@ -151,11 +151,6 @@ wset_display_table (struct window *w, Lisp_Object val)
   w->display_table = val;
 }
 static void
-wset_left_fringe_width (struct window *w, Lisp_Object val)
-{
-  w->left_fringe_width = val;
-}
-static void
 wset_left_margin_cols (struct window *w, Lisp_Object val)
 {
   w->left_margin_cols = val;
@@ -189,11 +184,6 @@ static void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
-}
-static void
-wset_right_fringe_width (struct window *w, Lisp_Object val)
-{
-  w->right_fringe_width = val;
 }
 static void
 wset_right_margin_cols (struct window *w, Lisp_Object val)
@@ -3481,6 +3471,7 @@ make_window (void)
   /* Initialize non-Lisp data.  Note that allocate_window zeroes out all
      non-Lisp data, so do it only for slots which should not be zero.  */
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
+  w->left_fringe_width = w->right_fringe_width = -1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
   w->column_number_displayed = -1;
@@ -3950,8 +3941,8 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   /* Get special geometry settings from reference window.  */
   wset_left_margin_cols (n, r->left_margin_cols);
   wset_right_margin_cols (n, r->right_margin_cols);
-  wset_left_fringe_width (n, r->left_fringe_width);
-  wset_right_fringe_width (n, r->right_fringe_width);
+  n->left_fringe_width = r->left_fringe_width;
+  n->right_fringe_width = r->right_fringe_width;
   n->fringes_outside_margins = r->fringes_outside_margins;
   wset_scroll_bar_width (n, r->scroll_bar_width);
   wset_vertical_scroll_bar_type (n, r->vertical_scroll_bar_type);
@@ -5693,8 +5684,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	  wset_display_table (w, p->display_table);
 	  wset_left_margin_cols (w, p->left_margin_cols);
 	  wset_right_margin_cols (w, p->right_margin_cols);
-	  wset_left_fringe_width (w, p->left_fringe_width);
-	  wset_right_fringe_width (w, p->right_fringe_width);
+	  w->left_fringe_width = XINT (p->left_fringe_width);
+	  w->right_fringe_width = XINT (p->right_fringe_width);
 	  w->fringes_outside_margins = !NILP (p->fringes_outside_margins);
 	  wset_scroll_bar_width (w, p->scroll_bar_width);
 	  wset_vertical_scroll_bar_type (w, p->vertical_scroll_bar_type);
@@ -5994,8 +5985,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->display_table = w->display_table;
       p->left_margin_cols = w->left_margin_cols;
       p->right_margin_cols = w->right_margin_cols;
-      p->left_fringe_width = w->left_fringe_width;
-      p->right_fringe_width = w->right_fringe_width;
+      p->left_fringe_width = make_number (w->left_fringe_width);
+      p->right_fringe_width = make_number (w->right_fringe_width);
       p->fringes_outside_margins = w->fringes_outside_margins ? Qt : Qnil;
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
@@ -6221,25 +6212,28 @@ frame's default fringe width.  Default fringe widths can be set with
 the command `set-fringe-style'.
 If optional fourth arg OUTSIDE-MARGINS is non-nil, draw the fringes
 outside of the display margins.  By default, fringes are drawn between
-display marginal areas and the text area.  */)
-  (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width, Lisp_Object outside_margins)
+display marginal areas and the text area.
+
+Return t if any fringe was actually changed and nil otherwise.  */)
+  (Lisp_Object window, Lisp_Object left_width,
+   Lisp_Object right_width, Lisp_Object outside_margins)
 {
   struct window *w = decode_live_window (window);
-  int outside = !NILP (outside_margins);
+  int left, right, outside = !NILP (outside_margins);
 
-  if (!NILP (left_width))
-    CHECK_NATNUM (left_width);
-  if (!NILP (right_width))
-    CHECK_NATNUM (right_width);
+  left = (NILP (left_width) ? -1
+	  : (CHECK_NATNUM (left_width), XINT (left_width)));
+  right = (NILP (right_width) ? -1
+	   : (CHECK_NATNUM (right_width), XINT (right_width)));
 
-  /* Do nothing on a tty.  */
+  /* Do nothing on a tty or if nothing to actually change.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
-      && (!EQ (w->left_fringe_width, left_width)
-	  || !EQ (w->right_fringe_width, right_width)
+      && (w->left_fringe_width != left
+	  || w->right_fringe_width != right
 	  || w->fringes_outside_margins != outside))
     {
-      wset_left_fringe_width (w, left_width);
-      wset_right_fringe_width (w, right_width);
+      w->left_fringe_width = left;
+      w->right_fringe_width = right;
       w->fringes_outside_margins = outside;
 
       adjust_window_margins (w);
@@ -6249,6 +6243,7 @@ display marginal areas and the text area.  */)
 
       ++windows_or_buffers_changed;
       adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
+      return Qt;
     }
 
   return Qnil;

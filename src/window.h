@@ -146,11 +146,6 @@ struct window
     Lisp_Object left_margin_cols;
     Lisp_Object right_margin_cols;
 
-    /* Width of left and right fringes.
-       A value of nil or t means use frame values.  */
-    Lisp_Object left_fringe_width;
-    Lisp_Object right_fringe_width;
-
     /* Pixel width of scroll bars.
        A value of nil or t means use frame values.  */
     Lisp_Object scroll_bar_width;
@@ -268,6 +263,11 @@ struct window
 
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
+
+    /* Width of left and right fringes, in pixels.
+       A value of -1 means use frame values.  */
+    int left_fringe_width;
+    int right_fringe_width;
 
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
@@ -635,10 +635,10 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    able to split windows horizontally nicely.  */
 
 #define WINDOW_FRINGE_COLS(W)			\
-  ((INTEGERP (W->left_fringe_width)		\
-    || INTEGERP (W->right_fringe_width))	\
-   ? ((WINDOW_LEFT_FRINGE_WIDTH (W)		\
-       + WINDOW_RIGHT_FRINGE_WIDTH (W)		\
+  ((W->left_fringe_width >= 0			\
+    && W->right_fringe_width >= 0)		\
+   ? ((W->left_fringe_width			\
+       + W->right_fringe_width			\
        + WINDOW_FRAME_COLUMN_WIDTH (W) - 1)	\
       / WINDOW_FRAME_COLUMN_WIDTH (W))		\
    : FRAME_FRINGE_COLS (WINDOW_XFRAME (W)))
@@ -658,13 +658,11 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 /* Pixel-width of the left and right fringe.  */
 
 #define WINDOW_LEFT_FRINGE_WIDTH(W)			\
-  (INTEGERP (W->left_fringe_width)			\
-   ? XFASTINT (W->left_fringe_width)			\
+  (W->left_fringe_width >= 0 ? W->left_fringe_width	\
    : FRAME_LEFT_FRINGE_WIDTH (WINDOW_XFRAME (W)))
 
 #define WINDOW_RIGHT_FRINGE_WIDTH(W)			\
-  (INTEGERP (W->right_fringe_width)			\
-   ? XFASTINT (W->right_fringe_width)			\
+  (W->right_fringe_width >= 0 ? W->right_fringe_width	\
    : FRAME_RIGHT_FRINGE_WIDTH (WINDOW_XFRAME (W)))
 
 /* Total width of fringes in pixels.  */

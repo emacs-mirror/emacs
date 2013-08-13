@@ -1,5 +1,21 @@
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Convert left_fringe_width
+	and right_fringe_width from Lisp_Objects to integers.
+	Adjust comment.
+	(WINDOW_FRINGE_COLS, WINDOW_LEFT_FRINGE_WIDTH)
+	(WINDOW_RIGHT_FRINGE_WIDTH): Adjust users.
+	* window.c (wset_left_fringe_width, wset_right_fringe_width):
+	Remove.
+	(make_window): Initialize new integer fields to -1.
+	(Fsplit_window_internal): Use direct assignment.
+	(Fset_window_configuration, save_window_save): Convert
+	Lisp_Object to integer and back where appropriate.
+	(Fset_window_fringes): Adjust user.  Return t if any fringe
+	was actually changed, and mention this in docstring.
+
+2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* keyboard.c (Fdiscard_input): Do not increment update_mode_lines.
 	* nsfns.m (x_set_cursor_type):
 	* w32fns.c (x_set_cursor_type):
