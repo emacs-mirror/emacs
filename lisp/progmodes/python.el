@@ -3042,32 +3042,22 @@ It must be a function with two arguments: TYPE and NAME.")
       "*class definition*"
     "*function definition*"))
 
-(defun python-imenu--put-parent (type name pos num-children tree &optional root)
-  "Add the parent with TYPE, NAME, POS and NUM-CHILDREN to TREE.
-Optional Argument ROOT must be non-nil when the node being
-processed is the root of the TREE."
+(defun python-imenu--put-parent (type name pos tree)
+  "Add the parent with TYPE, NAME and POS to TREE."
   (let ((label
          (funcall python-imenu-format-item-label-function type name))
         (jump-label
          (funcall python-imenu-format-parent-item-jump-label-function type name)))
-    (if root
-        ;; This is the root, everything is a children.
-        (cons label (cons (cons jump-label pos) tree))
-      ;; This is node a which may contain some children.
-      (cons
-       (cons label (cons (cons jump-label pos)
-                         ;; Append all the children
-                         (python-util-popn tree num-children)))
-       ;; All previous non-children nodes.
-       (nthcdr num-children tree)))))
+    (if (not tree)
+        (cons label pos)
+      (cons label (cons (cons jump-label pos) tree)))))
 
-(defun python-imenu--build-tree (&optional min-indent prev-indent num-children tree)
+(defun python-imenu--build-tree (&optional min-indent prev-indent tree)
   "Recursively build the tree of nested definitions of a node.
-Arguments MIN-INDENT PREV-INDENT NUM-CHILDREN and TREE are
-internal and should not be passed explicitly unless you know what
-you are doing."
-  (setq num-children (or num-children 0)
-        min-indent (or min-indent 0))
+Arguments MIN-INDENT PREV-INDENT and TREE are internal and should
+not be passed explicitly unless you know what you are doing."
+  (setq min-indent (or min-indent 0)
+        prev-indent (or prev-indent python-indent-offset))
   (let* ((pos (python-nav-backward-defun))
          (type)
          (name (when (and pos (looking-at python-nav-beginning-of-defun-regexp))
@@ -3076,73 +3066,33 @@ you are doing."
                    (cadr split))))
          (label (when name
                   (funcall python-imenu-format-item-label-function type name)))
-         (indent (current-indentation)))
+         (indent (current-indentation))
+         (children-indent-limit (+ python-indent-offset min-indent)))
     (cond ((not pos)
-           ;; No defun found, nothing to add.
-           tree)
-          ((equal indent 0)
-           (if (> num-children 0)
-               ;; Append it as the parent of everything collected to
-               ;; this point.
-               (python-imenu--put-parent type name pos num-children tree t)
-             ;; There are no children, this is a lonely defun.
-             (cons label pos)))
-          ((equal min-indent indent)
-           ;; Stop collecting nodes after moving to a position with
-           ;; indentation equaling min-indent. This is specially
-           ;; useful for navigating nested definitions recursively.
-           (if (> num-children 0)
-               tree
-             ;; When there are no children, the collected tree is a
-             ;; single node intended to be added in the list of defuns
-             ;; of its parent.
-             (car tree)))
+           ;; Nothing found, probably near to bobp.
+           nil)
+          ((<= indent min-indent)
+           ;; The current indentation points that this is a parent
+           ;; node, add it to the tree and stop recursing.
+           (python-imenu--put-parent type name pos tree))
           (t
            (python-imenu--build-tree
             min-indent
             indent
-            ;; Add another children, either when this is the
-            ;; first call or when indentation is
-            ;; less-or-equal than previous. And do not
-            ;; discard the number of children, because the
-            ;; way code is scanned, all children are
-            ;; collected until a root node yet to be found
-            ;; appears.
-            (if (or (not prev-indent)
-                    (and
-                     (> indent min-indent)
-                     (<= indent prev-indent)))
-                (1+ num-children)
-              num-children)
-            (cond ((not prev-indent)
-                   ;; First call to the function: append this
-                   ;; defun to the index.
-                   (list (cons label pos)))
-                  ((= indent prev-indent)
-                   ;; Add another defun with the same depth
-                   ;; as the previous.
-                   (cons (cons label pos) tree))
-                  ((and (< indent prev-indent)
-                        (< 0 num-children))
-                   ;; There are children to be appended and
-                   ;; the previous defun had more
-                   ;; indentation, the current one must be a
-                   ;; parent.
-                   (python-imenu--put-parent type name pos num-children tree))
-                  ((> indent prev-indent)
-                   ;; There are children defuns deeper than
-                   ;; current depth. Fear not, we already
-                   ;; know how to treat them.
-                   (cons
-                    (prog1
-                        (python-imenu--build-tree
-                         prev-indent indent 0 (list (cons label pos)))
-                      ;; Adjustment: after scanning backwards
-                      ;; for all deeper children, we need to
-                      ;; continue our scan for a parent from
-                      ;; the current defun we are looking at.
-                      (python-nav-forward-defun))
-                    tree))))))))
+            (if (<= indent children-indent-limit)
+                ;; This lays within the children indent offset range,
+                ;; so it's a normal children of its parent (i.e., not
+                ;; a children of a children).
+                (cons (cons label pos) tree)
+              ;; Oh noes, a children of a children?!. Fear not, we
+              ;; know how to roll. We recursely parse these by
+              ;; swapping prev-indent and min-indent plus adding this
+              ;; newly found item to a fresh subtree. This works, I
+              ;; promise.
+              (cons
+               (python-imenu--build-tree
+                prev-indent indent (list (cons label pos)))
+               tree)))))))
 
 (defun python-imenu-create-index ()
   "Return tree Imenu alist for the current python buffer.

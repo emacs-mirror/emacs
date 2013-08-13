@@ -1,3 +1,8 @@
+2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* automated/python-tests.el (python-imenu-create-index-4)
+	(python-imenu-create-flat-index-2): New tests.
+
 2013-08-05  Glenn Morris  <rgm@gnu.org>
 
 	* automated/mule-util.el: New file, with tests extracted from

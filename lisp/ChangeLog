@@ -1,3 +1,8 @@
+2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	* progmodes/python.el (python-imenu--build-tree)
+	(python-imenu--put-parent): Simplify and Fix (GH bug 146).
+
 2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* simple.el (backward-word): Mention the optional argument.
