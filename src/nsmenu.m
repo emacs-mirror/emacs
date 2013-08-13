@@ -504,8 +504,10 @@ void
 x_activate_menubar (struct frame *f)
 {
 #ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   ns_update_menubar (f, true, nil);
   ns_check_pending_open_menu ();
+#endif
 #endif
 }
 
@@ -563,7 +565,9 @@ extern NSString *NSMenuDidBeginTrackingNotification;
   /* Update menu in menuNeedsUpdate only while tracking menus.  */
   trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
                   ? 1 : 0);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
   if (! trackingMenu) ns_check_menu_open (nil);
+#endif
 }
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
