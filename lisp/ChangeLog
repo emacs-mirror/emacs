@@ -1,5 +1,11 @@
 2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/shr.el (shr-parse-image-data): New function to grab both the
+	data itself and the Content-Type.
+	(shr-put-image): Use it.
+
+	* net/eww.el (eww-display-image): Ditto.
+
 	* image.el (image-content-type-suffixes): New variable.
 
 2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>

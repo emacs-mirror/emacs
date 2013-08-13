@@ -304,7 +304,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (goto-char (point-min))))
 
 (defun eww-display-image ()
-  (let ((data (buffer-substring (point) (point-max))))
+  (let ((data (shr-parse-image-data)))
     (eww-setup-buffer)
     (let ((inhibit-read-only t))
       (shr-put-image data nil))
