@@ -1,3 +1,8 @@
+2013-08-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* decompress.c (Fzlib_decompress_region) [WINDOWSNT]: Return Qnil
+	if loading zlib failed.
+
 2013-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_set_vertical_scroll_bar): Fix breakage intruduced by

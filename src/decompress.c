@@ -146,6 +146,8 @@ This function can be called only in unibyte buffers.  */)
 #ifdef WINDOWSNT
   if (!zlib_initialized)
     zlib_initialized = init_zlib_functions ();
+  if (!zlib_initialized)
+    return Qnil;
 #endif
 
   /* This is a unibyte buffer, so character positions and bytes are
