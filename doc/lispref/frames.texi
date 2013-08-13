@@ -1362,7 +1362,7 @@ Terminals}.
 @node Input Focus
 @section Input Focus
 @cindex input focus
-@c @cindex selected frame    Duplicates selected-frame
+@c @cindex selected frame    Duplicates selected-frame, same for selected-window.
 
 At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
 window always resides on the selected frame.
@@ -2391,6 +2391,7 @@ displays returned by @code{display-mm-height} and
 @code{display-mm-width} in case the system provides incorrect values.
 @end defopt
 
+@cindex backing store
 @defun display-backing-store &optional display
 This function returns the backing store capability of the display.
 Backing store means recording the pixels of windows (and parts of
