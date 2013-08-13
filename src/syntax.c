@@ -1464,6 +1464,7 @@ scan_words (register ptrdiff_t from, register EMACS_INT count)
 
 DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "^p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
+If ARG is omitted or nil, move point forward one word.
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if

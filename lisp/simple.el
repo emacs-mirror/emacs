@@ -3338,6 +3338,7 @@ extract characters that are special to a buffer, and should not
 be copied into other buffers."
   (funcall filter-buffer-substring-function beg end delete))
 
+;; FIXME: `with-wrapper-hook' is obsolete
 (defun buffer-substring--filter (beg end &optional delete)
   (with-wrapper-hook filter-buffer-substring-functions (beg end delete)
     (cond
@@ -5670,7 +5671,8 @@ current object."
 
 (defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
-With argument ARG, do this that many times."
+With argument ARG, do this that many times.
+If ARG is omitted or nil, move point backward one word."
   (interactive "^p")
   (forward-word (- (or arg 1))))
 

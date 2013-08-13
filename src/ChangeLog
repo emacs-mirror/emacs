@@ -1,5 +1,6 @@
 2013-08-13  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* syntax.c (forward_word):
 	* cmds.c (forward_char, backward_char): Mention the optional argument.
 
 2013-08-13  Dmitry Antipov  <dmantipov@yandex.ru>

@@ -191,8 +191,8 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word &optional count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  If @var{count} is @code{nil}, it moves
-forward one word.
+@var{count} is negative).  If @var{count} is omitted or @code{nil}, it
+defaults to 1.
 
 ``Moving one word'' means moving until point crosses a
 word-constituent character and then encounters a word-separator
@@ -210,7 +210,7 @@ If @code{inhibit-field-text-motion} is non-@code{nil},
 this function ignores field boundaries.
 
 In an interactive call, @var{count} is specified by the numeric prefix
-argument.  If @var{count} is omitted or @code{nil}, it defaults to 1.
+argument.
 @end deffn
 
 @deffn Command backward-word &optional count
