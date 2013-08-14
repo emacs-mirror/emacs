@@ -10,6 +10,9 @@
 
 	* xdisp.c (adjust_window_ends): Move duplicated code to new function.
 	(try_window, try_window_reusing_current_matrix, try_window_id): Use it.
+	(redisplay_window): If window_end_valid is cleared due to non-zero
+	windows_or_buffers_changed, clear current_matrix_up_to_date_p and
+	so do not call to try_cursor_movement for that window.
 
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 

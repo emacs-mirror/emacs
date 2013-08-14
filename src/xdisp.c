@@ -15449,8 +15449,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
        && !current_buffer->clip_changed
        && !window_outdated (w));
 
-  /* When windows_or_buffers_changed is non-zero, we can't rely on
-     the window end being valid, so set it to nil there.  */
+  /* When windows_or_buffers_changed is non-zero, we can't rely
+     on the window end being valid, so set it to zero there.  */
   if (windows_or_buffers_changed)
     {
       /* If window starts on a continuation line, maybe adjust the
@@ -15459,6 +15459,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	compute_window_start_on_continuation_line (w);
 
       w->window_end_valid = 0;
+      /* If so, we also can't rely on current matrix
+	 and should not fool try_cursor_movement below.  */
+      current_matrix_up_to_date_p = 0;
     }
 
   /* Some sanity checks.  */
