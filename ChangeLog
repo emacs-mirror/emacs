@@ -1,3 +1,7 @@
+2013-08-14  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac (EMACS_CONFIGURATION): Escape backslashes.  (Bug#15091)
+
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.ac (HAVE_ZLIB): Don't use -lz on MinGW.
