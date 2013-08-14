@@ -95,12 +95,14 @@ unwind_decompress (void *ddata)
   struct decompress_unwind_data *data = ddata;
   fn_inflateEnd (data->stream);
 
-  /* Delete any uncompressed data already inserted and restore point.  */
+  /* Delete any uncompressed data already inserted on error.  */
   if (data->start)
-    {
-      del_range (data->start, PT);
-      SET_PT (data->old_point);
-    }
+    del_range (data->start, PT);
+
+  /* Put point where it was, or if the buffer has shrunk because the
+     compressed data is bigger than the uncompressed, at
+     point-max.  */
+  SET_PT (min (data->old_point, ZV));
 }
 
 DEFUN ("zlib-available-p", Fzlib_available_p, Szlib_available_p, 0, 0, 0,

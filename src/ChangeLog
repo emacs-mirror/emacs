@@ -1,3 +1,7 @@
+2013-08-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* decompress.c (unwind_decompress): Always restore point.
+
 2013-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (cursor_type_changed): Now static.
