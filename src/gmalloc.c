@@ -1558,6 +1558,15 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.  *
 
 void *(*__memalign_hook) (size_t size, size_t alignment);
 
+/* As of version 1.7.24, Cygwin allows applications to provide their
+   own posix_memalign (but not memalign).  But posix_memalign as
+   defined in this file calls memalign, so we have to rename the
+   latter in order to make sure that posix_memalign calls Emacs's
+   memalign.  */
+#ifdef CYGWIN
+#define memalign emacs_memalign
+#endif
+
 void *
 memalign (size_t alignment, size_t size)
 {

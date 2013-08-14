@@ -1,3 +1,8 @@
+2013-08-14  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c (memalign) [CYGWIN]: Rename to emacs_memalign
+	(Bug#15094).
+
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Utility function and macro to copy Lisp string to C string.
