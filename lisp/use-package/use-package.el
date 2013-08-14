@@ -653,10 +653,9 @@ For full documentation. please see commentary.
                       `(eval-after-load ,(if (stringp name) name `',name)
                          `(,(lambda ()
                               (if ,requires-test
-                                  ,(macroexpand-all
-                                    `(with-elapsed-timer
-                                         ,(format "Configuring package %s" name-string)
-                                       ,config-body)))))))
+                                  (with-elapsed-timer
+                                      ,(format "Configuring package %s" name-string)
+                                    ,config-body))))))
                    t))
             `(if (and ,(or predicate t)
                       ,requires-test)
