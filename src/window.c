@@ -87,6 +87,14 @@ static void window_resize_apply (struct window *, bool);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 static void select_window_1 (Lisp_Object, bool);
 
+static struct window *set_window_fringes (struct window *, Lisp_Object,
+					  Lisp_Object, Lisp_Object);
+static struct window *set_window_margins (struct window *, Lisp_Object,
+					  Lisp_Object);
+static struct window *set_window_scroll_bars (struct window *, Lisp_Object,
+					      Lisp_Object, Lisp_Object);
+static void apply_window_adjustment (struct window *);
+
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
    always be a leaf window, and its buffer is selected by
@@ -3202,28 +3210,14 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
   if (!keep_margins_p)
     {
       /* Set left and right marginal area width etc. from buffer.  */
-
-      /* This may call adjust_window_margins three times, so
-	 temporarily disable window margins.  */
-      int save_left = w->left_margin_cols;
-      int save_right = w->right_margin_cols;
-
-      w->left_margin_cols = 0;
-      w->right_margin_cols = 0;
-
-      Fset_window_fringes (window,
-			   BVAR (b, left_fringe_width), BVAR (b, right_fringe_width),
-			   BVAR (b, fringes_outside_margins));
-
-      Fset_window_scroll_bars (window,
-			       BVAR (b, scroll_bar_width),
-			       BVAR (b, vertical_scroll_bar_type), Qnil);
-
-      w->left_margin_cols = save_left;
-      w->right_margin_cols = save_right;
-
-      Fset_window_margins (window,
-			   BVAR (b, left_margin_cols), BVAR (b, right_margin_cols));
+      set_window_fringes (w, BVAR (b, left_fringe_width),
+			  BVAR (b, right_fringe_width),
+			  BVAR (b, fringes_outside_margins));
+      set_window_scroll_bars (w, BVAR (b, scroll_bar_width),
+			      BVAR (b, vertical_scroll_bar_type), Qnil);
+      set_window_margins (w, BVAR (b, left_margin_cols),
+			  BVAR (b, right_margin_cols));
+      apply_window_adjustment (w);
     }
 
   if (run_hooks_p)
@@ -6112,10 +6106,45 @@ saved by this function.  */)
   XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);
 }
+
+/* Called after W's margins, fringes or scroll bars was adjusted.  */
+
+static void
+apply_window_adjustment (struct window *w)
+{
+  eassert (w);
+  adjust_window_margins (w);
+  clear_glyph_matrix (w->current_matrix);
+  w->window_end_valid = 0;
+  windows_or_buffers_changed++;
+  adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
+}
+
 
 /***********************************************************************
 			    Marginal Areas
  ***********************************************************************/
+
+static struct window *
+set_window_margins (struct window *w, Lisp_Object left_width,
+		    Lisp_Object right_width)
+{
+  int left, right;
+
+  /* FIXME: what about margins that are too wide?  */
+  left = (NILP (left_width) ? 0
+	  : (CHECK_NATNUM (left_width), XINT (left_width)));
+  right = (NILP (right_width) ? 0
+	   : (CHECK_NATNUM (right_width), XINT (right_width)));
+
+  if (w->left_margin_cols != left || w->right_margin_cols != right)
+    {
+      w->left_margin_cols = left;
+      w->right_margin_cols = right;
+      return w;
+    }
+  return NULL;
+}
 
 DEFUN ("set-window-margins", Fset_window_margins, Sset_window_margins,
        2, 3, 0,
@@ -6130,29 +6159,9 @@ means no margin.
 Return t if any margin was actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width)
 {
-  struct window *w = decode_live_window (window);
-  int left, right;
-
-  /* FIXME: what about margins that are too wide?  */
-
-  left = (NILP (left_width) ? 0
-	  : (CHECK_NATNUM (left_width), XINT (left_width)));
-  right = (NILP (right_width) ? 0
-	   : (CHECK_NATNUM (right_width), XINT (right_width)));
-
-  if (w->left_margin_cols != left || w->right_margin_cols != right)
-    {
-      w->left_margin_cols = left;
-      w->right_margin_cols = right;
-
-      adjust_window_margins (w);
-
-      ++windows_or_buffers_changed;
-      adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
-      return Qt;
-    }
-
-  return Qnil;
+  struct window *w = set_window_margins (decode_live_window (window),
+					 left_width, right_width);
+  return w ? (apply_window_adjustment (w), Qt) : Qnil;
 }
 
 
@@ -6177,6 +6186,31 @@ as nil.  */)
 			    Fringes
  ***********************************************************************/
 
+static struct window *
+set_window_fringes (struct window *w, Lisp_Object left_width,
+		    Lisp_Object right_width, Lisp_Object outside_margins)
+{
+  int left, right, outside = !NILP (outside_margins);
+
+  left = (NILP (left_width) ? -1
+	  : (CHECK_NATNUM (left_width), XINT (left_width)));
+  right = (NILP (right_width) ? -1
+	   : (CHECK_NATNUM (right_width), XINT (right_width)));
+
+  /* Do nothing on a tty or if nothing to actually change.  */
+  if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
+      && (w->left_fringe_width != left
+	  || w->right_fringe_width != right
+	  || w->fringes_outside_margins != outside))
+    {
+      w->left_fringe_width = left;
+      w->right_fringe_width = right;
+      w->fringes_outside_margins = outside;
+      return w;
+    }
+  return NULL;
+}
+
 DEFUN ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
        2, 4, 0,
        doc: /* Set the fringe widths of window WINDOW.
@@ -6195,35 +6229,10 @@ Return t if any fringe was actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object left_width,
    Lisp_Object right_width, Lisp_Object outside_margins)
 {
-  struct window *w = decode_live_window (window);
-  int left, right, outside = !NILP (outside_margins);
-
-  left = (NILP (left_width) ? -1
-	  : (CHECK_NATNUM (left_width), XINT (left_width)));
-  right = (NILP (right_width) ? -1
-	   : (CHECK_NATNUM (right_width), XINT (right_width)));
-
-  /* Do nothing on a tty or if nothing to actually change.  */
-  if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
-      && (w->left_fringe_width != left
-	  || w->right_fringe_width != right
-	  || w->fringes_outside_margins != outside))
-    {
-      w->left_fringe_width = left;
-      w->right_fringe_width = right;
-      w->fringes_outside_margins = outside;
-
-      adjust_window_margins (w);
-
-      clear_glyph_matrix (w->current_matrix);
-      w->window_end_valid = 0;
-
-      ++windows_or_buffers_changed;
-      adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
-      return Qt;
-    }
-
-  return Qnil;
+  struct window *w
+    = set_window_fringes (decode_live_window (window),
+			  left_width, right_width, outside_margins);
+  return w ? (apply_window_adjustment (w), Qt) : Qnil;
 }
 
 
@@ -6248,6 +6257,31 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
 			    Scroll bars
  ***********************************************************************/
 
+static struct window *
+set_window_scroll_bars (struct window *w, Lisp_Object width,
+			Lisp_Object vertical_type, Lisp_Object horizontal_type)
+{
+  int iwidth = (NILP (width) ? -1 : (CHECK_NATNUM (width), XINT (width)));
+
+  if (iwidth == 0)
+    vertical_type = Qnil;
+
+  if (!(NILP (vertical_type)
+	|| EQ (vertical_type, Qleft)
+	|| EQ (vertical_type, Qright)
+	|| EQ (vertical_type, Qt)))
+    error ("Invalid type of vertical scroll bar");
+
+  if (w->scroll_bar_width != iwidth
+      || !EQ (w->vertical_scroll_bar_type, vertical_type))
+    {
+      w->scroll_bar_width = iwidth;
+      wset_vertical_scroll_bar_type (w, vertical_type);
+      return w;
+    }
+  return NULL;
+}
+
 DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
        Sset_window_scroll_bars, 2, 4, 0,
        doc: /* Set width and type of scroll bars of window WINDOW.
@@ -6265,35 +6299,10 @@ Return t if scroll bars was actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object width,
    Lisp_Object vertical_type, Lisp_Object horizontal_type)
 {
-  struct window *w = decode_live_window (window);
-  int iwidth = (NILP (width) ? -1 : (CHECK_NATNUM (width), XINT (width)));
-
-  if (iwidth == 0)
-    vertical_type = Qnil;
-
-  if (!(NILP (vertical_type)
-	|| EQ (vertical_type, Qleft)
-	|| EQ (vertical_type, Qright)
-	|| EQ (vertical_type, Qt)))
-    error ("Invalid type of vertical scroll bar");
-
-  if (w->scroll_bar_width != iwidth
-      || !EQ (w->vertical_scroll_bar_type, vertical_type))
-    {
-      w->scroll_bar_width = iwidth;
-      wset_vertical_scroll_bar_type (w, vertical_type);
-
-      adjust_window_margins (w);
-
-      clear_glyph_matrix (w->current_matrix);
-      w->window_end_valid = 0;
-
-      ++windows_or_buffers_changed;
-      adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
-      return Qt;
-    }
-
-  return Qnil;
+  struct window *w
+    = set_window_scroll_bars (decode_live_window (window),
+			      width, vertical_type, horizontal_type);
+  return w ? (apply_window_adjustment (w), Qt) : Qnil;
 }
 
 

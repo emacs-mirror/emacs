@@ -1,5 +1,13 @@
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Cleanup window fringes, margins and scroll bars adjustments.
+	* window.c (set_window_fringes, set_window_margins)
+	(set_window_scroll_bars, apply_window_adjustment): New functions.
+	(set_window_buffer, Fset_window_margins, Fset_window_fringes)
+	(Fset_window_scroll_bars): Use them.
+
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.h (struct window): Convert scroll_bar_width
 	from Lisp_Object to integer.  Adjust comment.
 	(WINDOW_CONFIG_SCROLL_BAR_WIDTH, WINDOW_CONFIG_SCROLL_BAR_COLS):
