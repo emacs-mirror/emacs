@@ -1,3 +1,8 @@
+2013-08-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frameset.el (frameset--prop-setter): New function.
+	(frameset-prop): Add gv-setter declaration.
+
 2013-08-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-make-atom): Don't overwrite parameter

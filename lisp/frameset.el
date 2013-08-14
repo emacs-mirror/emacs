@@ -156,7 +156,13 @@ FRAMESET is copied with `copy-tree'."
        (let ((states (frameset-states object)))
          (and (listp states)
               (cl-every #'consp (frameset-states object))))
-       (frameset-version object)))                 ; And VERSION is non-nil.
+       (frameset-version object)))        ; And VERSION is non-nil.
+
+(defun frameset--prop-setter (frameset property value)
+  "Setter function for `frameset-prop'.  Internal use only."
+  (setf (frameset-properties frameset)
+	(plist-put (frameset-properties frameset) property value))
+  value)
 
 ;; A setf'able accessor to the frameset's properties
 (defun frameset-prop (frameset property)
@@ -165,14 +171,8 @@ FRAMESET is copied with `copy-tree'."
 Properties can be set with
 
   (setf (frameset-prop FRAMESET PROPERTY) NEW-VALUE)"
+  (declare (gv-setter frameset--prop-setter))
   (plist-get (frameset-properties frameset) property))
-
-(gv-define-setter frameset-prop (val fs prop)
-  (macroexp-let2 nil v val
-    `(progn
-       (setf (frameset-properties ,fs)
-	     (plist-put (frameset-properties ,fs) ,prop ,v))
-       ,v)))
 
 
 ;; Filtering
