@@ -1,5 +1,9 @@
 2013-08-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* image.c (imagemagick_load_image): Make animated pictures work.
+	There's still some problems with background color settings, though
+	(bug#14700).
+
 	* decompress.c (unwind_decompress): Always restore point.
 
 2013-08-14  Paul Eggert  <eggert@cs.ucla.edu>

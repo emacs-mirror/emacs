@@ -7967,6 +7967,16 @@ imagemagick_load_image (struct frame *f, struct image *img,
       goto imagemagick_error;
     }
 
+  /* If we have an animated image, get the new wand based on the
+     "super-wand". */
+  if (ino > 0)
+    {
+      MagickWand *super_wand = image_wand;
+      MagickSetIteratorIndex (super_wand, ino);
+      image_wand = MagickGetImage (super_wand);
+      DestroyMagickWand (super_wand);
+    }
+
   /* Retrieve the frame's background color, for use later.  */
   {
     XColor bgcolor;
