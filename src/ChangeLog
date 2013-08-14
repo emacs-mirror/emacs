@@ -1,3 +1,17 @@
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Utility function and macro to copy Lisp string to C string.
+	* lisp.h (xlispstrdupa): New macro.
+	(xlispstrdup): New prototype.
+	* alloc.c (xlispstrdup): New function.
+	* callint.c (Fcall_interactively):
+	* fileio.c (Ffile_name_directory, Fexpand_file_name)
+	(Fsubstitute_in_file_name):
+	* frame.c (Fmake_terminal_frame): Use xlispstrdupa.
+	* image.c (x_create_bitmap_from_file):
+	* w32term.c (w32_term_init):
+	* xterm.c (x_term_init): Use xlispstrdup.
+
 2013-08-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_load_image): Make animated pictures work.

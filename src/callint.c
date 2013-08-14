@@ -331,12 +331,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* If SPECS is set to a string, use it as an interactive prompt.  */
   if (STRINGP (specs))
-    {
-      /* Make a copy of string so that if a GC relocates specs,
-	 `string' will still be valid.  */
-      string = alloca (SBYTES (specs) + 1);
-      memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
-    }
+    /* Make a copy of string so that if a GC relocates specs,
+       `string' will still be valid.  */
+    string = xlispstrdupa (specs);
   else
     {
       Lisp_Object input;

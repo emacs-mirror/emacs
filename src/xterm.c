@@ -10038,9 +10038,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->display = dpy;
 
   /* Set the name of the terminal. */
-  terminal->name = xmalloc (SBYTES (display_name) + 1);
-  memcpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
-  terminal->name[SBYTES (display_name)] = 0;
+  terminal->name = xlispstrdup (display_name);
 
 #if 0
   XSetAfterFunction (x_current_display, x_trace_wire);

@@ -366,8 +366,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     }
 
 #ifdef DOS_NT
-  beg = alloca (SBYTES (filename) + 1);
-  memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
+  beg = xlispstrdupa (filename);
 #else
   beg = SSDATA (filename);
 #endif
@@ -944,8 +943,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below.  */
-  nm = alloca (SBYTES (name) + 1);
-  memcpy (nm, SSDATA (name), SBYTES (name) + 1);
+  nm = xlispstrdupa (name);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1693,8 +1691,7 @@ those `/' is discarded.  */)
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = alloca (SBYTES (filename) + 1);
-  memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
+  nm = xlispstrdupa (filename);
 
 #ifdef DOS_NT
   dostounix_filename (nm, multibyte);

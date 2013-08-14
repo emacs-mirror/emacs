@@ -802,6 +802,15 @@ xstrdup (const char *s)
   return memcpy (xmalloc (size), s, size);
 }
 
+/* Like above, but duplicates Lisp string to C string.  */
+
+char *
+xlispstrdup (Lisp_Object string)
+{
+  ptrdiff_t size = SBYTES (string) + 1;
+  return memcpy (xmalloc (size), SSDATA (string), size);
+}
+
 /* Like putenv, but (1) use the equivalent of xmalloc and (2) the
    argument is a const pointer.  */
 

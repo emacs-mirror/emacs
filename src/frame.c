@@ -692,22 +692,14 @@ affects all frames on the same terminal device.  */)
                        ? FRAME_TTY (XFRAME (selected_frame))->name
                        : NULL));
       if (!NILP (tty))
-        {
-          name = alloca (SBYTES (tty) + 1);
-          memcpy (name, SSDATA (tty), SBYTES (tty));
-          name[SBYTES (tty)] = 0;
-        }
+	name = xlispstrdupa (tty);
 
       tty_type = get_future_frame_param
         (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                             ? FRAME_TTY (XFRAME (selected_frame))->type
                             : NULL));
       if (!NILP (tty_type))
-        {
-          type = alloca (SBYTES (tty_type) + 1);
-          memcpy (type, SSDATA (tty_type), SBYTES (tty_type));
-          type[SBYTES (tty_type)] = 0;
-        }
+	type = xlispstrdupa (tty_type);
 
       t = init_tty (name, type, 0); /* Errors are not fatal.  */
     }
