@@ -1,5 +1,11 @@
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Fix --enable-gcc-warnings errors introduced in 2013-08-13 commit.
+	* image.c (imagemagick_filename_hint): Use `const char *' and
+	prefer SSDATA to SDATA to avoid warnings.
+
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Cleanup window fringes, margins and scroll bars adjustments.
 	* window.c (set_window_fringes, set_window_margins)
 	(set_window_scroll_bars, apply_window_adjustment): New functions.

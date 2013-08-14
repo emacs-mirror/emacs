@@ -7851,9 +7851,9 @@ static char*
 imagemagick_filename_hint (Lisp_Object spec)
 {
   Lisp_Object format = image_spec_value (spec, intern (":format"), NULL);
-  Lisp_Object symbol = intern ("image-format-suffixes");
-  Lisp_Object val;
-  char *name, *prefix = "/tmp/foo.";
+  Lisp_Object val, symbol = intern ("image-format-suffixes");
+  const char *prefix = "/tmp/foo.";
+  char *name;
 
   if (NILP (Fboundp (symbol)))
     return NULL;
@@ -7871,8 +7871,8 @@ imagemagick_filename_hint (Lisp_Object spec)
     return NULL;
 
   name = xmalloc (strlen (prefix) + SBYTES (val) + 1);
-  strcpy(name, prefix);
-  strcat(name, SDATA (val));
+  strcpy (name, prefix);
+  strcat (name, SSDATA (val));
   return name;
 }
 
