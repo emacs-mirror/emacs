@@ -1,3 +1,7 @@
+2013-08-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* files.texi (Filesets): Add an index.
+
 2013-08-12  Glenn Morris  <rgm@gnu.org>
 
 	* macos.texi (GNUstep Support):
