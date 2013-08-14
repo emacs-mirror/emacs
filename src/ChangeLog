@@ -1,5 +1,7 @@
 2013-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (cursor_type_changed): Now static.
+
 	* image.c (imagemagick_filename_hint): New arg HINT_BUFFER.
 	Use changed.  This avoids the need to call xmalloc and for the
 	caller to call xfree, and avoids memory leaks in some situations.

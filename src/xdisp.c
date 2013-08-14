@@ -524,7 +524,7 @@ int windows_or_buffers_changed;
 
 /* Nonzero means a frame's cursor type has been changed.  */
 
-int cursor_type_changed;
+static int cursor_type_changed;
 
 /* Nonzero after display_mode_line if %l was used and it displayed a
    line number.  */

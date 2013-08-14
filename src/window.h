@@ -906,10 +906,6 @@ extern int update_mode_lines;
 
 extern int windows_or_buffers_changed;
 
-/* Nonzero means a frame's cursor type has been changed.  */
-
-extern int cursor_type_changed;
-
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
 
