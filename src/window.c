@@ -1539,7 +1539,7 @@ if it isn't already recorded.  */)
 	set_buffer_internal (old_buffer);
     }
   else
-    XSETINT (value, BUF_Z (b) - XFASTINT (w->window_end_pos));
+    XSETINT (value, BUF_Z (b) - w->window_end_pos);
 
   return value;
 }
@@ -2033,8 +2033,8 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       n->phys_cursor_width = -1;
       n->must_be_updated_p = 0;
       n->pseudo_window_p = 0;
-      wset_window_end_vpos (n, make_number (0));
-      wset_window_end_pos (n, make_number (0));
+      n->window_end_vpos = 0;
+      n->window_end_pos = 0;
       n->window_end_valid = 0;
     }
 
@@ -3170,8 +3170,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
     bset_display_count (b, make_number (XINT (BVAR (b, display_count)) + 1));
   bset_display_time (b, Fcurrent_time ());
 
-  wset_window_end_pos (w, make_number (0));
-  wset_window_end_vpos (w, make_number (0));
+  w->window_end_pos = 0;
+  w->window_end_vpos = 0;
   memset (&w->last_cursor, 0, sizeof w->last_cursor);
 
   if (!(keep_margins_p && samebuf))
@@ -3437,8 +3437,6 @@ make_window (void)
   wset_start (w, Fmake_marker ());
   wset_pointm (w, Fmake_marker ());
   wset_vertical_scroll_bar_type (w, Qt);
-  wset_window_end_pos (w, make_number (0));
-  wset_window_end_vpos (w, make_number (0));
   /* These Lisp fields are marked specially so they're not set to nil by
      allocate_window.  */
   wset_prev_buffers (w, Qnil);

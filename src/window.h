@@ -145,14 +145,6 @@ struct window
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
 
-    /* Z - the buffer position of the last glyph in the current
-       matrix of W.  Only valid if window_end_valid is nonzero.  */
-    Lisp_Object window_end_pos;
-
-    /* Glyph matrix row of the last glyph in the current matrix
-       of W.  Only valid if window_end_valid is nonzero.  */
-    Lisp_Object window_end_vpos;
-
     /* Display-table to use for displaying chars in this window.
        Nil means use the buffer's own display-table.  */
     Lisp_Object display_table;
@@ -269,6 +261,14 @@ struct window
        A value of -1 means use frame values.  */
     int scroll_bar_width;
 
+    /* Z - the buffer position of the last glyph in the current
+       matrix of W.  Only valid if window_end_valid is nonzero.  */
+    ptrdiff_t window_end_pos;
+
+    /* Glyph matrix row of the last glyph in the current matrix
+       of W.  Only valid if window_end_valid is nonzero.  */
+    int window_end_vpos;
+
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
 
@@ -364,16 +364,6 @@ WINDOW_INLINE void
 wset_vertical_scroll_bar (struct window *w, Lisp_Object val)
 {
   w->vertical_scroll_bar = val;
-}
-WINDOW_INLINE void
-wset_window_end_pos (struct window *w, Lisp_Object val)
-{
-  w->window_end_pos = val;
-}
-WINDOW_INLINE void
-wset_window_end_vpos (struct window *w, Lisp_Object val)
-{
-  w->window_end_vpos = val;
 }
 WINDOW_INLINE void
 wset_prev_buffers (struct window *w, Lisp_Object val)

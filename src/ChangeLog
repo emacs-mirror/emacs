@@ -1,5 +1,21 @@
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Convert window_end_pos and
+	window_end_vpos from Lisp_Object to ptrdiff_t and int, respectively.
+	(wset_window_end_pos, wset_window_end_vpos): Remove.
+	* dispnew.c (adjust_glyph_matrix):
+	* window.c (Fwindow_end, replace_window, set_window_buffer)
+	(make_window):
+	* xdisp.c (check_window_end, move_it_to, redisplay_internal)
+	(set_vertical_scroll_bar, redisplay_window, try_window)
+	(try_window_reusing_current_matrix, find_first_unchanged_at_end_row)
+	(try_window_id, decode_mode_spec, mouse_face_from_buffer_pos)
+	(note_mouse_highlight): Adjust users.
+	(try_cursor_movement): Likewise.  Convert old precondition to eassert.
+	Add comment.
+
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix --enable-gcc-warnings errors introduced in 2013-08-13 commit.
 	* image.c (imagemagick_filename_hint): Use `const char *' and
 	prefer SSDATA to SDATA to avoid warnings.

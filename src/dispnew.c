@@ -598,8 +598,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	      /* Window end is invalid, if inside of the rows that
 		 are invalidated below.  */
-	      if (INTEGERP (w->window_end_vpos)
-		  && XFASTINT (w->window_end_vpos) >= i)
+	      if (w->window_end_vpos >= i)
 		w->window_end_valid = 0;
 
 	      while (i < matrix->nrows)

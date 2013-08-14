@@ -2597,8 +2597,7 @@ check_window_end (struct window *w)
   if (!MINI_WINDOW_P (w) && w->window_end_valid)
     {
       struct glyph_row *row;
-      eassert ((row = MATRIX_ROW (w->current_matrix,
-				  XFASTINT (w->window_end_vpos)),
+      eassert ((row = MATRIX_ROW (w->current_matrix, w->window_end_vpos),
 		!row->enabled_p
 		|| MATRIX_ROW_DISPLAYS_TEXT_P (row)
 		|| MATRIX_ROW_VPOS (row, w->current_matrix) == 0));
@@ -9054,7 +9053,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
       && it->current_x == it->last_visible_x - 1
       && it->c != '\n'
       && it->c != '\t'
-      && it->vpos < XFASTINT (it->w->window_end_vpos))
+      && it->vpos < it->w->window_end_vpos)
     {
       it->continuation_lines_width += it->current_x;
       it->current_x = it->hpos = it->max_ascent = it->max_descent = 0;
@@ -13268,12 +13267,12 @@ redisplay_internal (void)
 		 adjusted.  */
 	      if (MATRIX_ROW_DISPLAYS_TEXT_P (it.glyph_row - 1))
 		{
-		  if (XFASTINT (w->window_end_vpos) < this_line_vpos)
-		    wset_window_end_vpos (w, make_number (this_line_vpos));
+		  if (w->window_end_vpos < this_line_vpos)
+		    w->window_end_vpos = this_line_vpos;
 		}
-	      else if (XFASTINT (w->window_end_vpos) == this_line_vpos
+	      else if (w->window_end_vpos == this_line_vpos
 		       && this_line_vpos > 0)
-		wset_window_end_vpos (w, make_number (this_line_vpos - 1));
+		w->window_end_vpos = this_line_vpos - 1;
 	      w->window_end_valid = 0;
 
 	      /* Update hint: No need to try to scroll in update_window.  */
@@ -14956,6 +14955,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
      if-statement below. Now, this field is converted to
      ptrdiff_t, thus zero means invalid position in a buffer.  */
   eassert (w->last_point > 0);
+  /* Likewise there was a check whether window_end_vpos is nil or larger
+     than the window.  Now window_end_vpos is int and so never nil, but
+     let's leave eassert to check whether it fits in the window.  */
+  eassert (w->window_end_vpos < w->current_matrix->nrows);
 
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame.  */
@@ -14983,13 +14986,6 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	 since the handling of this_line_start_pos, etc., in redisplay
 	 handles the same cases.  */
       && !EQ (window, minibuf_window)
-      /* When splitting windows or for new windows, it happens that
-	 redisplay is called with a nil window_end_vpos or one being
-	 larger than the window.  This should really be fixed in
-	 window.c.  I don't have this on my list, now, so we do
-	 approximately the same as the old redisplay code.  --gerd.  */
-      && INTEGERP (w->window_end_vpos)
-      && XFASTINT (w->window_end_vpos) < w->current_matrix->nrows
       && (FRAME_WINDOW_P (f)
 	  || !overlay_arrow_in_current_buffer_p ()))
     {
@@ -15303,7 +15299,7 @@ set_vertical_scroll_bar (struct window *w)
       start = marker_position (w->start) - BUF_BEGV (buf);
       /* I don't think this is guaranteed to be right.  For the
 	 moment, we'll pretend it is.  */
-      end = BUF_Z (buf) - XFASTINT (w->window_end_pos) - BUF_BEGV (buf);
+      end = BUF_Z (buf) - w->window_end_pos - BUF_BEGV (buf);
 
       if (end < start)
 	end = start;
@@ -15993,7 +15989,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
      line.)  */
   if (w->cursor.vpos < 0)
     {
-      if (w->window_end_valid && PT >= Z - XFASTINT (w->window_end_pos))
+      if (w->window_end_valid && PT >= Z - w->window_end_pos)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  move_it_by_lines (&it, 1);
@@ -16286,8 +16282,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
     }
 
   /* If bottom moved off end of frame, change mode line percentage.  */
-  if (XFASTINT (w->window_end_pos) <= 0
-      && Z != IT_CHARPOS (it))
+  if (w->window_end_pos <= 0 && Z != IT_CHARPOS (it))
     w->update_mode_line = 1;
 
   /* Set window_end_pos to the offset of the last character displayed
@@ -16296,21 +16291,18 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   if (last_text_row)
     {
       eassert (MATRIX_ROW_DISPLAYS_TEXT_P (last_text_row));
-      w->window_end_bytepos
-	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      wset_window_end_pos
-	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-      wset_window_end_vpos
-	(w, make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix)));
+      w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
+      w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
+      w->window_end_vpos = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
       eassert
 	(MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->desired_matrix,
-						 XFASTINT (w->window_end_vpos))));
+						 w->window_end_vpos)));
     }
   else
     {
       w->window_end_bytepos = Z_BYTE - ZV_BYTE;
-      wset_window_end_pos (w, make_number (Z - ZV));
-      wset_window_end_vpos (w, make_number (0));
+      w->window_end_pos = Z - ZV;
+      w->window_end_vpos = 0;
     }
 
   /* But that is not valid info until redisplay finishes.  */
@@ -16537,29 +16529,26 @@ try_window_reusing_current_matrix (struct window *w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_reused_text_row);
-	  wset_window_end_pos
-	    (w, make_number (Z
-			     - MATRIX_ROW_END_CHARPOS (last_reused_text_row)));
-	  wset_window_end_vpos
-	    (w, make_number (MATRIX_ROW_VPOS (last_reused_text_row,
-					      w->current_matrix)));
+	  w->window_end_pos
+	    = Z - MATRIX_ROW_END_CHARPOS (last_reused_text_row);
+	  w->window_end_vpos
+	    = MATRIX_ROW_VPOS (last_reused_text_row, w->current_matrix);
 	}
       else if (last_text_row)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  wset_window_end_pos
-	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-	  wset_window_end_vpos
-	    (w, make_number (MATRIX_ROW_VPOS (last_text_row,
-					      w->desired_matrix)));
+	  w->window_end_pos
+	    = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
+	  w->window_end_vpos
+	    = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
 	}
       else
 	{
 	  /* This window must be completely empty.  */
 	  w->window_end_bytepos = Z_BYTE - ZV_BYTE;
-	  wset_window_end_pos (w, make_number (Z - ZV));
-	  wset_window_end_vpos (w, make_number (0));
+	  w->window_end_pos = Z - ZV;
+	  w->window_end_vpos = 0;
 	}
       w->window_end_valid = 0;
 
@@ -16747,17 +16736,13 @@ try_window_reusing_current_matrix (struct window *w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  wset_window_end_pos
-	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
-	  wset_window_end_vpos
-	    (w, make_number (MATRIX_ROW_VPOS (last_text_row,
-					      w->desired_matrix)));
+	  w->window_end_pos
+	    = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
+	  w->window_end_vpos
+	    = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
 	}
       else
-	{
-	  wset_window_end_vpos
-	    (w, make_number (XFASTINT (w->window_end_vpos) - nrows_scrolled));
-	}
+	w->window_end_vpos -= nrows_scrolled;
 
       w->window_end_valid = 0;
       w->desired_matrix->no_scrolling_p = 1;
@@ -16897,11 +16882,11 @@ find_first_unchanged_at_end_row (struct window *w,
   /* A value of window_end_pos >= END_UNCHANGED means that the window
      end is in the range of changed text.  If so, there is no
      unchanged row at the end of W's current matrix.  */
-  if (XFASTINT (w->window_end_pos) >= END_UNCHANGED)
+  if (w->window_end_pos >= END_UNCHANGED)
     return NULL;
 
   /* Set row to the last row in W's current matrix displaying text.  */
-  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+  row = MATRIX_ROW (w->current_matrix, w->window_end_vpos);
 
   /* If matrix is entirely empty, no unchanged row exists.  */
   if (MATRIX_ROW_DISPLAYS_TEXT_P (row))
@@ -16912,7 +16897,7 @@ find_first_unchanged_at_end_row (struct window *w,
 	 buffer positions in the current matrix to current buffer
 	 positions for characters not in changed text.  */
       ptrdiff_t Z_old =
-	MATRIX_ROW_END_CHARPOS (row) + XFASTINT (w->window_end_pos);
+	MATRIX_ROW_END_CHARPOS (row) + w->window_end_pos;
       ptrdiff_t Z_BYTE_old =
 	MATRIX_ROW_END_BYTEPOS (row) + w->window_end_bytepos;
       ptrdiff_t last_unchanged_pos, last_unchanged_pos_old;
@@ -17246,7 +17231,7 @@ try_window_id (struct window *w)
      This case happens with stealth-fontification.  Note that although
      the display is unchanged, glyph positions in the matrix have to
      be adjusted, of course.  */
-  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+  row = MATRIX_ROW (w->current_matrix, w->window_end_vpos);
   if (MATRIX_ROW_DISPLAYS_TEXT_P (row)
       && ((last_changed_charpos < CHARPOS (start)
 	   && CHARPOS (start) == BEGV)
@@ -17258,7 +17243,7 @@ try_window_id (struct window *w)
 
       /* Compute how many chars/bytes have been added to or removed
 	 from the buffer.  */
-      Z_old = MATRIX_ROW_END_CHARPOS (row) + XFASTINT (w->window_end_pos);
+      Z_old = MATRIX_ROW_END_CHARPOS (row) + w->window_end_pos;
       Z_BYTE_old = MATRIX_ROW_END_BYTEPOS (row) + w->window_end_bytepos;
       Z_delta = Z - Z_old;
       Z_delta_bytes = Z_BYTE - Z_BYTE_old;
@@ -17329,10 +17314,8 @@ try_window_id (struct window *w)
 	{
 	  /* We have to compute the window end anew since text
 	     could have been added/removed after it.  */
-	  wset_window_end_pos
-	    (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
-	  w->window_end_bytepos
-	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+	  w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (row);
+	  w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
 
 	  /* Set the cursor.  */
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
@@ -17365,7 +17348,7 @@ try_window_id (struct window *w)
 
   /* Give up if the window ends in strings.  Overlay strings
      at the end are difficult to handle, so don't try.  */
-  row = MATRIX_ROW (current_matrix, XFASTINT (w->window_end_vpos));
+  row = MATRIX_ROW (current_matrix, w->window_end_vpos);
   if (MATRIX_ROW_START_CHARPOS (row) == MATRIX_ROW_END_CHARPOS (row))
     GIVE_UP (20);
 
@@ -17711,7 +17694,7 @@ try_window_id (struct window *w)
       /* Set last_row to the glyph row in the current matrix where the
 	 window end line is found.  It has been moved up or down in
 	 the matrix by dvpos.  */
-      int last_vpos = XFASTINT (w->window_end_vpos) + dvpos;
+      int last_vpos = w->window_end_vpos + dvpos;
       struct glyph_row *last_row = MATRIX_ROW (current_matrix, last_vpos);
 
       /* If last_row is the window end line, it should display text.  */
@@ -17755,8 +17738,7 @@ try_window_id (struct window *w)
     }
 
   /* Update window_end_pos and window_end_vpos.  */
-  if (first_unchanged_at_end_row
-      && !last_text_row_at_end)
+  if (first_unchanged_at_end_row && !last_text_row_at_end)
     {
       /* Window end line if one of the preserved rows from the current
 	 matrix.  Set row to the last row displaying text in current
@@ -17767,22 +17749,20 @@ try_window_id (struct window *w)
 					   first_unchanged_at_end_row);
       eassert (row && MATRIX_ROW_DISPLAYS_TEXT_P (row));
 
-      wset_window_end_pos (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
+      w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (row);
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-      wset_window_end_vpos
-	(w, make_number (MATRIX_ROW_VPOS (row, w->current_matrix)));
+      w->window_end_vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "A"));
     }
   else if (last_text_row_at_end)
     {
-      wset_window_end_pos
-	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end)));
+      w->window_end_pos
+	= Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end);
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row_at_end);
-      wset_window_end_vpos
-	(w, make_number (MATRIX_ROW_VPOS (last_text_row_at_end,
-					  desired_matrix)));
+      w->window_end_vpos
+	= MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "B"));
     }
@@ -17791,12 +17771,11 @@ try_window_id (struct window *w)
       /* We have displayed either to the end of the window or at the
 	 end of the window, i.e. the last row with text is to be found
 	 in the desired matrix.  */
-      wset_window_end_pos
-	(w, make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row)));
+      w->window_end_pos
+	= Z - MATRIX_ROW_END_CHARPOS (last_text_row);
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      wset_window_end_vpos
-	(w, make_number (MATRIX_ROW_VPOS (last_text_row, desired_matrix)));
+      w->window_end_vpos = MATRIX_ROW_VPOS (last_text_row, desired_matrix);
       eassert (w->window_end_bytepos >= 0);
     }
   else if (first_unchanged_at_end_row == NULL
@@ -17806,7 +17785,7 @@ try_window_id (struct window *w)
       /* Displayed to end of window, but no line containing text was
 	 displayed.  Lines were deleted at the end of the window.  */
       int first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
-      int vpos = XFASTINT (w->window_end_vpos);
+      int vpos = w->window_end_vpos;
       struct glyph_row *current_row = current_matrix->rows + vpos;
       struct glyph_row *desired_row = desired_matrix->rows + vpos;
 
@@ -17824,8 +17803,8 @@ try_window_id (struct window *w)
 	}
 
       eassert (row != NULL);
-      wset_window_end_vpos (w, make_number (vpos + 1));
-      wset_window_end_pos (w, make_number (Z - MATRIX_ROW_END_CHARPOS (row)));
+      w->window_end_vpos = vpos + 1;
+      w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (row);
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "C"));
@@ -17833,8 +17812,8 @@ try_window_id (struct window *w)
   else
     emacs_abort ();
 
-  IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
-	    debug_end_vpos = XFASTINT (w->window_end_vpos));
+  IF_DEBUG (debug_end_pos = w->window_end_pos;
+	    debug_end_vpos = w->window_end_vpos);
 
   /* Record that display has not been completed.  */
   w->window_end_valid = 0;
@@ -22002,7 +21981,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	ptrdiff_t pos = marker_position (w->start);
 	ptrdiff_t total = BUF_ZV (b) - BUF_BEGV (b);
 
-	if (XFASTINT (w->window_end_pos) <= BUF_Z (b) - BUF_ZV (b))
+	if (w->window_end_pos <= BUF_Z (b) - BUF_ZV (b))
 	  {
 	    if (pos <= BUF_BEGV (b))
 	      return "All";
@@ -22031,7 +22010,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'P':
       {
 	ptrdiff_t toppos = marker_position (w->start);
-	ptrdiff_t botpos = BUF_Z (b) - XFASTINT (w->window_end_pos);
+	ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
 	ptrdiff_t total = BUF_ZV (b) - BUF_BEGV (b);
 
 	if (botpos >= BUF_ZV (b))
@@ -27040,7 +27019,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   /* Find the rows corresponding to START_CHARPOS and END_CHARPOS.  */
   rows_from_pos_range (w, start_charpos, end_charpos, disp_string, &r1, &r2);
   if (r1 == NULL)
-    r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+    r1 = MATRIX_ROW (w->current_matrix, w->window_end_vpos);
   /* If the before-string or display-string contains newlines,
      rows_from_pos_range skips to its last row.  Move back.  */
   if (!NILP (before_string) || !NILP (disp_string))
@@ -27062,7 +27041,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
     }
   if (r2 == NULL)
     {
-      r2 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+      r2 = MATRIX_ROW (w->current_matrix, w->window_end_vpos);
       hlinfo->mouse_face_past_end = 1;
     }
   else if (!NILP (after_string))
@@ -27070,7 +27049,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       /* If the after-string has newlines, advance to its last row.  */
       struct glyph_row *next;
       struct glyph_row *last
-	= MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+	= MATRIX_ROW (w->current_matrix, w->window_end_vpos);
 
       for (next = r2 + 1;
 	   next <= last
@@ -28376,8 +28355,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		    : Qnil;
 		  Lisp_Object lim2 =
 		    NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
-		    ? make_number (BUF_Z (XBUFFER (buffer))
-				   - XFASTINT (w->window_end_pos))
+		    ? make_number (BUF_Z (XBUFFER (buffer)) - w->window_end_pos)
 		    : Qnil;
 
 		  if (NILP (overlay))
