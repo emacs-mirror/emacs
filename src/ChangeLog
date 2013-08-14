@@ -1,5 +1,10 @@
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xdisp.c (adjust_window_ends): Move duplicated code to new function.
+	(try_window, try_window_reusing_current_matrix, try_window_id): Use it.
+
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* window.h (struct window): Convert window_end_pos and
 	window_end_vpos from Lisp_Object to ptrdiff_t and int, respectively.
 	(wset_window_end_pos, wset_window_end_vpos): Remove.

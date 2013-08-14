@@ -2461,7 +2461,16 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-
+static void
+adjust_window_ends (struct window *w, struct glyph_row *row, bool current)
+{
+  eassert (w);
+  w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (row);
+  w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
+  w->window_end_vpos
+    = MATRIX_ROW_VPOS (row, current ? w->current_matrix : w->desired_matrix);
+}
+
 /***********************************************************************
 			Lisp form evaluation
  ***********************************************************************/
@@ -16291,9 +16300,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   if (last_text_row)
     {
       eassert (MATRIX_ROW_DISPLAYS_TEXT_P (last_text_row));
-      w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
-      w->window_end_vpos = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
+      adjust_window_ends (w, last_text_row, 0);
       eassert
 	(MATRIX_ROW_DISPLAYS_TEXT_P (MATRIX_ROW (w->desired_matrix,
 						 w->window_end_vpos)));
@@ -16526,23 +16533,9 @@ try_window_reusing_current_matrix (struct window *w)
 	 The value of last_text_row is the last displayed line
 	 containing text.  */
       if (last_reused_text_row)
-	{
-	  w->window_end_bytepos
-	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_reused_text_row);
-	  w->window_end_pos
-	    = Z - MATRIX_ROW_END_CHARPOS (last_reused_text_row);
-	  w->window_end_vpos
-	    = MATRIX_ROW_VPOS (last_reused_text_row, w->current_matrix);
-	}
+	adjust_window_ends (w, last_reused_text_row, 1);
       else if (last_text_row)
-	{
-	  w->window_end_bytepos
-	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  w->window_end_pos
-	    = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
-	  w->window_end_vpos
-	    = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
-	}
+	adjust_window_ends (w, last_text_row, 0);
       else
 	{
 	  /* This window must be completely empty.  */
@@ -16733,14 +16726,7 @@ try_window_reusing_current_matrix (struct window *w)
 	 the window end is in reused rows which in turn means that
 	 only its vpos can have changed.  */
       if (last_text_row)
-	{
-	  w->window_end_bytepos
-	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  w->window_end_pos
-	    = Z - MATRIX_ROW_END_CHARPOS (last_text_row);
-	  w->window_end_vpos
-	    = MATRIX_ROW_VPOS (last_text_row, w->desired_matrix);
-	}
+	adjust_window_ends (w, last_text_row, 0);
       else
 	w->window_end_vpos -= nrows_scrolled;
 
@@ -17748,21 +17734,13 @@ try_window_id (struct window *w)
       row = find_last_row_displaying_text (w->current_matrix, &it,
 					   first_unchanged_at_end_row);
       eassert (row && MATRIX_ROW_DISPLAYS_TEXT_P (row));
-
-      w->window_end_pos = Z - MATRIX_ROW_END_CHARPOS (row);
-      w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-      w->window_end_vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
+      adjust_window_ends (w, row, 1);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "A"));
     }
   else if (last_text_row_at_end)
     {
-      w->window_end_pos
-	= Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end);
-      w->window_end_bytepos
-	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row_at_end);
-      w->window_end_vpos
-	= MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix);
+      adjust_window_ends (w, last_text_row_at_end, 0);
       eassert (w->window_end_bytepos >= 0);
       IF_DEBUG (debug_method_add (w, "B"));
     }
@@ -17771,11 +17749,7 @@ try_window_id (struct window *w)
       /* We have displayed either to the end of the window or at the
 	 end of the window, i.e. the last row with text is to be found
 	 in the desired matrix.  */
-      w->window_end_pos
-	= Z - MATRIX_ROW_END_CHARPOS (last_text_row);
-      w->window_end_bytepos
-	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      w->window_end_vpos = MATRIX_ROW_VPOS (last_text_row, desired_matrix);
+      adjust_window_ends (w, last_text_row, 0);
       eassert (w->window_end_bytepos >= 0);
     }
   else if (first_unchanged_at_end_row == NULL
