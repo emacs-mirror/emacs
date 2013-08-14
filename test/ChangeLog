@@ -1,3 +1,10 @@
+2013-08-14  Daniel Hackney  <dan@haxney.org>
+
+	* package-test.el: Remove tar-package-building functions.  Tar file
+	used for testing is included in the repository.
+	(package-test-install-texinfo, package-test-cleanup-built-files):
+	Remove.
+
 2013-08-13  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el (python-imenu-create-index-4)
