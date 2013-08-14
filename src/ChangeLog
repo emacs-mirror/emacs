@@ -1,3 +1,17 @@
+2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Convert scroll_bar_width
+	from Lisp_Object to integer.  Adjust comment.
+	(WINDOW_CONFIG_SCROLL_BAR_WIDTH, WINDOW_CONFIG_SCROLL_BAR_COLS):
+	Adjust users.
+	* window.c (wset_scroll_bar_width): Remove.
+	(make_window): Initialize scroll_bar_width.
+	(Fsplit_window_internal): Use direct assignment.
+	(Fset_window_configuration, save_window_save):
+	Convert Lisp_Object to integer and back where appropriate.
+	(Fset_window_scroll_bars): Adjust user.  Return t if any scroll
+	bar was actually changed, and mention this in docstring.
+
 2013-08-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* decompress.c: Minor simplifications.

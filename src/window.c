@@ -181,11 +181,6 @@ wset_pointm (struct window *w, Lisp_Object val)
   w->pointm = val;
 }
 static void
-wset_scroll_bar_width (struct window *w, Lisp_Object val)
-{
-  w->scroll_bar_width = val;
-}
-static void
 wset_start (struct window *w, Lisp_Object val)
 {
   w->start = val;
@@ -3461,6 +3456,7 @@ make_window (void)
   w->left_fringe_width = w->right_fringe_width = -1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
+  w->scroll_bar_width = -1;
   w->column_number_displayed = -1;
 
   /* Reset window_list.  */
@@ -3931,7 +3927,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
   n->left_fringe_width = r->left_fringe_width;
   n->right_fringe_width = r->right_fringe_width;
   n->fringes_outside_margins = r->fringes_outside_margins;
-  wset_scroll_bar_width (n, r->scroll_bar_width);
+  n->scroll_bar_width = r->scroll_bar_width;
   wset_vertical_scroll_bar_type (n, r->vertical_scroll_bar_type);
 
   /* Directly assign orthogonal coordinates and sizes.  */
@@ -5674,7 +5670,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->left_fringe_width = XINT (p->left_fringe_width);
 	  w->right_fringe_width = XINT (p->right_fringe_width);
 	  w->fringes_outside_margins = !NILP (p->fringes_outside_margins);
-	  wset_scroll_bar_width (w, p->scroll_bar_width);
+	  w->scroll_bar_width = XINT (p->scroll_bar_width);
 	  wset_vertical_scroll_bar_type (w, p->vertical_scroll_bar_type);
 	  wset_dedicated (w, p->dedicated);
 	  wset_combination_limit (w, p->combination_limit);
@@ -5975,7 +5971,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->left_fringe_width = make_number (w->left_fringe_width);
       p->right_fringe_width = make_number (w->right_fringe_width);
       p->fringes_outside_margins = w->fringes_outside_margins ? Qt : Qnil;
-      p->scroll_bar_width = w->scroll_bar_width;
+      p->scroll_bar_width = make_number (w->scroll_bar_width);
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
       p->combination_limit = w->combination_limit;
@@ -6263,18 +6259,17 @@ Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
 bar: left, right, or nil.
 If WIDTH is nil, use the frame's scroll-bar width.
 If VERTICAL-TYPE is t, use the frame's scroll-bar type.
-Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
-  (Lisp_Object window, Lisp_Object width, Lisp_Object vertical_type, Lisp_Object horizontal_type)
+Fourth parameter HORIZONTAL-TYPE is currently unused.
+
+Return t if scroll bars was actually changed and nil otherwise.  */)
+  (Lisp_Object window, Lisp_Object width,
+   Lisp_Object vertical_type, Lisp_Object horizontal_type)
 {
   struct window *w = decode_live_window (window);
+  int iwidth = (NILP (width) ? -1 : (CHECK_NATNUM (width), XINT (width)));
 
-  if (!NILP (width))
-    {
-      CHECK_RANGED_INTEGER (width, 0, INT_MAX);
-
-      if (XINT (width) == 0)
-	vertical_type = Qnil;
-    }
+  if (iwidth == 0)
+    vertical_type = Qnil;
 
   if (!(NILP (vertical_type)
 	|| EQ (vertical_type, Qleft)
@@ -6282,10 +6277,10 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 	|| EQ (vertical_type, Qt)))
     error ("Invalid type of vertical scroll bar");
 
-  if (!EQ (w->scroll_bar_width, width)
+  if (w->scroll_bar_width != iwidth
       || !EQ (w->vertical_scroll_bar_type, vertical_type))
     {
-      wset_scroll_bar_width (w, width);
+      w->scroll_bar_width = iwidth;
       wset_vertical_scroll_bar_type (w, vertical_type);
 
       adjust_window_margins (w);
@@ -6295,6 +6290,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 
       ++windows_or_buffers_changed;
       adjust_glyphs (XFRAME (WINDOW_FRAME (w)));
+      return Qt;
     }
 
   return Qnil;

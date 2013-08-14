@@ -141,10 +141,6 @@ struct window
        it yet, or if the frame doesn't have any scroll bars, this is nil.  */
     Lisp_Object vertical_scroll_bar;
 
-    /* Pixel width of scroll bars.
-       A value of nil or t means use frame values.  */
-    Lisp_Object scroll_bar_width;
-
     /* Type of vertical scroll bar.  A value of nil means
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
@@ -268,6 +264,10 @@ struct window
        A value of 0 means no margin.  */
     int left_margin_cols;
     int right_margin_cols;
+
+    /* Pixel width of scroll bars.
+       A value of -1 means use frame values.  */
+    int scroll_bar_width;
 
     /* Non-zero if this window is a minibuffer window.  */
     unsigned mini : 1;
@@ -695,8 +695,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    nonzero.  */
 
 #define WINDOW_CONFIG_SCROLL_BAR_WIDTH(w)		\
-  (INTEGERP (w->scroll_bar_width)			\
-   ? XFASTINT (w->scroll_bar_width)			\
+  (w->scroll_bar_width >= 0 ? w->scroll_bar_width	\
    : FRAME_CONFIG_SCROLL_BAR_WIDTH (WINDOW_XFRAME (w)))
 
 /* Width that a scroll bar in window W should have, if there is one.
@@ -704,8 +703,8 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    this is still nonzero.  */
 
 #define WINDOW_CONFIG_SCROLL_BAR_COLS(w)		\
-  (INTEGERP (w->scroll_bar_width)			\
-   ? ((XFASTINT (w->scroll_bar_width)			\
+  (w->scroll_bar_width >= 0				\
+   ? ((w->scroll_bar_width				\
        + WINDOW_FRAME_COLUMN_WIDTH (w) - 1)		\
       / WINDOW_FRAME_COLUMN_WIDTH (w))			\
    : FRAME_CONFIG_SCROLL_BAR_COLS (WINDOW_XFRAME (w)))
