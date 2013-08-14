@@ -1,3 +1,25 @@
+2013-08-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-make-atom): Don't overwrite parameter
+	already present.
+	(display-buffer-in-atom-window): Handle special case where we
+	split an already atomic window.
+	(window--major-non-side-window, display-buffer-in-side-window)
+	(window--side-check): Ignore minibuffer window when walking
+	window tree.
+	(window-deletable-p): Return 'frame only if no other frame uses
+	our minibuffer window.
+	(record-window-buffer): Run buffer-list-update-hook.
+	(split-window): Make sure window--check-frame won't destroy an
+	existing atomic window in case the new window gets nested
+	inside.
+	(display-buffer-at-bottom): Ignore minibuffer window when
+	walking window tree.  Don't split a side window.
+	(pop-to-buffer): Don't set-buffer here, the select-window call
+	should do that.
+	(mouse-autoselect-window-select): Autoselect only if we are in the
+	text portion of the window.
+
 2013-08-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-parse-image-data): New function to grab both the
