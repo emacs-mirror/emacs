@@ -1,3 +1,9 @@
+2013-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (imagemagick_filename_hint): New arg HINT_BUFFER.
+	Use changed.  This avoids the need to call xmalloc and for the
+	caller to call xfree, and avoids memory leaks in some situations.
+
 2013-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xdisp.c (adjust_window_ends): Move duplicated code to new function.

@@ -7845,35 +7845,27 @@ imagemagick_error (MagickWand *wand)
 }
 
 /* Possibly give ImageMagick some extra help to determine the image
-   type by supplying a "dummy" filename based on the Content-Type. */
+   type by supplying a "dummy" filename based on the Content-Type.  */
 
-static char*
-imagemagick_filename_hint (Lisp_Object spec)
+static char *
+imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
 {
-  Lisp_Object format = image_spec_value (spec, intern (":format"), NULL);
-  Lisp_Object val, symbol = intern ("image-format-suffixes");
-  const char *prefix = "/tmp/foo.";
-  char *name;
+  Lisp_Object symbol = intern ("image-format-suffixes");
+  Lisp_Object val = find_symbol_value (symbol);
+  Lisp_Object format;
 
-  if (NILP (Fboundp (symbol)))
-    return NULL;
-
-  val = Fassq (format, Fsymbol_value (symbol));
   if (! CONSP (val))
     return NULL;
 
-  val = Fcdr (val);
-  if (! CONSP (val))
-    return NULL;
-
-  val = Fcar (val);
+  format = image_spec_value (spec, intern (":format"), NULL);
+  val = Fcar_safe (Fcdr_safe (Fassq (format, val)));
   if (! STRINGP (val))
     return NULL;
 
-  name = xmalloc (strlen (prefix) + SBYTES (val) + 1);
-  strcpy (name, prefix);
-  strcat (name, SSDATA (val));
-  return name;
+  /* It's OK to truncate the hint if it has MaxTextExtent or more bytes,
+     as ImageMagick would ignore the extra bytes anyway.  */
+  snprintf (hint_buffer, MaxTextExtent, "/tmp/foo.%s", SSDATA (val));
+  return hint_buffer;
 }
 
 /* Helper function for imagemagick_load, which does the actual loading
@@ -7909,6 +7901,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   int desired_width, desired_height;
   double rotation;
   int pixelwidth;
+  char hint_buffer[MaxTextExtent];
   char *filename_hint = NULL;
 
   /* Handle image index for image types who can contain more than one image.
@@ -7923,15 +7916,14 @@ imagemagick_load_image (struct frame *f, struct image *img,
   ping_wand = NewMagickWand ();
   /* MagickSetResolution (ping_wand, 2, 2);   (Bug#10112)  */
 
-  if (! filename)
-    filename_hint = imagemagick_filename_hint (img->spec);
-
-  if (filename_hint)
-    MagickSetFilename (ping_wand, filename_hint);
-
-  status = filename
-    ? MagickPingImage (ping_wand, filename)
-    : MagickPingImageBlob (ping_wand, contents, size);
+  if (filename)
+    status = MagickPingImage (ping_wand, filename);
+  else
+    {
+      filename_hint = imagemagick_filename_hint (img->spec, hint_buffer);
+      MagickSetFilename (ping_wand, filename_hint);
+      status = MagickPingImageBlob (ping_wand, contents, size);
+    }
 
   if (status == MagickFalse)
     {
@@ -7961,13 +7953,15 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   image_wand = NewMagickWand ();
 
-  if (filename_hint)
-    MagickSetFilename (image_wand, filename_hint);
+  if (filename)
+    status = MagickReadImage (image_wand, filename);
+  else
+    {
+      MagickSetFilename (image_wand, filename_hint);
+      status = MagickReadImageBlob (image_wand, contents, size);
+    }
 
-  if ((filename
-       ? MagickReadImage (image_wand, filename)
-       : MagickReadImageBlob (image_wand, contents, size))
-      == MagickFalse)
+  if (status == MagickFalse)
     {
       imagemagick_error (image_wand);
       goto imagemagick_error;
@@ -8207,16 +8201,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
   /* `MagickWandTerminus' terminates the imagemagick environment.  */
   MagickWandTerminus ();
 
-  if (filename_hint)
-    free (filename_hint);
-
   return 1;
 
  imagemagick_error:
   DestroyMagickWand (image_wand);
   if (bg_wand) DestroyPixelWand (bg_wand);
-  if (filename_hint)
-    free (filename_hint);
 
   MagickWandTerminus ();
   /* TODO more cleanup.  */
