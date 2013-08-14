@@ -298,9 +298,6 @@
 (require 'bytecomp)
 (require 'diminish nil t)
 
-(eval-when-compile
-  (require 'cl))
-
 (declare-function package-installed-p 'package)
 (declare-function el-get-read-recipe 'el-get)
 
