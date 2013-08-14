@@ -581,7 +581,7 @@ For full documentation. please see commentary.
                   (t
                    pkg-load-path)))
 
-         (when byte-compile-current-file
+         (eval-when-compile
            ,@defines-eval
            ,(if (stringp name)
                 `(load ,name t)
@@ -637,12 +637,12 @@ For full documentation. please see commentary.
                    ,init-body
                    ,(unless (null config-body)
                       `(eval-after-load ,name-string
-                         (quote
-                           (if ,requires-test
-                               ,(macroexpand-all
-                                  `(with-elapsed-timer
-                                       ,(format "Configuring package %s" name-string)
-                                     ,config-body))))))
+                         `(,(lambda ()
+                              (if ,requires-test
+                                  ,(macroexpand-all
+                                    `(with-elapsed-timer
+                                         ,(format "Configuring package %s" name-string)
+                                       ,config-body)))))))
                    t))
             `(if (and ,(or predicate t)
                       ,requires-test)
