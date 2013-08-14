@@ -2,6 +2,15 @@
 
 	* frameset.el (frameset--prop-setter): New function.
 	(frameset-prop): Add gv-setter declaration.
+	(frameset-filter-minibuffer): Deal with the case that the minibuffer
+	parameter was already set in FILTERED.  Doc fix.
+	(frameset--record-minibuffer-relationships): Allow saving a
+	minibufferless frame without its corresponding minibuffer frame.
+	(frameset--reuse-frame): Accept a match from an orphaned minibufferless
+	frame, if the frame id matches.
+	(frameset--minibufferless-last-p): Sort non-orphaned minibufferless
+	frames before orphaned ones.
+	(frameset-restore): Warn about orphaned windows, instead of error out.
 
 2013-08-14  Martin Rudalics  <rudalics@gmx.at>
 

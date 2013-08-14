@@ -570,15 +570,22 @@ see `frameset-filter-alist'."
       (not (stringp (cdr current)))
       (not (string-match-p "^unspecified-[fb]g$" (cdr current)))))
 
-(defun frameset-filter-minibuffer (current _filtered _parameters saving)
-  "When saving, convert (minibuffer . #<window>) to (minibuffer . t).
+(defun frameset-filter-minibuffer (current filtered _parameters saving)
+  "Force the minibuffer parameter to have a sensible value.
+
+When saving, convert (minibuffer . #<window>) to (minibuffer . t).
+When restoring, if there are two copies, keep the one pointing to
+a live window.
 
 For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
 see `frameset-filter-alist'."
-  (or (not saving)
-      (if (windowp (cdr current))
-	  '(minibuffer . t)
-	t)))
+  (let ((value (cdr current)) mini)
+    (cond (saving
+	   (if (windowp value) '(minibuffer . t) t))
+	  ((setq mini (assq 'minibuffer filtered))
+	   (when (windowp value) (setcdr mini value))
+	   nil)
+	  (t t))))
 
 (defun frameset-filter-shelve-param (current _filtered parameters saving
 					     &optional prefix)
@@ -721,16 +728,18 @@ FRAME-LIST is a list of frames.  Internal use only."
   (dolist (frame frame-list)
     (unless (frame-parameter frame 'frameset--mini)
       (frameset--set-id frame)
-      (let* ((mb-frame (window-frame (minibuffer-window frame)))
-	     (id (and mb-frame (frameset-frame-id mb-frame))))
-	(if (null id)
-	    (error "Minibuffer frame %S for %S is not being saved" mb-frame frame)
-	  ;; For minibufferless frames, frameset--mini is a cons
-	  ;; (nil . FRAME-ID), where FRAME-ID is the frameset--id
-	  ;; of the frame containing its minibuffer window.
-	  (set-frame-parameter frame
-			       'frameset--mini
-			       (cons nil id)))))))
+      (let ((mb-frame (window-frame (minibuffer-window frame))))
+	;; For minibufferless frames, frameset--mini is a cons
+	;; (nil . FRAME-ID), where FRAME-ID is the frameset--id of
+	;; the frame containing its minibuffer window.
+	;; FRAME-ID can be set to nil, if FRAME-LIST doesn't contain
+	;; the minibuffer frame of a minibufferless frame; we allow
+	;; it without trying to second-guess the user.
+	(set-frame-parameter frame
+			     'frameset--mini
+			     (cons nil
+				   (and mb-frame
+					(frameset-frame-id mb-frame))))))))
 
 ;;;###autoload
 (cl-defun frameset-save (frame-list
@@ -909,10 +918,12 @@ is the parameter alist of the frame being restored.  Internal use only."
 	   (setq frame (frameset--find-frame-if
 			(lambda (f id mini-id)
 			  (and (frameset-frame-id-equal-p f id)
-			       (frameset-frame-id-equal-p (window-frame
-							   (minibuffer-window f))
-							  mini-id)))
-			display (cdr (assq 'frameset--id parameters)) (cdr mini))))
+			       (or (null mini-id) ; minibuffer frame not saved
+				   (frameset-frame-id-equal-p
+				    (window-frame (minibuffer-window f))
+				    mini-id))))
+			display
+			(cdr (assq 'frameset--id parameters)) (cdr mini))))
 	  (t
 	   ;; Default to just finding a frame in the same display.
 	   (setq frame (frameset--find-frame-if nil display))))
@@ -1007,7 +1018,7 @@ Internal use only."
     (cond ((eq id-def1 t) t)
 	  ((eq id-def2 t) nil)
 	  ((not (eq hasmini1 hasmini2)) (eq hasmini1 t))
-	  ((eq hasmini1 nil) (string< id-def1 id-def2))
+	  ((eq hasmini1 nil) (or id-def1 id-def2))
 	  (t t))))
 
 (defun frameset-keep-original-display-p (force-display)
@@ -1098,7 +1109,7 @@ All keyword parameters default to nil."
 	  (condition-case-unless-debug err
 	      (let* ((d-mini (cdr (assq 'frameset--mini frame-cfg)))
 		     (mb-id (cdr d-mini))
-		     (default (and (booleanp mb-id) mb-id))
+		     (default (and (car d-mini) mb-id))
 		     (force-display (if (functionp force-display)
 					(funcall force-display frame-cfg window-cfg)
 				      force-display))
@@ -1142,16 +1153,22 @@ All keyword parameters default to nil."
 		      (setq frame-cfg (append '((tool-bar-lines . 0) (menu-bar-lines . 0))
 					      frame-cfg))))
 		   (t ;; Frame depends on other frame's minibuffer window.
-		    (let* ((mb-frame (or (frameset-frame-with-id mb-id)
-					 (error "Minibuffer frame %S not found" mb-id)))
-			   (mb-param (assq 'minibuffer frame-cfg))
-			   (mb-window (minibuffer-window mb-frame)))
-		      (unless (and (window-live-p mb-window)
-				   (window-minibuffer-p mb-window))
-			(error "Not a minibuffer window %s" mb-window))
-		      (if mb-param
-			  (setcdr mb-param mb-window)
-			(push (cons 'minibuffer mb-window) frame-cfg)))))
+		    (when mb-id
+		      (let ((mb-frame (frameset-frame-with-id mb-id))
+			    (mb-window nil))
+			(if (not mb-frame)
+			    (delay-warning 'frameset
+					   (format "Minibuffer frame %S not found" mb-id)
+					   :warning)
+			  (setq mb-window (minibuffer-window mb-frame))
+			  (unless (and (window-live-p mb-window)
+				       (window-minibuffer-p mb-window))
+			    (delay-warning 'frameset
+					   (format "Not a minibuffer window %s" mb-window)
+					   :warning)
+			    (setq mb-window nil)))
+			(when mb-window
+			  (push (cons 'minibuffer mb-window) frame-cfg))))))
 		  ;; OK, we're ready at last to create (or reuse) a frame and
 		  ;; restore the window config.
 		  (setq frame (frameset--restore-frame frame-cfg window-cfg
