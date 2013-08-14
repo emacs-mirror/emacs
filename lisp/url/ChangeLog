@@ -1,3 +1,8 @@
+2013-08-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-parse-headers): Always place point at the
+	start of the buffer instead of just 80% of the time.
+
 2013-08-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-handle-content-transfer-encoding): Renamed

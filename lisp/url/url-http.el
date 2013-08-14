@@ -855,6 +855,7 @@ should be shown to the user."
       (url-handle-content-transfer-encoding))
     (url-http-debug "Finished parsing HTTP headers: %S" success)
     (widen)
+    (goto-char (point-min))
     success))
 
 (defun url-handle-content-transfer-encoding ()
