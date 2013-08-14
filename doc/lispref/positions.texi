@@ -805,7 +805,7 @@ thousands of times in the Lisp sources of Emacs.
 buffer, use @code{save-current-buffer} or @code{with-current-buffer}
 instead (@pxref{Current Buffer}).  If you need to save or restore
 window configurations, see the forms described in @ref{Window
-Configurations} and in @ref{Frame Configurations}.
+Configurations} and in @ref{Frame Configurations}. @c frameset?
 
 @defspec save-excursion body@dots{}
 @cindex mark excursion

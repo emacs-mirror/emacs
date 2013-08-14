@@ -6,6 +6,10 @@
 
 	* decompress.c (unwind_decompress): Always restore point.
 
+2013-08-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* marker.c (set_marker): Reformat documentation.
+
 2013-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (cursor_type_changed): Now static.
