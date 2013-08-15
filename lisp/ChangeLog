@@ -1,3 +1,54 @@
+2013-08-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Remove byte compiler warnings, visible when compiling with
+	`byte-compile-force-lexical-warnings' set to t.
+
+	* net/tramp.el (tramp-debug-message, tramp-message, tramp-error)
+	(tramp-error-with-buffer): Rename ARGS to ARGUMENTS and BUFFER to BUF.
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-handle-file-notify-add-watch, tramp-action-login)
+	(tramp-action-succeed, tramp-action-permission-denied)
+	(tramp-action-terminal, tramp-action-process-alive): Prefix unused
+	arguments with "_".
+
+	* net/tramp-adb.el (tramp-adb-parse-device-names)
+	(tramp-adb-handle-insert-directory, tramp-adb-handle-delete-file)
+	(tramp-adb-handle-copy-file): Prefix unused arguments with "_".
+	(tramp-adb-handle-file-truename): Remove unused arguments.
+
+	* net/tramp-cache.el (tramp-flush-directory-property)
+	(tramp-flush-connection-property, tramp-list-connections)
+	(tramp-parse-connection-properties): Prefix unused arguments with "_".
+
+	* net/tramp-compat.el (tramp-compat-make-temp-file): Rename
+	FILENAME to F.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-file-notify-add-watch)
+	(tramp-gvfs-handle-write-region, tramp-bluez-parse-device-names)
+	(tramp-zeroconf-parse-workstation-device-names)
+	(tramp-zeroconf-parse-webdav-device-names)
+	(tramp-synce-parse-device-names): Prefix unused arguments with "_".
+
+	* net/tramp-gw.el (tramp-gw-gw-proc-sentinel)
+	(tramp-gw-aux-proc-sentinel): Prefix unused arguments with "_".
+
+	* net/tramp-sh.el (tramp-sh-handle-file-truename): Remove unused
+	arguments.
+	(tramp-sh-handle-copy-file, tramp-sh-handle-dired-compress-file)
+	(tramp-sh-handle-insert-file-contents-literally)
+	(tramp-sh-handle-file-notify-add-watch): Prefix unused arguments
+	with "_".
+	(tramp-do-copy-or-rename-file, tramp-barf-if-no-shell-prompt):
+	Remove unused variables.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-copy-file, tramp-smb-handle-delete-file)
+	(tramp-smb-read-file-entry): Prefix unused arguments with "_".
+
+	* net/tramp-uu.el (tramp-uu-b64-alphabet, tramp-uu-b64-char-to-byte):
+	Make them a defconst.
+	(tramp-uuencode-region): Remove unused variable.
+
 2013-08-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frameset.el (frameset--prop-setter): New function.

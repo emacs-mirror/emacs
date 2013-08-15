@@ -355,7 +355,7 @@ pass to the OPERATION."
 	(throw 'tramp-action 'ok)))))
 
 (defun tramp-smb-handle-copy-directory
-  (dirname newname &optional keep-date parents copy-contents)
+  (dirname newname &optional keep-date parents _copy-contents)
   "Like `copy-directory' for Tramp files."
   (setq dirname (expand-file-name dirname)
 	newname (expand-file-name newname))
@@ -492,7 +492,7 @@ pass to the OPERATION."
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-extended-attributes)
+	    _preserve-uid-gid _preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
 PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
@@ -571,7 +571,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (tramp-error
 	   v 'file-error "%s `%s'" (match-string 0) directory))))))
 
-(defun tramp-smb-handle-delete-file (filename &optional trash)
+(defun tramp-smb-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (when (file-exists-p filename)
@@ -1497,7 +1497,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 		    "%s%s"
 		    (if (string-match "D" mode) "d" "-")
 		    (mapconcat
-		     (lambda (x) "") "    "
+		     (lambda (_x) "") "    "
 		     (concat "r" (if (string-match "R" mode) "-" "w") "x"))))
 	     line (substring line 0 -6))
 	  (return))

@@ -1417,10 +1417,10 @@ The outline level is equal to the verbosity of the Tramp message."
       (set (make-local-variable 'outline-level) 'tramp-debug-outline-level))
     (current-buffer)))
 
-(defsubst tramp-debug-message (vec fmt-string &rest args)
+(defsubst tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer.
 Message is formatted with FMT-STRING as control string and the remaining
-ARGS to actually emit the message (if applicable)."
+ARGUMENTS to actually emit the message (if applicable)."
   (when (get-buffer (tramp-buffer-name vec))
     (with-current-buffer (tramp-get-debug-buffer vec)
       (goto-char (point-max))
@@ -1480,14 +1480,14 @@ ARGS to actually emit the message (if applicable)."
 ;	      (1+ (count-lines (point-min) (cdr ffn)))))))
 	(insert (format "%s " fn)))
       ;; The message.
-      (insert (apply 'format fmt-string args)))))
+      (insert (apply 'format fmt-string arguments)))))
 
 (defvar tramp-message-show-message t
   "Show Tramp message in the minibuffer.
 This variable is used to disable messages from `tramp-error'.
 The messages are visible anyway, because an error is raised.")
 
-(defsubst tramp-message (vec-or-proc level fmt-string &rest args)
+(defsubst tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
 vector or a process.  LEVEL says to be quiet if `tramp-verbose' is
@@ -1498,7 +1498,7 @@ The message is also logged into the debug buffer when `tramp-verbose'
 is greater than or equal 4.
 
 Calls functions `message' and `tramp-debug-message' with FMT-STRING as
-control string and the remaining ARGS to actually emit the message (if
+control string and the remaining ARGUMENTS to actually emit the message (if
 applicable)."
   (ignore-errors
     (when (<= level tramp-verbose)
@@ -1514,7 +1514,7 @@ applicable)."
 		   ((= level 2) "Warning: ")
 		   (t           "Tramp: "))
 		  fmt-string)
-		 args))
+		 arguments))
 	;; Log only when there is a minimum level.
 	(when (>= tramp-verbose 4)
 	  (when (and vec-or-proc
@@ -1527,17 +1527,17 @@ applicable)."
 	    (apply 'tramp-debug-message
 		   vec-or-proc
 		   (concat (format "(%d) # " level) fmt-string)
-		   args)))))))
+		   arguments)))))))
 
 (defsubst tramp-backtrace (vec-or-proc)
   "Dump a backtrace into the debug buffer.
 This function is meant for debugging purposes."
   (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))
 
-(defsubst tramp-error (vec-or-proc signal fmt-string &rest args)
+(defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
-signal identifier to be raised, remaining args passed to
+signal identifier to be raised, remaining arguments passed to
 `tramp-message'.  Finally, signal SIGNAL is raised."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
@@ -1546,16 +1546,16 @@ signal identifier to be raised, remaining args passed to
      (error-message-string
       (list signal
 	    (get signal 'error-message)
-	    (apply 'format fmt-string args))))
-    (signal signal (list (apply 'format fmt-string args)))))
+	    (apply 'format fmt-string arguments))))
+    (signal signal (list (apply 'format fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
-  (buffer vec-or-proc signal fmt-string &rest args)
-  "Emit an error, and show BUFFER.
-If BUFFER is nil, show the connection buffer.  Wait for 30\", or until
+  (buf vec-or-proc signal fmt-string &rest arguments)
+  "Emit an error, and show BUF.
+If BUF is nil, show the connection buf.  Wait for 30\", or until
 an input event arrives.  The other arguments are passed to `tramp-error'."
   (save-window-excursion
-    (let* ((buf (or (and (bufferp buffer) buffer)
+    (let* ((buf (or (and (bufferp buf) buf)
 		    (and (processp vec-or-proc) (process-buffer vec-or-proc))
 		    (and (vectorp vec-or-proc)
 			 (tramp-get-connection-buffer vec-or-proc))))
@@ -1563,7 +1563,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 		    (and buf (with-current-buffer buf
 			       (tramp-dissect-file-name default-directory))))))
       (unwind-protect
-	  (apply 'tramp-error vec-or-proc signal fmt-string args)
+	  (apply 'tramp-error vec-or-proc signal fmt-string arguments)
 	;; Save exit.
 	(when (and buf
 		   tramp-message-show-message
@@ -1572,7 +1572,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	  (let ((enable-recursive-minibuffers t))
 	    ;; `tramp-error' does not show messages.  So we must do it
 	    ;; ourselves.
-	    (message fmt-string args)
+	    (message fmt-string arguments)
 	    ;; Show buffer.
 	    (pop-to-buffer buf)
 	    (discard-input)
@@ -3281,7 +3281,7 @@ beginning of local filename are not substituted."
 	  (setq filename (concat filename "/"))))
       (tramp-run-real-handler 'substitute-in-file-name (list filename)))))
 
-(defun tramp-handle-unhandled-file-name-directory (filename)
+(defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
   ;; With Emacs 23, we could simply return `nil'.  But we must keep it
   ;; for backward compatibility.
@@ -3341,7 +3341,7 @@ of."
 	     ;; only if that agrees with the buffer's record.
 	     (t (equal mt '(-1 65535))))))))))
 
-(defun tramp-handle-file-notify-add-watch (filename flags callback)
+(defun tramp-handle-file-notify-add-watch (filename _flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   ;; This is the default handler.  tramp-gvfs.el and tramp-sh.el have
   ;; its own one.
@@ -3365,7 +3365,7 @@ of."
 ;; prompts from the remote host.  See the variable
 ;; `tramp-actions-before-shell' for usage of these functions.
 
-(defun tramp-action-login (proc vec)
+(defun tramp-action-login (_proc vec)
   "Send the login name."
   (when (not (stringp tramp-current-user))
     (setq tramp-current-user
@@ -3392,11 +3392,11 @@ of."
       ;; Hide password prompt.
       (narrow-to-region (point-max) (point-max)))))
 
-(defun tramp-action-succeed (proc vec)
+(defun tramp-action-succeed (_proc _vec)
   "Signal success in finding shell prompt."
   (throw 'tramp-action 'ok))
 
-(defun tramp-action-permission-denied (proc vec)
+(defun tramp-action-permission-denied (proc _vec)
   "Signal permission denied."
   (kill-process proc)
   (throw 'tramp-action 'permission-denied))
@@ -3429,7 +3429,7 @@ See also `tramp-action-yesno'."
 	(tramp-message vec 6 "\n%s" (buffer-string)))
       (tramp-send-string vec (concat "y" tramp-local-end-of-line)))))
 
-(defun tramp-action-terminal (proc vec)
+(defun tramp-action-terminal (_proc vec)
   "Tell the remote host which terminal type to use.
 The terminal type can be configured with `tramp-terminal-type'."
   (tramp-message vec 5 "Setting `%s' as terminal type." tramp-terminal-type)
@@ -3437,7 +3437,7 @@ The terminal type can be configured with `tramp-terminal-type'."
     (tramp-message vec 6 "\n%s" (buffer-string)))
   (tramp-send-string vec (concat tramp-terminal-type tramp-local-end-of-line)))
 
-(defun tramp-action-process-alive (proc vec)
+(defun tramp-action-process-alive (proc _vec)
   "Check, whether a process has finished."
   (unless (memq (process-status proc) '(run open))
     (throw 'tramp-action 'process-died)))

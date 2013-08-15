@@ -96,7 +96,7 @@
 (defvar tramp-gw-aux-proc nil
   "Process listening on local port, as mediation between SSH and the gateway.")
 
-(defun tramp-gw-gw-proc-sentinel (proc event)
+(defun tramp-gw-gw-proc-sentinel (proc _event)
   "Delete auxiliary process when we are deleted."
   (unless (memq (process-status proc) '(run open))
     (tramp-message
@@ -105,7 +105,7 @@
 	   (p (tramp-get-connection-property proc "process" nil)))
       (when (processp p) (delete-process p)))))
 
-(defun tramp-gw-aux-proc-sentinel (proc event)
+(defun tramp-gw-aux-proc-sentinel (proc _event)
   "Activate the different filters for involved gateway and auxiliary processes."
   (when (memq (process-status proc) '(run open))
     ;; A new process has been spawned from `tramp-gw-aux-proc'.

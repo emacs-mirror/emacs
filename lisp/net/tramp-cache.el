@@ -187,7 +187,7 @@ Remove also properties of all files in subdirectories."
 		    'directory-file-name (list directory))))
     (tramp-message key 8 "%s" directory)
     (maphash
-     (lambda (key value)
+     (lambda (key _value)
        (when (and (stringp (tramp-file-name-localname key))
 		  (string-match directory (tramp-file-name-localname key)))
 	 (remhash key tramp-cache-data)))
@@ -273,7 +273,7 @@ KEY identifies the connection, it is either a process or a vector."
    (let ((hash (gethash key tramp-cache-data))
 	 properties)
      (when (hash-table-p hash)
-       (maphash (lambda (x y) (add-to-list 'properties x 'append)) hash))
+       (maphash (lambda (x _y) (add-to-list 'properties x 'append)) hash))
      properties))
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
@@ -304,7 +304,7 @@ KEY identifies the connection, it is either a process or a vector."
   "Return a list of all known connection vectors according to `tramp-cache'."
     (let (result)
       (maphash
-       (lambda (key value)
+       (lambda (key _value)
 	 (when (and (vectorp key) (null (aref key 3)))
 	   (add-to-list 'result key)))
        tramp-cache-data)
@@ -368,7 +368,7 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
   (let (res)
     (maphash
-     (lambda (key value)
+     (lambda (key _value)
        (if (and (vectorp key)
 		(string-equal method (tramp-file-name-method key))
 		(not (tramp-file-name-localname key)))

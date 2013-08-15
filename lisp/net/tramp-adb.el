@@ -174,7 +174,7 @@ pass to the OPERATION."
       (tramp-run-real-handler operation args))))
 
 ;;;###tramp-autoload
-(defun tramp-adb-parse-device-names (ignore)
+(defun tramp-adb-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (with-timeout (10)
     (with-temp-buffer
@@ -224,7 +224,7 @@ pass to the OPERATION."
 
 ;; This is derived from `tramp-sh-handle-file-truename'.  Maybe the
 ;; code could be shared?
-(defun tramp-adb-handle-file-truename (filename &optional counter prev-dirs)
+(defun tramp-adb-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-truename"
@@ -416,7 +416,7 @@ Convert (\"-al\") to (\"-a\" \"-l\").  Remove arguments like \"--dired\"."
 			 switches))))))
 
 (defun tramp-adb-handle-insert-directory
-  (filename switches &optional wildcard full-directory-p)
+  (filename switches &optional _wildcard _full-directory-p)
   "Like `insert-directory' for Tramp files."
   (when (stringp switches)
     (setq switches (tramp-adb--gnu-switches-to-ash (split-string switches))))
@@ -518,7 +518,7 @@ Emacs dired can't find files."
 	       (tramp-shell-quote-argument localname))
      "Couldn't delete %s" directory)))
 
-(defun tramp-adb-handle-delete-file (filename &optional trash)
+(defun tramp-adb-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
@@ -651,7 +651,7 @@ But handle the case, if the \"test\" command is not available."
 
 (defun tramp-adb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
-	    preserve-uid-gid preserve-extended-attributes)
+	    _preserve-uid-gid _preserve-extended-attributes)
   "Like `copy-file' for Tramp files.
 PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)

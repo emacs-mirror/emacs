@@ -923,7 +923,7 @@ is no information where to trace the message.")
             v (concat localname filename)
 	    "file-name-all-completions" result))))))))
 
-(defun tramp-gvfs-handle-file-notify-add-watch (file-name flags callback)
+(defun tramp-gvfs-handle-file-notify-add-watch (file-name _flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
@@ -1093,7 +1093,7 @@ is no information where to trace the message.")
 	  (tramp-flush-file-property v localname))))))
 
 (defun tramp-gvfs-handle-write-region
-  (start end filename &optional append visit lockname confirm)
+  (start end filename &optional _append visit _lockname confirm)
   "Like `write-region' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
@@ -1653,7 +1653,7 @@ be used."
  :system nil nil tramp-bluez-interface-adapter "DeviceFound"
  'tramp-bluez-device-found)
 
-(defun tramp-bluez-parse-device-names (ignore)
+(defun tramp-bluez-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (mapcar
    (lambda (x) (list nil (car x)))
@@ -1667,14 +1667,14 @@ be used."
 
 ;; D-Bus zeroconf functions.
 
-(defun tramp-zeroconf-parse-workstation-device-names (ignore)
+(defun tramp-zeroconf-parse-workstation-device-names (_ignore)
   "Return a list of (user host) tuples allowed to access."
   (mapcar
    (lambda (x)
      (list nil (zeroconf-service-host x)))
    (zeroconf-list-services "_workstation._tcp")))
 
-(defun tramp-zeroconf-parse-webdav-device-names (ignore)
+(defun tramp-zeroconf-parse-webdav-device-names (_ignore)
   "Return a list of (user host) tuples allowed to access."
   (mapcar
    (lambda (x)
@@ -1724,7 +1724,7 @@ They are retrieved from the hal daemon."
     (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
     tramp-synce-devices))
 
-(defun tramp-synce-parse-device-names (ignore)
+(defun tramp-synce-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (mapcar
    (lambda (x) (list nil x))

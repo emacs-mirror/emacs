@@ -238,14 +238,14 @@ this is the function `temp-directory'."
 ;; `make-temp-file' exists in Emacs only.  On XEmacs, we use our own
 ;; implementation with `make-temp-name', creating the temporary file
 ;; immediately in order to avoid a security hole.
-(defsubst tramp-compat-make-temp-file (filename &optional dir-flag)
+(defsubst tramp-compat-make-temp-file (f &optional dir-flag)
   "Create a temporary file (compat function).
-Add the extension of FILENAME, if existing."
+Add the extension of F, if existing."
   (let* (file-name-handler-alist
 	 (prefix (expand-file-name
 		  (symbol-value 'tramp-temp-name-prefix)
 		  (tramp-compat-temporary-file-directory)))
-	 (extension (file-name-extension filename t))
+	 (extension (file-name-extension f t))
 	 result)
     (condition-case nil
 	(setq result
