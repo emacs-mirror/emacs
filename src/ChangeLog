@@ -2,6 +2,8 @@
 
 	* image.c (imagemagick_compute_animated_image): Animate correctly
 	when sub-images are smaller than the main image.
+	(imagemagick_compute_animated_image): Setting the iterator row to
+	zero is apparently not allowed.
 
 2013-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 

@@ -7945,7 +7945,8 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 
       /* The sub-image may not start at origo, so move the destination
 	 iterator to where the sub-image should start. */
-      PixelSetIteratorRow (dest_iterator, source_top);
+      if (source_top > 0)
+	PixelSetIteratorRow (dest_iterator, source_top);
 
       while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
 	     != NULL)
