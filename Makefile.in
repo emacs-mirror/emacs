@@ -543,6 +543,11 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## deleted the entire installed etc/ directory and recreated it.
 ## install-etcdoc installs the relevant DOC.
 
+## Note that we install etc/refcards/*.ps if present.
+## TODO we should compress these if GZIP_PROG is set.
+## It would be simpler to have a separate install rule for etc/refcards
+## (maybe move it to doc/refcards?).
+
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
@@ -578,7 +583,12 @@ install-arch-indep: lisp leim install-info install-man ${INSTALL_ARCH_INDEP_EXTR
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd $${dest}; umask 022; \
 	       tar -xvf - && cat > /dev/null) || exit 1; \
-	  [ "$${dir}" != "${srcdir}/etc" ] || rm -f $${dest}/DOC* ; \
+	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
+	      rm -f $${dest}/DOC* ; \
+	      rm -f $${dest}/refcards/*.aux $${dest}/refcards/*.dvi; \
+	      rm -f $${dest}/refcards/*.log; \
+	  else true; \
+	  fi; \
 	  for subdir in `find $${dest} -type d -print` ; do \
 	    chmod a+rx $${subdir} ; \
 	    rm -f $${subdir}/.gitignore ; \

@@ -80,6 +80,7 @@ doc/**/*.ps
 !doc/lispintro/drawers.pdf
 !doc/lispintro/lambda-*.pdf
 etc/emacs.tmpdesktop
+!etc/refcards/Makefile
 etc/refcards/*.aux
 etc/refcards/*.log
 info/*.info

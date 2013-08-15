@@ -476,6 +476,9 @@ echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do
   case $f in
     etc/DOC*|etc/*.pyc) continue ;;
+    ## Arguably we should not exclude *.ps.
+    etc/refcards/*.aux|etc/refcards/*.dvi|etc/refcards/*.log|etc/refcards/*.ps)
+      continue ;;
   esac
   ln $f $tempdir/$f
 done

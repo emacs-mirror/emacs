@@ -1,3 +1,9 @@
+2013-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Do not distribute etc/refcards TeX intermediate files.
+	* Makefile.in (install-arch-indep):
+	Do not install etc/refcards TeX intermediate files.
+
 2013-08-14  Ulrich Müller  <ulm@gentoo.org>
 
 	* configure.ac (EMACS_CONFIGURATION): Escape backslashes.  (Bug#15091)

@@ -1,3 +1,9 @@
+2013-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile: Rewrite to use portable Makefile syntax.
+	Add language-specific targets.
+	(distclean, extraclean): New rules.
+
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/Makefile (all_pdf, all_ps, fr-survival.ps, dist):
