@@ -1,3 +1,8 @@
+2013-08-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_compute_animated_image): Animate correctly
+	when sub-images are smaller than the main image.
+
 2013-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (menuWillOpen:): Fix preprocessor test (Bug#15001).

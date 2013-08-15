@@ -7879,6 +7879,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 {
   int i;
   MagickWand *composite_wand;
+  size_t dest_width, dest_height;
 
   MagickSetIteratorIndex (super_wand, 0);
 
@@ -7887,17 +7888,35 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
   else
     composite_wand = animation_cache;
 
+  dest_width = MagickGetImageWidth (composite_wand);
+  dest_height = MagickGetImageHeight (composite_wand);
+
   for (i = max (1, animation_index + 1); i <= ino; i++)
     {
       MagickWand *sub_wand;
       PixelIterator *source_iterator, *dest_iterator;
       PixelWand **source, **dest;
-      size_t source_width, dest_width;
+      size_t source_width, source_height;
+      ssize_t source_left, source_top;
       MagickPixelPacket pixel;
       DisposeType dispose;
 
       MagickSetIteratorIndex (super_wand, i);
       sub_wand = MagickGetImage (super_wand);
+
+      MagickGetImagePage (sub_wand, &source_width, &source_height,
+			  &source_left, &source_top);
+
+      /* Sanity check.  The sub-image should not be bigger than the
+	 base image.  */
+      if (source_height + source_top > dest_height)
+	{
+	  DestroyMagickWand (composite_wand);
+	  DestroyMagickWand (sub_wand);
+	  animation_cache = NULL;
+	  image_error ("Inconsinstent animation size", Qnil, Qnil);
+	  return NULL;
+	}
 
       dispose = MagickGetImageDispose (sub_wand);
 
@@ -7906,6 +7925,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	{
 	  DestroyMagickWand (composite_wand);
 	  DestroyMagickWand (sub_wand);
+	  animation_cache = NULL;
 	  image_error ("Imagemagick pixel iterator creation failed",
 		       Qnil, Qnil);
 	  return NULL;
@@ -7917,10 +7937,15 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  DestroyMagickWand (composite_wand);
 	  DestroyMagickWand (sub_wand);
 	  DestroyPixelIterator (source_iterator);
+	  animation_cache = NULL;
 	  image_error ("Imagemagick pixel iterator creation failed",
 		       Qnil, Qnil);
 	  return NULL;
 	}
+
+      /* The sub-image may not start at origo, so move the destination
+	 iterator to where the sub-image should start. */
+      PixelSetIteratorRow (dest_iterator, source_top);
 
       while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
 	     != NULL)
@@ -7929,6 +7954,10 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
 	  for (x = 0; x < source_width; x++)
 	    {
+	      /* Sanity check.  This shouldn't happen, but apparently
+		 does in some pictures.  */
+	      if (x + source_left > dest_width)
+		break;
 	      /* Normally we only copy over non-transparent pixels,
 		 but if the disposal method is "Background", then we
 		 copy over all pixels.  */
@@ -7936,7 +7965,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 		  PixelGetAlpha (source[x]))
 		{
 		  PixelGetMagickColor (source[x], &pixel);
-		  PixelSetMagickColor (dest[x], &pixel);
+		  PixelSetMagickColor (dest[x + source_left], &pixel);
 		}
 	    }
 	  PixelSyncIterator(dest_iterator);
