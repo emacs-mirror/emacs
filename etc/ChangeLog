@@ -1,5 +1,15 @@
 2013-08-15  Glenn Morris  <rgm@gnu.org>
 
+	* refcards/calccard.pdf, refcards/cs-dired-ref.pdf:
+	* refcards/cs-refcard.pdf, refcards/de-refcard.pdf:
+	* refcards/dired-ref.pdf, refcards/fr-dired-ref.pdf:
+	* refcards/fr-refcard.pdf, refcards/gnus-booklet.pdf:
+	* refcards/gnus-refcard.pdf, refcards/orgcard.pdf:
+	* refcards/pl-refcard.pdf, refcards/pt-br-refcard.pdf:
+	* refcards/refcard.pdf, refcards/ru-refcard.pdf:
+	* refcards/sk-dired-ref.pdf, refcards/sk-refcard.pdf:
+	Remove generated files from repository.
+
 	* refcards/Makefile: Rewrite to use portable Makefile syntax.
 	Add language-specific targets.
 	(distclean, extraclean): New rules.

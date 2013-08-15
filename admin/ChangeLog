@@ -1,3 +1,7 @@
+2013-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* make-tarball.txt: Mention generating pdfs in etc/refcards.
+
 2013-08-15  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* notes/hydra: More information about Hydra.

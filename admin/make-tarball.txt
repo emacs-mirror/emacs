@@ -61,6 +61,9 @@ General steps (for each step, check for possible errors):
 5.   autoreconf -i -I m4 --force
      make bootstrap
 
+     make -C etc/refcards
+     make -C etc/refcards clean
+
 6.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
     Commit etc/AUTHORS, lisp/ldefs-boot.el, and the files changed
