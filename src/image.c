@@ -7900,23 +7900,13 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
       ssize_t source_left, source_top;
       MagickPixelPacket pixel;
       DisposeType dispose;
+      ptrdiff_t lines = 0;
 
       MagickSetIteratorIndex (super_wand, i);
       sub_wand = MagickGetImage (super_wand);
 
       MagickGetImagePage (sub_wand, &source_width, &source_height,
 			  &source_left, &source_top);
-
-      /* Sanity check.  The sub-image should not be bigger than the
-	 base image.  */
-      if (source_height + source_top > dest_height)
-	{
-	  DestroyMagickWand (composite_wand);
-	  DestroyMagickWand (sub_wand);
-	  animation_cache = NULL;
-	  image_error ("Inconsinstent animation size", Qnil, Qnil);
-	  return NULL;
-	}
 
       dispose = MagickGetImageDispose (sub_wand);
 
@@ -7946,17 +7936,26 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
       /* The sub-image may not start at origo, so move the destination
 	 iterator to where the sub-image should start. */
       if (source_top > 0)
-	PixelSetIteratorRow (dest_iterator, source_top);
+	{
+	  PixelSetIteratorRow (dest_iterator, source_top);
+	  lines = source_top;
+	}
 
       while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
 	     != NULL)
 	{
 	  ptrdiff_t x;
+
+	  /* Sanity check.  This shouldn't happen, but apparently
+	     does in some pictures.  */
+	  if (++lines >= dest_height)
+	    break;
+
 	  dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
 	  for (x = 0; x < source_width; x++)
 	    {
 	      /* Sanity check.  This shouldn't happen, but apparently
-		 does in some pictures.  */
+		 also does in some pictures.  */
 	      if (x + source_left > dest_width)
 		break;
 	      /* Normally we only copy over non-transparent pixels,

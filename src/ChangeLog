@@ -4,6 +4,9 @@
 	when sub-images are smaller than the main image.
 	(imagemagick_compute_animated_image): Setting the iterator row to
 	zero is apparently not allowed.
+	(imagemagick_compute_animated_image): Allow images that say they
+	have sub-images that are bigger than the main image, but just crop
+	them.
 
 2013-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
