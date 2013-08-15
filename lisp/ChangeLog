@@ -1,3 +1,10 @@
+2013-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Put point on the
+	previous line (bug#15101).
+	(debugger-eval-expression, debugger-record-expression):
+	Use read--expression (bug#15102).
+
 2013-08-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	Remove byte compiler warnings, visible when compiling with
@@ -20,8 +27,8 @@
 	(tramp-flush-connection-property, tramp-list-connections)
 	(tramp-parse-connection-properties): Prefix unused arguments with "_".
 
-	* net/tramp-compat.el (tramp-compat-make-temp-file): Rename
-	FILENAME to F.
+	* net/tramp-compat.el (tramp-compat-make-temp-file):
+	Rename FILENAME to F.
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-file-notify-add-watch)
 	(tramp-gvfs-handle-write-region, tramp-bluez-parse-device-names)

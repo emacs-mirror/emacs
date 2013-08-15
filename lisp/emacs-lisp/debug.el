@@ -288,33 +288,41 @@ That buffer should be current already."
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
   ;; debug is for debug-on-entry function called.
-  (pcase (car args)
-    ((or `lambda `debug)
-     (insert "--entering a function:\n"))
-    ;; Exiting a function.
-    (`exit
-     (insert "--returning value: ")
-     (setq debugger-value (nth 1 args))
-     (prin1 debugger-value (current-buffer))
-     (insert ?\n)
-     (delete-char 1)
-     (insert ? )
-     (beginning-of-line))
-    ;; Debugger entered for an error.
-    (`error
-     (insert "--Lisp error: ")
-     (prin1 (nth 1 args) (current-buffer))
-     (insert ?\n))
-    ;; debug-on-call, when the next thing is an eval.
-    (`t
-     (insert "--beginning evaluation of function call form:\n"))
-    ;; User calls debug directly.
-    (_
-     (insert ": ")
-     (prin1 (if (eq (car args) 'nil)
-                (cdr args) args)
-            (current-buffer))
-     (insert ?\n)))
+  (let ((pos (point)))
+    (pcase (car args)
+      ((or `lambda `debug)
+       (insert "--entering a function:\n")
+       (setq pos (1- (point))))
+      ;; Exiting a function.
+      (`exit
+       (insert "--returning value: ")
+       (setq pos (point))
+       (setq debugger-value (nth 1 args))
+       (prin1 debugger-value (current-buffer))
+       (insert ?\n)
+       (delete-char 1)
+       (insert ? )
+       (beginning-of-line))
+      ;; Debugger entered for an error.
+      (`error
+       (insert "--Lisp error: ")
+       (setq pos (point))
+       (prin1 (nth 1 args) (current-buffer))
+       (insert ?\n))
+      ;; debug-on-call, when the next thing is an eval.
+      (`t
+       (insert "--beginning evaluation of function call form:\n")
+       (setq pos (1- (point))))
+      ;; User calls debug directly.
+      (_
+       (insert ": ")
+       (setq pos (point))
+       (prin1 (if (eq (car args) 'nil)
+                  (cdr args) args)
+              (current-buffer))
+       (insert ?\n)))
+    ;; Place point on "stack frame 0" (bug#15101).
+    (goto-char pos))
   ;; After any frame that uses eval-buffer,
   ;; insert a line that states the buffer position it's reading at.
   (save-excursion
@@ -533,16 +541,15 @@ Applies to the frame whose line point is on in the backtrace."
         (progn ,@body)
       (setq debugger-outer-match-data (match-data)))))
 
-(defun debugger-eval-expression (exp)
+(defun debugger-eval-expression (exp &optional nframe)
   "Eval an expression, in an environment like that outside the debugger.
 The environment used is the one when entering the activation frame at point."
   (interactive
-   (list (read-from-minibuffer "Eval: "
-			       nil read-expression-map t
-			       'read-expression-history)))
-  (let ((nframe (condition-case nil (1+ (debugger-frame-number 'skip-base))
-                  (error 0))) ;; If on first line.
-        (base (if (eq 'debug--implement-debug-on-entry
+   (list (read--expression "Eval in stack frame: ")))
+  (let ((nframe (or nframe
+                    (condition-case nil (1+ (debugger-frame-number 'skip-base))
+                      (error 0)))) ;; If on first line.
+         (base (if (eq 'debug--implement-debug-on-entry
                       (cadr (backtrace-frame 1 'debug)))
                   'debug--implement-debug-on-entry 'debug)))
     (debugger-env-macro
@@ -651,11 +658,7 @@ Complete list of commands:
 (defun debugger-record-expression  (exp)
   "Display a variable's value and record it in `*Backtrace-record*' buffer."
   (interactive
-   (list (read-from-minibuffer
-	  "Record Eval: "
-	  nil
-	  read-expression-map t
-	  'read-expression-history)))
+   (list (read--expression "Record Eval: ")))
   (let* ((buffer (get-buffer-create debugger-record-buffer))
 	 (standard-output buffer))
     (princ (format "Debugger Eval (%s): " exp))
