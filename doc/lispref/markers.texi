@@ -387,7 +387,6 @@ This is another name for @code{set-marker}.
 @section The Mark
 @cindex mark, the
 @c @cindex the mark?
-@cindex mark ring
 
   Each buffer has a special marker, which is designated @dfn{the
 mark}.  When a buffer is newly created, this marker exists but does
@@ -426,6 +425,7 @@ the mark is active.  This is the main motivation for using Transient
 Mark mode.  (Another is that this enables highlighting of the region
 when the mark is active.  @xref{Display}.)
 
+@cindex mark ring
   In addition to the mark, each buffer has a @dfn{mark ring} which is a
 list of markers containing previous values of the mark.  When editing
 commands change the mark, they should normally save the old value of the
@@ -671,6 +671,7 @@ integer).  This is the position of either point or the mark, whichever is
 larger.
 @end defun
 
+@c FIXME: Mention it in tips.texi?
   Instead of using @code{region-beginning} and @code{region-end}, a
 command designed to operate on a region should normally use
 @code{interactive} with the @samp{r} specification to find the
@@ -683,6 +684,8 @@ mark is active, and there is a valid region in the buffer.  This
 function is intended to be used by commands that operate on the
 region, instead of on text near point, when the mark is active.
 
+@cindex empty region
+@vindex use-empty-active-region
 A region is valid if it has a non-zero size, or if the user option
 @code{use-empty-active-region} is non-@code{nil} (by default, it is
 @code{nil}).  The function @code{region-active-p} is similar to
