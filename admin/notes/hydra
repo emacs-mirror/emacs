@@ -16,8 +16,10 @@ x86_64-darwin
 x86_64-linux
 
 * Mail notifications
-Hydra sends notifications about build breakages in Emacs trunk to
-emacs-buildstatus@gnu.org.
+In addition to the web interface, Hydra can send notifications by
+email when the build status of a project changes—e.g., from
+`SUCCEEDED' to `FAILED'.  It sends notifications about build status in
+Emacs trunk to emacs-buildstatus@gnu.org.
 
 If you want to receive these notifications, please subscribe at
 http://lists.gnu.org/mailman/listinfo/emacs-buildstatus
@@ -30,15 +32,23 @@ some autoconf/-make or bootstrap script.
 
 ** The `build' job
 which gets the result of the tarball job as input, together with
-system identifier, this job basically does a normal make, make check,
-make install.
+system identifier, this job basically does a normal make and make install.
 
 ** The 'coverage' job
 is now running `make check'.
 
-* Other GNU packages
+* Nix expressions
+The recipe for GNU Emacs are available via Git:
+http://git.savannah.gnu.org/cgit/hydra-recipes.git/tree/emacs
+
+To modify the build job, email the patch to hydra-users@gnu.org.  The
+build recipes are written in the Nix language.
+
+* Other Information
 For a list of other GNU packages that have a continuous build on
 Hydra, see http://hydra.nixos.org/project/gnu
+
+See http://www.gnu.org/software/devel.html#Hydra for more information.
 
 
 This file is part of GNU Emacs.
