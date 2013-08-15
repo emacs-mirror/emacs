@@ -7929,19 +7929,14 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
 	  for (x = 0; x < source_width; x++)
 	    {
-	      if (dispose == BackgroundDispose)
+	      /* Normally we only copy over non-transparent pixels,
+		 but if the disposal method is "Background", then we
+		 copy over all pixels.  */
+	      if (dispose == BackgroundDispose ||
+		  PixelGetAlpha (source[x]))
 		{
 		  PixelGetMagickColor (source[x], &pixel);
 		  PixelSetMagickColor (dest[x], &pixel);
-		}
-	      else
-		{
-		  /* Copy over non-transparent pixels. */
-		  if (PixelGetAlpha (source[x]))
-		    {
-		      PixelGetMagickColor (source[x], &pixel);
-		      PixelSetMagickColor (dest[x], &pixel);
-		    }
 		}
 	    }
 	  PixelSyncIterator(dest_iterator);
