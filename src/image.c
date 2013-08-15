@@ -7890,7 +7890,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
     MagickWand *sub_wand;
     PixelIterator *source_iterator, *dest_iterator;
     PixelWand **source, **dest;
-    unsigned long source_width, dest_width;
+    size_t source_width, dest_width;
     MagickPixelPacket pixel;
 
     MagickSetIteratorIndex (super_wand, i);
