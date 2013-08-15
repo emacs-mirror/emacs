@@ -7968,7 +7968,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 		  PixelSetMagickColor (dest[x + source_left], &pixel);
 		}
 	    }
-	  PixelSyncIterator(dest_iterator);
+	  PixelSyncIterator (dest_iterator);
 	}
 
       DestroyPixelIterator (source_iterator);
