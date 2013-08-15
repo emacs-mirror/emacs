@@ -1,3 +1,12 @@
+2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* term.c (get_named_tty, create_tty_output, tty_free_frame_resources)
+	(tty_free_frame_resources, delete_tty): Prefer eassert to emacs_abort.
+	* image.c (make_image_cache): For struct image_cache, prefer xmalloc
+	to xzalloc and so avoid redundant call to memset.
+	* xterm.c (x_term_init): Avoid unnecessary initializations of dpyinfo
+	members because it is allocated with xzalloc and so already zeroed.
+
 2013-08-14  Ken Brown  <kbrown@cornell.edu>
 
 	* gmalloc.c (memalign) [CYGWIN]: Rename to emacs_memalign

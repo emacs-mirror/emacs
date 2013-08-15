@@ -1360,14 +1360,12 @@ static void cache_image (struct frame *f, struct image *img);
 struct image_cache *
 make_image_cache (void)
 {
-  struct image_cache *c = xzalloc (sizeof *c);
-  int size;
+  struct image_cache *c = xmalloc (sizeof *c);
 
-  size = 50;
-  c->images = xmalloc (size * sizeof *c->images);
-  c->size = size;
-  size = IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = xzalloc (size);
+  c->size = 50;
+  c->used = c->refcount = 0;
+  c->images = xmalloc (c->size * sizeof *c->images);
+  c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
   return c;
 }
 

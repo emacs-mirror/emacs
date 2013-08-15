@@ -2233,8 +2233,7 @@ get_named_tty (const char *name)
 {
   struct terminal *t;
 
-  if (!name)
-    emacs_abort ();
+  eassert (name);
 
   for (t = terminal_list; t; t = t->next_terminal)
     {
@@ -2786,8 +2785,7 @@ create_tty_output (struct frame *f)
 {
   struct tty_output *t = xzalloc (sizeof *t);
 
-  if (! FRAME_TERMCAP_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -2799,8 +2797,7 @@ create_tty_output (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  if (! FRAME_TERMCAP_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f));
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
@@ -2815,8 +2812,7 @@ tty_free_frame_resources (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  if (! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f))
-    emacs_abort ();
+  eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
 
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
@@ -3443,8 +3439,7 @@ delete_tty (struct terminal *terminal)
   if (!terminal->name)
     return;
 
-  if (terminal->type != output_termcap)
-    emacs_abort ();
+  eassert (terminal->type == output_termcap);
 
   tty = terminal->display_info.tty;
 

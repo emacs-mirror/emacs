@@ -10080,33 +10080,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   select_visual (dpyinfo);
   dpyinfo->cmap = DefaultColormapOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
-  dpyinfo->client_leader_window = 0;
-  dpyinfo->grabbed = 0;
-  dpyinfo->reference_count = 0;
   dpyinfo->icon_bitmap_id = -1;
-  dpyinfo->n_fonts = 0;
-  dpyinfo->bitmaps = 0;
-  dpyinfo->bitmaps_size = 0;
-  dpyinfo->bitmaps_last = 0;
-  dpyinfo->scratch_cursor_gc = 0;
-  hlinfo->mouse_face_mouse_frame = 0;
   hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
   hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
   hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
   hlinfo->mouse_face_window = Qnil;
   hlinfo->mouse_face_overlay = Qnil;
-  hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
-  hlinfo->mouse_face_defer = 0;
-  hlinfo->mouse_face_hidden = 0;
-  dpyinfo->x_focus_frame = 0;
-  dpyinfo->x_focus_event_frame = 0;
-  dpyinfo->x_highlight_frame = 0;
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
-  dpyinfo->red_bits = dpyinfo->blue_bits = dpyinfo->green_bits = 0;
-  dpyinfo->red_offset = dpyinfo->blue_offset = dpyinfo->green_offset = 0;
-
   if (dpyinfo->visual->class == TrueColor)
     {
       get_bits_and_offset (dpyinfo->visual->red_mask,
@@ -10267,13 +10249,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   }
 
   dpyinfo->x_dnd_atoms_size = 8;
-  dpyinfo->x_dnd_atoms_length = 0;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
-
-  dpyinfo->net_supported_atoms = NULL;
-  dpyinfo->nr_net_supported_atoms = 0;
-  dpyinfo->net_supported_window = 0;
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
