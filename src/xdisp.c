@@ -14912,7 +14912,25 @@ compute_window_start_on_continuation_line (struct window *w)
 	    {
 	      min_distance = distance;
 	      pos = it.current.pos;
-	      move_it_by_lines (&it, 1);
+	      if (it.line_wrap == WORD_WRAP)
+		{
+		  /* Under WORD_WRAP, move_it_by_lines is likely to
+		     overshoot and stop not at the first, but the
+		     second character from the left margin.  So in
+		     that case, we need a more tight control on the X
+		     coordinate of the iterator than move_it_by_lines
+		     promises in its contract.  The method is to first
+		     go to the last (rightmost) visible character of a
+		     line, then move to the leftmost character on the
+		     next line in a separate call.  */
+		  move_it_to (&it, ZV, it.last_visible_x, it.current_y, -1,
+			      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+		  move_it_to (&it, ZV, 0,
+			      it.current_y + it.max_ascent + it.max_descent, -1,
+			      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+		}
+	      else
+		move_it_by_lines (&it, 1);
 	    }
 
 	  /* Set the window start there.  */
