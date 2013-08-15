@@ -575,7 +575,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 {
   ++trackingMenu;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
   // On 10.6 we get repeated calls, only the one for NSSystemDefined is "real".
   if ([[NSApp currentEvent] type] != NSSystemDefined) return;
 #endif
