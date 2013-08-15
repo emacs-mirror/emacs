@@ -1,3 +1,8 @@
+2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix infinite frame selection loop (Bug#15025).
+	* frame.c (delete_frame): Prefer fast ad-hoc loop to next_frame.
+
 2013-08-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_window_start_on_continuation_line): When
