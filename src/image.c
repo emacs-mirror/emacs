@@ -7864,6 +7864,75 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
   return hint_buffer;
 }
 
+/* Animated images (e.g., GIF89a) are composed from one "master image"
+   (which is the first one, and then there's a number of images that
+   follow.  If following images have non-transparent colors, these are
+   composed "on top" of the master image.  So, in general, one has to
+   compute ann the preceding images to be able to display a particular
+   sub-image.  */
+
+static MagickWand *
+imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
+{
+  MagickWand *composite_wand;
+
+  MagickSetIteratorIndex (super_wand, 0);
+  composite_wand = MagickGetImage (super_wand);
+
+  for (int i = 1; i <= ino; i++) {
+    MagickWand *sub_wand;
+    PixelIterator *source_iterator, *dest_iterator;
+    PixelWand **source, **dest;
+    long source_width, dest_width;
+    MagickPixelPacket pixel;
+
+    MagickSetIteratorIndex (super_wand, i);
+    sub_wand = MagickGetImage (super_wand);
+
+    source_iterator = NewPixelIterator (sub_wand);
+    if (! source_iterator)
+      {
+	DestroyMagickWand (composite_wand);
+	DestroyMagickWand (sub_wand);
+	image_error ("Imagemagick pixel iterator creation failed",
+		     Qnil, Qnil);
+	return NULL;
+      }
+
+    dest_iterator = NewPixelIterator (composite_wand);
+    if (! dest_iterator)
+      {
+	DestroyMagickWand (composite_wand);
+	DestroyMagickWand (sub_wand);
+	DestroyPixelIterator (source_iterator);
+	image_error ("Imagemagick pixel iterator creation failed",
+		     Qnil, Qnil);
+	return NULL;
+      }
+
+    while (source = PixelGetNextIteratorRow (source_iterator, &source_width)) {
+      dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
+      for (int x = 0; x < source_width; x++)
+	{
+	  /* Copy over non-transparent pixels. */
+	  if (PixelGetAlpha (source[x]))
+	    {
+	      PixelGetMagickColor (source[x], &pixel);
+	      PixelSetMagickColor (dest[x], &pixel);
+	    }
+	}
+      PixelSyncIterator(dest_iterator);
+    }
+
+    DestroyPixelIterator (source_iterator);
+    DestroyPixelIterator (dest_iterator);
+    DestroyMagickWand (sub_wand);
+  }
+
+  return composite_wand;
+}
+
+
 /* Helper function for imagemagick_load, which does the actual loading
    given contents and size, apart from frame and image structures,
    passed from imagemagick_load.  Uses librimagemagick to do most of
@@ -7965,12 +8034,14 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   /* If we have an animated image, get the new wand based on the
      "super-wand". */
-  if (ino > 0)
+  if (MagickGetNumberImages (image_wand) > 1)
     {
       MagickWand *super_wand = image_wand;
-      MagickSetIteratorIndex (super_wand, ino);
-      image_wand = MagickGetImage (super_wand);
-      DestroyMagickWand (super_wand);
+      image_wand = imagemagick_compute_animated_image (super_wand, ino);
+      if (! image_wand)
+	image_wand = super_wand;
+      else
+	DestroyMagickWand (super_wand);
     }
 
   /* Retrieve the frame's background color, for use later.  */
