@@ -1,3 +1,7 @@
+2013-08-15  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.ac (G_SLICE_ALWAYS_MALLOC): Update comment.
+
 2013-08-15  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Do not distribute etc/refcards TeX intermediate files.

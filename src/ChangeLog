@@ -1,3 +1,9 @@
+2013-08-15  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.c (main): Update comment about G_SLICE_ALWAYS_MALLOC.
+	* gmalloc.c (memalign) [CYGWIN]: Revert last change; it's not
+	needed.
+
 2013-08-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
