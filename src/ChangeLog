@@ -1,3 +1,8 @@
+2013-08-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_compute_animated_image): Respect the GIF
+	disposal methods.
+
 2013-08-15  Ken Brown  <kbrown@cornell.edu>
 
 	* emacs.c (main): Update comment about G_SLICE_ALWAYS_MALLOC.

@@ -7887,16 +7887,19 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
   else
     composite_wand = animation_cache;
 
-  for (i = max (1, animation_index); i <= ino; i++)
+  for (i = max (1, animation_index + 1); i <= ino; i++)
     {
       MagickWand *sub_wand;
       PixelIterator *source_iterator, *dest_iterator;
       PixelWand **source, **dest;
       size_t source_width, dest_width;
       MagickPixelPacket pixel;
+      DisposeType dispose;
 
       MagickSetIteratorIndex (super_wand, i);
       sub_wand = MagickGetImage (super_wand);
+
+      dispose = MagickGetImageDispose (sub_wand);
 
       source_iterator = NewPixelIterator (sub_wand);
       if (! source_iterator)
@@ -7926,11 +7929,19 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
 	  for (x = 0; x < source_width; x++)
 	    {
-	      /* Copy over non-transparent pixels. */
-	      if (PixelGetAlpha (source[x]))
+	      if (dispose == BackgroundDispose)
 		{
 		  PixelGetMagickColor (source[x], &pixel);
 		  PixelSetMagickColor (dest[x], &pixel);
+		}
+	      else
+		{
+		  /* Copy over non-transparent pixels. */
+		  if (PixelGetAlpha (source[x]))
+		    {
+		      PixelGetMagickColor (source[x], &pixel);
+		      PixelSetMagickColor (dest[x], &pixel);
+		    }
 		}
 	    }
 	  PixelSyncIterator(dest_iterator);
