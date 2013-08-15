@@ -97,17 +97,18 @@
 ;; option "--without-dbus".  Declare used subroutines and variables.
 (declare-function dbus-get-unique-name "dbusbind.c")
 
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
 (require 'tramp)
 
 (require 'dbus)
 (require 'url-parse)
 (require 'url-util)
 (require 'zeroconf)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl)
+  (require 'custom)
+  (defvar ls-lisp-use-insert-directory-program))
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")

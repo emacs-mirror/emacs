@@ -30,6 +30,12 @@
 
 (require 'tramp)
 
+;; Pacify byte-compiler.
+(eval-when-compile
+  (defvar buffer-name)
+  (defvar reporter-eval-buffer)
+  (defvar reporter-prompt-for-summary-p))
+
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
   (append

@@ -27,8 +27,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl))
 
 ;; Define SMB method ...
 ;;;###tramp-autoload

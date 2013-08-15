@@ -26,21 +26,15 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; ignore-errors
 (require 'tramp)
 
-;; Pacify byte-compiler.  The function is needed on XEmacs only.  I'm
-;; not sure at all that this is the right way to do it, but let's hope
-;; it works for now, and wait for a guru to point out the Right Way to
-;; achieve this.
-;;(eval-when-compile
-;;  (unless (fboundp 'dired-insert-set-properties)
-;;    (fset 'dired-insert-set-properties 'ignore)))
-;; Gerd suggests this:
-(eval-when-compile (require 'dired))
-;; Note that dired is required at run-time, too, when it is needed.
-;; It is only needed on XEmacs for the function
-;; `dired-insert-set-properties'.
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl)
+  (require 'dired)
+  (defvar directory-sep-char)
+  (defvar tramp-gw-tunnel-method)
+  (defvar tramp-gw-socks-method))
 
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
@@ -4202,9 +4196,6 @@ Goes through the list `tramp-inline-compress-commands'."
 	(tramp-set-connection-property p "inline-decompress" nil)
 	(tramp-message
 	 vec 2 "Couldn't find an inline transfer compress command")))))
-
-(defvar tramp-gw-tunnel-method)
-(defvar tramp-gw-socks-method)
 
 (defun tramp-compute-multi-hops (vec)
   "Expands VEC according to `tramp-default-proxies-alist'.

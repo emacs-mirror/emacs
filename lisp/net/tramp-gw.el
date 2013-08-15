@@ -33,16 +33,11 @@
 
 (require 'tramp)
 
-;; Pacify byte-compiler
+;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
-  (require 'custom))
-
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
-(eval-when-compile
-  (when (featurep 'xemacs)
-      (byte-compiler-options (warnings (- unused-vars)))))
+  (require 'custom)
+  (defvar socks-noproxy))
 
 ;; We don't add the following methods to `tramp-methods', in order to
 ;; exclude them from file name completion.

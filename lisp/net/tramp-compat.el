@@ -29,9 +29,8 @@
 
 ;;; Code:
 
+;; Pacify byte-compiler.
 (eval-when-compile
-
-  ;; Pacify byte-compiler.
   (require 'cl))
 
 (eval-and-compile

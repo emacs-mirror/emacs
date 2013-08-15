@@ -57,8 +57,16 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; ignore-errors
 (require 'tramp-compat)
+
+;; Pacify byte-compiler.
+(eval-when-compile
+  (require 'cl)
+  (defvar bkup-backup-directory-info)
+  (defvar directory-sep-char)
+  (defvar eshell-path-env)
+  (defvar file-notify-descriptors)
+  (defvar outline-regexp))
 
 ;;; User Customizable Internal Variables:
 
@@ -3350,7 +3358,6 @@ of."
     (tramp-error
      v 'file-notify-error "File notification not supported for `%s'" filename)))
 
-(defvar file-notify-descriptors)
 (defun tramp-handle-file-notify-rm-watch (proc)
   "Like `file-notify-rm-watch' for Tramp files."
   ;; The descriptor must be a process object.
@@ -4181,9 +4188,6 @@ Only works for Bourne-like shells."
 	result))))
 
 ;;; Integration of eshell.el:
-
-(eval-when-compile
-  (defvar eshell-path-env))
 
 ;; eshell.el keeps the path in `eshell-path-env'.  We must change it
 ;; when `default-directory' points to another host.
