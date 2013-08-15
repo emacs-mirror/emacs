@@ -7461,6 +7461,8 @@ static int
 next_element_from_display_vector (struct it *it)
 {
   Lisp_Object gc;
+  int prev_face_id = it->face_id;
+  int next_face_id;
 
   /* Precondition.  */
   eassert (it->dpvec && it->current.dpvec_index >= 0);
@@ -7473,6 +7475,8 @@ next_element_from_display_vector (struct it *it)
 
   if (GLYPH_CODE_P (gc))
     {
+      struct face *this_face, *prev_face, *next_face;
+
       it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
 
@@ -7488,6 +7492,42 @@ next_element_from_display_vector (struct it *it)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);
 	}
+
+      /* Glyphs in the display vector could have the box face, so we
+	 need to set the related flags in the iterator, as
+	 appropriate.  */
+      this_face = FACE_FROM_ID (it->f, it->face_id);
+      prev_face = FACE_FROM_ID (it->f, prev_face_id);
+
+      /* Is this character the first character of a box-face run?  */
+      it->start_of_box_run_p = (this_face && this_face->box != FACE_NO_BOX
+				&& (!prev_face
+				    || prev_face->box == FACE_NO_BOX));
+
+      /* For the last character of the box-face run, we need to look
+	 either at the next glyph from the display vector, or at the
+	 face we saw before the display vector.  */
+      if (it->current.dpvec_index < it->dpend - it->dpvec - 1)
+	{
+	  if (it->dpvec_face_id >= 0)
+	    next_face_id = it->dpvec_face_id;
+	  else
+	    {
+	      int lface_id =
+		GLYPH_CODE_FACE (it->dpvec[it->current.dpvec_index + 1]);
+
+	      if (lface_id > 0)
+		next_face_id = merge_faces (it->f, Qt, lface_id,
+					    it->saved_face_id);
+	    }
+	}
+      else
+	next_face_id = it->saved_face_id;
+      next_face = FACE_FROM_ID (it->f, next_face_id);
+      it->end_of_box_run_p = (this_face && this_face->box != FACE_NO_BOX
+			      && (!next_face
+				  || next_face->box == FACE_NO_BOX));
+      it->face_box_p = this_face && this_face->box != FACE_NO_BOX;
     }
   else
     /* Display table entry is invalid.  Return a space.  */

@@ -6,6 +6,8 @@
 	visible character of the display line.  This avoids funky
 	horizontal shifting because the window start is not kept on the
 	same position.  (Bug#15090)
+	(next_element_from_display_vector): Support 'box' face attribute
+	in the face definitions of a display vector.  (Bug#15099)
 
 2013-08-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
