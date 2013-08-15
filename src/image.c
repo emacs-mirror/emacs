@@ -7877,6 +7877,7 @@ static int animation_index = 0;
 static MagickWand *
 imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 {
+  int i;
   MagickWand *composite_wand;
 
   MagickSetIteratorIndex (super_wand, 0);
@@ -7886,56 +7887,59 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
   else
     composite_wand = animation_cache;
 
-  for (int i = max (1, animation_index); i <= ino; i++) {
-    MagickWand *sub_wand;
-    PixelIterator *source_iterator, *dest_iterator;
-    PixelWand **source, **dest;
-    size_t source_width, dest_width;
-    MagickPixelPacket pixel;
+  for (i = max (1, animation_index); i <= ino; i++)
+    {
+      MagickWand *sub_wand;
+      PixelIterator *source_iterator, *dest_iterator;
+      PixelWand **source, **dest;
+      size_t source_width, dest_width;
+      MagickPixelPacket pixel;
 
-    MagickSetIteratorIndex (super_wand, i);
-    sub_wand = MagickGetImage (super_wand);
+      MagickSetIteratorIndex (super_wand, i);
+      sub_wand = MagickGetImage (super_wand);
 
-    source_iterator = NewPixelIterator (sub_wand);
-    if (! source_iterator)
-      {
-	DestroyMagickWand (composite_wand);
-	DestroyMagickWand (sub_wand);
-	image_error ("Imagemagick pixel iterator creation failed",
-		     Qnil, Qnil);
-	return NULL;
-      }
-
-    dest_iterator = NewPixelIterator (composite_wand);
-    if (! dest_iterator)
-      {
-	DestroyMagickWand (composite_wand);
-	DestroyMagickWand (sub_wand);
-	DestroyPixelIterator (source_iterator);
-	image_error ("Imagemagick pixel iterator creation failed",
-		     Qnil, Qnil);
-	return NULL;
-      }
-
-    while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
-	   != NULL) {
-      dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
-      for (int x = 0; x < source_width; x++)
+      source_iterator = NewPixelIterator (sub_wand);
+      if (! source_iterator)
 	{
-	  /* Copy over non-transparent pixels. */
-	  if (PixelGetAlpha (source[x]))
-	    {
-	      PixelGetMagickColor (source[x], &pixel);
-	      PixelSetMagickColor (dest[x], &pixel);
-	    }
+	  DestroyMagickWand (composite_wand);
+	  DestroyMagickWand (sub_wand);
+	  image_error ("Imagemagick pixel iterator creation failed",
+		       Qnil, Qnil);
+	  return NULL;
 	}
-      PixelSyncIterator(dest_iterator);
-    }
 
-    DestroyPixelIterator (source_iterator);
-    DestroyPixelIterator (dest_iterator);
-    DestroyMagickWand (sub_wand);
-  }
+      dest_iterator = NewPixelIterator (composite_wand);
+      if (! dest_iterator)
+	{
+	  DestroyMagickWand (composite_wand);
+	  DestroyMagickWand (sub_wand);
+	  DestroyPixelIterator (source_iterator);
+	  image_error ("Imagemagick pixel iterator creation failed",
+		       Qnil, Qnil);
+	  return NULL;
+	}
+
+      while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
+	     != NULL)
+	{
+	  ptrdiff_t x;
+	  dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
+	  for (x = 0; x < source_width; x++)
+	    {
+	      /* Copy over non-transparent pixels. */
+	      if (PixelGetAlpha (source[x]))
+		{
+		  PixelGetMagickColor (source[x], &pixel);
+		  PixelSetMagickColor (dest[x], &pixel);
+		}
+	    }
+	  PixelSyncIterator(dest_iterator);
+	}
+
+      DestroyPixelIterator (source_iterator);
+      DestroyPixelIterator (dest_iterator);
+      DestroyMagickWand (sub_wand);
+    }
 
   /* Cache a copy for the next iteration.  The current wand will be
      destroyed by the caller. */

@@ -1,3 +1,14 @@
+2013-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* frame.c (delete_frame):
+	* xdisp.c (next_element_from_display_vector):
+	Avoid uninitialized local.
+	* image.c (imagemagick_compute_animated_image): Port to C89.
+	Prefer usual GNU indentation style for loops.
+	Be more careful about bizarrely large sizes, by using ptrdiff_t
+	instead of int.
+
 2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix infinite frame selection loop (Bug#15025).

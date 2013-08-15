@@ -7507,6 +7507,7 @@ next_element_from_display_vector (struct it *it)
       /* For the last character of the box-face run, we need to look
 	 either at the next glyph from the display vector, or at the
 	 face we saw before the display vector.  */
+      next_face_id = it->saved_face_id;
       if (it->current.dpvec_index < it->dpend - it->dpvec - 1)
 	{
 	  if (it->dpvec_face_id >= 0)
@@ -7521,8 +7522,6 @@ next_element_from_display_vector (struct it *it)
 					    it->saved_face_id);
 	    }
 	}
-      else
-	next_face_id = it->saved_face_id;
       next_face = FACE_FROM_ID (it->f, next_face_id);
       it->end_of_box_run_p = (this_face && this_face->box != FACE_NO_BOX
 			      && (!next_face

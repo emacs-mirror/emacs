@@ -1197,7 +1197,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   /* Don't let the frame remain selected.  */
   if (f == sf)
     {
-      Lisp_Object tail, frame1;
+      Lisp_Object tail;
+      Lisp_Object frame1 = Qnil;
 
       /* Look for another visible frame on the same terminal.
 	 Do not call next_frame here because it may loop forever.
