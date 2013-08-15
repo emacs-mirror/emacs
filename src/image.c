@@ -7908,6 +7908,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
       MagickGetImagePage (sub_wand, &source_width, &source_height,
 			  &source_left, &source_top);
 
+      /* This flag says how to handle transparent pixels.  */
       dispose = MagickGetImageDispose (sub_wand);
 
       source_iterator = NewPixelIterator (sub_wand);
