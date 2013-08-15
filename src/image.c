@@ -7871,19 +7871,26 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    compute ann the preceding images to be able to display a particular
    sub-image.  */
 
+static MagickWand *animation_cache = NULL;
+static int animation_index = 0;
+
 static MagickWand *
 imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 {
   MagickWand *composite_wand;
 
   MagickSetIteratorIndex (super_wand, 0);
-  composite_wand = MagickGetImage (super_wand);
 
-  for (int i = 1; i <= ino; i++) {
+  if (ino == 0 || animation_cache == NULL)
+    composite_wand = MagickGetImage (super_wand);
+  else
+    composite_wand = animation_cache;
+
+  for (int i = max (1, animation_index); i <= ino; i++) {
     MagickWand *sub_wand;
     PixelIterator *source_iterator, *dest_iterator;
     PixelWand **source, **dest;
-    long source_width, dest_width;
+    unsigned long source_width, dest_width;
     MagickPixelPacket pixel;
 
     MagickSetIteratorIndex (super_wand, i);
@@ -7910,7 +7917,8 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	return NULL;
       }
 
-    while (source = PixelGetNextIteratorRow (source_iterator, &source_width)) {
+    while ((source = PixelGetNextIteratorRow (source_iterator, &source_width))
+	   != NULL) {
       dest = PixelGetNextIteratorRow (dest_iterator, &dest_width);
       for (int x = 0; x < source_width; x++)
 	{
@@ -7928,6 +7936,11 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
     DestroyPixelIterator (dest_iterator);
     DestroyMagickWand (sub_wand);
   }
+
+  /* Cache a copy for the next iteration.  The current wand will be
+     destroyed by the caller. */
+  animation_cache = CloneMagickWand (composite_wand);
+  animation_index = ino;
 
   return composite_wand;
 }

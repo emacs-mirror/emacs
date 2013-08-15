@@ -18,6 +18,9 @@
 
 	* image.c (imagemagick_compute_animated_image): Implement animated
 	images (bug#14700).
+	(imagemagick_compute_animated_image): Fix some compilation
+	warnings.  Implement a very simple cache to make the animation
+	usable at all, but it should be replaced with a per-image cache.
 
 2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
