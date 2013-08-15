@@ -147,10 +147,11 @@
 ;; value of `use-package-verbose'. Other good candidates for `:idle' are
 ;; `yasnippet', `auto-complete' and `autopair'.
 ;;
-;; Finally, you may wish to use `:first'. This form runs before everything
+;; Finally, you may wish to use `:pre-load'. This form runs before everything
 ;; else whenever the `use-package' form evals; the package in question will
 ;; never have been required. This can be useful, if you wish for instance, to
-;; pull files from a git repository, or mount a file system.
+;; pull files from a git repository, or mount a file system. Like :init,
+;; keeping this form as simple as possible makes sense.
 ;;
 ;; The `:bind' keyword takes either a cons or a list of conses:
 ;;
@@ -406,7 +407,7 @@ For full documentation. please see commentary.
 :bind Perform key bindings, and define autoload for bound
       commands.
 :commands Define autoloads for given commands.
-:first Code to run when `use-package' form evals and before
+:pre-load Code to run when `use-package' form evals and before
        anything else. Unlike :init this form runs before the
        package is required or autoloads added.
 :mode Form to be added to `auto-mode-alist'.
@@ -422,7 +423,7 @@ For full documentation. please see commentary.
 :idle adds a form to run on an idle timer"
   (let* ((commands (plist-get args :commands))
          (pre-init-body (plist-get args :pre-init))
-         (first-body (plist-get args :first))
+         (pre-load-body (plist-get args :pre-load))
          (init-body (plist-get args :init))
          (config-body (plist-get args :config))
          (diminish-var (plist-get args :diminish))
@@ -527,7 +528,7 @@ For full documentation. please see commentary.
                  (plist-get args :interpreter)))
 
       `(progn
-         ,first-body
+         ,pre-load-body
          ,@(mapcar
             #'(lambda (path)
                 `(add-to-list 'load-path
