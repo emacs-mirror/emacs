@@ -4342,6 +4342,12 @@ extern void *record_xmalloc (size_t);
       memory_full (SIZE_MAX);				       \
   } while (0)
 
+/* Do a `for' loop over alist values.  */
+
+#define FOR_EACH_ALIST_VALUE(head_var, list_var, value_var)		\
+  for (list_var = head_var;						\
+       (CONSP (list_var) && (value_var = XCDR (XCAR (list_var)), 1));	\
+       list_var = XCDR (list_var))
 
 /* Check whether it's time for GC, and run it if so.  */
 

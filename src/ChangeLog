@@ -1,5 +1,14 @@
 2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* lisp.h (FOR_EACH_ALIST_VALUE): New macro
+	to do `for' loops over alist values.
+	* buffer.h (FOR_EACH_BUFFER):
+	* process.c (FOR_EACH_PROCESS): Use it.
+	(handle_child_signal, status_notify, Fget_buffer_process)
+	(kill_buffer_processes): Use FOR_EACH_PROCESS.
+
+2013-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* term.c (get_named_tty, create_tty_output, tty_free_frame_resources)
 	(tty_free_frame_resources, delete_tty): Prefer eassert to emacs_abort.
 	* image.c (make_image_cache): For struct image_cache, prefer xmalloc

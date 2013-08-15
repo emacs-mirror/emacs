@@ -361,6 +361,12 @@ static struct sockaddr_and_len {
 #define DATAGRAM_CONN_P(proc)	(0)
 #endif
 
+/* FOR_EACH_PROCESS (LIST_VAR, PROC_VAR) followed by a statement is
+   a `for' loop which iterates over processes from Vprocess_alist.  */
+
+#define FOR_EACH_PROCESS(list_var, proc_var)			\
+  FOR_EACH_ALIST_VALUE (Vprocess_alist, list_var, proc_var)
+
 /* These setters are used only in this file, so they can be private.  */
 static void
 pset_buffer (struct Lisp_Process *p, Lisp_Object val)
@@ -6135,7 +6141,7 @@ static signal_handler_t volatile lib_child_handler;
 static void
 handle_child_signal (int sig)
 {
-  Lisp_Object tail;
+  Lisp_Object tail, proc;
 
   /* Find the process that signaled us, and record its status.  */
 
@@ -6165,9 +6171,8 @@ handle_child_signal (int sig)
     }
 
   /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_PROCESS (tail, proc)
     {
-      Lisp_Object proc = XCDR (XCAR (tail));
       struct Lisp_Process *p = XPROCESS (proc);
       int status;
 
@@ -6322,13 +6327,10 @@ status_notify (struct Lisp_Process *deleting_process)
      that we run, we get called again to handle their status changes.  */
   update_tick = process_tick;
 
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
+  FOR_EACH_PROCESS (tail, proc)
     {
       Lisp_Object symbol;
-      register struct Lisp_Process *p;
-
-      proc = Fcdr (XCAR (tail));
-      p = XPROCESS (proc);
+      register struct Lisp_Process *p = XPROCESS (proc);
 
       if (p->tick != p->update_tick)
 	{
@@ -6851,12 +6853,9 @@ BUFFER may be a buffer or the name of one.  */)
   buf = Fget_buffer (buffer);
   if (NILP (buf)) return Qnil;
 
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      proc = Fcdr (XCAR (tail));
-      if (PROCESSP (proc) && EQ (XPROCESS (proc)->buffer, buf))
-	return proc;
-    }
+  FOR_EACH_PROCESS (tail, proc)
+    if (EQ (XPROCESS (proc)->buffer, buf))
+      return proc;
 #endif	/* subprocesses */
   return Qnil;
 }
@@ -6889,18 +6888,14 @@ kill_buffer_processes (Lisp_Object buffer)
 #ifdef subprocesses
   Lisp_Object tail, proc;
 
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      proc = XCDR (XCAR (tail));
-      if (PROCESSP (proc)
-	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
-	{
-	  if (NETCONN_P (proc) || SERIALCONN_P (proc))
-	    Fdelete_process (proc);
-	  else if (XPROCESS (proc)->infd >= 0)
-	    process_send_signal (proc, SIGHUP, Qnil, 1);
-	}
-    }
+  FOR_EACH_PROCESS (tail, proc)
+    if (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer))
+      {
+	if (NETCONN_P (proc) || SERIALCONN_P (proc))
+	  Fdelete_process (proc);
+	else if (XPROCESS (proc)->infd >= 0)
+	  process_send_signal (proc, SIGHUP, Qnil, 1);
+      }
 #else  /* subprocesses */
   /* Since we have no subprocesses, this does nothing.  */
 #endif /* subprocesses */

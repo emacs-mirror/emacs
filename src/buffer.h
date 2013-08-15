@@ -1132,10 +1132,8 @@ extern Lisp_Object Qpriority, Qbefore_string, Qafter_string;
 /* FOR_EACH_LIVE_BUFFER (LIST_VAR, BUF_VAR) followed by a statement is
    a `for' loop which iterates over the buffers from Vbuffer_alist.  */
 
-#define FOR_EACH_LIVE_BUFFER(list_var, buf_var)				\
-  for (list_var = Vbuffer_alist;					\
-       (CONSP (list_var) && (buf_var = XCDR (XCAR (list_var)), 1));	\
-       list_var = XCDR (list_var))
+#define FOR_EACH_LIVE_BUFFER(list_var, buf_var)			\
+  FOR_EACH_ALIST_VALUE (Vbuffer_alist, list_var, buf_var)
 
 /* Get text properties of B.  */
 
