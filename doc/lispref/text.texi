@@ -1289,8 +1289,8 @@ This is an extensible undo item, which is undone by calling
 @item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
 This is an extensible undo item, which records a change limited to the
 range @var{beg} to @var{end}, which increased the size of the buffer
-by @var{delta}.  It is undone by calling @var{funname} with arguments
-@var{args}.
+by @var{delta} bytes.  It is undone by calling @var{funname} with
+arguments @var{args}.
 
 This kind of element enables undo limited to a region to determine
 whether the element pertains to that region.
@@ -3030,6 +3030,7 @@ Point}.
 
 @table @code
 @cindex property category of text character
+@c FIXME: Isn't @kindex for keyboard commands?
 @kindex category @r{(text property)}
 @item category
 If a character has a @code{category} property, we call it the

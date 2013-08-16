@@ -2,6 +2,7 @@
 
 	* text.texi (Insertion): Refine.
 	(Margins): Add an index.
+	(Undo): Doc fix for `buffer-undo-list'.
 
 	* positions.texi (Character Motion):
 	* markers.texi (Moving Markers):
