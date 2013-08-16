@@ -582,10 +582,11 @@ For full documentation. please see commentary.
                    pkg-load-path)))
 
          (eval-when-compile
-           ,@defines-eval
-           ,(if (stringp name)
-                `(load ,name t)
-              `(require ',name nil t)))
+           (when (bound-and-true-p byte-compile-current-file)
+            ,@defines-eval
+            ,(if (stringp name)
+                 `(load ,name t)
+               `(require ',name nil t))))
 
          ,(when (boundp 'el-get-sources)
             (require 'el-get)
