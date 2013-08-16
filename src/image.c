@@ -7934,7 +7934,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  return NULL;
 	}
 
-      /* The sub-image may not start at origo, so move the destination
+      /* The sub-image may not start at origin, so move the destination
 	 iterator to where the sub-image should start. */
       if (source_top > 0)
 	{

@@ -152,7 +152,7 @@ make_cs=if pdfcsplain --version > /dev/null 2> /dev/null; then \
 ## A4, landscape: de-refcard, fr-refcard, pt-br-refcard orgcard
 ## A4, portrait: cs-*, fr-dired-ref, sk-*, pl-refcard, ru-refcard
 ## Letter, landscape: calccard, refcard
-## Letter, portrait (suffix rule): diref-ref, gnus-*, survival, vip*
+## Letter, portrait (suffix rule): dired-ref, gnus-*, survival, vip*
 
 calccard_deps = calccard.tex emacsver.tex pdflayout.sty
 calccard.pdf: $(calccard_deps)

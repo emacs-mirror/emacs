@@ -433,7 +433,7 @@ visiting any of these files, the command also rename them accordingly.
 
 @item F k
 Delete the current todo file (@code{todo-delete-file}).@footnote{The key
-binding of this command is mnenomic for ``kill'' to parallel the binding
+binding of this command is mnemonic for ``kill'' to parallel the binding
 @kbd{k} for item deletion, since @kbd{d} is bound to another item
 editing command (@pxref{Done Items}).}  If the todo file has an archive
 (@pxref{Todo Archive Mode}), prompt whether to delete that as well.
@@ -496,7 +496,7 @@ and adds the category.
 
 @item C k
 Delete the current category (@code{todo-delete-category}).@footnote{This
-binding is mnenomic for ``kill'' to parallel the binding @kbd{k} for
+binding is mnemonic for ``kill'' to parallel the binding @kbd{k} for
 item deletion, since @kbd{d} is bound to another item editing command
 (@pxref{Done Items}).}  To delete a category that contains items, you
 have to confirm your intent; if the category is empty, deletion is
@@ -595,7 +595,7 @@ concerning the item header, and one each concerning its priority and its
 text.  Each unique combination of these parameters produces a different
 insertion command.  The command @kbd{i i} realizes one of these
 combinations.  For the commands that realize the remaining combinations
-it is convenient to associate each parameter with a mnenomically chosen
+it is convenient to associate each parameter with a mnemonically chosen
 key.  Then by typing certain sequences of these keys, you complete the
 insertion command invocation that realizes the specified combination.
 As with @kbd{i i}, the effect of many of these commands also depends on
@@ -610,7 +610,7 @@ occur in a category listing):
 @enumerate
 
 @item
-@kbd{y} for diary (non)inclusion; 
+@kbd{y} for diary (non)inclusion;
 @item
 @kbd{k} for adding or omitting `diary-nonmarking-symbol';
 @item
@@ -882,7 +882,7 @@ You delete an item, thereby permanently removing it:
 
 @item k
 Delete the todo item at point (@code{todo-delete-item}; the binding is
-mnenomic for ``kill'', since @kbd{d} is used for marking items as done
+mnemonic for ``kill'', since @kbd{d} is used for marking items as done
 (@pxref{Done Items}); but note that @kbd{k} does not put the item into
 the kill ring).  This command requires confirmation that you want to
 delete the item, since you cannot undo the deletion in Todo mode.  (You
@@ -1170,7 +1170,7 @@ listed consecutively en bloc.
 
 You can mark both todo and done items, but note that only @kbd{m} can apply
 to both; other commands only affect either marked todo or marked done
-items, so if both types of items are marked, invoking these commmands
+items, so if both types of items are marked, invoking these commands
 has no effect and informs you of your erroneous attempt.
 
 @node Todo Categories Mode, Searching for Items, Marked Items, Top
@@ -1214,7 +1214,7 @@ to visit another todo file).  To do this customize the option
 @node Table of Item Counts, Reordering Categories, , Todo Categories Mode
 @section Table of Item Counts
 
-Above each column of the table is a labelled button you can press by
+Above each column of the table is a labeled button you can press by
 clicking with the mouse or by typing @key{RET} on it.  Pressing an item
 count button sorts the table alternately in ascending or descending
 order according to the type of count.  Pressing the category button
@@ -1375,7 +1375,7 @@ filter come in pairs, one for filtering just the current todo file and
 one for filtering a user-specified list of todo files.  Thus, there
 are six item filtering commands:@footnote{The use of @kbd{F} in the key
 sequences of these commands naturally recalls ``filter'', but is also
-consistent with the Todo mode mnenomic key binding convention, since the
+consistent with the Todo mode mnemonic key binding convention, since the
 commands involve one or more whole files.}
 
 @itemize @bullet
@@ -1533,7 +1533,7 @@ completion (@code{todo-find-filtered-items-file}).
 @end table
 
 @itemize @bullet
-@item 
+@item
 As with tables of categories, by customizing @code{todo-show-first} you
 can have the first invocation of @code{todo-show} for a given todo file
 display the corresponding saved file of filtered items.  If there is
@@ -1548,7 +1548,7 @@ Filtered Items mode.  It deletes the current filtered items file.
 @node Todo Display Features, Printing Todo Buffers, Todo Filtered Items Mode, Top
 @chapter Todo Display Features
 
-You can change the appearance of Todo mode buffers in a variety of ways.  
+You can change the appearance of Todo mode buffers in a variety of ways.
 
 @menu
 * Faces::
@@ -1567,7 +1567,7 @@ the date and time of a Todo diary item (i.e., an item lacking
 @code{todo-nondiary-marker}) is earlier than the current date and time,
 they are displayed in a different face.  In this way, you can readily
 recognize diary items that have ``expired'' and act accordingly (e.g.,
-by tagging them as done or by updating the deadlines).  
+by tagging them as done or by updating the deadlines).
 
 Another example of an informational face is the face used to distinguish
 top priority items.  A third case is the face used in Todo Categories

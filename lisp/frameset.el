@@ -182,7 +182,7 @@ Properties can be set with
 ;; Let's say that Emacs' frame parameters were never designed as a tool to
 ;; precisely record (or restore) a frame's state.  They grew organically,
 ;; and their uses and behaviors reflect their history.  In using them to
-;; implement framesets, the unwary implementor, or the prospective package
+;; implement framesets, the unwary implementer, or the prospective package
 ;; writer willing to use framesets in their code, might fall victim of some
 ;; unexpected... oddities.
 ;;

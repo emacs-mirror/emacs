@@ -164,7 +164,7 @@ This function can be called only in unibyte buffers.  */)
   stream.avail_in = 0;
   stream.next_in = Z_NULL;
 
-  /* The magic number 32 apparently means "autodect both the gzip and
+  /* The magic number 32 apparently means "autodetect both the gzip and
      zlib formats" according to zlib.h.  */
   if (fn_inflateInit2 (&stream, MAX_WBITS + 32) != Z_OK)
     return Qnil;

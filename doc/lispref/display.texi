@@ -4667,7 +4667,7 @@ the aspect ratio.
 @item :format
 ImageMagick tries to auto-detect the image type, but it isn't always
 able to.  By using @code{:format-type}, we can give ImageMagick a hint
-to try to help it.  It's used in conjuction with the
+to try to help it.  It's used in conjunction with the
 @code{image-format-suffixes} variable, which provides a mapping from
 content types to file name suffixes.  This is then given to
 ImageMagick as a file name hint.

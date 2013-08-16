@@ -1893,7 +1893,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #ifndef WINDOWSNT
       /* Wait for child_setup to complete in case that vfork is
 	 actually defined as fork.  The descriptor
-	 XPROCESS (proc)->open_fd[EXEC_MOINTOR_OUTPUT]
+	 XPROCESS (proc)->open_fd[EXEC_MONITOR_OUTPUT]
 	 of a pipe is closed at the child side either by close-on-exec
 	 on successful execve or the _exit call in child_setup.  */
       {

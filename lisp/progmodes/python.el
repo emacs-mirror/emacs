@@ -3080,14 +3080,14 @@ not be passed explicitly unless you know what you are doing."
             min-indent
             indent
             (if (<= indent children-indent-limit)
-                ;; This lays within the children indent offset range,
-                ;; so it's a normal children of its parent (i.e., not
-                ;; a children of a children).
+                ;; This lies within the children indent offset range,
+                ;; so it's a normal child of its parent (i.e., not
+                ;; a child of a child).
                 (cons (cons label pos) tree)
-              ;; Oh noes, a children of a children?!. Fear not, we
-              ;; know how to roll. We recursely parse these by
+              ;; Oh no, a child of a child?!  Fear not, we
+              ;; know how to roll.  We recursively parse these by
               ;; swapping prev-indent and min-indent plus adding this
-              ;; newly found item to a fresh subtree. This works, I
+              ;; newly found item to a fresh subtree.  This works, I
               ;; promise.
               (cons
                (python-imenu--build-tree

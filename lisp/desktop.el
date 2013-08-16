@@ -390,7 +390,7 @@ If `delete', frames on other displays are deleted instead of restored."
 
 (defcustom desktop-restore-forces-onscreen t
   "If t, offscreen frames are restored onscreen instead.
-If `:all', frames that are partially offscreen are also forced onscren.
+If `:all', frames that are partially offscreen are also forced onscreen.
 NOTE: Checking of frame boundaries is only approximate and can fail
 to reliably detect frames whose onscreen/offscreen state depends on a
 few pixels, especially near the right / bottom borders of the screen."
@@ -670,7 +670,7 @@ if different)."
 	     ;; which already takes care of frame restoration and deletion.
 	     (called-interactively-p 'any))
     (let* ((this (selected-frame))
-	   (mini (window-frame (minibuffer-window this)))) ; in case they difer
+	   (mini (window-frame (minibuffer-window this)))) ; in case they differ
       (dolist (frame (sort (frame-list) #'frameset-minibufferless-first-p))
 	(condition-case err
 	    (unless (or (eq frame this)
@@ -1032,7 +1032,7 @@ being set (usually, by reading it from the desktop)."
 		      :force-onscreen desktop-restore-forces-onscreen)))
 
 ;; Just to silence the byte compiler.
-;; Dynamicaly bound in `desktop-read'.
+;; Dynamically bound in `desktop-read'.
 (defvar desktop-first-buffer)
 (defvar desktop-buffer-ok-count)
 (defvar desktop-buffer-fail-count)
