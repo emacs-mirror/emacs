@@ -7901,9 +7901,9 @@ void
 imagemagick_prune_animation_cache ()
 {
   struct animation_cache *cache = animation_cache;
-  struct animation_cache *prev;
+  struct animation_cache *prev = NULL;
   EMACS_TIME old = sub_emacs_time (current_emacs_time (),
-				   EMACS_TIME_FROM_DOUBLE (60));
+				   EMACS_TIME_FROM_DOUBLE (5));
 
   while (cache)
     {
@@ -7920,17 +7920,18 @@ imagemagick_prune_animation_cache ()
 	  cache = cache->next;
 	  free (this_cache);
 	}
-      else {
-	prev = cache;
-	cache = cache->next;
-      }
+      else
+	{
+	  prev = cache;
+	  cache = cache->next;
+	}
     }
 }
 
 struct animation_cache *
 imagemagick_get_animation_cache (MagickWand *wand)
 {
-  char *signature = MagickGetImageSignature (wand);
+  char *signature = xstrdup (MagickGetImageSignature (wand));
   struct animation_cache *cache = animation_cache;
 
   imagemagick_prune_animation_cache ();

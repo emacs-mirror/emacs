@@ -1,6 +1,7 @@
 2013-08-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c: Implement an ImageMagick per-image cache.
+	(imagemagick_get_animation_cache): Fix a double-free error.
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
