@@ -1,5 +1,7 @@
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* editfns.c (insert_before_markers): Mention overlay in the doc string.
+
 	* marker.c (set_marker): Remove documentation of undefined behavior.
 
 2013-08-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>

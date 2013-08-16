@@ -2330,6 +2330,10 @@ to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
+If an overlay begins at the insertion point, the inserted text falls
+outside the overlay; if a nonempty overlay ends at the insertion
+point, the inserted text falls inside that overlay.
+
 usage: (insert-before-markers &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
