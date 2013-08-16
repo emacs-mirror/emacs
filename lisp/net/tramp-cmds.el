@@ -32,7 +32,6 @@
 
 ;; Pacify byte-compiler.
 (eval-when-compile
-  (defvar buffer-name)
   (defvar reporter-eval-buffer)
   (defvar reporter-prompt-for-summary-p))
 
@@ -272,6 +271,7 @@ buffer in your bug report.
   (goto-char (point-max))
 
   ;; Dump buffer local variables.
+  (insert "\nlocal variables:\n================")
   (dolist (buffer
 	   (delq nil
 		 (mapcar
@@ -279,21 +279,23 @@ buffer in your bug report.
                     (when (string-match "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
-	  (buffer-name (buffer-name buffer))
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
       (with-current-buffer elbuf
 	(emacs-lisp-mode)
 	(erase-buffer)
-	(insert "\n(setq\n")
+	(insert (format "\n;; %s\n(setq-local\n" (buffer-name buffer)))
 	(lisp-indent-line)
-	(tramp-compat-funcall
-	 'reporter-dump-variable 'buffer-name (current-buffer))
-	(dolist (varsym-or-cons-cell (buffer-local-variables buffer))
-	  (let ((varsym (or (car-safe varsym-or-cons-cell)
-			    varsym-or-cons-cell)))
-	    (when (string-match "tramp" (symbol-name varsym))
-	      (tramp-compat-funcall
-	       'reporter-dump-variable varsym (current-buffer)))))
+	(dolist
+	    (varsym
+	     (sort
+	      (append
+	       (mapcar
+		'intern
+		(all-completions "tramp-" (buffer-local-variables buffer)))
+	       ;; Non-tramp variables of interest.
+	       '(default-directory))
+	      'string<))
+	    (tramp-compat-funcall 'reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))

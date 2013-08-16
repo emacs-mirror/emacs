@@ -1,3 +1,8 @@
+2013-08-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (top): Don't declare `buffer-name'.
+	(tramp-append-tramp-buffers): Rewrite buffer local variables part.
+
 2013-08-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (mouse-autoselect-window-select): Do autoselect when
