@@ -6680,8 +6680,10 @@ is active.  This function is run by `mouse-autoselect-window-timer'."
      (cond
       ((or (menu-or-popup-active-p)
 	   (and window
-		(not (consp (coordinates-in-window-p
-			     (cdr mouse-position) window)))))
+		(let ((coords (coordinates-in-window-p
+			       (cdr mouse-position) window)))
+		  (and (not (consp coords))
+		       (not (memq coords '(left-margin right-margin)))))))
        ;; A menu / popup dialog is active or the mouse is not on the
        ;; text region of WINDOW: Suspend autoselection temporarily.
        (mouse-autoselect-window-start mouse-position nil t))

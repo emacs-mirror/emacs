@@ -1,3 +1,8 @@
+2013-08-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-select): Do autoselect when
+	mouse pointer is on margin.
+
 2013-08-16  William Parsons  <wbparsons@alum.mit.edu>  (tiny change)
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 500 EPSV.  (Bug#1972)
