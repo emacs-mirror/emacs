@@ -1,3 +1,8 @@
+2013-08-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-rescale-image): Use ImageMagick even for GIFs
+	now that Emacs supports ImageMagick animations.
+
 2013-08-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cmds.el (top): Don't declare `buffer-name'.

@@ -779,7 +779,6 @@ element is the data blob and the second element is the content-type."
   "Rescale DATA, if too big, to fit the current buffer.
 If FORCE, rescale the image anyway."
   (if (or (not (fboundp 'imagemagick-types))
-	  (eq (image-type-from-data data) 'gif)
 	  (not (get-buffer-window (current-buffer))))
       (create-image data nil t :ascent 100)
     (let ((edges (window-inside-pixel-edges
