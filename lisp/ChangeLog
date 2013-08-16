@@ -1,5 +1,8 @@
 2013-08-16  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (send-mail-item-name, read-mail-item-name): Remove.
+	(menu-bar-tools-menu): Simplify news and mail items.  (Bug#15095)
+
 	* image-mode.el (image-mode-map): Add menu items to reverse,
 	increase, decrease, reset animation speed.
 	(image--set-speed, image-increase-speed, image-decrease-speed)
