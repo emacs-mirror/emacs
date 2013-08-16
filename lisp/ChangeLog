@@ -1,3 +1,7 @@
+2013-08-16  William Parsons  <wbparsons@alum.mit.edu>  (tiny change)
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 500 EPSV.  (Bug#1972)
+
 2013-08-16  Glenn Morris  <rgm@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-good-msgs, ange-ftp-get-pwd):

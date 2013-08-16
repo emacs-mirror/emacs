@@ -723,7 +723,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
           "^504 Unknown security mechanism\\|"
 	  "^530 Please login with USER and PASS\\|" ; non kerberized vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
-	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
+	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT\\|^500 .*EPSV")
   "Regular expression matching FTP messages that can be ignored."
   :group 'ange-ftp
   :type 'regexp)
