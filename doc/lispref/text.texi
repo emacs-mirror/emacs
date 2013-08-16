@@ -423,10 +423,10 @@ insertion point.  @xref{Sticky Properties}.
 
 @defun insert-buffer-substring from-buffer-or-name &optional start end
 This function inserts a portion of buffer @var{from-buffer-or-name}
-(which must already exist) into the current buffer before point.  The
-text inserted is the region between @var{start} and @var{end}.  (These
-arguments default to the beginning and end of the accessible portion of
-that buffer.)  This function returns @code{nil}.
+into the current buffer before point.  The text inserted is the region
+between @var{start} (inclusive) and @var{end} (exclusive).  (These
+arguments default to the beginning and end of the accessible portion
+of that buffer.)  This function returns @code{nil}.
 
 In this example, the form is executed with buffer @samp{bar} as the
 current buffer.  We assume that buffer @samp{bar} is initially empty.

@@ -1,6 +1,6 @@
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
-	* text.texi (Insertion): Add cross-references.
+	* text.texi (Insertion): Refine.
 
 	* positions.texi (Character Motion):
 	* markers.texi (Moving Markers):
