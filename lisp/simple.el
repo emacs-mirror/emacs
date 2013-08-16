@@ -3622,10 +3622,7 @@ In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
-This command's old key binding has been given to `kill-ring-save'.
-
-Do not use this function in Lisp programs, use `kill-new' or
-`kill-append' instead."
+This command's old key binding has been given to `kill-ring-save'."
   (interactive "r")
   (if (eq last-command 'kill-region)
       (kill-append (filter-buffer-substring beg end) (< end beg))
@@ -3643,10 +3640,7 @@ If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-ring-save].
 
 This command is similar to `copy-region-as-kill', except that it gives
-visual feedback indicating the extent of the region being copied.
-
-Do not use this function in Lisp programs, use `kill-new' or
-`kill-append' instead."
+visual feedback indicating the extent of the region being copied."
   (interactive "r")
   (copy-region-as-kill beg end)
   ;; This use of called-interactively-p is correct because the code it

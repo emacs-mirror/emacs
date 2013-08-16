@@ -924,6 +924,7 @@ processes the text according to @code{yank-handled-properties} and
 text anyway.)
 @end defun
 
+@c FIXME: Add an index for yank-handler.
   If you put a @code{yank-handler} text property on all or part of a
 string, that alters how @code{insert-for-yank} inserts the string.  If
 different parts of the string have different @code{yank-handler}
