@@ -484,6 +484,7 @@ it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
+@c FIXME: This variable is obsolete since 23.1.
 Self-insertion translates the input character through
 @code{translation-table-for-input}.  @xref{Translation of Characters}.
 
@@ -1613,6 +1614,7 @@ newlines'' act as paragraph separators.
 
 @node Margins
 @section Margins for Filling
+@cindex margins, filling
 
 @defopt fill-prefix
 This buffer-local variable, if non-@code{nil}, specifies a string of
