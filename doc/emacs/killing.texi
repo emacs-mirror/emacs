@@ -109,6 +109,8 @@ number of characters.  If the numeric argument is omitted or one, they
 delete all the text in the region if it is active (@pxref{Using
 Region}).
 
+@c FIXME: `cycle-spacing' should be documented, too.  (Maybe not in
+@c this node, tho.)  --xfq
 @kindex M-\
 @findex delete-horizontal-space
 @kindex M-SPC

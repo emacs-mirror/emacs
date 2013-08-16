@@ -779,6 +779,7 @@ is deleted.  If point is on a nonblank line, the command deletes all
 blank lines immediately following it.
 
 A blank line is defined as a line containing only tabs and spaces.
+@c and the Newline character?
 
 @code{delete-blank-lines} returns @code{nil}.
 @end deffn

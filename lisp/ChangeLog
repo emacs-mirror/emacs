@@ -23,6 +23,11 @@
 	New functions.
 	(image-animate-timeout): Respect image :speed property.
 
+2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* simple.el (copy-region-as-kill, kill-ring-save): Advertise using
+	`kill-new' and `kill-append' in Lisp programs.
+
 2013-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debugger-setup-buffer): Put point on the
