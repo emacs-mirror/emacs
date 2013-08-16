@@ -726,6 +726,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT\\|^500 .*EPSV")
   "Regular expression matching FTP messages that can be ignored."
   :group 'ange-ftp
+  :version "24.4"			; add EPSV
   :type 'regexp)
 
 (defcustom ange-ftp-fatal-msgs
