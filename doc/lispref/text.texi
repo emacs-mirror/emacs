@@ -366,7 +366,8 @@ not relocate the marker, depending on the marker's insertion type
 the inserted text, regardless of the markers' insertion type.
 
   Insertion functions signal an error if the current buffer is
-read-only or if they insert within read-only text.
+read-only (@pxref{Read Only Buffers}) or if they insert within
+read-only text (@pxref{Special Properties}).
 
   These functions copy text characters from strings and buffers along
 with their properties.  The inserted characters have exactly the same
