@@ -1,7 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989-1996, 1998, 2000-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2013 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -700,7 +699,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
   "Regular expression matching the start of a multiline FTP reply.")
 
 (defvar ange-ftp-good-msgs
-  "^220 \\|^230 \\|^226 \\|^25. \\|^221 \\|^200 \\|^[Hh]ash mark"
+  "^220 \\|^230 \\|^226 \\|^25. \\|^221 \\|^200 \\|^[Hh]ash mark\\|^Remote directory:"
   "Regular expression matching FTP \"success\" messages.")
 
 ;; CMS and the odd VMS machine say 200 Port rather than 200 PORT.
@@ -3021,6 +3020,9 @@ and LINE is the relevant success or fail line from the FTP-client."
     (if (car result)
 	(save-match-data
 	  (and (or (string-match "\"\\([^\"]*\\)\"" line)
+		   ;; Some clients cache the value and return it in
+		   ;; this way without asking the server.  (Bug#15058)
+		   (string-match "^Remote directory: \\(.*\\)" line)
 		   (string-match " \\([^ ]+\\) " line))	; stone-age VMS servers!
 	       (setq dir (match-string 1 line)))))
     (cons dir line)))

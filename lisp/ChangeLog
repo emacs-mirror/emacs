@@ -1,5 +1,8 @@
 2013-08-16  Glenn Morris  <rgm@gnu.org>
 
+	* net/ange-ftp.el (ange-ftp-good-msgs, ange-ftp-get-pwd):
+	Handle "Remote Directory" response of some clients.  (Bug#15058)
+
 	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local):
 	Tweak warning.  (Bug#14926)
 
