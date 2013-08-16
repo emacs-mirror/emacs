@@ -6106,7 +6106,7 @@ An entry (apply FUN-NAME . ARGS) means undo the change with
 
 An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
 in the active region.  BEG and END is the range affected by this entry
-and DELTA is the number of bytes added or deleted in that range by
+and DELTA is the number of characters added or deleted in that range by
 this change.
 
 An entry (MARKER . DISTANCE) indicates that the marker MARKER

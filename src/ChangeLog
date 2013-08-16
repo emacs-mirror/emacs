@@ -8,6 +8,8 @@
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
+	* buffer.c (syms_of_buffer) <buffer-undo-list>: Doc fix.
+
 	* editfns.c (insert_before_markers): Mention overlay in the doc string.
 
 	* marker.c (set_marker): Remove documentation of undefined behavior.
