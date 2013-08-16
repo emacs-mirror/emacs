@@ -687,6 +687,19 @@ do not check N is within the range of frames present in the image."
   (plist-put (cdr image) :index n)
   (force-window-update))
 
+(defun image-animate-get-speed (image)
+  "Return the speed factor for animating IMAGE."
+  (or (plist-get (cdr image) :speed) 1))
+
+(defun image-animate-set-speed (image value &optional multiply)
+  "Set the speed factor for animating IMAGE to VALUE.
+With optional argument MULTIPLY non-nil, treat VALUE as a
+multiplication factor for the current value."
+  (plist-put (cdr image) :speed
+	     (if multiply
+		 (* value (image-animate-get-speed image))
+	       value)))
+
 ;; FIXME? The delay may not be the same for different sub-images,
 ;; hence we need to call image-multi-frame-p to return it.
 ;; But it also returns count, so why do we bother passing that as an
@@ -700,21 +713,28 @@ TIME-ELAPSED is the total time that has elapsed since
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
-The minimum delay between successive frames is `image-minimum-frame-delay'."
+The minimum delay between successive frames is `image-minimum-frame-delay'.
+
+If the image has a non-nil :speed property, it acts as a multiplier
+for the animation speed.  A negative value means to animate in reverse."
   (image-show-frame image n t)
-  (setq n (1+ n))
-  (let* ((time (float-time))
+  (let* ((speed (image-animate-get-speed image))
+	 (time (float-time))
 	 (animation (image-multi-frame-p image))
 	 ;; Subtract off the time we took to load the image from the
 	 ;; stated delay time.
-	 (delay (max (+ (or (cdr animation) image-default-frame-delay)
+	 (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
+			   (/ 1 (abs speed)))
 			time (- (float-time)))
 		     image-minimum-frame-delay))
 	 done)
-    (if (>= n count)
-	(if limit
-	    (setq n 0)
-	  (setq done t)))
+    (setq n (if (< speed 0)
+		(1- n)
+	      (1+ n)))
+    (if limit
+	(cond ((>= n count) (setq n 0))
+	      ((< n 0) (setq n (1- count))))
+      (and (or (>= n count) (< n 0)) (setq done t)))
     (setq time-elapsed (+ delay time-elapsed))
     (if (numberp limit)
 	(setq done (>= time-elapsed limit)))

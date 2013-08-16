@@ -347,6 +347,8 @@ directory, respectively.
 `f' (`image-next-frame') and `b' (`image-previous-frame') visit the
 next or previous frame.  `F' (`image-goto-frame') shows a specific frame.
 
+*** New commands to speed up, slow down, or reverse animation.
+
 ---
 *** The command `image-mode-fit-frame' deletes other windows.
 When toggling, it restores the frame's previous window configuration.
@@ -682,6 +684,8 @@ Emacs uses `image-default-frame-delay'.
 +++
 *** New functions `image-current-frame' and `image-show-frame' for getting
 and setting the current frame of a multi-frame image.
+
+*** You can change the speed of animated images.
 
 ** Changes in encoding and decoding of text
 

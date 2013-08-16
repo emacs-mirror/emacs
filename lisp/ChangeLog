@@ -1,3 +1,15 @@
+2013-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* image-mode.el (image-mode-map): Add menu items to reverse,
+	increase, decrease, reset animation speed.
+	(image--set-speed, image-increase-speed, image-decrease-speed)
+	(image-reverse-speed, image-reset-speed): New functions.
+	(image-mode-map): Add bindings for speed commands.
+
+	* image.el (image-animate-get-speed, image-animate-set-speed):
+	New functions.
+	(image-animate-timeout): Respect image :speed property.
+
 2013-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debugger-setup-buffer): Put point on the
