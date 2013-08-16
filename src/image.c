@@ -7903,7 +7903,7 @@ imagemagick_prune_animation_cache ()
   struct animation_cache *cache = animation_cache;
   struct animation_cache *prev = NULL;
   EMACS_TIME old = sub_emacs_time (current_emacs_time (),
-				   EMACS_TIME_FROM_DOUBLE (5));
+				   EMACS_TIME_FROM_DOUBLE (60));
 
   while (cache)
     {
