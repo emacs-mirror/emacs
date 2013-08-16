@@ -8095,7 +8095,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
   XImagePtr ximg;
   int x, y;
   MagickWand *image_wand;
-  MagickWand *ping_wand;
   PixelIterator *iterator;
   PixelWand **pixels, *bg_wand = NULL;
   MagickPixelPacket  pixel;
@@ -8118,50 +8117,13 @@ imagemagick_load_image (struct frame *f, struct image *img,
   MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
-  ping_wand = NewMagickWand ();
-  /* MagickSetResolution (ping_wand, 2, 2);   (Bug#10112)  */
-
-  if (filename)
-    status = MagickPingImage (ping_wand, filename);
-  else
-    {
-      filename_hint = imagemagick_filename_hint (img->spec, hint_buffer);
-      MagickSetFilename (ping_wand, filename_hint);
-      status = MagickPingImageBlob (ping_wand, contents, size);
-    }
-
-  if (status == MagickFalse)
-    {
-      imagemagick_error (ping_wand);
-      DestroyMagickWand (ping_wand);
-      return 0;
-    }
-
-  if (ino < 0 || ino >= MagickGetNumberImages (ping_wand))
-    {
-      image_error ("Invalid image number `%s' in image `%s'",
-		   image, img->spec);
-      DestroyMagickWand (ping_wand);
-      return 0;
-    }
-
-  if (MagickGetNumberImages (ping_wand) > 1)
-    img->lisp_data =
-      Fcons (Qcount,
-             Fcons (make_number (MagickGetNumberImages (ping_wand)),
-                    img->lisp_data));
-
-  DestroyMagickWand (ping_wand);
-
-  /* Now we know how many images are inside the file.  If it's not a
-     bundle, the number is one.  Load the image data.  */
-
   image_wand = NewMagickWand ();
 
   if (filename)
     status = MagickReadImage (image_wand, filename);
   else
     {
+      filename_hint = imagemagick_filename_hint (img->spec, hint_buffer);
       MagickSetFilename (image_wand, filename_hint);
       status = MagickReadImageBlob (image_wand, contents, size);
     }
@@ -8169,8 +8131,23 @@ imagemagick_load_image (struct frame *f, struct image *img,
   if (status == MagickFalse)
     {
       imagemagick_error (image_wand);
-      goto imagemagick_error;
+      DestroyMagickWand (image_wand);
+      return 0;
     }
+
+  if (ino < 0 || ino >= MagickGetNumberImages (image_wand))
+    {
+      image_error ("Invalid image number `%s' in image `%s'",
+		   image, img->spec);
+      DestroyMagickWand (image_wand);
+      return 0;
+    }
+
+  if (MagickGetNumberImages (image_wand) > 1)
+    img->lisp_data =
+      Fcons (Qcount,
+             Fcons (make_number (MagickGetNumberImages (image_wand)),
+                    img->lisp_data));
 
   /* If we have an animated image, get the new wand based on the
      "super-wand". */

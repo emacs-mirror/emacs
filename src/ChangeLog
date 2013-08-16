@@ -2,6 +2,9 @@
 
 	* image.c: Implement an ImageMagick per-image cache.
 	(imagemagick_get_animation_cache): Fix a double-free error.
+	(imagemagick_load_image): Remove the ping_wand code, which only
+	apparently saved time on invalid animated images, and slowed down
+	everything else.  Optimise for the common case.
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
