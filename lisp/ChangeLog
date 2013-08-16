@@ -1,5 +1,8 @@
 2013-08-16  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local):
+	Tweak warning.  (Bug#14926)
+
 	* menu-bar.el (send-mail-item-name, read-mail-item-name): Remove.
 	(menu-bar-tools-menu): Simplify news and mail items.  (Bug#15095)
 

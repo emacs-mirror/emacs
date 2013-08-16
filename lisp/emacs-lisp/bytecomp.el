@@ -4274,7 +4274,7 @@ binding slots have been popped."
   (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
            (byte-compile-warning-enabled-p 'make-local))
       (byte-compile-warn
-       "`make-variable-buffer-local' should be called at toplevel"))
+       "`make-variable-buffer-local' not called at toplevel"))
   (byte-compile-normal-call form))
 (put 'make-variable-buffer-local
      'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)
