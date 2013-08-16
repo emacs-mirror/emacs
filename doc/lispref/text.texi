@@ -240,6 +240,7 @@ Major and minor modes can add functions to
 copied out of the buffer.
 @end defun
 
+@c FIXME: `filter-buffer-substring-function' should be documented.
 @defvar filter-buffer-substring-functions
 This variable is a wrapper hook (@pxref{Running Hooks}), whose members
 should be functions that accept four arguments: @var{fun},

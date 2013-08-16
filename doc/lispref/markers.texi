@@ -216,11 +216,14 @@ new marker that points to the same place and the same buffer as does
 The new marker's insertion type is specified by the argument
 @var{insertion-type}.  @xref{Marker Insertion Types}.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If passed an integer argument less than 1, @code{copy-marker} returns a
 new marker that points to the beginning of the current buffer.  If
 passed an integer argument greater than the length of the buffer,
 @code{copy-marker} returns a new marker that points to the end of the
 buffer.
+@end ignore
 
 @example
 @group
@@ -351,11 +354,15 @@ This function moves @var{marker} to @var{position}
 in @var{buffer}.  If @var{buffer} is not provided, it defaults to
 the current buffer.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If @var{position} is less than 1, @code{set-marker} moves @var{marker}
 to the beginning of the buffer.  If @var{position} is greater than the
 size of the buffer (@pxref{Point}), @code{set-marker} moves marker to
-the end of the buffer.  If @var{position} is @code{nil} or a marker
-that points nowhere, then @var{marker} is set to point nowhere.
+the end of the buffer.
+@end ignore
+If @var{position} is @code{nil} or a marker that points nowhere, then
+@var{marker} is set to point nowhere.
 
 The value returned is @var{marker}.
 

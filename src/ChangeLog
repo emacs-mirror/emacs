@@ -1,3 +1,7 @@
+2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* marker.c (set_marker): Remove documentation of undefined behavior.
+
 2013-08-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_compute_animated_image): Animate correctly

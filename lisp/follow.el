@@ -1259,6 +1259,8 @@ non-first windows in Follow mode."
 
 	;; If the region is visible, make it look good when spanning
 	;; multiple windows.
+
+	;; FIXME: Why not use `use-region-p' here?
 	(when (region-active-p)
 	  (follow-maximize-region
 	   (selected-window) windows win-start-end)))

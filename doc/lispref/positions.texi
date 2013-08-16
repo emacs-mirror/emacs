@@ -146,9 +146,13 @@ that.
 
 @deffn Command goto-char position
 This function sets point in the current buffer to the value
-@var{position}.  If @var{position} is less than 1, it moves point to the
-beginning of the buffer.  If @var{position} is greater than the length
-of the buffer, it moves point to the end.
+@var{position}.
+@c This behavior used to be documented until 2013/08.
+@ignore
+If @var{position} is less than 1, it moves point to the beginning of
+the buffer.  If @var{position} is greater than the length of the
+buffer, it moves point to the end.
+@end ignore
 
 If narrowing is in effect, @var{position} still counts from the
 beginning of the buffer, but point cannot go outside the accessible

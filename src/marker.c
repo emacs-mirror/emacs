@@ -536,11 +536,8 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
        doc: /* Position MARKER before character number POSITION in BUFFER.
 If BUFFER is omitted or nil, it defaults to the current buffer.  If
-POSITION is less than 1, MARKER is moved to the beginning of the
-buffer.  If POSITION is greater than the size of the buffer, marker is
-moved to the end of the buffer.  If POSITION is nil, makes marker
-point nowhere so it no longer slows down editing in any buffer.
-Returns MARKER.  */)
+POSITION is nil, makes marker point nowhere so it no longer slows down
+editing in any buffer.  Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
   return set_marker_internal (marker, position, buffer, 0);
