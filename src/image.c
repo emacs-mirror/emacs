@@ -7869,10 +7869,91 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    follow.  If following images have non-transparent colors, these are
    composed "on top" of the master image.  So, in general, one has to
    compute ann the preceding images to be able to display a particular
-   sub-image.  */
+   sub-image.
 
-static MagickWand *animation_cache = NULL;
-static int animation_index = 0;
+   Computing all the preceding images is too slow, so we maintain a
+   cache of previously computed images.  We have to maintain a cache
+   separate from the image cache, because the images may be scaled
+   before display. */
+
+struct animation_cache
+{
+  char *signature;
+  MagickWand *wand;
+  int index;
+  EMACS_TIME update_time;
+  struct animation_cache *next;
+};
+
+static struct animation_cache *animation_cache = NULL;
+
+struct animation_cache *
+imagemagick_create_cache (char *signature)
+{
+  struct animation_cache *cache = xzalloc (sizeof (struct animation_cache));
+  cache->signature = signature;
+  cache->update_time = current_emacs_time ();
+  return cache;
+}
+
+/* Discard cached images that haven't been used for a minute. */
+void
+imagemagick_prune_animation_cache ()
+{
+  struct animation_cache *cache = animation_cache;
+  struct animation_cache *prev;
+  EMACS_TIME old = sub_emacs_time (current_emacs_time (),
+				   EMACS_TIME_FROM_DOUBLE (60));
+
+  while (cache)
+    {
+      if (EMACS_TIME_LT (cache->update_time, old))
+	{
+	  struct animation_cache *this_cache = cache;
+	  free (cache->signature);
+	  if (cache->wand)
+	    DestroyMagickWand (cache->wand);
+	  if (prev)
+	    prev->next = cache->next;
+	  else
+	    animation_cache = cache->next;
+	  cache = cache->next;
+	  free (this_cache);
+	}
+      else {
+	prev = cache;
+	cache = cache->next;
+      }
+    }
+}
+
+struct animation_cache *
+imagemagick_get_animation_cache (MagickWand *wand)
+{
+  char *signature = MagickGetImageSignature (wand);
+  struct animation_cache *cache = animation_cache;
+
+  imagemagick_prune_animation_cache ();
+
+  if (! cache)
+    {
+      animation_cache = imagemagick_create_cache (signature);
+      return animation_cache;
+    }
+
+  while (strcmp(signature, cache->signature) &&
+	 cache->next)
+    cache = cache->next;
+
+  if (strcmp(signature, cache->signature))
+    {
+      cache->next = imagemagick_create_cache (signature);
+      return cache->next;
+    }
+
+  cache->update_time = current_emacs_time ();
+  return cache;
+}
 
 static MagickWand *
 imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
@@ -7880,18 +7961,23 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
   int i;
   MagickWand *composite_wand;
   size_t dest_width, dest_height;
+  struct animation_cache *cache = imagemagick_get_animation_cache (super_wand);
 
   MagickSetIteratorIndex (super_wand, 0);
 
-  if (ino == 0 || animation_cache == NULL)
-    composite_wand = MagickGetImage (super_wand);
+  if (ino == 0 || cache->wand == NULL || cache->index > ino)
+    {
+      composite_wand = MagickGetImage (super_wand);
+      if (cache->wand)
+	DestroyMagickWand (cache->wand);
+    }
   else
-    composite_wand = animation_cache;
+    composite_wand = cache->wand;
 
   dest_width = MagickGetImageWidth (composite_wand);
   dest_height = MagickGetImageHeight (composite_wand);
 
-  for (i = max (1, animation_index + 1); i <= ino; i++)
+  for (i = max (1, cache->index + 1); i <= ino; i++)
     {
       MagickWand *sub_wand;
       PixelIterator *source_iterator, *dest_iterator;
@@ -7916,7 +8002,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	{
 	  DestroyMagickWand (composite_wand);
 	  DestroyMagickWand (sub_wand);
-	  animation_cache = NULL;
+	  cache->wand = NULL;
 	  image_error ("Imagemagick pixel iterator creation failed",
 		       Qnil, Qnil);
 	  return NULL;
@@ -7928,7 +8014,7 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 	  DestroyMagickWand (composite_wand);
 	  DestroyMagickWand (sub_wand);
 	  DestroyPixelIterator (source_iterator);
-	  animation_cache = NULL;
+	  cache->wand = NULL;
 	  image_error ("Imagemagick pixel iterator creation failed",
 		       Qnil, Qnil);
 	  return NULL;
@@ -7979,8 +8065,8 @@ imagemagick_compute_animated_image (MagickWand *super_wand, int ino)
 
   /* Cache a copy for the next iteration.  The current wand will be
      destroyed by the caller. */
-  animation_cache = CloneMagickWand (composite_wand);
-  animation_index = ino;
+  cache->wand = CloneMagickWand (composite_wand);
+  cache->index = ino;
 
   return composite_wand;
 }
