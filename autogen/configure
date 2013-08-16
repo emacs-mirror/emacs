@@ -17066,7 +17066,7 @@ fi
 
 
 case $opsys in
-          cygwin)
+                cygwin)
 
 $as_echo "#define G_SLICE_ALWAYS_MALLOC 1" >>confdefs.h
 

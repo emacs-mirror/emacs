@@ -210,7 +210,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef GNU_MALLOC
 
 /* Define to set the G_SLICE environment variable to "always-malloc" at
-   startup, if using GTK. */
+   startup. */
 #undef G_SLICE_ALWAYS_MALLOC
 
 /* Define to 1 if you have the `accept4' function. */
