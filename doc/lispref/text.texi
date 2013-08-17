@@ -1381,7 +1381,8 @@ possible to undo either previous changes or any subsequent changes.  If
 the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
-This function returns @code{nil}.
+In an interactive call, BUFFER-OR-NAME is the current buffer.  You
+cannot specify any other buffer.  This function returns @code{nil}.
 @end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent

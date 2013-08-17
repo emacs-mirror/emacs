@@ -1,3 +1,8 @@
+2013-08-17  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* text.texi (Maintaining Undo): Mention interactive call of
+	buffer-disable-undo.
+
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* text.texi (Insertion): Refine.
