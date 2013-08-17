@@ -116,7 +116,8 @@ DEFUN ("zlib-available-p", Fzlib_available_p, Szlib_available_p, 0, 0, 0,
   else
     {
       Lisp_Object status;
-      status = init_zlib_functions () ? Qt : Qnil;
+      zlib_initialized = init_zlib_functions ();
+      status = zlib_initialized ? Qt : Qnil;
       Vlibrary_cache = Fcons (Fcons (Qzlib_dll, status), Vlibrary_cache);
       return status;
     }

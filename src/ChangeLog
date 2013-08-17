@@ -1,3 +1,9 @@
+2013-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* decompress.c (Fzlib_available_p) [WINDOWSNT]: Update the value
+	of zlib_initialized according to the results of calling
+	init_zlib_functions.
+
 2013-08-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c: Implement an ImageMagick per-image cache.
