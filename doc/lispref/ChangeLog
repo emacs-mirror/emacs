@@ -7,6 +7,7 @@
 	(Filling): Add cross-reference for hard newlines.
 	(Sorting): Fix indentation.
 	(Columns): Comment out undefined behavior.
+	(Case Changes): Fix an `args-out-of-range' error in the example.
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 

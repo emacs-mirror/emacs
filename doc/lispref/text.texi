@@ -2354,6 +2354,8 @@ code.
 For example, if @var{count} is 3, this command adds 3 columns of
 indentation to each of the lines beginning in the region specified.
 
+@c FIXME: I suggest using message-indent-citation as the example, or
+@c just remove this paragraph.  --xfq
 In Mail mode, @kbd{C-c C-y} (@code{mail-yank-original}) uses
 @code{indent-rigidly} to indent the text copied from the message being
 replied to.
@@ -2531,7 +2533,7 @@ This is the contents of the 5th foo.
 @end group
 
 @group
-(capitalize-region 1 44)
+(capitalize-region 1 37)
 @result{} nil
 
 ---------- Buffer: foo ----------
