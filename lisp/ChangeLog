@@ -1,3 +1,14 @@
+2013-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el:
+	* net/tramp-adb.el:
+	* net/tramp-cmds.el:
+	* net/tramp-ftp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el:
+	* net/tramp-sh.el: Don't wrap external variable declarations by
+	`eval-when-compile'.
+
 2013-08-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-rescale-image): Use ImageMagick even for GIFs

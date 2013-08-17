@@ -33,10 +33,10 @@
 ;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
-  (require 'custom)
-  (defvar ange-ftp-ftp-name-arg)
-  (defvar ange-ftp-ftp-name-res)
-  (defvar ange-ftp-name-format))
+  (require 'custom))
+(defvar ange-ftp-ftp-name-arg)
+(defvar ange-ftp-ftp-name-res)
+(defvar ange-ftp-name-format)
 
 ;; Disable Ange-FTP from file-name-handler-alist.
 ;; To handle EFS, the following functions need to be dealt with:

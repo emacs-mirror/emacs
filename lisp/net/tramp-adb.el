@@ -37,9 +37,8 @@
 (require 'time-date)
 
 ;; Pacify byte-compiler.
-(eval-when-compile
-  (defvar directory-sep-char)
-  (defvar dired-move-to-filename-regexp))
+(defvar directory-sep-char)
+(defvar dired-move-to-filename-regexp)
 
 (defcustom tramp-adb-program "adb"
   "Name of the Android Debug Bridge program."

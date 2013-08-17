@@ -107,8 +107,8 @@
 ;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
-  (require 'custom)
-  (defvar ls-lisp-use-insert-directory-program))
+  (require 'custom))
+(defvar ls-lisp-use-insert-directory-program)
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")

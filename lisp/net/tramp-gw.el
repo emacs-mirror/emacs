@@ -36,8 +36,8 @@
 ;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
-  (require 'custom)
-  (defvar socks-noproxy))
+  (require 'custom))
+(defvar socks-noproxy)
 
 ;; We don't add the following methods to `tramp-methods', in order to
 ;; exclude them from file name completion.

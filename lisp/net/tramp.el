@@ -61,12 +61,12 @@
 
 ;; Pacify byte-compiler.
 (eval-when-compile
-  (require 'cl)
-  (defvar bkup-backup-directory-info)
-  (defvar directory-sep-char)
-  (defvar eshell-path-env)
-  (defvar file-notify-descriptors)
-  (defvar outline-regexp))
+  (require 'cl))
+(defvar bkup-backup-directory-info)
+(defvar directory-sep-char)
+(defvar eshell-path-env)
+(defvar file-notify-descriptors)
+(defvar outline-regexp)
 
 ;;; User Customizable Internal Variables:
 

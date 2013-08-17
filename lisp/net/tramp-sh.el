@@ -31,10 +31,10 @@
 ;; Pacify byte-compiler.
 (eval-when-compile
   (require 'cl)
-  (require 'dired)
-  (defvar directory-sep-char)
-  (defvar tramp-gw-tunnel-method)
-  (defvar tramp-gw-socks-method))
+  (require 'dired))
+(defvar directory-sep-char)
+(defvar tramp-gw-tunnel-method)
+(defvar tramp-gw-socks-method)
 
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
