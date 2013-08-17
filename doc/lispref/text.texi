@@ -2140,9 +2140,12 @@ line and point.
 When called interactively, @var{column} is the value of prefix numeric
 argument.  If @var{column} is not an integer, an error is signaled.
 
+@c This behavior used to be documented until 2013/08.
+@ignore
 If column @var{column} is beyond the end of the line, point moves to
 the end of the line.  If @var{column} is negative, point moves to the
 beginning of the line.
+@end ignore
 
 If it is impossible to move to column @var{column} because that is in
 the middle of a multicolumn character such as a tab, point moves to the
