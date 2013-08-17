@@ -873,6 +873,7 @@ The Emacs major modes are a mutually exclusive set of options, each of
 which configures Emacs for editing a certain sort of text.  Ideally,
 each programming language has its own major mode.  @xref{Major Modes}.
 
+@c FIXME: Mention margins for filling?
 @item Margin
 The space between the usable part of a window (including the
 fringe) and the window edge.

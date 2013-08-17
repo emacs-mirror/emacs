@@ -1809,6 +1809,7 @@ prefix or @code{nil}, meaning it has failed to determine a prefix.
 @cindex filling, automatic
 @cindex Auto Fill mode
 
+@c FIXME: I don't think any of the variables below is a/an normal/abnormal hook.
   Auto Fill mode is a minor mode that fills lines automatically as text
 is inserted.  This section describes the hook used by Auto Fill mode.
 For a description of functions that you can call explicitly to fill and
@@ -1950,10 +1951,10 @@ its @code{sort-subr} call looks like this:
 @group
 (sort-subr reverse
            (function
-             (lambda ()
-               (while (and (not (eobp))
-                      (looking-at paragraph-separate))
-                 (forward-line 1))))
+            (lambda ()
+              (while (and (not (eobp))
+                          (looking-at paragraph-separate))
+                (forward-line 1))))
            'forward-paragraph)
 @end group
 @end example
