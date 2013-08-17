@@ -1499,6 +1499,7 @@ the header lines.  If @var{citation-regexp} is a string, it is used as
 a regular expression; if it matches the beginning of a line, that line
 is treated as a citation marker.
 
+@c FIXME: "That mode" is confusing.  It isn't a major/minor mode.
 Ordinarily, @code{fill-individual-paragraphs} regards each change in
 indentation as starting a new paragraph.  If
 @code{fill-individual-varying-indent} is non-@code{nil}, then only

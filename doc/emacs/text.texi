@@ -2255,6 +2255,7 @@ Prefix}.
 
 @node Enriched Justification
 @subsection Justification in Enriched Text
+@cindex justification style
 
   In Enriched mode, you can use the following commands to specify
 various @dfn{justification styles} for filling.  These commands apply
@@ -2293,13 +2294,13 @@ commands do nothing on text with this setting.  You can, however,
 still indent the left margin.
 @end table
 
+@c FIXME: We should explain the effect of these symbols.  --xfq
 @vindex default-justification
   You can also specify justification styles using the Justification
-submenu in the Text Properties menu.
-  The default justification style is specified by the per-buffer
-variable @code{default-justification}.  Its value should be one of the
-symbols @code{left}, @code{right}, @code{full}, @code{center}, or
-@code{none}.
+submenu in the Text Properties menu.  The default justification style
+is specified by the per-buffer variable @code{default-justification}.
+Its value should be one of the symbols @code{left}, @code{right},
+@code{full}, @code{center}, or @code{none}.
 
 @node Enriched Properties
 @subsection Setting Other Text Properties
