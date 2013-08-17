@@ -2,6 +2,7 @@
 
 	* text.texi (Maintaining Undo): Mention interactive call of
 	buffer-disable-undo.
+	(Filling): Add cross-reference for hard newlines.
 
 2013-08-16  Xue Fuqiao  <xfq.free@gmail.com>
 

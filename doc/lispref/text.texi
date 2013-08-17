@@ -1613,7 +1613,8 @@ Manual}.
 @defvar use-hard-newlines
 If this variable is non-@code{nil}, the filling functions do not delete
 newlines that have the @code{hard} text property.  These ``hard
-newlines'' act as paragraph separators.
+newlines'' act as paragraph separators.  @xref{Hard and Soft
+Newlines,, Hard and Soft Newlines, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @node Margins
