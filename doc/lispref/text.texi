@@ -4028,6 +4028,7 @@ A rectangle is represented by a list of strings.
 This represents a window configuration to restore in one frame, and a
 position to jump to in the current buffer.
 
+@c FIXME: Mention frameset here.
 @item @code{(@var{frame-configuration} @var{position})}
 This represents a frame configuration to restore, and a position
 to jump to in the current buffer.
