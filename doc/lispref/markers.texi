@@ -654,7 +654,12 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @node The Region
 @section The Region
-@cindex region (between point and mark)
+@c The index entry must be just ``region'' to make it the first hit
+@c when the user types ``i region RET'', because otherwise the Info
+@c reader will present substring matches in alphabetical order,
+@c putting this one near the end, with something utterly unrelated as
+@c the first hit.
+@cindex region
 
   The text between point and the mark is known as @dfn{the region}.
 Various functions operate on text delimited by point and the mark, but
