@@ -7932,9 +7932,10 @@ struct animation_cache *
 imagemagick_get_animation_cache (MagickWand *wand)
 {
   char *signature = xstrdup (MagickGetImageSignature (wand));
-  struct animation_cache *cache = animation_cache;
+  struct animation_cache *cache;
 
   imagemagick_prune_animation_cache ();
+  cache = animation_cache;
 
   if (! cache)
     {
