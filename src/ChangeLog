@@ -1,3 +1,12 @@
+2013-08-18  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Adjust to current needs; use bigger
+	static heap if ENABLE_CHECKING is defined.
+	(max_bss_sbrk_ptr): New variable.
+	(bss_sbrk): Use it.
+	(report_sheap_usage): Report maximum static heap usage instead of
+	ending static heap usage.
+
 2013-08-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* decompress.c (Fzlib_available_p) [WINDOWSNT]: Update the value
