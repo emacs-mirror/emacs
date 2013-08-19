@@ -1,3 +1,8 @@
+2013-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.c (imagemagick_get_animation_cache): Don't segfault on
+	each invocation.
+
 2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c: Fix animation cache signature memory leak.

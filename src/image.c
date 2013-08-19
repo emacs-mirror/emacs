@@ -7927,23 +7927,27 @@ imagemagick_get_animation_cache (MagickWand *wand)
 {
   char *signature = MagickGetImageSignature (wand);
   struct animation_cache *cache;
-  struct animation_cache **pcache = &animation_cache;
+  struct animation_cache **pcache;
 
   imagemagick_prune_animation_cache ();
-  cache = animation_cache;
 
-  for (pcache = &animation_cache; *pcache; pcache = &cache->next)
+  if (! animation_cache)
+    animation_cache = cache = imagemagick_create_cache (signature);
+  else
     {
-      cache = *pcache;
-      if (! cache)
+      for (pcache = &animation_cache; *pcache; pcache = &cache->next)
 	{
-	  *pcache = cache = imagemagick_create_cache (signature);
-	  break;
-	}
-      if (strcmp (signature, cache->signature) == 0)
-	{
-	  DestroyString (signature);
-	  break;
+	  cache = *pcache;
+	  if (! cache)
+	    {
+	      animation_cache = cache = imagemagick_create_cache (signature);
+	      break;
+	    }
+	  if (strcmp (signature, cache->signature) == 0)
+	    {
+	      DestroyString (signature);
+	      break;
+	    }
 	}
     }
 
