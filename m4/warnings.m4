@@ -1,4 +1,4 @@
-# warnings.m4 serial 8
+# warnings.m4 serial 10
 dnl Copyright (C) 2008-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -25,15 +25,24 @@ m4_ifdef([AS_VAR_APPEND],
 AC_DEFUN([gl_COMPILER_OPTION_IF],
 [AS_VAR_PUSHDEF([gl_Warn], [gl_cv_warn_[]_AC_LANG_ABBREV[]_$1])dnl
 AS_VAR_PUSHDEF([gl_Flags], [_AC_LANG_PREFIX[]FLAGS])dnl
+AS_LITERAL_IF([$1],
+  [m4_pushdef([gl_Positive], m4_bpatsubst([$1], [^-Wno-], [-W]))],
+  [gl_positive="$1"
+case $gl_positive in
+  -Wno-*) gl_positive=-W`expr "X$gl_positive" : 'X-Wno-\(.*\)'` ;;
+esac
+m4_pushdef([gl_Positive], [$gl_positive])])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler handles $1], m4_defn([gl_Warn]), [
   gl_save_compiler_FLAGS="$gl_Flags"
-  gl_AS_VAR_APPEND(m4_defn([gl_Flags]), [" $gl_unknown_warnings_are_errors $1"])
+  gl_AS_VAR_APPEND(m4_defn([gl_Flags]),
+    [" $gl_unknown_warnings_are_errors ]m4_defn([gl_Positive])["])
   AC_COMPILE_IFELSE([m4_default([$4], [AC_LANG_PROGRAM([])])],
                     [AS_VAR_SET(gl_Warn, [yes])],
                     [AS_VAR_SET(gl_Warn, [no])])
   gl_Flags="$gl_save_compiler_FLAGS"
 ])
 AS_VAR_IF(gl_Warn, [yes], [$2], [$3])
+m4_popdef([gl_Positive])dnl
 AS_VAR_POPDEF([gl_Flags])dnl
 AS_VAR_POPDEF([gl_Warn])dnl
 ])

@@ -1,3 +1,9 @@
+2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2013-08-15 warnings: minor optimization
+	2013-08-15 warnings: check -Wfoo rather than -Wno-foo
+
 2013-08-15  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.ac (G_SLICE_ALWAYS_MALLOC): Update comment.
