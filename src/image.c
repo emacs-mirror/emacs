@@ -7938,11 +7938,11 @@ imagemagick_get_animation_cache (MagickWand *wand)
       return animation_cache;
     }
 
-  while (strcmp(signature, cache->signature) &&
+  while (strcmp (signature, cache->signature) &&
 	 cache->next)
     cache = cache->next;
 
-  if (strcmp(signature, cache->signature))
+  if (strcmp (signature, cache->signature))
     {
       cache->next = imagemagick_create_cache (signature);
       DestroyString (signature);
