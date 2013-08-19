@@ -1,3 +1,19 @@
+2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Shrink memory needed for animation cache.
+	(SIGNATURE_DIGESTSIZE): New constant.
+	(struct animation_cache): Make 'signature' a fixed size array of bytes.
+	(imagemagick_create_cache): Copy the signature.  This saves
+	several KB of memory that ImageMagick wastes per signature.
+	Don't bother updating the update_time, as the caller does that now.
+	(imagemagick_prune_animation_cache): Don't destroy the signature, as
+	it's a fixed size struct member now.
+	(imagemagick_get_animation_cache): Always destroy the signature,
+	as it's now imagemagick_create_cache's responsibility to copy it.
+	Avoid duplicate calls to strcmp and to imagemagick_create_cache,
+	and use memcmp rather than strcmp.
+	eassert that ImageMagick returns a signature of the specified length.
+
 2013-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_get_animation_cache): Don't segfault on

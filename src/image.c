@@ -7876,13 +7876,17 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    separate from the image cache, because the images may be scaled
    before display. */
 
+/* Size of ImageMagick image signatures, in bytes.  It's SHA-256 as a
+   hex string, so it's 256 bits represented via 4 bits per byte.  */
+enum { SIGNATURE_DIGESTSIZE = 256 / 4 };
+
 struct animation_cache
 {
-  char *signature;
   MagickWand *wand;
   int index;
   EMACS_TIME update_time;
   struct animation_cache *next;
+  char signature[SIGNATURE_DIGESTSIZE];
 };
 
 static struct animation_cache *animation_cache = NULL;
@@ -7891,11 +7895,10 @@ static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
   struct animation_cache *cache = xmalloc (sizeof *cache);
-  cache->signature = signature;
   cache->wand = 0;
   cache->index = 0;
   cache->next = 0;
-  cache->update_time = current_emacs_time ();
+  memcpy (cache->signature, signature, SIGNATURE_DIGESTSIZE);
   return cache;
 }
 
@@ -7914,7 +7917,6 @@ imagemagick_prune_animation_cache (void)
 	pcache = &cache->next;
       else
 	{
-	  DestroyString (cache->signature);
 	  if (cache->wand)
 	    DestroyMagickWand (cache->wand);
 	  *pcache = cache->next;
@@ -7928,24 +7930,22 @@ imagemagick_get_animation_cache (MagickWand *wand)
 {
   char *signature = MagickGetImageSignature (wand);
   struct animation_cache *cache;
+  struct animation_cache **pcache = &animation_cache;
 
+  eassert (strlen (signature) == SIGNATURE_DIGESTSIZE);
   imagemagick_prune_animation_cache ();
-  cache = animation_cache;
 
-  if (! cache)
+  while (1)
     {
-      animation_cache = imagemagick_create_cache (signature);
-      return animation_cache;
-    }
-
-  while (strcmp (signature, cache->signature) &&
-	 cache->next)
-    cache = cache->next;
-
-  if (strcmp (signature, cache->signature))
-    {
-      cache->next = imagemagick_create_cache (signature);
-      return cache->next;
+      cache = *pcache;
+      if (! cache)
+	{
+          *pcache = cache = imagemagick_create_cache (signature);
+          break;
+        }
+      if (memcmp (signature, cache->signature, SIGNATURE_DIGESTSIZE) == 0)
+	break;
+      pcache = &cache->next;
     }
 
   DestroyString (signature);
