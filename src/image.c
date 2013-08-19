@@ -7895,6 +7895,7 @@ imagemagick_create_cache (char *signature)
   cache->wand = 0;
   cache->index = 0;
   cache->next = 0;
+  cache->update_time = current_emacs_time ();
   return cache;
 }
 
@@ -7927,28 +7928,25 @@ imagemagick_get_animation_cache (MagickWand *wand)
 {
   char *signature = MagickGetImageSignature (wand);
   struct animation_cache *cache;
-  struct animation_cache **pcache;
 
   imagemagick_prune_animation_cache ();
+  cache = animation_cache;
 
-  if (! animation_cache)
-    animation_cache = cache = imagemagick_create_cache (signature);
-  else
+  if (! cache)
     {
-      for (pcache = &animation_cache; *pcache; pcache = &cache->next)
-	{
-	  cache = *pcache;
-	  if (! cache)
-	    {
-	      animation_cache = cache = imagemagick_create_cache (signature);
-	      break;
-	    }
-	  if (strcmp (signature, cache->signature) == 0)
-	    {
-	      DestroyString (signature);
-	      break;
-	    }
-	}
+      animation_cache = imagemagick_create_cache (signature);
+      return animation_cache;
+    }
+
+  while (strcmp(signature, cache->signature) &&
+	 cache->next)
+    cache = cache->next;
+
+  if (strcmp(signature, cache->signature))
+    {
+      cache->next = imagemagick_create_cache (signature);
+      DestroyString (signature);
+      return cache->next;
     }
 
   cache->update_time = current_emacs_time ();
