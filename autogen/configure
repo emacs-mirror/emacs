@@ -7920,6 +7920,10 @@ $as_echo "$gl_cv_cc_uninitialized_supported" >&6; }
   for w in $ws; do
 
 as_gl_Warn=`$as_echo "gl_cv_warn_c_$w" | $as_tr_sh`
+gl_positive="$w"
+case $gl_positive in
+  -Wno-*) gl_positive=-W`expr "X$gl_positive" : 'X-Wno-\(.*\)'` ;;
+esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler handles $w" >&5
 $as_echo_n "checking whether C compiler handles $w... " >&6; }
 if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
@@ -7927,7 +7931,7 @@ if { as_var=$as_gl_Warn; eval "test \"\${$as_var+set}\" = set"; }; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $w"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors $gl_positive"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -7966,7 +7970,7 @@ if test "${gl_cv_warn_c__Wno_missing_field_initializers+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-missing-field-initializers"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wmissing-field-initializers"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8002,7 +8006,7 @@ if test "${gl_cv_warn_c__Wno_sign_compare+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-sign-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wsign-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8038,7 +8042,7 @@ if test "${gl_cv_warn_c__Wno_type_limits+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-type-limits"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtype-limits"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8074,7 +8078,7 @@ if test "${gl_cv_warn_c__Wno_switch+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-switch"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wswitch"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8110,7 +8114,7 @@ if test "${gl_cv_warn_c__Wno_unused_parameter+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-parameter"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-parameter"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8146,7 +8150,7 @@ if test "${gl_cv_warn_c__Wno_format_nonliteral+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-nonliteral"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wformat-nonliteral"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8185,7 +8189,7 @@ if test "${gl_cv_warn_c__Wno_logical_op+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-logical-op"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wlogical-op"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8224,7 +8228,7 @@ if test "${gl_cv_warn_c__Wno_format_extra_args+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-format-extra-args"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wformat-extra-args"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8260,7 +8264,7 @@ if test "${gl_cv_warn_c__Wno_tautological_constant_out_of_range_compare+set}" = 
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-tautological-constant-out-of-range-compare"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wtautological-constant-out-of-range-compare"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8296,7 +8300,7 @@ if test "${gl_cv_warn_c__Wno_unused_command_line_argument+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-command-line-argument"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-command-line-argument"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -8332,7 +8336,7 @@ if test "${gl_cv_warn_c__Wno_unused_value+set}" = set; then :
 else
 
   gl_save_compiler_FLAGS="$CFLAGS"
-  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wno-unused-value"
+  as_fn_append CFLAGS " $gl_unknown_warnings_are_errors -Wunused-value"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
