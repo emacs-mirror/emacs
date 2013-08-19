@@ -7890,9 +7890,11 @@ static struct animation_cache *animation_cache = NULL;
 static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
-  struct animation_cache *cache = xzalloc (sizeof *cache);
+  struct animation_cache *cache = xmalloc (sizeof *cache);
   cache->signature = signature;
-  cache->update_time = current_emacs_time ();
+  cache->wand = 0;
+  cache->index = 0;
+  cache->next = 0;
   return cache;
 }
 
@@ -7900,30 +7902,22 @@ imagemagick_create_cache (char *signature)
 static void
 imagemagick_prune_animation_cache (void)
 {
-  struct animation_cache *cache = animation_cache;
-  struct animation_cache *prev = NULL;
+  struct animation_cache **pcache = &animation_cache;
   EMACS_TIME old = sub_emacs_time (current_emacs_time (),
-				   EMACS_TIME_FROM_DOUBLE (60));
+				   make_emacs_time (60, 0));
 
-  while (cache)
+  while (*pcache)
     {
-      if (EMACS_TIME_LT (cache->update_time, old))
-	{
-	  struct animation_cache *this_cache = cache;
-	  free (cache->signature);
-	  if (cache->wand)
-	    DestroyMagickWand (cache->wand);
-	  if (prev)
-	    prev->next = cache->next;
-	  else
-	    animation_cache = cache->next;
-	  cache = cache->next;
-	  free (this_cache);
-	}
+      struct animation_cache *cache = *pcache;
+      if (EMACS_TIME_LE (old, cache->update_time))
+	pcache = &cache->next;
       else
 	{
-	  prev = cache;
-	  cache = cache->next;
+	  DestroyString (cache->signature);
+	  if (cache->wand)
+	    DestroyMagickWand (cache->wand);
+	  *pcache = cache->next;
+	  xfree (cache);
 	}
     }
 }
@@ -7931,26 +7925,26 @@ imagemagick_prune_animation_cache (void)
 static struct animation_cache *
 imagemagick_get_animation_cache (MagickWand *wand)
 {
-  char *signature = xstrdup (MagickGetImageSignature (wand));
+  char *signature = MagickGetImageSignature (wand);
   struct animation_cache *cache;
+  struct animation_cache **pcache = &animation_cache;
 
   imagemagick_prune_animation_cache ();
   cache = animation_cache;
 
-  if (! cache)
+  for (pcache = &animation_cache; *pcache; pcache = &cache->next)
     {
-      animation_cache = imagemagick_create_cache (signature);
-      return animation_cache;
-    }
-
-  while (strcmp(signature, cache->signature) &&
-	 cache->next)
-    cache = cache->next;
-
-  if (strcmp(signature, cache->signature))
-    {
-      cache->next = imagemagick_create_cache (signature);
-      return cache->next;
+      cache = *pcache;
+      if (! cache)
+	{
+	  *pcache = cache = imagemagick_create_cache (signature);
+	  break;
+	}
+      if (strcmp (signature, cache->signature) == 0)
+	{
+	  DestroyString (signature);
+	  break;
+	}
     }
 
   cache->update_time = current_emacs_time ();

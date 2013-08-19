@@ -1,5 +1,16 @@
 2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c: Fix animation cache signature memory leak.
+	Fix some other minor performance problems while we're at it.
+	(imagemagick_create_cache): Clear just the members that
+	need clearing.  Don't set update_time, as caller does that now.
+	(imagemagick_prune_animation_cache, imagemagick_get_animation_cache):
+	Simplify by using pointer-to-pointer instead of a prev pointer.
+	(imagemagick_prune_animation_cache): Use make_emacs_time rather
+	than EMACS_TIME_FROM_DOUBLE, and DestroyString rather than free.
+	(imagemagick_get_animation_cache): Don't xstrdup the image signature;
+	it's already a copy.  Free the signature probe unless it's cached.
+
 	* process.c (handle_child_signal): Fix crash; deleted pid (Bug#15106).
 	This was introduced by my 2013-08-12 fix for Bug#15035.
 
