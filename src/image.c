@@ -7887,18 +7887,18 @@ struct animation_cache
 
 static struct animation_cache *animation_cache = NULL;
 
-struct animation_cache *
+static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
-  struct animation_cache *cache = xzalloc (sizeof (struct animation_cache));
+  struct animation_cache *cache = xzalloc (sizeof *cache);
   cache->signature = signature;
   cache->update_time = current_emacs_time ();
   return cache;
 }
 
 /* Discard cached images that haven't been used for a minute. */
-void
-imagemagick_prune_animation_cache ()
+static void
+imagemagick_prune_animation_cache (void)
 {
   struct animation_cache *cache = animation_cache;
   struct animation_cache *prev = NULL;
@@ -7928,7 +7928,7 @@ imagemagick_prune_animation_cache ()
     }
 }
 
-struct animation_cache *
+static struct animation_cache *
 imagemagick_get_animation_cache (MagickWand *wand)
 {
   char *signature = xstrdup (MagickGetImageSignature (wand));

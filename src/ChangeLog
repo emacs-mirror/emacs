@@ -1,3 +1,8 @@
+2013-08-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* image.c (imagemagick_create_cache, imagemagick_get_animation_cache)
+	(imagemagick_prune_animation_cache): Now static.
+
 2013-08-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.c (imagemagick_get_animation_cache): Don't segfault when
