@@ -7945,10 +7945,10 @@ imagemagick_get_animation_cache (MagickWand *wand)
   if (strcmp (signature, cache->signature))
     {
       cache->next = imagemagick_create_cache (signature);
-      DestroyString (signature);
       return cache->next;
     }
 
+  DestroyString (signature);
   cache->update_time = current_emacs_time ();
   return cache;
 }

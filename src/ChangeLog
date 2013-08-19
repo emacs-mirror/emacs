@@ -2,6 +2,9 @@
 
 	* image.c (imagemagick_get_animation_cache): Don't segfault on
 	each invocation.
+	(imagemagick_get_animation_cache): Revert to previous definition
+	so that it actually works.  But keep the memory leak fix.
+	(imagemagick_get_animation_cache): Fix memory leak.
 
 2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
