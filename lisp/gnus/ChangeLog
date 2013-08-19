@@ -1,3 +1,8 @@
+2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Exclude iso-2022-jp-2 and
+	shift_jis from the default value set for Japanese users.
+
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-icalendar.el (gnus-icalendar-org-capture-file): Fix type.

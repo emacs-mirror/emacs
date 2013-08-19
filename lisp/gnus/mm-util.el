@@ -845,17 +845,17 @@ Valid elements include:
 	   (not lang) nil)
 	  ;; In XEmacs 21.5 it may be the one like "Japanese (UTF-8)".
 	  ((string-match "\\`Japanese" lang)
-	   ;; Japanese users prefer iso-2022-jp to euc-japan or
-	   ;; shift_jis, however iso-8859-1 should be used when
-	   ;; there are only ASCII text and Latin-1 characters.
-	   '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8))))
+	   ;; Japanese users prefer iso-2022-jp to others usually used
+	   ;; for `buffer-file-coding-system', however iso-8859-1 should
+	   ;; be used when there are only ASCII and Latin-1 characters.
+	   '(iso-8859-1 iso-2022-jp utf-8))))
   "Preferred coding systems for encoding outgoing messages.
 
 More than one suitable coding system may be found for some text.
 By default, the coding system with the highest priority is used
 to encode outgoing messages (see `sort-coding-systems').  If this
 variable is set, it overrides the default priority."
-  :version "21.2"
+  :version "24.4"
   :type '(repeat (symbol :tag "Coding system"))
   :group 'mime)
 

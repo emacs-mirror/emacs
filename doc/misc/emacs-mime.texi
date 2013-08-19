@@ -871,15 +871,15 @@ by using the @code{encoding} @acronym{MML} tag (@pxref{MML Definition}).
 @vindex mm-coding-system-priorities
 Prioritize coding systems to use for outgoing messages.  The default
 is @code{nil}, which means to use the defaults in Emacs, but is
-@code{(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)} when
-running Emacs in the Japanese language environment.  It is a list of
-coding system symbols (aliases of coding systems are also allowed, use
-@kbd{M-x describe-coding-system} to make sure you are specifying correct
-coding system names).  For example, if you have configured Emacs
-to prefer UTF-8, but wish that outgoing messages should be sent in
-ISO-8859-1 if possible, you can set this variable to
-@code{(iso-8859-1)}.  You can override this setting on a per-message
-basis by using the @code{charset} @acronym{MML} tag (@pxref{MML Definition}).
+@code{(iso-8859-1 iso-2022-jp utf-8)} when running Emacs in the Japanese
+language environment.  It is a list of coding system symbols (aliases of
+coding systems are also allowed, use @kbd{M-x describe-coding-system} to
+make sure you are specifying correct coding system names).  For example,
+if you have configured Emacs to prefer UTF-8, but wish that outgoing
+messages should be sent in ISO-8859-1 if possible, you can set this
+variable to @code{(iso-8859-1)}.  You can override this setting on a
+per-message basis by using the @code{charset} @acronym{MML} tag
+(@pxref{MML Definition}).
 
 As different hierarchies prefer different charsets, you may want to set
 @code{mm-coding-system-priorities} according to the hierarchy in Gnus.
@@ -904,7 +904,7 @@ Here's an example:
           (mm-coding-system-priorities '(iso-8859-15 iso-8859-1 utf-8)))
          ("^fj\\." ;; Japanese
           (mm-coding-system-priorities
-           '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)))
+           '(iso-8859-1 iso-2022-jp utf-8)))
          ("^ru\\." ;; Cyrillic
           (mm-coding-system-priorities
            '(koi8-r iso-8859-5 iso-8859-1 utf-8))))

@@ -1,3 +1,9 @@
+2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Exclude iso-2022-jp-2 and
+	shift_jis from the default value set to mm-coding-system-priorities for
+	Japanese users.
+
 2013-08-13  Glenn Morris  <rgm@gnu.org>
 
 	* reftex.texi (LaTeX xr Package, Options - Table of Contents)
