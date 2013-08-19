@@ -6153,7 +6153,10 @@ handle_child_signal (int sig)
 	= (MOST_NEGATIVE_FIXNUM <= TYPE_MINIMUM (pid_t)
 	   && TYPE_MAXIMUM (pid_t) <= MOST_POSITIVE_FIXNUM);
       Lisp_Object head = XCAR (tail);
-      Lisp_Object xpid = XCAR (head);
+      Lisp_Object xpid;
+      if (! CONSP (head))
+	continue;
+      xpid = XCAR (head);
       if (all_pids_are_fixnums ? INTEGERP (xpid) : NUMBERP (xpid))
 	{
 	  pid_t deleted_pid;
