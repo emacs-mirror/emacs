@@ -16,16 +16,16 @@ MAKE=@MAKE@
 MPS_TARGET_NAME=@MPS_TARGET_NAME@
 EXTRA_TARGETS=@EXTRA_TARGETS@
 prefix=$(DESTDIR)@prefix@
-MAKE_FOR_TARGET=$(MAKE) -C code -f $(MPS_TARGET_NAME).gmk EXTRA_TARGETS="$(EXTRA_TARGETS)"
+TARGET_OPTS=-C code -f $(MPS_TARGET_NAME).gmk EXTRA_TARGETS="$(EXTRA_TARGETS)"
 XCODEBUILD=xcodebuild -project code/mps.xcodeproj
 
 all: @BUILD_TARGET@
 
 build-via-make:
-	$(MAKE_FOR_TARGET)
+	$(MAKE) $(TARGET_OPTS)
 
 clean-make-build:
-	$(MAKE_FOR_TARGET) clean
+	$(MAKE) $(TARGET_OPTS) clean
 
 install-make-build: make-install-dirs build-via-make
 	$(INSTALL_DATA) code/mps*.h $(prefix)/include/
@@ -68,8 +68,8 @@ make-install-dirs:
 install: @INSTALL_TARGET@
 
 test-make-build: @BUILD_TARGET@
-	$(MAKE_FOR_TARGET) VARIETY=cool testrun
-	$(MAKE_FOR_TARGET) VARIETY=hot  testrun
+	$(MAKE) $(TARGET_OPTS) VARIETY=cool testrun
+	$(MAKE) $(TARGET_OPTS) VARIETY=hot  testrun
 
 test-xcode-build:
 	$(XCODEBUILD) -config Release -target testrun
