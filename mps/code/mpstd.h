@@ -139,9 +139,12 @@
 /* GCC 2.6.3, gcc -E -dM
  * The actual granularity of GNU malloc is 8, but field alignments are
  * all 4.
+ * Note that Clang also defines __GNUC__ since it's generally GCC compatible,
+ * but that doesn't fit our system so we exclude Clang here.
  */
 
-#elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
+#elif defined(__linux__) && defined(__i386__) && defined(__GNUC__) \
+      && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII3GC)
 #error "specified CONFIG_PF_... inconsistent with detected lii3gc"
 #endif
@@ -159,7 +162,8 @@
 
 /* GCC 4.6.3, gcc -E -dM */
 
-#elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__)
+#elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__) \
+      && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII6GC)
 #error "specified CONFIG_PF_... inconsistent with detected lii6gc"
 #endif
@@ -177,7 +181,8 @@
 
 /* GCC 2.95.3, gcc -E -dM */
 
-#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__) \
+      && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI3GC)
 #error "specified CONFIG_PF_... inconsistent with detected fri3gc"
 #endif
@@ -193,7 +198,8 @@
 #define MPS_PF_ALIGN    4
 
 
-#elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__)
+#elif defined(__FreeBSD__) && defined (__x86_64__) && defined (__GNUC__) \
+      && !defined(__clang__)
 #if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_FRI6GC)
 #error "specified CONFIG_PF_... inconsistent with detected fri6gc"
 #endif
@@ -219,7 +225,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002,2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
