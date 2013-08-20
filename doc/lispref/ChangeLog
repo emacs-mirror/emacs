@@ -1,3 +1,8 @@
+2013-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Information about Files): Mention file names with
+	trailing blanks on MS-Windows.  (Bug#15130)
+
 2013-08-18  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* positions.texi (Positions): Improve indexing.

@@ -776,6 +776,14 @@ return information about actual files or directories, so their
 arguments must all exist as actual files or directories unless
 otherwise noted.
 
+@cindex file names, trailing whitespace
+@cindex trailing blanks in file names
+Be careful with file names that end in blanks: some filesystems
+(notably, MS-Windows) will ignore trailing whitespace in file names,
+and return information about the file after stripping those blanks
+from the name, not about the file whose name you passed to the
+functions described in this section.
+
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
