@@ -1,4 +1,4 @@
-;;; align.el --- align text to a specific column, by regexp
+;;; align.el --- align text to a specific column, by regexp -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2013 Free Software Foundation, Inc.
 
@@ -1325,7 +1325,7 @@ aligner would have dealt with are."
 	(unless (or (and modes (not (memq major-mode
 					  (eval (cdr modes)))))
 		    (and run-if (not (funcall (cdr run-if)))))
-	  (let* ((current-case-fold case-fold-search)
+	  (let* ((case-fold-search case-fold-search)
 		 (case-fold (assq 'case-fold rule))
 		 (regexp  (cdr (assq 'regexp rule)))
 		 (regfunc (and (functionp regexp) regexp))
@@ -1403,215 +1403,202 @@ aligner would have dealt with are."
 	      ;; reports back that the region is ok, then align it.
 	      (when (or (not func)
 			(funcall func beg end rule))
-		(unwind-protect
-		    (let (rule-beg exclude-areas)
-		      ;; determine first of all where the exclusions
-		      ;; lie in this region
-		      (when exclude-rules
-			;; guard against a problem with recursion and
-			;; dynamic binding vs. lexical binding, since
-			;; the call to `align-region' below will
-			;; re-enter this function, and rebind
-			;; `exclude-areas'
-			(set (setq exclude-areas
-				   (make-symbol "align-exclude-areas"))
-			     nil)
-			(align-region
-			 beg end 'entire
-			 exclude-rules nil
-			 `(lambda (b e mode)
-			    (or (and mode (listp mode))
-				(set (quote ,exclude-areas)
-				     (cons (cons b e)
-					   ,exclude-areas)))))
-			(setq exclude-areas
-			      (sort (symbol-value exclude-areas)
-				    (function
-				     (lambda (l r)
-				       (>= (car l) (car r)))))))
+                (let (rule-beg exclude-areas)
+                  ;; determine first of all where the exclusions
+                  ;; lie in this region
+                  (when exclude-rules
+                    (align-region
+                     beg end 'entire
+                     exclude-rules nil
+                     (lambda (b e mode)
+                       (or (and mode (listp mode))
+                           (setq exclude-areas
+                                 (cons (cons b e)
+                                       exclude-areas)))))
+                    (setq exclude-areas
+                          (nreverse
+                           (sort exclude-areas #'car-less-than-car))))
 
-		      ;; set `case-fold-search' according to the
-		      ;; (optional) `case-fold' property
-		      (and case-fold
-			   (setq case-fold-search (cdr case-fold)))
+                  ;; set `case-fold-search' according to the
+                  ;; (optional) `case-fold' property
+                  (and case-fold
+                       (setq case-fold-search (cdr case-fold)))
 
-		      ;; while we can find the rule in the alignment
-		      ;; region..
-		      (while (and (< (point) end-mark)
-				  (setq search-start (point))
-				  (if regfunc
-				      (funcall regfunc end-mark nil)
-				    (re-search-forward regexp
-						       end-mark t)))
+                  ;; while we can find the rule in the alignment
+                  ;; region..
+                  (while (and (< (point) end-mark)
+                              (setq search-start (point))
+                              (if regfunc
+                                  (funcall regfunc end-mark nil)
+                                (re-search-forward regexp
+                                                   end-mark t)))
 
-			;; give the user some indication of where we
-			;; are, if it's a very large region being
-			;; aligned
-			(if report
-			    (let ((symbol (car rule)))
-			      (if (and symbol (symbolp symbol))
-				  (message
-				   "Aligning `%s' (rule %d of %d) %d%%..."
-				   (symbol-name symbol) rule-index rule-count
-				   (/ (* (- (point) real-beg) 100)
-				      (- end-mark real-beg)))
-				(message
-				 "Aligning %d%%..."
-				 (/ (* (- (point) real-beg) 100)
-				    (- end-mark real-beg))))))
+                    ;; give the user some indication of where we
+                    ;; are, if it's a very large region being
+                    ;; aligned
+                    (if report
+                        (let ((symbol (car rule)))
+                          (if (and symbol (symbolp symbol))
+                              (message
+                               "Aligning `%s' (rule %d of %d) %d%%..."
+                               (symbol-name symbol) rule-index rule-count
+                               (/ (* (- (point) real-beg) 100)
+                                  (- end-mark real-beg)))
+                            (message
+                             "Aligning %d%%..."
+                             (/ (* (- (point) real-beg) 100)
+                                (- end-mark real-beg))))))
 
-			;; if the search ended us on the beginning of
-			;; the next line, move back to the end of the
-			;; previous line.
-			(if (and (bolp) (> (point) search-start))
-			    (forward-char -1))
+                    ;; if the search ended us on the beginning of
+                    ;; the next line, move back to the end of the
+                    ;; previous line.
+                    (if (and (bolp) (> (point) search-start))
+                        (forward-char -1))
 
-			;; lookup the `group' attribute the first time
-			;; that we need it
-			(unless group-c
-			  (setq groups (or (cdr (assq 'group rule)) 1))
-			  (unless (listp groups)
-			    (setq groups (list groups)))
-			  (setq first (car groups)))
+                    ;; lookup the `group' attribute the first time
+                    ;; that we need it
+                    (unless group-c
+                      (setq groups (or (cdr (assq 'group rule)) 1))
+                      (unless (listp groups)
+                        (setq groups (list groups)))
+                      (setq first (car groups)))
 
-			(unless spacing-c
-			  (setq spacing (cdr (assq 'spacing rule))
-				spacing-c t))
+                    (unless spacing-c
+                      (setq spacing (cdr (assq 'spacing rule))
+                            spacing-c t))
 
-			(unless tab-stop-c
-			  (setq tab-stop
-				(let ((rule-ts (assq 'tab-stop rule)))
-				  (cond (rule-ts
-					 (cdr rule-ts))
-					((symbolp align-to-tab-stop)
-					 (symbol-value align-to-tab-stop))
-					(t
-					 align-to-tab-stop)))
-				tab-stop-c t))
+                    (unless tab-stop-c
+                      (setq tab-stop
+                            (let ((rule-ts (assq 'tab-stop rule)))
+                              (cond (rule-ts
+                                     (cdr rule-ts))
+                                    ((symbolp align-to-tab-stop)
+                                     (symbol-value align-to-tab-stop))
+                                    (t
+                                     align-to-tab-stop)))
+                            tab-stop-c t))
 
-			;; test whether we have found a match on the same
-			;; line as a previous match
-			(when (> (point) eol)
-			  (setq same nil)
-			  (align--set-marker eol (line-end-position)))
+                    ;; test whether we have found a match on the same
+                    ;; line as a previous match
+                    (when (> (point) eol)
+                      (setq same nil)
+                      (align--set-marker eol (line-end-position)))
 
-			;; lookup the `repeat' attribute the first time
-			(or repeat-c
-			    (setq repeat (cdr (assq 'repeat rule))
-				  repeat-c t))
+                    ;; lookup the `repeat' attribute the first time
+                    (or repeat-c
+                        (setq repeat (cdr (assq 'repeat rule))
+                              repeat-c t))
 
-			;; lookup the `valid' attribute the first time
-			(or valid-c
-			    (setq valid (assq 'valid rule)
-				  valid-c t))
+                    ;; lookup the `valid' attribute the first time
+                    (or valid-c
+                        (setq valid (assq 'valid rule)
+                              valid-c t))
 
-			;; remember the beginning position of this rule
-			;; match, and save the match-data, since either
-			;; the `valid' form, or the code that searches for
-			;; section separation, might alter it
-			(setq rule-beg (match-beginning first)
-			      save-match-data (match-data))
+                    ;; remember the beginning position of this rule
+                    ;; match, and save the match-data, since either
+                    ;; the `valid' form, or the code that searches for
+                    ;; section separation, might alter it
+                    (setq rule-beg (match-beginning first)
+                          save-match-data (match-data))
 
-			(or rule-beg
-			    (error "No match for subexpression %s" first))
+                    (or rule-beg
+                        (error "No match for subexpression %s" first))
 
-			;; unless the `valid' attribute is set, and tells
-			;; us that the rule is not valid at this point in
-			;; the code..
-			(unless (and valid (not (funcall (cdr valid))))
+                    ;; unless the `valid' attribute is set, and tells
+                    ;; us that the rule is not valid at this point in
+                    ;; the code..
+                    (unless (and valid (not (funcall (cdr valid))))
 
-			  ;; look to see if this match begins a new
-			  ;; section.  If so, we should align what we've
-			  ;; collected so far, and then begin collecting
-			  ;; anew for the next alignment section
-			  (when (and last-point
-				     (align-new-section-p last-point rule-beg
-							  thissep))
-			    (align-regions regions align-props rule func)
-			    (setq regions nil)
-			    (setq align-props nil))
-                          (align--set-marker last-point rule-beg t)
+                      ;; look to see if this match begins a new
+                      ;; section.  If so, we should align what we've
+                      ;; collected so far, and then begin collecting
+                      ;; anew for the next alignment section
+                      (when (and last-point
+                                 (align-new-section-p last-point rule-beg
+                                                      thissep))
+                        (align-regions regions align-props rule func)
+                        (setq regions nil)
+                        (setq align-props nil))
+                      (align--set-marker last-point rule-beg t)
 
-			  ;; restore the match data
-			  (set-match-data save-match-data)
+                      ;; restore the match data
+                      (set-match-data save-match-data)
 
-			  ;; check whether the region to be aligned
-			  ;; straddles an exclusion area
-			  (let ((excls exclude-areas))
-			    (setq exclude-p nil)
-			    (while excls
-			      (if (and (< (match-beginning (car groups))
-					  (cdar excls))
-				       (> (match-end (car (last groups)))
-					  (caar excls)))
-				  (setq exclude-p t
-					excls nil)
-				(setq excls (cdr excls)))))
+                      ;; check whether the region to be aligned
+                      ;; straddles an exclusion area
+                      (let ((excls exclude-areas))
+                        (setq exclude-p nil)
+                        (while excls
+                          (if (and (< (match-beginning (car groups))
+                                      (cdar excls))
+                                   (> (match-end (car (last groups)))
+                                      (caar excls)))
+                              (setq exclude-p t
+                                    excls nil)
+                            (setq excls (cdr excls)))))
 
-			  ;; go through the parenthesis groups
-			  ;; matching whitespace to be contracted or
-			  ;; expanded (or possibly justified, if the
-			  ;; `justify' attribute was set)
-			  (unless exclude-p
-			    (dolist (g groups)
-			      ;; We must use markers, since
-			      ;; `align-areas' may modify the buffer.
-			      ;; Avoid polluting the markers.
-			      (let* ((group-beg (copy-marker
-						 (match-beginning g) t))
-				     (group-end (copy-marker
-						 (match-end g) t))
-				     (region (cons group-beg group-end))
-				     (props (cons (if (listp spacing)
-						      (car spacing)
-						    spacing)
-						  (if (listp tab-stop)
-						      (car tab-stop)
-						    tab-stop))))
-				(push group-beg markers)
-				(push group-end markers)
-				(setq index (if same (1+ index) 0))
-				(cond
-				 ((nth index regions)
-				  (setcar (nthcdr index regions)
-					  (cons region
-						(nth index regions))))
-				 (regions
-				  (nconc regions
-					 (list (list region)))
-				  (nconc align-props (list props)))
-				 (t
-				  (setq regions
-					(list (list region)))
-				  (setq align-props (list props)))))
-			      ;; If any further rule matches are found
-			      ;; before `eol', they are on the same
-			      ;; line as this one; this can only
-			      ;; happen if the `repeat' attribute is
-			      ;; non-nil.
-			      (if (listp spacing)
-				  (setq spacing (cdr spacing)))
-			      (if (listp tab-stop)
-				  (setq tab-stop (cdr tab-stop)))
-			      (setq same t))
+                      ;; go through the parenthesis groups
+                      ;; matching whitespace to be contracted or
+                      ;; expanded (or possibly justified, if the
+                      ;; `justify' attribute was set)
+                      (unless exclude-p
+                        (dolist (g groups)
+                          ;; We must use markers, since
+                          ;; `align-areas' may modify the buffer.
+                          ;; Avoid polluting the markers.
+                          (let* ((group-beg (copy-marker
+                                             (match-beginning g) t))
+                                 (group-end (copy-marker
+                                             (match-end g) t))
+                                 (region (cons group-beg group-end))
+                                 (props (cons (if (listp spacing)
+                                                  (car spacing)
+                                                spacing)
+                                              (if (listp tab-stop)
+                                                  (car tab-stop)
+                                                tab-stop))))
+                            (push group-beg markers)
+                            (push group-end markers)
+                            (setq index (if same (1+ index) 0))
+                            (cond
+                             ((nth index regions)
+                              (setcar (nthcdr index regions)
+                                      (cons region
+                                            (nth index regions))))
+                             (regions
+                              (nconc regions
+                                     (list (list region)))
+                              (nconc align-props (list props)))
+                             (t
+                              (setq regions
+                                    (list (list region)))
+                              (setq align-props (list props)))))
+                          ;; If any further rule matches are found
+                          ;; before `eol', they are on the same
+                          ;; line as this one; this can only
+                          ;; happen if the `repeat' attribute is
+                          ;; non-nil.
+                          (if (listp spacing)
+                              (setq spacing (cdr spacing)))
+                          (if (listp tab-stop)
+                              (setq tab-stop (cdr tab-stop)))
+                          (setq same t))
 
-			    ;; if `repeat' has not been set, move to
-			    ;; the next line; don't bother searching
-			    ;; anymore on this one
-			    (if (and (not repeat) (not (bolp)))
-				(forward-line))
+                        ;; if `repeat' has not been set, move to
+                        ;; the next line; don't bother searching
+                        ;; anymore on this one
+                        (if (and (not repeat) (not (bolp)))
+                            (forward-line))
 
-			    ;; if the search did not change point,
-			    ;; move forward to avoid an infinite loop
-			    (if (= (point) search-start)
-				(forward-char)))))
+                        ;; if the search did not change point,
+                        ;; move forward to avoid an infinite loop
+                        (if (= (point) search-start)
+                            (forward-char)))))
 
-		      ;; when they are no more matches for this rule,
-		      ;; align whatever was left over
-		      (if regions
-			  (align-regions regions align-props rule func)))
-
-		  (setq case-fold-search current-case-fold)))))))
+                  ;; when they are no more matches for this rule,
+                  ;; align whatever was left over
+                  (if regions
+                      (align-regions regions align-props rule func))))))))
       (setq rules (cdr rules)
 	    rule-index (1+ rule-index)))
     ;; This function can use a lot of temporary markers, so instead of

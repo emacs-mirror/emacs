@@ -1,3 +1,8 @@
+2013-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* align.el: Use lexical-binding.
+	(align-region): Simplify accordingly.
+
 2013-08-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* minibuffer.el (completion--sifn-requote): Bind `non-essential'.
