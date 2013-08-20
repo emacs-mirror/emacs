@@ -859,6 +859,8 @@ distclean: FRC
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	(cd nextstep && $(MAKE) $(MFLAGS) distclean)
+	[ ! -d test/automated ] || \
+	  cd test/automated && $(MAKE) $(MFLAGS) distclean
 	${top_distclean}
 
 ### `bootstrap-clean'
@@ -878,6 +880,8 @@ bootstrap-clean: FRC
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
 	(cd nextstep && $(MAKE) $(MFLAGS) maintainer-clean)
+	[ ! -d test/automated ] || \
+	  cd test/automated && $(MAKE) $(MFLAGS) bootstrap-clean
 	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
 
@@ -898,6 +902,8 @@ top_maintainer_clean=\
 maintainer-clean: bootstrap-clean FRC
 	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
+	[ ! -d test/automated ] || \
+	  cd test/automated && $(MAKE) $(MFLAGS) maintainer-clean
 	${top_maintainer_clean}
 
 ### This doesn't actually appear in the coding standards, but Karl
