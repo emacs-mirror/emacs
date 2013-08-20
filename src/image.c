@@ -7876,17 +7876,13 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    separate from the image cache, because the images may be scaled
    before display. */
 
-/* Size of ImageMagick image signatures, in bytes.  It's SHA-256 as a
-   hex string, so it's 256 bits represented via 4 bits per byte.  */
-enum { SIGNATURE_DIGESTSIZE = 256 / 4 };
-
 struct animation_cache
 {
   MagickWand *wand;
   int index;
   EMACS_TIME update_time;
   struct animation_cache *next;
-  char signature[SIGNATURE_DIGESTSIZE];
+  char signature[FLEXIBLE_ARRAY_MEMBER];
 };
 
 static struct animation_cache *animation_cache = NULL;
@@ -7894,11 +7890,13 @@ static struct animation_cache *animation_cache = NULL;
 static struct animation_cache *
 imagemagick_create_cache (char *signature)
 {
-  struct animation_cache *cache = xmalloc (sizeof *cache);
+  struct animation_cache *cache
+    = xmalloc (offsetof (struct animation_cache, signature)
+	       + strlen (signature) + 1);
   cache->wand = 0;
   cache->index = 0;
   cache->next = 0;
-  memcpy (cache->signature, signature, SIGNATURE_DIGESTSIZE);
+  strcpy (cache->signature, signature);
   return cache;
 }
 
@@ -7932,7 +7930,6 @@ imagemagick_get_animation_cache (MagickWand *wand)
   struct animation_cache *cache;
   struct animation_cache **pcache = &animation_cache;
 
-  eassert (strlen (signature) == SIGNATURE_DIGESTSIZE);
   imagemagick_prune_animation_cache ();
 
   while (1)
@@ -7943,7 +7940,7 @@ imagemagick_get_animation_cache (MagickWand *wand)
           *pcache = cache = imagemagick_create_cache (signature);
           break;
         }
-      if (memcmp (signature, cache->signature, SIGNATURE_DIGESTSIZE) == 0)
+      if (strcmp (signature, cache->signature) == 0)
 	break;
       pcache = &cache->next;
     }

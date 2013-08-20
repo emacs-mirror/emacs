@@ -1,3 +1,10 @@
+2013-08-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (SIGNATURE_DIGESTSIZE): Remove.
+	(struct animation_cache): Make signature a flexible array member.
+	All uses changed.  This is a tad slower but may insulate us better
+	from future changes to ImageMagick.
+
 2013-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c: Shrink memory needed for animation cache.
