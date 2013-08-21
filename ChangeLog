@@ -1,3 +1,11 @@
+2013-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port close-on-exec pty creation to FreeBSD 9.1-RELEASE (Bug#15129).
+	* configure.ac (PTY_OPEN): If posix_openpt with O_CLOEXEC fails
+	and reports EINVAL, try it again without O_CLOEXEC.  This should
+	port PTY_OPEN to FreeBSD 9, which stupidly rejects O_CLOEXEC.
+	What were they thinking?
+
 2013-08-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (distclean, bootstrap-clean, maintainer-clean):
