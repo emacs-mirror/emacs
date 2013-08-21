@@ -630,9 +630,6 @@ INSTALL_TARGET
 CLEAN_TARGET
 BUILD_TARGET
 MPS_TARGET_NAME
-EGREP
-GREP
-CPP
 MAKE
 host_os
 host_vendor
@@ -642,6 +639,9 @@ build_os
 build_vendor
 build_cpu
 build
+EGREP
+GREP
+CPP
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -1441,6 +1441,52 @@ fi
 
 } # ac_fn_c_try_compile
 
+# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
+# ---------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_decl
+
 # ac_fn_c_try_cpp LINENO
 # ----------------------
 # Try to preprocess conftest.$ac_ext, and return whether this succeeded.
@@ -1477,6 +1523,79 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_cpp
+
+# ac_fn_c_try_run LINENO
+# ----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
+# that executables *can* be run.
+ac_fn_c_try_run ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
+  { { case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+       $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+       ac_retval=$ac_status
+fi
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_run
+
+# ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
+# -------------------------------------------------------
+# Tests whether HEADER exists and can be compiled using the include files in
+# INCLUDES, setting the cache variable VAR accordingly.
+ac_fn_c_check_header_compile ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#include <$2>
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_header_compile
 
 # ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -1568,79 +1687,6 @@ fi
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_header_mongrel
-
-# ac_fn_c_try_run LINENO
-# ----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
-# that executables *can* be run.
-ac_fn_c_try_run ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: program exited with status $ac_status" >&5
-       $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-       ac_retval=$ac_status
-fi
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_run
-
-# ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
-# -------------------------------------------------------
-# Tests whether HEADER exists and can be compiled using the include files in
-# INCLUDES, setting the cache variable VAR accordingly.
-ac_fn_c_check_header_compile ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-$as_echo_n "checking for $2... " >&6; }
-if eval \${$3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-#include <$2>
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$3=yes"
-else
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_c_check_header_compile
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -2914,193 +2960,7 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
-# These flags aren't used for building the MPS, but for sample programs.
-CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
-           -Wstrict-prototypes -Wmissing-prototypes \
-           -Winline -Waggregate-return -Wnested-externs \
-           -Wcast-qual -Wstrict-aliasing=2 -O -g3"
-CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
-
-# Make sure we can run config.sub.
-$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
-  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
-$as_echo_n "checking build system type... " >&6; }
-if ${ac_cv_build+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_build_alias=$build_alias
-test "x$ac_build_alias" = x &&
-  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
-test "x$ac_build_alias" = x &&
-  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
-ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
-  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
-$as_echo "$ac_cv_build" >&6; }
-case $ac_cv_build in
-*-*-*) ;;
-*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
-esac
-build=$ac_cv_build
-ac_save_IFS=$IFS; IFS='-'
-set x $ac_cv_build
-shift
-build_cpu=$1
-build_vendor=$2
-shift; shift
-# Remember, the first character of IFS is used to create $*,
-# except with old shells:
-build_os=$*
-IFS=$ac_save_IFS
-case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking host system type" >&5
-$as_echo_n "checking host system type... " >&6; }
-if ${ac_cv_host+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "x$host_alias" = x; then
-  ac_cv_host=$ac_cv_build
-else
-  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
-    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_host" >&5
-$as_echo "$ac_cv_host" >&6; }
-case $ac_cv_host in
-*-*-*) ;;
-*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
-esac
-host=$ac_cv_host
-ac_save_IFS=$IFS; IFS='-'
-set x $ac_cv_host
-shift
-host_cpu=$1
-host_vendor=$2
-shift; shift
-# Remember, the first character of IFS is used to create $*,
-# except with old shells:
-host_os=$*
-IFS=$ac_save_IFS
-case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking target platform" >&5
-$as_echo_n "checking target platform... " >&6; }
-BUILD_TARGET=build-via-make
-CLEAN_TARGET=clean-make-build
-INSTALL_TARGET=install-make-build
-TEST_TARGET=test-make-build
-case $host in
-  i*86-*-linux*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
-$as_echo "Linux x86" >&6; }
-      MPS_TARGET_NAME=lii3gc
-      PFMCFLAGS="$CFLAGS_GC"
-    ;;
-  x86_64-*-linux*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86_64" >&5
-$as_echo "Linux x86_64" >&6; }
-      MPS_TARGET_NAME=lii6gc
-      PFMCFLAGS="$CFLAGS_GC"
-    ;;
-  i*86-*-darwin*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
-$as_echo "Mac OS X x86" >&6; }
-      MPS_TARGET_NAME=xci3ll
-      BUILD_TARGET=build-via-xcode
-      CLEAN_TARGET=clean-xcode-build
-      INSTALL_TARGET=install-xcode-build
-      TEST_TARGET=test-xcode-build
-      PFMCFLAGS="$CFLAGS_LL"
-    ;;
-  x86_64-apple-darwin*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86_64" >&5
-$as_echo "Mac OS X x86_64" >&6; }
-      MPS_TARGET_NAME=xci6ll
-      BUILD_TARGET=build-via-xcode
-      CLEAN_TARGET=clean-xcode-build
-      INSTALL_TARGET=install-xcode-build
-      TEST_TARGET=test-xcode-build
-      PFMCFLAGS="$CFLAGS_LL"
-    ;;
-  i*86-*-freebsd*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86" >&5
-$as_echo "FreeBSD x86" >&6; }
-      MPS_TARGET_NAME=fri3gc
-      # Need /usr/local/include in order to find sqlite3.h
-      CFLAGS="-I/usr/local/include"
-      CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC -pthread"
-    ;;
-  amd64-*-freebsd* | x86_64-*-freebsd*)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
-$as_echo "FreeBSD x86_64" >&6; }
-      MPS_TARGET_NAME=fri6gc
-      # Need /usr/local/include in order to find sqlite3.h
-      CFLAGS="-I/usr/local/include"
-      CPP="$CC -I/usr/local/include -E"
-      PFMCFLAGS="$CFLAGS_GC -pthread"
-    ;;
-  *)
-    as_fn_error $? "MPS does not support this platform out of the box.  See manual/build.txt" "$LINENO" 5
-esac
-
-for ac_prog in gnumake gmake make
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_MAKE+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$MAKE"; then
-  ac_cv_prog_MAKE="$MAKE" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_MAKE="$ac_prog"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-MAKE=$ac_cv_prog_MAKE
-if test -n "$MAKE"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MAKE" >&5
-$as_echo "$MAKE" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$MAKE" && break
-done
-test -n "$MAKE" || MAKE="as_fn_error $? "Unable to find a make program." "$LINENO" 5"
-
-if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
-  as_fn_error $? "MPS requires GNU make to build from configure, but see manual/build.txt" "$LINENO" 5
-fi
-
-EXTRA_TARGETS="mpseventcnv mpseventtxt"
+# Check for Clang/LLVM.
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -3499,6 +3359,201 @@ fi
 done
 
 
+ac_fn_c_check_decl "$LINENO" "__clang__" "ac_cv_have_decl___clang__" "$ac_includes_default"
+if test "x$ac_cv_have_decl___clang__" = xyes; then :
+  CLANG=yes
+else
+  CLANG=no
+fi
+
+
+# These flags aren't used for building the MPS, but for sample programs.
+CFLAGS_GC="-ansi -pedantic -Wall -Werror -Wpointer-arith \
+           -Wstrict-prototypes -Wmissing-prototypes \
+           -Winline -Waggregate-return -Wnested-externs \
+           -Wcast-qual -Wstrict-aliasing=2 -O -g3 -pthread"
+CFLAGS_LL="$CFLAGS_GC -Wno-extended-offsetof"
+
+# Make sure we can run config.sub.
+$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
+  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
+$as_echo_n "checking build system type... " >&6; }
+if ${ac_cv_build+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_build_alias=$build_alias
+test "x$ac_build_alias" = x &&
+  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
+test "x$ac_build_alias" = x &&
+  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
+ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
+  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
+$as_echo "$ac_cv_build" >&6; }
+case $ac_cv_build in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
+esac
+build=$ac_cv_build
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_build
+shift
+build_cpu=$1
+build_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+build_os=$*
+IFS=$ac_save_IFS
+case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking host system type" >&5
+$as_echo_n "checking host system type... " >&6; }
+if ${ac_cv_host+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "x$host_alias" = x; then
+  ac_cv_host=$ac_cv_build
+else
+  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
+    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_host" >&5
+$as_echo "$ac_cv_host" >&6; }
+case $ac_cv_host in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
+esac
+host=$ac_cv_host
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_host
+shift
+host_cpu=$1
+host_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+host_os=$*
+IFS=$ac_save_IFS
+case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking target platform" >&5
+$as_echo_n "checking target platform... " >&6; }
+BUILD_TARGET=build-via-make
+CLEAN_TARGET=clean-make-build
+INSTALL_TARGET=install-make-build
+TEST_TARGET=test-make-build
+case $host/$CLANG in
+  i*86-*-linux*/no)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
+$as_echo "Linux x86" >&6; }
+      MPS_TARGET_NAME=lii3gc
+      PFMCFLAGS="$CFLAGS_GC"
+    ;;
+  x86_64-*-linux*/no)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86_64" >&5
+$as_echo "Linux x86_64" >&6; }
+      MPS_TARGET_NAME=lii6gc
+      PFMCFLAGS="$CFLAGS_GC"
+    ;;
+  i*86-*-darwin*/*)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
+$as_echo "Mac OS X x86" >&6; }
+      MPS_TARGET_NAME=xci3ll
+      BUILD_TARGET=build-via-xcode
+      CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
+  x86_64-apple-darwin*/*)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86_64" >&5
+$as_echo "Mac OS X x86_64" >&6; }
+      MPS_TARGET_NAME=xci6ll
+      BUILD_TARGET=build-via-xcode
+      CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
+  i*86-*-freebsd*/no)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86" >&5
+$as_echo "FreeBSD x86" >&6; }
+      MPS_TARGET_NAME=fri3gc
+      # Need /usr/local/include in order to find sqlite3.h
+      CFLAGS="-I/usr/local/include"
+      CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
+    ;;
+  amd64-*-freebsd*/no | x86_64-*-freebsd*/no)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: FreeBSD x86_64" >&5
+$as_echo "FreeBSD x86_64" >&6; }
+      MPS_TARGET_NAME=fri6gc
+      # Need /usr/local/include in order to find sqlite3.h
+      CFLAGS="-I/usr/local/include"
+      CPP="$CC -I/usr/local/include -E"
+      PFMCFLAGS="$CFLAGS_GC"
+    ;;
+  *)
+    as_fn_error $? "MPS does not support this platform out of the box.  See manual/build.txt" "$LINENO" 5
+esac
+
+for ac_prog in gnumake gmake make
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_MAKE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$MAKE"; then
+  ac_cv_prog_MAKE="$MAKE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_MAKE="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+MAKE=$ac_cv_prog_MAKE
+if test -n "$MAKE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MAKE" >&5
+$as_echo "$MAKE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$MAKE" && break
+done
+test -n "$MAKE" || MAKE="as_fn_error $? "Unable to find a make program." "$LINENO" 5"
+
+if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
+  as_fn_error $? "MPS requires GNU make to build from configure, but see manual/build.txt" "$LINENO" 5
+fi
+
+EXTRA_TARGETS="mpseventcnv mpseventtxt"
 ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes; then :
   EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"
