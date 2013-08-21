@@ -687,6 +687,15 @@ allocate_pty (char pty_name[PTY_NAME_SIZE])
 
 	if (fd >= 0)
 	  {
+#ifdef PTY_OPEN
+	    /* Set FD's close-on-exec flag.  This is needed even if
+	       PT_OPEN calls posix_openpt with O_CLOEXEC, since POSIX
+	       doesn't require support for that combination.
+	       Multithreaded platforms where posix_openpt ignores
+	       O_CLOEXEC (or where PTY_OPEN doesn't call posix_openpt)
+	       have a race condition between the PTY_OPEN and here.  */
+	    fcntl (fd, F_SETFD, FD_CLOEXEC);
+#endif
 	    /* check to make certain that both sides are available
 	       this avoids a nasty yet stupid bug in rlogins */
 #ifdef PTY_TTY_NAME_SPRINTF
