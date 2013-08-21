@@ -497,6 +497,9 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c+" 'sh-add)
     (define-key map "\C-\M-x" 'sh-execute-region)
     (define-key map "\C-c\C-x" 'executable-interpret)
+    (define-key map "\C-c\C-n" 'sh-send-line-or-region-and-step)
+    (define-key map "\C-c\C-d" 'sh-cd-here)
+    (define-key map "\C-c\C-z" 'sh-show-shell)
 
     (define-key map [remap delete-backward-char]
       'backward-delete-char-untabify)
@@ -1462,6 +1465,61 @@ The default is t because I assume that in one Emacs session one is
 frequently editing existing scripts with different styles.")
 
 
+;; inferior shell interaction
+;; TODO: support multiple interactive shells
+(defvar sh-shell-process nil
+  "The inferior shell process for interaction.")
+(make-variable-buffer-local 'sh-shell-process)
+(defun sh-shell-process (force)
+  "Get a shell process for interaction.
+If FORCE is non-nil and no process found, create one."
+  (if (and sh-shell-process (process-live-p sh-shell-process))
+      sh-shell-process
+    (setq sh-shell-process
+          (let ((found nil) proc
+                (procs (process-list)))
+            (while (and (not found) procs
+                        (process-live-p (setq proc (pop procs)))
+                        (process-command proc))
+              (when (string-equal sh-shell (file-name-nondirectory
+                                            (car (process-command proc))))
+                (setq found proc)))
+            (or found
+                (and force
+                     (get-buffer-process
+                      (let ((explicit-shell-file-name sh-shell-file))
+                        (shell)))))))))
+
+(defun sh-show-shell ()
+  "Pop the shell interaction buffer."
+  (interactive)
+  (pop-to-buffer (process-buffer (sh-shell-process t))))
+
+(defun sh-send-text (text)
+  "Send the text to the `sh-shell-process'."
+  (comint-send-string (sh-shell-process t) (concat text "\n")))
+
+(defun sh-cd-here ()
+  "Change directory in the current interaction shell to the current one."
+  (interactive)
+  (sh-send-text (concat "cd " default-directory)))
+
+(defun sh-send-line-or-region-and-step ()
+  "Send the current line to the inferior shell and step to the next line.
+When the region is active, send the region instead."
+  (interactive)
+  (let (from to end)
+    (if (use-region-p)
+        (setq from (region-beginning)
+              to (region-end)
+              end to)
+      (setq from (line-beginning-position)
+            to (line-end-position)
+            end (1+ to)))
+    (sh-send-text (buffer-substring-no-properties from to))
+    (goto-char end)))
+
+
 ;; mode-command and utility functions
 
 ;;;###autoload
@@ -2169,6 +2227,7 @@ Calls the value of `sh-set-shell-hook' if set."
     (setq font-lock-set-defaults nil)
     (font-lock-set-defaults)
     (font-lock-fontify-buffer))
+  (setq sh-shell-process nil)
   (run-hooks 'sh-set-shell-hook))
 
 
