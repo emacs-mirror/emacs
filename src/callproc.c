@@ -102,7 +102,7 @@ enum
     CALLPROC_FDS
   };
 
-static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int);
+static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 
 /* Block SIGCHLD.  */
 
@@ -248,14 +248,20 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
     report_file_error ("Opening process input file", infile);
   record_unwind_protect_int (close_file_unwind, filefd);
   UNGCPRO;
-  return unbind_to (count, call_process (nargs, args, filefd));
+  return unbind_to (count, call_process (nargs, args, filefd, -1));
 }
 
 /* Like Fcall_process (NARGS, ARGS), except use FILEFD as the input file.
+
+   If TEMPFILE_INDEX is nonnegative, it is the specpdl index of an
+   unwinder that is intended to remove the input temporary file; in
+   this case NARGS must be at least 2 and ARGS[1] is the file's name.
+
    At entry, the specpdl stack top entry must be close_file_unwind (FILEFD).  */
 
 static Lisp_Object
-call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd)
+call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
+	      ptrdiff_t tempfile_index)
 {
   Lisp_Object buffer, current_dir, path;
   bool display_p;
@@ -661,7 +667,22 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd)
   child_errno = errno;
 
   if (pid > 0)
-    synch_process_pid = pid;
+    {
+      synch_process_pid = pid;
+
+      if (INTEGERP (buffer))
+	{
+	  if (tempfile_index < 0)
+	    record_deleted_pid (pid, Qnil);
+	  else
+	    {
+	      eassert (1 < nargs);
+	      record_deleted_pid (pid, args[1]);
+	      clear_unwind_protect (tempfile_index);
+	    }
+	  synch_process_pid = 0;
+	}
+    }
 
   unblock_child_signal ();
   unblock_input ();
@@ -1030,7 +1051,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
   Lisp_Object infile, val;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object start = args[0];
@@ -1061,8 +1082,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       record_unwind_protect_int (close_file_unwind, fd);
     }
 
-  val = infile;
-  GCPRO2 (infile, val);
+  GCPRO1 (infile);
 
   if (nargs > 3 && !NILP (args[3]))
     Fdelete_region (start, end);
@@ -1079,16 +1099,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
   args[1] = infile;
 
-  val = call_process (nargs, args, fd);
-
-  if (!empty_input && 4 < nargs
-      && (INTEGERP (CONSP (args[4]) ? XCAR (args[4]) : args[4])))
-    {
-      record_deleted_pid (synch_process_pid, infile);
-      synch_process_pid = 0;
-      clear_unwind_protect (count);
-    }
-
+  val = call_process (nargs, args, fd, empty_input ? -1 : count);
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 

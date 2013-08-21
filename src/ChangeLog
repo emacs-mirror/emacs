@@ -1,3 +1,11 @@
+2013-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c: Fix race that killed background processes (Bug#15144).
+	(call_process): New arg TEMPFILE_INDEX.  Callers changed.
+	Record deleted process-id in critical section, not afterwards.
+	Don't mistakenly kill process created by a call-process invocation
+	that discards output and does not wait.
+
 2013-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix compilation with GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE
