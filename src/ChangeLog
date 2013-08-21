@@ -1,3 +1,12 @@
+2013-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix compilation with GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE
+	and GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES.
+	* alloc.c (toplevel): Remove unnecessary nested #if...#endif.
+	(mark_maybe_object) [!GC_MARK_STACK]: Define to emacs_abort
+	to shut up compiler in mark_object.
+	(dump_zombies): Convert to global and add EXTERNALLY_VISIBLE.
+
 2013-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (allocate_pty) [PTY_OPEN]: Set fd's FD_CLOEXEC flag.

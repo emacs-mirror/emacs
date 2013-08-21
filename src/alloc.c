@@ -318,7 +318,6 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-#if GC_MARK_STACK || defined GC_MALLOC_CHECK
 static struct mem_node *mem_insert (void *, void *, enum mem_type);
 static void mem_insert_fixup (struct mem_node *);
 static void mem_rotate_left (struct mem_node *);
@@ -326,7 +325,6 @@ static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
 static struct mem_node *mem_find (void *);
-#endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
 
@@ -4238,6 +4236,10 @@ live_buffer_p (struct mem_node *m, void *p)
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
+/* Currently not used, but may be called from gdb.  */
+
+void dump_zombies (void) EXTERNALLY_VISIBLE;
+
 /* Array of objects that are kept alive because the C stack contains
    a pattern that looks like a reference to them .  */
 
@@ -4620,7 +4622,7 @@ check_gcpros (void)
 
 #elif GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 
-static void
+void
 dump_zombies (void)
 {
   int i;
@@ -4756,6 +4758,10 @@ mark_stack (void)
   check_gcpros ();
 #endif
 }
+
+#else /* GC_MARK_STACK == 0 */
+
+#define mark_maybe_object(obj) emacs_abort ()
 
 #endif /* GC_MARK_STACK != 0 */
 
