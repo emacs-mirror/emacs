@@ -1,10 +1,15 @@
+2013-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pp.el (pp-eval-expression, pp-macroexpand-expression):
+	Use read--expression so that completion works again.
+
 2013-08-21  Sam Steingold  <sds@gnu.org>
 
 	Add rudimentary inferior shell interaction
 	* progmodes/sh-script.el (sh-shell-process): New buffer-local variable.
 	(sh-set-shell): Reset it.
-	(sh-show-shell, sh-cd-here, sh-send-line-or-region-and-step): New
-	commands (bound to C-c C-z, C-c C-d, and C-c C-n).
+	(sh-show-shell, sh-cd-here, sh-send-line-or-region-and-step):
+	New commands (bound to C-c C-z, C-c C-d, and C-c C-n).
 
 2013-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
