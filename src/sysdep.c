@@ -337,16 +337,6 @@ child_status_changed (pid_t child, int *status, int options)
   return get_child_status (child, status, WNOHANG | options, 0);
 }
 
-/*
- *	flush any pending output
- *      (may flush input as well; it does not matter the way we use it)
- */
-
-void
-flush_pending_output (int channel)
-{
-  /* FIXME: maybe this function should be removed */
-}
 
 /*  Set up the terminal at the other end of a pseudo-terminal that
     we will be controlling an inferior through.

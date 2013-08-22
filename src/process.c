@@ -3846,15 +3846,12 @@ deactivate_process (Lisp_Object proc)
     }
 #endif
 
-  inchannel = p->infd;
-
   /* Beware SIGCHLD hereabouts. */
-  if (inchannel >= 0)
-    flush_pending_output (inchannel);
 
   for (i = 0; i < PROCESS_OPEN_FDS; i++)
     close_process_fd (&p->open_fd[i]);
 
+  inchannel = p->infd;
   if (inchannel >= 0)
     {
       p->infd  = -1;
@@ -5785,10 +5782,9 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 	return;
     }
 
-  switch (signo)
-    {
 #ifdef SIGCONT
-    case SIGCONT:
+  if (signo == SIGCONT)
+    {
       p->raw_status_new = 0;
       pset_status (p, Qrun);
       p->tick = ++process_tick;
@@ -5797,14 +5793,8 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 	  status_notify (NULL);
 	  redisplay_preserve_echo_area (13);
 	}
-      break;
-#endif /* ! defined (SIGCONT) */
-    case SIGINT:
-    case SIGQUIT:
-    case SIGKILL:
-      flush_pending_output (p->infd);
-      break;
     }
+#endif
 
   /* If we don't have process groups, send the signal to the immediate
      subprocess.  That isn't really right, but it's better than any

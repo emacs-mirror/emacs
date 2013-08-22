@@ -1,3 +1,8 @@
+2013-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (flush_pending_output): Remove stub.
+	All uses removed.
+
 2013-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c: Fix race that killed background processes (Bug#15144).
