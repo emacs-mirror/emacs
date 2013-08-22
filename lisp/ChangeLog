@@ -1,3 +1,16 @@
+2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/timeclock.el: Minor cleanups.
+	(timeclock-ask-before-exiting, timeclock-use-display-time):
+	Use `symbol'.
+	(timeclock-modeline-display): Define as alias before the
+	actual definition.
+	(timeclock-mode-line-display): Use define-minor-mode.
+	(timeclock-day-list-template): Make it a function, add an argument.
+	(timeclock-day-list-required, timeclock-day-list-length)
+	(timeclock-day-list-debt, timeclock-day-list-span)
+	(timeclock-day-list-break): Adjust calls accordingly.
+
 2013-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pp.el (pp-eval-expression, pp-macroexpand-expression):
