@@ -1,3 +1,11 @@
+2013-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (EMACS_CONFIG_OPTIONS): Quote systematically (Bug#13274).
+	This improves on the patch already installed, by quoting options
+	that contain spaces and suchlike systematically, so that
+	EMACS_CONFIG_OPTIONS is no longer ambiguous when options contain
+	these characters.
+
 2013-08-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port close-on-exec pty creation to FreeBSD 9.1-RELEASE (Bug#15129).

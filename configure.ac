@@ -24,18 +24,43 @@ dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 AC_PREREQ(2.65)
 AC_INIT(emacs, 24.3.50)
 
+dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
+dnl and then quoted again for a C string.  Separate options with spaces.
+dnl Add some environment variables, if they were passed via the environment
+dnl rather than on the command-line.
+emacs_config_options=
+optsep=
 dnl This is the documented way to record the args passed to configure,
 dnl rather than $ac_configure_args.
-emacs_config_options="$@"
-## Add some environment variables, if they were passed via the environment
-## rather than on the command-line.
-for var in CFLAGS CPPFLAGS LDFLAGS; do
-    case "$emacs_config_options" in
-      *$var=*) continue ;;
-    esac
-    eval val="\$${var}"
-    test x"$val" = x && continue
-    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
+  case $opt in
+    -n | --no-create | --no-recursion)
+      continue ;;
+    CFLAGS | CPPFLAGS | LDFLAGS)
+      eval 'test "${'$opt'+set}" = set' || continue
+      case " $*" in
+	*" $opt="*) continue ;;
+      esac
+      eval opt=$opt=\$$opt ;;
+  esac
+
+  emacs_shell_specials=$IFS\''"#$&()*;<>?@<:@\\`{|~'
+  case $opt in
+    *[["$emacs_shell_specials"]]*)
+      case $opt in
+	*\'*)
+	  emacs_quote_apostrophes="s/'/'\\\\''/g"
+	  opt=`AS_ECHO(["$opt"]) | sed "$emacs_quote_apostrophes"` ;;
+      esac
+      opt="'$opt'"
+      case $opt in
+	*[['"\\']]*)
+	  emacs_quote_for_c='s/[["\\]]/\\&/g; $!s/$/\\n\\/'
+	  opt=`AS_ECHO(["$opt"]) | sed "$emacs_quote_for_c"` ;;
+      esac ;;
+  esac
+  AS_VAR_APPEND([emacs_config_options], ["$optsep$opt"])
+  optsep=' '
 done
 
 AC_CONFIG_HEADER(src/config.h:src/config.in)
@@ -4440,8 +4465,6 @@ fi
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
-dnl Replace any embedded " characters (bug#13274).
-emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g" -e 's/\\\\/\\\\\\\\/g'`
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${emacs_config_options}",
 		   [Define to the options passed to configure.])
 AH_TEMPLATE(config_opsysfile, [Some platforms that do not use configure
