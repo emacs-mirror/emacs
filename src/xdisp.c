@@ -3912,10 +3912,14 @@ handle_face_prop (struct it *it)
 	  /* For strings from a `display' property, use the face at
 	     IT's current buffer position as the base face to merge
 	     with, so that overlay strings appear in the same face as
-	     surrounding text, unless they specify their own
-	     faces.  */
+	     surrounding text, unless they specify their own faces.
+	     For strings from wrap-prefix and line-prefix properties,
+	     use the default face, possibly remapped via
+	     Vface_remapping_alist.  */
 	  base_face_id = it->string_from_prefix_prop_p
-	    ? DEFAULT_FACE_ID
+	    ? (!NILP (Vface_remapping_alist)
+	       ? lookup_basic_face (it->f, DEFAULT_FACE_ID)
+	       : DEFAULT_FACE_ID)
 	    : underlying_face_id (it);
 	}
 

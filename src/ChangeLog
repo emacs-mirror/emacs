@@ -1,3 +1,8 @@
+2013-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_face_prop): If the default face was remapped use
+	the remapped face for strings from prefix properties.  (Bug#15155)
+
 2013-08-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Minor cleanup for redisplay interface and few related functions.
