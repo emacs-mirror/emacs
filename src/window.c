@@ -5408,7 +5408,7 @@ struct save_window_data
     Lisp_Object saved_windows;
 
     /* All fields above are traced by the GC.
-       From `fame-cols' down, the fields are ignored by the GC.  */
+       From `frame-cols' down, the fields are ignored by the GC.  */
 
     int frame_cols, frame_lines, frame_menu_bar_lines;
     int frame_tool_bar_lines;
