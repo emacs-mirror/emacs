@@ -1,3 +1,18 @@
+2013-08-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Redesign redisplay interface to drop updated_row and updated_area.
+	* dispextern.h (updated_row, updated_area): Remove declaration.
+	(struct redisplay_interface): Pass glyph row and row area parameters
+	to write_glyphs, insert_glyphs and clear_end_of_line functions.
+	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line):
+	Adjust prototypes.
+	* dispnew.c (updated_row, updated_area): Remove.
+	(redraw_overlapped_rows, update_window_line): Adjust user.
+	(update_marginal_area, update_text_area): Likewise.  Pass updated row
+	as a parameter.  Prefer enum glyph_row_area to int where appropriate.
+	* xdisp.c (x_write_glyphs, x_insert_glyphs, x_clear_end_of_line):
+	Adjust users.
+
 2013-08-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* process.c (flush_pending_output): Remove stub.

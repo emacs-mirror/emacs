@@ -25763,12 +25763,12 @@ x_produce_glyphs (struct it *it)
 
 /* EXPORT for RIF:
    Output LEN glyphs starting at START at the nominal cursor position.
-   Advance the nominal cursor over the text.  The global variable
-   updated_row is the glyph row being updated, and updated_area is the
-   area of that row being updated.  */
+   Advance the nominal cursor over the text.  UPDATED_ROW is the glyph row
+   being updated, and UPDATED_AREA is the area of that row being updated.  */
 
 void
-x_write_glyphs (struct window *w, struct glyph *start, int len)
+x_write_glyphs (struct window *w, struct glyph_row *updated_row,
+		struct glyph *start, enum glyph_row_area updated_area, int len)
 {
   int x, hpos, chpos = w->phys_cursor.hpos;
 
@@ -25811,7 +25811,8 @@ x_write_glyphs (struct window *w, struct glyph *start, int len)
    Insert LEN glyphs from START at the nominal cursor position.  */
 
 void
-x_insert_glyphs (struct window *w, struct glyph *start, int len)
+x_insert_glyphs (struct window *w, struct glyph_row *updated_row,
+		 struct glyph *start, enum glyph_row_area updated_area, int len)
 {
   struct frame *f;
   int line_height, shift_by_width, shifted_region_width;
@@ -25863,11 +25864,12 @@ x_insert_glyphs (struct window *w, struct glyph *start, int len)
    (inclusive) to pixel column TO_X (exclusive).  The idea is that
    everything from TO_X onward is already erased.
 
-   TO_X is a pixel position relative to updated_area of currently
+   TO_X is a pixel position relative to UPDATED_AREA of currently
    updated window W.  TO_X == -1 means clear to the end of this area.  */
 
 void
-x_clear_end_of_line (struct window *w, int to_x)
+x_clear_end_of_line (struct window *w, struct glyph_row *updated_row,
+		     enum glyph_row_area updated_area, int to_x)
 {
   struct frame *f;
   int max_x, min_y, max_y;

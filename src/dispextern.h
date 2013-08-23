@@ -1197,11 +1197,6 @@ extern bool fonts_changed_p;
 
 extern struct glyph space_glyph;
 
-/* Glyph row and area updated by update_window_line.  */
-
-extern struct glyph_row *updated_row;
-extern int updated_area;
-
 /* Non-zero means last display completed.  Zero means it was
    preempted.  */
 
@@ -2713,12 +2708,17 @@ struct redisplay_interface
 
   /* Write or insert LEN glyphs from STRING at the nominal output
      position.  */
-  void (*write_glyphs) (struct window *w, struct glyph *string, int len);
-  void (*insert_glyphs) (struct window *w, struct glyph *start, int len);
+  void (*write_glyphs) (struct window *w, struct glyph_row *row,
+			struct glyph *string, enum glyph_row_area area,
+			int len);
+  void (*insert_glyphs) (struct window *w, struct glyph_row *row,
+			 struct glyph *start, enum glyph_row_area area,
+			 int len);
 
   /* Clear from nominal output position to X.  X < 0 means clear
      to right end of display.  */
-  void (*clear_end_of_line) (struct window *w, int x);
+  void (*clear_end_of_line) (struct window *w, struct glyph_row *row,
+			     enum glyph_row_area area, int x);
 
   /* Function to call to scroll the display as described by RUN on
      window W.  */
@@ -3178,9 +3178,12 @@ extern void x_get_glyph_overhangs (struct glyph *, struct frame *,
                                    int *, int *);
 extern void x_produce_glyphs (struct it *);
 
-extern void x_write_glyphs (struct window *, struct glyph *, int);
-extern void x_insert_glyphs (struct window *, struct glyph *, int len);
-extern void x_clear_end_of_line (struct window *, int);
+extern void x_write_glyphs (struct window *, struct glyph_row *,
+			    struct glyph *, enum glyph_row_area, int);
+extern void x_insert_glyphs (struct window *, struct glyph_row *,
+			     struct glyph *, enum glyph_row_area, int);
+extern void x_clear_end_of_line (struct window *, struct glyph_row *,
+				 enum glyph_row_area, int);
 
 extern struct cursor_pos output_cursor;
 
