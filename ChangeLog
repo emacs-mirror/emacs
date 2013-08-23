@@ -1,3 +1,7 @@
+2013-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (emacs_broken_SIGIO): No longer set on gnu-kfreebsd.
+
 2013-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add a --tests option, to include test/.
