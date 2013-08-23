@@ -2,8 +2,8 @@
 
 	* files.el (interpreter-mode-alist): Use tcl-mode for expect scripts.
 
-	* files.el (create-file-buffer): Handle the vital case of a file
-	whose basename is all spaces.  (Bug#15162)
+	* files.el (create-file-buffer): If the result would begin with
+	spaces, prepend a "|" instead of removing them.  (Bug#15162)
 
 2013-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
