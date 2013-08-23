@@ -5642,7 +5642,10 @@ new frame."
 	 (fun pop-up-frame-function)
 	 frame window)
     (when (and fun
-	       (setq frame (funcall fun))
+	       ;; Make BUFFER current so `make-frame' will use it as the
+	       ;; new frame's buffer (Bug#15133).
+	       (with-current-buffer buffer
+		 (setq frame (funcall fun)))
 	       (setq window (frame-selected-window frame)))
       (prog1 (window--display-buffer
 	      buffer window 'frame alist display-buffer-mark-dedicated)

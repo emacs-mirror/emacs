@@ -1,3 +1,9 @@
+2013-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame): Call
+	pop-up-frame-function with BUFFER current so `make-frame' will
+	use it as the new frame's buffer (Bug#15133).
+
 2013-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/timeclock.el: Minor cleanups.
