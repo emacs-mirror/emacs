@@ -1,5 +1,7 @@
 2013-08-23  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (auto-mode-alist): Use sh-mode for .bash_history.
+
 	* files.el (interpreter-mode-alist): Use tcl-mode for expect scripts.
 
 	* files.el (create-file-buffer): If the result would begin with
