@@ -3486,16 +3486,37 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-emacs_config_options="$@"
-## Add some environment variables, if they were passed via the environment
-## rather than on the command-line.
-for var in CFLAGS CPPFLAGS LDFLAGS; do
-    case "$emacs_config_options" in
-      *$var=*) continue ;;
-    esac
-    eval val="\$${var}"
-    test x"$val" = x && continue
-    emacs_config_options="${emacs_config_options}${emacs_config_options:+ }$var=\"$val\""
+emacs_config_options=
+optsep=
+for opt in ${1+"$@"} CFLAGS CPPFLAGS LDFLAGS; do
+  case $opt in
+    -n | --no-create | --no-recursion)
+      continue ;;
+    CFLAGS | CPPFLAGS | LDFLAGS)
+      eval 'test "${'$opt'+set}" = set' || continue
+      case " $*" in
+	*" $opt="*) continue ;;
+      esac
+      eval opt=$opt=\$$opt ;;
+  esac
+
+  emacs_shell_specials=$IFS\''"#$&()*;<>?[\\`{|~'
+  case $opt in
+    *["$emacs_shell_specials"]*)
+      case $opt in
+	*\'*)
+	  emacs_quote_apostrophes="s/'/'\\\\''/g"
+	  opt=`$as_echo "$opt" | sed "$emacs_quote_apostrophes"` ;;
+      esac
+      opt="'$opt'"
+      case $opt in
+	*['"\\']*)
+	  emacs_quote_for_c='s/["\\]/\\&/g; $!s/$/\\n\\/'
+	  opt=`$as_echo "$opt" | sed "$emacs_quote_for_c"` ;;
+      esac ;;
+  esac
+  as_fn_append emacs_config_options "$optsep$opt"
+  optsep=' '
 done
 
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
@@ -17173,7 +17194,6 @@ cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
 
-emacs_config_options=`echo "$emacs_config_options " | sed -e 's/--no-create //' -e 's/--no-recursion //' -e 's/ *$//' -e "s/\"/'/g" -e 's/\\\\/\\\\\\\\/g'`
 
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIG_OPTIONS "${emacs_config_options}"
