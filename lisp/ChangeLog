@@ -1,5 +1,8 @@
 2013-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (fill-match-adaptive-prefix): Don't throw away
+	text-properties (bug#15155).
+
 	* calc/calc-keypd.el (calc-keypad-execute): `x-flush-mouse-queue' doesn't
 	exist any more.
 	(calc-keypad-redraw): Remove unused var `pad'.
