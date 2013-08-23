@@ -1604,12 +1604,16 @@ killed."
 FILENAME (sans directory) is used unchanged if that name is free;
 otherwise a string <2> or <3> or ... is appended to get an unused name.
 Spaces at the start of FILENAME (sans directory) are removed."
+  ;; ^ Because buffers whose name begins with a space are treated as
+  ;; internal Emacs buffers.
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
     (save-match-data
-      (string-match "^ *\\(.*\\)" lastname)
-      (generate-new-buffer (match-string 1 lastname)))))
+      (if (string-match "\\` +\\(.*\\)" lastname)
+	  (if (zerop (length (setq lastname (match-string 1 lastname))))
+	      (setq lastname "SPC"))))	; bug#15162
+    (generate-new-buffer lastname)))
 
 (defun generate-new-buffer (name)
   "Create and return a buffer with a name based on NAME.

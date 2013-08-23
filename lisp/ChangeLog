@@ -1,3 +1,8 @@
+2013-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (create-file-buffer): Handle the vital case of a file
+	whose basename is all spaces.  (Bug#15162)
+
 2013-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-match-adaptive-prefix): Don't throw away
