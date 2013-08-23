@@ -1,3 +1,7 @@
+2013-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-buffer-info): Fix message typo.
+
 2013-07-27  Glenn Morris  <rgm@gnu.org>
 
 	* format.el (format-annotate-function):
