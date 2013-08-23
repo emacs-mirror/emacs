@@ -1,5 +1,7 @@
 2013-08-23  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (interpreter-mode-alist): Use tcl-mode for expect scripts.
+
 	* files.el (create-file-buffer): Handle the vital case of a file
 	whose basename is all spaces.  (Bug#15162)
 
