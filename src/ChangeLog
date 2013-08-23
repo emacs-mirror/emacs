@@ -1,3 +1,25 @@
+2013-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't let very long directory names overrun the stack.
+	Fix some related minor problems involving "//", vfork.
+	* callproc.c (encode_current_directory): New function.
+	(call_process): Don't append "/"; not needed.
+	* fileio.c (file_name_as_directory_slop): New constant.
+	(file_name_as_directory): Allow SRC to be longer than SRCLEN;
+	this can save the caller having to alloca.
+	(Ffile_name_as_directory, Fdirectory_file_name, Fexpand_file_name):
+	Use SAFE_ALLOCA, not alloca.
+	(directory_file_name, Fexpand_file_name): Leave leading "//"
+	alone, since it can be special even on POSIX platforms.
+	* callproc.c (call_process):
+	* process.c (Fformat_network_address):
+	* sysdep.c (sys_subshell):
+	Use encode_current_directory rather than rolling our own.
+	(create_process): No need to encode directory; caller does that now.
+	* process.h (encode_current_directory): New decl.
+	* sysdep.c (sys_subshell): Work even if vfork trashes saved_handlers.
+	Rework to avoid 'goto xyzzy;'.
+
 2013-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_face_prop): If the default face was remapped use

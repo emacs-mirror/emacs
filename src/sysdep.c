@@ -471,10 +471,20 @@ sys_subshell (void)
   pid_t pid;
   int status;
   struct save_signal saved_handlers[5];
-  Lisp_Object dir;
-  unsigned char *volatile str_volatile = 0;
-  unsigned char *str;
-  int len;
+  char *str = SSDATA (encode_current_directory ());
+
+#ifdef DOS_NT
+  pid = 0;
+#else
+  {
+    char *volatile str_volatile = str;
+    pid = vfork ();
+    str = str_volatile;
+  }
+#endif
+
+  if (pid < 0)
+    error ("Can't spawn subshell");
 
   saved_handlers[0].code = SIGINT;
   saved_handlers[1].code = SIGQUIT;
@@ -486,31 +496,8 @@ sys_subshell (void)
   saved_handlers[3].code = 0;
 #endif
 
-  /* Mentioning current_buffer->buffer would mean including buffer.h,
-     which somehow wedges the hp compiler.  So instead...  */
-
-  dir = intern ("default-directory");
-  if (NILP (Fboundp (dir)))
-    goto xyzzy;
-  dir = Fsymbol_value (dir);
-  if (!STRINGP (dir))
-    goto xyzzy;
-
-  dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str_volatile = str = alloca (SCHARS (dir) + 2);
-  len = SCHARS (dir);
-  memcpy (str, SDATA (dir), len);
-  if (str[len - 1] != '/') str[len++] = '/';
-  str[len] = 0;
- xyzzy:
-
 #ifdef DOS_NT
-  pid = 0;
   save_signal_handlers (saved_handlers);
-#else
-  pid = vfork ();
-  if (pid == -1)
-    error ("Can't spawn subshell");
 #endif
 
   if (pid == 0)
@@ -528,11 +515,10 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      str = str_volatile;
-      if (str && chdir ((char *) str) != 0)
+      if (chdir (str) != 0)
 	{
 #ifndef DOS_NT
-	  emacs_perror ((char *) str);
+	  emacs_perror (str);
 	  _exit (EXIT_CANCELED);
 #endif
 	}
@@ -546,8 +532,6 @@ sys_subshell (void)
 	if (epwd)
 	  {
 	    strcpy (old_pwd, epwd);
-	    if (str[len - 1] == '/')
-	      str[len - 1] = '\0';
 	    setenv ("PWD", str, 1);
 	  }
 	st = system (sh);

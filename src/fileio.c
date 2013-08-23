@@ -504,6 +504,10 @@ get a current directory to run processes in.  */)
   return Ffile_name_directory (filename);
 }
 
+/* Maximum number of bytes that DST will be longer than SRC
+   in file_name_as_directory.  This occurs when SRCLEN == 0.  */
+enum { file_name_as_directory_slop = 2 };
+
 /* Convert from file name SRC of length SRCLEN to directory name in
    DST.  MULTIBYTE non-zero means the file name in SRC is a multibyte
    string.  On UNIX, just make sure there is a terminating /.  Return
@@ -521,14 +525,10 @@ file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen,
       return 2;
     }
 
-  strcpy (dst, src);
-
+  memcpy (dst, src, srclen);
   if (!IS_DIRECTORY_SEP (dst[srclen - 1]))
-    {
-      dst[srclen] = DIRECTORY_SEP;
-      dst[srclen + 1] = '\0';
-      srclen++;
-    }
+    dst[srclen++] = DIRECTORY_SEP;
+  dst[srclen] = 0;
 #ifdef DOS_NT
   dostounix_filename (dst, multibyte);
 #endif
@@ -547,7 +547,8 @@ For a Unix-syntax file name, just appends a slash.  */)
 {
   char *buf;
   ptrdiff_t length;
-  Lisp_Object handler;
+  Lisp_Object handler, val;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (file);
   if (NILP (file))
@@ -569,10 +570,12 @@ For a Unix-syntax file name, just appends a slash.  */)
   if (!NILP (Vw32_downcase_file_names))
     file = Fdowncase (file);
 #endif
-  buf = alloca (SBYTES (file) + 10);
+  buf = SAFE_ALLOCA (SBYTES (file) + file_name_as_directory_slop + 1);
   length = file_name_as_directory (buf, SSDATA (file), SBYTES (file),
 				   STRING_MULTIBYTE (file));
-  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
+  val = make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
+  SAFE_FREE ();
+  return val;
 }
 
 /* Convert from directory name SRC of length SRCLEN to file name in
@@ -584,18 +587,17 @@ static ptrdiff_t
 directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
 {
   /* Process as Unix format: just remove any final slash.
-     But leave "/" unchanged; do not change it to "".  */
-  strcpy (dst, src);
-  if (srclen > 1
-      && IS_DIRECTORY_SEP (dst[srclen - 1])
+     But leave "/" and "//" unchanged.  */
+  while (srclen > 1
 #ifdef DOS_NT
-      && !IS_ANY_SEP (dst[srclen - 2])
+	 && !IS_ANY_SEP (src[srclen - 2])
 #endif
-      )
-    {
-      dst[srclen - 1] = 0;
-      srclen--;
-    }
+	 && IS_DIRECTORY_SEP (src[srclen - 1])
+	 && ! (srclen == 2 && IS_DIRECTORY_SEP (src[0])))
+    srclen--;
+
+  memcpy (dst, src, srclen);
+  dst[srclen] = 0;
 #ifdef DOS_NT
   dostounix_filename (dst, multibyte);
 #endif
@@ -613,7 +615,8 @@ In Unix-syntax, this function just removes the final slash.  */)
 {
   char *buf;
   ptrdiff_t length;
-  Lisp_Object handler;
+  Lisp_Object handler, val;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (directory);
 
@@ -636,10 +639,12 @@ In Unix-syntax, this function just removes the final slash.  */)
   if (!NILP (Vw32_downcase_file_names))
     directory = Fdowncase (directory);
 #endif
-  buf = alloca (SBYTES (directory) + 20);
+  buf = SAFE_ALLOCA (SBYTES (directory) + 1);
   length = directory_file_name (buf, SSDATA (directory), SBYTES (directory),
 				STRING_MULTIBYTE (directory));
-  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
+  val = make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
+  SAFE_FREE ();
+  return val;
 }
 
 static const char make_temp_name_tbl[64] =
@@ -837,6 +842,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   Lisp_Object handler, result, handled_name;
   bool multibyte;
   Lisp_Object hdir;
+  USE_SAFE_ALLOCA;
 
   CHECK_STRING (name);
 
@@ -1011,11 +1017,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 		  || (p[2] == '.' && (IS_DIRECTORY_SEP (p[3])
 				      || p[3] == 0))))
 	    lose = 1;
-	  /* We want to replace multiple `/' in a row with a single
-	     slash.  */
-	  else if (p > nm
-		   && IS_DIRECTORY_SEP (p[0])
-		   && IS_DIRECTORY_SEP (p[1]))
+	  /* Replace multiple slashes with a single one, except
+	     leave leading "//" alone.  */
+	  else if (IS_DIRECTORY_SEP (p[0])
+		   && IS_DIRECTORY_SEP (p[1])
+		   && (p != nm || IS_DIRECTORY_SEP (p[2])))
 	    lose = 1;
 	  p++;
 	}
@@ -1098,10 +1104,11 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       else			/* ~user/filename */
 	{
 	  char *o, *p;
-	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)); p++);
-	  o = alloca (p - nm + 1);
+	  for (p = nm; *p && !IS_DIRECTORY_SEP (*p); p++)
+	    continue;
+	  o = SAFE_ALLOCA (p - nm + 1);
 	  memcpy (o, nm, p - nm);
-	  o [p - nm] = 0;
+	  o[p - nm] = 0;
 
 	  block_input ();
 	  pw = getpwnam (o + 1);
@@ -1217,7 +1224,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (!IS_DIRECTORY_SEP (nm[0]))
 	    {
 	      ptrdiff_t newlen = strlen (newdir);
-	      char *tmp = alloca (newlen + strlen (nm) + 2);
+	      char *tmp = alloca (newlen + file_name_as_directory_slop
+				  + strlen (nm) + 1);
 	      file_name_as_directory (tmp, newdir, newlen, multibyte);
 	      strcat (tmp, nm);
 	      nm = tmp;
@@ -1271,31 +1279,18 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
   if (newdir)
     {
-      /* Get rid of any slash at the end of newdir, unless newdir is
-	 just / or // (an incomplete UNC name).  */
+      /* Ignore any slash at the end of newdir, unless newdir is
+	 just "/" or "//".  */
       length = strlen (newdir);
-      tlen = length + 1;
-      if (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
-#ifdef WINDOWSNT
-	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
-#endif
-	  )
-	{
-	  char *temp = alloca (length);
-	  memcpy (temp, newdir, length - 1);
-	  temp[length - 1] = 0;
-	  length--;
-	  newdir = temp;
-	}
+      while (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
+	     && ! (length == 2 && IS_DIRECTORY_SEP (newdir[0])))
+	length--;
     }
   else
-    {
-      length = 0;
-      tlen = 0;
-    }
+    length = 0;
 
   /* Now concatenate the directory and name to new space in the stack frame.  */
-  tlen += strlen (nm) + 1;
+  tlen = length + file_name_as_directory_slop + strlen (nm) + 1;
 #ifdef DOS_NT
   /* Reserve space for drive specifier and escape prefix, since either
      or both may need to be inserted.  (The Microsoft x86 compiler
@@ -1303,7 +1298,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   target = alloca (tlen + 4);
   target += 4;
 #else  /* not DOS_NT */
-  target = alloca (tlen);
+  target = SAFE_ALLOCA (tlen);
 #endif /* not DOS_NT */
   *target = 0;
 
@@ -1320,7 +1315,10 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  if (!(drive && nm[0] && IS_DIRECTORY_SEP (newdir[0])
 		&& newdir[1] == '\0'))
 #endif
-	    strcpy (target, newdir);
+	    {
+	      memcpy (target, newdir, length);
+	      target[length] = 0;
+	    }
 	}
       else
 	file_name_as_directory (target, newdir, length, multibyte);
@@ -1380,8 +1378,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      ++o;
 	    p += 3;
 	  }
-	else if (p > target && IS_DIRECTORY_SEP (p[1]))
-	  /* Collapse multiple `/' in a row.  */
+	else if (IS_DIRECTORY_SEP (p[1])
+		 && (p != target || IS_DIRECTORY_SEP (p[2])))
+	  /* Collapse multiple "/", except leave leading "//" alone.  */
 	  p++;
 	else
 	  {
@@ -1429,11 +1428,12 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     {
       handled_name = call3 (handler, Qexpand_file_name,
 			    result, default_directory);
-      if (STRINGP (handled_name))
-	return handled_name;
-      error ("Invalid handler in `file-name-handler-alist'");
+      if (! STRINGP (handled_name))
+	error ("Invalid handler in `file-name-handler-alist'");
+      result = handled_name;
     }
 
+  SAFE_FREE ();
   return result;
 }
 

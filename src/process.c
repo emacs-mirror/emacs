@@ -1408,22 +1408,9 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
      function.  The argument list is protected by the caller, so all
      we really have to worry about is buffer.  */
   {
-    struct gcpro gcpro1, gcpro2;
-
-    current_dir = BVAR (current_buffer, directory);
-
-    GCPRO2 (buffer, current_dir);
-
-    current_dir = Funhandled_file_name_directory (current_dir);
-    if (NILP (current_dir))
-      /* If the file name handler says that current_dir is unreachable, use
-	 a sensible default. */
-      current_dir = build_string ("~/");
-    current_dir = expand_and_dir_to_file (current_dir, Qnil);
-    if (NILP (Ffile_accessible_directory_p (current_dir)))
-      report_file_error ("Setting current directory",
-			 BVAR (current_buffer, directory));
-
+    struct gcpro gcpro1;
+    GCPRO1 (buffer);
+    current_dir = encode_current_directory ();
     UNGCPRO;
   }
 
@@ -1670,7 +1657,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   bool pty_flag = 0;
   char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
-  Lisp_Object encoded_current_dir;
 
   inchannel = outchannel = -1;
 
@@ -1735,15 +1721,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* This may signal an error. */
   setup_process_coding_systems (process);
 
-  encoded_current_dir = ENCODE_FILE (current_dir);
-
   block_input ();
   block_child_signal ();
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
   {
-    Lisp_Object volatile encoded_current_dir_volatile = encoded_current_dir;
+    Lisp_Object volatile current_dir_volatile = current_dir;
     Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
     char **volatile new_argv_volatile = new_argv;
     int volatile forkin_volatile = forkin;
@@ -1752,7 +1736,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
     pid = vfork ();
 
-    encoded_current_dir = encoded_current_dir_volatile;
+    current_dir = current_dir_volatile;
     lisp_pty_name = lisp_pty_name_volatile;
     new_argv = new_argv_volatile;
     forkin = forkin_volatile;
@@ -1864,11 +1848,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       if (pty_flag)
 	child_setup_tty (xforkout);
 #ifdef WINDOWSNT
-      pid = child_setup (xforkin, xforkout, xforkout,
-			 new_argv, 1, encoded_current_dir);
+      pid = child_setup (xforkin, xforkout, xforkout, new_argv, 1, current_dir);
 #else  /* not WINDOWSNT */
-      child_setup (xforkin, xforkout, xforkout,
-		   new_argv, 1, encoded_current_dir);
+      child_setup (xforkin, xforkout, xforkout, new_argv, 1, current_dir);
 #endif /* not WINDOWSNT */
     }
 

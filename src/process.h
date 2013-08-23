@@ -218,6 +218,7 @@ enum
 
 extern void block_child_signal (void);
 extern void unblock_child_signal (void);
+extern Lisp_Object encode_current_directory (void);
 extern void record_kill_process (struct Lisp_Process *, Lisp_Object);
 
 /* Defined in sysdep.c.  */

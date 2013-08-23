@@ -123,6 +123,37 @@ unblock_child_signal (void)
   pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
 }
 
+/* Return the current buffer's working directory, or the home
+   directory if it's unreachable, as a string suitable for a system call.
+   Signal an error if the result would not be an accessible directory.  */
+
+Lisp_Object
+encode_current_directory (void)
+{
+  Lisp_Object dir;
+  struct gcpro gcpro1;
+
+  dir = BVAR (current_buffer, directory);
+  GCPRO1 (dir);
+
+  dir = Funhandled_file_name_directory (dir);
+
+  /* If the file name handler says that dir is unreachable, use
+     a sensible default. */
+  if (NILP (dir))
+    dir = build_string ("~");
+
+  dir = expand_and_dir_to_file (dir, Qnil);
+
+  if (STRING_MULTIBYTE (dir))
+    dir = ENCODE_FILE (dir);
+  if (! file_accessible_directory_p (SSDATA (dir)))
+    report_file_error ("Setting current directory",
+		       BVAR (current_buffer, directory));
+
+  RETURN_UNGCPRO (dir);
+}
+
 /* If P is reapable, record it as a deleted process and kill it.
    Do this in a critical section.  Unless PID is wedged it will be
    reaped on receipt of the first SIGCHLD after the critical section.  */
@@ -408,24 +439,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   {
     struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-    current_dir = BVAR (current_buffer, directory);
+    current_dir = encode_current_directory ();
 
     GCPRO4 (buffer, current_dir, error_file, output_file);
 
-    current_dir = Funhandled_file_name_directory (current_dir);
-    if (NILP (current_dir))
-      /* If the file name handler says that current_dir is unreachable, use
-	 a sensible default. */
-      current_dir = build_string ("~/");
-    current_dir = expand_and_dir_to_file (current_dir, Qnil);
-    current_dir = Ffile_name_as_directory (current_dir);
-
-    if (NILP (Ffile_accessible_directory_p (current_dir)))
-      report_file_error ("Setting current directory",
-			 BVAR (current_buffer, directory));
-
-    if (STRING_MULTIBYTE (current_dir))
-      current_dir = ENCODE_FILE (current_dir);
     if (STRINGP (error_file) && STRING_MULTIBYTE (error_file))
       error_file = ENCODE_FILE (error_file);
     if (STRINGP (output_file) && STRING_MULTIBYTE (output_file))
@@ -1176,23 +1193,21 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
      static variables as if the superior had done alloca and will be
      cleaned up in the usual way. */
   {
-    register char *temp;
-    size_t i; /* size_t, because ptrdiff_t might overflow here!  */
+    char *temp;
+    ptrdiff_t i;
 
     i = SBYTES (current_dir);
 #ifdef MSDOS
     /* MSDOS must have all environment variables malloc'ed, because
        low-level libc functions that launch subsidiary processes rely
        on that.  */
-    pwd_var = xmalloc (i + 6);
+    pwd_var = xmalloc (i + 5);
 #else
-    pwd_var = alloca (i + 6);
+    pwd_var = alloca (i + 5);
 #endif
     temp = pwd_var + 4;
     memcpy (pwd_var, "PWD=", 4);
-    memcpy (temp, SDATA (current_dir), i);
-    if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
-    temp[i] = 0;
+    strcpy (temp, SSDATA (current_dir));
 
 #ifndef DOS_NT
     /* We can't signal an Elisp error here; we're in a vfork.  Since
