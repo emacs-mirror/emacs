@@ -56,16 +56,6 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
-enum text_cursor_kinds
-{
-  DEFAULT_CURSOR = -2,
-  NO_CURSOR = -1,
-  FILLED_BOX_CURSOR,
-  HOLLOW_BOX_CURSOR,
-  BAR_CURSOR,
-  HBAR_CURSOR
-};
-
 enum fullscreen_type
 {
   FULLSCREEN_NONE,

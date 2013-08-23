@@ -1,5 +1,21 @@
 2013-08-23  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Minor cleanup for redisplay interface and few related functions.
+	* frame.h (enum text_cursor_kinds): Move from here...
+	* dispextern.h (enum text_cursor_kinds): ...to here.
+	(toplevel): Drop unnecessary declarations.
+	(struct redisplay_interface): Use bool and enum text_cursor_kinds
+	in update_window_end_hook and draw_window_cursor functions.
+	(display_and_set_cursor, x_update_cursor): Adjust prototypes.
+	* nsterm.m (ns_update_window_end, ns_draw_window_cursor):
+	* w32term.c (x_update_window_end,w32_draw_window_cursor):
+	* xterm.c (x_update_window_end, x_draw_window_cursor):
+	* xdisp.c (display_and_set_cursor, update_window_cursor)
+	(update_cursor_in_window_tree, x_update_cursor): Use bool and
+	enum text_cursor_kinds where appropriate.
+
+2013-08-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Redesign redisplay interface to drop updated_row and updated_area.
 	* dispextern.h (updated_row, updated_area): Remove declaration.
 	(struct redisplay_interface): Pass glyph row and row area parameters

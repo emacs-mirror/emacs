@@ -210,7 +210,6 @@ static int volatile input_signal_count;
 int w32_message_fd = -1;
 #endif /* CYGWIN */
 
-static void x_update_window_end (struct window *, int, int);
 static void w32_handle_tool_bar_click (struct frame *,
                                        struct input_event *);
 static void w32_define_cursor (Window, Cursor);
@@ -676,8 +675,8 @@ w32_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
    here. */
 
 static void
-x_update_window_end (struct window *w, int cursor_on_p,
-		     int mouse_face_overwritten_p)
+x_update_window_end (struct window *w, bool cursor_on_p,
+		     bool mouse_face_overwritten_p)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
@@ -5300,8 +5299,8 @@ w32_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 
 static void
 w32_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
-			int x, int y, int cursor_type, int cursor_width,
-			int on_p, int active_p)
+			int x, int y, enum text_cursor_kinds cursor_type,
+			int cursor_width, bool on_p, bool active_p)
 {
   if (on_p)
     {

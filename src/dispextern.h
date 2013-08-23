@@ -95,18 +95,17 @@ typedef int Cursor;
 #define NativeRectangle int
 #endif
 
-/* Structure forward declarations.  Some are here because function
-   prototypes below reference structure types before their definition
-   in this file.  Some are here because not every file including
-   dispextern.h also includes frame.h and windows.h.  */
+/* Text cursor types.  */
 
-struct glyph;
-struct glyph_row;
-struct glyph_matrix;
-struct glyph_pool;
-struct frame;
-struct window;
-
+enum text_cursor_kinds
+{
+  DEFAULT_CURSOR = -2,
+  NO_CURSOR = -1,
+  FILLED_BOX_CURSOR,
+  HOLLOW_BOX_CURSOR,
+  BAR_CURSOR,
+  HBAR_CURSOR
+};
 
 /* Values returned from coordinates_in_window.  */
 
@@ -2739,8 +2738,8 @@ struct redisplay_interface
      MOUSE_FACE_OVERWRITTEN_P non-zero means that some lines in W
      that contained glyphs in mouse-face were overwritten, so we
      have to update the mouse highlight.  */
-  void (*update_window_end_hook) (struct window *w, int cursor_on_p,
-                                  int mouse_face_overwritten_p);
+  void (*update_window_end_hook) (struct window *w, bool cursor_on_p,
+                                  bool mouse_face_overwritten_p);
 
   /* Move cursor to row/column position VPOS/HPOS, pixel coordinates
      Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
@@ -2799,10 +2798,10 @@ struct redisplay_interface
    0, don't draw cursor.  If ACTIVE_P is 1, system caret
    should track this cursor (when applicable).  */
   void (*draw_window_cursor) (struct window *w,
-                              struct glyph_row *glyph_row,
-                              int x, int y,
-                              int cursor_type, int cursor_width,
-                              int on_p, int active_p);
+			      struct glyph_row *glyph_row,
+			      int x, int y,
+			      enum text_cursor_kinds cursor_type,
+			      int cursor_width, bool on_p, bool active_p);
 
 /* Draw vertical border for window W from (X,Y_0) to (X,Y_1).  */
   void (*draw_vertical_window_border) (struct window *w,
@@ -3195,13 +3194,12 @@ extern void draw_phys_cursor_glyph (struct window *,
 extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
 extern void erase_phys_cursor (struct window *);
-extern void display_and_set_cursor (struct window *,
-                                    int, int, int, int, int);
+extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
 
 extern void set_output_cursor (struct cursor_pos *);
 extern void x_cursor_to (struct window *, int, int, int, int);
 
-extern void x_update_cursor (struct frame *, int);
+extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);
 

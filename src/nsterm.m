@@ -742,8 +742,8 @@ ns_update_window_begin (struct window *w)
 
 
 static void
-ns_update_window_end (struct window *w, int cursor_on_p,
-                      int mouse_face_overwritten_p)
+ns_update_window_end (struct window *w, bool cursor_on_p,
+                      bool mouse_face_overwritten_p)
 /* --------------------------------------------------------------------------
    Finished a grouped sequence of drawing calls
    external (RIF) call; for one window called before update_end
@@ -2341,8 +2341,8 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
 static void
 ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
-                       int x, int y, int cursor_type, int cursor_width,
-                       int on_p, int active_p)
+		       int x, int y, enum text_cursor_kinds cursor_type,
+		       int cursor_width, bool on_p, bool active_p)
 /* --------------------------------------------------------------------------
      External call (RIF): draw cursor.
      Note that CURSOR_WIDTH is meaningful only for (h)bar cursors.

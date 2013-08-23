@@ -292,8 +292,6 @@ static void x_set_window_size_1 (struct frame *, int, int, int);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
-static void x_update_window_end (struct window *, int, int);
-
 static int x_io_error_quitter (Display *);
 static struct terminal *x_create_terminal (struct x_display_info *);
 void x_delete_terminal (struct terminal *);
@@ -612,7 +610,8 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
    here.  */
 
 static void
-x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritten_p)
+x_update_window_end (struct window *w, bool cursor_on_p,
+		     bool mouse_face_overwritten_p)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
 
@@ -7372,7 +7371,9 @@ x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 /* RIF: Draw cursor on window W.  */
 
 static void
-x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int y, int cursor_type, int cursor_width, int on_p, int active_p)
+x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
+		      int y, enum text_cursor_kinds cursor_type,
+		      int cursor_width, bool on_p, bool active_p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
