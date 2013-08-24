@@ -2503,8 +2503,6 @@ gettimeofday (struct timeval *__restrict tv, struct timezone *__restrict tz)
 int
 fdutimens (int fd, char const *file, struct timespec const timespec[2])
 {
-  struct _utimbuf ut;
-
   if (!timespec)
     {
       errno = ENOSYS;
@@ -2515,12 +2513,28 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       errno = EBADF;
       return -1;
     }
-  ut.actime = timespec[0].tv_sec;
-  ut.modtime = timespec[1].tv_sec;
+  /* _futime's prototype defines 2nd arg as having the type 'struct
+     _utimbuf', while utime needs to accept 'struct utimbuf' for
+     compatibility with Posix.  So we need to use 2 different (but
+     equivalent) types to avoid compiler warnings, sigh.  */
   if (fd >= 0)
-    return _futime (fd, &ut);
+    {
+      struct _utimbuf _ut;
+
+      _ut.actime = timespec[0].tv_sec;
+      _ut.modtime = timespec[1].tv_sec;
+      return _futime (fd, &_ut);
+    }
   else
-    return _utime (file, &ut);
+    {
+      struct utimbuf ut;
+
+      ut.actime = timespec[0].tv_sec;
+      ut.modtime = timespec[1].tv_sec;
+      /* Call 'utime', which is implemented below, not the MS library
+	 function, which fails on directories.  */
+      return utime (file, &ut);
+    }
 }
 
 
@@ -4500,6 +4514,9 @@ fstat (int desc, struct stat * buf)
 
   return 0;
 }
+
+/* A version of 'utime' which handles directories as well as
+   files.  */
 
 int
 utime (const char *name, struct utimbuf *times)
