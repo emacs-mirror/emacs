@@ -1341,12 +1341,23 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   int base_width, base_height;
   int min_rows = 0, min_cols = 0;
   int win_gravity = f->win_gravity;
+  Lisp_Object fs_state, frame;
 
   /* Don't set size hints during initialization; that apparently leads
      to a race condition.  See the thread at
      http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html  */
   if (NILP (Vafter_init_time) || !FRAME_GTK_OUTER_WIDGET (f))
     return;
+
+  XSETFRAME (frame, f);
+  fs_state = Fframe_parameter (frame, Qfullscreen);
+  if (EQ (fs_state, Qmaximized) || EQ (fs_state, Qfullboth))
+    {
+      /* Don't set hints when maximized or fullscreen.  Apparently KWin and
+         Gtk3 don't get along and the frame shrinks (!).
+      */
+      return;
+    }
 
   if (flags)
     {

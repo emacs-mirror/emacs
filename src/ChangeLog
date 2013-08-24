@@ -1,3 +1,8 @@
+2013-08-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (x_wm_set_size_hint): Don't set hints when maximized
+	or fullscreen (Bug#14627).
+
 2013-08-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	System-dependent integer overflow fixes.
