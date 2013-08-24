@@ -1,3 +1,19 @@
+2013-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	System-dependent integer overflow fixes.
+	* process.c (Fset_process_window_size): Signal an error if
+	the window size is outside the range supported by the lower level.
+	* sysdep.c (set_window_size): Return negative on error,
+	nonnegative on success, rather than -1, 0, 1 on not in system,
+	failure, success.  This is simpler.  Caller changed.
+	(serial_configure): Remove unnecessary initialization of local.
+	(procfs_get_total_memory) [GNU_LINUX]: Don't assume system memory
+	size fits in unsigned long; this isn't true on some 32-bit hosts.
+	Avoid buffer overrun if some future version of /proc/meminfo has a
+	variable name longer than 20 bytes.
+	(system_process_attributes) [__FreeBSD__]:
+	Don't assume hw.availpages fits in 'int'.
+
 2013-08-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't let very long directory names overrun the stack.

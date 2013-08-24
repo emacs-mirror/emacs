@@ -1140,15 +1140,18 @@ See `set-process-sentinel' for more info on sentinels.  */)
 DEFUN ("set-process-window-size", Fset_process_window_size,
        Sset_process_window_size, 3, 3, 0,
        doc: /* Tell PROCESS that it has logical window size HEIGHT and WIDTH.  */)
-  (register Lisp_Object process, Lisp_Object height, Lisp_Object width)
+  (Lisp_Object process, Lisp_Object height, Lisp_Object width)
 {
   CHECK_PROCESS (process);
-  CHECK_RANGED_INTEGER (height, 0, INT_MAX);
-  CHECK_RANGED_INTEGER (width, 0, INT_MAX);
+
+  /* All known platforms store window sizes as 'unsigned short'.  */
+  CHECK_RANGED_INTEGER (height, 0, USHRT_MAX);
+  CHECK_RANGED_INTEGER (width, 0, USHRT_MAX);
 
   if (XPROCESS (process)->infd < 0
-      || set_window_size (XPROCESS (process)->infd,
-			  XINT (height), XINT (width)) <= 0)
+      || (set_window_size (XPROCESS (process)->infd,
+			   XINT (height), XINT (width))
+	  < 0))
     return Qnil;
   else
     return Qt;
