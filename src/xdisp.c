@@ -7050,6 +7050,8 @@ get_next_display_element (struct it *it)
 		}
 	    }
 	}
+      /* next_element_from_display_vector sets this flag according to
+	 faces of the display vector glyphs, see there.  */
       else if (it->method != GET_FROM_DISPLAY_VECTOR)
 	{
 	  int face_id = face_after_it_pos (it);
