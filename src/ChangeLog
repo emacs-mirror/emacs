@@ -1,5 +1,9 @@
 2013-08-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (get_next_display_element): Don't apply to characters
+	from a display vector the logic of setting it->end_of_box_run_p
+	suitable for characters from a buffer.  (Bug#15175)
+
 	* w32.c (fdutimens): Call 'utime', which is implemented on w32.c
 	to handle directories, rather than '_utime' which doesn't.
 	(Bug#15176)

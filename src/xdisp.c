@@ -7050,7 +7050,7 @@ get_next_display_element (struct it *it)
 		}
 	    }
 	}
-      else
+      else if (it->method != GET_FROM_DISPLAY_VECTOR)
 	{
 	  int face_id = face_after_it_pos (it);
 	  it->end_of_box_run_p
