@@ -1,3 +1,8 @@
+2013-08-25  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* progmodes/flymake.el (flymake-get-real-file-name-function):
+	Fix broken customization.  (Bug#15184)
+
 2013-08-25  Alan Mackenzie  <acm@muc.de>
 
 	Improve indentation of bracelists defined by macros (without "=").
