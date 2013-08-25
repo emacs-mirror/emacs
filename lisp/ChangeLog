@@ -1,3 +1,21 @@
+2013-08-25  Alan Mackenzie  <acm@muc.de>
+
+	Handle "/"s more accurately in test for virtual semicolons (AWK Mode).
+
+	* progmodes/cc-awk.el (c-awk-one-line-possibly-open-string-re)
+	(c-awk-regexp-one-line-possibly-open-char-list-re)
+	(c-awk-one-line-possibly-open-regexp-re)
+	(c-awk-one-line-non-syn-ws*-re): Remove.
+	(c-awk-possibly-open-string-re, c-awk-non-/-syn-ws*-re)
+	(c-awk-space*-/-re, c-awk-space*-regexp-/-re)
+	(c-awk-space*-unclosed-regexp-/-re): New constants.
+	(c-awk-at-vsemi-p): Reformulate better to recognize "/"s which
+	aren't regexp delimiters.
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p): Add in
+	handling for a rare situation in AWK Mode involving unterminated
+	strings/regexps.
+
 2013-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Use sh-mode for .bash_history.

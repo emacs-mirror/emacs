@@ -1271,6 +1271,9 @@ comment at the start of cc-engine.el for more info."
 	      (throw 'done (point)))))
 	  ;; In trailing space after an as yet undetected virtual semicolon?
 	  (c-backward-syntactic-ws from)
+	  (when (and (bolp) (not (bobp))) ; Can happen in AWK Mode with an
+					  ; unterminated string/regexp.
+	    (backward-char))
 	  (if (and (< (point) to)
 		   (c-at-vsemi-p))
 	      (point)

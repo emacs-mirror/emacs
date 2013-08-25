@@ -169,9 +169,9 @@
   (concat "\\=_?\"" c-awk-string-innards-re))
 ;;   Matches an AWK string at point up to, but not including, any terminator.
 ;; A gawk 3.1+ string may look like _"localizable string".
-(defconst c-awk-one-line-possibly-open-string-re
-  (concat "\"\\(" c-awk-string-ch-re "\\|" c-awk-non-eol-esc-pair-re "\\)*"
-	  "\\(\"\\|\\\\?$\\|\\'\\)"))
+(defconst c-awk-possibly-open-string-re
+  (concat "\"\\(" c-awk-string-ch-re "\\|" c-awk-esc-pair-re "\\)*"
+	  "\\(\"\\|$\\|\\'\\)"))
 
 ;; REGEXPS FOR AWK REGEXPS.
 (defconst c-awk-regexp-normal-re "[^[/\\\n\r]")
@@ -192,25 +192,13 @@
 	  "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
 ;;   Matches a regexp char list, up to (but not including) EOL if the ] is
 ;;   missing.
-(defconst c-awk-regexp-one-line-possibly-open-char-list-re
-  (concat "\\[\\]?\\(" c-awk-non-eol-esc-pair-re "\\|" "[^]\n\r]" "\\)*"
-	  "\\(]\\|\\\\?$\\|\\'\\)"))
-;;   Matches the head (or all) of a regexp char class, up to (but not
-;;   including) the first EOL.
 (defconst c-awk-regexp-innards-re
   (concat "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-list-re
-          "\\|" c-awk-regexp-normal-re "\\)*"))
+	  "\\|" c-awk-regexp-normal-re "\\)*"))
 ;;   Matches the inside of an AWK regexp (i.e. without the enclosing /s)
 (defconst c-awk-regexp-without-end-re
   (concat "/" c-awk-regexp-innards-re))
 ;; Matches an AWK regexp up to, but not including, any terminating /.
-(defconst c-awk-one-line-possibly-open-regexp-re
-  (concat "/\\(" c-awk-non-eol-esc-pair-re
-	  "\\|" c-awk-regexp-one-line-possibly-open-char-list-re
-	  "\\|" c-awk-regexp-normal-re "\\)*"
-	  "\\(/\\|\\\\?$\\|\\'\\)"))
-;; Matches as much of the head of an AWK regexp which fits on one line,
-;; possibly all of it.
 
 ;; REGEXPS used for scanning an AWK buffer in order to decide IF A '/' IS A
 ;; REGEXP OPENER OR A DIVISION SIGN.  By "state" in the following is meant
@@ -262,15 +250,24 @@
 
 ;; REGEXPS USED FOR FINDING THE POSITION OF A "virtual semicolon"
 (defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\\\n\r \t]")
-;; NEW VERSION!  (which will be restricted to the current line)
-(defconst c-awk-one-line-non-syn-ws*-re
-  (concat "\\([ \t]*"
-              "\\(" c-awk-_-harmless-nonws-char-re "\\|"
-	            c-awk-non-eol-esc-pair-re "\\|"
-		    c-awk-one-line-possibly-open-string-re "\\|"
-		    c-awk-one-line-possibly-open-regexp-re
-	      "\\)"
-          "\\)*"))
+(defconst c-awk-non-/-syn-ws*-re
+  (concat
+   "\\(" c-awk-escaped-nls*-with-space*
+         "\\(" c-awk-_-harmless-nonws-char-re "\\|"
+               c-awk-non-eol-esc-pair-re "\\|"
+	       c-awk-possibly-open-string-re
+         "\\)"
+   "\\)*"))
+(defconst c-awk-space*-/-re (concat c-awk-escaped-nls*-with-space* "/"))
+;; Matches optional whitespace followed by "/".
+(defconst c-awk-space*-regexp-/-re
+  (concat c-awk-escaped-nls*-with-space* "\\s\""))
+;; Matches optional whitespace followed by a "/" with string syntax (a matched
+;; regexp delimiter).
+(defconst c-awk-space*-unclosed-regexp-/-re
+  (concat c-awk-escaped-nls*-with-space* "\\s\|"))
+;; Matches optional whitespace followed by a "/" with string fence syntax (an
+;; unmatched regexp delimiter).
 
 
 ;; ACM, 2002/5/29:
@@ -549,10 +546,36 @@
 (defun c-awk-at-vsemi-p (&optional pos)
   ;; Is there a virtual semicolon at POS (or POINT)?
   (save-excursion
-    (let (nl-prop
-	  (pos-or-point (progn (if pos (goto-char pos)) (point))))
-      (forward-line 0)
-      (search-forward-regexp c-awk-one-line-non-syn-ws*-re)
+    (let* (nl-prop
+	   (pos-or-point (progn (if pos (goto-char pos)) (point)))
+	   (bol (c-point 'bol)) (eol (c-point 'eol)))
+      (c-awk-beginning-of-logical-line)
+      ;; Next `while' goes round one logical line (ending in, e.g. "\\") per
+      ;; iteration.  Such a line is rare, and can only be an open string
+      ;; ending in an escaped \.
+      (while
+	  (progn
+	    ;; Next `while' goes over a division sign or /regexp/ per iteration.
+	    (while
+		(and
+		 (< (point) eol)
+		 (progn
+		   (search-forward-regexp c-awk-non-/-syn-ws*-re eol)
+		   (looking-at c-awk-space*-/-re)))
+	      (cond
+	       ((looking-at c-awk-space*-regexp-/-re) ; /regexp/
+		(forward-sexp))
+	       ((looking-at c-awk-space*-unclosed-regexp-/-re) ; Unclosed /regexp
+		(condition-case nil
+		    (progn
+		      (forward-sexp)
+		      (backward-char))	; Move to end of (logical) line.
+		  (error (end-of-line)))) ; Happens at EOB.
+	       (t 			; division sign
+		(c-forward-syntactic-ws)
+		(forward-char))))
+	    (< (point) bol))
+	(forward-line))
       (and (eq (point) pos-or-point)
 	   (progn
 	     (while (and (eq (setq nl-prop (c-awk-get-NL-prop-cur-line)) ?\\)
