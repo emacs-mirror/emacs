@@ -2163,8 +2163,7 @@ assumed to be set if this isn't nil."
 (c-lang-defconst c-opt-<>-sexp-key
   ;; Adorned regexp matching keywords that can be followed by an angle
   ;; bracket sexp.  Always set when `c-recognize-<>-arglists' is.
-  t (if (c-lang-const c-recognize-<>-arglists)
-	(c-make-keywords-re t (c-lang-const c-<>-sexp-kwds))))
+  t (c-make-keywords-re t (c-lang-const c-<>-sexp-kwds)))
 (c-lang-defvar c-opt-<>-sexp-key (c-lang-const c-opt-<>-sexp-key))
 
 (c-lang-defconst c-brace-id-list-kwds

@@ -1,5 +1,13 @@
 2013-08-25  Alan Mackenzie  <acm@muc.de>
 
+	Parse C++ inher-intro when there's a template split over 2 lines.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5C): Code more
+	rigorously the search for "class" etc. followed by ":".
+
+	* progmodes/cc-langs.el (c-opt-<>-sexp-key): Make the value for
+	random languages a regexp which never matches rather than nil.
+
 	Handle "/"s more accurately in test for virtual semicolons (AWK Mode).
 
 	* progmodes/cc-awk.el (c-awk-one-line-possibly-open-string-re)
