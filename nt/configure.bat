@@ -58,6 +58,9 @@ rem    	look for "cygpath" near line 85 of gmake.defs.
 rem [7] not recommended; please report if you try this combination.
 rem [8] tested only on Windows XP.
 rem
+echo This method of building Emacs is no longer supported.
+echo Instead, follow the instructions from INSTALL.MSYS.
+goto end
 
 if exist config.log del config.log
 

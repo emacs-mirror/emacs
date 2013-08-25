@@ -1,7 +1,10 @@
+2013-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* configure.bat: Disable it.
+
 2013-08-04  Eli Zaretskii  <eliz@gnu.org>
 
-	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of
-	"yes".
+	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of "yes".
 
 	* inc/ms-w32.h (mkostemp): Declare prototype.
 	(mktemp): Don't redirect to sys_mktemp.
