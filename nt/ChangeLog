@@ -1,5 +1,6 @@
 2013-08-25  Glenn Morris  <rgm@gnu.org>
 
+	* INSTALL: Refer to INSTALL.MSYS.
 	* configure.bat: Disable it.
 
 2013-08-04  Eli Zaretskii  <eliz@gnu.org>

@@ -4,6 +4,9 @@
   Copyright (C) 2001-2013 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
+*** This method of building Emacs is no longer supported. ***
+    Instead, see INSTALL.MSYS.
+
 * For the impatient
 
   Here are the concise instructions for configuring and building the
