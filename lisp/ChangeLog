@@ -1,5 +1,11 @@
 2013-08-25  Alan Mackenzie  <acm@muc.de>
 
+	Improve indentation of bracelists defined by macros (without "=").
+
+	* progmodes/cc-engine.el (c-inside-bracelist-p): When a macro
+	expansion begins with "{", regard it as bracelist when it doesn't
+	contain a ";".
+
 	Parse C++ inher-intro when there's a template split over 2 lines.
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5C): Code more
