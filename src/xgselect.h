@@ -28,7 +28,7 @@ extern int xg_select (int max_fds,
                       SELECT_TYPE *rfds,
                       SELECT_TYPE *wfds,
                       SELECT_TYPE *efds,
-                      EMACS_TIME *timeout,
-		      sigset_t *sigmask);
+		      EMACS_TIME const *timeout,
+		      sigset_t const *sigmask);
 
 #endif /* XGSELECT_H */

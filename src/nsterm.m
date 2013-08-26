@@ -3540,7 +3540,8 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 int
 ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-           fd_set *exceptfds, EMACS_TIME *timeout, sigset_t *sigmask)
+	   fd_set *exceptfds, EMACS_TIME const *timeout,
+	   sigset_t const *sigmask)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -3666,7 +3667,6 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
           pthread_mutex_lock (&select_mutex);
           if (readfds) *readfds = select_readfds;
           if (writefds) *writefds = select_writefds;
-          if (timeout) *timeout = select_timeout;
           pthread_mutex_unlock (&select_mutex);
           result = t;
         }

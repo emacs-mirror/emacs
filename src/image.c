@@ -145,7 +145,7 @@ static Lisp_Object QCmax_width, QCmax_height;
 
 #ifdef HAVE_NS
 /* Use with images created by ns_image_for_XPM.  */
-unsigned long
+static unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
 {
   return ns_get_pixel (ximage, x, y);
@@ -153,7 +153,7 @@ XGetPixel (XImagePtr ximage, int x, int y)
 
 /* Use with images created by ns_image_for_XPM; alpha set to 1;
    pixel is assumed to be in RGB form.  */
-void
+static void
 XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 {
   ns_put_pixel (ximage, x, y, pixel);
@@ -2713,10 +2713,13 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
      LA1 = xbm_scan (&s, end, buffer, &value)
 
 #define expect(TOKEN)		\
-     if (LA1 != (TOKEN)) 	\
-       goto failure;		\
-     else			\
-       match ()
+  do				\
+    {				\
+      if (LA1 != (TOKEN)) 	\
+	goto failure;		\
+      match ();			\
+    }				\
+  while (0)
 
 #define expect_ident(IDENT)					\
      if (LA1 == XBM_TK_IDENT && strcmp (buffer, (IDENT)) == 0)	\
@@ -3976,10 +3979,13 @@ xpm_load_image (struct frame *f,
      LA1 = xpm_scan (&s, end, &beg, &len)
 
 #define expect(TOKEN)		\
-     if (LA1 != (TOKEN)) 	\
-       goto failure;		\
-     else			\
-       match ()
+  do				\
+    {				\
+      if (LA1 != (TOKEN)) 	\
+	goto failure;		\
+      match ();			\
+    }				\
+  while (0)
 
 #define expect_ident(IDENT)					\
      if (LA1 == XPM_TK_IDENT \
@@ -4932,7 +4938,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
   int row_width;
 #endif /* HAVE_NTGUI */
   int x, y;
-  bool rc, use_img_background;
+  bool use_img_background;
   unsigned long bg = 0;
 
   if (img->mask)
@@ -4941,9 +4947,8 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS
   /* Create an image and pixmap serving as mask.  */
-  rc = image_create_x_image_and_pixmap (f, img, img->width, img->height, 1,
-					&mask_img, 1);
-  if (!rc)
+  if (! image_create_x_image_and_pixmap (f, img, img->width, img->height, 1,
+					 &mask_img, 1))
     return;
 #endif /* !HAVE_NS */
 #else

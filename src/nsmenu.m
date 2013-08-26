@@ -730,7 +730,7 @@ extern NSString *NSMenuDidBeginTrackingNotification;
 
 - (void)fillWithWidgetValue: (void *)wvptr
 {
-  [self fillWithWidgetValue: wvptr frame:nil];
+  [self fillWithWidgetValue: wvptr frame: (struct frame *)nil];
 }
 
 - (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f

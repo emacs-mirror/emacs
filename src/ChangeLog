@@ -1,3 +1,19 @@
+2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* image.c (XGetPixel, XPutPixel) [HAVE_NS]: Now static.
+	(expect): Avoid nested-if warning.
+	(x_build_heuristic_mask) [HAVE_NS]: Avoid unused-var warning.
+	* nsmenu.m (fillWithWidgetValue:): Avoid type warning.
+	* nsterm.h, nsterm.m (ns_select):
+	* xgselect.c, xgselect.h (xg_select):
+	Adjust signature to better match pselect's.
+	* nsterm.m (ns_select):
+	Don't set *TIMEOUT, since pselect doesn't.
+	* regex.c (whitespace_regexp): Now const_re_char *, to avoid
+	diagnostic about assigning const char * to it.
+	* xfaces.c (x_display_info) [HAVE_NS]: Remove; unused.
+
 2013-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (substitute_object_recurse): Handle hash-tables as well

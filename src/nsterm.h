@@ -874,8 +874,8 @@ extern int x_display_pixel_width (struct ns_display_info *);
 /* This in nsterm.m */
 extern void x_destroy_window (struct frame *f);
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-                      fd_set *exceptfds, EMACS_TIME *timeout,
-		      sigset_t *sigmask);
+		      fd_set *exceptfds, EMACS_TIME const *timeout,
+		      sigset_t const *sigmask);
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;

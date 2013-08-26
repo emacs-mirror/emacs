@@ -29,10 +29,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 int
 xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	   EMACS_TIME *timeout, sigset_t *sigmask)
+	   EMACS_TIME const *timeout, sigset_t const *sigmask)
 {
   SELECT_TYPE all_rfds, all_wfds;
-  EMACS_TIME tmo, *tmop = timeout;
+  EMACS_TIME tmo;
+  EMACS_TIME const *tmop = timeout;
 
   GMainContext *context;
   int have_wfds = wfds != NULL;

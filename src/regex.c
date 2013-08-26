@@ -1238,12 +1238,12 @@ re_set_syntax (reg_syntax_t syntax)
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
 /* Regexp to use to replace spaces, or NULL meaning don't.  */
-static re_char *whitespace_regexp;
+static const_re_char *whitespace_regexp;
 
 void
 re_set_whitespace_regexp (const char *regexp)
 {
-  whitespace_regexp = (re_char *) regexp;
+  whitespace_regexp = (const_re_char *) regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
