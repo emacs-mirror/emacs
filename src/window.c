@@ -2027,8 +2027,8 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       n->desired_matrix = n->current_matrix = 0;
       n->vscroll = 0;
       memset (&n->cursor, 0, sizeof (n->cursor));
-      memset (&n->last_cursor, 0, sizeof (n->last_cursor));
       memset (&n->phys_cursor, 0, sizeof (n->phys_cursor));
+      n->last_cursor_vpos = 0;
       n->phys_cursor_type = -1;
       n->phys_cursor_width = -1;
       n->must_be_updated_p = 0;
@@ -3172,7 +3172,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 
   w->window_end_pos = 0;
   w->window_end_vpos = 0;
-  memset (&w->last_cursor, 0, sizeof w->last_cursor);
+  w->last_cursor_vpos = 0;
 
   if (!(keep_margins_p && samebuf))
     { /* If we're not actually changing the buffer, don't reset hscroll and
@@ -3911,7 +3911,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     }
 
   n->window_end_valid = 0;
-  memset (&n->last_cursor, 0, sizeof n->last_cursor);
+  n->last_cursor_vpos = 0;
 
   /* Get special geometry settings from reference window.  */
   n->left_margin_cols = r->left_margin_cols;

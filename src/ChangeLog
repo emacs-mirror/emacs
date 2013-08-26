@@ -1,5 +1,13 @@
 2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* window.h (struct window): Replace last_cursor with last_cursor_vpos
+	because this is the only last cursor data we need to keep and consult.
+	* window.c (replace_window, set_window_buffer, Fsplit_window_internal):
+	* xdisp.c (mark_window_display_accurate_1, try_cursor_movement):
+	Adjust users.
+
+2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Fix recovering from possible decompression error.  Since
 	insert_from_gap doesn't always move point, we can't use PT as
 	the position where the partially decompressed data ends, and

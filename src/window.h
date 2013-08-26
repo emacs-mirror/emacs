@@ -229,16 +229,16 @@ struct window
        as the normal  may yield a matrix which is too small.  */
     int nrows_scale_factor, ncols_scale_factor;
 
-    /* Cursor position as of last update that completed without
-       pause.  This is the position of last_point.  */
-    struct cursor_pos last_cursor;
-
     /* Intended cursor position.   This is a position within the
        glyph matrix.  */
     struct cursor_pos cursor;
 
     /* Where the cursor actually is.  */
     struct cursor_pos phys_cursor;
+
+    /* Vertical cursor position as of last update that completed
+       without pause.  This is the position of last_point.  */
+    int last_cursor_vpos;
 
     /* Cursor type and width of last cursor drawn on the window.
        Used for X and w32 frames; -1 initially.  */

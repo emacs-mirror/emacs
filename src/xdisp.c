@@ -13743,7 +13743,7 @@ mark_window_display_accurate_1 (struct window *w, int accurate_p)
       w->current_matrix->begv = BUF_BEGV (b);
       w->current_matrix->zv = BUF_ZV (b);
 
-      w->last_cursor = w->cursor;
+      w->last_cursor_vpos = w->cursor.vpos;
       w->last_cursor_off_p = w->cursor_off_p;
 
       if (w == XWINDOW (selected_window))
@@ -15087,12 +15087,12 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 
       /* Start with the row the cursor was displayed during the last
 	 not paused redisplay.  Give up if that row is not valid.  */
-      if (w->last_cursor.vpos < 0
-	  || w->last_cursor.vpos >= w->current_matrix->nrows)
+      if (w->last_cursor_vpos < 0
+	  || w->last_cursor_vpos >= w->current_matrix->nrows)
 	rc = CURSOR_MOVEMENT_MUST_SCROLL;
       else
 	{
-	  row = MATRIX_ROW (w->current_matrix, w->last_cursor.vpos);
+	  row = MATRIX_ROW (w->current_matrix, w->last_cursor_vpos);
 	  if (row->mode_line_p)
 	    ++row;
 	  if (!row->enabled_p)
