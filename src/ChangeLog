@@ -1,3 +1,8 @@
+2013-08-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_initialize): Set gtk-menu-bar-accel to "" instead
+	of VoidSymbol (Bug#15154).
+
 2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* lisp.h (Mouse_HLInfo): Drop set-but-unused members

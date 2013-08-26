@@ -5044,10 +5044,10 @@ xg_initialize (void)
                                           (gdk_display_get_default ()));
   /* Remove F10 as a menu accelerator, it does not mix well with Emacs key
      bindings.  It doesn't seem to be any way to remove properties,
-     so we set it to VoidSymbol which in X means "no key".  */
+     so we set it to "" which in means "no key".  */
   gtk_settings_set_string_property (settings,
                                     "gtk-menu-bar-accel",
-                                    "VoidSymbol",
+                                    "",
                                     EMACS_CLASS);
 
   /* Make GTK text input widgets use Emacs style keybindings.  This is
