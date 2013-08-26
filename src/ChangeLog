@@ -1,5 +1,17 @@
 2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix unlikely core dump in init_tty, and simplify terminfo case.
+	* term.c (init_tty) [TERMINFO]: Fix check for buffer overrun.
+	The old version incorrectly dumped core if malloc returned a
+	buffer containing only non-NUL bytes.
+	(init_tty): Do not allocate or free termcap buffers; the
+	struct does that for us now.
+	* termchar.h (TERMCAP_BUFFER_SIZE) [!TERMINFO]: New constant.
+	(struct tty_display_info): Define members termcap_term_buffer and
+	termcap_strings_buffer only if !TERMINFO, since terminfo doesn't
+	use them.  Allocate them directly in struct rather than indirectly
+	via a pointer, to simplify init_tty.
+
 	* frame.c (check_minibuf_window): Initialize 'window' properly,
 	so that Emacs reliably aborts later if 'window' is not initialized.
 

@@ -2934,9 +2934,12 @@ dissociate_if_controlling_tty (int fd)
 struct terminal *
 init_tty (const char *name, const char *terminal_type, bool must_succeed)
 {
-  char *area = NULL;
+#ifdef TERMINFO
+  char **address = 0;
+#else
+  char *area;
   char **address = &area;
-  int buffer_size = 4096;
+#endif
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
@@ -3024,12 +3027,16 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
 
   Wcm_clear (tty);
 
-  tty->termcap_term_buffer = xmalloc (buffer_size);
-
   /* On some systems, tgetent tries to access the controlling
      terminal.  */
   block_tty_out_signal ();
+#ifdef TERMINFO
+  status = tgetent (0, terminal_type);
+#else
   status = tgetent (tty->termcap_term_buffer, terminal_type);
+  if (tty->termcap_term_buffer[TERMCAP_BUFFER_SIZE - 1])
+    emacs_abort ();
+#endif
   unblock_tty_out_signal ();
 
   if (status < 0)
@@ -3061,11 +3068,8 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
     }
 
 #ifndef TERMINFO
-  if (strlen (tty->termcap_term_buffer) >= buffer_size)
-    emacs_abort ();
-  buffer_size = strlen (tty->termcap_term_buffer);
+  area = tty->termcap_strings_buffer;
 #endif
-  tty->termcap_strings_buffer = area = xmalloc (buffer_size);
   tty->TS_ins_line = tgetstr ("al", address);
   tty->TS_ins_multi_lines = tgetstr ("AL", address);
   tty->TS_bell = tgetstr ("bl", address);
@@ -3481,9 +3485,6 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);
-  xfree (tty->termcap_strings_buffer);
-  xfree (tty->termcap_term_buffer);
-
   xfree (tty);
 }
 
