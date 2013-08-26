@@ -30,7 +30,7 @@
 	Fix recovering from possible decompression error.  Since
 	insert_from_gap doesn't always move point, we can't use PT as
 	the position where the partially decompressed data ends, and
-	should count how may bytes was produced so far.
+	should count how many bytes was produced so far.
 	* decompress.c (struct decompress_unwind_data): Add nbytes member.
 	(unwind_decompress): Really delete partially uncompressed data.
 	(Fzlib_decompress_region): Take decompressed data size into account.
