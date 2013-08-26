@@ -1,3 +1,8 @@
+2013-08-26  Tassilo Horn  <tsdh@gnu.org>
+
+	* epa-hook.el (epa-file-encrypt-to): Quote `safe-local-variable'
+	lambda expression in order to have `describe-variable' display it.
+
 2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-verify-visited-file-modtime):
