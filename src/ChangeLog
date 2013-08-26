@@ -1,3 +1,8 @@
+2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (check_minibuf_window): Initialize 'window' properly,
+	so that Emacs reliably aborts later if 'window' is not initialized.
+
 2013-08-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_initialize): Set gtk-menu-bar-accel to "" instead

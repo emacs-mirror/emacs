@@ -1122,7 +1122,7 @@ check_minibuf_window (Lisp_Object frame, int select)
 
   if (WINDOWP (minibuf_window) && EQ (f->minibuffer_window, minibuf_window))
     {
-      Lisp_Object frames, this, window;
+      Lisp_Object frames, this, window = make_number (0);
 
       if (!EQ (frame, selected_frame)
 	  && FRAME_HAS_MINIBUF_P (XFRAME (selected_frame)))
