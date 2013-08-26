@@ -1,3 +1,8 @@
+2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-verify-visited-file-modtime):
+	BUF can be optional.  (Bug#15186)
+
 2013-08-25  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* progmodes/flymake.el (flymake-get-real-file-name-function):

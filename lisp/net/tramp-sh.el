@@ -1234,14 +1234,14 @@ target of the symlink differ."
 
 ;; This function makes the same assumption as
 ;; `tramp-sh-handle-set-visited-file-modtime'.
-(defun tramp-sh-handle-verify-visited-file-modtime (buf)
+(defun tramp-sh-handle-verify-visited-file-modtime (&optional buf)
   "Like `verify-visited-file-modtime' for Tramp files.
 At the time `verify-visited-file-modtime' calls this function, we
 already know that the buffer is visiting a file and that
 `visited-file-modtime' does not return 0.  Do not call this
 function directly, unless those two cases are already taken care
 of."
-  (with-current-buffer buf
+  (with-current-buffer (or buf (current-buffer))
     (let ((f (buffer-file-name)))
       ;; There is no file visiting the buffer, or the buffer has no
       ;; recorded last modification time, or there is no established
