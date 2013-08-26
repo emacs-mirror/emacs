@@ -1649,8 +1649,7 @@ non-@code{nil} given that value.  Many commonly-encountered file
 variables have @code{safe-local-variable} properties; these include
 @code{fill-column}, @code{fill-prefix}, and @code{indent-tabs-mode}.
 For boolean-valued variables that are safe, use @code{booleanp} as the
-property value.  Lambda expressions should be quoted so that
-@code{describe-variable} can display the predicate.
+property value.
 
   When defining a user option using @code{defcustom}, you can set its
 @code{safe-local-variable} property by adding the arguments
