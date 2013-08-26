@@ -2246,8 +2246,7 @@ same as `substitute-in-file-name'."
   ;; - Cygwin (substitute-in-file-name "C:\bin") => "/usr/bin"
   ;;          (substitute-in-file-name "C:\") => "/"
   ;;          (substitute-in-file-name "C:\bi") => "/bi"
-  (let* ((non-essential t)
-	 (ustr (substitute-in-file-name qstr))
+  (let* ((ustr (substitute-in-file-name qstr))
          (uprefix (substring ustr 0 upos))
          qprefix)
     ;; Main assumption: nothing after qpos should affect the text before upos,

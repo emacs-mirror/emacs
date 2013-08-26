@@ -521,6 +521,7 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 ;; `user-error' has been added to Emacs 24.3.
 (defun tramp-compat-user-error (format &rest args)
   "Signal a pilot error."
+;  (tramp-backtrace)
   (apply (if (fboundp 'user-error) 'user-error 'error) format args))
 
 (add-hook 'tramp-unload-hook

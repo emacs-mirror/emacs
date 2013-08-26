@@ -1,3 +1,20 @@
+2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* minibuffer.el: Revert change from 2013-08-20.
+
+	* net/tramp.el (tramp-find-method, tramp-find-user): Mark result
+	with text property `tramp-default', if appropriate.
+	(tramp-check-proper-host): New defun.
+	(tramp-dissect-file-name): Do not check hostname.  Revert change
+	of 2013-03-18.
+	(tramp-backtrace): Make VEC-OR-PROC optional.
+
+	* net/tramp-adb.el (tramp-adb-maybe-open-connection):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-sh.el (tramp-maybe-open-connection):
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Apply
+	`tramp-check-proper-host'.
+
 2013-08-26  Tassilo Horn  <tsdh@gnu.org>
 
 	* epa-hook.el (epa-file-encrypt-to): Quote `safe-local-variable'

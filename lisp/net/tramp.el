@@ -1239,23 +1239,31 @@ their replacement."
       ;; This works with the current set of `tramp-obsolete-methods'.
       ;; Must be improved, if their are more sophisticated replacements.
       (setq result (substring result 0 -1)))
-    result))
+    ;; We must mark, whether a default value has been used.
+    (if (or method (null result))
+	result
+      (propertize result 'tramp-default t))))
 
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
 This is USER, if non-nil. Otherwise, do a lookup in
 `tramp-default-user-alist'."
-  (or user
-      (let ((choices tramp-default-user-alist)
-	    luser item)
-	(while choices
-	  (setq item (pop choices))
-	  (when (and (string-match (or (nth 0 item) "") (or method ""))
-		     (string-match (or (nth 1 item) "") (or host "")))
-	    (setq luser (nth 2 item))
-	    (setq choices nil)))
-	luser)
-      tramp-default-user))
+  (let ((result
+	 (or user
+	     (let ((choices tramp-default-user-alist)
+		   luser item)
+	       (while choices
+		 (setq item (pop choices))
+		 (when (and (string-match (or (nth 0 item) "") (or method ""))
+			    (string-match (or (nth 1 item) "") (or host "")))
+		   (setq luser (nth 2 item))
+		   (setq choices nil)))
+	       luser)
+	     tramp-default-user)))
+    ;; We must mark, whether a default value has been used.
+    (if (or user (null result))
+	result
+      (propertize result 'tramp-default t))))
 
 (defun tramp-find-host (method user host)
   "Return the right host string to use.
@@ -1271,6 +1279,18 @@ This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
 	    (setq choices nil)))
 	lhost)
       tramp-default-host))
+
+(defun tramp-check-proper-host (vec)
+  "Check host name of VEC."
+  (let ((method (tramp-file-name-method vec))
+	(user (tramp-file-name-user vec))
+	(host (tramp-file-name-host vec)))
+    (when (and (equal tramp-syntax 'ftp) host
+	       (or (null method) (get-text-property 0 'tramp-default method))
+	       (or (null user) (get-text-property 0 'tramp-default user))
+	       (member host (mapcar 'car tramp-methods)))
+      (tramp-compat-user-error
+       "Host name must not match method `%s'" host))))
 
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure.
@@ -1290,12 +1310,7 @@ values."
 	  (when (string-match tramp-prefix-ipv6-regexp host)
 	    (setq host (replace-match "" nil t host)))
 	  (when (string-match tramp-postfix-ipv6-regexp host)
-	    (setq host (replace-match "" nil t host)))
-	  (when (and (equal tramp-syntax 'ftp) (null method) (null user)
-		     (member host (mapcar 'car tramp-methods))
-		     (not (tramp-completion-mode-p)))
-	    (tramp-compat-user-error
-	     "Host name must not match method `%s'" host)))
+	    (setq host (replace-match "" nil t host))))
 	(if nodefault
 	    (vector method user host localname hop)
 	  (vector
@@ -1537,10 +1552,14 @@ applicable)."
 		   (concat (format "(%d) # " level) fmt-string)
 		   arguments)))))))
 
-(defsubst tramp-backtrace (vec-or-proc)
+(defsubst tramp-backtrace (&optional vec-or-proc)
   "Dump a backtrace into the debug buffer.
-This function is meant for debugging purposes."
-  (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace))))
+If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  This
+function is meant for debugging purposes."
+  (if vec-or-proc
+      (tramp-message vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
+    (if (<= 10 tramp-verbose)
+	(with-output-to-temp-buffer "*debug tramp*" (backtrace)))))
 
 (defsubst tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.

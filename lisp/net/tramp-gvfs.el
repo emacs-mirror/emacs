@@ -1469,6 +1469,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
+  (tramp-check-proper-host vec)
 
   ;; We set the file name, in case there are incoming D-Bus signals or
   ;; D-Bus errors.
