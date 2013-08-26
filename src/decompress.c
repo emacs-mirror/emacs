@@ -85,7 +85,7 @@ init_zlib_functions (void)
 
 struct decompress_unwind_data
 {
-  ptrdiff_t old_point, start;
+  ptrdiff_t old_point, start, nbytes;
   z_stream *stream;
 };
 
@@ -97,7 +97,7 @@ unwind_decompress (void *ddata)
 
   /* Delete any uncompressed data already inserted on error.  */
   if (data->start)
-    del_range (data->start, PT);
+    del_range (data->start, data->start + data->nbytes);
 
   /* Put point where it was, or if the buffer has shrunk because the
      compressed data is bigger than the uncompressed, at
@@ -173,7 +173,7 @@ This function can be called only in unibyte buffers.  */)
   unwind_data.start = iend;
   unwind_data.stream = &stream;
   unwind_data.old_point = PT;
-
+  unwind_data.nbytes = 0;
   record_unwind_protect_ptr (unwind_decompress, &unwind_data);
 
   /* Insert the decompressed data at the end of the compressed data.  */
@@ -201,6 +201,7 @@ This function can be called only in unibyte buffers.  */)
       pos_byte += avail_in - stream.avail_in;
       decompressed = avail_out - stream.avail_out;
       insert_from_gap (decompressed, decompressed, 0);
+      unwind_data.nbytes += decompressed;
       QUIT;
     }
   while (inflate_status == Z_OK);
