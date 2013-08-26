@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2013-08-09.09}
+\def\texinfoversion{2013-08-20.10}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -281,9 +281,9 @@
   \toks6=\expandafter{\prevsectiondefs}%
   \toks8=\expandafter{\lastcolordefs}%
   \mark{%
-                   \the\toks0 \the\toks2
-      \noexpand\or \the\toks4 \the\toks6
-    \noexpand\else \the\toks8
+                   \the\toks0 \the\toks2  % 0: top marks (\last...)
+      \noexpand\or \the\toks4 \the\toks6  % 1: bottom marks (default, \prev...)
+    \noexpand\else \the\toks8             % 2: color marks
   }%
 }
 % \topmark doesn't work for the very first chapter (after the title
@@ -5909,7 +5909,7 @@ end
     %
     % Now the second mark, after the heading break.  No break points
     % between here and the heading.
-    \let\prevsectiondefs=\lastsectiondefs
+    \global\let\prevsectiondefs=\lastsectiondefs
     \domark
     %
     % Only insert the space after the number if we have a section number.

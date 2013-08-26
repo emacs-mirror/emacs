@@ -1,3 +1,7 @@
+2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor merge from gnulib (mostly just for texinfo.tex).
+
 2013-08-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (EMACS_CONFIG_OPTIONS): Quote systematically (Bug#13274).
