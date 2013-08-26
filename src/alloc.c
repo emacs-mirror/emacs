@@ -2805,7 +2805,7 @@ vector_nbytes (struct Lisp_Vector *v)
 static void
 sweep_vectors (void)
 {
-  struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
+  struct vector_block *block, **bprev = &vector_blocks;
   struct large_vector *lv, **lvprev = &large_vectors;
   struct Lisp_Vector *vector, *next;
 
