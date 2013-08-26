@@ -1,3 +1,8 @@
+2013-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (substitute_object_recurse): Handle hash-tables as well
+	(bug#15190).
+
 2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix unlikely core dump in init_tty, and simplify terminfo case.
@@ -31,8 +36,8 @@
 2013-08-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (check_minibuf_window): New function.
-	(delete_frame, Fmake_frame_invisible, Ficonify_frame): Call
-	check_minibuf_window (Bug#15183).
+	(delete_frame, Fmake_frame_invisible, Ficonify_frame):
+	Call check_minibuf_window (Bug#15183).
 
 2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -44,8 +49,8 @@
 
 2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	Fix recovering from possible decompression error.  Since
-	insert_from_gap doesn't always move point, we can't use PT as
+	Fix recovering from possible decompression error.
+	Since insert_from_gap doesn't always move point, we can't use PT as
 	the position where the partially decompressed data ends, and
 	should count how many bytes was produced so far.
 	* decompress.c (struct decompress_unwind_data): Add nbytes member.
@@ -314,8 +319,8 @@
 
 2013-08-15  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (compute_window_start_on_continuation_line): When
-	WORD_WRAP is in effect, use move_it_to instead of move_it_by_lines
+	* xdisp.c (compute_window_start_on_continuation_line):
+	When WORD_WRAP is in effect, use move_it_to instead of move_it_by_lines
 	to make sure we end up setting the window start at the leftmost
 	visible character of the display line.  This avoids funky
 	horizontal shifting because the window start is not kept on the
@@ -543,8 +548,8 @@
 	Remove.
 	(make_window): Initialize new integer fields to -1.
 	(Fsplit_window_internal): Use direct assignment.
-	(Fset_window_configuration, save_window_save): Convert
-	Lisp_Object to integer and back where appropriate.
+	(Fset_window_configuration, save_window_save):
+	Convert Lisp_Object to integer and back where appropriate.
 	(Fset_window_fringes): Adjust user.  Return t if any fringe
 	was actually changed, and mention this in docstring.
 
@@ -608,8 +613,8 @@
 	New macros.
 	(Fdecompress_gzipped_region, unwind_decompress): Use the fn_*
 	macros instead of invoking the zlib functions directly.
-	(syms_of_decompress): DEFSYM Qzlib_dll.  Staticpro
-	Szlib_available_p.
+	(syms_of_decompress): DEFSYM Qzlib_dll.
+	Staticpro Szlib_available_p.
 
 2013-08-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -731,7 +736,7 @@
 	* nsmenu.m (ns_update_menubar): Call fillWithWidgetValue:frame:
 	(initWithTitle:): Initialize frame to 0.
 	(fillWithWidgetValue:): Call fillWithWidgetValue:frame.
-	(fillWithWidgetValue:frame:): Renamed from
+	(fillWithWidgetValue:frame:): Rename from
 	fillWithWidgetValue:setDelegate, call initWithTile:frame: if f.
 
 	* nsterm.h (EmacsMenu): fillWithWidgetValue:setDelegate renamed to
@@ -973,8 +978,8 @@
 	* indent.c (width_run_cache_on_off): Adjust users.
 	* bidi.c (bidi_paragraph_cache_on_off): New function.
 	(bidi_find_paragraph_start): Use bidi_paragraph_cache if needed.
-	* insdel.c (prepare_to_modify_buffer): Invalidate
-	bidi_paragraph_cache if enabled.
+	* insdel.c (prepare_to_modify_buffer):
+	Invalidate bidi_paragraph_cache if enabled.
 
 2013-08-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -1145,8 +1150,8 @@
 	Avoid redundant Lisp_Object <-> struct frame conversions in font API.
 	* font.h (struct font_driver): Change list, match, and list_family
 	functions to accept struct frame * as first arg.
-	* font.c (font_score, font_compare, font_sort_entities): Remove
-	prototypes.
+	* font.c (font_score, font_compare, font_sort_entities):
+	Remove prototypes.
 	(font_sort_entities, font_list_entities, font_select_entity):
 	(font_find_for_lface, Flist_fonts, Ffont_family_list): Adjust to
 	match font API change.
@@ -1453,9 +1458,9 @@
 	or fscanf fails.
 	(system_process_attributes): Prefer plain char to unsigned char
 	when either will do.  Clean up properly if interrupted or if
-	memory allocations fail.  Don't assume sscanf succeeds.  Remove
-	no-longer-needed workaround to stop GCC from whining.  Read
-	command-line once, instead of multiple times.  Check read status a
+	memory allocations fail.  Don't assume sscanf succeeds.
+	Remove no-longer-needed workaround to stop GCC from whining.
+	Read command-line once, instead of multiple times.  Check read status a
 	bit more carefully.
 
 	Fix obscure porting bug with varargs functions.
@@ -1809,8 +1814,8 @@
 	of the old Fcall_process_region.  Use Fcopy_sequence to create the
 	temp file name, rather than alloca + build_string, for simplicity.
 	Don't bother to block input around the temp file creation;
-	shouldn't be needed.  Simplify use of mktemp.  Use
-	record_unwind_protect immediately after creating the temp file;
+	shouldn't be needed.  Simplify use of mktemp.
+	Use record_unwind_protect immediately after creating the temp file;
 	this closes an unlikely race where the temp file was not removed.
 	Use memcpy rather than an open-coded loop.
 	(Fcall_process_region): Use the new function.  If the input is
@@ -2169,8 +2174,8 @@
 	(try_cursor_movement, redisplay_window, try_window)
 	(try_window_id): Use it instead of FRAME_LINE_HEIGHT.  (Bug#14771)
 
-	* window.c (window_scroll_pixel_based): use
-	default_line_pixel_height.
+	* window.c (window_scroll_pixel_based):
+	use default_line_pixel_height.
 
 	* dispextern.h (default_line_pixel_height): Add prototype.
 

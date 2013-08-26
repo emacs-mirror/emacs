@@ -3229,7 +3229,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
 	if (BOOL_VECTOR_P (subtree))
 	  return subtree;		/* No sub-objects anyway.  */
 	else if (CHAR_TABLE_P (subtree) || SUB_CHAR_TABLE_P (subtree)
-		 || COMPILEDP (subtree))
+		 || COMPILEDP (subtree) || HASH_TABLE_P (subtree))
 	  length = ASIZE (subtree) & PSEUDOVECTOR_SIZE_MASK;
 	else if (VECTORP (subtree))
 	  length = ASIZE (subtree);
