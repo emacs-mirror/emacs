@@ -1,3 +1,9 @@
+2013-08-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (check_minibuf_window): New function.
+	(delete_frame, Fmake_frame_invisible, Ficonify_frame): Call
+	check_minibuf_window (Bug#15183).
+
 2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* window.h (struct window): Replace last_cursor with last_cursor_vpos
