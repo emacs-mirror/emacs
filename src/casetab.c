@@ -247,15 +247,8 @@ init_casetab_once (void)
 {
   register int i;
   Lisp_Object down, up, eqv;
+
   DEFSYM (Qcase_table, "case-table");
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can
-     create char tables.  */
   Fput (Qcase_table, Qchar_table_extra_slots, make_number (3));
 
   down = Fmake_char_table (Qcase_table, Qnil);

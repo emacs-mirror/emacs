@@ -10814,11 +10814,6 @@ syms_of_coding (void)
   Fput (Qcoding_system_error, Qerror_message,
 	build_pure_c_string ("Invalid coding system"));
 
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
-
   DEFSYM (Qtranslation_table, "translation-table");
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
   DEFSYM (Qtranslation_table_id, "translation-table-id");

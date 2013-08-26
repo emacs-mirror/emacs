@@ -1,3 +1,13 @@
+2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* syntax.c (init_syntax_once): Adjust comment and do an early
+	initialization of Qchar_table_extra_slots just once...
+	* casetab.c (init_casetab_once):
+	* category.c (init_category_once):
+	* character.c (syms_of_character):
+	* coding.c (syms_of_coding):
+	* xdisp.c (syms_of_xdisp): ...and omit it here.
+
 2013-08-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (get_next_display_element): Don't apply to characters

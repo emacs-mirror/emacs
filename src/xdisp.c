@@ -29731,10 +29731,6 @@ cursor shapes.  */);
   DEFSYM (Qzero_width, "zero-width");
 
   DEFSYM (Qglyphless_char_display, "glyphless-char-display");
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
   Fput (Qglyphless_char_display, Qchar_table_extra_slots, make_number (1));
 
   DEFVAR_LISP ("glyphless-char-display", Vglyphless_char_display,
