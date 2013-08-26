@@ -1,3 +1,11 @@
+2013-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (Mouse_HLInfo): Drop set-but-unused members
+	mouse_face_beg_y and mouse_face_end_y.
+	* xdisp.c (note_tool_bar_highlight, mouse_face_from_buffer_pos)
+	(mouse_face_from_string_pos, note_mode_line_or_margin_highlight):
+	Adjust users and update comment where appropriate.
+
 2013-08-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (check_minibuf_window): New function.

@@ -12384,13 +12384,11 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
       hlinfo->mouse_face_beg_col = hpos;
       hlinfo->mouse_face_beg_row = vpos;
       hlinfo->mouse_face_beg_x = x;
-      hlinfo->mouse_face_beg_y = row->y;
       hlinfo->mouse_face_past_end = 0;
 
       hlinfo->mouse_face_end_col = hpos + 1;
       hlinfo->mouse_face_end_row = vpos;
       hlinfo->mouse_face_end_x = x + glyph->pixel_width;
-      hlinfo->mouse_face_end_y = row->y;
       hlinfo->mouse_face_window = window;
       hlinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
 
@@ -27113,9 +27111,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       r1 = tem;
     }
 
-  hlinfo->mouse_face_beg_y = r1->y;
   hlinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (r1, w->current_matrix);
-  hlinfo->mouse_face_end_y = r2->y;
   hlinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r2, w->current_matrix);
 
   /* For a bidi-reordered row, the positions of BEFORE_STRING,
@@ -27479,7 +27475,6 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	      {
 		hlinfo->mouse_face_beg_row
 		  = MATRIX_ROW_VPOS (r, w->current_matrix);
-		hlinfo->mouse_face_beg_y = r->y;
 		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		hlinfo->mouse_face_beg_x = gx;
 		found = 1;
@@ -27498,7 +27493,6 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
 	      {
 		hlinfo->mouse_face_beg_row
 		  = MATRIX_ROW_VPOS (r, w->current_matrix);
-		hlinfo->mouse_face_beg_y = r->y;
 		hlinfo->mouse_face_beg_col = g - r->glyphs[TEXT_AREA];
 		for (gx = r->x, g1 = r->glyphs[TEXT_AREA]; g1 < g; ++g1)
 		  gx += g1->pixel_width;
@@ -27535,9 +27529,8 @@ mouse_face_from_string_pos (struct window *w, Mouse_HLInfo *hlinfo,
   /* The highlighted region ends on the previous row.  */
   r--;
 
-  /* Set the end row and its vertical pixel coordinate.  */
+  /* Set the end row.  */
   hlinfo->mouse_face_end_row = MATRIX_ROW_VPOS (r, w->current_matrix);
-  hlinfo->mouse_face_end_y = r->y;
 
   /* Compute and set the end column and the end column's horizontal
      pixel coordinate.  */
@@ -28035,8 +28028,6 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 
 	  hlinfo->mouse_face_beg_row  = vpos;
 	  hlinfo->mouse_face_end_row  = hlinfo->mouse_face_beg_row;
-	  hlinfo->mouse_face_beg_y    = 0;
-	  hlinfo->mouse_face_end_y    = 0;
 	  hlinfo->mouse_face_past_end = 0;
 	  hlinfo->mouse_face_window   = window;
 

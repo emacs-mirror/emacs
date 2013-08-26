@@ -2172,10 +2172,8 @@ typedef struct {
      the mouse stays within this range, we need not redraw anything on
      its account.  Rows and columns are glyph matrix positions in
      MOUSE_FACE_WINDOW.  */
-  int mouse_face_beg_row, mouse_face_beg_col;
-  int mouse_face_beg_x, mouse_face_beg_y;
-  int mouse_face_end_row, mouse_face_end_col;
-  int mouse_face_end_x, mouse_face_end_y;
+  int mouse_face_beg_row, mouse_face_beg_col, mouse_face_beg_x;
+  int mouse_face_end_row, mouse_face_end_col, mouse_face_end_x;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
   Lisp_Object mouse_face_overlay;
