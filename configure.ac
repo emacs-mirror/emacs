@@ -1000,7 +1000,7 @@ AC_SUBST(INFO_OPTS)
 if test $opsys = mingw32; then
    DOCMISC_DVI_W32=efaq-w32.dvi
    DOCMISC_HTML_W32=efaq-w32.html
-   DOCMISC_INFO_W32=efaq-w32.info
+   DOCMISC_INFO_W32=efaq-w32
    DOCMISC_PDF_W32=efaq-w32.pdf
    DOCMISC_PS_W32=efaq-w32.ps
 else
