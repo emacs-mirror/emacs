@@ -345,10 +345,6 @@ echo-info:
 	@echo "$(INFO_INSTALL) " | \
 	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */$(INFO_EXT) /g"
 
-# please modify this for all the web manual targets
-webhack: clean
-	$(MAKE) pdf MAKEINFO_OPTS="-DWEBHACKDEVEL $(MAKEINFO_OPTS)"
-
 dvi: $(DVI_TARGETS)
 
 html: $(HTML_TARGETS)
