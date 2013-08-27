@@ -1,3 +1,8 @@
+2013-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-font-lock-keywords): Don't return nil
+	from a matcher-function unless there's no more matches (bug#15161).
+
 2013-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* minibuffer.el: Revert change from 2013-08-20.
