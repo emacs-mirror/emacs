@@ -18,12 +18,6 @@ See the end of the file for license conditions.
   this file as part of the Emacs source distribution, please read
   those 2 files and not this one.
 
-  Answers to frequently asked questions, and further information about
-  this port of GNU Emacs and related software packages can be found via
-  http:
-
-	http://www.gnu.org/software/emacs/windows/
-
 * Preliminaries
 
   Along with this file should be six subdirectories (bin, etc, info,
@@ -242,14 +236,10 @@ See the end of the file for license conditions.
 
 * Further information
 
-  If you have access to the World Wide Web, I would recommend pointing
-  your favorite web browser to the following document (if you haven't
-  already):
+  The FAQ for the MS Windows port of Emacs is distributed with Emacs
+  (info manual "efaq-w32"), and also available at
 
-	http://www.gnu.org/software/emacs/windows/
-
-  This document serves as an FAQ and a source for further information
-  about the Windows port and related software packages.
+        http://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the

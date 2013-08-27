@@ -16,12 +16,6 @@ See the end of the file for license conditions.
   accustomed to compiling programs themselves.  Corresponding source
   can be found in the parent directory in emacs-24.3.tar.gz.
 
-  If you have access to the World Wide Web, I would recommend pointing
-  your favorite web browser to the following document (if you haven't
-  already):
-
-	http://www.gnu.org/software/emacs/windows/ntemacs.html
-
 * IMPORTANT LEGAL REMINDER
 
   If you want to redistribute any of the precompiled distributions of
@@ -230,16 +224,10 @@ See the end of the file for license conditions.
 
 * Further information
 
-  If you have access to the World Wide Web, I would recommend pointing
-  your favorite web browser to following the document (if you haven't
-  already):
+  The Emacs on MS Windows FAQ is distributed with Emacs (info
+  manual "efaq-w32"), and at
 
-	http://www.gnu.org/software/emacs/windows/ntemacs.html
-
-  This document serves as an FAQ and a source for further information
-  about the Windows port and related software packages. Note that as
-  most of the information in that FAQ is for earlier versions, so some
-  information may not be relevant to Emacs-24.3.
+	http://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the
