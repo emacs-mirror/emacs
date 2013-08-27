@@ -752,8 +752,6 @@ struct x_output
   (FRAME_NS_DISPLAY_INFO (f)->smallest_char_width)
 #define FRAME_SMALLEST_FONT_HEIGHT(f) \
   (FRAME_NS_DISPLAY_INFO (f)->smallest_font_height)
-#define FONT_TYPE_FOR_UNIBYTE(font, ch)   0
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.ns->baseline_offset)
 #define BLACK_PIX_DEFAULT(f) 0x000000
 #define WHITE_PIX_DEFAULT(f) 0xFFFFFF

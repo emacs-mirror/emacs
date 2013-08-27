@@ -35,6 +35,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "charset.h"
 #include "coding.h"
+#include "font.h"
+
 #include <gdk/gdkkeysyms.h>
 #include "xsettings.h"
 
@@ -2050,7 +2052,6 @@ xg_get_file_name (struct frame *f,
 
 
 static char *x_last_font_name;
-extern Lisp_Object Qxft;
 
 /* Pop up a GTK font selector and return the name of the font the user
    selects, as a C string.  The returned font name follows GTK's own

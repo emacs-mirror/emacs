@@ -1,5 +1,15 @@
 2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xterm.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE:)
+	* nsterm.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE):
+	Remove the leftovers.
+	* gtkutil.c (toplevel): Do not declare Qxft but include
+	font.h to do so.
+	* image.c (toplevel): Do not declare Vlibrary_cache because
+	it's already done in lisp.h.
+
+2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* lisp.h (Mouse_HLInfo): Move from here...
 	* dispextern.h (Mouse_HLInfo): ...to here and offload lisp.h.
 	(reset_mouse_highlight): New function.

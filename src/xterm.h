@@ -1078,10 +1078,6 @@ extern Lisp_Object Qx_gtk_map_stock;
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
 
-
-#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
-
 #define STORE_XCHAR2B(chp, b1, b2) \
   ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
 
@@ -1090,7 +1086,6 @@ extern Lisp_Object Qx_gtk_map_stock;
 
 #define XCHAR2B_BYTE2(chp) \
   ((chp)->byte2)
-
 
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\

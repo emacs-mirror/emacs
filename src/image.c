@@ -563,7 +563,6 @@ static void x_emboss (struct frame *, struct image *);
 static void x_build_heuristic_mask (struct frame *, struct image *,
                                     Lisp_Object);
 #ifdef WINDOWSNT
-extern Lisp_Object Vlibrary_cache;
 #define CACHE_IMAGE_TYPE(type, status) \
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 #else
