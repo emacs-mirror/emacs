@@ -5813,7 +5813,7 @@ that frame."
 		(unless (and not-this-window
 			     (eq window (selected-window)))
 		  window))
-	      (get-largest-window 0 not-this-window))))
+	      (get-largest-window 0 nil not-this-window))))
     (when (window-live-p window)
       (prog1
 	  (window--display-buffer buffer window 'reuse alist)

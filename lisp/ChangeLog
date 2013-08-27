@@ -1,3 +1,9 @@
+2013-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-use-some-window): Add missing
+	argument in call of get-largest-window (Bug#15185).  Reported by
+	Stephen Leake.
+
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/package.el (package-buffer-info): Fix message typo.
