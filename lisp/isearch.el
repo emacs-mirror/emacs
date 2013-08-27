@@ -2386,6 +2386,13 @@ Isearch mode."
              (isearch-unread-key-sequence keylist)
              (setq main-event (car unread-command-events))
 
+	     ;; Don't store special commands in the keyboard macro.
+	     (let (overriding-terminal-local-map)
+	       (when (memq (key-binding key)
+			   '(kmacro-start-macro
+			     kmacro-end-macro kmacro-end-and-call-macro))
+		 (cancel-kbd-macro-events)))
+
 	     ;; If we got a mouse click event, that event contains the
 	     ;; window clicked on. maybe it was read with the buffer
 	     ;; it was clicked on.  If so, that buffer, not the current one,

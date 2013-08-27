@@ -1,5 +1,10 @@
 2013-08-27  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-other-meta-char): Don't store kmacro commands
+	in the keyboard macro.  (Bug#15126)
+
+2013-08-27  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-quote-char): Comment out converting unibyte
 	to multibyte, thus syncing with its `quoted-insert' counterpart.
 	(Bug#15166)
