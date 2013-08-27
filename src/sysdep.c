@@ -306,7 +306,7 @@ get_child_status (pid_t child, int *status, int options, bool interruptible)
   /* If successful and status is requested, tell wait_reading_process_output
      that it needs to wake up and look around.  */
   if (pid && status && input_available_clear_time)
-    *input_available_clear_time = make_emacs_time (0, 0);
+    *input_available_clear_time = make_timespec (0, 0);
 
   return pid;
 }
@@ -2021,8 +2021,8 @@ seed_random (void *seed, ptrdiff_t seed_size)
 void
 init_random (void)
 {
-  EMACS_TIME t = current_emacs_time ();
-  uintmax_t v = getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t);
+  struct timespec t = current_timespec ();
+  uintmax_t v = getpid () ^ t.tv_sec ^ t.tv_nsec;
   seed_random (&v, sizeof v);
 }
 
@@ -2357,7 +2357,7 @@ emacs_perror (char const *message)
    Use the least timeval not less than T.
    Return an extremal value if the result would overflow.  */
 struct timeval
-make_timeval (EMACS_TIME t)
+make_timeval (struct timespec t)
 {
   struct timeval tv;
   tv.tv_sec = t.tv_sec;
@@ -2384,7 +2384,7 @@ make_timeval (EMACS_TIME t)
    If FD is nonnegative, then FILE can be NULL.  */
 int
 set_file_times (int fd, const char *filename,
-		EMACS_TIME atime, EMACS_TIME mtime)
+		struct timespec atime, struct timespec mtime)
 {
   struct timespec timespec[2];
   timespec[0] = atime;
@@ -2701,7 +2701,7 @@ list_system_processes (void)
 #endif /* !defined (WINDOWSNT) */
 
 #if defined GNU_LINUX && defined HAVE_LONG_LONG_INT
-static EMACS_TIME
+static struct timespec
 time_from_jiffies (unsigned long long tval, long hz)
 {
   unsigned long long s = tval / hz;
@@ -2710,34 +2710,34 @@ time_from_jiffies (unsigned long long tval, long hz)
 
   if (TYPE_MAXIMUM (time_t) < s)
     time_overflow ();
-  if (LONG_MAX - 1 <= ULLONG_MAX / EMACS_TIME_RESOLUTION
-      || frac <= ULLONG_MAX / EMACS_TIME_RESOLUTION)
-    ns = frac * EMACS_TIME_RESOLUTION / hz;
+  if (LONG_MAX - 1 <= ULLONG_MAX / TIMESPEC_RESOLUTION
+      || frac <= ULLONG_MAX / TIMESPEC_RESOLUTION)
+    ns = frac * TIMESPEC_RESOLUTION / hz;
   else
     {
       /* This is reachable only in the unlikely case that HZ * HZ
 	 exceeds ULLONG_MAX.  It calculates an approximation that is
 	 guaranteed to be in range.  */
-      long hz_per_ns = (hz / EMACS_TIME_RESOLUTION
-			+ (hz % EMACS_TIME_RESOLUTION != 0));
+      long hz_per_ns = (hz / TIMESPEC_RESOLUTION
+			+ (hz % TIMESPEC_RESOLUTION != 0));
       ns = frac / hz_per_ns;
     }
 
-  return make_emacs_time (s, ns);
+  return make_timespec (s, ns);
 }
 
 static Lisp_Object
 ltime_from_jiffies (unsigned long long tval, long hz)
 {
-  EMACS_TIME t = time_from_jiffies (tval, hz);
+  struct timespec t = time_from_jiffies (tval, hz);
   return make_lisp_time (t);
 }
 
-static EMACS_TIME
+static struct timespec
 get_up_time (void)
 {
   FILE *fup;
-  EMACS_TIME up = make_emacs_time (0, 0);
+  struct timespec up = make_timespec (0, 0);
 
   block_input ();
   fup = emacs_fopen ("/proc/uptime", "r");
@@ -2755,18 +2755,18 @@ get_up_time (void)
 	  if (TYPE_MAXIMUM (time_t) < upsec)
 	    {
 	      upsec = TYPE_MAXIMUM (time_t);
-	      upfrac = EMACS_TIME_RESOLUTION - 1;
+	      upfrac = TIMESPEC_RESOLUTION - 1;
 	    }
 	  else
 	    {
 	      int upfraclen = upfrac_end - upfrac_start;
-	      for (; upfraclen < LOG10_EMACS_TIME_RESOLUTION; upfraclen++)
+	      for (; upfraclen < LOG10_TIMESPEC_RESOLUTION; upfraclen++)
 		upfrac *= 10;
-	      for (; LOG10_EMACS_TIME_RESOLUTION < upfraclen; upfraclen--)
+	      for (; LOG10_TIMESPEC_RESOLUTION < upfraclen; upfraclen--)
 		upfrac /= 10;
-	      upfrac = min (upfrac, EMACS_TIME_RESOLUTION - 1);
+	      upfrac = min (upfrac, TIMESPEC_RESOLUTION - 1);
 	    }
-	  up = make_emacs_time (upsec, upfrac);
+	  up = make_timespec (upsec, upfrac);
 	}
       fclose (fup);
     }
@@ -2887,7 +2887,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned long long u_time, s_time, cutime, cstime, start;
   long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
-  EMACS_TIME tnow, tstart, tboot, telapsed, us_time;
+  struct timespec tnow, tstart, tboot, telapsed, us_time;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd;
@@ -3008,20 +3008,19 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount)),
 			 attrs);
-	  tnow = current_emacs_time ();
+	  tnow = current_timespec ();
 	  telapsed = get_up_time ();
-	  tboot = sub_emacs_time (tnow, telapsed);
+	  tboot = timespec_sub (tnow, telapsed);
 	  tstart = time_from_jiffies (start, clocks_per_sec);
-	  tstart = add_emacs_time (tboot, tstart);
+	  tstart = timespec_add (tboot, tstart);
 	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
 	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize / 1024)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4 * rss)), attrs);
-	  telapsed = sub_emacs_time (tnow, tstart);
+	  telapsed = timespec_sub (tnow, tstart);
 	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
 	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
-	  pcpu = (EMACS_TIME_TO_DOUBLE (us_time)
-		  / EMACS_TIME_TO_DOUBLE (telapsed));
+	  pcpu = timespectod (us_time) / timespectod (telapsed);
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
 	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
@@ -3239,16 +3238,16 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined __FreeBSD__
 
-static EMACS_TIME
-timeval_to_EMACS_TIME (struct timeval t)
+static struct timespec
+timeval_to_timespec (struct timeval t)
 {
-  return make_emacs_time (t.tv_sec, t.tv_usec * 1000);
+  return make_timespec (t.tv_sec, t.tv_usec * 1000);
 }
 
 static Lisp_Object
 make_lisp_timeval (struct timeval t)
 {
-  return make_lisp_time (timeval_to_EMACS_TIME (t));
+  return make_lisp_time (timeval_to_timespec (t));
 }
 
 Lisp_Object
@@ -3263,7 +3262,7 @@ system_process_attributes (Lisp_Object pid)
   char *ttyname;
   size_t len;
   char args[MAXPATHLEN];
-  EMACS_TIME t, now;
+  struct timespec t, now;
 
   int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID};
   struct kinfo_proc proc;
@@ -3350,8 +3349,8 @@ system_process_attributes (Lisp_Object pid)
 		 attrs);
   attrs = Fcons (Fcons (Qstime, make_lisp_timeval (proc.ki_rusage.ru_stime)),
 		 attrs);
-  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage.ru_utime),
-		      timeval_to_EMACS_TIME (proc.ki_rusage.ru_stime));
+  t = timespec_add (timeval_to_timespec (proc.ki_rusage.ru_utime),
+		    timeval_to_timespec (proc.ki_rusage.ru_stime));
   attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qcutime,
@@ -3360,8 +3359,8 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qcstime,
 			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
 		 attrs);
-  t = add_emacs_time (timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_utime),
-		      timeval_to_EMACS_TIME (proc.ki_rusage_ch.ru_stime));
+  t = timespec_add (timeval_to_timespec (proc.ki_rusage_ch.ru_utime),
+		    timeval_to_timespec (proc.ki_rusage_ch.ru_stime));
   attrs = Fcons (Fcons (Qctime, make_lisp_time (t)), attrs);
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
@@ -3373,8 +3372,8 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qrss,   make_number (proc.ki_rssize * pagesize >> 10)),
 		 attrs);
 
-  now = current_emacs_time ();
-  t = sub_emacs_time (now, timeval_to_EMACS_TIME (proc.ki_start));
+  now = current_timespec ();
+  t = timespec_sub (now, timeval_to_timespec (proc.ki_start));
   attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
 
   len = sizeof fscale;

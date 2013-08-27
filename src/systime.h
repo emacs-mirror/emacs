@@ -46,139 +46,55 @@ typedef unsigned long Time;
 
 #include <sys/time.h>	/* for 'struct timeval' */
 
-/* The type to use to represent non-negative temporal intervals.  Its
-   address can be passed as the timeout argument to the pselect system
-   call.  */
-typedef struct timespec EMACS_TIME;
+/* Emacs uses struct timespec to represent nonnegative temporal intervals.
 
-/* Resolution of EMACS_TIME time stamps (in units per second), and log
-   base 10 of the resolution.  The log must be a positive integer.  */
-enum { EMACS_TIME_RESOLUTION = 1000000000 };
-enum { LOG10_EMACS_TIME_RESOLUTION = 9 };
+   WARNING: Since tv_sec might be an unsigned value, do not use struct
+   timespec as a general-purpose data type for adding or subtracting
+   arbitrary time values!  When computing A + B or A - B, typically A
+   should be an absolute time since the epoch and B a nonnegative offset.  */
 
-/* EMACS_SECS (TIME) is the seconds component of TIME.
-   EMACS_NSECS (TIME) is the nanoseconds component of TIME.
-   emacs_secs_addr (PTIME) is the address of *PTIME's seconds component.  */
-SYSTIME_INLINE time_t EMACS_SECS (EMACS_TIME t) { return t.tv_sec; }
-SYSTIME_INLINE int EMACS_NSECS (EMACS_TIME t) { return t.tv_nsec; }
-SYSTIME_INLINE time_t *emacs_secs_addr (EMACS_TIME *t) { return &t->tv_sec; }
-
-/* Return an Emacs time with seconds S and nanoseconds NS.  */
-SYSTIME_INLINE EMACS_TIME
-make_emacs_time (time_t s, int ns)
+/* Return an invalid timespec.  */
+SYSTIME_INLINE struct timespec
+invalid_timespec (void)
 {
-  EMACS_TIME r;
-  r.tv_sec = s;
-  r.tv_nsec = ns;
-  return r;
+  return make_timespec (0, -1);
 }
 
-/* Return an invalid Emacs time.  */
-SYSTIME_INLINE EMACS_TIME
-invalid_emacs_time (void)
-{
-  EMACS_TIME r;
-  r.tv_sec = 0;
-  r.tv_nsec = -1;
-  return r;
-}
-
-/* Return current system time.  */
-SYSTIME_INLINE EMACS_TIME
-current_emacs_time (void)
-{
-  EMACS_TIME r;
-  gettime (&r);
-  return r;
-}
-
-/* Return the result of adding A to B, or of subtracting B from A.
-   On overflow, store an extremal value: ergo, if time_t is unsigned,
-   return 0 if the true answer would be negative.
-
-   WARNING: These are NOT general-purpose macros for adding or
-   subtracting arbitrary time values!  They are generally intended to
-   be used with their first argument an absolute time since the epoch
-   and the second argument a non-negative offset.  Do NOT use them for
-   anything else.  */
-SYSTIME_INLINE EMACS_TIME
-add_emacs_time (EMACS_TIME a, EMACS_TIME b)
-{
-  return timespec_add (a, b);
-}
-SYSTIME_INLINE EMACS_TIME
-sub_emacs_time (EMACS_TIME a, EMACS_TIME b)
-{
-  return timespec_sub (a, b);
-}
-
-/* Return the sign of the valid time stamp TIME, either -1, 0, or 1.
-   Note: this can only return a negative value if time_t is a signed
-   data type.  */
+/* Return 1 if TIME is a valid timespec.  This currently doesn't worry
+   about whether tv_nsec is less than TIMESPEC_RESOLUTION; leap seconds
+   might cause a problem if it did.  */
 SYSTIME_INLINE int
-EMACS_TIME_SIGN (EMACS_TIME t)
-{
-  return timespec_sign (t);
-}
-
-/* Return 1 if TIME is a valid time stamp.  */
-SYSTIME_INLINE int
-EMACS_TIME_VALID_P (EMACS_TIME t)
+timespec_valid_p (struct timespec t)
 {
   return t.tv_nsec >= 0;
 }
 
-/* Convert the double D to the greatest EMACS_TIME not greater than D.
-   On overflow, return an extremal value; in particular, if time_t is
-   an unsigned data type and D is negative, return zero.  Return the
-   minimum EMACS_TIME if D is not a number.  */
-SYSTIME_INLINE EMACS_TIME
-EMACS_TIME_FROM_DOUBLE (double d)
+/* Return current system time.  */
+SYSTIME_INLINE struct timespec
+current_timespec (void)
 {
-  return dtotimespec (d);
-}
-
-/* Convert the Emacs time T to an approximate double value D.  */
-SYSTIME_INLINE double
-EMACS_TIME_TO_DOUBLE (EMACS_TIME t)
-{
-  return timespectod (t);
+  struct timespec r;
+  gettime (&r);
+  return r;
 }
 
 /* defined in sysdep.c */
-extern int set_file_times (int, const char *, EMACS_TIME, EMACS_TIME);
-extern struct timeval make_timeval (EMACS_TIME) ATTRIBUTE_CONST;
+extern int set_file_times (int, const char *, struct timespec, struct timespec);
+extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 
 /* defined in keyboard.c */
-extern void set_waiting_for_input (EMACS_TIME *);
+extern void set_waiting_for_input (struct timespec *);
 
 /* When lisp.h is not included Lisp_Object is not defined (this can
    happen when this files is used outside the src directory).
    Use GCPRO1 to determine if lisp.h was included.  */
 #ifdef GCPRO1
 /* defined in editfns.c */
-extern Lisp_Object make_lisp_time (EMACS_TIME);
+extern Lisp_Object make_lisp_time (struct timespec);
 extern bool decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
-				    Lisp_Object, EMACS_TIME *, double *);
-extern EMACS_TIME lisp_time_argument (Lisp_Object);
+				    Lisp_Object, struct timespec *, double *);
+extern struct timespec lisp_time_argument (Lisp_Object);
 #endif
-
-/* Compare times T1 and T2 for equality, inequality etc.  */
-SYSTIME_INLINE int
-EMACS_TIME_EQ (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) == 0;
-}
-SYSTIME_INLINE int
-EMACS_TIME_LT (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) < 0;
-}
-SYSTIME_INLINE int
-EMACS_TIME_LE (EMACS_TIME t1, EMACS_TIME t2)
-{
-  return timespec_cmp (t1, t2) <= 0;
-}
 
 INLINE_HEADER_END
 

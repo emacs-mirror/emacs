@@ -3112,22 +3112,22 @@ XTflash (struct frame *f)
       x_flush (f);
 
       {
-	EMACS_TIME delay = make_emacs_time (0, 150 * 1000 * 1000);
-	EMACS_TIME wakeup = add_emacs_time (current_emacs_time (), delay);
+	struct timespec delay = make_timespec (0, 150 * 1000 * 1000);
+	struct timespec wakeup = timespec_add (current_timespec (), delay);
 
 	/* Keep waiting until past the time wakeup or any input gets
 	   available.  */
 	while (! detect_input_pending ())
 	  {
-	    EMACS_TIME current = current_emacs_time ();
-	    EMACS_TIME timeout;
+	    struct timespec current = current_timespec ();
+	    struct timespec timeout;
 
 	    /* Break if result would not be positive.  */
-	    if (EMACS_TIME_LE (wakeup, current))
+	    if (timespec_cmp (wakeup, current) <= 0)
 	      break;
 
 	    /* How long `select' should wait.  */
-	    timeout = make_emacs_time (0, 10 * 1000 * 1000);
+	    timeout = make_timespec (0, 10 * 1000 * 1000);
 
 	    /* Try to wait that long--but we might wake up sooner.  */
 	    pselect (0, NULL, NULL, NULL, &timeout, NULL);
@@ -8677,7 +8677,7 @@ x_wait_for_event (struct frame *f, int eventtype)
   int level = interrupt_input_blocked;
 
   SELECT_TYPE fds;
-  EMACS_TIME tmo, tmo_at, time_now;
+  struct timespec tmo, tmo_at, time_now;
   int fd = ConnectionNumber (FRAME_X_DISPLAY (f));
 
   pending_event_wait.f = f;
@@ -8685,8 +8685,8 @@ x_wait_for_event (struct frame *f, int eventtype)
 
   /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
-  tmo = make_emacs_time (0, 100 * 1000 * 1000);
-  tmo_at = add_emacs_time (current_emacs_time (), tmo);
+  tmo = make_timespec (0, 100 * 1000 * 1000);
+  tmo_at = timespec_add (current_timespec (), tmo);
 
   while (pending_event_wait.eventtype)
     {
@@ -8699,11 +8699,11 @@ x_wait_for_event (struct frame *f, int eventtype)
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
-      time_now = current_emacs_time ();
-      if (EMACS_TIME_LT (tmo_at, time_now))
+      time_now = current_timespec ();
+      if (timespec_cmp (tmo_at, time_now) < 0)
 	break;
 
-      tmo = sub_emacs_time (tmo_at, time_now);
+      tmo = timespec_sub (tmo_at, time_now);
       if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
@@ -10425,7 +10425,7 @@ x_activate_timeout_atimer (void)
   block_input ();
   if (!x_timeout_atimer_activated_flag)
     {
-      EMACS_TIME interval = make_emacs_time (0, 100 * 1000 * 1000);
+      struct timespec interval = make_timespec (0, 100 * 1000 * 1000);
       start_atimer (ATIMER_RELATIVE, interval, x_process_timeouts, 0);
       x_timeout_atimer_activated_flag = 1;
     }

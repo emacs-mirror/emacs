@@ -21,14 +21,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XGSELECT_H
 
 #include "lisp.h"
-#include "systime.h"
+#include <time.h>
 #include "sysselect.h"
 
 extern int xg_select (int max_fds,
                       SELECT_TYPE *rfds,
                       SELECT_TYPE *wfds,
                       SELECT_TYPE *efds,
-		      EMACS_TIME const *timeout,
+		      struct timespec const *timeout,
 		      sigset_t const *sigmask);
 
 #endif /* XGSELECT_H */

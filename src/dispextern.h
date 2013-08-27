@@ -83,7 +83,7 @@ typedef XImagePtr XImagePtr_or_DC;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
-# include "systime.h"
+# include <time.h>
 #endif
 
 #ifndef HAVE_WINDOW_SYSTEM
@@ -2710,7 +2710,7 @@ reset_mouse_highlight (Mouse_HLInfo *hlinfo)
     hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
     hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
     hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    hlinfo->mouse_face_mouse_frame = NULL;    
+    hlinfo->mouse_face_mouse_frame = NULL;
     hlinfo->mouse_face_window = Qnil;
     hlinfo->mouse_face_overlay = Qnil;
     hlinfo->mouse_face_past_end = 0;
@@ -2914,7 +2914,7 @@ struct image
 {
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
-  EMACS_TIME timestamp;
+  struct timespec timestamp;
 
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;

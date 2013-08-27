@@ -1,3 +1,33 @@
+2013-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify EMACS_TIME-related code.
+	This portability layer is no longer needed, since Emacs has been
+	using struct timespec as a portability layer for some time.
+	* atimer.h, buffer.h, dispextern.h, xgselect.h:
+	Include <time.h> rather than "systime.h"; that's all that's needed now.
+	* dispnew.c: Include <timespec.h> rather than "systime.h";
+	that's all that's needed now.
+	* systime.h (EMACS_TIME): Remove.  All uses changed to struct timespec.
+	(EMACS_TIME_RESOLUTION): Remove.  All uses changed to
+	TIMESPEC_RESOLUTION.
+	(LOG10_EMACS_TIME_RESOLUTION): Remove.  All uses changed to
+	LOG10_TIMESPEC_RESOLUTION.
+	(EMACS_SECS, emacs_secs_addr): Remove.  All uses changed to tv_sec.
+	(EMACS_NSECS): Remove.  All uses changed to tv_nsec.
+	(make_emacs_time): Remove.  All used changed to make_timespec.
+	(invalid_timespec): Rename from invalid_emacs_time.  All uses changed.
+	(current_timespec): Rename from current_emacs_time.  All uses changed.
+	(add_emacs_time): Remove.  All uses changed to timespec_add.
+	(sub_emacs_time): Remove.  All uses change dot timespec_sub.
+	(EMACS_TIME_SIGN): Remove.  All uses changed to timespec_sign.
+	(timespec_valid_p): Rename from EMACS_TIME_VALID_P.  All uses changed.
+	(EMACS_TIME_FROM_DOUBLE): Remove.  All uses changed to dtotimespec.
+	(EMACS_TIME_TO_DOUBLE): Remove.  All uses changed to timespectod.
+	(current_timespec): Rename from current_emacs_time.  All uses changed.
+	(EMACS_TIME_EQ, EMACS_TIME_LT, EMACS_TIME_LE): Remove.  All uses
+	changed to timespec_cmp.
+	* xgselect.c: Include <timespec.h>, since our .h files don't.
+
 2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* xterm.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE:)

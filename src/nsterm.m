@@ -214,7 +214,7 @@ static NSTimer *scroll_repeat_entry = nil;
 static fd_set select_readfds, select_writefds;
 enum { SELECT_HAVE_READ = 1, SELECT_HAVE_WRITE = 2, SELECT_HAVE_TMO = 4 };
 static int select_nfds = 0, select_valid = 0;
-static EMACS_TIME select_timeout = { 0, 0 };
+static struct timespec select_timeout = { 0, 0 };
 static int selfds[2] = { -1, -1 };
 static pthread_mutex_t select_mutex;
 static int apploopnr = 0;
@@ -485,16 +485,16 @@ ns_timeout (int usecs)
      Blocking timer utility used by ns_ring_bell
    -------------------------------------------------------------------------- */
 {
-  EMACS_TIME wakeup = add_emacs_time (current_emacs_time (),
-				      make_emacs_time (0, usecs * 1000));
+  struct timespec wakeup = timespec_add (current_timespec (),
+					 make_timespec (0, usecs * 1000));
 
   /* Keep waiting until past the time wakeup.  */
   while (1)
     {
-      EMACS_TIME timeout, now = current_emacs_time ();
-      if (EMACS_TIME_LE (wakeup, now))
+      struct timespec timeout, now = current_timespec ();
+      if (timespec_cmp (wakeup, now) <= 0)
 	break;
-      timeout = sub_emacs_time (wakeup, now);
+      timeout = timespec_sub (wakeup, now);
 
       /* Try to wait that long--but we might wake up sooner.  */
       pselect (0, NULL, NULL, NULL, &timeout, NULL);
@@ -3529,7 +3529,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 int
 ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-	   fd_set *exceptfds, EMACS_TIME const *timeout,
+	   fd_set *exceptfds, struct timespec const *timeout,
 	   sigset_t const *sigmask)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
@@ -3600,7 +3600,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   else if (nr == 0 && timeout)
     {
       /* No file descriptor, just a timeout, no need to wake fd_handler  */
-      double time = EMACS_TIME_TO_DOUBLE (*timeout);
+      double time = timespectod (*timeout);
       timed_entry = [[NSTimer scheduledTimerWithTimeInterval: time
                                                       target: NSApp
                                                     selector:
@@ -4687,7 +4687,7 @@ not_in_argv (NSString *arg)
   char c;
 
   SELECT_TYPE readfds, writefds, *wfds;
-  EMACS_TIME timeout, *tmo;
+  struct timespec timeout, *tmo;
   NSAutoreleasePool *pool = nil;
 
   /* NSTRACE (fd_handler); */

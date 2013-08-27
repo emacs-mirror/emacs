@@ -29800,20 +29800,20 @@ void
 start_hourglass (void)
 {
 #if defined (HAVE_WINDOW_SYSTEM)
-  EMACS_TIME delay;
+  struct timespec delay;
 
   cancel_hourglass ();
 
   if (INTEGERP (Vhourglass_delay)
       && XINT (Vhourglass_delay) > 0)
-    delay = make_emacs_time (min (XINT (Vhourglass_delay),
+    delay = make_timespec (min (XINT (Vhourglass_delay),
 				  TYPE_MAXIMUM (time_t)),
-			     0);
+			   0);
   else if (FLOATP (Vhourglass_delay)
 	   && XFLOAT_DATA (Vhourglass_delay) > 0)
-    delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
+    delay = dtotimespec (XFLOAT_DATA (Vhourglass_delay));
   else
-    delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
+    delay = make_timespec (DEFAULT_HOURGLASS_DELAY, 0);
 
 #ifdef HAVE_NTGUI
   {

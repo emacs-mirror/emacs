@@ -25,15 +25,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <glib.h>
 #include <errno.h>
+#include <timespec.h>
 #include "frame.h"
 
 int
 xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	   EMACS_TIME const *timeout, sigset_t const *sigmask)
+	   struct timespec const *timeout, sigset_t const *sigmask)
 {
   SELECT_TYPE all_rfds, all_wfds;
-  EMACS_TIME tmo;
-  EMACS_TIME const *tmop = timeout;
+  struct timespec tmo;
+  struct timespec const *tmop = timeout;
 
   GMainContext *context;
   int have_wfds = wfds != NULL;
@@ -86,9 +87,9 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   if (tmo_in_millisec >= 0)
     {
-      tmo = make_emacs_time (tmo_in_millisec / 1000,
-			     1000 * 1000 * (tmo_in_millisec % 1000));
-      if (!timeout || EMACS_TIME_LT (tmo, *timeout))
+      tmo = make_timespec (tmo_in_millisec / 1000,
+			   1000 * 1000 * (tmo_in_millisec % 1000));
+      if (!timeout || timespec_cmp (tmo, *timeout) < 0)
 	tmop = &tmo;
     }
 

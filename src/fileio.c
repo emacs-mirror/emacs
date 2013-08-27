@@ -2045,7 +2045,7 @@ entries (depending on how Emacs was built).  */)
   /* CopyFile retains the timestamp by default.  */
   else if (NILP (keep_time))
     {
-      EMACS_TIME now;
+      struct timespec now;
       DWORD attributes;
       char * filename;
 
@@ -2054,7 +2054,7 @@ entries (depending on how Emacs was built).  */)
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
       SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
-      now = current_emacs_time ();
+      now = current_timespec ();
       if (set_file_times (-1, filename, now, now))
 	{
 	  /* Restore original attributes.  */
@@ -2178,8 +2178,8 @@ entries (depending on how Emacs was built).  */)
 
   if (!NILP (keep_time))
     {
-      EMACS_TIME atime = get_stat_atime (&st);
-      EMACS_TIME mtime = get_stat_mtime (&st);
+      struct timespec atime = get_stat_atime (&st);
+      struct timespec mtime = get_stat_mtime (&st);
       if (set_file_times (ofd, SSDATA (encoded_newname), atime, mtime))
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
@@ -3286,7 +3286,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
-  EMACS_TIME t = lisp_time_argument (timestamp);
+  struct timespec t = lisp_time_argument (timestamp);
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
@@ -3363,7 +3363,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   if (stat (SSDATA (absname2), &st2) < 0)
     return Qt;
 
-  return (EMACS_TIME_LT (get_stat_mtime (&st2), get_stat_mtime (&st1))
+  return (timespec_cmp (get_stat_mtime (&st2), get_stat_mtime (&st1)) < 0
 	  ? Qt : Qnil);
 }
 
@@ -3463,13 +3463,13 @@ file_offset (Lisp_Object val)
 }
 
 /* Return a special time value indicating the error number ERRNUM.  */
-static EMACS_TIME
+static struct timespec
 time_error_value (int errnum)
 {
   int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
 	    ? NONEXISTENT_MODTIME_NSECS
 	    : UNKNOWN_MODTIME_NSECS);
-  return make_emacs_time (0, ns);
+  return make_timespec (0, ns);
 }
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
@@ -3501,7 +3501,7 @@ by calling `format-decode', which see.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
 {
   struct stat st;
-  EMACS_TIME mtime;
+  struct timespec mtime;
   int fd;
   ptrdiff_t inserted = 0;
   ptrdiff_t how_much;
@@ -4567,7 +4567,7 @@ by calling `format-decode', which see.  */)
     }
 
   if (!NILP (visit)
-      && EMACS_NSECS (current_buffer->modtime) == NONEXISTENT_MODTIME_NSECS)
+      && current_buffer->modtime.tv_nsec == NONEXISTENT_MODTIME_NSECS)
     {
       /* If visiting nonexistent file, return nil.  */
       report_file_errno ("Opening input file", orig_filename, save_errno);
@@ -4766,7 +4766,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   int save_errno = 0;
   const char *fn;
   struct stat st;
-  EMACS_TIME modtime;
+  struct timespec modtime;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count1 IF_LINT (= 0);
   Lisp_Object handler;
@@ -4980,7 +4980,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	  }
     }
 
-  modtime = invalid_emacs_time ();
+  modtime = invalid_timespec ();
   if (visiting)
     {
       if (fstat (desc, &st) == 0)
@@ -5014,7 +5014,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
      unlikely and a similar race between the last write and the fstat
      above cannot possibly be closed anyway.  */
 
-  if (EMACS_TIME_VALID_P (modtime)
+  if (timespec_valid_p (modtime)
       && ! (valid_timestamp_file_system && st.st_dev == timestamp_file_system))
     {
       int desc1 = emacs_open (fn, O_WRONLY | O_BINARY, 0);
@@ -5036,11 +5036,11 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	      bool use_heuristic
 		= ((open_flags & (O_EXCL | O_TRUNC)) != 0
 		   && st.st_size != 0
-		   && EMACS_NSECS (modtime) % 100 != 0);
+		   && modtime.tv_nsec % 100 != 0);
 
-	      EMACS_TIME modtime1 = get_stat_mtime (&st1);
+	      struct timespec modtime1 = get_stat_mtime (&st1);
 	      if (use_heuristic
-		  && EMACS_TIME_EQ (modtime, modtime1)
+		  && timespec_cmp (modtime, modtime1) == 0
 		  && st.st_size == st1.st_size)
 		{
 		  timestamp_file_system = st.st_dev;
@@ -5080,7 +5080,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
-  if (EMACS_TIME_VALID_P (modtime))
+  if (timespec_valid_p (modtime))
     {
       current_buffer->modtime = modtime;
       current_buffer->modtime_size = st.st_size;
@@ -5355,7 +5355,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
-  EMACS_TIME mtime;
+  struct timespec mtime;
 
   if (NILP (buf))
     b = current_buffer;
@@ -5366,7 +5366,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
     }
 
   if (!STRINGP (BVAR (b, filename))) return Qt;
-  if (EMACS_NSECS (b->modtime) == UNKNOWN_MODTIME_NSECS) return Qt;
+  if (b->modtime.tv_nsec == UNKNOWN_MODTIME_NSECS) return Qt;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -5380,7 +5380,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   mtime = (stat (SSDATA (filename), &st) == 0
 	   ? get_stat_mtime (&st)
 	   : time_error_value (errno));
-  if (EMACS_TIME_EQ (mtime, b->modtime)
+  if (timespec_cmp (mtime, b->modtime) == 0
       && (b->modtime_size < 0
 	  || st.st_size == b->modtime_size))
     return Qt;
@@ -5397,7 +5397,7 @@ doesn't exist, return -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
-  int ns = EMACS_NSECS (current_buffer->modtime);
+  int ns = current_buffer->modtime.tv_nsec;
   if (ns < 0)
     return make_number (UNKNOWN_MODTIME_NSECS - ns);
   return make_lisp_time (current_buffer->modtime);
@@ -5416,11 +5416,11 @@ An argument specifies the modification time value to use
 {
   if (!NILP (time_flag))
     {
-      EMACS_TIME mtime;
+      struct timespec mtime;
       if (INTEGERP (time_flag))
 	{
 	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
+	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
 	}
       else
 	mtime = lisp_time_argument (time_flag);
@@ -5683,12 +5683,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
 						  Qwrite_region))))
 	  {
-	    EMACS_TIME before_time = current_emacs_time ();
-	    EMACS_TIME after_time;
+	    struct timespec before_time = current_timespec ();
+	    struct timespec after_time;
 
 	    /* If we had a failure, don't try again for 20 minutes.  */
 	    if (b->auto_save_failure_time > 0
-		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
+		&& before_time.tv_sec - b->auto_save_failure_time < 1200)
 	      continue;
 
 	    set_buffer_internal (b);
@@ -5721,12 +5721,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
 	    set_buffer_internal (old);
 
-	    after_time = current_emacs_time ();
+	    after_time = current_timespec ();
 
 	    /* If auto-save took more than 60 seconds,
 	       assume it was an NFS failure that got a timeout.  */
-	    if (EMACS_SECS (after_time) - EMACS_SECS (before_time) > 60)
-	      b->auto_save_failure_time = EMACS_SECS (after_time);
+	    if (after_time.tv_sec - before_time.tv_sec > 60)
+	      b->auto_save_failure_time = after_time.tv_sec;
 	  }
       }
 

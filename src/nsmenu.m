@@ -1867,11 +1867,11 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   while (popup_activated_flag)
     {
       NSTimer *tmo = nil;
-      EMACS_TIME next_time = timer_check ();
+      struct timespec next_time = timer_check ();
 
-      if (EMACS_TIME_VALID_P (next_time))
+      if (timespec_valid_p (next_time))
         {
-          double time = EMACS_TIME_TO_DOUBLE (next_time);
+          double time = timespectod (next_time);
           tmo = [NSTimer timerWithTimeInterval: time
                                         target: self
                                       selector: @selector (timeout_handler:)

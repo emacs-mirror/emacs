@@ -18,8 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <sys/types.h> /* for off_t, time_t */
-#include "systime.h" /* for EMACS_TIME */
+#include <sys/types.h>
+#include <time.h>
 
 INLINE_HEADER_BEGIN
 #ifndef BUFFER_INLINE
@@ -794,13 +794,13 @@ struct buffer
   char local_flags[MAX_PER_BUFFER_VARS];
 
   /* Set to the modtime of the visited file when read or written.
-     EMACS_NSECS (modtime) == NONEXISTENT_MODTIME_NSECS means
-     visited file was nonexistent.  EMACS_NSECS (modtime) ==
+     modtime.tv_nsec == NONEXISTENT_MODTIME_NSECS means
+     visited file was nonexistent.  modtime.tv_nsec ==
      UNKNOWN_MODTIME_NSECS means visited file modtime unknown;
      in no case complain about any mismatch on next save attempt.  */
 #define NONEXISTENT_MODTIME_NSECS (-1)
 #define UNKNOWN_MODTIME_NSECS (-2)
-  EMACS_TIME modtime;
+  struct timespec modtime;
 
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime

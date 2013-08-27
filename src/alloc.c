@@ -5233,7 +5233,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   ptrdiff_t i;
   bool message_p;
   ptrdiff_t count = SPECPDL_INDEX ();
-  EMACS_TIME start;
+  struct timespec start;
   Lisp_Object retval = Qnil;
   size_t tot_before = 0;
 
@@ -5258,7 +5258,7 @@ See Info node `(elisp)Garbage Collection'.  */)
   if (profiler_memory_running)
     tot_before = total_bytes_of_live_objects ();
 
-  start = current_emacs_time ();
+  start = current_timespec ();
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -5521,9 +5521,9 @@ See Info node `(elisp)Garbage Collection'.  */)
   /* Accumulate statistics.  */
   if (FLOATP (Vgc_elapsed))
     {
-      EMACS_TIME since_start = sub_emacs_time (current_emacs_time (), start);
+      struct timespec since_start = timespec_sub (current_timespec (), start);
       Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
-				+ EMACS_TIME_TO_DOUBLE (since_start));
+				+ timespectod (since_start));
     }
 
   gcs_done++;

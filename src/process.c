@@ -133,7 +133,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *, void *);
+		       struct timespec *, void *);
 #endif
 
 #ifndef SOCK_CLOEXEC
@@ -261,7 +261,7 @@ static EMACS_INT update_tick;
 #endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
-#define READ_OUTPUT_DELAY_INCREMENT (EMACS_TIME_RESOLUTION / 100)
+#define READ_OUTPUT_DELAY_INCREMENT (TIMESPEC_RESOLUTION / 100)
 #define READ_OUTPUT_DELAY_MAX       (READ_OUTPUT_DELAY_INCREMENT * 5)
 #define READ_OUTPUT_DELAY_MAX_MAX   (READ_OUTPUT_DELAY_INCREMENT * 7)
 
@@ -3932,9 +3932,9 @@ Return non-nil if we received any output before the timeout expired.  */)
 	{
 	  if (XFLOAT_DATA (seconds) > 0)
 	    {
-	      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (seconds));
-	      secs = min (EMACS_SECS (t), WAIT_READING_MAX);
-	      nsecs = EMACS_NSECS (t);
+	      struct timespec t = dtotimespec (XFLOAT_DATA (seconds));
+	      secs = min (t.tv_sec, WAIT_READING_MAX);
+	      nsecs = t.tv_nsec;
 	    }
 	}
       else
@@ -4239,7 +4239,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   bool no_avail;
   int xerrno;
   Lisp_Object proc;
-  EMACS_TIME timeout, end_time;
+  struct timespec timeout, end_time;
   int wait_channel = -1;
   bool got_some_input = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -4272,8 +4272,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
      compute the absolute time to return at.  */
   if (time_limit || nsecs > 0)
     {
-      timeout = make_emacs_time (time_limit, nsecs);
-      end_time = add_emacs_time (current_emacs_time (), timeout);
+      timeout = make_timespec (time_limit, nsecs);
+      end_time = timespec_add (current_timespec (), timeout);
     }
 
   while (1)
@@ -4300,18 +4300,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     gobble output available now
 	     but don't wait at all. */
 
-	  timeout = make_emacs_time (0, 0);
+	  timeout = make_timespec (0, 0);
 	}
       else if (time_limit || nsecs > 0)
 	{
-	  EMACS_TIME now = current_emacs_time ();
-	  if (EMACS_TIME_LE (end_time, now))
+	  struct timespec now = current_timespec ();
+	  if (timespec_cmp (end_time, now) <= 0)
 	    break;
-	  timeout = sub_emacs_time (end_time, now);
+	  timeout = timespec_sub (end_time, now);
 	}
       else
 	{
-	  timeout = make_emacs_time (100000, 0);
+	  timeout = make_timespec (100000, 0);
 	}
 
       /* Normally we run timers here.
@@ -4321,7 +4321,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (NILP (wait_for_cell)
 	  && just_wait_proc >= 0)
 	{
-	  EMACS_TIME timer_delay;
+	  struct timespec timer_delay;
 
 	  do
 	    {
@@ -4356,9 +4356,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* A negative timeout means do not wait at all.  */
 	  if (nsecs >= 0)
 	    {
-	      if (EMACS_TIME_VALID_P (timer_delay))
+	      if (timespec_valid_p (timer_delay))
 		{
-		  if (EMACS_TIME_LT (timer_delay, timeout))
+		  if (timespec_cmp (timer_delay, timeout) < 0)
 		    {
 		      timeout = timer_delay;
  		      timeout_reduced_for_timers = 1;
@@ -4396,7 +4396,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
             Atemp = input_wait_mask;
 	  Ctemp = write_mask;
 
-	  timeout = make_emacs_time (0, 0);
+	  timeout = make_timespec (0, 0);
 	  if ((pselect (max (max_process_desc, max_input_desc) + 1,
 			&Atemp,
 #ifdef NON_BLOCKING_CONNECT
@@ -4518,8 +4518,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     Vprocess_adaptive_read_buffering is nil.  */
 	  if (process_output_skip && check_delay > 0)
 	    {
-	      int nsecs = EMACS_NSECS (timeout);
-	      if (EMACS_SECS (timeout) > 0 || nsecs > READ_OUTPUT_DELAY_MAX)
+	      int nsecs = timeout.tv_nsec;
+	      if (timeout.tv_sec > 0 || nsecs > READ_OUTPUT_DELAY_MAX)
 		nsecs = READ_OUTPUT_DELAY_MAX;
 	      for (channel = 0; check_delay > 0 && channel <= max_process_desc; channel++)
 		{
@@ -4539,7 +4539,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			nsecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
-	      timeout = make_emacs_time (0, nsecs);
+	      timeout = make_timespec (0, nsecs);
 	      process_output_skip = 0;
 	    }
 #endif
@@ -6543,7 +6543,7 @@ keyboard_bit_set (fd_set *mask)
 
 /* Defined on msdos.c.  */
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *, void *);
+		       struct timespec *, void *);
 
 /* Implementation of wait_reading_process_output, assuming that there
    are no subprocesses.  Used only by the MS-DOS build.
@@ -6582,7 +6582,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
   register int nfds;
-  EMACS_TIME end_time, timeout;
+  struct timespec end_time, timeout;
 
   if (time_limit < 0)
     {
@@ -6595,8 +6595,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   /* What does time_limit really mean?  */
   if (time_limit || nsecs > 0)
     {
-      timeout = make_emacs_time (time_limit, nsecs);
-      end_time = add_emacs_time (current_emacs_time (), timeout);
+      timeout = make_timespec (time_limit, nsecs);
+      end_time = timespec_add (current_timespec (), timeout);
     }
 
   /* Turn off periodic alarms (in case they are in use)
@@ -6629,18 +6629,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     gobble output available now
 	     but don't wait at all.  */
 
-	  timeout = make_emacs_time (0, 0);
+	  timeout = make_timespec (0, 0);
 	}
       else if (time_limit || nsecs > 0)
 	{
-	  EMACS_TIME now = current_emacs_time ();
-	  if (EMACS_TIME_LE (end_time, now))
+	  struct timespec now = current_timespec ();
+	  if (timespec_cmp (end_time, now) <= 0)
 	    break;
-	  timeout = sub_emacs_time (end_time, now);
+	  timeout = timespec_sub (end_time, now);
 	}
       else
 	{
-	  timeout = make_emacs_time (100000, 0);
+	  timeout = make_timespec (100000, 0);
 	}
 
       /* If our caller will not immediately handle keyboard events,
@@ -6649,7 +6649,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 call timer_delay on their own.)  */
       if (NILP (wait_for_cell))
 	{
-	  EMACS_TIME timer_delay;
+	  struct timespec timer_delay;
 
 	  do
 	    {
@@ -6669,9 +6669,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  if (EMACS_TIME_VALID_P (timer_delay) && nsecs >= 0)
+	  if (timespec_valid_p (timer_delay) && nsecs >= 0)
 	    {
-	      if (EMACS_TIME_LT (timer_delay, timeout))
+	      if (timespec_cmp (timer_delay, timeout) < 0)
 		{
 		  timeout = timer_delay;
 		  timeout_reduced_for_timers = 1;

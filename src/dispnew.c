@@ -49,12 +49,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Include systime.h after xterm.h to avoid double inclusion of time.h.  */
-
-#include "systime.h"
 #include <errno.h>
 
 #include <fpending.h>
+#include <timespec.h>
 
 #if defined (HAVE_TERM_H) && defined (GNU_LINUX)
 #include <term.h>		/* for tgetent */
@@ -5708,9 +5706,9 @@ additional wait period, in milliseconds; this is for backwards compatibility.
 
   if (duration > 0)
     {
-      EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (duration);
-      wait_reading_process_output (min (EMACS_SECS (t), WAIT_READING_MAX),
-				   EMACS_NSECS (t), 0, 0, Qnil, NULL, 0);
+      struct timespec t = dtotimespec (duration);
+      wait_reading_process_output (min (t.tv_sec, WAIT_READING_MAX),
+				   t.tv_nsec, 0, 0, Qnil, NULL, 0);
     }
 
   return Qnil;
@@ -5757,9 +5755,9 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 	return Qt;
       else
 	{
-	  EMACS_TIME t = EMACS_TIME_FROM_DOUBLE (seconds);
-	  sec = min (EMACS_SECS (t), WAIT_READING_MAX);
-	  nsec = EMACS_NSECS (t);
+	  struct timespec t = dtotimespec (seconds);
+	  sec = min (t.tv_sec, WAIT_READING_MAX);
+	  nsec = t.tv_nsec;
 	}
     }
   else if (EQ (timeout, Qt))

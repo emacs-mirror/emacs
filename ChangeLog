@@ -1,3 +1,9 @@
+2013-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify EMACS_TIME-related code.
+	Merge from gnulib, incorporating:
+	2013-08-27 timespec: new convenience constants and function
+
 2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac (DOCMISC_DVI_W32, DOCMISC_HTML_W32, DOCMISC_INFO_W32)

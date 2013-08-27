@@ -247,7 +247,7 @@ static BOOL WINAPI revert_to_self (void);
 extern int sys_access (const char *, int);
 extern void *e_malloc (size_t);
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *, void *);
+		       struct timespec *, void *);
 extern int sys_dup (int);
 
 
@@ -7939,7 +7939,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 {
   int n, err;
   SELECT_TYPE fdset;
-  EMACS_TIME timeout;
+  struct timespec timeout;
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->infd;
 

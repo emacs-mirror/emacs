@@ -1685,15 +1685,15 @@ static gboolean
 xg_maybe_add_timer (gpointer data)
 {
   struct xg_dialog_data *dd = data;
-  EMACS_TIME next_time = timer_check ();
+  struct timespec next_time = timer_check ();
 
   dd->timerid = 0;
 
-  if (EMACS_TIME_VALID_P (next_time))
+  if (timespec_valid_p (next_time))
     {
-      time_t s = EMACS_SECS (next_time);
-      int per_ms = EMACS_TIME_RESOLUTION / 1000;
-      int ms = (EMACS_NSECS (next_time) + per_ms - 1) / per_ms;
+      time_t s = next_time.tv_sec;
+      int per_ms = TIMESPEC_RESOLUTION / 1000;
+      int ms = (next_time.tv_nsec + per_ms - 1) / per_ms;
       if (s <= ((guint) -1 - ms) / 1000)
 	dd->timerid = g_timeout_add (s * 1000 + ms, xg_maybe_add_timer, dd);
     }

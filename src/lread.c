@@ -609,7 +609,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 		     bool error_nonascii, bool input_method, Lisp_Object seconds)
 {
   Lisp_Object val, delayed_switch_frame;
-  EMACS_TIME end_time;
+  struct timespec end_time;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -622,8 +622,8 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   if (NUMBERP (seconds))
     {
       double duration = extract_float (seconds);
-      EMACS_TIME wait_time = EMACS_TIME_FROM_DOUBLE (duration);
-      end_time = add_emacs_time (current_emacs_time (), wait_time);
+      struct timespec wait_time = dtotimespec (duration);
+      end_time = timespec_add (current_timespec (), wait_time);
     }
 
   /* Read until we get an acceptable event.  */
@@ -1262,7 +1262,7 @@ Return t if the file exists and loads successfully.  */)
 	    }
 
 	  if (result == 0
-	      && EMACS_TIME_LT (get_stat_mtime (&s1), get_stat_mtime (&s2)))
+	      && timespec_cmp (get_stat_mtime (&s1), get_stat_mtime (&s2)) < 0)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;

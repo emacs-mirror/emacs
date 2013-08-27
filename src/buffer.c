@@ -933,7 +933,7 @@ reset_buffer (register struct buffer *b)
   bset_filename (b, Qnil);
   bset_file_truename (b, Qnil);
   bset_directory (b, current_buffer ? BVAR (current_buffer, directory) : Qnil);
-  b->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
+  b->modtime = make_timespec (0, UNKNOWN_MODTIME_NSECS);
   b->modtime_size = -1;
   XSETFASTINT (BVAR (b, save_length), 0);
   b->last_window_start = 1;

@@ -377,7 +377,7 @@ x_menu_wait_for_event (void *data)
 #endif
          )
     {
-      EMACS_TIME next_time = timer_check (), *ntp;
+      struct timespec next_time = timer_check (), *ntp;
       SELECT_TYPE read_fds;
       struct x_display_info *dpyinfo;
       int n = 0;
@@ -391,7 +391,7 @@ x_menu_wait_for_event (void *data)
           XFlush (dpyinfo->display);
         }
 
-      if (! EMACS_TIME_VALID_P (next_time))
+      if (! timespec_valid_p (next_time))
         ntp = 0;
       else
         ntp = &next_time;

@@ -4055,7 +4055,7 @@ dos_yield_time_slice (void)
    because wait_reading_process_output takes care of that.  */
 int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout, void *ignored)
+	    struct timespec *timeout, void *ignored)
 {
   int check_input;
   struct timespec t;
@@ -4085,20 +4085,20 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
     }
   else
     {
-      EMACS_TIME clnow, cllast, cldiff;
+      struct timespec clnow, cllast, cldiff;
 
       gettime (&t);
-      cllast = make_emacs_time (t.tv_sec, t.tv_nsec);
+      cllast = make_timespec (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  clnow = make_emacs_time (t.tv_sec, t.tv_nsec);
-	  cldiff = sub_emacs_time (clnow, cllast);
-	  *timeout = sub_emacs_time (*timeout, cldiff);
+	  clnow = make_timespec (t.tv_sec, t.tv_nsec);
+	  cldiff = timespec_sub (clnow, cllast);
+	  *timeout = timespec_sub (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
-	  if (EMACS_TIME_SIGN (*timeout) <= 0)
+	  if (timespec_sign (*timeout) <= 0)
 	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();

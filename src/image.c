@@ -1041,7 +1041,7 @@ void
 prepare_image_for_display (struct frame *f, struct image *img)
 {
   /* We're about to display IMG, so set its timestamp to `now'.  */
-  img->timestamp = current_emacs_time ();
+  img->timestamp = current_timespec ();
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
@@ -1480,7 +1480,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
       else if (INTEGERP (Vimage_cache_eviction_delay))
 	{
 	  /* Free cache based on timestamp.  */
-	  EMACS_TIME old, t;
+	  struct timespec old, t;
 	  double delay;
 	  ptrdiff_t nimages = 0;
 
@@ -1495,13 +1495,13 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	    delay = 1600 * delay / nimages / nimages;
 	  delay = max (delay, 1);
 
-	  t = current_emacs_time ();
-	  old = sub_emacs_time (t, EMACS_TIME_FROM_DOUBLE (delay));
+	  t = current_timespec ();
+	  old = timespec_sub (t, dtotimespec (delay));
 
 	  for (i = 0; i < c->used; ++i)
 	    {
 	      struct image *img = c->images[i];
-	      if (img && EMACS_TIME_LT (img->timestamp, old))
+	      if (img && timespec_cmp (img->timestamp, old) < 0)
 		{
 		  free_image (f, img);
 		  ++nfreed;
@@ -1764,7 +1764,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
-  img->timestamp = current_emacs_time ();
+  img->timestamp = current_timespec ();
 
   /* Value is the image id.  */
   return img->id;
@@ -7884,7 +7884,7 @@ struct animation_cache
 {
   MagickWand *wand;
   int index;
-  EMACS_TIME update_time;
+  struct timespec update_time;
   struct animation_cache *next;
   char signature[FLEXIBLE_ARRAY_MEMBER];
 };
@@ -7909,13 +7909,13 @@ static void
 imagemagick_prune_animation_cache (void)
 {
   struct animation_cache **pcache = &animation_cache;
-  EMACS_TIME old = sub_emacs_time (current_emacs_time (),
-				   make_emacs_time (60, 0));
+  struct timespec old = timespec_sub (current_timespec (),
+				      make_timespec (60, 0));
 
   while (*pcache)
     {
       struct animation_cache *cache = *pcache;
-      if (EMACS_TIME_LE (old, cache->update_time))
+      if (timespec_cmp (old, cache->update_time) <= 0)
 	pcache = &cache->next;
       else
 	{
@@ -7950,7 +7950,7 @@ imagemagick_get_animation_cache (MagickWand *wand)
     }
 
   DestroyString (signature);
-  cache->update_time = current_emacs_time ();
+  cache->update_time = current_timespec ();
   return cache;
 }
 
