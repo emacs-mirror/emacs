@@ -1,3 +1,9 @@
+2013-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean, clean, distclean, bootstrap-clean)
+	(maintainer-clean, check-declare): Remove pointless subshells.
+	Check cd return value.
+
 2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor merge from gnulib (mostly just for texinfo.tex).
