@@ -981,7 +981,7 @@ error.  If there is a package, narrow the buffer to the file's
 boundaries."
   (goto-char (point-min))
   (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el ---[ \t]*\\(.*?\\)[ \t]*\\(-\\*-.*-\\*-[ \t]*\\)?$" nil t)
-    (error "Packages lacks a file header"))
+    (error "Package lacks a file header"))
   (let ((file-name (match-string-no-properties 1))
 	(desc      (match-string-no-properties 2))
 	(start     (line-beginning-position)))

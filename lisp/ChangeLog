@@ -1,3 +1,7 @@
+2013-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-buffer-info): Fix message typo.
+
 2013-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-font-lock-keywords): Don't return nil
