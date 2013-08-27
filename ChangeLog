@@ -1,3 +1,8 @@
+2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (DOCMISC_DVI_W32, DOCMISC_HTML_W32, DOCMISC_INFO_W32)
+	(DOCMISC_PDF_W32, DOCMISC_PS_W32): No spaces!
+
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.ac (emacs_broken_SIGIO): No longer set on gnu-kfreebsd.
