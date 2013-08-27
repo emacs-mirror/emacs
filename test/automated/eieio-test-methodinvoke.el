@@ -1,4 +1,4 @@
-;;; eieio-testsinvoke.el -- eieio tests for method invokation
+;;; eieio-testsinvoke.el -- eieio tests for method invocation
 
 ;; Copyright (C) 2005, 2008, 2010, 2013 Free Software Foundation, Inc.
 
@@ -136,7 +136,7 @@
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 
-;;; Test static invokation
+;;; Test static invocation
 ;;
 (defmethod eitest-H :STATIC ((class eitest-A))
   "No need to do work in here."

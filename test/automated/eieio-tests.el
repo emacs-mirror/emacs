@@ -21,7 +21,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;  
+;;
 ;; Test the various features of EIEIO.
 
 (require 'ert)
@@ -66,7 +66,7 @@
 	   :initform moose
 	   :type symbol
 	   :allocation :instance
-	   :documentation "Fisrt slot testing slot arguments."
+	   :documentation "First slot testing slot arguments."
 	   :custom symbol
 	   :label "Wild Animal"
 	   :group borg
@@ -166,7 +166,7 @@
   (defun anormalfunction () "A plain function for error testing." nil)
   (should-error
    (progn
-     (defgeneric anormalfunction () 
+     (defgeneric anormalfunction ()
        "Attempt to turn it into a generic.")))
 
   ;; Check that generic-p works
@@ -589,7 +589,7 @@ METHOD is the method that was attempting to be called."
   ;;; HACK ALERT: The new value of a class slot is inherited by the
   ;; subclass!  This is probably a bug.  We should either share the slot
   ;; so sets on the baseclass change the subclass, or we should inherit
-  ;; the original value. 
+  ;; the original value.
 ;;  (should (eq (get-slot-3 eitest-t2) 'emu))
 ;;  (should (eq (get-slot-3 class-subc) 'emu))
 ;;  (setf (get-slot-3 eitest-t2) 'setf-emu)
@@ -604,7 +604,7 @@ METHOD is the method that was attempting to be called."
   "Try to access slot-2 from this class which doesn't have it.
 The object S2 passed in will be of class prot-1, which does have
 the slot.  This could be allowed, and currently is in EIEIO.
-Needed by the eieio persistant base class."
+Needed by the eieio persistent base class."
   (oref s2 slot-2))
 
 (defclass prot-1 (prot-0)
@@ -662,7 +662,7 @@ Do not override for `prot-2'."
   (prot0-slot-2 eitest-p1)
   ;; Accessing private slot out of context must fail
   (should-error (oref eitest-p1 slot-3) :type 'invalid-slot-name)
-  ;; Access private slot in ethod
+  ;; Access private slot in method
   (prot1-slot-3 eitest-p1)
   ;; Access private slot in subclass method must fail
   (should-error (prot1-slot-3 eitest-p2) :type 'invalid-slot-name)
@@ -713,7 +713,7 @@ Do not override for `prot-2'."
 Subclasses to override slot attributes.")
 
 (defclass slotattr-ok (slotattr-base)
-  ((initform :initform no-init)   
+  ((initform :initform no-init)
    (initarg :initarg :initblarg)
    (custom :custom string
 	   :label "One String"
@@ -767,7 +767,7 @@ Subclasses to override slot attributes.")
 Subclasses to override slot attributes.")
 
 (defclass slotattr-class-ok (slotattr-class-base)
-  ((initform :initform no-init)   
+  ((initform :initform no-init)
    (initarg :initarg :initblarg)
    (custom :custom string
 	   :label "One String"
