@@ -1,7 +1,7 @@
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (manual-misc-manuals): Use INFO_COMMON rather than
-	INFO_TARGETS.
+	INFO_TARGETS.  "faq" does not need special treatment any more.
 
 2013-08-15  Glenn Morris  <rgm@gnu.org>
 

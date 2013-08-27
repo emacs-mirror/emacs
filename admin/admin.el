@@ -289,9 +289,8 @@ Optional argument TYPE is type of output (nil means all)."
 
 (defun manual-misc-html (name root html-node-dir html-mono-dir)
   ;; Hack to deal with the cases where .texi creates a different .info.
-  ;; Blech.  TODO Why not just rename the .texi files?
+  ;; Blech.  TODO Why not just rename the .texi (or .info) files?
   (let* ((texiname (cond ((equal name "ccmode") "cc-mode")
-			 ((equal name "efaq") "faq")
 			 (t name)))
 	 (texi (expand-file-name (format "doc/misc/%s.texi" texiname) root)))
     (manual-html-node texi (expand-file-name name html-node-dir))

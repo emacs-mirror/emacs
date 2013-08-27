@@ -98,6 +98,7 @@ DVI_TARGETS = $(DOCMISC_DVI_W32) \
 	ede.dvi \
 	ediff.dvi \
 	edt.dvi \
+	efaq.dvi \
 	eieio.dvi \
 	emacs-mime.dvi \
 	epa.dvi \
@@ -105,7 +106,6 @@ DVI_TARGETS = $(DOCMISC_DVI_W32) \
 	ert.dvi \
 	eshell.dvi \
 	eudc.dvi \
-	faq.dvi \
 	flymake.dvi \
 	forms.dvi \
 	gnus.dvi \
@@ -156,6 +156,7 @@ HTML_TARGETS = $(DOCMISC_HTML_W32) \
 	ede.html \
 	ediff.html \
 	edt.html \
+	efaq.html \
 	eieio.html \
 	emacs-mime.html \
 	epa.html \
@@ -163,7 +164,6 @@ HTML_TARGETS = $(DOCMISC_HTML_W32) \
 	ert.html \
 	eshell.html \
 	eudc.html \
-	faq.html \
 	flymake.html \
 	forms.html \
 	gnus.html \
@@ -214,6 +214,7 @@ PDF_TARGETS = $(DOCMISC_PDF_W32) \
 	ede.pdf \
 	ediff.pdf \
 	edt.pdf \
+	efaq.pdf \
 	eieio.pdf \
 	emacs-mime.pdf \
 	epa.pdf \
@@ -221,7 +222,6 @@ PDF_TARGETS = $(DOCMISC_PDF_W32) \
 	ert.pdf \
 	eshell.pdf \
 	eudc.pdf \
-	faq.pdf \
 	flymake.pdf \
 	forms.pdf \
 	gnus.pdf \
@@ -272,6 +272,7 @@ PS_TARGETS = $(DOCMISC_PS_W32) \
 	ede.ps \
 	ediff.ps \
 	edt.ps \
+	efaq.ps \
 	eieio.ps \
 	emacs-mime.ps \
 	epa.ps \
@@ -279,7 +280,6 @@ PS_TARGETS = $(DOCMISC_PS_W32) \
 	ert.ps \
 	eshell.ps \
 	eudc.ps \
-	faq.ps \
 	flymake.ps \
 	forms.ps \
 	gnus.ps \
@@ -515,6 +515,31 @@ edt.pdf: $(edt_deps)
 edt.html: $(edt_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/edt.texi
 
+## No gfdl dependency.
+efaq_deps = ${srcdir}/efaq.texi $(emacsdir)/emacsver.texi
+efaq : $(buildinfodir)/efaq$(INFO_EXT)
+$(buildinfodir)/efaq$(INFO_EXT): $(efaq_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq.texi
+efaq.dvi: $(efaq_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/efaq.texi
+efaq.pdf: $(efaq_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/efaq.texi
+efaq.html: $(efaq_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq.texi
+
+efaq_w32_deps = ${srcdir}/efaq-w32.texi $(emacsdir)/emacsver.texi
+efaq-w32 : $(buildinfodir)/efaq-w32$(INFO_EXT)
+$(buildinfodir)/efaq-w32$(INFO_EXT): $(efaq_w32_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq-w32.texi
+efaq-w32.dvi: $(efaq_w32_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/efaq-w32.texi
+efaq-w32.pdf: $(efaq_w32_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/efaq-w32.texi
+efaq-w32.html: $(efaq_w32_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq-w32.texi
+
 eieio_deps = ${srcdir}/eieio.texi ${gfdl}
 eieio : $(buildinfodir)/eieio$(INFO_EXT)
 $(buildinfodir)/eieio$(INFO_EXT): $(eieio_deps)
@@ -610,31 +635,6 @@ eudc.pdf: $(eudc_deps)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eudc.texi
 eudc.html: $(eudc_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/eudc.texi
-
-## No gfdl dependency.
-faq_deps = ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-efaq : $(buildinfodir)/efaq$(INFO_EXT)
-$(buildinfodir)/efaq$(INFO_EXT): $(faq_deps)
-	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/faq.texi
-faq.dvi: $(faq_deps)
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
-faq.pdf: $(faq_deps)
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/faq.texi
-faq.html: $(faq_deps)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/faq.texi
-
-efaq_w32_deps = ${srcdir}/efaq-w32.texi $(emacsdir)/emacsver.texi
-efaq-w32 : $(buildinfodir)/efaq-w32$(INFO_EXT)
-$(buildinfodir)/efaq-w32$(INFO_EXT): $(efaq_w32_deps)
-	$(mkinfodir)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq-w32.texi
-efaq-w32.dvi: $(efaq_w32_deps)
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/efaq-w32.texi
-efaq-w32.pdf: $(efaq_w32_deps)
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/efaq-w32.texi
-efaq-w32.html: $(efaq_w32_deps)
-	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq-w32.texi
 
 flymake_deps = ${srcdir}/flymake.texi ${gfdl}
 flymake : $(buildinfodir)/flymake$(INFO_EXT)

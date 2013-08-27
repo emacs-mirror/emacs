@@ -1,5 +1,8 @@
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
+	* efaq.texi: Rename from faq.texi, to match its output files.
+	* Makefile.in: Update for faq.texi name change.
+
 	* efaq-w32.texi (EMACSVER): Get it from emacsver.texi.
 
 	* Makefile.in (webhack): Remove; it's nothing to do with Emacs.
