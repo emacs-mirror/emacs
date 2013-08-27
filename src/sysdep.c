@@ -588,7 +588,7 @@ restore_signal_handlers (struct save_signal *saved_handlers)
 }
 
 #ifdef USABLE_SIGIO
-static int old_fcntl_flags[MAXDESC];
+static int old_fcntl_flags[FD_SETSIZE];
 #endif
 
 void
@@ -817,7 +817,7 @@ emacs_set_tty (int fd, struct emacs_tty *settings, bool flushp)
 
 
 #ifdef F_SETOWN
-static int old_fcntl_owner[MAXDESC];
+static int old_fcntl_owner[FD_SETSIZE];
 #endif /* F_SETOWN */
 
 /* This may also be defined in stdio,

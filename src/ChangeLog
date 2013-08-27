@@ -1,5 +1,12 @@
 2013-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify SELECT_TYPE-related code.
+	Like EMACS_TIME, this portability layer is no longer needed, since
+	Emacs has been using fd_set as a portability layer for some time.
+	* sysselect.h (FD_SETSIZE): Rename from MAXDESC.  All uses changed.
+	(SELECT_TYPE): Remove.  All uses changed to fd_set.
+	(fd_set) [!FD_SET]: New typedef.
+
 	Simplify EMACS_TIME-related code.
 	This portability layer is no longer needed, since Emacs has been
 	using struct timespec as a portability layer for some time.

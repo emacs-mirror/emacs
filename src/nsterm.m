@@ -4686,7 +4686,7 @@ not_in_argv (NSString *arg)
   int waiting = 1, nfds;
   char c;
 
-  SELECT_TYPE readfds, writefds, *wfds;
+  fd_set readfds, writefds, *wfds;
   struct timespec timeout, *tmo;
   NSAutoreleasePool *pool = nil;
 
@@ -4699,7 +4699,7 @@ not_in_argv (NSString *arg)
 
       if (waiting)
         {
-          SELECT_TYPE fds;
+          fd_set fds;
           FD_ZERO (&fds);
           FD_SET (selfds[0], &fds);
           result = select (selfds[0]+1, &fds, NULL, NULL, NULL);

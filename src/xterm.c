@@ -8676,7 +8676,7 @@ x_wait_for_event (struct frame *f, int eventtype)
 {
   int level = interrupt_input_blocked;
 
-  SELECT_TYPE fds;
+  fd_set fds;
   struct timespec tmo, tmo_at, time_now;
   int fd = ConnectionNumber (FRAME_X_DISPLAY (f));
 

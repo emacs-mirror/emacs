@@ -29,10 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 
 int
-xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	   struct timespec const *timeout, sigset_t const *sigmask)
 {
-  SELECT_TYPE all_rfds, all_wfds;
+  fd_set all_rfds, all_wfds;
   struct timespec tmo;
   struct timespec const *tmop = timeout;
 

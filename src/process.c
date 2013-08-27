@@ -132,7 +132,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef WINDOWSNT
-extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
 #endif
 
@@ -280,7 +280,7 @@ static bool process_output_skip;
 
 static void create_process (Lisp_Object, char **, Lisp_Object);
 #ifdef USABLE_SIGIO
-static bool keyboard_bit_set (SELECT_TYPE *);
+static bool keyboard_bit_set (fd_set *);
 #endif
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -299,26 +299,26 @@ static void exec_sentinel (Lisp_Object proc, Lisp_Object reason);
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */
 
-static SELECT_TYPE input_wait_mask;
+static fd_set input_wait_mask;
 
 /* Mask that excludes keyboard input descriptor(s).  */
 
-static SELECT_TYPE non_keyboard_wait_mask;
+static fd_set non_keyboard_wait_mask;
 
 /* Mask that excludes process input descriptor(s).  */
 
-static SELECT_TYPE non_process_wait_mask;
+static fd_set non_process_wait_mask;
 
 /* Mask for selecting for write.  */
 
-static SELECT_TYPE write_mask;
+static fd_set write_mask;
 
 #ifdef NON_BLOCKING_CONNECT
 /* Mask of bits indicating the descriptors that we wait for connect to
    complete on.  Once they complete, they are removed from this mask
    and added to the input_wait_mask and non_keyboard_wait_mask.  */
 
-static SELECT_TYPE connect_wait_mask;
+static fd_set connect_wait_mask;
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
@@ -331,7 +331,7 @@ static int max_process_desc;
 static int max_input_desc;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
-static Lisp_Object chan_process[MAXDESC];
+static Lisp_Object chan_process[FD_SETSIZE];
 
 /* Alist of elements (NAME . PROCESS) */
 static Lisp_Object Vprocess_alist;
@@ -342,18 +342,18 @@ static Lisp_Object Vprocess_alist;
    output from the process is to read at least one char.
    Always -1 on systems that support FIONREAD.  */
 
-static int proc_buffered_char[MAXDESC];
+static int proc_buffered_char[FD_SETSIZE];
 
 /* Table of `struct coding-system' for each process.  */
-static struct coding_system *proc_decode_coding_system[MAXDESC];
-static struct coding_system *proc_encode_coding_system[MAXDESC];
+static struct coding_system *proc_decode_coding_system[FD_SETSIZE];
+static struct coding_system *proc_encode_coding_system[FD_SETSIZE];
 
 #ifdef DATAGRAM_SOCKETS
 /* Table of `partner address' for datagram sockets.  */
 static struct sockaddr_and_len {
   struct sockaddr *sa;
   int len;
-} datagram_address[MAXDESC];
+} datagram_address[FD_SETSIZE];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
 #define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XPROCESS (proc)->infd].sa != 0)
 #else
@@ -458,7 +458,7 @@ static struct fd_callback_data
 #define FOR_READ  1
 #define FOR_WRITE 2
   int condition; /* mask of the defines above.  */
-} fd_callback_info[MAXDESC];
+} fd_callback_info[FD_SETSIZE];
 
 
 /* Add a file descriptor FD to be monitored for when read is possible.
@@ -467,7 +467,7 @@ static struct fd_callback_data
 void
 add_read_fd (int fd, fd_callback func, void *data)
 {
-  eassert (fd < MAXDESC);
+  eassert (fd < FD_SETSIZE);
   add_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].func = func;
@@ -480,7 +480,7 @@ add_read_fd (int fd, fd_callback func, void *data)
 void
 delete_read_fd (int fd)
 {
-  eassert (fd < MAXDESC);
+  eassert (fd < FD_SETSIZE);
   delete_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].condition &= ~FOR_READ;
@@ -497,7 +497,7 @@ delete_read_fd (int fd)
 void
 add_write_fd (int fd, fd_callback func, void *data)
 {
-  eassert (fd < MAXDESC);
+  eassert (fd < FD_SETSIZE);
   FD_SET (fd, &write_mask);
   if (fd > max_input_desc)
     max_input_desc = fd;
@@ -528,7 +528,7 @@ delete_input_desc (int fd)
 void
 delete_write_fd (int fd)
 {
-  eassert (fd < MAXDESC);
+  eassert (fd < FD_SETSIZE);
   FD_CLR (fd, &write_mask);
   fd_callback_info[fd].condition &= ~FOR_WRITE;
   if (fd_callback_info[fd].condition == 0)
@@ -3232,7 +3232,7 @@ usage: (make-network-process &rest ARGS)  */)
 	     wait for completion is pselect(). */
 	  int sc;
 	  socklen_t len;
-	  SELECT_TYPE fdset;
+	  fd_set fdset;
 	retry_select:
 	  FD_ZERO (&fdset);
 	  FD_SET (s, &fdset);
@@ -4232,8 +4232,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
   int channel, nfds;
-  SELECT_TYPE Available;
-  SELECT_TYPE Writeok;
+  fd_set Available;
+  fd_set Writeok;
   bool check_write;
   int check_delay;
   bool no_avail;
@@ -4387,8 +4387,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 timeout to get our attention.  */
       if (update_tick != process_tick)
 	{
-	  SELECT_TYPE Atemp;
-	  SELECT_TYPE Ctemp;
+	  fd_set Atemp;
+	  fd_set Ctemp;
 
           if (kbd_on_hold_p ())
             FD_ZERO (&Atemp);
@@ -4571,7 +4571,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		     the gnutls library -- 2.12.14 has been confirmed
 		     to need it.  See
 		     http://comments.gmane.org/gmane.emacs.devel/145074 */
-		  for (channel = 0; channel < MAXDESC; ++channel)
+		  for (channel = 0; channel < FD_SETSIZE; ++channel)
 		    if (! NILP (chan_process[channel]))
 		      {
 			struct Lisp_Process *p =
@@ -6542,7 +6542,7 @@ keyboard_bit_set (fd_set *mask)
 #else  /* not subprocesses */
 
 /* Defined on msdos.c.  */
-extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
 
 /* Implementation of wait_reading_process_output, assuming that there
@@ -6608,7 +6608,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   while (1)
     {
       bool timeout_reduced_for_timers = 0;
-      SELECT_TYPE waitchannels;
+      fd_set waitchannels;
       int xerrno;
 
       /* If calling from keyboard input, do not quit
@@ -7072,7 +7072,7 @@ init_process_emacs (void)
 
   Vprocess_alist = Qnil;
   deleted_pid_list = Qnil;
-  for (i = 0; i < MAXDESC; i++)
+  for (i = 0; i < FD_SETSIZE; i++)
     {
       chan_process[i] = Qnil;
       proc_buffered_char[i] = -1;

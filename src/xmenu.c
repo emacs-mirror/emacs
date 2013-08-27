@@ -378,7 +378,7 @@ x_menu_wait_for_event (void *data)
          )
     {
       struct timespec next_time = timer_check (), *ntp;
-      SELECT_TYPE read_fds;
+      fd_set read_fds;
       struct x_display_info *dpyinfo;
       int n = 0;
 

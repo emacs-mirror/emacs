@@ -25,9 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 
 extern int xg_select (int max_fds,
-                      SELECT_TYPE *rfds,
-                      SELECT_TYPE *wfds,
-                      SELECT_TYPE *efds,
+		      fd_set *rfds, fd_set *wfds, fd_set *efds,
 		      struct timespec const *timeout,
 		      sigset_t const *sigmask);
 
