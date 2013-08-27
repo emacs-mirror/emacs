@@ -1,0 +1,2364 @@
+\input texinfo    @c -*-coding:utf-8 -*-
+@setfilename efaq-w32
+@settitle GNU Emacs FAQ For MS Windows
+@setchapternewpage odd
+@syncodeindex pg cp
+@syncodeindex ky cp
+@syncodeindex tp cp
+@syncodeindex vr fn
+
+@documentdescription
+Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
+@end documentdescription
+
+@set EMACSVER 24.3
+
+@documentencoding utf-8
+@documentlanguage en
+
+@copying
+Copyright @copyright{} 2008, 2010-2013 Free Software Foundation, Inc.
+
+@quotation
+This list of frequently asked questions about GNU Emacs on MS Windows
+with answers (``FAQ'') may be translated into other languages,
+transformed into other formats (e.g. Texinfo, Info, WWW), and updated
+with new information.
+
+The same conditions apply to any derivative of the FAQ as apply to the FAQ
+itself.  Every copy of the FAQ must include this notice or an approved
+translation, information on who is currently maintaining the FAQ and how to
+contact them (including their e-mail address), and information on where the
+latest version of the FAQ is archived (including FTP information).
+
+The FAQ may be copied and redistributed under these conditions, except that
+the FAQ may not be embedded in a larger literary work unless that work
+itself allows free copying and redistribution.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Emacs W32 FAQ: (efaq-w32).	FAQs about Emacs on MS Windows.
+@end direntry
+
+@c The @titlepage stuff only appears in the printed version
+@titlepage
+@sp 10
+@center @titlefont{GNU Emacs FAQ for MS Windows}
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@footnotestyle end
+
+@node Top
+@top GNU Emacs FAQ for MS Windows
+
+This is the GNU Emacs FAQ for MS Windows.
+
+This FAQ is maintained by the developers and users of Emacs on MS Windows.
+If you find any errors, or have any suggestions, please send them to
+the @url{http://lists.gnu.org/mailman/listinfo/help-emacs-windows,
+help-emacs-windows} mailing list.
+
+At time of writing, the latest version of GNU Emacs is version @value{EMACSVER}.
+
+@c Links to ftp.gnu.org are given as http links, since Windows ftp clients
+@c are notoriously bad at handling firewalls etc.
+
+@contents
+
+@menu
+* Introduction::
+* Getting Emacs::
+* Installing Emacs::
+* Display Settings::
+* Fonts and text translation::
+* Printing::
+* Sub-processes::
+* Network access::
+* Text and Utility modes::
+* Developing with Emacs::
+* Other useful ports::
+* Further information::
+* Indexes::
+@end menu
+
+@c ------------------------------------------------------------
+@node Introduction
+@chapter Introduction
+@cindex scope of FAQ
+
+This FAQ covers questions that are specific to running GNU Emacs on Windows.
+For more general information, see the other Emacs manuals.
+@xref{Further information}.
+
+@menu
+* Why Emacs on Windows::
+* Which versions of Windows::
+* Other versions of Emacs::
+@end menu
+
+@node Why Emacs on Windows
+@section Why support GNU Emacs on Windows?
+@cindex Why Windows
+
+It is not our goal to ``help Windows users'' by making text editing
+on Windows more convenient.  We aim to replace proprietary software,
+not to enhance it.  So why support GNU Emacs on Windows?
+
+We hope that the experience of using GNU Emacs on Windows will give
+programmers a taste of freedom, and that this will later inspire them
+to move to a free operating system such as GNU/Linux.  That is the
+main valid reason to support free applications on nonfree operating
+systems.
+
+@node Which versions of Windows
+@section Which versions of Windows are supported?
+@cindex Windows, versions
+@cindex supported versions of Windows
+
+Emacs @value{EMACSVER} is known to run on all versions of Windows from
+@c FIXME does it really still support Windows 98?  Does it matter?
+Windows 98 and Windows NT 4.0 through to Windows 7.  The Windows port is
+built using the Win32 API and supports most features of the X version,
+including variable width fonts, images and tooltips.
+
+@node Other versions of Emacs
+@section What other versions of Emacs run on Windows?
+@cindex other ports of Emacs
+
+@xref{Cygwin}.
+
+@cindex DOS port
+@cindex Windows 3.11 port
+Emacs can also be compiled for MSDOS.  When run on recent MS Windows,
+it supports long file names, and uses the Windows clipboard.
+See the @file{msdos} directory in the Emacs sources for building
+instructions (requires DJGPP).
+
+@c ------------------------------------------------------------
+@node Getting Emacs
+@chapter Getting Emacs
+
+@menu
+* Downloading::
+* Compiling::
+* Debugging::
+@end menu
+
+@node Downloading
+@section Where can I download Emacs?
+
+@cindex precompiled binaries
+@cindex where to get Emacs binaries
+Pre-compiled versions are distributed from
+@uref{http://ftpmirror.gnu.org/emacs/windows/, ftp.gnu.org mirrors}.
+Emacs binaries are distributed as zip files, digitally
+signed by the developer who built them.  Generally most users will
+want the file @file{emacs-@value{EMACSVER}-bin-i386.zip}, which
+contains everything you need to get started. 
+
+@cindex where to get sources
+@cindex Emacs source code
+@cindex source for Emacs
+The latest source is available from
+@uref{http://ftpmirror.gnu.org/emacs/, ftp.gnu.org mirrors}.  It is
+distributed as a compressed tar file, digitally signed by the maintainer
+who made the release.
+
+@cindex Bzr, getting Emacs
+@cindex latest development version of Emacs
+@cindex Emacs Development
+The development version of Emacs is available from
+@uref{http://savannah.gnu.org/projects/emacs, Savannah}, the GNU
+development site.
+
+@node Compiling
+@section How can I compile Emacs myself?
+@cindex compiling Emacs
+
+To compile Emacs on Windows, you will need the MingW or Cygwin port of
+GCC with MingW make, or a Microsoft C compiler with nmake and the
+single threaded C runtime library.  Recent versions of Microsoft
+Visual Studio no longer come with the single threaded C runtime
+library, which is required for certain POSIX compatibility, so MingW
+is usually the best choice.  Image support requires external
+libraries, the headers and import libraries for which will need to be
+installed where your compiler can find them.  You will also need ports
+of GNU @command{rm} and @command{cp}, as the Windows native
+equivalents are not consistent between versions.  GNU texinfo will be
+required to build the manuals.  @xref{Other useful ports}.
+
+After unpacking the source, or checking out of Bzr, be sure to read the
+instructions in @file{nt/README} and @file{nt/INSTALL}.
+
+@node Debugging
+@section How do I use a debugger on Emacs?
+@cindex debugging Emacs
+@cindex bugs in Emacs, how to debug
+@cindex Emacs debugging
+
+By default, Emacs is compiled with debugging on, and optimizations enabled.
+The optimizations may interfere with some types of debugging; the debugger
+may not show clearly where it is, or may not be able to inspect certain
+variables.  If this is the case, reconfigure with @option{--no-opt}.
+
+The file @file{etc/DEBUG} contains general debugging hints, as well as
+specific notes about debugging Emacs with both gdb and Microsoft debuggers.
+
+@menu
+* GDB::
+* Microsoft Developer Studio::
+@end menu
+
+@node GDB
+@subsection GDB
+@cindex GDB, debugging Emacs with
+@cindex debugging Emacs with GDB
+
+GDB is the GNU debugger, which can be used to debug Emacs when it has
+been compiled with GCC.  The best results will be obtained if you
+start gdb from the @file{src} directory as @samp{gdb oo/i386/emacs.exe}.
+This will load the init file @file{.gdbinit} in that directory, to
+define some extra commands for working with lisp while debugging, and
+set up breakpoints to catch abnormal aborts.
+
+@node Microsoft Developer Studio
+@subsection Microsoft Developer Studio
+@cindex MSVC++, debugging Emacs with
+@cindex DevStudio, debugging Emacs with
+@cindex debugging Emacs with MS DevStudio
+
+MS DevStudio can be used to debug Emacs when it has been compiled with
+a Microsoft compiler.  To view lisp variables, you can call the
+function @code{debug_print} from the Quickwatch window.  Some
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/debug.txt,
+old tips} are probably still valid.
+
+@c ------------------------------------------------------------
+@node Installing Emacs
+@chapter Installing Emacs
+
+@menu
+* Unpacking::
+* Installing::
+* Image support::
+* Init file::
+* Location of init file::
+* Troubleshooting init file::
+* Associate files with Emacs::
+* Find-file and the Desktop::
+* Make Windows more like X::
+* Make Emacs like a Windows app::
+* Window operations::
+* Uninstall::
+* Does not run::
+* Virus::
+* Anti-virus::
+@end menu
+
+@node Unpacking
+@section How do I unpack the distributions?
+@cindex unpacking Emacs distribution
+@cindex extracting Emacs distribution
+@cindex unzipping Emacs distribution
+@cindex untarring Emacs distribution
+@cindex zip files, how to unpack Emacs binaries
+@cindex tar.gz files, how to unpack Emacs sources
+
+The binary distributions are distributed as zip files, which are handled
+natively by Windows XP and later.  For earlier versions, there are many
+tools that can handle the zip format, from InfoZip's command line unzip
+tool, to 7zip's multi-format graphical archive explorer.  Although
+popular, WinZip has caused problems with line-ends in the past, and is not
+Free software, so we do not recommend it.
+
+Source distributions are distributed as gzipped tar files.  7zip and
+similar multi-format graphical tools can handle these, or you can get
+Windows ports of the command line gzip and tar tools from multiple sources.
+@xref{Other useful ports}.
+
+The command to unpack a source distribution from the command line is:
+@example
+tar xzf emacs-@value{EMACSVER}.tar.gz 
+@end example
+
+If this does not work with the versions of tar and gzip that you have,
+you may need to try a two step process:
+@example
+gzip -dc emacs-@value{EMACSVER}.tar.gz | tar xvf -
+@end example
+
+You may see many messages from tar complaining about being unable to change
+the modification time on directories, and from gzip complaining about a
+broken pipe.  These messages are usually harmless, caused by incomplete ports
+that are not fully aware of the limitations of Windows.
+
+@node Installing
+@section How do I install Emacs after unpacking?
+@cindex installing Emacs
+@pindex addpm
+@cindex Start Menu, creating icons for Emacs
+
+You can run Emacs without any extra steps, but if you want icons in your
+Start Menu, or for Emacs to detect the image libraries that are already
+installed on your system as part of GTK, then you should run the program
+@file{emacs-@value{EMACSVER}\bin\addpm.exe}.
+
+@node Image support
+@section How do I get image support?
+@cindex images, installing libraries for
+@cindex jpeg, installing image support in Emacs
+@cindex png, installing image support in Emacs
+@cindex gif, installing image support in Emacs
+@cindex tiff, installing image support in Emacs
+@cindex xpm, installing image support in Emacs
+@cindex toolbar, installing color icons in
+@cindex color images, installing support for images in Emacs
+@cindex monochrome images, getting color images in Emacs
+@cindex black and white images, getting color images in Emacs
+
+Emacs has built in support for XBM and PBM/PGM/PPM images.  This is
+sufficient to see the monochrome splash screen and tool-bar icons.
+Since 22.2, the official precompiled binaries for Windows have bundled
+libXpm, which is required to display the color versions of those images.
+
+Emacs is compiled to recognize JPEG, PNG, GIF and TIFF images also,
+but displaying these image types require external DLLs which are not
+bundled with Emacs.  @xref{Other useful ports}.
+
+@node Init file
+@section What is my init file?
+@cindex .emacs
+@cindex init file
+
+When Emacs starts up, it attempts to load and execute the contents of
+a file commonly called @file{.emacs} (though it may have other names,
+@pxref{Installing Emacs,,Where do I put my init file?}) which contains any
+customizations you have made.  You can manually add lisp code to your
+.emacs, or you can use the Customization interface accessible from the
+@emph{Options} menu.  If the file does not exist, Emacs will start
+with the default settings.
+
+@node Location of init file
+@section Where do I put my init file?
+@cindex HOME directory
+@cindex .emacs.d
+@cindex _emacs
+@cindex init.el
+@cindex registry, setting the HOME directory in
+
+On Windows, the .emacs file may be called _emacs for backward
+compatibility with DOS and FAT filesystems where filenames could not
+start with a dot.  Some users prefer to continue using such a name,
+because Explorer cannot create a file with a name starting with a dot,
+even though the filesystem and most other programs can handle it.
+In Emacs 22 and later, the init file may also be called
+@file{.emacs.d/init.el}.  Many of the other files that are created
+by lisp packages are now stored in the @file{.emacs.d} directory too,
+so this keeps all your Emacs related files in one place.
+
+All the files mentioned above should go in your @env{HOME} directory.
+The @env{HOME} directory is determined by following the steps below:
+
+@enumerate
+@item
+If the environment variable @env{HOME} is set, use the directory it indicates.
+@item
+If the registry entry @code{HKCU\SOFTWARE\GNU\Emacs\HOME} is set, use the
+directory it indicates.
+@item
+If the registry entry @code{HKLM\SOFTWARE\GNU\Emacs\HOME} is set, use the
+directory it indicates.  Not recommended, as it results in users sharing
+the same HOME directory.
+@item
+If @file{C:\.emacs} exists, then use @file{C:/}.  This is for
+backward compatibility, as previous versions defaulted to @file{C:/}
+if @env{HOME} was not set.
+@item
+Use the user's AppData directory, usually a directory called
+@file{Application Data} under the user's profile directory, the location
+of which varies according to Windows version and whether the computer is
+part of a domain.
+@end enumerate
+
+Within Emacs, @key{~} at the beginning of a file name is expanded to your
+@env{HOME} directory, so you can always find your .emacs file with
+@kbd{C-x C-f ~/.emacs}.
+
+@node Troubleshooting init file
+@section Troubleshooting init file problems
+@cindex troubleshooting init problems
+@cindex debugging init problems
+@cindex checking that HOME is set correctly
+
+If you've set @env{HOME} to a directory using one of the above
+methods, and Emacs still doesn't load your init file, the first
+thing you should do is check to see what Emacs thinks @env{HOME} is set
+to.  You can do this by evaluating the following expression in the
+@file{*scratch*} buffer using @kbd{C-x C-e}:
+
+@example
+(insert (getenv "HOME"))
+@end example
+
+Look carefully at what is printed and make sure the value is
+valid.  For example, if the value has trailing whitespace, Emacs won't
+be able to find the directory.  Also, be sure that the value isn't a
+relative drive letter (e.g., @file{d:} without a backslash); if it is,
+then @env{HOME} is going to be whatever the current directory on that
+drive is, which is likely not what you want to happen.
+
+@node Associate files with Emacs
+@section How do I associate files with Emacs?
+@cindex Explorer, associating Emacs with files in
+@cindex emacsclient, associating files with
+@cindex file associations
+@cindex associating files with Emacs
+@cindex ALTERNATE_EDITOR
+@findex server-start
+
+The recommended way to associate files is to associate them with
+@command{emacsclientw.exe}.  In order for this to work when Emacs is
+not yet started, you will also need to set the environment variable
+@env{ALTERNATE_EDITOR} to @command{runemacs.exe}.  To open files
+in a running instance of Emacs, you will need to add the following
+to your init file:
+@example
+(server-start)
+@end example
+
+@menu
+* Using with Explorer::
+@end menu
+
+@node Using with Explorer
+@subsection For use with Internet Explorer
+@cindex Internet Explorer, view source in Emacs
+@cindex mailto urls, associating with Emacs
+@cindex news urls, associating with Emacs
+@cindex URLs, associating mail and news URLs with Emacs
+
+You can use Emacs as the editor for composing mail for
+@indicateurl{mailto:} links, reading usenet for @indicateurl{news:}
+links, and viewing source.  The following registry entries control
+this:
+
+@itemize @w{}
+@item
+Mail
+@itemize
+@item @strong{Key:} HKCR\mailto\shell\open\command\(Default)
+@item @strong{Value:} emacsclientw -e "(message-mail (substring \"%1\" 7))"
+@end itemize
+
+@item
+News
+@itemize
+@item @strong{Key:} HKCR\news\shell\open\command\(Default)
+@item @strong{Value:} emacsclientw -e "(gnus-fetch-group (substring \"%1\" 5)"
+@end itemize
+
+@item
+View Source
+@itemize
+@item @strong{Key:} HKCR\htmlfile\shell\edit\command\(Default)
+@item @strong{Value:} emacsclientw "%1"
+@end itemize
+
+@end itemize
+
+Thanks to Jason Rumney and Sigbjorn Finne for these tips.
+
+@node Find-file and the Desktop
+@section How do I use find-file to open files that are on the Desktop?
+@cindex Desktop, finding where it is
+@cindex finding the Desktop
+@cindex locating files on the Desktop
+
+The location of the Desktop varies between different versions of
+Windows, and in a corporate environment can be moved around by the
+network administrator.  On NT derivatives, you can use the value of
+the @env{USERPROFILE} environment variable to find where the desktop
+might be:
+
+@example
+@kbd{C-x C-f $USERPROFILE/Desktop}
+@end example
+
+If this doesn't work, then you probably have to forgo the keyboard
+just this once, and either drag a file onto the Emacs frame from the
+desktop, or use the file dialog (displayed when you use the toolbar or
+menu by default).  Once you have a file from the Desktop inside Emacs,
+@kbd{C-x C-f} will quickly reveal where your desktop is kept.
+
+@node Make Windows more like X
+@section How can I modify Windows to act more like X?
+@cindex X, making Windows behave like
+
+@menu
+* Focus follows mouse::
+* Swap CapsLock and Control::
+@end menu
+
+@node Focus follows mouse
+@subsection How do it make the active window follow the mouse?
+@vindex focus-follows-mouse
+@cindex point to focus
+@cindex mouse over to focus
+
+Customize the variables @code{focus-follows-mouse} and
+@code{mouse-autoselect-window}.  The former can be used to mislead
+Emacs into giving focus to other frames when the mouse is over them,
+even though Windows has a click to focus policy by default (there is
+software available to change that though).  The latter can be used to
+make Emacs use a focus-follow-mouse policy within its own frames.
+
+@node Swap CapsLock and Control
+@subsection How do I swap CapsLock and Control?
+@cindex scan codes, modifying
+@cindex key layout, customizing
+@cindex caps-lock, swapping with control key
+@cindex control key, swapping with caps-lock
+@cindex windows key, use as alt
+@cindex alt key, using windows keys as additional
+
+This cannot be done within Emacs, but you can modify the scan code
+mappings in the registry or define a new keyboard layout to swap the
+keys on a system wide basis.
+
+@menu
+* Swap Caps NT::
+* Swap Caps 98::
+@end menu
+
+@node Swap Caps NT
+@subsubsection Windows NT/2000/XP/Vista?
+
+@itemize
+@item
+From Chris McMahon.  To make CapsLock a Control key (leaving your
+original control keys as they were), use this registry file:
+@example
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,1d,00,3a,00,00,00,00,00
+@end example
+To swap CapsLock and the left Control key, use:
+@example
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,03,00,00,00,1d,00,3a,00,3a,00,1d,00,00,00,00,00
+@end example
+Save these as files with a @file{.reg} extension, and double-click on
+them in Explorer, or ``run'' them from a command prompt to have them
+update your registry (you may need to reboot).
+@item
+Shane Holder gives some background on how "Scancode Map" is used
+by the system:
+@ignore
+http://ftp.gnu.org/old-gnu/emacs/windows/docs/ntemacs/contrib/caps-ctrl-registry.txt
+From: Shane Holder <holder@@mordor.rsn.hp.com>
+To: ntemacs-users@@cs.washington.edu
+Date: 04 Dec 1996 14:36:21 -0600
+Message-ID: <fawg21mm4hm.fsf@@mordor.rsn.hp.com>
+Subject: Re: Re[2]: problem with caps/ctrl swap on NT 4.0
+@end ignore
+@example
+It's a binary value that lets you map keystrokes in the low-level keyboard 
+drivers in NT.  As a result you don't have to worry about applications 
+bypassing mappings that you've done at a higher level (i.e. it just works). 
+
+Here's the format of the value:
+
+	DWORD:	0x00000000	header
+	DWORD:	0x00000000	header
+	DWORD:	length (in DWORDs) of remaining data, including terminating DWORD
+	DWORD:	mapping 1
+	...
+	DWORD:	mapping n
+	DWORD:	0x00000000	terminating null DWORD
+
+Each mapping DWORD  has two parts: the input scancode, and an output 
+scancode.  To map scancode 0x1d (left control) to scancode 0x3a (caps 
+lock), you want a value of 0x003a001d.  Note that this does not swap the 
+keys.  Using just this mapping value, both the left control and the caps 
+lock key will behave as caps-lock.  To swap, you also need to map 0x3a to 
+0x1d, using 0x001d003a.
+
+This registry value is system wide, and can't be made user-specific.  It
+also only takes affect on reboot.
+@end example
+@item
+Ulfar Erlingsson has provided a registry file that sets the CapsLock key
+to be a Control key and the Windows key to be an Alt key:
+@example
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,03,00,00,00,1d,00,3a,00,38,00,5b,e0,00,00,00,00
+@end example
+@end itemize
+
+@node Swap Caps 98
+@subsubsection Windows 95/98/ME
+
+Microsoft has a tool called keyremap that is part of their Kernel Toys add ons
+for Windows 95.  The tool has also been confirmed to work on Windows 98.
+
+@node Make Emacs like a Windows app
+@section How can I modify Emacs to act more like a Windows app?
+@cindex Windows, making Emacs act more like
+@cindex UI, making Emacs more like other Windows apps
+
+Many beginning users find Emacs difficult to use because its user
+interface is different in many ways.  Emacs predates most UI
+standards, and experienced Emacs users are used to the way things are,
+so changing the defaults is difficult.  Most of the ``standard''
+behavior can be approximated in Emacs after some configuring though.
+
+@menu
+* Highlight selection::
+* CUA::
+@end menu
+
+@node Highlight selection
+@subsection Highlighting the selection
+@cindex transient-mark-mode
+@cindex selection, highlighting
+@cindex region, highlighting
+@cindex highlighting the selected region
+@cindex marked region, highlighting
+@cindex point and mark, highlighting the region between
+@cindex delete-selection-mode
+@cindex overwriting the selected region
+
+Emacs has a concept of a mark and point that is similar to selections
+in other programs.  But the mark in Emacs is used for more than just
+defining the selected region, it lives on while you continue to edit
+and move around the buffer so it can also be a kind of bookmark.  The
+history of marks is saved so you can pop previous marks back to the
+top of the stack to go back to somewhere you were some time ago.
+Because of this dual purpose, the region between mark and point is not
+highlighted by default unless you select a region by clicking and
+dragging the mouse.
+
+The minor mode @code{transient-mark-mode} changes the behavior of
+the mark in two ways.  First, it distinguishes between an active mark
+that has just been defined or reactivated, and an inactive mark.  When
+the mark is active, some commands that normally act on lines, words,
+buffers etc. will instead act on the region.  An inactive mark needs
+to be reactivated to operate on it, unless @code{mark-even-if-inactive}
+is set.  Secondly, @code{transient-mark-mode} also highlights the
+region when it is active, providing the same visual clue that you get
+in other programs.
+
+In addition to seeing the highlighting, new Emacs users often expect
+editing commands to replace the region when it is active.  This behavior
+can be obtained with @code{delete-selection-mode}, but see the following
+question also.
+
+@node CUA
+@subsection Standard Windows key bindings
+@findex cua-mode
+@cindex CUA keybindings
+@cindex shift key, selecting with
+@cindex standard Windows keybindings
+@cindex paste with C-v
+@cindex cut with C-x
+@cindex copy with C-c
+@cindex C-c to copy
+@cindex C-x to cut
+@cindex C-v to paste
+
+The keybindings of Emacs predate modern GUIs, and the keys that were
+chosen by later GUIs for cut and copy were given important functions
+as extended keymaps in Emacs.  CUA mode attempts to let both bindings
+co-exist by defining C-x and C-c as @code{kill-region} and
+@code{copy-region-as-kill} when the region is active, and letting
+them have their normal Emacs bindings when the region is not active.
+Many people find this to be an acceptable compromise.  CUA mode also
+defines a number of other keys (C-v, Shift selection), and can be turned
+on from the @emph{Options} menu.
+
+@node Window operations
+@section Window operations
+@cindex maximize frames from lisp
+@cindex minimize frames from lisp
+@cindex WM_SYSCOMMAND, sending system commands from lisp
+@cindex system menu, simulating from lisp
+
+The function @code{w32-send-sys-command} can be used to simulate
+choosing commands from the system menu (in the top left corner of the
+Window) and a few other system wide functions.  It takes an integer
+argument, the value of which should be a valid @code{WM_SYSCOMMAND}
+message as documented in Microsoft's API documentation.
+
+@node Uninstall
+@section How do I uninstall Emacs?
+@cindex uninstall Emacs
+@cindex remove Emacs
+@cindex clean Emacs registry settings
+@cindex registry, cleaning the Emacs settings
+@cindex Start Menu, removing Emacs from
+@cindex upgrading Emacs
+@cindex delete Emacs directory
+
+Emacs does not come with an uninstall program.  No files are installed
+outside of the Emacs base directory, so deleting that directory is
+sufficient to clean away the files.  If you ran @command{addpm},
+you'll need to delete the Start Menu group too.  The registry entries
+inserted by @command{addpm} will not cause any problems if you leave
+them there, but for the sake of completeness, you can use @command{regedit}
+to remove the keys under @code{HKEY_LOCAL_MACHINE} orx
+@code{HKEY_CURRENT_USER}: @code{SOFTWARE\GNU\Emacs}, and the key
+@code{HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\emacs.exe} if it exists.
+
+@node Does not run
+@section When I run Emacs nothing happens
+@cindex troubleshooting installation problems
+@cindex window not appearing, Emacs
+@cindex failure to run, Emacs
+@cindex 8.3 filenames, problems caused
+
+Emacs could have failed to run for a number of reasons.  The most
+common symptom is that, when Emacs is started, the cursor changes for
+a second but nothing happens.  If this happens to you, it is quite
+likely that the distribution was unpacked incorrectly.
+
+Check for the following to see if there was a problem during unpacking:
+@enumerate
+@item
+Be sure to disable the CR/LF translation or the executables will be
+unusable.  Older versions of WinZipNT would enable this translation by
+default.  If you are using WinZipNT, disable it.
+@item
+Check that filenames were not truncated to 8.3.  For example, there
+should be a file CONTRIBUTE in the top level directory; if this has
+been truncated to CONTRIBU or CONTRI~1, your distribution has been
+corrupted while unpacking and Emacs will not start.
+@end enumerate
+
+If it is still not working, send mail to the list, describing what
+you've done, and what you are seeing. (The more information you send
+the more likely it is that you'll receive a helpful response..
+
+@node Virus
+@section Does Emacs contain a virus?
+@cindex virus reported in Emacs
+@cindex anti-virus software reporting a virus in Emacs
+
+There have been reports in the past that some virus scanners claim
+that the Emacs distribution has a virus.  This is extremely unlikely if
+you have downloaded Emacs from the GNU FTP site or one of its mirrors
+and the GPG signature for it is valid and listed in the GNU keyring,
+unless perhaps it is a new release made in the last few days, in which
+case you should exercise more caution and report the problem.  Past
+problems seem to have been caused by virus checkers running into a
+buffer size limit when unpacking large tar.gz files for scanning, and
+reporting the failure as an ``unknown virus''.
+
+@node Anti-virus
+@section What known problems are there with anti-virus software?
+@cindex anti-virus software, bad interaction with
+@cindex virus software, bad interaction with
+@cindex firewall, bad interaction with
+@cindex scan all files, anti-virus option causing problems
+@cindex auto protect, anti-virus option causing problems
+@cindex shell, interacting badly with anti-virus
+@cindex subprocesses, interacting badly with anti-virus
+
+Anti-virus and firewall software can block Emacs from starting subprocesses
+and opening network connections.  Most such products have an Advanced
+mode where they will prompt you rather than silently blocking.  In some cases
+the ``scan all files'' or ``auto protect'' option of anti-virus programs
+has caused failures running shell related commands within Emacs.
+@xref{Sub-processes,,Why is nothing happening when I enter shell commands?}.
+
+@c ------------------------------------------------------------
+@node Display Settings
+@chapter Display Settings
+
+@menu
+* Console window size::
+* Mouse trouble::
+* Cut and paste NUL::
+* Garbled clipboard::
+* Beep sound::
+@end menu
+
+@node Console window size
+@section Emacs in console mode goes beyond the window size
+@cindex console, window size
+@cindex telnet, display size problems running emacs over
+@cindex -nw, window size
+@vindex w32-use-full-screen-buffer
+
+The variable @code{w32-use-full-screen-buffer} controls whether Emacs uses
+the window size or buffer size to determine the number of lines on screen.
+Normally the window size is correct, but when running Emacs over some
+telnet servers, the buffer size needs to be used.  Emacs tries to guess
+the correct value at startup, but if it guesses wrong, you can customize
+that variable yourself.
+
+@node Mouse trouble
+@section What do I do if I have problems with my mouse buttons?
+@cindex mouse buttons, problems with
+@cindex 2 button mouse
+@cindex two button mouse
+@cindex third mouse button, simulating
+@cindex middle mouse button, simulating
+@cindex simulating three button mouse with two buttons
+@cindex swap right and middle mouse buttons
+@cindex exchange mouse-2 and mouse-3 buttons
+@vindex w32-mouse-button-tolerance
+@vindex w32-num-mouse-buttons
+@vindex w32-swap-mouse-buttons
+
+Emacs assigns bindings assuming a three button mouse.  On Windows, if
+a two button mouse is detected, a hack is enabled which lets you
+simulate the third button by pressing both mouse buttons
+simultaneously.  @code{w32-mouse-button-tolerance} defines the timeout
+for what is considered ``simultaneous''.  You can check how many
+buttons Emacs thinks your mouse has with @kbd{C-h v}
+@code{w32-num-mouse-buttons}.
+
+If you find yourself needing the mouse-3 bindings more often than mouse-2,
+you can swap the buttons with the following code in your init file:
+@example
+(setq w32-swap-mouse-buttons t)
+@end example
+
+@node Cut and paste NUL
+@section How do I cut and paste text with NUL characters?
+@cindex clipboard, NUL characters
+
+If you attempt to cut and paste text with NUL characters embedded in it,
+then the text will be truncated at the first NUL character.  This is a
+limitation of the Windows clipboard, and does not affect killing and yanking
+from the kill-ring within Emacs.
+
+@node Garbled clipboard
+@section How can I fix garbled text yanked from the clipboard?
+@cindex clipboard, corruption of
+@cindex garbage on the clipboard
+@cindex clipboard encoding
+@cindex encoding, clipboard
+@findex set-selection-coding-system
+
+You can try @code{set-selection-coding-system}, but generally such
+corruption is a thing of the past, as Emacs uses Unicode for the clipboard
+by default now.
+
+@node Beep sound
+@section How do I change the sound of the Emacs beep?
+@cindex beep, changing the sound
+@cindex sound, changing the beep
+@findex set-message-beep
+
+You can use the function @code{set-message-beep} to change the sound
+that Emacs uses for its beep.  This affects both console and GUI frames.
+The doc string contains a list of the system sounds you can use.
+
+@c ------------------------------------------------------------
+@node Fonts and text translation
+@chapter Fonts and text translation
+
+@menu
+* Font names::
+* Bold and italic::
+* Multilingual fonts::
+* BDF fonts::
+* Font menu::
+* Line ends::
+@end menu
+
+@node Font names
+@section Font names
+@cindex XLFD font names
+@cindex font XLFD name format
+@cindex fontconfig font names in Emacs 23
+@cindex font dialog, using to find font names
+@findex w32-select-font
+@findex x-list-fonts
+
+Fonts in Emacs 22 and earlier are named using the X Logical Font
+Description (XLFD) format.  Emacs on Windows ignores many of the
+fields, and populates them with * when listing fonts.  Former
+maintainer Andrew Innes wrote
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/x-font-details,
+this explanation} of what each field in the font string means and how
+Emacs treated them back in 19.34.  Since then, multilingual support and
+a redisplay overhaul to support variable width fonts have changed things
+slightly; more character sets are recognized (and the old pseudo character
+sets are deprecated), and the resolution fields are used to calculate the
+difference between point and pixel sizes, but normally you should leave
+these at the system default.  The foundry field is also populated with
+an indication of whether the font is outline (.TTF, .ATM) or raster (.FON)
+based when fonts are listed, which may let you differentiate between two
+fonts with the same name and different technologies.
+
+From Emacs 23, the preferred font name format will be moving to the simpler
+and more flexible fontconfig format.  XLFD names will continue to be
+supported for backward compatibility.
+
+@example
+XLFD: -*-Courier New-normal-r-*-*-13-*-*-*-c-*-iso8859-1
+Fontconfig: Courier New-13
+@end example
+
+To find the XFLD name for a font, you can execute the following in the
+@file{*scratch*} buffer by pressing C-j at the end of the line:
+@example
+(w32-select-font nil t)
+@end example
+
+To see a complete list of fonts, execute the following in the
+@file{*scratch*} buffer by pressing C-x C-e at the end of the line:
+@example
+(insert (prin1-to-string (x-list-fonts "*")))
+@end example
+
+The command line options and frame-parameters for changing the default font
+in Emacs are documented in the manual.  Fonts can also be used when defining
+faces, though family and size are generally specified individually there.
+In addition, Emacs on Windows reads the registry to find X Resources.  This
+is also documented in the manual.
+
+@node Bold and italic
+@section How can I get bold and italic fonts to work?
+@cindex italic fonts
+@cindex synthesized italic and bold fonts
+@cindex bold fonts, synthesized
+@findex set-face-font
+@vindex w32-enable-synthesized-fonts
+
+Emacs will only use the italic (and bold) versions of a font automatically
+if it has the same width as the normal version.  Many fonts have italic
+and bold versions that are slightly wider.  It will also only use real
+bold and italic fonts by default, where other applications may use
+synthesized variations that are derived from the normal font.  To enable
+more italic and bold fonts to be displayed, you can enable synthesized fonts
+and manually set the font for italic, bold and bold-italic as follows:
+
+@example
+(setq w32-enable-synthesized-fonts t)
+(set-face-font 'italic "-*-Courier New-normal-i-*-*-11-*-*-*-c-*-iso8859-1")
+(set-face-font 'bold-italic "-*-Courier New-bold-i-*-*-11-*-*-*-c-*-iso8859-1")
+@end example
+
+@node Multilingual fonts
+@section Multilingual font support
+@cindex multilingual display, fonts
+@cindex MULE, fonts
+
+@menu
+* Language display::
+* Non-latin display::
+* International fonts::
+* Third-party multibyte::
+* Localized fonts::
+@end menu
+
+@node Language display
+@subsection Is it possible to display all the supported languages?
+@cindex HELLO file, displaying all
+@cindex language support, fonts
+@cindex GNU intlfonts, for displaying all languages
+@cindex intlfonts, for displaying all languages
+
+To display all the languages that Emacs is capable of displaying, you will
+require the BDF fonts from the GNU intlfonts package.
+@xref{Fonts and text translation,,How do I use bdf fonts with Emacs?}.
+
+For many languages, native truetype fonts are sufficient, and in Emacs
+23 the need for BDF fonts will disappear for almost all languages.  At
+the time of writing, some Arabic characters in the HELLO file still do
+not display with native fonts, because they are pre-composed characters
+from MULE character sets rather than standard Unicode Arabic, but all
+other characters are able to be displayed with appropriate truetype or
+opentype fonts.
+
+@node Non-latin display
+@subsection How do I get Emacs to display non-latin characters?
+@cindex fontsets, defining
+@cindex language support, forcing Emacs to use specific fonts
+@cindex MULE, fontsets
+@cindex multilingual display, fontsets
+@findex create-fontset-from-ascii-font
+@findex create-fontset-from-fontset-spec
+
+Recent versions of Emacs display a large range of characters out of
+the box, but if you are having problems with a particular character
+set which you know you have fonts for, you can try defining a
+new fontset with @code{create-fontset-from-ascii-font} or
+@code{create-fontset-from-fontset-spec}.
+
+@example
+(create-fontset-from-fontset-spec
+ "-*-Courier New-normal-r-*-*-12-*-*-*-c-*-fontset-most,
+ latin-iso8859-2:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-2,
+ latin-iso8859-3:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-3,
+ latin-iso8859-4:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-4,
+ cyrillic-iso8859-5:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-5,
+ greek-iso8859-7:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-7,
+ latin-iso8859-9:-*-Courier New-normal-r-*-*-12-*-*-*-c-*-iso8859-9,
+ japanese-jisx0208:-*-MS Gothic-normal-r-*-*-12-*-*-*-c-*-jisx0208-sjis,
+ katakana-jisx0201:-*-MS Gothic-normal-r-*-*-12-*-*-*-c-*-jisx0208-sjis,
+ latin-jisx0201:-*-MS Gothic-normal-r-*-*-12-*-*-*-c-*-jisx0208-sjis,
+ japanese-jisx0208-1978:-*-MS Gothic-normal-r-*-*-12-*-*-*-c-*-jisx0208-sjis,
+ korean-ksc5601:-*-Gulim-normal-r-*-*-12-*-*-*-c-*-ksc5601-*,
+ chinese-gb2312:-*-MS Song-normal-r-*-*-12-*-*-*-c-*-gb2312-*,
+ chinese-big5-1:-*-MingLiU-normal-r-*-*-12-*-*-*-c-*-big5-*,
+ chinese-big5-2:-*-MingLiU-normal-r-*-*-12-*-*-*-c-*-big5-*" t)
+@end example
+
+@node International fonts
+@subsection Where can I find fonts for other languages?
+@cindex language support, finding fonts
+@cindex fonts, where to find
+@cindex MULE, finding fonts
+@cindex multilingual display, finding fonts
+@cindex GNU intlfonts, where to get
+@cindex intlfonts, where to get
+
+In addition to the wide range of fonts that come with the language
+support packages of various components of Windows itself, GNU/Linux
+distributions these days come with a number of Free truetype fonts
+that cover a wide range of languages.  The GNU intlfonts source
+distribution contains BDF fonts covering all of the languages that can
+be displayed by Emacs 22, and can be downloaded from
+@uref{http://ftpmirror.gnu.org/intlfonts, ftp.gnu.org mirrors}.
+
+@node Third-party multibyte
+@subsection How do I use third party programs to display multibyte characters?
+@cindex multilingual display, third party programs on Windows 9x/ME
+@cindex language support, third party programs on Windows 9x/ME
+@vindex w32-enable-unicode-output
+
+You probably only need to do this on the non-Unicode versions of Windows
+(95, 98 and ME), and even then, various Windows and Internet Explorer
+updates have made third party software unnecessary in most cases.
+If you are having trouble displaying text, try defining a fontset
+with the font for the languages that the third party software handles
+set to what that software expects (which may not be an appropriate font
+for that language, but the third party software is intercepting it
+and using a different font behind the scenes).
+@xref{Non-latin display}.
+
+In addition to defining a fontset with the expected font, you may also need
+to disable unicode output with:
+@example
+(setq w32-enable-unicode-output nil)
+@end example
+
+@node Localized fonts
+@subsection Can I use a font with a name in my language?
+@cindex fonts, localized font names
+@vindex locale-coding-system
+
+Normally Emacs should initialize @code{locale-coding-system} appropriately
+based on your locale, which will let Emacs use font names in your local
+language successfully.
+
+@node BDF fonts
+@section How do I use bdf fonts with Emacs?
+@cindex BDF fonts, using
+@cindex GNU intlfonts, using
+@cindex intlfonts, using
+@vindex w32-bdf-filename-alist
+@vindex bdf-directory-alist
+@vindex font-encoding-alist
+@findex w32-find-bdf-fonts
+@findex set-frame-font
+
+To use bdf fonts with Emacs, you need to tell Emacs where the fonts
+are located, create fontsets for them, and then use them.  We'll use
+the 16 dot international fonts from @uref{http://ftpmirror.gnu.org/intlfonts,
+ftp.gnu.org/gnu/intlfonts} as an
+example put together by Jason Rumney.
+
+Download @file{16dots.tar.gz} and unpack it; I'll assume that they are in
+@file{c:\intlfonts}.  Then set @code{w32-bdf-filename-alist} to the list of
+fonts returned by using @code{w32-find-bdf-fonts} to enumerate all of
+the font files.  It is a good idea to set the variable
+@code{bdf-directory-list} at the same time so @code{ps-print} knows where
+to find the fonts:
+@example
+(setq bdf-directory-list
+      '("c:/intlfonts/Asian" "c:/intlfonts/Chinese"
+        "c:/intlfonts/Chinese-X" "c:/intlfonts/Ethiopic"
+	"c:/intlfonts/European" "c:/intlfonts/Japanese"
+        "c:/intlfonts/Japanese-X" "c:/intlfonts/Korean-X"
+	"c:/intlfonts/Misc/"))
+
+(setq w32-bdf-filename-alist (w32-find-bdf-fonts bdf-directory-list))
+@end example
+
+Then create fontsets for the BDF fonts:
+
+@example
+(create-fontset-from-fontset-spec
+ "-*-fixed-medium-r-normal-*-16-*-*-*-c-*-fontset-bdf,
+japanese-jisx0208:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1983-*,
+katakana-jisx0201:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0201*-*,
+latin-jisx0201:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0201*-*,
+japanese-jisx0208-1978:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1978-*,
+thai-tis620:-misc-fixed-medium-r-normal--16-160-72-72-m-80-tis620.2529-1,
+lao:-misc-fixed-medium-r-normal--16-160-72-72-m-80-MuleLao-1,
+tibetan-1-column:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-80-MuleTibetan-1,
+ethiopic:-Admas-Ethiomx16f-Medium-R-Normal--16-150-100-100-M-160-Ethiopic-Unicode,
+tibetan:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-160-MuleTibetan-0")
+@end example
+
+Many of the international bdf fonts from gnu.org are type 0, and therefore
+need to be added to font-encoding-alist:
+
+@example
+;; Need to add some fonts to font-encoding-alist since the bdf fonts
+;; are type 0 not the default type 1.
+(setq font-encoding-alist
+      (append '(("MuleTibetan-0" (tibetan . 0))
+                ("GB2312"        (chinese-gb2312 . 0))
+                ("JISX0208"      (japanese-jisx0208 . 0))
+                ("JISX0212"      (japanese-jisx0212 . 0))
+                ("VISCII"        (vietnamese-viscii-lower . 0))
+                ("KSC5601"       (korean-ksc5601 . 0))
+                ("MuleArabic-0"  (arabic-digit . 0))
+                ("MuleArabic-1"  (arabic-1-column . 0))
+                ("MuleArabic-2"  (arabic-2-column . 0))) font-encoding-alist))
+@end example
+
+You can now use the Emacs font menu (@pxref{Fonts and text
+translation,,How can I have Emacs use a font menu like on X?}) to
+select the @emph{bdf: 16-dot medium} fontset, or you can select it by
+setting the default font:
+
+@example
+    (set-frame-font "fontset-bdf")
+@end example
+
+Try loading the file @file{etc/HELLO}, and you should be able to see the
+various international fonts displayed (except for Hindi, which is not
+included in the 16-dot font distribution).
+
+@node Font menu
+@section How can I have Emacs use a font menu like on X?
+@cindex fonts, displaying a menu
+@cindex fontsets, displaying a menu
+@cindex font dialog, using a menu instead
+@vindex w32-use-w32-font-dialog
+
+Place the following in your init file:
+
+@example
+(setq w32-use-w32-font-dialog nil)
+@end example
+
+@menu
+* Add fonts to menu::
+@end menu
+
+@node Add fonts to menu
+@subsection How can I add my font to the font menu?
+@cindex font menu, adding fonts
+@vindex w32-fixed-font-alist
+
+If you have set w32-use-w32-font-dialog to nil, you can add fonts to
+the font menu by changing `w32-fixed-font-alist'.  For example:
+
+@example
+(setq w32-fixed-font-alist
+   (append w32-fixed-font-alist
+      '(("Monotype.com"
+         ("8" "-*-Monotype.com-normal-r-*-*-11-*-*-*-c-iso8859-1")
+         ("9" "-*-Monotype.com-normal-r-*-*-12-*-*-*-c-iso8859-1")
+         ("10" "-*-Monotype.com-normal-r-*-*-13-*-*-*-c-iso8859-1")
+         ("11" "-*-Monotype.com-normal-r-*-*-15-*-*-*-c-iso8859-1")))))
+@end example
+
+@node Line ends
+@section How can I control CR/LF translation?
+@cindex DOS line ends
+@cindex Unix line ends
+@cindex Mac line ends
+
+There are a number of methods by which you can control automatic CR/LF
+translation in Emacs, a situation that reflects the fact that the
+default support was not very robust in the past.  For a discussion of
+this issue, take a look at
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/todo/translate,
+this collection of email messages} on the topic.
+
+@menu
+* Automatic line ends::
+* Line ends by filename::
+* Line ends by file system::
+@end menu
+
+@node Automatic line ends
+@subsection Automatic CR/LF translation
+@cindex line ends, automatic detection
+
+For existing files, Emacs scans the file to determine the line ending
+convention as part of the same scan it does to determine the file
+encoding.  Embedded Ctrl-M (ASCII 13) characters and inconsistent line
+ends can confuse the automatic scanning, and Emacs will present the
+file in Unix (LF) mode with the Ctrl-M characters displayed as @samp{^M}.
+It does this to be safe, as no data loss will occur if the file is really
+binary and the Ctrl-M characters are significant.
+
+@node Line ends by filename
+@subsection CR/LF translation by file extension
+@cindex line ends, determining by filename
+@cindex binary files, determining by file name
+@vindex file-name-buffer-file-type-alist
+
+The variable @code{file-name-buffer-file-type-alist} holds a list of
+filename patterns and their associated type; binary or text.  Files marked
+as binary will not have line-end detection performed on them, and instead
+will always be displayed as is.  With auto-detection in recent versions of
+Emacs, this is seldom useful for existing files, but can still be used
+to influence the choice of line ends for newly created files.
+
+@node Line ends by file system
+@subsection CR/LF translation by file system
+@cindex line ends, determining by filesystem
+@cindex binary files, determining by filesystem
+@vindex untranslated-filesystem-list
+@findex add-untranslated-filesystem
+@findex remove-untranslated-filesystem
+
+The variable @code{untranslated-filesystem-list} defines whole
+directory trees that should not have CR/LF autodetection performed on
+them.  The list can be manipulated with the functions
+@code{add-untranslated-filesystem} and
+@code{remove-untranslated-filesystem}.  With auto-detection in
+recent versions of Emacs, this is seldom useful for existing files,
+but can still be used to influence the choice of line ends for newly
+created files.
+
+@c ------------------------------------------------------------
+@node Printing
+@chapter Printing
+@cindex printing
+
+A lot of effort has gone into making it easier to print from Emacs on
+MS Windows, but this has still been insufficient to keep up with
+changes in printing technology from text and postscript based printers
+connected via ports that can be accessed directly, to graphical
+printers that are only accessible via USB.  For details, see
+@uref{http://www.emacswiki.org/cgi-bin/wiki/PrintingFromEmacs, Emacs
+Wiki}.
+
+@c ------------------------------------------------------------
+@node Sub-processes
+@chapter Subprocesses
+@cindex subprocesses
+
+@menu
+* Quoting issues::
+* Subprocess hang::
+* Subprocess buffering::
+* Subprocesses and floppy drive::
+* Killing subprocesses::
+* Subprocess EOF::
+* Using shell::
+* Cygwin paths::
+* Dired ls::
+* Shell echo::
+* Shell completion forward slash::
+* Incorrect DOS version::
+* Shell commands do nothing::
+@end menu
+
+@node Quoting issues
+@section Quoting issues
+@cindex quoting arguments to subprocesses
+@cindex sub-processes, quoting arguments to
+@cindex cygwin, quoting arguments
+
+The quoting rules for native Windows shells and Cygwin shells have
+some subtle differences.  When Emacs spawns subprocesses, it tries to
+determine whether the process is a Cygwin program and changes its
+quoting mechanism appropriately.  See this
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/shell-quoting,
+previous discussion} for details.
+
+@node Subprocess hang
+@section Programs reading input hang
+@cindex subprocesses, hanging when reading input
+@cindex full-screen console programs, as subprocesses
+@cindex ftp, client hanging
+@findex ftp
+
+Programs that explicitly use a handle to the console (@file{CON} or
+@file{CON:}) instead of stdin and stdout cannot be used as
+subprocesses to Emacs, and they will also not work in shell-mode.  The
+default ftp client on Windows is an example of such a program - this
+ftp program is mostly fine for use with @code{ange-ftp} or
+@code{tramp}, but not for @kbd{M-x ftp} (@pxref{Network access,,How do
+I use FTP within Emacs}).  There is no convenient way for either Emacs
+or any shell used in @code{shell-mode} to redirect the input and
+output of such processes from the console to input and output pipes.
+The only workaround is to use a different implementation of the
+program that does not use the console directly.  Microsoft's new
+PowerShell appears to be another such program, so that cannot be used
+as a replacement shell for Emacs.
+
+@node Subprocess buffering
+@section Buffering in shells and subprocesses
+@cindex subprocesses, buffering output
+@cindex output not displaying, subprocesses
+@cindex SQL subprocess hanging
+@cindex cvs hanging when login needed
+@cindex ssh, password prompt not appearing when using with cvs
+@findex sql-mode
+@findex shell-mode
+@cindex setbuf, using in subprocesses to prevent buffering
+@cindex setvbuf, using in subprocesses to prevent buffering
+
+You may notice that some programs, when run in a shell in
+@code{shell-mode},
+have their output buffered (e.g., people have found this happening to
+them with @code{sql-mode}).  When the program has a lot of output, it
+overflows the buffering and gets printed to the shell buffer; however,
+if the program only outputs a small amount of text, it will remain
+buffered and won't appear in the shell buffer.  The same can happen
+in other subprocesses that themselves run other programs as
+subprocesses, for example when using @command{cvs} from Emacs, which
+is itself configured to use @command{ssh}, password prompts fail to
+appear when expected, and @command{cvs} appears to hang.
+
+Although it may at first seem like the shell is buffering the output
+from the program, it is actually the program that is buffering
+output.  The C runtime typically decides how to buffer output based
+upon whether stdout is bound to a handle to a console window or
+not.  If bound to a console window, output is buffered line by line; if
+bound to a block device, such as a file, output is buffered block by
+block.
+
+In a shell buffer, stdout is a pipe handle and so is buffered in
+blocks.  If you would like the buffering behavior of your program to
+behave differently, the program itself is going to have to be changed;
+you can use @code{setbuf} and @code{setvbuf} to manipulate
+the buffering semantics.
+
+Some programs handle this by having an explicit flag to control their
+buffering behaviour, typically @option{-i} for interactive.  Other
+programs manage to detect that they are running under Emacs, by
+using @samp{getenv("emacs")} internally.
+
+@menu
+* Perl script buffering::
+@end menu
+
+@node Perl script buffering
+@subsection Perl script buffering
+@cindex perl, avoiding buffering when used as a subprocess of Emacs
+
+A handy solution for Perl scripts to the above problem is to use:
+
+@example
+# Turn all buffering off.
+select((select(STDOUT), $| = 1)[0]);
+select((select(STDERR), $| = 1)[0]);
+select((select(STDIN), $| = 1)[0]);
+@end example
+
+@node Subprocesses and floppy drive
+@section 16-bit subprocesses accessing the floppy drive
+@cindex floppy drive, access when subprocesses started
+@cindex subprocess starting causes floppy drive access
+
+If you are finding the 16 bit DOS subprocesses cause your A: drive to
+be accessed, hanging Emacs until the read times out if there is no
+floppy in the drive, check to see if your virus software is causing
+the problem.
+
+@node Killing subprocesses
+@section Killing subprocesses on Windows 95/98/Me
+@cindex subprocess, killing on Windows 95/98/ME
+@cindex killing subprocesses, Windows 95/98/ME
+@cindex shutdown, complaints about cmdproxy.exe running
+
+Emacs cannot guarantee that a subprocess gets killed on Windows 95 and
+its descendants, and it is a difficult limitation to work around.  To
+avoid problems on these systems, you should let subprocesses run to
+completion including explicitly exiting shells before killing the
+associated buffer.
+
+If you find that while shutting down, Windows complains that there is
+a running @command{cmdproxy.exe} even though you carefully exited all
+shells and none were showing in Task Manager before the shutdown, this
+could be due to buggy interaction with your virus scanner.
+
+@node Subprocess EOF
+@section Sending EOF to subprocesses
+@cindex EOF, sending to subprocesses
+@cindex shell terminates when EOF sent to subprocess
+@findex process-send-eof
+
+When an EOF is sent to a subprocess running in an interactive shell
+with @code{process-send-eof}, the shell terminates unexpectedly as
+if its input was closed.  This affects the use of @kbd{C-c C-d} in
+shell buffers.  See
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/todo/shell-ctrl-d,
+this discussion} for more details.
+
+@node Using shell
+@section How do I use a shell in Emacs?
+@cindex interactive shell, using
+@cindex shell within emacs, using
+@findex shell
+@findex  shell-command
+@vindex shell-file-name
+@vindex explicit-shell-file-name
+
+You can start an interactive shell in Emacs by typing @kbd{M-x shell}.
+Emacs uses the @env{SHELL} environment variable to determine which
+program to use as the shell.  To instruct Emacs to use a non-default
+shell, you can either set this environment variable, or customize 
+@code{explicit-shell-file-name}.  You can also customize
+@code{shell-file-name} to change the shell that will be used by
+subprocesses that are started with @code{shell-command} and
+related non-interactive shell commands.
+
+@menu
+* Bash::
+@end menu
+
+@node Bash
+@subsection bash
+@cindex cygwin bash as shell within Emacs
+@cindex shell, using cygwin bash within Emacs
+@cindex bash, using cygwin shell within Emacs
+@vindex comint-scroll-show-maximum-output
+@vindex comint-completion-addsuffix
+@vindex comint-eol-on-send
+@vindex w32-quote-process-args
+@vindex shell-mode-hook
+
+Cygwin bash is a popular shell for use with Emacs.  To use bash as the
+default shell in Emacs, you can place the following in your init file:
+
+@example
+(defun my-shell-setup ()
+  "For Cygwin bash under Emacs 20"
+  (setq comint-scroll-show-maximum-output 'this)
+  (make-variable-buffer-local 'comint-completion-addsuffix))
+  (setq comint-completion-addsuffix t)
+  ;; (setq comint-process-echoes t) ;; reported that this is no longer needed
+  (setq comint-eol-on-send t)
+  (setq w32-quote-process-args ?\")
+
+(setq shell-mode-hook 'my-shell-setup)
+@end example
+
+If you find that you are having trouble with Emacs tracking drive
+changes with bash, see Mike Fabian's
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/drive-tracking,
+note}.
+
+WARNING: Some versions of bash set and use the environment variable
+PID.  For some as yet unknown reason, if @env{PID} is set and Emacs
+passes it on to bash subshells, bash dies (Emacs can inherit the
+@env{PID} variable if it's started from a bash shell).  If you clear
+the @env{PID} variable in your init file, you should be able to
+continue to use bash as your subshell:
+@example
+    (setenv "PID" nil)
+@end example
+
+@node Cygwin paths
+@section How do I use Cygwin style paths in Emacs?
+@cindex cygwin paths, using within Emacs
+@cindex mount points, cygwin
+@cindex cygwin mount points, using within Emacs
+
+The package
+@uref{http://www.emacswiki.org/cgi-bin/wiki/cygwin-mount.el,
+cygwin-mount.el} teaches Emacs about Cygwin mount points.
+
+@node Dired ls
+@section How do I make dired use my ls program?
+@cindex dired, using an external ls program
+@cindex dired, interpreting symlinks the same way as cygwin
+@cindex symlinks in dired, interpreting the same way as cygwin
+@cindex cygwin symlinks in dired
+@vindex ls-lisp-use-insert-directory-program
+@vindex insert-directory-program
+
+Dired uses an internal lisp implementation of @command{ls} by default
+on Windows.  For consistent display of symbolic links and other
+information with other programs (eg Cygwin) and performance reasons,
+you may want to use a Windows port of @command{ls} instead.
+
+@example
+(setq ls-lisp-use-insert-directory-program t)      ;; use external ls
+(setq insert-directory-program "c:/cygwin/bin/ls") ;; ls program name
+@end example
+
+@node Shell echo
+@section How do I prevent shell commands from being echoed?
+@cindex echo, suppressing for shell input
+@cindex shell commands, suppressing echo
+@vindex comint-process-echoes
+@vindex comint-mode-hook
+@vindex explicit-cmd.exe-args
+@vindex explicit-cmdproxy.exe-args
+@vindex explicit-bash.exe-args
+@vindex explicit-bash-args
+@cindex shell specific arguments
+
+Some shells echo the commands that you send to them, and the echoed
+commands appear in the output buffer.  In particular, the default
+shells, @command{command.com} and @command{cmd.exe}, have this behavior.
+
+To prevent echoed commands from being printed, you can place the
+following in your init file:
+
+@example
+    (defun my-comint-init ()
+      (setq comint-process-echoes t))
+    (add-hook 'comint-mode-hook 'my-comint-init)
+@end example
+
+If @code{shell-mode} still is not stripping echoed commands, then
+you'll have to explicitly tell the shell to not echo commands.  You can
+do this by setting the @code{explicit-@var{SHELL}-args} variable
+appropriately; where @var{SHELL} is the value of your @env{SHELL}
+environment variable (do a @kbd{M-: (getenv "SHELL")} to see what it
+is currently set to).  Assuming that you are on NT and that your
+@env{SHELL} environment variable is set to @command{cmd.exe},
+then placing the following in your init file will tell
+@command{cmd.exe} to not echo commands:
+
+@example
+    (setq explicit-cmd.exe-args '("/q"))
+@end example
+
+The comint package will use the value of this variable as an argument
+to @command{cmd.exe} every time it starts up a new shell; the
+@option{/q} is the argument to @command{cmd.exe} that stops the
+echoing (invoking @samp{cmd /?} in a shell will show you all of the
+command line arguments to @command{cmd.exe}).
+
+Note that this variable is case sensitive; if the value of your
+@env{SHELL} environment variable is @command{CMD.EXE} instead, then
+this variable needs to be named @code{explicit-CMD.EXE-args} instead.
+
+@node Shell completion forward slash
+@section How can I make shell completion use forward slashes?
+@cindex completion, using forward slashes in shell buffers
+@cindex forward slashes for completion in shell buffers
+@vindex comint-completion-addsuffix
+
+The character appended to directory names when completing in a shell
+buffer is controlled by the variable @code{comint-completion-addsuffix}.
+See its documentation (with @kbd{C-h v}) for details.
+
+@node Incorrect DOS version
+@section Why do I get incorrect DOS version messages?
+@cindex nmake, Incorrect DOS version messages
+@cindex shell, Incorrect DOS version messages
+@cindex COMSPEC, effect on subprocesses of subprocesses
+
+This might happen if, for example, you invoke @command{nmake} in a
+shell and it tries to create sub-shells.  The problem happens because
+when the shell is initially created, the first argument to the shell
+is not the directory in which the shell program resides.  When this
+happens, @command{command.com} fabricates a value for its
+@env{COMSPEC} environment variable that is incorrect.  Then, when
+other programs go to use @env{COMSPEC} to find the shell, they are
+given the wrong value.
+
+The fix for this is to either prevent any arguments from being sent to
+the shell when it starts up (in which case @command{command.com} will
+use a default, and correct, value for @env{COMSPEC}), or to have the
+first argument be the directory in which the shell executable resides.
+
+@node Shell commands do nothing
+@section Why is nothing happening when I enter shell commands?
+@cindex shell commands not working
+@cindex anti-virus software, bad interaction with
+@cindex virus software, bad interaction with
+@cindex firewall, bad interaction with
+@cindex scan all files, anti-virus option causing problems
+@cindex auto protect, anti-virus option causing problems
+@cindex shell, interacting badly with anti-virus
+
+Some anti-virus software has been reported to cause problems with
+shells in the past.  Try turning off options such as ``Scan all
+files''.  @xref{Installing Emacs,,What known problems are there with anti-virus software?}.
+
+@c ------------------------------------------------------------
+@node Network access
+@chapter Network access
+
+@menu
+* Mail::
+* Attachments with Gnus::
+* Using FTP::
+* Tramp ssh::
+* telnet::
+@end menu
+
+@node Mail
+@section How do I use mail in Emacs?
+
+Emacs comes with several options for reading and writing mail.  These
+are documented in the manual, and the choice of which method to use
+depends on personal taste.  There are some issues specific to Windows
+however, related to the fact that Windows machines do not have the
+mail infrastructure that is commonly installed on other platforms, so
+mail will not work without some configuration.
+
+@menu
+* Outgoing mail::
+* Incoming mail with Rmail::
+* Incoming mail with Gnus::
+* Incoming mail other::
+@end menu
+
+@node Outgoing mail
+@subsection Outgoing mail
+@cindex mail, outgoing
+@cindex smtp server
+@vindex user-full-name
+@vindex user-mail-address
+@vindex smtpmail-default-smtp-server
+@vindex smtpmail-smtp-server
+@vindex send-mail-command
+@vindex message-send-mail-function
+@findex smtpmail-send-it
+@vindex smtpmail-debug-info
+
+For outgoing mail, you will need to use @file{smtpmail.el} which
+allows Emacs to talk directly to SMTP mail servers.  This is included
+with Emacs, and can be set up as follows:
+
+@example
+(setq user-full-name "@var{Your full name}")
+(setq user-mail-address "@var{Your@@email.address}")
+(setq smtpmail-default-smtp-server "@var{domain.name.of.your.smtp.server}")
+
+(setq send-mail-command 'smtpmail-send-it) ; For mail-mode (Rmail)
+(setq message-send-mail-function 'smtpmail-send-it) ; For message-mode (Gnus)
+@end example
+
+Note that if you want to change the name of the SMTP server after
+smtpmail is loaded, then you'll need to change
+@code{smtpmail-smtp-server}.
+
+If you are experiencing problems with sending large messages, check
+the value of the variable @code{smtpmail-debug-info}. If it is non-nil, you
+should set it to @code{nil}:
+
+@node Incoming mail with Rmail
+@subsection Incoming mail with Rmail and POP3
+@cindex mail, incoming with rmail
+@cindex pop3, using rmail
+@cindex rmail, mail client
+@cindex movemail, using pop3
+@cindex MAILHOST
+@vindex rmail-primary-inbox-list
+@vindex rmail-pop-password-required
+
+For incoming mail using the Rmail package and a POP3 server, you will
+need the following configuration:
+
+@example
+(setenv "MAILHOST" "@var{domain.name.of.your.pop3.server}")
+(setq rmail-primary-inbox-list '("po:@var{your logon id}"))
+(setq rmail-pop-password-required t)
+@end example
+
+@node Incoming mail with Gnus
+@subsection Incoming mail with Gnus
+@cindex mail, incoming with Gnus
+@cindex pop3, using Gnus
+@cindex imap, using Gnus
+@cindex gnus, mail and news client
+
+Although Gnus started life as a Usenet news reader, it also makes a
+good mail reader, particularly if you subscribe to a lot of mailing
+lists, or you want to use IMAP rather than POP3, which is not
+supported by Rmail.  @xref{Top,The Gnus manual,,gnus, The Gnus manual}.
+
+@node Incoming mail other
+@subsection Other incoming mail options
+@cindex mail, other options
+@cindex wanderlust, mail and news client
+@cindex vm, mail client
+@cindex mh-e, mail client
+
+Other options for reading mail in Emacs include VM, MH-E and Wanderlust.
+MH-E is included with Emacs.  The others require lisp or executable code
+that does not come with Emacs, so you should seek help where you
+obtained the packages from if you want to use them.
+
+@node Attachments with Gnus
+@section How do I open attachments in Gnus?
+@cindex gnus, attachments
+@cindex attachments, in gnus
+@cindex mail, attachments in gnus
+@cindex .mailcap
+@cindex MIME, configuration for Gnus
+
+In your @env{HOME} directory create a file called @file{.mailcap},
+with contents like the following:
+@example
+application/zip "C:/Program Files/7-Zip/7zFM.exe"
+video/* "C:/Program Files/VideoLAN/VLC/vlc.exe"
+@end example
+
+@strong{Warning:} Associating MIME types with @command{start} or other
+generic Windows commands to open arbitrary files might seem like a
+good idea, but it leaves your system as open to attack as Outlook
+Express was at its worst.  Especially dangerous is associating
+application/* or */* in this way.
+
+@node Using FTP
+@section How do I use FTP within Emacs?
+@cindex ftp, using within Emacs
+@cindex ange-ftp
+@cindex tramp, ftp
+@cindex remote hosts via ftp
+@vindex ange-ftp-ftp-program-name
+
+Windows built in FTP client can be used with ange-ftp.  Ange-ftp is
+the Emacs package that provides FTP connectivity to tramp, a
+multi-protocol remote file access package for Emacs that is enabled by
+default.
+
+The Windows FTP client does have problems with some firewalls, due to
+lack of passive mode support, so you may want to try an alternative
+ftp client instead.  Make sure that the client you are trying is in
+your @env{PATH} before the default Windows client, or rename the
+default Windows client to avoid it getting in the way.  Alternatively
+you can customize @code{ange-ftp-ftp-program-name} to the full path to
+the version you are trying.  @xref{Other useful ports}.
+
+@node Tramp ssh
+@section How do I use Tramp to work in Emacs via SSH?
+@cindex tramp, ssh
+@cindex ssh, accessing remote hosts within Emacs
+@cindex remote hosts via ssh
+@cindex openssh
+@cindex PuTTY
+@cindex plink
+@vindex tramp-default-method
+@vindex tramp-default-method-alist
+
+Tramp can use a number of protocols to connect to remote machines to
+read files and even run commands on those files remotely.  A popular
+one is ssh.  As well as Cygwin versions of openssh, you can use
+PuTTY's command line plink program as the ssh client.  The relevant
+methods to use in @code{tramp-default-method} or
+@code{tramp-default-method-alist} for these options are:
+@itemize @w{}
+@item
+openssh
+@itemize
+@item @code{scp} Uses scp for copying, ssh for shell operations.
+@item @code{scp1} scp with forced SSH protocol version 1
+@item @code{scp2} scp with forced SSH protocol version 2
+@item @code{ssh} Uses ssh with encoding on stdin/stdout for file transfer.
+@item @code{ssh1} ssh with forced SSH protocol version 1
+@item @code{ssh2} ssh with forced SSH protocol version 2
+@end itemize
+
+@item
+PuTTY
+@itemize
+@item @code{pscp} Uses pscp for copying, plink for shell operations.
+@item @code{pscp1} pscp, with forced SSH protocol version 1
+@item @code{pscp2} pscp, with forced SSH protocol version 2
+@item @code{plink} Uses plink with encoding on stdin/stdout for file transfer.
+@item @code{plink1} plink with forced SSH protocol version 1
+@item @code{plink2} plink with forced SSH protocol version 2
+@end itemize
+@end itemize
+
+@node telnet
+@section How do I use telnet with Emacs?
+@cindex telnet, in Emacs
+@findex telnet
+@cindex telnet client, that works with Emacs
+
+To use telnet-mode on Windows, you need a telnet client that uses
+stdin and stdout for input and output.  The default Windows client is
+a Windows application, and will not work as a subprocess.  Several
+options exist, but information that was formerly in this FAQ is out of
+date now, so no concrete pointers are available.
+
+@c ------------------------------------------------------------
+@node Text and Utility modes
+@chapter Text and Utility modes
+
+@menu
+* TeX::
+* Spell check::
+* Encryption::
+* Mouse wheel::
+* Grep::
+@end menu
+
+@node TeX
+@section How do I use TeX with Emacs?
+@cindex tex
+@cindex typesetting
+
+You will need an implementation of TeX for Windows.
+A number of implementations are listed on the
+@uref{http://www.tug.org/interest.html#free, TeX Users Group} website.
+
+@menu
+* AUCTeX::
+@end menu
+
+@node AUCTeX
+@subsection AUCTeX
+@cindex auctex, precompiled for Windows
+@cindex latex
+@cindex preview-latex
+
+AUCTeX is an Emacs package for writing LaTeX files, which also
+includes preview-latex, an Emacs mode for previewing the formatted
+contents of LaTeX documents.  Pre-compiled versions for Windows are
+available from
+@uref{http://www.gnu.org/software/auctex/download-for-windows.html, the
+AUCTeX site}.
+
+@node Spell check
+@section How do I perform spell checks?
+@cindex spell checking
+@cindex ispell
+@cindex aspell
+@cindex flyspell
+@vindex ispell-program-name
+@findex flyspell-mode
+
+Emacs has support for spell checking on demand (@code{ispell}) and as
+your type (@code{flyspell}).  Both packages depend on a copy of
+@command{ispell} 3.2 or a compatible spell-checking program.
+GNU Aspell is a popular choice these days, Windows installers are
+available from the @uref{http://aspell.net/win32/, official site}.
+
+Once installed, you will need to configure @code{ispell-program-name}
+to tell ispell and flyspell to use @command{aspell} as a replacement for
+ispell.  You can include the full path to the @file{aspell} binary, which
+means you do not need to add its installation directory to the @env{PATH}.
+
+@node Encryption
+@section Emacs and encryption
+@cindex encryption
+@cindex gpg, Windows binaries
+@cindex pgp encryption, with GNU Privacy Guard
+@cindex signatures on Emacs distribution, checking
+@cindex Emacs distribution, checking digital signatures
+
+GNU Privacy Guard is a Free replacement for PGP, with Windows binaries
+available.  See @uref{http://www.gnupg.org/}.
+
+@node Mouse wheel
+@section Why doesn't my wheel mouse work in Emacs?
+@cindex mouse wheel
+@cindex wheel mouse
+@cindex middle button, on wheel mouse
+@cindex scrolling, with mouse wheel
+
+Some wheel mice ship with default settings that do not send the
+standard wheel events to programs, but instead try to simulate scroll
+bar events.  Usually this is configurable from the hardware specific
+pages on the mouse control panel.  The middle button is often mapped
+in the same settings to have some functionality other than sending
+middle mouse button events.  In some cases, uninstalling the
+manufacturer's drivers and telling Windows to use the generic USB or
+PS/2 drivers is the only way to make the mouse work properly.
+
+@node Grep
+@section How do I use grep with Emacs?
+@cindex searching through files with grep
+@cindex grep
+@cindex findstr
+@findex grep
+
+The best way to use @kbd{M-x grep} with Emacs is to download a port of
+GNU @command{grep}. @xref{Other useful ports}.
+
+If you want a quick solution without installing extra tools, a poor
+substitute that works for simple text searches is to specify the built
+in Windows command @command{findstr} as the command to run at the
+@kbd{M-x grep} prompt.  Normally you will want to use the @option{/n}
+argument to @command{findstr}.
+
+@menu
+* Recursive grep::
+@end menu
+
+@node Recursive grep
+@subsection How do I do a recursive grep?
+@cindex recursive searching with grep
+@cindex grep, recursive through subdirectories
+@cindex findstr, recursive
+@cindex find, using with grep
+@cindex find, the POSIX command
+@findex rgrep
+@findex grep-find
+@findex find-grep-dired
+@vindex find-program
+@vindex grep-find-command
+
+The Emacs commands @code{rgrep}, @code{grep-find}
+and @code{find-grep-dired} are all different interfaces for
+grepping recursively into subdirectories.  By default, they use the
+command @command{find} to determine which files to work on, and either
+run @command{grep} directly from find, or use @command{xargs} to batch
+up files and reduce the number of invocations of @command{grep}.
+
+Windows also comes with a @command{find} command, but it is not in any
+way compatible with the POSIX @command{find} that Emacs tries to use.
+Emacs expects a @command{find} compatible with GNU findutils.
+@xref{Other useful ports}.  After you have installed it, you will need
+to make sure that Emacs finds this version, not the standard Windows
+@command{find} command.  You can do this by either renaming the
+Windows command, changing your @env{PATH} to ensure that the directory
+containing the findutils @file{bin} directory comes before the Windows
+system directory, or set the variable @code{find-program} to the full
+path to the findutils @command{find} command.
+
+An alternative if you have a recent version of grep is to customize
+@code{grep-find-command} to use @samp{grep -r} instead of both find
+and grep.  Another alternative if you don't need the full capabilities
+of grep is to use @samp{findstr /n /r}.
+
+@c ------------------------------------------------------------
+@node Developing with Emacs
+@chapter Developing with Emacs
+
+@menu
+* MSVC::
+* Borland C++ Builder::
+* Version control::
+* Perldb::
+@end menu
+
+@node MSVC
+@section How do I use Emacs with Microsoft Visual C++
+
+There are two ways you can use Emacs in conjunction with MSVC.  You
+can use Emacs as the editor, and do everything else in the DevStudio
+IDE.  Or you can use Emacs as an IDE, calling the MSVC command line
+tools to build your project.
+
+@menu
+* DevStudio::
+* MSVC command line::
+@end menu
+
+@node DevStudio
+@subsection Emacs as the text editor for DevStudio
+@cindex DevStudio, using Emacs as editor in
+@cindex MSVC++, using Emacs as editor with
+@cindex Visual Studio, using Emacs as editor in
+@cindex VisEmacs, add in for MS Developer Studio
+
+Christopher Payne wrote a Visual Studio add-in that makes Emacs the
+default text editor, this has now been taken over by Jeff Paquette.
+See the following two URLS for details:
+@itemize
+@item @uref{http://sourceforge.net/projects/visemacs/} for the latest version.
+@item @uref{http://www.smathers.net/VisEmacs.htm} for notes on usage.
+@end itemize
+
+@node MSVC command line
+@subsection Using MSVC command line tools from Emacs
+@cindex MSVC++, compiling within Emacs
+@findex compile
+
+This is an app note on how to use Microsoft Visual C++ with Emacs. The
+experiments done below were done with Emacs 19.34.1 on Windows 95,
+using Visual C++ 4.0 Standard Edition. Your mileage may vary.
+
+This writeup assumes minimal knowledge of Emacs hacking on the part of
+the reader.
+
+@menu
+* VC++ environment::
+* Default compile command::
+* Reverting buffers::
+* Edit MSVC::
+@end menu
+
+@node VC++ environment
+@subsubsection VC++ Environment Variables
+@cindex vcvars32.bat
+@cindex MSVC++, environment variables
+
+There is a batch file in your VC++ installation's bin directory called
+@file{vcvars32.bat}, which sets up the environment variables needed to
+run the VC++ command line tools.  Arrange for those same environment
+variables to be set in your Emacs session.  You can do this on Windows
+9x by calling the @file{vcvars32.bat} script from @file{autoexec.bat}.
+On other versions of Windows you can set the environment variables
+globally using the System control panel.
+
+For all versions of Windows you can alternatively set the variables
+just inside Emacs by using @code{setenv} calls in your init file.
+@xref{Installing Emacs,,Where do I put my init file?}.
+
+You should now be able to compile from Emacs. Load a source file from
+a VC++ project. Type @kbd{M-x compile}. Replace the proposed command line
+with:
+@example
+nmake -f @var{ProjectName}.mak
+@end example
+
+You will find that this defaults to a debug build. You can change it
+to a release build with:
+@example
+nmake -f @var{ProjectName}.mak CFG="@var{ProjectName} - Win32 Release"
+@end example
+
+@node Default compile command
+@subsubsection Setting the default compile command
+@cindex compile, setting default command
+@cindex nmake, as default compile command
+@vindex compile-command
+
+Now set the default value for the compile command line.  Add the
+following to your init file:
+
+@example
+;; Set up for Visual C++ compiling
+(setq compile-command "nmake -f ")
+@end example
+
+If you work on the same project long term, you can add the project
+makefile to the string.
+
+David Biesack suggests that perhaps it's
+easy to write a @file{Makefile} in the project directory which does
+
+@example
+PROJECT=MyProject
+all: debug
+debug: FORCE
+        nmake /f $(PROJECT).mak CFG="$(PROJECT) - Win32 Debug"
+release: FORCE
+        nmake /f $(PROJECT).mak CFG="$(PROJECT) - Win32 Release"
+FORCE:
+@end example
+
+and then you can simply change compile-command to @command{nmake}.
+
+Caleb T. Deupree reports that on VC++
+5.0 and up, "You can also set an option in Options/Build to export a
+makefile every time the project is saved, which you can then use to
+compile with @samp{nmake -f project.mak}."  VC++ 4.0 builds the make file
+every time, and there is no option.
+
+@node Reverting buffers
+@subsubsection Reverting Buffers
+@cindex DevStudio, keeping source in sync
+@cindex Visual Studio, keeping source in sync
+@cindex MSVC++, keeping source in sync
+@findex auto-revert-mode
+@findex global-auto-revert-mode
+
+It is recommended that you use @code{auto-revert-mode} in buffers
+that you have open in both Emacs and MSVC++ at the same time.  Then if
+you mistakenly edit the file in MSVC++, Emacs will pick up your
+changes immediately, rather than after you have written lots more code
+and attempt to save.
+
+@node Edit MSVC
+@subsubsection Edit with Emacs function for MSVC
+@cindex DevStudio, load in Emacs command
+@cindex Visual Studio, load in Emacs command
+@cindex MSVC++, load in Emacs command
+@cindex emacsclient, calling from Visual Studio
+
+You can also set up VC++ to import a file into Emacs for you, all
+ready for editing.  In VC++, go to the @code{Tools} pull-down menu, and
+click on @code{Customize...}.  In the @code{Tools} tab, click on
+@code{Add}.  Use @code{Browse} to locate the
+@file{emacsclientw.exe} file in your Emacs bin directory, and
+select it.  For arguments, use @option{+$(CurLine)}
+@option{"$(FilePath)"} and for the directory use the @code{$(WkspDir)}
+(the quotes around FilePath handle paths with spaces in them). Set the
+Menu Text to say "Em&acs". The @option{+$(CurLine)} will set point in
+Emacs to the same line as the cursor position in VC++. The ampersand
+in the word @code{Em&acs} allows you to select emacs from the keyboard. (E
+is already used for the OLE control test container.)
+
+You should now be able to go to any source file in your project. Then,
+use the pull-down menu @code{Tools->Emacs}. The active file in your
+VC++ IDE should now be front and center in Emacs, all ready to edit as
+you wish. If you use keystrokes to work the menus, try @kbd{Alt-T A} to
+move the file into Emacs. Binding this tool to a keystroke will be
+left as an exercise for the student.
+
+If you have the option of saving files before running tools, make sure
+this option is set. (I don't see it on VC++ 4.0.)
+
+@node Borland C++ Builder
+@section Emacs and Borland C++ Builder
+@cindex Borland C++, integration with Emacs
+
+Jonathan Arnold has written an
+@uref{http://www.buddydog.org/C++Builder/c++builder.html, EmacsEdit
+``expert''} for interfacing C++ Builder and Emacs.
+
+@node Version control
+@section Is there a version of my VC software I can use with Emacs?
+@cindex version control, integration with Emacs
+@cindex revision control, integration with Emacs
+@cindex source control,  integration with Emacs
+@cindex cvs, version control integration with Emacs
+@cindex rcs, version control integration with Emacs
+@cindex svn, version control integration with Emacs
+@cindex git, version control integration with Emacs
+@cindex bzr, version control integration with Emacs
+@cindex arch, version control integration with Emacs
+@cindex mercurial, version control integration with Emacs
+@cindex hg, version control integration with Emacs
+@cindex monotone, version control integration with Emacs
+@cindex mcvs, version control integration with Emacs
+
+If you are using a graphical revision control tool already, check if
+it comes with command-line tools.  Many such GUI tools are just
+wrappers for the same command line tools that Emacs requires for its
+VC integration.  Most of the supported VC systems have well supported
+Free native Windows binaries.  For those that don't Cygwin may be an option.
+@xref{Other useful ports}.
+
+@node Perldb
+@section How do I use the Perl debugger with Emacs?
+@cindex perl, debugging within Emacs
+@cindex perldb, using with Emacs
+
+From Jay Rogers:
+
+Some versions of the perl debugger itself need to be patched to work
+with emacs. They are perl versions 5.001 and less, and version
+5.004_01. To fix, locate and change the code similar to the following
+code in lib/perl5db.pl
+@example
+        if (-e "/dev/tty") @{
+            $console = "/dev/tty";
+            $rcfile=".perldb";
+        @}
+        elsif (-e "con") @{
+            $console = "";                 <---- change "con" to ""
+            $rcfile="perldb.ini";
+        @}
+        else @{
+            $console = "sys\$command";
+            $rcfile="perldb.ini";
+        @}
+@end example
+
+Doug Campbell also has some
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/perldb,
+suggestions} for improving the interaction of perldb and Emacs.
+
+@c ------------------------------------------------------------
+@node Other useful ports
+@chapter Other useful ports
+@cindex useful tools
+@cindex subprocesses, useful tools
+
+@menu
+* Cygwin::
+* MinGW::
+* UWIN::
+* GnuWin32::
+* GTK::
+* Read man pages::
+@end menu
+
+@node Cygwin
+@section Cygwin
+@cindex cygwin environment
+@cindex cygwin, library conflicts
+@cindex library conflicts with cygwin
+@cindex interoperability with cygwin
+@cindex subprocesses, cygwin tools
+@vindex exec-path
+
+@uref{http://www.cygwin.com/}.
+
+Cygwin is a popular complete POSIX emulation environment for Windows.
+Most of its tools can be used with Emacs, and it covers a wide range
+of ported software.  The main shell used by Cygwin is GNU
+@command{bash}, but other shells are also available.  Some Cygwin
+tools may not interoperate well with Emacs or other native Windows
+tools, due to the total immersion aspect of Cygwin, including its
+non-native filesystem mapping.
+
+If you choose to use Cygwin, then its tools will probably be all that
+you need, but you will need to get image libraries from elsewhere, as
+the Cygwin ones are not compatible with non-Cygwin software.  In fact,
+if Cygwin is on your PATH when you run Emacs, and Emacs does not find
+other versions of the image libraries first, then the Cygwin ones can
+cause problems.  Cygwin developers recommend that you do not put
+Cygwin on your system @env{PATH} for this reason.  Instead you can
+make the Cygwin tools available within Emacs by setting @code{exec-path}
+in your init file.
+
+@node MinGW
+@section MinGW and MSYS
+@cindex mingw tools
+@cindex msys environment
+@cindex subprocesses, mingw and msys
+
+@uref{http://www.mingw.org/}
+
+MinGW is a set of development tools that produce native Windows
+executables, not dependent on Cygwin's POSIX emulation DLLs.
+
+MSYS is a POSIX shell and minimal set of tools that are commonly used in
+configure scripts.  Like Cygwin, this environment uses a non-native
+filesystem mapping to appear more POSIX like to the scripts that it
+runs.  This is intended to complement the MinGW tools to make it easier
+to port software to Windows.
+
+@node UWIN
+@section UWIN
+@cindex uwin environment
+@cindex subprocesses, uwin
+
+@uref{http://www.research.att.com/sw/tools/uwin/}
+
+UWIN is another POSIX emulation environment, like Cygwin and MSYS,
+that provides a large number of ported tools.  The shell used by UWIN
+is @command{ksh}, the Korn shell.
+
+@node GnuWin32
+@section GnuWin32
+@cindex gnuwin32 tools
+@cindex subprocesses, gnuwin32
+@cindex image libraries, gnuwin32
+@cindex image libraries, development
+
+@uref{http://gnuwin32.sourceforge.net/}
+
+GnuWin32 provides precompiled native Windows ports of a wide selection
+of Free software and libraries.  Tools available here that are useful
+for Emacs include:
+
+@itemize
+@item Arc - used by @code{archive-mode} to edit .arc files.
+@item Bzip2 - used by Emacs to automatically decompress .bz2 files.
+@item CompFace - used by @code{gnus} to display XFace headers in messages.
+@item CoreUtils - GNU file, shell and text utilities (also in MSYS)
+@item DiffUtils - for @code{ediff} and producing patches
+@item FindUtils - for @code{grep-find} and other file searches.
+@item GifLib - library to support GIF images.
+@item Grep - for searching through files with @code{grep}.
+@item Gzip - used by Emacs to automatically decompress .gz files.
+@item Jpeg - library to support JPEG images (also in GTK).
+@item Lha - used by @code{archive-mode} to edit .lzh files.
+@item LibPng - library to support PNG images (also in GTK).
+@item LibTiff - library to support TIFF images (also in GTK).
+@item Make - used by @code{compile} for building projects (also in MinGW)
+@item OpenSSL - used by @code{gnus} to talk to servers over SSL.
+@item Patch - used by @code{ediff-patch-file} and others to apply patches.
+@item Tar - used by @code{tar-mode} to edit tar files.
+@item TexInfo - used to build Emacs' manuals.
+@item Unzip - used by @code{archive-mode} for extracting zip files.
+@item Xpm - library to support XPM images (bundled with Emacs binaries)
+@item Zip - used by @code{archive-mode} for editing zip files.
+@item Zlib - required by LibPng (also in GTK).
+@end itemize
+
+@node GTK
+@section GTK
+@cindex GTK image libraries
+@cindex image libraries, GTK
+@cindex addpm, using GTK image libraries
+
+GTK is a potential source for some of the image libraries that Emacs
+requires.  GTK is installed along with other ports of GUI software,
+such as the GIMP image editor, and Pidgin instant messenger client.
+If GTK is installed when you run @command{addpm}, Emacs will use the
+image libraries that it provides, even if they are not on the
+@env{PATH}.  GTK ships with JPEG, PNG and TIFF support.
+
+@node Read man pages
+@section How do I read man pages?
+@cindex man pages
+@findex woman
+@findex man
+
+Man pages for Emacs and other ported programs that you have can be
+read using Emacs' built-in manual reader @code{woman}.  This
+requires no external programs, but if you do have a port of
+@command{man}, there is also an Emacs wrapper @code{man} that
+which may be slightly faster.
+
+@c ------------------------------------------------------------
+@node Further information
+@chapter Further information
+
+@menu
+* More information::
+* Mailing lists::
+@end menu
+
+@node More information
+@section Where can I get more information about Emacs?
+@cindex other sources of information
+@cindex faqs, general
+@cindex faqs, old
+@cindex help, manuals and other sources
+@cindex manuals
+@cindex wiki
+
+If you have general questions about Emacs, the best places to start
+looking are @ref{Top,,, emacs, The GNU Emacs Manual}, and
+@ref{Top,,, efaq, the standard Emacs FAQ}.
+In Emacs, you can browse the manual using Info by typing @kbd{C-h r},
+and you can view the FAQ by typing @kbd{C-h C-f}. Other resources include:
+
+@itemize
+@item @uref{http://www.gnu.org/software/emacs/, The Emacs homepage}
+@item @uref{http://www.gnu.org/software/emacs/manual/, Other Emacs manuals}
+@item @uref{http://www.emacswiki.org/, Emacs Wiki}
+@end itemize
+
+@node Mailing lists
+@section What mailing lists are there for discussing Emacs on Windows?
+@cindex mailing lists
+@cindex help, mailing lists
+
+The official mailing list for Windows specific help and discussion is
+@url{http://lists.gnu.org/mailman/listinfo/help-emacs-windows,
+help-emacs-windows}.  See that link for information on how to subscribe
+or unsubscribe.  The
+@uref{http://lists.gnu.org/archive/html/help-emacs-windows/, list archives}
+are available online.
+
+@c ------------------------------------------------------------
+@node Indexes
+@unnumbered Indexes
+
+@unnumberedsec Function and Variable Index
+
+@printindex fn
+
+@unnumberedsec Concept Index
+
+@printindex cp
+
+@bye

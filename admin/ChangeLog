@@ -1,3 +1,8 @@
+2013-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-misc-manuals): Use INFO_COMMON rather than
+	INFO_TARGETS.
+
 2013-08-15  Glenn Morris  <rgm@gnu.org>
 
 	* make-tarball.txt: Mention generating pdfs in etc/refcards.

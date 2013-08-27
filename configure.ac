@@ -997,6 +997,27 @@ INFO_OPTS=--no-split
 AC_SUBST(INFO_EXT)
 AC_SUBST(INFO_OPTS)
 
+
+if test $opsys = mingw32; then
+   DOCMISC_DVI_W32 = efaq-w32.dvi
+   DOCMISC_HTML_W32 = efaq-w32.html
+   DOCMISC_INFO_W32 = efaq-w32.info
+   DOCMISC_PDF_W32 = efaq-w32.pdf
+   DOCMISC_PS_W32 = efaq-w32.ps
+else
+   DOCMISC_DVI_W32 =
+   DOCMISC_HTML_W32 =
+   DOCMISC_INFO_W32 =
+   DOCMISC_PDF_W32 =
+   DOCMISC_PS_W32 =
+fi
+AC_SUBST(DOCMISC_DVI_W32)
+AC_SUBST(DOCMISC_HTML_W32)
+AC_SUBST(DOCMISC_INFO_W32)
+AC_SUBST(DOCMISC_PDF_W32)
+AC_SUBST(DOCMISC_PS_W32)
+
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes; then

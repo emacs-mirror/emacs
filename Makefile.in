@@ -1026,13 +1026,15 @@ info: force-info
 	fi
 
 # The info/dir file must be updated by hand when new manuals are added.
+# Cannot add an info/dir entry for efaq-w32 since it is not installed
+# on all platforms.
 check-info-dir: info
 	cd info ; \
 	missing= ; \
 	for file in *; do \
 	  test -f "$${file}" || continue ; \
 	  case $${file} in \
-	    *-[0-9]*|COPYING|dir) continue ;; \
+	    *-[0-9]*|COPYING|dir|efaq-w32*) continue ;; \
 	  esac ; \
 	  file=`echo $${file} | sed 's/\.info//'` ; \
 	  grep -q -F ": ($${file})." dir || missing="$${missing} $${file}" ; \

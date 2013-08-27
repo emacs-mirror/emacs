@@ -195,19 +195,21 @@ Root must be the root of an Emacs source tree."
 
 (defun manual-misc-manuals (root)
   "Return doc/misc manuals as list of strings."
-  ;; Like `make -C doc/misc echo-info', but works if unconfigured.
+  ;; Similar to `make -C doc/misc echo-info', but works if unconfigured,
+  ;; and for INFO_TARGETS rather than INFO_INSTALL.
   (with-temp-buffer
     (insert-file-contents (expand-file-name "doc/misc/Makefile.in" root))
-    (search-forward "INFO_TARGETS = ")
-    (let ((start (point))
-	  res)
+    ;; Should really use expanded value of INFO_TARGETS.
+    (search-forward "INFO_COMMON = ")
+    (let ((start (point)))
       (end-of-line)
       (while (and (looking-back "\\\\")
 		  (zerop (forward-line 1)))
 	(end-of-line))
-      (split-string (replace-regexp-in-string
-		     "\\(\\\\\\|\\.info\\)" ""
-		     (buffer-substring start (point)))))))
+      (append (split-string (replace-regexp-in-string
+			     "\\(\\\\\\|\\.info\\)" ""
+			     (buffer-substring start (point))))
+	      '("efaq-w32")))))
 
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.

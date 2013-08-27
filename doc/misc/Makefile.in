@@ -59,7 +59,15 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
-INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
+## On MS Windows, efaq-w32; otherwise blank.
+DOCMISC_DVI_W32 = @DOCMISC_DVI_W32@
+DOCMISC_HTML_W32 = @DOCMISC_HTML_W32@
+DOCMISC_INFO_W32 = @DOCMISC_INFO_W32@
+DOCMISC_PDF_W32 = @DOCMISC_PDF_W32@
+DOCMISC_PS_W32 = @DOCMISC_PS_W32@
+
+## Info files to build and install on all platforms.
+INFO_COMMON = ada-mode auth autotype bovine calc ccmode cl \
 	dbus dired-x ebrowse ede ediff edt eieio \
 	emacs-mime epa erc ert eshell eudc efaq \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
@@ -68,7 +76,15 @@ INFO_TARGETS = ada-mode auth autotype bovine calc ccmode cl \
 	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
 	url vip viper widget wisent woman
 
-DVI_TARGETS = \
+## Info files to install on current platform.
+INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_INFO_W32)
+
+## Info files to build on current platform.
+## This is all of them, even though they might not all get installed,
+## because the info files are pre-built in release tarfiles.
+INFO_TARGETS = $(INFO_COMMON) efaq-w32
+
+DVI_TARGETS = $(DOCMISC_DVI_W32) \
 	ada-mode.dvi \
 	auth.dvi \
 	autotype.dvi \
@@ -126,7 +142,7 @@ DVI_TARGETS = \
 	wisent.dvi \
 	woman.dvi
 
-HTML_TARGETS = \
+HTML_TARGETS = $(DOCMISC_HTML_W32) \
 	ada-mode.html \
 	auth.html \
 	autotype.html \
@@ -184,7 +200,7 @@ HTML_TARGETS = \
 	wisent.html \
 	woman.html
 
-PDF_TARGETS = \
+PDF_TARGETS = $(DOCMISC_PDF_W32) \
 	ada-mode.pdf \
 	auth.pdf \
 	autotype.pdf \
@@ -242,7 +258,7 @@ PDF_TARGETS = \
 	wisent.pdf \
 	woman.pdf
 
-PS_TARGETS = \
+PS_TARGETS = $(DOCMISC_PS_W32) \
 	ada-mode.ps \
 	auth.ps \
 	autotype.ps \
@@ -326,7 +342,7 @@ info: $(INFO_TARGETS)
 ## Used by top-level Makefile.
 ## Base file names of output info files.
 echo-info:
-	@echo "$(INFO_TARGETS) " | \
+	@echo "$(INFO_INSTALL) " | \
 	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */$(INFO_EXT) /g"
 
 # please modify this for all the web manual targets
@@ -611,6 +627,18 @@ faq.pdf: $(faq_deps)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/faq.texi
 faq.html: $(faq_deps)
 	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/faq.texi
+
+efaq_w32_deps = ${srcdir}/efaq-w32.texi $(emacsdir)/emacsver.texi
+efaq-w32 : $(buildinfodir)/efaq-w32$(INFO_EXT)
+$(buildinfodir)/efaq-w32$(INFO_EXT): $(efaq_w32_deps)
+	$(mkinfodir)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ ${srcdir}/efaq-w32.texi
+efaq-w32.dvi: $(efaq_w32_deps)
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/efaq-w32.texi
+efaq-w32.pdf: $(efaq_w32_deps)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/efaq-w32.texi
+efaq-w32.html: $(efaq_w32_deps)
+	$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ ${srcdir}/efaq-w32.texi
 
 flymake_deps = ${srcdir}/flymake.texi ${gfdl}
 flymake : $(buildinfodir)/flymake$(INFO_EXT)
@@ -1040,6 +1068,7 @@ mostlyclean:
 
 clean: mostlyclean
 	rm -f $(DVI_TARGETS) $(HTML_TARGETS) $(PDF_TARGETS) $(PS_TARGETS)
+	rm -f efaq-w32.dvi efaq-w32.html efaq-w32.pdf efaq-w32.ps
 	rm -f emacs-misc-${version}.tar*
 
 distclean: clean

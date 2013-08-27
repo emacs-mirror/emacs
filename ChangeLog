@@ -1,5 +1,9 @@
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
+	* configure.ac (DOCMISC_DVI_W32, DOCMISC_HTML_W32, DOCMISC_INFO_W32)
+	(DOCMISC_PDF_W32, DOCMISC_PS_W32): New output variables.
+	* Makefile.in (check-info-dir): Ignore efaq-w32.
+
 	* Makefile.in (mostlyclean, clean, distclean, bootstrap-clean)
 	(maintainer-clean, check-declare): Remove pointless subshells.
 	Check cd return value.
