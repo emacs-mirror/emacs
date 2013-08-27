@@ -1397,6 +1397,11 @@ UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
 CANNOT_DUMP
+DOCMISC_PS_W32
+DOCMISC_PDF_W32
+DOCMISC_INFO_W32
+DOCMISC_HTML_W32
+DOCMISC_DVI_W32
 INFO_OPTS
 INFO_EXT
 HAVE_MAKEINFO
@@ -8752,6 +8757,25 @@ fi
 
 INFO_EXT=.info
 INFO_OPTS=--no-split
+
+
+
+if test $opsys = mingw32; then
+   DOCMISC_DVI_W32=efaq-w32.dvi
+   DOCMISC_HTML_W32=efaq-w32.html
+   DOCMISC_INFO_W32=efaq-w32.info
+   DOCMISC_PDF_W32=efaq-w32.pdf
+   DOCMISC_PS_W32=efaq-w32.ps
+else
+   DOCMISC_DVI_W32=
+   DOCMISC_HTML_W32=
+   DOCMISC_INFO_W32=
+   DOCMISC_PDF_W32=
+   DOCMISC_PS_W32=
+fi
+
+
+
 
 
 
@@ -16476,7 +16500,7 @@ esac
 emacs_broken_SIGIO=no
 
 case $opsys in
-      hpux* | irix6-5 | openbsd | sol2* | unixware | gnu-kfreebsd )
+      hpux* | irix6-5 | openbsd | sol2* | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -22241,9 +22265,11 @@ _ACEOF
 
 
 
+  :
 
 
 
+  :
 
 
 
