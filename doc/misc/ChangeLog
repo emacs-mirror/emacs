@@ -1,5 +1,7 @@
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
+	* efaq-w32.texi (EMACSVER): Get it from emacsver.texi.
+
 	* Makefile.in (webhack): Remove; it's nothing to do with Emacs.
 
 	* efaq-w32.texi: Move here from the web-pages repository.

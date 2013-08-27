@@ -11,7 +11,7 @@
 Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
 @end documentdescription
 
-@set EMACSVER 24.3
+@include emacsver.texi
 
 @documentencoding utf-8
 @documentlanguage en
@@ -58,7 +58,8 @@ itself allows free copying and redistribution.
 @node Top
 @top GNU Emacs FAQ for MS Windows
 
-This is the GNU Emacs FAQ for MS Windows.
+This is the FAQ for using GNU Emacs on MS Windows, as distributed with
+Emacs @value{EMACSVER}.
 
 This FAQ is maintained by the developers and users of Emacs on MS Windows.
 If you find any errors, or have any suggestions, please send them to
