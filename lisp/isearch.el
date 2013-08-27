@@ -2430,10 +2430,14 @@ With argument, add COUNT copies of the character."
 	(if (subregexp-context-p isearch-string (length isearch-string))
 	    (isearch-process-search-string "[ ]" " ")
 	  (isearch-process-search-char char count))
-      (and enable-multibyte-characters
-	   (>= char ?\200)
-	   (<= char ?\377)
-	   (setq char (unibyte-char-to-multibyte char)))
+      ;; This used to assume character codes 0240 - 0377 stand for
+      ;; characters in some single-byte character set, and converted them
+      ;; to Emacs characters.  But in 23.1 this feature is deprecated
+      ;; in favor of inserting the corresponding Unicode characters.
+      ;; (and enable-multibyte-characters
+      ;;      (>= char ?\200)
+      ;;      (<= char ?\377)
+      ;;      (setq char (unibyte-char-to-multibyte char)))
       (isearch-process-search-char char count))))
 
 (defun isearch-printing-char (&optional char count)

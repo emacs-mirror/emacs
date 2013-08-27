@@ -1,3 +1,9 @@
+2013-08-27  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-quote-char): Comment out converting unibyte
+	to multibyte, thus syncing with its `quoted-insert' counterpart.
+	(Bug#15166)
+
 2013-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-use-some-window): Add missing
