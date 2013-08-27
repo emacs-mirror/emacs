@@ -749,8 +749,6 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
    external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
-
   /* note: this fn is nearly identical in all terms */
   if (!w->pseudo_window_p)
     {
@@ -770,11 +768,7 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      frame_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    {
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-    }
+    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
 
   NSTRACE (update_window_end);
 }
@@ -1183,12 +1177,7 @@ x_free_frame_resources (struct frame *f)
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
   if (f == hlinfo->mouse_face_mouse_frame)
-    {
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_mouse_frame = 0;
-    }
+    reset_mouse_highlight (hlinfo);
 
   if (f->output_data.ns->miniimage != nil)
     [f->output_data.ns->miniimage release];
@@ -3951,7 +3940,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
 {
     NSScreen *screen = [NSScreen mainScreen];
     NSWindowDepth depth = [screen depth];
-    Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
     dpyinfo->resx = 72.27; /* used 75.0, but this makes pt == pixel, expected */
     dpyinfo->resy = 72.27;
@@ -3964,22 +3952,12 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
-
-    hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    hlinfo->mouse_face_window = hlinfo->mouse_face_overlay = Qnil;
-    hlinfo->mouse_face_hidden = 0;
-
-    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
-    hlinfo->mouse_face_defer = 0;
-
     dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame = NULL;
-
     dpyinfo->n_fonts = 0;
     dpyinfo->smallest_font_height = 1;
     dpyinfo->smallest_char_width = 1;
+
+    reset_mouse_highlight (&dpyinfo->mouse_highlight);
 }
 
 

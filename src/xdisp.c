@@ -26795,10 +26795,7 @@ clear_mouse_face (Mouse_HLInfo *hlinfo)
       cleared = 1;
     }
 
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_overlay = Qnil;
+  reset_mouse_highlight (hlinfo);
   return cleared;
 }
 
@@ -28586,11 +28583,7 @@ cancel_mouse_face (struct frame *f)
 
   window = hlinfo->mouse_face_window;
   if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
-    {
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-    }
+    reset_mouse_highlight (hlinfo);
 }
 
 

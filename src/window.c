@@ -2842,7 +2842,7 @@ window-start value is reasonable when this function is called.  */)
   block_input ();
   if (!FRAME_INITIAL_P (f))
     {
-        Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+      Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
       /* We are going to free the glyph matrices of WINDOW, and with
 	 that we might lose any information about glyph rows that have
@@ -2852,11 +2852,7 @@ window-start value is reasonable when this function is called.  */)
 	 frame's up-to-date hook that mouse highlight was overwritten,
 	 so that it will arrange for redisplaying the highlight.  */
       if (EQ (hlinfo->mouse_face_window, window))
-	{
-	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-	  hlinfo->mouse_face_window = Qnil;
-	}
+	reset_mouse_highlight (hlinfo);
     }
   free_window_matrices (r);
 

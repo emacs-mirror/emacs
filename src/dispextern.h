@@ -2667,8 +2667,57 @@ enum move_operation_enum
   MOVE_TO_POS = 0x08
 };
 
+/***********************************************************************
+			    Mouse Highlight
+ ***********************************************************************/
 
-
+/* Structure to hold mouse highlight data.  */
+
+typedef struct {
+  /* These variables describe the range of text currently shown in its
+     mouse-face, together with the window they apply to.  As long as
+     the mouse stays within this range, we need not redraw anything on
+     its account.  Rows and columns are glyph matrix positions in
+     MOUSE_FACE_WINDOW.  */
+  int mouse_face_beg_row, mouse_face_beg_col, mouse_face_beg_x;
+  int mouse_face_end_row, mouse_face_end_col, mouse_face_end_x;
+  Lisp_Object mouse_face_window;
+  int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
+
+  /* FRAME and X, Y position of mouse when last checked for
+     highlighting.  X and Y can be negative or out of range for the frame.  */
+  struct frame *mouse_face_mouse_frame;
+  int mouse_face_mouse_x, mouse_face_mouse_y;
+
+  /* Nonzero if part of the text currently shown in
+     its mouse-face is beyond the window end.  */
+  unsigned mouse_face_past_end : 1;
+
+  /* Nonzero means defer mouse-motion highlighting.  */
+  unsigned mouse_face_defer : 1;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  unsigned mouse_face_hidden : 1;
+} Mouse_HLInfo;
+
+DISPEXTERN_INLINE void
+reset_mouse_highlight (Mouse_HLInfo *hlinfo)
+{
+
+    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+    hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
+    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+    hlinfo->mouse_face_mouse_frame = NULL;    
+    hlinfo->mouse_face_window = Qnil;
+    hlinfo->mouse_face_overlay = Qnil;
+    hlinfo->mouse_face_past_end = 0;
+    hlinfo->mouse_face_hidden = 0;
+    hlinfo->mouse_face_defer = 0;
+}
+
 /***********************************************************************
 		   Window-based redisplay interface
  ***********************************************************************/

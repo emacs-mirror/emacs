@@ -1,3 +1,21 @@
+2013-08-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* lisp.h (Mouse_HLInfo): Move from here...
+	* dispextern.h (Mouse_HLInfo): ...to here and offload lisp.h.
+	(reset_mouse_highlight): New function.
+	* msdos.c (dos_set_window_size, IT_update_begin)
+	(internal_terminal_init):
+	* nsterm.m (ns_update_window_end, x_free_frame_resources)
+	(ns_initialize_display_info):
+	* w32console.c (initialize_w32_display):
+	* w32term.c (x_update_window_end, x_free_frame_resources)
+	(w32_initialize_display_info):
+	* xterm.c (x_update_window_end, x_free_frame_resources, x_term_init):
+	* window.c (Fdelete_other_windows_internal):
+	* xdisp.c (clear_mouse_face, cancel_mouse_face): Use it.
+	* termchar.h (toplevel):
+	* xterm.h (toplevel): Include dispextern.h.
+
 2013-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.

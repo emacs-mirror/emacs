@@ -636,13 +636,7 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   term->frame_up_to_date_hook = 0;
 
   /* Initialize the mouse-highlight data.  */
-  hlinfo = &term->display_info.tty->mouse_highlight;
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_mouse_frame = NULL;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_hidden = 0;
+  reset_mouse_highlight (&term->display_info.tty->mouse_highlight);
 
   /* Initialize interrupt_handle.  */
   init_crit ();

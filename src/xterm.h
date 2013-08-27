@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XTERM_H
 #define XTERM_H
 
+#include "dispextern.h"
+
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 

@@ -2164,36 +2164,6 @@ enum char_bits
     CHARACTERBITS = 22
   };
 
-/* Structure to hold mouse highlight data.  This is here because other
-   header files need it for defining struct x_output etc.  */
-typedef struct {
-  /* These variables describe the range of text currently shown in its
-     mouse-face, together with the window they apply to.  As long as
-     the mouse stays within this range, we need not redraw anything on
-     its account.  Rows and columns are glyph matrix positions in
-     MOUSE_FACE_WINDOW.  */
-  int mouse_face_beg_row, mouse_face_beg_col, mouse_face_beg_x;
-  int mouse_face_end_row, mouse_face_end_col, mouse_face_end_x;
-  Lisp_Object mouse_face_window;
-  int mouse_face_face_id;
-  Lisp_Object mouse_face_overlay;
-
-  /* FRAME and X, Y position of mouse when last checked for
-     highlighting.  X and Y can be negative or out of range for the frame.  */
-  struct frame *mouse_face_mouse_frame;
-  int mouse_face_mouse_x, mouse_face_mouse_y;
-
-  /* Nonzero if part of the text currently shown in
-     its mouse-face is beyond the window end.  */
-  unsigned mouse_face_past_end : 1;
-
-  /* Nonzero means defer mouse-motion highlighting.  */
-  unsigned mouse_face_defer : 1;
-
-  /* Nonzero means that the mouse highlight should not be shown.  */
-  unsigned mouse_face_hidden : 1;
-} Mouse_HLInfo;
-
 /* Data type checking.  */
 
 LISP_MACRO_DEFUN (NILP, bool, (Lisp_Object x), (x))

@@ -16,6 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include "dispextern.h"
+
 /* Each termcap frame points to its own struct tty_output object in
    the output_data.tty field.  The tty_output structure contains the
    information that is specific to termcap frames. */

@@ -678,8 +678,6 @@ static void
 x_update_window_end (struct window *w, bool cursor_on_p,
 		     bool mouse_face_overwritten_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
-
   if (!w->pseudo_window_p)
     {
       block_input ();
@@ -698,11 +696,7 @@ x_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    {
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-    }
+    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
 
   /* Unhide the caret.  This won't actually show the cursor, unless it
      was visible before the corresponding call to HideCaret in
@@ -6156,16 +6150,8 @@ x_free_frame_resources (struct frame *f)
     dpyinfo->w32_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-
   if (f == hlinfo->mouse_face_mouse_frame)
-    {
-      hlinfo->mouse_face_beg_row
-	= hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row
-	= hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_mouse_frame = 0;
-    }
+    reset_mouse_highlight (hlinfo);
 
   unblock_input ();
 }
@@ -6235,7 +6221,6 @@ void
 w32_initialize_display_info (Lisp_Object display_name)
 {
   struct w32_display_info *dpyinfo = &one_w32_display_info;
-  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   memset (dpyinfo, 0, sizeof (*dpyinfo));
 
@@ -6258,17 +6243,10 @@ w32_initialize_display_info (Lisp_Object display_name)
   dpyinfo->n_fonts = 0;
   dpyinfo->smallest_font_height = 1;
   dpyinfo->smallest_char_width = 1;
-
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_overlay = Qnil;
-  hlinfo->mouse_face_hidden = 0;
-
   dpyinfo->vertical_scroll_bar_cursor = w32_load_cursor (IDC_ARROW);
   /* TODO: dpyinfo->gray */
 
+  reset_mouse_highlight (&dpyinfo->mouse_highlight);
 }
 
 /* Create an xrdb-style database of resources to supersede registry settings.

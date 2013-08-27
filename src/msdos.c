@@ -602,11 +602,7 @@ dos_set_window_size (int *rows, int *cols)
       Lisp_Object window = hlinfo->mouse_face_window;
 
       if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
-	{
-	  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-	  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-	  hlinfo->mouse_face_window = Qnil;
-	}
+	reset_mouse_highlight (hlinfo);
     }
 
   /* Enable bright background colors.  */
@@ -1276,14 +1272,9 @@ IT_update_begin (struct frame *f)
 	}
     }
   else if (mouse_face_frame && !FRAME_LIVE_P (mouse_face_frame))
-    {
-      /* If the frame with mouse highlight was deleted, invalidate the
-	 highlight info.  */
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_mouse_frame = NULL;
-    }
+    /* If the frame with mouse highlight was deleted, invalidate the
+       highlight info.  */
+    reset_mouse_highlight (hlinfo);
 
   unblock_input ();
 }
@@ -1843,17 +1834,8 @@ internal_terminal_init (void)
 	  if (colors[1] >= 0 && colors[1] < 16)
 	    FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
 	}
-      the_only_display_info.mouse_highlight.mouse_face_mouse_frame = NULL;
-      the_only_display_info.mouse_highlight.mouse_face_beg_row =
-	the_only_display_info.mouse_highlight.mouse_face_beg_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_end_row =
-	the_only_display_info.mouse_highlight.mouse_face_end_col = -1;
-      the_only_display_info.mouse_highlight.mouse_face_face_id = DEFAULT_FACE_ID;
-      the_only_display_info.mouse_highlight.mouse_face_window = Qnil;
-      the_only_display_info.mouse_highlight.mouse_face_mouse_x =
-	the_only_display_info.mouse_highlight.mouse_face_mouse_y = 0;
-      the_only_display_info.mouse_highlight.mouse_face_defer = 0;
-      the_only_display_info.mouse_highlight.mouse_face_hidden = 0;
+
+      reset_mouse_highlight (&the_only_display_info.mouse_highlight);
 
       if (have_mouse)	/* detected in dos_ttraw, which see */
 	{

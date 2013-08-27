@@ -613,8 +613,6 @@ static void
 x_update_window_end (struct window *w, bool cursor_on_p,
 		     bool mouse_face_overwritten_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (XFRAME (w->frame));
-
   if (!w->pseudo_window_p)
     {
       block_input ();
@@ -633,11 +631,7 @@ x_update_window_end (struct window *w, bool cursor_on_p,
   /* If a row with mouse-face was overwritten, arrange for
      XTframe_up_to_date to redisplay the mouse highlight.  */
   if (mouse_face_overwritten_p)
-    {
-      hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-    }
+    reset_mouse_highlight (MOUSE_HL_INFO (XFRAME (w->frame)));
 }
 
 
@@ -9445,16 +9439,8 @@ x_free_frame_resources (struct frame *f)
     dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-
   if (f == hlinfo->mouse_face_mouse_frame)
-    {
-      hlinfo->mouse_face_beg_row
-	= hlinfo->mouse_face_beg_col = -1;
-      hlinfo->mouse_face_end_row
-	= hlinfo->mouse_face_end_col = -1;
-      hlinfo->mouse_face_window = Qnil;
-      hlinfo->mouse_face_mouse_frame = 0;
-    }
+    reset_mouse_highlight (hlinfo);
 
   unblock_input ();
 }
@@ -9826,7 +9812,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   struct terminal *terminal;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
-  Mouse_HLInfo *hlinfo;
   ptrdiff_t lim;
 
   block_input ();
@@ -9967,8 +9952,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
   dpyinfo = xzalloc (sizeof *dpyinfo);
-  hlinfo = &dpyinfo->mouse_highlight;
-
   terminal = x_create_terminal (dpyinfo);
 
   {
@@ -10082,12 +10065,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->cmap = DefaultColormapOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
   dpyinfo->icon_bitmap_id = -1;
-  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-  hlinfo->mouse_face_window = Qnil;
-  hlinfo->mouse_face_overlay = Qnil;
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
+
+  reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
   /* See if we can construct pixel values from RGB values.  */
   if (dpyinfo->visual->class == TrueColor)
