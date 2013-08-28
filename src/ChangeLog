@@ -1,3 +1,8 @@
+2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Foverlays_at, Foverlays_in, Fnext_overlay_change)
+	(Fprevious_overlay_change): Fast path for buffer with no overlays.
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,

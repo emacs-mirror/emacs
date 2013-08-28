@@ -4161,6 +4161,9 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   CHECK_NUMBER_COERCE_MARKER (pos);
 
+  if (!buffer_has_overlays ())
+    return Qnil;
+
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
@@ -4193,6 +4196,9 @@ end of the buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (beg);
   CHECK_NUMBER_COERCE_MARKER (end);
 
+  if (!buffer_has_overlays ())
+    return Qnil;
+
   len = 10;
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
@@ -4220,6 +4226,9 @@ the value is (point-max).  */)
   Lisp_Object *overlay_vec;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
+
+  if (!buffer_has_overlays ())
+    return make_number (ZV);
 
   len = 10;
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
@@ -4259,6 +4268,9 @@ the value is (point-min).  */)
   ptrdiff_t len;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
+
+  if (!buffer_has_overlays ())
+    return make_number (BEGV);
 
   /* At beginning of buffer, we know the answer;
      avoid bug subtracting 1 below.  */
