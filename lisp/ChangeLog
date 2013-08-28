@@ -1,5 +1,18 @@
 2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-mode.el: Minor cleanup of var declarations.
+	(c-define-abbrev-table): Add `doc' argument.
+	(c-mode-abbrev-table, c++-mode-abbrev-table)
+	(objc-mode-abbrev-table, java-mode-abbrev-table)
+	(idl-mode-abbrev-table, pike-mode-abbrev-table)
+	(awk-mode-abbrev-table): Use it.
+	(c-mode-syntax-table, c-mode-map, c++-mode-syntax-table)
+	(c++-mode-map, objc-mode-syntax-table, objc-mode-map)
+	(java-mode-syntax-table, java-mode-map, idl-mode-syntax-table)
+	(idl-mode-map, pike-mode-syntax-table, pike-mode-map, awk-mode-map):
+	Move initialization into the declaration; and remove any
+	autoload cookie.
+
 	* epg.el (epg--process-filter): Use with-current-buffer, save-excursion
 	and dynamic let binding.
 
