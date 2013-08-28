@@ -221,7 +221,7 @@ control).  See \"cc-mode.el\" for more info."
   ;; Compatibility wrapper for `define-abbrev' which passes a non-nil
   ;; sixth argument for SYSTEM-FLAG in emacsen that support it
   ;; (currently only Emacs >= 21.2).
-  (let ((table (or (symbol-value name)
+  (let ((table (or (and (boundp name) (symbol-value name))
 		   (progn (condition-case nil
                               (define-abbrev-table name nil doc)
                             (wrong-number-of-arguments ;E.g. Emacs<23.
