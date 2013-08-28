@@ -1,5 +1,9 @@
 2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (repeat-complex-command--called-interactively-skip):
+	New function.
+	(repeat-complex-command): Use it (bug#14136).
+
 	* progmodes/cc-mode.el: Minor cleanup of var declarations.
 	(c-define-abbrev-table): Add `doc' argument.
 	(c-mode-abbrev-table, c++-mode-abbrev-table)
