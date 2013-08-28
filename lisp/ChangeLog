@@ -1,3 +1,7 @@
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el (cconv--analyse-function): Improve warning.
+
 2013-08-27  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-other-meta-char): Don't store kmacro commands
@@ -12,8 +16,8 @@
 2013-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-use-some-window): Add missing
-	argument in call of get-largest-window (Bug#15185).  Reported by
-	Stephen Leake.
+	argument in call of get-largest-window (Bug#15185).
+	Reported by Stephen Leake.
 
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
@@ -38,8 +42,8 @@
 	* net/tramp-adb.el (tramp-adb-maybe-open-connection):
 	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
 	* net/tramp-sh.el (tramp-maybe-open-connection):
-	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Apply
-	`tramp-check-proper-host'.
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Apply `tramp-check-proper-host'.
 
 2013-08-26  Tassilo Horn  <tsdh@gnu.org>
 
