@@ -2784,10 +2784,18 @@ update the match data, and return point."
 
     (invalid-regexp
      (setq isearch-error (car (cdr lossage)))
-     (if (string-match
-	  "\\`Premature \\|\\`Unmatched \\|\\`Invalid "
-	  isearch-error)
-	 (setq isearch-error "incomplete input")))
+     (cond
+      ((string-match
+	"\\`Premature \\|\\`Unmatched \\|\\`Invalid "
+	isearch-error)
+       (setq isearch-error "incomplete input"))
+      ((and (not isearch-regexp)
+	    (string-match "\\`Regular expression too big" isearch-error))
+       (cond
+	(isearch-word
+	 (setq isearch-error "Too many words"))
+	((and isearch-lax-whitespace search-whitespace-regexp)
+	 (setq isearch-error "Too many spaces for whitespace matching"))))))
 
     (search-failed
      (setq isearch-success nil)
