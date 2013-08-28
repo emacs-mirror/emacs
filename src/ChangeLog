@@ -1,3 +1,12 @@
+2013-08-28  Andreas Schwab  <schwab@suse.de>
+
+	* regex.c (CHAR_CHARSET, CHARSET_LEADING_CODE_BASE, CHAR_HEAD_P)
+	(SINGLE_BYTE_CHAR_P, SAME_CHARSET_P, MAKE_CHAR, BYTE8_TO_CHAR):
+	Remove unused macro definitions.
+	(CHARSET_RANGE_TABLE_BITS, EXTEND_RANGE_TABLE)
+	(SET_RANGE_TABLE_WORK_AREA_BIT, SET_RANGE_TABLE_WORK_AREA): Only
+	define if emacs.
+
 2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Prefer enum glyph_row_area to int where appropriate.
