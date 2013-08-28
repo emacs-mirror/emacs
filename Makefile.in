@@ -56,7 +56,7 @@
 # make docs
 #      Make Emacs documentation files from their sources; requires makeinfo.
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 # This may not work with certain non-GNU make's.  It only matters when
 # inheriting a CDPATH not starting with the current directory.

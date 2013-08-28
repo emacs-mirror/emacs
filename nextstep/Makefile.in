@@ -20,7 +20,7 @@
 ### Commentary:
 
 ### Code:
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 EXEEXT = @EXEEXT@

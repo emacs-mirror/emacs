@@ -1,3 +1,8 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
 2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.ac (DOCMISC_W32): New var to replace DOCMISC_*_W32.

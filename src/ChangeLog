@@ -1,3 +1,8 @@
+2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
+	for portability to hosts where /bin/sh has problems.
+
 2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Redesign redisplay interface to drop global output_cursor.
