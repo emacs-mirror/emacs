@@ -1,3 +1,10 @@
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try to reduce redundancy in doc/misc/Makefile.in.
+	* Makefile.in (DOCMISC_W32): New var to replace DOCMISC_*_W32.
+	(TARGETS): New intermediate variable.
+	(DVI_TARGETS, HTML_TARGETS, PDF_TARGETS, PS_TARGETS): Use it.
+
 2013-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* efaq.texi (Emacs for MS-Windows): Update location of MS FAQ.
