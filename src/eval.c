@@ -2149,6 +2149,8 @@ eval_sub (Lisp_Object form)
   if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
     fun = indirect_function (fun);
+  else
+    fun = Ffunction (Fcons (fun, Qnil));
 
   if (SUBRP (fun))
     {
@@ -3151,20 +3153,17 @@ let_shadows_global_binding_p (Lisp_Object symbol)
   return 0;
 }
 
-/* `specpdl_ptr->symbol' is a field which describes which variable is
+/* `specpdl_ptr' describes which variable is
    let-bound, so it can be properly undone when we unbind_to.
-   It can have the following two shapes:
-   - SYMBOL : if it's a plain symbol, it means that we have let-bound
-     a symbol that is not buffer-local (at least at the time
-     the let binding started).  Note also that it should not be
+   It can be either a plain SPECPDL_LET or a SPECPDL_LET_LOCAL/DEFAULT.
+   - SYMBOL is the variable being bound.  Note that it should not be
      aliased (i.e. when let-binding V1 that's aliased to V2, we want
      to record V2 here).
-   - (SYMBOL WHERE . BUFFER) : this means that it is a let-binding for
-     variable SYMBOL which can be buffer-local.  WHERE tells us
-     which buffer is affected (or nil if the let-binding affects the
-     global value of the variable) and BUFFER tells us which buffer was
-     current (i.e. if WHERE is non-nil, then BUFFER==WHERE, otherwise
-     BUFFER did not yet have a buffer-local value).  */
+   - WHERE tells us in which buffer the binding took place.
+     This is used for SPECPDL_LET_LOCAL bindings (i.e. bindings to a
+     buffer-local variable) as well as for SPECPDL_LET_DEFAULT bindings,
+     i.e. bindings to the default value of a variable which can be
+     buffer-local.  */
 
 void
 specbind (Lisp_Object symbol, Lisp_Object value)

@@ -1,3 +1,8 @@
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Ffuncall): Fix handling of ((lambda ..) ..) in lexically
+	scoped code (bug#11258).
+
 2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca> (tiny change)
 
 	* nsterm.m (last_window): New variable.
@@ -12,8 +17,8 @@
 	(SINGLE_BYTE_CHAR_P, SAME_CHARSET_P, MAKE_CHAR, BYTE8_TO_CHAR):
 	Remove unused macro definitions.
 	(CHARSET_RANGE_TABLE_BITS, EXTEND_RANGE_TABLE)
-	(SET_RANGE_TABLE_WORK_AREA_BIT, SET_RANGE_TABLE_WORK_AREA): Only
-	define if emacs.
+	(SET_RANGE_TABLE_WORK_AREA_BIT, SET_RANGE_TABLE_WORK_AREA):
+	Only define if emacs.
 
 2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
