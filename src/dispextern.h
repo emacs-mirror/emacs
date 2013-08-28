@@ -2790,11 +2790,6 @@ struct redisplay_interface
   void (*update_window_end_hook) (struct window *w, bool cursor_on_p,
                                   bool mouse_face_overwritten_p);
 
-  /* Move cursor to row/column position VPOS/HPOS, pixel coordinates
-     Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
-     are window-relative pixel positions.  */
-  void (*cursor_to) (struct window *w, int vpos, int hpos, int y, int x);
-
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) (struct frame *f);
 
@@ -3232,9 +3227,6 @@ extern void x_insert_glyphs (struct window *, struct glyph_row *,
 			     struct glyph *, enum glyph_row_area, int);
 extern void x_clear_end_of_line (struct window *, struct glyph_row *,
 				 enum glyph_row_area, int);
-
-extern struct cursor_pos output_cursor;
-
 extern void x_fix_overlapping_area (struct window *, struct glyph_row *,
                                     enum glyph_row_area, int);
 extern void draw_phys_cursor_glyph (struct window *,
@@ -3244,10 +3236,6 @@ extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
 extern void erase_phys_cursor (struct window *);
 extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
-
-extern void set_output_cursor (struct cursor_pos *);
-extern void x_cursor_to (struct window *, int, int, int, int);
-
 extern void x_update_cursor (struct frame *, bool);
 extern void x_clear_cursor (struct window *);
 extern void x_draw_vertical_border (struct window *w);

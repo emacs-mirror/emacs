@@ -1,3 +1,20 @@
+2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Redesign redisplay interface to drop global output_cursor.
+	* dispextern.h (struct redisplay_interface): Remove cursor_to member.
+	(toplevel): Remove declaration of output_cursor.
+	(set_output_cursor, x_cursor_to): Remove prototype.
+	* window.h (struct window): New member output_cursor.
+	(output_cursor_to): New function to replace RIF member.
+	* dispnew.c (redraw_overlapped_rows, update_marginal_area)
+	(update_text_area, set_window_cursor_after_update): Use it.
+	* xdisp.c (output_cursor, set_output_cursor, x_cursor_to): Remove.
+	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line):
+	* nsterm.m (ns_update_window_begin, ns_update_window_end):
+	* w32term.c (x_update_window_begin, x_update_window_end):
+	* xterm.c (x_update_window_begin, x_update_window_end):
+	Adjust to use per-window output cursor.
+
 2013-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify SELECT_TYPE-related code.

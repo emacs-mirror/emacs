@@ -11445,62 +11445,6 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
   return hooks_run;
 }
 
-
-
-/***********************************************************************
-			    Output Cursor
- ***********************************************************************/
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-/* EXPORT:
-   Nominal cursor position -- where to draw output.
-   HPOS and VPOS are window relative glyph matrix coordinates.
-   X and Y are window relative pixel coordinates.  */
-
-struct cursor_pos output_cursor;
-
-
-/* EXPORT:
-   Set the global variable output_cursor to CURSOR.  All cursor
-   positions are relative to currently updated window.  */
-
-void
-set_output_cursor (struct cursor_pos *cursor)
-{
-  output_cursor.hpos = cursor->hpos;
-  output_cursor.vpos = cursor->vpos;
-  output_cursor.x = cursor->x;
-  output_cursor.y = cursor->y;
-}
-
-
-/* EXPORT for RIF:
-   Set a nominal cursor position.
-
-   HPOS and VPOS are column/row positions in a window glyph matrix.
-   X and Y are window text area relative pixel positions.
-
-   This is always done during window update, so the position is the
-   future output cursor position for currently updated window W.
-   NOTE: W is used only to check whether this function is called
-   in a consistent manner via the redisplay interface.  */
-
-void
-x_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
-{
-  eassert (w);
-
-  /* Set the output cursor.  */
-  output_cursor.hpos = hpos;
-  output_cursor.vpos = vpos;
-  output_cursor.x = x;
-  output_cursor.y = y;
-}
-
-#endif /* HAVE_WINDOW_SYSTEM */
-
-
 /***********************************************************************
 			       Tool-bars
  ***********************************************************************/
@@ -25790,7 +25734,7 @@ x_write_glyphs (struct window *w, struct glyph_row *updated_row,
   /* Write glyphs.  */
 
   hpos = start - updated_row->glyphs[updated_area];
-  x = draw_glyphs (w, output_cursor.x,
+  x = draw_glyphs (w, w->output_cursor.x,
 		   updated_row, updated_area,
 		   hpos, hpos + len,
 		   DRAW_NORMAL_TEXT, 0);
@@ -25798,7 +25742,7 @@ x_write_glyphs (struct window *w, struct glyph_row *updated_row,
   /* Invalidate old phys cursor if the glyph at its hpos is redrawn.  */
   if (updated_area == TEXT_AREA
       && w->phys_cursor_on_p
-      && w->phys_cursor.vpos == output_cursor.vpos
+      && w->phys_cursor.vpos == w->output_cursor.vpos
       && chpos >= hpos
       && chpos < hpos + len)
     w->phys_cursor_on_p = 0;
@@ -25806,8 +25750,8 @@ x_write_glyphs (struct window *w, struct glyph_row *updated_row,
   unblock_input ();
 
   /* Advance the output cursor.  */
-  output_cursor.hpos += len;
-  output_cursor.x = x;
+  w->output_cursor.hpos += len;
+  w->output_cursor.x = x;
 }
 
 
@@ -25840,25 +25784,25 @@ x_insert_glyphs (struct window *w, struct glyph_row *updated_row,
 
   /* Get the width of the region to shift right.  */
   shifted_region_width = (window_box_width (w, updated_area)
-			  - output_cursor.x
+			  - w->output_cursor.x
 			  - shift_by_width);
 
   /* Shift right.  */
-  frame_x = window_box_left (w, updated_area) + output_cursor.x;
-  frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
+  frame_x = window_box_left (w, updated_area) + w->output_cursor.x;
+  frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, w->output_cursor.y);
 
   FRAME_RIF (f)->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
                                           line_height, shift_by_width);
 
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
-  draw_glyphs (w, output_cursor.x, row, updated_area,
+  draw_glyphs (w, w->output_cursor.x, row, updated_area,
 	       hpos, hpos + len,
 	       DRAW_NORMAL_TEXT, 0);
 
   /* Advance the output cursor.  */
-  output_cursor.hpos += len;
-  output_cursor.x += shift_by_width;
+  w->output_cursor.hpos += len;
+  w->output_cursor.x += shift_by_width;
   unblock_input ();
 }
 
@@ -25897,16 +25841,16 @@ x_clear_end_of_line (struct window *w, struct glyph_row *updated_row,
   else
     to_x = min (to_x, max_x);
 
-  to_y = min (max_y, output_cursor.y + updated_row->height);
+  to_y = min (max_y, w->output_cursor.y + updated_row->height);
 
   /* Notice if the cursor will be cleared by this operation.  */
   if (!updated_row->full_width_p)
     notice_overwritten_cursor (w, updated_area,
-			       output_cursor.x, -1,
+			       w->output_cursor.x, -1,
 			       updated_row->y,
 			       MATRIX_ROW_BOTTOM_Y (updated_row));
 
-  from_x = output_cursor.x;
+  from_x = w->output_cursor.x;
 
   /* Translate to frame coordinates.  */
   if (updated_row->full_width_p)
@@ -25922,7 +25866,7 @@ x_clear_end_of_line (struct window *w, struct glyph_row *updated_row,
     }
 
   min_y = WINDOW_HEADER_LINE_HEIGHT (w);
-  from_y = WINDOW_TO_FRAME_PIXEL_Y (w, max (min_y, output_cursor.y));
+  from_y = WINDOW_TO_FRAME_PIXEL_Y (w, max (min_y, w->output_cursor.y));
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, to_y);
 
   /* Prevent inadvertently clearing to end of the X window.  */

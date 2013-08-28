@@ -576,8 +576,7 @@ x_update_begin (struct frame *f)
 }
 
 
-/* Start update of window W.  Set output_cursor to the cursor
-   position of W.  */
+/* Start update of window W.  */
 
 static void
 x_update_window_begin (struct window *w)
@@ -591,7 +590,7 @@ x_update_window_begin (struct window *w)
       SendMessage (w32_system_caret_hwnd, WM_EMACS_HIDE_CARET, 0, 0);
     }
 
-  set_output_cursor (&w->cursor);
+  w->output_cursor = w->cursor;
 
   block_input ();
 
@@ -683,9 +682,9 @@ x_update_window_end (struct window *w, bool cursor_on_p,
       block_input ();
 
       if (cursor_on_p)
-	display_and_set_cursor (w, 1, output_cursor.hpos,
-				output_cursor.vpos,
-				output_cursor.x, output_cursor.y);
+	display_and_set_cursor (w, 1,
+				w->output_cursor.hpos, w->output_cursor.vpos,
+				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
@@ -2651,11 +2650,7 @@ x_clear_frame (struct frame *f)
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  output_cursor.hpos = output_cursor.vpos = 0;
-  output_cursor.x = -1;
 
-  /* We don't set the output cursor here because there will always
-     follow an explicit cursor_to.  */
   block_input ();
 
   w32_clear_window (f);
@@ -6321,7 +6316,6 @@ static struct redisplay_interface w32_redisplay_interface =
   x_after_update_window_line,
   x_update_window_begin,
   x_update_window_end,
-  x_cursor_to,
   x_flush,
   0,  /* flush_display_optional */
   x_clear_window_mouse_face,

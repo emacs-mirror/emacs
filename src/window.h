@@ -236,6 +236,9 @@ struct window
     /* Where the cursor actually is.  */
     struct cursor_pos phys_cursor;
 
+    /* Internally used for redisplay purposes.  */
+    struct cursor_pos output_cursor;
+
     /* Vertical cursor position as of last update that completed
        without pause.  This is the position of last_point.  */
     int last_cursor_vpos;
@@ -955,6 +958,22 @@ extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);
 extern void keys_of_window (void);
+
+/* Move cursor to row/column position VPOS/HPOS, pixel coordinates
+   Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
+   are window-relative pixel positions.  This is always done during
+   window update, so the position is the future output cursor position
+   for currently updated window W.  */
+
+WINDOW_INLINE void
+output_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
+{
+  eassert (w);
+  w->output_cursor.hpos = hpos;
+  w->output_cursor.vpos = vpos;
+  w->output_cursor.x = x;
+  w->output_cursor.y = y;
+}
 
 INLINE_HEADER_END
 

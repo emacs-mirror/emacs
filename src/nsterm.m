@@ -720,7 +720,7 @@ ns_update_window_begin (struct window *w)
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 
   NSTRACE (ns_update_window_begin);
-  set_output_cursor (&w->cursor);
+  w->output_cursor = w->cursor;
 
   block_input ();
 
@@ -756,8 +756,8 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 
       if (cursor_on_p)
 	display_and_set_cursor (w, 1,
-                                output_cursor.hpos, output_cursor.vpos,
-				output_cursor.x, output_cursor.y);
+				w->output_cursor.hpos, w->output_cursor.vpos,
+				w->output_cursor.x, w->output_cursor.y);
 
       if (draw_window_fringes (w, 1))
 	x_draw_vertical_border (w);
@@ -1988,9 +1988,6 @@ ns_clear_frame (struct frame *f)
    return;
 
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
-
-  output_cursor.hpos = output_cursor.vpos = 0;
-  output_cursor.x = -1;
 
   r = [view bounds];
 
@@ -3978,7 +3975,6 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_after_update_window_line,
   ns_update_window_begin,
   ns_update_window_end,
-  x_cursor_to,
   ns_flush,
   0, /* flush_display_optional */
   x_clear_window_mouse_face,

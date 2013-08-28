@@ -3223,8 +3223,8 @@ redraw_overlapped_rows (struct window *w, int yb)
 
 	  for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	    {
-	      FRAME_RIF (f)->cursor_to (w, i, 0, row->y,
-                                        area == TEXT_AREA ? row->x : 0);
+	      output_cursor_to (w, i, 0, row->y,
+				area == TEXT_AREA ? row->x : 0);
 	      if (row->used[area])
 		FRAME_RIF (f)->write_glyphs (w, row, row->glyphs[area],
                                              area, row->used[area]);
@@ -3481,7 +3481,7 @@ update_window (struct window *w, bool force_p)
       /* End the update of window W.  Don't set the cursor if we
          paused updating the display because in this case,
          set_window_cursor_after_update hasn't been called, and
-         output_cursor doesn't contain the cursor location.  */
+         W->output_cursor doesn't contain the cursor location.  */
       rif->update_window_end_hook (w, !paused_p, mouse_face_overwritten_p);
     }
   else
@@ -3511,7 +3511,7 @@ update_marginal_area (struct window *w, struct glyph_row *updated_row,
   /* Set cursor to start of glyphs, write them, and clear to the end
      of the area.  I don't think that something more sophisticated is
      necessary here, since marginal areas will not be the default.  */
-  rif->cursor_to (w, vpos, 0, desired_row->y, 0);
+  output_cursor_to (w, vpos, 0, desired_row->y, 0);
   if (desired_row->used[area])
     rif->write_glyphs (w, updated_row, desired_row->glyphs[area],
 		       area, desired_row->used[area]);
@@ -3549,7 +3549,7 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	  && !(current_row->mode_line_p && vpos > 0))
       || current_row->x != desired_row->x)
     {
-      rif->cursor_to (w, vpos, 0, desired_row->y, desired_row->x);
+      output_cursor_to (w, vpos, 0, desired_row->y, desired_row->x);
 
       if (desired_row->used[TEXT_AREA])
 	rif->write_glyphs (w, updated_row, desired_row->glyphs[TEXT_AREA],
@@ -3692,7 +3692,7 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 		  break;
 		}
 
-	      rif->cursor_to (w, vpos, start_hpos, desired_row->y, start_x);
+	      output_cursor_to (w, vpos, start_hpos, desired_row->y, start_x);
 	      rif->write_glyphs (w, updated_row, start,
 				 TEXT_AREA, i - start_hpos);
 	      changed_p = 1;
@@ -3702,7 +3702,7 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
       /* Write the rest.  */
       if (i < desired_row->used[TEXT_AREA])
 	{
-	  rif->cursor_to (w, vpos, i, desired_row->y, x);
+	  output_cursor_to (w, vpos, i, desired_row->y, x);
 	  rif->write_glyphs (w, updated_row, desired_glyph,
 			     TEXT_AREA, desired_row->used[TEXT_AREA] - i);
 	  changed_p = 1;
@@ -3724,8 +3724,8 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	{
 	  /* If old row extends to the end of the text area, clear.  */
 	  if (i >= desired_row->used[TEXT_AREA])
-	    rif->cursor_to (w, vpos, i, desired_row->y,
-			    desired_row->pixel_width);
+	    output_cursor_to (w, vpos, i, desired_row->y,
+			      desired_row->pixel_width);
 	  rif->clear_end_of_line (w, updated_row, TEXT_AREA, -1);
 	  changed_p = 1;
 	}
@@ -3736,8 +3736,8 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	  int xlim;
 
 	  if (i >= desired_row->used[TEXT_AREA])
-	    rif->cursor_to (w, vpos, i, desired_row->y,
-			    desired_row->pixel_width);
+	    output_cursor_to (w, vpos, i, desired_row->y,
+			      desired_row->pixel_width);
 
 	  /* If cursor is displayed at the end of the line, make sure
 	     it's cleared.  Nowadays we don't have a phys_cursor_glyph
@@ -3836,7 +3836,6 @@ static void
 set_window_cursor_after_update (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
-  struct redisplay_interface *rif = FRAME_RIF (f);
   int cx, cy, vpos, hpos;
 
   /* Not intended for frame matrix updates.  */
@@ -3908,7 +3907,7 @@ set_window_cursor_after_update (struct window *w)
      Horizontal position is -1 when cursor is on the left fringe.   */
   hpos = clip_to_bounds (-1, hpos, w->current_matrix->matrix_w - 1);
   vpos = clip_to_bounds (0, vpos, w->current_matrix->nrows - 1);
-  rif->cursor_to (w, vpos, hpos, cy, cx);
+  output_cursor_to (w, vpos, hpos, cy, cx);
 }
 
 
