@@ -1278,37 +1278,34 @@ This function is for internal use only."
 
 (defun epg--process-filter (process input)
   (if epg-debug
-      (save-excursion
-	(unless epg-debug-buffer
-	  (setq epg-debug-buffer (generate-new-buffer " *epg-debug*")))
-	(set-buffer epg-debug-buffer)
+      (with-current-buffer
+          (or epg-debug-buffer
+              (setq epg-debug-buffer (generate-new-buffer " *epg-debug*")))
 	(goto-char (point-max))
 	(insert input)))
   (if (buffer-live-p (process-buffer process))
       (with-current-buffer (process-buffer process)
-	(goto-char (point-max))
-	(insert input)
-	(unless epg-process-filter-running
-	  (unwind-protect
-	      (progn
-		(setq epg-process-filter-running t)
-		(goto-char epg-read-point)
-		(beginning-of-line)
-		(while (looking-at ".*\n") ;the input line finished
-		  (if (looking-at "\\[GNUPG:] \\([A-Z_]+\\) ?\\(.*\\)")
-		      (let* ((status (match-string 1))
-			     (string (match-string 2))
-			     (symbol (intern-soft (concat "epg--status-"
-							  status))))
-			(if (member status epg-pending-status-list)
-			    (setq epg-pending-status-list nil))
-			(if (and symbol
-				 (fboundp symbol))
-			    (funcall symbol epg-context string))
-			(setq epg-last-status (cons status string))))
-		  (forward-line)
-		  (setq epg-read-point (point))))
-	    (setq epg-process-filter-running nil))))))
+        (save-excursion
+          (goto-char (point-max))
+          (insert input)
+          (unless epg-process-filter-running
+            (let ((epg-process-filter-running t))
+              (goto-char epg-read-point)
+              (beginning-of-line)
+              (while (looking-at ".*\n") ;the input line finished
+                (if (looking-at "\\[GNUPG:] \\([A-Z_]+\\) ?\\(.*\\)")
+                    (let* ((status (match-string 1))
+                           (string (match-string 2))
+                           (symbol (intern-soft (concat "epg--status-"
+                                                        status))))
+                      (if (member status epg-pending-status-list)
+                          (setq epg-pending-status-list nil))
+                      (if (and symbol
+                               (fboundp symbol))
+                          (funcall symbol epg-context string))
+                      (setq epg-last-status (cons status string))))
+                (forward-line)
+                (setq epg-read-point (point)))))))))
 
 (defun epg-read-output (context)
   "Read the output file CONTEXT and return the content as a string."
