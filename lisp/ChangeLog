@@ -1,5 +1,7 @@
 2013-08-28  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/antlr-mode.el: No need to require cc-mode twice.
+
 	* progmodes/cc-bytecomp.el (cc-require): Handle uncompiled case.
 
 	* progmodes/cc-mode.el (c-define-abbrev-table): Handle NAME unbound.

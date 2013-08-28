@@ -178,10 +178,6 @@
 		(set-buffer-modified-p nil)))))))
 (put 'save-buffer-state-x 'lisp-indent-function 0)
 
-;; get rid of byte-compile warnings
-(eval-when-compile
-  (require 'cc-mode))
-
 (defvar outline-level)
 (defvar imenu-use-markers)
 (defvar imenu-create-index-function)
