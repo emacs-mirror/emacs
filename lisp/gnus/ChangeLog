@@ -1,3 +1,7 @@
+2013-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-temp-files-delete): Fix file deletion logic.
+
 2013-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-coding-system-priorities): Exclude iso-2022-jp-2 and

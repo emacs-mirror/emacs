@@ -607,19 +607,19 @@ files left at the next time."
 		    (split-string (buffer-string) "\n" t))))
 	 fails)
     (dolist (temp (append cache mm-temp-files-to-be-deleted))
-      (unless (and (file-exists-p temp)
-		   (if (file-directory-p temp)
-		       ;; A parent directory left at the previous time.
+      (when (and (file-exists-p temp)
+		 (if (file-directory-p temp)
+		     ;; A parent directory left at the previous time.
+		     (progn
+		       (ignore-errors (delete-directory temp))
+		       (file-exists-p temp))
+		   ;; Delete a temporary file and its parent directory.
+		   (ignore-errors (delete-file temp))
+		   (or (file-exists-p temp)
 		       (progn
+			 (setq temp (file-name-directory temp))
 			 (ignore-errors (delete-directory temp))
-			 (not (file-exists-p temp)))
-		     ;; Delete a temporary file and its parent directory.
-		     (ignore-errors (delete-file temp))
-		     (and (not (file-exists-p temp))
-			  (progn
-			    (setq temp (file-name-directory temp))
-			    (ignore-errors (delete-directory temp))
-			    (not (file-exists-p temp))))))
+			 (file-exists-p temp)))))
 	(push temp fails)))
     (if fails
 	;; Schedule the deletion of the files left at the next time.
