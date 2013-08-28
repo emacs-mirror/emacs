@@ -1,3 +1,8 @@
+2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-activate-1): Don't add unnecessarily
+	to load-path.
+
 2013-08-28  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-reread-key-sequence-naturally): Use non-nil
