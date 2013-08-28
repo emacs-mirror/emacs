@@ -184,6 +184,9 @@ struct ns_display_info *x_display_list; /* Chain of existing displays */
 Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
+static Lisp_Object last_window;
+
 /* display update */
 NSPoint last_mouse_motion_position;
 static NSRect last_mouse_glyph;
@@ -308,8 +311,13 @@ static CGPoint menu_mouse_point;
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
 #define EV_TRAILER(e)                                                   \
-    {                                                                   \
-      XSETFRAME (emacs_event->frame_or_window, emacsframe);             \
+  {                                                                     \
+    XSETFRAME (emacs_event->frame_or_window, emacsframe);               \
+    EV_TRAILER2 (e);                                                    \
+  }
+
+#define EV_TRAILER2(e)                                                  \
+  {                                                                     \
       if (e) emacs_event->timestamp = EV_TIMESTAMP (e);                 \
       if (q_event_ptr)                                                  \
         {                                                               \
@@ -5464,6 +5472,27 @@ not_in_argv (NSString *arg)
   /* tooltip handling */
   previous_help_echo_string = help_echo_string;
   help_echo_string = Qnil;
+
+  if (!NILP (Vmouse_autoselect_window))
+    {
+      NSTRACE (mouse_autoselect_window);
+      Lisp_Object window;
+      window = window_from_coordinates(emacsframe, last_mouse_motion_position.x,
+                                       last_mouse_motion_position.y, 0, 0);
+      if (WINDOWP (window)
+          && !EQ (window, last_window)
+          && !EQ (window, selected_window)
+          && (focus_follows_mouse
+              || (EQ (XWINDOW (window)->frame,
+                      XWINDOW (selected_window)->frame))))
+        {
+          NSTRACE (in_window);
+          emacs_event->kind = SELECT_WINDOW_EVENT;
+          emacs_event->frame_or_window = window;
+          EV_TRAILER2 (e);
+        }
+      last_window = window;
+    }
 
   if (!note_mouse_movement (emacsframe, last_mouse_motion_position.x,
                             last_mouse_motion_position.y))

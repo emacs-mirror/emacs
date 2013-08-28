@@ -1,3 +1,11 @@
+2013-08-28  Davor Cubranic  <cubranic@stat.ubc.ca> (tiny change)
+
+	* nsterm.m (last_window): New variable.
+	(EV_TRAILER2): New macro.
+	(EV_TRAILER): Call EV_TRAILER2.
+	(mouseMoved:):  Add support for mouse-autoselect-window
+	on nextstep (Bug#6888).
+
 2013-08-28  Andreas Schwab  <schwab@suse.de>
 
 	* regex.c (CHAR_CHARSET, CHARSET_LEADING_CODE_BASE, CHAR_HEAD_P)
