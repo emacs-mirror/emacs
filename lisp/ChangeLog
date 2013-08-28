@@ -1,5 +1,7 @@
 2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/smerge-mode.el: Remove redundant :group args.
+
 	* emacs-lisp/package.el (package-activate-1): Don't add unnecessarily
 	to load-path.
 
