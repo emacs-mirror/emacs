@@ -1,5 +1,12 @@
 2013-08-28  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-reread-key-sequence-naturally): Use non-nil
+	arg DONT-DOWNCASE-LAST of `read-key-sequence'.
+	(isearch-other-meta-char): Handle an undefined shifted printing
+	character by downshifting it.  (Bug#15200)
+
+2013-08-28  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-search): Change regexp error message for
 	non-regexp searches.  (Bug#15166)
 

@@ -2249,7 +2249,9 @@ the bottom."
 Return the key sequence as a string/vector."
   (isearch-unread-key-sequence keylist)
   (let (overriding-terminal-local-map)
-    (read-key-sequence nil)))  ; This will go through function-key-map, if nec.
+    ;; This will go through function-key-map, if nec.
+    ;; The arg DONT-DOWNCASE-LAST prevents premature shift-translation.
+    (read-key-sequence nil nil t)))
 
 (defun isearch-lookup-scroll-key (key-seq)
   "If KEY-SEQ is bound to a scrolling command, return it as a symbol.
@@ -2307,6 +2309,16 @@ Isearch mode."
 		    (lookup-key local-function-key-map key)))
 	     (while keylist
 	       (setq key (car keylist))
+	       ;; Handle an undefined shifted printing character
+	       ;; by downshifting it if that makes it printing.
+	       ;; (As read-key-sequence would normally do,
+	       ;; if we didn't have a default definition.)
+	       (if (and (integerp key)
+			(memq 'shift (event-modifiers key))
+			(>= key (+ ?\s (- ?\S-a ?a)))
+			(/= key (+ 127 (- ?\S-a ?a)))
+			(<  key (+ 256 (- ?\S-a ?a))))
+		   (setq key (- key (- ?\S-a ?a))))
 	       ;; If KEY is a printing char, we handle it here
 	       ;; directly to avoid the input method and keyboard
 	       ;; coding system translating it.
