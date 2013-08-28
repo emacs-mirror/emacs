@@ -751,11 +751,12 @@ void check_matrix_pointer_lossage (struct glyph_matrix *);
 			     Glyph Rows
  ***********************************************************************/
 
-/* Area in window glyph matrix.  If values are added or removed, the
-   function mark_object in alloc.c has to be changed.  */
+/* Area in window glyph matrix.  If values are added or removed,
+   the function mark_glyph_matrix in alloc.c may need to be changed.  */
 
 enum glyph_row_area
 {
+  ANY_AREA = -1,
   LEFT_MARGIN_AREA,
   TEXT_AREA,
   RIGHT_MARGIN_AREA,
@@ -3163,14 +3164,15 @@ int resize_mini_window (struct window *, int);
 void set_vertical_scroll_bar (struct window *);
 #endif
 int try_window (Lisp_Object, struct text_pos, int);
-void window_box (struct window *, int, int *, int *, int *, int *);
+void window_box (struct window *, enum glyph_row_area,
+		 int *, int *, int *, int *);
 int window_box_height (struct window *);
 int window_text_bottom_y (struct window *);
-int window_box_width (struct window *, int);
-int window_box_left (struct window *, int);
-int window_box_left_offset (struct window *, int);
-int window_box_right (struct window *, int);
-int window_box_right_offset (struct window *, int);
+int window_box_width (struct window *, enum glyph_row_area);
+int window_box_left (struct window *, enum glyph_row_area);
+int window_box_left_offset (struct window *, enum glyph_row_area);
+int window_box_right (struct window *, enum glyph_row_area);
+int window_box_right_offset (struct window *, enum glyph_row_area);
 int estimate_mode_line_height (struct frame *, enum face_id);
 void pixel_to_glyph_coords (struct frame *, int, int, int *, int *,
                             NativeRectangle *, int);

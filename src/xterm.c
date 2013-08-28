@@ -314,7 +314,8 @@ static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
 static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
                                enum text_cursor_kinds);
 
-static void x_clip_to_row (struct window *, struct glyph_row *, int, GC);
+static void x_clip_to_row (struct window *, struct glyph_row *,
+			   enum glyph_row_area, GC);
 static void x_flush (struct frame *f);
 static void x_update_begin (struct frame *);
 static void x_update_window_begin (struct window *);
@@ -715,7 +716,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
   struct face *face = p->face;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, -1, gc);
+  x_clip_to_row (w, row, ANY_AREA, gc);
 
   if (!p->overlay_p)
     {
@@ -3247,7 +3248,7 @@ x_scroll_run (struct window *w, struct run *run)
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringe of W.  */
-  window_box (w, -1, &x, &y, &width, &height);
+  window_box (w, ANY_AREA, &x, &y, &width, &height);
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   /* If the fringe is adjacent to the left (right) scroll bar of a
@@ -5147,7 +5148,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #endif
 
   /* Get window dimensions.  */
-  window_box (w, -1, 0, &window_y, 0, &window_height);
+  window_box (w, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
   height = window_height;
@@ -7170,7 +7171,8 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (struct window *w, struct glyph_row *row, int area, GC gc)
+x_clip_to_row (struct window *w, struct glyph_row *row,
+	       enum glyph_row_area area, GC gc)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   XRectangle clip_rect;

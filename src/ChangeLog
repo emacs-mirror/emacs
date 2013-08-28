@@ -1,5 +1,20 @@
 2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	Prefer enum glyph_row_area to int where appropriate.
+	* dispextern.h (enum glyph_row_area): Add ANY_AREA member.
+	Fix comment.
+	(window_box, window_box_width, window_box_left, window_box_left_offset)
+	(window_box_right, window_box_right_offset): Adjust prototypes.
+	* xdisp.c (window_box, window_box_width, window_box_left)
+	(window_box_left_offset, window_box_right, window_box_right_offset):
+	Use enum glyph_row_area.  Adjust users and tweak comment where needed.
+	(window_box_edges): Likewise.  Lost 2nd arg since it is always ANY_AREA.
+	* nsterm.m (ns_clip_to_row):
+	* w32term.c (w32_clip_to_row):
+	* xterm.c (x_clip_to_row): Likewise.
+
+2013-08-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* buffer.c (Foverlays_at, Foverlays_in, Fnext_overlay_change)
 	(Fprevious_overlay_change): Fast path for buffer with no overlays.
 

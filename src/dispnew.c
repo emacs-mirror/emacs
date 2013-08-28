@@ -413,7 +413,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
      Get W's size.  */
   if (w)
     {
-      window_box (w, -1, 0, 0, &window_width, &window_height);
+      window_box (w, ANY_AREA, 0, 0, &window_width, &window_height);
 
       header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
       header_line_changed_p = header_line_p != matrix->header_line_p;

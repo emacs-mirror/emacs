@@ -240,7 +240,8 @@ static void x_frame_rehighlight (struct w32_display_info *);
 static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
 static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
                                enum text_cursor_kinds);
-static void w32_clip_to_row (struct window *, struct glyph_row *, int, HDC);
+static void w32_clip_to_row (struct window *, struct glyph_row *,
+			     enum glyph_row_area, HDC);
 static BOOL my_show_window (struct frame *, HWND, int);
 static void my_set_window_pos (HWND, HWND, int, int, int, int, UINT);
 #if 0
@@ -848,7 +849,7 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     }
 
   /* Must clip because of partially visible lines.  */
-  w32_clip_to_row (w, row, -1, hdc);
+  w32_clip_to_row (w, row, ANY_AREA, hdc);
 
   if (p->which && p->which < max_fringe_bmp)
     {
@@ -2731,7 +2732,7 @@ x_scroll_run (struct window *w, struct run *run)
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringes of W.  */
-  window_box (w, -1, &x, &y, &width, &height);
+  window_box (w, ANY_AREA, &x, &y, &width, &height);
 
   /* If the fringe is adjacent to the left (right) scroll bar of a
      leftmost (rightmost, respectively) window, then extend its
@@ -3825,7 +3826,7 @@ w32_set_vertical_scroll_bar (struct window *w,
   bool fringe_extended_p;
 
   /* Get window dimensions.  */
-  window_box (w, -1, 0, &window_y, 0, &window_height);
+  window_box (w, ANY_AREA, 0, &window_y, 0, &window_height);
   top  = window_y;
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
   height = window_height;
@@ -5118,7 +5119,8 @@ w32_read_socket (struct terminal *terminal,
    mode lines must be clipped to the whole window.  */
 
 static void
-w32_clip_to_row (struct window *w, struct glyph_row *row, int area, HDC hdc)
+w32_clip_to_row (struct window *w, struct glyph_row *row,
+		 enum glyph_row_area area, HDC hdc)
 {
   RECT clip_rect;
   int window_x, window_y, window_width;

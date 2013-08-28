@@ -966,12 +966,12 @@ window_text_bottom_y (struct window *w)
   return height;
 }
 
-/* Return the pixel width of display area AREA of window W.  AREA < 0
-   means return the total width of W, not including fringes to
-   the left and right of the window.  */
+/* Return the pixel width of display area AREA of window W.
+   ANY_AREA means return the total width of W, not including
+   fringes to the left and right of the window.  */
 
 int
-window_box_width (struct window *w, int area)
+window_box_width (struct window *w, enum glyph_row_area area)
 {
   int cols = w->total_cols;
   int pixels = 0;
@@ -1049,11 +1049,11 @@ window_box_height (struct window *w)
 }
 
 /* Return the window-relative coordinate of the left edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  ANY_AREA means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
 int
-window_box_left_offset (struct window *w, int area)
+window_box_left_offset (struct window *w, enum glyph_row_area area)
 {
   int x;
 
@@ -1081,21 +1081,21 @@ window_box_left_offset (struct window *w, int area)
 
 
 /* Return the window-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the right edge of the
+   area AREA of window W.  ANY_AREA means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 int
-window_box_right_offset (struct window *w, int area)
+window_box_right_offset (struct window *w, enum glyph_row_area area)
 {
   return window_box_left_offset (w, area) + window_box_width (w, area);
 }
 
 /* Return the frame-relative coordinate of the left edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  ANY_AREA means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
 int
-window_box_left (struct window *w, int area)
+window_box_left (struct window *w, enum glyph_row_area area)
 {
   struct frame *f = XFRAME (w->frame);
   int x;
@@ -1111,25 +1111,25 @@ window_box_left (struct window *w, int area)
 
 
 /* Return the frame-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the right edge of the
+   area AREA of window W.  ANY_AREA means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 int
-window_box_right (struct window *w, int area)
+window_box_right (struct window *w, enum glyph_row_area area)
 {
   return window_box_left (w, area) + window_box_width (w, area);
 }
 
 /* Get the bounding box of the display area AREA of window W, without
-   mode lines, in frame-relative coordinates.  AREA < 0 means the
+   mode lines, in frame-relative coordinates.  ANY_AREA means the
    whole window, not including the left and right fringes of
    the window.  Return in *BOX_X and *BOX_Y the frame-relative pixel
    coordinates of the upper-left corner of the box.  Return in
    *BOX_WIDTH, and *BOX_HEIGHT the pixel width and height of the box.  */
 
 void
-window_box (struct window *w, int area, int *box_x, int *box_y,
-	    int *box_width, int *box_height)
+window_box (struct window *w, enum glyph_row_area area, int *box_x,
+	    int *box_y, int *box_width, int *box_height)
 {
   if (box_width)
     *box_width = window_box_width (w, area);
@@ -1147,19 +1147,18 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
 
 
 /* Get the bounding box of the display area AREA of window W, without
-   mode lines.  AREA < 0 means the whole window, not including the
-   left and right fringe of the window.  Return in *TOP_LEFT_X
+   mode lines and both fringes of the window.  Return in *TOP_LEFT_X
    and TOP_LEFT_Y the frame-relative pixel coordinates of the
    upper-left corner of the box.  Return in *BOTTOM_RIGHT_X, and
    *BOTTOM_RIGHT_Y the coordinates of the bottom-right corner of the
    box.  */
 
 static void
-window_box_edges (struct window *w, int area, int *top_left_x, int *top_left_y,
-		   int *bottom_right_x, int *bottom_right_y)
+window_box_edges (struct window *w, int *top_left_x, int *top_left_y,
+		  int *bottom_right_x, int *bottom_right_y)
 {
-  window_box (w, area, top_left_x, top_left_y, bottom_right_x,
-	      bottom_right_y);
+  window_box (w, ANY_AREA, top_left_x, top_left_y,
+	      bottom_right_x, bottom_right_y);
   *bottom_right_x += *top_left_x;
   *bottom_right_y += *top_left_y;
 }
@@ -28727,7 +28726,7 @@ x_draw_vertical_border (struct window *w)
     {
       int x0, x1, y0, y1;
 
-      window_box_edges (w, -1, &x0, &y0, &x1, &y1);
+      window_box_edges (w, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
       if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
@@ -28740,7 +28739,7 @@ x_draw_vertical_border (struct window *w)
     {
       int x0, x1, y0, y1;
 
-      window_box_edges (w, -1, &x0, &y0, &x1, &y1);
+      window_box_edges (w, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
       if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)

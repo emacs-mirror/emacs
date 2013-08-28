@@ -885,7 +885,8 @@ ns_unfocus (struct frame *f)
 
 
 static void
-ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
+ns_clip_to_row (struct window *w, struct glyph_row *row,
+		enum glyph_row_area area, BOOL gc)
 /* --------------------------------------------------------------------------
      Internal (but parallels other terms): Focus drawing on given row
    -------------------------------------------------------------------------- */
@@ -2044,7 +2045,7 @@ ns_scroll_run (struct window *w, struct run *run)
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringe of W.  */
-  window_box (w, -1, &x, &y, &width, &height);
+  window_box (w, ANY_AREA, &x, &y, &width, &height);
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -2219,7 +2220,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     }
 
   /* Must clip because of partially visible lines.  */
-  ns_clip_to_row (w, row, -1, YES);
+  ns_clip_to_row (w, row, ANY_AREA, YES);
 
   if (!p->overlay_p)
     {
@@ -2399,7 +2400,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   /* TODO: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
-  ns_clip_to_row (w, glyph_row, -1, NO); /* do ns_focus(f, &r, 1); if remove */
+  ns_clip_to_row (w, glyph_row, ANY_AREA, NO); /* do ns_focus(f, &r, 1); if remove */
 
 
   face = FACE_FROM_ID (f, phys_cursor_glyph->face_id);
@@ -3710,7 +3711,7 @@ ns_set_vertical_scroll_bar (struct window *window,
   NSTRACE (ns_set_vertical_scroll_bar);
 
   /* Get dimensions.  */
-  window_box (window, -1, 0, &window_y, 0, &window_height);
+  window_box (window, ANY_AREA, 0, &window_y, 0, &window_height);
   top = window_y;
   height = window_height;
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (window) * FRAME_COLUMN_WIDTH (f);
