@@ -233,26 +233,12 @@ Beginning of buffer is position (point-min), end is (point-max).
 The return value is POSITION.  */)
   (register Lisp_Object position)
 {
-  ptrdiff_t pos;
-
-  if (MARKERP (position)
-      && current_buffer == XMARKER (position)->buffer)
-    {
-      pos = marker_position (position);
-      if (pos < BEGV)
-	SET_PT_BOTH (BEGV, BEGV_BYTE);
-      else if (pos > ZV)
-	SET_PT_BOTH (ZV, ZV_BYTE);
-      else
-	SET_PT_BOTH (pos, marker_byte_position (position));
-
-      return position;
-    }
-
-  CHECK_NUMBER_COERCE_MARKER (position);
-
-  pos = clip_to_bounds (BEGV, XINT (position), ZV);
-  SET_PT (pos);
+  if (MARKERP (position))
+    set_point_from_marker (position);
+  else if (INTEGERP (position))
+    SET_PT (clip_to_bounds (BEGV, XINT (position), ZV));
+  else
+    wrong_type_argument (Qinteger_or_marker_p, position);
   return position;
 }
 

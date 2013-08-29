@@ -549,15 +549,7 @@ select_window_1 (Lisp_Object window, bool inhibit_point_swap)
      than one window.  It also matters when
      redisplay_window has altered point after scrolling,
      because it makes the change only in the window.  */
-  {
-    register ptrdiff_t new_point = marker_position (XWINDOW (window)->pointm);
-    if (new_point < BEGV)
-      SET_PT (BEGV);
-    else if (new_point > ZV)
-      SET_PT (ZV);
-    else
-      SET_PT (new_point);
-  }
+  set_point_from_marker (XWINDOW (window)->pointm);
 }
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,

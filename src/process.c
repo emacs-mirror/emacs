@@ -5178,15 +5178,10 @@ DEFUN ("internal-default-process-filter", Finternal_default_process_filter,
 
       bset_read_only (current_buffer, Qnil);
 
-      /* Insert new output into buffer
-	 at the current end-of-output marker,
-	 thus preserving logical ordering of input and output.  */
+      /* Insert new output into buffer at the current end-of-output
+	 marker, thus preserving logical ordering of input and output.  */
       if (XMARKER (p->mark)->buffer)
-	SET_PT_BOTH (clip_to_bounds (BEGV,
-				     marker_position (p->mark), ZV),
-		     clip_to_bounds (BEGV_BYTE,
-				     marker_byte_position (p->mark),
-				     ZV_BYTE));
+	set_point_from_marker (p->mark);
       else
 	SET_PT_BOTH (ZV, ZV_BYTE);
       before = PT;

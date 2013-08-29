@@ -1,3 +1,11 @@
+2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* intervals.c (set_point_from_marker): New function.
+	* editfns.c (Fgoto_char):
+	* process.c (Finternal_default_process_filter):
+	* window.c (select_window_1): Use it.
+	* buffer.h (set_point_from_marker): Add prototype.
+
 2013-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (term_winsock): Call release_listen_threads before calling

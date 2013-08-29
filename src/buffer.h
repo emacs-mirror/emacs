@@ -249,6 +249,7 @@ extern void temp_set_point (struct buffer *, ptrdiff_t);
 extern void set_point_both (ptrdiff_t, ptrdiff_t);
 extern void temp_set_point_both (struct buffer *,
 				 ptrdiff_t, ptrdiff_t);
+extern void set_point_from_marker (Lisp_Object);
 extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 
 
