@@ -752,6 +752,57 @@ considered."
                      (mapcar #'symbol-name (lisp--local-variables))))))
          lastvars)))))
 
+;; FIXME: Support for Company brings in features which straddle eldoc.
+;; We should consolidate this, so that major modes can provide all that
+;; data all at once:
+;; - a function to extract "the reference at point" (may be more complex
+;;     than a mere string, to distinguish various namespaces).
+;; - a function to jump to such a reference.
+;; - a function to show the signature/interface of such a reference.
+;; - a function to build a help-buffer about that reference.
+;; FIXME: Those functions should also be used by the normal completion code in
+;; the *Completions* buffer.
+
+(defun lisp--company-doc-buffer (str)
+  (let ((symbol (intern-soft str)))
+    ;; FIXME: we really don't want to "display-buffer and then undo it".
+    (save-window-excursion
+      ;; Make sure we don't display it in another frame, otherwise
+      ;; save-window-excursion won't be able to undo it.
+      (let ((display-buffer-overriding-action
+             '(nil . ((inhibit-switch-frame . t)))))
+        (ignore-errors
+          (cond
+           ((fboundp symbol) (describe-function symbol))
+           ((boundp symbol) (describe-variable symbol))
+           ((featurep symbol) (describe-package symbol))
+           ((facep symbol) (describe-face symbol))
+           (t (signal 'user-error nil)))
+          (help-buffer))))))
+
+(defun lisp--company-doc-string (str)
+  (let* ((symbol (intern-soft str))
+         (doc (if (fboundp symbol)
+                  (documentation symbol t)
+                (documentation-property symbol 'variable-documentation t))))
+    (and (stringp doc)
+         (string-match ".*$" doc)
+         (match-string 0 doc))))
+
+(declare-function find-library-name "find-func" (library))
+
+(defun lisp--company-location (str)
+  (let ((sym (intern-soft str)))
+    (cond
+     ((fboundp sym) (find-definition-noselect sym nil))
+     ((boundp sym) (find-definition-noselect sym 'defvar))
+     ((featurep sym)
+      (require 'find-func)
+      (cons (find-file-noselect (find-library-name
+                                 (symbol-name sym)))
+            0))
+     ((facep sym) (find-definition-noselect sym 'defface)))))
+
 (defun lisp-completion-at-point (&optional _predicate)
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'."
   (with-syntax-table emacs-lisp-mode-syntax-table
@@ -783,7 +834,10 @@ considered."
                            lisp--local-variables-completion-table
                            obarray)       ;Could be anything.
                       :annotation-function
-                      (lambda (str) (if (fboundp (intern-soft str)) " <f>")))
+                      (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
+                      :company-doc-buffer #'lisp--company-doc-buffer
+                      :company-docsig #'lisp--company-doc-string
+                      :company-location #'lisp--company-location)
               ;; Looks like a funcall position.  Let's double check.
               (save-excursion
                 (goto-char (1- beg))
@@ -800,10 +854,12 @@ considered."
                     ;; we should use something like a symbol-property.
                     (`declare
                      (list t (mapcar (lambda (x) (symbol-name (car x)))
-                                   (delete-dups
-                                    (append
-                                     macro-declarations-alist
-                                     defun-declarations-alist)))))
+                                     (delete-dups
+                                      ;; FIXME: We should include some
+                                      ;; docstring with each entry.
+                                      (append
+                                       macro-declarations-alist
+                                       defun-declarations-alist)))))
                     ((and (or `condition-case `condition-case-unless-debug)
                           (guard (save-excursion
                                    (ignore-errors
@@ -811,7 +867,12 @@ considered."
                                      (< (point) beg)))))
                      (list t obarray
                            :predicate (lambda (sym) (get sym 'error-conditions))))
-                    (_ (list nil obarray #'fboundp))))))))
+                    (_ (list nil obarray
+                             :predicate #'fboundp
+                             :company-doc-buffer #'lisp--company-doc-buffer
+                             :company-docsig #'lisp--company-doc-string
+                             :company-location #'lisp--company-location
+                             ))))))))
       (when end
         (let ((tail (if (null (car table-etc))
                         (cdr table-etc)

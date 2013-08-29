@@ -1,5 +1,9 @@
 2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (lisp--company-doc-buffer)
+	(lisp--company-doc-string, lisp--company-location): New functions.
+	(lisp-completion-at-point): Use them to improve Company support.
+
 	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for formal
 	params of lambda expressions.
 	(ruby-smie--implicit-semi-p): Refine rule (bug#15208).
