@@ -345,7 +345,7 @@ word(s) will be searched for via `eww-search-prefix'."
     (define-key map [(meta p)] 'eww-previous-bookmark)
 
     (easy-menu-define nil map ""
-      '("eww"
+      '("Eww"
 	["Quit" eww-quit t]
 	["Reload" eww-reload t]
 	["Back to previous page" eww-back-url
