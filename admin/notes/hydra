@@ -5,15 +5,14 @@ See the end of the file for license conditions.
 
 NOTES FOR EMACS CONTINUOUS BUILD ON HYDRA
 
-A continuous build for Emacs trunk can be found at
+A continuous build for Emacs can be found at
 http://hydra.nixos.org/jobset/gnu/emacs-trunk
+http://hydra.nixos.org/jobset/gnu/emacs-24
 
-* It builds (and runs ERT tests) on these platforms:
-i686-cygwin
-i686-freebsd
-i686-linux
-x86_64-darwin
-x86_64-linux
+* It builds Emacs on various platforms.
+Sometimes jobs fail due to hydra problems rather than Emacs problems.
+Eg it seems like the cygwin build will never work again.
+http://lists.gnu.org/archive/html/hydra-users/2013-08/msg00000.html
 
 * Mail notifications
 In addition to the web interface, Hydra can send notifications by
@@ -27,15 +26,15 @@ http://lists.gnu.org/mailman/listinfo/emacs-buildstatus
 * The Emacs jobset consists of the following jobs:
 
 ** The `tarball' job
-which gets the source tree as input, and is just a `make dist' after
-some autoconf/-make or bootstrap script.
+which gets a checkout from bzr, and does a bootstrap followed
+by running make-dist to create a tarball.  If this job fails, all the
+others will too (because they use the tarball as input).
 
 ** The `build' job
-which gets the result of the tarball job as input, together with
-system identifier, this job basically does a normal make and make install.
+which starts from the tarball and does a normal build
 
 ** The 'coverage' job
-is now running `make check'.
+does a gcov build and then runs `make check'.  Fails if any test fails.
 
 * Nix expressions
 The recipe for GNU Emacs are available via Git:
