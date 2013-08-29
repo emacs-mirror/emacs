@@ -1,3 +1,8 @@
+2013-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-engine.el (c-pull-open-brace):
+	Move definition before use.
+
 2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-defsubst): Make it clear that args

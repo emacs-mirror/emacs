@@ -6479,6 +6479,15 @@ comment at the start of cc-engine.el for more info."
 	   (c-go-list-forward)
          t)))
 
+(defmacro c-pull-open-brace (ps)
+  ;; Pull the next open brace from PS (which has the form of paren-state),
+  ;; skipping over any brace pairs.  Returns NIL when PS is exhausted.
+  `(progn
+     (while (consp (car ,ps))
+       (setq ,ps (cdr ,ps)))
+     (prog1 (car ,ps)
+       (setq ,ps (cdr ,ps)))))
+
 (defun c-back-over-member-initializers ()
   ;; Test whether we are in a C++ member initializer list, and if so, go back
   ;; to the introducing ":", returning the position of the opening paren of
@@ -8402,15 +8411,6 @@ comment at the start of cc-engine.el for more info."
 		    nil))
 	  (back-to-indentation)
 	  (vector (point) open-paren-pos))))))
-
-(defmacro c-pull-open-brace (ps)
-  ;; Pull the next open brace from PS (which has the form of paren-state),
-  ;; skipping over any brace pairs.  Returns NIL when PS is exhausted.
-  `(progn
-     (while (consp (car ,ps))
-       (setq ,ps (cdr ,ps)))
-     (prog1 (car ,ps)
-       (setq ,ps (cdr ,ps)))))
 
 (defun c-most-enclosing-decl-block (paren-state)
   ;; Return the buffer position of the most enclosing decl-block brace (in the
