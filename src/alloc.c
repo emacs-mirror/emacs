@@ -3479,6 +3479,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->charpos = 0;
   p->next = NULL;
   p->insertion_type = 0;
+  p->need_adjustment = 0;
   return val;
 }
 
@@ -3503,6 +3504,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   m->charpos = charpos;
   m->bytepos = bytepos;
   m->insertion_type = 0;
+  m->need_adjustment = 0;
   m->next = BUF_MARKERS (buf);
   BUF_MARKERS (buf) = m;
   return obj;

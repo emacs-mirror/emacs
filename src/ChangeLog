@@ -1,5 +1,10 @@
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* alloc.c (Fmake_marker, build_marker): Zero need_adjustment
+	field of new marker (for sanity and safety).
+
+2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	* xterm.c (x_clear_area): Lost 7th arg because it is always False.
 	(x_after_update_window_line, x_scroll_bar_create):
 	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar):
