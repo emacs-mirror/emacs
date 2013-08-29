@@ -1,7 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993-1997, 1999, 2001-2013 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2013 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -673,7 +672,9 @@ removed when closing the here document."
 	  "." "alias" "bg" "bind" "builtin" "caller" "compgen" "complete"
           "declare" "dirs" "disown" "enable" "fc" "fg" "help" "history"
           "jobs" "kill" "let" "local" "popd" "printf" "pushd" "shopt"
-          "source" "suspend" "typeset" "unalias")
+          "source" "suspend" "typeset" "unalias"
+          ;; bash4
+          "mapfile" "readarray")
 
     ;; The next entry is only used for defining the others
     (bourne sh-append shell
@@ -737,6 +738,7 @@ implemented as aliases.  See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
 		       (choice (repeat string)
 			       (sexp :format "Evaluate: %v"))))
+  :version "24.4"                       ; bash4 additions
   :group 'sh-script)
 
 

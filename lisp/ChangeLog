@@ -1,3 +1,7 @@
+2013-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/sh-script.el (sh-builtins) <bash>: Add some bash4-isms.
+
 2013-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/antlr-mode.el: No need to require cc-mode twice.
