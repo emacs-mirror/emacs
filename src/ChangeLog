@@ -1,3 +1,17 @@
+2013-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (term_winsock): Call release_listen_threads before calling
+	WSACleanup.
+	(_sys_wait_accept): Wait for accept event in a loop with a finite
+	timeout, instead of waiting indefinitely.  Will hopefully avoid
+	hanging during exit because WSACleanup deadlocks waiting for the
+	event object to be released.  (Bug#14333)
+
+	* w32proc.c (release_listen_threads): New function, signals all
+	the reader threads that listen for connections to stop waiting.
+
+	* w32.h (release_listen_threads): Add prototype.
+
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fmake_marker, build_marker): Zero need_adjustment

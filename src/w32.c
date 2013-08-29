@@ -6092,6 +6092,7 @@ term_winsock (void)
 {
   if (winsock_lib != NULL && winsock_inuse == 0)
     {
+      release_listen_threads ();
       /* Not sure what would cause WSAENETDOWN, or even if it can happen
 	 after WSAStartup returns successfully, but it seems reasonable
 	 to allow unloading winsock anyway in that case. */
@@ -7076,7 +7077,12 @@ _sys_wait_accept (int fd)
   rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_ACCEPT);
   if (rc != SOCKET_ERROR)
     {
-      rc = WaitForSingleObject (hEv, INFINITE);
+      do {
+	rc = WaitForSingleObject (hEv, 500);
+	Sleep (5);
+      } while (rc == WAIT_TIMEOUT
+	       && cp->status != STATUS_READ_ERROR
+	       && cp->char_avail);
       pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
       if (rc == WAIT_OBJECT_0)
 	cp->status = STATUS_READ_SUCCEEDED;

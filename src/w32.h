@@ -163,6 +163,7 @@ extern void reset_standard_handles (int in, int out,
 /* Return the string resource associated with KEY of type TYPE.  */
 extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 
+extern void release_listen_threads (void);
 extern void init_ntproc (int);
 extern void term_ntproc (int);
 extern void globals_of_w32 (void);

@@ -990,6 +990,18 @@ find_child_pid (DWORD pid)
   return NULL;
 }
 
+void
+release_listen_threads (void)
+{
+  int i;
+
+  for (i = child_proc_count - 1; i >= 0; i--)
+    {
+      if (CHILD_ACTIVE (&child_procs[i])
+	  && (fd_info[child_procs[i].fd].flags & FILE_LISTEN))
+	child_procs[i].status = STATUS_READ_ERROR;
+    }
+}
 
 /* Thread proc for child process and socket reader threads. Each thread
    is normally blocked until woken by select() to check for input by
