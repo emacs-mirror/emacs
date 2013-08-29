@@ -347,6 +347,9 @@ Runs on commit.  Projects can enable it themselves by using `bzr
 config' to set post_commit_to option for a branch.  See `bzr help email'
 (if you have the plugin installed) for other options.
 
+The From: address will be that of your Savannah account, rather than
+your `bzr whoami' information.
+
 Note: if you have the bzr-email plugin installed locally, then when
 you commit to the Emacs repository it will also try to send a commit
 email from your local machine.  If your machine is not configured to
