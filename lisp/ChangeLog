@@ -1,5 +1,32 @@
 2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/css-mode.el: Use SMIE.
+	(css-smie-grammar): New var.
+	(css-smie--forward-token, css-smie--backward-token)
+	(css-smie-rules): New functions.
+	(css-mode): Use them.
+	(css-navigation-syntax-table): Remove var.
+	(css-backward-sexp, css-forward-sexp, css-indent-calculate-virtual)
+	(css-indent-calculate, css-indent-line): Remove functions.
+
+	Misc changes to reduce use of `(lambda...); and other cleanups.
+	* cus-edit.el: Use lexical-binding.
+	(customize-push-and-save, customize-apropos)
+	(custom-buffer-create-internal): Use closures.
+	* progmodes/bat-mode.el (bat-mode-syntax-table): "..." are strings.
+	* progmodes/ada-xref.el: Use setq.
+	* net/tramp.el (with-tramp-progress-reporter): Avoid setq.
+	* dframe.el: Use lexical-binding.
+	(dframe-frame-mode): Fix calling convention for hooks.  Use a closure.
+	* speedbar.el (speedbar-frame-mode): Adjust call accordingly.
+	* descr-text.el: Use lexical-binding.
+	(describe-text-widget, describe-text-sexp, describe-property-list):
+	Use closures.
+	* comint.el (comint-history-isearch-push-state): Use a closure.
+	* calculator.el: Use lexical-binding.
+	(calculator-number-to-string): Make it work with lexical-binding.
+	(calculator-funcall): Same and use cl-letf.
+
 	* emacs-lisp/lisp.el (lisp--company-doc-buffer)
 	(lisp--company-doc-string, lisp--company-location): New functions.
 	(lisp-completion-at-point): Use them to improve Company support.
