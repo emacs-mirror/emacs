@@ -45,7 +45,7 @@
 
 (defmacro nxml-debug-clear-inside (start end)
   (when nxml-debug
-    `(loop for overlay in (overlays-in ,start ,end)
+    `(cl-loop for overlay in (overlays-in ,start ,end)
            if (overlay-get overlay 'nxml-inside-debug)
            do (delete-overlay overlay)
            finally (nxml-debug-change "nxml-clear-inside" ,start ,end))))

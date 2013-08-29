@@ -1,5 +1,8 @@
 2013-08-29  Glenn Morris  <rgm@gnu.org>
 
+	* nxml/nxml-util.el (nxml-debug-clear-inside):
+	Use cl-loop rather than loop.
+
 	* net/eww.el (eww-mode-map): Lower-case menu bar entries look bad.
 
 	* progmodes/sh-script.el (sh-builtins) <bash>: Add some bash4-isms.
