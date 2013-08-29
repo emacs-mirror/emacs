@@ -2,6 +2,8 @@
 
 	* alloc.c (Fmake_marker, build_marker): Zero need_adjustment
 	field of new marker (for sanity and safety).
+	* lisp.h (XSETMARKER): Remove unused macro (it doesn't work
+	anyway because XMISCTYPE is a function and can't be an lvalue).
 
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 

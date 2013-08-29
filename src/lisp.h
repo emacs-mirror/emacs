@@ -866,11 +866,7 @@ make_lisp_proc (struct Lisp_Process *p)
 #define XSETSTRING(a, b) ((a) = make_lisp_ptr (b, Lisp_String))
 #define XSETSYMBOL(a, b) ((a) = make_lisp_ptr (b, Lisp_Symbol))
 #define XSETFLOAT(a, b) ((a) = make_lisp_ptr (b, Lisp_Float))
-
-/* Misc types.  */
-
 #define XSETMISC(a, b) ((a) = make_lisp_ptr (b, Lisp_Misc))
-#define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
 
 /* Pseudovector types.  */
 
