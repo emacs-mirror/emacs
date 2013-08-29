@@ -698,10 +698,10 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 
       block_input ();
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
+		    0, y, width, height);
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    FRAME_PIXEL_WIDTH (f) - width,
-		    y, width, height, False);
+		    y, width, height);
       unblock_input ();
     }
 }
@@ -2968,10 +2968,10 @@ x_delete_glyphs (struct frame *f, register int n)
    If they are <= 0, this is probably an error.  */
 
 void
-x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, int exposures)
+x_clear_area (Display *dpy, Window window, int x, int y, int width, int height)
 {
   eassert (width > 0 && height > 0);
-  XClearArea (dpy, window, x, y, width, height, exposures);
+  XClearArea (dpy, window, x, y, width, height, False);
 }
 
 
@@ -4927,8 +4927,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && height > 0)
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width,
-		    window_box_height (w), False);
+		    left, top, width, window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -5064,11 +5063,9 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
        zero-height areas; that means "clear to end of window."  */
     if (start > 0)
       x_clear_area (FRAME_X_DISPLAY (f), w,
-		    /* x, y, width, height, and exposures.  */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start,
-		    False);
+		    inside_width, start);
 
     /* Change to proper foreground color if one is specified.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5091,12 +5088,9 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
        clear zero-height areas; that means "clear to end of window." */
     if (end < inside_height)
       x_clear_area (FRAME_X_DISPLAY (f), w,
-		    /* x, y, width, height, and exposures.  */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end,
-		    False);
-
+		    inside_width, inside_height - end);
   }
 
   unblock_input ();
@@ -5189,11 +5183,11 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 #ifdef USE_TOOLKIT_SCROLL_BARS
 	  if (fringe_extended_p)
 	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  sb_left, top, sb_width, height, False);
+			  sb_left, top, sb_width, height);
 	  else
 #endif
 	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  left, top, width, height, False);
+			  left, top, width, height);
 	  unblock_input ();
 	}
 
@@ -5228,10 +5222,10 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	    {
 	      if (fringe_extended_p)
 		x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			      sb_left, top, sb_width, height, False);
+			      sb_left, top, sb_width, height);
 	      else
 		x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			      left, top, width, height, False);
+			      left, top, width, height);
 	    }
 #ifdef USE_GTK
           xg_update_scrollbar_pos (f,
@@ -5255,12 +5249,10 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       if (VERTICAL_SCROLL_BAR_WIDTH_TRIM)
 	{
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			height, False);
+			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM, height);
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			height, False);
+			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM, height);
 	}
 
       /* Clear areas not covered by the scroll bar because it's not as
@@ -5274,11 +5266,10 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	  {
 	    if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
 	      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			    left + area_width -  rest, top,
-			    rest, height, False);
+			    left + area_width - rest, top, rest, height);
 	    else
 	      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			    left, top, rest, height, False);
+			    left, top, rest, height);
 	  }
       }
 
@@ -6122,11 +6113,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         {
 #ifdef USE_GTK
           /* This seems to be needed for GTK 2.6.  */
-          x_clear_area (event.xexpose.display,
-                        event.xexpose.window,
-                        event.xexpose.x, event.xexpose.y,
-                        event.xexpose.width, event.xexpose.height,
-                        FALSE);
+	  x_clear_area (event.xexpose.display,
+			event.xexpose.window,
+			event.xexpose.x, event.xexpose.y,
+			event.xexpose.width, event.xexpose.height);
 #endif
           if (!FRAME_VISIBLE_P (f))
             {
@@ -7349,8 +7339,7 @@ x_define_frame_cursor (struct frame *f, Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
-  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		x, y, width, height, False);
+  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), x, y, width, height);
 #ifdef USE_GTK
   /* Must queue a redraw, because scroll bars might have been cleared.  */
   if (FRAME_GTK_WIDGET (f))

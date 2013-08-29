@@ -872,29 +872,23 @@ xg_clear_under_internal_border (struct frame *f)
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
+
       gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
-      x_clear_area (FRAME_X_DISPLAY (f),
-                    FRAME_X_WINDOW (f),
-                    0, 0,
-                    FRAME_PIXEL_WIDTH (f),
-                    FRAME_INTERNAL_BORDER_WIDTH (f), 0);
-      x_clear_area (FRAME_X_DISPLAY (f),
-                    FRAME_X_WINDOW (f),
-                    0, 0,
-                    FRAME_INTERNAL_BORDER_WIDTH (f),
-                    FRAME_PIXEL_HEIGHT (f), 0);
-      x_clear_area (FRAME_X_DISPLAY (f),
-                    FRAME_X_WINDOW (f),
-                    0, FRAME_PIXEL_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
-                    FRAME_PIXEL_WIDTH (f),
-                    FRAME_INTERNAL_BORDER_WIDTH (f), 0);
-      x_clear_area (FRAME_X_DISPLAY (f),
-                    FRAME_X_WINDOW (f),
-                    FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
-                    0,
-                    FRAME_INTERNAL_BORDER_WIDTH (f),
-                    FRAME_PIXEL_HEIGHT (f), 0);
+
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, 0,
+		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
+
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, 0,
+		    FRAME_INTERNAL_BORDER_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0,
+		    FRAME_PIXEL_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
+		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
+
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
+		    0, FRAME_INTERNAL_BORDER_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
     }
 }
 
@@ -3751,14 +3745,11 @@ xg_update_scrollbar_pos (struct frame *f,
       gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
       if (oldx != -1 && oldw > 0 && oldh > 0)
-        {
-          /* Clear under old scroll bar position.  This must be done after
-             the gtk_widget_queue_draw and gdk_window_process_all_updates
-             above.  */
-          x_clear_area (FRAME_X_DISPLAY (f),
-                        FRAME_X_WINDOW (f),
-                        oldx, oldy, oldw, oldh, 0);
-        }
+	/* Clear under old scroll bar position.  This must be done after
+	   the gtk_widget_queue_draw and gdk_window_process_all_updates
+	   above.  */
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      oldx, oldy, oldw, oldh);
 
       /* GTK does not redraw until the main loop is entered again, but
          if there are no X events pending we will not enter it.  So we sync

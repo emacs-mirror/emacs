@@ -1,5 +1,15 @@
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
+	* xterm.c (x_clear_area): Lost 7th arg because it is always False.
+	(x_after_update_window_line, x_scroll_bar_create):
+	(x_scroll_bar_set_handle, XTset_vertical_scroll_bar):
+	(handle_one_xevent, x_clear_frame_area):
+	* gtkutil.c (xg_clear_under_internal_border, xg_update_scrollbar_pos):
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Adjust users.
+	* xterm.h (x_clear_area): Adjust prototype.
+
+2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
 	Hook scanning and indentation functions to find_newline.  This helps
 	to avoid duplicated code and renders more respect to newline cache.
 	* lisp.h (scan_newline): Prefer ptrdiff_t to EMACS_INT.
