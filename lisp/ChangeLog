@@ -1,3 +1,10 @@
+2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-defsubst): Make it clear that args
+	are immutable.  Don't use `unsafe' any more.
+	(cl--defsubst-expand): Don't substitute at the same time as keeping
+	a residual unused let-binding.  Don't use `unsafe' any more.
+
 2013-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-china.el (calendar-chinese-year-cache):

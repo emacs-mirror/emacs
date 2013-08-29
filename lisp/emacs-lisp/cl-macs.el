@@ -2693,15 +2693,16 @@ macro that returns its `&whole' argument."
 ;;;###autoload
 (defmacro cl-defsubst (name args &rest body)
   "Define NAME as a function.
-Like `defun', except the function is automatically declared `inline',
+Like `defun', except the function is automatically declared `inline' and
+the arguments are immutable.
 ARGLIST allows full Common Lisp conventions, and BODY is implicitly
 surrounded by (cl-block NAME ...).
+The function's arguments should be treated as immutable.
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug cl-defun) (indent 2))
   (let* ((argns (cl--arglist-args args)) (p argns)
-	 (pbody (cons 'progn body))
-	 (unsafe (not (cl--safe-expr-p pbody))))
+	 (pbody (cons 'progn body)))
     (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
     `(progn
        ,(if p nil   ; give up if defaults refer to earlier args
@@ -2717,10 +2718,10 @@ surrounded by (cl-block NAME ...).
               ;; does not pay attention to the argvs (and
               ;; cl-expr-access-order itself is also too naive).
               nil
-              ,(and (memq '&key args) 'cl-whole) ,unsafe ,@argns)))
+              ,(and (memq '&key args) 'cl-whole) nil ,@argns)))
        (cl-defun ,name ,args ,@body))))
 
-(defun cl--defsubst-expand (argns body simple whole unsafe &rest argvs)
+(defun cl--defsubst-expand (argns body simple whole _unsafe &rest argvs)
   (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
     (if (cl--simple-exprs-p argvs) (setq simple t))
     (let* ((substs ())
@@ -2728,7 +2729,7 @@ surrounded by (cl-block NAME ...).
                        (cl-mapcar (lambda (argn argv)
                                     (if (or simple (macroexp-const-p argv))
                                         (progn (push (cons argn argv) substs)
-                                               (and unsafe (list argn argv)))
+                                               nil)
                                       (list argn argv)))
                                   argns argvs))))
       ;; FIXME: `sublis/subst' will happily substitute the symbol
