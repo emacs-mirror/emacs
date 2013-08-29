@@ -859,88 +859,20 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
    If ALLOW_QUIT, set immediate_quit.  That's good to do
    except in special cases.  */
 
-EMACS_INT
+ptrdiff_t
 scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	      ptrdiff_t limit, ptrdiff_t limit_byte,
-	      EMACS_INT count, bool allow_quit)
+	      ptrdiff_t count, bool allow_quit)
 {
-  int direction = ((count > 0) ? 1 : -1);
+  ptrdiff_t charpos, bytepos, shortage;
 
-  unsigned char *cursor;
-  unsigned char *base;
-
-  ptrdiff_t ceiling;
-  unsigned char *ceiling_addr;
-
-  bool old_immediate_quit = immediate_quit;
-
-  if (allow_quit)
-    immediate_quit++;
-
-  if (count > 0)
-    {
-      while (start_byte < limit_byte)
-	{
-	  ceiling =  BUFFER_CEILING_OF (start_byte);
-	  ceiling = min (limit_byte - 1, ceiling);
-	  ceiling_addr = BYTE_POS_ADDR (ceiling) + 1;
-	  base = (cursor = BYTE_POS_ADDR (start_byte));
-
-	  do
-	    {
-	      unsigned char *nl = memchr (cursor, '\n', ceiling_addr - cursor);
-	      if (! nl)
-		break;
-	      if (--count == 0)
-		{
-		  immediate_quit = old_immediate_quit;
-		  start_byte += nl - base + 1;
-		  start = BYTE_TO_CHAR (start_byte);
-		  TEMP_SET_PT_BOTH (start, start_byte);
-		  return 0;
-		}
-	      cursor = nl + 1;
-	    }
-	  while (cursor < ceiling_addr);
-
-	  start_byte += ceiling_addr - base;
-	}
-    }
+  charpos = find_newline (start, start_byte, limit, limit_byte,
+			  count, &shortage, &bytepos, allow_quit);
+  if (shortage)
+    TEMP_SET_PT_BOTH (limit, limit_byte);
   else
-    {
-      while (start_byte > limit_byte)
-	{
-	  ceiling = BUFFER_FLOOR_OF (start_byte - 1);
-	  ceiling = max (limit_byte, ceiling);
-	  ceiling_addr = BYTE_POS_ADDR (ceiling);
-	  base = (cursor = BYTE_POS_ADDR (start_byte - 1) + 1);
-	  while (1)
-	    {
-	      unsigned char *nl = memrchr (ceiling_addr, '\n',
-					   cursor - ceiling_addr);
-	      if (! nl)
-		break;
-
-	      if (++count == 0)
-		{
-		  immediate_quit = old_immediate_quit;
-		  /* Return the position AFTER the match we found.  */
-		  start_byte += nl - base + 1;
-		  start = BYTE_TO_CHAR (start_byte);
-		  TEMP_SET_PT_BOTH (start, start_byte);
-		  return 0;
-		}
-
-	      cursor = nl;
-	    }
-	  start_byte += ceiling_addr - base;
-	}
-    }
-
-  TEMP_SET_PT_BOTH (limit, limit_byte);
-  immediate_quit = old_immediate_quit;
-
-  return count * direction;
+    TEMP_SET_PT_BOTH (charpos, bytepos);
+  return shortage;
 }
 
 /* Like find_newline, but doesn't allow QUITting and doesn't return

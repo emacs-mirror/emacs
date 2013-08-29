@@ -121,9 +121,7 @@ With positive N, a non-empty line at the end counts as one line
 successfully moved (for the return value).  */)
   (Lisp_Object n)
 {
-  ptrdiff_t opoint = PT, opoint_byte = PT_BYTE;
-  ptrdiff_t pos, pos_byte;
-  EMACS_INT count, shortage;
+  ptrdiff_t opoint = PT, pos, pos_byte, shortage, count;
 
   if (NILP (n))
     count = 1;
@@ -134,16 +132,12 @@ successfully moved (for the return value).  */)
     }
 
   if (count <= 0)
-    shortage = scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1, 1);
+    pos = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1,
+			&shortage, &pos_byte, 1);
   else
-    shortage = scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, count, 1);
+    pos = find_newline (PT, PT_BYTE, ZV, ZV_BYTE, count,
+			&shortage, &pos_byte, 1);
 
-  /* Since scan_newline does TEMP_SET_PT_BOTH,
-     and we want to set PT "for real",
-     go back to the old point and then come back here.  */
-  pos = PT;
-  pos_byte = PT_BYTE;
-  TEMP_SET_PT_BOTH (opoint, opoint_byte);
   SET_PT_BOTH (pos, pos_byte);
 
   if (shortage > 0

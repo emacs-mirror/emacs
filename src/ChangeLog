@@ -1,3 +1,13 @@
+2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Hook scanning and indentation functions to find_newline.  This helps
+	to avoid duplicated code and renders more respect to newline cache.
+	* lisp.h (scan_newline): Prefer ptrdiff_t to EMACS_INT.
+	* cmds.c (Fforward_line):
+	* indent.c (scan_for_column, Fcurrent_indentation, indented_beyond_p):
+	Use find_newline and avoid unnecessary point movements.
+	* search.c (scan_newline): Implement on top of find_newline.
+
 2013-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Ffuncall): Fix handling of ((lambda ..) ..) in lexically
