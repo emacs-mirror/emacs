@@ -1,5 +1,8 @@
 2013-08-29  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-china.el (calendar-chinese-year-cache):
+	Recenter on 2015.
+
 	* nxml/nxml-util.el (nxml-debug-clear-inside):
 	Use cl-loop rather than loop.
 
