@@ -1,3 +1,14 @@
+2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-smie-grammar): Add rule for formal
+	params of lambda expressions.
+	(ruby-smie--implicit-semi-p): Refine rule (bug#15208).
+	(ruby-smie--opening-pipe-p): New function.
+	(ruby-smie--forward-token, ruby-smie--backward-token): Handle Ruby
+	symbols and matched |...| for formal params.
+	(ruby-smie-rules): Don't let the formal params of a "do" prevent it
+	from being treated as hanging.  Handle "rescue".
+
 2013-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-engine.el (c-pull-open-brace):
