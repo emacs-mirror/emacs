@@ -120,6 +120,7 @@
 (defvar bat-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\n ">" table)
+    (modify-syntax-entry ?\" "\"" table)
     ;; Beware: `w' should not be used for non-alphabetic chars.
     (modify-syntax-entry ?~ "_" table)
     (modify-syntax-entry ?% "." table)

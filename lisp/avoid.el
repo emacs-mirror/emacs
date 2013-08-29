@@ -41,9 +41,9 @@
 ;;
 ;; (if (eq window-system 'x)
 ;;     (mouse-avoidance-set-pointer-shape
-;;	     (eval (nth (random 4)
-;;			'(x-pointer-man x-pointer-spider
-;;			  x-pointer-gobbler x-pointer-gumby)))))
+;;	     (nth (random 4)
+;;		  (list x-pointer-man x-pointer-spider
+;;			x-pointer-gobbler x-pointer-gumby))))
 ;;
 ;; For completely random pointer shape, replace the setq above with:
 ;; (setq x-pointer-shape (mouse-avoidance-random-shape))

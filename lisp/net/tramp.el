@@ -1654,24 +1654,27 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
 If LEVEL does not fit for visible messages, there are only traces
 without a visible progress reporter."
   (declare (indent 3) (debug t))
-  `(let ((result "failed")
-	 pr tm)
+  `(progn
      (tramp-message ,vec ,level "%s..." ,message)
-     ;; We start a pulsing progress reporter after 3 seconds.  Feature
-     ;; introduced in Emacs 24.1.
-     (when (and tramp-message-show-message
-		;; Display only when there is a minimum level.
-		(<= ,level (min tramp-verbose 3)))
-       (ignore-errors
-	 (setq pr (tramp-compat-funcall 'make-progress-reporter ,message)
-	       tm (when pr
-		    (run-at-time 3 0.1 'tramp-progress-reporter-update pr)))))
-     (unwind-protect
-	 ;; Execute the body.
-	 (prog1 (progn ,@body) (setq result "done"))
-       ;; Stop progress reporter.
-       (if tm (tramp-compat-funcall 'cancel-timer tm))
-       (tramp-message ,vec ,level "%s...%s" ,message result))))
+     (let ((result "failed")
+           (tm
+            ;; We start a pulsing progress reporter after 3 seconds.  Feature
+            ;; introduced in Emacs 24.1.
+            (when (and tramp-message-show-message
+                       ;; Display only when there is a minimum level.
+                       (<= ,level (min tramp-verbose 3)))
+              (ignore-errors
+                (let ((pr (tramp-compat-funcall
+                           #'make-progress-reporter ,message)))
+                  (when pr
+                    (run-at-time 3 0.1
+                                 #'tramp-progress-reporter-update pr)))))))
+       (unwind-protect
+           ;; Execute the body.
+           (prog1 (progn ,@body) (setq result "done"))
+         ;; Stop progress reporter.
+         (if tm (tramp-compat-funcall 'cancel-timer tm))
+         (tramp-message ,vec ,level "%s...%s" ,message result)))))
 
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-progress-reporter\\>"))

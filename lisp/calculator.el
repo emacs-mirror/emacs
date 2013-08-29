@@ -1,4 +1,4 @@
-;;; calculator.el --- a [not so] simple calculator for Emacs
+;;; calculator.el --- a [not so] simple calculator for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2000-2013 Free Software Foundation, Inc.
 
@@ -131,8 +131,8 @@ The displayer is a symbol, a string or an expression.  A symbol should
 be the name of a one-argument function, a string is used with a single
 argument and an expression will be evaluated with the variable `num'
 bound to whatever should be displayed.  If it is a function symbol, it
-should be able to handle special symbol arguments, currently 'left and
-'right which will be sent by special keys to modify display parameters
+should be able to handle special symbol arguments, currently `left' and
+`right' which will be sent by special keys to modify display parameters
 associated with the displayer function (for example to change the number
 of digits displayed).
 
@@ -240,6 +240,8 @@ Examples:
 
 ;;;=====================================================================
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 ;;;---------------------------------------------------------------------
 ;;; Variables
@@ -1124,11 +1126,10 @@ the 'left or 'right when one of the standard modes is used."
         (format calculator-displayer num))
        ((symbolp calculator-displayer)
         (funcall calculator-displayer num))
-       ((and (consp calculator-displayer)
-             (eq 'std (car calculator-displayer)))
+       ((eq 'std (car-safe calculator-displayer))
         (calculator-standard-displayer num (cadr calculator-displayer)))
        ((listp calculator-displayer)
-        (eval calculator-displayer))
+        (eval calculator-displayer `((num. ,num))))
        (t (prin1-to-string num t))))
     ;; operators are printed here
     (t (prin1-to-string (nth 1 num) t))))
@@ -1273,29 +1274,24 @@ arguments."
       ;; smaller than calculator-epsilon (1e-15).  I don't think this is
       ;; necessary now.
       (if (symbolp f)
-        (cond ((and X Y) (funcall f X Y))
-              (X         (funcall f X))
-              (t         (funcall f)))
+          (cond ((and X Y) (funcall f X Y))
+                (X         (funcall f X))
+                (t         (funcall f)))
         ;; f is an expression
-        (let* ((__f__ f) ; so we can get this value below...
-               (TX (calculator-truncate X))
+        (let* ((TX (calculator-truncate X))
                (TY (and Y (calculator-truncate Y)))
                (DX (if calculator-deg (/ (* X pi) 180) X))
-               (L  calculator-saved-list)
-               (Fbound (fboundp 'F))
-               (Fsave  (and Fbound (symbol-function 'F)))
-               (Dbound (fboundp 'D))
-               (Dsave  (and Dbound (symbol-function 'D))))
-          ;; a shortened version of flet
-          (fset 'F (function
-                    (lambda (&optional x y)
-                      (calculator-funcall __f__ x y))))
-          (fset 'D (function
-                    (lambda (x)
-                      (if calculator-deg (/ (* x 180) float-pi) x))))
-          (unwind-protect (eval f)
-            (if Fbound (fset 'F Fsave) (fmakunbound 'F))
-            (if Dbound (fset 'D Dsave) (fmakunbound 'D)))))
+               (L  calculator-saved-list))
+          (cl-letf (((symbol-function 'F)
+                     (lambda (&optional x y) (calculator-funcall f x y)))
+                    ((symbol-function 'D)
+                     (lambda (x) (if calculator-deg (/ (* x 180) float-pi) x))))
+            (eval f `((X . ,X)
+                      (Y . ,X)
+                      (TX . ,TX)
+                      (TY . ,TY)
+                      (DX . ,DX)
+                      (L . ,L))))))
     (error 0)))
 
 ;;;---------------------------------------------------------------------

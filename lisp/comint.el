@@ -1562,8 +1562,9 @@ or to the last history element for a backward search."
   "Save a function restoring the state of input history search.
 Save `comint-input-ring-index' to the additional state parameter
 in the search status stack."
-  `(lambda (cmd)
-     (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
+  (let ((index comint-input-ring-index))
+    (lambda (cmd)
+      (comint-history-isearch-pop-state cmd index))))
 
 (defun comint-history-isearch-pop-state (_cmd hist-pos)
   "Restore the input history search state.

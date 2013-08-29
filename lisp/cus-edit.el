@@ -1,4 +1,4 @@
-;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
+;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 1996-1997, 1999-2013 Free Software Foundation, Inc.
 ;;
@@ -1057,8 +1057,8 @@ the resulting list value now.  Otherwise, add an entry to
       (let ((coding-system-for-read nil))
 	(customize-save-variable list-var (eval list-var)))
     (add-hook 'after-init-hook
-	      `(lambda ()
-		 (customize-push-and-save ',list-var ',elts)))))
+	      (lambda ()
+                (customize-push-and-save list-var elts)))))
 
 ;;;###autoload
 (defun customize ()
@@ -1415,6 +1415,7 @@ suggest to customize that face, if it's customizable."
 			    "*Customize Saved*"))))
 
 (declare-function apropos-parse-pattern "apropos" (pattern))
+(defvar apropos-regexp)
 
 ;;;###autoload
 (defun customize-apropos (pattern &optional type)
@@ -1431,23 +1432,23 @@ If TYPE is `groups', include only groups."
   (require 'apropos)
   (unless (memq type '(nil options faces groups))
     (error "Invalid setting type %s" (symbol-name type)))
-  (apropos-parse-pattern pattern)
+  (apropos-parse-pattern pattern)    ;Sets apropos-regexp by side-effect: Yuck!
   (let (found)
     (mapatoms
-     `(lambda (symbol)
-	(when (string-match-p apropos-regexp (symbol-name symbol))
-	  ,(if (memq type '(nil groups))
-	       '(if (get symbol 'custom-group)
-		    (push (list symbol 'custom-group) found)))
-	  ,(if (memq type '(nil faces))
-	       '(if (custom-facep symbol)
-		    (push (list symbol 'custom-face) found)))
-	  ,(if (memq type '(nil options))
-	       `(if (and (boundp symbol)
-			 (eq (indirect-variable symbol) symbol)
-			 (or (get symbol 'saved-value)
-			     (custom-variable-p symbol)))
-		    (push (list symbol 'custom-variable) found))))))
+     (lambda (symbol)
+       (when (string-match-p apropos-regexp (symbol-name symbol))
+         (if (memq type '(nil groups))
+             (if (get symbol 'custom-group)
+                 (push (list symbol 'custom-group) found)))
+         (if (memq type '(nil faces))
+             (if (custom-facep symbol)
+                 (push (list symbol 'custom-face) found)))
+         (if (memq type '(nil options))
+             (if (and (boundp symbol)
+                      (eq (indirect-variable symbol) symbol)
+                      (or (get symbol 'saved-value)
+                          (custom-variable-p symbol)))
+                 (push (list symbol 'custom-variable) found))))))
     (unless found
       (error "No customizable %s matching %s" (symbol-name type) pattern))
     (custom-buffer-create
@@ -1621,8 +1622,8 @@ or a regular expression.")
 	      (widget-create
 	       'editable-field
 	       :size 40 :help-echo echo
-	       :action `(lambda (widget &optional event)
-			  (customize-apropos (split-string (widget-value widget)))))))
+	       :action (lambda (widget &optional _event)
+                         (customize-apropos (split-string (widget-value widget)))))))
 	(widget-insert " ")
 	(widget-create-child-and-convert
 	 search-widget 'push-button

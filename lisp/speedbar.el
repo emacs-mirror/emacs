@@ -1007,9 +1007,9 @@ supported at a time.
 				 ;; with the selected frame.
 				 (list 'parent (selected-frame)))
 		       speedbar-frame-parameters)
-		     speedbar-before-delete-hook
-		     speedbar-before-popup-hook
-		     speedbar-after-create-hook)
+		     'speedbar-before-delete-hook
+		     'speedbar-before-popup-hook
+		     'speedbar-after-create-hook)
   ;; Start up the timer
   (if (not speedbar-frame)
       (speedbar-set-timer nil)

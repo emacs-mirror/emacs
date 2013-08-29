@@ -342,9 +342,9 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		)
 	    (kill-buffer nil))))
 
-    (set 'ada-xref-runtime-library-specs-path
+    (setq ada-xref-runtime-library-specs-path
 	 (reverse ada-xref-runtime-library-specs-path))
-    (set 'ada-xref-runtime-library-ali-path
+    (setq ada-xref-runtime-library-ali-path
 	 (reverse ada-xref-runtime-library-ali-path))
     ))
 
@@ -582,8 +582,8 @@ as defined in the project file."
 
     (while dirs
       (if (file-directory-p (car dirs))
-	  (set 'list (append list (file-name-all-completions string (car dirs)))))
-      (set 'dirs (cdr dirs)))
+	  (setq list (append list (file-name-all-completions string (car dirs)))))
+      (setq dirs (cdr dirs)))
     (cond ((equal flag 'lambda)
 	   (assoc string list))
 	  (flag
@@ -702,11 +702,11 @@ is non-nil, prompt the user to select one.  If none are found, return
 
 	 ((file-exists-p first-choice)
 	  ;; filename.adp
-	  (set 'selected first-choice))
+	  (setq selected first-choice))
 
 	 ((= (length prj-files) 1)
 	  ;; Exactly one project file was found in the current directory
-	  (set 'selected (car prj-files)))
+	  (setq selected (car prj-files)))
 
 	 ((and (> (length prj-files) 1) (not no-user-question))
 	  ;;  multiple project files in current directory, ask the user
@@ -732,7 +732,7 @@ is non-nil, prompt the user to select one.  If none are found, return
 		    (> choice (length prj-files)))
 	      (setq choice (string-to-number
 			    (read-from-minibuffer "Enter No. of your choice: "))))
-	    (set 'selected (nth (1- choice) prj-files))))
+	    (setq selected (nth (1- choice) prj-files))))
 
 	 ((= (length prj-files) 0)
 	  ;; No project file in the current directory; ask user
@@ -742,7 +742,7 @@ is non-nil, prompt the user to select one.  If none are found, return
 		   (concat "project file [" ada-last-prj-file "]:")
 		   nil ada-last-prj-file))
 	    (unless (string= ada-last-prj-file "")
-	      (set 'selected ada-last-prj-file))))
+	      (setq selected ada-last-prj-file))))
 	 )))
 
     (or selected "default.adp")
@@ -792,9 +792,9 @@ is non-nil, prompt the user to select one.  If none are found, return
 
     (setq prj-file (expand-file-name prj-file))
     (if (string= (file-name-extension prj-file) "gpr")
-	(set 'project (ada-gnat-parse-gpr project prj-file))
+	(setq project (ada-gnat-parse-gpr project prj-file))
 
-      (set 'project (ada-parse-prj-file-1 prj-file project))
+      (setq project (ada-parse-prj-file-1 prj-file project))
       )
 
     ;; Store the project properties
@@ -842,7 +842,7 @@ Return new value of PROJECT."
 			  (substitute-in-file-name (match-string 2)))))
 
 	   ((string= (match-string 1) "build_dir")
-	    (set 'project
+	    (setq project
 		 (plist-put project 'build_dir
 			    (file-name-as-directory (match-string 2)))))
 
@@ -884,7 +884,7 @@ Return new value of PROJECT."
 
 	   (t
 	    ;; any other field in the file is just copied
-	    (set 'project (plist-put project
+	    (setq project (plist-put project
 				     (intern (match-string 1))
 				     (match-string 2))))))
 
@@ -900,21 +900,21 @@ Return new value of PROJECT."
 	(let ((sep (plist-get project 'ada_project_path_sep)))
 	  (setq ada_project_path (reverse ada_project_path))
 	  (setq ada_project_path (mapconcat 'identity ada_project_path sep))
-	  (set 'project (plist-put project 'ada_project_path ada_project_path))
+	  (setq project (plist-put project 'ada_project_path ada_project_path))
 	  ;; env var needed now for ada-gnat-parse-gpr
 	  (setenv "ADA_PROJECT_PATH" ada_project_path)))
 
-    (if debug_post_cmd (set 'project (plist-put project 'debug_post_cmd (reverse debug_post_cmd))))
-    (if debug_pre_cmd (set 'project (plist-put project 'debug_pre_cmd (reverse debug_pre_cmd))))
-    (if casing (set 'project (plist-put project 'casing (reverse casing))))
-    (if check_cmd (set 'project (plist-put project 'check_cmd (reverse check_cmd))))
-    (if comp_cmd (set 'project (plist-put project 'comp_cmd (reverse comp_cmd))))
-    (if make_cmd (set 'project (plist-put project 'make_cmd (reverse make_cmd))))
-    (if run_cmd (set 'project (plist-put project 'run_cmd (reverse run_cmd))))
+    (if debug_post_cmd (setq project (plist-put project 'debug_post_cmd (reverse debug_post_cmd))))
+    (if debug_pre_cmd (setq project (plist-put project 'debug_pre_cmd (reverse debug_pre_cmd))))
+    (if casing (setq project (plist-put project 'casing (reverse casing))))
+    (if check_cmd (setq project (plist-put project 'check_cmd (reverse check_cmd))))
+    (if comp_cmd (setq project (plist-put project 'comp_cmd (reverse comp_cmd))))
+    (if make_cmd (setq project (plist-put project 'make_cmd (reverse make_cmd))))
+    (if run_cmd (setq project (plist-put project 'run_cmd (reverse run_cmd))))
 
     (if gpr_file
 	(progn
-	  (set 'project (ada-gnat-parse-gpr project gpr_file))
+	  (setq project (ada-gnat-parse-gpr project gpr_file))
 	  ;; append Ada source and object directories to others from Emacs project file
 	  (setq src_dir (append (plist-get project 'src_dir) src_dir))
 	  (setq obj_dir (append (plist-get project 'obj_dir) obj_dir))
@@ -930,8 +930,8 @@ Return new value of PROJECT."
     (ada-initialize-runtime-library (or (ada-xref-get-project-field 'cross_prefix) ""))
     ;;)
 
-    (if obj_dir (set 'project (plist-put project 'obj_dir (reverse obj_dir))))
-    (if src_dir (set 'project (plist-put project 'src_dir (reverse src_dir))))
+    (if obj_dir (setq project (plist-put project 'obj_dir (reverse obj_dir))))
+    (if src_dir (setq project (plist-put project 'src_dir (reverse src_dir))))
 
     project
     ))
@@ -1052,9 +1052,9 @@ existing buffer `*gnatfind*', if there is one."
       (if old-contents
 	  (progn
 	    (goto-char 1)
-	    (set 'buffer-read-only nil)
+	    (setq buffer-read-only nil)
 	    (insert old-contents)
-	    (set 'buffer-read-only t)
+	    (setq buffer-read-only t)
 	    (goto-char (point-max)))))
     )
   )
@@ -1194,9 +1194,9 @@ project file."
 	(objects   (getenv "ADA_OBJECTS_PATH"))
 	(build-dir (ada-xref-get-project-field 'build_dir)))
     (if include
-	(set 'include (concat path-separator include)))
+	(setq include (concat path-separator include)))
     (if objects
-	(set 'objects (concat path-separator objects)))
+	(setq objects (concat path-separator objects)))
     (cons
      (concat "ADA_INCLUDE_PATH="
 	     (mapconcat (lambda(x) (expand-file-name x build-dir))
@@ -1303,7 +1303,7 @@ If ARG is non-nil, ask for user confirmation."
 
     ;;  Guess the command if it wasn't specified
     (if (not command)
-	(set 'command (list (file-name-sans-extension (buffer-name)))))
+	(setq command (list (file-name-sans-extension (buffer-name)))))
 
     ;; Modify the command to run remotely
     (setq command (ada-remote (mapconcat 'identity command
@@ -1316,7 +1316,7 @@ If ARG is non-nil, ask for user confirmation."
 
     ;; Run the command
     (with-current-buffer (get-buffer-create "*run*")
-      (set 'buffer-read-only nil)
+      (setq buffer-read-only nil)
 
       (erase-buffer)
       (start-process "run" (current-buffer) shell-file-name
@@ -1352,7 +1352,7 @@ project file."
 
     ;;  If the command was not given in the project file, start a bare gdb
     (if (not cmd)
-	(set 'cmd (concat ada-prj-default-debugger
+	(setq cmd (concat ada-prj-default-debugger
 			  " "
 			  (or executable-name
 			      (file-name-sans-extension (buffer-file-name))))))
@@ -1368,18 +1368,18 @@ project file."
 	;;  chance to fully manage it.  Then it works fine with Enlightenment
 	;;  as well
 	(let ((frame (make-frame '((visibility . nil)))))
-	  (set 'cmd (concat
+	  (setq cmd (concat
 		     cmd " --editor-window="
 		     (cdr (assoc 'outer-window-id (frame-parameters frame)))))
 	  (select-frame frame)))
 
     ;;  Add a -fullname switch
     ;;  Use the remote machine
-    (set 'cmd (ada-remote (concat cmd " -fullname ")))
+    (setq cmd (ada-remote (concat cmd " -fullname ")))
 
     ;;  Ask for confirmation if required
     (if (or arg ada-xref-confirm-compile)
-	(set 'cmd (read-from-minibuffer "enter command to debug: " cmd)))
+	(setq cmd (read-from-minibuffer "enter command to debug: " cmd)))
 
     (let ((old-comint-exec (symbol-function 'comint-exec)))
 
@@ -1387,13 +1387,13 @@ project file."
       ;;  FIXME: This is evil but luckily a nop under Emacs-21.3.50 !  -stef
       (fset 'gud-gdb-massage-args (lambda (_file args) args))
 
-      (set 'pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
+      (setq pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
       (if (not (equal pre-cmd ""))
 	  (setq pre-cmd (concat pre-cmd ada-command-separator)))
 
-      (set 'post-cmd (mapconcat 'identity post-cmd "\n"))
+      (setq post-cmd (mapconcat 'identity post-cmd "\n"))
       (if post-cmd
-	  (set 'post-cmd (concat post-cmd "\n")))
+	  (setq post-cmd (concat post-cmd "\n")))
 
 
       ;;  Temporarily replaces the definition of `comint-exec' so that we
@@ -1403,7 +1403,7 @@ project file."
 	    `(lambda (buffer name command startfile switches)
 	       (let (compilation-buffer-name-function)
 		 (save-excursion
-		   (set 'compilation-buffer-name-function
+		   (setq compilation-buffer-name-function
 			(lambda(x) (buffer-name buffer)))
 		   (compile (ada-quote-cmd
 			     (concat ,pre-cmd
@@ -1498,12 +1498,12 @@ by replacing the file extension with `.ali'."
   "Search for FILE in DIR-LIST."
   (let (found)
     (while (and (not found) dir-list)
-      (set 'found (concat (file-name-as-directory (car dir-list))
+      (setq found (concat (file-name-as-directory (car dir-list))
 			  (file-name-nondirectory file)))
 
       (unless (file-exists-p found)
-	  (set 'found nil))
-      (set 'dir-list (cdr dir-list)))
+	  (setq found nil))
+      (setq dir-list (cdr dir-list)))
     found))
 
 (defun ada-find-ali-file-in-dir (file)
@@ -1558,11 +1558,11 @@ the project file."
 	    (while specs
 	      (if (string-match (concat (regexp-quote (car specs)) "$")
 				file)
-		  (set 'is-spec t))
-	      (set 'specs (cdr specs)))))
+		  (setq is-spec t))
+	      (setq specs (cdr specs)))))
 
       (if is-spec
-	  (set 'ali-file-name
+	  (setq ali-file-name
 	       (ada-find-ali-file-in-dir
 		(concat (file-name-base (ada-other-file-name)) ".ali"))))
 
@@ -1589,8 +1589,8 @@ the project file."
 		  (while (and (not ali-file-name)
 			      (string-match "^\\(.*\\)[.-][^.-]*" parent-name))
 
-		    (set 'parent-name (match-string 1 parent-name))
-		    (set 'ali-file-name (ada-find-ali-file-in-dir
+		    (setq parent-name (match-string 1 parent-name))
+		    (setq ali-file-name (ada-find-ali-file-in-dir
 					 (concat parent-name ".ali")))
 		    )
 		  ali-file-name)))
@@ -1686,18 +1686,18 @@ macros `ada-name-of', `ada-line-of', `ada-column-of', `ada-file-of',..."
 	  (if (and (= (char-before) ?\")
 		   (= (char-after (+ (length (match-string 0)) (point))) ?\"))
 	      (forward-char -1))
-	  (set 'identifier (regexp-quote (concat "\"" (match-string 0) "\""))))
+	  (setq identifier (regexp-quote (concat "\"" (match-string 0) "\""))))
 
       (if (ada-in-string-p)
 	  (error "Inside string or character constant"))
       (if (looking-at (concat ada-keywords "[^a-zA-Z_]"))
 	  (error "No cross-reference available for reserved keyword"))
       (if (looking-at "[a-zA-Z0-9_]+")
-	  (set 'identifier (match-string 0))
+	  (setq identifier (match-string 0))
 	(error "No identifier around")))
 
     ;; Build the identlist
-    (set 'identlist    (ada-make-identlist))
+    (setq identlist    (ada-make-identlist))
     (ada-set-name      identlist (downcase identifier))
     (ada-set-line      identlist
 		       (number-to-string (count-lines 1 (point))))
@@ -1725,7 +1725,7 @@ Information is extracted from the ali file."
 	 (concat "^X [0-9]+ " (file-name-nondirectory (ada-file-of identlist)))
 	 nil t)
 	(let ((bound (save-excursion (re-search-forward "^X " nil t))))
-	  (set 'declaration-found
+	  (setq declaration-found
 	       (re-search-forward
 		(concat "^"    (ada-line-of identlist)
 			"."    (ada-column-of identlist)
@@ -1743,7 +1743,7 @@ Information is extracted from the ali file."
       ;; Since we already know the number of the file, search for a direct
       ;; reference to it
       (goto-char (point-min))
-      (set 'declaration-found t)
+      (setq declaration-found t)
       (ada-set-ali-index
        identlist
        (number-to-string (ada-find-file-number-in-ali
@@ -1771,7 +1771,7 @@ Information is extracted from the ali file."
 	    ;; If still not found, then either the declaration is unknown
 	    ;; or the source file has been modified since the ali file was
 	    ;; created
-	    (set 'declaration-found nil)
+	    (setq declaration-found nil)
 	    )
 	  )
 
@@ -1786,7 +1786,7 @@ Information is extracted from the ali file."
 	      (beginning-of-line))
 	    (unless (looking-at (concat "[0-9]+.[0-9]+[ *]"
 					(ada-name-of identlist) "[ <{=\(\[]"))
-	      (set 'declaration-found nil))))
+	      (setq declaration-found nil))))
 
       ;; Still no success ! The ali file must be too old, and we need to
       ;; use a basic algorithm based on guesses.  Note that this only happens
@@ -1794,7 +1794,7 @@ Information is extracted from the ali file."
       ;; automatically
       (unless declaration-found
 	(if (ada-xref-find-in-modified-ali identlist)
-	    (set 'declaration-found t)
+	    (setq declaration-found t)
 	  ;; No more idea to find the declaration.  Give up
 	  (progn
 	    (kill-buffer ali-buffer)
@@ -1814,7 +1814,7 @@ Information is extracted from the ali file."
 	    (forward-line 1)
 	    (beginning-of-line)
 	    (while (looking-at "^\\.\\(.*\\)")
-	      (set 'current-line (concat current-line (match-string 1)))
+	      (setq current-line (concat current-line (match-string 1)))
 	      (forward-line 1))
 	    )
 
@@ -1860,7 +1860,7 @@ This function is disabled for operators, and only works for identifiers."
 	  (goto-char (point-max))
 	  (while (re-search-backward my-regexp nil t)
 	    (save-excursion
-	      (set 'line-ali (count-lines 1 (point)))
+	      (setq line-ali (count-lines 1 (point)))
 	      (beginning-of-line)
 	      ;; have a look at the line and column numbers
 	      (if (looking-at "^\\([0-9]+\\).\\([0-9]+\\)[ *]")
@@ -1948,7 +1948,7 @@ opens a new window to show the declaration."
 
     ;; Get all the possible locations
     (string-match "^\\([0-9]+\\)[a-zA-Z+*]\\([0-9]+\\)[ *]" ali-line)
-    (set 'locations (list (list (match-string 1 ali-line) ;; line
+    (setq locations (list (list (match-string 1 ali-line) ;; line
 				(match-string 2 ali-line) ;; column
 				(ada-declare-file-of identlist))))
     (while (string-match "\\([0-9]+\\)[bc]\\(<[^>]+>\\)?\\([0-9]+\\)"
@@ -1968,16 +1968,16 @@ opens a new window to show the declaration."
 	    (goto-char (point-min))
 	    (re-search-forward "^D \\([a-zA-Z0-9_.-]+\\)" nil t
 			       (string-to-number file-number))
-	    (set 'file (match-string 1))
+	    (setq file (match-string 1))
 	    )
 	;; Else get the nearest file
-	(set 'file (ada-declare-file-of identlist)))
+	(setq file (ada-declare-file-of identlist)))
 
-      (set 'locations (append locations (list (list line col file)))))
+      (setq locations (append locations (list (list line col file)))))
 
     ;; Add the specs at the end again, so that from the last body we go to
     ;; the specs
-    (set 'locations (append locations (list (car locations))))
+    (setq locations (append locations (list (car locations))))
 
     ;; Find the new location we want to go to.
     ;; If we are on none of the locations listed, we simply go to the specs.
@@ -1996,10 +1996,10 @@ opens a new window to show the declaration."
 		col       (nth 1 locations)
 		file      (nth 2 locations)
 		locations nil)
-	(set 'locations (cdr locations))))
+	(setq locations (cdr locations))))
 
     ;;  Find the file in the source path
-    (set 'file (ada-get-ada-file-name file (ada-file-of identlist)))
+    (setq file (ada-get-ada-file-name file (ada-file-of identlist)))
 
     ;; Kill the .ali buffer
     (kill-buffer (current-buffer))
@@ -2044,10 +2044,10 @@ the declaration and documentation of the subprograms one is using."
 		  " "
 		  (shell-quote-argument (file-name-as-directory (car dirs)))
 		  "*.ali")))
-	(set 'dirs (cdr dirs)))
+	(setq dirs (cdr dirs)))
 
       ;;  Now parse the output
-      (set 'case-fold-search t)
+      (setq case-fold-search t)
       (goto-char (point-min))
       (while (re-search-forward regexp nil t)
 	(save-excursion
@@ -2058,12 +2058,12 @@ the declaration and documentation of the subprograms one is using."
 		(setq line   (match-string 1)
 		      column (match-string 2))
 		(re-search-backward "^X [0-9]+ \\(.*\\)$")
-		(set 'file (list (match-string 1) line column))
+		(setq file (list (match-string 1) line column))
 
 		;;  There could be duplicate choices, because of the structure
 		;;  of the .ali files
 		(unless (member file list)
-		  (set 'list (append list (list file))))))))
+		  (setq list (append list (list file))))))))
 
       ;;  Current buffer is still "*grep*"
       (kill-buffer "*grep*")
@@ -2078,7 +2078,7 @@ the declaration and documentation of the subprograms one is using."
 
      ;;  Only one choice => Do the cross-reference
      ((= (length list) 1)
-      (set 'file (ada-find-src-file-in-dir (caar list)))
+      (setq file (ada-find-src-file-in-dir (caar list)))
       (if file
 	  (ada-xref-change-buffer file
 				  (string-to-number (nth 1 (car list)))
@@ -2117,10 +2117,10 @@ the declaration and documentation of the subprograms one is using."
 		(string-to-number
 		 (read-from-minibuffer "Enter No. of your choice: "))))
 	)
-      (set 'choice (1- choice))
+      (setq choice (1- choice))
       (kill-buffer "*choice list*")
 
-      (set 'file (ada-find-src-file-in-dir (car (nth choice list))))
+      (setq file (ada-find-src-file-in-dir (car (nth choice list))))
       (if file
 	  (ada-xref-change-buffer file
 				  (string-to-number (nth 1 (nth choice list)))
@@ -2144,7 +2144,7 @@ If OTHER-FRAME is non-nil, creates a new frame to show the file."
     (if ada-xref-other-buffer
 	(if other-frame
 	    (find-file-other-frame file)
-	  (set 'declaration-buffer (find-file-noselect file))
+	  (setq declaration-buffer (find-file-noselect file))
 	  (set-buffer declaration-buffer)
 	  (switch-to-buffer-other-window declaration-buffer)
 	  )
