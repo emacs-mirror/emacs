@@ -1,3 +1,8 @@
+2013-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Fix is-this-a-directory logic.  (Bug#15220)
+
 2013-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/css-mode.el: Use SMIE.

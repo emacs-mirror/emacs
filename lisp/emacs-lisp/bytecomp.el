@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2013 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2013
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1593,14 +1593,14 @@ that already has a `.elc' file."
 	 (message "Checking %s..." directory)
          (dolist (file (directory-files directory))
            (let ((source (expand-file-name file directory)))
-             (if (and (not (member file '("RCS" "CVS")))
-                      (not (eq ?\. (aref file 0)))
-                      (file-directory-p source)
-                      (not (file-symlink-p source)))
-                 ;; This file is a subdirectory.  Handle them differently.
-                 (when (or (null arg) (eq 0 arg)
-                           (y-or-n-p (concat "Check " source "? ")))
-                   (setq directories (nconc directories (list source))))
+	     (if (file-directory-p source)
+		 (and (not (member file '("RCS" "CVS")))
+		      (not (eq ?\. (aref file 0)))
+		      (not (file-symlink-p source))
+		      ;; This file is a subdirectory.  Handle them differently.
+		      (or (null arg) (eq 0 arg)
+			  (y-or-n-p (concat "Check " source "? ")))
+		      (setq directories (nconc directories (list source))))
                ;; It is an ordinary file.  Decide whether to compile it.
                (if (and (string-match emacs-lisp-file-regexp source)
 			;; The next 2 tests avoid compiling lock files
