@@ -2869,11 +2869,6 @@ struct redisplay_interface
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Structure forward declarations.  */
-
-struct image;
-
-
 /* Each image format (JPEG, TIFF, ...) supported is described by
    a structure of the type below.  */
 
@@ -3401,8 +3396,6 @@ extern frame_parm_handler x_frame_parm_handlers[];
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
 extern int hourglass_shown_p;
-
-struct atimer;			/* Defined in atimer.h.  */
 /* If non-null, an asynchronous timer that, when it expires, displays
    an hourglass cursor on all frames.  */
 extern struct atimer *hourglass_atimer;

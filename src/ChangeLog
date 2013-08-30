@@ -1,3 +1,30 @@
+2013-08-30  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor cleanup to avoid forward declarations.
+	* coding.h (struct ccl_spec): Remove forward declaration.
+	* composite.h (toplevel): Include font.h.
+	(struct composition_it, struct face, struct font_metrics):
+	Remove forward declaration.
+	* dispextern.h (struct image, struct atimer): Likewise.
+	* emacsgtkfixed.h (struct frame): Likewise.
+	* emacsgtkfixed.c (toplevel): Reorder headers and drop stdio.h.
+	* font.h (struct font_driver, struct font, struct glyph_string)
+	(struct face): Remove forward declaration.
+	* fontset.h (struct face, struct font): Likewise.
+	* frame.h (toplevel): Style cleanup.
+	(enum output_method): Move to...
+	* termhooks.h (enum output_method): ...here.
+	(struct glyph, struct frame, struct ns_display_info)
+	(struct x_display_info, struct w32_display_info):
+	Remove forward declaration.
+	* xterm.h (toplevel): Include termhooks.h.
+	(struct font, struct window, struct glyph_matrix, struct frame)
+	(struct input_event, struct face, struct image): Remove forward
+	declaration.
+	* gtkutil.h (struct _widget_value): Likewise.
+	* keyboard.h (toplevel): Include termhooks.h.
+	(struct input_event): Remove forward declaration.
+
 2013-08-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* intervals.c (set_point_from_marker): New function.

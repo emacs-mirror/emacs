@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "systime.h"		/* for struct timespec, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
+#include "termhooks.h"
 
 INLINE_HEADER_BEGIN
 #ifndef KEYBOARD_INLINE
@@ -476,9 +477,6 @@ extern bool ignore_mouse_drag_p;
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
-
-/* Forward declaration for prototypes.  */
-struct input_event;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);

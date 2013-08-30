@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XTERM_H
 #define XTERM_H
 
-#include "dispextern.h"
-
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 
@@ -73,14 +71,13 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define USE_GTK_TOOLTIP
 #endif
 
-
-/* Bookkeeping to distinguish X versions.  */
-
-
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
 #endif
-
+
+#include "dispextern.h"
+#include "termhooks.h"
+
 #define BLACK_PIX_DEFAULT(f) BlackPixel (FRAME_X_DISPLAY (f), \
 					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 #define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
@@ -408,9 +405,6 @@ extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
-
-
-struct font;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -918,14 +912,6 @@ struct selection_input_event
   (((struct selection_input_event *) (eventp))->property)
 #define SELECTION_EVENT_TIME(eventp)	\
   (((struct selection_input_event *) (eventp))->time)
-
-
-struct window;
-struct glyph_matrix;
-struct frame;
-struct input_event;
-struct face;
-struct image;
 
 /* From xselect.c.  */
 

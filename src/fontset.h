@@ -26,8 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_FONTSET_H
 #define EMACS_FONTSET_H
 
-struct face;
-
 extern void free_face_fontset (struct frame *, struct face *);
 extern int face_for_char (struct frame *, struct face *, int,
                           int, Lisp_Object);
@@ -42,7 +40,6 @@ extern Lisp_Object Qlatin;
 extern Lisp_Object fontset_name (int);
 extern Lisp_Object fontset_ascii (int);
 
-struct font;
 extern int face_for_font (struct frame *, Lisp_Object, struct face *);
 
 #endif /* EMACS_FONTSET_H */
