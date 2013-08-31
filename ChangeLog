@@ -1,3 +1,9 @@
+2013-08-31  Ulrich Müller  <ulm@gentoo.org>
+
+	* configure.ac: Allow for --with-sound=voxware that will enable
+	sound but otherwise disable ALSA.  This will use the OSS device,
+	typically /dev/dsp, for sound output.  (Bug#15067)
+
 2013-08-31  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Update for nt/INSTALL* changes.

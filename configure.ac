@@ -167,12 +167,12 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
     AC_DEFINE_UNQUOTED(MAILHOST, ["$withval"], [String giving fallback POP mail host.]))
 
 AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
-  [compile with sound support (VALUE one of: yes, ossaudio, alsa, no;
+  [compile with sound support (VALUE one of: yes, ossaudio, alsa, voxware, no;
 default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW.])],
   [ case "${withval}" in
-      yes|no|ossaudio|alsa) val=$withval ;;
+      yes|no|ossaudio|alsa|voxware) val=$withval ;;
       *) AC_MSG_ERROR([`--with-sound=$withval' is invalid;
-this option's value should be `yes', `no', `ossaudio', or `alsa'.])
+this option's value should be `yes', `no', `ossaudio', `alsa', or `voxware'.])
       ;;
     esac
     with_sound=$val
@@ -1307,6 +1307,9 @@ if test "${with_sound}" != "no"; then
     #include <windows.h>
     #endif
     ])
+  test "${with_sound}" = "voxware" && test "${have_sound_header}" != "yes" && \
+    AC_MSG_ERROR([OSS/Voxware sound support requested but not found.])
+
   if test "${with_sound}" = "ossaudio" || test "${with_sound}" = "yes"; then
     # Emulation library used on NetBSD.
     AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
