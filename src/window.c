@@ -3341,10 +3341,8 @@ temp_output_buffer_show (register Lisp_Object buf)
 
   if (!NILP (Vtemp_buffer_show_function))
     call1 (Vtemp_buffer_show_function, buf);
-  else
+  else if (WINDOW_LIVE_P (window = display_buffer (buf, Qnil, Qnil)))
     {
-      window = display_buffer (buf, Qnil, Qnil);
-
       if (!EQ (XWINDOW (window)->frame, selected_frame))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
       Vminibuf_scroll_window = window;
