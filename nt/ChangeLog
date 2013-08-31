@@ -1,3 +1,9 @@
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Rename from INSTALL.MSYS.
+	* INSTALL.OLD: Rename from INSTALL.
+	* configure.bat: Update for INSTALL name changes.
+
 2013-08-25  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* configure.bat: Rather than disabling, make configure.bat produce

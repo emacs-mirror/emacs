@@ -762,12 +762,10 @@ meant to be used by other packages.
 
 * Changes in Emacs 24.4 on Non-Free Operating Systems
 
-** Emacs for MS-Windows can now be built by running the configure script
-using the MSYS environment and MinGW development tools.
-This is from now on the preferred method of building Emacs on
-MS-Windows.  The Windows-specific configure.bat and makefile.w32-in
-files are deprecated.  See the file nt/INSTALL.MSYS for detailed
-instructions.
+** The procedure for building Emacs on MS-Windows has changed.
+It is now built by running the same configure script as on all other
+platforms.  This requires the MSYS environment and MinGW development
+tools.  See the updated instructions in nt/INSTALL for details.
 
 Using the Posix configure script and Makefile's also means a change in
 the directory structure of the Emacs installation on Windows.  It is

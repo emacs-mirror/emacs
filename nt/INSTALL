@@ -1,298 +1,495 @@
-		    Building and Installing Emacs on Windows
-                          (from 95 to 7 and beyond)
+		    Building and Installing Emacs on MS-Windows
+                          using the MSYS and MinGW tools
 
-  Copyright (C) 2001-2013 Free Software Foundation, Inc.
+  Copyright (C) 2013 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
-*** This method of building Emacs is no longer supported. ***
-    Instead, see INSTALL.MSYS.
+The MSYS/MinGW build described here is supported on versions of
+Windows starting with Windows 2000 and newer.  Windows 9X are not
+supported (but the Emacs binary produced by this build will run on
+Windows 9X as well).
 
-* For the impatient
+* For the brave (a.k.a. "impatient"):
 
-  Here are the concise instructions for configuring and building the
-  native Windows binary of Emacs, for those who want to skip the
-  complex explanations and ``just do it'':
+  For those who have a working MSYS/MinGW development environment and
+  are comfortable with running Posix configure scripts, here are the
+  concise instructions for configuring and building the native Windows
+  binary of Emacs with these tools.
 
-  Do not use this recipe with Cygwin.  For building on Cygwin,
-  use the normal installation instructions, ../INSTALL.
+  Do not use this recipe with Cygwin.  For building on Cygwin, use the
+  normal installation instructions, ../INSTALL.
 
-  Do not use these instructions with MSYS environment.  For building
-  the native Windows binary with MinGW and MSYS, follow the
-  instructions in the file INSTALL.MSYS in this directory.
+  0. Start the MSYS Bash window.  Everything else below is done from
+     that window's Bash prompt.
 
-  For building without MSYS, if you have a Cygwin or MSYS port of Bash
-  on your Path, you will be better off removing it from PATH.  (For
-  details, search for "MSYS sh.exe" below.)
+  0a. If you are building from the development trunk (as opposed to a
+      release tarball), produce the configure script, by typing from
+      the top-level Emacs source directory:
 
-  1. Change to the `nt' directory (the directory of this file):
+      ./autogen.sh
 
-       cd nt
+  1. If you want to build Emacs outside of the source tree
+     (recommended), create the build directory and chdir there.
 
-  2. Run configure.bat.
+  2. Invoke the MSYS-specific configure script:
 
-  2a.If you use MSVC, set up the build environment by running the
-     SetEnv.cmd batch file from the appropriate SDK directory.  (Skip
-     this step if you are using MinGW.)  For example:
+      - If you are building outside the source tree:
 
-       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Debug
+        /PATH/TO/EMACS/SOURCE/TREE/nt/msysconfig.sh --prefix=PREFIX ...
 
-      if you are going to compile a debug version, or
+      - If you are building in-place, i.e. inside the source tree:
 
-       "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /Release
+        ./nt/msysconfig.sh --prefix=PREFIX ...
 
-      if you are going to compile an optimized version.
+     It is always preferable to use --prefix to configure Emacs for
+     some specific location of its installed tree; the default
+     /usr/local is not suitable for Windows (see the detailed
+     instructions for the reasons).
 
-  2b.From the COMMAND.COM/CMD.EXE command prompt type:
+     You can pass other options to the configure script.  Here's a
+     typical example (for an in-place debug build):
 
-       configure
+       CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=/d/usr/emacs --enable-checking
 
-     From a Unixy shell prompt:
-
-       cmd /c configure.bat
-     or
-       command.com /c configure.bat
-
-  3. Run the Make utility suitable for your environment.  If you build
-     with the Microsoft's Visual C compiler:
-
-       nmake
-
-     For the development environments based on GNU GCC (MinGW, MSYS,
-     Cygwin - but see notes about Cygwin make below), depending on how
-     Make is called, it could be:
+  3. After the configure script finishes, it should display the
+     resulting configuration.  After that, type
 
        make
-     or
-       mingw32-make
-     or
-       gnumake
-     or
-       gmake
 
-     (If you are building from Bazaar, say "make bootstrap" or "nmake
-     bootstrap" instead, and avoid using Cygwin make.)
+     Use "make -j N" if your MSYS Make supports parallel execution;
+     the build will take significantly less time in that case.  Here N
+     is the number of simultaneous parallel jobs; use the number of
+     the cores on your system.
 
-     With GNU Make, you can use the -j command-line option to have
-     Make execute several commands at once, like this:
+  4. Install the produced binaries:
 
-       gmake -j 2
+       make install
 
-     (With versions of GNU Make before 3.82, you need also set the
-     XMFLAGS variable, like this:
+     If you want the installation tree to go to a place that is
+     different from the one specified by --prefix, say
 
-       gmake -j 2 XMFLAGS="-j 2"
-
-     The XMFLAGS variable overrides the default behavior of version
-     3.82 and older of GNU Make on Windows, whereby recursive Make
-     invocations reset the maximum number of simultaneous commands to
-     1.  The above command allows up to 4 simultaneous commands at
-     once in the top-level Make, and up to 3 in each one of the
-     recursive Make's.)
-
-  4. Generate the Info manuals (only if you are building out of Bazaar,
-     and if you have makeinfo.exe installed):
-
-     make info
-
-     (change "make" to "nmake" if you use MSVC).
-
-  5. Install the produced binaries:
-
-     make install
+       make install prefix=/where/ever/you/want
 
   That's it!
 
   If these short instructions somehow fail, read the rest of this
   file.
 
-* Preliminaries
+* Installing MinGW and MSYS
 
-  If you want to build a Cygwin port of Emacs, use the instructions in
-  the INSTALL file in the main Emacs directory (the parent of this
-  directory).  These instructions are for building a native Windows
-  binary of Emacs.
+  Make sure you carefully read the following two sections in their
+  entirety and install/configure the various packages as instructed.
+  A correct installation makes all the rest almost trivial; a botched
+  installation will likely make you miserable for quite some time.
 
-  If you used WinZip to unpack the distribution, we suggest to
-  remove the files and unpack again with a different program!
-  WinZip is known to create some subtle and hard to debug problems,
-  such as converting files to DOS CR-LF format, not creating empty
-  directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
-  site.  For modern formats, such as .tar.xz, we suggest bsdtar.exe
-  from the libarchive package; its precompiled Windows binaries are
-  available from this site:
+  There are two alternative to installing MinGW + MSYS: using the GUI
+  installer, called mingw-get, provided by the MinGW project, or
+  manual installation.  The next two sections describe each one of
+  these.
+
+** Installing MinGW and MSYS using mingw-get
+
+  A nice installer, called mingw-get, is available for those who don't
+  like to mess with manual installations.  You can download it from
+  here:
+
+    https://sourceforge.net/projects/mingw/files/Installer/mingw-get/
+
+  (This installer only supports packages downloaded from the MinGW
+  site; for the rest you will still need the manual method.)
+
+  After installing mingw-get, invoke it to install the packages that
+  are already selected by default on the "Select Components" screen of
+  its wizard.
+
+  After that, use "mingw-get install PACKAGE" to install the following
+  additional packages:
+
+   . msys-base
+   . mingw-developer-toolkit
+
+  (We recommend that you refrain from installing the MSYS Texinfo
+  package, which is part of msys-base, because it might produce mixed
+  EOL format when installing Info files.  Instead, install the MinGW
+  port of Texinfo, see the ezwinports URL below.  To uninstall the
+  MSYS Texinfo, after installing it as part of msys-base, invoke the
+  command "mingw-get remove msys-texinfo".)
+
+  At this point, you should be ready to configure and build Emacs in
+  its basic configuration.  Skip to the "Generating the configure
+  script" section for the build instructions.  If you want to build it
+  with image support and other optional libraries, read about the
+  optional libraries near the end of this document, before you start
+  the build.  Also, consider installing additional MinGW packages that
+  are required/recommended, especially if you are building from the
+  Bazaar repository, as described in the next section.
+
+** Installing MinGW and MSYS manually
+
+*** MinGW
+
+  You will need to install the MinGW port of GCC and Binutils, and the
+  MinGW runtime and Windows API distributions, to compile Emacs.  You
+  can find these on the MinGW download/Base page:
+
+    https://sourceforge.net/projects/mingw/files/MinGW/Base/
+
+  In general, install the latest stable versions of the following
+  MinGW packages from that page: gcc, binutils, mingw-rt, w32api.  You
+  only need the 'bin' and the 'dll' tarballs of each of the above.
+
+  MinGW packages are distributed as .tar.lzma compressed archives.  To
+  install the packages manually, we recommend to use the Windows port
+  of the 'bsdtar' program to unpack the tarballs.  'bsdtar' is
+  available as part of the 'libarchive' package from here:
 
     http://sourceforge.net/projects/ezwinports/files/
 
-  In addition to this file, if you build a development snapshot, you
-  should also read INSTALL.BZR in the parent directory.
+  The recommended place to install these packages is a single tree
+  starting from some directory on a drive other than the system drive
+  C:.  A typical example would be D:\usr, with D:\usr\bin holding the
+  binaries and DLLs (should be added to your Path environment
+  variable), D:\usr\include holding the include files, D:\usr\lib
+  holding the static and import libraries, D:\usr\share holding docs,
+  message catalogs, and package-specific subdirectories, etc.
 
-* Supported development environments
+  Having all the headers and libraries in a single place will greatly
+  reduce the number of -I and -L flags you will have to pass to the
+  configure script (see below), as these files will be right where the
+  compiler expects them.
 
-  To compile Emacs, you will need either Microsoft Visual C++ 2.0, or
-  later and nmake, or a Windows port of GCC 2.95 or later with MinGW
-  and Windows API support and a port of GNU Make.  You can use the Cygwin
-  ports of GCC, but Emacs requires the MinGW headers and libraries to
-  build (latest versions of the Cygwin toolkit, at least since v1.3.3,
-  include the MinGW headers and libraries as an integral part).
+  We specifically do NOT recommend installing packages below
+  "C:\Program Files" or "C:\Program Files (x86)".  These directories
+  are protected on versions of Windows from Vista and on, and you will
+  have difficulties updating and maintaining your installation later,
+  due to UAC elevation prompts, file virtualization, etc.  You *have*
+  been warned!
 
-  The rest of this file assumes you have a working development
-  environment.  If you just installed such an environment, try
-  building a trivial C "Hello world" program, and see if it works.  If
-  it doesn't work, resolve that problem first!  If you use Microsoft
-  Visual Studio .NET 2003, don't forget to run the VCVARS32.BAT batch
-  file from the `Bin' subdirectory of the directory where you have
-  installed VS.NET.  With other versions of MSVC, run the SetEnv.cmd
-  batch file from the `Bin' subdirectory of the directory where you
-  have the SDK installed.
+  Additional MinGW packages are required/recommended, especially if
+  you are building from the Bazaar repository:
 
-  If you use the MinGW port of GCC and GNU Make to build Emacs, there
-  are some compatibility issues wrt Make and the shell that is run by
-  Make, either the standard COMMAND.COM/CMD.EXE supplied with Windows
-  or sh.exe, a port of a Unixy shell.  For reference, below is a list
-  of which builds of GNU Make are known to work or not, and whether
-  they work in the presence and/or absence of sh.exe, the Cygwin port
-  of Bash.  Note that any version of Make that is compiled with Cygwin
-  will only work with Cygwin tools, due to the use of Cygwin style
-  paths.  This means Cygwin Make is unsuitable for building parts of
-  Emacs that need to invoke Emacs itself (leim and "make bootstrap",
-  for example).  Also see the Trouble-shooting section below if you
-  decide to go ahead and use Cygwin make.
+   . Texinfo (needed to produce the Info manuals when building from
+     bzr, and for "make install")
 
-  In addition, using 4NT or TCC as your shell is known to fail the
-  build process, at least since 4NT version 3.01.  Use CMD.EXE, the
-  default Windows shell, instead.  MSYS sh.exe also appears to cause
-  various problems, e.g., it is known to cause failures in commands
-  like "cmd /c FOO" in the Makefiles, because it thinks "/c" is a
-  Unix-style file name that needs conversion to the Windows format.
-  If you have MSYS installed, try "make SHELL=cmd.exe" to force the
-  use of cmd.exe instead of the MSYS sh.exe.
+     Available from http://sourceforge.net/projects/ezwinports/files/.
 
-                                         sh exists     no sh
+   . gzip (needed to compress files during "make install")
 
-    cygwin b20.1 make (3.75):            fails[1, 5]   fails[2, 5]
-    MSVC compiled gmake 3.77:            okay          okay
-    MSVC compiled gmake 3.78.1:          okay          okay
-    MSVC compiled gmake 3.79.1:          okay          okay
-    mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
-    cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
-    cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
-    cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
-    cygwin compiled make 3.80:           okay[6]       fails?[7]
-    cygwin compiled make 3.81:           fails         fails?[7]
-    mingw32 compiled make 3.79.1:        okay          okay
-    mingw32 compiled make 3.80:          okay          okay[7]
-    mingw32 compiled make 3.81:          okay          okay[8]
+     Available from http://gnuwin32.sourceforge.net/packages/gzip.htm.
 
-  Notes:
+   . pkg-config (needed for building with some optional libraries,
+     such as GnuTLS and libxml2)
 
-    [1] doesn't cope with makefiles with DOS line endings, so must mount
-        emacs source with text!=binary.
-    [2] fails when needs to invoke shell commands; okay invoking gcc etc.
-    [3] requires LC_MESSAGES support to build; cannot build with early
-        versions of Cygwin.
-    [4] may fail on Windows 9X and Windows ME; if so, install Bash.
-    [5] fails when building leim due to the use of cygwin style paths.
-        May work if building emacs without leim.
-    [6] need to uncomment 3 lines in nt/gmake.defs that invoke `cygpath'
-    	(look for "cygpath" near line 85 of gmake.defs).
-    [7] not recommended; please report if you try this combination.
-    [8] tested only on Windows XP.
+     Available from http://www.gtk.org/download/win32.php
 
-  Other compilers may work, but specific reports from people that have
-  tried suggest that the Intel C compiler (for example) may produce an
-  Emacs executable with strange filename completion behavior.  Unless
-  you would like to assist by finding and fixing the cause of any bugs
-  like this, we recommend the use of the supported compilers mentioned
-  in the previous paragraph.
+  Each package might list other packages as prerequisites on its
+  download page (under "Runtime requirements"); download those as
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
 
-  You will also need a copy of the POSIX cp, rm and mv programs.  These
-  and other useful POSIX utilities can be obtained from one of several
-  projects:
+  Once you think you have MinGW installed, test the installation by
+  building a trivial "hello, world!" program, and make sure that it
+  builds without any error messages and the binary works when run.
 
-  * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
-  * http://www.mingw.org/                         ( MinGW    )
-  * http://www.cygwin.com/                        ( Cygwin   )
-  * http://unxutils.sourceforge.net/              ( UnxUtils )
+*** MSYS
 
-  If you build Emacs on 16-bit versions of Windows (9X or ME), we
-  suggest to install the Cygwin port of Bash.  That is because the
-  native Windows shell COMMAND.COM is too limited; the Emacs build
-  procedure tries very hard to support even such limited shells, but
-  as none of the Windows developers of Emacs work on Windows 9X, we
-  cannot guarantee that it works without a more powerful shell.
+  You will need a reasonably full MSYS installation.  MSYS is an
+  environment needed to run the Posix configure scripts and the
+  resulting Makefile's, in order to produce native Windows binaries
+  using the MinGW compiler and runtime libraries.  Here's the list of
+  MSYS packages that are required:
 
-  Additional instructions and help for building Emacs on Windows can be
-  found at the Emacs Wiki:
+   . All the packages from the MSYS Base distribution, listed here:
 
-    http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
+     https://sourceforge.net/projects/mingw/files/MSYS/Base/
 
-  and on these URLs:
+   . Additional packages listed below, from the MSYS Extension
+     distribution here:
 
-    http://ourcomments.org/Emacs/w32-build-emacs.html
-    http://derekslager.com/blog/posts/2007/01/emacs-hack-3-compile-emacs-from-cvs-on-windows.ashx
+     https://sourceforge.net/projects/mingw/files/MSYS/Extension/
 
-  Both of those pages were written before Emacs switched from CVS to
-  Bazaar, but the parts about building Emacs still apply in Bazaar.
-  The second URL has instructions for building with MSVC, as well as
-  with MinGW, while the first URL covers only MinGW, but has more
-  details about it.
+      - flex
+      - bison
+      - m4
+      - perl
+      - mktemp
 
-* Configuring
+     These should only be needed if you intend to build development
+     versions of Emacs from the Bazaar repository.
 
-  Configuration of Emacs is now handled by running configure.bat in the
-  `nt' subdirectory.  It will detect which compiler you have available,
-  and generate makefiles accordingly.  You can override the compiler
-  detection, and control optimization and debug settings, by specifying
-  options on the command line when invoking configure.
+   . Additional packages (needed only if building from the Bazaar
+     repository): Automake and Autoconf.  They are available from
+     here:
 
-  To configure Emacs to build with GCC or MSVC, whichever is available,
-  simply change to the `nt' subdirectory and run `configure.bat' with no
-  options.  To see what options are available, run `configure --help'.
-  Do NOT use the --no-debug option to configure.bat unless you are
-  absolutely sure the produced binaries will never need to be run under
-  a debugger.
+       http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
+       http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
 
-  Because of limitations of the stock Windows command shells, special
-  care is needed to pass some characters in the arguments of the
-  --cflags and --ldflags options.  Backslashes should not be used in
-  file names passed to the compiler and linker via these options.  Use
-  forward slashes instead.  If the arguments to these two options
-  include the `=' character, like when passing a -DFOO=bar preprocessor
-  option, the argument with the `=' character should be enclosed in
-  quotes, like this:
+  MSYS packages are distributed as .tar.lzma compressed archives.  To
+  install the packages manually, we recommend to use the Windows port
+  of the 'bsdtar' program, already mentioned above.
 
-    configure --cflags "-DFOO=bar"
+  If/when you are confident in your MinGW/MSYS installation, and want
+  to speed up the builds, we recommend installing a pre-release
+  version of Make from here:
 
-  Support for options that include the `=' character require "command
-  extensions" to be enabled.  (They are enabled by default, but your
-  system administrator could have changed that.  See "cmd /?" for
-  details.)  If command extensions are disabled, a warning message might
-  be displayed informing you that "using parameters that include the =
-  character by enclosing them in quotes will not be supported."
+     https://sourceforge.net/projects/mingwbuilds/files/external-binary-packages/
 
-  You may also use the --cflags and --ldflags options to pass
-  additional parameters to the compiler and linker, respectively; they
-  are frequently used to pass -I and -L flags to specify supplementary
-  include and library directories.  If a directory name includes
-  spaces, you will need to enclose it in quotes, as follows
-  -I"C:/Program Files/GnuTLS-2.10.1/include".  Note that only the
-  directory name is enclosed in quotes, not the entire argument.  Also
-  note that this functionality is only supported if command extensions
-  are available.  If command extensions are disabled and you attempt to
-  use this functionality you may see the following warning message
-  "Error in --cflags argument: ... Backslashes and quotes cannot be
-  used with --cflags.  Please use forward slashes for filenames and
-  paths (e.g. when passing directories to -I)."
+  These are snapshot builds of many packages, but you only need
+  make.exe from there.  The advantage of this make.exe is that it
+  supports parallel builds, so you can use "make -j N" to considerably
+  speed up your builds.
 
-  N.B.  It is normal to see a few error messages output while configure
-  is running, when gcc support is being tested.  These cannot be
-  suppressed because of limitations in the Windows 9X command.com shell.
+  Several users reported that MSYS 1.0.18 causes Make to hang in
+  parallel builds.  If you bump into this, we suggest to downgrade to
+  MSYS 1.0.17, which doesn't have that problem.
 
-  You are encouraged to look at the file config.log which shows details
-  for failed tests, after configure.bat finishes.  Any unexplained failure
-  should be investigated and perhaps reported as a bug (see the section
-  about reporting bugs in the file README in this directory and in the
-  Emacs manual).
+  For each of these packages, install the 'bin' and 'dll' tarballs of
+  their latest stable releases.  If there's an 'ext' tarball (e.g.,
+  msysCORE and Coreutils have it), download and install those as well.
+
+  Each package might list other packages as prerequisites on its
+  download page (under "Runtime requirements"); download those as
+  well.  (Using the mingw-get installer will fetch those prerequisites
+  automatically for you.)  A missing prerequisite will manifest itself
+  by the program failing to run and presenting a pop-up dialog that
+  states the missing or incompatible DLL; be sure to find and install
+  these missing DLLs.
+
+  MSYS packages should be installed in a separate tree from MinGW.
+  For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
+  from which you unpack all of the MSYS packages.
+
+  Do NOT add the MSYS bin directory to your Windows Path!  Only the
+  MinGW bin directory should be on Path.  When you install MSYS, it
+  creates a shortcut on your desktop that invokes the MSYS Bash shell
+  in a Command Prompt window; that shell is already set up so that the
+  MSYS bin directory is on PATH ahead of any other directory.  Thus,
+  Bash will find MSYS executables first, which is exactly what you
+  need.
+
+  At this point, you are ready to build Emacs in its basic
+  configuration.  If you want to build it with image support and other
+  optional libraries, read about that near the end of this document.
+
+* Generating the configure script
+
+  If you are building a release or pretest tarball, skip this section,
+  because the configure script is already present in the tarball.
+
+  To build a development snapshot from the Emacs Bazaar repository,
+  you will first need to generate the configure script and a few other
+  auto-generated files.  (If this step, described below, somehow
+  fails, you can use the files in the autogen/ directory instead, but
+  they might be outdated, and, most importantly, you are well advised
+  not to disregard any failures in your local build procedures, as
+  these are likely to be symptoms of incorrect installation that will
+  bite you down the road.)
+
+  To generate the configure script, type this at the MSYS Bash prompt
+  from the top-level directory of the Emacs tree:
+
+     ./autogen.sh
+
+  If successful, this command should produce the following output:
+
+     $ ./autogen.sh
+     Checking whether you have the necessary tools...
+     (Read INSTALL.BZR for more details on building Emacs)
+
+     Checking for autoconf (need at least version 2.65)...
+     ok
+     Checking for automake (need at least version 1.11)...
+     ok
+     Your system has the required tools, running autoreconf...
+     You can now run `./configure'.
+
+* Configuring Emacs for MinGW:
+
+  Now it's time to run the configure script.  You can do that either
+  from a separate build directory that is outside of the Emacs source
+  tree (recommended), or from inside the source tree.  The former is
+  recommended because it allows you to have several different builds,
+  e.g., an optimized build and an unoptimized one, of the same
+  revision of the source tree; the source tree will be left in its
+  pristine state, without any build products.
+
+  You invoke the configure script like this:
+
+     /PATH/TO/EMACS/SOURCE/TREE/nt/msysconfig.sh --prefix=PREFIX ...
+
+  or, if you are building in-place, i.e. inside the source tree:
+
+     ./nt/msysconfig.sh --prefix=PREFIX ...
+
+  Here PREFIX is the place where you eventually want to install Emacs
+  once built, e.g. /d/usr.  We recommend to always use --prefix when
+  building Emacs on Windows, because the default '/usr/local' is not
+  appropriate for Windows: it will be mapped by MSYS to something like
+  C:\MSYS\local, and it will defeat the purpose of PREFIX, which is to
+  install programs in a single coherent tree resembling Posix systems.
+  Such a single-tree installation makes sure all the other programs
+  and packages ported from GNU or Unix systems will work seamlessly
+  together.  Where exactly is the root of that tree on your system is
+  something only you, the user who builds Emacs, can know, and the
+  Emacs build process cannot guess, because usually there's no
+  '/usr/local' directory on any drive on Windows systems.
+
+  Do NOT use Windows-style x:/foo/bar file names on the configure
+  script command line; use the MSYS-style /x/foo/bar instead.  Using
+  Windows-style file names was reported to cause subtle and hard to
+  figure out problems during the build.  This applies both to the
+  command switches, such as --prefix=, and to the absolute file name
+  of msysconfig.sh, if you are building outside of the source tree.
+
+  You can pass additional options to the configure script, for the
+  full list type
+
+     ./nt/msysconfig.sh --help
+
+  As explained in the help text, you may need to tell the script what
+  are the optional flags to invoke the compiler.  This is needed if
+  some of your headers and libraries, e.g., those belonging to
+  optional image libraries, are installed in places where the compiler
+  normally doesn't look for them.  (Remember that advice above to
+  avoid such situations? here's is where you will start paying for
+  disregarding that recommendation.)  For example, if you have libpng
+  headers in C:\emacs\libs\libpng-1.2.37-lib\include and jpeg library
+  headers in C:\emacs\libs\jpeg-6b-4-lib\include, you will need to say
+  something like this:
+
+    CPPFLAGS='-I/c/emacs/libs/libpng-1.2.37-lib/include -I/c/emacs/libs/jpeg-6b-4-lib/include' ./nt/msysconfig.sh --prefix=PREFIX
+
+  which is quite a mouth-full, especially if you have more directories
+  to specify...  Perhaps you may wish to revisit your installation
+  decisions now.
+
+  If you have a global site-lisp directory from previous Emacs
+  installation, and you want Emacs to continue using it, specify it
+  via the --enable-locallisppath switch to msysconfig.sh, like this:
+
+   ./nt/msysconfig.sh --prefix=PREFIX --enable-locallisppath="/d/usr/share/emacs/VERSION/site-lisp:/d/wherever/site-lisp"
+
+  Use the normal MSYS /d/foo/bar style to specify directories by their
+  absolute file names.
+
+  A few frequently used options are needed when you want to produce an
+  unoptimized binary with runtime checks enabled:
+
+     CPPFLAGS='-DGLYPH_DEBUG=1' CFLAGS='-O0 -g3' ./nt/msysconfig.sh --prefix=PREFIX --enable-checking
+
+  Once invoked, the configure script will run for some time, and, if
+  successful, will eventually produce a summary of the configuration
+  like this:
+
+     Configured for `i686-pc-mingw32'.
+
+       Where should the build process find the source code?    /path/to/emacs/sources
+       What compiler should emacs be built with?               gcc  -std=gnu99 -O0 -g3
+       Should Emacs use the GNU version of malloc?             yes
+       Should Emacs use a relocating allocator for buffers?    yes
+       Should Emacs use mmap(2) for buffer allocation?         no
+       What window system should Emacs use?                    w32
+       What toolkit should Emacs use?                          none
+       Where do we find X Windows header files?                NONE
+       Where do we find X Windows libraries?                   NONE
+       Does Emacs use -lXaw3d?                                 no
+       Does Emacs use -lXpm?                                   yes
+       Does Emacs use -ljpeg?                                  yes
+       Does Emacs use -ltiff?                                  yes
+       Does Emacs use a gif library?                           yes
+       Does Emacs use -lpng?                                   yes
+       Does Emacs use -lrsvg-2?                                no
+       Does Emacs use imagemagick?                             no
+       Does Emacs use -lgpm?                                   no
+       Does Emacs use -ldbus?                                  no
+       Does Emacs use -lgconf?                                 no
+       Does Emacs use GSettings?                               no
+       Does Emacs use -lselinux?                               no
+       Does Emacs use -lgnutls?                                yes
+       Does Emacs use -lxml2?                                  yes
+       Does Emacs use -lfreetype?                              no
+       Does Emacs use -lm17n-flt?                              no
+       Does Emacs use -lotf?                                   no
+       Does Emacs use -lxft?                                   no
+       Does Emacs use toolkit scroll bars?                     yes
+
+  You are almost there, hang on.
+
+  If the output is significantly different, or if configure finishes
+  prematurely and displays some error message, you should examine the
+  configuration log in config.log and find the reason for the failure.
+
+  Once you succeeded in configuring Emacs, and just want to rebuild it
+  after updating your local repository from the main repository, you
+  don't need to re-run the configure script manually, unless you want
+  to change the configure-time options.  Just typing "make" will
+  re-run configure if necessary with the exact same options you
+  specified originally, and then go on to invoking Make, described
+  below.
+
+* Running Make.
+
+  This is simple: just type "make" and sit back, watching the fun.
+
+  If you  installed a snapshot build  of Make, the build  will be much
+  faster if  you type "make  -j N" instead, where  N is the  number of
+  independent processing  units on your  machine.  E.g., on a  core i7
+  system try using  N of 6 or  even 8.  (If this hangs,  see the notes
+  above about downgrading to MSYS 1.0.17.)
+
+  When Make finishes, you can install the produced binaries:
+
+    make install
+
+  or, if you want the installed tree to go in a place different from
+  the configured one, type
+
+    make install prefix=WHEREVER
+
+  Congrats!  You have built and installed your own Emacs!
+
+* Make targets
+
+  The following make targets may be used by users building the source
+  distribution, or users who have checked out of Bazaar after
+  an initial bootstrapping.
+
+  make
+  Builds Emacs from the available sources and pre-compiled lisp files.
+
+  make install
+  Installs the built programs and the auxiliary files.
+
+  make clean
+  Removes object and executable files produced by the build process in
+  the current configuration.  After "make clean", you can rebuild with
+  the same configuration using make.  useful when you want to be sure
+  that all of the products are built from coherent sources.
+
+  make distclean
+  In addition to the files removed by make clean, this also removes
+  Makefiles and other generated files to get back to the state of a
+  freshly unpacked source distribution.  After make distclean, it is
+  necessary to run the configure script followed by "make", in order
+  to rebuild.
+
+  The following targets are intended only for use with the Bazaar sources.
+
+  make bootstrap
+  Removes all the auto-generated files and all the *.elc byte-compiled
+  files, and builds Emacs from scratch.  Useful when some change in
+  basic Emacs functionality makes byte compilation of updated files
+  fail.
+
+  make maintainer-clean
+  Removes everything that can be recreated, including compiled Lisp
+  files, to get back to the state of a fresh Bazaar tree.  After make
+  maintainer-clean, it is necessary to run configure and "make" or
+  "make bootstrap" to rebuild.  Occasionally it may be necessary to
+  run this target after an update.
 
 * Optional image library support
 
@@ -301,19 +498,28 @@
   support for svg.
 
   To build Emacs with support for them, the corresponding headers must
-  be in the include path when the configure script is run.  This can
-  be setup using environment variables, or by specifying --cflags
-  -I... options on the command-line to configure.bat.  The configure
-  script will report whether it was able to detect the headers.  If
-  the results of this testing appear to be incorrect, please look for
+  be in the include path and libraries should be where the linker
+  looks for them, when the configure script is run.  If needed, this
+  can be set up using the CPPFLAGS and CFLAGS variable specified on
+  the configure command line.  The configure script will report
+  whether it was able to detect the headers and libraries.  If the
+  results of this testing appear to be incorrect, please look for
   details in the file config.log: it will show the failed test
   programs and compiler error messages that should explain what is
   wrong.  (Usually, any such failures happen because some headers are
   missing due to bad packaging of the image support libraries.)
 
   Note that any file path passed to the compiler or linker must use
-  forward slashes; using backslashes will cause compiler warnings or
-  errors about unrecognized escape sequences.
+  forward slashes, or double each backslash, as that is how Bash
+  works.
+
+  If the configure script finds the necessary headers and libraries,
+  but they are for some reason incompatible, or if you want to omit
+  support for some image library that is installed on your system for
+  some other reason, use the --without-PACKAGE option to configure,
+  such as --without-gif to omit GIF, --without-tiff to omit TIFF, etc.
+  Passing the --help option to the configure script displays all of
+  the supported --without-PACKAGE options.
 
   To use the external image support, the DLLs implementing the
   functionality must be found when Emacs first needs them, either on the
@@ -331,19 +537,12 @@
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  PNG, JPEG and TIFF libraries are also
-  included with GTK, which is installed along with other Free Software
-  that requires it.  These are built with MinGW, but they can be used
-  with both GCC/MinGW and MSVC builds of Emacs.  See the info on
-  http://ourcomments.org/Emacs/w32-build-emacs.html, under "How to Get
-  Images Support", for more details about installing image support
-  libraries.  Note specifically that, due to some packaging snafus in
-  the GnuWin32-supplied image libraries, you will need to download
+  the GnuWin32 project.  The PNG libraries are also included with GTK,
+  which is installed along with other Free Software that requires it.
+  Note specifically that, due to some packaging snafus in the
+  GnuWin32-supplied image libraries, you will need to download
   _source_ packages for some of the libraries in order to get the
   header files necessary for building Emacs with image support.
-
-  If GTK 2.0 is installed, addpm will arrange for its image libraries
-  to be on the DLL search path for Emacs.
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
@@ -364,9 +563,19 @@
 
 * Optional GnuTLS support
 
-  If configure.bat finds the gnutls/gnutls.h file in the include path,
-  Emacs is built with GnuTLS support by default; to avoid that you can
-  pass the argument --without-gnutls.
+  To compile with GnuTLS, you will need pkg-config to be installed, as
+  the configure script invokes pkg-config to find out which compiler
+  switches to use for GnuTLS.  See above for the URL where you can
+  find pkg-config for Windows.
+
+  You will also need to install the p11-kit package, which is a
+  dependency of GnuTLS, and its header files are needed for
+  compilation of programs that use GnuTLS.  You can find p11-kit on
+  the same site as GnuTLS, see the URL below.
+
+  If the configure script finds the GnuTLS header files and libraries
+  on your system, Emacs is built with GnuTLS support by default; to
+  avoid that you can pass the argument --without-gnutls.
 
   In order to support GnuTLS at runtime, a GnuTLS-enabled Emacs must
   be able to find the relevant DLLs during startup; failure to do so
@@ -378,9 +587,14 @@
 
 * Optional libxml2 support
 
-  If configure.bat finds the libxml/HTMLparser.h file in the include path,
-  Emacs is built with libxml2 support by default; to avoid that you can
-  pass the argument --without-libxml2.
+  To compile with libxml2, you will need pkg-config to be installed,
+  as the configure script invokes pkg-config to find out which
+  compiler switches to use for libxml2.  See above for the URL where
+  you can find pkg-config for Windows.
+
+  If the configure script finds the libxml2 header files and libraries
+  on your system, Emacs is built with libxml2 support by default; to
+  avoid that you can pass the argument --without-libxml2.
 
   In order to support libxml2 at runtime, a libxml2-enabled Emacs must
   be able to find the relevant DLLs during startup; failure to do so
@@ -392,18 +606,10 @@
 
      http://sourceforge.net/projects/ezwinports/files/
 
-  To compile Emacs with libxml2 from that site, you will need to pass
-  the "--cflags -I/path/to/include/libxml2" option to configure.bat,
-  because libxml2 header files are installed in the include/libxml2
-  subdirectory of the directory where you unzip the binary
-  distribution.  Other binary distributions might use other
-  directories, although include/libxml2 is the canonical place where
-  libxml2 headers are installed on Posix platforms.
-
-  You will also need to install the libiconv "development" tarball,
-  because the libiconv headers need to be available to the compiler
-  when you compile with libxml2 support.  A MinGW port of libiconv can
-  be found on the MinGW site:
+  For runtime support of libxml2, you will also need to install the
+  libiconv "development" tarball, because the libiconv headers need to
+  be available to the compiler when you compile with libxml2 support.
+  A MinGW port of libiconv can be found on the MinGW site:
 
    http://sourceforge.net/projects/mingw/files/MinGW/Base/libiconv/
 
@@ -412,16 +618,18 @@
 
 * Experimental SVG support
 
+  To compile with SVG, you will need pkg-config to be installed, as
+  the configure script invokes pkg-config to find out which compiler
+  switches to use for SVG.  See above for the URL where you can find
+  pkg-config for Windows.
+
   SVG support is currently experimental, and not built by default.
-  Specify --with-svg and ensure you have all the dependencies in your
+  Specify --with-rsvg and ensure you have all the dependencies in your
   include path.  Unless you have built a minimalist librsvg yourself
   (untested), librsvg depends on a significant chunk of GTK+ to build,
   plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime.  The
   easiest way to obtain the dependencies required for building is to
   download a pre-bundled GTK+ development environment for Windows.
-  GTK puts its header files all over the place, so you will need to
-  run pkgconfig to list the include path you will need (either passed
-  to configure.bat as --cflags options, or set in the environment).
 
   To use librsvg at runtime, ensure that librsvg and its dependencies
   are on your PATH.  If you didn't build librsvg yourself, you will
@@ -444,294 +652,6 @@
   text, they seem to be a problem in the Windows port of Pango, or
   maybe a problem with the way Cairo or librsvg is using it that
   doesn't show up on other platforms.
-
-* Optional extra runtime checks
-
-  The configure.bat option --enable-checking builds Emacs with some
-  optional extra runtime checks and assertions enabled.  This may be
-  useful for debugging.
-
-* Optional extra libraries
-
-  You can pass --lib LIBNAME option to configure.bat to cause Emacs to
-  link with the specified library.  You can use this option more than once.
-
-* Building
-
-  After running configure, simply run the appropriate `make' program for
-  your compiler to build Emacs.  For MSVC, this is nmake; for GCC, it is
-  GNU make.  (If you are building out of Bazaar, say "make bootstrap" or
-  "nmake bootstrap" instead.)
-
-  As the files are compiled, you will see some warning messages
-  declaring that some functions don't return a value, or that some data
-  conversions will be lossy, etc.  You can safely ignore these messages.
-  The warnings may be fixed in the main FSF source at some point, but
-  until then we will just live with them.
-
-  With GNU Make, you can use the -j command-line option to have Make
-  execute several commands at once, like this:
-
-    gmake -j 4 XMFLAGS="-j 3"
-
-  The XMFLAGS variable overrides the default behavior of GNU Make on
-  Windows, whereby recursive Make invocations reset the maximum number
-  of simultaneous commands to 1.  The above command allows up to 4
-  simultaneous commands at once in the top-level Make, and up to 3 in
-  each one of the recursive Make's; you can use other numbers of jobs,
-  if you wish.
-
-  If you are building from Bazaar, the following commands will produce
-  the Info manuals (which are not part of the Bazaar sources):
-
-    make info
-  or
-    nmake info
-
-  Note that you will need makeinfo.exe (from the GNU Texinfo package)
-  in order for this command to succeed.
-
-* Installing
-
-  To install Emacs after it has compiled, simply run `nmake install'
-  or `make install', depending on which version of the Make utility
-  do you have.
-
-  By default, Emacs will be installed in the location where it was
-  built, but a different location can be specified either using the
-  --prefix option to configure, or by setting INSTALL_DIR when running
-  make, like so:
-
-     make install INSTALL_DIR=D:/emacs
-
-  (for `nmake', type "nmake install INSTALL_DIR=D:/emacs" instead).
-
-  The install process will run addpm to setup the registry entries, and
-  to create a Start menu icon for Emacs.
-
-* Make targets
-
-  The following make targets may be used by users building the source
-  distribution, or users who have checked out of Bazaar after
-  an initial bootstrapping.
-
-  make
-  Builds Emacs from the available sources and pre-compiled lisp files.
-
-  make install
-  Installs programs to the bin directory, and runs addpm to create
-  Start Menu icons.
-
-  make clean
-  Removes object and executable files produced by the build process in
-  the current configuration.  After make clean, you can rebuild with
-  the same configuration using make.
-
-  make distclean
-  In addition to the files removed by make clean, this also removes
-  Makefiles and other generated files to get back to the state of a
-  freshly unpacked source distribution.  Note that this will not remove
-  installed files, or the results of builds performed with different
-  compiler or optimization options than the current configuration.
-  After make distclean, it is necessary to run configure.bat followed
-  by make to rebuild.
-
-  make cleanall
-  Removes object and executable files that may have been created by
-  previous builds with different configure options, in addition to
-  the files produced by the current configuration.
-
-  make realclean
-  Removes the installed files in the bin subdirectory in addition to
-  the files removed by make cleanall.
-
-  make dist
-  Builds Emacs from the available sources and pre-compiled lisp files.
-  Packages Emacs binaries as full distribution and barebin distribution.
-
-  The following targets are intended only for use with the Bazaar sources.
-
-  make bootstrap
-  Creates a temporary emacs binary with lisp source files and
-  uses it to compile the lisp files.  Once the lisp files are built,
-  emacs is redumped with the compiled lisp.
-
-  make recompile
-  Recompiles any changed lisp files after an update.  This saves
-  doing a full bootstrap after every update.  If this or a subsequent
-  make fail, you probably need to perform a full bootstrap, though
-  running this target multiple times may eventually sort out the
-  interdependencies.
-
-  make maintainer-clean
-  Removes everything that can be recreated, including compiled lisp
-  files, to get back to the state of a fresh Bazaar tree.  After make
-  maintainer-clean, it is necessary to run configure.bat and make
-  bootstrap to rebuild.  Occasionally it may be necessary to run this
-  target after an update.
-
-* Creating binary distributions
-
-  Binary distributions (full and barebin distributions) can be
-  automatically built and packaged from source tarballs or a bzr
-  checkout.
-
-  When building Emacs binary distributions, the --distfiles argument
-  to configure.bat specifies files to be included in the bin directory
-  of the binary distributions. This is intended for libraries that are
-  not built as part of Emacs, e.g. image libraries.
-
-  For example, specifying
-
-	--distfiles D:\distfiles\libXpm.dll
-
-  results in libXpm.dll being copied from D:\distfiles to the
-  bin directory before packaging starts.
-
-  Multiple files can be specified using multiple --distfiles arguments:
-
-	--distfiles D:\distfiles\libXpm.dll --distfiles C:\jpeglib\jpeg.dll
-
-  For packaging the binary distributions, the 'dist' make target uses
-  7-Zip (http://www.7-zip.org), which must be installed and available
-  on the Windows Path.
-
-
-* Trouble-shooting
-
-  The main problems that are likely to be encountered when building
-  Emacs stem from using an old version of GCC, or old MinGW or Windows API
-  headers.  Additionally, Cygwin ports of GNU make may require the Emacs
-  source tree to be mounted with text!=binary, because the makefiles
-  generated by configure.bat necessarily use DOS line endings.  Also,
-  Cygwin ports of make must run in UNIX mode, either by specifying
-  --unix on the command line, or MAKE_MODE=UNIX in the environment.
-
-  When configure runs, it attempts to detect when GCC itself, or the
-  headers it is using, are not suitable for building Emacs.  GCC version
-  2.95 or later is needed, because that is when the Windows port gained
-  sufficient support for anonymous structs and unions to cope with some
-  definitions from winnt.h that are used by addsection.c.
-  Older versions of the Windows API headers that come with Cygwin and MinGW
-  may be missing some definitions required by Emacs, or broken in other
-  ways.  In particular, uniscribe APIs were added to MinGW CVS only on
-  2006-03-26, so releases from before then cannot be used.
-
-  When in doubt about correctness of what configure did, look at the file
-  config.log, which shows all the failed test programs and compiler
-  messages associated with the failures.  If that doesn't give a clue,
-  please report the problems, together with the relevant fragments from
-  config.log, as bugs.
-
-  If configure succeeds, but make fails, install the Cygwin port of
-  Bash, even if the table above indicates that Emacs should be able to
-  build without sh.exe.  (Some versions of Windows shells are too dumb
-  for Makefile's used by Emacs.)
-
-  If you are using certain Cygwin builds of GCC, such as Cygwin version
-  1.1.8, you may need to specify some extra compiler flags like so:
-
-    configure --with-gcc --cflags -mwin32 --cflags -D__MSVCRT__
-      --ldflags -mwin32
-
-  However, the latest Cygwin versions, such as 1.3.3, don't need those
-  switches; you can simply use "configure --with-gcc".
-
-  We will attempt to auto-detect the need for these flags in a future
-  release.
-
-* Debugging
-
-  You should be able to debug Emacs using the debugger that is
-  appropriate for the compiler you used, namely DevStudio or Windbg if
-  compiled with MSVC, or GDB if compiled with GCC.  (GDB for Windows
-  is available from the MinGW site, http://www.mingw.org/download.shtml.)
-
-  When Emacs aborts due to a fatal internal error, Emacs on Windows
-  pops up an Emacs Abort Dialog asking you whether you want to debug
-  Emacs or terminate it.  If Emacs was built with MSVC, click YES
-  twice, and Windbg or the DevStudio debugger will start up
-  automatically.  If Emacs was built with GCC, first start GDB and
-  attach it to the Emacs process with the "gdb -p EMACS-PID" command,
-  where EMACS-PID is the Emacs process ID (which you can see in the
-  Windows Task Manager), type the "continue" command inside GDB, and
-  only then click YES on the abort dialog.  This will pass control to
-  the debugger, and you will be able to debug the cause of the fatal
-  error.
-
-  The single most important thing to find out when Emacs aborts or
-  crashes is where did that happen in the Emacs code.  This is called
-  "backtrace".
-
-  Emacs on Windows uses more than one thread.  When Emacs aborts due
-  to a fatal error, the current thread may not be the application
-  thread running Emacs code.  Therefore, to produce a meaningful
-  backtrace from a debugger, you need to instruct it to show the
-  backtrace for every thread.  With GDB, you do it like this:
-
-   (gdb) thread apply all backtrace
-
-  To run Emacs under a debugger to begin with, simply start it from
-  the debugger.  With GDB, chdir to the `src' directory (if you have
-  the source tree) or to a directory with the `.gdbinit' file (if you
-  don't have the source tree), and type these commands:
-
-    C:\whatever\src> gdb x:\path\to\emacs.exe
-    (gdb) run <ARGUMENTS TO EMACS>
-
-  Thereafter, use Emacs as usual; you can minimize the debugger
-  window, if you like.  The debugger will take control if and when
-  Emacs crashes.
-
-  Emacs functions implemented in C use a naming convention that reflects
-  their names in lisp.  The names of the C routines are the lisp names
-  prefixed with 'F', and with dashes converted to underscores.  For
-  example, the function call-process is implemented in C by
-  Fcall_process.  Similarly, lisp variables are prefixed with 'V', again
-  with dashes converted to underscores.  These conventions enable you to
-  easily set breakpoints or examine familiar lisp variables by name.
-
-  Since Emacs data is often in the form of a lisp object, and the
-  Lisp_Object type is difficult to examine manually in a debugger,
-  Emacs provides a helper routine called debug_print that prints out a
-  readable representation of a Lisp_Object.  If you are using GDB,
-  there is a .gdbinit file in the src directory which provides
-  definitions that are useful for examining lisp objects.  Therefore,
-  the following tips are mainly of interest when using MSVC.
-
-  The output from debug_print is sent to stderr, and to the debugger
-  via the OutputDebugString routine.  The output sent to stderr should
-  be displayed in the console window that was opened when the
-  emacs.exe executable was started.  The output sent to the debugger
-  should be displayed in its "Debug" output window.
-
-  When you are in the process of debugging Emacs and you would like to
-  examine the contents of a Lisp_Object variable, pop up the QuickWatch
-  window (QuickWatch has an eyeglass symbol on its button in the
-  toolbar).  In the text field at the top of the window, enter
-  debug_print(<variable>) and hit return.  For example, start and run
-  Emacs in the debugger until it is waiting for user input.  Then click
-  on the Break button in the debugger to halt execution.  Emacs should
-  halt in ZwUserGetMessage waiting for an input event.  Use the Call
-  Stack window to select the procedure w32_msp_pump up the call stack
-  (see below for why you have to do this).  Open the QuickWatch window
-  and enter debug_print(Vexec_path).  Evaluating this expression will
-  then print out the contents of the lisp variable exec-path.
-
-  If QuickWatch reports that the symbol is unknown, then check the call
-  stack in the Call Stack window.  If the selected frame in the call
-  stack is not an Emacs procedure, then the debugger won't recognize
-  Emacs symbols.  Instead, select a frame that is inside an Emacs
-  procedure and try using debug_print again.
-
-  If QuickWatch invokes debug_print but nothing happens, then check the
-  thread that is selected in the debugger.  If the selected thread is
-  not the last thread to run (the "current" thread), then it cannot be
-  used to execute debug_print.  Use the Debug menu to select the current
-  thread and try using debug_print again.  Note that the debugger halts
-  execution (e.g., due to a breakpoint) in the context of the current
-  thread, so this should only be a problem if you've explicitly switched
-  threads.
 
 
 This file is part of GNU Emacs.

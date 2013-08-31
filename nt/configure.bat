@@ -60,7 +60,7 @@ rem [8] tested only on Windows XP.
 rem
 echo ****************************************************************
 echo *** THIS METHOD OF BUILDING EMACS IS NO LONGER SUPPORTED.     **
-echo *** INSTEAD, FOLLOW THE INSTRUCTIONS FROM INSTALL.MSYS.       **
+echo *** INSTEAD, FOLLOW THE INSTRUCTIONS FROM INSTALL.            **
 echo ****************************************************************
 :confirm_continue
 set /p answer=Continue running this script at your own risks ? (Y/N)
@@ -191,7 +191,7 @@ echo.
 echo. IMPORTANT: This method of building Emacs for MS-Windows is deprecated,
 echo. and could be removed in a future version of Emacs.  The preferred way
 echo  to build Emacs for MS-Windows from now on is using the MSYS environment
-echo. and MinGW development tools.  Please see nt/INSTALL.MSYS for details.
+echo. and MinGW development tools.  Please see nt/INSTALL for details.
 goto end
 
 rem ----------------------------------------------------------------------

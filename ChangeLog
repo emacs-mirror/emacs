@@ -1,3 +1,7 @@
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Update for nt/INSTALL* changes.
+
 2013-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (SHELL): Now @SHELL@, not /bin/sh,
